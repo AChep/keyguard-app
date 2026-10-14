@@ -7,15 +7,31 @@ import com.artemchep.keyguard.crypto.NativeSshKeyImportService
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
 import com.artemchep.keyguard.nativecrypto.NativeCryptoSsh
+import com.artemchep.keyguard.common.model.FileResource
+import com.artemchep.keyguard.common.service.text.TextService
+import com.artemchep.keyguard.common.service.text.readFromFileAsBytes
+import com.artemchep.keyguard.common.util.toHex
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
+import com.artemchep.keyguard.feature.home.vault.add.handleSshKeyFileImport
+import com.artemchep.keyguard.platform.leParseUri
+import kotlinx.coroutines.delay
+import kotlinx.io.Buffer
+import kotlinx.io.Source
 import java.io.ByteArrayOutputStream
 import java.math.BigInteger
 import java.security.KeyPairGenerator
+import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.Signature
 import java.security.interfaces.RSAPrivateCrtKey
 import java.security.interfaces.RSAPublicKey
 import java.util.Base64
+import javax.crypto.Cipher
+import javax.crypto.Mac
+import javax.crypto.spec.IvParameterSpec
+import javax.crypto.spec.SecretKeySpec
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
@@ -187,6 +203,25 @@ class SshKeyImportServiceJvmTest {
     }
 
     @Test
+    fun `unencrypted PuTTY integrity failures reach the application as malformed keys`() {
+        for (version in 1..3) {
+            val document = requireNotNull(
+                javaClass.getResource("/ssh-import-corpus/ppk/v$version-rsa-none.ppk"),
+            ).readText()
+            val withoutMac = document.lineSequence()
+                .filterNot { it.startsWith("Private-MAC:") }
+                .joinToString("\n")
+            val changedComment = document.replace("Comment: ", "Comment: corrupted ")
+            for (content in listOf(withoutMac, changedComment)) {
+                assertEquals(
+                    SshKeyImportResult.Error(SshKeyImportError.MalformedKey),
+                    service.`import`(SshKeyImportRequest(content = content)),
+                )
+            }
+        }
+    }
+
+    @Test
     fun `imported incomplete PuTTY RSA key signs through native crypto`() {
         val sourceKeyPair = generateRsaKeyPair()
         val imported = service.`import`(
@@ -237,6 +272,55 @@ class SshKeyImportServiceJvmTest {
             ),
             type = com.artemchep.keyguard.common.model.KeyPair.Type.ED25519,
         )
+    }
+
+    @Test
+    fun `file import preserves non UTF8 PuTTY comments through passphrase retry`() = kotlinx.coroutines.test.runTest {
+        for ((fixture, passphrase) in listOf(
+            "v1-rsa-none.ppk" to null,
+            "v2-rsa-none.ppk" to null,
+            "v3-rsa-none.ppk" to null,
+            "v2-ed25519-aes256-cbc.ppk" to "123456",
+        )) {
+            val text = requireNotNull(javaClass.getResource("/ssh-import-corpus/ppk/$fixture")).readText()
+            val raw = puttyWithRawComment(text, passphrase)
+            var ownedBytes: ByteArray? = null
+            var imported = false
+            val textService = object : TextService {
+                override suspend fun readFromResources(fileResource: FileResource): Source = error("unused")
+                override fun readFromFile(uri: String): Source = Buffer().apply { write(raw) }
+            }
+            handleSshKeyFileImport(
+                info = FilePickerResult(leParseUri("file:///key.ppk"), fixture, raw.size.toLong()),
+                readBytes = { uri -> textService.readFromFileAsBytes(uri).also { ownedBytes = it } },
+                importSshKey = { request ->
+                    assertContentEquals(raw, request.content)
+                    service.import(request)
+                },
+                onSuccess = { imported = true },
+                onNeedsPassphrase = { result, fileName, content ->
+                    assertEquals("PuTTY", result.formatLabel)
+                    delay(1)
+                    assertContentEquals(raw, content)
+                    assertIs<SshKeyImportResult.Success>(
+                        service.import(SshKeyImportRequest(content, fileName, passphrase)),
+                    )
+                    assertContentEquals(raw, content)
+                    imported = true
+                },
+                onImportError = { error("Unexpected import error: $it") },
+                onReadError = { error("Unexpected read error") },
+            )
+            assertTrue(imported, fixture)
+            assertContentEquals(ByteArray(raw.size), ownedBytes)
+            // The same file after lossy UTF-8 decoding cannot verify its MAC.
+            assertEquals(
+                SshKeyImportResult.Error(
+                    if (passphrase == null) SshKeyImportError.MalformedKey else SshKeyImportError.InvalidPassphrase,
+                ),
+                service.import(SshKeyImportRequest(raw.decodeToString(), fixture, passphrase)),
+            )
+        }
     }
 
     @Test
@@ -317,10 +401,13 @@ class SshKeyImportServiceJvmTest {
     fun `oversized import inputs return the stable resource limit error`() {
         listOf(
             assertFailsWith<NativeCryptoException> {
-                NativeCryptoSsh.importPrivateKey(content = "x".repeat(1024 * 1024 + 1))
+                NativeCryptoSsh.importPrivateKey(content = ByteArray(1024 * 1024 + 1))
             },
             assertFailsWith<NativeCryptoException> {
-                NativeCryptoSsh.importPrivateKey(content = "key", passphrase = "x".repeat(16 * 1024 + 1))
+                NativeCryptoSsh.importPrivateKey(
+                    content = "key".encodeToByteArray(),
+                    passphrase = "x".repeat(16 * 1024 + 1),
+                )
             },
         ).forEach { failure ->
             assertEquals("ssh_private_key_import", failure.operation)
@@ -380,6 +467,52 @@ class SshKeyImportServiceJvmTest {
         return keyPairGenerator.generateKeyPair()
     }
 
+    private fun puttyWithRawComment(document: String, passphrase: String?): ByteArray {
+        val lines = document.lines()
+        fun payload(header: String): ByteArray {
+            val index = lines.indexOfFirst { it.startsWith("$header: ") }
+            val count = lines[index].substringAfter(": ").toInt()
+            return Base64.getDecoder().decode(lines.subList(index + 1, index + 1 + count).joinToString(""))
+        }
+        val public = payload("Public-Lines")
+        var private = payload("Private-Lines")
+        val encrypted = passphrase != null
+        val v3 = document.startsWith("PuTTY-User-Key-File-3:")
+        if (encrypted) {
+            val password = passphrase.encodeToByteArray()
+            val digest = MessageDigest.getInstance("SHA-1")
+            val key = (digest.digest(byteArrayOf(0, 0, 0, 0) + password) +
+                digest.digest(byteArrayOf(0, 0, 0, 1) + password)).copyOf(32)
+            private = Cipher.getInstance("AES/CBC/NoPadding").run {
+                init(Cipher.DECRYPT_MODE, SecretKeySpec(key, "AES"), IvParameterSpec(ByteArray(16)))
+                doFinal(private)
+            }
+        }
+        val comment = byteArrayOf(0x63, 0x61, 0x66, 0xe9.toByte())
+        val mac = puttyMac(
+            v3 = v3,
+            passphrase = passphrase,
+            lines.first().substringAfter(": ").encodeToByteArray(),
+            (if (encrypted) "aes256-cbc" else "none").encodeToByteArray(),
+            comment,
+            public,
+            private,
+        )
+        return ByteArrayOutputStream().use { output ->
+            lines.filter(String::isNotEmpty).forEach { line ->
+                when {
+                    line.startsWith("Comment:") -> output.write("Comment: ".encodeToByteArray() + comment)
+                    line.startsWith("Private-MAC:") -> output.write(
+                        "Private-MAC: ${mac.toHex()}".encodeToByteArray(),
+                    )
+                    else -> output.write(line.encodeToByteArray())
+                }
+                output.write('\n'.code)
+            }
+            output.toByteArray()
+        }
+    }
+
     private fun toPuTTYRsaPrivateKey(keyPair: java.security.KeyPair): String {
         val publicKey = keyPair.public as RSAPublicKey
         val privateKey = keyPair.private as RSAPrivateCrtKey
@@ -393,17 +526,43 @@ class SshKeyImportServiceJvmTest {
             privateKey.privateExponent.encodeMpint(),
         )
 
+        val comment = "keyguard-test-rsa"
         val publicBase64 = Base64.getEncoder().encodeToString(publicPayload)
         val privateBase64 = Base64.getEncoder().encodeToString(privatePayload)
+        val mac = puttyMac(
+            v3 = false,
+            passphrase = null,
+            "ssh-rsa".encodeToByteArray(),
+            "none".encodeToByteArray(),
+            comment.encodeToByteArray(),
+            publicPayload,
+            privatePayload,
+        )
 
         return buildString {
             appendLine("PuTTY-User-Key-File-2: ssh-rsa")
             appendLine("Encryption: none")
-            appendLine("Comment: keyguard-test-rsa")
+            appendLine("Comment: $comment")
             appendLine("Public-Lines: ${publicBase64.chunked(70).size}")
             publicBase64.chunked(70).forEach { appendLine(it) }
             appendLine("Private-Lines: ${privateBase64.chunked(70).size}")
             privateBase64.chunked(70).forEach { appendLine(it) }
+            appendLine("Private-MAC: ${mac.toHex()}")
+        }
+    }
+
+    /** PPK v1/v2 use HMAC-SHA1; unencrypted v3 uses HMAC-SHA256 with an empty key. */
+    private fun puttyMac(
+        v3: Boolean,
+        passphrase: String?,
+        vararg fields: ByteArray,
+    ): ByteArray {
+        // JCE rejects an empty HMAC key; a zero-filled block is equivalent.
+        val key = if (v3) ByteArray(64) else MessageDigest.getInstance("SHA-1")
+            .digest(("putty-private-key-file-mac-key" + passphrase.orEmpty()).encodeToByteArray())
+        return Mac.getInstance(if (v3) "HmacSHA256" else "HmacSHA1").run {
+            init(SecretKeySpec(key, algorithm))
+            doFinal(encodeSshWire(*fields))
         }
     }
 

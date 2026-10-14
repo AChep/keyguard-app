@@ -609,7 +609,7 @@ class NativeCryptoClientTest {
             protocolVersion = NativeCrypto.PROTOCOL_VERSION,
             operation = SshPrivateKeyImportOperationProto(
                 SshPrivateKeyImportRequestProto(
-                    content = "-----BEGIN PRIVATE KEY-----",
+                    content = "-----BEGIN PRIVATE KEY-----".encodeToByteArray(),
                     passphraseUtf8 = null,
                 ),
             ),

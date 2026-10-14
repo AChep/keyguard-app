@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.service.credentialexchange.model.CxfEditabl
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.nativecrypto.NativeCryptoSsh
 import kotlin.reflect.KMutableProperty0
 
@@ -485,19 +486,21 @@ private fun importSshKeyPair(
     // whose contract is that only a malformed document fails it. Fatal
     // failures are *not* absorbed here — they belong to the parse boundary
     // above, which decides whether the whole document dies.
-    val result = runCatchingNonFatal {
-        sshKeyImportService.import(
-            SshKeyImportRequest(
-                content = pem,
-            ),
-        )
-    }.getOrNull()
+    val result = pem.useAndClear {
+        runCatchingNonFatal {
+            sshKeyImportService.import(
+                SshKeyImportRequest(
+                    content = pem,
+                ),
+            )
+        }.getOrNull()
+    }
     return (result as? SshKeyImportResult.Success)?.keyPair
 }
 
 private fun buildPkcs8Pem(
     der: ByteArray,
-): String = buildString {
+): ByteArray = buildString {
     append("-----BEGIN PRIVATE KEY-----\n")
     cxfStandardBase64.encode(der)
         .chunked(PEM_LINE_LENGTH)
@@ -506,7 +509,7 @@ private fun buildPkcs8Pem(
             append('\n')
         }
     append("-----END PRIVATE KEY-----\n")
-}
+}.encodeToByteArray()
 
 private fun joinNonBlank(
     vararg values: String?,

@@ -454,8 +454,9 @@ pub struct SshPublicKeyDecodeRequest {
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct SshPrivateKeyImportRequest {
-    #[prost(string, tag = "1")]
-    pub content: ::prost::alloc::string::String,
+    /// Raw file bytes preserve non-UTF-8 PPK comments. UTF-8 text is wire-compatible.
+    #[prost(bytes = "vec", tag = "1")]
+    pub content: ::prost::alloc::vec::Vec<u8>,
     /// UTF-8 bytes are used instead of a protobuf string so both native and
     /// Kotlin callers can erase the owned passphrase buffer after the call.
     #[prost(bytes = "vec", optional, tag = "2")]

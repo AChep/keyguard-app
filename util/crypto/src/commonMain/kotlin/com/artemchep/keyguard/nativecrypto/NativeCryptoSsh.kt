@@ -342,26 +342,23 @@ public object NativeCryptoSsh {
         return cursor + value.size
     }
 
+    /** Borrows file bytes without decoding or clearing them, allowing passphrase retries. */
     public fun importPrivateKey(
-        content: String,
+        content: ByteArray,
         passphrase: String? = null,
     ): NativeSshPrivateKeyImportResult {
         // A UTF-8 encoding is never shorter than the source UTF-16 code-unit
-        // count. Reject clearly oversized inputs before allocating their byte
-        // representation, then enforce the exact encoded-byte limits below.
+        // count. Reject a clearly oversized passphrase before allocating its
+        // byte representation, then enforce the exact encoded-byte limit below.
         if (
-            content.length > MAX_IMPORT_DOCUMENT_BYTES ||
+            content.size > MAX_IMPORT_DOCUMENT_BYTES ||
             passphrase != null && passphrase.length > MAX_PASSPHRASE_BYTES
         ) {
             importResourceLimit()
         }
-        val contentUtf8 = content.encodeToByteArray()
         val passphraseUtf8 = passphrase?.encodeToByteArray()
         try {
-            if (
-                contentUtf8.size > MAX_IMPORT_DOCUMENT_BYTES ||
-                passphraseUtf8 != null && passphraseUtf8.size > MAX_PASSPHRASE_BYTES
-            ) {
+            if (passphraseUtf8 != null && passphraseUtf8.size > MAX_PASSPHRASE_BYTES) {
                 importResourceLimit()
             }
             val payload = NativeCrypto.call(
@@ -416,7 +413,6 @@ public object NativeCryptoSsh {
                 null -> malformed("ssh_private_key_import")
             }
         } finally {
-            contentUtf8.fill(0)
             passphraseUtf8?.fill(0)
         }
     }

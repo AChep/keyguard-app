@@ -1068,7 +1068,7 @@ mod tests {
                 flags: 0,
             }),
             native_request::Operation::SshPrivateKeyImport(SshPrivateKeyImportRequest {
-                content: "invalid import private key".to_owned(),
+                content: b"invalid import private key".to_vec(),
                 passphrase_utf8: Some(vec![0xff]),
             }),
         ];
@@ -1122,10 +1122,10 @@ mod tests {
         protocol::reset_zeroized_secret_output_drops();
         let _imported = response_bytes(invoke(native_request::Operation::SshPrivateKeyImport(
             SshPrivateKeyImportRequest {
-                content: include_str!(
+                content: include_bytes!(
                     "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/openssh/id_ed25519"
                 )
-                .to_owned(),
+                .to_vec(),
                 passphrase_utf8: None,
             },
         )));

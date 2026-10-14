@@ -1,12 +1,15 @@
 package com.artemchep.keyguard.feature.home.vault.add
 
 import com.artemchep.keyguard.common.model.KeyPair
-import com.artemchep.keyguard.common.service.crypto.SshKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportResult
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.platform.leParseUri
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.delay
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.test.fail
@@ -24,19 +27,14 @@ class AddStateProducerSshKeyImportTest {
 
         handleSshKeyFileImport(
             info = info,
-            readText = { uri ->
+            readBytes = { uri ->
                 assertEquals("content://ssh/key", uri)
-                "ssh-key-content"
+                "ssh-key-content".encodeToByteArray()
             },
             importSshKey = { request ->
-                assertEquals(
-                    SshKeyImportRequest(
-                        content = "ssh-key-content",
-                        fileName = "id_ed25519",
-                        passphrase = null,
-                    ),
-                    request,
-                )
+                assertContentEquals("ssh-key-content".encodeToByteArray(), request.content)
+                assertEquals("id_ed25519", request.fileName)
+                assertEquals(null, request.passphrase)
                 SshKeyImportResult.Success(expectedKeyPair)
             },
             onSuccess = { keyPair ->
@@ -63,12 +61,12 @@ class AddStateProducerSshKeyImportTest {
             name = "id_ed25519",
             size = 1024L,
         )
-        var passphraseRequest: Triple<SshKeyImportResult.NeedsPassphrase, String?, String>? = null
+        var passphraseRequest: Triple<SshKeyImportResult.NeedsPassphrase, String?, ByteArray>? = null
 
         handleSshKeyFileImport(
             info = info,
-            readText = {
-                "encrypted-key-content"
+            readBytes = {
+                "encrypted-key-content".encodeToByteArray()
             },
             importSshKey = {
                 SshKeyImportResult.NeedsPassphrase("OpenSSH")
@@ -77,7 +75,7 @@ class AddStateProducerSshKeyImportTest {
                 fail("Success path should not be used for an encrypted key without a passphrase.")
             },
             onNeedsPassphrase = { result, fileName, content ->
-                passphraseRequest = Triple(result, fileName, content)
+                passphraseRequest = Triple(result, fileName, content.copyOf())
             },
             onImportError = { _ ->
                 fail("Import error path should not be used for the passphrase flow.")
@@ -87,14 +85,9 @@ class AddStateProducerSshKeyImportTest {
             },
         )
 
-        assertEquals(
-            Triple(
-                SshKeyImportResult.NeedsPassphrase("OpenSSH"),
-                "id_ed25519",
-                "encrypted-key-content",
-            ),
-            passphraseRequest,
-        )
+        assertEquals(SshKeyImportResult.NeedsPassphrase("OpenSSH"), passphraseRequest?.first)
+        assertEquals("id_ed25519", passphraseRequest?.second)
+        assertContentEquals("encrypted-key-content".encodeToByteArray(), passphraseRequest?.third)
     }
 
     @Test
@@ -109,7 +102,7 @@ class AddStateProducerSshKeyImportTest {
 
         handleSshKeyFileImport(
             info = info,
-            readText = {
+            readBytes = {
                 error("boom")
             },
             importSshKey = {
@@ -132,6 +125,45 @@ class AddStateProducerSshKeyImportTest {
 
         assertFalse(importCalled)
         assertTrue(readErrorShown)
+    }
+
+    @Test
+    fun `raw file bytes survive suspended passphrase retry and are then cleared`() = kotlinx.coroutines.test.runTest {
+        val expected = byteArrayOf(0x63, 0x61, 0x66, 0xe9.toByte())
+        val content = expected.copyOf()
+        handleSshKeyFileImport(
+            info = FilePickerResult(leParseUri("content://ssh/key"), "key.ppk", 4L),
+            readBytes = { content },
+            importSshKey = { request ->
+                assertContentEquals(expected, request.content)
+                SshKeyImportResult.NeedsPassphrase("PuTTY")
+            },
+            onSuccess = { fail("Expected passphrase prompt") },
+            onNeedsPassphrase = { _, _, bytes ->
+                delay(1)
+                assertContentEquals(expected, bytes)
+            },
+            onImportError = { fail("Unexpected import error") },
+            onReadError = { fail("Unexpected read error") },
+        )
+        assertContentEquals(ByteArray(content.size), content)
+    }
+
+    @Test
+    fun `cancelling passphrase retry clears file bytes`() = kotlinx.coroutines.test.runTest {
+        val content = byteArrayOf(0xe9.toByte())
+        assertFailsWith<CancellationException> {
+            handleSshKeyFileImport(
+                info = FilePickerResult(leParseUri("content://ssh/key"), "key.ppk", 1L),
+                readBytes = { content },
+                importSshKey = { SshKeyImportResult.NeedsPassphrase("PuTTY") },
+                onSuccess = { fail("Expected passphrase prompt") },
+                onNeedsPassphrase = { _, _, _ -> throw CancellationException() },
+                onImportError = { fail("Unexpected import error") },
+                onReadError = { fail("Unexpected read error") },
+            )
+        }
+        assertContentEquals(byteArrayOf(0), content)
     }
 }
 

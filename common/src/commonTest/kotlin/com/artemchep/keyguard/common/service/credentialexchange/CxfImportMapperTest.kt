@@ -443,7 +443,7 @@ class CxfImportMapperTest {
         val expectedPem = "-----BEGIN PRIVATE KEY-----\n" +
             "AAECAwQFBg==\n" +
             "-----END PRIVATE KEY-----\n"
-        assertEquals(expectedPem, service.lastRequest?.content)
+        assertEquals(expectedPem, service.lastRequest?.content?.decodeToString())
         val commentField = imported.fields.single()
         assertEquals("Key comment", commentField.name)
         assertEquals("work laptop", commentField.value)

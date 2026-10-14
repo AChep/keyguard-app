@@ -9,10 +9,17 @@ interface SshKeyImportService {
 }
 
 data class SshKeyImportRequest(
-    val content: String,
+    /** Borrowed bytes, preserved by the importer for passphrase retries. */
+    val content: ByteArray,
     val fileName: String? = null,
     val passphrase: String? = null,
-)
+) {
+    constructor(
+        content: String,
+        fileName: String? = null,
+        passphrase: String? = null,
+    ) : this(content.encodeToByteArray(), fileName, passphrase)
+}
 
 sealed interface SshKeyImportResult {
     data class Success(

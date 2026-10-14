@@ -797,7 +797,7 @@ internal data class SshAgentSignRequestProto(
 @Serializable
 internal data class SshPrivateKeyImportRequestProto(
     @ProtoNumber(1)
-    val content: String,
+    val content: ByteArray,
     @ProtoNumber(2)
     val passphraseUtf8: ByteArray? = null,
 )

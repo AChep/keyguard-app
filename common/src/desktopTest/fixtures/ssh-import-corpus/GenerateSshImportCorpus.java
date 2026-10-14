@@ -158,8 +158,10 @@ public final class GenerateSshImportCorpus {
             writePpkString(data, publicBlob);
             writePpkString(data, privateBlob);
         }
-        byte[] macKey = MessageDigest.getInstance("SHA-256")
-            .digest("putty-private-key-file-mac-key".getBytes(StandardCharsets.UTF_8));
+        // PPK v3 without encryption uses an empty HMAC key. JCE rejects an
+        // empty SecretKeySpec; a zero-filled SHA-256 block has the same HMAC
+        // key padding as an empty key.
+        byte[] macKey = new byte[64];
         Mac mac = Mac.getInstance("HmacSHA256");
         mac.init(new SecretKeySpec(macKey, "HmacSHA256"));
         String macHex = java.util.HexFormat.of().formatHex(mac.doFinal(macInput.toByteArray()));

@@ -321,7 +321,8 @@ message SshPublicKeyDecodeRequest {
 }
 
 message SshPrivateKeyImportRequest {
-  string content = 1;
+  // Raw file bytes preserve non-UTF-8 PPK comments. UTF-8 text is wire-compatible.
+  bytes content = 1;
   // UTF-8 bytes are used instead of a protobuf string so both native and
   // Kotlin callers can erase the owned passphrase buffer after the call.
   optional bytes passphrase_utf8 = 2;

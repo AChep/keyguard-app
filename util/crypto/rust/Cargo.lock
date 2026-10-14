@@ -1173,7 +1173,9 @@ dependencies = [
 name = "keyguard-crypto-fuzz"
 version = "0.0.0"
 dependencies = [
+ "base64ct",
  "keyguard-crypto-core",
+ "keyguard-crypto-sensitive",
  "libfuzzer-sys",
  "prost",
 ]

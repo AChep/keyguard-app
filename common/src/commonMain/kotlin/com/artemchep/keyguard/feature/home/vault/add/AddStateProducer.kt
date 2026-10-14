@@ -116,7 +116,6 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.isCanonical
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.TextService
-import com.artemchep.keyguard.common.service.text.readFromFileAsText
 import com.artemchep.keyguard.common.service.text.readFromFileAsBytes
 import com.artemchep.keyguard.common.usecase.AddCipher
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
@@ -3994,7 +3993,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
 
         suspend fun importKey(
             fileName: String?,
-            content: String,
+            content: ByteArray,
             passphrase: String?,
             // callbacks
             onNeedsPassphrase: suspend (SshKeyImportResult.NeedsPassphrase) -> Unit,
@@ -4032,12 +4031,12 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
         suspend fun onImportKeyWithPassphrase(
             result: SshKeyImportResult.NeedsPassphrase,
             fileName: String?,
-            content: String,
+            content: ByteArray,
         ) {
             val passphraseTitle = translate(Res.string.key_import_passphrase_title)
             val passphraseHint = translate(Res.string.key_import_passphrase_hint, translate(Res.string.protocol_ssh))
 
-            val intent = createConfirmationDialogIntent(
+            val passphrase = awaitConfirmationDialog(
                 confirmationRouteFactory = confirmationRouteFactory,
                 item = ConfirmationRoute.Args.Item.StringItem(
                     key = "$id.passphrase",
@@ -4046,27 +4045,21 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                     type = ConfirmationRoute.Args.Item.StringItem.Type.Password,
                     canBeEmpty = false,
                 ),
-                title = translate(Res.string.key_import_passphrase_hint, translate(Res.string.protocol_ssh)),
+                title = passphraseHint,
                 message = translate(
                     Res.string.ssh_key_import_passphrase_dialog_message,
                     result.formatLabel,
                 ),
-            ) { passphrase ->
-                appScope.launch {
-                    importKey(
-                        content = content,
-                        fileName = fileName,
-                        passphrase = passphrase,
-                        // callbacks
-                        onNeedsPassphrase = {
-                            // show error message
-                            val msg = createLocalizedSshKeyImportPassphraseErrorToast()
-                            showMessage.copy(msg)
-                        },
-                    )
-                }
-            }
-            navigate(intent)
+            ) ?: return
+            importKey(
+                content = content,
+                fileName = fileName,
+                passphrase = passphrase,
+                onNeedsPassphrase = {
+                    val msg = createLocalizedSshKeyImportPassphraseErrorToast()
+                    showMessage.copy(msg)
+                },
+            )
         }
 
         suspend fun onImportKey(
@@ -4074,7 +4067,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
         ) {
             handleSshKeyFileImport(
                 info = info,
-                readText = textService::readFromFileAsText,
+                readBytes = textService::readFromFileAsBytes,
                 importSshKey = sshKeyImportService::import,
                 onSuccess = { keyPair ->
                     val msg = ToastMessage(
@@ -4964,7 +4957,22 @@ private fun createGpgKeyImportToast(
     text = text,
 )
 
-/** Owns the file bytes until import and any passphrase prompt/retry have completed. */
+/** Owns the file bytes until [block], including any passphrase prompt/retry, has completed. */
+private suspend fun withKeyFileBytes(
+    info: FilePickerResult,
+    readBytes: suspend (String) -> ByteArray,
+    onReadError: suspend () -> Unit,
+    block: suspend (ByteArray) -> Unit,
+) {
+    val content = runCatchingNonFatal {
+        readBytes(info.uri.toString())
+    }.getOrElse {
+        onReadError()
+        return
+    }
+    content.useAndClear { block(it) }
+}
+
 internal suspend fun handleGpgKeyFileImport(
     info: FilePickerResult,
     readBytes: suspend (String) -> ByteArray,
@@ -4973,34 +4981,26 @@ internal suspend fun handleGpgKeyFileImport(
     onNeedsPassphrase: suspend (GpgKeyImportResult.NeedsPassphrase, String?, ByteArray) -> Unit,
     onImportError: suspend (GpgKeyImportError) -> Unit,
     onReadError: suspend () -> Unit,
-) {
-    val content = runCatchingNonFatal {
-        readBytes(info.uri.toString())
-    }.getOrElse {
-        onReadError()
-        return
-    }
-    content.useAndClear {
-        when (
-            val result = importGpgKey(
-                GpgKeyImportRequest(
-                    content = content,
-                    fileName = info.name,
-                    passphrase = null,
-                ),
-            )
-        ) {
-            is GpgKeyImportResult.Success -> {
-                onSuccess(result.gpgKey)
-            }
+) = withKeyFileBytes(info, readBytes, onReadError) { content ->
+    when (
+        val result = importGpgKey(
+            GpgKeyImportRequest(
+                content = content,
+                fileName = info.name,
+                passphrase = null,
+            ),
+        )
+    ) {
+        is GpgKeyImportResult.Success -> {
+            onSuccess(result.gpgKey)
+        }
 
-            is GpgKeyImportResult.NeedsPassphrase -> {
-                onNeedsPassphrase(result, info.name, content)
-            }
+        is GpgKeyImportResult.NeedsPassphrase -> {
+            onNeedsPassphrase(result, info.name, content)
+        }
 
-            is GpgKeyImportResult.Error -> {
-                onImportError(result.reason)
-            }
+        is GpgKeyImportResult.Error -> {
+            onImportError(result.reason)
         }
     }
 }
@@ -5047,25 +5047,18 @@ private fun createSshKeyImportToast(
 
 internal suspend fun handleSshKeyFileImport(
     info: FilePickerResult,
-    readText: suspend (String) -> String,
+    readBytes: suspend (String) -> ByteArray,
     importSshKey: suspend (SshKeyImportRequest) -> SshKeyImportResult,
     onSuccess: suspend (KeyPair) -> Unit,
-    onNeedsPassphrase: suspend (SshKeyImportResult.NeedsPassphrase, String?, String) -> Unit,
+    onNeedsPassphrase: suspend (SshKeyImportResult.NeedsPassphrase, String?, ByteArray) -> Unit,
     onImportError: suspend (SshKeyImportError) -> Unit,
     onReadError: suspend () -> Unit,
-) {
-    val content = kotlin.runCatching {
-        readText(info.uri.toString())
-    }.getOrElse {
-        onReadError()
-        return
-    }
-    val fileName = info.name
+) = withKeyFileBytes(info, readBytes, onReadError) { content ->
     when (
         val result = importSshKey(
             SshKeyImportRequest(
                 content = content,
-                fileName = fileName,
+                fileName = info.name,
                 passphrase = null,
             ),
         )
@@ -5075,7 +5068,7 @@ internal suspend fun handleSshKeyFileImport(
         }
 
         is SshKeyImportResult.NeedsPassphrase -> {
-            onNeedsPassphrase(result, fileName, content)
+            onNeedsPassphrase(result, info.name, content)
         }
 
         is SshKeyImportResult.Error -> {

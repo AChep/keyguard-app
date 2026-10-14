@@ -24,12 +24,6 @@ suspend fun TextService.readFromResourcesAsText(
     readFromResources(fileResource).useReadAsText()
 }
 
-suspend fun TextService.readFromFileAsText(
-    uri: String,
-) = withContext(Dispatchers.IO) {
-    readFromFile(uri).useReadAsText()
-}
-
 /** Reads the file into a caller-owned buffer; the caller clears it after use. */
 suspend fun TextService.readFromFileAsBytes(
     uri: String,

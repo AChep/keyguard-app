@@ -75,7 +75,7 @@ class CxfRoundTripTest {
         assertEquals(DSecret.Type.SshKey, request.type)
         // The export side produced the fake DER; the import side must have
         // handed exactly that DER (PEM-wrapped) to the conversion seam.
-        val pem = sshKeyImportService.lastRequest?.content.orEmpty()
+        val pem = sshKeyImportService.lastRequest?.content?.decodeToString().orEmpty()
         assertTrue(pem.startsWith("-----BEGIN PRIVATE KEY-----\n"))
         assertTrue(pem.contains("AQIDBAUG"))
         assertEquals(fakeSshKeyPair().privateKey.ssh, request.sshKey.privateKey)

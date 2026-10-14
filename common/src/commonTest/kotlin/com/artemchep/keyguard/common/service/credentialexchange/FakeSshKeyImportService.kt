@@ -31,7 +31,8 @@ class FakeSshKeyImportService(
     override fun import(
         request: SshKeyImportRequest,
     ): SshKeyImportResult {
-        requests += request
+        // The content is borrowed and cleared by the caller after the call.
+        requests += request.copy(content = request.content.copyOf())
         error?.let { throw it }
         return results.getOrNull(requests.size - 1) ?: result
     }

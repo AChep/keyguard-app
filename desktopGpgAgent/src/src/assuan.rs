@@ -19,13 +19,13 @@ use transport::{
 
 #[derive(Default)]
 struct SessionState {
-    sigkey: Option<String>,
-    sigkey_another: Option<String>,
+    // SIGKEY is an alias of SETKEY in gpg-agent, so both commands share these
+    // selections. They persist until RESET or disconnect.
+    keygrip: Option<String>,
+    keygrip_another: Option<String>,
     hash_algorithm: Option<String>,
     hash: Option<Vec<u8>>,
     hash_pss: bool,
-    setkey: Option<String>,
-    setkey_another: Option<String>,
 }
 
 #[derive(Default)]

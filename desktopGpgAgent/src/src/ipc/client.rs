@@ -308,7 +308,7 @@ fn verify_windows_ipc_server(
     Ok(())
 }
 
-async fn write_frame<W: AsyncWrite + Unpin>(stream: &mut W, body: &[u8]) -> Result<()> {
+pub(crate) async fn write_frame<W: AsyncWrite + Unpin>(stream: &mut W, body: &[u8]) -> Result<()> {
     let len = u32::try_from(body.len()).context("IPC frame too large")?;
     stream.write_all(&len.to_be_bytes()).await?;
     stream.write_all(body).await?;
@@ -316,7 +316,7 @@ async fn write_frame<W: AsyncWrite + Unpin>(stream: &mut W, body: &[u8]) -> Resu
     Ok(())
 }
 
-async fn read_frame<R: AsyncRead + Unpin>(stream: &mut R) -> Result<Vec<u8>> {
+pub(crate) async fn read_frame<R: AsyncRead + Unpin>(stream: &mut R) -> Result<Vec<u8>> {
     let mut len_buf = [0u8; 4];
     stream.read_exact(&mut len_buf).await?;
     let len = u32::from_be_bytes(len_buf) as usize;

@@ -1,5 +1,7 @@
 //! End-to-end Assuan connection tests.
 
+mod key_selection;
+
 use super::commands::MAX_CIPHERTEXT_LEN;
 use super::transport::MAX_INQUIRE_LINE_LEN;
 use super::*;

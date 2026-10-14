@@ -77,11 +77,7 @@ pub(super) async fn handle_command<R: AsyncBufRead + Unpin, W: AsyncWriteExt + U
             handle_keyinfo(command.args, ipc_client, caller_guard, caller, write).await?;
             Ok(false)
         }
-        "SIGKEY" => {
-            handle_sigkey(command.args, state, write).await?;
-            Ok(false)
-        }
-        "SETKEY" => {
+        "SIGKEY" | "SETKEY" => {
             handle_setkey(command.args, state, write).await?;
             Ok(false)
         }
@@ -242,28 +238,6 @@ async fn handle_keyinfo<W: AsyncWriteExt + Unpin>(
     }
 }
 
-async fn handle_sigkey<W: AsyncWriteExt + Unpin>(
-    args: &str,
-    state: &mut SessionState,
-    write: &mut W,
-) -> Result<()> {
-    let parsed = match parse_keygrip_command_args(args) {
-        Ok(parsed) => parsed,
-        Err(e) => {
-            warn!("invalid SIGKEY request: {e}");
-            write_error(write, ERR_ASS_PARAMETER, "invalid keygrip").await?;
-            return Ok(());
-        }
-    };
-
-    if parsed.another {
-        state.sigkey_another = Some(parsed.keygrip);
-    } else {
-        state.sigkey = Some(parsed.keygrip);
-    }
-    write_ok(write, "").await
-}
-
 async fn handle_setkey<W: AsyncWriteExt + Unpin>(
     args: &str,
     state: &mut SessionState,
@@ -272,16 +246,16 @@ async fn handle_setkey<W: AsyncWriteExt + Unpin>(
     let parsed = match parse_keygrip_command_args(args) {
         Ok(parsed) => parsed,
         Err(e) => {
-            warn!("invalid SETKEY request: {e}");
+            warn!("invalid SIGKEY/SETKEY request: {e}");
             write_error(write, ERR_ASS_PARAMETER, "invalid keygrip").await?;
             return Ok(());
         }
     };
 
     if parsed.another {
-        state.setkey_another = Some(parsed.keygrip);
+        state.keygrip_another = Some(parsed.keygrip);
     } else {
-        state.setkey = Some(parsed.keygrip);
+        state.keygrip = Some(parsed.keygrip);
     }
     write_ok(write, "").await
 }
@@ -316,54 +290,48 @@ async fn handle_pksign<W: AsyncWriteExt + Unpin>(
     caller: Option<CallerIdentity>,
     write: &mut W,
 ) -> Result<()> {
-    let Some(keygrip) = state.sigkey.clone() else {
-        write_error(write, ERR_NO_SECKEY, "missing SIGKEY").await?;
+    let Some(keygrip) = state.keygrip.as_deref() else {
+        write_error(write, ERR_NO_SECKEY, "missing key selection").await?;
         return Ok(());
     };
+    // Every signing attempt with a key selection consumes the digest.
+    let hash_algorithm = state.hash_algorithm.take();
+    let hash = state.hash.take();
+    let hash_pss = std::mem::take(&mut state.hash_pss);
 
     let keys = match list_keys(ipc_client, caller_guard, caller.clone()).await {
         Ok(keys) => keys,
         Err(e) => {
             log_ipc_failure("LIST_KEYS", &e);
             write_ipc_or_general_error(write, &e, "key listing failed").await?;
-            clear_sign_state(state);
             return Ok(());
         }
     };
     if !keys
         .iter()
-        .any(|key| key_matches(key, &keygrip) && key.can_sign)
+        .any(|key| key_matches(key, keygrip) && key.can_sign)
     {
         write_error(write, ERR_NO_SECKEY, "no secret key").await?;
-        clear_sign_state(state);
         return Ok(());
     }
 
-    let Some(hash_algorithm) = state.hash_algorithm.clone() else {
+    let (Some(hash_algorithm), Some(hash)) = (hash_algorithm, hash) else {
         write_error(write, ERR_INV_VALUE, "invalid digest algorithm").await?;
-        clear_sign_state(state);
         return Ok(());
     };
-    let Some(hash) = state.hash.clone() else {
-        write_error(write, ERR_INV_VALUE, "invalid digest algorithm").await?;
-        clear_sign_state(state);
-        return Ok(());
-    };
-    if state.hash_pss {
+    if hash_pss {
         write_error(write, ERR_NOT_SUPPORTED, "not supported").await?;
-        clear_sign_state(state);
         return Ok(());
     }
 
     if let Err(error) = caller_guard.revalidate() {
         warn!(%error, "Refusing PKSIGN after caller identity changed");
         write_error(write, ERR_GENERAL, "caller identity changed").await?;
-        clear_sign_state(state);
         return Ok(());
     }
 
     match ipc_client
-        .sign_hash(&keygrip, &hash_algorithm, &hash, caller)
+        .sign_hash(keygrip, &hash_algorithm, &hash, caller)
         .await
     {
         Ok(response) => {
@@ -376,13 +344,12 @@ async fn handle_pksign<W: AsyncWriteExt + Unpin>(
         }
     }
 
-    clear_sign_state(state);
     Ok(())
 }
 
 async fn handle_pkdecrypt<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
     args: &str,
-    state: &mut SessionState,
+    state: &SessionState,
     ipc_client: &IpcClient,
     caller_guard: &CallerGuard,
     caller: Option<CallerIdentity>,
@@ -398,17 +365,12 @@ async fn handle_pkdecrypt<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
         }
     };
 
-    // gpg-agent still performs the ciphertext inquiry first; the missing
-    // keygrip is reported only after the client has completed or canceled it.
-    let keygrip = state.setkey.clone();
-
     // gpg supplies the ciphertext via an Assuan INQUIRE round-trip rather than a
     // dedicated SET* command, so ask for it now and read the response inline.
     let ciphertext = match inquire_ciphertext(reader, write).await? {
         InquireResult::Data(ciphertext) => ciphertext,
         InquireResult::Canceled => {
             write_error(write, ERR_ASS_CANCELED, "canceled").await?;
-            clear_decrypt_state(state);
             return Ok(false);
         }
         // A line that exceeded the protocol limit cannot be framed reliably.
@@ -416,12 +378,10 @@ async fn handle_pkdecrypt<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
         // interpreted as another Assuan command.
         InquireResult::LineTooLong => {
             write_error(write, ERR_ASS_LINE_TOO_LONG, "line too long").await?;
-            clear_decrypt_state(state);
             return Ok(true);
         }
         InquireResult::TooMuchData => {
             write_error(write, ERR_ASS_TOO_MUCH_DATA, "too much data").await?;
-            clear_decrypt_state(state);
             // Unlike an overlong line, the inquiry has been fully framed: the
             // remaining D-lines were discarded through END. Keep the session
             // alive so a pipelined BYE (or the next client command) cannot
@@ -430,51 +390,47 @@ async fn handle_pkdecrypt<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
         }
         InquireResult::Unexpected => {
             write_error(write, ERR_ASS_UNEXPECTED_CMD, "unexpected command").await?;
-            clear_decrypt_state(state);
             return Ok(false);
         }
         InquireResult::BadData => {
             write_error(write, ERR_INV_DATA, "bad ciphertext").await?;
-            clear_decrypt_state(state);
             return Ok(false);
         }
     };
 
-    let Some(keygrip) = keygrip else {
-        write_error(write, ERR_NO_SECKEY, "missing SETKEY").await?;
-        clear_decrypt_state(state);
+    // gpg-agent still performs the ciphertext inquiry first; the missing
+    // keygrip is reported only after the client has completed or canceled it.
+    let Some(keygrip) = state.keygrip.as_deref() else {
+        write_error(write, ERR_NO_SECKEY, "missing key selection").await?;
         return Ok(false);
     };
 
-    // SETKEY only stores the selected keygrip; the real availability check
+    // SIGKEY/SETKEY only store the selected keygrip; the real availability check
     // happens when the operation is attempted so gpg can probe recipients.
     let keys = match list_keys(ipc_client, caller_guard, caller.clone()).await {
         Ok(keys) => keys,
         Err(e) => {
             log_ipc_failure("LIST_KEYS", &e);
             write_ipc_or_general_error(write, &e, "key listing failed").await?;
-            clear_decrypt_state(state);
             return Ok(false);
         }
     };
     if !keys
         .iter()
-        .any(|key| key_matches(key, &keygrip) && key.can_decrypt)
+        .any(|key| key_matches(key, keygrip) && key.can_decrypt)
     {
         write_error(write, ERR_NO_SECKEY, "no secret key").await?;
-        clear_decrypt_state(state);
         return Ok(false);
     }
 
     if let Err(error) = caller_guard.revalidate() {
         warn!(%error, "Refusing PKDECRYPT after caller identity changed");
         write_error(write, ERR_GENERAL, "caller identity changed").await?;
-        clear_decrypt_state(state);
         return Ok(false);
     }
 
     match ipc_client
-        .pkdecrypt(&keygrip, &ciphertext, pkdecrypt_args.unwrap_ecdh, caller)
+        .pkdecrypt(keygrip, &ciphertext, pkdecrypt_args.unwrap_ecdh, caller)
         .await
     {
         Ok(response) => {
@@ -505,7 +461,6 @@ async fn handle_pkdecrypt<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
         }
     }
 
-    clear_decrypt_state(state);
     Ok(false)
 }
 
@@ -646,19 +601,6 @@ fn assuan_error_for_ipc_error(error: &IpcError, fallback_message: &'static str) 
             message: fallback_message,
         },
     }
-}
-
-fn clear_sign_state(state: &mut SessionState) {
-    state.sigkey = None;
-    state.sigkey_another = None;
-    state.hash_algorithm = None;
-    state.hash = None;
-    state.hash_pss = false;
-}
-
-fn clear_decrypt_state(state: &mut SessionState) {
-    state.setkey = None;
-    state.setkey_another = None;
 }
 
 #[cfg(test)]

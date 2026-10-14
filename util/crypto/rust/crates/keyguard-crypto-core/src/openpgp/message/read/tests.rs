@@ -5735,7 +5735,7 @@ fn streaming_clear_verify_matches_one_shot_across_chunk_boundaries() {
             "-----BEGIN PGP SIGNATURE-----\t ",
         );
     let whitespace_markers_crlf = whitespace_markers.replace('\n', "\r\n");
-    let cases: [(Vec<u8>, &[u8]); 4] = [
+    let cases: [(Vec<u8>, &[u8]); 7] = [
         (
             CLEAR_SIGNED.to_vec(),
             b"OpenPGP clear text\n- dash-prefixed line\nfinal line",
@@ -5751,6 +5751,25 @@ fn streaming_clear_verify_matches_one_shot_across_chunk_boundaries() {
         (
             whitespace_markers_crlf.into_bytes(),
             b"OpenPGP clear text\r\n- dash-prefixed line\r\nfinal line",
+        ),
+        (
+            fixture.replace("Hash: SHA512\n", "").into_bytes(),
+            b"OpenPGP clear text\n- dash-prefixed line\nfinal line",
+        ),
+        (
+            fixture
+                .replace("Hash: SHA512", "Hash: SHA256\nHash: SHA512")
+                .into_bytes(),
+            b"OpenPGP clear text\n- dash-prefixed line\nfinal line",
+        ),
+        (
+            fixture
+                .replace(
+                    "-----BEGIN PGP SIGNATURE-----\n",
+                    "-----BEGIN PGP SIGNATURE-----\nComment: hello\nVersion: GnuPG\nX-Unknown: value\n",
+                )
+                .into_bytes(),
+            b"OpenPGP clear text\n- dash-prefixed line\nfinal line",
         ),
     ];
     for (document, expected_body) in cases {
@@ -5836,7 +5855,7 @@ fn clear_verify_session_accepts_a_missing_legacy_hash_header() {
 }
 
 #[test]
-fn clear_verify_session_skips_safe_non_hash_armor_headers() {
+fn clear_verify_rejects_non_hash_armor_headers_in_one_shot_and_streaming() {
     let fixture = std::str::from_utf8(CLEAR_SIGNED).expect("clear-sign fixture must be UTF-8");
     for header in [
         "Comment: hello",
@@ -5845,37 +5864,60 @@ fn clear_verify_session_skips_safe_non_hash_armor_headers() {
         "MessageID: 1234",
         "X-Unknown: value",
         "Hash-Extension: SHA512",
+        "NotDashEscaped: You need GnuPG to verify this message",
     ] {
-        let document = fixture.replace("Hash: SHA512", &format!("Hash: SHA512\n{header}"));
-        for chunk_size in [1, 7, document.len()] {
-            let mut budget = OpenPgpReadBudget::default();
-            let certificates = parse_public_key_documents(&[PUBLIC_KEY.to_vec()], &mut budget)
-                .expect("fixture public key must parse");
-            let mut session = ClearVerificationSession::with_certificates(
-                certificates,
-                budget,
-                DataSignatureVerificationTime::exact(REFERENCE_TIME),
-            );
-            let mut body = Vec::new();
-            for chunk in document.as_bytes().chunks(chunk_size) {
-                body.extend_from_slice(
-                    &session
-                        .update(chunk)
-                        .expect("safe unknown header must be skipped"),
+        for headers in [
+            format!("{header}\nHash: SHA512"),
+            format!("Hash: SHA512\n{header}"),
+            header.to_owned(),
+        ] {
+            for line_ending in ["\n", "\r\n", "\r"] {
+                let document = fixture
+                    .replace("Hash: SHA512", &headers)
+                    .replace('\n', line_ending);
+                assert_eq!(
+                    verify_request(OpenPgpVerifyRequest {
+                        kind: OpenPgpVerifyKind::ClearText as i32,
+                        content: document.as_bytes().to_vec(),
+                        signature: Vec::new(),
+                        public_keys: vec![PUBLIC_KEY.to_vec()],
+                        reference_time_epoch_seconds: Some(REFERENCE_TIME),
+                    })
+                    .err(),
+                    Some(OpenPgpReadError::InvalidArgument),
+                    "one-shot must reject headers: {headers:?} with line ending {line_ending:?}",
                 );
+                for chunk_size in [1, 7, document.len()] {
+                    let mut session = crate::openpgp::adapter::OpenPgpSession::clear_verify(
+                        OpenPgpClearVerifyStreamOpenRequest {
+                            public_keys: vec![PUBLIC_KEY.to_vec()],
+                            reference_time_epoch_seconds: Some(REFERENCE_TIME),
+                        },
+                    )
+                    .expect("open cleartext verification stream");
+                    let result = document
+                        .as_bytes()
+                        .chunks(chunk_size)
+                        .try_for_each(|chunk| {
+                            let body = session.update(chunk).map_err(read_adapter_error)?;
+                            assert!(
+                                body.is_empty(),
+                                "reject the header before emitting body bytes"
+                            );
+                            Ok(())
+                        });
+                    assert_eq!(
+                        result,
+                        Err(OpenPgpReadError::InvalidArgument),
+                        "stream must reject headers: {headers:?} with line ending {line_ending:?} and chunk size {chunk_size}",
+                    );
+                    assert_eq!(
+                        session.finish().map_err(read_adapter_error).err(),
+                        Some(OpenPgpReadError::InvalidArgument),
+                        "a rejected header must not allow verification to finish",
+                    );
+                }
             }
-            let result = session
-                .finish()
-                .expect("safe unknown header must not prevent verification");
-            assert_eq!(
-                body, b"OpenPGP clear text\n- dash-prefixed line\nfinal line",
-                "header must not enter the recovered body: {header:?} with chunk size {chunk_size}",
-            );
-            assert_eq!(
-                result.verification.status,
-                VerificationStatus::Valid,
-                "header must be skipped: {header:?} with chunk size {chunk_size}",
-            );
         }
     }
 }
@@ -5906,21 +5948,26 @@ fn clear_verify_session_rejects_malformed_unknown_armor_headers() {
 }
 
 #[test]
-fn clear_verify_session_treats_not_dash_escaped_marker_as_body_text() {
+fn clear_verify_session_treats_header_lines_as_body_text() {
     let fixture = std::str::from_utf8(CLEAR_SIGNED).expect("clear-sign fixture must be UTF-8");
-    let marker = "NotDashEscaped: You need GnuPG to verify this message";
-    let document = fixture.replace("OpenPGP clear text", marker);
-    let (body, result) = clear_verify_session_fresh(document.as_bytes())
-        .expect("the marker is ordinary text after the header separator");
-    assert_eq!(
-        body,
-        b"NotDashEscaped: You need GnuPG to verify this message\n- dash-prefixed line\nfinal line",
-    );
-    assert_eq!(
-        result.verification.expect("verification").status,
-        OpenPgpVerificationStatus::Invalid as i32,
-        "changing signed body text must invalidate the fixture signature",
-    );
+    for header in [
+        "Comment: hello",
+        "X-Unknown: value",
+        "NotDashEscaped: You need GnuPG to verify this message",
+    ] {
+        let document = fixture.replace("OpenPGP clear text", header);
+        let (body, result) = clear_verify_session_fresh(document.as_bytes())
+            .expect("the header line is ordinary text after the header separator");
+        assert_eq!(
+            body,
+            format!("{header}\n- dash-prefixed line\nfinal line").as_bytes(),
+        );
+        assert_eq!(
+            result.verification.expect("verification").status,
+            OpenPgpVerificationStatus::Invalid as i32,
+            "changing signed body text must invalidate the fixture signature",
+        );
+    }
 }
 
 #[test]

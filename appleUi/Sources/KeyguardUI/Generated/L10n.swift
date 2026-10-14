@@ -4125,6 +4125,22 @@ public enum L10n {
     public static var gpgKeysCapabilitySign: String {
         String(localized: "gpg_keys_capability_sign", bundle: AppLocalization.shared.bundle)
     }
+    /// gpg_keyserver_error_short_key_id_text
+    public static var gpgKeyserverErrorShortKeyIdText: String {
+        String(localized: "gpg_keyserver_error_short_key_id_text", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_keyserver_error_short_key_id_title
+    public static var gpgKeyserverErrorShortKeyIdTitle: String {
+        String(localized: "gpg_keyserver_error_short_key_id_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_keyserver_error_unexpected_fingerprint
+    public static var gpgKeyserverErrorUnexpectedFingerprint: String {
+        String(localized: "gpg_keyserver_error_unexpected_fingerprint", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_keyserver_error_v6_unsupported
+    public static var gpgKeyserverErrorV6Unsupported: String {
+        String(localized: "gpg_keyserver_error_v6_unsupported", bundle: AppLocalization.shared.bundle)
+    }
     /// gpg_keyserver_refresh_failed_title
     public static var gpgKeyserverRefreshFailedTitle: String {
         String(localized: "gpg_keyserver_refresh_failed_title", bundle: AppLocalization.shared.bundle)
@@ -4172,6 +4188,10 @@ public enum L10n {
     /// gpg_keyserver_search_revoked_label
     public static var gpgKeyserverSearchRevokedLabel: String {
         String(localized: "gpg_keyserver_search_revoked_label", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_keyserver_search_scan_no_fingerprint_title
+    public static var gpgKeyserverSearchScanNoFingerprintTitle: String {
+        String(localized: "gpg_keyserver_search_scan_no_fingerprint_title", bundle: AppLocalization.shared.bundle)
     }
     /// gpg_keyserver_status_checked_at
     public static func gpgKeyserverStatusCheckedAt(_ a1: String) -> String {

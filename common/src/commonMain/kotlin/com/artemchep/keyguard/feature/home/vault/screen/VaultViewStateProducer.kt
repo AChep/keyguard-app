@@ -125,6 +125,7 @@ import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPrivateKeyArmor
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPublicKeyArmored
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.parseGpgAgentMetadataOrNull
+import com.artemchep.keyguard.common.service.gpgagent.toGpgFingerprintUriOrNull
 import com.artemchep.keyguard.common.service.gpgkeyserver.isEligibleForGpgKeyserverRefresh
 import com.artemchep.keyguard.common.service.placeholder.Placeholder
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderFactoryRegistry
@@ -4365,6 +4366,7 @@ suspend fun RememberStateFlowScope.create(
     monospace: Boolean = false,
     colorize: Boolean = false,
     elevated: Boolean = false,
+    barcodeValue: String = value,
     onBuildTrailingActions: (ContextItemBuilder.() -> Unit)? = null,
     reference: VaultViewItem.Value.Reference? = null,
 ): VaultViewItem {
@@ -4400,12 +4402,14 @@ suspend fun RememberStateFlowScope.create(
                 )
                 this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
                     translator = this@create,
-                    data = value,
+                    data = barcodeValue,
+                    // Shows the value next to a barcode that encodes it differently.
+                    text = value.takeIf { barcodeValue != value },
                     format = BarcodeImageFormat.QR_CODE,
                     historyKey = createBarcodeTypeHistoryKey(
                         cryptoGenerator = cryptoGenerator,
                         cipherLocalId = cipherLocalId,
-                        value = value,
+                        value = barcodeValue,
                     ),
                     navigate = ::navigate,
                 )
@@ -4722,6 +4726,7 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
                 .takeIf { it.isNotEmpty() }
         }
     if (effectiveGpgFingerprint != null) {
+        val value = effectiveGpgFingerprint.chunkedGpgFingerprint()
         items += create(
             copy = copy,
             cryptoGenerator = cryptoGenerator,
@@ -4729,11 +4734,12 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
             id = "gpg.fingerprint",
             accountId = accountId,
             title = translate(Res.string.fingerprint),
-            value = effectiveGpgFingerprint.chunkedGpgFingerprint(),
+            value = value,
             maxLines = 2,
             monospace = true,
             colorize = true,
             elevated = true,
+            barcodeValue = effectiveGpgFingerprint.toGpgFingerprintUriOrNull() ?: value,
         )
     }
 

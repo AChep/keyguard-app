@@ -2436,6 +2436,11 @@
     <string name="gpg_keyserver_search_revoked_label">Revoked</string>
     <string name="gpg_keyserver_search_index_label">Index</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">GPG public key not found on keyserver</string>
+    <string name="gpg_keyserver_search_scan_no_fingerprint_title">The QR code has no GPG key fingerprint</string>
+    <string name="gpg_keyserver_error_unexpected_fingerprint">The keyserver returned a GPG public key with a different fingerprint</string>
+    <string name="gpg_keyserver_error_v6_unsupported">This keyserver does not support V6 GPG keys</string>
+    <string name="gpg_keyserver_error_short_key_id_title">Short key IDs are not supported</string>
+    <string name="gpg_keyserver_error_short_key_id_text">Short key IDs are not unique. Search by fingerprint or long key ID.</string>
     <string name="gpg_keyserver_upload_success_title">GPG public key uploaded</string>
     <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">GPG public key refreshed</string>

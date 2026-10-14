@@ -11,32 +11,33 @@ import kotlin.test.assertEquals
 
 class GpgKeyserverClientImplTest {
     @Test
-    fun `both keyserver protocols preserve full v6 fingerprints in lookups`() = runTest {
+    fun `HKP looks up a full v6 fingerprint with the v2 API`() = runTest {
         val fingerprint = "FEDCBA9876543210" + "A".repeat(48)
-        for (protocol in GpgKeyserverConfig.Protocol.entries) {
-            val requests = mutableListOf<RecordedRequest>()
-            val parser = FakeParser(GpgPublicKeyParseResult.Success(listOf(
-                keyInfo(fingerprint, userIds = emptyList(), emails = emptyList()),
-            )))
-            val client = recordingClient(
-                requests = requests,
-                response = "-----BEGIN PGP PUBLIC KEY BLOCK-----",
-                contentType = ContentType.parse("application/pgp-keys"),
-            )
-            val result = GpgKeyserverClientImpl(client, parser).getByFingerprint(
-                fingerprint = fingerprint.lowercase(),
-                config = GpgKeyserverConfig(protocol = protocol),
-            ).bind()
-            assertEquals(fingerprint, result?.fingerprint)
-            assertEquals("FEDCBA9876543210", result?.keyId)
-            val request = requests.single()
-            when (protocol) {
-                GpgKeyserverConfig.Protocol.VKS ->
-                    assertEquals(listOf("vks", "v1", "by-fingerprint", fingerprint), request.pathSegments)
-                GpgKeyserverConfig.Protocol.HKP ->
-                    assertEquals("0x$fingerprint", request.query["search"])
-            }
-        }
+        val requests = mutableListOf<RecordedRequest>()
+        val parser = FakeParser(GpgPublicKeyParseResult.Success(listOf(
+            keyInfo(fingerprint, userIds = emptyList(), emails = emptyList()),
+        )))
+        val client = recordingClient(
+            requests = requests,
+            response = "-----BEGIN PGP PUBLIC KEY BLOCK-----",
+            contentType = ContentType.parse("application/pgp"),
+        )
+        val result = GpgKeyserverClientImpl(client, parser).getByFingerprint(
+            fingerprint = fingerprint.lowercase(),
+            config = TEST_HKP_CONFIG,
+        ).bind()
+        assertEquals(fingerprint, result?.fingerprint)
+        assertEquals("FEDCBA9876543210", result?.keyId)
+        assertEquals(
+            listOf(
+                RecordedRequest(
+                    method = HttpMethod.Get,
+                    pathSegments = listOf("pks", "v2", "certs", "by-vfingerprint", "06", fingerprint),
+                    route = GpgKeyserverClientImpl.ROUTE_HKP_V2_BY_FINGERPRINT,
+                ),
+            ),
+            requests,
+        )
     }
 
     @Test
@@ -203,6 +204,7 @@ class GpgKeyserverClientImplTest {
                     query = mapOf(
                         "op" to "index",
                         "options" to "mr",
+                        "fingerprint" to "on",
                         "search" to "alice@example.com",
                     ),
                 ),

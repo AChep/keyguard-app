@@ -116,6 +116,7 @@ instead, use the [Generator](/docs/generator/).
 | Export both | A `.zip` with both files |
 | **Copy public key** | The armored public key |
 | **Copy fingerprint** | The fingerprint |
+| Show the fingerprint QR code | An `OPENPGP4FPR:` QR code that other OpenPGP apps can scan |
 | **Copy unencrypted private key** | The armored private key, without a passphrase |
 
 ## Tools
@@ -132,20 +133,22 @@ server.
 
 | Protocol | Default or suggested server | Search by |
 | --- | --- | --- |
-| VKS (verifying keyserver, keys.openpgp.org API) | `https://keys.openpgp.org` | Fingerprint, key ID or email |
-| HKP (HTTP Keyserver Protocol) | `https://keyserver.ubuntu.com` | Fingerprint, key ID, email or free text |
+| VKS (verifying keyserver, keys.openpgp.org API) | `https://keys.openpgp.org` | Fingerprint, long key ID or email |
+| HKP (HTTP Keyserver Protocol) | `https://keyserver.ubuntu.com` | Fingerprint, long key ID, email or free text |
 
-Lookups accept v4 and v6 fingerprints. The keyserver must support the
-certificate's version to store and return it.
+Lookups accept v4 and v6 fingerprints. VKS keyservers store v4 keys only.
+HKP keyservers return v6 keys through the HKP v2 API, which older keyservers
+lack. A refresh skips v6 keys that the keyserver cannot store.
 
 keys.openpgp.org serves keys by fingerprint, and shares an email identity only
-after its owner confirms it. VKS has no free-text search, so Keyguard sends
-free-text queries to `https://keyserver.ubuntu.com` over HKP. VKS rate-limits
-email lookups.
+after its owner confirms it. Keyguard queries VKS by fingerprint, long key ID
+or email. VKS has no free-text search, so Keyguard sends free-text queries to
+`https://keyserver.ubuntu.com` over HKP. Short key IDs are not supported because
+they are not unique. VKS rate-limits email lookups.
 
 | Action | Where | What it does |
 | --- | --- | --- |
-| **GPG keyserver search** | **Settings > Developer > GPG agent** | Finds a key on the keyserver, so you can import it |
+| **GPG keyserver search** | **Settings > Developer > GPG agent** | Finds a key on the keyserver, so you can import it. Also accepts an `OPENPGP4FPR:` URI or a scanned fingerprint QR code. |
 | **Upload GPG public key** | Item menu | Publishes a public key. On a VKS keyserver, you pick the email addresses that get a verification email; the key becomes searchable by each one after it's confirmed. |
 | **Verify GPG public key** | Item menu | Records whether a stored key is found and verified, found but unverified, not found, or revoked |
 | **Refresh GPG public key** | Item menu | Updates the item's public key, metadata and keyserver status from the keyserver |

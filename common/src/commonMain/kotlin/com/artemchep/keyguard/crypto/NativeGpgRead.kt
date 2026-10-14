@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgUserIdInfo
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.util.isHexDigit
 import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
@@ -86,7 +87,7 @@ object NativeGpgKeyMetadataResolver : GpgKeyMetadataResolver {
         val normalizedFingerprint = fingerprint
             ?.normalizeGpgFingerprint()
             .orEmpty()
-        if (normalizedFingerprint.any { character -> !character.isAsciiHexDigit() }) {
+        if (normalizedFingerprint.any { character -> !character.isHexDigit() }) {
             return null
         }
         val privateKeyData = privateKeyArmored
@@ -186,9 +187,6 @@ object NativeGpgOpenPgpVerifier : GpgOpenPgpVerifier {
     private const val OPEN_PGP_DETACHED_VERIFY_STREAM_OPEN_OPERATION =
         "open_pgp_detached_verify.stream_open"
 }
-
-private fun Char.isAsciiHexDigit(): Boolean =
-    this in '0'..'9' || this in 'A'..'F'
 
 private fun Source.readBoundedAndClose(
     limit: Int,

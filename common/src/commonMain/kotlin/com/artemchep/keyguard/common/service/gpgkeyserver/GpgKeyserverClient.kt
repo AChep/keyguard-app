@@ -23,6 +23,10 @@ interface GpgKeyserverClient {
      * query to a different keyserver; instead the caller decides whether to
      * fall back to a protocol that supports free-text search (e.g. an HKP
      * index) and is thereby aware of the associated privacy tradeoff.
+     *
+     * A lookup that the keyserver can never answer, such as a short key ID,
+     * or a V6 fingerprint on VKS, returns `true`: [search] fails with a
+     * readable error instead of sending it to another keyserver.
      */
     fun canServeSearch(
         request: SearchGpgPublicKeyRequest,
@@ -31,7 +35,10 @@ interface GpgKeyserverClient {
 
     /**
      * Returns `null` only when the keyserver reports that the certificate is absent.
-     * Invalid, unsupported, or mismatched responses fail the returned [IO].
+     * Invalid, unsupported, or mismatched responses fail the returned [IO], and
+     * so does a [fingerprint] that is not a V4 or V6 fingerprint. A keyserver
+     * that cannot store V6 keys fails it with
+     * [com.artemchep.keyguard.common.exception.GpgKeyserverUnsupportedKeyVersionException].
      */
     fun getByFingerprint(
         fingerprint: String,

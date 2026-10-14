@@ -54,6 +54,27 @@ class GpgKeyserverClientResponseTest {
     }
 
     @Test
+    fun `a value that is not a fingerprint fails instead of returning not found`() = runTest {
+        for (config in keyserverResponseConfigs) {
+            for (value in listOf("", fingerprint.takeLast(16), "A".repeat(32), "not a fingerprint")) {
+                var requests = 0
+                val engine = MockEngine {
+                    requests++
+                    respond(content = "response")
+                }
+                HttpClient(engine).use { http ->
+                    val client = GpgKeyserverClientImpl(http, unexpectedParser)
+
+                    assertFailsWith<IllegalArgumentException>("${config.protocol}: $value") {
+                        client.getByFingerprint(value, config).bind()
+                    }
+                    assertEquals(0, requests, "${config.protocol}: $value")
+                }
+            }
+        }
+    }
+
+    @Test
     fun `unusable certificate responses fail instead of returning not found`() = runTest {
         val results = listOf(
             GpgPublicKeyParseResult.Error(GpgPublicKeyParseError.Empty),

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import com.artemchep.keyguard.common.exception.GpgKeyserverUnsupportedKeyVersionException
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DGpgKeyserverResult
 import com.artemchep.keyguard.common.model.DGpgKeyserverState
@@ -194,6 +195,21 @@ class GpgKeyserverRefreshOutcomeTest {
 
             assertTrue(fixture.lastRefreshes.isEmpty())
             assertTrue(fixture.stateRepository.getAll().first().isEmpty())
+        }
+    }
+
+    @Test
+    fun `a keyserver that cannot store the key skips it without recording a state`() = runTest {
+        GpgKeyserverRefreshTestFixture().use { fixture ->
+            fixture.lookup = { throw GpgKeyserverUnsupportedKeyVersionException() }
+            val before = fixture.row()
+
+            // Not found would claim the key is unpublished, but this
+            // keyserver can never hold it.
+            assertEquals(RefreshGpgPublicKeysResult(0, 0, 1), fixture.useCase(fixture.request).bind())
+            assertEquals(before, fixture.row())
+            assertTrue(fixture.lastRefreshes.isEmpty())
+            assertNull(fixture.stateRepository.getByFingerprint(REFRESH_FINGERPRINT).first())
         }
     }
 

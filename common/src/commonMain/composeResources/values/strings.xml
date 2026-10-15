@@ -2554,4 +2554,17 @@
     <string name="passkey_provider_unavailable">The passkey provider is unavailable. Restart Keyguard and try again.</string>
     <string name="passkey_provider_cache_error">Passkey suggestions could not be updated. Keyguard will retry while your vault is unlocked.</string>
     <string name="passkey_provider_open_settings">Open passkey settings</string>
+    <string name="attachment_archive_empty">This folder is empty.</string>
+    <string name="attachment_archive_encrypted">Encrypted</string>
+    <string name="attachment_archive_unavailable">Cannot open or save this entry.</string>
+    <string name="attachment_archive_save">Save file</string>
+    <string name="attachment_archive_back">Back</string>
+    <string name="attachment_archive_password">Archive password</string>
+    <string name="attachment_archive_error_password">Incorrect password or damaged file. Try again.</string>
+    <string name="attachment_archive_error_invalid">This ZIP archive is damaged or contains ambiguous entries.</string>
+    <string name="attachment_archive_error_unsupported">This ZIP format is not supported.</string>
+    <string name="attachment_archive_error_entries">This archive contains too many files or folders to preview.</string>
+    <string name="attachment_archive_error_export_size">This file exceeds the <xliff:g id="size_limit" example="128 MiB">%1$s</xliff:g> save limit.</string>
+    <string name="attachment_archive_error_export">Failed to save this file.</string>
+    <string name="attachment_archive_error_export_cleanup">Could not remove the incomplete file. Delete it from the selected destination.</string>
 </resources>

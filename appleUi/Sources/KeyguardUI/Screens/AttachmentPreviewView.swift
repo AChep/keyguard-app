@@ -9,38 +9,101 @@ import UIKit
 
 struct AttachmentPreviewView: View {
     @Environment(DialogsModel.self) private var dialogsModel
+    @Environment(\.dismiss) private var dismiss
 
     /// `0` renders the markdown, `1` shows the raw source.
     @State private var markdownMode = 0
+    @State private var archivePassword = ""
+    @FocusState private var archivePasswordFocused: Bool
+    @State private var archiveScrollTargets: [String: String] = [:]
 
     var body: some View {
+        let export = dialogsModel.attachmentArchiveExport
+        let snapshot = dialogsModel.attachmentPreview
+        let busy = snapshot?.busy == true || snapshot?.exportId != nil
+        // Inside an archive the dismiss button steps back, like an embedded editor step.
         ModalSheet(
-            title: dialogsModel.attachmentPreview?.fileName ?? L10n.attachment,
+            title: snapshot?.fileName ?? L10n.attachment,
             width: 640,
             height: 480,
-            detents: [.large]
+            detents: [.large],
+            dismissLabel: snapshot?.canGoBack == true ? L10n.attachmentArchiveBack : L10n.close,
+            onDismiss: {
+                if dialogsModel.attachmentPreview?.canGoBack == true {
+                    dialogsModel.backInAttachmentArchive()
+                } else {
+                    dismiss()
+                }
+            }
         ) {
-            if let snapshot = dialogsModel.attachmentPreview {
+            if let snapshot {
                 content(snapshot)
             } else {
                 // Briefly nil mid-dismissal; render nothing.
                 Color.clear
             }
         } actions: {
-            if dialogsModel.attachmentPreview?.canCopy == true {
-                Button {
+            if snapshot?.canSave == true {
+                Button(L10n.attachmentArchiveSave, systemImage: "square.and.arrow.down") {
+                    dialogsModel.saveAttachmentArchiveEntry()
+                }
+                .help(L10n.attachmentArchiveSave)
+                .disabled(busy)
+            }
+            if snapshot?.canCopy == true {
+                Button(L10n.copy, systemImage: "doc.on.doc") {
                     dialogsModel.copyAttachmentPreviewText()
-                } label: {
-                    Image(systemName: "doc.on.doc")
                 }
                 .help(L10n.copy)
-                .accessibilityLabel(L10n.copy)
             }
         }
+        .task(id: dialogsModel.attachmentPreview?.exportId) {
+            if dialogsModel.attachmentPreview?.exportId != nil { dialogsModel.prepareAttachmentArchiveExport() }
+        }
+        .onChange(of: dialogsModel.attachmentPreview?.needsPassword) { _, needsPassword in
+            if needsPassword != true { archivePassword = "" }
+        }
+        #if os(iOS)
+        .fileExporter(
+            isPresented: Binding(get: { export != nil }, set: { _ in }),
+            item: export,
+            defaultFilename: export?.name,
+            onCompletion: { result in
+                guard let export else { return }
+                switch result {
+                case .success: dialogsModel.finishAttachmentArchiveExport(export, outcome: .saved)
+                case .failure: dialogsModel.finishAttachmentArchiveExport(export, outcome: .failed)
+                }
+            },
+            onCancellation: {
+                guard let export else { return }
+                dialogsModel.finishAttachmentArchiveExport(export, outcome: .cancelled)
+            }
+        )
+        #endif
     }
 
     @ViewBuilder
     private func content(_ snapshot: AttachmentPreviewSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if snapshot.busy {
+                HStack {
+                    ProgressView()
+                    Button(L10n.cancel) { dialogsModel.cancelAttachmentArchiveOperation() }
+                }
+            }
+
+            if snapshot.needsPassword {
+                passwordPane(snapshot)
+            } else {
+                previewPane(snapshot)
+            }
+        }
+        .padding(24)
+    }
+
+    @ViewBuilder
+    private func previewPane(_ snapshot: AttachmentPreviewSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             if snapshot.kind == AttachmentPreviewKindSnapshot.markdown {
                 Picker("", selection: $markdownMode) {
@@ -56,7 +119,16 @@ struct AttachmentPreviewView: View {
             }
 
             Group {
-                if snapshot.kind == AttachmentPreviewKindSnapshot.loading {
+                if snapshot.kind == AttachmentPreviewKindSnapshot.archive {
+                    AttachmentArchiveView(
+                        snapshot: snapshot,
+                        savedScrollTarget: archiveScrollTargets[snapshot.archivePath],
+                        onScroll: { target in
+                            if let target { archiveScrollTargets[snapshot.archivePath] = target }
+                        }
+                    )
+                    .id(snapshot.archivePath)
+                } else if snapshot.kind == AttachmentPreviewKindSnapshot.loading {
                     loadingPane()
                 } else if snapshot.kind == AttachmentPreviewKindSnapshot.image {
                     imagePane(snapshot)
@@ -70,7 +142,41 @@ struct AttachmentPreviewView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(24)
+    }
+
+    @ViewBuilder
+    private func passwordPane(_ snapshot: AttachmentPreviewSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(L10n.attachmentArchivePassword).font(.headline)
+            SecureField(L10n.password, text: $archivePassword)
+                #if os(iOS)
+            .textContentType(.password)
+                #endif
+                .focused($archivePasswordFocused)
+                .onSubmit(submitArchivePassword)
+            if snapshot.passwordIncorrect {
+                Label(L10n.attachmentArchiveErrorPassword, systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.red)
+            }
+            HStack {
+                Spacer()
+                Button(L10n.cancel, role: .cancel) {
+                    archivePassword = ""
+                    dialogsModel.cancelAttachmentArchiveOperation()
+                }
+                Button(L10n.confirm, action: submitArchivePassword)
+                    .disabled(archivePassword.isEmpty)
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .onAppear { archivePasswordFocused = true }
+    }
+
+    private func submitArchivePassword() {
+        guard !archivePassword.isEmpty else { return }
+        dialogsModel.submitAttachmentArchivePassword(archivePassword)
+        archivePassword = ""
     }
 
     @ViewBuilder

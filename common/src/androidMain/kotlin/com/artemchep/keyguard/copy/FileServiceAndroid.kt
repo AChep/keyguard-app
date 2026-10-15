@@ -6,6 +6,7 @@ import android.net.Uri
 import android.provider.DocumentsContract
 import android.provider.OpenableColumns
 import androidx.core.net.toUri
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.service.file.AtomicFileWriteOutcome
 import com.artemchep.keyguard.common.service.file.FileAccessToken
 import com.artemchep.keyguard.common.service.file.FileMetadata
@@ -176,8 +177,12 @@ class FileServiceAndroid(
         return when (parsedUri.scheme) {
             "file" -> localFileService.delete(uri)
             else -> {
-                runCatching {
-                    context.contentResolver.delete(parsedUri, null, null) > 0
+                runCatchingNonFatal {
+                    if (DocumentsContract.isDocumentUri(context, parsedUri)) {
+                        DocumentsContract.deleteDocument(context.contentResolver, parsedUri)
+                    } else {
+                        context.contentResolver.delete(parsedUri, null, null) > 0
+                    }
                 }.getOrDefault(false)
             }
         }

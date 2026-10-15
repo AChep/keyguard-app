@@ -60,6 +60,28 @@ class AttachmentPreviewActionTest {
         assertEquals(route, intent.route)
     }
 
+    @Test
+    fun `zip preview action is available for local cached and remote attachments`() {
+        val route = route().copy(args = route().args.copy(fileName = "archive.ZIP"))
+        for (status in listOf(FooStatus.None, FooStatus.Downloaded(localUrl = "file:///tmp/archive.ZIP"))) {
+            val navigations = mutableListOf<NavigationIntent>()
+            val actions = foo(
+                translatorScope = TestTranslator,
+                vaultViewRouteFactory = VaultViewRouteFactoryDefault,
+                fileName = "archive.ZIP",
+                status = status,
+                launchViewCipherData = null,
+                previewRoute = route,
+                downloadIo = {},
+                removeIo = {},
+                navigate = navigations::add,
+            ).actions()
+            assertEquals(FlatItemAction.Type.VIEW, actions.first().type)
+            actions.first().onClick!!()
+            assertEquals(route, assertIs<NavigationIntent.NavigateToRoute>(navigations.single()).route)
+        }
+    }
+
     private fun route() = AttachmentPreviewRoute(
         args = AttachmentPreviewRoute.Args(
             localCipherId = "local-cipher",

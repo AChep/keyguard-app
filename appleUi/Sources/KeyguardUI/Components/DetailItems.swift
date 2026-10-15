@@ -402,34 +402,12 @@ struct DetailRow: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 20)
                 .accessibilityHidden(true)
-            FlowLayout(spacing: 4, clampsToWidth: true) {
-                ForEach(Array(item.actions.enumerated()), id: \.element.id) { index, node in
-                    if index > 0 {
-                        Image(systemName: "chevron.compact.right")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .accessibilityHidden(true)
-                    }
-                    if index == item.actions.count - 1 {
-                        Button {
-                            invoke(item.clickActionId ?? node.id)
-                        } label: {
-                            Text(node.title).touchTarget()
-                        }
-                        .buttonStyle(.plain)
-                        .breadcrumbAffordance(node.title)
-                    } else {
-                        Button {
-                            invoke(node.id)
-                        } label: {
-                            Text(node.title).touchTarget()
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(.secondary)
-                        .breadcrumbAffordance(node.title)
-                    }
+            BreadcrumbBar(
+                nodes: item.actions.enumerated().map { index, node in
+                    let actionId = index == item.actions.count - 1 ? item.clickActionId ?? node.id : node.id
+                    return BreadcrumbBar.Node(id: node.id, title: node.title) { invoke(actionId) }
                 }
-            }
+            )
             Spacer(minLength: 0)
             if item.clickActionId != nil {
                 Image(systemName: "chevron.forward")
@@ -648,19 +626,6 @@ struct DetailRow: View {
         }
     }
     #endif
-}
-
-private extension View {
-    @ViewBuilder
-    func breadcrumbAffordance(_ title: String) -> some View {
-        #if os(macOS)
-        self
-            .foregroundStyle(.tint)
-            .help(title)
-        #else
-        self.help(title)
-        #endif
-    }
 }
 
 // MARK: - TOTP badge

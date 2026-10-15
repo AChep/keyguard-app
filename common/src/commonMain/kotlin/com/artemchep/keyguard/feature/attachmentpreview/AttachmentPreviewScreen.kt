@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -25,6 +26,8 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.WrapText
+import androidx.compose.material.icons.outlined.SaveAlt
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material3.CircularProgressIndicator
@@ -85,9 +88,12 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountBin
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
+import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.DefaultProgressBar
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.MutableOverlayScope
 import com.artemchep.keyguard.ui.Placeholder
 import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.scaffoldContentWindowInsets
@@ -103,6 +109,7 @@ import dev.chrisbanes.haze.blur.hazeBlur
 import dev.chrisbanes.haze.hazeSource
 import dev.chrisbanes.haze.rememberHazeState
 import kotlinx.collections.immutable.persistentListOf
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.max
 
@@ -135,6 +142,10 @@ private fun AttachmentPreviewScaffold(
             ?: AttachmentPreviewTextMode.Source
     }
 
+    // Archive paths and navigation state belong only to this in-memory preview.
+    val archiveScroll = remember { mutableMapOf<String, LazyListState>() }
+    val ready = (loadableState as? Loadable.Ok)?.value
+    if (ready != null) AttachmentArchiveEffects(ready)
     Scaffold(
         topBar = {
             LargeToolbar(
@@ -149,13 +160,36 @@ private fun AttachmentPreviewScaffold(
                     )
                 },
                 navigationIcon = {
-                    NavigationIcon()
+                    val onBack = ready?.onNavigateBack
+                    if (onBack != null) {
+                        IconButton(
+                            onClick = onBack,
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                                contentDescription = stringResource(Res.string.attachment_archive_back),
+                            )
+                        }
+                    } else {
+                        NavigationIcon()
+                    }
                 },
                 actions = {
                     loadableState.fold(
                         ifLoading = {
                         },
                         ifOk = { state ->
+                            state.onSave?.let { onSave ->
+                                IconButton(
+                                    onClick = onSave,
+                                    enabled = !state.busy,
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.SaveAlt,
+                                        contentDescription = stringResource(Res.string.attachment_archive_save),
+                                    )
+                                }
+                            }
                             val content = state.content as? AttachmentPreviewContent.TextLike
                             if (content != null) {
                                 val copyAllText = stringResource(
@@ -197,43 +231,62 @@ private fun AttachmentPreviewScaffold(
         },
         contentWindowInsets = scaffoldContentWindowInsets,
     ) { contentPadding ->
-        loadableState.fold(
-            ifLoading = {
-                AttachmentPreviewLoading(
-                    contentPadding = contentPadding,
+        Box {
+            loadableState.fold(
+                ifLoading = {
+                    AttachmentPreviewLoading(
+                        contentPadding = contentPadding,
+                    )
+                },
+                ifOk = { state ->
+                    when (val content = state.content) {
+                        is AttachmentPreviewContent.Archive -> AttachmentArchiveContent(
+                            content = content,
+                            busy = state.busy,
+                            padding = contentPadding,
+                            listState = archiveScroll.getOrPut(content.path) { LazyListState() },
+                        )
+
+                        is AttachmentPreviewContent.Image -> AttachmentPreviewImage(
+                            bytes = content.bytes,
+                            fileName = state.fileName,
+                            contentPadding = contentPadding,
+                        )
+
+                        is AttachmentPreviewContent.Text -> AttachmentPreviewText(
+                            content = content,
+                            wrapLines = wrapLines,
+                            contentPadding = contentPadding,
+                        )
+
+                        is AttachmentPreviewContent.Markdown -> AttachmentPreviewMarkdown(
+                            content = content,
+                            markdownMode = markdownMode,
+                            onMarkdownModeChange = {
+                                markdownModeKey = it.key
+                            },
+                            wrapLines = wrapLines,
+                            contentPadding = contentPadding,
+                        )
+
+                        is AttachmentPreviewContent.Error -> AttachmentPreviewErrorPane(
+                            message = content.type.message(),
+                            contentPadding = contentPadding,
+                        )
+                    }
+                },
+            )
+
+            val contentPaddingState = rememberUpdatedState(contentPadding)
+            val overlayScope = remember(contentPaddingState) {
+                MutableOverlayScope(
+                    contentPadding = contentPaddingState,
                 )
-            },
-            ifOk = { state ->
-                when (val content = state.content) {
-                    is AttachmentPreviewContent.Image -> AttachmentPreviewImage(
-                        bytes = content.bytes,
-                        fileName = state.fileName,
-                        contentPadding = contentPadding,
-                    )
-
-                    is AttachmentPreviewContent.Text -> AttachmentPreviewText(
-                        content = content,
-                        wrapLines = wrapLines,
-                        contentPadding = contentPadding,
-                    )
-
-                    is AttachmentPreviewContent.Markdown -> AttachmentPreviewMarkdown(
-                        content = content,
-                        markdownMode = markdownMode,
-                        onMarkdownModeChange = {
-                            markdownModeKey = it.key
-                        },
-                        wrapLines = wrapLines,
-                        contentPadding = contentPadding,
-                    )
-
-                    is AttachmentPreviewContent.Error -> AttachmentPreviewErrorPane(
-                        message = content.type.message(),
-                        contentPadding = contentPadding,
-                    )
-                }
-            },
-        )
+            }
+            overlayScope.DefaultProgressBar(
+                visible = ready?.busy == true,
+            )
+        }
     }
 }
 
@@ -694,28 +747,64 @@ private fun AttachmentPreviewErrorPane(
 }
 
 @Composable
-fun AttachmentPreviewError.message(): String = when (this) {
+fun AttachmentPreviewError.message(): String {
+    val text = text()
+    return stringResource(text.res, *text.args)
+}
+
+suspend fun TranslatorScope.translate(error: AttachmentPreviewError): String {
+    val text = error.text()
+    return translate(text.res, *text.args)
+}
+
+private class AttachmentPreviewErrorText(
+    val res: StringResource,
+    vararg val args: Any,
+)
+
+private fun AttachmentPreviewError.text(): AttachmentPreviewErrorText = when (this) {
     AttachmentPreviewError.UnsupportedFileType ->
-        stringResource(Res.string.attachment_preview_error_unsupported_file)
+        AttachmentPreviewErrorText(Res.string.attachment_preview_error_unsupported_file)
 
     AttachmentPreviewError.UnsupportedPlatform ->
-        stringResource(Res.string.attachment_preview_error_unsupported_platform)
+        AttachmentPreviewErrorText(Res.string.attachment_preview_error_unsupported_platform)
 
     AttachmentPreviewError.TooLarge ->
-        stringResource(
+        AttachmentPreviewErrorText(
             Res.string.attachment_preview_error_size_limit,
             humanReadableByteCountBin(AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES),
         )
 
     AttachmentPreviewError.Network ->
-        stringResource(Res.string.attachment_preview_error_network)
+        AttachmentPreviewErrorText(Res.string.attachment_preview_error_network)
 
     AttachmentPreviewError.Decryption ->
-        stringResource(Res.string.attachment_preview_error_decryption)
+        AttachmentPreviewErrorText(Res.string.attachment_preview_error_decryption)
 
     AttachmentPreviewError.TextDecode ->
-        stringResource(Res.string.attachment_preview_error_text_decode)
+        AttachmentPreviewErrorText(Res.string.attachment_preview_error_text_decode)
+
+    AttachmentPreviewError.ArchiveInvalid ->
+        AttachmentPreviewErrorText(Res.string.attachment_archive_error_invalid)
+
+    AttachmentPreviewError.ArchiveUnsupported ->
+        AttachmentPreviewErrorText(Res.string.attachment_archive_error_unsupported)
+
+    AttachmentPreviewError.ArchivePassword ->
+        AttachmentPreviewErrorText(Res.string.attachment_archive_error_password)
+
+    AttachmentPreviewError.ArchiveTooManyEntries ->
+        AttachmentPreviewErrorText(Res.string.attachment_archive_error_entries)
+
+    AttachmentPreviewError.ArchiveExportTooLarge ->
+        AttachmentPreviewErrorText(
+            Res.string.attachment_archive_error_export_size,
+            humanReadableByteCountBin(AttachmentPreviewLimits.MAX_ENTRY_EXPORT_BYTES),
+        )
+
+    AttachmentPreviewError.ArchiveExportFailed ->
+        AttachmentPreviewErrorText(Res.string.attachment_archive_error_export)
 
     AttachmentPreviewError.Unknown ->
-        stringResource(Res.string.error_failed_unknown)
+        AttachmentPreviewErrorText(Res.string.error_failed_unknown)
 }

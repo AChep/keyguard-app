@@ -741,6 +741,58 @@ public enum L10n {
     public static var attachment: String {
         String(localized: "attachment", bundle: AppLocalization.shared.bundle)
     }
+    /// attachment_archive_back
+    public static var attachmentArchiveBack: String {
+        String(localized: "attachment_archive_back", bundle: AppLocalization.shared.bundle)
+    }
+    /// attachment_archive_empty
+    public static var attachmentArchiveEmpty: String {
+        String(localized: "attachment_archive_empty", bundle: AppLocalization.shared.bundle)
+    }
+    /// attachment_archive_encrypted
+    public static var attachmentArchiveEncrypted: String {
+        String(localized: "attachment_archive_encrypted", bundle: AppLocalization.shared.bundle)
+    }
+    /// attachment_archive_error_entries
+    public static var attachmentArchiveErrorEntries: String {
+        String(localized: "attachment_archive_error_entries", bundle: AppLocalization.shared.bundle)
+    }
+    /// attachment_archive_error_export
+    public static var attachmentArchiveErrorExport: String {
+        String(localized: "attachment_archive_error_export", bundle: AppLocalization.shared.bundle)
+    }
+    /// attachment_archive_error_export_cleanup
+    public static var attachmentArchiveErrorExportCleanup: String {
+        String(localized: "attachment_archive_error_export_cleanup", bundle: AppLocalization.shared.bundle)
+    }
+    /// attachment_archive_error_export_size
+    public static func attachmentArchiveErrorExportSize(_ a1: String) -> String {
+        String(format: String(localized: "attachment_archive_error_export_size", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// attachment_archive_error_invalid
+    public static var attachmentArchiveErrorInvalid: String {
+        String(localized: "attachment_archive_error_invalid", bundle: AppLocalization.shared.bundle)
+    }
+    /// attachment_archive_error_password
+    public static var attachmentArchiveErrorPassword: String {
+        String(localized: "attachment_archive_error_password", bundle: AppLocalization.shared.bundle)
+    }
+    /// attachment_archive_error_unsupported
+    public static var attachmentArchiveErrorUnsupported: String {
+        String(localized: "attachment_archive_error_unsupported", bundle: AppLocalization.shared.bundle)
+    }
+    /// attachment_archive_password
+    public static var attachmentArchivePassword: String {
+        String(localized: "attachment_archive_password", bundle: AppLocalization.shared.bundle)
+    }
+    /// attachment_archive_save
+    public static var attachmentArchiveSave: String {
+        String(localized: "attachment_archive_save", bundle: AppLocalization.shared.bundle)
+    }
+    /// attachment_archive_unavailable
+    public static var attachmentArchiveUnavailable: String {
+        String(localized: "attachment_archive_unavailable", bundle: AppLocalization.shared.bundle)
+    }
     /// attachment_preview_action_copy_all
     public static var attachmentPreviewActionCopyAll: String {
         String(localized: "attachment_preview_action_copy_all", bundle: AppLocalization.shared.bundle)
@@ -2200,6 +2252,10 @@ public enum L10n {
     /// error_credential_calling_app_not_privileged_add_as_privileged_app_title
     public static var errorCredentialCallingAppNotPrivilegedAddAsPrivilegedAppTitle: String {
         String(localized: "error_credential_calling_app_not_privileged_add_as_privileged_app_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// error_credential_not_stored
+    public static var errorCredentialNotStored: String {
+        String(localized: "error_credential_not_stored", bundle: AppLocalization.shared.bundle)
     }
     /// error_failed_agent_start
     public static func errorFailedAgentStart(_ a1: String) -> String {
@@ -5028,6 +5084,46 @@ public enum L10n {
     /// passkey_discoverable
     public static var passkeyDiscoverable: String {
         String(localized: "passkey_discoverable", bundle: AppLocalization.shared.bundle)
+    }
+    /// passkey_provider_cache_error
+    public static var passkeyProviderCacheError: String {
+        String(localized: "passkey_provider_cache_error", bundle: AppLocalization.shared.bundle)
+    }
+    /// passkey_provider_consent
+    public static var passkeyProviderConsent: String {
+        String(localized: "passkey_provider_consent", bundle: AppLocalization.shared.bundle)
+    }
+    /// passkey_provider_disabled
+    public static var passkeyProviderDisabled: String {
+        String(localized: "passkey_provider_disabled", bundle: AppLocalization.shared.bundle)
+    }
+    /// passkey_provider_enabled
+    public static var passkeyProviderEnabled: String {
+        String(localized: "passkey_provider_enabled", bundle: AppLocalization.shared.bundle)
+    }
+    /// passkey_provider_error
+    public static var passkeyProviderError: String {
+        String(localized: "passkey_provider_error", bundle: AppLocalization.shared.bundle)
+    }
+    /// passkey_provider_open_settings
+    public static var passkeyProviderOpenSettings: String {
+        String(localized: "passkey_provider_open_settings", bundle: AppLocalization.shared.bundle)
+    }
+    /// passkey_provider_unavailable
+    public static var passkeyProviderUnavailable: String {
+        String(localized: "passkey_provider_unavailable", bundle: AppLocalization.shared.bundle)
+    }
+    /// passkey_provider_unpackaged
+    public static var passkeyProviderUnpackaged: String {
+        String(localized: "passkey_provider_unpackaged", bundle: AppLocalization.shared.bundle)
+    }
+    /// passkey_provider_unregistered
+    public static var passkeyProviderUnregistered: String {
+        String(localized: "passkey_provider_unregistered", bundle: AppLocalization.shared.bundle)
+    }
+    /// passkey_provider_unsupported
+    public static var passkeyProviderUnsupported: String {
+        String(localized: "passkey_provider_unsupported", bundle: AppLocalization.shared.bundle)
     }
     /// passkey_relying_party
     public static var passkeyRelyingParty: String {

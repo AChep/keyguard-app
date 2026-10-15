@@ -77,6 +77,7 @@ data class PasskeyCredentialSnapshot(
 )
 
 enum class AttachmentPreviewKindSnapshot {
+    ARCHIVE,
     LOADING,
     IMAGE,
     TEXT,
@@ -110,6 +111,16 @@ data class AttachmentPreviewSnapshot(
     val errorMessage: String? = null,
     val imageDecodeErrorMessage: String? = null,
     val canCopy: Boolean = false,
+    val archivePath: String = "",
+    /** The breadcrumb names; every one but the last opens its folder. */
+    val archiveBreadcrumbs: List<String> = emptyList(),
+    val archiveEntries: List<AttachmentArchiveEntrySnapshot> = emptyList(),
+    val canGoBack: Boolean = false,
+    val canSave: Boolean = false,
+    val busy: Boolean = false,
+    val needsPassword: Boolean = false,
+    val passwordIncorrect: Boolean = false,
+    val exportId: String? = null,
 )
 
 /**
@@ -365,3 +376,23 @@ data class PasswordMemorySnapshot(
     val error: String?,
     val canVerify: Boolean,
 )
+
+
+data class AttachmentArchiveEntrySnapshot(
+    val id: String,
+    val name: String,
+    val directory: Boolean,
+    val size: String?,
+    val encrypted: Boolean,
+    val canOpen: Boolean,
+    val canSave: Boolean,
+)
+
+data class AttachmentArchiveExportSnapshot(
+    val id: String,
+    val requestId: String,
+    val uri: String,
+    val name: String,
+)
+
+enum class AttachmentArchiveExportOutcomeSnapshot { SAVED, CANCELLED, FAILED }

@@ -1,36 +1,16 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
-import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
+import com.artemchep.keyguard.ui.Breadcrumb
+import com.artemchep.keyguard.ui.BreadcrumbTree
 import com.artemchep.keyguard.ui.icons.ChevronIcon
-import com.artemchep.keyguard.ui.theme.combineAlpha
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun VaultViewFolderItem(
     modifier: Modifier = Modifier,
@@ -62,67 +42,16 @@ fun VaultViewFolderTree(
     modifier: Modifier = Modifier,
     item: VaultViewItem.Folder,
 ) {
-    FlowRow(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(4.dp, Alignment.CenterVertically),
-        horizontalArrangement = Arrangement.spacedBy(4.dp, Alignment.Start),
-    ) {
-        val paddingModifier = Modifier
-            .padding(
-                horizontal = 8.dp,
-                vertical = 4.dp,
+    val breadcrumbs = remember(item.nodes) {
+        item.nodes.map { node ->
+            Breadcrumb(
+                name = node.name,
+                onClick = node.onClick,
             )
-        val tintColor = MaterialTheme.colorScheme
-            .surfaceColorAtElevationSemi(1.dp)
-        item.nodes.forEachIndexed { index, s ->
-            if (item.nodes.size > 1 && index != item.nodes.lastIndex) {
-                val updatedOnClick by rememberUpdatedState(s.onClick)
-                Row(
-                    modifier = Modifier
-                        .clip(MaterialTheme.shapes.small)
-                        .background(tintColor)
-                        .clickable {
-                            updatedOnClick()
-                        }
-                        .then(paddingModifier),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                ) {
-                    Text(
-                        modifier = Modifier
-                            .weight(1f, fill = false),
-                        text = s.name,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 5,
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Icon(
-                        Icons.Outlined.ChevronRight,
-                        null,
-                        modifier = Modifier
-                            .size(18.dp),
-                        tint = LocalContentColor.current
-                            .combineAlpha(DisabledEmphasisAlpha),
-                    )
-                }
-            } else if (item.nodes.size == 1) {
-                Text(
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically),
-                    text = s.name,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 5,
-                )
-            } else {
-                Text(
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .then(paddingModifier),
-                    text = s.name,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 5,
-                )
-            }
         }
     }
+    BreadcrumbTree(
+        modifier = modifier,
+        breadcrumbs = breadcrumbs,
+    )
 }

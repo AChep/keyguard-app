@@ -1,7 +1,7 @@
 //! Stable C ABI for Keyguard native ZIP archive reading and writing.
 //!
 //! Each function unmarshals its raw arguments, delegates to
-//! [`keyguard_zip_core`], and returns the ABI v1 scalar described in
+//! [`keyguard_zip_core`], and returns the ABI v2 scalar described in
 //! `include/keyguard_zip.h`. Panics never cross the boundary.
 
 #![deny(unsafe_op_in_unsafe_fn)]
@@ -9,7 +9,9 @@
 use keyguard_ffi::{
     PanicHook, bytes_from_raw, bytes_from_raw_mut, flatten as unwrap, string_from_raw,
 };
-use keyguard_zip_core::{MAX_PATH_BYTES, pack_bridge_internal, pack_bridge_invalid_argument};
+use keyguard_zip_core::{
+    MAX_MEMORY_ARCHIVE_BYTES, MAX_PATH_BYTES, pack_bridge_internal, pack_bridge_invalid_argument,
+};
 
 /// Tests keep the default hook so a caught assertion still prints.
 const PANIC_HOOK: PanicHook = if cfg!(test) {
@@ -236,11 +238,70 @@ pub extern "C" fn keyguard_zip_reader_close(handle: u64) -> i64 {
     }))
 }
 
+/// Opens an entry from a bounded, in-memory ZIP. Does not write files.
+///
+/// # Safety
+/// Input pointer/length pairs must be readable for the call; null is allowed for zero length.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn keyguard_zip_memory_open(
+    data_ptr: *const u8,
+    data_len: usize,
+    index: usize,
+    local_header_offset: u64,
+    password_ptr: *const u8,
+    password_len: usize,
+) -> i64 {
+    unwrap(contained(|| {
+        if data_len > MAX_MEMORY_ARCHIVE_BYTES {
+            return Err(pack_bridge_invalid_argument());
+        }
+        // SAFETY: Forwarded from this function's contract.
+        let data = unsafe { bytes_from_raw(data_ptr, data_len) }?;
+        // SAFETY: Forwarded from this function's contract.
+        let password = unsafe { string_from_raw(password_ptr, password_len) }?;
+        let reader = keyguard_zip_core::memory_reader::MemoryReader::open(
+            data,
+            index,
+            local_header_offset,
+            Some(password),
+        )?;
+        i64::try_from(keyguard_zip_core::registry::insert_memory_reader(reader))
+            .map_err(|_| pack_bridge_internal())
+    }))
+}
+
+/// Reads a chunk of a selected in-memory entry; zero indicates verified EOF.
+///
+/// # Safety
+/// The output must be writable and unaliased for the call; null is allowed for zero length.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn keyguard_zip_memory_read(
+    handle: u64,
+    output: *mut u8,
+    length: usize,
+) -> i64 {
+    unwrap(contained(|| {
+        // SAFETY: Forwarded from this function's contract.
+        let output = unsafe { bytes_from_raw_mut(output, length) }?;
+        let count = keyguard_zip_core::registry::memory_read(handle, output)?;
+        i64::try_from(count).map_err(|_| pack_bridge_internal())
+    }))
+}
+
+/// Consumes an in-memory entry handle.
+#[unsafe(no_mangle)]
+pub extern "C" fn keyguard_zip_memory_close(handle: u64) -> i64 {
+    unwrap(contained(|| {
+        keyguard_zip_core::registry::memory_close(handle)?;
+        Ok(0)
+    }))
+}
+
 #[cfg(test)]
 mod tests {
     use std::{
         fs,
-        io::Read,
+        io::{Cursor, Read, Write},
         path::{Path, PathBuf},
         ptr,
         sync::atomic::{AtomicU64, Ordering},
@@ -286,8 +347,78 @@ mod tests {
     }
 
     #[test]
-    fn the_abi_version_is_pinned_to_one() {
-        assert_eq!(keyguard_zip_abi_version(), 1);
+    fn the_abi_version_is_pinned_to_two() {
+        assert_eq!(keyguard_zip_abi_version(), 2);
+    }
+
+    #[test]
+    fn memory_reader_owns_bytes_and_consumes_its_handle() {
+        let mut writer = zip::ZipWriter::new(Cursor::new(Vec::new()));
+        writer
+            .start_file("file.txt", zip::write::SimpleFileOptions::default())
+            .unwrap();
+        writer.write_all(b"hello").unwrap();
+        let mut bytes = writer.finish().unwrap().into_inner();
+        // SAFETY: Input bytes remain live for the call; the empty password is null/zero.
+        let handle =
+            unsafe { keyguard_zip_memory_open(bytes.as_ptr(), bytes.len(), 0, 0, ptr::null(), 0) };
+        assert!(handle > 0);
+        bytes.fill(0);
+        let handle = handle as u64;
+        assert_eq!(
+            keyguard_zip_reader_close(handle),
+            pack_bridge_invalid_handle()
+        );
+        let mut output = [0; 16];
+        // SAFETY: Output is writable and unaliased for each call.
+        unsafe {
+            assert_eq!(
+                keyguard_zip_memory_read(handle, output.as_mut_ptr(), output.len()),
+                5
+            );
+            assert_eq!(&output[..5], b"hello");
+            assert_eq!(
+                keyguard_zip_memory_read(handle, output.as_mut_ptr(), output.len()),
+                0
+            );
+        }
+        assert_eq!(keyguard_zip_memory_close(handle), 0);
+        assert_eq!(
+            keyguard_zip_memory_close(handle),
+            pack_bridge_invalid_handle()
+        );
+    }
+
+    #[test]
+    fn memory_reader_rejects_a_deduplicated_entry_across_the_c_abi() {
+        let bytes =
+            include_bytes!("../../keyguard-zip-core/tests/fixtures/unicode-name-collision.zip");
+        // SAFETY: The fixture is readable for the call; the empty password is null/zero.
+        let result =
+            unsafe { keyguard_zip_memory_open(bytes.as_ptr(), bytes.len(), 0, 0, ptr::null(), 0) };
+        assert!(result < 0, "a mismatched entry must not create a reader");
+    }
+
+    #[test]
+    fn memory_reader_rejects_null_and_oversized_input() {
+        // SAFETY: These invalid pointer/length pairs must be rejected before dereferencing.
+        unsafe {
+            assert_eq!(
+                keyguard_zip_memory_open(ptr::null(), 1, 0, 0, ptr::null(), 0),
+                pack_bridge_invalid_argument(),
+            );
+            assert_eq!(
+                keyguard_zip_memory_open(
+                    ptr::null(),
+                    MAX_MEMORY_ARCHIVE_BYTES + 1,
+                    0,
+                    0,
+                    ptr::null(),
+                    0
+                ),
+                pack_bridge_invalid_argument(),
+            );
+        }
     }
 
     #[test]

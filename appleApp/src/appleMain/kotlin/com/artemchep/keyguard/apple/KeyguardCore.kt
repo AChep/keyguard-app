@@ -705,6 +705,20 @@ class KeyguardCore(runtime: KeyguardRuntime) {
      */
     fun invokeAttachmentPreviewCopy() = dialogController.invokeAttachmentPreviewCopy()
 
+    fun attachmentPreviewBack() = dialogController.attachmentPreviewBack()
+    fun attachmentPreviewOpenBreadcrumb(index: Int) = dialogController.attachmentPreviewOpenBreadcrumb(index)
+    fun attachmentPreviewSave() = dialogController.attachmentPreviewSave()
+    fun attachmentPreviewOpenEntry(id: String, save: Boolean) = dialogController.attachmentPreviewOpenEntry(id, save)
+    fun attachmentPreviewPassword(password: String) = dialogController.attachmentPreviewPassword(password)
+    fun attachmentPreviewCancel() = dialogController.attachmentPreviewCancel()
+    fun prepareAttachmentPreviewExport(
+        onResult: (com.artemchep.keyguard.apple.dialog.AttachmentArchiveExportSnapshot?) -> Unit,
+    ) = dialogController.prepareAttachmentPreviewExport(onResult)
+    fun finishAttachmentPreviewExport(
+        id: String,
+        outcome: com.artemchep.keyguard.apple.dialog.AttachmentArchiveExportOutcomeSnapshot,
+    ) = dialogController.finishAttachmentPreviewExport(id, outcome)
+
     fun closeAttachmentPreview() = dialogController.closeAttachmentPreview()
 
     // Confirmation dialog

@@ -124,7 +124,7 @@ class AttachmentPreviewStateProducerTest {
             ),
             Triple(
                 args.copy(
-                    fileName = "archive.zip",
+                    fileName = "archive.7z",
                     encryptedSize = 1L,
                 ),
                 CanPreviewAttachmentImpl(),

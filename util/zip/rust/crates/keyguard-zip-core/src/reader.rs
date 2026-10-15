@@ -22,7 +22,7 @@
 use std::{
     cell::UnsafeCell,
     fs::File,
-    io::{self, Read},
+    io::{self, Read, Seek},
     mem,
 };
 
@@ -140,11 +140,7 @@ impl ArchiveReader {
                     return Err(pack_bridge_error(BridgeError::EncryptionRequired));
                 }
             }
-            let entry = match password {
-                Some(password) => archive.by_index_decrypt(index, password.as_bytes()),
-                None => archive.by_index(index),
-            };
-            entry.map(Entry).map_err(|error| open_entry_failure(&error))
+            open_entry(archive, index, password.map(String::as_str)).map(Entry)
         });
 
         match cell {
@@ -170,23 +166,7 @@ impl ArchiveReader {
         let State::Entry(cell) = &mut self.state else {
             return Err(pack_bridge_error(BridgeError::InvalidState));
         };
-        if buf.is_empty() {
-            return Ok(0);
-        }
-        cell.with_dependent_mut(|_, entry| {
-            loop {
-                return match entry.0.read(buf) {
-                    Ok(read) => Ok(read),
-                    Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
-                    // A CRC-32 or AE-2 HMAC mismatch surfaces as invalid data:
-                    // an input failure, not an I/O one.
-                    Err(error) if error.kind() == io::ErrorKind::InvalidData => Err(
-                        pack_archive_error(Operation::Read, FailureKind::InvalidInput),
-                    ),
-                    Err(error) => Err(pack_io_error(Operation::Read, &error)),
-                };
-            }
-        })
+        cell.with_dependent_mut(|_, entry| read_entry(&mut entry.0, buf))
     }
 
     /// Closes the reader, leaving the file in place.
@@ -224,9 +204,42 @@ fn measure_name(archive: &ZipArchive<File>, index: usize, capacity: usize) -> Re
     Ok(name.len())
 }
 
+/// Opens entry `index`, decrypting it when a password is given.
+pub(crate) fn open_entry<'a, R: Read + Seek>(
+    archive: &'a mut ZipArchive<R>,
+    index: usize,
+    password: Option<&str>,
+) -> Result<ZipFile<'a, R>, i64> {
+    match password {
+        Some(password) => archive.by_index_decrypt(index, password.as_bytes()),
+        None => archive.by_index(index),
+    }
+    .map_err(|error| open_entry_failure(&error))
+}
+
+/// Reads up to `buf.len()` bytes of an opened entry; zero at its end.
+pub(crate) fn read_entry(entry: &mut impl Read, buf: &mut [u8]) -> Result<usize, i64> {
+    if buf.is_empty() {
+        return Ok(0);
+    }
+    loop {
+        return match entry.read(buf) {
+            Ok(read) => Ok(read),
+            Err(error) if error.kind() == io::ErrorKind::Interrupted => continue,
+            // A CRC-32 or AE-2 HMAC mismatch surfaces as invalid data:
+            // an input failure, not an I/O one.
+            Err(error) if error.kind() == io::ErrorKind::InvalidData => Err(pack_archive_error(
+                Operation::Read,
+                FailureKind::InvalidInput,
+            )),
+            Err(error) => Err(pack_io_error(Operation::Read, &error)),
+        };
+    }
+}
+
 /// Classifies a failure to open an entry. A missing password reads like a
 /// wrong one, even though the `zip` crate reports it as unsupported.
-fn open_entry_failure(error: &ZipError) -> i64 {
+pub(crate) fn open_entry_failure(error: &ZipError) -> i64 {
     match error {
         ZipError::InvalidPassword => pack_bridge_error(BridgeError::WrongPassword),
         ZipError::UnsupportedArchive(ZipError::PASSWORD_REQUIRED) => {

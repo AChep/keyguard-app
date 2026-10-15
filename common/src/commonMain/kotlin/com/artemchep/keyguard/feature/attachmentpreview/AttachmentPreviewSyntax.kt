@@ -30,6 +30,7 @@ fun attachmentPreviewSyntaxLanguageByFileName(
         AttachmentPreviewKind.Markdown,
         AttachmentPreviewKind.Text -> SyntaxLanguage.DEFAULT
 
+        AttachmentPreviewKind.Archive,
         AttachmentPreviewKind.Image,
         null -> null
     }

@@ -73,8 +73,14 @@ class AttachmentPreviewTypesTest {
     }
 
     @Test
+    fun `zip extensions are previewable case insensitively`() {
+        assertEquals(AttachmentPreviewKind.Archive, attachmentPreviewKindByFileName("archive.ZIP"))
+        assertEquals(AttachmentPreviewKind.Archive, attachmentPreviewKindByFileName("archive.zip"))
+    }
+
+    @Test
     fun `unsupported extensions are not previewable`() {
-        assertNull(attachmentPreviewKindByFileName("archive.zip"))
+        assertNull(attachmentPreviewKindByFileName("archive.7z"))
         assertNull(attachmentPreviewKindByFileName("backup.sqlite"))
         assertNull(attachmentPreviewKindByFileName("unknown.blob"))
     }
@@ -253,7 +259,7 @@ class AttachmentPreviewTypesTest {
             createAttachmentPreviewRouteOrNull(
                 localCipherId = "local-cipher",
                 remoteCipherId = "remote-cipher",
-                attachment = remoteAttachment(fileName = "archive.zip"),
+                attachment = remoteAttachment(fileName = "archive.7z"),
                 canPreviewAttachment = CanPreviewAttachmentImpl(),
                 attachmentPreviewRouteFactory = AttachmentPreviewRouteFactoryDefault,
             ),
@@ -302,7 +308,7 @@ class AttachmentPreviewTypesTest {
         assertEquals(
             AttachmentPreviewPolicy.UnsupportedType,
             desktopPolicy(
-                fileName = "archive.zip",
+                fileName = "archive.7z",
                 encryptedSize = 1L,
             ),
         )

@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentSecret
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepositoryEmpty
+import com.artemchep.keyguard.common.service.gpgagent.isEligibleForGpgAgent
 import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
 import com.artemchep.keyguard.common.service.gpgagent.toGpgPublicKeyEntry
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
@@ -27,6 +28,9 @@ import com.artemchep.keyguard.test.createSecret
 import com.artemchep.keyguard.test.gpgMetadata
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
@@ -36,31 +40,33 @@ import kotlinx.coroutines.test.runTest
 
 class GpgAgentListKeysContractTest {
     @Test
+    fun `archived and trashed keys remain mappable but ineligible for the agent`() {
+        val cipher = createActiveCiphers().first()
+        val secret = assertNotNull(cipher.toGpgAgentSecretOrNull())
+        assertTrue(cipher.isEligibleForGpgAgent())
+
+        val date = Instant.parse("2024-02-01T00:00:00Z")
+        listOf(cipher.copy(archivedDate = date), cipher.copy(deletedDate = date)).forEach { inactive ->
+            assertEquals(secret.copy(cipher = inactive), inactive.toGpgAgentSecretOrNull())
+            assertFalse(inactive.isEligibleForGpgAgent())
+        }
+    }
+
+    @Test
     fun `locked and unlocked KEYINFO listings agree and collapse shared keygrips`() = runTest {
         // The "backup" cipher holds the same component key as "primary",
         // which the per-cipher catalog intentionally keeps twice.
-        val ciphers = listOf(
-            createGpgCipher(
-                id = "primary",
-                name = "Primary",
-                fingerprint = FINGERPRINT_1,
-                keygrip = SHARED_KEYGRIP,
-            ),
-            createGpgCipher(
-                id = "backup",
-                name = "Backup",
-                fingerprint = FINGERPRINT_1,
-                keygrip = SHARED_KEYGRIP,
-            ),
-            createGpgCipher(
-                id = "other",
-                name = "Other",
-                fingerprint = FINGERPRINT_2,
-                keygrip = OTHER_KEYGRIP,
-            ),
+        val activeCiphers = createActiveCiphers()
+        // An archived public-only copy must not hide the active private key
+        // when it precedes that key in either listing's source order.
+        val primary = activeCiphers.first()
+        val archivedPublicCopy = primary.copy(
+            id = "archived-public",
+            archivedDate = Instant.parse("2024-02-01T00:00:00Z"),
+            gpgKey = primary.gpgKey?.copy(privateKeyArmored = null),
         )
-        val secrets = ciphers.mapNotNull { it.toGpgAgentSecretOrNull() }
-        assertEquals(ciphers.size, secrets.size)
+        val ciphers = listOf(archivedPublicCopy) + activeCiphers
+        val secrets = activeCiphers.mapNotNull { it.toGpgAgentSecretOrNull() }
 
         val unlockedProcessor = createProcessor(
             session = MasterSession.Key(
@@ -103,7 +109,29 @@ class GpgAgentListKeysContractTest {
             listOf(SHARED_KEYGRIP, OTHER_KEYGRIP).sorted(),
             unlockedKeys.map { it.keygrip }.sorted(),
         )
+        assertTrue(unlockedKeys.single { it.keygrip == SHARED_KEYGRIP }.canDecrypt)
     }
+
+    private fun createActiveCiphers(): List<DSecret> = listOf(
+        createGpgCipher(
+            id = "primary",
+            name = "Primary",
+            fingerprint = FINGERPRINT_1,
+            keygrip = SHARED_KEYGRIP,
+        ),
+        createGpgCipher(
+            id = "backup",
+            name = "Backup",
+            fingerprint = FINGERPRINT_1,
+            keygrip = SHARED_KEYGRIP,
+        ),
+        createGpgCipher(
+            id = "other",
+            name = "Other",
+            fingerprint = FINGERPRINT_2,
+            keygrip = OTHER_KEYGRIP,
+        ),
+    )
 
     private fun buildCatalogRows(
         secrets: List<GpgAgentSecret>,

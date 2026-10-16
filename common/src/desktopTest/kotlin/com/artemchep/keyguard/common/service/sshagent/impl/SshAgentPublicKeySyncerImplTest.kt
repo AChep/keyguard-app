@@ -114,6 +114,43 @@ class SshAgentPublicKeySyncerImplTest {
     }
 
     @Test
+    fun `archiving removes cached SSH keys and restoring makes them available again`() = runTest {
+        val repository = RecordingSshAgentPublicKeyRepository()
+        val key = createSshSecret(
+            id = "key",
+            name = "Key",
+            publicKey = buildOpenSshPublicKey("ssh-ed25519", seed = 1),
+            fingerprint = "SHA256:key",
+        )
+        val ciphers = MutableStateFlow(listOf(key))
+        val syncer = createSyncer(
+            repository = repository,
+            ciphers = ciphers,
+            sshAgentEnabled = MutableStateFlow(true),
+            displayKeyNames = MutableStateFlow(true),
+            filter = MutableStateFlow(SshAgentFilter()),
+            defaultDispatcher = StandardTestDispatcher(testScheduler),
+        )
+
+        val job = syncer.launch(this)
+        try {
+            advanceUntilIdle()
+            val originalKeys = repository.keys
+            assertEquals(listOf(key.id), originalKeys.map { it.cipherId })
+
+            ciphers.value = listOf(key.copy(archivedDate = Instant.parse("2024-02-01T00:00:00Z")))
+            advanceUntilIdle()
+            assertEquals(emptyList(), repository.keys)
+
+            ciphers.value = listOf(key)
+            advanceUntilIdle()
+            assertEquals(originalKeys, repository.keys)
+        } finally {
+            job.cancel()
+        }
+    }
+
+    @Test
     fun `syncer clears cache when SSH agent is disabled`() = runTest {
         val repository = RecordingSshAgentPublicKeyRepository(
             initialKeys = listOf(

@@ -201,15 +201,20 @@ class GpgAgentApprovalReuseTest {
     }
 
     @Test
-    fun `keys removed stripped or replaced during approval are not used`() = runTest {
+    fun `keys removed deleted archived stripped or replaced during approval are not used`() = runTest {
         GpgAgentOperation.entries.forEach { operation ->
-            for (change in listOf("removed", "private removed", "replaced item", "replaced account")) {
+            val changes = listOf(
+                "removed", "deleted", "archived", "private removed", "replaced item", "replaced account",
+            )
+            for (change in changes) {
                 val fixture = Fixture(this)
                 val result = fixture.finishPendingApproval(operation) {
                     fixture.ciphers.value = fixture.ciphers.value.mapNotNull { cipher ->
                         if (cipher.id != KEYGRIP) return@mapNotNull cipher
                         when (change) {
                             "removed" -> null
+                            "deleted" -> cipher.copy(deletedDate = Instant.parse("2024-01-02T00:00:00Z"))
+                            "archived" -> cipher.copy(archivedDate = Instant.parse("2024-01-02T00:00:00Z"))
                             "private removed" -> cipher.copy(gpgKey = cipher.gpgKey?.copy(privateKeyArmored = null))
                             "replaced item" -> cipher.copy(id = "replacement")
                             else -> cipher.copy(accountId = "replacement")
@@ -219,6 +224,22 @@ class GpgAgentApprovalReuseTest {
                 assertIs<GpgAgentOperationResult.KeyNotFound>(result)
                 assertEquals(0, fixture.crypto.calls, change)
             }
+        }
+    }
+
+    @Test
+    fun `archiving a GPG key prevents sign and decrypt despite a remembered approval`() = runTest {
+        GpgAgentOperation.entries.forEach { operation ->
+            val fixture = Fixture(this)
+            val caller = caller(connection = 1)
+            fixture.succeed(operation, caller)
+            fixture.ciphers.value = fixture.ciphers.value.map { cipher ->
+                cipher.copy(archivedDate = Instant.parse("2024-01-02T00:00:00Z"))
+            }
+
+            assertIs<GpgAgentOperationResult.KeyNotFound>(fixture.request(operation, caller))
+            assertEquals(1, fixture.crypto.calls)
+            assertEquals(1, fixture.approvals)
         }
     }
 

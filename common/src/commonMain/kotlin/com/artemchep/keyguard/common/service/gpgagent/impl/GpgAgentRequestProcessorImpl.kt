@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheIdentity
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentApprovalWindowMemory
 import com.artemchep.keyguard.common.service.agent.flowBackedAgentApprovalCacheConfigProvider
+import com.artemchep.keyguard.common.service.agent.isEligibleForAgent
 import com.artemchep.keyguard.common.service.agent.toApprovalCacheIdentity
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolverUnsupported
@@ -458,6 +459,7 @@ class GpgAgentRequestProcessorImpl(
         val metadataResolver = dependencies.metadataResolver
             ?: GpgKeyMetadataResolverUnsupported
         val gpgSecrets = ciphers
+            .filter { it.isEligibleForAgent() }
             .mapNotNull { it.toGpgAgentSecretOrNull() }
             .map { secret ->
                 secret.resolveAuthorizationOrClear(

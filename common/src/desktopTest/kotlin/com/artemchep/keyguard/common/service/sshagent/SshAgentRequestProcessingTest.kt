@@ -434,7 +434,7 @@ class SshAgentRequestProcessingTest {
     }
 
     @Test
-    fun `handleListKeys omits trashed ssh keys`() = runTest {
+    fun `handleListKeys omits trashed and archived ssh keys`() = runTest {
         val server = createServer(
             vaultSession = MutableVaultSession(
                 createUnlockedSession(
@@ -449,6 +449,11 @@ class SshAgentRequestProcessingTest {
                         fingerprint = "SHA256:trashed",
                         deletedDate = Instant.parse("2024-02-01T00:00:00Z"),
                     ),
+                    createSshSecret(
+                        name = "Archived key",
+                        publicKey = "ssh-ed25519 AAAA... archived@example",
+                        fingerprint = "SHA256:archived",
+                    ).copy(archivedDate = Instant.parse("2024-02-01T00:00:00Z")),
                 ),
             ),
         )
@@ -1540,7 +1545,8 @@ class SshAgentRequestProcessingTest {
 
     @Test
     fun `key eligibility and cipher identity changes during approval prevent SSH signing`() = runTest {
-        for (change in listOf("removed", "deleted", "private removed", "cipher replaced", "account replaced")) {
+        val changes = listOf("removed", "deleted", "archived", "private removed", "cipher replaced", "account replaced")
+        for (change in changes) {
             val ciphers = MutableStateFlow(listOf(createSigningSecret()))
             val history = mutableListOf<AddSshUsageHistoryRequest>()
             val session = MutableVaultSession(createUnlockedSessionWithHistory(history, ciphers = ciphers))
@@ -1549,6 +1555,7 @@ class SshAgentRequestProcessingTest {
                     when (change) {
                         "removed" -> null
                         "deleted" -> cipher.copy(deletedDate = Instant.parse("2024-01-02T00:00:00Z"))
+                        "archived" -> cipher.copy(archivedDate = Instant.parse("2024-01-02T00:00:00Z"))
                         "private removed" -> cipher.copy(sshKey = cipher.sshKey?.copy(privateKey = null))
                         "cipher replaced" -> cipher.copy(id = "replacement")
                         else -> cipher.copy(accountId = "replacement")
@@ -1672,7 +1679,7 @@ class SshAgentRequestProcessingTest {
 
     @Test
     fun `remembered signing reads current eligibility after cache access unblocks`() = runTest {
-        for (excludeWithFilter in listOf(false, true)) {
+        for (change in listOf("removed", "archived", "filtered")) {
             val ciphers = MutableStateFlow(listOf(createSigningSecret()))
             var cipherReads = 0
             val cipherFlow = flow {
@@ -1711,10 +1718,12 @@ class SshAgentRequestProcessingTest {
             ) {
                 assertEquals(0, cipherReads, "Cipher read happened before cache access completed")
                 assertEquals(0, filterReads, "Filter read happened before cache access completed")
-                if (excludeWithFilter) {
-                    currentFilter = onlyOtherCipherFilter()
-                } else {
-                    ciphers.value = emptyList()
+                when (change) {
+                    "filtered" -> currentFilter = onlyOtherCipherFilter()
+                    "archived" -> ciphers.value = ciphers.value.map { cipher ->
+                        cipher.copy(archivedDate = Instant.parse("2024-01-02T00:00:00Z"))
+                    }
+                    else -> ciphers.value = emptyList()
                 }
             }
             assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)

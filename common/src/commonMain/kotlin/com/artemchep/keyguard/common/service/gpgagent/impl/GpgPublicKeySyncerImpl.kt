@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.model.filterCiphers
+import com.artemchep.keyguard.common.service.agent.isEligibleForAgent
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolverUnsupported
 import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
@@ -117,7 +118,7 @@ class GpgPublicKeySyncerImpl(
         val filteredCiphers = filter.filterCiphers(
             context = filterContext,
             ciphers = ciphers.filter { cipher ->
-                cipher.isGpgAgentSecretType() && !cipher.deleted
+                cipher.isGpgAgentSecretType() && cipher.isEligibleForAgent()
             },
         )
         val filteredSecrets = mutableListOf<GpgAgentSecret>()

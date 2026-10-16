@@ -247,4 +247,10 @@
         <item quantity="many">Термін дії спливе за <xliff:g id="seconds" example="30">%1$d</xliff:g> секунд</item>
         <item quantity="other">Термін дії спливе за <xliff:g id="seconds" example="30">%1$d</xliff:g> секунди</item>
     </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> active User ID</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+    </plurals>
 </resources>

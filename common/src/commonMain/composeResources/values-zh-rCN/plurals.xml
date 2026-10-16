@@ -124,4 +124,7 @@
     <plurals name="agent_approval_expires_in_seconds_plural">
         <item quantity="other">将在 <xliff:g id="seconds" example="30">%1$d</xliff:g> 秒后过期</item>
     </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+    </plurals>
 </resources>

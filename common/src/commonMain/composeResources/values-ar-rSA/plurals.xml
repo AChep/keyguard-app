@@ -329,4 +329,12 @@
         <item quantity="many">تنتهي الموافقة خلال <xliff:g id="seconds" example="30">%1$d</xliff:g> ثانيةً</item>
         <item quantity="other">تنتهي الموافقة خلال <xliff:g id="seconds" example="30">%1$d</xliff:g> ثانية</item>
     </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="zero"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> active User ID</item>
+        <item quantity="two"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+    </plurals>
 </resources>

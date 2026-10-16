@@ -165,4 +165,8 @@
         <item quantity="one">Caduca d'aquí a <xliff:g id="seconds" example="1">%1$d</xliff:g> segon</item>
         <item quantity="other">Caduca d'aquí a <xliff:g id="seconds" example="30">%1$d</xliff:g> segons</item>
     </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> active User ID</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+    </plurals>
 </resources>

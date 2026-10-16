@@ -1192,8 +1192,11 @@ jobs:
           git commit -m "Mirror latest Keyguard Termux packages"
           git push origin HEAD:master
   deploy-microsoft-store:
-    name: Deploy Microsoft Store
+    name: Submit Microsoft Store
     runs-on: windows-latest
+    concurrency:
+      group: microsoft-store-submission
+      cancel-in-progress: false
     needs:
       - build-windows-app
       - dist
@@ -1262,9 +1265,9 @@ jobs:
           --sellerId "${{ secrets.MSSTORE_SELLER_ID }}"
           --clientId "${{ secrets.MSSTORE_CLIENT_ID }}"
           --clientSecret "${{ secrets.MSSTORE_CLIENT_SECRET }}"
-      # The submission is left as a draft (--noCommit) so it can be reviewed
-      # in the Partner Center before it is committed. Read it back because the
-      # CLI may otherwise return success without attaching the package.
+      # Upload as a draft (--noCommit) and verify the attached package before
+      # submitting it for certification. The CLI may otherwise return success
+      # without attaching the package.
       - name: "Create and verify draft submission"
         shell: pwsh
         env:
@@ -1305,6 +1308,18 @@ jobs:
             }
             throw "The Store draft does not contain '$env:STORE_UPLOAD_NAME' as PendingUpload. Found: $observedPackages"
           }
+      - name: "Submit for certification"
+        shell: pwsh
+        env:
+          STORE_APP_ID: ${{ secrets.MSSTORE_APP_ID }}
+        run: |
+          msstore submission publish "$env:STORE_APP_ID"
+          if ($LASTEXITCODE -ne 0) {
+            throw "msstore submission publish exited $LASTEXITCODE."
+          }
+
+          "## Microsoft Store submission" >> $env:GITHUB_STEP_SUMMARY
+          "The update was submitted for certification. Microsoft controls certification and publication according to the submission's publishing settings." >> $env:GITHUB_STEP_SUMMARY
   deploy-flathub:
     name: Deploy Flathub
     runs-on: ubuntu-slim

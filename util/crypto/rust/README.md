@@ -13,7 +13,7 @@ Multiplatform `:util:crypto` module.
 - `keyguard-crypto-c` exports the Apple C ABI declared in
   `crates/keyguard-crypto-c/include/keyguard_crypto.h`.
 The wire source of truth is `../schema/native_crypto.proto`. ABI version 1 and
-protocol version 2 are independent. Calls fail closed on an ABI/capability
+protocol version 3 are independent. Calls fail closed on an ABI/capability
 mismatch, malformed request, resource limit, stale session, or contained panic.
 Rust-owned request/response byte buffers and Argon2 memory blocks are
 zeroized, and the FFI panic hook never prints panic payloads. Digest/HMAC
@@ -24,12 +24,24 @@ exact-pinned and mechanically checked; see the
 [sensitive-context security record](../../../docs/security/native-crypto-sensitive-contexts.md)
 and architecture acceptance ledger.
 
+User ID mutation workflows share `mutation/user_id` contracts and operation-specific
+policy authorization with read metadata. Revocation capability and execution share
+the same timing and revocability plan. Signing still checks secret material and
+template support. Every certificate mutation, including revocation and expiration
+renewal, either takes effect at the request time or returns an exact retry
+timestamp at most five seconds ahead; a later conflict is terminal. New signatures
+are never dated in the future, and status is read at the request time only, as in
+Sequoia. No-op requests do not wait. Kotlin bounds automatic retries to five
+seconds, then shows the retry time and a manual Retry action; Rust never sleeps.
+Architecture checks parse production Rust paths recursively.
+
 OpenPGP designated-revoker evidence also fails closed for new-data use and
 certificate mutation. When a structurally relevant revocation names an
 authenticated Revocation Key declaration but that authority key is absent,
 the component is `Indeterminate`: it is not reported as cryptographically
 revoked, yet it cannot encrypt, sign, appear as an authorized agent key, or
-emit new certificate statements. Issuer identifiers are lookup hints rather
+emit new certificate statements. An authorized primary can still self-revoke an
+indeterminate User ID. Issuer identifiers are lookup hints rather
 than authentication, so forged hints can temporarily quarantine a component;
 supplying the exact declared authority key resolves that availability tradeoff
 by either verifying or disproving the revocation. Historical verification and

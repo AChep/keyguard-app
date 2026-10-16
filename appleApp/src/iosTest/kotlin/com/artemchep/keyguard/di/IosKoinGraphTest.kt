@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.di
 
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdUpdateService
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
@@ -39,6 +40,16 @@ import org.koin.core.error.NoDefinitionFoundException
 import org.koin.core.qualifier.named
 
 class IosKoinGraphTest {
+    @Test
+    fun `User ID management resolves the native mutation service`() {
+        val application = createIosKoinApplication()
+        try {
+            assertTrue(application.koin.get<GpgUserIdUpdateService>().isSupported)
+        } finally {
+            application.close()
+        }
+    }
+
     @Test
     fun `native vault scopes preserve runtime keys and retire independently`() {
         val application = createIosKoinApplication()

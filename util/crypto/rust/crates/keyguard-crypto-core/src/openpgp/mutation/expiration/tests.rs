@@ -240,17 +240,19 @@ fn assert_defective_back_signature_is_regenerated(defect: BackSignatureDefect) {
     let primary_fingerprint = fingerprint_hex(secret.primary_key.public_key());
     let signing_fingerprint = fingerprint_hex(&signing_public);
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key: secret
-            .to_armored_bytes(Default::default())
-            .expect("armored defective secret key"),
-        public_key: public
-            .to_armored_bytes(Default::default())
-            .expect("armored defective public key"),
-        expected_primary_fingerprint: primary_fingerprint,
+        documents: MutationDocuments {
+            private_key: secret
+                .to_armored_bytes(Default::default())
+                .expect("armored defective secret key"),
+            public_key: public
+                .to_armored_bytes(Default::default())
+                .expect("armored defective public key"),
+            expected_primary_fingerprint: primary_fingerprint,
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: RENEWAL_TIME,
+        },
         component_fingerprints: vec![signing_fingerprint.clone()],
         expires_at_epoch_seconds: Some(1_700_172_800),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: RENEWAL_TIME,
     })
     .expect("renew signing subkey with defective back signature");
     let renewed_material = success.key_material;
@@ -756,13 +758,15 @@ fn renew_test_primary_material(
     let (private_key, public_key) = mutation_documents(secret, certificate);
     let fingerprint = fingerprint_hex(&certificate.primary_key);
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key,
-        public_key,
-        expected_primary_fingerprint: fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key,
+            public_key,
+            expected_primary_fingerprint: fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: 1_700_000_130,
+        },
         component_fingerprints: vec![fingerprint],
         expires_at_epoch_seconds: None,
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: 1_700_000_130,
     })
     .expect("renew primary");
     (success.key_material, success.certificate_index)
@@ -792,13 +796,15 @@ fn update_test_component(
 ) -> Result<ExpirationUpdateSuccess, ExpirationUpdateFailure> {
     let (private_key, public_key) = mutation_documents(secret, certificate);
     update_expiration_request(ExpirationUpdateInput {
-        private_key,
-        public_key,
-        expected_primary_fingerprint: fingerprint_hex(&certificate.primary_key),
+        documents: MutationDocuments {
+            private_key,
+            public_key,
+            expected_primary_fingerprint: fingerprint_hex(&certificate.primary_key),
+            candidate_revocation_keys,
+            reference_time_epoch_seconds: 1_700_000_130,
+        },
         component_fingerprints: vec![component_fingerprint],
         expires_at_epoch_seconds: Some(1_700_172_800),
-        candidate_revocation_keys,
-        reference_time_epoch_seconds: 1_700_000_130,
     })
 }
 
@@ -962,13 +968,15 @@ fn renewal_retains_local_certification_only_in_private_output() {
     let (private_key, public_key) = mutation_documents(&target_secret, &target_public);
     let fingerprint = fingerprint_hex(&target_public.primary_key);
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key,
-        public_key,
-        expected_primary_fingerprint: fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key,
+            public_key,
+            expected_primary_fingerprint: fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: RENEWAL_TIME,
+        },
         component_fingerprints: vec![fingerprint],
         expires_at_epoch_seconds: None,
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: RENEWAL_TIME,
     })
     .expect("renew certificate carrying a local certification");
     let material = success.key_material;
@@ -1210,27 +1218,23 @@ fn a_far_future_dated_identity_certification_causes_a_time_conflict() {
 }
 
 #[test]
-fn a_near_future_dated_identity_certification_is_safely_superseded() {
+fn a_near_future_dated_identity_certification_asks_the_caller_to_wait() {
     let (secret, mut certificate) =
         generated_test_certificate("Near Future <near-future@example.test>");
     let user_id = certificate.details.users[0].id.clone();
     certificate.details.users[0].signatures = vec![
         identity_certification(&secret, Tag::UserId, &user_id, 1_700_000_010, None),
-        identity_certification(&secret, Tag::UserId, &user_id, 1_700_000_200, None),
+        identity_certification(&secret, Tag::UserId, &user_id, 1_700_000_131, None),
     ];
 
+    // The renewal must be newer than the certification it supersedes and is
+    // never dated in the future.
     let fingerprint = fingerprint_hex(&certificate.primary_key);
-    let success = update_test_component(&secret, &certificate, fingerprint, Vec::new())
-        .expect("near-future certification can be safely superseded");
-    let renewed = parse_single_public(&success.key_material.public_key_armored)
-        .expect("reparse renewed certificate");
-    let times = renewed.details.users[0]
-        .signatures
-        .iter()
-        .filter_map(signature_creation_time)
-        .collect::<std::collections::BTreeSet<_>>();
+    let error = update_test_component(&secret, &certificate, fingerprint, Vec::new())
+        .err()
+        .expect("near-future certification needs a short wait");
 
-    assert_eq!(times, [1_700_000_200, 1_700_000_201].into_iter().collect(),);
+    assert_eq!(error, ExpirationUpdateFailure::RetryAt(1_700_000_132));
 }
 
 #[test]
@@ -1275,7 +1279,7 @@ fn a_far_future_dated_subkey_binding_causes_a_time_conflict() {
 }
 
 #[test]
-fn repeated_same_second_renewals_advance_the_replacement_by_one_second() {
+fn repeated_same_second_renewals_wait_for_the_clock() {
     const RENEWAL_TIME: u64 = 1_700_000_120;
     let generated = crate::openpgp::adapter::key::generate(OpenPgpKeyGenerateRequest {
         version: 0,
@@ -1292,30 +1296,34 @@ fn repeated_same_second_renewals_advance_the_replacement_by_one_second() {
         public_key_armored: std::mem::take(&mut material.public_key_armored),
         fingerprint: std::mem::take(&mut material.fingerprint),
     };
-    let renew = |material: &KeyMaterial| {
+    let renew = |material: &KeyMaterial, reference_time_epoch_seconds| {
         update_expiration_request(ExpirationUpdateInput {
-            private_key: material.private_key_armored.clone(),
-            public_key: material.public_key_armored.clone(),
-            expected_primary_fingerprint: material.fingerprint.clone(),
+            documents: MutationDocuments {
+                private_key: material.private_key_armored.clone(),
+                public_key: material.public_key_armored.clone(),
+                expected_primary_fingerprint: material.fingerprint.clone(),
+                candidate_revocation_keys: Vec::new(),
+                reference_time_epoch_seconds,
+            },
             component_fingerprints: vec![material.fingerprint.clone()],
             expires_at_epoch_seconds: Some(1_800_000_000),
-            candidate_revocation_keys: Vec::new(),
-            reference_time_epoch_seconds: RENEWAL_TIME,
         })
     };
-    let first = renew(&material).expect("first renewal").key_material;
+    let first = renew(&material, RENEWAL_TIME)
+        .expect("first renewal")
+        .key_material;
     assert_eq!(primary_certification_time(&first), RENEWAL_TIME);
-    // Renewing again within the same second succeeds by dating the
-    // replacement one second after the statement it supersedes, instead of
-    // failing the way a strict `replacement > template` comparison did.
-    let second = renew(&first).expect("same-second renewal").key_material;
+    // A replacement must be newer than the statement it supersedes and is
+    // never dated in the future, so a same-second renewal asks the caller
+    // to wait one second.
+    assert_eq!(
+        renew(&first, RENEWAL_TIME).err(),
+        Some(ExpirationUpdateFailure::RetryAt(RENEWAL_TIME + 1)),
+    );
+    let second = renew(&first, RENEWAL_TIME + 1)
+        .expect("renewal after the wait")
+        .key_material;
     assert_eq!(primary_certification_time(&second), RENEWAL_TIME + 1);
-    // The bump has now put the certificate's own newest self-signature one
-    // second ahead of this frozen clock, and a future-dated signature is in
-    // no policy tier — so a third attempt in the *same* second is refused.
-    // A real caller's clock advances past it; this is the documented edge
-    // of the bump, not a retry loop.
-    assert!(renew(&second).is_err());
 }
 
 #[test]
@@ -1437,13 +1445,15 @@ fn renewal_preserves_but_never_recertifies_a_non_canonical_user_attribute() {
     let (private_key, public_key) = mutation_documents_from_packets(&secret, &document);
     let fingerprint = fingerprint_hex(&certificate.primary_key);
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key,
-        public_key,
-        expected_primary_fingerprint: fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key,
+            public_key,
+            expected_primary_fingerprint: fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: RENEWAL_TIME,
+        },
         component_fingerprints: vec![fingerprint],
         expires_at_epoch_seconds: None,
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: RENEWAL_TIME,
     })
     .expect("renew certificate carrying a non-standard user attribute");
     let renewed_material = success.key_material;
@@ -1528,17 +1538,19 @@ fn renewal_survives_duplicate_primary_user_id_markers() {
     let public = secret.to_public_key();
     let fingerprint = fingerprint_hex(secret.primary_key.public_key());
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key: secret
-            .to_armored_bytes(Default::default())
-            .expect("armored secret key"),
-        public_key: public
-            .to_armored_bytes(Default::default())
-            .expect("armored public key"),
-        expected_primary_fingerprint: fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: secret
+                .to_armored_bytes(Default::default())
+                .expect("armored secret key"),
+            public_key: public
+                .to_armored_bytes(Default::default())
+                .expect("armored public key"),
+            expected_primary_fingerprint: fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: RENEWAL_TIME,
+        },
         component_fingerprints: vec![fingerprint],
         expires_at_epoch_seconds: None,
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: RENEWAL_TIME,
     })
     .expect("renew certificate with duplicate primary markers");
 
@@ -1619,17 +1631,19 @@ fn renewal_drops_a_stale_back_signature_from_the_unhashed_area() {
     let public = secret.to_public_key();
     let signing_fingerprint = fingerprint_hex(&signing_public);
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key: secret
-            .to_armored_bytes(Default::default())
-            .expect("armored secret key"),
-        public_key: public
-            .to_armored_bytes(Default::default())
-            .expect("armored public key"),
-        expected_primary_fingerprint: fingerprint_hex(secret.primary_key.public_key()),
+        documents: MutationDocuments {
+            private_key: secret
+                .to_armored_bytes(Default::default())
+                .expect("armored secret key"),
+            public_key: public
+                .to_armored_bytes(Default::default())
+                .expect("armored public key"),
+            expected_primary_fingerprint: fingerprint_hex(secret.primary_key.public_key()),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: RENEWAL_TIME,
+        },
         component_fingerprints: vec![signing_fingerprint.clone()],
         expires_at_epoch_seconds: Some(1_700_172_800),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: RENEWAL_TIME,
     })
     .expect("renew signing subkey");
     let renewed =
@@ -1757,13 +1771,15 @@ fn renewal_normalizes_new_issuer_hints_without_rewriting_history() {
     drop(preflight);
 
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key,
-        public_key,
-        expected_primary_fingerprint: primary_fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key,
+            public_key,
+            expected_primary_fingerprint: primary_fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: RENEWAL_TIME,
+        },
         component_fingerprints: vec![primary_fingerprint],
         expires_at_epoch_seconds: Some(1_700_172_800),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: RENEWAL_TIME,
     })
     .expect("renew certificate with conflicting issuer hints");
     let renewed =
@@ -2496,13 +2512,15 @@ fn renewal_uses_an_older_non_revocable_surviving_certification() {
     let (private_key, public_key) = mutation_documents(&secret, &surviving);
     let fingerprint = fingerprint_hex(&surviving.primary_key);
     let renewed = update_expiration_request(ExpirationUpdateInput {
-        private_key,
-        public_key,
-        expected_primary_fingerprint: fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key,
+            public_key,
+            expected_primary_fingerprint: fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE_TIME,
+        },
         component_fingerprints: vec![fingerprint],
         expires_at_epoch_seconds: None,
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE_TIME,
     })
     .expect("renew from the surviving certification");
     let renewed = parse_single_public(&renewed.key_material.public_key_armored)
@@ -2598,13 +2616,15 @@ fn mutation_preserves_packet_inventory_that_composed_reserialization_would_drop(
         .copied()
         .collect::<Vec<_>>();
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key: with_marker,
-        public_key: public_with_marker,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: with_marker,
+            public_key: public_with_marker,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: 1_700_000_120,
+        },
         component_fingerprints: vec![material.fingerprint.clone()],
         expires_at_epoch_seconds: Some(1_700_172_800),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: 1_700_000_120,
     })
     .expect("packet-surgical mutation succeeds");
     let renewed = success.key_material;
@@ -2685,13 +2705,15 @@ fn v4_primary_renewal_without_direct_key_does_not_create_direct_key() {
     assert!(without_direct.details.direct_signatures.is_empty());
 
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key,
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key,
+            public_key,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: RENEWAL_TIME,
+        },
         component_fingerprints: vec![material.fingerprint.clone()],
         expires_at_epoch_seconds: Some(1_700_172_800),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: RENEWAL_TIME,
     })
     .expect("primary renewal should use the existing identity certification");
     let renewed_material = success.key_material;
@@ -3113,13 +3135,15 @@ fn generated_v4_certificate_renews_primary_without_changing_identity() {
     let material = OpenPgpKeyMaterial::decode(generated.as_slice()).expect("key material");
     let expected_fingerprint = material.fingerprint.clone();
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key: material.private_key_armored.clone(),
-        public_key: material.public_key_armored.clone(),
-        expected_primary_fingerprint: expected_fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: material.public_key_armored.clone(),
+            expected_primary_fingerprint: expected_fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: 1_700_000_120,
+        },
         component_fingerprints: vec![expected_fingerprint.clone()],
         expires_at_epoch_seconds: Some(1_700_172_800),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: 1_700_000_120,
     })
     .expect("renewal succeeds");
     let renewed = success.key_material;
@@ -3212,13 +3236,15 @@ fn renewed_subkey_replaces_effective_binding_in_its_original_packet_position() {
     assert!(historical_time < RENEWAL_TIME);
 
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key: material.private_key_armored.clone(),
-        public_key: material.public_key_armored.clone(),
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: material.public_key_armored.clone(),
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: RENEWAL_TIME,
+        },
         component_fingerprints: vec![subkey_fingerprint.clone()],
         expires_at_epoch_seconds: Some(EXPIRES_AT),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: RENEWAL_TIME,
     })
     .expect("renew subkey expiration");
     let renewed_material = success.key_material;
@@ -3294,13 +3320,15 @@ fn generated_rsa_certificate_renews_through_aws_lc_signer() {
     let material = OpenPgpKeyMaterial::decode(generated.as_slice()).expect("key material");
     let expected_fingerprint = material.fingerprint.clone();
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key: material.private_key_armored.clone(),
-        public_key: material.public_key_armored.clone(),
-        expected_primary_fingerprint: expected_fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: material.public_key_armored.clone(),
+            expected_primary_fingerprint: expected_fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: 1_700_000_120,
+        },
         component_fingerprints: vec![expected_fingerprint.clone()],
         expires_at_epoch_seconds: Some(1_700_172_800),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: 1_700_000_120,
     })
     .expect("RSA renewal succeeds");
     assert_eq!(success.key_material.fingerprint, expected_fingerprint);
@@ -3404,17 +3432,19 @@ fn renew_subkey(
 ) -> Result<SignedPublicKey, ExpirationUpdateFailure> {
     let public = secret.to_public_key();
     let success = update_expiration_request(ExpirationUpdateInput {
-        private_key: secret
-            .to_armored_bytes(Default::default())
-            .expect("armored secret key"),
-        public_key: public
-            .to_armored_bytes(Default::default())
-            .expect("armored public key"),
-        expected_primary_fingerprint: fingerprint_hex(secret.primary_key.public_key()),
+        documents: MutationDocuments {
+            private_key: secret
+                .to_armored_bytes(Default::default())
+                .expect("armored secret key"),
+            public_key: public
+                .to_armored_bytes(Default::default())
+                .expect("armored public key"),
+            expected_primary_fingerprint: fingerprint_hex(secret.primary_key.public_key()),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: SUBKEY_RENEWAL_TIME,
+        },
         component_fingerprints: vec![fingerprint.to_owned()],
         expires_at_epoch_seconds: Some(1_700_172_800),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: SUBKEY_RENEWAL_TIME,
     })?;
     let material = success.key_material;
     parse_single_public(&material.public_key_armored)

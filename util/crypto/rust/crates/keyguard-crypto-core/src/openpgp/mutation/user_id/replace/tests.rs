@@ -11,9 +11,10 @@ use crate::openpgp::packet::{PUBLIC_SUBKEY_TAG, RawPacketStream};
 use crate::openpgp::policy::{
     MutationAuthorizationError, OpenPgpPolicyBudget, OpenPgpPolicyError, PolicyContext,
     PolicySelection, all_components, select_newest_policy_signature, signature_expired,
-    validate_certificate,
+    signature_is_revocable, validate_certificate,
 };
 use pgp::composed::SignedPublicKey;
+use pgp::packet::KeyFlags;
 use pgp::packet::{Subpacket, SubpacketData};
 use pgp::ser::Serialize;
 use pgp::types::{SignedUser, Tag, Timestamp};
@@ -24,7 +25,7 @@ fn select_effective_certification<'a>(
     certificate: &'a SignedPublicKey,
     user: &'a SignedUser,
     reference_time: u64,
-) -> Result<&'a Signature, UserIdReplacementFailure> {
+) -> Result<&'a Signature, UserIdMutationFailure> {
     let verified = user.signatures.iter().filter(|signature| {
         is_certification(signature.typ())
             && signature
@@ -34,8 +35,8 @@ fn select_effective_certification<'a>(
     });
     match select_newest_policy_signature(verified, PolicyContext::Identity, |_| Ok(false))? {
         PolicySelection::Selected { signature, .. } => Ok(signature),
-        PolicySelection::Missing => Err(UserIdReplacementFailure::MissingSelfSignature),
-        PolicySelection::Conflict => Err(UserIdReplacementFailure::PolicyConflict),
+        PolicySelection::Missing => Err(UserIdMutationFailure::MissingSelfSignature),
+        PolicySelection::Conflict => Err(UserIdMutationFailure::PolicyConflict),
     }
 }
 
@@ -209,33 +210,62 @@ fn renaming_onto_a_bare_user_id_packet_reports_a_duplicate_identity() {
     }
 
     let Err(error) = replace_user_id_request(UserIdReplacementInput {
-        private_key: material.private_key_armored.clone(),
-        public_key: armor_key_packets(&document_with_bare_identity, BlockType::PublicKey)
-            .expect("armor certificate"),
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: armor_key_packets(&document_with_bare_identity, BlockType::PublicKey)
+                .expect("armor certificate"),
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         old_identity_id: identity_id(13, OLD_USER_ID.as_bytes()),
         new_user_id: NEW_USER_ID.to_owned(),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     }) else {
         panic!("a name that already has a packet cannot be added again");
     };
-    assert_eq!(error, UserIdReplacementFailure::DuplicateIdentity);
+    assert_eq!(error, UserIdMutationFailure::DuplicateIdentity);
 }
 
 #[test]
 fn mutation_authorization_and_policy_failures_keep_stable_reasons() {
     assert_eq!(
-        UserIdReplacementFailure::from(MutationAuthorizationError::Revoked),
-        UserIdReplacementFailure::CertificateRevoked,
+        UserIdMutationFailure::from(MutationAuthorizationError::Revoked),
+        UserIdMutationFailure::CertificateRevoked,
     );
     assert_eq!(
-        UserIdReplacementFailure::from(MutationAuthorizationError::IndeterminateRevocation),
-        UserIdReplacementFailure::UnresolvedRevocationAuthority,
+        UserIdMutationFailure::from(MutationAuthorizationError::IndeterminateRevocation),
+        UserIdMutationFailure::UnresolvedRevocationAuthority,
     );
     assert_eq!(
-        UserIdReplacementFailure::from(OpenPgpPolicyError::ResourceLimit),
-        UserIdReplacementFailure::ResourceLimit,
+        UserIdMutationFailure::from(OpenPgpPolicyError::ResourceLimit),
+        UserIdMutationFailure::ResourceLimit,
+    );
+}
+
+#[test]
+fn postconditions_report_a_primary_policy_conflict_before_other_guards() {
+    let material = generated_material();
+    let public = parse_single_public(&material.public_key_armored).expect("parse public");
+    let mut policy = validate_certificate(
+        &public,
+        &all_components(std::slice::from_ref(&public)),
+        REFERENCE,
+        &mut OpenPgpPolicyBudget::default(),
+    )
+    .expect("policy");
+    let missing = UserIdPostconditions {
+        active: vec![NEW_USER_ID.as_bytes()],
+        ..UserIdPostconditions::default()
+    };
+    assert_eq!(UserIdPostconditions::default().check(&policy), Ok(()));
+    assert_eq!(
+        missing.check(&policy),
+        Err(UserIdMutationFailure::SignatureVerificationFailed)
+    );
+    policy.primary.policy_conflict = true;
+    assert_eq!(
+        missing.check(&policy),
+        Err(UserIdMutationFailure::PolicyConflict)
     );
 }
 
@@ -313,14 +343,16 @@ fn replacement_canonically_resolves_tied_conflicting_certifications() {
         let merged = apply_test_additions(&material.public_key_armored, &additions);
 
         let success = replace_user_id_request(UserIdReplacementInput {
-            private_key: material.private_key_armored.clone(),
-            public_key: armor_key_packets(&merged, BlockType::PublicKey)
-                .expect("armor tied certificate"),
-            expected_primary_fingerprint: material.fingerprint.clone(),
+            documents: MutationDocuments {
+                private_key: material.private_key_armored.clone(),
+                public_key: armor_key_packets(&merged, BlockType::PublicKey)
+                    .expect("armor tied certificate"),
+                expected_primary_fingerprint: material.fingerprint.clone(),
+                candidate_revocation_keys: Vec::new(),
+                reference_time_epoch_seconds: REFERENCE,
+            },
             old_identity_id: identity_id(USER_ID_TAG, OLD_USER_ID.as_bytes()),
             new_user_id: NEW_USER_ID.to_owned(),
-            candidate_revocation_keys: Vec::new(),
-            reference_time_epoch_seconds: REFERENCE,
         })
         .expect("canonical tied policy permits replacement");
 
@@ -471,18 +503,20 @@ fn older_non_revocable_certification_blocks_user_id_replacement() {
         recertify_primary_user_id(&material, &[(CREATED + 1, true), (CREATED + 2, false)]);
 
     let Err(error) = replace_user_id_request(UserIdReplacementInput {
-        private_key: material.private_key_armored.clone(),
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         old_identity_id: identity_id(13, OLD_USER_ID.as_bytes()),
         new_user_id: NEW_USER_ID.to_owned(),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     }) else {
         panic!("the older non-revocable certification must survive");
     };
 
-    assert_eq!(error, UserIdReplacementFailure::NonRevocable);
+    assert_eq!(error, UserIdMutationFailure::NonRevocable);
 }
 
 #[test]
@@ -492,18 +526,20 @@ fn effective_non_revocable_certification_blocks_user_id_replacement() {
         recertify_primary_user_id(&material, &[(CREATED + 1, false), (CREATED + 2, true)]);
 
     let Err(error) = replace_user_id_request(UserIdReplacementInput {
-        private_key: material.private_key_armored.clone(),
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         old_identity_id: identity_id(13, OLD_USER_ID.as_bytes()),
         new_user_id: NEW_USER_ID.to_owned(),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     }) else {
         panic!("the effective non-revocable certification must be preserved");
     };
 
-    assert_eq!(error, UserIdReplacementFailure::NonRevocable);
+    assert_eq!(error, UserIdMutationFailure::NonRevocable);
 }
 
 #[test]
@@ -517,13 +553,15 @@ fn assert_local_user_id_replacement(version: i32) {
     let material = material_with_secondary_user_id_exportability(&[true, false], &[], version);
 
     let success = replace_user_id_request(UserIdReplacementInput {
-        private_key: material.private_key_armored.clone(),
-        public_key: material.public_key_armored.clone(),
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: material.public_key_armored.clone(),
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         old_identity_id: identity_id(USER_ID_TAG, SECOND_USER_ID.as_bytes()),
         new_user_id: NEW_USER_ID.to_owned(),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     })
     .expect("replace local identity");
 
@@ -601,13 +639,15 @@ fn replacing_user_id_with_final_hashed_true_exports_replacement_and_revocation()
     let material = material_with_secondary_user_id_exportability(&[false, true], &[false], 4);
 
     let success = replace_user_id_request(UserIdReplacementInput {
-        private_key: material.private_key_armored.clone(),
-        public_key: material.public_key_armored.clone(),
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: material.public_key_armored.clone(),
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         old_identity_id: identity_id(USER_ID_TAG, SECOND_USER_ID.as_bytes()),
         new_user_id: NEW_USER_ID.to_owned(),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     })
     .expect("replace transport-visible identity");
 
@@ -645,13 +685,15 @@ fn replacing_user_id_with_final_hashed_true_exports_replacement_and_revocation()
 fn replaces_last_primary_user_id_atomically_and_idempotently() {
     let material = generated_material();
     let request = UserIdReplacementInput {
-        private_key: material.private_key_armored.clone(),
-        public_key: material.public_key_armored.clone(),
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: material.public_key_armored.clone(),
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         old_identity_id: identity_id(13, OLD_USER_ID.as_bytes()),
         new_user_id: NEW_USER_ID.to_owned(),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     };
     let success = replace_user_id_request(request).expect("replace identity");
     assert!(success.changed);
@@ -690,13 +732,15 @@ fn replaces_last_primary_user_id_atomically_and_idempotently() {
     );
 
     let repeated = replace_user_id_request(UserIdReplacementInput {
-        private_key: updated.private_key_armored.clone(),
-        public_key: updated.public_key_armored.clone(),
-        expected_primary_fingerprint: updated.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: updated.private_key_armored.clone(),
+            public_key: updated.public_key_armored.clone(),
+            expected_primary_fingerprint: updated.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         old_identity_id: identity_id(13, OLD_USER_ID.as_bytes()),
         new_user_id: NEW_USER_ID.to_owned(),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     })
     .expect("repeat replacement");
     assert!(!repeated.changed);
@@ -737,13 +781,15 @@ fn replaces_deterministically_selected_primary_when_multiple_are_explicit() {
     };
 
     let success = replace_user_id_request(UserIdReplacementInput {
-        private_key: material.private_key_armored.clone(),
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: CREATED + 2,
+        },
         old_identity_id: identity_id(13, SECOND_USER_ID.as_bytes()),
         new_user_id: NEW_USER_ID.to_owned(),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: CREATED + 1,
     })
     .expect("replace the deterministically selected primary identity");
     assert!(success.changed);
@@ -795,13 +841,15 @@ fn replacing_secondary_preserves_newest_certification_fallback_primary() {
     }));
 
     let success = replace_user_id_request(UserIdReplacementInput {
-        private_key: material.private_key_armored.clone(),
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         old_identity_id: identity_id(13, SECOND_USER_ID.as_bytes()),
         new_user_id: NEW_USER_ID.to_owned(),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     })
     .expect("replace secondary identity");
     assert!(success.changed);
@@ -871,13 +919,15 @@ fn fallback_primary_recertification_preserves_non_revocable_policy() {
     ));
 
     let success = replace_user_id_request(UserIdReplacementInput {
-        private_key: material.private_key_armored.clone(),
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         old_identity_id: identity_id(13, SECOND_USER_ID.as_bytes()),
         new_user_id: NEW_USER_ID.to_owned(),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     })
     .expect("replace secondary identity");
 
@@ -913,13 +963,15 @@ fn replacing_secondary_does_not_recertify_explicit_primary() {
     let primary_signature_count = before.details.users[0].signatures.len();
 
     let success = replace_user_id_request(UserIdReplacementInput {
-        private_key: material.private_key_armored.clone(),
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         old_identity_id: identity_id(13, SECOND_USER_ID.as_bytes()),
         new_user_id: NEW_USER_ID.to_owned(),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     })
     .expect("replace secondary identity");
     assert_eq!(success.primary_user_id, OLD_USER_ID);
@@ -949,26 +1001,28 @@ fn replacing_secondary_does_not_recertify_explicit_primary() {
 fn validates_user_id_content_and_utf8_byte_limit_before_signing() {
     let material = generated_material();
     let request = |new_user_id: &str| UserIdReplacementInput {
-        private_key: material.private_key_armored.clone(),
-        public_key: material.public_key_armored.clone(),
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: material.public_key_armored.clone(),
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         old_identity_id: identity_id(13, OLD_USER_ID.as_bytes()),
         new_user_id: new_user_id.to_owned(),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     };
 
     assert!(matches!(
         replace_user_id_request(request(OLD_USER_ID)),
-        Err(UserIdReplacementFailure::SameIdentity),
+        Err(UserIdMutationFailure::SameIdentity),
     ));
     assert!(matches!(
         replace_user_id_request(request(" \t ")),
-        Err(UserIdReplacementFailure::InvalidNewUserId),
+        Err(UserIdMutationFailure::InvalidNewUserId),
     ));
     assert!(matches!(
         replace_user_id_request(request("New\u{0000}Identity")),
-        Err(UserIdReplacementFailure::InvalidNewUserId),
+        Err(UserIdMutationFailure::InvalidNewUserId),
     ));
 
     // The limit is bytes, not characters: these values contain only 512/513
@@ -991,6 +1045,47 @@ fn validates_user_id_content_and_utf8_byte_limit_before_signing() {
     assert_eq!(over_limit.len(), 1026);
     assert!(matches!(
         replace_user_id_request(request(&over_limit)),
-        Err(UserIdReplacementFailure::InvalidNewUserId),
+        Err(UserIdMutationFailure::InvalidNewUserId),
     ));
+}
+
+#[test]
+fn replacement_waits_for_clock_and_is_effective_when_returned() {
+    let material = generated_material();
+    let request = |time| UserIdReplacementInput {
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: material.public_key_armored.clone(),
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: time,
+        },
+        old_identity_id: identity_id(13, OLD_USER_ID.as_bytes()),
+        new_user_id: NEW_USER_ID.to_owned(),
+    };
+    assert!(
+        matches!(replace_user_id_request(request(CREATED)), Err(UserIdMutationFailure::RetryAt(time)) if time == CREATED + 1)
+    );
+    let success = replace_user_id_request(request(CREATED + 1)).expect("retry after predecessor");
+    assert_eq!(success.effective_at_epoch_seconds, CREATED + 1);
+    let public = parse_single_public(&success.key_material.public_key_armored).expect("public");
+    let candidates = all_components(std::slice::from_ref(&public));
+    let policy = validate_certificate(
+        &public,
+        &candidates,
+        CREATED + 1,
+        &mut OpenPgpPolicyBudget::default(),
+    )
+    .expect("current policy");
+    assert!(
+        policy
+            .user_id(OLD_USER_ID.as_bytes())
+            .unwrap()
+            .revocation_status
+            .is_revoked()
+    );
+    assert_eq!(
+        policy.primary_user_id_for_test().as_deref(),
+        Some(NEW_USER_ID)
+    );
 }

@@ -11,6 +11,7 @@ struct ModalSheet<Content: View, Actions: View, HeaderActions: View>: View {
     /// The leading dismiss button's label — "Close" for informational sheets,
     /// "Cancel" for editors that can be abandoned.
     var dismissLabel: String = L10n.close
+    var dismissEnabled: Bool = true
     /// An embedded editor step can return to its parent without dismissing the sheet.
     var onDismiss: (() -> Void)? = nil
     @ViewBuilder let content: Content
@@ -40,6 +41,7 @@ struct ModalSheet<Content: View, Actions: View, HeaderActions: View>: View {
                     if let onDismiss { onDismiss() } else { dismiss() }
                 }
                 .keyboardShortcut(.cancelAction)
+                .disabled(!dismissEnabled)
                 actions
             }
             .padding(16)
@@ -60,6 +62,7 @@ struct ModalSheet<Content: View, Actions: View, HeaderActions: View>: View {
                         Button(dismissLabel) {
                             if let onDismiss { onDismiss() } else { dismiss() }
                         }
+                        .disabled(!dismissEnabled)
                     }
                     ToolbarItemGroup(placement: .confirmationAction) {
                         headerActions
@@ -80,6 +83,7 @@ extension ModalSheet where HeaderActions == EmptyView {
         height: CGFloat = 560,
         detents: Set<PresentationDetent> = [.large],
         dismissLabel: String = L10n.close,
+        dismissEnabled: Bool = true,
         onDismiss: (() -> Void)? = nil,
         @ViewBuilder content: () -> Content,
         @ViewBuilder actions: () -> Actions
@@ -90,6 +94,7 @@ extension ModalSheet where HeaderActions == EmptyView {
             height: height,
             detents: detents,
             dismissLabel: dismissLabel,
+            dismissEnabled: dismissEnabled,
             onDismiss: onDismiss,
             content: content,
             actions: actions,

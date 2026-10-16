@@ -14,6 +14,6 @@ object GpgUserIdReplacementServiceUnsupported : GpgUserIdReplacementService {
 
     override fun replace(request: GpgUserIdReplacementRequest): GpgUserIdReplacementResult =
         GpgUserIdReplacementResult.Error(
-            reason = GpgUserIdReplacementError.UnsupportedPlatform,
+            reason = GpgUserIdMutationError.UnsupportedPlatform,
         )
 }

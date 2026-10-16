@@ -25,7 +25,6 @@ use pgp::{
         Timestamp,
     },
 };
-use zeroize::{Zeroize, Zeroizing};
 
 use crate::openpgp::{
     certificate::{
@@ -43,36 +42,23 @@ use crate::openpgp::{
         },
     },
     format::{fingerprint_hex, normalize_fingerprint},
-    mutation::{
-        MutationPreflight, impl_mutation_failure_conversions, next_signature_time,
-        validate_mutation_document_bounds,
-    },
+    mutation::{MutationDocuments, MutationPreflight, impl_mutation_failure_conversions},
     packet::{USER_ATTRIBUTE_TAG, USER_ID_TAG},
     policy::{
         DesignatedRevokerId, IdentityPolicy, PolicyContext, PolicyInactiveTemplate,
         PolicySelection, ValidatedCertificate, authenticated_key_flags,
-        authentication_signature_acceptable, certificate_index, select_newest_policy_signature_in,
-        signature_creation_time, signature_expiration_seconds, signature_expired,
-        signature_issuer_consistent,
+        authentication_signature_acceptable, certificate_index, next_signature_time,
+        select_newest_policy_signature_in, signature_creation_time, signature_expiration_seconds,
+        signature_expired, signature_issuer_consistent,
     },
 };
 
 const MAX_COMPONENTS: usize = 64;
 
 pub(crate) struct ExpirationUpdateInput {
-    pub(crate) private_key: Vec<u8>,
-    pub(crate) public_key: Vec<u8>,
-    pub(crate) expected_primary_fingerprint: String,
+    pub(crate) documents: MutationDocuments,
     pub(crate) component_fingerprints: Vec<String>,
     pub(crate) expires_at_epoch_seconds: Option<u64>,
-    pub(crate) candidate_revocation_keys: Vec<Vec<u8>>,
-    pub(crate) reference_time_epoch_seconds: u64,
-}
-
-impl Drop for ExpirationUpdateInput {
-    fn drop(&mut self) {
-        self.private_key.zeroize();
-    }
 }
 
 pub(crate) struct ExpirationUpdateSuccess {
@@ -95,6 +81,7 @@ pub(crate) enum ExpirationUpdateFailure {
     MissingSelfSignature,
     InvalidExpiration,
     TimeConflict,
+    RetryAt(u64),
     SignatureVerificationFailed,
     InternalFailure,
     UnsupportedSigningHash,
@@ -158,37 +145,23 @@ enum RenewalOperation {
 pub(crate) fn update_expiration_request(
     mut request: ExpirationUpdateInput,
 ) -> Result<ExpirationUpdateSuccess, ExpirationUpdateFailure> {
-    if request.private_key.iter().all(u8::is_ascii_whitespace) {
-        return Err(ExpirationUpdateFailure::EmptyPrivateKey);
-    }
-    validate_mutation_document_bounds(
-        &request.private_key,
-        &request.public_key,
-        &request.candidate_revocation_keys,
-    )?;
+    request.documents.check()?;
     if request.component_fingerprints.is_empty() {
         return Err(ExpirationUpdateFailure::NoComponentsSelected);
     }
     if request.component_fingerprints.len() > MAX_COMPONENTS {
         return Err(ExpirationUpdateFailure::ResourceLimit);
     }
-    u32::try_from(request.reference_time_epoch_seconds)
-        .map_err(|_| ExpirationUpdateFailure::InvalidExpiration)?;
+    let reference_time = request.documents.reference_time_epoch_seconds;
+    u32::try_from(reference_time).map_err(|_| ExpirationUpdateFailure::InvalidExpiration)?;
     if let Some(expiration) = request.expires_at_epoch_seconds
-        && (expiration <= request.reference_time_epoch_seconds || expiration > u64::from(u32::MAX))
+        && (expiration <= reference_time || expiration > u64::from(u32::MAX))
     {
         return Err(ExpirationUpdateFailure::InvalidExpiration);
     }
     let selected = normalize_selected(&request.component_fingerprints)?;
 
-    let private_key = Zeroizing::new(std::mem::take(&mut request.private_key));
-    let preflight = MutationPreflight::open(
-        &private_key,
-        &request.public_key,
-        &request.candidate_revocation_keys,
-        &request.expected_primary_fingerprint,
-        request.reference_time_epoch_seconds,
-    )?;
+    let preflight = request.documents.open()?;
     // Renewal addresses subkeys the composed view may have discarded, so an
     // unbound subkey packet has to fail the request rather than be skipped.
     preflight.require_bound_subkeys()?;
@@ -269,8 +242,7 @@ pub(crate) fn update_expiration_request(
             .iter()
             .filter_map(|renewal| renewal.newest_relevant_time)
             .max(),
-    )
-    .ok_or(ExpirationUpdateFailure::TimeConflict)?;
+    )?;
 
     if preflight.secret.primary_key.secret_params().is_encrypted() {
         return Err(ExpirationUpdateFailure::ProtectedSecretKey);
@@ -315,11 +287,8 @@ pub(crate) fn update_expiration_request(
         .collect::<Vec<_>>();
     drop(policy);
 
-    let (output, ()) = preflight.finalize(
-        &mutated,
-        u64::from(mutation_time.as_secs()),
-        false,
-        |canonical, policy, secret_fingerprints| {
+    let (output, ()) =
+        preflight.finalize(&mutated, false, |canonical, policy, secret_fingerprints| {
             validate_renewed_certificate(
                 policy,
                 &selected,
@@ -331,8 +300,7 @@ pub(crate) fn update_expiration_request(
                 (),
                 certificate_index(policy, canonical, secret_fingerprints),
             ))
-        },
-    )?;
+        })?;
 
     Ok(ExpirationUpdateSuccess {
         key_material: output.key_material,

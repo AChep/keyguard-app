@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.apple.add
 
+import com.artemchep.keyguard.feature.gpgkey.userids.GpgUserIdsState
+import com.artemchep.keyguard.res.gpg_key_user_ids
 import com.artemchep.keyguard.apple.core.sessionKoin
 import com.artemchep.keyguard.common.model.GetPasswordResult
 import com.artemchep.keyguard.common.model.DSecret
@@ -12,6 +14,7 @@ import com.artemchep.keyguard.common.model.DSend
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationServiceUnsupported
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdUpdateServiceUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementServiceUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationServiceUnsupported
 import com.artemchep.keyguard.feature.add.AddStateItem
@@ -306,6 +309,8 @@ internal class AddItemController(
                             ?: GpgKeyExpirationServiceUnsupported,
                         gpgUserIdReplacementService = getOrNull()
                             ?: GpgUserIdReplacementServiceUnsupported,
+                        gpgUserIdUpdateService = getOrNull()
+                            ?: GpgUserIdUpdateServiceUnsupported,
                         gpgUserIdRevocationService = getOrNull()
                             ?: GpgUserIdRevocationServiceUnsupported,
                         logRepository = get(),
@@ -788,6 +793,17 @@ internal class AddItemController(
                             }
                         }
                     }
+                    // Keep the row while a mutation is in progress; only its handler goes away.
+                    val userIdsAction = st.identityManagement?.let { row ->
+                        val id = "${item.id}:userIds"
+                        row.onClick?.let { actionHandlers[id] = it }
+                        AddGpgUserIdActionSnapshot(
+                            id = id,
+                            title = textResource(Res.string.gpg_key_user_ids, leContext),
+                            enabled = row.onClick != null,
+                            destructive = false,
+                        )
+                    }
                     val key = st.gpgKey
                     snapshot(
                         item.id,
@@ -796,9 +812,12 @@ internal class AddItemController(
                             publicKey = key?.publicKeyArmored.orEmpty(),
                             privateKey = key?.privateKeyArmored.orEmpty(),
                             fingerprint = key?.fingerprint.orEmpty(),
-                            userId = key?.userId.orEmpty(),
                             hasKey = !key?.privateKeyArmored.isNullOrBlank() || !key?.publicKeyArmored.isNullOrBlank(),
                             canChange = st.enabled,
+                            userIdsAction = userIdsAction,
+                            userIdsSummary = listOfNotNull(st.identityManagement?.value, st.identityManagement?.text)
+                                .joinToString("\n").takeIf { it.isNotEmpty() },
+                            userIds = st.userIds?.toSnapshot("${item.id}:userIds", actionHandlers, fieldHandlers),
                         ),
                         actions = listOf(AddActionSnapshot("${item.id}:import", "", false)),
                     )
@@ -1128,3 +1147,53 @@ internal class AddFormActions(
     val save: (() -> Unit)? = null,
     val ownership: (() -> Unit)? = null,
 )
+
+private fun GpgUserIdsState.toSnapshot(
+    prefix: String,
+    actions: MutableMap<String, () -> Unit>,
+    fields: MutableMap<String, (String) -> Unit>,
+): AddGpgUserIdsSnapshot {
+    fun action(value: GpgUserIdsState.Action): AddGpgUserIdActionSnapshot {
+        val id = "$prefix:${value.id}"
+        value.onClick?.let { actions[id] = it }
+        return AddGpgUserIdActionSnapshot(id, value.title, value.onClick != null, value.destructive)
+    }
+    fun identity(value: GpgUserIdsState.Identity) = AddGpgIdentitySnapshot(
+        id = value.id,
+        value = value.value,
+        status = value.status,
+        actions = value.actions.map(::action),
+    )
+    return AddGpgUserIdsSnapshot(
+        title = title,
+        message = message,
+        error = error,
+        busy = busy,
+        loading = loading,
+        page = when (page) {
+            GpgUserIdsState.Page.List -> AddGpgUserIdsPage.LIST
+            GpgUserIdsState.Page.Edit -> AddGpgUserIdsPage.EDIT
+            GpgUserIdsState.Page.Revoke -> AddGpgUserIdsPage.REVOKE
+        },
+        identities = identities.map(::identity),
+        history = history.map(::identity),
+        fields = this.fields.map { field ->
+            AddGpgUserIdFieldSnapshot(
+                field = field.value.toFieldSnapshot(
+                    fields,
+                    id = "$prefix:field:${field.value.textRevision}:${field.id}",
+                ),
+                label = field.label,
+                kind = when (field.kind) {
+                    GpgUserIdsState.Field.Kind.Name -> AddGpgUserIdFieldKind.NAME
+                    GpgUserIdsState.Field.Kind.Email -> AddGpgUserIdFieldKind.EMAIL
+                    GpgUserIdsState.Field.Kind.Raw -> AddGpgUserIdFieldKind.RAW
+                },
+            )
+        },
+        add = add?.let(::action),
+        formats = formats.map { AddGpgUserIdFormatSnapshot(it.key, action(it.action), it.selected) },
+        confirm = confirm?.let(::action),
+        back = action(back),
+    )
+}

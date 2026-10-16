@@ -268,7 +268,7 @@ pub(crate) fn ssh_agent_tcp_chacha20_poly1305(
     {
         return Err(PrimitiveError::InvalidArgument);
     }
-    match direction {
+    let operation = match direction {
         CipherDirection::Encrypt if payload.len() > MAX_SSH_AGENT_TCP_PAYLOAD_BYTES => {
             return Err(PrimitiveError::ResourceLimit);
         }
@@ -286,15 +286,21 @@ pub(crate) fn ssh_agent_tcp_chacha20_poly1305(
             );
         }
         CipherDirection::Unspecified => return Err(PrimitiveError::InvalidArgument),
-        CipherDirection::Encrypt | CipherDirection::Decrypt => {}
-    }
+        CipherDirection::Encrypt => CipherOperation::Encrypt,
+        CipherDirection::Decrypt => CipherOperation::Decrypt,
+    };
 
-    chacha20_poly1305_in_place(direction, &key, &nonce, &header, &mut payload)?;
+    chacha20_poly1305_in_place(operation, &key, &nonce, &header, &mut payload)?;
     Ok(payload.to_vec())
 }
 
+pub(crate) enum CipherOperation {
+    Encrypt,
+    Decrypt,
+}
+
 pub(crate) fn chacha20_poly1305_in_place(
-    direction: CipherDirection,
+    operation: CipherOperation,
     key: &[u8],
     nonce: &[u8],
     associated_data: &[u8],
@@ -305,8 +311,8 @@ pub(crate) fn chacha20_poly1305_in_place(
     let cipher = LessSafeKey::new(unbound_key);
     let nonce =
         Nonce::try_assume_unique_for_key(nonce).map_err(|_| PrimitiveError::InvalidArgument)?;
-    match direction {
-        CipherDirection::Encrypt => {
+    match operation {
+        CipherOperation::Encrypt => {
             // Encrypt the fixed slice first: appending the tag may reallocate,
             // which must only leave ciphertext in the retired allocation.
             let tag = cipher
@@ -317,14 +323,13 @@ pub(crate) fn chacha20_poly1305_in_place(
                 .map_err(|_| PrimitiveError::ResourceLimit)?;
             payload.extend_from_slice(tag.as_ref());
         }
-        CipherDirection::Decrypt => {
+        CipherOperation::Decrypt => {
             let plaintext = cipher
                 .open_in_place(nonce, Aad::from(associated_data), payload)
                 .map_err(|_| PrimitiveError::AuthenticationFailed)?;
             let plaintext_length = plaintext.len();
             payload.truncate(plaintext_length);
         }
-        CipherDirection::Unspecified => return Err(PrimitiveError::InvalidArgument),
     }
     Ok(())
 }

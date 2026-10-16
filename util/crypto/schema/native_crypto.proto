@@ -52,6 +52,7 @@ message NativeRequest {
     OpenPgpCertificateMaterialReconcileV2Request open_pgp_certificate_material_reconcile_v2 = 57;
     OpenPgpUserIdCertificationEvaluateRequest open_pgp_user_id_certification_evaluate = 58;
     OpenPgpStreamDrainRequest open_pgp_stream_drain = 59;
+    OpenPgpUserIdUpdateRequest open_pgp_user_id_update = 60;
   }
 }
 
@@ -591,11 +592,18 @@ message OpenPgpPublicKeyInfo {
   // Distinct digest names from verified renewal-only direct signatures and
   // identity certifications. Empty when no such metadata is available.
   repeated string weak_self_signature_algorithms = 20;
+  repeated OpenPgpUserIdInfo user_id_history = 21;
+  bool can_modify_user_ids = 22;
 }
 
 message OpenPgpUserIdInfo {
   string identity_id = 1;
   string user_id = 2;
+  bool primary = 3;
+  bool revoked = 4;
+  bool can_revoke = 5;
+  bool can_replace = 6;
+  bool can_make_primary = 7;
 }
 
 message OpenPgpPublicKeyParseSuccess {
@@ -1032,6 +1040,8 @@ message OpenPgpExpirationUpdateSuccess {
 
 message OpenPgpExpirationUpdateError {
   OpenPgpExpirationUpdateErrorReason reason = 1;
+  // Present only for a retryable TIME_CONFLICT; no native waiting or signing occurred.
+  optional uint64 retry_at_epoch_seconds = 2;
 }
 
 message OpenPgpExpirationUpdateResult {
@@ -1127,31 +1137,6 @@ message OpenPgpUserIdRevocationRequest {
   uint64 reference_time_epoch_seconds = 6;
 }
 
-enum OpenPgpUserIdRevocationErrorReason {
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSPECIFIED = 0;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_EMPTY_PRIVATE_KEY = 1;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_MALFORMED_KEY = 2;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_FINGERPRINT_MISMATCH = 3;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_TARGET_NOT_FOUND = 4;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_LAST_USER_ID = 5;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSUPPORTED_KEY_VERSION = 6;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_PROTECTED_SECRET_KEY = 7;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_MISSING_SELF_SIGNATURE = 8;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_NON_REVOCABLE = 9;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_TIME_CONFLICT = 10;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED = 11;
-  // Reserved wire value. The mutation pipeline derives its metadata directly
-  // from the certificate it just produced, so this reason is no longer
-  // produced; the value stays allocated for older clients.
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_METADATA_RESOLUTION_FAILED = 12;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_INTERNAL_FAILURE = 13;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_CERTIFICATE_REVOKED = 14;
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY = 15;
-  // No signature hash satisfies both the caller's template and the signing
-  // key's algorithm-specific digest-size floor.
-  OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSUPPORTED_SIGNING_HASH = 16;
-}
-
 message OpenPgpUserIdRevocationSuccess {
   OpenPgpKeyMaterial key_material = 1;
   reserved 2;
@@ -1164,14 +1149,10 @@ message OpenPgpUserIdRevocationSuccess {
   optional OpenPgpCertificateIndexV2 certificate_index = 6;
 }
 
-message OpenPgpUserIdRevocationError {
-  OpenPgpUserIdRevocationErrorReason reason = 1;
-}
-
 message OpenPgpUserIdRevocationResult {
   oneof result {
     OpenPgpUserIdRevocationSuccess success = 1;
-    OpenPgpUserIdRevocationError error = 2;
+    OpenPgpUserIdMutationError error = 2;
   }
 }
 
@@ -1185,38 +1166,39 @@ message OpenPgpUserIdReplacementRequest {
   uint64 reference_time_epoch_seconds = 7;
 }
 
-enum OpenPgpUserIdReplacementErrorReason {
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSPECIFIED = 0;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_EMPTY_PRIVATE_KEY = 1;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_MALFORMED_KEY = 2;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_FINGERPRINT_MISMATCH = 3;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TARGET_NOT_FOUND = 4;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TARGET_INACTIVE = 5;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_INVALID_NEW_USER_ID = 6;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_SAME_IDENTITY = 7;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_DUPLICATE_IDENTITY = 8;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_PREVIOUSLY_REVOKED_IDENTITY = 9;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_AMBIGUOUS_PRIMARY = 10;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_KEY_VERSION = 11;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_PROTECTED_SECRET_KEY = 12;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_MISSING_SELF_SIGNATURE = 13;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_NON_REVOCABLE = 14;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_TEMPLATE = 15;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TIME_CONFLICT = 16;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED = 17;
+enum OpenPgpUserIdMutationErrorReason {
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSPECIFIED = 0;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_EMPTY_PRIVATE_KEY = 1;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_MALFORMED_KEY = 2;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_FINGERPRINT_MISMATCH = 3;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TARGET_NOT_FOUND = 4;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TARGET_INACTIVE = 5;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_INVALID_NEW_USER_ID = 6;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_SAME_IDENTITY = 7;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_DUPLICATE_IDENTITY = 8;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_PREVIOUSLY_REVOKED_IDENTITY = 9;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_AMBIGUOUS_PRIMARY = 10;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_KEY_VERSION = 11;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_PROTECTED_SECRET_KEY = 12;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_MISSING_SELF_SIGNATURE = 13;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_NON_REVOCABLE = 14;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_TEMPLATE = 15;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TIME_CONFLICT = 16;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED = 17;
   // Reserved wire value. The mutation pipeline derives its metadata directly
   // from the certificate it just produced, so this reason is no longer
   // produced; the value stays allocated for older clients.
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_METADATA_RESOLUTION_FAILED = 18;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_INTERNAL_FAILURE = 19;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_CERTIFICATE_REVOKED = 20;
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY = 21;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_METADATA_RESOLUTION_FAILED = 18;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_INTERNAL_FAILURE = 19;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_CERTIFICATE_REVOKED = 20;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY = 21;
   // No signature hash satisfies both the caller's template and the signing
   // key's algorithm-specific digest-size floor.
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_SIGNING_HASH = 22;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_SIGNING_HASH = 22;
   // Authenticated certificate statements do not resolve to one effective
   // policy. Advancing the signature clock cannot resolve this conflict.
-  OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_POLICY_CONFLICT = 23;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_POLICY_CONFLICT = 23;
+  OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_LAST_USER_ID = 24;
 }
 
 message OpenPgpUserIdReplacementSuccess {
@@ -1234,14 +1216,16 @@ message OpenPgpUserIdReplacementSuccess {
   optional OpenPgpCertificateIndexV2 certificate_index = 9;
 }
 
-message OpenPgpUserIdReplacementError {
-  OpenPgpUserIdReplacementErrorReason reason = 1;
+message OpenPgpUserIdMutationError {
+  OpenPgpUserIdMutationErrorReason reason = 1;
+  // Present only for a retryable TIME_CONFLICT; no native waiting or signing occurred.
+  optional uint64 retry_at_epoch_seconds = 2;
 }
 
 message OpenPgpUserIdReplacementResult {
   oneof result {
     OpenPgpUserIdReplacementSuccess success = 1;
-    OpenPgpUserIdReplacementError error = 2;
+    OpenPgpUserIdMutationError error = 2;
   }
 }
 
@@ -1325,4 +1309,28 @@ message NativeStatus {
   NativeErrorCode code = 1;
   // Stable, non-secret operation identifier; empty before operation decoding.
   string operation = 2;
+}
+
+// Identity additions and primary selection share the mutation error vocabulary.
+message OpenPgpUserIdUpdateRequest {
+  bytes private_key = 1;
+  bytes public_key = 2;
+  string expected_primary_fingerprint = 3;
+  repeated bytes candidate_revocation_keys = 4;
+  uint64 reference_time_epoch_seconds = 5;
+  oneof change {
+    string new_user_id = 6;
+    string primary_identity_id = 7;
+  }
+}
+message OpenPgpUserIdUpdateSuccess {
+  OpenPgpKeyMaterial key_material = 1;
+  OpenPgpCertificateIndexV2 certificate_index = 2;
+  bool changed = 3;
+}
+message OpenPgpUserIdUpdateResult {
+  oneof result {
+    OpenPgpUserIdUpdateSuccess success = 1;
+    OpenPgpUserIdMutationError error = 2;
+  }
 }

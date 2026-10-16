@@ -90,6 +90,7 @@ import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
 import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
+import com.artemchep.keyguard.feature.gpgkey.userids.GpgUserIdsDialog
 import com.artemchep.keyguard.feature.home.vault.component.CompactVaultItem
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
@@ -924,6 +925,7 @@ private fun GpgKeyField(
     shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
+    GpgUserIdsDialog(state.userIds)
     FileDropField(
         modifier = modifier,
         containerPadding = defaultFlatItemPaddingValues(),
@@ -932,10 +934,8 @@ private fun GpgKeyField(
         val supportingRows = listOfNotNull(
             state.expiration
                 ?.let { row -> Res.string.gpg_key_expiry_title to row },
-            state.identityReplacement
-                ?.let { row -> Res.string.gpg_user_id_replacement_title to row },
-            state.identityRevocation
-                ?.let { row -> Res.string.gpg_user_id_revocation_title to row },
+            state.identityManagement
+                ?.let { row -> Res.string.gpg_key_user_ids to row },
         )
         Column {
             FlatItemLayoutExpressive(

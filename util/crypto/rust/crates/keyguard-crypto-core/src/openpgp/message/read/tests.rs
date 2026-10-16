@@ -2458,6 +2458,9 @@ fn public_parse_preserves_local_only_evidence_but_secret_projection_withholds_it
         other => panic!("expected a successful secret parse, got {other:?}"),
     };
     assert_eq!(secret_key.user_ids, [USER_ID]);
+    assert_eq!(secret_key.user_id_details.len(), 1);
+    assert!(secret_key.user_id_details[0].primary);
+    assert!(secret_key.can_modify_user_ids);
     let secret_public = parse_public_certificates_fresh(secret_key.public_key_armored.as_bytes())
         .expect("reparse ordinary secret-key projection");
     assert_eq!(secret_public.len(), 1);

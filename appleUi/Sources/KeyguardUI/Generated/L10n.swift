@@ -4269,6 +4269,90 @@ public enum L10n {
     public static var gpgUserIdRevocationUnavailable: String {
         String(localized: "gpg_user_id_revocation_unavailable", bundle: AppLocalization.shared.bundle)
     }
+    /// gpg_user_ids_add
+    public static var gpgUserIdsAdd: String {
+        String(localized: "gpg_user_ids_add", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_add_message
+    public static var gpgUserIdsAddMessage: String {
+        String(localized: "gpg_user_ids_add_message", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_conflict
+    public static var gpgUserIdsConflict: String {
+        String(localized: "gpg_user_ids_conflict", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_draft_message
+    public static var gpgUserIdsDraftMessage: String {
+        String(localized: "gpg_user_ids_draft_message", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_email_optional
+    public static var gpgUserIdsEmailOptional: String {
+        String(localized: "gpg_user_ids_email_optional", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_empty
+    public static var gpgUserIdsEmpty: String {
+        String(localized: "gpg_user_ids_empty", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_exact
+    public static var gpgUserIdsExact: String {
+        String(localized: "gpg_user_ids_exact", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_failed
+    public static var gpgUserIdsFailed: String {
+        String(localized: "gpg_user_ids_failed", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_history
+    public static var gpgUserIdsHistory: String {
+        String(localized: "gpg_user_ids_history", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_inactive
+    public static var gpgUserIdsInactive: String {
+        String(localized: "gpg_user_ids_inactive", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_invalid_form
+    public static var gpgUserIdsInvalidForm: String {
+        String(localized: "gpg_user_ids_invalid_form", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_make_primary
+    public static var gpgUserIdsMakePrimary: String {
+        String(localized: "gpg_user_ids_make_primary", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_primary
+    public static var gpgUserIdsPrimary: String {
+        String(localized: "gpg_user_ids_primary", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_private_required
+    public static var gpgUserIdsPrivateRequired: String {
+        String(localized: "gpg_user_ids_private_required", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_read_only
+    public static var gpgUserIdsReadOnly: String {
+        String(localized: "gpg_user_ids_read_only", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_replace
+    public static var gpgUserIdsReplace: String {
+        String(localized: "gpg_user_ids_replace", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_replace_message
+    public static var gpgUserIdsReplaceMessage: String {
+        String(localized: "gpg_user_ids_replace_message", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_revoke
+    public static var gpgUserIdsRevoke: String {
+        String(localized: "gpg_user_ids_revoke", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_revoke_message
+    public static var gpgUserIdsRevokeMessage: String {
+        String(localized: "gpg_user_ids_revoke_message", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_structured
+    public static var gpgUserIdsStructured: String {
+        String(localized: "gpg_user_ids_structured", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_unavailable
+    public static var gpgUserIdsUnavailable: String {
+        String(localized: "gpg_user_ids_unavailable", bundle: AppLocalization.shared.bundle)
+    }
     /// grant_permission
     public static var grantPermission: String {
         String(localized: "grant_permission", bundle: AppLocalization.shared.bundle)
@@ -9429,6 +9513,14 @@ public enum L10n {
     public static func gpgKeyserverUploadVerifyRequestedPlural(_ count: Int) -> String {
         String(
             format: NSLocalizedString("gpg_keyserver_upload_verify_requested_plural", bundle: AppLocalization.shared.bundle, comment: ""),
+            locale: AppLocalization.shared.locale,
+            count
+        )
+    }
+    /// gpg_user_ids_count_plural (plural)
+    public static func gpgUserIdsCountPlural(_ count: Int) -> String {
+        String(
+            format: NSLocalizedString("gpg_user_ids_count_plural", bundle: AppLocalization.shared.bundle, comment: ""),
             locale: AppLocalization.shared.locale,
             count
         )

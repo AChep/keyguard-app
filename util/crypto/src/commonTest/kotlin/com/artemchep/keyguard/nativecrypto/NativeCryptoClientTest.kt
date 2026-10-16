@@ -21,9 +21,9 @@ private val allNativeCryptoCapabilitiesMask: Long = NativeCryptoCapability.entri
 
 class NativeCryptoClientTest {
     @Test
-    fun componentRevocationStatusUsesFieldFourWithoutChangingAbiOrProtocol() {
+    fun componentRevocationStatusUsesFieldFour() {
         assertEquals(1, NativeCrypto.EXPECTED_ABI_VERSION)
-        assertEquals(2, NativeCrypto.PROTOCOL_VERSION)
+        assertEquals(3, NativeCrypto.PROTOCOL_VERSION)
         for (status in 1..3) {
             val policy = OpenPgpComponentPolicyV2Proto(revocationStatus = status)
             assertContentEquals(byteArrayOf(0x20, status.toByte()), ProtoBuf.encodeToByteArray(policy))
@@ -33,16 +33,18 @@ class NativeCryptoClientTest {
     }
 
     @Test
-    fun protocolV2RejectsV1Responses() {
-        assertEquals(2, NativeCrypto.PROTOCOL_VERSION)
-        val bridge = FakeBridge(callResponse = response(protocolVersion = 1))
+    fun protocolV3RejectsOlderResponses() {
+        assertEquals(3, NativeCrypto.PROTOCOL_VERSION)
+        for (protocolVersion in listOf(1, 2)) {
+            val bridge = FakeBridge(callResponse = response(protocolVersion = protocolVersion))
 
-        val exception = assertFailsWith<NativeCryptoException> {
-            NativeCryptoClient(bridge).call("digest", digestOperation())
+            val exception = assertFailsWith<NativeCryptoException> {
+                NativeCryptoClient(bridge).call("digest", digestOperation())
+            }
+
+            assertEquals(NativeCryptoErrorCode.UNSUPPORTED_PROTOCOL, exception.code)
+            assertEquals("digest", exception.operation)
         }
-
-        assertEquals(NativeCryptoErrorCode.UNSUPPORTED_PROTOCOL, exception.code)
-        assertEquals("digest", exception.operation)
     }
 
     @Test

@@ -20,6 +20,10 @@ class DateFormatterJvm(
         DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.SHORT)
 
     private val formatterDate = DateFormat.getDateInstance(DateFormat.LONG)
+    private val formatterDateTimeWithSeconds = DateFormat.getDateTimeInstance(DateFormat.LONG, DateFormat.MEDIUM)
+
+    override fun formatDateTimeWithSeconds(instant: Instant): String =
+        formatterDateTimeWithSeconds.format(Date(instant.toEpochMilliseconds()))
 
     override fun formatDateTime(
         instant: Instant,

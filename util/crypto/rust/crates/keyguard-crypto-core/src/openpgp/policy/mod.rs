@@ -10,6 +10,12 @@ mod index;
 mod model;
 mod revocation;
 mod selection;
+mod timing;
+mod user_id;
+#[cfg(test)]
+pub(in crate::openpgp) use timing::MAX_SIGNATURE_RETRY_SECONDS;
+pub(in crate::openpgp) use timing::{SignatureTimeError, next_signature_time};
+pub(in crate::openpgp) use user_id::{UserIdAuthorizationError, UserIdRevocationPlan};
 
 #[cfg(test)]
 mod tests;
@@ -35,7 +41,8 @@ pub(in crate::openpgp) use index::certificate_index;
 pub(in crate::openpgp) use model::{
     AuthenticatedFeatures, ComponentPolicy, EncryptionModePreferences, EvaluatedComponent,
     IdentityPolicy, MutationAuthorizationError, PolicyContext, PolicyInactiveTemplate,
-    PolicySelection, RenewalAuthorization, RevocationStatus, ValidatedCertificate, reference_time,
+    PolicySelection, RenewalAuthorization, RevocationStatus, ValidatedCertificate, ValidatedUserId,
+    reference_time,
 };
 pub(in crate::openpgp) use revocation::signature_is_revocable;
 pub(in crate::openpgp) use selection::{

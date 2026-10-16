@@ -88,15 +88,30 @@ struct AddItemSheetContent: View {
         }
     }
 
+    private var userIds: AddGpgUserIdsSnapshot? {
+        form.items.compactMap { $0.gpgKey?.userIds }.first
+    }
+
+    /// The list is an in-place step like the key generator, so it steps back
+    /// rather than reading as closing the whole editor.
+    private var userIdsDismissLabel: String? {
+        guard let userIds else { return nil }
+        return userIds.page == .list ? L10n.additemKeyGeneratorBackTitle : userIds.back.title
+    }
+
     var body: some View {
         ModalSheet(
-            title: addItemModel.keyGenerator?.title ?? sheetTitle,
+            title: userIds?.title ?? addItemModel.keyGenerator?.title ?? sheetTitle,
             width: 520,
             height: 600,
             detents: [.large],
-            dismissLabel: addItemModel.keyGenerator == nil ? L10n.cancel : L10n.additemKeyGeneratorBackTitle,
+            dismissLabel: userIdsDismissLabel
+                ?? (addItemModel.keyGenerator == nil ? L10n.cancel : L10n.additemKeyGeneratorBackTitle),
+            dismissEnabled: userIds?.back.enabled ?? true,
             onDismiss: {
-                if addItemModel.keyGenerator != nil {
+                if let userIds {
+                    if userIds.back.enabled { addItemModel.invokeAddAction(id: userIds.back.id) }
+                } else if addItemModel.keyGenerator != nil {
                     addItemModel.stopKeyGenerator()
                 } else {
                     dismiss()
@@ -104,7 +119,9 @@ struct AddItemSheetContent: View {
             }
         ) {
             Group {
-                if let generator = addItemModel.keyGenerator {
+                if let userIds {
+                    AddGpgUserIdsView(snapshot: userIds, model: addItemModel)
+                } else if let generator = addItemModel.keyGenerator {
                     AddKeyGeneratorView(model: generator)
                 } else if chosenType == nil {
                     chooser
@@ -113,7 +130,16 @@ struct AddItemSheetContent: View {
                 }
             }
         } actions: {
-            if let generator = addItemModel.keyGenerator {
+            if let userIds {
+                if let action = userIds.confirm {
+                    // A destructive action is never the default button.
+                    Button(action.title, role: action.destructive ? .destructive : nil) {
+                        addItemModel.invokeAddAction(id: action.id)
+                    }
+                    .keyboardShortcut(action.destructive ? nil : .defaultAction)
+                    .disabled(!action.enabled)
+                }
+            } else if let generator = addItemModel.keyGenerator {
                 Button(L10n.additemKeyUseTitle) { addItemModel.useGeneratedKey() }
                     .keyboardShortcut(.defaultAction)
                     .disabled(!generator.snapshot.canUseKey)
@@ -125,6 +151,7 @@ struct AddItemSheetContent: View {
                 .disabled(!form.canSave)
             }
         }
+        .interactiveDismissDisabled(userIds != nil)
         .onChange(of: addItemModel.addFormDidSave) { _, saved in
             if saved { dismiss() }
         }
@@ -625,9 +652,6 @@ private struct AddItemRow: View {
     private var gpgKeyRow: some View {
         if let key = item.gpgKey, key.hasKey {
             VStack(alignment: .leading, spacing: 8) {
-                if !key.userId.isEmpty {
-                    labeled(L10n.genericName, key.userId)
-                }
                 if !key.fingerprint.isEmpty {
                     labeled(L10n.fingerprint, key.fingerprint)
                 }
@@ -638,6 +662,30 @@ private struct AddItemRow: View {
         }
         keyActions(hasKey: item.gpgKey?.hasKey == true, isGpg: true)
             .disabled(item.gpgKey?.canChange != true)
+        if let action = item.gpgKey?.userIdsAction {
+            Button {
+                addItemModel.invokeAddAction(id: action.id)
+            } label: {
+                HStack(spacing: 12) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(action.title)
+                            .foregroundStyle(.primary)
+                        if let summary = item.gpgKey?.userIdsSummary {
+                            Text(summary)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.forward")
+                        .font(.footnote.weight(.semibold))
+                        .foregroundStyle(.tertiary)
+                }
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .disabled(!action.enabled)
+        }
     }
 
     @ViewBuilder

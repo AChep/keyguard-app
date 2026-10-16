@@ -6,6 +6,8 @@ import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconc
 import com.artemchep.keyguard.common.service.crypto.GpgKeyEditorImportReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdUpdateService
+import com.artemchep.keyguard.crypto.NativeGpgUserIdUpdateService
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementService
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationService
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
@@ -102,6 +104,7 @@ internal class ApplicationCryptoModule {
             NativeGpgUserIdRevocationService
         }
 
+        single<GpgUserIdUpdateService> { NativeGpgUserIdUpdateService }
         single<GpgUserIdReplacementService> {
             NativeGpgUserIdReplacementService
         }

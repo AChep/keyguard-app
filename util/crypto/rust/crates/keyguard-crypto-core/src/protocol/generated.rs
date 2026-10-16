@@ -8,7 +8,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59"
+        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -106,6 +106,8 @@ pub mod native_request {
         ),
         #[prost(message, tag = "59")]
         OpenPgpStreamDrain(super::OpenPgpStreamDrainRequest),
+        #[prost(message, tag = "60")]
+        OpenPgpUserIdUpdate(super::OpenPgpUserIdUpdateRequest),
     }
 }
 /// Ends a decryption session's input and returns one bounded output chunk.
@@ -789,6 +791,10 @@ pub struct OpenPgpPublicKeyInfo {
     pub weak_self_signature_algorithms: ::prost::alloc::vec::Vec<
         ::prost::alloc::string::String,
     >,
+    #[prost(message, repeated, tag = "21")]
+    pub user_id_history: ::prost::alloc::vec::Vec<OpenPgpUserIdInfo>,
+    #[prost(bool, tag = "22")]
+    pub can_modify_user_ids: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpUserIdInfo {
@@ -796,6 +802,16 @@ pub struct OpenPgpUserIdInfo {
     pub identity_id: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub user_id: ::prost::alloc::string::String,
+    #[prost(bool, tag = "3")]
+    pub primary: bool,
+    #[prost(bool, tag = "4")]
+    pub revoked: bool,
+    #[prost(bool, tag = "5")]
+    pub can_revoke: bool,
+    #[prost(bool, tag = "6")]
+    pub can_replace: bool,
+    #[prost(bool, tag = "7")]
+    pub can_make_primary: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpPublicKeyParseSuccess {
@@ -1261,6 +1277,9 @@ pub struct OpenPgpExpirationUpdateSuccess {
 pub struct OpenPgpExpirationUpdateError {
     #[prost(enumeration = "OpenPgpExpirationUpdateErrorReason", tag = "1")]
     pub reason: i32,
+    /// Present only for a retryable TIME_CONFLICT; no native waiting or signing occurred.
+    #[prost(uint64, optional, tag = "2")]
+    pub retry_at_epoch_seconds: ::core::option::Option<u64>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpExpirationUpdateResult {
@@ -1416,11 +1435,6 @@ pub struct OpenPgpUserIdRevocationSuccess {
     #[prost(message, optional, tag = "6")]
     pub certificate_index: ::core::option::Option<OpenPgpCertificateIndexV2>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct OpenPgpUserIdRevocationError {
-    #[prost(enumeration = "OpenPgpUserIdRevocationErrorReason", tag = "1")]
-    pub reason: i32,
-}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpUserIdRevocationResult {
     #[prost(oneof = "open_pgp_user_id_revocation_result::Result", tags = "1, 2")]
@@ -1433,7 +1447,7 @@ pub mod open_pgp_user_id_revocation_result {
         #[prost(message, tag = "1")]
         Success(super::OpenPgpUserIdRevocationSuccess),
         #[prost(message, tag = "2")]
-        Error(super::OpenPgpUserIdRevocationError),
+        Error(super::OpenPgpUserIdMutationError),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1477,9 +1491,12 @@ pub struct OpenPgpUserIdReplacementSuccess {
     pub certificate_index: ::core::option::Option<OpenPgpCertificateIndexV2>,
 }
 #[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct OpenPgpUserIdReplacementError {
-    #[prost(enumeration = "OpenPgpUserIdReplacementErrorReason", tag = "1")]
+pub struct OpenPgpUserIdMutationError {
+    #[prost(enumeration = "OpenPgpUserIdMutationErrorReason", tag = "1")]
     pub reason: i32,
+    /// Present only for a retryable TIME_CONFLICT; no native waiting or signing occurred.
+    #[prost(uint64, optional, tag = "2")]
+    pub retry_at_epoch_seconds: ::core::option::Option<u64>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpUserIdReplacementResult {
@@ -1493,7 +1510,7 @@ pub mod open_pgp_user_id_replacement_result {
         #[prost(message, tag = "1")]
         Success(super::OpenPgpUserIdReplacementSuccess),
         #[prost(message, tag = "2")]
-        Error(super::OpenPgpUserIdReplacementError),
+        Error(super::OpenPgpUserIdMutationError),
     }
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
@@ -1595,6 +1612,58 @@ pub struct NativeStatus {
     /// Stable, non-secret operation identifier; empty before operation decoding.
     #[prost(string, tag = "2")]
     pub operation: ::prost::alloc::string::String,
+}
+/// Identity additions and primary selection share the mutation error vocabulary.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpUserIdUpdateRequest {
+    #[prost(bytes = "vec", tag = "1")]
+    pub private_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub public_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "3")]
+    pub expected_primary_fingerprint: ::prost::alloc::string::String,
+    #[prost(bytes = "vec", repeated, tag = "4")]
+    pub candidate_revocation_keys: ::prost::alloc::vec::Vec<
+        ::prost::alloc::vec::Vec<u8>,
+    >,
+    #[prost(uint64, tag = "5")]
+    pub reference_time_epoch_seconds: u64,
+    #[prost(oneof = "open_pgp_user_id_update_request::Change", tags = "6, 7")]
+    pub change: ::core::option::Option<open_pgp_user_id_update_request::Change>,
+}
+/// Nested message and enum types in `OpenPgpUserIdUpdateRequest`.
+pub mod open_pgp_user_id_update_request {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Change {
+        #[prost(string, tag = "6")]
+        NewUserId(::prost::alloc::string::String),
+        #[prost(string, tag = "7")]
+        PrimaryIdentityId(::prost::alloc::string::String),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpUserIdUpdateSuccess {
+    #[prost(message, optional, tag = "1")]
+    pub key_material: ::core::option::Option<OpenPgpKeyMaterial>,
+    #[prost(message, optional, tag = "2")]
+    pub certificate_index: ::core::option::Option<OpenPgpCertificateIndexV2>,
+    #[prost(bool, tag = "3")]
+    pub changed: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpUserIdUpdateResult {
+    #[prost(oneof = "open_pgp_user_id_update_result::Result", tags = "1, 2")]
+    pub result: ::core::option::Option<open_pgp_user_id_update_result::Result>,
+}
+/// Nested message and enum types in `OpenPgpUserIdUpdateResult`.
+pub mod open_pgp_user_id_update_result {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Result {
+        #[prost(message, tag = "1")]
+        Success(super::OpenPgpUserIdUpdateSuccess),
+        #[prost(message, tag = "2")]
+        Error(super::OpenPgpUserIdMutationError),
+    }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
@@ -2766,147 +2835,7 @@ impl OpenPgpCertificateMaterialWithheldReason {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
-pub enum OpenPgpUserIdRevocationErrorReason {
-    Unspecified = 0,
-    EmptyPrivateKey = 1,
-    MalformedKey = 2,
-    FingerprintMismatch = 3,
-    TargetNotFound = 4,
-    LastUserId = 5,
-    UnsupportedKeyVersion = 6,
-    ProtectedSecretKey = 7,
-    MissingSelfSignature = 8,
-    NonRevocable = 9,
-    TimeConflict = 10,
-    SignatureVerificationFailed = 11,
-    /// Reserved wire value. The mutation pipeline derives its metadata directly
-    /// from the certificate it just produced, so this reason is no longer
-    /// produced; the value stays allocated for older clients.
-    MetadataResolutionFailed = 12,
-    InternalFailure = 13,
-    CertificateRevoked = 14,
-    UnresolvedRevocationAuthority = 15,
-    /// No signature hash satisfies both the caller's template and the signing
-    /// key's algorithm-specific digest-size floor.
-    UnsupportedSigningHash = 16,
-}
-impl OpenPgpUserIdRevocationErrorReason {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            Self::Unspecified => "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSPECIFIED",
-            Self::EmptyPrivateKey => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_EMPTY_PRIVATE_KEY"
-            }
-            Self::MalformedKey => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_MALFORMED_KEY"
-            }
-            Self::FingerprintMismatch => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_FINGERPRINT_MISMATCH"
-            }
-            Self::TargetNotFound => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_TARGET_NOT_FOUND"
-            }
-            Self::LastUserId => "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_LAST_USER_ID",
-            Self::UnsupportedKeyVersion => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSUPPORTED_KEY_VERSION"
-            }
-            Self::ProtectedSecretKey => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_PROTECTED_SECRET_KEY"
-            }
-            Self::MissingSelfSignature => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_MISSING_SELF_SIGNATURE"
-            }
-            Self::NonRevocable => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_NON_REVOCABLE"
-            }
-            Self::TimeConflict => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_TIME_CONFLICT"
-            }
-            Self::SignatureVerificationFailed => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED"
-            }
-            Self::MetadataResolutionFailed => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_METADATA_RESOLUTION_FAILED"
-            }
-            Self::InternalFailure => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_INTERNAL_FAILURE"
-            }
-            Self::CertificateRevoked => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_CERTIFICATE_REVOKED"
-            }
-            Self::UnresolvedRevocationAuthority => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY"
-            }
-            Self::UnsupportedSigningHash => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSUPPORTED_SIGNING_HASH"
-            }
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSPECIFIED" => {
-                Some(Self::Unspecified)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_EMPTY_PRIVATE_KEY" => {
-                Some(Self::EmptyPrivateKey)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_MALFORMED_KEY" => {
-                Some(Self::MalformedKey)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_FINGERPRINT_MISMATCH" => {
-                Some(Self::FingerprintMismatch)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_TARGET_NOT_FOUND" => {
-                Some(Self::TargetNotFound)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_LAST_USER_ID" => {
-                Some(Self::LastUserId)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSUPPORTED_KEY_VERSION" => {
-                Some(Self::UnsupportedKeyVersion)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_PROTECTED_SECRET_KEY" => {
-                Some(Self::ProtectedSecretKey)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_MISSING_SELF_SIGNATURE" => {
-                Some(Self::MissingSelfSignature)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_NON_REVOCABLE" => {
-                Some(Self::NonRevocable)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_TIME_CONFLICT" => {
-                Some(Self::TimeConflict)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED" => {
-                Some(Self::SignatureVerificationFailed)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_METADATA_RESOLUTION_FAILED" => {
-                Some(Self::MetadataResolutionFailed)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_INTERNAL_FAILURE" => {
-                Some(Self::InternalFailure)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_CERTIFICATE_REVOKED" => {
-                Some(Self::CertificateRevoked)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY" => {
-                Some(Self::UnresolvedRevocationAuthority)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSUPPORTED_SIGNING_HASH" => {
-                Some(Self::UnsupportedSigningHash)
-            }
-            _ => None,
-        }
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum OpenPgpUserIdReplacementErrorReason {
+pub enum OpenPgpUserIdMutationErrorReason {
     Unspecified = 0,
     EmptyPrivateKey = 1,
     MalformedKey = 2,
@@ -2938,160 +2867,157 @@ pub enum OpenPgpUserIdReplacementErrorReason {
     /// Authenticated certificate statements do not resolve to one effective
     /// policy. Advancing the signature clock cannot resolve this conflict.
     PolicyConflict = 23,
+    LastUserId = 24,
 }
-impl OpenPgpUserIdReplacementErrorReason {
+impl OpenPgpUserIdMutationErrorReason {
     /// String value of the enum field names used in the ProtoBuf definition.
     ///
     /// The values are not transformed in any way and thus are considered stable
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
-            Self::Unspecified => "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSPECIFIED",
+            Self::Unspecified => "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSPECIFIED",
             Self::EmptyPrivateKey => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_EMPTY_PRIVATE_KEY"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_EMPTY_PRIVATE_KEY"
             }
-            Self::MalformedKey => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_MALFORMED_KEY"
-            }
+            Self::MalformedKey => "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_MALFORMED_KEY",
             Self::FingerprintMismatch => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_FINGERPRINT_MISMATCH"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_FINGERPRINT_MISMATCH"
             }
             Self::TargetNotFound => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TARGET_NOT_FOUND"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TARGET_NOT_FOUND"
             }
             Self::TargetInactive => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TARGET_INACTIVE"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TARGET_INACTIVE"
             }
             Self::InvalidNewUserId => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_INVALID_NEW_USER_ID"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_INVALID_NEW_USER_ID"
             }
-            Self::SameIdentity => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_SAME_IDENTITY"
-            }
+            Self::SameIdentity => "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_SAME_IDENTITY",
             Self::DuplicateIdentity => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_DUPLICATE_IDENTITY"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_DUPLICATE_IDENTITY"
             }
             Self::PreviouslyRevokedIdentity => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_PREVIOUSLY_REVOKED_IDENTITY"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_PREVIOUSLY_REVOKED_IDENTITY"
             }
             Self::AmbiguousPrimary => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_AMBIGUOUS_PRIMARY"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_AMBIGUOUS_PRIMARY"
             }
             Self::UnsupportedKeyVersion => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_KEY_VERSION"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_KEY_VERSION"
             }
             Self::ProtectedSecretKey => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_PROTECTED_SECRET_KEY"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_PROTECTED_SECRET_KEY"
             }
             Self::MissingSelfSignature => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_MISSING_SELF_SIGNATURE"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_MISSING_SELF_SIGNATURE"
             }
-            Self::NonRevocable => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_NON_REVOCABLE"
-            }
+            Self::NonRevocable => "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_NON_REVOCABLE",
             Self::UnsupportedTemplate => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_TEMPLATE"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_TEMPLATE"
             }
-            Self::TimeConflict => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TIME_CONFLICT"
-            }
+            Self::TimeConflict => "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TIME_CONFLICT",
             Self::SignatureVerificationFailed => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED"
             }
             Self::MetadataResolutionFailed => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_METADATA_RESOLUTION_FAILED"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_METADATA_RESOLUTION_FAILED"
             }
             Self::InternalFailure => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_INTERNAL_FAILURE"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_INTERNAL_FAILURE"
             }
             Self::CertificateRevoked => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_CERTIFICATE_REVOKED"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_CERTIFICATE_REVOKED"
             }
             Self::UnresolvedRevocationAuthority => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY"
             }
             Self::UnsupportedSigningHash => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_SIGNING_HASH"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_SIGNING_HASH"
             }
             Self::PolicyConflict => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_POLICY_CONFLICT"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_POLICY_CONFLICT"
             }
+            Self::LastUserId => "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_LAST_USER_ID",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSPECIFIED" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSPECIFIED" => {
                 Some(Self::Unspecified)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_EMPTY_PRIVATE_KEY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_EMPTY_PRIVATE_KEY" => {
                 Some(Self::EmptyPrivateKey)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_MALFORMED_KEY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_MALFORMED_KEY" => {
                 Some(Self::MalformedKey)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_FINGERPRINT_MISMATCH" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_FINGERPRINT_MISMATCH" => {
                 Some(Self::FingerprintMismatch)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TARGET_NOT_FOUND" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TARGET_NOT_FOUND" => {
                 Some(Self::TargetNotFound)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TARGET_INACTIVE" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TARGET_INACTIVE" => {
                 Some(Self::TargetInactive)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_INVALID_NEW_USER_ID" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_INVALID_NEW_USER_ID" => {
                 Some(Self::InvalidNewUserId)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_SAME_IDENTITY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_SAME_IDENTITY" => {
                 Some(Self::SameIdentity)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_DUPLICATE_IDENTITY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_DUPLICATE_IDENTITY" => {
                 Some(Self::DuplicateIdentity)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_PREVIOUSLY_REVOKED_IDENTITY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_PREVIOUSLY_REVOKED_IDENTITY" => {
                 Some(Self::PreviouslyRevokedIdentity)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_AMBIGUOUS_PRIMARY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_AMBIGUOUS_PRIMARY" => {
                 Some(Self::AmbiguousPrimary)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_KEY_VERSION" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_KEY_VERSION" => {
                 Some(Self::UnsupportedKeyVersion)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_PROTECTED_SECRET_KEY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_PROTECTED_SECRET_KEY" => {
                 Some(Self::ProtectedSecretKey)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_MISSING_SELF_SIGNATURE" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_MISSING_SELF_SIGNATURE" => {
                 Some(Self::MissingSelfSignature)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_NON_REVOCABLE" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_NON_REVOCABLE" => {
                 Some(Self::NonRevocable)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_TEMPLATE" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_TEMPLATE" => {
                 Some(Self::UnsupportedTemplate)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TIME_CONFLICT" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TIME_CONFLICT" => {
                 Some(Self::TimeConflict)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED" => {
                 Some(Self::SignatureVerificationFailed)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_METADATA_RESOLUTION_FAILED" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_METADATA_RESOLUTION_FAILED" => {
                 Some(Self::MetadataResolutionFailed)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_INTERNAL_FAILURE" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_INTERNAL_FAILURE" => {
                 Some(Self::InternalFailure)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_CERTIFICATE_REVOKED" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_CERTIFICATE_REVOKED" => {
                 Some(Self::CertificateRevoked)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY" => {
                 Some(Self::UnresolvedRevocationAuthority)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_SIGNING_HASH" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_SIGNING_HASH" => {
                 Some(Self::UnsupportedSigningHash)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_POLICY_CONFLICT" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_POLICY_CONFLICT" => {
                 Some(Self::PolicyConflict)
+            }
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_LAST_USER_ID" => {
+                Some(Self::LastUserId)
             }
             _ => None,
         }

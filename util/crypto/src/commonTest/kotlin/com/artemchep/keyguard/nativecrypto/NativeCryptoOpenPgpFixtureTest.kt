@@ -25,7 +25,11 @@ class NativeCryptoOpenPgpFixtureTest {
         assertEquals(256, key.bitStrength)
         assertEquals(listOf(USER_ID), key.userIds)
         assertEquals(
-            listOf(NativeOpenPgpUserIdInfo(USER_ID_IDENTITY_ID, USER_ID)),
+            listOf(
+                NativeOpenPgpUserIdInfo(
+                    USER_ID_IDENTITY_ID, USER_ID, primary = true, canReplace = true, canMakePrimary = true,
+                ),
+            ),
             key.userIdDetails,
         )
         assertEquals(listOf("cv25519@test.invalid"), key.emails)

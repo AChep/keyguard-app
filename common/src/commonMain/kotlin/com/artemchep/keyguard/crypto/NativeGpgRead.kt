@@ -228,12 +228,9 @@ internal fun NativeOpenPgpPublicKeyInfo.toDomain(): GpgPublicKeyInfo = GpgPublic
     authenticated = authenticated,
     renewal = renewal.toDomain(),
     weakSelfSignatureAlgorithms = weakSelfSignatureAlgorithms,
-    userIdDetails = userIdDetails.map { value ->
-        GpgUserIdInfo(
-            identityId = value.identityId,
-            userId = value.userId,
-        )
-    },
+    userIdDetails = userIdDetails.map { it.toDomain() },
+    userIdHistory = userIdHistory.map { it.toDomain() },
+    canModifyUserIds = canModifyUserIds,
 )
 
 private fun NativeOpenPgpPublicSubKeyInfo.toDomain(): GpgPublicSubKeyInfo = GpgPublicSubKeyInfo(
@@ -282,4 +279,15 @@ internal fun NativeOpenPgpVerification.toDomain(): GpgOpenPgpVerification =
             }
         },
         signatures = signatures.map { result -> result.toDomain() },
+    )
+
+private fun com.artemchep.keyguard.nativecrypto.NativeOpenPgpUserIdInfo.toDomain(): GpgUserIdInfo =
+    GpgUserIdInfo(
+        identityId = identityId,
+        userId = userId,
+        primary = primary,
+        revoked = revoked,
+        canRevoke = canRevoke,
+        canReplace = canReplace,
+        canMakePrimary = canMakePrimary,
     )

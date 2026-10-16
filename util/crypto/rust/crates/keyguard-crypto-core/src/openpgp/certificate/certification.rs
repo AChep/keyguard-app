@@ -55,27 +55,94 @@ pub(crate) fn new_user_id_certification_config(
     creation_time: Timestamp,
     primary: bool,
 ) -> Result<SignatureConfig, UserIdCertificationError> {
+    user_id_certification_config(
+        policy_template,
+        Some(lifetime_template),
+        signer,
+        creation_time,
+        primary,
+    )
+}
+
+/// Returns whether a hashed subpacket states key policy rather than identity metadata.
+const fn is_key_policy_subpacket(data: &SubpacketData) -> bool {
+    match data {
+        SubpacketData::KeyExpirationTime(_)
+        | SubpacketData::PreferredSymmetricAlgorithms(_)
+        | SubpacketData::PreferredHashAlgorithms(_)
+        | SubpacketData::PreferredCompressionAlgorithms(_)
+        | SubpacketData::KeyServerPreferences(_)
+        | SubpacketData::KeyFlags(_)
+        | SubpacketData::Features(_)
+        | SubpacketData::PreferredKeyServer(_)
+        | SubpacketData::PolicyURI(_)
+        | SubpacketData::PreferredEncryptionModes(_)
+        | SubpacketData::PreferredAeadAlgorithms(_) => true,
+        SubpacketData::SignatureCreationTime(_)
+        | SubpacketData::SignatureExpirationTime(_)
+        | SubpacketData::IssuerKeyId(_)
+        | SubpacketData::RevocationKey(_)
+        | SubpacketData::RevocationReason(_, _)
+        | SubpacketData::IsPrimary(_)
+        | SubpacketData::Revocable(_)
+        | SubpacketData::EmbeddedSignature(_)
+        | SubpacketData::Notation(_)
+        | SubpacketData::SignersUserID(_)
+        | SubpacketData::TrustSignature(_, _)
+        | SubpacketData::RegularExpression(_)
+        | SubpacketData::ExportableCertification(_)
+        | SubpacketData::IssuerFingerprint(_)
+        | SubpacketData::IntendedRecipientFingerprint(_)
+        | SubpacketData::Experimental(_, _)
+        | SubpacketData::Other(_, _)
+        | SubpacketData::SignatureTarget(_, _, _) => false,
+    }
+}
+
+/// Creates an additional identity with no inherited certification lifetime or export restriction.
+pub(crate) fn additional_user_id_certification_config(
+    policy_template: &Signature,
+    signer: SigningKeyRef<'_>,
+    creation_time: Timestamp,
+    primary: bool,
+) -> Result<SignatureConfig, UserIdCertificationError> {
+    user_id_certification_config(policy_template, None, signer, creation_time, primary)
+}
+
+fn user_id_certification_config(
+    policy_template: &Signature,
+    lifetime_template: Option<&Signature>,
+    signer: SigningKeyRef<'_>,
+    creation_time: Timestamp,
+    primary: bool,
+) -> Result<SignatureConfig, UserIdCertificationError> {
     let policy_config = policy_template
         .config()
         .ok_or(UserIdCertificationError::UnsupportedTemplate)?;
     let lifetime_config = lifetime_template
-        .config()
-        .ok_or(UserIdCertificationError::UnsupportedTemplate)?;
+        .map(|signature| {
+            signature
+                .config()
+                .ok_or(UserIdCertificationError::UnsupportedTemplate)
+        })
+        .transpose()?;
     if !signature_version_matches_signer(policy_config.version(), signer.version())
-        || !signature_version_matches_signer(lifetime_config.version(), signer.version())
-        || !matches!(
-            lifetime_config.version(),
-            pgp::packet::SignatureVersion::V4 | pgp::packet::SignatureVersion::V6
-        )
+        || lifetime_config.is_some_and(|config| {
+            !signature_version_matches_signer(config.version(), signer.version())
+                || !matches!(
+                    config.version(),
+                    pgp::packet::SignatureVersion::V4 | pgp::packet::SignatureVersion::V6
+                )
+                || !is_certification(Some(config.typ))
+        })
         || !(is_certification(Some(policy_config.typ))
             || (signer.version() == KeyVersion::V6 && policy_config.typ == SignatureType::Key))
-        || !is_certification(Some(lifetime_config.typ))
     {
         return Err(UserIdCertificationError::UnsupportedTemplate);
     }
     let mut config = signature_config(
         &signer,
-        lifetime_config.typ,
+        lifetime_config.map_or(SignatureType::CertPositive, |config| config.typ),
         replacement_hash(signer, policy_config.hash_alg)?,
     )
     .map_err(|_| UserIdCertificationError::SigningFailed)?;
@@ -90,58 +157,27 @@ pub(crate) fn new_user_id_certification_config(
     let identity_policy = if signer.version() == KeyVersion::V6 {
         lifetime_config
     } else {
-        policy_config
+        Some(policy_config)
     };
-    for subpacket in &identity_policy.hashed_subpackets {
-        let retain = match &subpacket.data {
-            SubpacketData::KeyExpirationTime(_)
-            | SubpacketData::PreferredSymmetricAlgorithms(_)
-            | SubpacketData::PreferredHashAlgorithms(_)
-            | SubpacketData::PreferredCompressionAlgorithms(_)
-            | SubpacketData::KeyServerPreferences(_)
-            | SubpacketData::KeyFlags(_)
-            | SubpacketData::Features(_)
-            | SubpacketData::PreferredKeyServer(_)
-            | SubpacketData::PolicyURI(_)
-            | SubpacketData::PreferredEncryptionModes(_)
-            | SubpacketData::PreferredAeadAlgorithms(_) => true,
-            SubpacketData::RevocationKey(_) => {
-                return Err(UserIdCertificationError::UnsupportedTemplate);
-            }
-            SubpacketData::Experimental(_, _) | SubpacketData::Other(_, _)
-                if subpacket.is_critical =>
-            {
-                return Err(UserIdCertificationError::UnsupportedTemplate);
-            }
-            SubpacketData::SignatureCreationTime(_)
-            | SubpacketData::SignatureExpirationTime(_)
-            | SubpacketData::IssuerKeyId(_)
-            | SubpacketData::RevocationReason(_, _)
-            | SubpacketData::IsPrimary(_)
-            | SubpacketData::Revocable(_)
-            | SubpacketData::EmbeddedSignature(_)
-            | SubpacketData::Notation(_)
-            | SubpacketData::SignersUserID(_)
-            | SubpacketData::TrustSignature(_, _)
-            | SubpacketData::RegularExpression(_)
-            | SubpacketData::ExportableCertification(_)
-            | SubpacketData::IssuerFingerprint(_)
-            | SubpacketData::IntendedRecipientFingerprint(_)
-            | SubpacketData::Experimental(_, _)
-            | SubpacketData::Other(_, _)
-            | SubpacketData::SignatureTarget(_, _, _) => false,
-        };
-        if retain {
-            config.hashed_subpackets.push(subpacket.clone());
-        }
+    if let Some(identity_policy) = identity_policy {
+        validate_preserved_subpackets(&identity_policy.hashed_subpackets)?;
+        config.hashed_subpackets.extend(
+            identity_policy
+                .hashed_subpackets
+                .iter()
+                .filter(|subpacket| is_key_policy_subpacket(&subpacket.data))
+                .cloned(),
+        );
     }
-    if signature_config_is_non_exportable(lifetime_config) {
+    if lifetime_config.is_some_and(signature_config_is_non_exportable) {
         config.hashed_subpackets.push(
             Subpacket::critical(SubpacketData::ExportableCertification(false))
                 .map_err(|_| UserIdCertificationError::UnsupportedTemplate)?,
         );
     }
-    if let Some(duration) = replacement_signature_expiration(lifetime_template, creation_time)? {
+    if let Some(template) = lifetime_template
+        && let Some(duration) = replacement_signature_expiration(template, creation_time)?
+    {
         config.hashed_subpackets.push(
             Subpacket::critical(SubpacketData::SignatureExpirationTime(Duration::from_secs(
                 duration,
@@ -484,4 +520,17 @@ where
             .map_err(|_| UserIdCertificationError::SigningFailed)?;
         Ok(UserIdCertification { user_id, signature })
     }
+}
+
+pub(crate) fn preserve_key_policy(target: &mut SignatureConfig, source: &SignatureConfig) {
+    target
+        .hashed_subpackets
+        .retain(|packet| !is_key_policy_subpacket(&packet.data));
+    target.hashed_subpackets.extend(
+        source
+            .hashed_subpackets
+            .iter()
+            .filter(|packet| is_key_policy_subpacket(&packet.data))
+            .cloned(),
+    );
 }

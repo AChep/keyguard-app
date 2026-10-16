@@ -4,6 +4,7 @@ use pgp::{
     types::{KeyDetails, Timestamp},
 };
 use prost::bytes::Bytes;
+use zeroize::Zeroizing;
 
 use super::*;
 use crate::{
@@ -11,15 +12,13 @@ use crate::{
         Message as _, OpenPgpKeyGenerateRequest, OpenPgpKeyKind, OpenPgpKeyMaterial,
     },
     openpgp::certificate::{
-        UserIdCertificationBuilder, canonicalize_public_certificate, parse_single_public,
-        parse_single_secret, project_secret_certificate, rebuild_secret_certificate,
+        UserIdCertificationBuilder, canonicalize_public_certificate, identity_id,
+        parse_single_public, parse_single_secret, project_secret_certificate,
+        rebuild_secret_certificate,
     },
     openpgp::crypto::verification::signature_config_is_non_exportable,
     openpgp::packet::RawPacketStream,
-    openpgp::policy::{
-        MutationAuthorizationError, OpenPgpPolicyBudget, OpenPgpPolicyError, all_components,
-        validate_certificate,
-    },
+    openpgp::policy::{OpenPgpPolicyBudget, all_components, validate_certificate},
 };
 
 const CREATED: u64 = 1_700_000_000;
@@ -134,22 +133,6 @@ fn document_contains_user_id(document: &[u8], user_id: &str) -> bool {
     })
 }
 
-#[test]
-fn mutation_authorization_and_policy_failures_keep_stable_reasons() {
-    assert_eq!(
-        UserIdRevocationFailure::from(MutationAuthorizationError::Revoked),
-        UserIdRevocationFailure::CertificateRevoked,
-    );
-    assert_eq!(
-        UserIdRevocationFailure::from(MutationAuthorizationError::IndeterminateRevocation),
-        UserIdRevocationFailure::UnresolvedRevocationAuthority,
-    );
-    assert_eq!(
-        UserIdRevocationFailure::from(OpenPgpPolicyError::ResourceLimit),
-        UserIdRevocationFailure::ResourceLimit,
-    );
-}
-
 fn add_user_id(
     material: &OpenPgpKeyMaterial,
     user_id: &str,
@@ -243,17 +226,19 @@ fn older_non_revocable_certification_blocks_user_id_revocation() {
     );
 
     let Err(error) = revoke_user_id_request(UserIdRevocationInput {
-        private_key: material.private_key_armored.clone(),
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         identity_id: identity_id(13, SECOND_USER_ID.as_bytes()),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     }) else {
         panic!("the older non-revocable certification must survive");
     };
 
-    assert_eq!(error, UserIdRevocationFailure::NonRevocable);
+    assert_eq!(error, UserIdMutationFailure::NonRevocable);
 }
 
 #[test]
@@ -275,17 +260,19 @@ fn effective_non_revocable_certification_blocks_user_id_revocation() {
     );
 
     let Err(error) = revoke_user_id_request(UserIdRevocationInput {
-        private_key: material.private_key_armored.clone(),
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         identity_id: identity_id(13, SECOND_USER_ID.as_bytes()),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     }) else {
         panic!("the effective non-revocable certification must be preserved");
     };
 
-    assert_eq!(error, UserIdRevocationFailure::NonRevocable);
+    assert_eq!(error, UserIdMutationFailure::NonRevocable);
 }
 
 #[test]
@@ -293,12 +280,14 @@ fn revoking_local_user_id_keeps_the_mutation_private() {
     let material = material_with_local_second_user_id();
 
     let success = revoke_user_id_request(UserIdRevocationInput {
-        private_key: material.private_key_armored.clone(),
-        public_key: material.public_key_armored.clone(),
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: material.public_key_armored.clone(),
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         identity_id: identity_id(USER_ID_TAG, SECOND_USER_ID.as_bytes()),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     })
     .expect("revoke local identity");
 
@@ -370,12 +359,14 @@ fn revoking_transport_visible_user_id_exports_revocation_despite_older_local_cer
     ]);
 
     let success = revoke_user_id_request(UserIdRevocationInput {
-        private_key: material.private_key_armored.clone(),
-        public_key: material.public_key_armored.clone(),
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: material.public_key_armored.clone(),
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         identity_id: identity_id(USER_ID_TAG, SECOND_USER_ID.as_bytes()),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     })
     .expect("revoke transport-visible identity");
 
@@ -449,12 +440,14 @@ fn user_id_revocation_is_minimal_persistent_and_idempotent() {
     let material = generated_material();
     let public_key = add_user_id(&material, SECOND_USER_ID, CREATED + 1, Vec::new());
     let request = UserIdRevocationInput {
-        private_key: material.private_key_armored.clone(),
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         identity_id: identity_id(13, FIRST_USER_ID.as_bytes()),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     };
     let success = revoke_user_id_request(request).expect("revoke first identity");
     assert!(success.changed);
@@ -473,12 +466,14 @@ fn user_id_revocation_is_minimal_persistent_and_idempotent() {
     );
 
     let repeated = revoke_user_id_request(UserIdRevocationInput {
-        private_key: updated.private_key_armored.clone(),
-        public_key: updated.public_key_armored.clone(),
-        expected_primary_fingerprint: updated.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: updated.private_key_armored.clone(),
+            public_key: updated.public_key_armored.clone(),
+            expected_primary_fingerprint: updated.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: u64::from(u32::MAX) + 1,
+        },
         identity_id: identity_id(13, FIRST_USER_ID.as_bytes()),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: u64::from(u32::MAX) + 1,
     })
     .expect("repeat effective revocation outside the v4 timestamp range");
     assert!(!repeated.changed);
@@ -500,92 +495,95 @@ fn user_id_revocation_is_minimal_persistent_and_idempotent() {
 fn v4_last_user_id_is_rejected() {
     let material = generated_material();
     let Err(error) = revoke_user_id_request(UserIdRevocationInput {
-        private_key: material.private_key_armored.clone(),
-        public_key: material.public_key_armored.clone(),
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: material.public_key_armored.clone(),
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         identity_id: identity_id(13, FIRST_USER_ID.as_bytes()),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     }) else {
         panic!("last user id must be preserved");
     };
-    assert_eq!(error, UserIdRevocationFailure::LastUserId);
+    assert_eq!(error, UserIdMutationFailure::LastUserId);
 }
 
 #[test]
-fn future_dated_user_id_is_revoked_immediately_after_its_certification() {
+fn same_second_certification_is_revoked_after_a_short_wait() {
+    use crate::openpgp::message::{PublicKeyParseInput, PublicKeyParseOutcome, parse_public_key};
+
     let material = generated_material();
-    let public_key = add_user_id(&material, SECOND_USER_ID, REFERENCE + 60, Vec::new());
+    let public_key = add_user_id(&material, SECOND_USER_ID, REFERENCE, Vec::new());
+    let revoke = |public_key: &[u8], reference_time_epoch_seconds| {
+        revoke_user_id_request(UserIdRevocationInput {
+            documents: MutationDocuments {
+                private_key: material.private_key_armored.clone(),
+                public_key: public_key.to_vec(),
+                expected_primary_fingerprint: material.fingerprint.clone(),
+                candidate_revocation_keys: Vec::new(),
+                reference_time_epoch_seconds,
+            },
+            identity_id: identity_id(13, SECOND_USER_ID.as_bytes()),
+        })
+    };
 
-    let success = revoke_user_id_request(UserIdRevocationInput {
-        private_key: material.private_key_armored.clone(),
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
-        identity_id: identity_id(13, SECOND_USER_ID.as_bytes()),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
-    })
-    .expect("future certification should receive a chronologically later revocation");
+    // The revocation must be newer than the certification and is never
+    // dated in the future, so the caller waits one second.
+    assert_eq!(
+        revoke(&public_key, REFERENCE).err(),
+        Some(UserIdMutationFailure::RetryAt(REFERENCE + 1)),
+    );
+    let success = revoke(&public_key, REFERENCE + 1).expect("revoke after the wait");
     assert!(success.changed);
-    assert_eq!(success.effective_at_epoch_seconds, REFERENCE + 61);
+    assert_eq!(success.effective_at_epoch_seconds, REFERENCE + 1);
 
+    // The returned certificate expresses the revocation at once.
     let updated = success.key_material;
-    let reparsed = parse_single_public(&updated.public_key_armored).expect("parse updated");
-    let candidates = all_components(std::slice::from_ref(&reparsed));
-    let mut budget = OpenPgpPolicyBudget::default();
-    let before = validate_certificate(&reparsed, &candidates, REFERENCE, &mut budget)
-        .expect("evaluate before scheduled revocation");
-    assert!(
-        !before
-            .user_id(SECOND_USER_ID.as_bytes())
-            .expect("second identity")
-            .revocation_status
-            .is_revoked()
-    );
-    let mut budget = OpenPgpPolicyBudget::default();
-    let effective = validate_certificate(&reparsed, &candidates, REFERENCE + 61, &mut budget)
-        .expect("evaluate scheduled revocation");
-    assert!(
-        effective
-            .user_id(SECOND_USER_ID.as_bytes())
-            .expect("second identity")
-            .revocation_status
-            .is_revoked()
-    );
+    for document in [&updated.private_key_armored, &updated.public_key_armored] {
+        let PublicKeyParseOutcome::Success(metadata) = parse_public_key(PublicKeyParseInput {
+            key_data: Zeroizing::new(document.clone()),
+            reference_time_epoch_seconds: Some(REFERENCE + 1),
+        })
+        .expect("reopen saved revocation") else {
+            panic!("metadata")
+        };
+        let identity = metadata.keys[0]
+            .user_id_history
+            .iter()
+            .find(|identity| identity.user_id == SECOND_USER_ID)
+            .expect("revoked identity");
+        assert!(identity.revoked);
+        assert!(!identity.can_revoke);
+    }
 
-    let repeated = revoke_user_id_request(UserIdRevocationInput {
-        private_key: updated.private_key_armored.clone(),
-        public_key: updated.public_key_armored.clone(),
-        expected_primary_fingerprint: updated.fingerprint.clone(),
-        identity_id: identity_id(13, SECOND_USER_ID.as_bytes()),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
-    })
-    .expect("the authenticated scheduled revocation is idempotent");
+    let repeated = revoke(&updated.public_key_armored, REFERENCE + 1)
+        .expect("an effective revocation is idempotent");
     assert!(!repeated.changed);
-    assert_eq!(repeated.effective_at_epoch_seconds, REFERENCE + 61);
+    assert_eq!(repeated.effective_at_epoch_seconds, REFERENCE + 1);
 }
 
 #[test]
 fn a_far_future_certification_cannot_push_the_revocation_out_of_reach() {
-    // A revocation has to be dated after the certification it supersedes.
-    // Honouring a certification parked far in the future would emit a
-    // revocation that only takes effect then, so the bump is bounded and
-    // the request fails with its typed time error instead.
+    // A revocation has to be dated after the certification it supersedes,
+    // and new signatures are never dated in the future. A certification
+    // parked beyond the retry window is a terminal time error.
     let material = generated_material();
     let public_key = add_user_id(&material, SECOND_USER_ID, REFERENCE + 3_600, Vec::new());
 
     let Err(error) = revoke_user_id_request(UserIdRevocationInput {
-        private_key: material.private_key_armored.clone(),
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         identity_id: identity_id(13, SECOND_USER_ID.as_bytes()),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     }) else {
         panic!("a far-future certification must not be superseded silently");
     };
-    assert_eq!(error, UserIdRevocationFailure::TimeConflict);
+    assert_eq!(error, UserIdMutationFailure::TimeConflict);
 }
 
 #[test]
@@ -604,15 +602,79 @@ fn policy_inactive_user_id_receives_durable_revocation_evidence() {
     );
 
     let success = revoke_user_id_request(UserIdRevocationInput {
-        private_key: material.private_key_armored.clone(),
-        public_key,
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key,
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: REFERENCE,
+        },
         identity_id: identity_id(13, SECOND_USER_ID.as_bytes()),
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: REFERENCE,
     })
     .expect("policy-inactive identity should still receive a self-revocation");
 
     assert!(success.changed);
     assert!(!success.revocation_certificate_armored.is_empty());
+}
+
+#[test]
+fn revocation_capability_matches_signing() {
+    use crate::openpgp::message::{PublicKeyParseInput, PublicKeyParseOutcome, parse_public_key};
+    use crate::openpgp::policy::MAX_SIGNATURE_RETRY_SECONDS;
+
+    for (created, nonrevocable, expected_error) in [
+        (CREATED + 1, true, UserIdMutationFailure::NonRevocable),
+        (
+            REFERENCE,
+            false,
+            UserIdMutationFailure::RetryAt(REFERENCE + 1),
+        ),
+        (
+            REFERENCE + MAX_SIGNATURE_RETRY_SECONDS - 1,
+            false,
+            UserIdMutationFailure::RetryAt(REFERENCE + MAX_SIGNATURE_RETRY_SECONDS),
+        ),
+        (
+            REFERENCE + MAX_SIGNATURE_RETRY_SECONDS,
+            false,
+            UserIdMutationFailure::TimeConflict,
+        ),
+    ] {
+        let material = generated_material();
+        let extras = if nonrevocable {
+            vec![Subpacket::regular(SubpacketData::Revocable(false)).expect("non-revocable")]
+        } else {
+            Vec::new()
+        };
+        let public_key = add_user_id(&material, SECOND_USER_ID, created, extras);
+        let PublicKeyParseOutcome::Success(metadata) = parse_public_key(PublicKeyParseInput {
+            key_data: Zeroizing::new(public_key.clone()),
+            reference_time_epoch_seconds: Some(REFERENCE),
+        })
+        .expect("metadata") else {
+            panic!("metadata failed");
+        };
+        let identity = metadata.keys[0]
+            .user_id_details
+            .iter()
+            .chain(&metadata.keys[0].user_id_history)
+            .find(|id| id.user_id == SECOND_USER_ID)
+            .expect("second identity");
+        // A short wait does not hide the action.
+        assert_eq!(
+            identity.can_revoke,
+            matches!(expected_error, UserIdMutationFailure::RetryAt(_)),
+        );
+        let result = revoke_user_id_request(UserIdRevocationInput {
+            documents: MutationDocuments {
+                private_key: material.private_key_armored.clone(),
+                public_key,
+                expected_primary_fingerprint: material.fingerprint.clone(),
+                candidate_revocation_keys: Vec::new(),
+                reference_time_epoch_seconds: REFERENCE,
+            },
+            identity_id: identity_id(13, SECOND_USER_ID.as_bytes()),
+        });
+        assert_eq!(result.err(), Some(expected_error));
+    }
 }

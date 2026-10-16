@@ -56,7 +56,7 @@ public enum class NativeCryptoCapability(
 
 public object NativeCrypto {
     public const val EXPECTED_ABI_VERSION: Int = 1
-    public const val PROTOCOL_VERSION: Int = 2
+    public const val PROTOCOL_VERSION: Int = 3
     public const val MAX_CONTROL_ENVELOPE_BYTES: Int = 16 * 1024 * 1024
 
     private val client: NativeCryptoClient by lazy {

@@ -75,6 +75,11 @@ data class GpgUserIdInfo(
     /** Stable identifier derived from the exact OpenPGP identity packet body. */
     val identityId: String,
     val userId: String,
+    val primary: Boolean = false,
+    val revoked: Boolean = false,
+    val canRevoke: Boolean = false,
+    val canReplace: Boolean = false,
+    val canMakePrimary: Boolean = false,
 )
 
 data class GpgPublicKeyInfo(
@@ -123,11 +128,9 @@ data class GpgPublicKeyInfo(
     val userIdDetails: List<GpgUserIdInfo> = emptyList(),
     /** Distinct digest names from verified renewal-only self-signatures; display metadata only. */
     val weakSelfSignatureAlgorithms: List<String> = emptyList(),
-) {
-    /** The parser accepts only v4 and v6; a v6 fingerprint has 32 bytes. */
-    val canRevokeLastIdentity: Boolean
-        get() = fingerprint.length == 64
-}
+    val userIdHistory: List<GpgUserIdInfo> = emptyList(),
+    val canModifyUserIds: Boolean = false,
+)
 
 data class GpgPublicSubKeyInfo(
     val fingerprint: String,

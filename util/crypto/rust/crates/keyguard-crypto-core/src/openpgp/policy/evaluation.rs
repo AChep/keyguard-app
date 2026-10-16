@@ -1316,7 +1316,6 @@ fn validate_certificate_intern<'a>(
                 identity.verified_certifications.iter().copied(),
             ),
             effective_certification_revocable,
-            self_revocation_hash_security,
             revocation_status: revocation.status,
             effective_revocation_at: revocation.effective_at,
         });
@@ -1402,7 +1401,6 @@ fn validate_certificate_intern<'a>(
                 identity.verified_certifications.iter().copied(),
             ),
             effective_certification_revocable,
-            self_revocation_hash_security,
             revocation_status: revocation.status,
             effective_revocation_at: revocation.effective_at,
         });

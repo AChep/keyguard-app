@@ -316,21 +316,6 @@ fn intended_recipient_acceptable(
 /// Policy gate for self-revocation evidence.  Keep this distinct from binding
 /// policy so the deliberately bounded weak-hash compatibility window does not
 /// weaken certifications or treat arbitrary old revocations as authoritative.
-pub(super) fn self_revocation_signature_acceptable(
-    signature: &Signature,
-    reference_time: u64,
-    target: RevocationTarget,
-    hash_security: SelfRevocationHashSecurity,
-) -> bool {
-    self_revocation_signature_acceptable_at(
-        signature,
-        reference_time,
-        reference_time,
-        target,
-        hash_security,
-    )
-}
-
 pub(super) fn self_revocation_signature_acceptable_at(
     signature: &Signature,
     reference_time: u64,

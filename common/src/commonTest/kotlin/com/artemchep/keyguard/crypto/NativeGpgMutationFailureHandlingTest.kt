@@ -2,14 +2,13 @@ package com.artemchep.keyguard.crypto
 
 import com.artemchep.keyguard.common.model.GpgKeyMaterial
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
-import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementError
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdMutationError
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementRequest
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementResult
-import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationError
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationRequest
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationResult
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
-import com.artemchep.keyguard.nativecrypto.NativeOpenPgpUserIdReplacementError
+import com.artemchep.keyguard.nativecrypto.NativeOpenPgpUserIdMutationError
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpUserIdReplacementResult
 import kotlinx.coroutines.CancellationException
 import kotlin.test.Test
@@ -54,7 +53,7 @@ class NativeGpgMutationFailureHandlingTest {
                 waitForClock = { true },
             )
         assertEquals(
-            GpgUserIdRevocationError.InternalFailure,
+            GpgUserIdMutationError.InternalFailure,
             assertIs<GpgUserIdRevocationResult.Error>(revocation).reason,
         )
 
@@ -65,7 +64,7 @@ class NativeGpgMutationFailureHandlingTest {
                 waitForClock = { true },
             )
         assertEquals(
-            GpgUserIdReplacementError.InternalFailure,
+            GpgUserIdMutationError.InternalFailure,
             assertIs<GpgUserIdReplacementResult.Error>(replacement).reason,
         )
     }
@@ -87,7 +86,7 @@ class NativeGpgMutationFailureHandlingTest {
                 waitForClock = { true },
             )
         assertEquals(
-            GpgUserIdReplacementError.EmptyPrivateKey,
+            GpgUserIdMutationError.EmptyPrivateKey,
             assertIs<GpgUserIdReplacementResult.Error>(result).reason,
         )
         assertEquals(0, clockReads)
@@ -99,6 +98,8 @@ class NativeGpgMutationFailureHandlingTest {
             listOf(
                 " \t",
                 "Alice\u0000",
+                "Alice\u2028Injected",
+                "Alice\u2029Injected",
                 "\uD800",
                 "\uDC00",
                 "\uD800A",
@@ -123,7 +124,7 @@ class NativeGpgMutationFailureHandlingTest {
                     waitForClock = { true },
                 )
             assertEquals(
-                GpgUserIdReplacementError.InvalidNewUserId,
+                GpgUserIdMutationError.InvalidNewUserId,
                 assertIs<GpgUserIdReplacementResult.Error>(result).reason,
             )
             assertEquals(0, clockReads)
@@ -131,125 +132,93 @@ class NativeGpgMutationFailureHandlingTest {
     }
 
     @Test
-    fun `time conflict retry is bounded and stops when waiting fails`() {
-        var attempts = 0
-        var waits = 0
-        val exhausted =
-            retryNativeTimeConflicts(
-                now = { Instant.fromEpochSeconds(attempts.toLong()) },
-                waitForClock = {
-                    waits += 1
-                    true
-                },
-                isTimeConflict = { true },
-            ) {
-                attempts += 1
-                attempts
-            }
-        assertEquals(6, exhausted)
-        assertEquals(6, attempts)
-        assertEquals(5, waits)
-
-        attempts = 0
-        waits = 0
-        val interrupted =
-            retryNativeTimeConflicts(
-                now = { Instant.fromEpochSeconds(attempts.toLong()) },
-                waitForClock = {
-                    waits += 1
-                    false
-                },
-                isTimeConflict = { true },
-            ) {
-                attempts += 1
-                attempts
-            }
-        assertEquals(1, interrupted)
-        assertEquals(1, attempts)
-        assertEquals(1, waits)
+    fun `retry waits until the exact timestamp and refreshes policy time`() {
+        var clock = Instant.fromEpochMilliseconds(100_250)
+        val waits = mutableListOf<Long>()
+        val references = mutableListOf<Long>()
+        val result = retryNativeTimeConflicts(
+            now = { clock },
+            waitForClock = { milliseconds ->
+                waits += milliseconds
+                clock = Instant.fromEpochMilliseconds(clock.toEpochMilliseconds() + milliseconds)
+                true
+            },
+            retryAt = { attempt -> if (attempt == 1) 103L else null },
+        ) {
+            references += it
+            references.size
+        }
+        assertEquals(2, result)
+        assertEquals(listOf(2_750L), waits)
+        assertEquals(listOf(100L, 103L), references)
     }
 
     @Test
-    fun `time conflict retry captures one fresh reference time per attempt`() {
-        var clockReads = 0
-        val referenceTimes = mutableListOf<Long>()
-
-        val result =
-            retryNativeTimeConflicts(
-                now = {
-                    clockReads += 1
-                    Instant.fromEpochSeconds(100L + clockReads)
-                },
-                waitForClock = { true },
-                isTimeConflict = { attempt -> attempt < 3 },
-            ) { referenceTimeEpochSeconds ->
-                referenceTimes += referenceTimeEpochSeconds
-                referenceTimes.size
-            }
-
-        assertEquals(3, result)
-        assertEquals(3, clockReads)
-        assertEquals(listOf(101L, 102L, 103L), referenceTimes)
-    }
-
-    @Test
-    fun `replacement retries clock conflicts but not policy conflicts`() {
+    fun `retry rounds fractional milliseconds up to reach the signature timestamp`() {
+        var clock = Instant.fromEpochSeconds(100, 999_999_999)
+        val waits = mutableListOf<Long>()
         var attempts = 0
-        var waits = 0
-        val recovered =
-            retryNativeTimeConflicts(
-                now = { Instant.fromEpochSeconds(attempts.toLong()) },
-                waitForClock = {
-                    waits += 1
-                    true
-                },
-                isTimeConflict = { result ->
-                    result is NativeOpenPgpUserIdReplacementResult.Error &&
-                        result.reason == NativeOpenPgpUserIdReplacementError.TIME_CONFLICT
-                },
-            ) {
-                attempts += 1
-                NativeOpenPgpUserIdReplacementResult.Error(
-                    if (attempts == 1) {
-                        NativeOpenPgpUserIdReplacementError.TIME_CONFLICT
-                    } else {
-                        NativeOpenPgpUserIdReplacementError.TARGET_INACTIVE
-                    },
-                )
-            }
-        assertEquals(
-            NativeOpenPgpUserIdReplacementError.TARGET_INACTIVE,
-            recovered.reason,
-        )
+        retryNativeTimeConflicts(
+            now = { clock },
+            waitForClock = {
+                waits += it
+                clock = Instant.fromEpochSeconds(101)
+                true
+            },
+            retryAt = { attempt -> if (attempt == 1) 101L else null },
+        ) { ++attempts }
+        assertEquals(listOf(1L), waits)
         assertEquals(2, attempts)
-        assertEquals(1, waits)
+    }
 
-        attempts = 0
-        waits = 0
-        val permanent =
+    @Test
+    fun `retry is bounded even when the clock does not advance`() {
+        var attempts = 0
+        var waits = 0
+        val result = retryNativeTimeConflicts(
+            now = { Instant.fromEpochSeconds(100) },
+            waitForClock = { waits++; true },
+            retryAt = { 101L },
+        ) { ++attempts }
+        assertEquals(6, result)
+        assertEquals(5, waits)
+    }
+
+    @Test
+    fun `distant conflicts and interrupted waits return without retrying`() {
+        for (retryTime in listOf(101L, 106L)) {
+            var attempts = 0
+            var waits = 0
             retryNativeTimeConflicts(
-                now = { Instant.fromEpochSeconds(attempts.toLong()) },
-                waitForClock = {
-                    waits += 1
-                    true
-                },
-                isTimeConflict = { result ->
-                    result is NativeOpenPgpUserIdReplacementResult.Error &&
-                        result.reason == NativeOpenPgpUserIdReplacementError.TIME_CONFLICT
-                },
-            ) {
-                attempts += 1
-                NativeOpenPgpUserIdReplacementResult.Error(
-                    NativeOpenPgpUserIdReplacementError.POLICY_CONFLICT,
-                )
-            }
-        assertEquals(NativeOpenPgpUserIdReplacementError.POLICY_CONFLICT, permanent.reason)
-        assertEquals(1, attempts)
-        assertEquals(0, waits)
-        assertEquals(
-            GpgUserIdReplacementError.PolicyConflict,
-            permanent.reason.toDomain(),
+                now = { Instant.fromEpochSeconds(100) },
+                waitForClock = { waits++; false },
+                retryAt = { retryTime },
+            ) { ++attempts }
+            assertEquals(1, attempts)
+            assertEquals(if (retryTime == 101L) 1 else 0, waits)
+        }
+    }
+
+    @Test
+    fun `terminal time and policy conflicts do not retry`() {
+        val terminalReasons = listOf(
+            NativeOpenPgpUserIdMutationError.TIME_CONFLICT,
+            NativeOpenPgpUserIdMutationError.POLICY_CONFLICT,
         )
+        for (reason in terminalReasons) {
+            var attempts = 0
+            val result = retryNativeTimeConflicts(
+                now = { Instant.fromEpochSeconds(100) },
+                waitForClock = { error("terminal conflict must not wait") },
+                retryAt = { result: NativeOpenPgpUserIdReplacementResult.Error -> result.retryAtEpochSeconds },
+            ) {
+                attempts++
+                NativeOpenPgpUserIdReplacementResult.Error(reason)
+            }
+            assertEquals(reason, result.reason)
+            assertEquals(1, attempts)
+        }
+        assertEquals(GpgUserIdMutationError.PolicyConflict, NativeOpenPgpUserIdMutationError.POLICY_CONFLICT.toDomain())
     }
 
     private companion object {

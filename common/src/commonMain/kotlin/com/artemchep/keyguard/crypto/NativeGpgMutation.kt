@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentUnsupportedAlgorit
 import com.artemchep.keyguard.common.service.gpgagent.GpgCanonicalSExpr
 import com.artemchep.keyguard.common.service.gpgagent.GpgSExpr
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.util.sleepBlocking
 import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpAgentDecryptResult
@@ -30,27 +31,38 @@ object NativeGpgKeyExpirationService : GpgKeyExpirationService {
     ): GpgKeyExpirationResult = update(
         request = request,
         now = { Clock.System.now() },
+        waitForClock = ::sleepBlocking,
     )
 
     internal fun update(
         request: GpgKeyExpirationRequest,
         now: () -> Instant,
+        waitForClock: (milliseconds: Long) -> Boolean,
     ): GpgKeyExpirationResult = try {
         val validationError = request.validationError(now)
         if (validationError != null) {
             GpgKeyExpirationResult.Error(validationError)
         } else {
-            val referenceTimeEpochSeconds = now().epochSeconds
-            request.withNativeInput(referenceTimeEpochSeconds) { input ->
-                NativeCrypto.openPgp.updateExpiration(
-                    privateKey = input.privateKey,
-                    publicKey = input.publicKey,
-                    expectedPrimaryFingerprint = input.expectedPrimaryFingerprint,
-                    componentFingerprints = input.componentFingerprints,
-                    expiresAtEpochSeconds = input.expiresAtEpochSeconds,
-                    candidateRevocationKeys = input.candidateRevocationKeys,
-                    referenceTimeEpochSeconds = referenceTimeEpochSeconds,
-                )
+            // Candidate preselection parses certificates natively, so it stays outside
+            // the retry loop; only the final mutation is time-sensitive.
+            request.withNativeInput(now().epochSeconds) { input ->
+                retryNativeTimeConflicts(
+                    now = now,
+                    waitForClock = waitForClock,
+                    retryAt = { result ->
+                        (result as? NativeOpenPgpExpirationUpdateResult.Error)?.retryAtEpochSeconds
+                    },
+                ) { referenceTimeEpochSeconds ->
+                    NativeCrypto.openPgp.updateExpiration(
+                        privateKey = input.privateKey,
+                        publicKey = input.publicKey,
+                        expectedPrimaryFingerprint = input.expectedPrimaryFingerprint,
+                        componentFingerprints = input.componentFingerprints,
+                        expiresAtEpochSeconds = input.expiresAtEpochSeconds,
+                        candidateRevocationKeys = input.candidateRevocationKeys,
+                        referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                    )
+                }
             }.toDomain()
         }
     } catch (_: Exception) {

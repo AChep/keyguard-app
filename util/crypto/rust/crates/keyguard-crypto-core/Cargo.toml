@@ -45,6 +45,7 @@ zeroize.workspace = true
 [dev-dependencies]
 criterion = { version = "=0.8.2", default-features = false }
 proptest = "=1.11.0"
+syn = { version = "=2.0.118", features = ["full", "visit"] }
 
 [lints]
 workspace = true

@@ -21,26 +21,7 @@ sealed interface GpgUserIdRevocationResult {
     ) : GpgUserIdRevocationResult
 
     data class Error(
-        val reason: GpgUserIdRevocationError,
+        val reason: GpgUserIdMutationError,
+        val retryAt: kotlin.time.Instant? = null,
     ) : GpgUserIdRevocationResult
-}
-
-enum class GpgUserIdRevocationError {
-    EmptyPrivateKey,
-    MalformedKey,
-    FingerprintMismatch,
-    TargetNotFound,
-    LastUserId,
-    UnsupportedKeyVersion,
-    ProtectedSecretKey,
-    MissingSelfSignature,
-    NonRevocable,
-    TimeConflict,
-    SignatureVerificationFailed,
-    MetadataResolutionFailed,
-    InternalFailure,
-    CertificateRevoked,
-    UnresolvedRevocationAuthority,
-    UnsupportedSigningHash,
-    UnsupportedPlatform,
 }

@@ -99,6 +99,22 @@ class ExposedAccountRepositoryImplTest {
         )
     }
 
+    @Test
+    fun `a blank name is registered blank rather than substituted`() = runTest {
+        // The generic wording belongs to the caller that shows the name, so the
+        // mirror must not invent a value of its own.
+        val repository = createRepository()
+        repository.replaceAll(
+            accounts = listOf(account(id = "a", name = "")),
+            allAccountIds = setOf("a"),
+        ).invoke()
+
+        assertEquals(
+            registration(id = "a", entryId = "entry-1", label = ""),
+            repository.getRegistrations().first().single(),
+        )
+    }
+
     private fun createRepository() = ExposedAccountRepositoryImpl(
         exposedDatabaseManager = TestExposedDatabaseManager(),
         cryptoGenerator = SequentialUuidCryptoGenerator(),
@@ -111,8 +127,6 @@ class ExposedAccountRepositoryImplTest {
     ) = ExposedAccount(
         accountId = id,
         name = name,
-        email = "$id@example.com",
-        host = "$id.example.com",
     )
 
     private fun registration(

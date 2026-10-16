@@ -81,6 +81,12 @@ class DatabaseSchemaTransactionTest {
     fun `generated migration restores dropped tables when a callback fails`() = withDatabase { open ->
         open().use { driver ->
             driver.initializeSchema(schema(4, create = {
+                // A real version 4 database has the account mirror, which a later
+                // migration rebuilds.
+                it.sql(
+                    "CREATE TABLE account (accountId TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, " +
+                        "email TEXT NOT NULL, host TEXT NOT NULL)",
+                )
                 it.sql("CREATE TABLE gpgAgentPublicKey (value TEXT)")
                 it.sql("INSERT INTO gpgAgentPublicKey VALUES ('retained')")
                 it.sql("CREATE TABLE sshAgentPublicKey (value TEXT)")
@@ -96,7 +102,7 @@ class DatabaseSchemaTransactionTest {
         }
         open().use { driver ->
             assertEquals(4L, driver.version())
-            assertEquals(listOf("gpgAgentPublicKey", "sshAgentPublicKey"), driver.tables().sorted())
+            assertEquals(listOf("account", "gpgAgentPublicKey", "sshAgentPublicKey"), driver.tables().sorted())
             assertEquals(listOf("retained"), driver.strings("SELECT value FROM gpgAgentPublicKey"))
             assertEquals(listOf("retained"), driver.strings("SELECT value FROM sshAgentPublicKey"))
             driver.initializeSchema(DatabaseExposed.Schema)
@@ -105,6 +111,7 @@ class DatabaseSchemaTransactionTest {
             assertEquals(DatabaseExposed.Schema.version, driver.version())
             assertEquals(
                 listOf(
+                    "account",
                     "gpgAgentKeyInfo",
                     "gpgCertificationAuthority",
                     "gpgPublicKey",

@@ -4,43 +4,20 @@ package com.artemchep.keyguard.common.service.exposedaccount
  * An account as mirrored into the exposed database, readable while the vault is
  * locked.
  *
- * Holds the raw pieces rather than a formatted label so each consumer can present
- * them its own way — a system picker row, a consent header, a locked-state
- * autofill suggestion.
+ * Only the [name] is mirrored, not the email or the server host. The name can be
+ * blank, for a KeePass database with no title or a Bitwarden profile with no
+ * name. A caller that cannot show a blank substitutes generic wording, as
+ * `CredentialExchangeRegistry` does with the app name.
+ *
+ * The substitute is applied by the caller rather than stored here: the name is
+ * part of [ExposedAccountRegistration]'s change-detection key, and a
+ * locale-dependent value would make that key move with the device
+ * configuration.
  */
 data class ExposedAccount(
     val accountId: String,
     val name: String,
-    val email: String,
-    val host: String,
-) {
-    /**
-     * How to name this account outside the app — a system picker row, a consent
-     * screen shown before the vault is unlocked.
-     *
-     * [name] can be blank for a KeePass database with no title, and [email] with
-     * it when there is no default user either, which is why [host] is the last
-     * rung: it is populated for both providers, as the server host for Bitwarden
-     * and the database file name for KeePass. That still is not a guarantee, so
-     * a caller with nowhere to put a blank must substitute its own placeholder —
-     * `CredentialExchangeRegistry` does, with the app name.
-     *
-     * Deliberately plain Kotlin rather than a translated resource: this value is
-     * part of [ExposedAccountRegistration]'s change-detection key, and a
-     * locale-dependent string would make that key move with the device
-     * configuration.
-     *
-     * This is the only implementation of the fallback chain. It used to be
-     * duplicated as a `DProfile.entryLabel` computed on the unlocked vault and
-     * compared against this one; the comparison was fail-closed, so any drift
-     * between the two would have silently withdrawn Keyguard from the picker for
-     * good. The registration now reads this value only.
-     */
-    val label: String
-        get() = name.takeIf { it.isNotBlank() }
-            ?: email.takeIf { it.isNotBlank() }
-            ?: host
-}
+)
 
 /**
  * The outcome of resolving a credential-transfer entry id back to an account.

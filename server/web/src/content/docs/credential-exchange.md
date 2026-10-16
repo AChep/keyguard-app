@@ -1,132 +1,109 @@
 ---
-title: Credential Exchange (CXF)
-description: Move passwords, passkeys and more directly between Keyguard and another app (Android).
-category: accounts
-order: 7
+title: Credential Exchange
+description: "Move passwords, passkeys and other items between Keyguard and another app on the same device."
+section: backup
+type: feature
+order: 30
+platforms: [android]
+related: [migrating, export, passkeys]
 ---
 
-The **Credential Exchange Format (CXF)** defines what a password, a
-passkey, a one-time password or a payment card looks like on the wire — and the
-**Credential Exchange Protocol (CXP)** defines how two apps hand that data to
-each other.
+Credential Exchange moves items between Keyguard and another password manager
+on the same Android device. Keyguard implements the FIDO Alliance's
+[Credential Exchange Format v1.0](https://fidoalliance.org/specs/cx/cxf-v1.0-ps-errata-20260309.html)
+in both directions, over the transfer that Android provides.
 
-Keyguard implements CXF v1.0 in both directions, over the transfer
-mechanism Android provides.
+### Before you begin
 
-## Requirements
-
-Credential exchange is available only on **Android**.
-
-- The transfer is brokered by **Google Play services**, so it is unavailable on
-  builds distributed without them (the F-Droid build, for example) and on
-  devices whose Play services is too old.
-- Keyguard offers itself as a **source** of credentials on **Android 14 and
-  newer**.
-
-## How a transfer works
-
-A transfer happens between two apps that support CXF on the **same device**. 
-The receiving app asks the system for credentials, you pick the app to take them from, that app
-asks you to confirm, and the data goes straight across into the receiving app's
-own storage.
-
-Both apps have to be installed, and both have to have implemented their half of
-the exchange. Keyguard remains available as a source while its vault is
-**locked**, using a cached account list that contains no credentials. If you
-choose Keyguard while it is locked, Keyguard asks you to unlock the vault before
-it reads or shows any items.
-
-## Exporting to another app
-
-A transfer is always started from the app that will *receive* the data. 
-When that app asks for your credentials and you choose Keyguard, you then get a review screen naming the app that made the request, listing the items about to leave with the kinds of credential each one contributes.
-
-A transfer covers **a single account**: the picker lists a separate entry per
-account, and the one you choose is the only account Keyguard reads. To
-move a second account you run the transfer again and pick that one. Accounts
-with [**Hide items**](/docs/multi-account/#hiding-an-account) turned on are not
-offered at all. Trashed and [archived](/docs/items/#organizing) items are never
-sent either.
+- A Google Play build of Keyguard, on a device with a recent version of Google
+  Play services.
+- Another app on the same device that supports Credential Exchange.
+- To export from Keyguard, Android 14 or later.
 
 ## Importing from another app
 
-Open the account you want the items to land in, and choose **Import from
-another app** in its quick actions. Android shows you which installed apps can
-share credentials; pick one, approve the transfer in that app, and Keyguard
-brings you back to a review screen listing what it received — logins, passkeys,
-one-time passwords, cards, identities, notes, SSH keys and folders, each with a
-count. All importable items are selected initially; you can deselect any you do
-not want. The counts and folders update to reflect the selection, and pressing
-**Import** writes only the selected items and the folders needed to organize
-them.
+1. On the screen of the account the items go to, select
+   **Import from another app**.
+2. Select **Start import**. Android shows the apps that can share credentials.
+3. Select the app to import from, and approve the transfer in that app.
+4. Back in Keyguard, review the items. All items are selected; clear the ones
+   you don't want.
+5. Select **Import**. Keyguard saves the selected items, and the folders they
+   need, to the account.
 
-Keyguard imports items without deduplication; running the same transfer
-twice creates duplicate copies of every item and folder.
+Keyguard doesn't remove duplicates. Importing the same items twice creates two
+copies of every item and folder.
+
+## Export to another app
+
+A transfer starts in the app that receives the items.
+
+1. In the other app, start an import from another app. Android shows the apps
+   that can share credentials.
+2. Select the Keyguard account to send.
+3. If Keyguard is locked, unlock it.
+4. Review the items and the kinds of credential each one sends.
+5. Select **Transfer**.
+
+A transfer sends one account, and each account is a separate entry. To send
+another account, run the transfer again.
+
+Each entry shows the account's name, or **Keyguard** for an account without
+one. To tell such accounts apart, give each a name with **Change name**. See
+[Account name and color](/docs/multi-account/#account-name-and-color).
+
+Keyguard doesn't offer accounts with **Hide items** turned on. See
+[Hiding an account](/docs/multi-account/#hiding-an-account). While the vault is
+locked, Android sees only a cached list of accounts that holds no credentials.
 
 ## What transfers
 
-| | Out of Keyguard | Into Keyguard |
-| :-- | :-- | :-- |
-| Passwords | Yes | Yes |
-| Passkeys | Yes | Yes |
-| One-time passwords | Yes | Yes |
-| Cards | Yes | Yes |
-| Identities | Yes | Yes |
-| Notes | Yes | Yes |
-| SSH keys | Yes | Yes |
-| Custom fields | Yes | Yes |
-| Folders, favorites, tags, website & app matching | Yes | Yes |
+Both directions carry passwords, passkeys, one-time passwords, cards,
+identities, notes, SSH keys and custom fields. Items keep their folder,
+favorite status, tags, and website and app matching.
 
-The **receiving app chooses which kinds it asks for**, and Keyguard sends only
-those. Unrequested credential types are omitted quietly and do not appear on
-the review screen. An app that asks only for passwords and passkeys gets no
-cards, notes, identities, SSH keys or custom fields.
+The receiving app chooses which kinds of credential it asks for, and Keyguard
+sends only those. Kinds it doesn't ask for are left out without a warning. An
+app that asks only for passwords and passkeys gets no cards, notes, identities,
+SSH keys or custom fields.
 
-## What gets skipped
+## Skipped items
 
-Some things are skipped:
+The review screen counts what Keyguard skips.
 
-- **Attachments.**
-- **[GPG keys](/docs/gpg-keys/).**
-- **Saved previous passwords** — transfers only the current password; password
-  history is omitted.
-- **API keys, files, Wi-Fi credentials, generated passwords and item
-  references** — credential kinds other apps may send that Keyguard does not
-  model.
-- **Linked custom fields**, and custom fields with no value.
-- **Regular-expression matches** and Keyguard's own `cmd://` uris — dropped from
-  an item's website & app matching, since neither is an address the other app
-  could use. See [match detection](/docs/url-matching/#match-detection-modes).
+| Data | Skipped on |
+| --- | --- |
+| Attachments | Both directions |
+| [GPG keys](/docs/gpg-keys/) | Export |
+| Archived items and items in the trash | Export |
+| Password history | Export. Only the current password transfers. |
+| Linked custom fields, and custom fields with no value | Export |
+| Regular-expression URLs and Keyguard's `cmd://` URLs | Export |
+| API keys, Wi-Fi credentials, generated passwords and item references | Import. Keyguard has no matching item type. |
 
-### Some passkeys
+### Passkeys
 
-Leaving Keyguard, a passkey is left out when:
+A passkey is skipped when:
 
-- its key is not **ECDSA on the P-256 curve**. CXF v1.0 carries the private key
-  with no algorithm named beside it, so that one profile is the only thing the
-  other side can assume — in both directions.
-- it has **no user handle**. The format requires that member, and a credential
-  synced from a server that treats it as optional can arrive without one.
-- its **signature counter is not zero**. The format requires those to be
-  excluded; that counter is the mechanism a website uses to notice a
-  [cloned authenticator](/docs/passkeys/#replay-and-clone-resistance). This one
-  is an export rule only — an imported passkey is stored with a zero counter.
-- one of its stored fields — credential id, private key, relying-party id — is
-  missing or cannot be decoded.
+- Its key isn't ECDSA on the P-256 curve. The format carries the private key
+  without naming its algorithm, so both sides assume this one. This applies in
+  both directions.
+- It has no user handle. The format requires one, and a passkey synced from a
+  server can lack it.
+- Its signature counter isn't zero. The format requires these to be left out.
+  This rule applies to exports only; an imported passkey gets a counter of
+  zero. See [How Keyguard handles passkeys](/docs/passkeys/#how-keyguard-handles-passkeys).
+- Its credential ID, private key or relying party ID is missing or can't be
+  decoded.
 
-### Some SSH keys
+### SSH keys
 
-An SSH key crosses only if its private key can be converted into the form the
-format asks for, and only for **RSA** and **Ed25519**. A **passphrase-protected**
-private key cannot be converted; nor can one whose public half is missing or of
-another type. Both directions apply the same rule.
+An SSH key transfers only if its private key converts to the form the format
+requires, and only for RSA and Ed25519 keys. A passphrase-protected private
+key can't convert, nor can one whose public key is missing or of another type.
+The same rule applies in both directions.
 
-### Some one-time passwords
+### One-time passwords
 
-Standard **TOTP** codes are supported, and Keyguard also supports **Steam Guard** codes
-in both directions through the format's extensible algorithm value. **HOTP** and
-**mOTP** are not supported by the format.
-
-## Related
-
-- [Credential Exchange Format v1.0](https://fidoalliance.org/specs/cx/cxf-v1.0-ps-errata-20260309.html)
+Standard TOTP codes transfer, and so do Steam Guard codes, in both directions.
+The format doesn't support HOTP or mOTP.

@@ -1,122 +1,160 @@
 ---
-title: Backups
-description: How Keyguard's automatic backups work — what's saved, where, encryption, retention, and how to recover.
-category: accounts
-order: 6
+title: Automatic backups
+description: "Save versioned snapshots of your vault to a folder, a WebDAV server or S3-compatible storage after each change."
+section: backup
+type: feature
+order: 40
+platforms: all
+related: [export, migrating]
 ---
 
-Keyguard can keep an automatic, versioned backup of your vault so you always
-have a recent copy to fall back on. Set it up under **Settings → Automatic
-backups**.
+Keyguard keeps versioned snapshots of your whole vault in a folder, on a WebDAV
+server or in S3-compatible storage. It writes a new snapshot each time the
+vault changes.
+
+## Set up backups
+
+1. In **Settings > Backups**, select **Set up backups**.
+2. Select a destination: **Local folder**, **WebDAV server** or
+   **S3-compatible storage**.
+3. Enter the location. For a local folder, select **Choose folder…**.
+4. Select **Continue**.
+5. Optionally, enter a backup password and confirm it.
+6. Select **Continue**.
+7. Choose **Include attachments** and **Keep snapshots**.
+8. Select **Continue**.
+9. Review the setup, then select **Enable backups**. Keyguard checks that it
+   can read and write the destination.
+
+## Run a backup now
+
+In **Settings > Backups**, select **Run backup now**. Keyguard writes a
+snapshot right away.
+
+## Turn off backups
+
+1. In **Settings > Backups**, select **Turn off automatic backups**.
+2. Select **OK**. Keyguard stops future backups and forgets the destination,
+   password and attachment choice. The existing backup files stay in place.
+
+## Recover data from a backup
+
+Keyguard can't restore a backup, so you read its files with a ZIP tool that
+supports AES-256 encryption. Without a backup password, skip the passwords:
+every file is a regular ZIP archive.
+
+1. In `indexes/`, open the archive with the highest number, using the backup
+   password. It holds `index.json`.
+2. In `index.json`, under `snapshots`, find the snapshot to recover. Note its
+   `path` and `encryption.keyBase64` values.
+3. Open the snapshot archive at that `path`. Enter the `keyBase64` value as
+   the password.
+4. Open `vault.json`. It has the format described in
+   [Export your vault](/docs/export/).
+
+To recover an attachment:
+
+1. In the snapshot's `manifest.json`, find the attachment's `blobId`.
+2. In `index.json`, under `blobs`, find that ID. Note its `path` and
+   `encryption.keyBase64` values.
+3. Open the blob archive at that `path`, with the `keyBase64` value as the
+   password. It holds the file as `attachment.bin`. The manifest gives its
+   `fileName`.
+
+## When backups run
+
+Backups are change-triggered. After the vault changes, Keyguard waits about 5
+seconds, so a burst of edits becomes one snapshot, then writes a backup.
+Backups run only while the vault is unlocked.
 
 ## What's included
 
-A single snapshot captures your **entire vault — every account at once**:
-logins, cards, identities, notes, SSH keys, and so on, along with the folders,
-collections, and organizations they belong to. Item **attachments** are
-included too (you can turn this off), though only attachments stored on the
-server are captured.
+A snapshot holds the entire vault, every account at once: items with their
+folders, collections and organizations. **Include attachments** adds attached
+files, but only those stored on the server.
 
-Not included: **Bitwarden Sends**.
+Sends aren't included.
 
-## Automatic backups
+## Destinations
 
-Backups are **change-triggered**. Whenever your vault
-changes, Keyguard waits about five seconds — long enough to fold a burst of
-edits into one snapshot — then writes a new backup. Backups run only while your
-vault is **unlocked**.
-
-### Run a backup now
-
-On the Automatic backups screen, **Run backup now** writes a snapshot immediately.
-
-## Where backups are stored
-
-When you enable backups you choose a location:
-
-| Location | Where it is | Notes |
-| :-- | :-- | :-- |
-| **Folder** | A local folder in the file system | Point it at a synced folder (e.g. a cloud-drive folder) for off-device copies |
-| **WebDAV** | A WebDAV server | - |
-| **S3** | A bucket on an S3-compatible service | Requires server-side conditional writes |
-
-When you add a location, Keyguard runs a quick read/write check to make sure it's usable.
+| Destination | Where it is | Notes |
+| --- | --- | --- |
+| **Local folder** | A folder on this device or a connected storage provider | A synced cloud-drive folder gives you an off-device copy |
+| **WebDAV server** | A WebDAV server | The server must support moving files, unless you turn off **Prefer WebDAV transactions** in **Settings > Other** |
+| **S3-compatible storage** | A bucket on Amazon S3 or another S3-compatible service | The service must support conditional writes |
 
 ## Encryption
 
-You can set an optional **backup password** when enabling backups:
+The backup password is optional.
 
-- **With a password**, the whole repository is encrypted with AES-256.
-- **Without a password**, backups are stored **unencrypted**.
+- With a password, every file in the repository is encrypted with AES-256.
+- Without a password, backups are stored unencrypted.
 
-> If your backups live anywhere shared or in the cloud, set a backup password.
-> An unencrypted backup exposes your entire vault to anyone who can read the
-> files.
+:::caution
+An unencrypted backup exposes your whole vault to anyone who can read the
+files. Set a backup password for backups in a shared folder or in the cloud.
+:::
 
-Two things to remember:
+The backup password is separate from your app and account passwords. If you
+lose it, the backup can't be decrypted. Every device that shares a repository
+must use the same password.
 
-- The backup password is **separate** from your account/master password, and if
-  you lose it the backup **cannot be decrypted**. Keep it somewhere safe.
-- The encryption mode is **fixed once the repository is created**. To switch
-  between encrypted and unencrypted, start fresh with a new backup location.
+The encryption mode is fixed when the repository is created. To switch between
+encrypted and unencrypted, start over with a new backup location.
 
-## Keeping older copies
+## Snapshot retention
 
-Keyguard keeps a rolling set of snapshots. Choose how many to keep — **5, 10, 30, 60, 90, or
-never clear**. Beyond the limit, older snapshots are pruned
-(the newest is always kept), and attachments no longer referenced by any kept
-snapshot are cleaned up.
+**Keep snapshots** sets how many snapshots Keyguard keeps: 5, 10, 30, 60, 90,
+or **Never clear**. The default is 30. Keyguard prunes older snapshots beyond
+the limit, and removes attachments that no kept snapshot uses.
 
-### How snapshots are bucketed
+Keyguard spreads the kept snapshots over time, so a burst of edits doesn't push
+out older history:
 
-Keyguard **buckets snapshots by age** and retains a representative snapshot
-from each bucket, spreading history over time. This prevents bursts of edits
-from crowding out older snapshots:
+| Age | What Keyguard keeps |
+| --- | --- |
+| Newest | Always kept, whatever its age |
+| Last 24 hours | The most recent snapshots, in the room left over |
+| 1 to 7 days | About one per day: the newest snapshot of each day |
+| 1 to 4 weeks | About one per week |
+| Older than about 31 days | Dropped, except the newest snapshot |
 
-- The **newest snapshot is always kept**, whatever its age.
-- **Last 24 hours** — the most recent snapshots fill whatever room is left over,
-  so very recent states stay dense.
-- **Previous week** (1–7 days old) — about **one per day**: the newest snapshot
-  in each day-wide bucket.
-- **Rest of the month** (1–4 weeks old) — about **one per week**.
-- **Older than ~31 days** — dropped (the single newest snapshot aside).
-
-Everything still fits inside the limit you chose, and the buckets set the
-priority when that limit is tight. A small limit favors spreading the kept
-copies across time — newest first, then the weekly buckets, then the daily ones
-— over piling up near-identical snapshots from the last hour; a larger limit
-spends the extra room on the most recent snapshots. The default limit keeps
-a history reaching back roughly one month: dense for the last day, daily for a
-week, and weekly for the rest of the month.
+All of this fits inside your limit. With a small limit, Keyguard keeps the
+newest snapshot first, then the weekly ones, then the daily ones. A larger
+limit spends the extra room on recent snapshots. The default keeps about one
+month of history.
 
 ## Repository structure
 
-A backup location holds a small, self-contained repository of ZIP files:
+A backup location holds a repository of ZIP files:
 
 ```text
 ├─ repo.zip
 ├─ indexes/
-│  ├─ 000000000001-a1b2.zip
-│  └─ 000000000002-c3d4.zip
+│  ├─ 00000000000000000001-<ID>.zip
+│  └─ 00000000000000000002-<ID>.zip
 ├─ snapshots/
-│  ├─ 2026-05-28T10-42-11Z-a1b2.zip
-│  └─ 2026-05-28T12-18-04Z-c3d4.zip
+│  ├─ 20260528104211-<ID>.zip
+│  └─ 20260528121804-<ID>.zip
 └─ blobs/
    └─ 4f/
       └─ 9a/
-         └─ 4f9a...e7.zip
+         └─ 4f9a<...>.zip
 ```
 
-A few properties of the layout worth knowing:
+| Path | Contents |
+| --- | --- |
+| `repo.zip` | Repository metadata |
+| `indexes/` | Numbered indexes that list the snapshots and blobs, with the password of each one. The highest number is the newest. |
+| `snapshots/` | One archive per snapshot, named by its local date and time, holding `vault.json` and `manifest.json` |
+| `blobs/` | One archive per attachment, under a random ID, holding `attachment.bin` |
 
-- **Snapshots are small; attachments are deduplicated.** An attachment is
-  stored once as a blob and shared across snapshots — each snapshot only
-  records which blobs it references.
-- **Blob names reveal nothing** — blobs are stored under random IDs.
-- **Encryption is per-object.** With a backup password set, the metadata,
-  snapshots, and blobs are each AES-256-encrypted ZIPs, and the per-object
-  keys live inside the encrypted index zips.
+An attachment is stored once as a blob and shared by every snapshot that
+references it. With a backup password, the metadata and indexes use the
+backup password, and each snapshot and blob has its own password, kept in the
+encrypted index.
 
-## Restoring a backup
+## Limitations
 
-Backup recovery is currently manual, using the repository layout described above.
+Keyguard can't restore a backup. Read the files by hand, as in
+[Recover data from a backup](#recover-data-from-a-backup).

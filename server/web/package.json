@@ -6,21 +6,36 @@
   "description": "Static marketing and docs website for Keyguard",
   "scripts": {
     "dev": "astro dev",
-    "build": "astro build",
+    "build": "astro build && pagefind --site dist",
     "preview": "astro preview",
-    "check": "astro check"
+    "check": "astro check",
+    "lint:docs": "node scripts/check-docs.mjs && markdownlint-cli2",
+    "lint:prose": "vale src/content/docs",
+    "check:links": "node scripts/check-app-links.mjs"
   },
   "dependencies": {
+    "@astrojs/markdown-remark": "7.2.0",
     "@astrojs/mdx": "^6.0.3",
     "@astrojs/sitemap": "^3.7.3",
     "@tailwindcss/vite": "^4.1.0",
     "astro": "^6.4.6",
+    "pagefind": "^1.5.2",
+    "remark-directive": "^4.0.0",
     "sharp": "^0.35.1",
-    "tailwindcss": "^4.1.0"
+    "tailwindcss": "^4.1.0",
+    "unist-util-visit": "^5.1.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",
-    "typescript": "^5.8.0"
+    "github-slugger": "^2.0.0",
+    "markdownlint-cli2": "^0.23.3",
+    "mdast-util-to-string": "^4.0.0",
+    "remark-frontmatter": "^5.0.0",
+    "remark-gfm": "^4.0.1",
+    "remark-parse": "^11.0.0",
+    "typescript": "^5.8.0",
+    "unified": "^11.0.5",
+    "yaml": "^2.9.0"
   },
   "packageManager": "pnpm@11.5.2",
   "engines": {

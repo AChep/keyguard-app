@@ -1,50 +1,55 @@
 ---
 title: URL matching
-description: How Keyguard decides which items to suggest for a website or app — match detection modes and equivalent domains.
-category: reference
-order: 4
+description: "How Keyguard picks the items to suggest for a website or app: match detection and equivalent domains."
+section: autofill
+type: reference
+order: 40
+platforms: all
+related: [autofill, blocked-uris, url-overrides, troubleshoot-autofill, watchtower]
 ---
 
-When you open a website or an Android app, Keyguard compares its URL against
-the URLs of your login items to decide which ones to suggest for
-[autofill](/docs/autofill/). If the wrong item shows up — or the right one
-doesn't — the **match detection** mode is almost always the reason.
+Keyguard compares the URL of a website or app with the URLs on your login
+items to choose which items to suggest. This page lists the match detection
+modes and the rules that go with them.
 
 ## Match detection modes
 
-Every URL on a login item has its own match detection setting, found next to
-the URL on the item's edit screen:
+Each URL on a login item has a **Match detection** setting, next to the URL on
+the item's edit screen.
 
-| Mode                   | Matches when…                                                       |
-| :--------------------- | :------------------------------------------------------------------ |
-| **Default**            | Uses the global default from *Settings → Autofill → Default match detection* |
-| **Base domain**        | The top-level and second-level domain match — `app.example.com` matches `example.com` |
-| **Host**               | The hostname (and port, if specified) match exactly                  |
-| **Starts with**        | The detected URL starts with the item's URL                          |
-| **Exact**              | The URLs are identical                                               |
-| **Regular expression** | The detected URL matches the item's regex                            |
-| **Never**              | Never matched — the URL is kept for reference only                   |
+| Mode | Matches when |
+| --- | --- |
+| **Default** | The mode set in **Default match detection** matches |
+| **Base domain** | The top-level and second-level domains match. `app.example.com` matches `example.com`. |
+| **Host** | The hostname, and the port if the URL has one, match exactly |
+| **Starts with** | The detected URL starts with the item's URL |
+| **Exact** | The URLs are identical |
+| **Regular expression** | The detected URL matches the item's regular expression |
+| **Never** | Never. Keyguard keeps the URL for reference only. |
 
-By default the global setting is **Base domain**, which works well for
-most websites. Tighten it per-URL when a domain hosts many unrelated
-services (`Host` or `Starts with`), or loosen it with a regex for unusual
-setups.
+## Default match detection
 
-## Matching apps
+| Platform | Default mode |
+| --- | --- |
+| Android | Set in **Settings > Autofill > Default match detection**. **Base domain** unless you change it. |
+| Linux, macOS, Windows | **Base domain** |
 
-Android apps are matched by package name using the `androidapp://` scheme —
-for example:
+Use **Host** or **Starts with** for a domain that hosts unrelated services.
+Use **Regular expression** for URLs that the other modes can't describe.
 
-```text
-androidapp://com.example.app
-```
+## App URLs
+
+Android apps match by package name, with the `androidapp://` scheme.
+
+| Item URL | Matches |
+| --- | --- |
+| `androidapp://com.example.app` | The Android app with the package name `com.example.app` |
 
 ## Equivalent domains
 
-Bitwarden accounts can define **equivalent domains** — sets of domains that
-should be treated as the same site (think `google.com` and `youtube.com`).
-Keyguard honors them: an item saved for one domain in a set is suggested on
-the others. You can review them in the app under **Equivalent domains**.
+Bitwarden accounts can define equivalent domains: sets of domains that count as
+one site, such as `google.com` and `youtube.com`.
 
-One exception, matching Bitwarden's behavior: a URL set to **Exact** match
-ignores equivalent domains.
+- Keyguard suggests an item saved for one domain on every domain in its set.
+- A URL set to **Exact** ignores equivalent domains, as in Bitwarden.
+- The account's screen lists its sets under **Equivalent domains**.

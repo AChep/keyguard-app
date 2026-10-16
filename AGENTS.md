@@ -81,6 +81,8 @@ We have a website at `server/web/` that hosts documentation relevant to a user o
 - Cut adverbs, or use a stronger verb.
 - Prefer simpler terms.
 
+Page types, sections, frontmatter and the full writing rules are in `server/web/CONTRIBUTING.md`; `pnpm lint:docs` checks them.
+
 ### High-level architecture
 
 #### Dependency injection

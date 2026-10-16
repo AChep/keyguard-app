@@ -6,18 +6,33 @@ interface Props {
   title: string;
   slug?: string;
   href?: string;
+  // Spans two grid columns from `sm` up, with larger type.
+  large?: boolean;
 }
-const { title, slug, href } = Astro.props;
+const { title, slug, href, large = false } = Astro.props;
 const v = (slug && FEATURE_VISUALS[slug]) || DEFAULT_VISUAL;
 const Tag = href ? 'a' : 'div';
 ---
 
-<Tag href={href} class="surface-card flex h-full flex-col rounded-2xl px-5 py-4">
-  <div class:list={['mb-2.5 flex h-10 w-10 items-center justify-center rounded-xl', v.chip, v.ink]}>
-    <Icon name={v.icon} class="h-5 w-5" />
+<Tag
+  href={href}
+  class:list={[
+    'surface-card flex h-full flex-col rounded-2xl',
+    large ? 'px-6 py-6 sm:col-span-2' : 'px-5 py-4',
+  ]}
+>
+  <div
+    class:list={[
+      'flex items-center justify-center rounded-xl',
+      large ? 'mb-4 h-12 w-12' : 'mb-2.5 h-10 w-10',
+      v.chip,
+      v.ink,
+    ]}
+  >
+    <Icon name={v.icon} class={large ? 'h-6 w-6' : 'h-5 w-5'} />
   </div>
-  <h3 class="mb-1.5 text-base font-semibold text-on-surface">{title}</h3>
-  <p class="text-sm leading-relaxed text-on-surface-variant">
+  <h3 class:list={['opsz-text mb-1.5 font-semibold text-on-surface', large ? 'text-xl' : 'text-base']}>{title}</h3>
+  <p class:list={['leading-relaxed text-on-surface-variant', large ? 'text-base' : 'text-sm']}>
     <slot />
   </p>
 </Tag>

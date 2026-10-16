@@ -1,40 +1,44 @@
 ---
 title: Premium
-description: What's free, what needs a premium license, and how purchasing works.
-category: get-started
-order: 4
+description: "What needs premium on Google Play builds, and how to buy it."
+section: get-started
+type: reference
+order: 20
+platforms: all
+related: [license-keys, multi-account]
 ---
 
-Keyguard is a commercial app and unlocking a premium funds its further development
-and supports me (Artem Chepurnyi) directly. Google Play and Apple App Store builds require premium for the features below.
-**Direct desktop downloads and other distribution channels include all features.**
+Premium funds the development of Keyguard. This page lists the builds that
+need it, what it unlocks, the purchase options, and why Keyguard is a
+commercial app.
 
-## What requires premium
+## Features
 
-- **Adding and editing items** — editing your Vault in any way;
-- **Connecting [multiple accounts](/docs/multi-account/)**.
+| Feature | Without premium | With premium |
+| --- | --- | --- |
+| Accounts | One account | [Multiple accounts](/docs/multi-account/) |
+| Vault changes | View only | Add, edit and delete items, sends and other vault data, including saving from autofill and creating passkeys |
 
-Everything else — viewing, search, autofill, watchtower, backups, export, etc. —
-works without a purchase.
+Everything else works without premium, including search, autofill, Watchtower,
+backups and export.
 
-## Purchasing
+## Purchase options
 
-Open **Settings → Keyguard Premium**. Google Play and the Apple App Store offer:
+Buy premium in **Settings > Keyguard Premium**.
 
-- a **subscription** — with 3 months or 1 year periods;
-- a **lifetime** license — a single one-time purchase.
+| Option | Details |
+| --- | --- |
+| Subscription | 3 months or 1 year. If you've never subscribed, you may get a free trial. Cancel before it ends and you aren't charged. |
+| Lifetime | A single one-time purchase |
 
-A free trial may be offered for the subscription; you won't be charged
-if you cancel before the trial ends. Manage or cancel any time via **Manage
-on Play Store** on Android or **Manage subscription** on Apple.
+To manage or cancel a subscription, open **Settings > Keyguard Premium** and
+select **Manage on Play Store**.
 
-## License keys
+To use a purchase on a device signed in to another Google account, see
+[License keys](/docs/license-keys/).
 
-A license key lets you use an eligible premium purchase on another device or
-app build, including while offline. On the device with the purchase, open
-**Settings → Keyguard Premium → Entitlement token**, sync the purchase, and
-copy the key. On the other device, choose **Link entitlement token** and paste
-it.
+## Why Keyguard is commercial
 
-See the [License keys guide](/docs/license-keys/) for the full workflow,
-offline behavior, and troubleshooting.
+Keyguard is built by one developer, Artem Chepurnyi. Premium pays for the time that maintenance and new features take. The source code is public, so anyone can review it. It isn't open source,
+though: the license reserves all rights, so nobody can publish a copy with the
+paywall removed.

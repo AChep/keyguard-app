@@ -5,30 +5,20 @@ icon: "🎲"
 group: "Essentials"
 order: 2
 featured: true
-premium: false
+doc: generator
 ---
 
 import genPassphrase from '../../assets/screenshots/generator-passphrase.png';
 import genCatchEmail from '../../assets/screenshots/generator-catch-email.png';
 
-The generator creates a new credential whenever you need one. You set the length, the character classes, and the minimum count of each, and Keyguard reports the strength of the result basing on the bits of entropy.
-
-What you can generate:
-
-- Strong passwords and passphrases
-- SSH keys
-- GPG keys
-- Email aliases through [supported email forwarder services](/docs/email-relays/)
+The generator creates a password, a passphrase from the built-in or your own
+wordlist, a PIN, a username, an SSH key or a GPG key. Passwords and passphrases
+show their strength as you change the options.
 
 <Screenshot src={genPassphrase} caption="Generating a passphrase from the EFF long wordlist, with word count and separator controls." />
 
-Passphrases can use a wordlist you upload instead of the built-in EFF list.
-
-Email aliases give every signup its own address, so your real inbox stays out of the form. If one alias starts collecting spam, you disable that one address instead of changing your email everywhere. And since no two signups share an address, a leak tells you which service leaked it. The aliases come from a forwarder service, or as catch-all addresses on a domain you own.
+Email aliases give every signup its own address, so spam or a leak traces back
+to one service. Aliases come from a forwarding service or from an inbox you
+already own.
 
 <Screenshot src={genCatchEmail} caption="Generating a catch-all email address on a domain you own." />
-
-### Custom wordlists
-
-See the [generator guide](/docs/generator/#custom-wordlists) for the file format details and
-recommended wordlists.

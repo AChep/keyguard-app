@@ -1,50 +1,62 @@
 ---
-title: Item types & extras
-description: Custom-field conventions that unlock extra UI — WiFi credentials with QR codes, tags, and how GPG key items sync.
-category: reference
-order: 6
+title: Custom field conventions
+description: "Custom-field names that Keyguard reads as Wi-Fi credentials, tags, item links and GPG keys."
+section: reference
+type: reference
+order: 40
+platforms: all
+related: [items, gpg-keys, search]
 ---
 
-Bitwarden's data model has a fixed set of item types, so Keyguard adds a
-few **custom-field conventions** on top of it.
-
-## WiFi credentials
-
-An item shows up in a WiFi credentials form when both of these hold:
-
-- the item is a **login** with a username set, or has a custom field with one
-  of the following names:
-  - `WiFi SSID`;
-  - `SSID`;
-- the item has one of the following custom fields:
-  - `WiFi Authentication Type` — either `WPA`, `WEP`, or `nopass` if the
-    network is open;
-  - `WiFi Hidden` — either `true` or `false`.
-
-The WiFi credentials UI includes a **QR code** that you can scan with another
-device to quickly join the network.
-
-## Tags
-
-A tag is defined by a custom field that meets both criteria:
-
-- the custom field's name is exactly `Tag`;
-- the custom field uses a value of a text type.
-
-The value of this qualifying field is used as the tag's name. The same rules
-apply when Keyguard writes a tag back to an item.
-
-_Tip: tags are searchable — see the [search reference](/docs/search/) for how to query them._
+Keyguard reads these custom-field names as extra item data. Other clients show
+them as plain custom fields.
 
 ## GPG keys
 
-The [GPG key](/docs/gpg-keys/) item type is a custom-field convention too. For
-compatibility with Bitwarden's fixed data model, GPG keys are stored on the
-server as **secure notes** whose key material lives in three custom fields:
+On a Bitwarden server, a GPG key item is stored as a secure note with these
+fields.
 
-- `keyguard.gpg.public_key.armored` — the armored public key;
-- `keyguard.gpg.private_key.armored` — the armored private key, if any;
-- `keyguard.gpg.fingerprint` — the fingerprint of the primary key.
+| Field | Type | Value |
+| --- | --- | --- |
+| `keyguard.gpg.private_key.armored` | Hidden | Armored private key, if the item has one |
+| `keyguard.gpg.public_key.armored` | Text | Armored public key |
+| `keyguard.gpg.fingerprint` | Text | Fingerprint of the primary key |
 
-This is what lets them sync through any Bitwarden-compatible server without a
-custom item type.
+A key longer than 3,500 bytes is split into numbered fields, such as
+`keyguard.gpg.public_key.armored.v1.part.1`, plus a
+`keyguard.gpg.public_key.armored.v1.sha256` checksum field.
+
+## Item links
+
+Keyguard stores each of an item's [Linked items](/docs/items/#linked-items) as
+a text custom field. KeePass databases store them as entry string fields with
+the same names.
+
+| Field | Value |
+| --- | --- |
+| `keyguard.link.1`, `keyguard.link.2`, … | `keyguard://cipher/<ITEM_ID>`, the ID of the linked item in the same account |
+
+Numbers start at 1, without gaps. Keyguard hides these fields from the item's
+custom fields. A field with an invalid value stays a regular custom field.
+
+## Tags
+
+In a Bitwarden account, Keyguard stores each tag as a custom field. KeePass
+databases use KeePass tags instead.
+
+| Field | Value |
+| --- | --- |
+| `Tag` | The tag's name, in a text field |
+
+Keyguard writes tags back in the same format.
+
+## Wi-Fi credentials
+
+An item shows a Wi-Fi QR code when it has a network name and at least one of the
+other two fields. A login's username then shows as **SSID**.
+
+| Field | Value |
+| --- | --- |
+| `WiFi SSID` or `SSID` | Network name. A login's username, if set, takes its place. |
+| `WiFi Authentication Type` | `WPA`, `WEP`, or `nopass` for an open network |
+| `WiFi Hidden` | `true` or `false` |

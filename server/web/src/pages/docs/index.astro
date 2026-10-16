@@ -6,7 +6,10 @@ const groups = await getDocGroups();
 ---
 
 <DocsLayout title="Documentation" description="Guides and answers for using Keyguard.">
-  <p>Browse the guides below to get the most out of Keyguard.</p>
+  <p>
+    Keyguard's documentation, grouped by product area. New to Keyguard? Start with
+    <a href="/docs/getting-started/">Get started with Keyguard</a>.
+  </p>
   {
     groups.map((group) => (
       <section>

@@ -1,23 +1,43 @@
 ---
+import type { CollectionEntry } from 'astro:content';
 import BaseLayout from './BaseLayout.astro';
 import DocLink from '../components/DocLink.astro';
-import { getDocGroups } from '../lib/docs';
+import DocMeta from '../components/DocMeta.astro';
+import PlatformMatrix from '../components/docs/PlatformMatrix.astro';
+import TroubleshootingIndex from '../components/docs/TroubleshootingIndex.astro';
+import { getDocGroups, resolveRelated } from '../lib/docs';
 
 interface Props {
   title: string;
   description?: string;
-  /** id of the currently rendered doc, e.g. "getting-started"; undefined on the docs index */
-  currentId?: string;
+  /** the rendered doc; undefined on the docs index */
+  entry?: CollectionEntry<'docs'>;
 }
 
-const { title, description, currentId } = Astro.props;
+const { title, description, entry } = Astro.props;
+const currentId = entry?.id;
 
 const groups = await getDocGroups();
+const related = entry ? await resolveRelated(entry) : [];
+const relatedTitle = entry?.data.type === 'tutorial' ? 'Next steps' : 'Related';
+// The Pagefind index exists only in a built site (`pnpm build`).
+const search = import.meta.env.PROD;
 ---
 
 <BaseLayout title={title} description={description}>
+  <Fragment slot="head">
+    {search && <link rel="stylesheet" href="/pagefind/pagefind-component-ui.css" />}
+  </Fragment>
+
   <div class="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 md:flex-row">
     <aside class="md:w-60 md:shrink-0">
+      <div id="docs-search" class="mb-4" data-pagefind-ignore>
+        {search && <pagefind-modal-trigger placeholder="Search docs" />}
+        {search && <pagefind-modal />}
+        <p class="docs-search-missing rounded-xl border border-dashed border-outline-variant px-4 py-2 text-sm text-on-surface-variant">
+          Search works in the built site.
+        </p>
+      </div>
       <details id="docs-nav" class="group" open>
         {/* On mobile this summary is a tap-to-expand bar; hidden from md up where
             the sidebar is always shown (the inline script keeps it open there). */}
@@ -57,13 +77,34 @@ const groups = await getDocGroups();
       </details>
     </aside>
 
-    <article class="prose-doc min-w-0 flex-1">
-      <h1 class="mb-6 text-3xl font-extrabold tracking-tight text-on-surface">
+    <article class="prose-doc min-w-0 flex-1" data-pagefind-body={entry ? '' : undefined}>
+      <h1 class="text-3xl font-semibold tracking-tight text-on-surface">
         {title}
       </h1>
-      <slot />
+      {entry && <DocMeta doc={entry} class="mt-3" />}
+      <div class="mt-6">
+        <slot />
+        {entry?.data.generated === 'platform-support' && <PlatformMatrix />}
+        {entry?.data.generated === 'troubleshooting-index' && <TroubleshootingIndex />}
+      </div>
+      {
+        related.length > 0 && (
+          <nav aria-label={relatedTitle} data-pagefind-ignore>
+            <h2>{relatedTitle}</h2>
+            <ul>
+              {related.map((doc) => (
+                <li>
+                  <a href={`/docs/${doc.id}/`}>{doc.data.title}</a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
     </article>
   </div>
+
+  {search && <script is:inline type="module" src="/pagefind/pagefind-component-ui.js" onerror="document.getElementById('docs-search').dataset.missing = ''"></script>}
 
   <script is:inline>
     // Collapse the docs nav on small screens; keep it open (and the toggle bar
@@ -78,3 +119,17 @@ const groups = await getDocGroups();
     })();
   </script>
 </BaseLayout>
+
+<style>
+  /* The note shows in dev, where there is no index, and when the index fails to load. */
+  .docs-search-missing {
+    display: none;
+  }
+  #docs-search:not(:has(pagefind-modal-trigger)) .docs-search-missing,
+  #docs-search[data-missing] .docs-search-missing {
+    display: block;
+  }
+  #docs-search[data-missing] pagefind-modal-trigger {
+    display: none;
+  }
+</style>

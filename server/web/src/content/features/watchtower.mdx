@@ -1,46 +1,28 @@
 ---
 title: "Watchtower"
-summary: "Continuously audits your vault for leaked, reused, and weak passwords and other risks."
+summary: "Checks your vault for leaked, reused, and weak passwords and other risks."
 icon: "🛡️"
 group: "Security"
 order: 5
 featured: true
-premium: false
+doc: watchtower
 ---
 
 import watchtowerOverview from '../../assets/screenshots/watchtower-overview.png';
 import reusedPasswords from '../../assets/screenshots/watchtower-reused-passwords.png';
 import mergeDuplicates from '../../assets/screenshots/watchtower-merge-duplicates.png';
 
-Watchtower audits every item in your vault for security risks and maintenance problems, and groups what it finds by category with a count on each. The audit reruns as your vault changes, so you are always up to date.
+Watchtower audits every item in your vault and tells you what needs attention:
+leaked, reused and weak passwords, breached sites, weak keys, and websites
+still on plain HTTP. It also finds clutter, such as duplicates, incomplete
+items and expiring cards.
 
 <Screenshot src={watchtowerOverview} caption="The Watchtower overview, with a password-strength summary and security issues grouped by category with counts." />
 
-## What it checks
-
-- Pwned (leaked) passwords
-- Vulnerable accounts, where the site was breached after you last changed the password
-- Reused passwords
-- Weak passwords
-- Weak SSH keys
-- Unusable GPG keys
-- Weak GPG keys
-- GPG key publishing, when a key's keyserver status is missing or stale
-- Inactive two-factor authentication
-- Available passkeys, on sites that support them
-- Insecure websites, still on `http://`
-- Duplicate items
-- Duplicate URIs, where two of an item's URLs cover the same site
-- Broad URI match detection, where a URL matches more loosely than it should
-- Incomplete items
-- Expiring items
-
-Selecting any category opens the affected items, where you can update a password, switch a site to https, or clean up duplicates directly. The [Watchtower guide](/docs/watchtower/) documents every check and how each one respects your privacy.
+Each finding opens the affected items, so you can change a password, fix a URL
+or merge duplicates on the spot. The checks that look up breaches never send
+your passwords anywhere.
 
 <Screenshot src={reusedPasswords} caption="The reused-passwords list, grouping the accounts that share the same credential." />
-
-## Clean up duplicates
-
-When Watchtower flags duplicate items, you can resolve them on the spot: pick the copies, choose **Merge into…**, and Keyguard reconciles them into a single entry. See [bulk actions](/features/bulk-actions/) for the merge editor.
 
 <Screenshot src={mergeDuplicates} caption="Duplicate logins flagged by Watchtower, with the Merge into… action ready." />

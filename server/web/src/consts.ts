@@ -3,6 +3,8 @@
 export const SITE = {
   name: 'Keyguard',
   tagline: "Secure password manager that's also nice to use",
+  // The line under the home page title. `description` is the meta description.
+  subtitle: 'A Bitwarden and KeePass client for Android, Linux, macOS, and Windows.',
   description:
     'Keyguard is a client for the Bitwarden platform and KeePass (KDBX) files. It autofills your logins, supports passkeys, works offline, and runs a Watchtower that finds leaked and reused passwords and other issues.',
 };
@@ -12,15 +14,64 @@ export const NAV = [
   { label: 'Docs', href: '/docs/' },
 ];
 
-// Docs sidebar groups, in display order. Ids match the `category` frontmatter
-// values allowed by the docs collection schema in content.config.ts.
-export const DOC_CATEGORIES = [
-  { id: 'get-started', label: 'Get started' },
-  { id: 'accounts', label: 'Accounts & sync' },
-  { id: 'guides', label: 'Guides' },
-  { id: 'reference', label: 'Reference' },
-  { id: 'help', label: 'Help' },
+// Docs sidebar sections, in display order. The ids are the `section`
+// frontmatter values allowed by the docs collection schema in content.config.ts.
+// See CONTRIBUTING.md for what goes where.
+export const DOC_SECTION_IDS = [
+  'get-started',
+  'accounts',
+  'vault',
+  'autofill',
+  'security',
+  'developer',
+  'backup',
+  'platforms',
+  'reference',
+  'help',
 ] as const;
+export type DocSectionId = (typeof DOC_SECTION_IDS)[number];
+
+const DOC_SECTION_LABELS: Record<DocSectionId, string> = {
+  'get-started': 'Get started',
+  accounts: 'Accounts and sync',
+  vault: 'Vault',
+  autofill: 'Autofill and passkeys',
+  security: 'Security',
+  developer: 'Developer tools',
+  backup: 'Backup and transfer',
+  platforms: 'Platforms',
+  reference: 'Reference',
+  help: 'Help',
+};
+
+export const DOC_SECTIONS = DOC_SECTION_IDS.map((id) => ({ id, label: DOC_SECTION_LABELS[id] }));
+
+export const DOC_TYPES = ['tutorial', 'feature', 'how-to', 'concept', 'reference', 'troubleshooting'] as const;
+export type DocType = (typeof DOC_TYPES)[number];
+
+// Platforms a doc can declare in its `platforms` frontmatter, in display order.
+export const DOC_PLATFORM_IDS = ['android', 'wear-os', 'ios', 'linux', 'macos', 'windows'] as const;
+export type DocPlatformId = (typeof DOC_PLATFORM_IDS)[number];
+
+const DOC_PLATFORM_LABELS: Record<DocPlatformId, string> = {
+  android: 'Android',
+  'wear-os': 'Wear OS',
+  ios: 'iOS',
+  linux: 'Linux',
+  macos: 'macOS',
+  windows: 'Windows',
+};
+
+export const DOC_PLATFORMS = DOC_PLATFORM_IDS.map((id) => ({ id, label: DOC_PLATFORM_LABELS[id] }));
+
+// What `platforms: all` means: every shipped phone and desktop platform. Wear OS
+// has a limited feature set, so pages list it explicitly.
+export const ALL_PLATFORMS_EXPANSION: readonly DocPlatformId[] = ['android', 'linux', 'macos', 'windows'];
+
+export const DOC_STAGE_LABELS = {
+  beta: 'Beta',
+  experimental: 'Experimental',
+} as const;
 
 // Labels for docs subsections — a subdirectory of src/content/docs becomes a
 // nested group in the sidebar, e.g. docs/bitwarden/*.md → "Bitwarden".

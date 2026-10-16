@@ -1,200 +1,179 @@
 ---
-title: GPG agent setup
-description: Use GPG keys stored in your vault from desktop tools and Android apps.
-category: guides
-order: 5
+title: GPG agent
+description: "Sign and decrypt with GPG keys from your vault, from GnuPG on desktop and OpenPGP apps on Android."
+section: developer
+type: feature
+order: 20
+platforms: [android, linux, macos, windows]
+related: [git-signing, agent-approvals, gpg-keys, ssh-agent]
 ---
 
-Keyguard can act as a **GPG agent**: keys stored in your vault sign and
-decrypt data, so private keys are never stored unprotected on disk. Each request can
-pop up an approval dialog telling you which application wants to use which key.
-You set the approval window — from prompting on **every request**, to
-remembering approvals for a set time (one minute by default), or **until the
-vault locks**.
+Keyguard can act as a GPG agent for GnuPG on desktop and for OpenPGP apps on
+Android. The private key never leaves your vault: a program sends Keyguard what
+it needs signed or decrypted and gets back only the result. GnuPG's keyring
+holds only your public key, so no secret key sits on disk for other programs to
+read or copy.
 
-Keyguard stores keys in the dedicated **GPG key** item type. You can generate
-new keys with the [generator](/docs/generator/) — **Ed25519 + X25519** or
-**RSA** (3072 or 4096 bits) — or import existing ones. Public keys can also be
-fetched from a keyserver (`keys.openpgp.org` by default).
+Keyguard asks you to approve requests and logs every request.
+[Agent approvals](/docs/agent-approvals/) covers when Keyguard remembers a
+desktop approval.
 
-## Desktop (Linux, macOS & Windows)
+### Before you begin
 
-1. Enable the **GPG agent** in Keyguard's GPG settings, and make sure the vault holds a GPG key the agent is allowed to use. The integration uses a dedicated `GNUPGHOME` directory:
-   - **Linux** — `$XDG_DATA_HOME/keyguard/gnupg` (or
-     `~/.local/share/keyguard/gnupg` if `XDG_DATA_HOME` is unset, empty, or relative); **Flatpak** —
-     `~/.var/app/com.artemchep.keyguard/data/gnupg`;
-   - **macOS** — `~/.keyguard/gnupg`;
-   - **Windows** — `%LOCALAPPDATA%\ArtemChepurnyi\keyguard\gnupg`.
+- A **GPG Key** item in your vault that holds a private key. The
+  [Generator](/docs/generator/) creates one, and [GPG keys](/docs/gpg-keys/)
+  lists what Keyguard imports.
+- **GPG agent** turned on in **Settings > Developer > GPG agent**.
+- On desktop, GnuPG installed. On Windows, `where.exe gpg` and
+  `where.exe gpgconf` must show native GnuPG, normally in
+  `Program Files\GnuPG\bin`. The `gpg` bundled with Git for Windows doesn't
+  work.
 
-   > **Windows requires native GnuPG.** The GPG executable bundled with Git for
-   > Windows uses MSYS path handling and is not compatible with this setup.
-   > Confirm that `where.exe gpg` and `where.exe gpgconf` resolve to your native
-   > GnuPG installation, normally under `Program Files\GnuPG\bin`.
+## Set up the agent on desktop
 
-2. Point GnuPG at Keyguard by setting `GNUPGHOME` to the managed directory —
-   the setup screen prints the exact path for your platform. For example, in
-   your shell profile:
+**Settings > Developer > GPG agent > GPG client setup** shows these commands
+for your platform.
+
+1. Add the `GNUPGHOME` line for your platform, listed below, to your shell
+   profile.
+2. Open a new shell.
+
+### Linux
+
+The agent's home is `$XDG_DATA_HOME/keyguard/gnupg`, or
+`~/.local/share/keyguard/gnupg` when `XDG_DATA_HOME` is unset, empty or
+relative. GnuPG finds the agent by the exact path, so this command also
+removes repeated slashes:
+
+```sh
+case "${XDG_DATA_HOME:-}" in
+  /*) GNUPGHOME="$XDG_DATA_HOME/keyguard/gnupg" ;;
+  *) GNUPGHOME="$HOME/.local/share/keyguard/gnupg" ;;
+esac
+GNUPGHOME="$(printf '%s' "$GNUPGHOME" | tr -s '/')"
+export GNUPGHOME
+```
+
+In the Flatpak build:
+
+```sh
+export GNUPGHOME="$HOME/.var/app/com.artemchep.keyguard/data/gnupg"
+```
+
+### macOS
+
+```sh
+export GNUPGHOME="$HOME/.keyguard/gnupg"
+```
+
+### Windows
+
+Add this line to your PowerShell profile:
+
+```powershell
+$env:GNUPGHOME = "$env:LOCALAPPDATA\ArtemChepurnyi\keyguard\gnupg"
+```
+
+## Import the public key
+
+GnuPG needs your public key to use the private key in Keyguard. Only the public
+key leaves your vault.
+
+1. Export the public key from the **GPG Key** item. Keyguard saves a
+   `.public.asc` file.
+2. Import the file into GnuPG:
 
    ```sh
-   case "${XDG_DATA_HOME:-}" in
-     /*) GNUPGHOME="$XDG_DATA_HOME/keyguard/gnupg" ;;
-     *) GNUPGHOME="$HOME/.local/share/keyguard/gnupg" ;;
-   esac
-   GNUPGHOME="$(printf '%s' "$GNUPGHOME" | tr -s '/')"
-   export GNUPGHOME
+   gpg --import <PUBLIC_KEY_FILE>
    ```
 
-   On macOS:
+3. List the secret keys:
 
    ```sh
-   export GNUPGHOME="$HOME/.keyguard/gnupg"
+   gpg --no-autostart --list-secret-keys --with-keygrip --keyid-format=long
    ```
 
-   For the Flatpak build, use the persistent app data directory instead:
+   Your key appears in the list.
+
+## Sign a test message
+
+1. Sign a message with your key's fingerprint:
 
    ```sh
-   export GNUPGHOME="$HOME/.var/app/com.artemchep.keyguard/data/gnupg"
+   printf "Keyguard GPG agent test\n" | gpg --no-autostart --local-user <KEY_FINGERPRINT> --clearsign
    ```
 
    In PowerShell on Windows:
 
    ```powershell
-   $env:GNUPGHOME = "$env:LOCALAPPDATA\ArtemChepurnyi\keyguard\gnupg"
+   "Keyguard GPG agent test" | gpg --no-autostart --local-user <KEY_FINGERPRINT> --clearsign
    ```
 
-   Keyguard supports the standard gpg-agent protocol on the separate endpoint
-   reported by `gpgconf --homedir "$GNUPGHOME" --list-dirs agent-socket`.
-   Because GnuPG may locate that endpoint in a per-user runtime directory,
-   the native macOS setup script queries `gpgconf` and links the endpoint to
-   Keyguard. Other desktop builds query `gpgconf` at startup and report an
-   error if it cannot resolve an absolute endpoint or prepare its directory.
-   Native Windows GnuPG resolves a marker-file
-   endpoint backed by a loopback connection; Keyguard publishes that endpoint
-   automatically.
-3. Export the public key from the **GPG key** item and import it into this
-   home — only public key material leaves the vault:
+2. In Keyguard, approve the request. `gpg` prints the signed message.
 
-   ```sh
-   gpg --import /path/to/keyguard-public-key.asc
-   gpg --no-autostart --list-secret-keys --with-keygrip --keyid-format=long
-   ```
+To sign commits with this key, see [Sign Git commits](/docs/git-signing/).
 
-4. Verify the agent is serving keys, then sign a short message (replace
-   `YOUR_KEY_FINGERPRINT` with the fingerprint from the imported key):
+## Use the agent from Android apps
 
-   ```sh
-   GPG_AGENT_SOCKET="$(gpgconf --homedir "$GNUPGHOME" --list-dirs agent-socket)"
-   gpg-connect-agent --raw-socket "$GPG_AGENT_SOCKET" "KEYINFO --list" /bye
-   printf "Keyguard GPG agent test\n" | gpg --no-autostart --local-user YOUR_KEY_FINGERPRINT --clearsign
-   ```
+Apps that support the OpenKeychain API can select Keyguard as their OpenPGP
+provider. They see Keyguard only while **GPG agent** is on.
 
-   On Windows, use the socket path resolved by the native `gpgconf.exe`:
+1. In the other app's OpenPGP settings, select **Keyguard** as the OpenPGP
+   provider. The setting's name depends on the app.
+2. In Keyguard, approve the registration request.
 
-   ```powershell
-   $env:GPG_AGENT_SOCKET = & gpgconf --homedir "$env:GNUPGHOME" --list-dirs agent-socket
-   gpg-connect-agent --raw-socket "$env:GPG_AGENT_SOCKET" "KEYINFO --list" /bye
-   "Keyguard GPG agent test" | gpg --no-autostart --local-user YOUR_KEY_FINGERPRINT --clearsign
-   ```
+Later requests can ask you to choose keys, unlock the vault or authenticate.
+Apps can select recipients and signing keys, read public keys, sign, verify,
+encrypt and decrypt. They never get the private key.
 
-   The first signature triggers Keyguard's approval dialog.
-
-## Signing Git commits
-
-Use the same `GNUPGHOME` when Git signs. Keep the config local to one
-repository, or swap `--local` for `--global`:
-
-```sh
-git config --local user.signingkey YOUR_KEY_FINGERPRINT
-git config --local commit.gpgsign true
-git config --local gpg.format openpgp
-git config --local gpg.program gpg
-```
-
-Then commit from a shell where `GNUPGHOME` is exported as in step 2:
-
-```sh
-git commit -S
-```
-
-On macOS:
-
-```sh
-GNUPGHOME="$HOME/.keyguard/gnupg" git commit -S
-```
-
-For the Flatpak build:
-
-```sh
-GNUPGHOME="$HOME/.var/app/com.artemchep.keyguard/data/gnupg" git commit -S
-```
-
-On Windows PowerShell:
-
-```powershell
-$gpgProgram = (Get-Command gpg.exe -CommandType Application).Source
-if ($gpgProgram -like "*\Git\usr\bin\gpg.exe") {
-  throw "Configure PATH to use native GnuPG first."
-}
-git config --local gpg.program "$gpgProgram"
-$env:GNUPGHOME = "$env:LOCALAPPDATA\ArtemChepurnyi\keyguard\gnupg"
-git commit -S
-```
-
-## Android apps
-
-On Android, Keyguard can be selected as an **OpenPGP provider** by apps that
-support the OpenKeychain API.
-
-1. Open Keyguard's **GPG settings** and enable **GPG agent**. Android publishes
-   Keyguard as an OpenPGP provider only while this switch is enabled. Check the
-   GPG agent filters if a key you expect is not offered.
-2. In the other app's encryption or OpenPGP settings, choose **Keyguard** as the
-   OpenPGP provider. The exact menu and wording depend on the app.
-3. Approve the first registration request in Keyguard. Later requests may ask
-   you to select eligible keys, unlock the vault, or authenticate when private
-   key access is required.
-4. Review or revoke registered apps from **Connected apps** in Keyguard's GPG
-   settings. Registrations are tied to the app's signing certificate; if its
-   signer changes, access is disabled until you revoke the old registration.
-
-Compatible apps can ask Keyguard to select recipients or signing keys, provide
-public keys, sign or verify data, and encrypt or decrypt it. The calling app never gets access to the private key.
-Apps known to include integrations for this API include
+Apps with this integration include
 [Thunderbird for Android and K-9 Mail](https://github.com/thunderbird/thunderbird-android/tree/main/plugins/openpgp-api-lib)
 and [FairEmail](https://github.com/M66B/FairEmail/tree/master/openpgp-api).
-Compatibility varies across app versions. The client application must
-support selecting a custom OpenPGP provider.
+Support varies between app versions.
 
-## Desktop approval scopes
+To revoke an app, select it in **Settings > Developer > Connected apps**, then
+select **Revoke**. If an app's signing certificate changes, the app loses access
+until you revoke its old registration.
 
-The following settings apply to the standard desktop `gpg-agent`. Direct
-Android provider registrations and request approvals do not use these remembered
-approval scopes.
+## Review request history
 
-The desktop approval window controls **how long** an approval is remembered.
-The approval scope controls **which verified callers** may reuse it during that
-window. Choose a scope in the GPG agent settings:
+In **Settings > Developer > GPG agent**, select **Request log**. It lists
+requests from desktop tools and Android apps, with the caller, the key, the
+operation and the result.
 
-| Scope                                                     | Who can reuse an approval? | Same terminal tab or pane | Different terminal tab or pane |
-|-----------------------------------------------------------| --- | --- | --- |
-| **Per connection**                                        | Current live agent connection | Current connection only | Current connection only |
-| **Per process**                                           | Same verified process instance | Same process only | Same process only |
-| **Per application**                                       | Same verified application | Shared | Shared |
-| **Application, isolated by terminal session** *(default)* | Same verified terminal session; verified application outside terminals | Shared | Not shared |
+## Troubleshooting
 
-Starting a new command normally creates a new process and agent connection, so
-the connection and process scopes usually ask again even in the same terminal
-tab or pane.
+### "Failed to start the GPG agent"
 
-The terminal columns describe Linux and macOS when native identity evidence is
-available. If Keyguard cannot verify the caller, including requests restricted
-by the native macOS sandbox, approval reuse falls back to **Per connection**.
+Keyguard can't find GnuPG or prepare its socket directory. The
+**GPG agent** status shows **Failed**.
 
-On Windows the approval-scope setting is not supported.
+Install GnuPG. Keyguard looks for `gpgconf` on your `PATH`, and on macOS and
+Windows also in the usual install folders. If GnuPG is elsewhere on macOS or
+Windows, set the `KEYGUARD_GPG_BIN_DIR` environment variable to its `bin`
+folder, then restart Keyguard.
 
-## Reviewing activity
+### gpg reports "No secret key"
 
-Keyguard keeps a history of desktop agent and Android provider requests, so you
-can review which applications asked to sign or decrypt, which key they used,
-and whether each request succeeded or was denied. Filters let you restrict
-which keys and callers Keyguard will serve.
+GnuPG doesn't reach Keyguard, or Keyguard doesn't serve the key.
+
+Check that the program running GnuPG uses Keyguard's GnuPG home and
+**GPG agent** is on. Check that the **GPG Key** item holds a private key and
+that **GPG agent filters** include it.
+
+If Git signing works in your terminal but fails in a Git client, follow
+[Configure Git for a GPG key](/docs/git-signing/#configure-git-for-a-gpg-key).
+
+To list the keys that Keyguard serves, run:
+
+```sh
+GPG_AGENT_SOCKET="$(gpgconf --homedir "$GNUPGHOME" --list-dirs agent-socket)"
+gpg-connect-agent --raw-socket "$GPG_AGENT_SOCKET" "KEYINFO --list" /bye
+```
+
+In PowerShell on Windows:
+
+```powershell
+$env:GPG_AGENT_SOCKET = & gpgconf --homedir "$env:GNUPGHOME" --list-dirs agent-socket
+gpg-connect-agent --raw-socket "$env:GPG_AGENT_SOCKET" "KEYINFO --list" /bye
+```

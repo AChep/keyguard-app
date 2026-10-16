@@ -39,7 +39,8 @@ const canonical = Astro.site
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
     <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-    <Font cssVariable="--font-dm-sans" preload />
+    <Font cssVariable="--font-dm-sans" preload={[{ subset: 'latin' }]} />
+    <Font cssVariable="--font-inter" preload={[{ subset: 'latin' }]} />
     {canonical && <link rel="canonical" href={canonical} />}
     <link rel="sitemap" href="/sitemap-index.xml" />
     <meta name="generator" content={Astro.generator} />
@@ -50,6 +51,7 @@ const canonical = Astro.site
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={SITE.name} />
     {canonical && <meta property="og:url" content={canonical} />}
+    <slot name="head" />
   </head>
   <body class="flex min-h-screen flex-col bg-surface font-sans text-on-surface antialiased">
     <Header />

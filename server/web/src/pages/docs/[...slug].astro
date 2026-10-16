@@ -14,10 +14,6 @@ const { entry } = Astro.props;
 const { Content } = await render(entry);
 ---
 
-<DocsLayout
-  title={entry.data.title}
-  description={entry.data.description}
-  currentId={entry.id}
->
+<DocsLayout title={entry.data.title} description={entry.data.description} entry={entry}>
   <Content />
 </DocsLayout>

@@ -1,0 +1,17 @@
+// Markdown checks for the docs (see CONTRIBUTING.md). Structure rules that
+// markdownlint can't express live in scripts/check-docs.mjs.
+{
+  "config": {
+    "default": false,
+    // Heading levels increase by one. The title isn't counted, so "Before you
+    // begin" can be an H3 right after the lead (see CONTRIBUTING.md).
+    "MD001": { "front_matter_title": "" },
+    // Fenced code blocks name a language.
+    "MD040": true,
+    // Images have alt text.
+    "MD045": true,
+    // Same-page anchors exist.
+    "MD051": true
+  },
+  "globs": ["src/content/docs/**/*.md"]
+}

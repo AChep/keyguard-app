@@ -1,215 +1,101 @@
 ---
 title: Watchtower
-description: The sixteen security checks Keyguard runs on your vault, how each one works, and how the checks respect your privacy.
-category: guides
-order: 4
+description: "The security checks Keyguard runs on your vault, how each one works, and how they protect your privacy."
+section: security
+type: feature
+order: 20
+platforms: all
+related: [items, url-matching, gpg-keys, generator]
 ---
 
-Watchtower continuously analyzes your vault and surfaces problems before
-they bite. It's free, it runs on every account type, and it can notify you
-when **new alerts** appear.
+Watchtower checks the items in your vault for security risks, such as leaked,
+reused or weak passwords, and for maintenance problems, such as duplicates.
+Each check is a card in **Watchtower** that counts the affected items.
 
-## The checks at a glance
+## Fix an alert
+
+1. Open **Watchtower**.
+2. Select a check, such as **Reused Passwords**. The affected items appear.
+3. Select an item and fix the problem. For example, change the password with the
+   [Generator](/docs/generator/), or select **Auto-fix insecure URL** in the
+   menu of an `http://` URL.
+
+To see only alerts you haven't reviewed, select **Review new alerts** at the top
+of **Watchtower**. Opening an item marks its alerts as read, and
+**Mark all as read** marks the rest.
+
+## Ignore an alert for an item
+
+Some alerts don't apply to an item, such as a shared throwaway account that
+reuses a password.
+
+1. Open the item.
+2. In the item's menu, select **Configure Watchtower alerts**.
+3. Clear the alerts to ignore.
+4. Select **OK**.
+
+The item no longer counts toward those checks, and the **Ignored alerts** filter
+in the vault lists it. Weak passwords can't be ignored.
+
+## Watchtower checks
+
+### Security
+
+The **Password strength** bar at the top of **Watchtower** sorts your passwords
+from **Very strong** to **Weak**, by the estimated time to crack each one. Weak
+passwords also raise an alert.
 
 | Check | What it flags |
-| :---- | :------------- |
-| Pwned passwords | Passwords exposed in known data breaches — change these immediately |
-| Vulnerable accounts | Sites breached **since you last changed** that password |
-| Reused passwords | The same password used on multiple sites |
-| Weak passwords | Passwords that fail strength requirements |
-| Weak SSH keys | RSA SSH keys shorter than 2048 bits |
-| Unusable GPG keys | GPG keys that are revoked, expired, malformed, or missing usable signing or decryption material |
-| Weak GPG keys | GPG keys using weak or legacy algorithms or key sizes |
-| GPG key publishing | Keys whose keyserver status is missing, stale, unverified, or revoked |
-| Inactive two-factor authentication | Sites that offer 2FA you haven't enabled |
-| Available passkeys | Sites that support passkeys you haven't set up |
-| Unsecure websites | Item URLs still using `http://` |
-| Duplicate items | Items that appear to be copies of each other |
-| Duplicate URIs | URIs on one item that cover the same site after [match detection](/docs/url-matching/) |
-| Broad URI match detection | URIs whose match rule is looser than it should be |
-| Incomplete items | Missing data — logins without usernames, identities without names |
-| Expiring items | Items that have expired or expire soon |
+| --- | --- |
+| **Pwned Passwords** | Passwords found in known data breaches, even once. |
+| **Vulnerable Accounts** | Logins whose website had a breach that exposed passwords or other sensitive data after you last changed the password. |
+| **Reused Passwords** | Passwords shared by two or more items. |
+| **Weak SSH keys** | RSA keys shorter than 2048 bits. |
+| **Weak GPG keys** | Primary keys or subkeys that use RSA shorter than 2048 bits, DSA or ElGamal. |
+| **Inactive two-factor authentication** | Logins for sites that support an authenticator app, when the item has no one-time password. Logins that use only a passkey are skipped. |
+| **Insecure Websites** | URLs that use `http://`, which sends everything unencrypted. `localhost` and private network addresses, such as `192.168.1.1`, are skipped. |
+| **Available Passkeys** | Logins for sites that support passkey sign-in, when the item has no passkey. |
 
-## The checks in detail
+### Maintenance
 
-### Pwned passwords
+| Check | What it flags |
+| --- | --- |
+| **Duplicate Items** | Items of the same type that look like copies. **Tolerance** on the check's screen sets how alike they must be, from **Min** to **Max**. Merge a group with **Merge into…**, as in [Merge duplicates](/docs/bulk-actions/#merge-duplicates). |
+| **Incomplete Items** | Items with a blank or placeholder name, such as `login` or `todo`, and items missing key data: a login without a username, an identity without a name, or a card without a number. Items with custom fields or attachments, passkey-only logins and API-token-style items are skipped. |
+| **Expiring Items** | Payment cards that have expired or expire within three months. |
+| **Unusable GPG keys** | [GPG keys](/docs/gpg-keys/) that are revoked, expired or malformed, whose fingerprint doesn't match the key, that have no usable signing or decryption key, or whose GPG agent data is missing or inconsistent. |
+| **GPG key publishing** | Keys whose keyserver status is unknown, not found, unverified, revoked or stale. Stale means not checked in 30 days. Upload, verify or refresh the key from the item. |
+| **Duplicate URIs** | Items with two URIs that cover the same website under [URL matching](/docs/url-matching/), such as `example.com` and `www.example.com/login` with **Base domain** matching. Remove the extra URI. |
+| **Broad URI match detection** | URIs set to **Base domain** while another URI in the vault matches the same domain by **Host**. Switch the URI to a narrower **Match detection**. |
+| **Trashed Items** | Items in the trash. Many trashed items slow down the vault. |
+| **Empty Folders** | Folders with no items. |
 
-Every password is checked against
-[**Have I Been Pwned**](https://haveibeenpwned.com/), the public corpus
-of real-world breach data. Keyguard hashes the password with SHA-1 and
-sends only the **first five characters of the hash** to the service; the
-actual comparison happens on your device (see
-[privacy](#how-the-checks-respect-your-privacy)). A match means the exact
-password circulates in attackers' cracking lists — no matter how strong it
-looks.
+Watchtower skips archived and trashed items in every check except
+**Trashed Items**.
 
-> *Example:* `Summer2019!` passes a complexity rule, yet appears in known
-> breaches thousands of times. Watchtower flags it; replace it with a
-> generated password.
+## Settings
 
-### Vulnerable accounts
+These settings are in **Settings > Watchtower**. Turning a check off hides its
+card.
 
-Keyguard compares your logins' websites against HIBP's public **breach
-catalog** and flags items whose site suffered a breach **since you last
-changed that password** — the signal that your credentials may be part of
-the spill.
-
-> *Example:* a forum you use was breached this January, and your password
-> there dates from two years earlier — rotate it, and anywhere it was
-> reused.
-
-### Reused passwords
-
-Logins are grouped by their exact password; any password shared by two or
-more items is flagged. One breached site shouldn't unlock the others.
-
-> *Example:* the same password protects your email and a shopping site —
-> when the shop leaks it, the email follows.
-
-### Weak passwords & weak SSH keys
-
-Password strength is estimated with **zxcvbn**, which models realistic
-guessing attacks; passwords scoring *weak* are flagged. SSH keys are checked
-for weak key length — RSA keys under 2048 bits are flagged (Ed25519 keys are
-not). The weak-password check is the one alert that **cannot be ignored per
-item**.
-
-> *Example:* `dragon99` rates as guessable in minutes despite meeting an
-> "8 characters with digits" policy.
-
-### Unusable GPG keys
-
-Every [GPG key](/docs/gpg-keys/) is checked for a valid public key, a
-fingerprint that matches the stored key material, and usable signing or
-decryption material. Keyguard also flags revoked or expired keys and missing
-or inconsistent [GPG agent](/docs/gpg-agent/) metadata.
-
-> *Example:* your encryption subkey expired last month — mail encrypted to
-> the old subkey still opens, but nobody can encrypt *to* you until you
-> extend or replace it.
-
-### Weak GPG keys
-
-The primary key **and every subkey** are checked for weak or legacy
-cryptography: RSA shorter than 2048 bits and the legacy DSA and ElGamal
-algorithms are flagged. Modern Ed25519 / Curve25519 keys pass.
-
-> *Example:* a 1024-bit RSA key generated a decade ago still signs fine,
-> but its strength is well below current recommendations — generate a
-> replacement and revoke the old key.
-
-### GPG key publishing
-
-Watches the [keyserver](/docs/gpg-keys/#keyservers) status recorded for
-each key and flags the ones needing attention: never checked, **not
-found** on the keyserver, found but the identity is **unverified**,
-**revoked**, or **stale** — verified, but not re-checked in over 30 days.
-Fix a finding by uploading, verifying, or refreshing the key from the
-item, or let the auto-refresh worker keep the status current.
-
-> *Example:* you rotated your key but never published the new one —
-> correspondents fetching your key by email still get the old,
-> soon-to-expire key.
-
-### Inactive two-factor authentication
-
-Your login URLs are matched — by domain, honoring
-[equivalent domains](/docs/url-matching/#equivalent-domains) — against a
-**directory bundled with the app** of sites known to support an
-authenticator-app (TOTP) second factor (powered by
-[2factorauth](https://2fa.directory/)). A
-match is flagged unless the
-item already carries a [one-time password](/docs/totp/), or signs in with a
-passkey and no password. Each finding links to the site's own 2FA
-documentation.
-
-> *Example:* your domain registrar supports authenticator apps, but your
-> login has no authenticator key — enable 2FA there and scan the QR code
-> into the item.
-
-### Available passkeys
-
-The same mechanism, using the bundled
-[**passkeys directory**](https://passkeys.directory/): sites that
-support passkey sign-in are flagged until the item holds a passkey.
-
-> *Example:* your cloud storage now offers passkeys — create one on your
-> next sign-in and skip the password (and the phishing risk).
-
-### Insecure websites
-
-Flags item URLs that still use the `http://` protocol (`localhost` and
-private-network addresses like `192.168.x.x` are ignored), which sends
-everything — including your password — unencrypted. The fix is usually as
-simple as editing the URL to `https://`.
-
-### Duplicate items
-
-Items are compared for similarity and grouped as likely duplicates, with a
-**configurable tolerance** that ranges from near-exact matches to fuzzier
-grouping. Clean a group up by merging it into a single item with
-[multi-select](/docs/items/#organizing).
-
-> *Example:* two `GitHub` logins with the same username, one with an older
-> password — merge them and keep the history.
-
-### Duplicate URIs
-
-Flags an item whose URIs end up covering the **same website** once
-[match detection](/docs/url-matching/) is applied — say, `example.com` and
-`www.example.com/login` both matching by base domain. Removing the
-redundant URI keeps autofill suggestions tidy.
-
-### Broad URI match detection
-
-The reverse problem: URIs whose match rule is **looser than it needs to
-be**, making the item show up on sites it isn't meant for. The fix is
-switching that URI to a narrower [match mode](/docs/url-matching/) — host,
-starts-with, or exact.
-
-### Incomplete items
-
-Heuristics for entries you probably meant to finish: a blank or
-placeholder name (`login`, `todo`, `entry`, …) or a login without a
-username. Items that look deliberate are left alone — API-token-style
-items, passkey-only logins, and items that exist to carry custom fields or
-attachments.
-
-> *Example:* an item named `email` holding a password but no username or
-> website.
-
-### Expiring items
-
-Flags **payment cards** that have expired or expire within the next
-**three months**, so the replacement is in your vault before the old card
-declines. The check refreshes daily.
-
-## Acting on alerts
-
-Each alert links to the affected items, so fixing takes few steps:
-open the item, change the password (open the [generator](/docs/generator/) directly
-from the item), enable 2FA on the site, or merge duplicates.
-
-Not every alert applies to every item: a shared throwaway account may
-legitimately reuse a password. You can **ignore specific alert types per
-item** to move them to the ignored list and suppress future notifications. The
-weak-password check is the one exception — it cannot be silenced per item.
+| Setting | What it does |
+| --- | --- |
+| **Check for pwned passwords** | Runs **Pwned Passwords**. |
+| **Check for data breaches** | Runs **Vulnerable Accounts**. |
+| **Have I Been Pwned API token** | Your own Have I Been Pwned API key, for the item actions **Check the username in known data breaches** and **Check the email in known data breaches**. Without a key, these go through the breach check of your Bitwarden server, so KeePass-only vaults need one. |
+| **Check for inactive two-factor authentication** | Runs **Inactive two-factor authentication**. |
+| **Check for inactive passkeys** | Runs **Available Passkeys**. |
 
 ## How the checks respect your privacy
 
-- **Pwned passwords** are checked against Have I Been Pwned using the
-  **k-anonymity** range API: only the first five characters of the
-  password's SHA-1 hash ever leave your device, and the comparison happens
-  locally. Your passwords — even hashed — are never sent anywhere.
-- **Vulnerable accounts** are found by comparing your items against HIBP's
-  public breach catalog.
-- **Two-factor** and **passkey** availability come from directories bundled
-  with the app (powered by [2factorauth](https://2fa.directory/) and the
-  [passkeys directory](https://passkeys.directory/)), so those checks
-  involve no network requests at all.
-- **GPG key** checks parse and evaluate your keys locally. The publishing
-  check reads the keyserver status recorded the last time the key was
-  verified, uploaded, or auto-refreshed; it does not contact the keyserver
-  itself.
-- Everything else — strength, reuse, duplicates, URLs, completeness — is
-  computed on your device.
+- **Pwned Passwords** uses the Have I Been Pwned range API with k-anonymity.
+  Only the first five characters of the password's SHA-1 hash leave your
+  device, and the comparison happens on the device. Your passwords, even
+  hashed, are never sent.
+- **Vulnerable Accounts** downloads the public
+  [Have I Been Pwned](https://haveibeenpwned.com/) breach catalog and compares
+  it with your items on the device.
+- **Inactive two-factor authentication** and **Available Passkeys** use
+  directories bundled with the app, from [2factorauth](https://2fa.directory/)
+  and the [passkeys directory](https://passkeys.directory/). These checks make
+  no network requests.

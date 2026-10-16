@@ -1,184 +1,152 @@
 ---
 title: GPG keys
-description: The GPG key item type and its supported algorithms, identifiers, generating and importing keys, the built-in OpenPGP tools, and keyserver lookup.
-category: reference
-order: 10
+description: "The GPG Key item: identifiers, algorithms, edits, import and export, GPG tools and keyservers."
+section: developer
+type: reference
+order: 50
+platforms: all
+related: [gpg-agent, generator, item-extras, watchtower, git-signing]
 ---
 
-Keyguard stores OpenPGP keys in a dedicated **GPG key** item type and can use
-them to sign, verify, encrypt, and decrypt. This page is a technical reference
-for what Keyguard parses, stores, and supports. For daily
-setup see the [GPG agent setup](/docs/gpg-agent/) guide.
+A **GPG Key** item holds an OpenPGP certificate and, optionally, its private
+key. This page lists what Keyguard reads from a key, what you can do with it,
+and how Keyguard uses keyservers.
 
-OpenPGP (the standard behind GnuPG/PGP, defined by RFC 4880 and the newer RFC
-9580) describes a **certificate** — colloquially "a public key" — as a primary
-key plus zero or more subkeys, user IDs, and metadata bound together by
-self-signatures. Keyguard supports **v4** and **v6** certificates. V6 certificates
-can have no user IDs; a Direct Key self-signature carries their key-wide policy.
+## Storage
 
-A GPG key item itself stores three things:
+- On a Bitwarden server, a GPG key item is a secure note with custom fields.
+  [Custom field conventions](/docs/item-extras/) lists them.
+- Keyguard stores an imported private key without its passphrase. It asks for
+  the passphrase once, during import. From then on, the vault's encryption
+  protects the key.
 
-- the **armored public key**;
-- the **armored private key**, if you provided one;
-- the **fingerprint** of the primary key.
+## Certificate versions
 
-> **Private keys are stored unencrypted** — when you import a passphrase-protected
-> private key, Keyguard asks for the passphrase once, then re-encodes the key
-> **without** it. The vault's own encryption is what protects it from then on.
+An OpenPGP certificate is a primary key with its subkeys, user IDs and
+metadata, bound by self-signatures. Keyguard supports two versions.
 
-For compatibility with Bitwarden's fixed data model — see 
-[Item types & extras](/docs/item-extras/#gpg-keys) for the
-exact convention.
+| Version | Standard | User IDs |
+| --- | --- | --- |
+| v4 | RFC 4880 | At least one active user ID |
+| v6 | RFC 9580 | Optional. A Direct Key self-signature holds the key-wide policy. |
 
 ## Identifiers
-
-Keyguard derives and displays three identifiers per key:
 
 | Identifier | What it is | Format in Keyguard |
 | --- | --- | --- |
 | **Fingerprint** | Hash over the public key material and creation time; identifies the whole certificate | 40 hex digits for v4, 64 for v6; upper-case, grouped in fours |
 | **Key ID** | The low 64 bits of a v4 fingerprint, or the high 64 bits of a v6 fingerprint | 16 upper-case hex digits |
-| **Keygrip** | libgcrypt's hash of the raw public parameters; used to address a key inside the agent | Upper-case hex, byte-identical to `gpg --with-keygrip` |
+| **Keygrip** | libgcrypt's hash of the raw public parameters; addresses a key inside the agent | Upper-case hex, byte-identical to `gpg --with-keygrip` |
 
 ## Capabilities
 
-Each key and subkey is inspected for its OpenPGP key flags and shown as one or
-both of:
+Keyguard reads the OpenPGP key flags of the primary key and every subkey. An
+item shows what the certificate as a whole can do.
 
-- **Sign** — the key can create signatures;
-- **Encrypt** — the key can be an encryption recipient.
+| Capability | Meaning |
+| --- | --- |
+| **Sign** | The key can create signatures |
+| **Encrypt/decrypt** | The key can be an encryption recipient |
 
-Capabilities are aggregated across the primary key and every subkey, so an item
-reports what the certificate as a whole can do.
+## Key details
 
-## Subkeys, user IDs, and validity
+| Data | What Keyguard reads |
+| --- | --- |
+| Primary key and subkeys | Fingerprint, keygrip, key ID, algorithm, bit strength, capabilities, revocation state and expiration date |
+| User IDs | The `Name (comment) <email>` form. Keyguard shows the email addresses, and also reads bare-email user IDs. |
+| Dates | Creation and expiration, from the key's self-signature |
+| Revocation | Revoked keys and subkeys are marked as revoked |
 
-For the primary key and every subkey, Keyguard extracts the fingerprint,
-keygrip, key ID, algorithm, bit strength, sign/encrypt capabilities, revocation
-state, and expiration date.
+## Edits
 
-**User IDs** are parsed in the standard `Name (comment) <email>` form; the email
-addresses are pulled out for display, with a fallback for bare-email user IDs.
-**Creation** and **expiration** dates are read from the key's self-signature,
-and **revoked** keys and subkeys are marked as such.
+These edits work with v4 and v6 certificates. They're on the item's edit
+screen. Open **User IDs** to manage identities. **Change GPG key expiry** is also in the item's menu.
 
-Expiration changes and identity replacement or revocation work with both
-versions. V6 identity edits preserve the key-wide policy in the Direct Key
-self-signature. You can revoke the last identity on a v6 certificate; v4
-certificates must retain an active identity.
+| Edit | Rule |
+| --- | --- |
+| **Change GPG key expiry** | Needs the private key |
+| **Add User ID** | Needs the private key. Keeps the current primary identity. |
+| **Make primary** | Selects the identity displayed by default. You can change it later. Needs the private key. |
+| **Replace…** | Adds the replacement and revokes the selected identity. Needs the private key. |
+| **Revoke…** | Needs the private key. A v4 certificate must keep an active user ID; a v6 certificate can revoke its last one. |
+
+Select **Name and email** or **Exact User ID** to choose the input format.
+Revoked identities remain under **Identity history**.
+If a signature's timestamp blocks an edit, Keyguard shows when to retry. Check your devices' clocks, then select **Retry** after that time.
+
+After an edit, save the item, then upload or redistribute its public key. Cancelling the item editor discards the changes.
 
 ## Algorithms
 
-Keyguard recognises the following public-key algorithms when parsing a key
-(by their OpenPGP algorithm IDs, so they survive across library versions):
+Keyguard recognizes these public-key algorithms by their OpenPGP algorithm IDs.
 
 | Algorithm | Notes |
 | --- | --- |
-| RSA | Sign and/or encrypt |
+| RSA | Signing and encryption |
 | DSA | Legacy signing |
 | ElGamal | Legacy encryption |
 | ECDSA | NIST-curve signing |
-| EdDSA / Ed25519 | Edwards-curve signing (legacy ID 22 and RFC 9580 native ID 27) |
+| EdDSA, Ed25519 | Edwards-curve signing (legacy ID 22 and RFC 9580 native ID 27) |
 | ECDH | Elliptic-curve encryption |
-| X25519 / X448 | RFC 9580 native encryption |
+| X25519, X448 | RFC 9580 native encryption |
 | Ed448 | RFC 9580 native signing |
 
-Any other algorithm is shown generically. Algorithm support varies by
-operation; see [GPG agent](#operations-with-the-gpg-agent) below for
-operational limits.
+Keyguard shows any other algorithm generically.
 
-## Generating a key
+## Import
 
-The [generator](/docs/generator/) creates a new GPG key in one of two
-profiles — modern **Ed25519 + X25519**, or **RSA** — see the generator's
-[GPG keys section](/docs/generator/#gpg-keys) for what each profile
-produces and the current limitations.
+The add-item flow accepts ASCII-armored and binary keys. To create a new key
+instead, use the [Generator](/docs/generator/).
 
-## Importing a key
-
-The add-item flow accepts existing keys in either **ASCII-armored** or **binary**
-form, and both **public** and **private** key material:
-
-- A **public key** is parsed and stored as a certificate.
-- A **private key** is parsed; if it is passphrase-protected, Keyguard prompts
-  for the passphrase, then stores it unencrypted (see the note above). A wrong
-  passphrase is reported as such.
-
-When importing into an item that already contains the same certificate, Keyguard
-combines its certificate data. Existing secret material, certifications, and
-revocations are retained. A different certificate or malformed material is
-rejected without changing the item.
-
-Empty input and unsupported formats are reported distinctly.
-
-## Exporting and copying
-
-From a GPG key item you can:
-
-- **export** the public key (`.public.asc`), the private key (`.private.asc`),
-  or both together in a `.zip`;
-- **copy** the public key, the fingerprint, or the unencrypted private key.
-
-## The GPG tools
-
-Keyguard includes standalone OpenPGP tools that operate on **text** or **files**
-using the keys in your vault:
-
-| Operation | Modes |
+| Input | Result |
 | --- | --- |
-| **Sign** | Cleartext (inline) or detached signature |
-| **Verify** | Inline or detached signature |
-| **Encrypt** | To one or more recipient public keys |
-| **Decrypt** | With a private key from the vault |
+| Public key | Stored as a certificate |
+| Private key | Stored with its certificate. For a passphrase-protected key, Keyguard asks for the passphrase and reports a wrong one. |
+| The certificate already in the item | Merged. Existing secret material, certifications and revocations stay. |
+| A different certificate, or malformed data | Rejected. The item doesn't change. |
+| More than one key in a file | Rejected. Import the keys one at a time. |
+| Empty input or an unsupported format | Rejected, with a separate error for each |
 
-Signatures use SHA-256 over canonical text. Verification reports whether a
-signature is **valid**, **invalid**, or **missing the public key**, and adds
-warnings when the signing key is **revoked** or **expired**, or when the
-**signature itself has expired**.
+## Export and copy
 
-## Using GPG keys from other tools
+| Action | Result |
+| --- | --- |
+| Export the public key | A `.public.asc` file |
+| Export the private key | A `.private.asc` file |
+| Export both | A `.zip` with both files |
+| **Copy public key** | The armored public key |
+| **Copy fingerprint** | The fingerprint |
+| **Copy unencrypted private key** | The armored private key, without a passphrase |
 
-On desktop Linux, macOS, and Windows, Keyguard can act as a compatible
-**gpg-agent** so that a local `gpg` (for example, when signing Git commits) uses
-keys from your vault. On Android, compatible apps can use Keyguard as an
-OpenKeychain-compatible OpenPGP provider for signing, verification, encryption,
-decryption, and public-key access. In both cases the private key stays inside
-Keyguard. See the [GPG agent setup](/docs/gpg-agent/) guide for both connection
-paths.
+## Tools
+
+To encrypt, decrypt, sign or verify with these keys inside Keyguard, see
+[GPG tools](/docs/gpg-tools/). To use them from GnuPG or Android apps, see
+[GPG agent](/docs/gpg-agent/).
 
 ## Keyservers
 
-Keyguard can look up and publish public keys on a keyserver. Two protocols are
-supported:
+Keyguard can look up and publish public keys on a keyserver. **Keyserver** and
+**Keyserver protocol** in **Settings > Developer > GPG agent** choose the
+server.
 
-| Protocol | Default / suggested server | Search by |
+| Protocol | Default or suggested server | Search by |
 | --- | --- | --- |
-| **VKS** (verifying keyserver, keys.openpgp.org API) | `https://keys.openpgp.org` | Fingerprint, key ID, or email |
-| **HKP** (HTTP Keyserver Protocol) | `https://keyserver.ubuntu.com` | Fingerprint, key ID, email, or free text |
+| VKS (verifying keyserver, keys.openpgp.org API) | `https://keys.openpgp.org` | Fingerprint, key ID or email |
+| HKP (HTTP Keyserver Protocol) | `https://keyserver.ubuntu.com` | Fingerprint, key ID, email or free text |
 
-Lookups accept both v4 and v6 fingerprints. The selected keyserver must support
-the certificate's version to store and return it.
+Lookups accept v4 and v6 fingerprints. The keyserver must support the
+certificate's version to store and return it.
 
-keys.openpgp.org is a **verifying** keyserver: it serves key material by
-fingerprint and distributes email identities only after owner confirmation.
-Keyguard automatically queries VKS by fingerprint or email, and falls back to
-HKP for free-text queries. Email lookups against VKS are rate-limited.
+keys.openpgp.org serves keys by fingerprint, and shares an email identity only
+after its owner confirms it. VKS has no free-text search, so Keyguard sends
+free-text queries to `https://keyserver.ubuntu.com` over HKP. VKS rate-limits
+email lookups.
 
-You can:
-
-- **search** a keyserver and import a result;
-- **upload** a public key to publish it; on a VKS keyserver you can pick the
-  e-mail addresses that receive a verification e-mail, which makes the key
-  searchable by those addresses once confirmed;
-- **verify** a stored public key against the keyserver, recording whether it is
-  *found & verified*, *found but unverified*, *not found*, or *revoked*.
-
-A background worker can **auto-refresh** the published state of your keys on a
-schedule you set.
-
-## Related
-
-- [GPG agent setup](/docs/gpg-agent/) — use vault keys from desktop `gpg` or compatible Android apps.
-- [Generator](/docs/generator/) — create new GPG keys.
-- [Watchtower](/docs/watchtower/) — audit keys for weaknesses.
-- [Item types & extras](/docs/item-extras/) — other item conventions.
+| Action | Where | What it does |
+| --- | --- | --- |
+| **GPG keyserver search** | **Settings > Developer > GPG agent** | Finds a key on the keyserver, so you can import it |
+| **Upload GPG public key** | Item menu | Publishes a public key. On a VKS keyserver, you pick the email addresses that get a verification email; the key becomes searchable by each one after it's confirmed. |
+| **Verify GPG public key** | Item menu | Records whether a stored key is found and verified, found but unverified, not found, or revoked |
+| **Refresh GPG public key** | Item menu | Updates the item's public key, metadata and keyserver status from the keyserver |
+| **Auto-refresh public keys** | **Settings > Developer > GPG agent** | At the interval you set, updates each GPG key item that holds only a public key: its key, metadata and keyserver status. Runs while the app is active and the vault is unlocked. |

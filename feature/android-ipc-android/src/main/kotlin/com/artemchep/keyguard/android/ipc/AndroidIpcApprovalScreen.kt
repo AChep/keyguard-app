@@ -3,26 +3,20 @@ package com.artemchep.keyguard.android.ipc
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Key
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -37,6 +31,7 @@ import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_APP_BUNDLE_PATH_LENGTH
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_NAME_LENGTH
 import com.artemchep.keyguard.common.service.agent.sanitizedAgentDisplayValue
+import com.artemchep.keyguard.feature.agent.AgentApprovalButtons
 import com.artemchep.keyguard.feature.dialog.DialogContent
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
@@ -124,40 +119,20 @@ private fun AndroidIpcApprovalReadyScreen(
     )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AndroidIpcApprovalActions(
     state: AndroidIpcApprovalState.Ready,
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        TextButton(
-            modifier = Modifier
-                .weight(1f, fill = true),
-            onClick = state.onDeny,
-            shapes = ButtonDefaults.shapes(),
-        ) {
-            Text(
-                text = stringResource(Res.string.ipc_approval_deny),
-                maxLines = 1,
-            )
-        }
-        Button(
-            modifier = Modifier
-                .weight(1f, fill = true),
-            onClick = state.onApprove,
-            enabled = state.selectedKeyIds.isNotEmpty() || state.allowEmpty,
-            shapes = ButtonDefaults.shapes(),
-        ) {
-            Text(
-                text = stringResource(Res.string.ipc_approval_approve),
-                maxLines = 1,
-            )
-        }
-    }
+    AgentApprovalButtons(
+        // The request expires with its pending intent, which the
+        // approval state does not expose.
+        expiresAt = null,
+        cancelText = stringResource(Res.string.ipc_approval_deny),
+        confirmText = stringResource(Res.string.ipc_approval_approve),
+        confirmEnabled = state.selectedKeyIds.isNotEmpty() || state.allowEmpty,
+        onCancel = state.onDeny,
+        onConfirm = state.onApprove,
+    )
 }
 
 @Composable

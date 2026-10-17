@@ -2,7 +2,6 @@ package com.artemchep.keyguard.apple.sshagent
 
 import com.artemchep.keyguard.SshAgentIpcServerApple
 import com.artemchep.keyguard.SshAgentManagerApple
-import com.artemchep.keyguard.SshAgentRequestProcessorApple
 import kotlinx.coroutines.CoroutineScope
 
 internal actual fun createSshAgentRuntime(): SshAgentRuntime = AppleSshAgentRuntime
@@ -18,20 +17,9 @@ private object AppleSshAgentRuntime : SshAgentRuntime {
         scope: CoroutineScope,
         config: SshAgentRuntimeConfig,
     ): SshAgentRuntimeHandle? {
-        val processor = SshAgentRequestProcessorApple(
-            logRepository = config.logRepository,
-            getVaultSession = config.getVaultSession,
-            getSshAgentApprovalWindow = config.getSshAgentApprovalWindow,
-            getSshAgentApprovalCachePolicy = config.getSshAgentApprovalCachePolicy,
-            getSshAgentFilter = config.getSshAgentFilter,
-            scope = scope,
-            sshAgentPublicKeyRepository = config.sshAgentPublicKeyRepository,
-            sessionId = config.sessionId,
-            onApproval = config.onApproval,
-        )
         val server = SshAgentIpcServerApple(
             authToken = config.authToken,
-            processor = processor,
+            processor = config.processor,
             scope = scope,
             log = config.log,
         )

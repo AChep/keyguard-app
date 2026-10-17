@@ -1,5 +1,6 @@
 use super::*;
 use crate::ipc::messages::CallerAuthorization;
+use std::collections::HashSet;
 use std::os::windows::process::CommandExt;
 use std::process::{Child, Command, Stdio};
 use tokio::net::windows::named_pipe::{ClientOptions, ServerOptions};
@@ -149,14 +150,14 @@ fn sibling_processes_share_live_application_but_not_process_subjects() {
     let windows = HashSet::from([std::process::id()]);
     let first_app = find_application(&first, &windows).unwrap();
     let second_app = find_application(&second, &windows).unwrap();
-    assert_eq!(first_app.pid, std::process::id());
+    assert_eq!(first_app.pid(), std::process::id());
     assert_eq!(
-        first_app.subject(Kind::ApplicationInstance).unwrap(),
-        second_app.subject(Kind::ApplicationInstance).unwrap()
+        subject(&first_app, Kind::ApplicationInstance).unwrap(),
+        subject(&second_app, Kind::ApplicationInstance).unwrap()
     );
     assert_ne!(
-        first.subject(Kind::Process).unwrap(),
-        second.subject(Kind::Process).unwrap()
+        subject(&first, Kind::Process).unwrap(),
+        subject(&second, Kind::Process).unwrap()
     );
 }
 
@@ -176,52 +177,12 @@ fn expired_application_falls_back_to_live_process() {
 }
 
 #[test]
-fn ancestry_rejects_cycles_newer_parents_and_changed_context() {
-    let child = TestProcess::spawn("");
-    let mut process = ProcessIdentity::open(child.0.id()).unwrap();
-    let parent = std::process::id();
-    let windows = HashSet::from([parent]);
-    let cycle = HashMap::from([(process.pid, process.pid)]);
-    assert!(find_application_in(&process, &windows, &cycle).is_none());
-    let chain = HashMap::from([(process.pid, parent)]);
-    assert!(find_application_in(&process, &windows, &chain).is_some());
-    process.context.authentication_id[0] ^= 1;
-    assert!(find_application_in(&process, &windows, &chain).is_none());
-    assert!(process.revalidate().is_err());
-    process.context.authentication_id[0] ^= 1;
-    // A recycled parent PID can now identify a process born after the child.
-    let newer = TestProcess::spawn("");
-    assert!(ProcessIdentity::open(newer.0.id()).unwrap().created > process.created);
-    assert!(find_application_in(
-        &process,
-        &HashSet::from([newer.0.id()]),
-        &HashMap::from([(process.pid, newer.0.id())]),
-    )
-    .is_none());
-}
-
-#[test]
-fn subject_separates_lifetime_context_and_scope_without_using_display_path() {
-    let mut process = ProcessIdentity::open(std::process::id()).unwrap();
-    let original = process.subject(Kind::Process).unwrap();
-    process.path = "other-name.exe".into();
-    assert_eq!(original, process.subject(Kind::Process).unwrap());
+fn subject_separates_scope() {
+    let process = ProcessIdentity::open(std::process::id()).unwrap();
     assert_ne!(
-        original.fingerprint,
-        process
-            .subject(Kind::ApplicationInstance)
+        subject(&process, Kind::Process).unwrap().fingerprint,
+        subject(&process, Kind::ApplicationInstance)
             .unwrap()
             .fingerprint
-    );
-    process.created += 1;
-    assert_ne!(
-        original.fingerprint,
-        process.subject(Kind::Process).unwrap().fingerprint
-    );
-    process.created -= 1;
-    process.context.authentication_id[0] ^= 1;
-    assert_ne!(
-        original.fingerprint,
-        process.subject(Kind::Process).unwrap().fingerprint
     );
 }

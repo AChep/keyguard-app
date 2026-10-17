@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.filterCiphers
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistory
@@ -29,7 +30,6 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 
 class SshAgentRequestProcessorImpl(
@@ -53,16 +53,13 @@ class SshAgentRequestProcessorImpl(
     private val sessionId: String = "",
     private val json: Json = Json,
     private val onApprovalRequest: suspend (SshAgentApprovalPrompt) -> Boolean = { true },
-    private val onGetListRequest: suspend (caller: SshAgentMessages.CallerIdentity?) -> Boolean = { _ -> false },
 ) : SshAgentRequestProcessor {
     companion object {
         private const val TAG = "SshAgentRequestProcessor"
-
-        internal const val APPROVAL_TIMEOUT_MS = 60_000L
     }
 
     override suspend fun listKeys(
-        caller: SshAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ): SshAgentRequestProcessor.ListKeysResult {
         val vault = getSshKeysFromVault()
         if (vault == null) {
@@ -362,7 +359,7 @@ class SshAgentRequestProcessorImpl(
     @Suppress("LongParameterList")
     private suspend fun recordPendingSshUsage(
         cipherId: String?,
-        caller: SshAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
         request: SshUsageHistoryRequestType,
         response: SshUsageHistoryResponseType,
         fingerprint: String?,
@@ -389,7 +386,7 @@ class SshAgentRequestProcessorImpl(
     private suspend fun recordSshUsage(
         vault: SshVaultContext,
         cipherId: String?,
-        caller: SshAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
         request: SshUsageHistoryRequestType,
         response: SshUsageHistoryResponseType,
         fingerprint: String?,
@@ -412,7 +409,7 @@ class SshAgentRequestProcessorImpl(
     }
 
     private fun encodeCaller(
-        caller: SshAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ): String? {
         caller ?: return null
         return runCatching {
@@ -420,25 +417,11 @@ class SshAgentRequestProcessorImpl(
         }.getOrNull()
     }
 
-    private suspend fun requestVaultUnlock(
-        caller: SshAgentMessages.CallerIdentity?,
-    ): Boolean {
-        val unlocked = try {
-            onGetListRequest(caller)
-        } catch (e: Exception) {
-            if (e is CancellationException) throw e
-            logRepository.post(TAG, "Unlock request failed: ${e.message}", LogLevel.ERROR)
-            false
-        }
-        return unlocked
-    }
-
+    // The approval broker owns the deadline of the prompt.
     private suspend fun requestSigningApproval(
         prompt: SshAgentApprovalPrompt,
     ): Boolean = try {
-        withTimeoutOrNull(APPROVAL_TIMEOUT_MS) {
-            onApprovalRequest(prompt)
-        } ?: false
+        onApprovalRequest(prompt)
     } catch (e: Exception) {
         if (e is CancellationException) throw e
         logRepository.post(TAG, "Approval request failed: ${e.message}", LogLevel.ERROR)

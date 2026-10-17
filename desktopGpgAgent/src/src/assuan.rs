@@ -3,6 +3,7 @@
 use crate::ipc::client::IpcClient;
 use crate::ipc::messages::CallerIdentity;
 use anyhow::Result;
+use keyguard_agent_identity::caller_guard::CallerGuard;
 use tokio::io::{AsyncRead, AsyncWrite, BufReader};
 use tracing::debug;
 
@@ -28,37 +29,13 @@ struct SessionState {
     hash_pss: bool,
 }
 
-#[derive(Default)]
-struct CallerGuard {
-    #[cfg(target_os = "macos")]
-    macos: Option<keyguard_agent_identity::macos::MacosPeerIdentity>,
-    #[cfg(target_os = "linux")]
-    linux: Option<keyguard_agent_identity::linux_identity::LinuxProcessIdentity>,
-}
-
-impl CallerGuard {
-    fn revalidate(&self) -> Result<()> {
-        #[cfg(target_os = "macos")]
-        if let Some(identity) = self.macos.as_ref() {
-            identity
-                .revalidate()
-                .map_err(|error| anyhow::anyhow!("macOS caller identity changed: {error}"))?;
-        }
-        #[cfg(target_os = "linux")]
-        if let Some(identity) = self.linux.as_ref() {
-            identity
-                .revalidate()
-                .map_err(|error| anyhow::anyhow!("Linux caller identity changed: {error}"))?;
-        }
-        Ok(())
-    }
-}
-
-#[cfg_attr(any(target_os = "linux", target_os = "macos"), allow(dead_code))]
+/// Serves one Assuan connection; `caller_guard` is revalidated before each
+/// key listing, signature, and decryption.
 pub async fn serve_connection<S>(
     stream: S,
     ipc_client: IpcClient,
     caller: Option<CallerIdentity>,
+    caller_guard: CallerGuard,
     socket_name: String,
 ) -> Result<()>
 where
@@ -70,51 +47,7 @@ where
         caller,
         socket_name,
         AssuanTimeouts::default(),
-        CallerGuard::default(),
-    )
-    .await
-}
-
-#[cfg(target_os = "linux")]
-pub async fn serve_connection_with_linux_guard<S>(
-    stream: S,
-    ipc_client: IpcClient,
-    caller: Option<CallerIdentity>,
-    linux_guard: Option<keyguard_agent_identity::linux_identity::LinuxProcessIdentity>,
-    socket_name: String,
-) -> Result<()>
-where
-    S: AsyncRead + AsyncWrite + Unpin,
-{
-    serve_connection_with_timeouts_and_guard(
-        stream,
-        ipc_client,
-        caller,
-        socket_name,
-        AssuanTimeouts::default(),
-        CallerGuard { linux: linux_guard },
-    )
-    .await
-}
-
-#[cfg(target_os = "macos")]
-pub async fn serve_connection_with_macos_guard<S>(
-    stream: S,
-    ipc_client: IpcClient,
-    caller: Option<CallerIdentity>,
-    macos_guard: Option<keyguard_agent_identity::macos::MacosPeerIdentity>,
-    socket_name: String,
-) -> Result<()>
-where
-    S: AsyncRead + AsyncWrite + Unpin,
-{
-    serve_connection_with_timeouts_and_guard(
-        stream,
-        ipc_client,
-        caller,
-        socket_name,
-        AssuanTimeouts::default(),
-        CallerGuard { macos: macos_guard },
+        caller_guard,
     )
     .await
 }

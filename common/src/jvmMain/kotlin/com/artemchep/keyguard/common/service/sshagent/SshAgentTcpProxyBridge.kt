@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.sshagent
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_APP_BUNDLE_PATH_LENGTH
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_EXECUTABLE_PATH_LENGTH
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_NAME_LENGTH
@@ -33,7 +34,7 @@ internal suspend fun runSshAgentProxyBridge(
     proxyPort: Int,
     sessionId: ByteArray,
     sessionSecret: ByteArray,
-    senderAppInfo: SshAgentMessages.CallerIdentity? = null,
+    senderAppInfo: CallerIdentity? = null,
     connectHostCandidates: List<String> = DEFAULT_CONNECT_HOST_CANDIDATES,
     connectTimeoutMs: Int = DEFAULT_CONNECT_TIMEOUT_MS,
     connectDeadlineMs: Long = DEFAULT_CONNECT_DEADLINE_MS,
@@ -124,7 +125,7 @@ internal fun CoroutineScope.launchSshAgentProxyBridge(
     proxyPort: Int,
     sessionId: ByteArray,
     sessionSecret: ByteArray,
-    senderAppInfo: SshAgentMessages.CallerIdentity? = null,
+    senderAppInfo: CallerIdentity? = null,
     connectHostCandidates: List<String> = DEFAULT_CONNECT_HOST_CANDIDATES,
     connectTimeoutMs: Int = DEFAULT_CONNECT_TIMEOUT_MS,
     connectDeadlineMs: Long = DEFAULT_CONNECT_DEADLINE_MS,
@@ -232,7 +233,7 @@ internal fun buildAndroidSshAgentCallerIdentity(
     appName: String? = null,
     appBundlePath: String? = null,
     authorization: CallerAuthorization? = null,
-): SshAgentMessages.CallerIdentity? {
+): CallerIdentity? {
     val normalizedProcessName = sanitizeAndroidCallerDisplayValue(
         processName,
         MAX_AGENT_CALLER_NAME_LENGTH,
@@ -262,7 +263,7 @@ internal fun buildAndroidSshAgentCallerIdentity(
         return null
     }
 
-    return SshAgentMessages.CallerIdentity(
+    return CallerIdentity(
         pid = pid ?: 0,
         uid = uid ?: 0,
         gid = gid ?: 0,
@@ -354,10 +355,10 @@ private fun compareUnsigned(
 }
 
 internal fun mergeAndroidSshAgentCallerIdentity(
-    caller: SshAgentMessages.CallerIdentity?,
-    senderAppInfo: SshAgentMessages.CallerIdentity?,
+    caller: CallerIdentity?,
+    senderAppInfo: CallerIdentity?,
     replaceCallerAuthorization: Boolean = false,
-): SshAgentMessages.CallerIdentity? {
+): CallerIdentity? {
     if (senderAppInfo == null) {
         return if (replaceCallerAuthorization) {
             // The Android bridge could not attribute the outer broadcast to
@@ -431,8 +432,8 @@ private fun CallerAuthorization?.hasVerifiedAndroidFrameworkPackageSubject(): Bo
         subject.fingerprint.size == AgentCallerAuthorizationSchema.FINGERPRINT_SIZE
 }
 
-private fun SshAgentMessages.CallerIdentity.sanitizeAndroidCallerIdentity(
-): SshAgentMessages.CallerIdentity = copy(
+private fun CallerIdentity.sanitizeAndroidCallerIdentity(
+): CallerIdentity = copy(
     processName = sanitizeAndroidCallerDisplayValue(
         processName,
         MAX_AGENT_CALLER_NAME_LENGTH,

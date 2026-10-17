@@ -60,13 +60,11 @@ internal object SshAgentNotifications {
     fun createRequestNotification(
         context: Context,
         notificationTag: String,
-        promptKind: AndroidSshAgentPromptKind,
         appName: String?,
     ): Notification {
         val channelId = createRequestChannel(context)
         val contentText = createRequestNotificationContentText(
             context = context,
-            promptKind = promptKind,
             appName = appName,
         )
         return NotificationCompat.Builder(context, channelId)
@@ -84,26 +82,13 @@ internal object SshAgentNotifications {
 
     private fun createRequestNotificationContentText(
         context: Context,
-        promptKind: AndroidSshAgentPromptKind,
         appName: String?,
     ): String {
         val normalizedAppName = appName?.takeIf { it.isNotBlank() }
-        return when (promptKind) {
-            AndroidSshAgentPromptKind.Unlock -> {
-                if (normalizedAppName != null) {
-                    context.getString(R.string.notification_termux_ssh_content_unlock_app, normalizedAppName)
-                } else {
-                    context.getString(R.string.notification_termux_ssh_content_unlock)
-                }
-            }
-
-            AndroidSshAgentPromptKind.Sign -> {
-                if (normalizedAppName != null) {
-                    context.getString(R.string.notification_termux_ssh_content_sign_app, normalizedAppName)
-                } else {
-                    context.getString(R.string.notification_termux_ssh_content_sign)
-                }
-            }
+        return if (normalizedAppName != null) {
+            context.getString(R.string.notification_termux_ssh_content_sign_app, normalizedAppName)
+        } else {
+            context.getString(R.string.notification_termux_ssh_content_sign)
         }
     }
 

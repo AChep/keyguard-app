@@ -1,0 +1,18 @@
+[package]
+name = "keyguard-agent-proto"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+description = "Shared protobuf caller schema for Keyguard agent IPC"
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+prost.workspace = true
+
+[build-dependencies]
+prost-build.workspace = true
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

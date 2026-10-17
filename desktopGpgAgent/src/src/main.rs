@@ -1,8 +1,6 @@
 //! keyguard-gpg-agent: GPG agent bridge for Keyguard.
 
 mod assuan;
-#[cfg(unix)]
-mod caller_identity;
 mod config;
 mod ipc;
 mod socket;

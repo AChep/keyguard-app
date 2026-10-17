@@ -4,6 +4,7 @@
 //! protocol requests by delegating to the Keyguard desktop app via IPC.
 
 use anyhow::Result;
+use keyguard_agent_identity::caller_guard::CallerGuard;
 use keyguard_agent_identity::AuthorizationContextFingerprint;
 use ssh_agent_lib::agent::Session;
 use ssh_agent_lib::error::AgentError;
@@ -52,80 +53,34 @@ pub struct KeyguardAgent<K: KeyProvider> {
     key_provider: K,
     caller: Option<CallerIdentity>,
     session_bindings: SessionBindingState,
+    caller_guard: std::sync::Arc<CallerGuard>,
     #[cfg(windows)]
     windows_caller_guard: Option<std::sync::Arc<crate::windows_identity::WindowsCallerIdentity>>,
-    #[cfg(target_os = "macos")]
-    macos_caller_guard: Option<keyguard_agent_identity::macos::MacosPeerIdentity>,
-    #[cfg(target_os = "linux")]
-    linux_caller_guard:
-        Option<std::sync::Arc<keyguard_agent_identity::linux_identity::LinuxProcessIdentity>>,
 }
 
 impl<K: KeyProvider> KeyguardAgent<K> {
     #[cfg(test)]
     pub fn new(key_provider: K) -> Self {
-        Self {
-            key_provider,
-            caller: None,
-            session_bindings: SessionBindingState::default(),
-            #[cfg(windows)]
-            windows_caller_guard: None,
-            #[cfg(target_os = "macos")]
-            macos_caller_guard: None,
-            #[cfg(target_os = "linux")]
-            linux_caller_guard: None,
-        }
+        Self::with_caller(key_provider, None)
     }
 
-    #[cfg(any(test, not(any(target_os = "linux", target_os = "macos", windows))))]
+    #[cfg(test)]
     pub fn with_caller(key_provider: K, caller: Option<CallerIdentity>) -> Self {
+        Self::with_caller_guard(key_provider, caller, CallerGuard::default())
+    }
+
+    fn with_caller_guard(
+        key_provider: K,
+        caller: Option<CallerIdentity>,
+        caller_guard: CallerGuard,
+    ) -> Self {
         Self {
             key_provider,
             caller,
             session_bindings: SessionBindingState::default(),
+            caller_guard: std::sync::Arc::new(caller_guard),
             #[cfg(windows)]
             windows_caller_guard: None,
-            #[cfg(target_os = "macos")]
-            macos_caller_guard: None,
-            #[cfg(target_os = "linux")]
-            linux_caller_guard: None,
-        }
-    }
-
-    #[cfg(target_os = "macos")]
-    fn with_macos_caller(
-        key_provider: K,
-        context: Option<crate::caller_identity::UnixCallerContext>,
-    ) -> Self {
-        let (caller, macos_caller_guard) = match context {
-            Some(context) => (Some(context.caller), context.macos_guard),
-            None => (None, None),
-        };
-        Self {
-            key_provider,
-            caller,
-            session_bindings: SessionBindingState::default(),
-            macos_caller_guard,
-        }
-    }
-
-    #[cfg(target_os = "linux")]
-    fn with_linux_caller(
-        key_provider: K,
-        context: Option<crate::caller_identity::UnixCallerContext>,
-    ) -> Self {
-        let (caller, linux_caller_guard) = match context {
-            Some(context) => (
-                Some(context.caller),
-                context.linux_guard.map(std::sync::Arc::new),
-            ),
-            None => (None, None),
-        };
-        Self {
-            key_provider,
-            caller,
-            session_bindings: SessionBindingState::default(),
-            linux_caller_guard,
         }
     }
 
@@ -136,15 +91,19 @@ impl<K: KeyProvider> KeyguardAgent<K> {
         guard: Option<crate::windows_identity::WindowsCallerIdentity>,
     ) -> Self {
         Self {
-            key_provider,
-            caller,
-            session_bindings: SessionBindingState::default(),
             windows_caller_guard: guard.map(std::sync::Arc::new),
+            ..Self::with_caller_guard(key_provider, caller, CallerGuard::default())
         }
     }
 
-    #[cfg(windows)]
-    fn ensure_windows_caller_valid(&mut self) -> Result<(), AgentError> {
+    /// Refuses the operation when the accepted caller changed. On Windows,
+    /// also refreshes the best-effort pipe-opener evidence.
+    fn ensure_caller_valid(&mut self) -> Result<(), AgentError> {
+        if let Err(error) = self.caller_guard.revalidate() {
+            warn!(%error, "Caller identity changed; refusing agent operation");
+            return Err(AgentError::Failure);
+        }
+        #[cfg(windows)]
         if let (Some(guard), Some(caller)) = (&self.windows_caller_guard, &mut self.caller) {
             guard.update_caller(caller).map_err(|error| {
                 warn!(%error, "Windows pipe opener changed; refusing agent operation");
@@ -181,30 +140,6 @@ impl<K: KeyProvider> KeyguardAgent<K> {
             }
         }
         Some(caller)
-    }
-
-    #[cfg(target_os = "macos")]
-    fn ensure_macos_caller_valid(&self) -> Result<(), AgentError> {
-        let Some(guard) = self.macos_caller_guard.as_ref() else {
-            return Ok(());
-        };
-        if let Err(error) = guard.revalidate() {
-            warn!(%error, "macOS caller identity changed; refusing agent operation");
-            return Err(AgentError::Failure);
-        }
-        Ok(())
-    }
-
-    #[cfg(target_os = "linux")]
-    fn ensure_linux_caller_valid(&self) -> Result<(), AgentError> {
-        let Some(guard) = self.linux_caller_guard.as_ref() else {
-            return Ok(());
-        };
-        if let Err(error) = guard.revalidate() {
-            warn!(%error, "Linux caller process changed; refusing agent operation");
-            return Err(AgentError::Failure);
-        }
-        Ok(())
     }
 
     fn bind_session(&mut self, details: &[u8]) -> Result<(), SessionBindError> {
@@ -245,12 +180,7 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
     async fn request_identities(&mut self) -> Result<Vec<Identity>, AgentError> {
         debug!("Handling RequestIdentities");
 
-        #[cfg(windows)]
-        self.ensure_windows_caller_valid()?;
-        #[cfg(target_os = "macos")]
-        self.ensure_macos_caller_valid()?;
-        #[cfg(target_os = "linux")]
-        self.ensure_linux_caller_valid()?;
+        self.ensure_caller_valid()?;
 
         let keys_response = self
             .key_provider
@@ -290,13 +220,7 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
             return Err(AgentError::Failure);
         }
 
-        #[cfg(target_os = "macos")]
-        self.ensure_macos_caller_valid()?;
-        #[cfg(target_os = "linux")]
-        self.ensure_linux_caller_valid()?;
-
-        #[cfg(windows)]
-        self.ensure_windows_caller_valid()?;
+        self.ensure_caller_valid()?;
 
         // Find the matching key by comparing the public key data.
         let keys_response = self
@@ -325,12 +249,7 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
         debug!("Requesting signature from Keyguard");
 
         // Request signing from Keyguard (may prompt user for approval).
-        #[cfg(windows)]
-        self.ensure_windows_caller_valid()?;
-        #[cfg(target_os = "macos")]
-        self.ensure_macos_caller_valid()?;
-        #[cfg(target_os = "linux")]
-        self.ensure_linux_caller_valid()?;
+        self.ensure_caller_valid()?;
         let sign_caller = self.caller_for_sign();
         let sign_response = self
             .key_provider
@@ -401,24 +320,8 @@ impl<K: KeyProvider> ssh_agent_lib::agent::Agent<tokio::net::UnixListener>
     for KeyguardAgentFactory<K>
 {
     fn new_session(&mut self, socket: &tokio::net::UnixStream) -> impl Session {
-        #[cfg(target_os = "macos")]
-        {
-            let context = crate::caller_identity::caller_context_from_unix_stream(socket);
-            KeyguardAgent::with_macos_caller(self.key_provider.clone(), context)
-        }
-
-        #[cfg(target_os = "linux")]
-        {
-            let context = crate::caller_identity::caller_context_from_unix_stream(socket);
-            KeyguardAgent::with_linux_caller(self.key_provider.clone(), context)
-        }
-
-        #[cfg(not(any(target_os = "linux", target_os = "macos")))]
-        let caller = crate::caller_identity::caller_from_unix_stream(socket);
-        #[cfg(not(any(target_os = "linux", target_os = "macos")))]
-        {
-            KeyguardAgent::with_caller(self.key_provider.clone(), caller)
-        }
+        let (caller, guard) = keyguard_agent_proto_adapter::caller_from_unix_stream(socket);
+        KeyguardAgent::with_caller_guard(self.key_provider.clone(), caller, guard)
     }
 }
 

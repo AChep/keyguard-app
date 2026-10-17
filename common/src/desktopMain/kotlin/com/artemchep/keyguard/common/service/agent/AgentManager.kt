@@ -16,7 +16,6 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
-import kotlin.time.Clock
 
 /** Exact stdout record emitted when an agent's public endpoint is ready. */
 const val AGENT_STARTUP_READY_RECORD = "KEYGUARD_AGENT_READY 1"
@@ -42,7 +41,7 @@ private const val AGENT_OUTPUT_DRAIN_TIMEOUT_MS = 200L
  */
 abstract class AgentManager(
     protected val logRepository: LogRepository,
-    private val cryptoGenerator: CryptoGenerator,
+    protected val cryptoGenerator: CryptoGenerator,
     private val config: Config,
 ) {
     /**
@@ -109,6 +108,9 @@ abstract class AgentManager(
     val defaultBinaryPath: Path? by lazy {
         findAgentBinary(config.binaryBaseName)
     }
+
+    val defaultAgentSocketPath: Path?
+        get() = config.defaultAgentSocketPath
 
     /**
      * Builds the concrete IPC server for this agent.
@@ -362,23 +364,6 @@ abstract class AgentManager(
             stopLocked()
             throw e
         }
-    }
-
-    /**
-     * Suspends until [request] is completed or its [AgentRequest.expiresAt]
-     * deadline is reached, whichever comes first.
-     */
-    protected suspend fun awaitWithExpiry(
-        request: AgentRequest,
-        reason: String,
-    ): Boolean = withTimeoutOrNull(request.expiresAt - Clock.System.now()) {
-        request.deferred.await()
-    } ?: run {
-        request.completeWithLog(
-            value = false,
-            reason = reason,
-        )
-        false
     }
 
     /**

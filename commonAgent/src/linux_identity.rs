@@ -385,6 +385,49 @@ pub fn process_identity_from_socket(
     })
 }
 
+/// The process that started a peer. Presentation data only.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct LinuxParentProcess {
+    /// PID of the parent process.
+    pub pid: u32,
+    /// Kernel-reported executable path of the parent process.
+    pub executable_path: String,
+}
+
+/// Reads the process that started `pid`, for a peer that only relays
+/// requests for it, such as a bundled command-line client.
+///
+/// # Errors
+///
+/// Returns an error when the process has no readable parent, or either
+/// process changed while being read.
+pub fn parent_process(pid: u32) -> Result<LinuxParentProcess, LinuxIdentityError> {
+    let peer = read_stable_process_relationship(pid)?;
+    let parent_pid = peer.parent_pid;
+    if parent_pid <= 1 || parent_pid == pid {
+        return Err(LinuxIdentityError::InvalidMetadata("parent PID"));
+    }
+    let parent = read_stable_process_relationship(parent_pid)?;
+    let executable_path = fs::read_link(
+        PathBuf::from("/proc")
+            .join(parent_pid.to_string())
+            .join("exe"),
+    )
+    .map_err(LinuxIdentityError::Kernel)?;
+    // Another process adopts an orphan, so an unchanged parent PID proves
+    // that the parent was not replaced by a process that reused its PID.
+    if read_stable_process_relationship(pid)? != peer
+        || read_stable_process_relationship(parent_pid)? != parent
+        || parent.start_time_ticks > peer.start_time_ticks
+    {
+        return Err(LinuxIdentityError::PeerIdentityChanged);
+    }
+    Ok(LinuxParentProcess {
+        pid: parent_pid,
+        executable_path: executable_path.to_string_lossy().into_owned(),
+    })
+}
+
 fn peer_credentials(socket_fd: RawFd) -> Result<libc::ucred, LinuxIdentityError> {
     let mut credentials = MaybeUninit::<libc::ucred>::uninit();
     let mut length = size_of::<libc::ucred>() as libc::socklen_t;
@@ -1245,6 +1288,23 @@ fn fingerprint_process_canonical(
 mod tests {
     use super::*;
     use std::os::unix::net::UnixStream;
+
+    #[test]
+    fn parent_process_is_the_process_that_started_the_child() {
+        let mut child = std::process::Command::new("sleep")
+            .arg("10")
+            .spawn()
+            .expect("child process");
+        let parent = parent_process(child.id()).expect("parent process");
+        child.kill().expect("kill child");
+        child.wait().expect("wait child");
+        assert_eq!(parent.pid, std::process::id());
+        assert_eq!(
+            Path::new(&parent.executable_path),
+            std::env::current_exe().expect("current executable")
+        );
+        assert!(parent_process(child.id()).is_err());
+    }
 
     #[test]
     fn parses_identity_fields_after_complex_process_name() {

@@ -1,7 +1,14 @@
 package com.artemchep.keyguard.apple.gpgagent
 
 import platform.posix.SHUT_WR
+import com.artemchep.keyguard.apple.agent.ensurePrivateDirectory
+import com.artemchep.keyguard.apple.agent.readPacket
+import com.artemchep.keyguard.apple.agent.requireSocketPath
+import com.artemchep.keyguard.apple.agent.socketAddress
+import com.artemchep.keyguard.apple.agent.verifiedChildPeer
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPacketSession
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
@@ -124,22 +131,22 @@ class GpgAgentRuntimeMacosTest {
                     delay(2)
                 }
             }
-            assertContentEquals(expected, withTimeout(2_000) { readPacket(reader) })
+            assertContentEquals(expected, withTimeout(2_000) { readPacket(reader, MAX_PACKET_SIZE) })
             writing.join()
             sendBytes(writer, byteArrayOf(1, 0, 0, 1)) // 16 MiB + 1
-            assertNull(readPacket(reader))
+            assertNull(readPacket(reader, MAX_PACKET_SIZE))
             sendBytes(writer, byteArrayOf(0, 0, 0, 0))
-            assertNull(readPacket(reader))
+            assertNull(readPacket(reader, MAX_PACKET_SIZE))
             sendBytes(writer, byteArrayOf(0, 0, 0, 3, 1))
             shutdown(writer, SHUT_WR)
-            assertNull(readPacket(reader))
+            assertNull(readPacket(reader, MAX_PACKET_SIZE))
         }
     }
 
     @Test
     fun cancellationInterruptsAnIdleFrameRead() = runBlocking {
         socketPair { reader, _ ->
-            val read = async { readPacket(reader) }
+            val read = async { readPacket(reader, MAX_PACKET_SIZE) }
             delay(30)
             withTimeout(1_000) { read.cancelAndJoin() }
         }
@@ -165,14 +172,14 @@ class GpgAgentRuntimeMacosTest {
                 // connection coroutine can begin. Its descriptor must still close.
                 dispatcher.runNext()
                 serving.cancel()
-                dispatcher.runAll()
-                assertTrue(serving.isCompleted)
+                // Descriptor watches release on a GCD queue, so cancellation
+                // completes asynchronously.
+                dispatcher.runUntil { serving.isCompleted }
                 val buffer = ByteArray(1)
                 assertEquals(0L, buffer.usePinned { read(client, it.addressOf(0), 1u) })
             } finally {
                 serving?.cancel()
-                dispatcher.runAll()
-                serving?.join()
+                dispatcher.runUntil { serving?.isCompleted != false }
                 close(client)
                 server.close()
             }
@@ -225,11 +232,15 @@ class GpgAgentRuntimeMacosTest {
         }
     }
 
+    private companion object {
+        const val MAX_PACKET_SIZE = GpgAgentPacketSession.MAX_PACKET_SIZE
+    }
+
     private fun config() = GpgAgentRuntimeConfig(
         authToken = ByteArray(32) { it.toByte() },
         processor = object : GpgAgentRequestProcessor {
             override suspend fun listKeys(
-                caller: GpgAgentMessages.CallerIdentity?,
+                caller: CallerIdentity?,
             ) = GpgAgentRequestProcessor.ListKeysResult.VaultLocked
             override suspend fun signHash(
                 request: GpgAgentMessages.SignHashRequest,
@@ -279,8 +290,10 @@ class GpgAgentRuntimeMacosTest {
 
         fun runNext() { queue.tryReceive().getOrThrow().run() }
 
-        fun runAll() {
-            while (true) (queue.tryReceive().getOrNull() ?: return).run()
+        fun runUntil(done: () -> Boolean) = runBlocking {
+            withTimeout(2_000) {
+                while (!done()) queue.receive().run()
+            }
         }
     }
 }

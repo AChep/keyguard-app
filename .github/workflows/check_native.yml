@@ -436,6 +436,14 @@ jobs:
       - name: "Run platform helper Rust tests"
         if: needs.changes.outputs.desktop_native == 'true'
         run: cargo test --manifest-path desktopLibNative/src/Cargo.toml --all-targets --locked --offline
+      - name: "Check Windows agent helper code"
+        if: runner.os == 'Windows' && needs.changes.outputs.desktop_native == 'true'
+        shell: bash
+        run: |
+          # One helper at a time, so features never unify across helpers.
+          for package in keyguard-ssh-agent keyguard-gpg-agent; do
+            cargo clippy -p "$package" --all-targets --locked --offline -- -D warnings
+          done
       - name: "Test Linux kernel credential protection"
         if: runner.os == 'Linux' && needs.changes.outputs.desktop_native == 'true'
         run: cargo test --manifest-path desktopLibNative/src/Cargo.toml --locked --offline keychain::memory::protected::tests -- --ignored

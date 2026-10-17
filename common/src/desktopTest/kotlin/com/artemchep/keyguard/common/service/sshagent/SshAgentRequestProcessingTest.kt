@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchem
 import com.artemchep.keyguard.common.service.agent.ApprovalCacheInvalidation
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
 import com.artemchep.keyguard.common.service.agent.finishAfterBlockedAgentRead
@@ -91,7 +92,6 @@ class SshAgentRequestProcessingTest {
         sessionId: String = "test-session",
         onApprovalRequest: suspend (SshAgentApprovalPrompt) -> Boolean = { true },
         sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
-        onGetListRequest: suspend (caller: SshAgentMessages.CallerIdentity?) -> Boolean = { _ -> false },
         agentFilter: GetSshAgentFilter = sshAgentFilter,
         pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
     ) = SshAgentIpcServer(
@@ -117,7 +117,6 @@ class SshAgentRequestProcessingTest {
         testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
         sessionId = sessionId,
         onApprovalRequest = onApprovalRequest,
-        onGetListRequest = onGetListRequest,
         pendingUsageHistoryQueue = pendingUsageHistoryQueue,
     )
 
@@ -301,12 +300,7 @@ class SshAgentRequestProcessingTest {
 
     @Test
     fun `handleListKeys returns empty success without prompt when locked cache is empty`() = runTest {
-        var getListPromptCount = 0
         val server = createServer(
-            onGetListRequest = {
-                getListPromptCount++
-                false
-            },
         )
 
         val response = server.handleListKeys(
@@ -317,12 +311,10 @@ class SshAgentRequestProcessingTest {
         assertEquals(20L, response.id)
         assertNull(response.error)
         assertEquals(emptyList(), response.listKeys?.keys)
-        assertEquals(0, getListPromptCount)
     }
 
     @Test
     fun `handleListKeys returns exposed cached keys without unlock prompt when vault is locked`() = runTest {
-        var getListPromptCount = 0
         val publicKey = buildOpenSshPublicKey("ssh-ed25519")
         val server = createServer(
             sshAgentPublicKeyRepository = FakeSshAgentPublicKeyRepository(
@@ -339,10 +331,6 @@ class SshAgentRequestProcessingTest {
                     ),
                 ),
             ),
-            onGetListRequest = {
-                getListPromptCount++
-                false
-            },
         )
 
         val response = server.handleListKeys(
@@ -358,12 +346,10 @@ class SshAgentRequestProcessingTest {
         assertEquals(publicKey, key.publicKey)
         assertEquals("ssh-ed25519", key.keyType)
         assertEquals("SHA256:cached", key.fingerprint)
-        assertEquals(0, getListPromptCount)
     }
 
     @Test
     fun `handleListKeys returns keys without unlock prompt when vault is already unlocked`() = runTest {
-        var getListPromptCount = 0
         val server = createServer(
             vaultSession = MutableVaultSession(
                 createUnlockedSession(
@@ -374,10 +360,6 @@ class SshAgentRequestProcessingTest {
                     ),
                 ),
             ),
-            onGetListRequest = {
-                getListPromptCount++
-                true
-            },
         )
 
         val response = server.handleListKeys(
@@ -390,7 +372,6 @@ class SshAgentRequestProcessingTest {
         assertNull(response.error)
         assertEquals(1, payload.keys.size)
         assertEquals("Primary key", payload.keys.single().name)
-        assertEquals(0, getListPromptCount)
     }
 
     @Test
@@ -472,7 +453,7 @@ class SshAgentRequestProcessingTest {
     @Test
     fun `handleListKeys records list request in usage history`() = runTest {
         val history = mutableListOf<AddSshUsageHistoryRequest>()
-        val caller = SshAgentMessages.CallerIdentity(appName = "Termux")
+        val caller = CallerIdentity(appName = "Termux")
         val server = createServer(
             vaultSession = MutableVaultSession(
                 createUnlockedSessionWithHistory(
@@ -560,14 +541,9 @@ class SshAgentRequestProcessingTest {
     @Test
     fun `handleSignData returns user denied when locked vault approval is denied`() = runTest {
         var approvalPromptCount = 0
-        var unlockPromptCount = 0
         val server = createServer(
             onApprovalRequest = {
                 approvalPromptCount++
-                false
-            },
-            onGetListRequest = {
-                unlockPromptCount++
                 false
             },
         )
@@ -584,13 +560,11 @@ class SshAgentRequestProcessingTest {
         assertEquals(SshAgentMessages.ErrorCode.USER_DENIED, response.error!!.code)
         assertNull(response.signData)
         assertEquals(1, approvalPromptCount)
-        assertEquals(0, unlockPromptCount)
     }
 
     @Test
     fun `handleSignData returns vault locked when approval succeeds but vault stays locked`() = runTest {
         var approvalPromptCount = 0
-        var unlockPromptCount = 0
         val server = createServer(
             onApprovalRequest = {
                 approvalPromptCount++
@@ -610,7 +584,6 @@ class SshAgentRequestProcessingTest {
         assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, response.error!!.code)
         assertNull(response.signData)
         assertEquals(1, approvalPromptCount)
-        assertEquals(0, unlockPromptCount)
     }
 
     @Test
@@ -700,7 +673,6 @@ class SshAgentRequestProcessingTest {
     @Test
     fun `handleSignData still requires approval when vault is unlocked`() = runTest {
         var approvalPromptCount = 0
-        var unlockPromptCount = 0
         val publicKeyBlob = buildOpenSshPublicKeyBlob("ssh-ed25519")
         val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)}"
         val unlockedSession = MutableVaultSession(
@@ -732,7 +704,6 @@ class SshAgentRequestProcessingTest {
         assertNotNull(response.error)
         assertEquals(SshAgentMessages.ErrorCode.USER_DENIED, response.error!!.code)
         assertNull(response.signData)
-        assertEquals(0, unlockPromptCount)
         assertEquals(1, approvalPromptCount)
         assertTrue("User denied the signing request" in logRepository.messages)
         assertTrue(logRepository.messages.none { it.contains("Signer") })
@@ -857,7 +828,7 @@ class SshAgentRequestProcessingTest {
         var approvalPromptCount = 0
         val storedPublicKey = buildOpenSshPublicKey("ssh-ed25519")
         val requestedPublicKey = buildOpenSshPublicKey("ssh-rsa")
-        val caller = SshAgentMessages.CallerIdentity(appName = "Terminal")
+        val caller = CallerIdentity(appName = "Terminal")
         val server = createServer(
             vaultSession = MutableVaultSession(
                 createUnlockedSessionWithHistory(
@@ -1150,7 +1121,7 @@ class SshAgentRequestProcessingTest {
     }
 
     private suspend fun assertMacosApprovalCount(
-        callers: List<SshAgentMessages.CallerIdentity>,
+        callers: List<CallerIdentity>,
         expected: Int,
         policy: AgentApprovalCachePolicy = AgentApprovalCachePolicy.Default,
     ) {
@@ -1215,7 +1186,7 @@ class SshAgentRequestProcessingTest {
             publicKey = publicKey,
             data = byteArrayOf(1, 2, 3),
             flags = 0x02,
-            caller = SshAgentMessages.CallerIdentity(appName = "Terminal"),
+            caller = CallerIdentity(appName = "Terminal"),
         )
 
         val firstResponse = server.handleSignData(requestId = 47L, req = request)
@@ -2031,7 +2002,7 @@ class SshAgentRequestProcessingTest {
     private fun cacheableCaller(
         fingerprintByte: Byte = 1,
         appName: String = "Terminal",
-    ): SshAgentMessages.CallerIdentity = SshAgentMessages.CallerIdentity(
+    ): CallerIdentity = CallerIdentity(
         uid = 1000,
         gid = 1000,
         processName = "ssh",
@@ -2048,7 +2019,7 @@ class SshAgentRequestProcessingTest {
         terminal: Byte? = 30,
         application: Byte? = 40,
         context: Byte? = null,
-    ) = SshAgentMessages.CallerIdentity(
+    ) = CallerIdentity(
         appName = "iTerm2",
         authorization = CallerAuthorization(
             connectionFingerprint = ByteArray(32) { connection },

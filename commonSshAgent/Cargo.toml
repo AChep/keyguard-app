@@ -9,6 +9,7 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+keyguard-agent-proto.workspace = true
 prost.workspace = true
 
 [build-dependencies]

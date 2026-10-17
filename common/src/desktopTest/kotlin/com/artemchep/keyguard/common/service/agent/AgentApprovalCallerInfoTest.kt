@@ -1,6 +1,5 @@
-package com.artemchep.keyguard.feature.agent
+package com.artemchep.keyguard.common.service.agent
 
-import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -9,7 +8,7 @@ import kotlin.test.assertNull
 class AgentApprovalCallerInfoTest {
     @Test
     fun `buildAgentApprovalCallerInfo shows process details for process-only caller`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             pid = 321,
             uid = 100,
             gid = 100,
@@ -26,7 +25,7 @@ class AgentApprovalCallerInfoTest {
 
     @Test
     fun `buildAgentApprovalCallerInfo prefers app name but still shows process metadata`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             pid = 456,
             uid = 200,
             gid = 200,
@@ -45,7 +44,7 @@ class AgentApprovalCallerInfoTest {
 
     @Test
     fun `buildAgentApprovalCallerInfo keeps authenticated label ahead of OS name`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             pid = 456,
             uid = 200,
             gid = 200,
@@ -71,7 +70,7 @@ class AgentApprovalCallerInfoTest {
 
     @Test
     fun `buildAgentApprovalCallerInfo escapes controls and bidi and bounds labels`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             processName = "ssh\nspoof\u202Etxt",
             appName = "A".repeat(300),
             executablePath = "/tmp/ssh\u0000suffix",
@@ -93,7 +92,7 @@ class AgentApprovalCallerInfoTest {
 
     @Test
     fun `buildAgentApprovalCallerInfo uses shared field-specific path limits`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             appBundlePath = "b".repeat(600),
             executablePath = "/" + "x".repeat(5_000),
         )

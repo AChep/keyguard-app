@@ -33,8 +33,6 @@ class GpgAgentIpcServer private constructor(
 ) {
     companion object {
         private const val TAG = "GpgAgentIpcServer"
-
-        const val APPROVAL_TIMEOUT_MS = GpgAgentRequestProcessorImpl.APPROVAL_TIMEOUT_MS
     }
 
     constructor(

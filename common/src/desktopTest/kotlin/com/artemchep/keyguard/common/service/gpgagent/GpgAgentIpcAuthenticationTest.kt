@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
@@ -76,7 +77,7 @@ class GpgAgentIpcAuthenticationTest {
 
     private object NoOpRequestProcessor : GpgAgentRequestProcessor {
         override suspend fun listKeys(
-            caller: GpgAgentMessages.CallerIdentity?,
+            caller: CallerIdentity?,
         ) = GpgAgentRequestProcessor.ListKeysResult.VaultLocked
 
         override suspend fun signHash(

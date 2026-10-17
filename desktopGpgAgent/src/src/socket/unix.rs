@@ -309,51 +309,13 @@ where
             }
         };
 
-        #[cfg(target_os = "macos")]
-        let (caller, macos_guard) =
-            match crate::caller_identity::caller_context_from_unix_stream(&stream) {
-                Some(context) => (Some(context.caller), context.macos_guard),
-                None => (None, None),
-            };
-        #[cfg(target_os = "linux")]
-        let (caller, linux_guard) =
-            match crate::caller_identity::caller_context_from_unix_stream(&stream) {
-                Some(context) => (Some(context.caller), context.linux_guard),
-                None => (None, None),
-            };
-        #[cfg(not(any(target_os = "linux", target_os = "macos")))]
-        let caller = crate::caller_identity::caller_from_unix_stream(&stream);
+        let (caller, caller_guard) = keyguard_agent_proto_adapter::caller_from_unix_stream(&stream);
         let ipc_client = ipc_client.clone();
         let socket_name = socket_name.clone();
         tasks.spawn(async move {
             // Keep the permit for the full Assuan session.
             let _permit = permit;
-            #[cfg(target_os = "macos")]
-            {
-                assuan::serve_connection_with_macos_guard(
-                    stream,
-                    ipc_client,
-                    caller,
-                    macos_guard,
-                    socket_name,
-                )
-                .await
-            }
-            #[cfg(target_os = "linux")]
-            {
-                assuan::serve_connection_with_linux_guard(
-                    stream,
-                    ipc_client,
-                    caller,
-                    linux_guard,
-                    socket_name,
-                )
-                .await
-            }
-            #[cfg(not(any(target_os = "linux", target_os = "macos")))]
-            {
-                assuan::serve_connection(stream, ipc_client, caller, socket_name).await
-            }
+            assuan::serve_connection(stream, ipc_client, caller, caller_guard, socket_name).await
         });
     };
 

@@ -8,7 +8,13 @@ struct GpgAgentApprovalView: View {
     @Environment(GpgAgentModel.self) private var gpgAgentModel
     @Environment(VaultSessionModel.self) private var authModel
     let request: GpgAgentRequestSnapshot
-    @State private var decision = GpgAgentApprovalDecision()
+    @State private var decision: AgentApprovalDecision
+
+    init(request: GpgAgentRequestSnapshot) {
+        self.request = request
+        _decision = State(
+            initialValue: AgentApprovalDecision(requestID: request.id, expiresAtEpochMs: request.expiresAtEpochMs))
+    }
 
     private var title: String {
         request.operation == .decrypt
@@ -57,13 +63,7 @@ struct GpgAgentApprovalView: View {
                             .padding(6)
                         }
 
-                        if authModel.status == .locked {
-                            MasterPasswordView(mode: .unlock)
-                                .frame(height: 290)
-                        } else if authModel.status != .unlocked {
-                            ProgressView(L10n.vaultLoadingText)
-                        }
-
+                        AgentApprovalVaultUnlock()
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(20)
@@ -102,13 +102,13 @@ struct GpgAgentApprovalView: View {
 
     private func resolve(approved: Bool) {
         guard
-            decision.begin(
+            let requestID = decision.begin(
                 approved: approved,
                 vaultUnlocked: authModel.status == .unlocked,
-                expiresAtEpochMs: request.expiresAtEpochMs
+                currentRequestID: gpgAgentModel.gpgAgentRequests.first?.id
             )
         else { return }
-        gpgAgentModel.resolveGpgAgentRequest(id: request.id, approved: approved)
+        gpgAgentModel.resolveGpgAgentRequest(id: requestID, approved: approved)
     }
 
     private func detailRow(_ label: String, _ value: String) -> some View {

@@ -70,9 +70,15 @@ jobs:
       - name: "Run Rust static analysis"
         run: |
           cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonAgent/proto/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonAgent/proto-adapter/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path commonSshAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path androidSshAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path desktopSshAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+      - name: "Test shared caller schema and adapters"
+        run: |
+          cargo test --manifest-path commonAgent/proto/Cargo.toml --locked
+          cargo test --manifest-path commonAgent/proto-adapter/Cargo.toml --locked
       - name: "Test commonSshAgent crate"
         run: cargo test --manifest-path commonSshAgent/Cargo.toml
       - name: "Test androidSshAgent crate"
@@ -115,6 +121,8 @@ jobs:
           cargo clippy --manifest-path desktopSshAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
       - name: "Test shared caller identity on this platform"
         run: cargo test --manifest-path commonAgent/Cargo.toml --all-targets --locked
+      - name: "Test shared caller adapter on this platform"
+        run: cargo test --manifest-path commonAgent/proto-adapter/Cargo.toml --all-targets --locked
       - name: "Test desktop SSH agent on this platform"
         run: cargo test --manifest-path desktopSshAgent/src/Cargo.toml --all-targets --locked
       - name: "Setup OpenSSH (Linux)"

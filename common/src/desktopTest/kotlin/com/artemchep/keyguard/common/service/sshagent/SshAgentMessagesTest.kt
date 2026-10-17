@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.sshagent
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
@@ -69,7 +70,7 @@ class SshAgentMessagesTest {
 
     @Test
     fun `ListKeysRequest with caller identity round-trips correctly`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             pid = 123,
             uid = 456,
             gid = 789,
@@ -119,7 +120,7 @@ class SshAgentMessagesTest {
 
     @Test
     fun `SignDataRequest with caller identity round-trips correctly`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             pid = 123,
             uid = 456,
             gid = 789,
@@ -150,7 +151,7 @@ class SshAgentMessagesTest {
 
     @Test
     fun `SignDataRequest with Android app caller identity round-trips correctly`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             pid = 123,
             uid = 456,
             gid = 789,
@@ -182,7 +183,7 @@ class SshAgentMessagesTest {
         val connection = ByteArray(32) { it.toByte() }
         val process = ByteArray(32) { (it + 32).toByte() }
         val context = ByteArray(32) { (it + 64).toByte() }
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             appName = "Terminal",
             authorization = CallerAuthorization(
                 connectionFingerprint = connection,

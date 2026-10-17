@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.gpge2e
 
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
@@ -39,7 +40,7 @@ class TestGpgAgentRequestProcessor(
     }
 
     override suspend fun listKeys(
-        caller: GpgAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ): GpgAgentRequestProcessor.ListKeysResult {
         val gpgKeys = keys.flatMap { key ->
             key.metadataKeys.map { metadataKey ->

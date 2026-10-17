@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.service.agent.AgentPacketChannel
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -147,14 +148,14 @@ class SshAgentPacketSessionTest {
 
     @Test
     fun `tcp session augments caller identity when configured`() = runTest {
-        var capturedCaller: SshAgentMessages.CallerIdentity? = null
+        var capturedCaller: CallerIdentity? = null
         val channel = FakePacketChannel(
             requests = listOf(
                 SshAgentProtoCodec.encodeRequest(
                     SshAgentMessages.IpcRequest(
                         id = 1L,
                         listKeys = SshAgentMessages.ListKeysRequest(
-                            caller = SshAgentMessages.CallerIdentity(
+                            caller = CallerIdentity(
                                 pid = 7,
                                 processName = "ssh",
                                 executablePath = "/usr/bin/ssh",
@@ -197,11 +198,11 @@ class SshAgentPacketSessionTest {
     }
 
     private fun requestProcessor(
-        listKeys: suspend (SshAgentMessages.CallerIdentity?) -> SshAgentRequestProcessor.ListKeysResult =
+        listKeys: suspend (CallerIdentity?) -> SshAgentRequestProcessor.ListKeysResult =
             { SshAgentRequestProcessor.ListKeysResult.VaultLocked },
     ) = object : SshAgentRequestProcessor {
         override suspend fun listKeys(
-            caller: SshAgentMessages.CallerIdentity?,
+            caller: CallerIdentity?,
         ): SshAgentRequestProcessor.ListKeysResult = listKeys(caller)
 
         override suspend fun signData(

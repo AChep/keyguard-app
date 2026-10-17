@@ -13,13 +13,14 @@ import androidx.core.app.ServiceCompat
 import com.artemchep.keyguard.android.Notifications
 import com.artemchep.keyguard.android.util.canPostNotifications
 import com.artemchep.keyguard.common.R
-import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.service.agent.AgentApprovalBroker
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
+import com.artemchep.keyguard.common.service.agent.denyWhenSessionEnds
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalPrompt
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalWindowMemory
-import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorImpl
@@ -27,6 +28,7 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProtocol
 import com.artemchep.keyguard.common.service.sshagent.androidBridgeAuthorization
 import com.artemchep.keyguard.common.service.sshagent.buildAndroidSshAgentCallerIdentity
 import com.artemchep.keyguard.common.service.sshagent.launchSshAgentProxyBridge
+import com.artemchep.keyguard.common.service.sshagent.toApprovalRequest
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.decodeOrNull
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
@@ -37,17 +39,20 @@ import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.di.KeyguardKoinOwner
 import com.artemchep.keyguard.di.keyguardKoin
 import java.util.LinkedHashSet
+import java.util.UUID
 import kotlin.coroutines.CoroutineContext
-import kotlin.time.DurationUnit
-import kotlin.time.toDuration
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -104,30 +109,7 @@ class SshAgentService : Service(), KeyguardKoinOwner {
 
     private val bridgeTracker = SshAgentServiceBridgeTracker<Job>()
 
-    private fun createRequestFlow(
-        notificationTag: String,
-    ) = AndroidSshAgentRequestFlow(
-        enqueueRequest = SshRequestCoordinator::enqueue,
-        onRequestQueued = { request, promptKind, requestUiShown ->
-            cancelRequestNotification(notificationTag)
-            if (!requestUiShown) {
-                showRequestNotification(
-                    notificationTag = notificationTag,
-                    promptKind = promptKind,
-                    caller = request.caller,
-                )
-            }
-        },
-        onRequestFinished = {
-            cancelRequestNotification(notificationTag)
-        },
-        showRequestUi = {
-            SshRequestCoordinator.show(applicationContext)
-        },
-    )
-
     private fun createRequestProcessor(
-        requestFlow: AndroidSshAgentRequestFlow,
         sessionId: String,
         notificationTag: String,
     ): SshAgentRequestProcessor =
@@ -145,15 +127,7 @@ class SshAgentService : Service(), KeyguardKoinOwner {
             sessionId = sessionId,
             onApprovalRequest = { prompt ->
                 requestSigningApproval(
-                    requestFlow = requestFlow,
                     prompt = prompt,
-                    notificationTag = notificationTag,
-                )
-            },
-            onGetListRequest = { caller ->
-                requestVaultUnlock(
-                    requestFlow = requestFlow,
-                    caller = caller,
                     notificationTag = notificationTag,
                 )
             },
@@ -163,6 +137,7 @@ class SshAgentService : Service(), KeyguardKoinOwner {
         super.onCreate()
         notificationId = notificationIdPool.obtainId()
         requestNotificationId = notificationIdPool.obtainId()
+        scope.launch { SshRequestCoordinator.approvals.denyWhenSessionEnds(getVaultSession()) }
     }
 
     override fun onDestroy() {
@@ -283,9 +258,7 @@ class SshAgentService : Service(), KeyguardKoinOwner {
         }
 
         val bridgeJob = try {
-            val requestFlow = createRequestFlow(notificationTag)
             val requestProcessor = createRequestProcessor(
-                requestFlow = requestFlow,
                 sessionId = sessionId.toHex(),
                 notificationTag = notificationTag,
             )
@@ -383,45 +356,53 @@ class SshAgentService : Service(), KeyguardKoinOwner {
         )
     }
 
-    private suspend fun requestVaultUnlock(
-        requestFlow: AndroidSshAgentRequestFlow,
-        caller: SshAgentMessages.CallerIdentity?,
-        notificationTag: String,
-    ): Boolean {
-        if (getVaultSession.valueOrNull is MasterSession.Key) {
-            return true
-        }
-        logRepository.post(
-            TAG,
-            "Waiting for the user to unlock the vault for SSH request",
-            LogLevel.INFO,
-        )
-        return requestFlow.requestVaultUnlock(
-            caller = caller,
-            notificationTag = notificationTag,
-            timeout = SshAgentRequestProcessorImpl.APPROVAL_TIMEOUT_MS
-                .toDuration(DurationUnit.MILLISECONDS),
-        )
-    }
-
     private suspend fun requestSigningApproval(
-        requestFlow: AndroidSshAgentRequestFlow,
         prompt: SshAgentApprovalPrompt,
         notificationTag: String,
     ): Boolean {
         logRepository.post(TAG, "Waiting for user approval for SSH signing", LogLevel.INFO)
-        return requestFlow.requestSigningApproval(
-            prompt = prompt,
-            notificationTag = notificationTag,
-            timeout = SshAgentRequestProcessorImpl.APPROVAL_TIMEOUT_MS
-                .toDuration(DurationUnit.MILLISECONDS),
-        )
+        return coroutineScope {
+            var notification: Job? = null
+            try {
+                // Starting undispatched queues the request before its UI is shown.
+                val result = async(start = CoroutineStart.UNDISPATCHED) {
+                    SshRequestCoordinator.approvals.request { expiresAt ->
+                        prompt.toApprovalRequest(
+                            id = UUID.randomUUID().toString(),
+                            expiresAt = expiresAt,
+                            notificationTag = notificationTag,
+                        )
+                    }
+                }
+                val requestUiShown = SshRequestCoordinator.show(applicationContext)
+                cancelRequestNotification(notificationTag)
+                // The notification reopens the prompt. It also appears once
+                // the prompt closes while the request waits, for example
+                // after the user switched apps or swiped it away.
+                notification = launch(start = CoroutineStart.UNDISPATCHED) {
+                    if (requestUiShown) {
+                        SshRequestCoordinator.prompts.awaitClosed()
+                    }
+                    showRequestNotification(
+                        notificationTag = notificationTag,
+                        caller = prompt.caller,
+                    )
+                }
+                result.await() == AgentApprovalBroker.Result.Approved
+            } finally {
+                // A notification being posted on the main thread
+                // must be posted before it can be cancelled.
+                withContext(NonCancellable) {
+                    notification?.cancelAndJoin()
+                }
+                cancelRequestNotification(notificationTag)
+            }
+        }
     }
 
     private suspend fun showRequestNotification(
         notificationTag: String,
-        promptKind: AndroidSshAgentPromptKind,
-        caller: SshAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ) = withContext(Dispatchers.Main) {
         if (!canPostNotifications(this@SshAgentService)) {
             Log.w(
@@ -438,7 +419,6 @@ class SshAgentService : Service(), KeyguardKoinOwner {
                 SshAgentNotifications.createRequestNotification(
                     context = this@SshAgentService,
                     notificationTag = notificationTag,
-                    promptKind = promptKind,
                     appName = caller?.appName,
                 ),
             )

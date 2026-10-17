@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.gpgagent
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
@@ -51,7 +52,7 @@ class GpgAgentMessagesTest {
         val original = GpgAgentMessages.IpcRequest(
             id = 11L,
             listKeys = GpgAgentMessages.ListKeysRequest(
-                caller = GpgAgentMessages.CallerIdentity(
+                caller = CallerIdentity(
                     appName = "Terminal",
                     authorization = CallerAuthorization(
                         connectionFingerprint = connection,

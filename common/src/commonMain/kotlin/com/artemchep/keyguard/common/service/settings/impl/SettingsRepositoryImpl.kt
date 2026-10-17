@@ -239,67 +239,12 @@ class SettingsRepositoryImpl(
         5L.minutes
     }
 
-    private val sshAgentApprovalWindowRawPref =
-        store.getLong(
-            key = KEY_SSH_AGENT_APPROVAL_WINDOW,
-            defaultValue = defaultAgentApprovalWindow.inWholeMilliseconds,
-        )
-
-    private val sshAgentApprovalCachePolicyRawPref =
-        store.getString(
-            key = KEY_SSH_AGENT_APPROVAL_CACHE_POLICY,
-            defaultValue = AgentApprovalCachePolicy.Default.storageKey,
-        )
-
-    private val sshAgentApprovalCacheConfigState =
-        AgentApprovalCacheConfigState(
-            loadApprovalWindow = {
-                with(Duration) {
-                    sshAgentApprovalWindowRawPref.first().milliseconds
-                }
-            },
-            loadCachePolicy = {
-                sshAgentApprovalCachePolicyRawPref
-                    .first()
-                    .let(AgentApprovalCachePolicy::fromStorageKey)
-            },
-        )
-
-    private val sshAgentApprovalWindowPref = sshAgentApprovalWindowRawPref
-        .coordinated(
-            set = { value, persist ->
-                sshAgentApprovalCacheConfigState.updateApprovalWindow(
-                    approvalWindow = with(Duration) { value.milliseconds },
-                    persist = persist,
-                )
-            },
-            delete = { persist ->
-                sshAgentApprovalCacheConfigState.updateApprovalWindow(
-                    approvalWindow = defaultAgentApprovalWindow,
-                    persist = persist,
-                )
-            },
-        )
-
-    private val sshAgentApprovalCachePolicyPref = sshAgentApprovalCachePolicyRawPref
-        .coordinated(
-            set = { value, persist ->
-                sshAgentApprovalCacheConfigState.updateCachePolicy(
-                    cachePolicy = AgentApprovalCachePolicy.fromStorageKey(value),
-                    persist = persist,
-                )
-            },
-            delete = { persist ->
-                sshAgentApprovalCacheConfigState.updateCachePolicy(
-                    cachePolicy = AgentApprovalCachePolicy.Default,
-                    persist = persist,
-                )
-            },
-        )
-        .mapToObjectPreference(
-            serialize = AgentApprovalCachePolicy::storageKey,
-            deserialize = AgentApprovalCachePolicy::fromStorageKey,
-        )
+    private val sshAgentApproval = AgentApprovalPreferences(
+        store = store,
+        windowKey = KEY_SSH_AGENT_APPROVAL_WINDOW,
+        cachePolicyKey = KEY_SSH_AGENT_APPROVAL_CACHE_POLICY,
+        defaultWindow = defaultAgentApprovalWindow,
+    )
 
     private val sshAgentDisplayKeyNamesPref =
         store.getBoolean(KEY_SSH_AGENT_DISPLAY_KEY_NAMES, false)
@@ -314,67 +259,12 @@ class SettingsRepositoryImpl(
     private val gpgAgentPref =
         store.getBoolean(KEY_GPG_AGENT, false)
 
-    private val gpgAgentApprovalWindowRawPref =
-        store.getLong(
-            key = KEY_GPG_AGENT_APPROVAL_WINDOW,
-            defaultValue = defaultAgentApprovalWindow.inWholeMilliseconds,
-        )
-
-    private val gpgAgentApprovalCachePolicyRawPref =
-        store.getString(
-            key = KEY_GPG_AGENT_APPROVAL_CACHE_POLICY,
-            defaultValue = AgentApprovalCachePolicy.Default.storageKey,
-        )
-
-    private val gpgAgentApprovalCacheConfigState =
-        AgentApprovalCacheConfigState(
-            loadApprovalWindow = {
-                with(Duration) {
-                    gpgAgentApprovalWindowRawPref.first().milliseconds
-                }
-            },
-            loadCachePolicy = {
-                gpgAgentApprovalCachePolicyRawPref
-                    .first()
-                    .let(AgentApprovalCachePolicy::fromStorageKey)
-            },
-        )
-
-    private val gpgAgentApprovalWindowPref = gpgAgentApprovalWindowRawPref
-        .coordinated(
-            set = { value, persist ->
-                gpgAgentApprovalCacheConfigState.updateApprovalWindow(
-                    approvalWindow = with(Duration) { value.milliseconds },
-                    persist = persist,
-                )
-            },
-            delete = { persist ->
-                gpgAgentApprovalCacheConfigState.updateApprovalWindow(
-                    approvalWindow = defaultAgentApprovalWindow,
-                    persist = persist,
-                )
-            },
-        )
-
-    private val gpgAgentApprovalCachePolicyPref = gpgAgentApprovalCachePolicyRawPref
-        .coordinated(
-            set = { value, persist ->
-                gpgAgentApprovalCacheConfigState.updateCachePolicy(
-                    cachePolicy = AgentApprovalCachePolicy.fromStorageKey(value),
-                    persist = persist,
-                )
-            },
-            delete = { persist ->
-                gpgAgentApprovalCacheConfigState.updateCachePolicy(
-                    cachePolicy = AgentApprovalCachePolicy.Default,
-                    persist = persist,
-                )
-            },
-        )
-        .mapToObjectPreference(
-            serialize = AgentApprovalCachePolicy::storageKey,
-            deserialize = AgentApprovalCachePolicy::fromStorageKey,
-        )
+    private val gpgAgentApproval = AgentApprovalPreferences(
+        store = store,
+        windowKey = KEY_GPG_AGENT_APPROVAL_WINDOW,
+        cachePolicyKey = KEY_GPG_AGENT_APPROVAL_CACHE_POLICY,
+        defaultWindow = defaultAgentApprovalWindow,
+    )
 
     private val gpgAgentDisplayKeyNamesPref =
         store.getBoolean(KEY_GPG_AGENT_DISPLAY_KEY_NAMES, false)
@@ -576,13 +466,13 @@ class SettingsRepositoryImpl(
             webDavTransactionsPref,
             autotypeSpeedPref,
             sshAgentPref,
-            sshAgentApprovalWindowPref,
-            sshAgentApprovalCachePolicyPref,
+            sshAgentApproval.windowPref,
+            sshAgentApproval.cachePolicyPref,
             sshAgentDisplayKeyNamesPref,
             sshAgentFilterPref,
             gpgAgentPref,
-            gpgAgentApprovalWindowPref,
-            gpgAgentApprovalCachePolicyPref,
+            gpgAgentApproval.windowPref,
+            gpgAgentApproval.cachePolicyPref,
             gpgAgentDisplayKeyNamesPref,
             gpgAgentFilterPref,
             gpgKeyserverConfigPref,
@@ -841,20 +731,20 @@ class SettingsRepositoryImpl(
 
     override fun getSshAgent() = sshAgentPref
 
-    override fun setSshAgentApprovalWindow(duration: Duration) = sshAgentApprovalWindowPref
+    override fun setSshAgentApprovalWindow(duration: Duration) = sshAgentApproval.windowPref
         .setAndCommit(duration)
 
-    override fun getSshAgentApprovalWindow() = sshAgentApprovalCacheConfigState
+    override fun getSshAgentApprovalWindow() = sshAgentApproval.config
         .approvalWindow()
 
     override fun setSshAgentApprovalCachePolicy(policy: AgentApprovalCachePolicy) =
-        sshAgentApprovalCachePolicyPref.setAndCommit(policy)
+        sshAgentApproval.cachePolicyPref.setAndCommit(policy)
 
-    override fun getSshAgentApprovalCachePolicy() = sshAgentApprovalCacheConfigState
+    override fun getSshAgentApprovalCachePolicy() = sshAgentApproval.config
         .cachePolicy()
 
     override fun getSshAgentApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
-        sshAgentApprovalCacheConfigState
+        sshAgentApproval.config
 
     override fun setSshAgentDisplayKeyNames(displayKeyNames: Boolean) = sshAgentDisplayKeyNamesPref
         .setAndCommit(displayKeyNames)
@@ -871,20 +761,20 @@ class SettingsRepositoryImpl(
 
     override fun getGpgAgent() = gpgAgentPref
 
-    override fun setGpgAgentApprovalWindow(duration: Duration) = gpgAgentApprovalWindowPref
+    override fun setGpgAgentApprovalWindow(duration: Duration) = gpgAgentApproval.windowPref
         .setAndCommit(duration)
 
-    override fun getGpgAgentApprovalWindow() = gpgAgentApprovalCacheConfigState
+    override fun getGpgAgentApprovalWindow() = gpgAgentApproval.config
         .approvalWindow()
 
     override fun setGpgAgentApprovalCachePolicy(policy: AgentApprovalCachePolicy) =
-        gpgAgentApprovalCachePolicyPref.setAndCommit(policy)
+        gpgAgentApproval.cachePolicyPref.setAndCommit(policy)
 
-    override fun getGpgAgentApprovalCachePolicy() = gpgAgentApprovalCacheConfigState
+    override fun getGpgAgentApprovalCachePolicy() = gpgAgentApproval.config
         .cachePolicy()
 
     override fun getGpgAgentApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
-        gpgAgentApprovalCacheConfigState
+        gpgAgentApproval.config
 
     override fun setGpgAgentDisplayKeyNames(displayKeyNames: Boolean) = gpgAgentDisplayKeyNamesPref
         .setAndCommit(displayKeyNames)
@@ -1038,6 +928,77 @@ class SettingsRepositoryImpl(
         .setAndCommit(key)
 
     override fun getExposedContentPublicKey() = exposedContentPublicKeyPref
+}
+
+/**
+ * The approval window and cache policy of one agent. Both are persisted and
+ * published through one [AgentApprovalCacheConfigState], so a completed
+ * write is visible to the next approval decision.
+ */
+private class AgentApprovalPreferences(
+    store: KeyValueStore,
+    windowKey: String,
+    cachePolicyKey: String,
+    defaultWindow: Duration,
+) {
+    private val windowRawPref = store.getLong(
+        key = windowKey,
+        defaultValue = defaultWindow.inWholeMilliseconds,
+    )
+
+    private val cachePolicyRawPref = store.getString(
+        key = cachePolicyKey,
+        defaultValue = AgentApprovalCachePolicy.Default.storageKey,
+    )
+
+    val config = AgentApprovalCacheConfigState(
+        loadApprovalWindow = {
+            with(Duration) {
+                windowRawPref.first().milliseconds
+            }
+        },
+        loadCachePolicy = {
+            cachePolicyRawPref
+                .first()
+                .let(AgentApprovalCachePolicy::fromStorageKey)
+        },
+    )
+
+    val windowPref = windowRawPref
+        .coordinated(
+            set = { value, persist ->
+                config.updateApprovalWindow(
+                    approvalWindow = with(Duration) { value.milliseconds },
+                    persist = persist,
+                )
+            },
+            delete = { persist ->
+                config.updateApprovalWindow(
+                    approvalWindow = defaultWindow,
+                    persist = persist,
+                )
+            },
+        )
+
+    val cachePolicyPref = cachePolicyRawPref
+        .coordinated(
+            set = { value, persist ->
+                config.updateCachePolicy(
+                    cachePolicy = AgentApprovalCachePolicy.fromStorageKey(value),
+                    persist = persist,
+                )
+            },
+            delete = { persist ->
+                config.updateCachePolicy(
+                    cachePolicy = AgentApprovalCachePolicy.Default,
+                    persist = persist,
+                )
+            },
+        )
+        .mapToObjectPreference(
+            serialize = AgentApprovalCachePolicy::storageKey,
+            deserialize = AgentApprovalCachePolicy::fromStorageKey,
+        )
 }
 
 @Suppress("UNCHECKED_CAST")

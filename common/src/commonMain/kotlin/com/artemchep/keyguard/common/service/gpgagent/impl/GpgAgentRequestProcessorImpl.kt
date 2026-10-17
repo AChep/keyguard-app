@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheIdentity
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentApprovalWindowMemory
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.agent.flowBackedAgentApprovalCacheConfigProvider
 import com.artemchep.keyguard.common.service.agent.isEligibleForAgent
 import com.artemchep.keyguard.common.service.agent.toApprovalCacheIdentity
@@ -57,7 +58,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 
 class GpgAgentRequestProcessorImpl(
@@ -78,8 +78,6 @@ class GpgAgentRequestProcessorImpl(
 ) : GpgAgentRequestProcessor {
     companion object {
         private const val TAG = "GpgAgentRequestProcessor"
-
-        internal const val APPROVAL_TIMEOUT_MS = 60_000L
     }
 
     private val approvalCacheConfig = getGpgAgentApprovalCachePolicy.approvalCacheConfig
@@ -97,7 +95,7 @@ class GpgAgentRequestProcessorImpl(
         )
 
     override suspend fun listKeys(
-        caller: GpgAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ): GpgAgentRequestProcessor.ListKeysResult {
         // The catalog and the vault intentionally keep one entry per
         // (cipher, keygrip) pair, while KEYINFO lists each keygrip once —
@@ -186,7 +184,7 @@ class GpgAgentRequestProcessorImpl(
         operation: GpgAgentOperation,
         usageRequestType: GpgUsageHistoryRequestType,
         keygrip: String,
-        caller: GpgAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
         logNoun: String,
         crypto: GpgVaultContext.(GpgKeyMatch) -> T,
     ): GpgAgentOperationResult<T> {
@@ -461,7 +459,7 @@ class GpgAgentRequestProcessorImpl(
     @Suppress("LongParameterList")
     private suspend fun recordPendingGpgUsage(
         cipherId: String?,
-        caller: GpgAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
         request: GpgUsageHistoryRequestType,
         response: GpgUsageHistoryResponseType,
         fingerprint: String?,
@@ -490,7 +488,7 @@ class GpgAgentRequestProcessorImpl(
     private suspend fun recordGpgUsage(
         vault: GpgVaultContext,
         cipherId: String?,
-        caller: GpgAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
         request: GpgUsageHistoryRequestType,
         response: GpgUsageHistoryResponseType,
         fingerprint: String?,
@@ -515,7 +513,7 @@ class GpgAgentRequestProcessorImpl(
     }
 
     private fun encodeCaller(
-        caller: GpgAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ): String? {
         caller ?: return null
         return runCatching {
@@ -523,12 +521,11 @@ class GpgAgentRequestProcessorImpl(
         }.getOrNull()
     }
 
+    // The approval broker owns the deadline of the prompt.
     private suspend fun requestApproval(
         prompt: GpgAgentApprovalPrompt,
     ): Boolean = try {
-        withTimeoutOrNull(APPROVAL_TIMEOUT_MS) {
-            onApprovalRequest(prompt)
-        } ?: false
+        onApprovalRequest(prompt)
     } catch (e: Exception) {
         if (e is CancellationException) throw e
         logRepository.post(TAG, "GPG approval request failed: ${e.message}", LogLevel.ERROR)
@@ -593,7 +590,7 @@ class GpgAgentRequestProcessorImpl(
 private suspend fun AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>.Session.access(
     operation: GpgAgentOperation,
     keygrip: String,
-    caller: GpgAgentMessages.CallerIdentity?,
+    caller: CallerIdentity?,
 ): AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>.Access = access { policy ->
     gpgApprovalCacheKey(operation, keygrip, caller, policy)
 }
@@ -601,7 +598,7 @@ private suspend fun AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApproval
 internal fun gpgApprovalCacheKey(
     operation: GpgAgentOperation,
     keygrip: String,
-    caller: GpgAgentMessages.CallerIdentity?,
+    caller: CallerIdentity?,
     policy: AgentApprovalCachePolicy = AgentApprovalCachePolicy.Default,
 ): GpgApprovalCacheKey? {
     val callerIdentity = caller.toApprovalCacheIdentity(policy)

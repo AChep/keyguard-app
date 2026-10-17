@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.feature.sshagent.history
 
-import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
@@ -10,7 +10,7 @@ import kotlin.test.assertNull
 class SshAgentHistoryMapperTest {
     @Test
     fun `build caller info summarizes app and process names`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             pid = 123,
             uid = 456,
             gid = 789,
@@ -28,7 +28,7 @@ class SshAgentHistoryMapperTest {
 
     @Test
     fun `build caller info falls back to process name`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             processName = "ssh",
         )
         val encoded = Json.encodeToString(caller)
@@ -41,7 +41,7 @@ class SshAgentHistoryMapperTest {
 
     @Test
     fun `build caller info shows Android app label and package`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             pid = 123,
             uid = 456,
             appName = "Example Client",

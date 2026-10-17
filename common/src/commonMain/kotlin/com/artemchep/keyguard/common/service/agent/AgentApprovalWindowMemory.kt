@@ -25,12 +25,16 @@ import kotlin.time.TimeSource
  * or vault state changes meanwhile, [Access.remember] is a no-op.
  * After any suspending eligibility reads, use [Access.canReuseNow] for the
  * final cached-approval decision and proceed to crypto without suspending.
+ *
+ * With an [idleTimeout], an approval also expires once it has not been
+ * looked up for that long; the approval window stays its hard limit.
  */
 class AgentApprovalWindowMemory<K : Any, P : Any>(
     private val approvalCacheConfig: AgentApprovalCacheConfigProvider<P>,
     getVaultSession: GetVaultSession,
     scope: CoroutineScope,
     maxCacheEntries: Int = DEFAULT_MAX_CACHE_ENTRIES,
+    private val idleTimeout: Duration? = null,
     private val timeSource: TimeSource = TimeSource.Monotonic,
 ) {
     companion object {
@@ -39,6 +43,10 @@ class AgentApprovalWindowMemory<K : Any, P : Any>(
 
     private val maxCacheEntries = maxCacheEntries.also {
         require(it > 0) { "maxCacheEntries must be positive." }
+    }
+
+    init {
+        require(idleTimeout == null || idleTimeout > Duration.ZERO) { "idleTimeout must be positive." }
     }
     private val mutex = Mutex()
     private val cache = linkedMapOf<CacheKey<K>, ApprovalCacheEntry>()
@@ -64,6 +72,16 @@ class AgentApprovalWindowMemory<K : Any, P : Any>(
     suspend fun clearSession() {
         mutex.withLock {
             activeSession = null
+            invalidateCacheLocked()
+        }
+    }
+
+    /**
+     * Forgets every approval of the current session. An [Access] obtained
+     * before this call can no longer [remember][Access.remember].
+     */
+    suspend fun invalidateAll() {
+        mutex.withLock {
             invalidateCacheLocked()
         }
     }
@@ -129,7 +147,8 @@ class AgentApprovalWindowMemory<K : Any, P : Any>(
             if (entry.approvalWindow != approvalWindow || entry.isExpired()) {
                 false
             } else {
-                cache[cacheKey] = entry
+                // A lookup counts as a use of the approval.
+                cache[cacheKey] = entry.copy(idleExpiresAt = idleExpiresAt())
                 true
             }
         }
@@ -196,6 +215,7 @@ class AgentApprovalWindowMemory<K : Any, P : Any>(
                 expiresAt = currentApprovalWindow
                     .takeUnless { it == Duration.INFINITE }
                     ?.let { timeSource.markNow() + it },
+                idleExpiresAt = idleExpiresAt(),
             )
 
             cache.remove(cacheKey)
@@ -206,6 +226,8 @@ class AgentApprovalWindowMemory<K : Any, P : Any>(
             }
         }
     }
+
+    private fun idleExpiresAt(): TimeMark? = idleTimeout?.let { timeSource.markNow() + it }
 
     private fun pruneExpiredEntriesLocked(
         approvalWindow: Duration,
@@ -261,7 +283,9 @@ class AgentApprovalWindowMemory<K : Any, P : Any>(
     private data class ApprovalCacheEntry(
         val approvalWindow: Duration,
         val expiresAt: TimeMark?,
+        val idleExpiresAt: TimeMark?,
     ) {
-        fun isExpired(): Boolean = expiresAt?.hasPassedNow() == true
+        fun isExpired(): Boolean =
+            expiresAt?.hasPassedNow() == true || idleExpiresAt?.hasPassedNow() == true
     }
 }

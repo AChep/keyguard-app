@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.net.Socket
@@ -39,7 +40,7 @@ class AndroidSshAgentSecureBridgeTest {
             try {
                 val publicKeyBlob = byteArrayOf(1, 2, 3, 4)
                 val publicKey = "ssh-ed25519 ${Base64.getEncoder().encodeToString(publicKeyBlob)} secure@example"
-                var capturedCaller: SshAgentMessages.CallerIdentity? = null
+                var capturedCaller: CallerIdentity? = null
                 val requestProcessor = createRequestProcessor(
                     listKeys = { caller ->
                         capturedCaller = caller
@@ -71,7 +72,7 @@ class AndroidSshAgentSecureBridgeTest {
                     SshAgentMessages.IpcRequest(
                         id = 41L,
                         listKeys = SshAgentMessages.ListKeysRequest(
-                            caller = SshAgentMessages.CallerIdentity(
+                            caller = CallerIdentity(
                                 pid = 123,
                                 uid = 456,
                                 gid = 789,
@@ -164,7 +165,7 @@ class AndroidSshAgentSecureBridgeTest {
                             publicKey = publicKey,
                             data = byteArrayOf(1, 2, 3, 4),
                             flags = 0,
-                            caller = SshAgentMessages.CallerIdentity(
+                            caller = CallerIdentity(
                                 pid = 222,
                                 uid = 333,
                                 gid = 444,
@@ -439,13 +440,13 @@ class AndroidSshAgentSecureBridgeTest {
     }
 
     private fun createRequestProcessor(
-        listKeys: suspend (SshAgentMessages.CallerIdentity?) -> SshAgentRequestProcessor.ListKeysResult =
+        listKeys: suspend (CallerIdentity?) -> SshAgentRequestProcessor.ListKeysResult =
             { SshAgentRequestProcessor.ListKeysResult.VaultLocked },
         signData: suspend (SshAgentMessages.SignDataRequest) -> SshAgentRequestProcessor.SignDataResult =
             { SshAgentRequestProcessor.SignDataResult.UserDenied },
     ) = object : SshAgentRequestProcessor {
         override suspend fun listKeys(
-            caller: SshAgentMessages.CallerIdentity?,
+            caller: CallerIdentity?,
         ): SshAgentRequestProcessor.ListKeysResult = listKeys(caller)
 
         override suspend fun signData(

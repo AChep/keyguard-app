@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.test.runCurrent
@@ -165,7 +166,7 @@ class GpgAgentPacketSessionTest {
         var decrypt: GpgAgentMessages.PkdecryptRequest? = null
 
         override suspend fun listKeys(
-            caller: GpgAgentMessages.CallerIdentity?,
+            caller: CallerIdentity?,
         ): GpgAgentRequestProcessor.ListKeysResult {
             calls++
             return GpgAgentRequestProcessor.ListKeysResult.Success(GpgAgentMessages.ListKeysResponse())

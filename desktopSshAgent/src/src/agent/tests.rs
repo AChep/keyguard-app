@@ -117,11 +117,11 @@ async fn exited_macos_peer_is_rejected_before_key_provider_on_repeated_requests(
         .await
         .unwrap()
         .unwrap();
-    let context = crate::caller_identity::caller_context_from_unix_stream(&stream)
-        .expect("authenticated test peer");
-    assert!(context.macos_guard.is_some());
+    let (caller, guard) = keyguard_agent_proto_adapter::caller_from_unix_stream(&stream);
+    assert!(caller.is_some(), "authenticated test peer");
+    assert!(guard.macos().is_some());
     let provider = FakeKeyProvider::new(vec![]);
-    let mut agent = KeyguardAgent::with_macos_caller(provider.clone(), Some(context));
+    let mut agent = KeyguardAgent::with_caller_guard(provider.clone(), caller, guard);
     peer.kill().await.unwrap();
 
     for _ in 0..2 {

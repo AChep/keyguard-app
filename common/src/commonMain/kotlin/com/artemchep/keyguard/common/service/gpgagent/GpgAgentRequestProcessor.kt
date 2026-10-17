@@ -1,12 +1,14 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
+
 /**
  * Everything the approval surface may show for a pending GPG key
  * operation request.
  */
 data class GpgAgentApprovalPrompt(
     val operation: GpgAgentOperation,
-    val caller: GpgAgentMessages.CallerIdentity?,
+    val caller: CallerIdentity?,
     val keyName: String,
     val keyFingerprint: String,
     val keygrip: String,
@@ -47,7 +49,7 @@ interface GpgAgentRequestProcessor {
     }
 
     suspend fun listKeys(
-        caller: GpgAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ): ListKeysResult
 
     suspend fun signHash(

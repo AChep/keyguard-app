@@ -1,9 +1,11 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
+
 data class SshAgentRpcRequestContext(
     val authenticated: Boolean,
     val allowAuthenticate: Boolean,
-    val callerAugmentation: SshAgentMessages.CallerIdentity? = null,
+    val callerAugmentation: CallerIdentity? = null,
     val replaceCallerAuthorization: Boolean = false,
 )
 

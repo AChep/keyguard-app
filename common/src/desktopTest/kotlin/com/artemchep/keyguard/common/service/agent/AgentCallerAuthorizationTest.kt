@@ -1,7 +1,5 @@
 package com.artemchep.keyguard.common.service.agent
 
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
-import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import com.artemchep.keyguard.common.util.toHex
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -106,7 +104,7 @@ class AgentCallerAuthorizationTest {
 
     @Test
     fun `display-only caller metadata never creates an approval identity`() {
-        assertNull(SshAgentMessages.CallerIdentity(appName = "Terminal").toApprovalCacheIdentity())
+        assertNull(CallerIdentity(appName = "Terminal").toApprovalCacheIdentity())
     }
 
     @Test
@@ -374,8 +372,8 @@ class AgentCallerAuthorizationTest {
     }
 
     @Test
-    fun `gpg caller uses the same multi-subject selection`() {
-        val caller = GpgAgentMessages.CallerIdentity(
+    fun `application ancestry selects an application instance`() {
+        val caller = CallerIdentity(
             appName = "Fork",
             authorization = CallerAuthorization(
                 connectionFingerprint = fingerprint(1),
@@ -408,7 +406,7 @@ class AgentCallerAuthorizationTest {
         connectionFingerprint: ByteArray = fingerprint(1),
         subjects: List<CallerAuthorizationSubject> = emptyList(),
         authorizationContextFingerprint: ByteArray = byteArrayOf(),
-    ): SshAgentMessages.CallerIdentity = SshAgentMessages.CallerIdentity(
+    ): CallerIdentity = CallerIdentity(
         appName = appName,
         authorization = CallerAuthorization(
             connectionFingerprint = connectionFingerprint,

@@ -34,8 +34,6 @@
     <string name="notification_termux_ssh_error">SSH agent failure</string>
     <string name="notification_termux_ssh_content_tap_to_start">Tap to approve a request</string>
     <string name="notification_termux_ssh_content_tap_to_start_app">Tap to approve a request for %1$s</string>
-    <string name="notification_termux_ssh_content_unlock">Open Keyguard to unlock SSH access</string>
-    <string name="notification_termux_ssh_content_unlock_app">Open Keyguard to unlock SSH access for %1$s</string>
     <string name="notification_termux_ssh_content_sign">Open Keyguard to continue SSH signing</string>
     <string name="notification_termux_ssh_content_sign_app">Open Keyguard to continue SSH signing for %1$s</string>
 

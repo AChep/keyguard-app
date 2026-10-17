@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
-import com.artemchep.keyguard.common.service.agent.AgentCallerIdentity
-import com.artemchep.keyguard.common.service.agent.CallerAuthorization
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.protobuf.ProtoNumber
@@ -66,32 +65,6 @@ object GpgAgentMessages {
         @ProtoNumber(2)
         val protocolRevision: Int = 0,
     )
-
-    @Serializable
-    data class CallerIdentity(
-        @ProtoNumber(1)
-        override val pid: Int = 0,
-        @ProtoNumber(2)
-        val uid: Int = 0,
-        @ProtoNumber(3)
-        val gid: Int = 0,
-        @ProtoNumber(4)
-        override val processName: String = "",
-        @ProtoNumber(5)
-        override val executablePath: String = "",
-        @ProtoNumber(6)
-        val appPid: Int = 0,
-        @ProtoNumber(7)
-        override val appName: String = "",
-        @ProtoNumber(8)
-        override val appBundlePath: String = "",
-        /**
-         * Machine-verifiable authorization evidence. All preceding fields are
-         * display metadata and are deliberately excluded from approval keys.
-         */
-        @ProtoNumber(9)
-        override val authorization: CallerAuthorization? = null,
-    ) : AgentCallerIdentity
 
     @Serializable
     data class ListKeysRequest(

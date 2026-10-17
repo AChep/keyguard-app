@@ -1,11 +1,11 @@
 #if os(macOS)
 import AppKit
 
-/// A borderless, non-activating floating panel that hosts the SSH agent approval
-/// prompt. `.nonactivatingPanel` + `canBecomeKey == true` lets the Approve / Deny
-/// buttons accept clicks and keyboard input without yanking the foreground app's
-/// activation.
-final class SshAgentApprovalPanel: NSPanel {
+/// A borderless, non-activating floating panel that hosts an approval prompt of
+/// the SSH agent, the GPG agent or Environments. `.nonactivatingPanel` +
+/// `canBecomeKey == true` lets the Approve / Deny buttons accept clicks and
+/// keyboard input without yanking the foreground app's activation.
+final class AgentApprovalPanel: NSPanel {
     init(contentView: NSView) {
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 420, height: 240),

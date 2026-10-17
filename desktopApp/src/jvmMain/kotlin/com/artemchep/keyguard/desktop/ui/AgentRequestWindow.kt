@@ -2,7 +2,6 @@ package com.artemchep.keyguard.desktop.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -18,7 +17,6 @@ import com.artemchep.keyguard.KeyguardWindowEssentials
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.getOrNull
-import com.artemchep.keyguard.common.service.agent.AgentRequest
 import com.artemchep.keyguard.di.VaultSessionContent
 import com.artemchep.keyguard.feature.agent.AgentRequestUiState
 import com.artemchep.keyguard.feature.keyguard.AuthScreen
@@ -40,25 +38,25 @@ import org.koin.core.scope.Scope
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-internal fun <T : AgentRequest> ApplicationScope.AgentRequestWindow(
+internal fun <T : Any> ApplicationScope.AgentRequestWindow(
     processLifecycleProvider: LePlatformLifecycleProvider,
     requestUiState: Loadable<AgentRequestUiState<T>>,
     title: String,
     authReason: TextHolder,
     focusTag: String,
-    vaultStateEffect: @Composable (vaultState: VaultState, request: T?, onDismiss: () -> Unit) -> Unit = { _, _, _ -> },
-    requestContent: @Composable (request: T, onHandled: () -> Unit) -> Unit,
+    requestContent: @Composable (request: T, onDecision: (approved: Boolean, reason: String) -> Unit) -> Unit,
 ) {
     val updatedRequest by rememberUpdatedState(requestUiState)
     val onDeny: () -> Unit = {
         // Closing the window = deny.
-        val r = updatedRequest as? Loadable.Ok
-        r?.value?.request?.deferred?.complete(false)
-        r?.value?.onRequestHandled?.invoke()
+        (updatedRequest as? Loadable.Ok)
+            ?.value
+            ?.onDecision
+            ?.invoke(false, "window_closed")
     }
-    val focusRequest = (requestUiState as? Loadable.Ok)
+    val focusRequestKey = (requestUiState as? Loadable.Ok)
         ?.value
-        ?.request
+        ?.id
     PopupComposeWindow(
         onCloseRequest = onDeny,
         title = title,
@@ -70,9 +68,8 @@ internal fun <T : AgentRequest> ApplicationScope.AgentRequestWindow(
         transparent = true,
         alwaysOnTop = true,
         resizable = false,
-        focusRequestKey = focusRequest,
+        focusRequestKey = focusRequestKey,
         focusTag = focusTag,
-        focusRequestId = focusRequest?.focusRequestLogId(),
         icon = painterResource(Res.drawable.ic_keyguard),
     ) {
         KeyguardWindowEssentials(
@@ -84,7 +81,7 @@ internal fun <T : AgentRequest> ApplicationScope.AgentRequestWindow(
                     reason = authReason,
                     style = AuthScreen.Style.DIALOG,
                     onCancel = onDeny,
-                    expiresAt = updatedRequest.getOrNull()?.request?.expiresAt,
+                    expiresAt = updatedRequest.getOrNull()?.expiresAt,
                 )
                 CompositionLocalProvider(
                     LocalAuthScreen provides scr,
@@ -93,9 +90,7 @@ internal fun <T : AgentRequest> ApplicationScope.AgentRequestWindow(
                     KeyguardPopupScaffold {
                         AgentUnlockWindow(
                             requestUiState = requestUiState,
-                            vaultStateEffect = vaultStateEffect,
                             requestContent = requestContent,
-                            onDismiss = onDeny,
                         )
                     }
                 }
@@ -105,27 +100,11 @@ internal fun <T : AgentRequest> ApplicationScope.AgentRequestWindow(
 }
 
 @Composable
-private fun <T : AgentRequest> AgentUnlockWindow(
+private fun <T : Any> AgentUnlockWindow(
     requestUiState: Loadable<AgentRequestUiState<T>>,
-    vaultStateEffect: @Composable (vaultState: VaultState, request: T?, onDismiss: () -> Unit) -> Unit,
-    requestContent: @Composable (request: T, onHandled: () -> Unit) -> Unit,
-    onDismiss: () -> Unit,
+    requestContent: @Composable (request: T, onDecision: (approved: Boolean, reason: String) -> Unit) -> Unit,
 ) {
     ManualAppScreen { vaultState ->
-        val request = (requestUiState as? Loadable.Ok)
-            ?.value
-            ?.request
-        vaultStateEffect(vaultState, request, onDismiss)
-
-        // Close the window once the request resolves, whether the user
-        // approved/denied it or the agent manager expired it.
-        LaunchedEffect(requestUiState) {
-            val current = requestUiState.getOrNull()
-                ?: return@LaunchedEffect
-            current.request.deferred.join()
-            onDismiss()
-        }
-
         when (vaultState) {
             is VaultState.Create -> ManualAppScreenOnCreate(vaultState)
             is VaultState.Unlock -> ManualAppScreenOnUnlock(vaultState)
@@ -140,17 +119,11 @@ private fun <T : AgentRequest> AgentUnlockWindow(
                         // Provide the session Scope so that the content can
                         // read the vault, e.g. to resolve the key's title.
                         VaultSessionContent(vaultState.session) {
-                            requestContent(v.request, v.onRequestHandled)
+                            requestContent(v.request, v.onDecision)
                         }
                     }
                 }
             }
         }
     }
-}
-
-private fun AgentRequest.focusRequestLogId(): String {
-    val requestId = notificationTag
-        ?: System.identityHashCode(this).toString(16)
-    return "$logType:$requestId"
 }

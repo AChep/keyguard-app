@@ -26,16 +26,12 @@ tracing-subscriber = { workspace = true, features = ["env-filter"] }
 dirs.workspace = true
 
 [target.'cfg(unix)'.dependencies]
+keyguard-agent-proto-adapter.workspace = true
 libc.workspace = true
 
 [target.'cfg(windows)'.dependencies]
 # An older major than the workspace's getrandom.
 getrandom = "0.2"
-windows-sys = { workspace = true, features = [
-    "Win32_Foundation",
-    "Win32_Security",
-    "Win32_System_Threading",
-] }
 
 [dev-dependencies]
 tempfile.workspace = true

@@ -379,7 +379,13 @@ async fn key_selection_does_not_leak_to_a_new_connection() {
         };
         tokio::time::timeout(Duration::from_secs(5), async {
             let (result, ()) = tokio::join!(
-                serve_connection(server, ipc_client.clone(), None, "test".to_string()),
+                serve_connection(
+                    server,
+                    ipc_client.clone(),
+                    None,
+                    CallerGuard::default(),
+                    "test".to_string(),
+                ),
                 client_task,
             );
             result.unwrap();

@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.agent.toApprovalCacheIdentity
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -70,7 +71,7 @@ class AndroidSshAgentCallerIdentityTest {
 
     @Test
     fun `merge sanitizes proxy supplied process metadata before approval display`() {
-        val proxyCaller = SshAgentMessages.CallerIdentity(
+        val proxyCaller = CallerIdentity(
             processName = "ssh\n" + "p".repeat(300),
             executablePath = "/tmp/\u202E" + "x".repeat(5_000),
         )
@@ -258,7 +259,7 @@ class AndroidSshAgentCallerIdentityTest {
 
     @Test
     fun `Android bridge strips authorization supplied by request payload`() {
-        val forged = SshAgentMessages.CallerIdentity(
+        val forged = CallerIdentity(
             appName = "Forged",
             appBundlePath = "com.termux",
             authorization = CallerAuthorization(
@@ -289,7 +290,7 @@ class AndroidSshAgentCallerIdentityTest {
     fun `Android bridge replaces request authorization with framework evidence`() {
         val forgedFingerprint = ByteArray(32) { 1 }
         val trustedFingerprint = ByteArray(32) { 2 }
-        val requestCaller = SshAgentMessages.CallerIdentity(
+        val requestCaller = CallerIdentity(
             authorization = androidBridgeAuthorization(forgedFingerprint),
         )
         val frameworkCaller = buildAndroidSshAgentCallerIdentity(
@@ -312,7 +313,7 @@ class AndroidSshAgentCallerIdentityTest {
 
     @Test
     fun `Android connection fallback strips request identity and authorization`() {
-        val forged = SshAgentMessages.CallerIdentity(
+        val forged = CallerIdentity(
             pid = 123,
             uid = 456,
             gid = 789,

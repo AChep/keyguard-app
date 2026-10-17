@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.sshe2e
 
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
 import com.artemchep.keyguard.common.service.sshagent.sshPublicKeysMatch
@@ -9,7 +10,7 @@ class TestSshAgentRequestProcessor(
     private val keys: List<TestSshKey>,
 ) : SshAgentRequestProcessor {
     override suspend fun listKeys(
-        caller: SshAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ): SshAgentRequestProcessor.ListKeysResult =
         SshAgentRequestProcessor.ListKeysResult.Success(
             response = SshAgentMessages.ListKeysResponse(

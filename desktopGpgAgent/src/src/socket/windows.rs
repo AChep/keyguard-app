@@ -4,13 +4,13 @@ use crate::assuan;
 use crate::ipc::client::IpcClient;
 use crate::ipc::messages::{CallerAuthorization, CallerIdentity};
 use anyhow::{Context, Result};
+use keyguard_agent_identity::windows::LocalSecurityDescriptor;
 use keyguard_agent_identity::ConnectionFingerprint;
 use std::ffi::{c_void, OsStr};
 use std::fs;
 use std::io::{ErrorKind, Write};
-use std::os::windows::ffi::OsStrExt;
 use std::os::windows::fs::{MetadataExt, OpenOptionsExt};
-use std::os::windows::io::{AsRawHandle, FromRawHandle, OwnedHandle};
+use std::os::windows::io::AsRawHandle;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 use std::time::Duration;
@@ -19,14 +19,11 @@ use tokio::net::TcpListener;
 use tokio::sync::{oneshot, Semaphore};
 use tokio::time::timeout;
 use tracing::{debug, info, warn};
-use windows_sys::Win32::Security::{GetTokenInformation, TokenUser, TOKEN_QUERY, TOKEN_USER};
-use windows_sys::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
 
 const ASSUAN_NONCE_LEN: usize = 16;
 const MAX_CONCURRENT_CONNECTIONS: usize = 32;
 const NONCE_HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(2);
 const WINDOWS_NAMED_PIPE_PREFIX: &str = r"\\.\pipe\";
-const SDDL_REVISION_1: u32 = 1;
 const SE_FILE_OBJECT: u32 = 1;
 const OWNER_SECURITY_INFORMATION: u32 = 0x0000_0001;
 const DACL_SECURITY_INFORMATION: u32 = 0x0000_0004;
@@ -41,9 +38,6 @@ const FILE_SHARE_DELETE: u32 = 0x0000_0004;
 const FILE_ATTRIBUTE_REPARSE_POINT: u32 = 0x0000_0400;
 const FILE_FLAG_BACKUP_SEMANTICS: u32 = 0x0200_0000;
 const FILE_FLAG_OPEN_REPARSE_POINT: u32 = 0x0020_0000;
-const ERROR_INSUFFICIENT_BUFFER: i32 = 122;
-const MAX_TOKEN_INFORMATION_SIZE: usize = 1024 * 1024;
-const MAX_SID_STRING_UTF16: usize = 256;
 
 /// Serves the GPG agent over a native Windows libassuan socket.
 ///
@@ -154,7 +148,10 @@ async fn accept_tcp_loop(
             }
 
             let caller = connection_caller_identity();
-            if let Err(e) = assuan::serve_connection(stream, ipc_client, caller, socket_name).await
+            let caller_guard = keyguard_agent_identity::caller_guard::CallerGuard::default();
+            if let Err(e) =
+                assuan::serve_connection(stream, ipc_client, caller, caller_guard, socket_name)
+                    .await
             {
                 warn!("GPG Assuan connection failed: {e}");
             }
@@ -340,13 +337,15 @@ fn harden_owner_only_directory(path: &Path) -> Result<()> {
 }
 
 fn harden_owner_only_handle(file: &fs::File) -> Result<()> {
-    let descriptor = LocalSecurityDescriptor::owner_only()?;
+    let descriptor = LocalSecurityDescriptor::owner_only()
+        .context("failed to create the owner-only security descriptor")?;
     let mut owner_defaulted = 0;
     let mut owner = std::ptr::null_mut();
     // SAFETY: `descriptor` is a valid self-relative security descriptor and
     // each output argument points to writable storage owned by this frame.
-    let owner_read =
-        unsafe { GetSecurityDescriptorOwner(descriptor.0, &mut owner, &mut owner_defaulted) };
+    let owner_read = unsafe {
+        GetSecurityDescriptorOwner(descriptor.as_ptr(), &mut owner, &mut owner_defaulted)
+    };
     if owner_read == 0 {
         return Err(std::io::Error::last_os_error()).context("GetSecurityDescriptorOwner failed");
     }
@@ -361,7 +360,7 @@ fn harden_owner_only_handle(file: &fs::File) -> Result<()> {
     // each output argument points to writable storage owned by this frame.
     let dacl_read = unsafe {
         GetSecurityDescriptorDacl(
-            descriptor.0,
+            descriptor.as_ptr(),
             &mut dacl_present,
             &mut dacl,
             &mut dacl_defaulted,
@@ -397,242 +396,8 @@ fn harden_owner_only_handle(file: &fs::File) -> Result<()> {
     Ok(())
 }
 
-struct LocalSecurityDescriptor(*mut c_void);
-
-impl LocalSecurityDescriptor {
-    fn owner_only() -> Result<Self> {
-        let owner_only_sddl = owner_only_sddl()?;
-        let sddl: Vec<u16> = OsStr::new(&owner_only_sddl)
-            .encode_wide()
-            .chain(std::iter::once(0))
-            .collect();
-        let mut descriptor = std::ptr::null_mut();
-        // SAFETY: `sddl` is NUL-terminated and remains alive for the call;
-        // `descriptor` points to writable pointer storage owned by this frame.
-        let succeeded = unsafe {
-            ConvertStringSecurityDescriptorToSecurityDescriptorW(
-                sddl.as_ptr(),
-                SDDL_REVISION_1,
-                &mut descriptor,
-                std::ptr::null_mut(),
-            )
-        };
-        if succeeded == 0 {
-            return Err(std::io::Error::last_os_error())
-                .context("ConvertStringSecurityDescriptorToSecurityDescriptorW failed");
-        }
-        if descriptor.is_null() {
-            anyhow::bail!("Windows returned a null owner-only security descriptor");
-        }
-        Ok(Self(descriptor))
-    }
-}
-
-fn owner_only_sddl() -> Result<String> {
-    let user_sid = current_process_user_sid_string()
-        .context("failed to resolve the current Windows token-user SID")?;
-    // Owner Rights (`OW`) is not a current-user alias. In particular, an
-    // elevated token may default new objects to the Administrators group.
-    // Name TokenUser explicitly as both object owner and sole DACL trustee.
-    Ok(format!("O:{user_sid}D:P(A;;GA;;;{user_sid})"))
-}
-
-fn current_process_user_sid_string() -> std::io::Result<String> {
-    let mut token = std::ptr::null_mut();
-    // SAFETY: GetCurrentProcess returns a valid pseudo-handle, `token` is
-    // writable HANDLE storage, and the returned handle is wrapped in RAII.
-    let succeeded = unsafe { OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &mut token) };
-    if succeeded == 0 {
-        return Err(last_error("OpenProcessToken(current process)"));
-    }
-    if token.is_null() {
-        return Err(std::io::Error::other(
-            "OpenProcessToken returned a null token handle",
-        ));
-    }
-    // SAFETY: OpenProcessToken returned a non-null owned kernel handle.
-    let token = unsafe { OwnedHandle::from_raw_handle(token.cast()) };
-    let information = token_user_information(token.as_raw_handle().cast())?;
-    let token_user: TOKEN_USER = information.read()?;
-    sid_pointer_to_string(token_user.User.Sid)
-}
-
-#[repr(C, align(16))]
-#[derive(Clone, Copy)]
-struct AlignedBlock([u8; 16]);
-
-struct TokenInformationBuffer {
-    blocks: Vec<AlignedBlock>,
-    byte_length: usize,
-}
-
-impl TokenInformationBuffer {
-    fn read<T: Copy>(&self) -> std::io::Result<T> {
-        if std::mem::align_of::<T>() > std::mem::align_of::<AlignedBlock>() {
-            return Err(std::io::Error::new(
-                ErrorKind::InvalidData,
-                format!(
-                    "token information requires unsupported {}-byte alignment",
-                    std::mem::align_of::<T>()
-                ),
-            ));
-        }
-        if self.byte_length < std::mem::size_of::<T>() {
-            return Err(std::io::Error::new(
-                ErrorKind::InvalidData,
-                format!(
-                    "token information is {} bytes; expected at least {}",
-                    self.byte_length,
-                    std::mem::size_of::<T>()
-                ),
-            ));
-        }
-        // SAFETY: the backing allocation is 16-byte aligned, the minimum size
-        // was checked above, and T: Copy cannot outlive or borrow the buffer.
-        Ok(unsafe { self.blocks.as_ptr().cast::<T>().read() })
-    }
-}
-
-fn token_user_information(token: *mut c_void) -> std::io::Result<TokenInformationBuffer> {
-    let mut required = 0u32;
-    // SAFETY: this sizing call deliberately passes no output buffer and a valid
-    // required-size pointer.
-    let succeeded =
-        unsafe { GetTokenInformation(token, TokenUser, std::ptr::null_mut(), 0, &mut required) };
-    if succeeded == 0 {
-        let error = std::io::Error::last_os_error();
-        if error.raw_os_error() != Some(ERROR_INSUFFICIENT_BUFFER) {
-            return Err(std::io::Error::new(
-                error.kind(),
-                format!("GetTokenInformation(size) failed: {error}"),
-            ));
-        }
-    }
-    let required = usize::try_from(required).map_err(|_| {
-        std::io::Error::new(
-            ErrorKind::InvalidData,
-            "token information size does not fit usize",
-        )
-    })?;
-    if required == 0 || required > MAX_TOKEN_INFORMATION_SIZE {
-        return Err(std::io::Error::new(
-            ErrorKind::InvalidData,
-            format!("token information returned invalid required size {required}"),
-        ));
-    }
-
-    let block_size = std::mem::size_of::<AlignedBlock>();
-    let block_count = required
-        .checked_add(block_size - 1)
-        .ok_or_else(|| std::io::Error::new(ErrorKind::InvalidData, "token size overflow"))?
-        / block_size;
-    let mut blocks = vec![AlignedBlock([0; 16]); block_count];
-    let mut returned = u32::try_from(required)
-        .map_err(|_| std::io::Error::new(ErrorKind::InvalidData, "token size does not fit u32"))?;
-    // SAFETY: `blocks` provides at least `required` aligned writable bytes.
-    let succeeded = unsafe {
-        GetTokenInformation(
-            token,
-            TokenUser,
-            blocks.as_mut_ptr().cast::<c_void>(),
-            returned,
-            &mut returned,
-        )
-    };
-    if succeeded == 0 {
-        return Err(last_error("GetTokenInformation(TokenUser)"));
-    }
-    let returned = usize::try_from(returned).map_err(|_| {
-        std::io::Error::new(
-            ErrorKind::InvalidData,
-            "token information output size does not fit usize",
-        )
-    })?;
-    if returned == 0 || returned > required {
-        return Err(std::io::Error::new(
-            ErrorKind::InvalidData,
-            format!("GetTokenInformation returned invalid output size {returned}"),
-        ));
-    }
-    Ok(TokenInformationBuffer {
-        blocks,
-        byte_length: returned,
-    })
-}
-
-fn sid_pointer_to_string(sid: *mut c_void) -> std::io::Result<String> {
-    if sid.is_null() {
-        return Err(std::io::Error::new(
-            ErrorKind::InvalidData,
-            "TokenUser returned a null SID",
-        ));
-    }
-    let mut string_sid = std::ptr::null_mut();
-    // SAFETY: `sid` points into a live TokenUser buffer and `string_sid` is
-    // writable pointer storage. Windows allocates the output with LocalAlloc.
-    let succeeded = unsafe { ConvertSidToStringSidW(sid, &mut string_sid) };
-    if succeeded == 0 {
-        return Err(last_error("ConvertSidToStringSidW"));
-    }
-    if string_sid.is_null() {
-        return Err(std::io::Error::other(
-            "ConvertSidToStringSidW returned a null string",
-        ));
-    }
-    let string_sid = LocalSidString(string_sid);
-    let length = (0..MAX_SID_STRING_UTF16)
-        // SAFETY: ConvertSidToStringSidW returned a NUL-terminated LocalAlloc
-        // string. The documented maximum SID string is below this hard bound.
-        .find(|index| unsafe { *string_sid.0.add(*index) == 0 })
-        .ok_or_else(|| {
-            std::io::Error::new(ErrorKind::InvalidData, "Windows SID string is too long")
-        })?;
-    // SAFETY: the bounded scan above found the terminator, proving this prefix
-    // is readable and contains exactly `length` UTF-16 code units.
-    let value = unsafe { std::slice::from_raw_parts(string_sid.0, length) };
-    String::from_utf16(value).map_err(|error| {
-        std::io::Error::new(
-            ErrorKind::InvalidData,
-            format!("Windows SID string is invalid UTF-16: {error}"),
-        )
-    })
-}
-
-struct LocalSidString(*mut u16);
-
-impl Drop for LocalSidString {
-    fn drop(&mut self) {
-        // SAFETY: ConvertSidToStringSidW allocated this pointer with LocalAlloc.
-        unsafe {
-            LocalFree(self.0.cast());
-        }
-    }
-}
-
-fn last_error(function: &str) -> std::io::Error {
-    let source = std::io::Error::last_os_error();
-    std::io::Error::new(source.kind(), format!("{function} failed: {source}"))
-}
-
-impl Drop for LocalSecurityDescriptor {
-    fn drop(&mut self) {
-        // SAFETY: the descriptor was allocated by LocalAlloc inside the SDDL
-        // conversion API and is freed exactly once by this owner.
-        unsafe {
-            LocalFree(self.0);
-        }
-    }
-}
-
 #[link(name = "advapi32")]
 unsafe extern "system" {
-    fn ConvertStringSecurityDescriptorToSecurityDescriptorW(
-        string_security_descriptor: *const u16,
-        string_sd_revision: u32,
-        security_descriptor: *mut *mut c_void,
-        security_descriptor_size: *mut u32,
-    ) -> i32;
-
     fn GetSecurityDescriptorDacl(
         security_descriptor: *mut c_void,
         dacl_present: *mut i32,
@@ -646,8 +411,6 @@ unsafe extern "system" {
         owner_defaulted: *mut i32,
     ) -> i32;
 
-    fn ConvertSidToStringSidW(sid: *mut c_void, string_sid: *mut *mut u16) -> i32;
-
     fn SetSecurityInfo(
         handle: *mut c_void,
         object_type: u32,
@@ -657,11 +420,6 @@ unsafe extern "system" {
         dacl: *mut c_void,
         sacl: *mut c_void,
     ) -> u32;
-}
-
-#[link(name = "kernel32")]
-unsafe extern "system" {
-    fn LocalFree(memory: *mut c_void) -> *mut c_void;
 }
 
 impl Drop for AssuanSocketMarker {
@@ -705,32 +463,24 @@ mod tests {
     use tokio::io::AsyncWriteExt;
 
     #[test]
-    fn owner_only_sddl_names_the_token_user_instead_of_owner_rights() -> Result<()> {
-        let user_sid = current_process_user_sid_string()?;
-        let sddl = owner_only_sddl()?;
-
-        assert!(sddl.starts_with("O:S-"));
-        assert!(!sddl.contains(";;;OW"));
-        assert_eq!(sddl.matches(&user_sid).count(), 2);
-        Ok(())
-    }
-
-    #[test]
     fn owner_only_descriptor_contains_the_exact_token_user_owner() -> Result<()> {
-        let expected = current_process_user_sid_string()?;
+        let expected = keyguard_agent_identity::windows::current_user_sid_string()?;
         let descriptor = LocalSecurityDescriptor::owner_only()?;
         let mut owner = std::ptr::null_mut();
         let mut owner_defaulted = 0;
         // SAFETY: descriptor is live and both output pointers are writable.
-        let succeeded =
-            unsafe { GetSecurityDescriptorOwner(descriptor.0, &mut owner, &mut owner_defaulted) };
+        let succeeded = unsafe {
+            GetSecurityDescriptorOwner(descriptor.as_ptr(), &mut owner, &mut owner_defaulted)
+        };
 
         if succeeded == 0 {
             return Err(std::io::Error::last_os_error())
                 .context("GetSecurityDescriptorOwner test query failed");
         }
         assert!(!owner.is_null());
-        assert_eq!(sid_pointer_to_string(owner)?, expected);
+        // SAFETY: `owner` points into the live `descriptor`.
+        let owner = unsafe { keyguard_agent_identity::windows::sid_string(owner) }?;
+        assert_eq!(owner, expected);
         Ok(())
     }
 

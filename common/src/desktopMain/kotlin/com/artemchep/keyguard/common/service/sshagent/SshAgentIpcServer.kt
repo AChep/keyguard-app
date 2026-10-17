@@ -43,8 +43,6 @@ class SshAgentIpcServer private constructor(
 ) {
     companion object {
         private const val TAG = "SshAgentIpcServer"
-
-        const val APPROVAL_TIMEOUT_MS = SshAgentRequestProcessorImpl.APPROVAL_TIMEOUT_MS
     }
 
     constructor(
@@ -117,9 +115,6 @@ class SshAgentIpcServer private constructor(
         sessionId: String = "",
         maxConcurrentConnections: Int = 8,
         onApprovalRequest: suspend (SshAgentApprovalPrompt) -> Boolean = { true },
-        onGetListRequest: suspend (
-            caller: SshAgentMessages.CallerIdentity?,
-        ) -> Boolean = { _ -> false },
         pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
         sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
     ) : this(
@@ -138,7 +133,6 @@ class SshAgentIpcServer private constructor(
             pendingUsageHistoryQueue = pendingUsageHistoryQueue,
             sessionId = sessionId,
             onApprovalRequest = onApprovalRequest,
-            onGetListRequest = onGetListRequest,
         ),
         maxConcurrentConnections = maxConcurrentConnections,
         expectedPeerProcess = expectedPeerProcess,
@@ -159,9 +153,6 @@ class SshAgentIpcServer private constructor(
         sessionId: String = "",
         maxConcurrentConnections: Int = 8,
         onApprovalRequest: suspend (SshAgentApprovalPrompt) -> Boolean = { true },
-        onGetListRequest: suspend (
-            caller: SshAgentMessages.CallerIdentity?,
-        ) -> Boolean = { _ -> false },
         pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
         sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
     ) : this(
@@ -180,7 +171,6 @@ class SshAgentIpcServer private constructor(
             pendingUsageHistoryQueue = pendingUsageHistoryQueue,
             sessionId = sessionId,
             onApprovalRequest = onApprovalRequest,
-            onGetListRequest = onGetListRequest,
         ),
         maxConcurrentConnections = maxConcurrentConnections,
         testOnlyUnverifiedPeer = testOnlyUnverifiedPeer,

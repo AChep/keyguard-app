@@ -29,19 +29,19 @@ async fn exited_macos_peer_cannot_reach_sign_or_decrypt_ipc_on_repeated_requests
         .await
         .unwrap()
         .unwrap();
-    let context = crate::caller_identity::caller_context_from_unix_stream(&stream)
-        .expect("authenticated test peer");
-    assert!(context.macos_guard.is_some());
+    let (caller, caller_guard) = keyguard_agent_proto_adapter::caller_from_unix_stream(&stream);
+    assert!(caller.is_some(), "authenticated test peer");
+    assert!(caller_guard.macos().is_some());
     peer.kill().await.unwrap();
 
     let (ipc_stream, mut ipc_peer) = tokio::io::duplex(1024);
     let ipc_client = IpcClient::from_test_stream(ipc_stream);
     let (client, server) = tokio::io::duplex(4096);
-    let server_task = tokio::spawn(serve_connection_with_macos_guard(
+    let server_task = tokio::spawn(serve_connection(
         server,
         ipc_client,
-        Some(context.caller),
-        context.macos_guard,
+        caller,
+        caller_guard,
         "test".to_string(),
     ));
     let (mut read, mut write) = tokio::io::split(client);
@@ -110,6 +110,7 @@ async fn run_oversized_pkdecrypt_inquiry(inquiry: &[u8]) -> Vec<u8> {
         server,
         ipc_client,
         None,
+        CallerGuard::default(),
         "test".to_string(),
     ));
     let (client_read, mut client_write) = tokio::io::split(client);

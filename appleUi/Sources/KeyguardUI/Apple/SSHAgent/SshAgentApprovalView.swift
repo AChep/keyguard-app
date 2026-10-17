@@ -3,19 +3,21 @@ import SwiftUI
 import Combine
 import KeyguardShared
 
-/// Per-sign approval prompt for the SSH agent.
+/// Per-sign approval prompt for the SSH agent. Unlocking only unlocks the vault.
+/// A separate click approves this operation.
 struct SshAgentApprovalView: View {
     @Environment(SshAgentModel.self) private var sshAgentModel
+    @Environment(VaultSessionModel.self) private var authModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     let request: SshAgentRequestSnapshot
 
-    @State private var decision: SshAgentApprovalDecision
+    @State private var decision: AgentApprovalDecision
 
     init(request: SshAgentRequestSnapshot) {
         self.request = request
         _decision = State(
-            initialValue: SshAgentApprovalDecision(requestID: request.id, expiresAtEpochMs: request.expiresAtEpochMs))
+            initialValue: AgentApprovalDecision(requestID: request.id, expiresAtEpochMs: request.expiresAtEpochMs))
     }
 
     /// Visual countdown of the approval window: 1 (full time) → 0 (expired). The
@@ -109,6 +111,8 @@ struct SshAgentApprovalView: View {
                 .padding(6)
             }
 
+            AgentApprovalVaultUnlock()
+
             HStack {
                 Spacer()
                 Button(L10n.ipcApprovalDeny, role: .cancel) {
@@ -118,12 +122,14 @@ struct SshAgentApprovalView: View {
                 // Deliberately no keyboard shortcut: this grants an external
                 // process a cryptographic signature with the user's SSH key.
                 // Approval should require direct interaction with the button
-                // itself, either by click or focused control activation.
+                // itself, either by click or focused control activation. This
+                // also keeps Return in the unlock form from approving.
                 Button(L10n.ipcApprovalApprove) {
                     resolve(approved: true)
                 }
                 .accessibilityHint(L10n.sshAgentApprovalApproveHint)
                 .buttonStyle(.borderedProminent)
+                .disabled(authModel.status != .unlocked)
             }
             .disabled(decision.isResolving)
         }
@@ -132,7 +138,10 @@ struct SshAgentApprovalView: View {
     private func resolve(approved: Bool) {
         guard
             let requestID = decision.begin(
-                approved: approved, currentRequestID: sshAgentModel.sshAgentRequests.first?.id)
+                approved: approved,
+                vaultUnlocked: authModel.status == .unlocked,
+                currentRequestID: sshAgentModel.sshAgentRequests.first?.id
+            )
         else { return }
         sshAgentModel.resolveSshAgentRequest(id: requestID, approved: approved)
     }

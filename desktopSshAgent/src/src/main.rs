@@ -5,8 +5,6 @@
 //! SSH keys and request signing operations.
 
 mod agent;
-#[cfg(unix)]
-mod caller_identity;
 mod config;
 mod ipc;
 mod socket;

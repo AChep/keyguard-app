@@ -7,8 +7,11 @@
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
+pub mod caller_guard;
 #[cfg(unix)]
 pub mod caller_identity;
+#[cfg(any(unix, windows))]
+pub mod ipc_server;
 #[cfg(target_os = "linux")]
 pub mod linux_identity;
 #[cfg(target_os = "macos")]
@@ -17,6 +20,20 @@ pub mod macos;
 pub mod socket_lifecycle;
 #[cfg(unix)]
 pub mod unix_caller_identity;
+#[cfg(windows)]
+pub mod windows;
+
+/// Display data of the process that started an accepted peer which only
+/// relays requests for it, such as a bundled command-line client.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct RelayedCaller {
+    pub pid: u32,
+    pub process_name: String,
+    pub executable_path: String,
+    /// The application of the process; empty if none.
+    pub app_name: String,
+    pub app_bundle_path: String,
+}
 
 /// Size of opaque authorization fingerprints carried over protobuf IPC.
 pub const PRINCIPAL_FINGERPRINT_LEN: usize = 32;
@@ -155,6 +172,19 @@ pub enum VerifiedSubjectKind {
     StableApplication,
     /// Fingerprint identifies one live terminal session, tab, or pane.
     TerminalSession,
+}
+
+impl VerifiedSubjectKind {
+    /// Value of the protocols' `CallerAuthorizationSubjectKind`.
+    #[must_use]
+    pub const fn wire_value(self) -> i32 {
+        match self {
+            Self::Process => 1,
+            Self::ApplicationInstance => 2,
+            Self::StableApplication => 3,
+            Self::TerminalSession => 4,
+        }
+    }
 }
 
 /// Stable verified identity returned by a platform collector.

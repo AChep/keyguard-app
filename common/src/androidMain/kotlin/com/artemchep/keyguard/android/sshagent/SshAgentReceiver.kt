@@ -13,7 +13,7 @@ import com.artemchep.keyguard.android.Notifications
 import com.artemchep.keyguard.android.util.canPostNotifications
 import com.artemchep.keyguard.android.util.getAndroidPackageSigningCertificates
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
-import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProtocol
 import com.artemchep.keyguard.common.service.sshagent.buildAndroidFrameworkPackageAuthorization
 import com.artemchep.keyguard.common.service.sshagent.buildAndroidSshAgentCallerIdentity
@@ -298,7 +298,7 @@ class SshAgentReceiver : BroadcastReceiver() {
     private fun getSentFromAppInfo(
         context: Context,
         sender: BroadcastSender?,
-    ): SshAgentMessages.CallerIdentity? {
+    ): CallerIdentity? {
         val packageName = sender
             ?.packageName
             ?: return null

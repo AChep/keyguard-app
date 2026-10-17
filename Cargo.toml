@@ -3,6 +3,8 @@ resolver = "2"
 members = [
     "androidSshAgent/src",
     "commonAgent",
+    "commonAgent/proto",
+    "commonAgent/proto-adapter",
     "commonGpgAgent",
     "commonSshAgent",
     "desktopGpgAgent/src",
@@ -37,6 +39,8 @@ repository = "https://github.com/AChep/keyguard-app"
 common-gpg-agent-rust = { path = "commonGpgAgent" }
 common-ssh-agent-rust = { path = "commonSshAgent" }
 keyguard-agent-identity = { path = "commonAgent" }
+keyguard-agent-proto = { path = "commonAgent/proto" }
+keyguard-agent-proto-adapter = { path = "commonAgent/proto-adapter" }
 keyguard-ffi = { path = "util/ffi/rust/crates/keyguard-ffi" }
 keyguard-fido2-core = { path = "util/fido2/rust/crates/keyguard-fido2-core" }
 keyguard-yubikey-core = { path = "util/yubikey/rust/crates/keyguard-yubikey-core" }

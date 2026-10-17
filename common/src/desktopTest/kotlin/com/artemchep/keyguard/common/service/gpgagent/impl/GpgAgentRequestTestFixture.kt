@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentApprovalPrompt
@@ -119,7 +120,7 @@ internal class GpgAgentRequestTestFixture(
 
     suspend fun succeed(
         operation: GpgAgentOperation,
-        caller: GpgAgentMessages.CallerIdentity,
+        caller: CallerIdentity,
         keygrip: String = KEYGRIP,
     ) {
         assertIs<GpgAgentOperationResult.Success<*>>(request(operation, caller, keygrip))
@@ -127,7 +128,7 @@ internal class GpgAgentRequestTestFixture(
 
     suspend fun request(
         operation: GpgAgentOperation,
-        caller: GpgAgentMessages.CallerIdentity,
+        caller: CallerIdentity,
         keygrip: String = KEYGRIP,
     ): GpgAgentOperationResult<*> = when (operation) {
         GpgAgentOperation.SIGN -> processor.signHash(
@@ -297,7 +298,7 @@ internal class GpgAgentRequestTestFixture(
             terminal: Byte? = 30,
             application: Byte? = 40,
             context: Byte? = null,
-        ) = GpgAgentMessages.CallerIdentity(
+        ) = CallerIdentity(
             appName = "iTerm2",
             authorization = CallerAuthorization(
                 connectionFingerprint = ByteArray(32) { connection },

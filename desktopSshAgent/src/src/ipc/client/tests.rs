@@ -698,30 +698,6 @@ async fn connect_rejects_invalid_token_length() {
     );
 }
 
-#[cfg(unix)]
-#[tokio::test]
-async fn unix_ipc_server_verification_accepts_current_process() {
-    let (stream, _peer) = std::os::unix::net::UnixStream::pair().unwrap();
-    stream.set_nonblocking(true).unwrap();
-    let stream = tokio::net::UnixStream::from_std(stream).unwrap();
-
-    verify_unix_ipc_server(&stream, std::process::id()).unwrap();
-}
-
-#[cfg(unix)]
-#[tokio::test]
-async fn unix_ipc_server_verification_rejects_wrong_parent_pid() {
-    let (stream, _peer) = std::os::unix::net::UnixStream::pair().unwrap();
-    stream.set_nonblocking(true).unwrap();
-    let stream = tokio::net::UnixStream::from_std(stream).unwrap();
-    let wrong_pid = std::process::id().wrapping_add(1).max(1);
-
-    let error = verify_unix_ipc_server(&stream, wrong_pid)
-        .unwrap_err()
-        .to_string();
-    assert!(error.contains("PID mismatch"), "{error}");
-}
-
 #[test]
 fn reconnect_delay_is_bounded() {
     for attempt in 1..=32 {

@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.feature.gpgagent.history
 
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
@@ -11,7 +11,7 @@ class GpgAgentHistoryMapperTest {
     @Test
     fun `build caller info shows Android app label and package`() {
         val caller =
-            GpgAgentMessages.CallerIdentity(
+            CallerIdentity(
                 pid = 123,
                 uid = 456,
                 appName = "Example Client",
@@ -27,11 +27,11 @@ class GpgAgentHistoryMapperTest {
     @Test
     fun `build caller info falls back to package then process`() {
         val packageCaller =
-            GpgAgentMessages.CallerIdentity(
+            CallerIdentity(
                 appBundlePath = "com.example.client",
             )
         val processCaller =
-            GpgAgentMessages.CallerIdentity(
+            CallerIdentity(
                 processName = "gpg",
             )
 
@@ -48,7 +48,7 @@ class GpgAgentHistoryMapperTest {
     @Test
     fun `build caller info sanitizes persisted metadata at the display boundary`() {
         val caller =
-            GpgAgentMessages.CallerIdentity(
+            CallerIdentity(
                 appName = "Example\u202E Client 😀",
                 appBundlePath = "com.example\u2028client",
                 processName = "g".repeat(300),

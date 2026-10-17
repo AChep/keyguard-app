@@ -360,8 +360,15 @@ class KeePassCipherCodec(
     ): BitwardenCipher {
         val scope = DecodeToCipherScope(remote)
         val binaryIndex = BinaryIndex(binaries)
-        val type = local?.type
-            ?: decodeCipherType(remote)
+        val detected = decodeCipherType(remote)
+        val type = if (
+            local?.type == BitwardenCipher.Type.SecureNote &&
+            detected == BitwardenCipher.Type.Login
+        ) {
+            BitwardenCipher.Type.Login
+        } else {
+            local?.type ?: detected
+        }
         scope.consumeField("${KEYGUARD_PREFIX}Entry Type")
 
         val sourceBindings = mutableListOf<SourceBinding>()
@@ -583,11 +590,18 @@ class KeePassCipherCodec(
     }
 
     internal fun decodeCipherType(remote: Entry): BitwardenCipher.Type {
+        val hasCredentials = remote.fields.any { entry ->
+            val credentialsField = entry.key == BasicField.Password() ||
+                    entry.key == BasicField.UserName()
+            credentialsField && !entry.value.isEmpty()
+        }
         val typeField = remote.fields["${KEYGUARD_PREFIX}Entry Type"]
         if (typeField != null) {
             val type = BitwardenCipher.Type.entries
                 .firstOrNull { it.verboseKey == typeField.content }
-            if (type != null) return type
+            if (type != null && !(type == BitwardenCipher.Type.SecureNote && hasCredentials)) {
+                return type
+            }
         }
 
         if (urlCodec.hasLoginUriFields(remote)) return BitwardenCipher.Type.Login
@@ -599,15 +613,7 @@ class KeePassCipherCodec(
             gpgKeyCodec.detects(remote) -> return BitwardenCipher.Type.GpgKey
         }
 
-        val isLogin = run {
-            val hasCredentials = remote.fields.any { entry ->
-                val credentialsField = entry.key == BasicField.Password() ||
-                        entry.key == BasicField.UserName()
-                credentialsField && !entry.value.isEmpty()
-            }
-            if (hasCredentials) return@run true
-            remote.fields.notes == null
-        }
+        val isLogin = hasCredentials || remote.fields.notes == null
         return if (isLogin) BitwardenCipher.Type.Login else BitwardenCipher.Type.SecureNote
     }
 

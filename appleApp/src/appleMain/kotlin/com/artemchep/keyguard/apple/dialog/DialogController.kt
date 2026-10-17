@@ -748,6 +748,7 @@ internal class DialogController(
                     canPreviewAttachment = sessionKoin.get(),
                     getAttachmentPreview = sessionKoin.get(),
                     downloadManager = sessionKoin.get(),
+                    temporaryDirProvider = sessionKoin.get(),
                 )
                 .collect { loadable ->
                     val state = loadable.getOrNull() ?: return@collect

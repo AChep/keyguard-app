@@ -21,7 +21,7 @@ import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseMan
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManagerImpl
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
-import com.artemchep.keyguard.common.service.download.CacheDirProviderIos
+import com.artemchep.keyguard.common.service.download.CacheDirProviderApple
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadManagerImpl
 import com.artemchep.keyguard.common.service.download.DownloadRepository
@@ -101,9 +101,7 @@ import com.artemchep.keyguard.di.NativeCryptoServicesModule
 import com.artemchep.keyguard.platform.AppleBiometricKeychain
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.platform.iosKeyguardAtomicDataDirectory
-import com.artemchep.keyguard.platform.iosKeyguardCacheDirectory
-import com.artemchep.keyguard.platform.iosKeyguardDataDirectory
+import com.artemchep.keyguard.platform.AppleStorageDirectories
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
 import com.artemchep.keyguard.provider.bitwarden.api.builder.configureBitwardenHttpRetry
 import com.artemchep.keyguard.util.io.resolve
@@ -161,8 +159,9 @@ internal class IosPlatformModule {
             Dispatchers.IO
         }
         single<ClearData> {
+            val directories = get<AppleStorageDirectories>()
             ClearDataApple(
-                directories = { listOf(iosKeyguardDataDirectory(), iosKeyguardCacheDirectory()) },
+                directories = { listOf(directories.data.path, directories.cache) },
                 fingerprintRepository = get(),
                 getStore = get<AppleKeyValueStoreFactory>()::getJson,
             )
@@ -199,13 +198,13 @@ internal class IosPlatformModule {
         single<KeychainRepository> { get<KeychainRepositoryApple>() }
         single<AppleBiometricKeychain> { get<KeychainRepositoryApple>() }
         single<CacheDirProvider> {
-            CacheDirProviderIos
+            CacheDirProviderApple(directories = get())
         }
         single<DownloadRepository> {
             DownloadRepositoryInMemory()
         }
         single<DownloadFileStore> {
-            DownloadFileStoreApple
+            DownloadFileStoreApple(directories = get())
         }
         single<DownloadBackgroundScheduler> {
             DownloadBackgroundSchedulerNoOp
@@ -348,12 +347,12 @@ internal class IosPlatformModule {
 
         // One live store per file, shared by the repositories and by erasure so a
         // ClearData run resets the preferences already held in memory.
-        single { AppleKeyValueStoreFactory(get(), iosKeyguardAtomicDataDirectory()) }
+        single { AppleKeyValueStoreFactory(get(), get<AppleStorageDirectories>().data) }
         single<KeyValueStoreFactory> { get<AppleKeyValueStoreFactory>() }
         single<AndroidIpcRegistrationService> { AndroidIpcRegistrationServiceNone }
         single<ExposedDatabaseManager> {
             val sqlManager = DatabaseSqlManagerInFileApple<DatabaseExposed>(
-                directory = iosKeyguardDataDirectory().resolve("exposed"),
+                directory = get<AppleStorageDirectories>().data.path.resolve("exposed"),
                 fileName = "database_exposed.sqlite",
                 onCreate = { _: DatabaseExposed ->
                     ioUnit()

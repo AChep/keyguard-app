@@ -1,14 +1,16 @@
 package com.artemchep.keyguard.apple.lists
 
-import com.artemchep.keyguard.appleKoinModules
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.file.FileAccessToken
 import com.artemchep.keyguard.copy.FileWatcherServiceApple
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.di.resolveOrCancel
+import com.artemchep.keyguard.di.withKoin
+import com.artemchep.keyguard.di.withVaultSession
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasAutofill
+import com.artemchep.keyguard.platform.withTestAppleStorage
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
 import com.artemchep.keyguard.util.webauthn.WebAuthnAllowedCredentialDescriptors
@@ -20,7 +22,6 @@ import kotlin.test.assertTrue
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withTimeout
-import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
 class AutofillMetadataTest {
@@ -42,46 +43,37 @@ class AutofillMetadataTest {
         // The extension session must stay usable without instantiating any
         // networking, sync or licensing service: both queue use cases resolve to
         // no-ops in the AutoFill runtime.
-        val koin = koinApplication {
-            allowOverride(true)
-            modules(
-                appleKoinModules() + module {
-                    single<com.artemchep.keyguard.platform.AppleSessionMode> {
-                        com.artemchep.keyguard.platform.AppleSessionMode.AUTOFILL
-                    }
-                    single<com.artemchep.keyguard.common.usecase.GetLicensePremium> {
-                        object : com.artemchep.keyguard.common.usecase.GetLicensePremium {
-                            override fun invoke() = kotlinx.coroutines.flow.flowOf(false)
-                        }
-                    }
-                },
-            )
-        }.koin
-        try {
-            val session = koin.get<com.artemchep.keyguard.common.service.vault.VaultSessionFactory>().create(
-                com.artemchep.keyguard.common.model.MasterKey(
-                    com.artemchep.keyguard.common.model.MasterKdfVersion.V1, ByteArray(32),
-                ),
-            )
-            try {
-                session.resolveOrCancel { get<com.artemchep.keyguard.common.usecase.QueueSyncById>() }(
-                    com.artemchep.keyguard.common.model.AccountId("account"),
-                ).bind()
-                session.resolveOrCancel { get<com.artemchep.keyguard.common.usecase.QueueSyncAll>() }().bind()
-                val watcher = session.resolveOrCancel { get<FileWatcherService>() }
-                assertFalse(watcher is FileWatcherServiceApple)
-                val events = withTimeout(1_000L) {
-                    watcher.uriChangedFlow(
-                        uri = "file:///tmp/autofill.kdbx",
-                        accessToken = FileAccessToken("invalid-bookmark"),
-                    ).toList()
-                }
-                assertTrue(events.isEmpty())
-            } finally {
-                session.close()
+        val overrides = module {
+            single<com.artemchep.keyguard.platform.AppleSessionMode> {
+                com.artemchep.keyguard.platform.AppleSessionMode.AUTOFILL
             }
-        } finally {
-            koin.close()
+            single<com.artemchep.keyguard.common.usecase.GetLicensePremium> {
+                object : com.artemchep.keyguard.common.usecase.GetLicensePremium {
+                    override fun invoke() = kotlinx.coroutines.flow.flowOf(false)
+                }
+            }
+        }
+        withTestAppleStorage { directories ->
+            directories.withKoin(overrides) { koin ->
+                val masterKey = com.artemchep.keyguard.common.model.MasterKey(
+                    com.artemchep.keyguard.common.model.MasterKdfVersion.V1, ByteArray(32),
+                )
+                koin.withVaultSession(masterKey) { session ->
+                    session.resolveOrCancel { get<com.artemchep.keyguard.common.usecase.QueueSyncById>() }(
+                        com.artemchep.keyguard.common.model.AccountId("account"),
+                    ).bind()
+                    session.resolveOrCancel { get<com.artemchep.keyguard.common.usecase.QueueSyncAll>() }().bind()
+                    val watcher = session.resolveOrCancel { get<FileWatcherService>() }
+                    assertFalse(watcher is FileWatcherServiceApple)
+                    val events = withTimeout(1_000L) {
+                        watcher.uriChangedFlow(
+                            uri = "file:///tmp/autofill.kdbx",
+                            accessToken = FileAccessToken("invalid-bookmark"),
+                        ).toList()
+                    }
+                    assertTrue(events.isEmpty())
+                }
+            }
         }
     }
 

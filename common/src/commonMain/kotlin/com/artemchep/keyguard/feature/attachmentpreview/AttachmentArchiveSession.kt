@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewKind
 import com.artemchep.keyguard.common.model.AttachmentPreviewLimits
 import com.artemchep.keyguard.common.model.attachmentPreviewKindByFileName
 import com.artemchep.keyguard.common.usecase.CopyText
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.crypto.createPrivateTemporaryStorage
 import com.artemchep.keyguard.ui.pathBreadcrumbs
 import com.artemchep.keyguard.util.io.InternalKeyguardIoApi
@@ -61,7 +62,10 @@ internal class AttachmentArchiveSession(
     private val archive: ZipArchive,
     private val copyText: CopyText,
     private val onError: suspend (AttachmentPreviewError) -> Unit,
-    private val storageFactory: () -> PrivateTemporaryStorage = ::createPrivateTemporaryStorage,
+    temporaryDirProvider: PrivateTemporaryDirProvider = PrivateTemporaryDirProvider.Default,
+    private val storageFactory: () -> PrivateTemporaryStorage = {
+        createPrivateTemporaryStorage(temporaryDirProvider.get())
+    },
     private val tree: Map<String, List<ArchiveNode>> = archiveTree(archive.entries),
 ) {
     private var path = ""

@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keepass.prepareKeePassDatabase
+import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthError
 import com.artemchep.keyguard.feature.auth.companion.CompanionKeePassPayload
@@ -48,6 +49,7 @@ private fun CompanionKeePassLoginScreen(
             request = request,
             companionAuthBridge = get(),
             fileService = get(),
+            stagingSpoolFactory = get(),
         )
     }
     val state = produceKeePassLoginScreenState(
@@ -93,12 +95,14 @@ internal class CompanionKeePassAddAccount(
         request: CompanionAuthActivity.Request,
         companionAuthBridge: CompanionAuthBridgeAndroid,
         fileService: FileService,
+        stagingSpoolFactory: StagingSpoolFactory,
     ) : this(
         requestId = request.requestId,
         preflight = { params ->
             prepareKeePassDatabase(
                 fileService = fileService,
                 params = params,
+                stagingSpoolFactory = stagingSpoolFactory,
             )
         },
         complete = { payload, databaseUri, keyUri ->

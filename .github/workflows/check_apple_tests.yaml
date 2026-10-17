@@ -132,9 +132,13 @@ jobs:
       - uses: ./.github/actions/setup_rust
         with:
           targets: "aarch64-apple-darwin,aarch64-apple-ios,aarch64-apple-ios-sim"
+      - name: Prepare SQLCipher integration tests
+        run: bash xcode/scripts/prepare-sqlcipher-tests.sh
       - name: Build Apple billing and license tests
         run: >-
           ./gradlew --max-workers=1 :appleApp:macosArm64Test :appleApp:assembleKeyguardSharedDebugXCFramework
+          -PsqlCipherXcframeworkDir="$PWD/build/sqlcipher-tests/SQLCipher.xcframework"
+          :common:macosArm64SqlCipherTest
           :common:generateAppleStrings :util:s3:macosArm64Test
       - name: Generate Xcode projects
         run: |
@@ -151,6 +155,8 @@ jobs:
             apple-billing-tests.xcresult
             appleApp/build/test-results/**
             appleApp/build/reports/tests/**
+            common/build/test-results/macosArm64SqlCipherTest/**
+            common/build/reports/tests/macosArm64SqlCipherTest/**
             util/s3/build/test-results/macosArm64Test/**
             util/s3/build/reports/tests/macosArm64Test/**
           if-no-files-found: ignore

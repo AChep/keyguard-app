@@ -35,7 +35,7 @@ import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.di.VaultSessionScope
 import com.artemchep.keyguard.platform.AppleSessionMode
 import com.artemchep.keyguard.platform.LocalPath
-import com.artemchep.keyguard.platform.appleKeyguardDataDirectory
+import com.artemchep.keyguard.platform.AppleStorageDirectories
 import com.artemchep.keyguard.provider.bitwarden.usecase.NotificationsImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.QueueSyncAllImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.QueueSyncByIdImpl
@@ -114,7 +114,7 @@ class PlatformVaultModule {
             }
             scoped<VaultDatabaseManager> {
                 val sqlManager = DatabaseSqlManagerInFileApple<Database>(
-                    directory = appleKeyguardDataDirectory().resolve("vault"),
+                    directory = get<AppleStorageDirectories>().data.path.resolve("vault"),
                     fileName = "database_v2.sqlite",
                     onCreate = { _: Database ->
                         ioUnit()

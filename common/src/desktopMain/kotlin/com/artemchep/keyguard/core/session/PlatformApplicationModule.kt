@@ -7,6 +7,8 @@ import com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability
 import arrow.core.partially1
 import arrow.optics.Getter
 import com.artemchep.autotype.biometricsIsSupported
+import com.artemchep.keyguard.common.PlatformTemporaryArtifactRootRegistry
+import com.artemchep.keyguard.common.TemporaryArtifactRoot
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
@@ -266,6 +268,25 @@ class PlatformApplicationModule {
                     is Platform.Desktop.Windows -> listOf(get<WindowsPasskeyService>())
                     else -> emptyList()
                 },
+            )
+        }
+        single {
+            val dataDirectory: DataDirectory = get()
+            PlatformTemporaryArtifactRootRegistry(
+                listOf(
+                    TemporaryArtifactRoot(
+                        label = "desktop-data",
+                        provideDirectory = {
+                            LocalPath(dataDirectory.dataBlocking())
+                        },
+                    ),
+                    TemporaryArtifactRoot(
+                        label = "desktop-downloads",
+                        provideDirectory = {
+                            LocalPath(dataDirectory.downloadsBlocking())
+                        },
+                    ),
+                ),
             )
         }
 

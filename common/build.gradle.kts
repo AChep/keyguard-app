@@ -13,6 +13,7 @@ import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import com.artemchep.keyguard.buildplugins.version.keyguardVersionInfo
 import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import java.time.Duration
 
@@ -86,13 +87,21 @@ kotlin {
             isIncludeAndroidResources = true
         }
     }
-    macosArm64 {
-        // SQLCipher is supplied by Xcode, so keep its integration tests opt-in.
-        // ./gradlew :common:macosArm64SqlCipherTest -PsqlCipherFrameworkDir=/path/containing/SQLCipher.framework
-        providers.gradleProperty("sqlCipherFrameworkDir").orNull?.let { frameworkDir ->
+    // Explicit integration binaries use the same SQLCipher artifact as the apps.
+    // Ordinary graph tests keep the system SQLite linker setup.
+    targets.withType<KotlinNativeTargetWithTests<*>>().configureEach {
+        val slice = when (name) {
+            "macosArm64" -> "macos-arm64_x86_64"
+            "iosSimulatorArm64" -> "ios-arm64_x86_64-simulator"
+            else -> null
+        }
+        val frameworkDir = providers.gradleProperty("sqlCipherXcframeworkDir").orNull
+            ?.let { root -> slice?.let { "$root/$it" } }
+        if (frameworkDir != null) {
             val mainCompilation = compilations.getByName("main")
             val sqlCipherTest = compilations.create("sqlCipherTest") {
                 associateWith(mainCompilation)
+                defaultSourceSet.kotlin.srcDirs("src/appleSqlCipherTest/kotlin", "src/appleTestFixtures/kotlin")
                 defaultSourceSet.dependencies {
                     implementation(kotlin("test"))
                     implementation(libs.kotlinx.coroutines.test)
@@ -106,8 +115,8 @@ kotlin {
             testRuns.create("sqlCipher") {
                 setExecutionSourceFrom(sqlCipherBinary)
             }
-            // Both test compilations include the same common Compose resources.
-            tasks.withType<Copy>().matching { it.name == "copyTestComposeResourcesForMacosArm64" }.configureEach {
+            val targetSuffix = name.replaceFirstChar(Char::uppercaseChar)
+            tasks.withType<Copy>().matching { it.name == "copyTestComposeResourcesFor$targetSuffix" }.configureEach {
                 duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             }
         }
@@ -258,6 +267,7 @@ kotlin {
         }
 
         sharedAppleTest(parent = appleCommonTest)
+        getByName("appleTest").kotlin.srcDir("src/appleTestFixtures/kotlin")
 
         getByName("androidHostTest") {
             kotlin.srcDir("src/androidUnitTest/kotlin")

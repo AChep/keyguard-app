@@ -26,6 +26,7 @@ import com.artemchep.keyguard.common.usecase.SyncById
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.core.store.bitwarden.FileLocation
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
+import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.TestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.createTestDatabase
@@ -429,6 +430,7 @@ class AddKeePassAccountImplTest {
             base64Service = testBase64Service,
             webDavClientFactory = webDavClientFactory,
             s3ClientFactory = s3ClientFactory,
+            stagingSpoolFactory = DefaultStagingSpoolFactory(),
             db = TestVaultDatabaseManager(db),
         )
         return Fixture(

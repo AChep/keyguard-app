@@ -25,6 +25,7 @@ import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.ui.theme.isDark
@@ -59,6 +60,7 @@ fun produceAttachmentPreviewState(
         canPreviewAttachment = get(),
         getAttachmentPreview = get(),
         downloadManager = get(),
+        temporaryDirProvider = get(),
     )
 }
 
@@ -68,6 +70,7 @@ fun produceAttachmentPreviewState(
     canPreviewAttachment: CanPreviewAttachment,
     getAttachmentPreview: GetAttachmentPreview,
     downloadManager: DownloadManager,
+    temporaryDirProvider: PrivateTemporaryDirProvider,
 ): Loadable<AttachmentPreviewState> = produceScreenState(
     key = "attachment_preview:${args.localCipherId}:${args.attachmentId}",
     initial = Loadable.Loading,
@@ -76,6 +79,7 @@ fun produceAttachmentPreviewState(
         canPreviewAttachment,
         getAttachmentPreview,
         downloadManager,
+        temporaryDirProvider,
     ),
 ) {
     attachmentPreviewStateProducer(
@@ -83,6 +87,7 @@ fun produceAttachmentPreviewState(
         canPreviewAttachment = canPreviewAttachment,
         getAttachmentPreview = getAttachmentPreview,
         downloadManager = downloadManager,
+        temporaryDirProvider = temporaryDirProvider,
     )
 }
 
@@ -92,6 +97,7 @@ suspend fun RememberStateFlowScope.attachmentPreviewStateProducer(
     canPreviewAttachment: CanPreviewAttachment,
     getAttachmentPreview: GetAttachmentPreview,
     downloadManager: DownloadManager,
+    temporaryDirProvider: PrivateTemporaryDirProvider,
 ): Flow<Loadable<AttachmentPreviewState>> {
     val producerScope = this
     val copyText = copier()
@@ -116,6 +122,7 @@ suspend fun RememberStateFlowScope.attachmentPreviewStateProducer(
                             archive = archive.source,
                             copyText = copyText,
                             onError = producerScope::showArchiveError,
+                            temporaryDirProvider = temporaryDirProvider,
                             tree = tree,
                         )
                     }

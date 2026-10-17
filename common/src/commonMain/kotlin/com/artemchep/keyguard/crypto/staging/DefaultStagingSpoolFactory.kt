@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.common.service.staging.StagingSpoolObserver
 import com.artemchep.keyguard.common.service.staging.StagingSpoolOutcome
 import com.artemchep.keyguard.crypto.EncryptedTemporarySpillStorage
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.crypto.PrivateTemporaryStorage
 import com.artemchep.keyguard.crypto.createPrivateTemporaryStorage
 import com.artemchep.keyguard.util.io.InternalKeyguardIoApi
@@ -29,15 +30,13 @@ internal class DefaultStagingSpoolFactory private constructor(
     private val scratchStorageFactory: () -> PrivateTemporaryStorage,
     private val observer: StagingSpoolObserver,
 ) : StagingSpoolFactory {
-    constructor() : this(
-        scratchStorageFactory = ::createPrivateTemporaryStorage,
-        observer = StagingSpoolObserver.NoOp,
-    )
-
     constructor(
-        observer: StagingSpoolObserver,
+        observer: StagingSpoolObserver = StagingSpoolObserver.NoOp,
+        directoryProvider: PrivateTemporaryDirProvider = PrivateTemporaryDirProvider.Default,
     ) : this(
-        scratchStorageFactory = ::createPrivateTemporaryStorage,
+        scratchStorageFactory = {
+            createPrivateTemporaryStorage(directoryProvider.get())
+        },
         observer = observer,
     )
 

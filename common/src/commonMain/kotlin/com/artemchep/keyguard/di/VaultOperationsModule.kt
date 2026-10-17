@@ -499,6 +499,7 @@ internal class VaultOperationsModule {
                     base64Service = get(),
                     webDavClientFactory = get(),
                     s3ClientFactory = get(),
+                    stagingSpoolFactory = get(),
                     db = get(),
                 )
             }

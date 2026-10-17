@@ -64,6 +64,9 @@ kotlin {
             }
         }
         sharedAppleTest()
+        // KMP has no test fixtures, and a fixtures module would depend on
+        // `common`, which common's own tests cannot use. Share the sources.
+        getByName("appleTest").kotlin.srcDir("../common/src/appleTestFixtures/kotlin")
     }
 }
 

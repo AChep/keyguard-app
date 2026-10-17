@@ -12,20 +12,71 @@ import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.util.toHex
-import com.artemchep.keyguard.platform.LocalPath
+import com.artemchep.keyguard.platform.withTestAppleStorage
+import com.artemchep.keyguard.util.io.toKotlinxIoPath
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
-import kotlinx.io.files.SystemTemporaryDirectory
+import kotlinx.io.buffered
+import kotlinx.io.readByteArray
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlin.uuid.Uuid
 
 class DatabaseSqlManagerInFileAppleIntegrationTest {
     private val oldKey = MasterKey(MasterKdfVersion.V1, ByteArray(32) { 0x11 })
     private val newKey = MasterKey(MasterKdfVersion.V1, ByteArray(32) { 0x22 })
+
+    @Test
+    fun databasesWithTheSameNameRemainIsolatedInSeparateFixtures() = runTest {
+        withDatabase { first, _ ->
+            val firstHelper = first.open(oldKey)
+            try {
+                firstHelper.driver.execute(null, "UPDATE entries SET value = 'first';", 0)
+                withDatabase { second, _ ->
+                    val secondHelper = second.open(oldKey)
+                    try {
+                        assertEquals("vault entry", secondHelper.driver.readEntry())
+                        assertEquals("first", firstHelper.driver.readEntry())
+                    } finally {
+                        secondHelper.driver.close()
+                    }
+                }
+            } finally {
+                firstHelper.driver.close()
+            }
+        }
+    }
+
+    @Test
+    fun encryptedDatabaseReopensAndRejectsWrongKeyWithoutLosingData() = runTest {
+        withDatabase { manager, directory ->
+            val helper = manager.open(oldKey)
+            try {
+                val version = helper.driver.executeQuery(null, "PRAGMA cipher_version;", { cursor ->
+                    assertTrue(cursor.next().value, "SQLCipher must be linked for this suite")
+                    QueryResult.Value(cursor.getString(0))
+                }, 0).value
+                assertFalse(version.isNullOrBlank())
+                assertEquals("vault entry", helper.driver.readEntry())
+            } finally {
+                helper.driver.close()
+            }
+            val header = SystemFileSystem.source(Path(directory, DATABASE_NAME)).buffered().use {
+                it.readByteArray(16)
+            }
+            assertFalse(header.contentEquals("SQLite format 3\u0000".encodeToByteArray()))
+            assertFails { manager.open(newKey).driver.close() }
+            val reopened = manager.open(oldKey)
+            try {
+                assertEquals("vault entry", reopened.driver.readEntry())
+            } finally {
+                reopened.driver.close()
+            }
+        }
+    }
 
     @Test
     fun changePasswordPreservesDataAndReopensWithNewKey() = runTest {
@@ -44,6 +95,7 @@ class DatabaseSqlManagerInFileAppleIntegrationTest {
             } finally {
                 reopened.driver.close()
             }
+            assertFails { manager.open(oldKey).driver.close() }
         }
     }
 
@@ -114,18 +166,13 @@ class DatabaseSqlManagerInFileAppleIntegrationTest {
     private suspend fun withDatabase(
         block: suspend (DatabaseSqlManagerInFileApple<SqlDriver>, Path) -> Unit,
     ) {
-        val directory = Path(SystemTemporaryDirectory, "sqlcipher-rekey-${Uuid.random()}")
-        SystemFileSystem.createDirectories(directory)
-        try {
+        withTestAppleStorage { directories ->
             val manager = DatabaseSqlManagerInFileApple<SqlDriver>(
-                directory = LocalPath(directory.toString()),
+                directory = directories.data.path,
                 fileName = DATABASE_NAME,
                 onCreate = { ioUnit() },
             )
-            block(manager, directory)
-        } finally {
-            SystemFileSystem.list(directory).forEach { SystemFileSystem.delete(it) }
-            SystemFileSystem.delete(directory)
+            block(manager, directories.data.path.toKotlinxIoPath())
         }
     }
 

@@ -43,6 +43,7 @@ import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyImportService
 import com.artemchep.keyguard.crypto.NativeGpgOpenPgpService
 import com.artemchep.keyguard.crypto.NativeGpgOpenPgpVerifier
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.crypto.ssl.installPlatformTrustManager
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
@@ -109,6 +110,9 @@ class GlobalModuleJvm {
         single<GetAppBuildRef> {
             GetAppBuildRefImpl()
         }
+        single<PrivateTemporaryDirProvider> {
+            PrivateTemporaryDirProvider.Default
+        }
         // Repositories
         single<FileEncryptionCodec> {
             FileEncryptionCodecJvm(cryptoGenerator = get(), stagingSpoolFactory = get())
@@ -164,6 +168,7 @@ class GlobalModuleJvm {
         single<GpgOpenPgpService> {
             NativeGpgOpenPgpService(
                 stagingSpoolFactory = get(),
+                stagingDirectoryProvider = get(),
             )
         }
         single<GpgOpenPgpVerifier> {

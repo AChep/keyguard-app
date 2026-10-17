@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.service.keepass.saveKeePassDatabase
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.s3.S3ClientFactory
+import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.usecase.PutAccountNameById
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
@@ -126,6 +127,7 @@ internal class PutKeePassAccountNameByIdImpl(
     private val fileService: FileService,
     private val webDavClientFactory: WebDavClientFactory,
     private val s3ClientFactory: S3ClientFactory,
+    private val stagingSpoolFactory: StagingSpoolFactory,
 ) : PutKeePassAccountNameById {
     override operator fun invoke(
         accountName: String,
@@ -177,6 +179,7 @@ internal class PutKeePassAccountNameByIdImpl(
             webDavClientFactory = webDavClientFactory,
             s3ClientFactory = s3ClientFactory,
             expectedMetadata = metadataAfter,
+            stagingSpoolFactory = stagingSpoolFactory,
         )
 
         val newProfile = BitwardenProfile.name.set(profile, accountName)

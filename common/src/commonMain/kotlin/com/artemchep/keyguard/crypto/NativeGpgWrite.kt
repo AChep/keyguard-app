@@ -311,6 +311,8 @@ private object NativeGpgOpenPgpCertificationEvaluator : GpgOpenPgpCertificationE
 class NativeGpgOpenPgpService internal constructor(
     private val stagingSpoolFactory: StagingSpoolFactory =
         DefaultStagingSpoolFactory(),
+    private val stagingDirectoryProvider: PrivateTemporaryDirProvider =
+        PrivateTemporaryDirProvider.Default,
     verifier: GpgOpenPgpVerifier = NativeGpgOpenPgpVerifier,
     certificationEvaluator: GpgOpenPgpCertificationEvaluator =
         NativeGpgOpenPgpCertificationEvaluator,
@@ -610,7 +612,7 @@ class NativeGpgOpenPgpService internal constructor(
                                     privateKeys = privateKeys,
                                     verificationPublicKeys = publicKeys,
                                     allowSignedOnly = request.allowSignedOnly,
-                                    stagingDirectory = privateTemporaryStorageDirectory().value,
+                                    stagingDirectory = stagingDirectoryProvider.get().value,
                                 ).use { session ->
                                     input.consumeWithErasedBuffer { data, length ->
                                         writeAndErase(stagedOutput, session.update(data, length = length))

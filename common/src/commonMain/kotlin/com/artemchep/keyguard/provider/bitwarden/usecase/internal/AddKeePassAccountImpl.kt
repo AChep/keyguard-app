@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.webdav.KtorWebDavClientFactory
 import com.artemchep.keyguard.common.service.s3.S3ClientFactory
 import com.artemchep.keyguard.common.service.s3.toFileLocation
+import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetPurchased
@@ -28,7 +29,7 @@ import com.artemchep.keyguard.core.store.bitwarden.FileLocation
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import kotlinx.coroutines.Dispatchers
 
-class AddKeePassAccountImpl(
+class AddKeePassAccountImpl internal constructor(
     private val getPurchased: GetPurchased,
     private val getAccounts: GetAccounts,
     private val queueSyncById: QueueSyncById,
@@ -40,6 +41,7 @@ class AddKeePassAccountImpl(
     private val base64Service: Base64Service,
     private val webDavClientFactory: WebDavClientFactory,
     private val s3ClientFactory: S3ClientFactory,
+    private val stagingSpoolFactory: StagingSpoolFactory,
     private val db: VaultDatabaseManager,
 ) : AddKeePassAccount {
     companion object {
@@ -54,6 +56,7 @@ class AddKeePassAccountImpl(
             params = params,
             webDavClientFactory = webDavClientFactory,
             s3ClientFactory = s3ClientFactory,
+            stagingSpoolFactory = stagingSpoolFactory,
         )
         val token = KeePassToken(
             id = cryptoGenerator.uuid(),

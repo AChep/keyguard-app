@@ -4337,6 +4337,10 @@ public enum L10n {
     public static var gpgUserIdsReplaceMessage: String {
         String(localized: "gpg_user_ids_replace_message", bundle: AppLocalization.shared.bundle)
     }
+    /// gpg_user_ids_retry_at
+    public static func gpgUserIdsRetryAt(_ a1: String) -> String {
+        String(format: String(localized: "gpg_user_ids_retry_at", bundle: AppLocalization.shared.bundle), a1)
+    }
     /// gpg_user_ids_revoke
     public static var gpgUserIdsRevoke: String {
         String(localized: "gpg_user_ids_revoke", bundle: AppLocalization.shared.bundle)
@@ -4348,6 +4352,10 @@ public enum L10n {
     /// gpg_user_ids_structured
     public static var gpgUserIdsStructured: String {
         String(localized: "gpg_user_ids_structured", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_user_ids_time_conflict
+    public static var gpgUserIdsTimeConflict: String {
+        String(localized: "gpg_user_ids_time_conflict", bundle: AppLocalization.shared.bundle)
     }
     /// gpg_user_ids_unavailable
     public static var gpgUserIdsUnavailable: String {

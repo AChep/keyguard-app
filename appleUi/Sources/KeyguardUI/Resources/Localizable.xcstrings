@@ -235468,6 +235468,209 @@
         }
       }
     },
+    "gpg_user_ids_retry_at" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "en-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Try again after %1$@. Check that your devices’ clocks are correct."
+          }
+        }
+      }
+    },
     "gpg_user_ids_revoke" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -236073,6 +236276,209 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Name and email"
+          }
+        }
+      }
+    },
+    "gpg_user_ids_time_conflict" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "en-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The key’s signature times prevent this change. Check that your devices’ clocks are correct."
           }
         }
       }

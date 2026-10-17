@@ -4,8 +4,11 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material3.Icon
@@ -23,6 +26,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.text.AnnotatedString
@@ -33,6 +37,7 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -91,24 +96,42 @@ fun VaultViewValueItem(
                     null
                 },
                 text = {
-                    Box(
+                    Row(
                         modifier = Modifier
-                            .animateContentHeight(),
+                            .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        val fontFamily = if (item.monospace) monoFontFamily else null
-                        if (shownValue.isNotBlank()) {
-                            Text(
-                                text = shownValue,
-                                fontFamily = fontFamily,
-                                maxLines = item.maxLines,
-                                overflow = TextOverflow.Ellipsis,
-                            )
-                        } else {
-                            Text(
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .animateContentHeight(),
+                        ) {
+                            val fontFamily = if (item.monospace) monoFontFamily else null
+                            if (shownValue.isNotBlank()) {
+                                Text(
+                                    text = shownValue,
+                                    fontFamily = fontFamily,
+                                    maxLines = item.maxLines,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            } else {
+                                Text(
+                                    modifier = Modifier
+                                        .alpha(MediumEmphasisAlpha),
+                                    text = stringResource(Res.string.empty_value),
+                                    fontFamily = fontFamily,
+                                )
+                            }
+                        }
+                        ExpandedIfNotEmptyForRow(
+                            item.label,
+                        ) { label ->
+                            VaultViewOutlinedBadge(
                                 modifier = Modifier
-                                    .alpha(MediumEmphasisAlpha),
-                                text = stringResource(Res.string.empty_value),
-                                fontFamily = fontFamily,
+                                    .padding(
+                                        start = 8.dp,
+                                    ),
+                                text = label,
                             )
                         }
                     }

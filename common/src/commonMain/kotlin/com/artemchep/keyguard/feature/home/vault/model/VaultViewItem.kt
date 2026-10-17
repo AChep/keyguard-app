@@ -133,6 +133,11 @@ sealed interface VaultViewItem {
         val badge: Badge? = null,
         val badge2: List<StateFlow<Badge?>> = emptyList(),
         /**
+         * A short outlined label shown next to
+         * the value.
+         */
+        val label: String? = null,
+        /**
          * List of the callable actions appended
          * to the item.
          */

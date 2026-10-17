@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -39,9 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import com.artemchep.keyguard.common.exception.HttpException
@@ -67,7 +64,6 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.warning
 import com.artemchep.keyguard.ui.theme.warningContainer
-import com.artemchep.keyguard.ui.util.DividerColor
 import io.ktor.http.HttpStatusCode
 import org.jetbrains.compose.resources.stringResource
 
@@ -100,25 +96,12 @@ fun VaultViewUriItem(
                         ExpandedIfNotEmptyForRow(
                             item.matchTypeTitle,
                         ) { matchTypeTitle ->
-                            Text(
+                            VaultViewOutlinedBadge(
                                 modifier = Modifier
                                     .padding(
                                         start = 8.dp,
-                                    )
-                                    .widthIn(max = 128.dp)
-                                    .border(
-                                        Dp.Hairline,
-                                        DividerColor,
-                                        MaterialTheme.shapes.small,
-                                    )
-                                    .padding(
-                                        horizontal = 8.dp,
-                                        vertical = 4.dp,
                                     ),
                                 text = matchTypeTitle,
-                                style = MaterialTheme.typography.labelSmall,
-                                textAlign = TextAlign.End,
-                                maxLines = 2,
                             )
                         }
                     }

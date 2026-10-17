@@ -375,8 +375,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 6706,
-    "target": 5801,
+    "translated": 9993,
+    "target": 8675,
     "approved": 0,
     "voted": 1,
     "positiveVotes": 0,
@@ -1346,7 +1346,7 @@
     "approved": 0,
     "voted": 0,
     "positiveVotes": 10,
-    "negativeVotes": 0,
+    "negativeVotes": 1,
     "winning": 0
   },
   {
@@ -2081,6 +2081,28 @@
   },
   {
     "user": {
+      "id": "17939841",
+      "username": "kelsuita",
+      "fullName": "\u66dc\u6822 (kelsuita)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17939841/medium/c822504d3ad26e33d83168a9a3a40442.jpeg",
+      "joined": "2026-10-14 10:00:52"
+    },
+    "languages": [
+      {
+        "id": "zh-CN",
+        "name": "Chinese Simplified"
+      }
+    ],
+    "translated": 224,
+    "target": 386,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "18711",
       "username": "NCAA",
       "fullName": "NCAA",
@@ -2137,8 +2159,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 14094,
-    "target": 16119,
+    "translated": 14337,
+    "target": 16424,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

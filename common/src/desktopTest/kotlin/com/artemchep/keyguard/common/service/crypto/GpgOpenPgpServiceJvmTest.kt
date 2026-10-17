@@ -962,7 +962,7 @@ class GpgOpenPgpServiceJvmTest {
     }
 
     @Test
-    fun `verify clear-signed file skips an unknown armor header`() {
+    fun `verify clear-signed file rejects an unknown armor header without releasing plaintext`() {
         val text = "charset header body"
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
@@ -971,22 +971,23 @@ class GpgOpenPgpServiceJvmTest {
                 privateKey = privateKey,
             ),
         )
-        // Armor headers other than Hash are not part of the signed data, so a producer
-        // that emits one (gpg has historically emitted Charset) must not make an
-        // otherwise sound signature unverifiable. Unknown headers are skipped.
+        // Reject unsigned assertions in the cleartext header section, even when
+        // the signature over the body is valid.
         val declared = signed.replace("Hash: SHA256", "Hash: SHA256\nCharset: ISO-8859-1")
 
         val body = Buffer()
-        val result = service.verifyClearSignedFile(
-            GpgOpenPgpReadFileRequest(
-                input = declared.encodeToByteArray().toSource(),
-                output = body,
-                publicKeys = listOf(publicKey),
-            ),
-        )
+        val failure = assertFailsWith<NativeCryptoException> {
+            service.verifyClearSignedFile(
+                GpgOpenPgpReadFileRequest(
+                    input = declared.encodeToByteArray().toSource(),
+                    output = body,
+                    publicKeys = listOf(publicKey),
+                ),
+            )
+        }
 
-        assertEquals(GpgOpenPgpVerificationStatus.VALID, result.verification.status)
-        assertEquals(text, body.readByteArray().decodeToString().trimEnd('\r', '\n'))
+        assertEquals(NativeCryptoErrorCode.INVALID_ARGUMENT, failure.code)
+        assertEquals(0L, body.size)
     }
 
     @Test

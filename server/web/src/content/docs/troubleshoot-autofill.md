@@ -78,7 +78,7 @@ Only MSIX packages, including the Microsoft Store build, can register as a
 passkey provider.
 
 Install Keyguard from the Microsoft Store or an MSIX package, from the
-[Download](/download/) page.
+[Download](/download/#windows) page.
 
 ## "Update your operating system to use Keyguard as a passkey provider"
 

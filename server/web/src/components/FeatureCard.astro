@@ -1,16 +1,21 @@
 ---
+import type { HTMLAttributes } from 'astro/types';
 import Icon from './Icon.astro';
-import { FEATURE_VISUALS, DEFAULT_VISUAL } from '../featureVisuals';
+import { FEATURE_VISUALS, DEFAULT_VISUAL, type FeatureVisual } from '../featureVisuals';
 
-interface Props {
+interface Props extends HTMLAttributes<'a'> {
   title: string;
   slug?: string;
   href?: string;
   // Spans two grid columns from `sm` up, with larger type.
   large?: boolean;
+  // Chip colors for a card that isn't a feature, with its icon in the `icon` slot.
+  visual?: Pick<FeatureVisual, 'chip' | 'ink'>;
 }
-const { title, slug, href, large = false } = Astro.props;
-const v = (slug && FEATURE_VISUALS[slug]) || DEFAULT_VISUAL;
+const { title, slug, href, large = false, visual, class: className, ...attrs } = Astro.props;
+const v = visual ?? ((slug && FEATURE_VISUALS[slug]) || DEFAULT_VISUAL);
+const icon = (slug && FEATURE_VISUALS[slug]?.icon) || DEFAULT_VISUAL.icon;
+const iconClass = large ? 'h-6 w-6' : 'h-5 w-5';
 const Tag = href ? 'a' : 'div';
 ---
 
@@ -19,7 +24,9 @@ const Tag = href ? 'a' : 'div';
   class:list={[
     'surface-card flex h-full flex-col rounded-2xl',
     large ? 'px-6 py-6 sm:col-span-2' : 'px-5 py-4',
+    className,
   ]}
+  {...attrs}
 >
   <div
     class:list={[
@@ -29,7 +36,7 @@ const Tag = href ? 'a' : 'div';
       v.ink,
     ]}
   >
-    <Icon name={v.icon} class={large ? 'h-6 w-6' : 'h-5 w-5'} />
+    {Astro.slots.has('icon') ? <slot name="icon" /> : <Icon name={icon} class={iconClass} />}
   </div>
   <h3 class:list={['opsz-text mb-1.5 font-semibold text-on-surface', large ? 'text-xl' : 'text-base']}>{title}</h3>
   <p class:list={['leading-relaxed text-on-surface-variant', large ? 'text-base' : 'text-sm']}>

@@ -581,7 +581,7 @@ dependencies = [
 
 [[package]]
 name = "common-gpg-agent-rust"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "keyguard-agent-proto",
  "prost",
@@ -590,7 +590,7 @@ dependencies = [
 
 [[package]]
 name = "common-ssh-agent-rust"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "keyguard-agent-proto",
  "prost",
@@ -1384,7 +1384,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-agent-identity"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "anyhow",
  "getrandom 0.4.3",
@@ -1400,7 +1400,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-agent-proto"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "prost",
  "prost-build",
@@ -1408,7 +1408,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-agent-proto-adapter"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "keyguard-agent-identity",
  "keyguard-agent-proto",
@@ -1417,7 +1417,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-android-ssh-agent"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
@@ -1436,7 +1436,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-ffi"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "jni",
  "zeroize",
@@ -1444,7 +1444,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-fido2-c"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "keyguard-ffi",
  "keyguard-fido2-core",
@@ -1452,7 +1452,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-fido2-core"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "authenticator",
  "base64 0.22.1",
@@ -1464,7 +1464,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-fido2-jni"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "jni",
  "keyguard-ffi",
@@ -1473,7 +1473,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-gpg-agent"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "anyhow",
  "bytes",
@@ -1494,14 +1494,14 @@ dependencies = [
 
 [[package]]
 name = "keyguard-instance-c"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "keyguard-instance-core",
 ]
 
 [[package]]
 name = "keyguard-instance-core"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "getrandom 0.3.4",
  "keyguard-io-core",
@@ -1511,7 +1511,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-instance-jni"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "jni",
  "keyguard-instance-core",
@@ -1519,7 +1519,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-io-c"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "getrandom 0.3.4",
  "keyguard-ffi",
@@ -1528,7 +1528,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-io-core"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "getrandom 0.3.4",
  "keyguard-ffi",
@@ -1538,7 +1538,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-io-jni"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "jni",
  "keyguard-ffi",
@@ -1548,7 +1548,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-lib"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "cc",
  "libc",
@@ -1562,7 +1562,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-ssh-agent"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1591,7 +1591,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-windows-passkeys-core"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "ciborium",
  "keyguard-ffi",
@@ -1605,7 +1605,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-windows-passkeys-jni"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "jni",
  "keyguard-ffi",
@@ -1614,7 +1614,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-yubikey-c"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "keyguard-ffi",
  "keyguard-yubikey-core",
@@ -1622,7 +1622,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-yubikey-core"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "hidapi",
  "keyguard-ffi",
@@ -1631,7 +1631,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-yubikey-jni"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "jni",
  "keyguard-ffi",
@@ -1640,7 +1640,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-zip-c"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "keyguard-ffi",
  "keyguard-zip-core",
@@ -1649,7 +1649,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-zip-core"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "keyguard-ffi",
  "self_cell",
@@ -1660,7 +1660,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-zxcvbn-c"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "keyguard-ffi",
  "keyguard-zxcvbn-core",
@@ -1668,7 +1668,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-zxcvbn-core"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "keyguard-ffi",
  "zxcvbn",
@@ -1676,7 +1676,7 @@ dependencies = [
 
 [[package]]
 name = "keyguard-zxcvbn-jni"
-version = "0.1.0"
+version = "3.4.0"
 dependencies = [
  "jni",
  "keyguard-ffi",

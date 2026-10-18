@@ -4,7 +4,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
@@ -131,7 +130,6 @@ import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.ShowMessage
-import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.common.util.flow.foldAsList
@@ -139,12 +137,10 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.common.util.validLuhn
 import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.feature.add.AddStateItem
-import com.artemchep.keyguard.feature.add.AddStateOwnership
-import com.artemchep.keyguard.feature.add.AddStateOwnershipElementHolder
 import com.artemchep.keyguard.feature.add.LocalStateItem
 import com.artemchep.keyguard.feature.add.OwnershipState
-import com.artemchep.keyguard.feature.add.accountFlow
 import com.artemchep.keyguard.feature.add.ownershipHandle
+import com.artemchep.keyguard.feature.add.ownershipPickerFlow
 import com.artemchep.keyguard.feature.apppicker.AppPickerResult
 import com.artemchep.keyguard.feature.apppicker.AppPickerRoute
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
@@ -159,8 +155,6 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.awaitConfirmationDialog
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
-import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
-import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationRoute
 import com.artemchep.keyguard.feature.datepicker.DatePickerResult
 import com.artemchep.keyguard.feature.datepicker.DatePickerRoute
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
@@ -2533,212 +2527,36 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
         },
     )
 
-    val accountFlow = ownershipHandle.accountFlow(readOnly = ro)
-
-    val organizationFlow = combine(
-        ownershipHandle.stateSink
-            .map { it.organizationId }
-            .distinctUntilChanged(),
-        getOrganizations(),
-    ) { organizationId, organizations ->
-        if (organizationId == null) {
-            val item = AddStateOwnership.Element.Item(
-                key = "organization.empty",
-                title = translate(Res.string.organization_none),
-                stub = true,
-            )
-            val el = AddStateOwnership.Element(
-                readOnly = ro,
-                items = listOf(item),
-            )
-            return@combine AddStateOwnershipElementHolder(
-                value = null,
-                element = el,
-            )
-        }
-        val organizationOrNull = organizations
-            .firstOrNull { it.id == organizationId }
-        val el = AddStateOwnership.Element(
-            readOnly = ro,
-            items = listOfNotNull(organizationOrNull)
-                .map { organization ->
-                    val key = "organization.${organization.id}"
-                    AddStateOwnership.Element.Item(
-                        key = key,
-                        title = organization.name,
-                    )
-                },
-        )
-        AddStateOwnershipElementHolder(
-            value = organizationId,
-            element = el,
-        )
-    }
-
-    val collectionFlow = combine(
-        ownershipHandle.stateSink
-            .map { it.collectionIds }
-            .distinctUntilChanged(),
-        getCollections(),
-    ) { collectionIds, collections ->
-        if (collectionIds.isEmpty()) {
-            return@combine AddStateOwnershipElementHolder(
-                value = emptySet(),
-                element = null,
-            )
-        }
-
-        val selectedCollections = collections
-            .sortedWith(StringComparatorIgnoreCase { it.name })
-            .filter { it.id in collectionIds }
-        val el = AddStateOwnership.Element(
-            readOnly = ro,
-            items = selectedCollections
-                .map { collection ->
-                    val key = "collection.${collection.id}"
-                    AddStateOwnership.Element.Item(
-                        key = key,
-                        title = collection.name,
-                    )
-                },
-        )
-        AddStateOwnershipElementHolder(
-            value = collectionIds,
-            element = el,
-        )
-    }
-
-    val folderFlow = combine(
-        ownershipHandle.stateSink
-            .map { it.folder }
-            .distinctUntilChanged(),
-        getFolders(),
-    ) { selectedFolder, folders ->
-        when (selectedFolder) {
-            is FolderInfo.None -> {
-                val item = AddStateOwnership.Element.Item(
-                    key = "folder.empty",
-                    title = translate(Res.string.folder_none),
-                    stub = true,
+    return ownershipPickerFlow(
+        ownershipFlow = ownershipHandle.stateSink
+            .map { data ->
+                CreateRequest.Ownership2(
+                    accountId = data.accountId,
+                    folder = data.folder,
+                    organizationId = data.organizationId,
+                    collectionIds = data.collectionIds,
                 )
-                val el = AddStateOwnership.Element(
-                    readOnly = false,
-                    items = listOf(item),
-                )
-                return@combine AddStateOwnershipElementHolder(
-                    value = selectedFolder,
-                    element = el,
-                )
-            }
-
-            is FolderInfo.New -> {
-                val item = AddStateOwnership.Element.Item(
-                    key = "folder.new",
-                    title = selectedFolder.name,
-                    stub = true,
-                )
-                val el = AddStateOwnership.Element(
-                    readOnly = false,
-                    items = listOf(item),
-                )
-                return@combine AddStateOwnershipElementHolder(
-                    value = selectedFolder,
-                    element = el,
-                )
-            }
-
-            is FolderInfo.Id -> {
-                val selectedFolderOrNull = folders
-                    .firstOrNull { it.id == selectedFolder.id }
-
-                // This might happen if the folder associated with the cipher was deleted.
-                // In that case the cipher continues to have the folder-id set, but we
-                // surface. The possible issue here is that if the "folders" are not complete
-                // yet, then the cipher will be shown as "No folder" for small period of time.
-                val el = if (selectedFolderOrNull == null) {
-                    val item = AddStateOwnership.Element.Item(
-                        key = "folder.empty",
-                        title = translate(Res.string.folder_none),
-                        stub = true,
-                    )
-                    AddStateOwnership.Element(
-                        readOnly = false,
-                        items = listOf(item),
-                    )
-                } else {
-                    AddStateOwnership.Element(
-                        readOnly = false,
-                        items = listOfNotNull(selectedFolderOrNull)
-                            .map { folder ->
-                                val key = "folder.${folder.id}"
-                                AddStateOwnership.Element.Item(
-                                    key = key,
-                                    title = folder.name,
-                                )
-                            },
-                    )
-                }
-                AddStateOwnershipElementHolder(
-                    value = selectedFolder,
-                    element = el,
-                )
-            }
-        }
-    }
-
-    return combine(
-        accountFlow,
-        organizationFlow,
-        collectionFlow,
-        folderFlow,
-    ) { account, organization, collection, folder ->
-        val flags = if (ro) {
-            OrganizationConfirmationRoute.Args.RO_ACCOUNT or
-                    OrganizationConfirmationRoute.Args.RO_ORGANIZATION or
-                    OrganizationConfirmationRoute.Args.RO_COLLECTION
-        } else {
-            0
-        }
-        val data = AddState.Ownership.Data(
-            accountId = account.value,
-            folderId = folder.value,
-            organizationId = organization.value,
-            collectionIds = collection.value,
-        )
-        val ui = AddStateOwnership(
-            account = account.element,
-            organization = organization.element.takeIf { account.value != null },
-            collection = collection.element.takeIf { account.value != null },
-            folder = folder.element,
-            onClick = onClick {
-                val route = registerRouteResultReceiver(
-                    route = OrganizationConfirmationRoute(
-                        args = OrganizationConfirmationRoute.Args(
-                            decor = OrganizationConfirmationRoute.Args.Decor(
-                                title = translate(Res.string.save_to),
-                                icon = Icons.Outlined.AccountBox,
-                            ),
-                            flags = flags,
-                            accountId = account.value,
-                            organizationId = organization.value,
-                            folderId = folder.value,
-                            collectionsIds = collection.value,
-                        ),
-                    ),
-                ) { result ->
-                    if (result is OrganizationConfirmationResult.Confirm) {
-                        val newState = AddItemOwnershipData(
-                            accountId = result.accountId,
-                            organizationId = result.organizationId,
-                            collectionIds = result.collectionsIds,
-                            folder = result.folderId,
-                        )
-                        ownershipHandle.stateSink.value = newState
-                    }
-                }
-                val intent = NavigationIntent.NavigateToRoute(route)
-                navigate(intent)
             },
+        profilesFlow = ownershipHandle.profilesFlow,
+        organizationsFlow = getOrganizations(),
+        collectionsFlow = getCollections(),
+        foldersFlow = getFolders(),
+        readOnly = ro,
+        onChange = { result ->
+            val newState = AddItemOwnershipData(
+                accountId = result.accountId,
+                organizationId = result.organizationId,
+                collectionIds = result.collectionsIds,
+                folder = result.folderId,
+            )
+            ownershipHandle.stateSink.value = newState
+        },
+    ) { ownership, ui ->
+        val data = AddState.Ownership.Data(
+            accountId = ownership.accountId,
+            folderId = ownership.folder,
+            organizationId = ownership.organizationId,
+            collectionIds = ownership.collectionIds,
         )
         AddState.Ownership(
             data = data,

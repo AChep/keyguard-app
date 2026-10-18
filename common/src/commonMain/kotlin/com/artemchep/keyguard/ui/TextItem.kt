@@ -1364,6 +1364,7 @@ fun BiFlatTextField(
     expressive: Boolean = LocalExpressive.current,
     valueVisualTransformation: VisualTransformation = VisualTransformation.None,
     valueIncognito: Boolean = false,
+    leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val labelInteractionSource = remember { MutableInteractionSource() }
@@ -1421,6 +1422,7 @@ fun BiFlatTextField(
                 incognito = valueIncognito,
             )
         },
+        leading = leading,
         trailing = trailing,
     )
 }
@@ -1526,6 +1528,7 @@ fun BiFlatContainer(
     expressive: Boolean = LocalExpressive.current,
     label: @Composable ColumnScope.() -> Unit,
     content: @Composable ColumnScope.() -> Unit,
+    leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     FlatTextFieldSurface(
@@ -1538,13 +1541,21 @@ fun BiFlatContainer(
         Row(
             modifier = contentModifier
                 .padding(
-                    start = 16.dp,
+                    // A leading icon button brings its own padding.
+                    start = if (leading != null) 4.dp else 16.dp,
                     end = 8.dp,
                     top = 8.dp,
                     bottom = 8.dp,
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (leading != null) {
+                leading()
+                Spacer(
+                    modifier = Modifier
+                        .width(4.dp),
+                )
+            }
             Column(
                 modifier = Modifier
                     .weight(1f)

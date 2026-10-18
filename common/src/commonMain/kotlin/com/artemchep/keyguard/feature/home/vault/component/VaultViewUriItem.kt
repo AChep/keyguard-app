@@ -57,7 +57,6 @@ import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.FaviconIcon
-import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -176,9 +175,11 @@ fun VaultViewUriItem(
             ) {
                 item.overrides.forEach { override ->
                     val updatedDropdownState = rememberUpdatedState(override.dropdown)
-                    UrlOverrideItem(
+                    VaultViewBadge(
+                        icon = Icons.Outlined.Terminal,
                         title = override.title,
                         text = override.text,
+                        textFontFamily = FontFamily.Monospace,
                         error = override.error,
                         onClick = {
                             selectedDropdown = updatedDropdownState.value
@@ -206,77 +207,6 @@ fun VaultViewUriItem(
         },
         dropdown = item.dropdown,
     )
-}
-
-@Composable
-private fun UrlOverrideItem(
-    modifier: Modifier = Modifier,
-    title: String,
-    text: String,
-    error: Boolean = false,
-    onClick: () -> Unit,
-) {
-    Surface(
-        modifier = modifier,
-        color = MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.small,
-        tonalElevation = 1.dp,
-    ) {
-        Row(
-            modifier = Modifier
-                .clickable(onClick = onClick)
-                .padding(
-                    start = 8.dp,
-                    end = 8.dp,
-                    top = 8.dp,
-                    bottom = 8.dp,
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            val contentColor = if (error) {
-                MaterialTheme.colorScheme.error
-            } else {
-                LocalContentColor.current
-            }
-            Box(
-                modifier = Modifier
-                    .size(16.dp),
-            ) {
-                IconSmallBox(
-                    main = Icons.Outlined.Terminal,
-                )
-            }
-            Spacer(
-                modifier = Modifier
-                    .width(8.dp),
-            )
-            Text(
-                modifier = Modifier
-                    .widthIn(max = 128.dp)
-                    .alignByBaseline(),
-                text = title,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Spacer(
-                modifier = Modifier
-                    .width(8.dp),
-            )
-            Text(
-                modifier = Modifier
-                    .widthIn(max = 128.dp)
-                    .alignByBaseline(),
-                text = text,
-                color = contentColor
-                    .combineAlpha(MediumEmphasisAlpha),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                fontFamily = FontFamily.Monospace,
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
-    }
 }
 
 @Composable

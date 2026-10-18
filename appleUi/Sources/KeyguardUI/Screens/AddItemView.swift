@@ -299,7 +299,9 @@ struct AddItemSheetContent: View {
                 }
                 if let ownership = form.ownership {
                     Section {
-                        ownershipRow(ownership)
+                        OwnershipRow(ownership: ownership) {
+                            addItemModel.invokeAddOwnership()
+                        }
                     }
                 }
                 ForEach(AddFormSection.sections(from: form.items)) { section in
@@ -354,40 +356,6 @@ struct AddItemSheetContent: View {
             .pickerStyle(.menu)
             .disabled(!merge.canChange)
         }
-    }
-
-    @ViewBuilder
-    private func ownershipRow(_ ownership: AddOwnershipSnapshot) -> some View {
-        Button {
-            addItemModel.invokeAddOwnership()
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: "person.crop.circle")
-                    .foregroundStyle(.tint)
-                    .frame(width: 20)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.saveTo)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                    Text(ownership.title)
-                        .foregroundStyle(.primary)
-                    if let text = ownership.text, !text.isEmpty {
-                        Text(text)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                Spacer()
-                if ownership.canPick {
-                    Image(systemName: "chevron.forward")
-                        .font(.footnote.weight(.semibold))
-                        .foregroundStyle(.tertiary)
-                }
-            }
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .disabled(!ownership.canPick)
     }
 }
 
@@ -900,45 +868,14 @@ private struct CipherLinkPickerSheet: View {
             dismissLabel: L10n.cancel
         ) {
             if let snapshot = dialogsModel.cipherLinkPicker {
-                VStack(alignment: .leading, spacing: 12) {
-                    BridgedTextField(
-                        label: L10n.vaultMainSearchPlaceholder,
-                        text: snapshot.query,
-                        textRevision: snapshot.queryRevision,
-                        secure: false,
-                        send: dialogsModel.setCipherLinkPickerQuery,
-                        style: .roundedBorder
-                    )
-                    if snapshot.items.isEmpty {
-                        Text(L10n.itemsEmptyLabel)
-                            .foregroundStyle(.secondary)
-                    } else {
-                        ScrollView {
-                            LazyVStack(alignment: .leading, spacing: 0) {
-                                ForEach(snapshot.items, id: \.id) { item in
-                                    Button {
-                                        dialogsModel.selectCipherLinkPickerItem(id: item.id)
-                                    } label: {
-                                        HStack {
-                                            VStack(alignment: .leading) {
-                                                Text(item.title).foregroundStyle(.primary)
-                                                if let text = item.text, !text.isEmpty {
-                                                    Text(text).font(.subheadline).foregroundStyle(.secondary)
-                                                }
-                                            }
-                                            Spacer()
-                                            Image(systemName: "chevron.forward")
-                                        }
-                                        .padding(.vertical, 12)
-                                        .contentShape(Rectangle())
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                        }
-                    }
-                }
-                .padding()
+                CipherLinkPickerList(
+                    query: snapshot.query,
+                    queryRevision: snapshot.queryRevision,
+                    items: snapshot.items,
+                    emptyText: L10n.itemsEmptyLabel,
+                    setQuery: dialogsModel.setCipherLinkPickerQuery,
+                    select: { dialogsModel.selectCipherLinkPickerItem(id: $0) }
+                )
             }
         }
     }

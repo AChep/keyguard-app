@@ -18,12 +18,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.DialogSearchTextField
 import com.artemchep.keyguard.feature.home.vault.component.CompactVaultItem
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
@@ -47,47 +48,11 @@ fun CipherLinkPickerScreen(
         },
         contentScrollable = false,
         content = {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                FlatTextField(
-                    modifier = Modifier
-                        .padding(horizontal = Dimens.fieldHorizontalPadding),
-                    value = state.query,
-                    placeholder = stringResource(Res.string.vault_main_search_placeholder),
-                    singleLine = true,
-                )
-                Spacer(Modifier.height(12.dp))
-                if (state.items.isEmpty()) {
-                    Text(
-                        modifier = Modifier
-                            .padding(horizontal = Dimens.horizontalPadding),
-                        text = stringResource(Res.string.items_empty_label),
-                        color = LocalContentColor.current
-                            .combineAlpha(MediumEmphasisAlpha),
-                    )
-                    Spacer(Modifier.height(16.dp))
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 440.dp),
-                    ) {
-                        items(
-                            items = state.items,
-                            key = { item -> item.presentation.source.id },
-                        ) { item ->
-                            CompactVaultItem(
-                                item = item.presentation,
-                                trailing = {
-                                    ChevronIcon()
-                                },
-                                onClick = item.onClick,
-                            )
-                        }
-                    }
-                }
-            }
+            CipherLinkPickerItems(
+                query = state.query,
+                items = state.items,
+                emptyText = stringResource(Res.string.items_empty_label),
+            )
         },
         actions = {
             val updatedOnDeny by rememberUpdatedState(state.onDeny)
@@ -101,4 +66,54 @@ fun CipherLinkPickerScreen(
             }
         },
     )
+}
+
+internal val CipherLinkPickerListMaxHeight = 440.dp
+
+/** Searches the items to pick from. */
+@Composable
+internal fun CipherLinkPickerItems(
+    query: TextFieldModel,
+    items: List<CipherLinkPickerState.Item>,
+    emptyText: String,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth(),
+    ) {
+        DialogSearchTextField(
+            value = query,
+            placeholder = stringResource(Res.string.vault_main_search_placeholder),
+        )
+        Spacer(Modifier.height(4.dp))
+        if (items.isEmpty()) {
+            Text(
+                modifier = Modifier
+                    .padding(horizontal = Dimens.horizontalPadding),
+                text = emptyText,
+                color = LocalContentColor.current
+                    .combineAlpha(MediumEmphasisAlpha),
+            )
+            Spacer(Modifier.height(16.dp))
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = CipherLinkPickerListMaxHeight),
+            ) {
+                items(
+                    items = items,
+                    key = { item -> item.presentation.source.id },
+                ) { item ->
+                    CompactVaultItem(
+                        item = item.presentation,
+                        trailing = {
+                            ChevronIcon()
+                        },
+                        onClick = item.onClick,
+                    )
+                }
+            }
+        }
+    }
 }

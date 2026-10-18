@@ -1920,8 +1920,26 @@ private fun AddItem(
 ) = Column(
     modifier = modifier,
 ) {
+    AddButton(
+        modifier = modifier,
+        text = item.text,
+        actions = item.actions,
+    )
+}
+
+/**
+ * A tonal button that adds an item: runs the only action
+ * right away, or shows a menu of the [actions].
+ */
+@Composable
+internal fun AddButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    actions: List<ContextItem>,
+    enabled: Boolean = true,
+) {
     val dropdownShownState = remember { mutableStateOf(false) }
-    if (item.actions.isEmpty()) {
+    if (actions.isEmpty()) {
         dropdownShownState.value = false
     }
 
@@ -1937,9 +1955,10 @@ private fun AddItem(
         modifier = modifier
             .padding(top = 8.dp)
             .padding(horizontal = Dimens.buttonHorizontalPadding),
+        enabled = enabled,
         onClick = {
-            if (item.actions.size == 1) run {
-                val action = item.actions
+            if (actions.size == 1) run {
+                val action = actions
                     .firstNotNullOfOrNull { it as? FlatItemAction }
                 action?.onClick?.invoke()
                 return@Button
@@ -1961,14 +1980,14 @@ private fun AddItem(
                 .width(ButtonDefaults.IconSpacing),
         )
         Text(
-            text = item.text,
+            text = text,
         )
 
         KeyguardDropdownMenu(
             expanded = dropdownShownState.value,
             onDismissRequest = onDismissRequest,
         ) {
-            item.actions.forEachIndexed { index, action ->
+            actions.forEachIndexed { index, action ->
                 DropdownMenuItemFlat(
                     action = action,
                 )

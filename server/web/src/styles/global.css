@@ -131,9 +131,8 @@ html {
     0 28px 52px -16px rgba(0, 0, 0, 0.38);
 }
 
-/* Cover glass over a device screen: a faint static reflection, a light band
-   (::before) that the hero carousel sweeps across, and a pointer-following
-   sheen (::after) driven by the inherited --sheen, --sheen-x and --sheen-y. */
+/* Cover glass over a device screen: a faint static reflection and a light
+   band (::before) that the hero carousel sweeps across. */
 .device-glare {
   position: absolute;
   inset: 0;
@@ -162,18 +161,6 @@ html {
     transparent
   );
   transform: translateX(-130%) skewX(-20deg);
-}
-.device-glare::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at var(--sheen-x, 50%) var(--sheen-y, 0%),
-    rgba(255, 255, 255, 0.08),
-    transparent 55%
-  );
-  opacity: var(--sheen, 0);
-  transition: opacity 0.4s ease;
 }
 
 /* Solid card surface with a subtle top highlight (no border, no drop shadow). */

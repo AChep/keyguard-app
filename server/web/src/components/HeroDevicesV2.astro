@@ -184,16 +184,14 @@ const tabClass =
     initial-value: 1;
   }
 
-  /* Dark devices fade into a dark page gracefully but smear on a light one,
-     so the light theme dims less and fades over a shorter edge. */
+  /* Dimmed dark devices blend into a dark page but smear on a light one,
+     so the light theme dims less. */
   [data-hero-devices-v2] {
     --device-dim: 0.22;
-    --device-fade: 4%;
     --device-glow: 22%;
   }
   :global(.dark) [data-hero-devices-v2] {
     --device-dim: 0.5;
-    --device-fade: 12%;
     --device-glow: 34%;
   }
 
@@ -249,16 +247,6 @@ const tabClass =
     );
   }
 
-  /* Fade the far devices out toward the screen edges. */
-  .device-scroller {
-    mask-image: linear-gradient(
-      to right,
-      transparent,
-      #000 var(--device-fade),
-      #000 calc(100% - var(--device-fade)),
-      transparent
-    );
-  }
   .device-scroller[data-animating] {
     scroll-snap-type: none;
   }
@@ -375,10 +363,7 @@ const tabClass =
     };
 
     const resetTilt = () => {
-      for (const pose of poses) {
-        pose.style.removeProperty('--tilt');
-        pose.style.removeProperty('--sheen');
-      }
+      for (const pose of poses) pose.style.removeProperty('--tilt');
     };
 
     const setActive = (k: number) => {
@@ -527,8 +512,7 @@ const tabClass =
       select(next);
     });
 
-    // The centered device leans toward a mouse pointer, and its glass catches
-    // the light where the pointer is.
+    // The centered device leans toward a mouse pointer.
     scroller.addEventListener('pointermove', (e: PointerEvent) => {
       if (e.pointerType !== 'mouse' || reduceMotion.matches || programmatic) return;
       const r = slides[active].getBoundingClientRect();
@@ -542,11 +526,9 @@ const tabClass =
       const ax = (0.5 - y) * 5;
       const ay = (x - 0.5) * 7;
       const angle = Math.hypot(ax, ay);
-      const t = poses[active].style;
-      if (angle > 0.01) t.setProperty('--tilt', `${ax.toFixed(3)} ${ay.toFixed(3)} 0 ${angle.toFixed(2)}deg`);
-      t.setProperty('--sheen', '1');
-      t.setProperty('--sheen-x', `${(x * 100).toFixed(1)}%`);
-      t.setProperty('--sheen-y', `${(y * 100).toFixed(1)}%`);
+      if (angle > 0.01) {
+        poses[active].style.setProperty('--tilt', `${ax.toFixed(3)} ${ay.toFixed(3)} 0 ${angle.toFixed(2)}deg`);
+      }
     });
     scroller.addEventListener('pointerleave', resetTilt);
 

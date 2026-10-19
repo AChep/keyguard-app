@@ -54,7 +54,16 @@ import kotlin.time.Duration.Companion.milliseconds
 
 data class PreparedKeePassDatabase(
     val keyData: ByteArray?,
+    val rootGroupId: String,
 )
+
+/**
+ * KDBX has no database id. The root group UUID is created with the
+ * database and stored in the file, so every device reads the same
+ * value. Copies of the file share it too.
+ */
+val KeePassDatabase.rootGroupId: String
+    get() = content.group.uuid.toString()
 
 suspend fun openKeePassDatabase(
     token: KeePassToken,
@@ -147,13 +156,14 @@ internal suspend fun prepareKeePassDatabase(
         }
     }
 
-    openKeePassDatabase(
+    val database = openKeePassDatabase(
         storage = storage,
         credentials = credentials,
     )
 
     PreparedKeePassDatabase(
         keyData = keyData,
+        rootGroupId = database.rootGroupId,
     )
 }
 

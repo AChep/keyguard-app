@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.service.keepass.getKeePassDatabaseMetadata
 import com.artemchep.keyguard.common.service.keepass.getPublicCustomDataStringOrNull
 import com.artemchep.keyguard.common.service.keepass.getVersionString
 import com.artemchep.keyguard.common.service.keepass.openKeePassDatabase
+import com.artemchep.keyguard.common.service.keepass.rootGroupId
 import com.artemchep.keyguard.common.service.keepass.saveKeePassDatabase
 import com.artemchep.keyguard.common.service.keepass.storage.KeePassDatabaseMetadata
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -385,31 +386,44 @@ class KeePassSyncCoordinator internal constructor(
             ?: keePassDb.header.getPublicCustomDataStringOrNull("KPXC_PUBLIC_NAME")
         val profileColor = keePassDb.content.meta.color?.takeIf { it.isNotEmpty() }
             ?: keePassDb.header.getPublicCustomDataStringOrNull("KPXC_PUBLIC_COLOR")
-        val profile = BitwardenProfile(
-            accountId = token.id,
-            profileId = token.id,
-            name = profileName.orEmpty(),
-            description = keePassDb.content.meta.description,
-            avatarColor = profileColor,
-            keyBase64 = base64Service.encodeToString(""),
-            privateKeyBase64 = base64Service.encodeToString(""),
-            email = keePassDb.content.meta.defaultUser,
-            securityStamp = keePassDb.header.cipherId.toString(),
-            masterPasswordHint = null,
-            masterPasswordHintEnabled = null,
-            unofficialServer = false,
-            serverVersion = keePassDb.header.getVersionString(),
-        )
-        db.mutate(TAG) {
-            val existingProfile = it.profileQueries
+        db.mutate(TAG) { localDb ->
+            val existingProfile = localDb.profileQueries
                 .getByAccountId(accountId = token.id)
                 .executeAsOneOrNull()
+            // The profile ID is the primary key, so an existing
+            // profile keeps its ID. Accounts created before we
+            // started using the root group UUID keep the local ID.
+            val profileId = existingProfile?.profileId
+                ?: run {
+                    // Fall back to the local ID if another
+                    // account owns the root group UUID.
+                    val rootGroupId = keePassDb.rootGroupId
+                    val rootGroupIdTaken = localDb.profileQueries
+                        .getByProfileId(profileId = rootGroupId)
+                        .executeAsOneOrNull() != null
+                    if (rootGroupIdTaken) token.id else rootGroupId
+                }
+            val profile = BitwardenProfile(
+                accountId = token.id,
+                profileId = profileId,
+                name = profileName.orEmpty(),
+                description = keePassDb.content.meta.description,
+                avatarColor = profileColor,
+                keyBase64 = base64Service.encodeToString(""),
+                privateKeyBase64 = base64Service.encodeToString(""),
+                email = keePassDb.content.meta.defaultUser,
+                securityStamp = keePassDb.header.cipherId.toString(),
+                masterPasswordHint = null,
+                masterPasswordHintEnabled = null,
+                unofficialServer = false,
+                serverVersion = keePassDb.header.getVersionString(),
+            )
             val newMergedProfile = merge(
                 remote = profile,
                 local = existingProfile?.data_,
             )
             if (newMergedProfile != existingProfile?.data_) {
-                it.profileQueries.insert(
+                localDb.profileQueries.insert(
                     profileId = newMergedProfile.profileId,
                     accountId = newMergedProfile.accountId,
                     data = newMergedProfile,

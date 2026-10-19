@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase.internal
 
+import com.artemchep.keyguard.common.exception.AccountAlreadyExistsException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.flatMap
@@ -90,6 +91,14 @@ class AddKeePassAccountImpl internal constructor(
         )
 
         db.mutate(TAG) { database ->
+            // The root group UUID becomes the profile ID on
+            // the first sync. Accounts added before that, or
+            // before this check, use the local ID instead.
+            val exists = database.profileQueries
+                .getByProfileId(profileId = preparedDatabase.rootGroupId)
+                .executeAsOneOrNull() != null
+            if (exists) throw AccountAlreadyExistsException()
+
             database.accountQueries.insert(
                 accountId = token.id,
                 data = token,

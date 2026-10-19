@@ -569,12 +569,15 @@ suspend fun RememberStateFlowScope.accountStateProducer(
                 if (accountOrNull == null) {
                     return@section
                 }
+                // The profile ID is assigned on the first sync, hide
+                // the action until then.
+                val profileId = profileOrNull?.profileId
+                    ?: return@section
 
-                // The remote ID is the same on every device.
                 this += copyText.FlatItemAction(
                     id = "account.copyId",
                     title = Res.string.copy_id.wrap(),
-                    value = profileOrNull?.profileId ?: accountId.id,
+                    value = profileId,
                     type = CopyText.Type.ID,
                 )
             }

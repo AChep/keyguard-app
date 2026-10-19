@@ -670,6 +670,7 @@
     <string name="copy_send">Copy send</string>
     <string name="copy_package_name">Copy package name</string>
     <string name="copy_bundle_id">Copy bundle ID</string>
+    <string name="copy_id">Copy ID</string>
     <string name="copy_password">Copy password</string>
     <string name="copy_username">Copy username</string>
     <string name="copy_email">Copy email</string>
@@ -692,6 +693,7 @@
     <string name="copied_uri">Copied a URI</string>
     <string name="copied_tag">Copied a tag</string>
     <string name="copied_package_name">Copied a package name</string>
+    <string name="copied_id">Copied an ID</string>
     <string name="copied_key">Copied a key</string>
     <string name="copied_fingerprint">Copied a fingerprint</string>
     <string name="copied_password">Copied a password</string>

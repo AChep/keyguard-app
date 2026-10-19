@@ -570,6 +570,19 @@ suspend fun RememberStateFlowScope.accountStateProducer(
                     return@section
                 }
 
+                // The remote ID is the same on every device.
+                this += copyText.FlatItemAction(
+                    id = "account.copyId",
+                    title = Res.string.copy_id.wrap(),
+                    value = profileOrNull?.profileId ?: accountId.id,
+                    type = CopyText.Type.ID,
+                )
+            }
+            section {
+                if (accountOrNull == null) {
+                    return@section
+                }
+
                 this += FlatItemAction(
                     id = "account.signOut",
                     icon = Icons.AutoMirrored.Outlined.Logout,

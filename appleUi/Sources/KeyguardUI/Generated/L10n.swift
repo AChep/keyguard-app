@@ -1529,6 +1529,10 @@ public enum L10n {
     public static var copiedFingerprint: String {
         String(localized: "copied_fingerprint", bundle: AppLocalization.shared.bundle)
     }
+    /// copied_id
+    public static var copiedId: String {
+        String(localized: "copied_id", bundle: AppLocalization.shared.bundle)
+    }
     /// copied_key
     public static var copiedKey: String {
         String(localized: "copied_key", bundle: AppLocalization.shared.bundle)
@@ -1616,6 +1620,10 @@ public enum L10n {
     /// copy_fingerprint
     public static var copyFingerprint: String {
         String(localized: "copy_fingerprint", bundle: AppLocalization.shared.bundle)
+    }
+    /// copy_id
+    public static var copyId: String {
+        String(localized: "copy_id", bundle: AppLocalization.shared.bundle)
     }
     /// copy_license_number
     public static var copyLicenseNumber: String {

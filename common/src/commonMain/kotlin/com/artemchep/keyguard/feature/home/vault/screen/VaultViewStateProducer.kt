@@ -1472,6 +1472,13 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                                 gpgKeyExport = gpgKeyExport,
                             ).verify(verify)
                         },
+                        // The remote ID is the same on every device.
+                        copy.FlatItemAction(
+                            id = "cipher.copyId",
+                            title = Res.string.copy_id.wrap(),
+                            value = secretOrNull.service.remote?.id ?: secretOrNull.id,
+                            type = CopyText.Type.ID,
+                        ),
                         cipherExportAction(
                             ciphers = listOf(secretOrNull),
                         ),

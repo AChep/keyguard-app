@@ -1,0 +1,21 @@
+plugins {
+    id("keyguard.quality")
+    id("keyguard.kotlin-multiplatform-library")
+    id("keyguard.compose-free")
+}
+
+kotlin {
+    sourceSets {
+        getByName("commonMain") {
+            dependencies {
+                implementation(project(":standard:presentation"))
+                api(libs.kotlinx.coroutines.core)
+            }
+        }
+        getByName("commonTest") {
+            dependencies {
+                implementation(libs.kotlinx.coroutines.test)
+            }
+        }
+    }
+}

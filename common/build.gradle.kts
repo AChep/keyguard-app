@@ -176,6 +176,8 @@ kotlin {
                 api(project(":util:zip"))
                 api(project(":util:kdbx"))
                 api(project(":util:crypto"))
+                api(project(":feature:cli"))
+                api(project(":feature:environments"))
                 api(project(":util:dns"))
                 api(project(":util:s3"))
                 api(project(":util:signalr"))

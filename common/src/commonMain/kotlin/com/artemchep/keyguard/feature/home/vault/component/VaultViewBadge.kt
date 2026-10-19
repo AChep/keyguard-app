@@ -35,7 +35,7 @@ fun VaultViewBadge(
     modifier: Modifier = Modifier,
     icon: ImageVector,
     title: String,
-    text: String,
+    text: String?,
     textFontFamily: FontFamily? = null,
     error: Boolean = false,
     onClick: (() -> Unit)?,
@@ -81,19 +81,21 @@ fun VaultViewBadge(
                 overflow = TextOverflow.Ellipsis,
                 style = MaterialTheme.typography.bodyMedium,
             )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                modifier = Modifier
-                    .widthIn(max = 128.dp)
-                    .alignByBaseline(),
-                text = text,
-                color = contentColor
-                    .combineAlpha(MediumEmphasisAlpha),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                fontFamily = textFontFamily,
-                style = MaterialTheme.typography.bodySmall,
-            )
+            if (text != null) {
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    modifier = Modifier
+                        .widthIn(max = 128.dp)
+                        .alignByBaseline(),
+                    text = text,
+                    color = contentColor
+                        .combineAlpha(MediumEmphasisAlpha),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    fontFamily = textFontFamily,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
         }
     }
 }

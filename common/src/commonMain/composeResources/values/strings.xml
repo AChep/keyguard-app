@@ -2572,4 +2572,5 @@
     <string name="gpg_user_ids_empty">No active User IDs</string>
     <string name="gpg_user_ids_retry_at">The key’s signature times prevent this change. Try again after %1$s. Check that your devices’ clocks are correct.</string>
     <string name="gpg_user_ids_time_conflict">The key’s signature times prevent this change. Check that your devices’ clocks are correct.</string>
+    <string name="environments_reference_unavailable">Item not available</string>
 </resources>

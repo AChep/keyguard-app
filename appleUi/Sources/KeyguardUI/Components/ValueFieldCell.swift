@@ -74,6 +74,12 @@ struct ValueFieldCell: View {
                     }
                 }
             }
+        } footer: {
+            // Under the field: its content is the label of the
+            // actions menu, which can not hold a button.
+            if let reference = item.reference {
+                DetailReferenceChip(reference: reference, invoke: invoke)
+            }
         }
     }
 }

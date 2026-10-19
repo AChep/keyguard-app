@@ -1,7 +1,7 @@
 import SwiftUI
 import KeyguardShared
 
-struct FieldCell<Content: View, Accessories: View>: View {
+struct FieldCell<Content: View, Accessories: View, Footer: View>: View {
     let title: String?
     let actions: [VaultActionSnapshot]
     let invoke: (String) -> Void
@@ -11,6 +11,8 @@ struct FieldCell<Content: View, Accessories: View>: View {
     var accessibilityValueOverride: String?
     @ViewBuilder let content: () -> Content
     @ViewBuilder let accessories: () -> Accessories
+    /// Shown under the value, in the column of the value.
+    @ViewBuilder let footer: () -> Footer
 
     init(
         title: String?,
@@ -20,7 +22,8 @@ struct FieldCell<Content: View, Accessories: View>: View {
         accessibilityValueOverride: String? = nil,
         colorizeTitle: Bool = false,
         @ViewBuilder content: @escaping () -> Content,
-        @ViewBuilder accessories: @escaping () -> Accessories
+        @ViewBuilder accessories: @escaping () -> Accessories,
+        @ViewBuilder footer: @escaping () -> Footer
     ) {
         self.title = title
         self.colorizeTitle = colorizeTitle
@@ -30,6 +33,7 @@ struct FieldCell<Content: View, Accessories: View>: View {
         self.accessibilityValueOverride = accessibilityValueOverride
         self.content = content
         self.accessories = accessories
+        self.footer = footer
     }
 
     var body: some View {
@@ -48,20 +52,28 @@ struct FieldCell<Content: View, Accessories: View>: View {
                         accessories()
                         copyControl
                     }
+                    footer()
                 }
             } else if let title, !title.isEmpty {
                 LabeledContent {
-                    valueAndControls
+                    valueColumn
                 } label: {
                     PasswordText(title, colorize: colorizeTitle)
                         .accessibilityHidden(accessibilityValueOverride?.isEmpty == false)
                 }
                 .labeledContentStyle(AdaptiveDetailLabeledContentStyle())
             } else {
-                valueAndControls
+                valueColumn
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var valueColumn: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            valueAndControls
+            footer()
+        }
     }
 
     private var valueAndControls: some View {
@@ -116,7 +128,32 @@ struct FieldCell<Content: View, Accessories: View>: View {
     }
 }
 
-extension FieldCell where Accessories == EmptyView {
+extension FieldCell where Footer == EmptyView {
+    init(
+        title: String?,
+        actions: [VaultActionSnapshot],
+        invoke: @escaping (String) -> Void,
+        layout: FieldCellLayout = .adaptive,
+        accessibilityValueOverride: String? = nil,
+        colorizeTitle: Bool = false,
+        @ViewBuilder content: @escaping () -> Content,
+        @ViewBuilder accessories: @escaping () -> Accessories
+    ) {
+        self.init(
+            title: title,
+            actions: actions,
+            invoke: invoke,
+            layout: layout,
+            accessibilityValueOverride: accessibilityValueOverride,
+            colorizeTitle: colorizeTitle,
+            content: content,
+            accessories: accessories,
+            footer: { EmptyView() }
+        )
+    }
+}
+
+extension FieldCell where Accessories == EmptyView, Footer == EmptyView {
     init(
         title: String?,
         actions: [VaultActionSnapshot],
@@ -134,7 +171,8 @@ extension FieldCell where Accessories == EmptyView {
             accessibilityValueOverride: accessibilityValueOverride,
             colorizeTitle: colorizeTitle,
             content: content,
-            accessories: { EmptyView() }
+            accessories: { EmptyView() },
+            footer: { EmptyView() }
         )
     }
 }

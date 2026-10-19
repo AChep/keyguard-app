@@ -142,6 +142,11 @@ sealed interface VaultViewItem {
          * to the item.
          */
         val dropdown: List<ContextItem> = emptyList(),
+        /**
+         * The item and the field the value is read from,
+         * `null` for the own values of an item.
+         */
+        val reference: Reference? = null,
     ) : VaultViewItem, Groupable<Value> {
         companion object;
 
@@ -153,6 +158,14 @@ sealed interface VaultViewItem {
         data class Badge(
             val text: String,
             val score: Float,
+        )
+
+        data class Reference(
+            /** The referenced item, `null` if it is not available. */
+            val item: VaultItemPresentation?,
+            val field: String,
+            /** Opens the referenced item, `null` if it is not available. */
+            val onClick: (() -> Unit)? = null,
         )
 
         override fun withShape(shape: Int) = copy(shapeState = shape)

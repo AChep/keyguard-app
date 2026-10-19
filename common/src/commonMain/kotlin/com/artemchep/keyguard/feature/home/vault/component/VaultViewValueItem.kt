@@ -138,6 +138,10 @@ fun VaultViewValueItem(
                 },
             )
 
+            VaultViewValueReference(
+                reference = item.reference,
+            )
+
             if (item.badge != null || item.badge2.isNotEmpty()) {
                 Spacer(
                     modifier = Modifier
@@ -211,6 +215,23 @@ fun VaultViewValueItem(
 
             item.trailing?.invoke(this)
         },
+    )
+}
+
+/** The item and the field the value is read from, if any. */
+@Composable
+private fun VaultViewValueReference(
+    reference: VaultViewItem.Value.Reference?,
+) {
+    if (reference == null) {
+        return
+    }
+    Spacer(
+        modifier = Modifier
+            .height(4.dp),
+    )
+    VaultItemReferenceChip(
+        reference = reference,
     )
 }
 

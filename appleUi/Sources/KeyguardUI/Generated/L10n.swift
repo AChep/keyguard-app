@@ -2237,6 +2237,10 @@ public enum L10n {
     public static var encryptionSalt: String {
         String(localized: "encryption_salt", bundle: AppLocalization.shared.bundle)
     }
+    /// environments_reference_unavailable
+    public static var environmentsReferenceUnavailable: String {
+        String(localized: "environments_reference_unavailable", bundle: AppLocalization.shared.bundle)
+    }
     /// equivalent_domains
     public static var equivalentDomains: String {
         String(localized: "equivalent_domains", bundle: AppLocalization.shared.bundle)

@@ -7,6 +7,40 @@ use super::transport::MAX_INQUIRE_LINE_LEN;
 use super::*;
 use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt};
 
+async fn version_transcript(info: Arc<AgentInfo>, commands: &str) -> String {
+    let (ipc_stream, _ipc_peer) = tokio::io::duplex(1);
+    let (mut client, server) = tokio::io::duplex(4096);
+    let task = tokio::spawn(serve_connection(
+        server,
+        IpcClient::from_test_stream(ipc_stream),
+        None,
+        CallerGuard::default(),
+        info,
+    ));
+    client.write_all(commands.as_bytes()).await.unwrap();
+    let mut response = String::new();
+    tokio::time::timeout(
+        std::time::Duration::from_secs(5),
+        client.read_to_string(&mut response),
+    )
+    .await
+    .unwrap()
+    .unwrap();
+    task.await.unwrap().unwrap();
+    response
+}
+
+#[tokio::test]
+async fn gnupg_version_is_independent_of_build_version_and_survives_reset() {
+    let response = version_transcript(
+        AgentInfo::for_test(),
+        "GETINFO version\nRESET\nGETINFO version\nGETINFO keyguard_version\nBYE\n",
+    )
+    .await;
+    assert_eq!(response.matches("D 2.5.24\nOK\n").count(), 2);
+    assert!(response.contains(&format!("D {}\nOK\n", crate::version::KEYGUARD_VERSION)));
+}
+
 #[cfg(target_os = "macos")]
 #[tokio::test]
 async fn exited_macos_peer_cannot_reach_sign_or_decrypt_ipc_on_repeated_requests() {
@@ -42,7 +76,7 @@ async fn exited_macos_peer_cannot_reach_sign_or_decrypt_ipc_on_repeated_requests
         ipc_client,
         caller,
         caller_guard,
-        "test".to_string(),
+        AgentInfo::for_test(),
     ));
     let (mut read, mut write) = tokio::io::split(client);
     let keygrip = "A".repeat(40);
@@ -111,7 +145,7 @@ async fn run_oversized_pkdecrypt_inquiry(inquiry: &[u8]) -> Vec<u8> {
         ipc_client,
         None,
         CallerGuard::default(),
-        "test".to_string(),
+        AgentInfo::for_test(),
     ));
     let (client_read, mut client_write) = tokio::io::split(client);
     let mut client_read = BufReader::new(client_read);

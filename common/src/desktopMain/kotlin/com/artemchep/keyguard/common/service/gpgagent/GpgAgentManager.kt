@@ -66,6 +66,8 @@ class GpgAgentManager(
 
     suspend fun resolveGpgAgentSocketPathOrNull(): Path? = socketResolver.resolveOrNull()
 
+    suspend fun resolveHelperArguments(): List<String> = socketResolver.helperArguments()
+
     override fun createIpcServer(
         authToken: ByteArray,
         sessionId: String,

@@ -4,6 +4,7 @@ mod assuan;
 mod config;
 mod ipc;
 mod socket;
+mod version;
 
 use anyhow::{Context, Result};
 use clap::Parser;
@@ -31,6 +32,10 @@ struct Args {
     /// Stable private lifecycle lock directory for a sandboxed Unix host.
     #[arg(long)]
     lifecycle_lock_dir: Option<PathBuf>,
+
+    /// GnuPG client version selected by the desktop host. Invalid values fall back.
+    #[arg(long)]
+    gnupg_version: Option<String>,
 
     /// Enable debug logging. Otherwise RUST_LOG applies, defaulting to warnings and errors.
     #[arg(long, short)]
@@ -152,8 +157,16 @@ async fn main() -> Result<()> {
     let ipc_client = ipc_client?;
     info!("authenticated with Keyguard IPC server");
 
+    let gnupg_version = version::resolve_gnupg_version(args.gnupg_version);
+    info!(
+        %gnupg_version,
+        keyguard_version = version::KEYGUARD_VERSION,
+        "agent versions"
+    );
+
     socket::serve(
         ipc_client,
+        gnupg_version,
         &gpg_socket_path,
         args.lifecycle_lock_dir.as_deref(),
         parent_stdin_closed,

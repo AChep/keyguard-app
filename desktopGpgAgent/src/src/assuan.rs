@@ -4,8 +4,28 @@ use crate::ipc::client::IpcClient;
 use crate::ipc::messages::CallerIdentity;
 use anyhow::Result;
 use keyguard_agent_identity::caller_guard::CallerGuard;
+use std::sync::Arc;
 use tokio::io::{AsyncRead, AsyncWrite, BufReader};
 use tracing::debug;
+
+pub struct AgentInfo {
+    socket_name: String,
+    gnupg_version: String,
+}
+
+impl AgentInfo {
+    pub fn new(socket_name: String, gnupg_version: String) -> Self {
+        Self {
+            socket_name,
+            gnupg_version,
+        }
+    }
+
+    #[cfg(test)]
+    fn for_test() -> Arc<Self> {
+        Arc::new(Self::new("test".into(), "2.5.24".into()))
+    }
+}
 
 mod commands;
 mod syntax;
@@ -36,7 +56,7 @@ pub async fn serve_connection<S>(
     ipc_client: IpcClient,
     caller: Option<CallerIdentity>,
     caller_guard: CallerGuard,
-    socket_name: String,
+    info: Arc<AgentInfo>,
 ) -> Result<()>
 where
     S: AsyncRead + AsyncWrite + Unpin,
@@ -45,7 +65,7 @@ where
         stream,
         ipc_client,
         caller,
-        socket_name,
+        info,
         AssuanTimeouts::default(),
         caller_guard,
     )
@@ -56,7 +76,7 @@ async fn serve_connection_with_timeouts_and_guard<S>(
     stream: S,
     ipc_client: IpcClient,
     caller: Option<CallerIdentity>,
-    socket_name: String,
+    info: Arc<AgentInfo>,
     timeouts: AssuanTimeouts,
     caller_guard: CallerGuard,
 ) -> Result<()>
@@ -109,7 +129,7 @@ where
             &ipc_client,
             &caller_guard,
             caller.clone(),
-            &socket_name,
+            &info,
             &mut reader,
             &mut write_half,
         )

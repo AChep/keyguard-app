@@ -65,7 +65,7 @@ impl CommandSession {
                 &self.ipc_client,
                 &CallerGuard::default(),
                 None,
-                "test",
+                &AgentInfo::for_test(),
                 &mut reader,
                 &mut output,
             ),
@@ -384,7 +384,7 @@ async fn key_selection_does_not_leak_to_a_new_connection() {
                     ipc_client.clone(),
                     None,
                     CallerGuard::default(),
-                    "test".to_string(),
+                    AgentInfo::for_test(),
                 ),
                 client_task,
             );

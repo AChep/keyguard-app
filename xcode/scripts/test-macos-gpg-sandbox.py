@@ -22,11 +22,22 @@ import time
 
 
 def run(command, **kwargs):
+    return run_result(command, **kwargs).stdout
+
+
+def run_result(command, **kwargs):
     try:
         return subprocess.run(command, check=True, stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE, timeout=45, **kwargs).stdout
+                              stderr=subprocess.PIPE, timeout=45, **kwargs)
     except subprocess.CalledProcessError as error:
         raise RuntimeError(f"{command[0]} failed: {error.stderr.decode(errors='replace')}") from error
+
+
+def run_gpg(command, **kwargs):
+    result = run_result(command, **kwargs)
+    assert b"server_version_mismatch" not in result.stderr, result.stderr
+    assert b"server 'gpg-agent' is older" not in result.stderr, result.stderr
+    return result.stdout
 
 
 def await_manifest(process):
@@ -115,17 +126,17 @@ def main():
             assert not (home / ".gnupg").exists(), "Setup touched the default GnuPG home"
             key_data = "\n".join(key["publicKey"] for key in manifest["keys"]).encode()
             command = [gpg, "--batch", "--no-autostart"]
-            run(command + ["--import"], input=key_data, env=client_env)
-            listed = run(command + ["--with-colons", "--list-secret-keys"], env=client_env)
+            run_gpg(command + ["--import"], input=key_data, env=client_env)
+            listed = run_gpg(command + ["--with-colons", "--list-secret-keys"], env=client_env)
             for index, key in enumerate(manifest["keys"]):
                 fingerprint = key["fingerprint"]
                 assert fingerprint.encode() in listed, "Public-key catalog was not exposed to GnuPG"
                 message = f"Native sandbox GPG round trip {index}\n".encode()
-                signed = run(command + ["--local-user", fingerprint, "--clearsign"], input=message, env=client_env)
-                run(command + ["--verify"], input=signed, env=client_env)
-                encrypted = run(command + ["--trust-model", "always", "--recipient", fingerprint, "--encrypt"],
-                                input=message, env=client_env)
-                decrypted = run(command + ["--decrypt"], input=encrypted, env=client_env)
+                signed = run_gpg(command + ["--local-user", fingerprint, "--clearsign"], input=message, env=client_env)
+                run_gpg(command + ["--verify"], input=signed, env=client_env)
+                encrypted = run_gpg(command + ["--trust-model", "always", "--recipient", fingerprint, "--encrypt"],
+                                    input=message, env=client_env)
+                decrypted = run_gpg(command + ["--decrypt"], input=encrypted, env=client_env)
                 assert decrypted == message, "Decryption did not recover the original message"
             output = process.communicate(input=b"x", timeout=15)[0]
             assert process.returncode == 0, output.decode(errors="replace")

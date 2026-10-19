@@ -35,6 +35,8 @@ class KeyguardAgentLauncher(
     private val binaryPath: Path,
     private val processor: GpgAgentRequestProcessor,
     private val authToken: ByteArray,
+    /** Null exercises the agent's fallback version. */
+    private val gnupgVersion: String? = null,
 ) {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var serverJob: Job? = null
@@ -99,6 +101,7 @@ class KeyguardAgentLauncher(
             add(binaryPath.toAbsolutePath().toString())
             addAll(listOf("--ipc-socket", ipcEndpoint.argument))
             addAll(listOf("--parent-pid", ProcessHandle.current().pid().toString()))
+            if (gnupgVersion != null) addAll(listOf("--gnupg-version", gnupgVersion))
             if (gpgSocket != null) addAll(listOf("--gpg-socket", gpgSocket))
             if (verbose) add("--verbose")
         }

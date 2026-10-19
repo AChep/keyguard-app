@@ -45,6 +45,7 @@ const FILE_FLAG_OPEN_REPARSE_POINT: u32 = 0x0020_0000;
 /// contains a loopback TCP port and a 16-byte nonce.
 pub async fn serve<F>(
     ipc_client: IpcClient,
+    gnupg_version: String,
     socket_path: &Path,
     parent_stdin_closed: oneshot::Receiver<()>,
     on_ready: F,
@@ -68,7 +69,10 @@ where
     // The marker guard stays alive for the rest of this function, so a broken
     // stdout pipe below removes the marker before startup fails.
     let _marker = AssuanSocketMarker::publish(socket_path, port, nonce)?;
-    let socket_name = socket_path.to_string_lossy().into_owned();
+    let info = Arc::new(assuan::AgentInfo::new(
+        socket_path.to_string_lossy().into_owned(),
+        gnupg_version,
+    ));
 
     // The loopback listener is bound and the owner-only libassuan marker is
     // now visible.
@@ -81,7 +85,7 @@ where
     );
 
     tokio::select! {
-        result = accept_tcp_loop(listener, ipc_client, nonce, socket_name) => {
+        result = accept_tcp_loop(listener, ipc_client, info, nonce) => {
             result?;
         }
         _ = parent_stdin_closed => {
@@ -107,8 +111,8 @@ fn require_libassuan_marker_path(path: &Path) -> Result<()> {
 async fn accept_tcp_loop(
     listener: TcpListener,
     ipc_client: IpcClient,
+    info: Arc<assuan::AgentInfo>,
     nonce: [u8; ASSUAN_NONCE_LEN],
-    socket_name: String,
 ) -> Result<()> {
     let connections = Arc::new(Semaphore::new(MAX_CONCURRENT_CONNECTIONS));
 
@@ -124,7 +128,7 @@ async fn accept_tcp_loop(
             .await
             .context("failed to accept Windows GPG agent connection")?;
         let ipc_client = ipc_client.clone();
-        let socket_name = socket_name.clone();
+        let info = Arc::clone(&info);
         tokio::spawn(async move {
             // Keep the permit for the complete Assuan session. This bounds
             // authenticated clients that connect successfully but remain idle,
@@ -150,8 +154,7 @@ async fn accept_tcp_loop(
             let caller = connection_caller_identity();
             let caller_guard = keyguard_agent_identity::caller_guard::CallerGuard::default();
             if let Err(e) =
-                assuan::serve_connection(stream, ipc_client, caller, caller_guard, socket_name)
-                    .await
+                assuan::serve_connection(stream, ipc_client, caller, caller_guard, info).await
             {
                 warn!("GPG Assuan connection failed: {e}");
             }

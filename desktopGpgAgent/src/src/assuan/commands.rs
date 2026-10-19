@@ -8,7 +8,7 @@ use tracing::warn;
 
 use super::syntax::*;
 use super::transport::*;
-use super::{CallerGuard, SessionState};
+use super::{AgentInfo, CallerGuard, SessionState};
 
 const ERR_GENERAL: u32 = 1;
 const ERR_INV_VALUE: u32 = 5;
@@ -43,7 +43,7 @@ pub(super) async fn handle_command<R: AsyncBufRead + Unpin, W: AsyncWriteExt + U
     ipc_client: &IpcClient,
     caller_guard: &CallerGuard,
     caller: Option<CallerIdentity>,
-    socket_name: &str,
+    info: &AgentInfo,
     reader: &mut DeadlineReader<R>,
     write: &mut W,
 ) -> Result<bool> {
@@ -66,7 +66,7 @@ pub(super) async fn handle_command<R: AsyncBufRead + Unpin, W: AsyncWriteExt + U
             Ok(false)
         }
         "GETINFO" => {
-            handle_getinfo(command.args, socket_name, write).await?;
+            handle_getinfo(command.args, info, write).await?;
             Ok(false)
         }
         "HAVEKEY" => {
@@ -118,12 +118,16 @@ pub(super) async fn handle_command<R: AsyncBufRead + Unpin, W: AsyncWriteExt + U
 
 async fn handle_getinfo<W: AsyncWriteExt + Unpin>(
     args: &str,
-    socket_name: &str,
+    info: &AgentInfo,
     write: &mut W,
 ) -> Result<()> {
     match args.trim() {
         "version" => {
-            write_data(write, env!("CARGO_PKG_VERSION").as_bytes()).await?;
+            write_data(write, info.gnupg_version.as_bytes()).await?;
+            write_ok(write, "").await
+        }
+        "keyguard_version" => {
+            write_data(write, crate::version::KEYGUARD_VERSION.as_bytes()).await?;
             write_ok(write, "").await
         }
         "pid" => {
@@ -131,7 +135,7 @@ async fn handle_getinfo<W: AsyncWriteExt + Unpin>(
             write_ok(write, "").await
         }
         "socket_name" => {
-            write_data(write, socket_name.as_bytes()).await?;
+            write_data(write, info.socket_name.as_bytes()).await?;
             write_ok(write, "").await
         }
         "ssh_socket_name" => write_error(write, ERR_NO_DATA, "no SSH socket").await,

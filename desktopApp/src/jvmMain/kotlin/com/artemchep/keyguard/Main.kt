@@ -545,9 +545,11 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
                     },
                     start = { scope ->
                         val gpgAgentSocketPath = gpgAgentManager.resolveGpgAgentSocketPathOrNull()
+                        val gpgAgentArguments = gpgAgentManager.resolveHelperArguments()
                         gpgAgentManager.start(
                             scope = scope,
                             agentSocketPath = gpgAgentSocketPath,
+                            extraArguments = gpgAgentArguments,
                         )
                     },
                     join = { process ->

@@ -140,17 +140,20 @@ abstract class AgentManager(
      * @param scope The coroutine scope for the IPC server.
      * @param binaryPath Path to the agent binary.
      * @param agentSocketPath Optional override for the agent socket path.
+     * @param extraArguments Additional arguments for the agent binary.
      */
     suspend fun start(
         scope: CoroutineScope,
         binaryPath: Path? = null,
         agentSocketPath: Path? = null,
+        extraArguments: List<String> = emptyList(),
     ): Process = withContext(Dispatchers.IO) {
         mutex.withLock {
             startLocked(
                 scope = scope,
                 binaryPath = binaryPath,
                 agentSocketPath = agentSocketPath,
+                extraArguments = extraArguments,
             )
         }
     }
@@ -159,6 +162,7 @@ abstract class AgentManager(
         scope: CoroutineScope,
         binaryPath: Path? = null,
         agentSocketPath: Path? = null,
+        extraArguments: List<String> = emptyList(),
     ): Process {
         val existingProcess = agentProcess
         if (existingProcess?.isAlive == true) {
@@ -273,6 +277,7 @@ abstract class AgentManager(
                 command.add(config.agentSocketArg)
                 command.add(it.toAbsolutePath().toString())
             }
+            command.addAll(extraArguments)
 
             // The child's stdout carries the startup readiness record and both
             // streams are retained as bounded startup diagnostics, so they are

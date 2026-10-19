@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.usecase.DeviceIdUseCase
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
 import com.artemchep.keyguard.provider.bitwarden.api.login
+import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
 import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
@@ -22,6 +23,7 @@ class AddAccountImpl(
     private val base64Service: Base64Service,
     private val httpClient: HttpClient,
     private val json: Json,
+    private val tokenRepository: BitwardenTokenRepository,
     private val saveAccount: SaveBitwardenAccount,
 ) : AddAccount {
     override fun invoke(
@@ -32,6 +34,8 @@ class AddAccountImpl(
         email: String,
         password: String,
     ): IO<AccountId> = ioEffect(Dispatchers.Default) {
+        // Checked before signing in to the server.
+        if (accountId == null) tokenRepository.requireNewAccount(email, env)
         val (cryptoSecrets, apiSecrets) = login(
             deviceIdUseCase = deviceIdUseCase,
             cryptoGenerator = cryptoGenerator,

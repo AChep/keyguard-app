@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.createTestDatabase
 import com.artemchep.keyguard.common.service.id.IdRepository
 import com.artemchep.keyguard.common.service.serialization.createApplicationJson
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
@@ -100,7 +101,9 @@ class BitwardenSsoServiceTest {
         override fun put(id: String) = ioEffect { Unit }
     })
     private val database = object : VaultDatabaseManager {
-        override fun get(): IO<Database> = error("Database must not be read for a new account")
+        // A new account is checked against the added ones; there are none.
+        private val empty by lazy { createTestDatabase() }
+        override fun get(): IO<Database> = ioEffect { empty }
         override fun <T> mutate(tag: String, block: suspend (Database) -> T): IO<T> =
             error("Unexpected database mutation")
         override fun changePassword(newMasterKey: MasterKey): IO<Unit> = error("Unexpected password change")

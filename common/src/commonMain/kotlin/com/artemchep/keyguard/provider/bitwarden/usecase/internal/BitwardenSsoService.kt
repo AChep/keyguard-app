@@ -185,7 +185,11 @@ class BitwardenSsoService(
         val env = authenticated.authorization.request.env
         val profile = authenticated.profile
         // Checked before the expensive key derivation.
-        if (accountId != null) requireMatchingAccount(AccountId(accountId), env, profile)
+        if (accountId != null) {
+            requireMatchingAccount(AccountId(accountId), env, profile)
+        } else {
+            tokenRepository.requireNewAccount(profile.email, env)
+        }
         val result = secrets()
         val decrypted = try {
             val key = SymmetricCryptoKey2(result.encryptionKey + result.macKey)

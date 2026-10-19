@@ -2249,6 +2249,10 @@ public enum L10n {
     public static var equivalentDomainsEmptyText: String {
         String(localized: "equivalent_domains_empty_text", bundle: AppLocalization.shared.bundle)
     }
+    /// error_account_already_exists
+    public static var errorAccountAlreadyExists: String {
+        String(localized: "error_account_already_exists", bundle: AppLocalization.shared.bundle)
+    }
     /// error_credential_calling_app_not_privileged
     public static var errorCredentialCallingAppNotPrivileged: String {
         String(localized: "error_credential_calling_app_not_privileged", bundle: AppLocalization.shared.bundle)

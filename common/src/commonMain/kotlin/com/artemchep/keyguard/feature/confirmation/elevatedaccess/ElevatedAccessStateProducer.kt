@@ -27,6 +27,7 @@ import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockState
 import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.navigation.RouteResultHandler
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
@@ -40,6 +41,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.shareIn
+import kotlinx.coroutines.job
 import org.koin.compose.currentKoinScope
 
 private const val DEFAULT_PASSWORD = ""
@@ -91,10 +93,19 @@ suspend fun RememberStateFlowScope.elevatedAccessStateProducer(
 ): Flow<ElevatedAccessState> {
     val executor = screenExecutor()
 
+    // A dialog dismissed by tapping outside of it or by going back sends
+    // no result of its own. Deny then, so that a caller waiting for the
+    // result is never left hanging.
+    val resultHandler = RouteResultHandler(transmitter)
+    screenScope.coroutineContext.job.invokeOnCompletion {
+        resultHandler.complete(ElevatedAccessResult.Deny)
+    }
+
     val passwordHandle = textFieldHandle("password", initial = DEFAULT_PASSWORD)
     val grantAccess = {
-        navigatePopSelf()
-        transmitter(ElevatedAccessResult.Allow)
+        resultHandler.complete(ElevatedAccessResult.Allow) {
+            navigatePopSelf()
+        }
     }
 
     val biometricPrompt = kotlin.run {
@@ -216,8 +227,9 @@ suspend fun RememberStateFlowScope.elevatedAccessStateProducer(
         ElevatedAccessState(
             content = Loadable.Ok(content),
             onDeny = {
-                navigatePopSelf()
-                transmitter(ElevatedAccessResult.Deny)
+                resultHandler.complete(ElevatedAccessResult.Deny) {
+                    navigatePopSelf()
+                }
             },
             onConfirm = if (canCreateVault) {
                 // lambda
@@ -225,8 +237,7 @@ suspend fun RememberStateFlowScope.elevatedAccessStateProducer(
                     val io = confirmAccessByPasswordUseCase(validatedPassword.model)
                         .effectTap { success ->
                             if (success) {
-                                navigatePopSelf()
-                                transmitter(ElevatedAccessResult.Allow)
+                                grantAccess()
                             } else {
                                 val message = ToastMessage(
                                     title = translate(Res.string.error_incorrect_password),

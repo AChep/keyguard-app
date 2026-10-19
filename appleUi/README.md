@@ -15,19 +15,21 @@ Swift Package Manager can find it:
 ./gradlew :appleApp:assembleKeyguardSharedDebugXCFramework
 ```
 
+The Xcode projects are not committed. Generate them with
+[XcodeGen](https://github.com/yonaskolb/XcodeGen) (`brew install xcodegen`):
+
+```sh
+xcode/scripts/generate-projects.sh
+```
+
+Run it again after you pull, or after you change either app's `project.yml` or the
+shared specifications in `xcode/`.
+
 Open `iosApp/iosApp.xcodeproj` or `macosApp/Keyguard.xcodeproj` in Xcode. Select the
 `Keyguard` scheme and your device or simulator, then build and run. The scheme's
 build steps rebuild the shared framework and generate the strings.
 They build only the slice for the selected destination. After an iOS build, run the
-command above again before `swift test --package-path appleUi`.
-
-The projects are generated with XcodeGen. After changing either app's `project.yml`
-or the shared specifications in `xcode/`, regenerate both:
-
-```sh
-(cd macosApp && xcodegen generate)
-(cd iosApp && xcodegen generate)
-```
+Gradle command above again before `swift test --package-path appleUi`.
 
 ## Local signing
 

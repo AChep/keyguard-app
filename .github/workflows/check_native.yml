@@ -546,6 +546,11 @@ jobs:
           :appleApp:assembleKeyguardSharedDebugXCFramework
           :common:generateAppleStrings
           :util:crypto:linkDebugTestMacosArm64
+      - name: "Generate Xcode projects"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
+        run: |
+          brew install xcodegen
+          xcode/scripts/generate-projects.sh
       # The Gradle step above must publish the XCFramework before SwiftPM resolves
       # its local binary target. Each scheme also builds its AutoFill extension.
       # Keep these sequential: every scheme pre-action republishes the framework with

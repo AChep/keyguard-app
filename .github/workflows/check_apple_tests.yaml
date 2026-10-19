@@ -143,7 +143,7 @@ jobs:
       - name: Generate Xcode projects
         run: |
           brew install xcodegen
-          xcodegen generate --spec macosApp/project.yml
+          xcode/scripts/generate-projects.sh
       - name: Run StoreKit regression tests
         run: xcode/scripts/test-apple-billing.sh -resultBundlePath apple-billing-tests.xcresult
       - name: Upload Apple billing test reports

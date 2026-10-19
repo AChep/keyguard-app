@@ -46,6 +46,7 @@ build_app() {
     )
   fi
 
+  "$ROOT_DIR/xcode/scripts/generate-projects.sh"
   /usr/bin/xcodebuild \
     -project "$PROJECT_FILE" \
     -scheme "$SCHEME" \

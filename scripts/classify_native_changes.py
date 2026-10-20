@@ -182,6 +182,9 @@ def classify(paths, *, full=False, all_checks=False):
                 enable("crypto")
                 continue
             enable("crypto", "fuzz", "desktop", "android", "apple", "apple_regressions")
+        if path.startswith(("commonCli/", "desktopCli/", "desktopCliAgent/")):
+            enable("desktop", "desktop_native", "apple", "native_quality")
+            continue
         if path.startswith(("desktopLibNative/", "desktopSshAgent/", "desktopGpgAgent/", "commonAgent/", "commonSshAgent/", "commonGpgAgent/")):
             if is_rust_test_path(path):
                 if path.startswith("desktopLibNative/"):
@@ -191,6 +194,10 @@ def classify(paths, *, full=False, all_checks=False):
             enable("desktop", "desktop_native")
             if path.startswith(("desktopGpgAgent/", "commonAgent/", "commonGpgAgent/")):
                 enable("apple")
+            # Native utility Rust quality lints the CLI helpers, which
+            # consume commonAgent.
+            if path.startswith("commonAgent/"):
+                enable("native_quality")
         if re.match(r"androidApp/src/androidTest/.+/(nativebundle|io|crypto)/", path):
             enable("android_runtime")
             if "/test/io/" in path:

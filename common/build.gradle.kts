@@ -276,6 +276,9 @@ kotlin {
         }
 
         getByName("desktopTest") {
+            // The encodings of the CLI agent's private channel, fixtures/,
+            // which the agent's Rust tests check as well.
+            resources.srcDir("../desktopCliAgent/proto")
             dependencies {
                 // The backup tests inspect the archives the repository wrote
                 // with zip4j's own reader, independently of `util/zip`.

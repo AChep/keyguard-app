@@ -24,14 +24,24 @@ interface CliService {
 data class CliServiceState(
     /** Whether the CLI may receive values. */
     val enabled: Boolean = false,
-    /** Path of the bundled `keyguard` CLI; `null` if this build does not support it. */
+    /** Path of the bundled `keyguard` CLI; `null` if this build has none. */
     val path: String? = null,
     /** Optional runtime socket override that the CLI must also use. */
     val socketPath: String? = null,
+    /** What the platform lets the bundled CLI do. */
+    val capabilities: Set<CliPlatformCapability> = emptySet(),
 ) {
+    /** Whether this build can serve a command with the [requirements]. */
+    fun supports(requirements: CliCommandRequirements): Boolean =
+        path != null && capabilities.containsAll(requirements.platform)
+
+    /** Whether this build serves any command of the CLI. */
+    val supported: Boolean
+        get() = CliCommand.entries.any { supports(it.requirements) }
+
     /** Whether the CLI needs the agent that serves it. */
     val needsAgent: Boolean
-        get() = enabled && path != null
+        get() = enabled && supported
 }
 
 /**

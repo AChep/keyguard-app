@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.cli
 
 import com.artemchep.keyguard.common.service.cli.CliApprovalRequest
+import com.artemchep.keyguard.common.service.cli.CliPlatformCapability
 import com.artemchep.keyguard.common.service.cli.CliService
 import com.artemchep.keyguard.common.service.cli.CliServiceState
 import com.artemchep.keyguard.feature.cli.ui.CliSettingsState
@@ -25,7 +26,9 @@ import kotlin.test.assertTrue
 @OptIn(ExperimentalCoroutinesApi::class)
 class CliSettingsStateProducerTest {
     private class FakeCliService : CliService {
-        override val state = MutableStateFlow(CliServiceState(path = "/keyguard"))
+        override val state = MutableStateFlow(
+            CliServiceState(path = "/keyguard", capabilities = setOf(CliPlatformCapability.Unsandboxed)),
+        )
         override val approvals = MutableStateFlow(emptyList<CliApprovalRequest>())
         var gate: CompletableDeferred<Unit>? = null
         var failure: Exception? = null
@@ -75,6 +78,15 @@ class CliSettingsStateProducerTest {
         assertEquals(1, service.calls)
         assertTrue(service.state.value.enabled)
         assertFalse(state.value!!.busy)
+    }
+
+    @Test
+    fun `a build that serves no command shows no path`() = runTest {
+        val service = FakeCliService()
+        val state = state(service)
+        assertEquals("/keyguard", state.value!!.path)
+        service.state.update { it.copy(capabilities = emptySet()) }
+        assertNull(state.value!!.path)
     }
 
     @Test

@@ -76,7 +76,7 @@ mod unix {
         };
 
         // The caller is serialized from `wire_value()` directly, so this pins
-        // the shared caller schema and its consumers together.
+        // the SSH, GPG, and environments caller schemas together.
         #[test]
         fn protobuf_values_match_the_shared_wire_values() {
             for (kind, expected) in [

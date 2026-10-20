@@ -392,6 +392,13 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 self.assertTrue(result["desktop_native"])
                 self.assertFalse(result["android_run"])
 
+    def test_shared_agent_identity_lints_the_cli_helpers(self):
+        for path in ("commonAgent/src/caller_guard.rs", "commonAgent/proto/caller.proto"):
+            with self.subTest(path=path):
+                self.assertTrue(classify([path])["native_quality"])
+        self.assertFalse(classify(["commonSshAgent/src/lib.rs"])["native_quality"])
+        self.assertFalse(classify(["commonAgent/src/tests.rs"])["native_quality"])
+
     def test_production_rust_module_with_inline_tests_still_requests_packages(self):
         result = classify(["util/io/rust/crates/keyguard-io-core/src/txn.rs"])
         self.assertTrue(result["native_quality"])
@@ -452,6 +459,18 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 result = classify([path])
                 self.assertTrue(result["apple"])
                 self.assertTrue(result["desktop"])
+
+    def test_cli_helper_changes_build_desktop_and_apple_consumers(self):
+        for path in (
+            "commonCli/src/cli.rs",
+            "desktopCli/src/src/main.rs",
+            "desktopCliAgent/src/src/broker.rs",
+            "desktopCliAgent/src/tests/broker_lifecycle.rs",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                for flag in ("desktop", "desktop_native", "apple", "native_quality"):
+                    self.assertTrue(result[flag])
 
     def test_targeted_manual_keeps_representative_hosts(self):
         result = classify([], all_checks=True)

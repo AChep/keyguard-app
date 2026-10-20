@@ -26,7 +26,7 @@ fun cliSettingsStateProducer(
     ) { state, operationState ->
         CliSettingsState(
             enabled = state.enabled,
-            path = state.path,
+            path = state.path.takeIf { state.supported },
             usage = cliUsage(state.socketPath),
             busy = operationState.busy,
             failed = operationState.failed,

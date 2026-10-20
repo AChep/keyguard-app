@@ -84,6 +84,7 @@ import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PutLocale
+import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.util.yubikey.NativeYubiKeyClient
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.GetLocaleImpl
@@ -261,7 +262,7 @@ class PlatformApplicationModule {
         includes(WindowsPasskeyModule().module)
         single { PlatformLinkInfoExtractorRegistry(emptyList()) }
         single { PlatformLogSinkRegistry(listOf(get<LogRepositoryKotlin>())) }
-        single { WorkerRegistry(listOf(get<BackupSchedulerWorker>())) }
+        single { WorkerRegistry(listOf(get<BackupSchedulerWorker>(), get<WatchtowerSyncer>())) }
         single {
             ClearDataHookRegistry(
                 when (CurrentPlatform) {

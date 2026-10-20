@@ -89,6 +89,10 @@ internal suspend fun runGpgAgentPacketSession(
     rpcHandler: GpgAgentRpcHandler,
     initialContext: GpgAgentRpcRequestContext,
     codec: GpgAgentProtoCodec = GpgAgentProtoCodec,
+    readPacket: suspend (AgentPacketChannel) -> ByteArray? = { it.readPacket() },
+    writePacket: suspend (AgentPacketChannel, ByteArray) -> Unit = { channel, packet ->
+        channel.writePacket(packet)
+    },
 ) {
     runAgentPacketSession(
         channel = channel,
@@ -104,5 +108,7 @@ internal suspend fun runGpgAgentPacketSession(
                 context = initialContext.copy(authenticated = authenticated),
             )
         },
+        readPacket = readPacket,
+        writePacket = writePacket,
     )
 }

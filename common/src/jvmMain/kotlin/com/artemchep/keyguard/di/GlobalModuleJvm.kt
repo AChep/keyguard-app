@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandJvm
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentApprovalWindowMemory
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
 import com.artemchep.keyguard.common.service.licensekey.EcdsaP256LicenseSignatureVerifier
 import com.artemchep.keyguard.common.service.licensekey.LicenseSignatureVerifier
@@ -20,6 +21,8 @@ import com.artemchep.keyguard.common.usecase.CheckWebDavConnection
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAppBuildDate
 import com.artemchep.keyguard.common.usecase.GetAppBuildRef
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -91,6 +94,14 @@ class GlobalModuleJvm {
                 getVaultSession = get<GetVaultSession>(),
                 scope = get<CoroutineScope>(qualifier = named<ApplicationCoroutineScope>()),
                 getSshAgentApprovalCachePolicy = get<GetSshAgentApprovalCachePolicy>(),
+            )
+        }
+        single<GpgAgentApprovalWindowMemory> {
+            GpgAgentApprovalWindowMemory(
+                getGpgAgentApprovalWindow = get<GetGpgAgentApprovalWindow>(),
+                getVaultSession = get<GetVaultSession>(),
+                scope = get<CoroutineScope>(qualifier = named<ApplicationCoroutineScope>()),
+                getGpgAgentApprovalCachePolicy = get<GetGpgAgentApprovalCachePolicy>(),
             )
         }
         single<LicenseSignatureVerifier> {

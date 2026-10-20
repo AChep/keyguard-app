@@ -68,7 +68,7 @@ Termux reaches Keyguard through a helper package.
 1. Install [Termux](https://termux.dev/).
 2. In Keyguard, open **Settings > Developer > SSH agent > SSH client setup**.
 3. In Termux, run the commands under **Install package**. They add Keyguard's
-   APT repository and install `keyguard-android-ssh-agent`.
+   APT repository and install `openssh` and `keyguard-android-ssh-agent`.
 4. Add these lines to your Termux shell startup file, such as `~/.bashrc`:
 
    ```sh

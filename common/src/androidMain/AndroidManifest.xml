@@ -233,13 +233,13 @@
             android:taskAffinity=":autofill"
             android:windowSoftInputMode="adjustResize" />
         <activity
-            android:name="com.artemchep.keyguard.android.sshagent.SshRequestActivity"
+            android:name="com.artemchep.keyguard.android.agentbridge.AgentRequestActivity"
             android:configChanges="keyboard|keyboardHidden|navigation|orientation|screenSize|screenLayout|smallestScreenSize|uiMode"
             android:excludeFromRecents="true"
             android:exported="false"
             android:launchMode="singleTop"
             android:noHistory="true"
-            android:taskAffinity=":termux_ssh"
+            android:taskAffinity=":termux_agent"
             android:theme="@style/Theme.Keyguard.Dialog"
             android:windowSoftInputMode="adjustResize" />
         <receiver
@@ -271,10 +271,14 @@
             android:exported="true" />
 
         <receiver
-            android:name="com.artemchep.keyguard.android.sshagent.SshRequestNotificationActionReceiver"
+            android:name="com.artemchep.keyguard.android.gpgagent.GpgAgentReceiver"
+            android:exported="true" />
+
+        <receiver
+            android:name="com.artemchep.keyguard.android.agentbridge.AgentRequestNotificationActionReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="${applicationId}.ACTION_SSH_REQUEST_NOTIFICATION_DISMISS" />
+                <action android:name="${applicationId}.ACTION_AGENT_REQUEST_NOTIFICATION_DISMISS" />
             </intent-filter>
         </receiver>
 
@@ -288,12 +292,12 @@
         </service>
 
         <service
-            android:name="com.artemchep.keyguard.android.sshagent.SshAgentService"
+            android:name="com.artemchep.keyguard.android.agentbridge.AgentBridgeService"
             android:exported="false"
             android:foregroundServiceType="specialUse">
             <property
                 android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
-                android:value="Bridge SSH agent requests over a localhost socket" />
+                android:value="Bridge SSH and GPG agent requests over a localhost socket" />
         </service>
 
         <service

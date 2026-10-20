@@ -31,6 +31,7 @@ fun settingGpgAgentApprovalWindowProvider(
     windowCoroutineScope = windowCoroutineScope,
     context = context,
     platformClasses = listOf(
+        Platform.Mobile.Android::class,
         Platform.Desktop.Linux::class,
         Platform.Desktop.MacOS::class,
         Platform.Desktop.Windows::class,

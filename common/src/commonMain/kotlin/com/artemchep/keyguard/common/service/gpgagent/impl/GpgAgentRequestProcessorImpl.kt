@@ -8,13 +8,9 @@ import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.filterCiphers
-import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheIdentity
-import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
-import com.artemchep.keyguard.common.service.agent.AgentApprovalWindowMemory
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_PROMPT_TIMEOUT
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
-import com.artemchep.keyguard.common.service.agent.flowBackedAgentApprovalCacheConfigProvider
 import com.artemchep.keyguard.common.service.agent.isEligibleForAgent
-import com.artemchep.keyguard.common.service.agent.toApprovalCacheIdentity
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolverUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
@@ -59,6 +55,7 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
+import kotlin.time.Clock
 
 class GpgAgentRequestProcessorImpl(
     private val logRepository: LogRepository,
@@ -70,6 +67,13 @@ class GpgAgentRequestProcessorImpl(
         GetGpgAgentApprovalCachePolicyNoOp,
     private val getGpgAgentFilter: GetGpgAgentFilter,
     scope: CoroutineScope,
+    private val approvalWindowMemory: GpgAgentApprovalWindowMemory =
+        GpgAgentApprovalWindowMemory(
+            getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
+            getVaultSession = getVaultSession,
+            scope = scope,
+            getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
+        ),
     private val gpgPublicKeyRepository: GpgPublicKeyRepository = GpgPublicKeyRepositoryEmpty,
     private val pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
     private val sessionId: String = "",
@@ -79,20 +83,6 @@ class GpgAgentRequestProcessorImpl(
     companion object {
         private const val TAG = "GpgAgentRequestProcessor"
     }
-
-    private val approvalCacheConfig = getGpgAgentApprovalCachePolicy.approvalCacheConfig
-        ?: flowBackedAgentApprovalCacheConfigProvider(
-            approvalWindow = getGpgAgentApprovalWindow(),
-            cachePolicy = getGpgAgentApprovalCachePolicy(),
-            scope = scope,
-        )
-
-    private val approvalWindowMemory =
-        AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>(
-            approvalCacheConfig = approvalCacheConfig,
-            getVaultSession = getVaultSession,
-            scope = scope,
-        )
 
     override suspend fun listKeys(
         caller: CallerIdentity?,
@@ -189,6 +179,9 @@ class GpgAgentRequestProcessorImpl(
         crypto: GpgVaultContext.(GpgKeyMatch) -> T,
     ): GpgAgentOperationResult<T> {
         val normalizedKeygrip = keygrip.normalizeGpgKeygrip()
+        // A locked vault can need a second prompt after it unlocks; both
+        // share this deadline, which the Termux helper's timeout covers.
+        val approvalExpiresAt = Clock.System.now() + AGENT_APPROVAL_PROMPT_TIMEOUT
         var session = getVaultSession.valueOrNull as? MasterSession.Key
         val wasVaultLocked = session == null
         if (wasVaultLocked) {
@@ -208,6 +201,7 @@ class GpgAgentRequestProcessorImpl(
                     keygrip = normalizedKeygrip,
                     accountId = cachedKey?.accountId,
                     cipherId = cachedKey?.cipherId,
+                    expiresAt = approvalExpiresAt,
                 ),
             )
             if (!approved) {
@@ -325,6 +319,7 @@ class GpgAgentRequestProcessorImpl(
                     keygrip = normalizedKeygrip,
                     accountId = match.secret.cipher.accountId,
                     cipherId = match.secret.cipher.id,
+                    expiresAt = approvalExpiresAt,
                 ),
             )
             if (!approved) {
@@ -521,7 +516,7 @@ class GpgAgentRequestProcessorImpl(
         }.getOrNull()
     }
 
-    // The approval broker owns the deadline of the prompt.
+    // The approval broker denies the prompt at its deadline.
     private suspend fun requestApproval(
         prompt: GpgAgentApprovalPrompt,
     ): Boolean = try {
@@ -586,34 +581,3 @@ class GpgAgentRequestProcessorImpl(
         }
     }
 }
-
-private suspend fun AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>.Session.access(
-    operation: GpgAgentOperation,
-    keygrip: String,
-    caller: CallerIdentity?,
-): AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>.Access = access { policy ->
-    gpgApprovalCacheKey(operation, keygrip, caller, policy)
-}
-
-internal fun gpgApprovalCacheKey(
-    operation: GpgAgentOperation,
-    keygrip: String,
-    caller: CallerIdentity?,
-    policy: AgentApprovalCachePolicy = AgentApprovalCachePolicy.Default,
-): GpgApprovalCacheKey? {
-    val callerIdentity = caller.toApprovalCacheIdentity(policy)
-        ?: return null
-    return GpgApprovalCacheKey(
-        operation = operation,
-        // The keygrip is already normalized by the caller (runKeyOperation); normalizing
-        // once there keeps a single source of truth for the cache-key identity.
-        keygrip = keygrip,
-        callerIdentity = callerIdentity,
-    )
-}
-
-internal data class GpgApprovalCacheKey(
-    val operation: GpgAgentOperation,
-    val keygrip: String,
-    val callerIdentity: AgentApprovalCacheIdentity,
-)

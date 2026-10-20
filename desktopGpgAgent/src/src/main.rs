@@ -1,13 +1,12 @@
 //! keyguard-gpg-agent: GPG agent bridge for Keyguard.
 
-mod assuan;
 mod config;
 mod ipc;
 mod socket;
-mod version;
 
 use anyhow::{Context, Result};
 use clap::Parser;
+use keyguard_gpg_agent_assuan::version;
 use std::io::Read;
 use std::path::PathBuf;
 use tokio::sync::oneshot;
@@ -149,10 +148,9 @@ async fn main() -> Result<()> {
         "Configuration loaded"
     );
 
-    let ipc_client =
-        ipc::client::IpcClient::connect(&args.ipc_socket, &auth_token, args.parent_pid)
-            .await
-            .context("failed to connect to Keyguard IPC server");
+    let ipc_client = ipc::client::connect(&args.ipc_socket, &auth_token, args.parent_pid)
+        .await
+        .context("failed to connect to Keyguard IPC server");
     zeroize_bytes(&mut auth_token);
     let ipc_client = ipc_client?;
     info!("authenticated with Keyguard IPC server");

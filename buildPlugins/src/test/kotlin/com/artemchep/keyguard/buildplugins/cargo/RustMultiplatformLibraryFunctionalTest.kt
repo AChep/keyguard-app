@@ -1,6 +1,6 @@
 package com.artemchep.keyguard.buildplugins.cargo
 
-import com.artemchep.keyguard.buildplugins.androidssh.AndroidCargoEnvironment
+import com.artemchep.keyguard.buildplugins.androidagent.AndroidCargoEnvironment
 import com.artemchep.keyguard.buildplugins.fixtureGradleRunner
 import org.gradle.api.JavaVersion
 import org.gradle.testkit.runner.TaskOutcome
@@ -58,7 +58,7 @@ class RustMultiplatformLibraryFunctionalTest {
                 root,
                 "$module/build.gradle.kts",
                 """
-                import com.artemchep.keyguard.buildplugins.androidssh.AndroidCargoEnvironment
+                import com.artemchep.keyguard.buildplugins.androidagent.AndroidCargoEnvironment
                 import com.artemchep.keyguard.buildplugins.cargo.CargoBuildTask
 
                 plugins { id("keyguard.rust-multiplatform-library") }
@@ -87,7 +87,7 @@ class RustMultiplatformLibraryFunctionalTest {
             root,
             "build.gradle.kts",
             """
-            import com.artemchep.keyguard.buildplugins.androidssh.AndroidCargoEnvironment
+            import com.artemchep.keyguard.buildplugins.androidagent.AndroidCargoEnvironment
             import com.artemchep.keyguard.buildplugins.cargo.CargoBuildTask
 
             plugins { id("keyguard.rust-multiplatform-library") }

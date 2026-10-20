@@ -89,16 +89,9 @@ class GpgAgentManager(
             expectedPeerProcess = expectedPeerProcess,
             sessionId = sessionId,
             onApprovalRequest = { prompt ->
-                val result = approvals.request { expiresAt ->
-                    GpgAgentApprovalRequest(
+                val result = approvals.request(deadline = prompt.expiresAt) { expiresAt ->
+                    prompt.toApprovalRequest(
                         id = cryptoGenerator.uuid(),
-                        operation = prompt.operation,
-                        keyName = prompt.keyName,
-                        keyFingerprint = prompt.keyFingerprint,
-                        keygrip = prompt.keygrip,
-                        accountId = prompt.accountId,
-                        cipherId = prompt.cipherId,
-                        caller = prompt.caller,
                         expiresAt = expiresAt,
                     )
                 }

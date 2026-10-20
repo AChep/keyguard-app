@@ -18,8 +18,8 @@ bytes.workspace = true
 clap = { workspace = true, features = ["derive"] }
 common-gpg-agent-rust.workspace = true
 keyguard-agent-identity.workspace = true
+keyguard-gpg-agent-assuan.workspace = true
 hex.workspace = true
-prost.workspace = true
 tokio = { workspace = true, features = ["full"] }
 tracing.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }

@@ -17,5 +17,24 @@ data class GpgAgentApprovalRequest(
     val accountId: String?,
     val cipherId: String?,
     override val caller: CallerIdentity?,
+    /** The notification that represents the request, if any. */
+    val notificationTag: String? = null,
     override val expiresAt: Instant,
 ) : AgentRequest
+
+internal fun GpgAgentApprovalPrompt.toApprovalRequest(
+    id: String,
+    expiresAt: Instant,
+    notificationTag: String? = null,
+): GpgAgentApprovalRequest = GpgAgentApprovalRequest(
+    id = id,
+    operation = operation,
+    keyName = keyName,
+    keyFingerprint = keyFingerprint,
+    keygrip = keygrip,
+    accountId = accountId,
+    cipherId = cipherId,
+    caller = caller,
+    notificationTag = notificationTag,
+    expiresAt = expiresAt,
+)

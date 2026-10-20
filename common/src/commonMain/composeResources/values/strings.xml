@@ -2313,7 +2313,7 @@
     <string name="gpg_agent_request_approval_decrypt_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following GPG key to decrypt data:</string>
     <string name="gpg_agent_request_approval_decrypt_message_unknown_app">An application wants to use the following GPG key to decrypt data:</string>
     <string name="gpg_agent_setup_intro">Set up GnuPG to use Keyguard's GPG agent for signing and decryption without exposing private key material.</string>
-    <string name="gpg_agent_setup_unsupported_text">The GPG agent is only available in the desktop version of Keyguard.</string>
+    <string name="gpg_agent_setup_unsupported_text">The GPG agent is not available on this device.</string>
     <string name="gpg_agent_setup_step_1_title">1. Enable GPG agent in Keyguard</string>
     <string name="gpg_agent_setup_step_1_text">Open GPG settings, enable GPG agent, and make sure the vault contains a GPG key the agent is allowed to use.</string>
     <string name="gpg_agent_setup_step_2_title">2. Configure GNUPGHOME</string>
@@ -2326,6 +2326,14 @@
     <string name="gpg_agent_setup_step_5_text">Use the same GNUPGHOME when Git signs commits. Keep the config local to one repository, or change --local to --global.</string>
     <string name="gpg_agent_setup_windows_native_gnupg_note">Windows requires a native GnuPG installation. The GPG bundled with Git for Windows is not compatible with this setup.</string>
     <string name="gpg_agent_setup_macos_step_2_text">Run these commands in Terminal while Keyguard is running. They prepare <xliff:g id="path" example="~/.keyguard/gnupg">%1$s</xliff:g> and connect your installed GnuPG to Keyguard. Then set GNUPGHOME in the same shell before importing keys or signing.</string>
+    <string name="gpg_agent_setup_android_termux_text">On Android, Keyguard provides the GPG agent via a dedicated helper package. Enable GPG agent in Keyguard, install and configure the package, and approve requests when GnuPG connects.</string>
+    <string name="gpg_agent_setup_android_termux_step_3_title">Configure GnuPG</string>
+    <string name="gpg_agent_setup_android_termux_step_3_shell_current">Start the package and export GNUPGHOME into your current shell:</string>
+    <string name="gpg_agent_setup_android_termux_import_title">Import the public key</string>
+    <string name="gpg_agent_setup_android_termux_import_text">Export the public key from the GPG Key item in Keyguard. Keyguard saves it to Downloads. Give Termux access to shared storage once, then import the key. This exposes only public key material.</string>
+    <string name="gpg_agent_setup_android_termux_git_title">Sign Git commits</string>
+    <string name="gpg_agent_setup_android_how_does_it_work_1">The GPG agent receives requests from GnuPG, then forwards them to the Keyguard app instead of handling the sensitive operation itself.</string>
+    <string name="gpg_agent_setup_android_how_does_it_work_2">The communication is done in two steps: first the agent signals the app to start a session, then both sides connect over a local TCP channel and exchange encrypted messages. The GPG agent acts as a relay, while the Keyguard app performs the actual operations.</string>
     <string name="gpg_keys_capability_sign">Sign</string>
     <string name="gpg_key_status">GPG key status</string>
     <string name="gpg_key_status_revoked_text">This GPG key has been revoked and should not be used.</string>

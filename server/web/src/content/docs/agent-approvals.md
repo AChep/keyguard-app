@@ -26,7 +26,7 @@ approval. The default is 5 minutes for both agents.
 | Agent | Options | Platforms |
 | --- | --- | --- |
 | SSH agent | **Ask every time**, 1, 5 or 15 minutes, 1 or 4 hours, **Until vault locks** | Android, Linux, macOS, Windows |
-| GPG agent | **Ask every time**, 1, 5 or 15 minutes, **Until vault locks** | Linux, macOS, Windows |
+| GPG agent | **Ask every time**, 1, 5 or 15 minutes, **Until vault locks** | Android, Linux, macOS, Windows |
 
 A remembered approval covers one key and the callers that the scope allows.
 For the GPG agent, signing and decryption need separate approvals. Locking the
@@ -59,7 +59,7 @@ asks every time.
 | --- | --- | --- |
 | Linux, macOS | All four scopes | All four scopes |
 | Windows | Three scopes, without the terminal-isolated one. **Per application** is the default, and its approvals last while the detected app runs. | No **Approval scope** setting. An approval covers one connection. |
-| Android, Termux helper | No **Approval scope** setting. An approval covers the verified app, or the current connection if Keyguard can't verify the app. | No Termux helper |
+| Android, Termux helper | No **Approval scope** setting. An approval covers the verified app, or the current connection if Keyguard can't verify the app. | Same as the SSH agent |
 | Android, other apps | Approval windows and scopes don't apply | Approval windows and scopes don't apply |
 
 :::caution

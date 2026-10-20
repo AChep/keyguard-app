@@ -1,19 +1,13 @@
 use anyhow::{Context, Result};
 use common_ssh_agent_rust::messages::IpcRequest;
 use std::ffi::OsString;
-use std::io::{self, ErrorKind};
 use std::path::Path;
-use std::sync::Arc;
 use tokio::io::{AsyncRead, AsyncWrite};
-use tokio::net::{TcpListener, TcpStream, UnixListener, UnixStream};
+use tokio::net::{TcpStream, UnixListener, UnixStream};
 use tokio::process::{Child, Command};
-use tokio::signal::unix::{signal, SignalKind};
-use tokio::sync::Semaphore;
-use tokio::task::{JoinHandle, JoinSet};
-use tokio::time::{sleep, timeout, timeout_at, Duration, Instant};
+use tokio::task::JoinHandle;
+use tokio::time::{timeout, Duration};
 
-use crate::broadcast::{AndroidBroadcastLauncher, BroadcastCommandSpec, BroadcastOutcome};
-use crate::caller_identity::{caller_from_unix_stream, CallerIdentity};
 use crate::packet_io::{read_ssh_agent_packet, write_ssh_agent_packet};
 use crate::process::{terminate_pid, AGENT_PID_ENV, AUTH_SOCK_ENV};
 use crate::rpc::{
@@ -22,20 +16,18 @@ use crate::rpc::{
     SSH_AGENT_IDENTITIES_ANSWER, SSH_AGENT_REQUEST_IDENTITIES, SSH_AGENT_SIGN_REQUEST,
     SSH_AGENT_SIGN_RESPONSE,
 };
-use crate::secure_transport::{
-    SecureTransport, MAX_FRAME_PAYLOAD_SIZE, SESSION_ID_LEN, SESSION_SECRET_LEN,
+use crate::SSH_AGENT_CONTRACT;
+use keyguard_android_agent_bridge::bridge::{exchange, PendingBridge};
+use keyguard_android_agent_bridge::broadcast::{
+    AndroidBroadcastLauncher, BroadcastCommandSpec, BroadcastOutcome,
 };
+use keyguard_android_agent_bridge::caller_identity::{caller_from_unix_stream, CallerIdentity};
+use keyguard_android_agent_bridge::log_debug;
+use keyguard_android_agent_bridge::secure_transport::{SecureTransport, MAX_FRAME_PAYLOAD_SIZE};
+use keyguard_android_agent_bridge::server::{serve_clients, wait_for_shutdown_signal};
 
-const ACCEPT_RETRY_DELAY: Duration = Duration::from_millis(100);
-// Must cover a full app cold start plus the receiver's 5s service-start
-// acknowledgement window (SshAgentReceiver.SERVICE_START_ACK_TIMEOUT_MS);
-// still bounded by the overall connect timeout.
-const BROADCAST_ACK_TIMEOUT: Duration = Duration::from_secs(30);
 const CHILD_TERMINATION_TIMEOUT: Duration = Duration::from_secs(1);
-// Keep aligned with SshAgentContract.MAX_CONCURRENT_SESSIONS on Android.
-const MAX_CONCURRENT_SESSIONS: usize = 8;
 const CLIENT_PACKET_TIMEOUT: Duration = Duration::from_secs(120);
-const APP_RESPONSE_TIMEOUT: Duration = Duration::from_secs(75);
 const RESPONSE_WRITE_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Clone)]
@@ -159,79 +151,11 @@ async fn terminate_child(child: &mut Child) -> Result<()> {
 }
 
 async fn run_server(listener: UnixListener, config: Config) -> Result<()> {
-    let session_permits = Arc::new(Semaphore::new(MAX_CONCURRENT_SESSIONS));
-    let mut sessions = JoinSet::new();
-
-    loop {
-        while let Some(result) = sessions.try_join_next() {
-            if let Err(err) = result {
-                log_debug(
-                    config.debug,
-                    &format!("SSH client session task failed: {err}"),
-                );
-            }
-        }
-
-        // Reserve capacity before accepting. Once all slots are occupied, new
-        // clients remain in the kernel's bounded listen backlog instead of
-        // creating unbounded tasks, TCP listeners, or Android broadcasts.
-        let permit = session_permits
-            .clone()
-            .acquire_owned()
-            .await
-            .context("SSH client session limiter closed")?;
-
-        let accepted = loop {
-            tokio::select! {
-                result = listener.accept() => break result,
-                result = sessions.join_next(), if !sessions.is_empty() => {
-                    if let Some(Err(err)) = result {
-                        log_debug(
-                            config.debug,
-                            &format!("SSH client session task failed: {err}"),
-                        );
-                    }
-                }
-            }
-        };
-
-        match accepted {
-            Ok((client, _)) => {
-                let config = config.clone();
-                sessions.spawn(async move {
-                    let _permit = permit;
-                    let debug = config.debug;
-                    if let Err(err) = handle_client_connection(client, config).await {
-                        log_debug(debug, &format!("SSH client session failed: {err:#}"));
-                    }
-                });
-            }
-            Err(err) if is_retryable_accept_error(&err) => {
-                drop(permit);
-                log_debug(
-                    config.debug,
-                    &format!("Transient SSH client accept failure: {err}"),
-                );
-                sleep(ACCEPT_RETRY_DELAY).await;
-            }
-            Err(err) => {
-                drop(permit);
-                sessions.shutdown().await;
-                return Err(err).context("Failed to accept SSH client connection");
-            }
-        }
-    }
-}
-
-fn is_retryable_accept_error(err: &io::Error) -> bool {
-    matches!(
-        err.kind(),
-        ErrorKind::Interrupted
-            | ErrorKind::WouldBlock
-            | ErrorKind::TimedOut
-            | ErrorKind::ConnectionAborted
-            | ErrorKind::ConnectionReset
-    )
+    let debug = config.debug;
+    serve_clients(listener, debug, move |client| {
+        handle_client_connection(client, config.clone())
+    })
+    .await
 }
 
 async fn handle_client_connection(mut client: UnixStream, config: Config) -> Result<()> {
@@ -260,29 +184,17 @@ async fn handle_client_connection(mut client: UnixStream, config: Config) -> Res
         return Ok(());
     };
 
-    let app_listener = TcpListener::bind(("127.0.0.1", 0))
-        .await
-        .context("Failed to bind localhost proxy listener")?;
-    let proxy_port = app_listener
-        .local_addr()
-        .context("Failed to read proxy listener address")?
-        .port();
+    let bridge = PendingBridge::bind(config.connect_timeout).await?;
     log_debug(
         config.debug,
-        &format!("Opening Android bridge: proxy_port={proxy_port}"),
+        &format!("Opening Android bridge: proxy_port={}", bridge.proxy_port()),
     );
 
-    let deadline = Instant::now() + config.connect_timeout;
-    let broadcast_deadline = deadline.min(Instant::now() + BROADCAST_ACK_TIMEOUT);
-    let session_id = random_array::<SESSION_ID_LEN>();
-    let session_secret = random_array::<SESSION_SECRET_LEN>();
-    let broadcast_outcome = match AndroidBroadcastLauncher::new(config.broadcast_command.clone())
-        .launch(
+    let broadcast_outcome = match bridge
+        .broadcast(
+            &AndroidBroadcastLauncher::new(config.broadcast_command.clone()),
+            &SSH_AGENT_CONTRACT,
             &config.android_component,
-            proxy_port,
-            &session_id,
-            &session_secret,
-            broadcast_deadline,
         )
         .await
     {
@@ -316,22 +228,7 @@ async fn handle_client_connection(mut client: UnixStream, config: Config) -> Res
         }
     }
 
-    let (app_stream, _) = timeout_at(deadline, app_listener.accept())
-        .await
-        .context("Timed out waiting for the Keyguard app to connect")?
-        .context("Failed to accept the Keyguard app connection")?;
-    log_debug(
-        config.debug,
-        &format!("Keyguard app connected to proxy port {proxy_port}"),
-    );
-
-    let mut transport = timeout_at(
-        deadline,
-        SecureTransport::connect_as_tool(app_stream, &session_id, &session_secret),
-    )
-    .await
-    .context("Timed out during SSH agent handshake")?
-    .context("SSH agent handshake failed")?;
+    let mut transport = bridge.connect().await?;
     log_debug(config.debug, "SSH agent handshake established");
 
     let mut next_request_id = 1u64;
@@ -409,19 +306,7 @@ where
     S: AsyncWrite + Unpin,
 {
     let request_id = request.id;
-    let request_bytes = encode_protobuf_request(&request);
-    timeout(
-        RESPONSE_WRITE_TIMEOUT,
-        transport.write_packet(&request_bytes),
-    )
-    .await
-    .context("Timed out sending protobuf request to the Keyguard app")?
-    .context("Failed to send protobuf request to the Keyguard app")?;
-    let response_bytes = timeout(APP_RESPONSE_TIMEOUT, transport.read_packet())
-        .await
-        .context("Timed out waiting for a protobuf response from the Keyguard app")?
-        .context("Failed to read protobuf response from the Keyguard app")?
-        .ok_or_else(|| anyhow::anyhow!("Keyguard app disconnected before replying"))?;
+    let response_bytes = exchange(transport, &encode_protobuf_request(&request)).await?;
     let response = decode_protobuf_response(&response_bytes)
         .context("Failed to decode protobuf response from the Keyguard app")?;
     let ssh_response = translate_server_response(request_id, response)
@@ -630,36 +515,13 @@ fn describe_caller(caller: Option<&CallerIdentity>) -> String {
     )
 }
 
-async fn wait_for_shutdown_signal() -> Result<()> {
-    let mut sighup = signal(SignalKind::hangup()).context("Failed to subscribe to SIGHUP")?;
-    let mut sigint = signal(SignalKind::interrupt()).context("Failed to subscribe to SIGINT")?;
-    let mut sigterm = signal(SignalKind::terminate()).context("Failed to subscribe to SIGTERM")?;
-    tokio::select! {
-        _ = sighup.recv() => {}
-        _ = sigint.recv() => {}
-        _ = sigterm.recv() => {}
-    }
-    Ok(())
-}
-
-fn random_array<const N: usize>() -> [u8; N] {
-    let mut out = [0u8; N];
-    rand::RngCore::fill_bytes(&mut rand::thread_rng(), &mut out);
-    out
-}
-
-fn log_debug(enabled: bool, message: &str) {
-    if enabled {
-        eprintln!("{message}");
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::secure_transport;
+    use keyguard_android_agent_bridge::secure_transport;
     use std::fs;
     use std::time::{SystemTime, UNIX_EPOCH};
+    use tokio::time::sleep;
 
     struct TestDir {
         path: std::path::PathBuf,
@@ -731,19 +593,6 @@ mod tests {
         assert!(summary.contains("embeddedType=ssh-ed25519"));
         assert!(summary.contains("dataLen=7"));
         assert!(summary.contains("flags=7"));
-    }
-
-    #[test]
-    fn accept_error_classification_keeps_retryable_errors_local() {
-        assert!(is_retryable_accept_error(&io::Error::from(
-            ErrorKind::Interrupted
-        )));
-        assert!(is_retryable_accept_error(&io::Error::from(
-            ErrorKind::ConnectionAborted
-        )));
-        assert!(!is_retryable_accept_error(&io::Error::from(
-            ErrorKind::PermissionDenied
-        )));
     }
 
     #[tokio::test]

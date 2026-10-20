@@ -14,6 +14,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GpgAgentApprovalQueueTest {
@@ -95,5 +96,6 @@ class GpgAgentApprovalQueueTest {
         keygrip = "keygrip",
         accountId = "account",
         cipherId = "cipher",
+        expiresAt = Instant.DISTANT_FUTURE,
     )
 }

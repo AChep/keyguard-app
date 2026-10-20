@@ -8,7 +8,7 @@ use common_ssh_agent_rust::messages::{
     ListKeysRequest, ListKeysResponse, SignDataRequest, SignDataResponse, SshKey,
 };
 
-use crate::caller_identity::CallerIdentity as AndroidCallerIdentity;
+use keyguard_android_agent_bridge::caller_identity::CallerIdentity as AndroidCallerIdentity;
 
 pub const SSH_AGENT_FAILURE: u8 = 5;
 pub const SSH_AGENT_REQUEST_IDENTITIES: u8 = 11;

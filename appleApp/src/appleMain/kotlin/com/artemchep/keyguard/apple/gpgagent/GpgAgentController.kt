@@ -138,7 +138,9 @@ internal class GpgAgentController(
                 pendingUsageHistoryQueue = di.get(),
                 sessionId = cryptoGenerator.seedHex(length = 16),
                 json = di.get(),
-                onApprovalRequest = requests::await,
+                onApprovalRequest = { prompt ->
+                    requests.await(prompt, deadline = prompt.expiresAt)
+                },
             )
             scope.launch(Dispatchers.Main) {
                 requests.denyWhenSessionEnds(di.get())

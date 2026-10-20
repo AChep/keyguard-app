@@ -54,7 +54,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.TestScope
 
 internal class GpgAgentRequestTestFixture(
-    scope: TestScope,
+    private val scope: TestScope,
     policy: AgentApprovalCachePolicy = AgentApprovalCachePolicy.Default,
 ) {
     val ciphers = MutableStateFlow(listOf(createGpgCipher(KEYGRIP), createGpgCipher(OTHER_KEYGRIP)))
@@ -81,18 +81,31 @@ internal class GpgAgentRequestTestFixture(
     )
     val approvals get() = prompts.size
     var onApproval: suspend () -> Boolean = { true }
-    private val processor = GpgAgentRequestProcessorImpl(
+    private val getApprovalWindow = object : GetGpgAgentApprovalWindow {
+        override fun invoke() = config.approvalWindow()
+    }
+    private val getApprovalCachePolicy = object : GetGpgAgentApprovalCachePolicy {
+        override val approvalCacheConfig = config
+        override fun invoke() = config.cachePolicy()
+    }
+
+    /** Shared by every processor of this fixture, as by the bridge sessions on Android. */
+    val approvalMemory = GpgAgentApprovalWindowMemory(
+        getGpgAgentApprovalWindow = getApprovalWindow,
+        getVaultSession = vault,
+        scope = scope.backgroundScope,
+        getGpgAgentApprovalCachePolicy = getApprovalCachePolicy,
+    )
+    private val processor = createProcessor()
+
+    /** Creates another processor, such as one more bridge session, over the same vault and approvals. */
+    fun createProcessor(): GpgAgentRequestProcessor = GpgAgentRequestProcessorImpl(
         sessionAccess = testDomainSessionAccess(),
         logRepository = LogRepositoryBridge(emptyList()),
         crypto = crypto,
         getVaultSession = vault,
-        getGpgAgentApprovalWindow = object : GetGpgAgentApprovalWindow {
-            override fun invoke() = config.approvalWindow()
-        },
-        getGpgAgentApprovalCachePolicy = object : GetGpgAgentApprovalCachePolicy {
-            override val approvalCacheConfig = config
-            override fun invoke() = config.cachePolicy()
-        },
+        getGpgAgentApprovalWindow = getApprovalWindow,
+        getGpgAgentApprovalCachePolicy = getApprovalCachePolicy,
         getGpgAgentFilter = object : GetGpgAgentFilter {
             override fun invoke(): Flow<GpgAgentFilter> = flow {
                 beforeFilterRead()
@@ -100,6 +113,7 @@ internal class GpgAgentRequestTestFixture(
             }
         },
         scope = scope.backgroundScope,
+        approvalWindowMemory = approvalMemory,
         gpgPublicKeyRepository = FakeGpgPublicKeyRepository { cachedKeys },
         pendingUsageHistoryQueue = pendingHistory,
         onApprovalRequest = {
@@ -120,16 +134,18 @@ internal class GpgAgentRequestTestFixture(
 
     suspend fun succeed(
         operation: GpgAgentOperation,
-        caller: CallerIdentity,
+        caller: CallerIdentity?,
         keygrip: String = KEYGRIP,
+        processor: GpgAgentRequestProcessor = this.processor,
     ) {
-        assertIs<GpgAgentOperationResult.Success<*>>(request(operation, caller, keygrip))
+        assertIs<GpgAgentOperationResult.Success<*>>(request(operation, caller, keygrip, processor))
     }
 
     suspend fun request(
         operation: GpgAgentOperation,
-        caller: CallerIdentity,
+        caller: CallerIdentity?,
         keygrip: String = KEYGRIP,
+        processor: GpgAgentRequestProcessor = this.processor,
     ): GpgAgentOperationResult<*> = when (operation) {
         GpgAgentOperation.SIGN -> processor.signHash(
             GpgAgentMessages.SignHashRequest(

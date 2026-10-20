@@ -1,11 +1,11 @@
 //! Windows libassuan socket serving for the Keyguard GPG agent.
 
-use crate::assuan;
 use crate::ipc::client::IpcClient;
-use crate::ipc::messages::{CallerAuthorization, CallerIdentity};
 use anyhow::{Context, Result};
+use common_gpg_agent_rust::messages::{CallerAuthorization, CallerIdentity};
 use keyguard_agent_identity::windows::LocalSecurityDescriptor;
 use keyguard_agent_identity::ConnectionFingerprint;
+use keyguard_gpg_agent_assuan as assuan;
 use std::ffi::{c_void, OsStr};
 use std::fs;
 use std::io::{ErrorKind, Write};

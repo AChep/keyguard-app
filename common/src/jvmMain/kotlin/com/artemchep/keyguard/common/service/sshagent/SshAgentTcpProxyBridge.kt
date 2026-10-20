@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
+import com.artemchep.keyguard.common.service.agent.AgentPacketChannel
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
@@ -40,7 +41,7 @@ internal suspend fun runSshAgentProxyBridge(
     connectDeadlineMs: Long = DEFAULT_CONNECT_DEADLINE_MS,
     connectRetryDelayMs: Long = DEFAULT_CONNECT_RETRY_DELAY_MS,
     handshakeTimeoutMs: Long = DEFAULT_PROXY_HANDSHAKE_TIMEOUT_MS,
-    packetReadTimeoutMs: Long = DEFAULT_PROXY_PACKET_READ_TIMEOUT_MS,
+    packetReadTimeoutMs: Long = DEFAULT_SSH_PROXY_PACKET_READ_TIMEOUT_MS,
     packetWriteTimeoutMs: Long = DEFAULT_PROXY_PACKET_WRITE_TIMEOUT_MS,
     socketFactory: () -> Socket = ::Socket,
     monotonicTimeMs: () -> Long = { System.nanoTime() / 1_000_000L },
@@ -53,6 +54,66 @@ internal suspend fun runSshAgentProxyBridge(
         authenticate = { false },
     )
 
+    runAndroidAgentProxySession(
+        agentName = "SSH agent",
+        proxyPort = proxyPort,
+        sessionId = sessionId,
+        sessionSecret = sessionSecret,
+        connectHostCandidates = connectHostCandidates,
+        connectTimeoutMs = connectTimeoutMs,
+        connectDeadlineMs = connectDeadlineMs,
+        connectRetryDelayMs = connectRetryDelayMs,
+        handshakeTimeoutMs = handshakeTimeoutMs,
+        packetReadTimeoutMs = packetReadTimeoutMs,
+        packetWriteTimeoutMs = packetWriteTimeoutMs,
+        socketFactory = socketFactory,
+        monotonicTimeMs = monotonicTimeMs,
+        delayMs = delayMs,
+    ) { channel, readPacket, writePacket ->
+        runSshAgentPacketSession(
+            channel = channel,
+            rpcHandler = rpcHandler,
+            initialContext = SshAgentRpcRequestContext(
+                authenticated = true,
+                allowAuthenticate = false,
+                callerAugmentation = senderAppInfo,
+                replaceCallerAuthorization = true,
+            ),
+            readPacket = readPacket,
+            writePacket = writePacket,
+        )
+    }
+}
+
+/**
+ * Connects back to a Termux helper's proxy port, completes the session
+ * handshake and runs [block] with packet I/O bounded by socket deadlines.
+ * The read deadline doubles as the idle timeout between requests, so each
+ * protocol picks one that outlasts its helper's own idle limit.
+ */
+internal suspend fun runAndroidAgentProxySession(
+    agentName: String,
+    proxyPort: Int,
+    sessionId: ByteArray,
+    sessionSecret: ByteArray,
+    packetReadTimeoutMs: Long,
+    connectHostCandidates: List<String> = DEFAULT_CONNECT_HOST_CANDIDATES,
+    connectTimeoutMs: Int = DEFAULT_CONNECT_TIMEOUT_MS,
+    connectDeadlineMs: Long = DEFAULT_CONNECT_DEADLINE_MS,
+    connectRetryDelayMs: Long = DEFAULT_CONNECT_RETRY_DELAY_MS,
+    handshakeTimeoutMs: Long = DEFAULT_PROXY_HANDSHAKE_TIMEOUT_MS,
+    packetWriteTimeoutMs: Long = DEFAULT_PROXY_PACKET_WRITE_TIMEOUT_MS,
+    socketFactory: () -> Socket = ::Socket,
+    monotonicTimeMs: () -> Long = { System.nanoTime() / 1_000_000L },
+    // Null default (not `= { delay(it) }`) to avoid a Kotlin 2.4.0 JVM-backend crash;
+    // see withAndroidSshAgentProxySocket. Forwarded as-is to the connector.
+    delayMs: (suspend (Long) -> Unit)? = null,
+    block: suspend (
+        channel: AgentPacketChannel,
+        readPacket: suspend (AgentPacketChannel) -> ByteArray?,
+        writePacket: suspend (AgentPacketChannel, ByteArray) -> Unit,
+    ) -> Unit,
+) {
     withAndroidSshAgentProxySocket(
         proxyPort = proxyPort,
         connectHostCandidates = connectHostCandidates,
@@ -66,7 +127,7 @@ internal suspend fun runSshAgentProxyBridge(
         val channel = runSocketOperationWithDeadline(
             socket = socket,
             timeoutMs = handshakeTimeoutMs,
-            operationName = "SSH agent proxy handshake",
+            operationName = "$agentName proxy handshake",
         ) {
             SshAgentTcpProtocol.openAsApp(
                 input = socket.getInputStream(),
@@ -75,46 +136,49 @@ internal suspend fun runSshAgentProxyBridge(
                 sessionSecret = sessionSecret,
             )
         }
-        // Closing the local proxy socket during bridge cancellation or peer disconnect
-        // should terminate the session quietly instead of surfacing as an uncaught failure.
-        try {
-            runSshAgentPacketSession(
-                channel = channel,
-                rpcHandler = rpcHandler,
-                initialContext = SshAgentRpcRequestContext(
-                    authenticated = true,
-                    allowAuthenticate = false,
-                    callerAugmentation = senderAppInfo,
-                    replaceCallerAuthorization = true,
-                ),
-                readPacket = { packetChannel ->
+        runProxySessionQuietly(socket) {
+            block(
+                channel,
+                { packetChannel ->
                     runSocketOperationWithDeadline(
                         socket = socket,
                         timeoutMs = packetReadTimeoutMs,
-                        operationName = "SSH agent proxy packet read",
+                        operationName = "$agentName proxy packet read",
                     ) {
                         packetChannel.readPacket()
                     }
                 },
-                writePacket = { packetChannel, packet ->
+                { packetChannel, packet ->
                     runSocketOperationWithDeadline(
                         socket = socket,
                         timeoutMs = packetWriteTimeoutMs,
-                        operationName = "SSH agent proxy packet write",
+                        operationName = "$agentName proxy packet write",
                     ) {
                         packetChannel.writePacket(packet)
                     }
                 },
             )
-        } catch (_: EOFException) {
-            return@withAndroidSshAgentProxySocket
-        } catch (_: SocketTimeoutException) {
-            return@withAndroidSshAgentProxySocket
-        } catch (e: SocketException) {
-            val skip = e.isExpectedProxyShutdown(socket, currentCoroutineContext().isActive)
-            if (skip) {
-                return@withAndroidSshAgentProxySocket
-            }
+        }
+    }
+}
+
+/**
+ * Runs a proxy session. Closing the local proxy socket during bridge cancellation
+ * or a peer disconnect ends the session quietly instead of surfacing as an
+ * uncaught failure.
+ */
+internal suspend fun runProxySessionQuietly(
+    socket: Socket,
+    block: suspend () -> Unit,
+) {
+    try {
+        block()
+    } catch (_: EOFException) {
+        return
+    } catch (_: SocketTimeoutException) {
+        return
+    } catch (e: SocketException) {
+        if (!e.isExpectedProxyShutdown(socket, currentCoroutineContext().isActive)) {
             throw e
         }
     }
@@ -131,7 +195,7 @@ internal fun CoroutineScope.launchSshAgentProxyBridge(
     connectDeadlineMs: Long = DEFAULT_CONNECT_DEADLINE_MS,
     connectRetryDelayMs: Long = DEFAULT_CONNECT_RETRY_DELAY_MS,
     handshakeTimeoutMs: Long = DEFAULT_PROXY_HANDSHAKE_TIMEOUT_MS,
-    packetReadTimeoutMs: Long = DEFAULT_PROXY_PACKET_READ_TIMEOUT_MS,
+    packetReadTimeoutMs: Long = DEFAULT_SSH_PROXY_PACKET_READ_TIMEOUT_MS,
     packetWriteTimeoutMs: Long = DEFAULT_PROXY_PACKET_WRITE_TIMEOUT_MS,
     socketFactory: () -> Socket = ::Socket,
     monotonicTimeMs: () -> Long = { System.nanoTime() / 1_000_000L },
@@ -164,7 +228,8 @@ internal fun CoroutineScope.launchSshAgentProxyBridge(
 }
 
 internal const val DEFAULT_PROXY_HANDSHAKE_TIMEOUT_MS = 10_000L
-internal const val DEFAULT_PROXY_PACKET_READ_TIMEOUT_MS = 120_000L
+// Matches CLIENT_PACKET_TIMEOUT of the Termux SSH agent helper.
+internal const val DEFAULT_SSH_PROXY_PACKET_READ_TIMEOUT_MS = 120_000L
 internal const val DEFAULT_PROXY_PACKET_WRITE_TIMEOUT_MS = 10_000L
 
 /**

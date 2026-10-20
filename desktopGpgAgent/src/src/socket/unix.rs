@@ -1,11 +1,11 @@
 //! Unix domain socket serving for the Keyguard GPG agent.
 
-use crate::assuan;
 use crate::ipc::client::IpcClient;
 use anyhow::{Context, Result};
 use keyguard_agent_identity::socket_lifecycle::{
     current_uid, entry_identity, wait_for_shutdown_request, SocketLifecycle,
 };
+use keyguard_gpg_agent_assuan as assuan;
 use std::ffi::OsString;
 use std::fs;
 use std::future::Future;

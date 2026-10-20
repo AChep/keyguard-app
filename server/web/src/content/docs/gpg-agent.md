@@ -1,6 +1,6 @@
 ---
 title: GPG agent
-description: "Sign and decrypt with GPG keys from your vault, from GnuPG on desktop and OpenPGP apps on Android."
+description: "Sign and decrypt with GPG keys from your vault, from GnuPG on desktop and in Termux, and from OpenPGP apps on Android."
 section: developer
 type: feature
 order: 20
@@ -8,8 +8,8 @@ platforms: [android, linux, macos, windows]
 related: [git-signing, agent-approvals, gpg-keys, ssh-agent]
 ---
 
-Keyguard can act as a GPG agent for GnuPG on desktop and for OpenPGP apps on
-Android. The private key never leaves your vault: a program sends Keyguard what
+Keyguard can act as a GPG agent for GnuPG on desktop and in Termux, and for
+OpenPGP apps on Android. The private key never leaves your vault: a program sends Keyguard what
 it needs signed or decrypted and gets back only the result. GnuPG's keyring
 holds only your public key, so no secret key sits on disk for other programs to
 read or copy.
@@ -72,6 +72,39 @@ Add this line to your PowerShell profile:
 
 ```powershell
 $env:GNUPGHOME = "$env:LOCALAPPDATA\ArtemChepurnyi\keyguard\gnupg"
+```
+
+## Set up the agent in Termux
+
+Termux reaches Keyguard through a helper package. It serves the GnuPG home
+`~/.keyguard/gnupg`, so GnuPG's own agent keeps `~/.gnupg`.
+
+1. Install [Termux](https://termux.dev/).
+2. In Keyguard, open **Settings > Developer > GPG agent > GPG client setup**.
+3. In Termux, run the commands under **Install package**. They add Keyguard's
+   APT repository and install `gnupg` and `keyguard-android-gpg-agent`.
+4. Add these lines to your Termux shell startup file, such as `~/.bashrc`:
+
+   ```sh
+   if [ -x "$PREFIX/bin/keyguard-android-gpg-agent" ]; then
+     eval "$("$PREFIX/bin/keyguard-android-gpg-agent")"
+   fi
+   ```
+
+   The helper starts once and sets `GNUPGHOME`.
+5. Open a new Termux session.
+
+Keyguard saves an exported public key to Downloads. To import it in Termux,
+give Termux storage access once:
+
+```sh
+termux-setup-storage
+```
+
+Then import the file:
+
+```sh
+gpg --import ~/storage/downloads/gpg_*.public.asc
 ```
 
 ## Import the public key
@@ -138,7 +171,7 @@ until you revoke its old registration.
 ## Review request history
 
 In **Settings > Developer > GPG agent**, select **Request log**. It lists
-requests from desktop tools and Android apps, with the caller, the key, the
+requests from desktop tools, Termux and Android apps, with the caller, the key, the
 operation and the result.
 
 ## Troubleshooting

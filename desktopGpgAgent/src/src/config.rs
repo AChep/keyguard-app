@@ -3,9 +3,9 @@
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use anyhow::{Context, Result};
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-use std::path::{Path, PathBuf};
+use keyguard_gpg_agent_assuan::gpgconf::gpgconf_agent_socket_path;
 #[cfg(any(target_os = "linux", target_os = "macos"))]
-use std::process::{Command, Output};
+use std::path::{Path, PathBuf};
 
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 pub(crate) fn linux_fallback_gpg_agent_socket_path(uid: libc::uid_t) -> PathBuf {
@@ -95,100 +95,6 @@ pub(crate) fn flatpak_gpg_home_path(
         .join("gnupg")
 }
 
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-fn gpgconf_agent_socket_path(home: &Path) -> Result<PathBuf> {
-    gpgconf_agent_socket_path_with(home, run_gpgconf)
-}
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-fn gpgconf_agent_socket_path_with<F>(home: &Path, mut run: F) -> Result<PathBuf>
-where
-    F: FnMut(&Path, &[&str]) -> Result<Output>,
-{
-    const LIST_SOCKET_ARGS: &[&str] = &["--list-dirs", "agent-socket"];
-
-    let output = run(home, LIST_SOCKET_ARGS).with_context(|| {
-        format!(
-            "failed to run gpgconf --list-dirs agent-socket for GnuPG home {}",
-            home.display()
-        )
-    })?;
-    if !output.status.success() {
-        anyhow::bail!(
-            "gpgconf --list-dirs agent-socket exited with {} for GnuPG home {}; stdout: {}; stderr: {}",
-            output.status,
-            home.display(),
-            String::from_utf8_lossy(&output.stdout).trim(),
-            String::from_utf8_lossy(&output.stderr).trim()
-        );
-    }
-
-    let stdout = String::from_utf8(output.stdout).with_context(|| {
-        format!(
-            "gpgconf --list-dirs agent-socket returned non-UTF-8 stdout for GnuPG home {}",
-            home.display()
-        )
-    })?;
-    let socket = parse_gpgconf_agent_socket(&stdout).with_context(|| {
-        format!(
-            "gpgconf --list-dirs agent-socket did not report an absolute agent socket for GnuPG home {}; stdout: {}",
-            home.display(),
-            stdout.trim()
-        )
-    })?;
-    prepare_gpgconf_socket_directory_with(home, &socket, &mut run)?;
-    Ok(socket)
-}
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-fn parse_gpgconf_agent_socket(stdout: &str) -> Option<PathBuf> {
-    stdout
-        .lines()
-        .map(str::trim)
-        .find(|line| !line.is_empty())
-        .map(|line| line.strip_prefix("agent-socket:").unwrap_or(line))
-        .map(PathBuf::from)
-        .filter(|path| path.is_absolute())
-}
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-fn prepare_gpgconf_socket_directory_with<F>(home: &Path, socket: &Path, run: &mut F) -> Result<()>
-where
-    F: FnMut(&Path, &[&str]) -> Result<Output>,
-{
-    if socket.starts_with(home) {
-        return Ok(());
-    }
-
-    const CREATE_SOCKET_DIR_ARGS: &[&str] = &["--create-socketdir"];
-    let output = run(home, CREATE_SOCKET_DIR_ARGS).with_context(|| {
-        format!(
-            "failed to run gpgconf --create-socketdir for GnuPG home {}",
-            home.display()
-        )
-    })?;
-    if !output.status.success() {
-        anyhow::bail!(
-            "gpgconf --create-socketdir exited with {} for GnuPG home {}; stdout: {}; stderr: {}",
-            output.status,
-            home.display(),
-            String::from_utf8_lossy(&output.stdout).trim(),
-            String::from_utf8_lossy(&output.stderr).trim()
-        );
-    }
-    Ok(())
-}
-
-#[cfg(any(target_os = "linux", target_os = "macos"))]
-fn run_gpgconf(home: &Path, args: &[&str]) -> Result<Output> {
-    Command::new("gpgconf")
-        .arg("--homedir")
-        .arg(home)
-        .args(args)
-        .output()
-        .with_context(|| format!("could not start gpgconf at {}", home.display()))
-}
-
 #[cfg(unix)]
 fn resolve_default_gpg_agent_socket_path<F>(
     gpg_home: PathBuf,
@@ -233,9 +139,11 @@ pub fn default_gpg_agent_socket_path() -> Result<PathBuf> {
 #[cfg(all(test, unix))]
 mod tests {
     use super::*;
+    use keyguard_gpg_agent_assuan::gpgconf::gpgconf_agent_socket_path_with;
     use std::ffi::OsStr;
     use std::os::unix::ffi::OsStrExt;
     use std::os::unix::process::ExitStatusExt;
+    use std::process::Output;
 
     #[test]
     fn default_policy_returns_the_injected_absolute_gpgconf_socket() {
@@ -281,62 +189,6 @@ mod tests {
         assert!(diagnostic.contains("gpgconf --create-socketdir"));
         assert!(diagnostic.contains("gpgconf executable is unavailable"));
         assert!(!diagnostic.contains("fallback"));
-    }
-
-    #[test]
-    fn external_gpgconf_socket_requires_create_socketdir_success() {
-        let gpg_home = PathBuf::from("/Users/alice/.keyguard/gnupg");
-        let external_socket = "/private/tmp/gnupg/d.abc/S.gpg-agent";
-        let mut invocation_count = 0;
-
-        let error = gpgconf_agent_socket_path_with(&gpg_home, |_, args| {
-            invocation_count += 1;
-            if args == ["--list-dirs", "agent-socket"] {
-                Ok(command_output(0, external_socket, ""))
-            } else if args == ["--create-socketdir"] {
-                Ok(command_output(7, "", "socket directory denied"))
-            } else {
-                panic!("unexpected gpgconf arguments: {args:?}");
-            }
-        })
-        .expect_err("external socket directory preparation must fail closed");
-
-        let diagnostic = format!("{error:#}");
-        assert_eq!(invocation_count, 2);
-        assert!(diagnostic.contains("gpgconf --create-socketdir exited"));
-        assert!(diagnostic.contains("socket directory denied"));
-    }
-
-    #[test]
-    fn gpgconf_list_failure_preserves_home_status_and_output() {
-        let gpg_home = PathBuf::from("/Users/alice/.keyguard/gnupg");
-
-        let error = gpgconf_agent_socket_path_with(&gpg_home, |_, args| {
-            assert_eq!(args, ["--list-dirs", "agent-socket"]);
-            Ok(command_output(2, "partial stdout", "gpgconf failed"))
-        })
-        .expect_err("list-dirs failure must be reported");
-
-        let diagnostic = format!("{error:#}");
-        assert!(diagnostic.contains("gpgconf --list-dirs agent-socket exited"));
-        assert!(diagnostic.contains(gpg_home.to_str().expect("UTF-8 test path")));
-        assert!(diagnostic.contains("partial stdout"));
-        assert!(diagnostic.contains("gpgconf failed"));
-    }
-
-    #[test]
-    fn gpgconf_start_failure_has_invocation_and_home_context() {
-        let gpg_home = PathBuf::from("/Users/alice/.keyguard/gnupg");
-
-        let error = gpgconf_agent_socket_path_with(&gpg_home, |_, _| {
-            Err(anyhow::anyhow!("permission denied while starting gpgconf"))
-        })
-        .expect_err("start failure must be contextualized");
-
-        let diagnostic = format!("{error:#}");
-        assert!(diagnostic.contains("failed to run gpgconf --list-dirs agent-socket"));
-        assert!(diagnostic.contains(gpg_home.to_str().expect("UTF-8 test path")));
-        assert!(diagnostic.contains("permission denied while starting gpgconf"));
     }
 
     fn command_output(exit_code: i32, stdout: &str, stderr: &str) -> Output {
@@ -494,24 +346,6 @@ mod tests {
         assert_eq!(
             path,
             PathBuf::from("/home/alice/.var/app/com.artemchep.keyguard/data/gnupg")
-        );
-    }
-
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
-    #[test]
-    fn gpgconf_agent_socket_parser_accepts_plain_path() {
-        assert_eq!(
-            parse_gpgconf_agent_socket("/run/user/1000/gnupg/d.abc/S.gpg-agent\n"),
-            Some(PathBuf::from("/run/user/1000/gnupg/d.abc/S.gpg-agent"))
-        );
-    }
-
-    #[cfg(any(target_os = "linux", target_os = "macos"))]
-    #[test]
-    fn gpgconf_agent_socket_parser_accepts_keyed_path() {
-        assert_eq!(
-            parse_gpgconf_agent_socket("agent-socket:/run/user/1000/gnupg/S.gpg-agent\n"),
-            Some(PathBuf::from("/run/user/1000/gnupg/S.gpg-agent"))
         );
     }
 }

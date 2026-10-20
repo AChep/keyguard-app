@@ -141,6 +141,8 @@ class GpgAgentDuplicateKeysTest {
                     val result = fixture.request(operation, caller(connection = 1))
                     val label = "$operation $change approveAgain=$approveAgain"
                     assertEquals(listOf(approved.id, backup.id), fixture.prompts.map { it.cipherId }, label)
+                    // Both prompts belong to one request, so they share its deadline.
+                    assertEquals(1, fixture.prompts.map { it.expiresAt }.distinct().size, label)
                     assertEquals(backup.id, fixture.history.single().cipherId, label)
                     if (approveAgain) {
                         assertIs<GpgAgentOperationResult.Success<*>>(result, label)

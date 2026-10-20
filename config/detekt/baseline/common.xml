@@ -28,8 +28,8 @@
     <ID>ComplexCondition:SearchTextField.kt:isFocusedState.value &amp;&amp; qualifierSuggestion != null &amp;&amp; onQualifierSuggestion != null &amp;&amp; canAcceptSearchQualifierSuggestion(fieldValue)</ID>
     <ID>ComplexCondition:SearchTextField.kt:keyEvent.key == Key.Tab &amp;&amp; keyEvent.type == KeyEventType.KeyDown &amp;&amp; !keyEvent.isShiftPressed &amp;&amp; qualifierSuggestion != null &amp;&amp; canAcceptSearchQualifierSuggestion(fieldValue)</ID>
     <ID>ComplexCondition:SecureStorageFailureClassifier.kt:causes.any { cause -&gt; cause is AEADBadTagException || cause is BadPaddingException || cause is CorruptionException || // Tink reports malformed keysets as IOException subtypes. Both invalid // hex and invalid protobuf are definitive corruption, not transient I/O. ( stage == SecureStorageStage.KEYSET &amp;&amp; cause.isMalformedTinkKeyset() ) }</ID>
-    <ID>ComplexCondition:SshAgentReceiver.kt:value == null || value.isEmpty() || value.length &gt; MAX_ENCODED_SESSION_PARAMETER_LENGTH || expectedDecodedSize &lt;= 0</ID>
-    <ID>ComplexCondition:SshAgentService.kt:SshAgentService$protocolVersion != SshAgentTcpProtocol.PROTOCOL_VERSION || proxyPort !in 1..65535 || notificationTag == null || sessionId?.size != SshAgentTcpProtocol.SESSION_ID_LENGTH || sessionSecret?.size != SshAgentTcpProtocol.SESSION_SECRET_LENGTH</ID>
+    <ID>ComplexCondition:AgentBridgeReceiver.kt:value == null || value.isEmpty() || value.length &gt; MAX_ENCODED_SESSION_PARAMETER_LENGTH || expectedDecodedSize &lt;= 0</ID>
+    <ID>ComplexCondition:AgentBridgeService.kt:AgentBridgeService$protocolVersion != SshAgentTcpProtocol.PROTOCOL_VERSION || proxyPort !in 1..65535 || notificationTag == null || sessionId?.size != SshAgentTcpProtocol.SESSION_ID_LENGTH || sessionSecret?.size != SshAgentTcpProtocol.SESSION_SECRET_LENGTH</ID>
     <ID>ComplexCondition:SshAgentTcpProxyBridge.kt:!coroutineActive || socket.isClosed || socket.isInputShutdown || socket.isOutputShutdown</ID>
     <ID>ComplexCondition:Suggestions.kt:ignoreCommonWords &amp;&amp; (queryComp.length &lt;= ignoreLength || queryComp in ignoreWords) || queryComp.length &lt;= 1</ID>
     <ID>ComplexCondition:VaultListScreen.kt:llll.isNotEmpty() &amp;&amp; fab &amp;&amp; arg2 is AppMode.Main &amp;&amp; state.query.text == ""</ID>
@@ -170,7 +170,7 @@
     <ID>CyclomaticComplexMethod:SettingPaneContent.kt:@Composable fun rememberSettingPaneState: State&lt;SettingPaneState&gt;</ID>
     <ID>CyclomaticComplexMethod:SimpleNote.kt:@Composable fun FlatSimpleNote</ID>
     <ID>CyclomaticComplexMethod:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
-    <ID>CyclomaticComplexMethod:SshAgentService.kt:SshAgentService$override fun onStartCommand: Int</ID>
+    <ID>CyclomaticComplexMethod:AgentBridgeService.kt:AgentBridgeService$override fun onStartCommand: Int</ID>
     <ID>CyclomaticComplexMethod:SshAgentTcpProxySocketConnector.kt:internal suspend fun &lt;T&gt; withAndroidSshAgentProxySocket: T</ID>
     <ID>CyclomaticComplexMethod:SyncByBitwardenTokenV2Impl.kt:SyncByBitwardenTokenV2Impl$context(syncScope: SyncScope) private suspend fun syncV2</ID>
     <ID>CyclomaticComplexMethod:SyncDiffer.kt:SyncDiffer$private fun diffExistingPair: DiffPairVerdict</ID>
@@ -720,15 +720,14 @@
     <ID>LongMethod:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server handles multiple sequential requests over unix socket`</ID>
     <ID>LongMethod:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server rejects connection when max concurrent limit is reached`</ID>
     <ID>LongMethod:SshAgentPublicKeySyncerImplTest.kt:SshAgentPublicKeySyncerImplTest$@Test fun `syncer applies SSH eligibility and filters before caching`</ID>
-    <ID>LongMethod:SshAgentReceiver.kt:SshAgentReceiver$override fun onReceive</ID>
-    <ID>LongMethod:SshAgentReceiver.kt:SshAgentReceiver$private suspend fun handleRequest: SshAgentContract.BroadcastOutcome</ID>
+    <ID>LongMethod:AgentBridgeReceiver.kt:AgentBridgeReceiver$override fun onReceive</ID>
+    <ID>LongMethod:AgentBridgeReceiver.kt:AgentBridgeReceiver$private suspend fun handleRequest: AgentBridgeContract.BroadcastOutcome</ID>
     <ID>LongMethod:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
-    <ID>LongMethod:SshAgentService.kt:SshAgentService$override fun onStartCommand: Int</ID>
+    <ID>LongMethod:AgentBridgeService.kt:AgentBridgeService$override fun onStartCommand: Int</ID>
     <ID>LongMethod:SshAgentSetupScreen.kt:@Composable private fun ColumnScope.SshAgentSetupAndroidPlatformContent</ID>
     <ID>LongMethod:SshAgentSetupScreen.kt:@Composable private fun ColumnScope.SshAgentSetupSupportedPlatformContent</ID>
-    <ID>LongMethod:SshAgentTcpProxyBridge.kt:internal suspend fun runSshAgentProxyBridge</ID>
     <ID>LongMethod:SshAgentTcpProxySocketConnector.kt:internal suspend fun &lt;T&gt; withAndroidSshAgentProxySocket: T</ID>
-    <ID>LongMethod:SshRequestActivity.kt:SshRequestActivity$@Composable override fun Content</ID>
+    <ID>LongMethod:AgentRequestActivity.kt:AgentRequestActivity$@Composable override fun Content</ID>
     <ID>LongMethod:SubscriptionServiceAndroid.kt:SubscriptionServiceAndroid$override fun subscriptions: Flow&lt;List&lt;Subscription&gt;?&gt;</ID>
     <ID>LongMethod:SyncByBitwardenTokenV2Impl.kt:SyncByBitwardenTokenV2Impl$context(syncScope: SyncScope) private suspend fun syncV2</ID>
     <ID>LongMethod:SyncByBitwardenTokenV2Impl.kt:SyncByBitwardenTokenV2Impl$override fun invoke: IO&lt;Unit&gt;</ID>
@@ -1205,15 +1204,15 @@
     <ID>MagicNumber:ShimmerArea.kt:ShimmerArea$90</ID>
     <ID>MagicNumber:SkeletonItemPilled.kt:0.4f</ID>
     <ID>MagicNumber:SshAgentPublicKeyNormalizer.kt:4</ID>
-    <ID>MagicNumber:SshAgentReceiver.kt:SshAgentReceiver$65535</ID>
-    <ID>MagicNumber:SshAgentService.kt:SshAgentService$65535</ID>
+    <ID>MagicNumber:AgentBridgeReceiver.kt:AgentBridgeReceiver$65535</ID>
+    <ID>MagicNumber:AgentBridgeService.kt:AgentBridgeService$65535</ID>
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol$12</ID>
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol$4</ID>
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol$8</ID>
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol.Channel$16</ID>
     <ID>MagicNumber:SshAgentTcpProxyBridge.kt:1_000_000L</ID>
     <ID>MagicNumber:SshAgentTcpProxySocketConnector.kt:1_000_000L</ID>
-    <ID>MagicNumber:SshRequestActivity.kt:SshRequestActivity$1000L</ID>
+    <ID>MagicNumber:AgentRequestActivity.kt:AgentRequestActivity$1000L</ID>
     <ID>MagicNumber:SubscriptionServiceAndroid.kt:SubscriptionServiceAndroid$1000L</ID>
     <ID>MagicNumber:SurfaceElevation.kt:0.25f</ID>
     <ID>MagicNumber:SurfaceElevation.kt:0.5f</ID>
@@ -1854,14 +1853,14 @@
     <ID>ReturnCount:Sha256Fingerprint.kt:internal fun String.normalizeSha256FingerprintOrNull: String?</ID>
     <ID>ReturnCount:SshAgentPublicKeyCodec.kt:fun sshPublicKeysMatch: Boolean</ID>
     <ID>ReturnCount:SshAgentPublicKeyNormalizer.kt:fun parseSshAgentPublicKeyMaterial: SshAgentPublicKeyMaterial?</ID>
-    <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$override fun onReceive</ID>
-    <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private fun captureSender: BroadcastSender?</ID>
-    <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private fun getSentFromAppInfo: CallerIdentity?</ID>
-    <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private fun parseRequest: BroadcastRequest?</ID>
-    <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private suspend fun handleRequest: SshAgentContract.BroadcastOutcome</ID>
+    <ID>ReturnCount:AgentBridgeReceiver.kt:AgentBridgeReceiver$override fun onReceive</ID>
+    <ID>ReturnCount:AgentBridgeReceiver.kt:AgentBridgeReceiver$private fun captureSender: BroadcastSender?</ID>
+    <ID>ReturnCount:AgentBridgeReceiver.kt:AgentBridgeReceiver$private fun getSentFromAppInfo: CallerIdentity?</ID>
+    <ID>ReturnCount:AgentBridgeReceiver.kt:AgentBridgeReceiver$private fun parseRequest: BroadcastRequest?</ID>
+    <ID>ReturnCount:AgentBridgeReceiver.kt:AgentBridgeReceiver$private suspend fun handleRequest: AgentBridgeContract.BroadcastOutcome</ID>
     <ID>ReturnCount:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
     <ID>ReturnCount:SshAgentRpcHandler.kt:SshAgentRpcHandler$suspend fun processRequest: SshAgentMessages.IpcResponse</ID>
-    <ID>ReturnCount:SshAgentService.kt:SshAgentService$override fun onStartCommand: Int</ID>
+    <ID>ReturnCount:AgentBridgeService.kt:AgentBridgeService$override fun onStartCommand: Int</ID>
     <ID>ReturnCount:SshAgentTcpProxyBridge.kt:internal fun buildAndroidFrameworkPackageAuthorization: CallerAuthorization?</ID>
     <ID>ReturnCount:SshAgentTcpProxyBridge.kt:internal fun mergeAndroidSshAgentCallerIdentity: CallerIdentity?</ID>
     <ID>ReturnCount:SshAgentTcpProxyBridge.kt:private fun CallerAuthorization?.hasVerifiedAndroidFrameworkPackageSubject: Boolean</ID>
@@ -1987,10 +1986,10 @@
     <ID>TooGenericExceptionCaught:SettingAutotypeTest.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:SettingClipboardNotificationSettings.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:SshAgentPublicKeySyncerImpl.kt:SshAgentPublicKeySyncerImpl$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:SshAgentReceiver.kt:SshAgentReceiver$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:SshAgentReceiver.kt:SshAgentReceiver$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AgentBridgeReceiver.kt:AgentBridgeReceiver$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AgentBridgeReceiver.kt:AgentBridgeReceiver$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:SshAgentService.kt:SshAgentService$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AgentBridgeService.kt:AgentBridgeService$e: Exception</ID>
     <ID>TooGenericExceptionCaught:SshAgentTcpProxyBridge.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:SshAgentTcpProxySocketConnector.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:SyncByBitwardenTokenV2Impl.kt:e: Exception</ID>
@@ -2115,9 +2114,9 @@
     <ID>TooManyFunctions:SettingsRepositoryImpl.kt:SettingsRepositoryImpl : SettingsReadWriteRepository</ID>
     <ID>TooManyFunctions:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest</ID>
     <ID>TooManyFunctions:SshAgentMessagesTest.kt:SshAgentMessagesTest</ID>
-    <ID>TooManyFunctions:SshAgentNotifications.kt:SshAgentNotifications</ID>
+    <ID>TooManyFunctions:AgentBridgeNotifications.kt:AgentBridgeNotifications</ID>
     <ID>TooManyFunctions:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest</ID>
-    <ID>TooManyFunctions:SshAgentService.kt:SshAgentService : ServiceKeyguardKoinOwner</ID>
+    <ID>TooManyFunctions:AgentBridgeService.kt:AgentBridgeService : ServiceKeyguardKoinOwner</ID>
     <ID>TooManyFunctions:SshAgentTcpProxyBridge.kt:com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProxyBridge.kt</ID>
     <ID>TooManyFunctions:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest</ID>
     <ID>TooManyFunctions:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest</ID>
@@ -2284,7 +2283,7 @@
     <ID>UnusedParameter:SettingSshAgentSetup.kt:koinScope: Scope</ID>
     <ID>UnusedParameter:SettingSshSettings.kt:windowCoroutineScope: WindowCoroutineScope</ID>
     <ID>UnusedParameter:SettingUrlOverride.kt:koinScope: Scope</ID>
-    <ID>UnusedParameter:SshRequestNotificationActionReceiver.kt:SshRequestNotificationActionReceiver$context: Context</ID>
+    <ID>UnusedParameter:AgentRequestNotificationActionReceiver.kt:AgentRequestNotificationActionReceiver$context: Context</ID>
     <ID>UnusedParameter:SyncDiffer.kt:SyncDiffer$dateNormalizer: (Instant) -&gt; Long</ID>
     <ID>UnusedParameter:SyncStateProducer.kt:getCollections: GetCollections</ID>
     <ID>UnusedParameter:SyncStateProducer.kt:getOrganizations: GetOrganizations</ID>

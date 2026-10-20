@@ -39,9 +39,13 @@ internal class AgentApprovalQueue<P, S : Any>(
 
     val requests: StateFlow<List<S>> = broker.pending
 
-    suspend fun await(prompt: P): Boolean {
+    /** Waits for the user's decision, until [deadline]. */
+    suspend fun await(
+        prompt: P,
+        deadline: Instant = broker.deadline(),
+    ): Boolean {
         val id = "$idPrefix-${counter.updateAndGet { it + 1 }}"
-        val result = broker.request { expiresAt ->
+        val result = broker.request(deadline = deadline) { expiresAt ->
             prompt.toSnapshot(id, broker.promptTimeout.inWholeMilliseconds, expiresAt.toEpochMilliseconds())
         }
         return result == AgentApprovalBroker.Result.Approved

@@ -15,6 +15,7 @@ on:
       - 'commonGpgAgent/**'
       - 'commonAgent/**'
       - 'desktopGpgAgent/**'
+      - 'androidGpgAgent/**'
       - 'integration/gpgE2eTest/**'
       - 'appleApp/src/**/gpgagent/**'
       - 'appleApp/src/appleMain/kotlin/com/artemchep/keyguard/apple/KeyguardCore.kt'
@@ -42,6 +43,7 @@ on:
       - 'commonGpgAgent/**'
       - 'commonAgent/**'
       - 'desktopGpgAgent/**'
+      - 'androidGpgAgent/**'
       - 'integration/gpgE2eTest/**'
       - 'appleApp/src/**/gpgagent/**'
       - 'appleApp/src/appleMain/kotlin/com/artemchep/keyguard/apple/KeyguardCore.kt'
@@ -85,6 +87,9 @@ jobs:
           cargo clippy --manifest-path commonAgent/proto/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path commonAgent/proto-adapter/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path commonGpgAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonGpgAgent/assuan/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonAgent/android-bridge/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path androidGpgAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path desktopGpgAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
       - name: "Test shared caller schema and adapters"
         run: |
@@ -92,6 +97,10 @@ jobs:
           cargo test --manifest-path commonAgent/proto-adapter/Cargo.toml --locked
       - name: "Test commonGpgAgent crate"
         run: cargo test --manifest-path commonGpgAgent/Cargo.toml
+      - name: "Test GPG agent Assuan crate"
+        run: cargo test --manifest-path commonGpgAgent/assuan/Cargo.toml --locked
+      - name: "Test androidGpgAgent crate"
+        run: cargo test --manifest-path androidGpgAgent/src/Cargo.toml --locked
       - name: "Test desktopGpgAgent crate"
         run: cargo test --manifest-path desktopGpgAgent/src/Cargo.toml
 
@@ -127,11 +136,14 @@ jobs:
       - name: "Run platform Rust static analysis"
         run: |
           cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonGpgAgent/assuan/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path desktopGpgAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
       - name: "Test shared caller identity on this platform"
         run: cargo test --manifest-path commonAgent/Cargo.toml --all-targets --locked
       - name: "Test shared caller adapter on this platform"
         run: cargo test --manifest-path commonAgent/proto-adapter/Cargo.toml --all-targets --locked
+      - name: "Test GPG agent Assuan crate on this platform"
+        run: cargo test --manifest-path commonGpgAgent/assuan/Cargo.toml --all-targets --locked
       - name: "Test desktop GPG agent on this platform"
         run: cargo test --manifest-path desktopGpgAgent/src/Cargo.toml --all-targets --locked
       - uses: ./.github/actions/setup_gpg

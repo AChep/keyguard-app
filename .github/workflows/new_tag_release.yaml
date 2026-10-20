@@ -878,7 +878,7 @@ jobs:
           path: |
             androidApp/build/outputs/bundle/**/*.aab
           retention-days: 1
-  build-android-ssh-agent:
+  build-android-termux-agents:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -906,12 +906,23 @@ jobs:
           pip install git+https://github.com/termux/termux-create-package.git@1f2f17c7f6971c938a7c644e5cb46e7913960c8f
       - name: "Build Termux packages"
         run: |
-          ./gradlew :androidSshAgent:packageAndroidSshAgentTermuxAll
+          ./gradlew :androidSshAgent:packageAndroidSshAgentTermuxAll :androidGpgAgent:packageAndroidGpgAgentTermuxAll
+      # Collect every package in one flat directory: an artifact with several
+      # paths keeps their directories, and the release and the APT repo
+      # expect the .deb files at the top level.
+      - name: "Collect .deb"
+        run: |
+          mkdir -p build/termux-debs
+          cp androidSshAgent/build/termux/debs/*.deb \
+            androidGpgAgent/build/termux/debs/*.deb \
+            build/termux-debs/
+          ls -l build/termux-debs
       - name: "Upload .deb"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-termux
-          path: androidSshAgent/build/termux/debs/*.deb
+          path: build/termux-debs/*.deb
+          if-no-files-found: error
           retention-days: 1
   dist:
     runs-on: ubuntu-latest
@@ -920,7 +931,7 @@ jobs:
       - generate-versions
       - build-wearos-app
       - build-android-app
-      - build-android-ssh-agent
+      - build-android-termux-agents
       - build-linux-app
       - notarize-macos-app
       - build-windows-app

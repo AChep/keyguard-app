@@ -1425,22 +1425,53 @@ dependencies = [
 ]
 
 [[package]]
-name = "keyguard-android-ssh-agent"
+name = "keyguard-android-agent-bridge"
 version = "3.4.0"
 dependencies = [
  "anyhow",
  "base64 0.22.1",
  "chacha20poly1305",
- "clap",
- "common-ssh-agent-rust",
  "hkdf",
  "keyguard-agent-identity",
+ "keyguard-agent-proto",
  "libc",
- "prost",
  "rand",
  "sha2 0.10.9",
  "tokio",
  "zeroize",
+]
+
+[[package]]
+name = "keyguard-android-gpg-agent"
+version = "3.4.0"
+dependencies = [
+ "anyhow",
+ "clap",
+ "common-gpg-agent-rust",
+ "keyguard-agent-identity",
+ "keyguard-android-agent-bridge",
+ "keyguard-gpg-agent-assuan",
+ "libc",
+ "prost",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "keyguard-android-ssh-agent"
+version = "3.4.0"
+dependencies = [
+ "anyhow",
+ "base64 0.22.1",
+ "clap",
+ "common-ssh-agent-rust",
+ "keyguard-android-agent-bridge",
+ "libc",
+ "prost",
+ "rand",
+ "tokio",
 ]
 
 [[package]]
@@ -1551,7 +1582,23 @@ dependencies = [
  "hex",
  "keyguard-agent-identity",
  "keyguard-agent-proto-adapter",
+ "keyguard-gpg-agent-assuan",
  "libc",
+ "tempfile",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "keyguard-gpg-agent-assuan"
+version = "3.4.0"
+dependencies = [
+ "anyhow",
+ "common-gpg-agent-rust",
+ "hex",
+ "keyguard-agent-identity",
+ "keyguard-agent-proto-adapter",
  "prost",
  "tempfile",
  "tokio",

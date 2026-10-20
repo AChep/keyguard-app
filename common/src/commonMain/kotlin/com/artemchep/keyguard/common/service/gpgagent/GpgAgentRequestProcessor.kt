@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
+import kotlin.time.Instant
 
 /**
  * Everything the approval surface may show for a pending GPG key
@@ -19,6 +20,11 @@ data class GpgAgentApprovalPrompt(
      */
     val accountId: String?,
     val cipherId: String?,
+    /**
+     * When the prompt is denied. The prompts of one request share it, so
+     * the request ends within one approval timeout however many it shows.
+     */
+    val expiresAt: Instant,
 )
 
 interface GpgAgentRequestProcessor {

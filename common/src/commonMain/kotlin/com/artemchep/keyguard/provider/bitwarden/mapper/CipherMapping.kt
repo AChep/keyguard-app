@@ -11,22 +11,15 @@ import com.artemchep.keyguard.common.service.gpgagent.isCanonical
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.hasPendingAttachmentMutations
+import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
+import com.artemchep.keyguard.feature.environments.EnvironmentFormat
+import com.artemchep.keyguard.feature.environments.EnvironmentPayload
+import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenEnvironmentFieldCodec
 
 suspend fun BitwardenCipher.toDomain(
     getPasswordStrength: GetPasswordStrength,
 ): DSecret {
-    val type: DSecret.Type = when (type) {
-        BitwardenCipher.Type.Login -> DSecret.Type.Login
-        BitwardenCipher.Type.SecureNote -> if (gpgKey != null) {
-            DSecret.Type.GpgKey
-        } else {
-            DSecret.Type.SecureNote
-        }
-        BitwardenCipher.Type.Card -> DSecret.Type.Card
-        BitwardenCipher.Type.Identity -> DSecret.Type.Identity
-        BitwardenCipher.Type.SshKey -> DSecret.Type.SshKey
-        BitwardenCipher.Type.GpgKey -> DSecret.Type.GpgKey
-    }
+    val type = domainType()
     val ignoredAlerts = ignoredAlerts
         .map { (key, value) ->
             val k = key.toDomain()
@@ -82,10 +75,44 @@ suspend fun BitwardenCipher.toDomain(
         identity = identity?.toDomain(),
         sshKey = sshKey?.toDomain(),
         gpgKey = gpgKey?.toDomain(),
+        environment = environment?.toDomain(),
         // other
         passwordHistory = passwordHistory.map(BitwardenCipher.Login.PasswordHistory::toDomain),
     )
 }
+
+private fun BitwardenCipher.domainType(): DSecret.Type = when (type) {
+    BitwardenCipher.Type.Login -> DSecret.Type.Login
+    BitwardenCipher.Type.SecureNote -> if (gpgKey != null) {
+        DSecret.Type.GpgKey
+    } else {
+        DSecret.Type.SecureNote
+    }
+    BitwardenCipher.Type.Card -> DSecret.Type.Card
+    BitwardenCipher.Type.Identity -> DSecret.Type.Identity
+    BitwardenCipher.Type.SshKey -> DSecret.Type.SshKey
+    BitwardenCipher.Type.GpgKey -> DSecret.Type.GpgKey
+    BitwardenCipher.Type.Environment -> DSecret.Type.Environment
+}
+
+fun BitwardenCipher.Environment.toDomain(): EnvironmentPayload = when (document) {
+    // Nothing is stored, so an edit can not lose data this version does not read.
+    null -> EnvironmentDefinition().let { definition ->
+        EnvironmentPayload.Decoded(definition, EnvironmentFormat.encode(definition), lossless = true)
+    }
+
+    else -> EnvironmentFormat.decode(document)
+        ?: EnvironmentPayload.Unsupported(document = document)
+}
+
+fun BitwardenCipher.Environment.Companion.of(
+    payload: EnvironmentPayload,
+) = BitwardenCipher.Environment(document = payload.document)
+
+/** The fields the environment is synced as, for exports in the Bitwarden format. */
+fun EnvironmentPayload.toTransportFields(): List<DSecret.Field> =
+    BitwardenEnvironmentFieldCodec.encode(BitwardenCipher.Environment.of(this))
+        .map(BitwardenCipher.Field::toDomain)
 
 fun BitwardenCipher.Login.Uri.toDomain() = DSecret.Uri(
     uri = uri.orEmpty(),

@@ -59,6 +59,7 @@
     <string name="advanced_options">Advanced</string>
     <string name="file">File</string>
     <string name="choose_file">Choose file</string>
+    <string name="choose_folder">Choose folder</string>
     <string name="file_picker_selected_file_label">Selected file</string>
     <string name="file_name_placeholder">File name</string>
     <string name="file_status_pending_upload">Pending upload</string>
@@ -87,6 +88,8 @@
     <string name="status">Status</string>
     <string name="status_running">Running</string>
     <string name="status_failed_to_start">Failed to start</string>
+    <string name="status_starting">Starting</string>
+    <string name="status_ready">Ready</string>
     <string name="ready_status_beta">Beta</string>
     <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">Learn more</string>
@@ -206,6 +209,8 @@
     <string name="address3">Address line 3</string>
     <string name="protocol_ssh" translatable="false">SSH</string>
     <string name="protocol_gpg" translatable="false">GPG</string>
+    <string name="protocol_mcp" translatable="false">MCP</string>
+    <string name="protocol_cli" translatable="false">CLI</string>
     <string name="agent_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> agent</string>
     <string name="ssh_client">SSH client</string>
     <string name="rename">Rename</string>
@@ -419,6 +424,10 @@
     <string name="ciphers_action_edit_title">Edit</string>
     <string name="ciphers_action_merge_title">Merge into…</string>
     <string name="ciphers_action_copy_title">Copy to…</string>
+    <string name="ciphers_copy_attachments_note">Attachments are not copied.</string>
+    <string name="ciphers_copy_warning_links">Copies do not keep links to other items.</string>
+    <string name="ciphers_copy_warning_environment_references">Variables that reference other items become unset in the copies.</string>
+    <string name="ciphers_copy_error_unsupported_environment">Some environments use a format this version of Keyguard cannot read. Update Keyguard to copy them to another account.</string>
     <string name="ciphers_action_export_title">Export…</string>
     <string name="ciphers_action_change_folder_title">Move to folder</string>
     <string name="ciphers_action_change_name_title">Change name</string>
@@ -1230,6 +1239,7 @@
     <string name="cipher_type_ssh_key">SSH Key</string>
     <string name="cipher_type_gpg_key">GPG Key</string>
     <string name="cipher_type_passkey">Passkey</string>
+    <string name="cipher_type_environment">Environment</string>
     <string name="cipher_type_unknown" translatable="false">Unknown</string>
 
     <string name="field_type_text">Text</string>
@@ -2028,8 +2038,6 @@
     <string name="pref_item_ssh_agent_text">Authenticate your Git and SSH clients without those clients ever being able to read your private key</string>
     <string name="pref_item_agent_status_unsupported">Unsupported</string>
     <string name="pref_item_agent_status_stopped">Stopped</string>
-    <string name="pref_item_agent_status_starting">Starting</string>
-    <string name="pref_item_agent_status_ready">Ready</string>
     <string name="pref_item_agent_status_failed">Failed</string>
     <string name="pref_item_agent_approval_window_title">Remember key approvals</string>
     <string name="pref_item_agent_local_storage_title">Local storage</string>
@@ -2038,6 +2046,7 @@
     <string name="pref_item_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
     <string name="pref_item_agent_approval_window_always_ask">Ask every time</string>
     <string name="pref_item_agent_approval_window_until_lock">Until vault locks</string>
+    <string name="pref_item_approval_window_title">Remember approvals</string>
     <string name="pref_item_ssh_agent_approval_remember_note">An approved signature is remembered for this long per key and application, instead of asking every time.</string>
     <string name="pref_item_agent_filters_text">Choose which <xliff:g id="protocol" example="SSH">%1$s</xliff:g> keys are accessible to the %1$s agent</string>
     <string name="pref_item_agent_filters_summary_all">All keys accessible</string>
@@ -2580,5 +2589,87 @@
     <string name="gpg_user_ids_empty">No active User IDs</string>
     <string name="gpg_user_ids_retry_at">The key’s signature times prevent this change. Try again after %1$s. Check that your devices’ clocks are correct.</string>
     <string name="gpg_user_ids_time_conflict">The key’s signature times prevent this change. Check that your devices’ clocks are correct.</string>
+
+    <string name="cipher_field_picker_items_title">Choose an item</string>
+    <string name="cipher_field_picker_fields_title">Choose a field</string>
+    <string name="cipher_field_picker_items_empty">No items with a password or custom fields</string>
+    <string name="cipher_field_picker_duplicate">Duplicate field name</string>
+
+    <string name="environments_title">Environments</string>
+    <string name="environments_description">Store environment variables and pass them to local tools.</string>
+    <string name="environments_create">New environment</string>
+    <string name="environments_search">Search environments</string>
+    <string name="environments_empty">No environments</string>
+    <string name="environments_locked">Unlock Keyguard to manage environments.</string>
+
+    <string name="environments_name">Environment name</string>
+    <string name="environments_variables">Variables</string>
+    <string name="environments_add_variable">Add variable</string>
+    <string name="environments_variable_name">Variable name</string>
+    <string name="environments_variable_error_invalid_name">Use only Latin letters, digits, and underscores. Do not start with a digit.</string>
+    <string name="environments_variable_error_duplicate_name">This name is already used</string>
+    <string name="environments_variable_type">Variable type</string>
+    <string name="environments_variable_type_value">Value</string>
+    <string name="environments_variable_type_reference">Reference to an item</string>
     <string name="environments_reference_unavailable">Item not available</string>
+    <string name="environments_unset">Unset</string>
+    <string name="environments_variable_unsupported">Unsupported value</string>
+    <string name="environments_read_only">You can view this environment but not edit it.</string>
+    <string name="environments_error_unsupported_format">This version of Keyguard cannot read some of this environment's data, so it is read-only. Update Keyguard, or edit it in the app that last changed it.</string>
+    <string name="environments_error_limits_exceeded">Too many variables, or a name is too long. Remove some variables or shorten their names.</string>
+
+    <string name="environments_import">Import .env</string>
+    <string name="environments_import_drop_here">Drop a .env file to import its variables</string>
+    <string name="environments_import_note">Importing replaces this environment's variables. Keyguard does not delete the source file.</string>
+    <string name="environments_import_text">Paste .env content</string>
+    <string name="environments_import_file">Choose .env file</string>
+    <string name="environments_import_error_parse">This is not valid .env content</string>
+    <string name="environments_import_preview">Preview import</string>
+    <string name="environments_import_preview_title">Variables to import</string>
+    <string name="environments_import_apply">Replace variables</string>
+
+    <string name="environments_mounts">Local .env files</string>
+    <string name="environments_mounts_empty">No local .env files</string>
+    <string name="environments_mount_note">Each file is a named pipe, so every read returns the current values. Read it from one process at a time. Approvals last for the MCP approval window, and end when the environment changes.</string>
+    <string name="environments_mount_create">Create local .env file</string>
+    <string name="environments_mount_path">Absolute path of the new .env file</string>
+    <string name="environments_flatpak_note">Keyguard needs Flatpak permission to use this folder. Run this command on the host, then restart Keyguard. The folder must be writable.</string>
+    <string name="environments_mount_status_error">Unavailable. Check that nothing else uses this path and that its folder is writable.</string>
+    <string name="environments_mount_disable">Disable local .env file</string>
+    <string name="environments_mount_open_environment">Open environment</string>
+    <string name="environments_mount_unsupported">Local .env files are not supported on this platform.</string>
+    <string name="environments_mounts_error_unavailable">Local .env files are unavailable. Restart Keyguard and try again.</string>
+
+    <string name="environments_mcp_enable">Enable MCP access</string>
+    <string name="environments_mcp_setup">MCP client configuration</string>
+    <string name="environments_mcp_note">MCP clients can create and edit environments. They never see variable values or other vault items. You approve what each client can do.</string>
+
+    <string name="environments_approval_title">Environment access request</string>
+    <string name="environments_approval_message_known_app"><xliff:g id="who" example="Claude Code">%1$s</xliff:g> wants to access your environments:</string>
+    <string name="environments_approval_message_unknown_app">A local process wants to access your environments:</string>
+    <string name="environments_local_process">Local process</string>
+    <string name="environments_approval_client">Client name (unverified): <xliff:g id="client" example="Claude Code">%1$s</xliff:g></string>
+    <string name="environments_capability_authenticate">Connect to Keyguard</string>
+    <string name="environments_capability_list">List environments</string>
+    <string name="environments_capability_create">Create an environment</string>
+    <string name="environments_capability_rename">Rename an environment</string>
+    <string name="environments_capability_variables">List variable names and types</string>
+    <string name="environments_capability_update">Add or update environment variables</string>
+    <string name="environments_capability_create_mount">Create a local .env file</string>
+    <string name="environments_capability_mounts">List local .env files</string>
+    <string name="environments_capability_read">Read this local .env file</string>
+    <string name="environments_grant_directory">To allow access, choose the folder that contains the requested file.</string>
+    <string name="environments_grant_error_wrong_folder">Wrong folder. Choose the folder shown in this request.</string>
+    <string name="environments_approval_note">Keyguard remembers this approval for the MCP approval window, or until the vault locks.</string>
+    <string name="environments_approval_local_file_note">While the approval lasts, any process running under your account can read this file.</string>
+
+    <string name="cli_title">Command line</string>
+    <string name="cli_enable">Enable command-line access</string>
+    <string name="cli_note">Use Keyguard from a terminal, for example to run a command with an environment's variables. Keyguard asks for your approval first.</string>
+    <string name="cli_usage">Usage</string>
+    <string name="cli_path">Location of the command-line tool</string>
+    <string name="cli_capability_run">Run a command with this environment</string>
+    <string name="cli_approval_working_directory">In <xliff:g id="directory" example="/home/user/project">%1$s</xliff:g></string>
+    <string name="cli_approval_run_note">Only this command and the processes it starts receive the values.</string>
+    <string name="cli_approval_run_terminal_note">Later commands from this terminal tab run without asking until the approval expires or the vault locks. Anything running in this tab can use the approval, including coding agents.</string>
 </resources>

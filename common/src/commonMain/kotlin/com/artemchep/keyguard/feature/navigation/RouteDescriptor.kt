@@ -8,6 +8,15 @@ import kotlinx.serialization.Serializable
 @Serializable
 sealed interface RouteDescriptor {
     @Serializable
+    @SerialName("environments")
+    data object Environments : RouteDescriptor
+
+    /** Creates an environment, or edits the one with the [environmentId]. */
+    @Serializable
+    @SerialName("environments.edit")
+    data class EnvironmentEdit(val environmentId: String? = null) : RouteDescriptor
+
+    @Serializable
     @SerialName("vault.cipher.view")
     data class VaultCipherView(
         val itemId: String,

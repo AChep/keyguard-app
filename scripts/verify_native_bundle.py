@@ -178,7 +178,7 @@ def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
         # other libraries previously had no package hardening gate.
         hardening = binary.inspect_hardening(path) if name == library_filename("crypto", target_platform) else "exports and architecture"
         print(f"OK {path} ({hardening})")
-    for name in ("keyguard-ssh-agent", "keyguard-gpg-agent"):
+    for name in ("keyguard-ssh-agent", "keyguard-gpg-agent", "keyguard-cli-agent", "keyguard"):
         path = resources / (name + (".exe" if target_platform == "windows" else ""))
         if not path.is_file():
             raise InspectionError(f"{root}: missing bundled helper {path.name}")

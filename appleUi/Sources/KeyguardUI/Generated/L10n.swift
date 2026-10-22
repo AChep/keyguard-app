@@ -1105,6 +1105,26 @@ public enum L10n {
     public static var chooseFile: String {
         String(localized: "choose_file", bundle: AppLocalization.shared.bundle)
     }
+    /// choose_folder
+    public static var chooseFolder: String {
+        String(localized: "choose_folder", bundle: AppLocalization.shared.bundle)
+    }
+    /// cipher_field_picker_duplicate
+    public static var cipherFieldPickerDuplicate: String {
+        String(localized: "cipher_field_picker_duplicate", bundle: AppLocalization.shared.bundle)
+    }
+    /// cipher_field_picker_fields_title
+    public static var cipherFieldPickerFieldsTitle: String {
+        String(localized: "cipher_field_picker_fields_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// cipher_field_picker_items_empty
+    public static var cipherFieldPickerItemsEmpty: String {
+        String(localized: "cipher_field_picker_items_empty", bundle: AppLocalization.shared.bundle)
+    }
+    /// cipher_field_picker_items_title
+    public static var cipherFieldPickerItemsTitle: String {
+        String(localized: "cipher_field_picker_items_title", bundle: AppLocalization.shared.bundle)
+    }
     /// cipher_link_picker_action
     public static var cipherLinkPickerAction: String {
         String(localized: "cipher_link_picker_action", bundle: AppLocalization.shared.bundle)
@@ -1128,6 +1148,10 @@ public enum L10n {
     /// cipher_type_card
     public static var cipherTypeCard: String {
         String(localized: "cipher_type_card", bundle: AppLocalization.shared.bundle)
+    }
+    /// cipher_type_environment
+    public static var cipherTypeEnvironment: String {
+        String(localized: "cipher_type_environment", bundle: AppLocalization.shared.bundle)
     }
     /// cipher_type_gpg_key
     public static var cipherTypeGpgKey: String {
@@ -1313,6 +1337,22 @@ public enum L10n {
     public static var ciphersActionViewSshAgentHistoryTitle: String {
         String(localized: "ciphers_action_view_ssh_agent_history_title", bundle: AppLocalization.shared.bundle)
     }
+    /// ciphers_copy_attachments_note
+    public static var ciphersCopyAttachmentsNote: String {
+        String(localized: "ciphers_copy_attachments_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// ciphers_copy_error_unsupported_environment
+    public static var ciphersCopyErrorUnsupportedEnvironment: String {
+        String(localized: "ciphers_copy_error_unsupported_environment", bundle: AppLocalization.shared.bundle)
+    }
+    /// ciphers_copy_warning_environment_references
+    public static var ciphersCopyWarningEnvironmentReferences: String {
+        String(localized: "ciphers_copy_warning_environment_references", bundle: AppLocalization.shared.bundle)
+    }
+    /// ciphers_copy_warning_links
+    public static var ciphersCopyWarningLinks: String {
+        String(localized: "ciphers_copy_warning_links", bundle: AppLocalization.shared.bundle)
+    }
     /// ciphers_history_empty
     public static var ciphersHistoryEmpty: String {
         String(localized: "ciphers_history_empty", bundle: AppLocalization.shared.bundle)
@@ -1348,6 +1388,42 @@ public enum L10n {
     /// clear_file
     public static var clearFile: String {
         String(localized: "clear_file", bundle: AppLocalization.shared.bundle)
+    }
+    /// cli_approval_run_note
+    public static var cliApprovalRunNote: String {
+        String(localized: "cli_approval_run_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// cli_approval_run_terminal_note
+    public static var cliApprovalRunTerminalNote: String {
+        String(localized: "cli_approval_run_terminal_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// cli_approval_working_directory
+    public static func cliApprovalWorkingDirectory(_ a1: String) -> String {
+        String(format: String(localized: "cli_approval_working_directory", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// cli_capability_run
+    public static var cliCapabilityRun: String {
+        String(localized: "cli_capability_run", bundle: AppLocalization.shared.bundle)
+    }
+    /// cli_enable
+    public static var cliEnable: String {
+        String(localized: "cli_enable", bundle: AppLocalization.shared.bundle)
+    }
+    /// cli_note
+    public static var cliNote: String {
+        String(localized: "cli_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// cli_path
+    public static var cliPath: String {
+        String(localized: "cli_path", bundle: AppLocalization.shared.bundle)
+    }
+    /// cli_title
+    public static var cliTitle: String {
+        String(localized: "cli_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// cli_usage
+    public static var cliUsage: String {
+        String(localized: "cli_usage", bundle: AppLocalization.shared.bundle)
     }
     /// close
     public static var close: String {
@@ -2237,9 +2313,253 @@ public enum L10n {
     public static var encryptionSalt: String {
         String(localized: "encryption_salt", bundle: AppLocalization.shared.bundle)
     }
+    /// environments_add_variable
+    public static var environmentsAddVariable: String {
+        String(localized: "environments_add_variable", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_approval_client
+    public static func environmentsApprovalClient(_ a1: String) -> String {
+        String(format: String(localized: "environments_approval_client", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// environments_approval_local_file_note
+    public static var environmentsApprovalLocalFileNote: String {
+        String(localized: "environments_approval_local_file_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_approval_message_known_app
+    public static func environmentsApprovalMessageKnownApp(_ a1: String) -> String {
+        String(format: String(localized: "environments_approval_message_known_app", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// environments_approval_message_unknown_app
+    public static var environmentsApprovalMessageUnknownApp: String {
+        String(localized: "environments_approval_message_unknown_app", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_approval_note
+    public static var environmentsApprovalNote: String {
+        String(localized: "environments_approval_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_approval_title
+    public static var environmentsApprovalTitle: String {
+        String(localized: "environments_approval_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_capability_authenticate
+    public static var environmentsCapabilityAuthenticate: String {
+        String(localized: "environments_capability_authenticate", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_capability_create
+    public static var environmentsCapabilityCreate: String {
+        String(localized: "environments_capability_create", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_capability_create_mount
+    public static var environmentsCapabilityCreateMount: String {
+        String(localized: "environments_capability_create_mount", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_capability_list
+    public static var environmentsCapabilityList: String {
+        String(localized: "environments_capability_list", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_capability_mounts
+    public static var environmentsCapabilityMounts: String {
+        String(localized: "environments_capability_mounts", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_capability_read
+    public static var environmentsCapabilityRead: String {
+        String(localized: "environments_capability_read", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_capability_rename
+    public static var environmentsCapabilityRename: String {
+        String(localized: "environments_capability_rename", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_capability_update
+    public static var environmentsCapabilityUpdate: String {
+        String(localized: "environments_capability_update", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_capability_variables
+    public static var environmentsCapabilityVariables: String {
+        String(localized: "environments_capability_variables", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_create
+    public static var environmentsCreate: String {
+        String(localized: "environments_create", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_description
+    public static var environmentsDescription: String {
+        String(localized: "environments_description", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_empty
+    public static var environmentsEmpty: String {
+        String(localized: "environments_empty", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_error_limits_exceeded
+    public static var environmentsErrorLimitsExceeded: String {
+        String(localized: "environments_error_limits_exceeded", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_error_unsupported_format
+    public static var environmentsErrorUnsupportedFormat: String {
+        String(localized: "environments_error_unsupported_format", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_flatpak_note
+    public static var environmentsFlatpakNote: String {
+        String(localized: "environments_flatpak_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_grant_directory
+    public static var environmentsGrantDirectory: String {
+        String(localized: "environments_grant_directory", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_grant_error_wrong_folder
+    public static var environmentsGrantErrorWrongFolder: String {
+        String(localized: "environments_grant_error_wrong_folder", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_import
+    public static var environmentsImport: String {
+        String(localized: "environments_import", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_import_apply
+    public static var environmentsImportApply: String {
+        String(localized: "environments_import_apply", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_import_drop_here
+    public static var environmentsImportDropHere: String {
+        String(localized: "environments_import_drop_here", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_import_error_parse
+    public static var environmentsImportErrorParse: String {
+        String(localized: "environments_import_error_parse", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_import_file
+    public static var environmentsImportFile: String {
+        String(localized: "environments_import_file", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_import_note
+    public static var environmentsImportNote: String {
+        String(localized: "environments_import_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_import_preview
+    public static var environmentsImportPreview: String {
+        String(localized: "environments_import_preview", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_import_preview_title
+    public static var environmentsImportPreviewTitle: String {
+        String(localized: "environments_import_preview_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_import_text
+    public static var environmentsImportText: String {
+        String(localized: "environments_import_text", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_local_process
+    public static var environmentsLocalProcess: String {
+        String(localized: "environments_local_process", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_locked
+    public static var environmentsLocked: String {
+        String(localized: "environments_locked", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mcp_enable
+    public static var environmentsMcpEnable: String {
+        String(localized: "environments_mcp_enable", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mcp_note
+    public static var environmentsMcpNote: String {
+        String(localized: "environments_mcp_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mcp_setup
+    public static var environmentsMcpSetup: String {
+        String(localized: "environments_mcp_setup", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mount_create
+    public static var environmentsMountCreate: String {
+        String(localized: "environments_mount_create", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mount_disable
+    public static var environmentsMountDisable: String {
+        String(localized: "environments_mount_disable", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mount_note
+    public static var environmentsMountNote: String {
+        String(localized: "environments_mount_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mount_open_environment
+    public static var environmentsMountOpenEnvironment: String {
+        String(localized: "environments_mount_open_environment", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mount_path
+    public static var environmentsMountPath: String {
+        String(localized: "environments_mount_path", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mount_status_error
+    public static var environmentsMountStatusError: String {
+        String(localized: "environments_mount_status_error", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mount_unsupported
+    public static var environmentsMountUnsupported: String {
+        String(localized: "environments_mount_unsupported", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mounts
+    public static var environmentsMounts: String {
+        String(localized: "environments_mounts", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mounts_empty
+    public static var environmentsMountsEmpty: String {
+        String(localized: "environments_mounts_empty", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_mounts_error_unavailable
+    public static var environmentsMountsErrorUnavailable: String {
+        String(localized: "environments_mounts_error_unavailable", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_name
+    public static var environmentsName: String {
+        String(localized: "environments_name", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_read_only
+    public static var environmentsReadOnly: String {
+        String(localized: "environments_read_only", bundle: AppLocalization.shared.bundle)
+    }
     /// environments_reference_unavailable
     public static var environmentsReferenceUnavailable: String {
         String(localized: "environments_reference_unavailable", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_search
+    public static var environmentsSearch: String {
+        String(localized: "environments_search", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_title
+    public static var environmentsTitle: String {
+        String(localized: "environments_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_unset
+    public static var environmentsUnset: String {
+        String(localized: "environments_unset", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_variable_error_duplicate_name
+    public static var environmentsVariableErrorDuplicateName: String {
+        String(localized: "environments_variable_error_duplicate_name", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_variable_error_invalid_name
+    public static var environmentsVariableErrorInvalidName: String {
+        String(localized: "environments_variable_error_invalid_name", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_variable_name
+    public static var environmentsVariableName: String {
+        String(localized: "environments_variable_name", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_variable_type
+    public static var environmentsVariableType: String {
+        String(localized: "environments_variable_type", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_variable_type_reference
+    public static var environmentsVariableTypeReference: String {
+        String(localized: "environments_variable_type_reference", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_variable_type_value
+    public static var environmentsVariableTypeValue: String {
+        String(localized: "environments_variable_type_value", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_variable_unsupported
+    public static var environmentsVariableUnsupported: String {
+        String(localized: "environments_variable_unsupported", bundle: AppLocalization.shared.bundle)
+    }
+    /// environments_variables
+    public static var environmentsVariables: String {
+        String(localized: "environments_variables", bundle: AppLocalization.shared.bundle)
     }
     /// equivalent_domains
     public static var equivalentDomains: String {
@@ -3452,6 +3772,38 @@ public enum L10n {
     /// gpg_agent_request_approval_decrypt_title
     public static var gpgAgentRequestApprovalDecryptTitle: String {
         String(localized: "gpg_agent_request_approval_decrypt_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_agent_setup_android_how_does_it_work_1
+    public static var gpgAgentSetupAndroidHowDoesItWork1: String {
+        String(localized: "gpg_agent_setup_android_how_does_it_work_1", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_agent_setup_android_how_does_it_work_2
+    public static var gpgAgentSetupAndroidHowDoesItWork2: String {
+        String(localized: "gpg_agent_setup_android_how_does_it_work_2", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_agent_setup_android_termux_git_title
+    public static var gpgAgentSetupAndroidTermuxGitTitle: String {
+        String(localized: "gpg_agent_setup_android_termux_git_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_agent_setup_android_termux_import_text
+    public static var gpgAgentSetupAndroidTermuxImportText: String {
+        String(localized: "gpg_agent_setup_android_termux_import_text", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_agent_setup_android_termux_import_title
+    public static var gpgAgentSetupAndroidTermuxImportTitle: String {
+        String(localized: "gpg_agent_setup_android_termux_import_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_agent_setup_android_termux_step_3_shell_current
+    public static var gpgAgentSetupAndroidTermuxStep3ShellCurrent: String {
+        String(localized: "gpg_agent_setup_android_termux_step_3_shell_current", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_agent_setup_android_termux_step_3_title
+    public static var gpgAgentSetupAndroidTermuxStep3Title: String {
+        String(localized: "gpg_agent_setup_android_termux_step_3_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_agent_setup_android_termux_text
+    public static var gpgAgentSetupAndroidTermuxText: String {
+        String(localized: "gpg_agent_setup_android_termux_text", bundle: AppLocalization.shared.bundle)
     }
     /// gpg_agent_setup_intro
     public static var gpgAgentSetupIntro: String {
@@ -5677,6 +6029,10 @@ public enum L10n {
     public static var prefItemAppearanceTitle: String {
         String(localized: "pref_item_appearance_title", bundle: AppLocalization.shared.bundle)
     }
+    /// pref_item_approval_window_title
+    public static var prefItemApprovalWindowTitle: String {
+        String(localized: "pref_item_approval_window_title", bundle: AppLocalization.shared.bundle)
+    }
     /// pref_item_autofill_auto_copy_otp_text
     public static var prefItemAutofillAutoCopyOtpText: String {
         String(localized: "pref_item_autofill_auto_copy_otp_text", bundle: AppLocalization.shared.bundle)
@@ -7193,9 +7549,17 @@ public enum L10n {
     public static var proTipGenerateEmailRelayTitle: String {
         String(localized: "pro_tip_generate_email_relay_title", bundle: AppLocalization.shared.bundle)
     }
+    /// protocol_cli
+    public static var protocolCli: String {
+        String(localized: "protocol_cli", bundle: AppLocalization.shared.bundle)
+    }
     /// protocol_gpg
     public static var protocolGpg: String {
         String(localized: "protocol_gpg", bundle: AppLocalization.shared.bundle)
+    }
+    /// protocol_mcp
+    public static var protocolMcp: String {
+        String(localized: "protocol_mcp", bundle: AppLocalization.shared.bundle)
     }
     /// protocol_ssh
     public static var protocolSsh: String {
@@ -8349,9 +8713,17 @@ public enum L10n {
     public static var statusFailedToStart: String {
         String(localized: "status_failed_to_start", bundle: AppLocalization.shared.bundle)
     }
+    /// status_ready
+    public static var statusReady: String {
+        String(localized: "status_ready", bundle: AppLocalization.shared.bundle)
+    }
     /// status_running
     public static var statusRunning: String {
         String(localized: "status_running", bundle: AppLocalization.shared.bundle)
+    }
+    /// status_starting
+    public static var statusStarting: String {
+        String(localized: "status_starting", bundle: AppLocalization.shared.bundle)
     }
     /// storage_error_title
     public static var storageErrorTitle: String {
@@ -9657,6 +10029,14 @@ public enum L10n {
     public static func skippedDuplicateCredentialsNote(_ count: Int) -> String {
         String(
             format: NSLocalizedString("skipped_duplicate_credentials_note", bundle: AppLocalization.shared.bundle, comment: ""),
+            locale: AppLocalization.shared.locale,
+            count
+        )
+    }
+    /// skipped_environment_references_note (plural)
+    public static func skippedEnvironmentReferencesNote(_ count: Int) -> String {
+        String(
+            format: NSLocalizedString("skipped_environment_references_note", bundle: AppLocalization.shared.bundle, comment: ""),
             locale: AppLocalization.shared.locale,
             count
         )

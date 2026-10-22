@@ -1,15 +1,25 @@
 ---
 title: Custom field conventions
-description: "Custom-field names that Keyguard reads as Wi-Fi credentials, tags, item links and GPG keys."
+description: "Custom-field names that Keyguard reads as Wi-Fi credentials, tags, item links, GPG keys and environments."
 section: reference
 type: reference
 order: 40
 platforms: all
-related: [items, gpg-keys, search]
+related: [items, gpg-keys, environments, search]
 ---
 
 Keyguard reads these custom-field names as extra item data. Other clients show
 them as plain custom fields.
+
+## Environments
+
+On a Bitwarden server, an **Environment** item is stored as a secure note with
+these hidden fields.
+
+| Field | Value |
+| --- | --- |
+| `keyguard.environment.v1.part.1`, `keyguard.environment.v1.part.2`, … | The environment's variables, split into parts of at most 3,500 bytes |
+| `keyguard.environment.v1.sha256` | Checksum of the joined parts |
 
 ## GPG keys
 

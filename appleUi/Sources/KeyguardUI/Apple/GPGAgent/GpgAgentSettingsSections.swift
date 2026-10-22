@@ -120,11 +120,11 @@ struct GpgAgentSettingsSections: View {
     private var statusRow: some View {
         switch status.state {
         case .ready:
-            Label(L10n.prefItemAgentStatusReady, systemImage: "checkmark.circle.fill").foregroundStyle(.green)
+            Label(L10n.statusReady, systemImage: "checkmark.circle.fill").foregroundStyle(.green)
         case .starting:
             HStack {
                 ProgressView().controlSize(.small)
-                Text(L10n.prefItemAgentStatusStarting).foregroundStyle(.secondary)
+                Text(L10n.statusStarting).foregroundStyle(.secondary)
             }
         case .failed:
             Label(L10n.prefItemAgentStatusFailed, systemImage: "exclamationmark.triangle.fill")

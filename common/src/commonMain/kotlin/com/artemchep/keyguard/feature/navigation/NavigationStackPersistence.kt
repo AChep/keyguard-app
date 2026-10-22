@@ -63,6 +63,9 @@ private fun Map<String, List<RouteDescriptor>>.forPersistence() =
         .filterValues { it.isNotEmpty() }
 
 private fun RouteDescriptor.canPersist(): Boolean = when (this) {
+    // Drafts of an environment live only in memory,
+    // so there is nothing to restore an editor to.
+    is RouteDescriptor.EnvironmentEdit -> false
     is RouteDescriptor.VaultList -> filter.canPersist()
     is RouteDescriptor.Folders -> filter.canPersist()
     is RouteDescriptor.Duplicates -> filter.canPersist()
@@ -86,6 +89,7 @@ private fun RouteDescriptor.canPersist(): Boolean = when (this) {
     RouteDescriptor.GeneratorHistory,
     RouteDescriptor.EmailRelayList,
     RouteDescriptor.WordlistList,
+    RouteDescriptor.Environments,
     RouteDescriptor.GpgTools,
     RouteDescriptor.Settings,
     RouteDescriptor.Feedback,

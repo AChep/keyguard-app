@@ -7,6 +7,10 @@ import com.artemchep.keyguard.common.model.PasswordStrength
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
+import com.artemchep.keyguard.feature.environments.EnvironmentPayload
+import com.artemchep.keyguard.feature.environments.editableDefinition
+import com.artemchep.keyguard.feature.environments.runnableDefinition
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,6 +20,17 @@ import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
 
 class CipherMappingTest {
+    @Test
+    fun `an environment with nothing stored is an empty environment that can be edited`() {
+        val payload = BitwardenCipher.Environment().toDomain()
+        assertEquals(EnvironmentDefinition(), payload.editableDefinition())
+        assertEquals(EnvironmentDefinition(), payload.runnableDefinition())
+
+        // A document this version does not read stays read-only.
+        val document = """{"version":2}"""
+        assertEquals(EnvironmentPayload.Unsupported(document), BitwardenCipher.Environment(document).toDomain())
+    }
+
     @Test
     fun `cipher links map as canonical distinct domain links`() = runTest {
         val cipher = BitwardenCipher(

@@ -34,6 +34,9 @@ final class DialogsModel: SnapshotObserving {
         startObservation(\.websiteLeakSubscription, into: \.websiteLeak, observe: core.observeWebsiteLeak)
         // The account "Change color" picker.
         startObservation(\.colorPickerSubscription, into: \.colorPicker, observe: core.observeColorPicker)
+        // The environment editor's drill-down picker of a field of another item.
+        startObservation(
+            \.cipherFieldPickerSubscription, into: \.cipherFieldPicker, observe: core.observeCipherFieldPicker)
         // The collection / organization read-only "info" dialog.
         startObservation(\.infoDialogSubscription, into: \.infoDialog, observe: core.observeInfoDialog)
         startFormDialogs()
@@ -95,6 +98,8 @@ final class DialogsModel: SnapshotObserving {
 
     private(set) var cipherLinkPicker: CipherLinkPickerSnapshot?
 
+    private(set) var cipherFieldPicker: CipherFieldPickerSnapshot?
+
     @ObservationIgnored private var passwordMemorySubscription: BridgeObservation?
 
     @ObservationIgnored private var largeTypeSubscription: BridgeObservation?
@@ -124,6 +129,8 @@ final class DialogsModel: SnapshotObserving {
     @ObservationIgnored private var accountPickerSubscription: BridgeObservation?
 
     @ObservationIgnored private var cipherLinkPickerSubscription: BridgeObservation?
+
+    @ObservationIgnored private var cipherFieldPickerSubscription: BridgeObservation?
 
     /// Highlights every Large Type tile up to (and including) `index`.
     func selectLargeTypeSymbol(index: Int) {
@@ -318,6 +325,26 @@ final class DialogsModel: SnapshotObserving {
 
     func closeColorPicker() {
         core.closeColorPicker()
+    }
+
+    func setCipherFieldPickerQuery(_ text: String) {
+        core.setCipherFieldPickerQuery(text: text)
+    }
+
+    func selectCipherFieldPickerItem(id: String) {
+        core.selectCipherFieldPickerItem(id: id)
+    }
+
+    func selectCipherFieldPickerField(id: String) {
+        core.selectCipherFieldPickerField(id: id)
+    }
+
+    func backCipherFieldPicker() {
+        core.backCipherFieldPicker()
+    }
+
+    func closeCipherFieldPicker() {
+        core.closeCipherFieldPicker()
     }
 
     func closeInfoDialog() {

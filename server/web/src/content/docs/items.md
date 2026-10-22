@@ -8,9 +8,8 @@ platforms: all
 related: [totp, generator, item-extras]
 ---
 
-An item is one entry in your vault, such as a login or a payment card. Each
-item has a type, the built-in fields of that type, and optional custom fields,
-tags and attachments.
+An item is an entry in your vault, such as a login or payment card. It has a
+type, built-in fields, and optional custom fields, tags and attachments.
 
 ## Item types
 
@@ -22,6 +21,7 @@ tags and attachments.
 | **Note** | Free-form secure text |
 | **SSH Key** | A key pair for the [SSH agent](/docs/ssh-agent/) |
 | **GPG Key** | An OpenPGP key. See [GPG keys](/docs/gpg-keys/). |
+| **Environment** | Variables for local tools. See [Environments](/docs/environments/). |
 
 ## Custom fields
 

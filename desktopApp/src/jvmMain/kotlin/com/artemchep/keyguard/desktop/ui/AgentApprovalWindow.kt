@@ -11,6 +11,9 @@ import androidx.compose.ui.window.ApplicationScope
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCenter
 import com.artemchep.keyguard.common.service.agent.AgentPrompt
+import com.artemchep.keyguard.common.service.cli.CliService
+import com.artemchep.keyguard.common.service.environment.EnvironmentAccess
+import com.artemchep.keyguard.common.service.environment.EnvironmentRepository
 import com.artemchep.keyguard.feature.agent.rememberAgentRequestUiState
 import com.artemchep.keyguard.feature.gpgagent.GpgAgentApprovalContent
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -18,6 +21,7 @@ import com.artemchep.keyguard.feature.sshagent.SshAgentApprovalContent
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.agent_title
+import com.artemchep.keyguard.res.environments_approval_title
 import com.artemchep.keyguard.res.gpg_client_request
 import com.artemchep.keyguard.res.protocol_gpg
 import com.artemchep.keyguard.res.protocol_ssh
@@ -33,6 +37,9 @@ import org.jetbrains.compose.resources.stringResource
 internal fun ApplicationScope.AgentApprovalWindow(
     processLifecycleProvider: LePlatformLifecycleProvider,
     center: AgentApprovalCenter,
+    environmentRepository: EnvironmentRepository,
+    environmentAccess: EnvironmentAccess,
+    cli: CliService,
 ) {
     val requestUiState = rememberAgentRequestUiState(
         pending = center.pending,
@@ -48,7 +55,8 @@ internal fun ApplicationScope.AgentApprovalWindow(
     SideEffect {
         if (shown != null) lastShown = shown
     }
-    val chrome = agentPromptChrome(shown ?: lastShown)
+    // A pause always follows a shown prompt, so there is always one to name.
+    val chrome = agentPromptChrome(shown ?: lastShown ?: return)
     AgentRequestWindow(
         processLifecycleProvider = processLifecycleProvider,
         requestUiState = requestUiState,
@@ -66,6 +74,19 @@ internal fun ApplicationScope.AgentApprovalWindow(
                 request = prompt.request,
                 onDecision = onDecision,
             )
+
+            is AgentPrompt.Environment -> EnvironmentApprovalPrompt(
+                repository = environmentRepository,
+                access = environmentAccess,
+                request = prompt.request,
+                onDecision = onDecision,
+            )
+
+            is AgentPrompt.Cli -> CliApprovalPrompt(
+                service = cli,
+                request = prompt.request,
+                onDecision = onDecision,
+            )
         }
     }
 }
@@ -76,7 +97,7 @@ private class AgentPromptChrome(
 )
 
 @Composable
-private fun agentPromptChrome(prompt: AgentPrompt?): AgentPromptChrome = when (prompt) {
+private fun agentPromptChrome(prompt: AgentPrompt): AgentPromptChrome = when (prompt) {
     is AgentPrompt.Ssh -> AgentPromptChrome(
         title = stringResource(Res.string.agent_title, stringResource(Res.string.protocol_ssh)),
         authReason = TextHolder.Res(Res.string.ssh_client_request),
@@ -87,8 +108,10 @@ private fun agentPromptChrome(prompt: AgentPrompt?): AgentPromptChrome = when (p
         authReason = TextHolder.Res(Res.string.gpg_client_request),
     )
 
-    null -> AgentPromptChrome(
-        title = stringResource(Res.string.agent_title, stringResource(Res.string.protocol_ssh)),
-        authReason = TextHolder.Res(Res.string.ssh_client_request),
+    is AgentPrompt.Cli,
+    is AgentPrompt.Environment,
+    -> AgentPromptChrome(
+        title = stringResource(Res.string.environments_approval_title),
+        authReason = TextHolder.Res(Res.string.environments_approval_title),
     )
 }

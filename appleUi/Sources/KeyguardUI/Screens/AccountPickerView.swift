@@ -37,6 +37,13 @@ struct AccountPickerView: View {
                         .listRowBackground(Color.clear)
                 }
             }
+            ForEach(snapshot.warnings, id: \.self) { warning in
+                Section {
+                    LeakNote(kind: .warning, text: warning)
+                        .listRowInsets(EdgeInsets())
+                        .listRowBackground(Color.clear)
+                }
+            }
             ForEach(Array(snapshot.sections.enumerated()), id: \.offset) { _, section in
                 Section(section.title ?? "") {
                     ForEach(section.items, id: \.key) { item in

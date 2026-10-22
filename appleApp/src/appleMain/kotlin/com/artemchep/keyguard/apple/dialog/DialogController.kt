@@ -2,8 +2,13 @@ package com.artemchep.keyguard.apple.dialog
 
 import com.artemchep.keyguard.apple.core.sessionKoin
 import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerRoute
+import com.artemchep.keyguard.feature.home.vault.link.field.CipherFieldPickerResult
+import com.artemchep.keyguard.feature.home.vault.link.field.CipherFieldPickerRoute
+import com.artemchep.keyguard.feature.home.vault.link.field.CipherFieldPickerState
+import com.artemchep.keyguard.feature.home.vault.link.field.cipherFieldPickerStateProducer
 import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerResult
 import com.artemchep.keyguard.feature.home.vault.link.cipherLinkPickerStateProducer
+import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
 
 import com.artemchep.keyguard.feature.confirmation.folder.FolderConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.folder.FolderConfirmationResult
@@ -324,6 +329,16 @@ internal class DialogController(
     private val cipherLinkPickerDialog =
         DialogHost<CipherLinkPickerSnapshot, CipherLinkPickerHandlers>(CipherLinkPickerHandlers())
 
+    private data class CipherFieldPickerHandlers(
+        val onQuery: ((String) -> Unit)? = null,
+        val onSelectItem: Map<String, () -> Unit> = emptyMap(),
+        val onSelectField: Map<String, () -> Unit> = emptyMap(),
+        val onBack: (() -> Unit)? = null,
+    )
+
+    private val cipherFieldPickerDialog =
+        DialogHost<CipherFieldPickerSnapshot, CipherFieldPickerHandlers>(CipherFieldPickerHandlers())
+
     // Confirmation FILE items: each producer FilePickerIntent becomes an AddFilePickerRequest (the create-form
     // type, so Swift reuses its file panel) and waits here, keyed by request id, until Swift resolves or cancels it.
     private var onConfirmationFilePickerRequest: ((AddFilePickerRequest) -> Unit)? = null
@@ -357,10 +372,12 @@ internal class DialogController(
         val elevatedAccess = intent.resultRouteOrNull<ElevatedAccessRoute, ElevatedAccessResult>()?.second
         val colorPicker = intent.resultRouteOrNull<ColorPickerRoute, ColorPickerResult>()
         val cipherLinkPicker = intent.resultRouteOrNull<CipherLinkPickerRoute, CipherLinkPickerResult>()
+        val cipherFieldPicker = intent.resultRouteOrNull<CipherFieldPickerRoute, CipherFieldPickerResult>()
         val accountPicker = intent.resultRouteOrNull<OrganizationConfirmationRoute, OrganizationConfirmationResult>()
         val folderPicker = intent.resultRouteOrNull<FolderConfirmationRoute, FolderConfirmationResult>()
         val hasConfirmation = confirmation != null || tagsConfirmation != null
-        val hasPicker = cipherLinkPicker != null || accountPicker != null || folderPicker != null
+        val hasPicker = cipherLinkPicker != null || cipherFieldPicker != null ||
+            accountPicker != null || folderPicker != null
         if (formDialogsOnly && !hasConfirmation && !hasPicker) return@interceptor false
         // The producers dispatch their navigation intents from the background
         // pipeline, while the dialog state (the present* job + handler fields)
@@ -373,6 +390,12 @@ internal class DialogController(
             cipherLinkPicker != null && sessionKoin != null -> {
                 ctx.scope.launch {
                     presentCipherLinkPicker(cipherLinkPicker.first.args, cipherLinkPicker.second, sessionKoin)
+                }
+                true
+            }
+            cipherFieldPicker != null && sessionKoin != null -> {
+                ctx.scope.launch {
+                    presentCipherFieldPicker(cipherFieldPicker.first.args, cipherFieldPicker.second, sessionKoin)
                 }
                 true
             }
@@ -1357,13 +1380,7 @@ internal class DialogController(
                         CipherLinkPickerSnapshot(
                             query = state.query.text,
                             queryRevision = state.query.textRevision,
-                            items = state.items.map {
-                                CipherLinkPickerItemSnapshot(
-                                    id = it.presentation.source.id,
-                                    title = it.presentation.title.text,
-                                    text = it.presentation.text,
-                                )
-                            },
+                            items = state.items.map { it.presentation.toCipherLinkPickerItemSnapshot() },
                         ),
                         CipherLinkPickerHandlers(state.query.onChange, handlers),
                     )
@@ -1381,6 +1398,95 @@ internal class DialogController(
 
     fun closeCipherLinkPicker() {
         cipherLinkPickerDialog.close()
+    }
+
+    fun observeCipherFieldPicker(
+        onChange: (CipherFieldPickerSnapshot?) -> Unit,
+    ): KeyguardCancellable = cipherFieldPickerDialog.register(onChange)
+
+    private fun presentCipherFieldPicker(
+        args: CipherFieldPickerRoute.Args,
+        transmitter: RouteResultTransmitter<CipherFieldPickerResult>,
+        sessionKoin: Scope,
+    ) {
+        cipherFieldPickerDialog.present { publish ->
+            val interceptor = cipherFieldPickerDialog.closeOnPop()
+            ctx.koin.newHeadlessStateFlowScope("cipher_field_picker", this, interceptor)
+                .cipherFieldPickerStateProducer(
+                    args = args,
+                    transmitter = transmitter,
+                    getCiphers = sessionKoin.get(),
+                    getCollections = sessionKoin.get(),
+                    getAppIcons = sessionKoin.get(),
+                    getWebsiteIcons = sessionKoin.get(),
+                )
+                .collect { state ->
+                    publish(
+                        state.toCipherFieldPickerSnapshot(),
+                        state.toCipherFieldPickerHandlers(),
+                    )
+                }
+        }
+    }
+
+    private fun CipherFieldPickerState.toCipherFieldPickerSnapshot(): CipherFieldPickerSnapshot {
+        val fieldsStep = step as? CipherFieldPickerState.Step.Fields
+        val itemsStep = step as? CipherFieldPickerState.Step.Items
+        return CipherFieldPickerSnapshot(
+            query = query.text,
+            queryRevision = query.textRevision,
+            item = fieldsStep?.item?.toCipherLinkPickerItemSnapshot(),
+            items = itemsStep?.items.orEmpty().map { it.presentation.toCipherLinkPickerItemSnapshot() },
+            fields = fieldsStep?.fields.orEmpty().map { field ->
+                CipherFieldPickerFieldSnapshot(
+                    id = field.id,
+                    title = field.title,
+                    text = field.text,
+                    password = field.kind == CipherFieldPickerState.Field.Kind.Password,
+                    enabled = field.onClick != null,
+                )
+            },
+        )
+    }
+
+    private fun VaultItemPresentation.toCipherLinkPickerItemSnapshot() = CipherLinkPickerItemSnapshot(
+        id = source.id,
+        title = title.text,
+        text = text,
+    )
+
+    private fun CipherFieldPickerState.toCipherFieldPickerHandlers(): CipherFieldPickerHandlers {
+        val fieldsStep = step as? CipherFieldPickerState.Step.Fields
+        val itemsStep = step as? CipherFieldPickerState.Step.Items
+        return CipherFieldPickerHandlers(
+            onQuery = query.onChange,
+            onSelectItem = itemsStep?.items.orEmpty()
+                .associate { it.presentation.source.id to it.onClick },
+            onSelectField = fieldsStep?.fields.orEmpty()
+                .mapNotNull { field -> field.onClick?.let { field.id to it } }
+                .toMap(),
+            onBack = onBack,
+        )
+    }
+
+    fun setCipherFieldPickerQuery(text: String) {
+        cipherFieldPickerDialog.handlers.onQuery?.invoke(text)
+    }
+
+    fun selectCipherFieldPickerItem(id: String) {
+        cipherFieldPickerDialog.handlers.onSelectItem[id]?.invoke()
+    }
+
+    fun selectCipherFieldPickerField(id: String) {
+        cipherFieldPickerDialog.handlers.onSelectField[id]?.invoke()
+    }
+
+    fun backCipherFieldPicker() {
+        cipherFieldPickerDialog.handlers.onBack?.invoke()
+    }
+
+    fun closeCipherFieldPicker() {
+        cipherFieldPickerDialog.close()
     }
 
     fun observeAccountPicker(
@@ -1413,6 +1519,7 @@ internal class DialogController(
                         AccountPickerSnapshot(
                             title = title,
                             note = args.decor.note?.text,
+                            warnings = state.warnings.map { it.note.text },
                             newFolderName = content.folderNew?.text,
                             newFolderNameRevision = content.folderNew?.textRevision ?: 0,
                             newFolderNameError = content.folderNew?.error,

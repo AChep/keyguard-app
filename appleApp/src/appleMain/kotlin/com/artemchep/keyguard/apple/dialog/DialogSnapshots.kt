@@ -319,6 +319,7 @@ data class AccountPickerSnapshot(
     val title: String,
     /** An informational note above the sections, e.g. why some accounts are missing. */
     val note: String? = null,
+    val warnings: List<String> = emptyList(),
     val sections: List<AccountPickerSectionSnapshot>,
     val confirmEnabled: Boolean,
 )
@@ -367,6 +368,28 @@ data class CipherLinkPickerItemSnapshot(
     val id: String,
     val title: String,
     val text: String?,
+)
+
+/**
+ * A drill-down picker of a field of another item: the items first, then the
+ * fields of the [item] the user opened. Values are never part of it.
+ */
+data class CipherFieldPickerSnapshot(
+    val query: String,
+    val queryRevision: Int,
+    /** The opened item, `null` while the items are listed. */
+    val item: CipherLinkPickerItemSnapshot?,
+    val items: List<CipherLinkPickerItemSnapshot>,
+    val fields: List<CipherFieldPickerFieldSnapshot>,
+)
+
+data class CipherFieldPickerFieldSnapshot(
+    val id: String,
+    val title: String,
+    val text: String,
+    val password: Boolean,
+    /** `false` if the field can not be referenced, for example a duplicate name. */
+    val enabled: Boolean,
 )
 
 /** User-entered attempt only; the expected password stays inside the shared producer. */

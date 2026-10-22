@@ -3,8 +3,8 @@ import AppKit
 import Observation
 import SwiftUI
 
-/// Owns the lifecycle of one agent approval panel. Lives for the whole process
-/// so approval prompts surface as a
+/// Owns the lifecycle of one approval panel: the SSH agent's, the GPG agent's,
+/// Environments' or the command-line tool's. Lives for the whole process so approval prompts surface as a
 /// floating window regardless of whether the main window is open — including
 /// menu-bar-only mode.
 ///

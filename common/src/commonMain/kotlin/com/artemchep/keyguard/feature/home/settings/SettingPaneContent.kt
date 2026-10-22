@@ -80,6 +80,18 @@ import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserve
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverRefreshIntervalProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverSearchProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverUrlProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsCreateProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsListProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpSetupProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpSettingsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMountsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCliApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCliProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCliSettingsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCliSetupProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGravatarProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingHibpApiTokenProvider
@@ -237,6 +249,18 @@ object Setting {
     const val SSH_AGENT_SETUP = "ssh_agent_setup"
     const val SSH_AGENT_FILTERS = "ssh_agent_filters"
     const val SSH_AGENT_HISTORY = "ssh_agent_history"
+    const val CLI_SETTINGS = "cli_settings"
+    const val CLI = "cli"
+    const val CLI_APPROVAL_WINDOW = "cli_approval_window"
+    const val CLI_SETUP = "cli_setup"
+    const val ENVIRONMENTS = "environments"
+    const val ENVIRONMENTS_MCP_SETTINGS = "environments_mcp_settings"
+    const val ENVIRONMENTS_MCP_APPROVAL_WINDOW = "environments_mcp_approval_window"
+    const val ENVIRONMENTS_MCP = "environments_mcp"
+    const val ENVIRONMENTS_MCP_SETUP = "environments_mcp_setup"
+    const val ENVIRONMENTS_LIST = "environments_list"
+    const val ENVIRONMENTS_CREATE = "environments_create"
+    const val ENVIRONMENTS_MOUNTS = "environments_mounts"
     const val GPG_SETTINGS = "gpg_settings"
     const val GPG_AGENT = "gpg_agent"
     const val GPG_AGENT_APPROVAL_WINDOW = "gpg_agent_approval_window"
@@ -370,6 +394,18 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.SSH_AGENT_SETUP to ::settingSshAgentSetupProvider,
     Setting.SSH_AGENT_FILTERS to ::settingSshAgentFiltersProvider,
     Setting.SSH_AGENT_HISTORY to ::settingSshAgentHistoryProvider,
+    Setting.CLI_SETTINGS to ::settingCliSettingsProvider,
+    Setting.CLI to ::settingCliProvider,
+    Setting.CLI_APPROVAL_WINDOW to ::settingCliApprovalWindowProvider,
+    Setting.CLI_SETUP to ::settingCliSetupProvider,
+    Setting.ENVIRONMENTS to ::settingEnvironmentsProvider,
+    Setting.ENVIRONMENTS_MCP_SETTINGS to ::settingEnvironmentsMcpSettingsProvider,
+    Setting.ENVIRONMENTS_MCP_APPROVAL_WINDOW to ::settingEnvironmentsMcpApprovalWindowProvider,
+    Setting.ENVIRONMENTS_MCP to ::settingEnvironmentsMcpProvider,
+    Setting.ENVIRONMENTS_MCP_SETUP to ::settingEnvironmentsMcpSetupProvider,
+    Setting.ENVIRONMENTS_LIST to ::settingEnvironmentsListProvider,
+    Setting.ENVIRONMENTS_CREATE to ::settingEnvironmentsCreateProvider,
+    Setting.ENVIRONMENTS_MOUNTS to ::settingEnvironmentsMountsProvider,
     Setting.GPG_SETTINGS to ::settingGpgSettingsProvider,
     Setting.GPG_AGENT to ::settingGpgAgentProvider,
     Setting.GPG_AGENT_APPROVAL_WINDOW to ::settingGpgAgentApprovalWindowProvider,

@@ -81,6 +81,17 @@ enum class CxfExportSkipReason {
     PasswordHistory,
 
     /**
+     * An environment containing item references. Their provider ids cannot be
+     * remapped to imported items, so the whole environment is withheld rather
+     * than transferred with broken references or only some of its content.
+     *
+     * Counted once per environment that would contribute a requested
+     * credential. Deleted and fully filtered items stay silent; archived
+     * environments are counted under [Archived] instead.
+     */
+    EnvironmentReference,
+
+    /**
      * An archived item, withheld on purpose.
      *
      * The only reason here that is a *policy* choice rather than a
@@ -102,6 +113,8 @@ enum class CxfExportSkipReason {
     /**
      * A vault item that yielded nothing this format can carry, and whose loss no
      * reason above already explains — an item whose every payload is empty, say.
+     * Also includes an opaque Environment item that cannot be carried atomically:
+     * exporting only some of its raw transport fields would damage the payload.
      *
      * Representability is decided against
      * [CxfCredentialType.ALL][com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType.ALL],

@@ -7,10 +7,10 @@ import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.pref_item_agent_status_failed
-import com.artemchep.keyguard.res.pref_item_agent_status_ready
-import com.artemchep.keyguard.res.pref_item_agent_status_starting
 import com.artemchep.keyguard.res.pref_item_agent_status_stopped
 import com.artemchep.keyguard.res.pref_item_agent_status_unsupported
+import com.artemchep.keyguard.res.status_ready
+import com.artemchep.keyguard.res.status_starting
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.info
@@ -35,8 +35,8 @@ internal fun AgentStatusText(
         when (status) {
             AgentStatus.Unsupported -> Res.string.pref_item_agent_status_unsupported
             AgentStatus.Stopped -> Res.string.pref_item_agent_status_stopped
-            AgentStatus.Starting -> Res.string.pref_item_agent_status_starting
-            AgentStatus.Ready -> Res.string.pref_item_agent_status_ready
+            AgentStatus.Starting -> Res.string.status_starting
+            AgentStatus.Ready -> Res.string.status_ready
             AgentStatus.Failed -> Res.string.pref_item_agent_status_failed
         },
     )

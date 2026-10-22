@@ -14,6 +14,9 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.similarity.SimilarityService
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
+import com.artemchep.keyguard.feature.environments.EnvironmentPayload
+import com.artemchep.keyguard.feature.environments.EnvironmentResolver
+import com.artemchep.keyguard.feature.environments.EnvironmentValueSource
 import com.artemchep.keyguard.platform.LeSystem
 import com.artemchep.keyguard.platform.util.isRelease
 import kotlin.math.absoluteValue
@@ -82,6 +85,7 @@ class CipherDuplicatesCheckImpl(
         val source: DSecret,
         val processed: DSecret,
         val uris: List<ProcessedUri>,
+        val environmentSources: Map<String, EnvironmentValueSource>?,
     )
 
     data class ProcessedUri(
@@ -232,6 +236,18 @@ class CipherDuplicatesCheckImpl(
         b: ProcessedSecret,
         result: FuzzyComparisonAccumulator,
     ) {
+        if (a.processed.type == DSecret.Type.Environment) {
+            EnvironmentDuplicateComparison.compare(a, b) { x, y ->
+                compareStringsFuzzy(
+                    a = x,
+                    b = y,
+                    strategy = ComparisonStrategy.Fuzzy.TH,
+                    ifOneEmpty = -1f,
+                    ifBothEmpty = 0f,
+                )
+            }?.let { result.add(it, type = "environment") }
+            return
+        }
         // GPG key
         if (
             a.processed.gpgKey != null &&
@@ -681,6 +697,7 @@ class CipherDuplicatesCheckImpl(
                     domain = uri.uri.substringAfter('.'),
                 )
             },
+            environmentSources = EnvironmentDuplicateComparison.process(cipher.environment),
         )
     }
 
@@ -777,4 +794,52 @@ class CipherDuplicatesCheckImpl(
         .filter { it !in ignoredWords }
         .joinToString(separator = "")
         .replace(REGEX_SYMBOLS, "")
+}
+
+private object EnvironmentDuplicateComparison {
+    private const val CONTENT_WEIGHT = 0.85f
+    private const val NAME_WEIGHT = 0.1f
+    private const val NOTES_WEIGHT = 0.05f
+    private const val CONFLICT_SCORE = -2
+
+    fun process(payload: EnvironmentPayload?): Map<String, EnvironmentValueSource>? =
+        (payload as? EnvironmentPayload.Decoded)?.definition
+            ?.takeIf { it.variables.isNotEmpty() && EnvironmentResolver.validate(it).isEmpty() }
+            ?.variables
+            ?.associate { it.name to it.source }
+
+    fun compare(
+        a: CipherDuplicatesCheckImpl.ProcessedSecret,
+        b: CipherDuplicatesCheckImpl.ProcessedSecret,
+        compareMetadata: (String, String) -> Float,
+    ): Float? {
+        val aSources = a.environmentSources
+        val bSources = b.environmentSources
+        if (aSources == null || bSources == null) return null
+        var sum = 0
+        var count = aSources.size
+        for ((name, aSource) in aSources) {
+            val bSource = bSources[name]
+            // A reference takes its account context from the environment.
+            val sameAccount = aSource !is EnvironmentValueSource.Reference ||
+                a.source.accountId == b.source.accountId
+            sum += when {
+                bSource == null -> -1
+                aSource == bSource && sameAccount -> 1
+                else -> CONFLICT_SCORE
+            }
+        }
+        for (name in bSources.keys) {
+            if (name !in aSources) {
+                sum -= 1
+                count += 1
+            }
+        }
+        // Normalize by the union of names so large environments do not outweigh
+        // conflicts. A changed source is stronger evidence than a missing variable.
+        val contentScore = (sum.toFloat() / count).coerceIn(-1f, 1f)
+        val nameScore = compareMetadata(a.processed.name, b.processed.name)
+        val notesScore = compareMetadata(a.processed.notes, b.processed.notes)
+        return CONTENT_WEIGHT * contentScore + NAME_WEIGHT * nameScore + NOTES_WEIGHT * notesScore
+    }
 }

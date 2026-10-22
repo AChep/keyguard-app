@@ -1,5 +1,10 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import com.artemchep.keyguard.common.service.environment.checkEnvironmentOperation
+import com.artemchep.keyguard.feature.environments.EnvironmentFormat
+import com.artemchep.keyguard.feature.environments.EnvironmentResolver
+import com.artemchep.keyguard.feature.environments.editableDefinition
+import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenEnvironmentFieldCodec
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -37,6 +42,7 @@ import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
+import kotlinx.coroutines.currentCoroutineContext
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -62,7 +68,8 @@ class AddCipherImpl(
     override fun invoke(
         cipherIdsToRequests: Map<String?, CreateRequest>,
     ): IO<List<String>> = ioEffect {
-        cipherIdsToRequests
+        val requestContext = currentCoroutineContext()
+        val requests = cipherIdsToRequests
             .mapValues { (key, request) ->
                 val value = request.ownership2!!
                 val folderId = when (val folder = value.folder) {
@@ -93,8 +100,12 @@ class AddCipherImpl(
                 )
                 request.copy(ownership = own)
             }
-    }.flatMap { map ->
+        requestContext to requests
+    }.flatMap { (requestContext, map) ->
         modifyDatabase { database ->
+            // Revalidate after waiting for the vault database mutex. Disabling an
+            // integration revokes its authority without canceling ordinary writes.
+            requestContext.checkEnvironmentOperation()
             val dao = database.cipherQueries
             val now = Clock.System.now()
             val oldCiphersMap = map
@@ -141,6 +152,9 @@ class AddCipherImpl(
                 createdPendingUploads = createdPendingUploads,
                 removedPendingUploads = removedPendingUploads,
             ) {
+                // Preparing uploads may suspend after the database lock. Check the
+                // original caller again at the last boundary before persistence.
+                requestContext.checkEnvironmentOperation()
                 dao.transaction {
                     models.forEach { prepared ->
                         val cipher = prepared.cipher
@@ -373,10 +387,24 @@ private suspend fun BitwardenCipher.Companion.of(
         DSecret.Type.Identity -> BitwardenCipher.Type.Identity
         DSecret.Type.SshKey -> BitwardenCipher.Type.SshKey
         DSecret.Type.GpgKey -> BitwardenCipher.Type.GpgKey
+        DSecret.Type.Environment -> BitwardenCipher.Type.Environment
         null,
         DSecret.Type.None,
         -> error("Cipher must have a type!")
     }
+
+    if (old?.type == BitwardenCipher.Type.Environment) {
+        require(old.environment?.toDomain().editableDefinition() != null) {
+            "Unsupported environments cannot be edited"
+        }
+    }
+    val environment = if (type == BitwardenCipher.Type.Environment) {
+        val definition = requireNotNull(request.environment) { "Environment definition is required" }
+        require(EnvironmentResolver.fitsLimits(definition) && EnvironmentResolver.validate(definition).isEmpty()) {
+            "Invalid environment definition"
+        }
+        BitwardenCipher.Environment(document = EnvironmentFormat.encode(definition))
+    } else null
 
     var login: BitwardenCipher.Login? = null
     var secureNote: BitwardenCipher.SecureNote? = null
@@ -396,7 +424,9 @@ private suspend fun BitwardenCipher.Companion.of(
             )
         }
 
-        BitwardenCipher.Type.SecureNote -> {
+        BitwardenCipher.Type.SecureNote,
+        BitwardenCipher.Type.Environment,
+        -> {
             secureNote = BitwardenCipher.SecureNote.of(
                 request = request,
             )
@@ -705,13 +735,22 @@ private suspend fun BitwardenCipher.Companion.of(
         identity = identity,
         sshKey = sshKey,
         gpgKey = gpgKey,
+        environment = environment,
         // other
         passwordHistory = passwordHistory,
     )
-    return cipher.copy(
+    val decodedEnvironment = if (cipher.type == BitwardenCipher.Type.SecureNote) {
+        BitwardenEnvironmentFieldCodec.decode(cipher.fields)
+    } else null
+    val finalCipher = if (decodedEnvironment != null) cipher.copy(
+        type = BitwardenCipher.Type.Environment,
+        environment = decodedEnvironment.environment,
+        fields = decodedEnvironment.remainingFields,
+    ) else cipher
+    return finalCipher.copy(
         sourceData = CipherSourceDataReconciler.onEdit(
             old = old,
-            new = cipher,
+            new = finalCipher,
         ),
     )
 }

@@ -719,7 +719,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                 DSecret.Type.GpgKey -> flowOf(noteHolder.items + gpgKeyHolder.items)
 
                 DSecret.Type.SshKey -> flowOf(sshKeyHolder.items)
-                DSecret.Type.None -> flowOf(emptyList())
+                DSecret.Type.None, DSecret.Type.Environment -> flowOf(emptyList())
             }
         }
     val noteItem = AddStateItem.Note(
@@ -959,7 +959,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                                 booleanType,
                             )
 
-                            DSecret.Type.None, -> emptyList()
+                            DSecret.Type.None, DSecret.Type.Environment -> emptyList()
                         }
                     },
             )
@@ -1211,7 +1211,10 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     }.combine(gpgKeyHolder.saveEnabled) { state, saveEnabled ->
         state.map { value ->
             value.copy(
-                onSave = value.onSave.takeIf { saveEnabled },
+                onSave = value.onSave.takeIf {
+                    saveEnabled && args.initialValue?.type?.hasGenericEditor() != false &&
+                        args.type?.hasGenericEditor() != false
+                },
             )
         }
     }.combine(attachmentsFileDragFlow) { state, fileDrag ->

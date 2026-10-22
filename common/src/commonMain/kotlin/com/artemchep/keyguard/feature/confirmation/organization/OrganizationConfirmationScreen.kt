@@ -70,6 +70,10 @@ private fun OrganizationConfirmationScreen(
                     )
                 }
 
+                state.warnings.forEach { warning ->
+                    FlatSimpleNote(note = warning.note)
+                }
+
                 val accountsOrNull = state.content.getOrNull()?.accounts
                 FolderSection(
                     title = stringResource(Res.string.accounts),

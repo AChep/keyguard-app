@@ -42,6 +42,8 @@ fun RouteDescriptor.toDeepLink(): String? {
         is RouteDescriptor.SendList,
         is RouteDescriptor.Generator,
         is RouteDescriptor.Watchtower,
+        RouteDescriptor.Environments,
+        is RouteDescriptor.EnvironmentEdit,
         RouteDescriptor.GpgTools,
         RouteDescriptor.Settings,
         is RouteDescriptor.Folders,

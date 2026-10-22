@@ -308,7 +308,7 @@ class NativeBundleTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             names = [verify.library_filename(name, "macos") for name in verify.DESKTOP_MODULES]
-            names += ["keyguard-lib", "keyguard-ssh-agent", "keyguard-gpg-agent"]
+            names += ["keyguard-lib", "keyguard-ssh-agent", "keyguard-gpg-agent", "keyguard-cli-agent", "keyguard"]
             for name in names:
                 (root / name).write_bytes(macho())
                 (root / name).chmod(0o755)
@@ -334,7 +334,7 @@ class NativeBundleTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             names = [verify.library_filename(name, "windows") for name in verify.WINDOWS_DESKTOP_MODULES]
-            names += ["keyguard-lib.dll", "keyguard-ssh-agent.exe", "keyguard-gpg-agent.exe"]
+            names += ["keyguard-lib.dll", "keyguard-ssh-agent.exe", "keyguard-gpg-agent.exe", "keyguard-cli-agent.exe", "keyguard.exe"]
             for name in names:
                 (root / name).write_bytes(b"MZ")
 

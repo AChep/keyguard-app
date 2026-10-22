@@ -10,7 +10,6 @@ extension AgentApprovalPanelController {
         sshAgentModel.startSshAgentObservation()
         return AgentApprovalPanelController(model: model, requests: { sshAgentModel.sshAgentRequests }) {
             SshAgentApprovalView(request: $0)
-                .agentApprovalCard()
         }
     }
 }

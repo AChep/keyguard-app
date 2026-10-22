@@ -24,6 +24,7 @@ export const FEATURE_VISUALS: Record<string, FeatureVisual> = {
   'data-export': { icon: 'upload', chip: 'bg-lime-500/15', ink: 'text-lime-600 dark:text-lime-400' },
   'credential-exchange': { icon: 'download', chip: 'bg-fuchsia-500/15', ink: 'text-fuchsia-600 dark:text-fuchsia-400' },
   'automatic-backup': { icon: 'database', chip: 'bg-rose-500/15', ink: 'text-rose-600 dark:text-rose-400' },
+  environments: { icon: 'braces', chip: 'bg-zinc-500/15', ink: 'text-zinc-600 dark:text-zinc-400' },
 };
 
 export const DEFAULT_VISUAL: FeatureVisual = {

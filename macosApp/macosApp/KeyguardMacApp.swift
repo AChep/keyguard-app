@@ -33,6 +33,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         approvals = [
             .sshAgent(model: model),
             .gpgAgent(model: model),
+            .environments(model: model),
+            .cli(model: model),
         ]
     }
 }

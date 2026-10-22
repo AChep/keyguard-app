@@ -33,6 +33,8 @@ public final class AppViewModel {
     let watchtower: WatchtowerModel
     let emailRelay: EmailRelayModel
     let wordlists: WordlistsModel
+    let environmentAccess: EnvironmentAccessModel
+    let cliAccess: CliAccessModel
     let gpgAgent: GpgAgentModel
     let sshAgent: SshAgentModel
     let quickSearch: QuickSearchModel
@@ -98,6 +100,8 @@ public final class AppViewModel {
         self.emailRelay = emailRelay
         let wordlists = WordlistsModel(core: core, notifications: notifications)
         self.wordlists = wordlists
+        self.environmentAccess = EnvironmentAccessModel(core: core)
+        self.cliAccess = CliAccessModel(core: core)
         self.gpgAgent = GpgAgentModel(core: core)
         let sshAgent = SshAgentModel(core: core)
         self.sshAgent = sshAgent
@@ -143,6 +147,7 @@ public final class AppViewModel {
         // extension constructs its own KeyguardCore and must never spawn the agent.
         core.startSshAgentApplier()
         core.startGpgAgentApplier()
+        core.startCliAgentApplier()
         // AutoFill shares KeyguardCore, so app-only workers start here.
         core.startAutomaticBackups()
         core.startWatchtower()

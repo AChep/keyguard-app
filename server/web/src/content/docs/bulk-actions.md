@@ -36,7 +36,7 @@ To leave the selection, select **Clear selection**.
 
 The merged item combines the URLs, custom fields, tags and passkeys of all
 selected items. Every other field takes its most common value. Attachments
-aren't merged: they stay on the original items.
+aren't merged: they stay on the original items. Environments can't be merged.
 
 Watchtower's **Duplicate Items** list groups likely duplicates, so you can
 select and merge them there. See [Watchtower](/docs/watchtower/).
@@ -64,3 +64,10 @@ The selection bar shows only the actions that fit the selected items.
 
 With one item selected, the bar also offers **Edit** and, for a login with
 earlier passwords, **View password history**.
+
+Copying to another account removes links to other items from the copies.
+Environment variables that reference other items become unset; their names are kept.
+Keyguard warns you before copying. Environments in an unsupported format cannot
+be copied to another account because their references cannot be checked.
+Copies within the same account keep links and environment references.
+The original items stay unchanged.

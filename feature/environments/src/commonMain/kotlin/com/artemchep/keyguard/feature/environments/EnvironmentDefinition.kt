@@ -147,6 +147,9 @@ internal fun isCanonicalUuid(value: String): Boolean = try {
 
 /** The environment of an item, as this version reads it. */
 sealed interface EnvironmentPayload {
+    /** The `EnvironmentFormat` document, written back as it is unless the user edits it. */
+    val document: String
+
     /**
      * A document this version can read. The [document] is written back as it is,
      * unless the user edits the [definition].
@@ -156,19 +159,15 @@ sealed interface EnvironmentPayload {
      */
     data class Decoded(
         val definition: EnvironmentDefinition,
-        val document: String,
+        override val document: String,
         val lossless: Boolean,
     ) : EnvironmentPayload {
         override fun toString(): String = "Decoded([redacted])"
     }
 
-    /**
-     * Data this version can not read, kept verbatim: a [document] of an unknown
-     * version, or else the transport [fields] that do not form a document.
-     */
+    /** A [document] this version can not read, such as one of an unknown version, kept verbatim. */
     data class Unsupported(
-        val fields: List<EnvironmentTransportField>,
-        val document: String? = null,
+        override val document: String,
     ) : EnvironmentPayload {
         override fun toString(): String = "Unsupported([redacted])"
     }
@@ -207,13 +206,4 @@ fun EnvironmentPayload?.withoutReferences(): EnvironmentPayload.Decoded? {
             EnvironmentPayload.Decoded(definition, EnvironmentFormat.encode(definition), lossless = true)
         }
     }
-}
-
-data class EnvironmentTransportField(
-    val name: String?,
-    val value: String?,
-    val type: String,
-    val linkedId: String? = null,
-) {
-    override fun toString(): String = "EnvironmentTransportField([redacted])"
 }

@@ -16,6 +16,10 @@ final class SessionFactory {
         core.makeGeneratorHistorySession()
     }
 
+    func makeEnvironmentsModel() -> EnvironmentsModel { EnvironmentsModel(session: core.makeEnvironmentsSession()) }
+
+    func makeCliModel() -> CliModel { CliModel(session: core.makeCliSession()) }
+
     func makeGpgToolsModel() -> GpgToolsModel { GpgToolsModel(source: core.makeGpgToolsSession()) }
 
     func makeAddForm() -> AddFormModel { AddFormModel(core: core) }

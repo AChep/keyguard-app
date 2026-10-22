@@ -16,6 +16,8 @@ class GlobalModuleCommon {
             ApplicationAuthenticationModule().module,
             ApplicationGeneratorsModule().module,
             ApplicationSettingsModule().module,
+            ApplicationEnvironmentsModule().module,
+            ApplicationCliModule().module,
         )
     }
 }

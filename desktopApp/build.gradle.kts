@@ -67,6 +67,8 @@ val hostPlatform = detectHostPlatform()
 val executableAppResourceNames = setOf(
     "keyguard-ssh-agent",
     "keyguard-gpg-agent",
+    "keyguard-cli-agent",
+    "keyguard",
     "keyguard-lib",
 )
 
@@ -79,6 +81,9 @@ val bundledAppResources = bundledAppResourcesFrom(
         ":util:fido2",
         ":desktopSshAgent",
         ":desktopGpgAgent",
+        // The agent accepts only the keyguard CLI bundled next to it.
+        ":desktopCliAgent",
+        ":desktopCli",
         ":desktopLibNative",
         ":util:crypto",
         ":util:io",

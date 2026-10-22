@@ -24,7 +24,7 @@ decides the section.
 | Vault | `vault` | Items and what you do with them |
 | Autofill and passkeys | `autofill` | Autofill, passkeys, URL matching |
 | Security | `security` | Locking, Watchtower, the security model |
-| Developer tools | `developer` | SSH agent, GPG agent, GPG keys |
+| Developer tools | `developer` | SSH agent, GPG agent, GPG keys, environments, CLI |
 | Backup and transfer | `backup` | Import, export, Credential Exchange, backups |
 | Platforms | `platforms` | Platforms with a limited or separate feature set, and the support matrix |
 | Reference | `reference` | Closed list: lookups used across features (syntaxes, URL overrides, shortcuts, field conventions, settings) |
@@ -36,9 +36,6 @@ decides the section.
 - `order` steps by 10 and is unique within a section. A tutorial comes first, troubleshooting pages last. (schema)
 - A subfolder becomes a sidebar subgroup, as `bitwarden/` does. Add one only for 2 or more pages. (review)
 - At most 10 pages per section. An eleventh page means the section needs a split. (review)
-
-Planned pages: the Environments feature lands in Developer tools as `environments` (feature) and `cli` (reference,
-the CLI flags, exit codes and MCP tools).
 
 ## Frontmatter
 
@@ -111,7 +108,8 @@ Each fact lives on one page. Other pages link to it and never restate it. (revie
 | --- | --- |
 | What needs premium | `premium`, plus the `premium` frontmatter flag |
 | Which platforms support a feature | `platforms` frontmatter, rendered on Platform support |
-| Approval windows and scopes for the SSH and GPG agents | `agent-approvals` |
+| Approval windows and scopes for the SSH and GPG agents, the command line and MCP | `agent-approvals` |
+| Commands, flags, exit codes and MCP tools of the `keyguard` command-line tool | `cli` |
 | Install channels and commands | the Download page (`PLATFORMS` in `src/consts.ts`) |
 | Custom-field formats | `item-extras` |
 | Merge rules | `sync-and-conflicts` |

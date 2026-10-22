@@ -186,6 +186,10 @@ targets:
           codesign --force --options runtime $TIMESTAMP --sign "$IDENTITY" \
             --entitlements "$SRCROOT/macosApp/KeyguardGpgAgent.entitlements" "$DEST"
 
+      - name: Build and copy CLI agent and keyguard CLI
+        basedOnDependencyAnalysis: false
+        script: '"$SRCROOT/../xcode/scripts/copy-cli.sh"'
+
   # AutoFill credential-provider extension. A second sandboxed app-extension
   # linking the same KeyguardShared framework; embedded in the app above.
   KeyguardAutofill:

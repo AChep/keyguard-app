@@ -61,7 +61,7 @@ passwords also raise an alert.
 | Check | What it flags |
 | --- | --- |
 | **Duplicate Items** | Items of the same type that look like copies. **Tolerance** on the check's screen sets how alike they must be, from **Min** to **Max**. Merge a group with **Merge into…**, as in [Merge duplicates](/docs/bulk-actions/#merge-duplicates). |
-| **Incomplete Items** | Items with a blank or placeholder name, such as `login` or `todo`, and items missing key data: a login without a username, an identity without a name, or a card without a number. Items with custom fields or attachments, passkey-only logins and API-token-style items are skipped. |
+| **Incomplete Items** | Items with a blank or placeholder name, such as `login` or `todo`, and items missing key data: a login without a username, an identity without a name, a card without a number, or an environment with an unset variable or invalid data. Items with custom fields or attachments, passkey-only logins and API-token-style items are skipped. |
 | **Expiring Items** | Payment cards that have expired or expire within three months. |
 | **Unusable GPG keys** | [GPG keys](/docs/gpg-keys/) that are revoked, expired or malformed, whose fingerprint doesn't match the key, that have no usable signing or decryption key, or whose GPG agent data is missing or inconsistent. |
 | **GPG key publishing** | Keys whose keyserver status is unknown, not found, unverified, revoked or stale. Stale means not checked in 30 days. Upload, verify or refresh the key from the item. |

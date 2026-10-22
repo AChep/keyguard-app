@@ -59,6 +59,7 @@ fun CipherTypeEntity.Companion.of(
     BitwardenCipher.Type.Identity -> CipherTypeEntity.Identity
     BitwardenCipher.Type.SshKey -> CipherTypeEntity.SshKey
     BitwardenCipher.Type.GpgKey -> CipherTypeEntity.SecureNote
+    BitwardenCipher.Type.Environment -> CipherTypeEntity.SecureNote
 }
 
 fun CipherTypeEntity.Companion.of(
@@ -70,6 +71,7 @@ fun CipherTypeEntity.Companion.of(
     DSecret.Type.Identity -> CipherTypeEntity.Identity
     DSecret.Type.SshKey -> CipherTypeEntity.SshKey
     DSecret.Type.GpgKey -> CipherTypeEntity.SecureNote
+    DSecret.Type.Environment -> CipherTypeEntity.SecureNote
     DSecret.Type.None -> null
 }
 

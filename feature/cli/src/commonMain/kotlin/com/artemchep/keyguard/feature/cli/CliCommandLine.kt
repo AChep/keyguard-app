@@ -80,3 +80,7 @@ fun cliUsage(socketPath: String?): String = buildString {
     }
     append(cliCommandLine(listOf("keyguard", "--help")))
 }
+
+/** The arguments of the CLI that start its MCP server, with a socket override. */
+fun cliMcpArguments(socketPath: String?): List<String> =
+    listOf("mcp") + socketPath?.let { listOf("--socket", it) }.orEmpty()

@@ -98,6 +98,10 @@ class SettingsRepositoryImpl(
         private const val KEY_GPG_AGENT = "gpg_agent"
         private const val KEY_GPG_AGENT_APPROVAL_WINDOW = "gpg_agent.approval_window"
         private const val KEY_GPG_AGENT_APPROVAL_CACHE_POLICY = "gpg_agent.approval_cache_policy"
+        private const val KEY_ENVIRONMENTS_MCP_APPROVAL_WINDOW = "environments.mcp.approval_window"
+        private const val KEY_ENVIRONMENTS_MCP_APPROVAL_CACHE_POLICY = "environments.mcp.approval_cache_policy"
+        private const val KEY_CLI_APPROVAL_WINDOW = "cli.approval_window"
+        private const val KEY_CLI_APPROVAL_CACHE_POLICY = "cli.approval_cache_policy"
         private const val KEY_GPG_AGENT_DISPLAY_KEY_NAMES = "gpg_agent.display_key_names"
         private const val KEY_GPG_AGENT_FILTER = "gpg_agent.filters"
         private const val KEY_GPG_KEYSERVER_CONFIG = "gpg_agent.keyserver"
@@ -264,6 +268,24 @@ class SettingsRepositoryImpl(
         windowKey = KEY_GPG_AGENT_APPROVAL_WINDOW,
         cachePolicyKey = KEY_GPG_AGENT_APPROVAL_CACHE_POLICY,
         defaultWindow = defaultAgentApprovalWindow,
+    )
+
+    // An MCP client, a local .env file, or a terminal tab keeps its
+    // approvals until the vault locks. The cache policies have no setting,
+    // as these approvals are keyed by the broker's connection or by the
+    // terminal session, not by the caller's application.
+    private val environmentsMcpApproval = AgentApprovalPreferences(
+        store = store,
+        windowKey = KEY_ENVIRONMENTS_MCP_APPROVAL_WINDOW,
+        cachePolicyKey = KEY_ENVIRONMENTS_MCP_APPROVAL_CACHE_POLICY,
+        defaultWindow = Duration.INFINITE,
+    )
+
+    private val cliApproval = AgentApprovalPreferences(
+        store = store,
+        windowKey = KEY_CLI_APPROVAL_WINDOW,
+        cachePolicyKey = KEY_CLI_APPROVAL_CACHE_POLICY,
+        defaultWindow = Duration.INFINITE,
     )
 
     private val gpgAgentDisplayKeyNamesPref =
@@ -775,6 +797,24 @@ class SettingsRepositoryImpl(
 
     override fun getGpgAgentApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
         gpgAgentApproval.config
+
+    override fun setEnvironmentsMcpApprovalWindow(duration: Duration) = environmentsMcpApproval.windowPref
+        .setAndCommit(duration)
+
+    override fun getEnvironmentsMcpApprovalWindow() = environmentsMcpApproval.config
+        .approvalWindow()
+
+    override fun getEnvironmentsMcpApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
+        environmentsMcpApproval.config
+
+    override fun setCliApprovalWindow(duration: Duration) = cliApproval.windowPref
+        .setAndCommit(duration)
+
+    override fun getCliApprovalWindow() = cliApproval.config
+        .approvalWindow()
+
+    override fun getCliApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
+        cliApproval.config
 
     override fun setGpgAgentDisplayKeyNames(displayKeyNames: Boolean) = gpgAgentDisplayKeyNamesPref
         .setAndCommit(displayKeyNames)

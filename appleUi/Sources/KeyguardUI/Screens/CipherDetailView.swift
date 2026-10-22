@@ -109,6 +109,7 @@ struct CipherDetailView: View {
         case "SecureNote": return "note.text"
         case "SshKey": return "terminal"
         case "GpgKey": return "key.horizontal"
+        case "Environment": return "terminal"
         default: return "key"
         }
     }

@@ -48,6 +48,9 @@ object KeePassFieldKey {
     const val GPG_PRIVATE_KEY_ARMORED = "gpg_privateKeyArmored"
     const val GPG_PUBLIC_KEY_ARMORED = "gpg_publicKeyArmored"
     const val GPG_FINGERPRINT = "gpg_fingerprint"
+
+    // Environment
+    const val ENVIRONMENT_JSON = "environment_json"
 }
 
 /**

@@ -25,6 +25,8 @@ import com.artemchep.keyguard.feature.home.vault.search.sort.Sort
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServicesRoute
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataServicesRoute
 import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServicesRoute
+import com.artemchep.keyguard.feature.environments.edit.EnvironmentEditRoute
+import com.artemchep.keyguard.feature.home.settings.environments.EnvironmentsRoute
 import com.artemchep.keyguard.feature.gpgagent.tools.GpgToolsRoute
 import com.artemchep.keyguard.feature.home.settings.SettingsRoute
 import com.artemchep.keyguard.feature.send.SendRoute
@@ -36,6 +38,8 @@ import com.artemchep.keyguard.feature.watchtower.alerts.WatchtowerAlertsRoute
 
 /** Reconstructs a [Route] from its data-only [RouteDescriptor]. */
 fun RouteDescriptor.toRoute(): Route? = when (this) {
+    RouteDescriptor.Environments -> EnvironmentsRoute
+    is RouteDescriptor.EnvironmentEdit -> EnvironmentEditRoute(environmentId)
     is RouteDescriptor.VaultCipherView ->
         VaultViewRoute(itemId = itemId, accountId = accountId)
 

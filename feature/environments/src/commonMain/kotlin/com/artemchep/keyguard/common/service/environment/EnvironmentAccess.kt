@@ -76,9 +76,24 @@ data class EnvironmentApprovalRequest(
      */
     val caller: EnvironmentCaller?,
     val environmentName: String?,
-    val capability: String,
+    val capability: EnvironmentCapability,
     val path: String?,
     val expiresAt: Instant,
     val environmentId: String? = null,
     val elevationChallenge: String? = null,
+    /** The account of a new environment. */
+    val accountId: String? = null,
 )
+
+/** What an approval allows the caller to do. */
+enum class EnvironmentCapability {
+    Authenticate,
+    ListEnvironments,
+    CreateEnvironment,
+    RenameEnvironment,
+    ListVariables,
+    AppendVariables,
+    CreateLocalEnvFile,
+    ListLocalEnvFiles,
+    ReadLocalEnvFile,
+}

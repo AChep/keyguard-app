@@ -129,6 +129,7 @@ class CxfSkipNoteMappingTest {
                 Res.plurals.skipped_gpg_keys_note,
                 Res.plurals.skipped_attachments_note,
                 Res.plurals.skipped_password_history_note,
+                Res.plurals.skipped_environment_references_note,
                 Res.plurals.skipped_archived_items_note,
                 Res.plurals.skipped_items_note,
                 Res.plurals.skipped_accounts_note,

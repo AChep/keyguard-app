@@ -509,6 +509,20 @@ jobs:
         run: |
           cargo test -p keyguard-windows-passkeys-core -p keyguard-windows-passkeys-jni --locked --offline
           cargo clippy -p keyguard-windows-passkeys-core -p keyguard-windows-passkeys-jni --all-targets --locked --offline -- -D warnings
+      - name: "Run Environment and CLI regressions"
+        if: needs.changes.outputs.desktop == 'true'
+        run: >-
+          ${{ matrix.gradle }} --max-workers=1
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          :feature:environments:desktopTest :feature:cli:desktopTest :common:desktopTest --tests "*Environment*" --tests "*Cli*"
+      - name: "Verify dotenv consumer compatibility"
+        if: runner.os == 'Linux' && needs.changes.outputs.desktop == 'true'
+        shell: bash
+        run: |
+          python3 -m venv "$RUNNER_TEMP/keyguard-dotenv"
+          "$RUNNER_TEMP/keyguard-dotenv/bin/pip" install 'python-dotenv==1.2.2'
+          npm install --prefix "$RUNNER_TEMP/keyguard-dotenv-node" --ignore-scripts --no-audit --no-fund dotenv@16.6.1
+          NODE_PATH="$RUNNER_TEMP/keyguard-dotenv-node/node_modules" "$RUNNER_TEMP/keyguard-dotenv/bin/python" scripts/check_environment_dotenv.py
       - name: "Run Windows private staging regressions"
         if: runner.os == 'Windows' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.crypto == 'true')
         run: >-
@@ -594,7 +608,7 @@ jobs:
           ARCHS=arm64 ONLY_ACTIVE_ARCH=YES
           CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=
           build
-      - name: "Verify bundled GPG helper signatures and sandbox inheritance"
+      - name: "Verify bundled helper signatures and sandbox inheritance"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
         run: |
           python3 - <<'PYTHON'
@@ -608,14 +622,17 @@ jobs:
               "com.apple.security.inherit": True,
           }
           for configuration in ("Debug", "AppStoreDebug"):
-              helper = Path("build/xcode/ci-macos/Build/Products") / configuration / "Keyguard.app/Contents/Resources/keyguard-gpg-agent"
-              assert helper.is_file() and os.access(helper, os.X_OK), f"Missing executable helper: {helper}"
-              subprocess.run(["codesign", "--verify", "--strict", str(helper)], check=True)
-              signed = subprocess.run(
-                  ["codesign", "--display", "--xml", "--entitlements", "-", str(helper)],
-                  check=True, stdout=subprocess.PIPE,
-              )
-              assert plistlib.loads(signed.stdout) == expected, f"Invalid helper entitlements: {helper}"
+              resources = Path("build/xcode/ci-macos/Build/Products") / configuration / "Keyguard.app/Contents/Resources"
+              for name in ("keyguard-gpg-agent", "keyguard-cli-agent", "keyguard"):
+                  helper = resources / name
+                  assert helper.is_file() and os.access(helper, os.X_OK), f"Missing executable helper: {helper}"
+                  subprocess.run(["codesign", "--verify", "--strict", str(helper)], check=True)
+                  if name != "keyguard":
+                      signed = subprocess.run(
+                          ["codesign", "--display", "--xml", "--entitlements", "-", str(helper)],
+                          check=True, stdout=subprocess.PIPE,
+                      )
+                      assert plistlib.loads(signed.stdout) == expected, f"Invalid helper entitlements: {helper}"
           PYTHON
       - name: "Test shared Swift UI behavior"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'

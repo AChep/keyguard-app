@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.export.impl
 
+import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenEnvironmentFieldCodec
+import com.artemchep.keyguard.provider.bitwarden.mapper.toTransportFields
 import arrow.core.getOrElse
 import arrow.core.getOrNone
 import com.artemchep.keyguard.common.model.DCollection
@@ -194,11 +196,15 @@ class JsonExportServiceImpl(
             }
             val list = buildList {
                 addAll(gpgFields)
-                fields
+                val environmentFields = environment?.toTransportFields().orEmpty()
+                val userFields = fields
                     .filterNot { field ->
-                        gpgFields.isNotEmpty() &&
-                                field.name in GPG_FIELD_NAMES
+                        val gpgField = gpgFields.isNotEmpty() && field.name in GPG_FIELD_NAMES
+                        val environmentField = environmentFields.isNotEmpty() &&
+                                BitwardenEnvironmentFieldCodec.isTransportField(field.name)
+                        gpgField || environmentField
                     }
+                (environmentFields + userFields)
                     .forEach { field ->
                         val type = FieldTypeEntity.of(field.type)
                         val linkedId = field.linkedId?.let(LinkedIdTypeEntity::of)
@@ -388,7 +394,7 @@ class JsonExportServiceImpl(
         }
 
         // secure note
-        if (type == DSecret.Type.SecureNote) {
+        if (type == DSecret.Type.SecureNote || type == DSecret.Type.Environment) {
             val value = buildJsonObject {
                 put("type", 0)
             }

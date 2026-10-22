@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.model.city
 import com.artemchep.keyguard.common.model.company
 import com.artemchep.keyguard.common.model.country
 import com.artemchep.keyguard.common.model.email
+import com.artemchep.keyguard.common.model.environment
 import com.artemchep.keyguard.common.model.favorite
 import com.artemchep.keyguard.common.model.fido2Credentials
 import com.artemchep.keyguard.common.model.fields
@@ -42,6 +43,13 @@ import com.artemchep.keyguard.common.model.uris
 import com.artemchep.keyguard.common.model.username
 import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
 import com.artemchep.keyguard.common.usecase.CipherMerge
+import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
+import com.artemchep.keyguard.feature.environments.EnvironmentFormat
+import com.artemchep.keyguard.feature.environments.EnvironmentPayload
+import com.artemchep.keyguard.feature.environments.EnvironmentResolver
+import com.artemchep.keyguard.feature.environments.EnvironmentValueSource
+import com.artemchep.keyguard.feature.environments.EnvironmentVariable
+import com.artemchep.keyguard.feature.environments.editableDefinition
 
 /**
  * @author Artem Chepurnyi
@@ -140,6 +148,10 @@ class CipherMergeImpl : CipherMerge {
             Node.Leaf<DSecret, DSecret.GpgKey>(
                 lens = DSecret.gpgKey,
             ),
+            Node.Leaf(
+                lens = DSecret.environment,
+                strategy = PickEnvironmentStrategy(),
+            ),
         ),
     )
 
@@ -236,9 +248,50 @@ class CipherMergeImpl : CipherMerge {
         override fun pick(list: List<DSecret.Card>): DSecret.Card = list.first()
     }
 
+    private class PickEnvironmentStrategy : PickStrategy<EnvironmentPayload> {
+        private val payloadStrategy = PickModeStrategy<EnvironmentPayload>()
+        private val sourceStrategy = PickModeStrategy<EnvironmentValueSource>()
+
+        override fun pick(list: List<EnvironmentPayload>): EnvironmentPayload {
+            val definitions = list.map { payload ->
+                // Rewriting a partially understood document would discard unknown keys.
+                payload.editableDefinition()
+                    ?.takeIf { EnvironmentResolver.validate(it).isEmpty() }
+                    ?: return payloadStrategy.pick(list)
+            }
+            val variables = definitions
+                .flatMap { it.variables }
+                .groupBy(EnvironmentVariable::name)
+                .map { (name, candidates) ->
+                    // Missing variables do not vote; ties keep the first source encountered.
+                    EnvironmentVariable(name, sourceStrategy.pick(candidates.map { it.source }))
+                }
+            val definition = EnvironmentDefinition(variables)
+            val merged = if (EnvironmentResolver.fitsLimits(definition)) {
+                try {
+                    val document = EnvironmentFormat.encode(definition)
+                    // Keep the original document when the merge does not change its definition.
+                    list.firstOrNull { (it as? EnvironmentPayload.Decoded)?.definition == definition }
+                        ?: EnvironmentPayload.Decoded(definition, document, lossless = true)
+                } catch (_: IllegalArgumentException) {
+                    null
+                }
+            } else {
+                null
+            }
+            return merged ?: payloadStrategy.pick(list)
+        }
+    }
+
     override fun invoke(
         ciphers: List<DSecret>,
     ): DSecret = kotlin.run {
+        if (ciphers.any { it.type == DSecret.Type.Environment || it.environment != null }) {
+            // References take their account context from the resulting item.
+            require(ciphers.all { it.accountId == ciphers.first().accountId }) {
+                "Environments can only be merged within one account"
+            }
+        }
         val initialCipher = ciphers.first()
             .run {
                 copy(

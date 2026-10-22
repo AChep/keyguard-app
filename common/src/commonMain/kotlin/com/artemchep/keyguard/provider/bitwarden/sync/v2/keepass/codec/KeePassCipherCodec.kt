@@ -51,8 +51,8 @@ import kotlin.time.Instant
  * - Owns entry-level fields, tags, binaries, history, times, icon metadata, and
  *   type detection for one KeePass [Entry].
      * - Delegates login subfields to [KeePassUrlCodec], [KeePassTotpCodec], and
-     *   [KeePassPasskeyCodec]; delegates card, identity, SSH, and GPG payloads to
-     *   their dedicated codecs.
+     *   [KeePassPasskeyCodec]; delegates card, identity, SSH, GPG, and environment
+     *   payloads to their dedicated codecs.
  *
  * Entry fields consumed or written directly:
  *
@@ -110,6 +110,7 @@ class KeePassCipherCodec(
     private val identityCodec = KeePassIdentityCodec()
     private val sshKeyCodec = KeePassSshKeyCodec()
     private val gpgKeyCodec = KeePassGpgKeyCodec()
+    private val environmentCodec = KeePassEnvironmentCodec()
     private val cipherLinkCodec = KeePassCipherLinkCodec()
 
     companion object {
@@ -213,6 +214,9 @@ class KeePassCipherCodec(
         }
         if (local.gpgKey != null) {
             gpgKeyCodec.encode(local.gpgKey).forEach { scope.setValue(it.key, it.value) }
+        }
+        if (local.environment != null) {
+            environmentCodec.encode(local.environment).forEach { scope.setValue(it.key, it.value) }
         }
         cipherLinkCodec.encode(local.links).forEach { scope.setValue(it.key, it.value) }
 
@@ -370,6 +374,7 @@ class KeePassCipherCodec(
         var identity: BitwardenCipher.Identity? = null
         var sshKey: BitwardenCipher.SshKey? = null
         var gpgKey: BitwardenCipher.GpgKey? = null
+        var environment: BitwardenCipher.Environment? = null
 
         when (type) {
             BitwardenCipher.Type.Login -> {
@@ -398,10 +403,19 @@ class KeePassCipherCodec(
                 gpgKey = gpgKeyCodec.decode(scope)
             }
 
+            BitwardenCipher.Type.Environment -> {
+                // The entry type alone marks an environment, even without the field.
+                environment = environmentCodec.decode(scope) ?: BitwardenCipher.Environment()
+            }
+
             BitwardenCipher.Type.SecureNote -> {}
         }
-        if (type == BitwardenCipher.Type.SecureNote && gpgKeyCodec.detects(remote)) {
-            gpgKey = gpgKeyCodec.decode(scope)
+        if (type == BitwardenCipher.Type.SecureNote) {
+            // As on Bitwarden, an environment wins and the GPG fields stay custom fields.
+            when {
+                environmentCodec.detects(remote) -> environment = environmentCodec.decode(scope)
+                gpgKeyCodec.detects(remote) -> gpgKey = gpgKeyCodec.decode(scope)
+            }
         }
         val links = cipherLinkCodec.decode(
             scope = scope,
@@ -480,6 +494,8 @@ class KeePassCipherCodec(
             }
             .toList()
 
+        val effectiveType = if (environment != null) BitwardenCipher.Type.Environment else type
+
         val attachments = remote.binaries
             .let { remoteBinaries ->
                 val usedLocalAttachmentIds = mutableSetOf<String>()
@@ -535,7 +551,9 @@ class KeePassCipherCodec(
             card = card,
             identity = identity,
             sshKey = sshKey,
-            secureNote = if (type == BitwardenCipher.Type.SecureNote || type == BitwardenCipher.Type.GpgKey) {
+            secureNote = if (
+                type == BitwardenCipher.Type.SecureNote || type == BitwardenCipher.Type.GpgKey || environment != null
+            ) {
                 BitwardenCipher.SecureNote()
             } else {
                 null
@@ -545,6 +563,7 @@ class KeePassCipherCodec(
                 resolver = gpgKeyMetadataResolver,
             ),
             fields = customFields,
+            environment = environment,
             links = links,
             sourceData = CipherSourceData(
                 providerId = CipherSourceProviderIds.KEEPASS,
@@ -554,7 +573,7 @@ class KeePassCipherCodec(
                 .takeIf { it != KeePassIcon.Key },
             favorite = favorite,
             reprompt = reprompt,
-            type = type,
+            type = effectiveType,
             createdDate = remote.times?.creationTime
                 ?.takeIf { it.toEpochMilliseconds() != 0L }
                 ?: local?.createdDate,
@@ -596,6 +615,8 @@ class KeePassCipherCodec(
             cardCodec.hasCardFields(remote) -> return BitwardenCipher.Type.Card
             identityCodec.detects(remote) -> return BitwardenCipher.Type.Identity
             sshKeyCodec.detects(remote) -> return BitwardenCipher.Type.SshKey
+            // Same order as for secure notes: an environment wins over GPG fields.
+            environmentCodec.detects(remote) -> return BitwardenCipher.Type.Environment
             gpgKeyCodec.detects(remote) -> return BitwardenCipher.Type.GpgKey
         }
 

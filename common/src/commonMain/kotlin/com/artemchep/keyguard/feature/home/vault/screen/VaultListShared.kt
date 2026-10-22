@@ -613,6 +613,9 @@ internal fun RememberStateFlowScope.buildVaultCreateActions(
         createTypeAction(
             type = DSecret.Type.GpgKey,
         ),
+        createTypeAction(
+            type = DSecret.Type.Environment,
+        ),
     )
 }
 

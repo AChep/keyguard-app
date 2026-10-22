@@ -9,6 +9,8 @@ protocol AgentApprovalRequest {
 
 extension SshAgentRequestSnapshot: AgentApprovalRequest {}
 extension GpgAgentRequestSnapshot: AgentApprovalRequest {}
+extension EnvironmentApprovalSnapshot: AgentApprovalRequest {}
+extension CliApprovalSnapshot: AgentApprovalRequest {}
 
 /// SwiftUI root hosted inside `AgentApprovalPanel`. Renders the prompt of the front
 /// request.

@@ -9,7 +9,9 @@ fun BitwardenCipher.transform(
     itemCrypto: BitwardenCrCta,
     globalCrypto: BitwardenCrCta,
 ): BitwardenCipher {
-    val sourceCipher = encodeKeePassIconCustomField(
+    val sourceCipher = encodeEnvironmentCustomFields(
+        mode = itemCrypto.mode,
+    ).encodeKeePassIconCustomField(
         mode = itemCrypto.mode,
     ).encodeGpgKeyCustomFields(
         mode = itemCrypto.mode,
@@ -36,6 +38,7 @@ fun BitwardenCipher.transform(
         card = sourceCipher.card?.transform(itemCrypto),
         identity = sourceCipher.identity?.transform(itemCrypto),
         sshKey = sourceCipher.sshKey?.transform(itemCrypto),
+        environment = if (itemCrypto.mode == BitwardenCrCta.Mode.ENCRYPT) null else sourceCipher.environment,
         gpgKey = if (itemCrypto.mode == BitwardenCrCta.Mode.ENCRYPT) {
             null
         } else {
@@ -96,6 +99,18 @@ private fun BitwardenCipher.encodeKeePassIconCustomField(
     return copy(fields = listOf(iconField) + renamedFields)
 }
 
+private fun BitwardenCipher.encodeEnvironmentCustomFields(
+    mode: BitwardenCrCta.Mode,
+): BitwardenCipher {
+    val environment = environment
+        ?.takeIf { mode == BitwardenCrCta.Mode.ENCRYPT && BitwardenEnvironmentFieldCodec.appliesTo(type) }
+        ?: return this
+    return copy(
+        fields = BitwardenEnvironmentFieldCodec.encode(environment) +
+                fields.filterNot { BitwardenEnvironmentFieldCodec.isTransportField(it.name) },
+    )
+}
+
 private fun BitwardenCipher.encodeGpgKeyCustomFields(
     mode: BitwardenCrCta.Mode,
 ): BitwardenCipher {
@@ -139,15 +154,10 @@ private fun decodeEntity(
                 field.name == "Tag"
     }
 
-    val decodedGpg = if (BitwardenGpgKeyFieldCodec.appliesTo(cipher.type)) {
-        BitwardenGpgKeyFieldCodec.decode(
-            fields = cipher.fields,
-        )
-    } else {
-        null
-    }
+    val decodedEnvironment = cipher.decodeEnvironment()
+    val decodedGpg = if (decodedEnvironment == null) cipher.decodeGpg() else null
     val fields = CipherFieldDecodeScope(
-        source = decodedGpg?.remainingFields ?: cipher.fields,
+        source = decodedEnvironment?.remainingFields ?: decodedGpg?.remainingFields ?: cipher.fields,
     )
     val tags = fields
         .consumeAll(::isTag)
@@ -169,7 +179,10 @@ private fun decodeEntity(
             KeePassIcon.Key -> null
             else -> decodedIcon
         },
-        type = if (decodedGpg != null) {
+        environment = decodedEnvironment?.environment ?: cipher.environment,
+        type = if (decodedEnvironment != null) {
+            BitwardenCipher.Type.Environment
+        } else if (decodedGpg != null) {
             BitwardenCipher.Type.GpgKey
         } else {
             cipher.type
@@ -177,6 +190,12 @@ private fun decodeEntity(
         gpgKey = decodedGpg?.gpgKey ?: cipher.gpgKey,
     )
 }
+
+private fun BitwardenCipher.decodeEnvironment(): BitwardenEnvironmentFieldCodec.Decoded? =
+    if (BitwardenEnvironmentFieldCodec.appliesTo(type)) BitwardenEnvironmentFieldCodec.decode(fields) else null
+
+private fun BitwardenCipher.decodeGpg() =
+    if (BitwardenGpgKeyFieldCodec.appliesTo(type)) BitwardenGpgKeyFieldCodec.decode(fields) else null
 
 /**
  * Tracks fields claimed by the individual decoders while preserving the

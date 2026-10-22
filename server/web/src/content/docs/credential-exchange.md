@@ -77,6 +77,7 @@ The review screen counts what Keyguard skips.
 | [GPG keys](/docs/gpg-keys/) | Export |
 | Archived items and items in the trash | Export |
 | Password history | Export. Only the current password transfers. |
+| Environments with item references | Export |
 | Linked custom fields, and custom fields with no value | Export |
 | Regular-expression URLs and Keyguard's `cmd://` URLs | Export |
 | API keys, Wi-Fi credentials, generated passwords and item references | Import. Keyguard has no matching item type. |

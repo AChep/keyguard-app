@@ -990,6 +990,9 @@ suspend fun <
         DSecret.Type.GpgKey to createTypeFilterAction(
             type = DSecret.Type.GpgKey,
         ),
+        DSecret.Type.Environment to createTypeFilterAction(
+            type = DSecret.Type.Environment,
+        ),
     )
 
     val filterTypeListFlow = filterTypesWithCiphers

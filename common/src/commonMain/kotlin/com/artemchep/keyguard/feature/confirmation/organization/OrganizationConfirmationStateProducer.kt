@@ -731,20 +731,23 @@ suspend fun RememberStateFlowScope.organizationConfirmationStateProducer(
             selectionFlow,
             folderValidatedFlow,
         ) { selection, folderNameValidated ->
+            val warnings = args.accountChangeWarnings.filter { it.appliesTo(selection.accountId) }
+            // An organization requires at least one collection; a personal vault requires none.
+            val validOrganization = (selection.organizationId != null) == selection.collectionsIds.isNotEmpty()
+            val validFolder = when (selection.folderType) {
+                FolderInfoType.None -> true
+                FolderInfoType.New -> folderNameValidated is Validated.Success
+                FolderInfoType.Id -> selection.folderId != null
+            }
+            val validSelection = validOrganization && validFolder && warnings.none { it.blocksConfirmation }
             val onConfirm = if (
-            // Account must be not empty
-                selection.accountId != null &&
-                // If you save to an organization, you must pick at least one
-                // collection... otherwise the collection ids must be empty.
-                (selection.organizationId != null) == selection.collectionsIds.isNotEmpty() &&
-                (selection.folderType != FolderInfoType.New || folderNameValidated is Validated.Success)
+                selection.accountId != null && validSelection
             ) {
                 val folder = when (selection.folderType) {
                     FolderInfoType.None -> FolderInfo.None
                     FolderInfoType.New -> FolderInfo.New(name = folderNameValidated.model)
                     FolderInfoType.Id -> {
-                        val id = selection.folderId
-                            ?: return@combine null // must not be null
+                        val id = requireNotNull(selection.folderId)
                         FolderInfo.Id(id)
                     }
                 }
@@ -763,11 +766,12 @@ suspend fun RememberStateFlowScope.organizationConfirmationStateProducer(
             } else {
                 null
             }
-            onConfirm
+            warnings to onConfirm
         },
-    ) { content, onConfirm ->
+    ) { content, (warnings, onConfirm) ->
         OrganizationConfirmationState(
             content = Loadable.Ok(content),
+            warnings = warnings,
             onDeny = {
                 transmitter(OrganizationConfirmationResult.Deny)
                 navigatePopSelf()

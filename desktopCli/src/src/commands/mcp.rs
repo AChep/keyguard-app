@@ -187,7 +187,7 @@ fn message(code: &str) -> String {
         }
         "environment_too_large" => "The environment is too large.",
         "unsupported_platform" => "This Keyguard build does not support local .env files.",
-        "invalid_path" => "The path must be absolute.",
+        "invalid_path" => "The path must be an absolute path to a file, without '..'.",
         "path_exists" => "The path already exists. Choose a path that does not exist.",
         "path_conflict" => "The path is registered for another environment.",
         "mount_limit" => "Too many local .env files. Remove one in Keyguard.",

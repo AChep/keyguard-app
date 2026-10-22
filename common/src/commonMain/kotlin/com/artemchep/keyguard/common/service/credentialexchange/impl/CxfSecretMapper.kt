@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.common.service.credentialexchange.impl
 
+import com.artemchep.keyguard.common.service.environment.environmentReferencedCipherIds
+import com.artemchep.keyguard.feature.environments.EnvironmentPayload
+import com.artemchep.keyguard.provider.bitwarden.mapper.toTransportFields
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DProfile
@@ -102,8 +105,8 @@ internal class CxfSecretMapper(
     /**
      * Maps a single vault item. Every item that is neither trashed nor archived
      * and yields at least one credential (after the [allowedTypes] filter) is
-     * exported. The returned [CxfItemResult.item] is `null` when the item is
-     * trashed, archived, or empty.
+     * exported, unless its environment cannot be transferred atomically. The
+     * returned [CxfItemResult.item] is `null` for omitted items.
      */
     fun buildItem(
         secret: DSecret,
@@ -112,14 +115,30 @@ internal class CxfSecretMapper(
         if (secret.deletedDate != null) {
             return CxfItemResult(item = null)
         }
-        val collected = collectCredentials(
-            secret = secret,
-            allowedTypes = allowedTypes,
-        )
-        return if (secret.archived) {
-            archivedResult(collected)
+        return if (secret.environment is EnvironmentPayload.Unsupported) {
+            // CXF cannot retain every raw field kind/null/linked id in a damaged
+            // transport envelope. Omit the whole atomic item and report the loss.
+            val reason = if (secret.archived) CxfExportSkipReason.Archived else CxfExportSkipReason.Item
+            CxfItemResult(item = null, skips = cxfExportSkips(reason to 1))
+        } else if (secret.environmentReferencedCipherIds().isNotEmpty()) {
+            // Provider ids in references cannot be restored from CXF's local
+            // item ids. Withhold the whole environment, including its notes.
+            // If transport fields were not requested, probe the other content
+            // without encoding the unsafe payload; fully filtered items stay silent.
+            val wouldTransfer = isAllowed(allowedTypes, CxfCredentialType.CustomFields) ||
+                collectCredentials(secret.copy(environment = null), allowedTypes).credentials.isNotEmpty()
+            val reason = if (secret.archived) {
+                CxfExportSkipReason.Archived
+            } else {
+                CxfExportSkipReason.EnvironmentReference
+            }
+            CxfItemResult(
+                item = null,
+                skips = if (wouldTransfer) cxfExportSkips(reason to 1) else cxfExportSkips(),
+            )
         } else {
-            exportedResult(secret, allowedTypes, collected)
+            val collected = collectCredentials(secret = secret, allowedTypes = allowedTypes)
+            if (secret.archived) archivedResult(collected) else exportedResult(secret, allowedTypes, collected)
         }
     }
 
@@ -234,7 +253,8 @@ internal class CxfSecretMapper(
             mapNote(secret.notes)?.let(credentials::add)
         }
         if (isAllowed(allowedTypes, CxfCredentialType.CustomFields)) {
-            mapCustomFields(secret.fields)?.let(credentials::add)
+            val environmentFields = secret.environment?.toTransportFields().orEmpty()
+            mapCustomFields(environmentFields + secret.fields)?.let(credentials::add)
         }
         val sshKey = secret.sshKey
         if (sshKey != null && isAllowed(allowedTypes, CxfCredentialType.SshKey)) {

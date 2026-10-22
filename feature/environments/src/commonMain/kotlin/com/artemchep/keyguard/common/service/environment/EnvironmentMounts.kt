@@ -35,3 +35,22 @@ data class EnvironmentMount(
     val enabled: Boolean = true,
     val bookmark: String? = null,
 )
+
+/**
+ * Returns the one form of a local `.env` file [path], without `.` and empty
+ * segments, or `null` if the agent would refuse it. The path must be absolute
+ * and name a file. `..` is refused: resolving it without the file system
+ * would ignore symlinks.
+ */
+fun normalizeEnvironmentMountPath(path: String): String? {
+    val segments = path.split('/')
+    // A path that ends with `/` or `/.` names a directory.
+    val valid = path.startsWith('/') &&
+        '\u0000' !in path &&
+        ".." !in segments &&
+        segments.last().let { it.isNotEmpty() && it != "." }
+    return segments
+        .filter { it.isNotEmpty() && it != "." }
+        .joinToString(separator = "/", prefix = "/")
+        .takeIf { valid }
+}

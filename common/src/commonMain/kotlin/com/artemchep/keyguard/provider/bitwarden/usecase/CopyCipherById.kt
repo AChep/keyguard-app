@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import com.artemchep.keyguard.common.exception.UnsupportedEnvironmentCopyException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
@@ -16,6 +17,9 @@ import com.artemchep.keyguard.core.store.bitwarden.CipherSourceDataReconciler
 import com.artemchep.keyguard.core.store.bitwarden.attachments
 import com.artemchep.keyguard.core.store.bitwarden.name
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
+import com.artemchep.keyguard.feature.environments.withoutReferences
+import com.artemchep.keyguard.provider.bitwarden.mapper.of
+import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
 
 /**
@@ -85,8 +89,22 @@ class CopyCipherByIdImpl(
                     "least one collection!"
         }
 
-        val changesOwnership = request.accountId != model.data_.accountId ||
+        val changesAccount = accountId != model.data_.accountId
+        val changesOwnership = changesAccount ||
                 request.organizationId != model.data_.organizationId
+
+        // Provider IDs are scoped to an account. Never reinterpret a source
+        // reference as an item in the destination account, even in a batch copy.
+        val environment = if (
+            changesAccount &&
+            (model.data_.type == BitwardenCipher.Type.Environment || model.data_.environment != null)
+        ) {
+            model.data_.environment?.toDomain().withoutReferences()
+                ?.let(BitwardenCipher.Environment::of)
+                ?: throw UnsupportedEnvironmentCopyException()
+        } else {
+            model.data_.environment
+        }
 
         var new = model
         new = new.copy(
@@ -96,6 +114,8 @@ class CopyCipherByIdImpl(
                 folderId = folderId,
                 organizationId = organizationId,
                 collectionIds = collectionIds,
+                links = if (changesAccount) emptyList() else model.data_.links,
+                environment = environment,
             ),
         )
         new = new.copy(

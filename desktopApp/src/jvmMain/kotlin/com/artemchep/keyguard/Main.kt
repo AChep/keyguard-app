@@ -47,7 +47,13 @@ import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentManager
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCenter
+import com.artemchep.keyguard.common.service.cli.CliService
+import com.artemchep.keyguard.common.service.cli.agent.CliAgentHost
+import com.artemchep.keyguard.common.service.cli.agent.CliAgentManager
+import com.artemchep.keyguard.common.service.environment.EnvironmentAccess
+import com.artemchep.keyguard.common.service.environment.EnvironmentRepository
 import com.artemchep.keyguard.desktop.ui.AgentApprovalWindow
+import com.artemchep.keyguard.desktop.ui.CliAgentIntegration
 import com.artemchep.keyguard.di.ApplicationCoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
@@ -234,10 +240,13 @@ private class DesktopApplicationModule {
         // The agents and their approval prompts outlive any window.
         single<SshAgentManager>()
         single<GpgAgentManager>()
+        single { CliAgentManager(get(), get(), get<CliAgentHost>()) }
         single {
             AgentApprovalCenter(
                 ssh = get<SshAgentManager>().approvals,
                 gpg = get<GpgAgentManager>().approvals,
+                environments = get<EnvironmentAccess>(),
+                cli = get<CliService>(),
                 scope = get<CoroutineScope>(qualifier = named<ApplicationCoroutineScope>()),
             )
         }
@@ -559,10 +568,14 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
                     stop = { gpgAgentManager.stop() },
                 )
             }
+            CliAgentIntegration()
             // One window shows the prompts of every agent, one at a time.
             AgentApprovalWindow(
                 processLifecycleProvider = processLifecycleProvider,
                 center = remember { koin.get<AgentApprovalCenter>() },
+                environmentRepository = remember { koin.get<EnvironmentRepository>() },
+                environmentAccess = remember { koin.get<EnvironmentAccess>() },
+                cli = remember { koin.get<CliService>() },
             )
 
             val quickSearchWindowState = quickSearchWindowManager.stateFlow

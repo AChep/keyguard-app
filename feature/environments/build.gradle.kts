@@ -59,6 +59,11 @@ val checkEnvironmentLimits = tasks.register("checkEnvironmentLimits") {
 tasks.matching { it.name == "check" || it.name == "detekt" }.configureEach {
     dependsOn(checkEnvironmentLimits)
 }
+// EnvironmentDotenvCompatibilityTest writes this fixture for scripts/check_environment_dotenv.py.
+// Declare it so an up-to-date or cached test run still provides it.
+tasks.matching { it.name == "desktopTest" }.configureEach {
+    outputs.file(layout.buildDirectory.file("dotenv-compatibility.json"))
+}
 
 kotlin {
     sourceSets {

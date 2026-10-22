@@ -66,6 +66,7 @@ internal object VaultActionSymbols {
         "vaultList.create.SecureNote" to "note.text",
         "vaultList.create.SshKey" to "terminal",
         "vaultList.create.GpgKey" to "lock.shield",
+        "vaultList.create.Environment" to "terminal",
         "vaultList.subscriptions" to "star.circle",
     )
 

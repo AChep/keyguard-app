@@ -203,6 +203,8 @@ internal class CipherDetailController(
                 placeholderFactories = get<PlaceholderFactoryRegistry>().values,
                 linkInfoExtractors = ctx.koin.appleCipherLinkInfoExtractors(),
                 confirmationRouteFactory = get(),
+                environmentAccess = get(),
+                environmentMounts = get(),
                 gpgPublicKeyParser = get(),
                 getGpgKeyserverConfig = get(),
                 changeGpgKeyExpirationById = get(),

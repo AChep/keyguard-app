@@ -34,6 +34,8 @@ internal fun CxfExportSkipReason.labelRes(): PluralStringResource = when (this) 
     CxfExportSkipReason.Attachment -> Res.plurals.skipped_attachments_note
     CxfExportSkipReason.PasswordHistory ->
         Res.plurals.skipped_password_history_note
+    CxfExportSkipReason.EnvironmentReference ->
+        Res.plurals.skipped_environment_references_note
     CxfExportSkipReason.Archived -> Res.plurals.skipped_archived_items_note
     CxfExportSkipReason.Item -> Res.plurals.skipped_items_note
     CxfExportSkipReason.Account -> Res.plurals.skipped_accounts_note

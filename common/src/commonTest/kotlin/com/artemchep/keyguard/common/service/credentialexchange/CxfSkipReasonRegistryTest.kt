@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.credentialexchange
 
+import com.artemchep.keyguard.test.environmentPayload
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
@@ -7,6 +8,10 @@ import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfAccountM
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfExportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
+import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
+import com.artemchep.keyguard.feature.environments.EnvironmentFieldReference
+import com.artemchep.keyguard.feature.environments.EnvironmentValueSource
+import com.artemchep.keyguard.feature.environments.EnvironmentVariable
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -115,6 +120,16 @@ class CxfSkipReasonRegistryTest {
         CxfExportSkipReason.PasswordHistory to {
             exportOf(cxfSecret().copy(passwordHistory = listOf(cxfPasswordHistory())))
         },
+        CxfExportSkipReason.EnvironmentReference to {
+            exportOf(cxfSecret(type = DSecret.Type.Environment).copy(
+                environment = environmentPayload(EnvironmentDefinition(listOf(
+                    EnvironmentVariable("PASSWORD", EnvironmentValueSource.Reference(
+                        cipherId = "00000000-0000-0000-0000-000000000001",
+                        field = EnvironmentFieldReference.Password,
+                    )),
+                ))),
+            ))
+        },
         CxfExportSkipReason.Archived to {
             exportOf(
                 cxfLoginSecret(login = DSecret.Login(password = "s3cr3t"))
@@ -195,6 +210,11 @@ class CxfSkipReasonRegistryTest {
         // already counts it as `UnknownCredential` along with every other kind it
         // does not model, so it is owed no row of its own.
         //
+        // Environment references use provider ids in a Keyguard-specific
+        // payload. Export withholds the environment until it can remap them;
+        // this is not the standard CXF item-reference credential, which import
+        // already reports as UnknownCredential.
+        //
         // Anything added here needs the same argument written down, not just a
         // new entry.
         val exportOnly = setOf(
@@ -202,6 +222,7 @@ class CxfSkipReasonRegistryTest {
             CxfExportSkipReason.GpgKey.name,
             CxfExportSkipReason.Attachment.name,
             CxfExportSkipReason.PasswordHistory.name,
+            CxfExportSkipReason.EnvironmentReference.name,
         )
         assertTrue(
             CxfExportSkipReason.entries.all {

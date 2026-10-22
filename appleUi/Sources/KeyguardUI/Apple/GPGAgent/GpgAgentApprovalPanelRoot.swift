@@ -9,7 +9,6 @@ extension AgentApprovalPanelController {
         gpgAgentModel.startGpgAgentObservation()
         return AgentApprovalPanelController(model: model, requests: { gpgAgentModel.gpgAgentRequests }) {
             GpgAgentApprovalView(request: $0)
-                .agentApprovalCard()
         }
     }
 }

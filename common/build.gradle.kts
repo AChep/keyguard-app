@@ -236,6 +236,8 @@ kotlin {
             kotlin.include("com/artemchep/keyguard/common/service/backup/**")
             kotlin.include("com/artemchep/keyguard/common/service/s3/InMemoryS3Client.kt")
             kotlin.include("com/artemchep/keyguard/common/service/directorywatcher/**")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/AgentIpcAuthenticatorTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/AgentIpcFramingTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/gpgagent/GpgAgentPacketSessionTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/licensekey/Kg2LicenseKeyDecoderTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/text/impl/Base32ServiceImplTest.kt")
@@ -276,9 +278,12 @@ kotlin {
         }
 
         getByName("desktopTest") {
-            // The encodings of the CLI agent's private channel, fixtures/,
-            // which the agent's Rust tests check as well.
+            // The golden fixtures of the agents' private channels, fixtures/,
+            // which their Rust tests check as well.
+            resources.srcDir("../commonSshAgent/proto")
+            resources.srcDir("../commonGpgAgent/proto")
             resources.srcDir("../desktopCliAgent/proto")
+            resources.srcDir("../commonAgent/android-bridge/tests")
             dependencies {
                 // The backup tests inspect the archives the repository wrote
                 // with zip4j's own reader, independently of `util/zip`.

@@ -6,9 +6,9 @@ import com.artemchep.keyguard.apple.agent.readPacket
 import com.artemchep.keyguard.apple.agent.requireSocketPath
 import com.artemchep.keyguard.apple.agent.socketAddress
 import com.artemchep.keyguard.apple.agent.verifiedChildPeer
+import com.artemchep.keyguard.common.service.agent.AgentIpcFraming
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentPacketSession
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
@@ -131,22 +131,22 @@ class GpgAgentRuntimeMacosTest {
                     delay(2)
                 }
             }
-            assertContentEquals(expected, withTimeout(2_000) { readPacket(reader, MAX_PACKET_SIZE) })
+            assertContentEquals(expected, withTimeout(2_000) { readPacket(reader, AgentIpcFraming.MAX_PACKET_SIZE) })
             writing.join()
             sendBytes(writer, byteArrayOf(1, 0, 0, 1)) // 16 MiB + 1
-            assertNull(readPacket(reader, MAX_PACKET_SIZE))
+            assertNull(readPacket(reader, AgentIpcFraming.MAX_PACKET_SIZE))
             sendBytes(writer, byteArrayOf(0, 0, 0, 0))
-            assertNull(readPacket(reader, MAX_PACKET_SIZE))
+            assertNull(readPacket(reader, AgentIpcFraming.MAX_PACKET_SIZE))
             sendBytes(writer, byteArrayOf(0, 0, 0, 3, 1))
             shutdown(writer, SHUT_WR)
-            assertNull(readPacket(reader, MAX_PACKET_SIZE))
+            assertNull(readPacket(reader, AgentIpcFraming.MAX_PACKET_SIZE))
         }
     }
 
     @Test
     fun cancellationInterruptsAnIdleFrameRead() = runBlocking {
         socketPair { reader, _ ->
-            val read = async { readPacket(reader, MAX_PACKET_SIZE) }
+            val read = async { readPacket(reader, AgentIpcFraming.MAX_PACKET_SIZE) }
             delay(30)
             withTimeout(1_000) { read.cancelAndJoin() }
         }
@@ -156,7 +156,7 @@ class GpgAgentRuntimeMacosTest {
     fun cancellationBeforeConnectionDispatchClosesTheAcceptedDescriptor() = inTemporaryDirectory { root ->
         runBlocking {
             val dispatcher = QueuedDispatcher()
-            val server = MacosGpgIpcServer("$root/i", config(), ByteArray(32)) { getpid() }
+            val server = macosGpgIpcServer("$root/i", config(), ByteArray(32)) { getpid() }
             val client = socket(AF_UNIX, SOCK_STREAM, 0)
             assertTrue(client >= 0)
             var serving: Job? = null
@@ -230,10 +230,6 @@ class GpgAgentRuntimeMacosTest {
                 assertEquals(listOf("locks"), NSFileManager.defaultManager.contentsOfDirectoryAtPath("$root/gpg", null))
             }
         }
-    }
-
-    private companion object {
-        const val MAX_PACKET_SIZE = GpgAgentPacketSession.MAX_PACKET_SIZE
     }
 
     private fun config() = GpgAgentRuntimeConfig(

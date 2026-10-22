@@ -23,8 +23,9 @@ interface SshAgentRuntime {
     /** Whether the bundled agent binary exists; cheap, bundle-only lookup. */
     val isBinaryAvailable: Boolean
 
-    /** Builds and starts the agent; returns a handle, or null if it failed to start. */
-    fun start(
+    /** Builds and starts the agent and suspends until it is ready; returns a
+     * handle, or null if it failed to start. */
+    suspend fun start(
         scope: CoroutineScope,
         config: SshAgentRuntimeConfig,
     ): SshAgentRuntimeHandle?

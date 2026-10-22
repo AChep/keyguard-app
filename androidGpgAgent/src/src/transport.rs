@@ -1,19 +1,20 @@
 //! Protobuf IPC to the Keyguard app over the Android bridge.
 
 use anyhow::{bail, Context, Result};
-use common_gpg_agent_rust::messages::{IpcRequest, IpcResponse};
-use keyguard_android_agent_bridge::bridge::{exchange, PendingBridge};
-use keyguard_android_agent_bridge::broadcast::{AndroidBroadcastLauncher, BroadcastOutcome};
+use common_gpg_agent_rust::messages::{ipc_request, ipc_response, IpcRequest, IpcResponse};
+use keyguard_android_agent_bridge::bridge::{
+    exchange_message, open_bridge, BridgeConfig, OpenBridgeError,
+};
+use keyguard_android_agent_bridge::broadcast::BroadcastOutcome;
 use keyguard_android_agent_bridge::log_debug;
 use keyguard_android_agent_bridge::secure_transport::SecureTransport;
 use keyguard_gpg_agent_assuan::ipc::{BoxFuture, IpcTransport};
-use prost::Message;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use tokio::net::TcpStream;
 use tokio::sync::Mutex;
 use tokio::time::{Duration, Instant};
 
-use crate::daemon::Config;
 use crate::GPG_AGENT_CONTRACT;
 
 // Must stay below DEFAULT_GPG_PROXY_PACKET_READ_TIMEOUT_MS (6 min) in the app,
@@ -45,61 +46,46 @@ impl<T> State<T> {
 /// [`BRIDGE_IDLE_LIMIT`] is reopened on the next request. A failed bridge
 /// stays closed for the rest of the connection instead of broadcasting again.
 pub(crate) struct BridgeTransport {
-    config: Arc<Config>,
+    config: Arc<BridgeConfig>,
     state: Mutex<State<SecureTransport<TcpStream>>>,
+    next_id: AtomicU64,
 }
 
 impl BridgeTransport {
-    pub(crate) fn new(config: Arc<Config>) -> Self {
+    pub(crate) fn new(config: Arc<BridgeConfig>) -> Self {
         Self {
             config,
             state: Mutex::new(State::Idle),
+            next_id: AtomicU64::new(1),
         }
     }
 
     async fn open(&self) -> Result<SecureTransport<TcpStream>> {
-        let config = &self.config;
-        let bridge = PendingBridge::bind(config.connect_timeout).await?;
-        log_debug(
-            config.debug,
-            &format!("Opening Android bridge: proxy_port={}", bridge.proxy_port()),
-        );
-
-        let outcome = bridge
-            .broadcast(
-                &AndroidBroadcastLauncher::new(config.broadcast_command.clone()),
-                &GPG_AGENT_CONTRACT,
-                &config.android_component,
-            )
+        let transport = open_bridge(&self.config, &GPG_AGENT_CONTRACT)
             .await
-            .context("Failed to send Android GPG agent broadcast")?;
-        match outcome {
-            BroadcastOutcome::Accepted | BroadcastOutcome::Deferred => {}
-            // Unlike SSH, no Keyguard release handles the GPG agent without
-            // acknowledging it, so a missing answer means no receiver.
-            BroadcastOutcome::LegacyNoAcknowledgement => {
-                bail!(
+            .or_else(|error| match error {
+                OpenBridgeError::Broadcast(error) => {
+                    Err(error).context("Failed to send Android GPG agent broadcast")
+                }
+                OpenBridgeError::Rejected(BroadcastOutcome::LegacyNoAcknowledgement) => bail!(
                     "Keyguard didn't answer the GPG agent broadcast. \
                      Update Keyguard, or check --android-component"
-                );
-            }
-            BroadcastOutcome::Busy
-            | BroadcastOutcome::Disabled
-            | BroadcastOutcome::Invalid
-            | BroadcastOutcome::StartFailed
-            | BroadcastOutcome::InternalError => {
-                bail!("Keyguard rejected Android bridge activation: {outcome:?}");
-            }
-        }
-
-        let transport = bridge.connect().await?;
-        log_debug(config.debug, "GPG agent handshake established");
+                ),
+                OpenBridgeError::Rejected(outcome) => {
+                    bail!("Keyguard rejected Android bridge activation: {outcome:?}")
+                }
+                OpenBridgeError::Failed(error) => Err(error),
+            })?;
+        log_debug(self.config.debug, "GPG agent handshake established");
         Ok(transport)
     }
 }
 
 impl IpcTransport for BridgeTransport {
-    fn round_trip(&self, request: IpcRequest) -> BoxFuture<'_, Result<IpcResponse>> {
+    fn round_trip(
+        &self,
+        request: ipc_request::Request,
+    ) -> BoxFuture<'_, Result<ipc_response::Response>> {
         Box::pin(async move {
             let mut state = self.state.lock().await;
             state.retire_if_idle(Instant::now());
@@ -117,16 +103,16 @@ impl IpcTransport for BridgeTransport {
             else {
                 bail!("Keyguard app bridge is closed");
             };
-            let response = exchange(transport, &request.encode_to_vec())
-                .await
-                .and_then(|response| {
-                    IpcResponse::decode(response.as_slice())
-                        .context("Failed to decode protobuf response from the Keyguard app")
-                });
+            let id = self.next_id.fetch_add(1, Ordering::Relaxed);
+            let request = IpcRequest {
+                id,
+                request: Some(request),
+            };
+            let response = exchange_message::<_, IpcResponse>(transport, &request).await;
             match response {
                 Ok(response) => {
                     *last_used = Instant::now();
-                    Ok(response)
+                    reply_to(id, response)
                 }
                 Err(error) => {
                     // A timed-out exchange may still be answered later, so the
@@ -139,9 +125,31 @@ impl IpcTransport for BridgeTransport {
     }
 }
 
+/// The payload of `response`, which must answer the request `id`.
+fn reply_to(id: u64, response: IpcResponse) -> Result<ipc_response::Response> {
+    if response.id != id {
+        bail!(
+            "protobuf response id mismatch: expected {} got {}",
+            id,
+            response.id
+        );
+    }
+    response.response.context("IPC response has no payload")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_response_to_another_request_is_rejected() {
+        let response = IpcResponse {
+            id: 2,
+            response: None,
+        };
+        let error = reply_to(1, response).unwrap_err().to_string();
+        assert!(error.contains("id mismatch"), "{error}");
+    }
 
     #[test]
     fn idle_bridge_is_retired_at_the_limit() {

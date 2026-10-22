@@ -86,15 +86,17 @@ jobs:
           cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path commonAgent/proto/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path commonAgent/proto-adapter/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonAgent/ipc/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path commonGpgAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path commonGpgAgent/assuan/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path commonAgent/android-bridge/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path androidGpgAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path desktopGpgAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
-      - name: "Test shared caller schema and adapters"
+      - name: "Test shared agent schema, adapters and IPC"
         run: |
           cargo test --manifest-path commonAgent/proto/Cargo.toml --locked
           cargo test --manifest-path commonAgent/proto-adapter/Cargo.toml --locked
+          cargo test --manifest-path commonAgent/ipc/Cargo.toml --locked
       - name: "Test commonGpgAgent crate"
         run: cargo test --manifest-path commonGpgAgent/Cargo.toml
       - name: "Test GPG agent Assuan crate"
@@ -136,12 +138,15 @@ jobs:
       - name: "Run platform Rust static analysis"
         run: |
           cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonAgent/ipc/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path commonGpgAgent/assuan/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path desktopGpgAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
       - name: "Test shared caller identity on this platform"
         run: cargo test --manifest-path commonAgent/Cargo.toml --all-targets --locked
       - name: "Test shared caller adapter on this platform"
         run: cargo test --manifest-path commonAgent/proto-adapter/Cargo.toml --all-targets --locked
+      - name: "Test shared agent IPC on this platform"
+        run: cargo test --manifest-path commonAgent/ipc/Cargo.toml --all-targets --locked
       - name: "Test GPG agent Assuan crate on this platform"
         run: cargo test --manifest-path commonGpgAgent/assuan/Cargo.toml --all-targets --locked
       - name: "Test desktop GPG agent on this platform"

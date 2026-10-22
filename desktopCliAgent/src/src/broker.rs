@@ -6,16 +6,16 @@ use crate::{
     public, transport,
 };
 use anyhow::{Context, Result, ensure};
+use keyguard_agent_ipc::launch::{self, Launch};
 use keyguard_cli_protocol::{
     errors::failure,
     frame::{read_frame, write_frame},
 };
 use std::{path::PathBuf, sync::Arc, time::Duration};
 use tokio::{
-    sync::{Mutex, OwnedSemaphorePermit, Semaphore, oneshot},
+    sync::{Mutex, OwnedSemaphorePermit, Semaphore},
     task::JoinSet,
 };
-use zeroize::Zeroizing;
 
 /// Options passed exclusively by the app's helper lifecycle.
 pub struct Options {
@@ -29,27 +29,11 @@ pub struct Options {
 pub async fn run(options: Options) -> Result<()> {
     ensure!(options.parent_pid > 0, "invalid_parent_pid");
     let mut termination = Termination::register()?;
-    // A dedicated standard thread avoids Tokio's uncancellable stdin read keeping
-    // runtime shutdown alive. Only the bounded token line is ever retained.
-    let (token_tx, token_rx) = oneshot::channel();
-    let (death_tx, mut death_rx) = oneshot::channel();
-    std::thread::spawn(move || {
-        use std::io::Read;
-        let mut input = std::io::stdin().lock();
-        let mut line = Zeroizing::new(vec![0u8; 65]);
-        let mut token = Zeroizing::new([0u8; 32]);
-        let token = (input.read_exact(&mut line).is_ok()
-            && line[64] == b'\n'
-            && hex::decode_to_slice(&line[..64], &mut token[..]).is_ok())
-        .then_some(token);
-        let _ = token_tx.send(token);
-        let mut trailing = [0u8; 1];
-        // Any additional input, EOF, or read error ends the parent lifetime.
-        let _ = input.read(&mut trailing);
-        let _ = death_tx.send(());
-    });
-    let token = tokio::time::timeout(Duration::from_secs(5), token_rx)
-        .await??
+    let Launch {
+        token,
+        parent_gone: mut death_rx,
+    } = launch::read_launch()
+        .await
         .context("invalid_launch_token")?;
     #[cfg(unix)]
     {
@@ -67,7 +51,7 @@ pub async fn run(options: Options) -> Result<()> {
     let app = AppClient {
         socket: options.ipc_socket,
         pid: options.parent_pid,
-        token: Arc::new(token),
+        token,
     };
     let initial = snapshot(&app, None).await?;
     let mounts = Arc::new(Mutex::new(Mounts::new(
@@ -75,7 +59,7 @@ pub async fn run(options: Options) -> Result<()> {
         options.state_dir.clone(),
     )));
     mounts.lock().await.apply_snapshot(initial).await?;
-    if let Err(error) = keyguard_agent_identity::write_startup_ready_record_to(std::io::stdout()) {
+    if let Err(error) = launch::write_ready_record() {
         // `main` exits without dropping the mounts, so remove their FIFOs here.
         #[cfg(unix)]
         mounts.lock().await.reconcile(Vec::new()).await?;

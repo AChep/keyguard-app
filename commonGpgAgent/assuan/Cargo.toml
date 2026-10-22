@@ -13,11 +13,12 @@ anyhow.workspace = true
 common-gpg-agent-rust.workspace = true
 hex.workspace = true
 keyguard-agent-identity.workspace = true
-prost.workspace = true
+keyguard-agent-ipc = { workspace = true, features = ["proto"] }
 tokio = { workspace = true, features = ["io-util", "sync", "time"] }
 tracing.workspace = true
 
 [dev-dependencies]
+prost.workspace = true
 tempfile.workspace = true
 tokio = { workspace = true, features = ["io-util", "macros", "net", "process", "rt", "rt-multi-thread", "sync", "test-util", "time"] }
 tracing-subscriber.workspace = true

@@ -13,9 +13,6 @@ mod generated {
 
 pub(crate) use generated::*;
 
-/// The exact revision of the private protocol that the app speaks.
-pub(crate) const PROTOCOL_REVISION: u32 = 1;
-
 /// A message that can hold values or the launch token, wiped when dropped.
 pub(crate) struct Private<T: Wipe>(pub(crate) T);
 

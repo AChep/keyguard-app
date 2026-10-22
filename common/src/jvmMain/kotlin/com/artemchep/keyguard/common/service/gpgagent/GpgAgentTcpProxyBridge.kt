@@ -16,6 +16,7 @@ internal suspend fun runGpgAgentProxyBridge(
     sessionId: ByteArray,
     sessionSecret: ByteArray,
     senderAppInfo: CallerIdentity? = null,
+    onOversizeResponse: (size: Int) -> Unit = {},
     connectHostCandidates: List<String> = DEFAULT_CONNECT_HOST_CANDIDATES,
     packetReadTimeoutMs: Long = DEFAULT_GPG_PROXY_PACKET_READ_TIMEOUT_MS,
 ) {
@@ -33,16 +34,12 @@ internal suspend fun runGpgAgentProxyBridge(
         sessionSecret = sessionSecret,
         connectHostCandidates = connectHostCandidates,
         packetReadTimeoutMs = packetReadTimeoutMs,
-    ) { channel, readPacket, writePacket ->
-        runGpgAgentPacketSession(
-            channel = channel,
+    ) { maxPacketSize ->
+        GpgAgentPacketSession(
             rpcHandler = rpcHandler,
-            initialContext = GpgAgentRpcRequestContext(
-                authenticated = true,
-                allowAuthenticate = false,
-            ),
-            readPacket = readPacket,
-            writePacket = writePacket,
+            authenticatedByTransport = true,
+            maxPacketSize = maxPacketSize,
+            onOversizeResponse = onOversizeResponse,
         )
     }
 }

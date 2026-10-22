@@ -1,5 +1,5 @@
 use anyhow::{Context, Result};
-use common_ssh_agent_rust::messages::IpcRequest;
+use common_ssh_agent_rust::messages::{IpcRequest, IpcResponse};
 use std::ffi::OsString;
 use std::path::Path;
 use tokio::io::{AsyncRead, AsyncWrite};
@@ -11,20 +11,18 @@ use tokio::time::{timeout, Duration};
 use crate::packet_io::{read_ssh_agent_packet, write_ssh_agent_packet};
 use crate::process::{terminate_pid, AGENT_PID_ENV, AUTH_SOCK_ENV};
 use crate::rpc::{
-    build_failure_packet, decode_protobuf_response, encode_protobuf_request,
-    translate_client_packet, translate_server_response, RequestTranslation, SSH_AGENT_FAILURE,
-    SSH_AGENT_IDENTITIES_ANSWER, SSH_AGENT_REQUEST_IDENTITIES, SSH_AGENT_SIGN_REQUEST,
-    SSH_AGENT_SIGN_RESPONSE,
+    build_failure_packet, read_ssh_string, read_u32, translate_client_packet,
+    translate_server_response, RequestTranslation, SSH_AGENT_FAILURE, SSH_AGENT_IDENTITIES_ANSWER,
+    SSH_AGENT_REQUEST_IDENTITIES, SSH_AGENT_SIGN_REQUEST, SSH_AGENT_SIGN_RESPONSE,
 };
 use crate::SSH_AGENT_CONTRACT;
-use keyguard_android_agent_bridge::bridge::{exchange, PendingBridge};
-use keyguard_android_agent_bridge::broadcast::{
-    AndroidBroadcastLauncher, BroadcastCommandSpec, BroadcastOutcome,
+use keyguard_android_agent_bridge::bridge::{
+    exchange_message, open_bridge, BridgeConfig, OpenBridgeError,
 };
 use keyguard_android_agent_bridge::caller_identity::{caller_from_unix_stream, CallerIdentity};
 use keyguard_android_agent_bridge::log_debug;
 use keyguard_android_agent_bridge::secure_transport::{SecureTransport, MAX_FRAME_PAYLOAD_SIZE};
-use keyguard_android_agent_bridge::server::{serve_clients, wait_for_shutdown_signal};
+use keyguard_android_agent_bridge::server::{self, serve_clients, wait_for_shutdown_signal};
 
 const CHILD_TERMINATION_TIMEOUT: Duration = Duration::from_secs(1);
 const CLIENT_PACKET_TIMEOUT: Duration = Duration::from_secs(120);
@@ -32,11 +30,8 @@ const RESPONSE_WRITE_TIMEOUT: Duration = Duration::from_secs(10);
 
 #[derive(Clone)]
 pub(crate) struct Config {
-    pub(crate) android_component: String,
-    pub(crate) connect_timeout: Duration,
-    pub(crate) debug: bool,
+    pub(crate) bridge: BridgeConfig,
     pub(crate) socket_path: std::path::PathBuf,
-    pub(crate) broadcast_command: BroadcastCommandSpec,
 }
 
 pub(crate) fn run_blocking(
@@ -44,11 +39,7 @@ pub(crate) fn run_blocking(
     cmd: Option<Vec<OsString>>,
     config: Config,
 ) -> Result<i32> {
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .context("Failed to create Tokio runtime")?;
-    runtime.block_on(async move { run(listener, cmd, config).await })
+    server::run_blocking(run(listener, cmd, config))
 }
 
 async fn run(
@@ -151,7 +142,7 @@ async fn terminate_child(child: &mut Child) -> Result<()> {
 }
 
 async fn run_server(listener: UnixListener, config: Config) -> Result<()> {
-    let debug = config.debug;
+    let debug = config.bridge.debug;
     serve_clients(listener, debug, move |client| {
         handle_client_connection(client, config.clone())
     })
@@ -161,7 +152,7 @@ async fn run_server(listener: UnixListener, config: Config) -> Result<()> {
 async fn handle_client_connection(mut client: UnixStream, config: Config) -> Result<()> {
     let caller = caller_from_unix_stream(&client);
     log_debug(
-        config.debug,
+        config.bridge.debug,
         &format!(
             "SSH client connected: caller={}",
             describe_caller(caller.as_ref())
@@ -175,7 +166,7 @@ async fn handle_client_connection(mut client: UnixStream, config: Config) -> Res
         &mut client,
         1,
         caller.as_ref(),
-        config.debug,
+        config.bridge.debug,
         CLIENT_PACKET_TIMEOUT,
         RESPONSE_WRITE_TIMEOUT,
     )
@@ -184,55 +175,34 @@ async fn handle_client_connection(mut client: UnixStream, config: Config) -> Res
         return Ok(());
     };
 
-    let bridge = PendingBridge::bind(config.connect_timeout).await?;
-    log_debug(
-        config.debug,
-        &format!("Opening Android bridge: proxy_port={}", bridge.proxy_port()),
-    );
-
-    let broadcast_outcome = match bridge
-        .broadcast(
-            &AndroidBroadcastLauncher::new(config.broadcast_command.clone()),
-            &SSH_AGENT_CONTRACT,
-            &config.android_component,
-        )
-        .await
-    {
-        Ok(outcome) => outcome,
-        Err(err) => {
+    let mut transport = match open_bridge(&config.bridge, &SSH_AGENT_CONTRACT).await {
+        Ok(transport) => transport,
+        Err(OpenBridgeError::Broadcast(err)) => {
             // Best effort only: the broadcast failure is the error worth
             // surfacing, not a write error to an already-gone client.
             let _ = write_client_failure(&mut client).await;
             return Err(err).context("Failed to send Android SSH agent broadcast");
         }
-    };
-    match broadcast_outcome {
-        BroadcastOutcome::Accepted | BroadcastOutcome::Deferred => {}
-        BroadcastOutcome::LegacyNoAcknowledgement => {
+        Err(OpenBridgeError::Rejected(outcome)) => {
             log_debug(
-                config.debug,
-                "Keyguard returned no broadcast acknowledgement; using legacy behavior",
-            );
-        }
-        BroadcastOutcome::Busy
-        | BroadcastOutcome::Disabled
-        | BroadcastOutcome::Invalid
-        | BroadcastOutcome::StartFailed
-        | BroadcastOutcome::InternalError => {
-            log_debug(
-                config.debug,
-                &format!("Keyguard rejected Android bridge activation: {broadcast_outcome:?}"),
+                config.bridge.debug,
+                &format!("Keyguard rejected Android bridge activation: {outcome:?}"),
             );
             write_client_failure(&mut client).await?;
             return Ok(());
         }
-    }
-
-    let mut transport = bridge.connect().await?;
-    log_debug(config.debug, "SSH agent handshake established");
+        Err(OpenBridgeError::Failed(err)) => return Err(err),
+    };
+    log_debug(config.bridge.debug, "SSH agent handshake established");
 
     let mut next_request_id = 1u64;
-    forward_request(&mut client, &mut transport, first_request, config.debug).await?;
+    forward_request(
+        &mut client,
+        &mut transport,
+        first_request,
+        config.bridge.debug,
+    )
+    .await?;
     next_request_id = next_request_id
         .checked_add(1)
         .context("SSH agent request id overflow")?;
@@ -241,13 +211,13 @@ async fn handle_client_connection(mut client: UnixStream, config: Config) -> Res
         &mut client,
         next_request_id,
         caller.as_ref(),
-        config.debug,
+        config.bridge.debug,
         CLIENT_PACKET_TIMEOUT,
         RESPONSE_WRITE_TIMEOUT,
     )
     .await?
     {
-        forward_request(&mut client, &mut transport, request, config.debug).await?;
+        forward_request(&mut client, &mut transport, request, config.bridge.debug).await?;
         next_request_id = next_request_id
             .checked_add(1)
             .context("SSH agent request id overflow")?;
@@ -306,9 +276,7 @@ where
     S: AsyncWrite + Unpin,
 {
     let request_id = request.id;
-    let response_bytes = exchange(transport, &encode_protobuf_request(&request)).await?;
-    let response = decode_protobuf_response(&response_bytes)
-        .context("Failed to decode protobuf response from the Keyguard app")?;
+    let response: IpcResponse = exchange_message(transport, &request).await?;
     let ssh_response = translate_server_response(request_id, response)
         .context("Failed to translate protobuf response into SSH agent packet")?;
     log_debug(
@@ -466,27 +434,6 @@ fn decode_embedded_key_type(blob: &[u8]) -> Option<&str> {
     let mut cursor = blob;
     let key_type = read_ssh_string(&mut cursor).ok()?;
     std::str::from_utf8(key_type).ok()
-}
-
-fn read_u32(cursor: &mut &[u8]) -> std::result::Result<u32, &'static str> {
-    if cursor.len() < 4 {
-        return Err("missing_u32");
-    }
-
-    let mut len_bytes = [0u8; 4];
-    len_bytes.copy_from_slice(&cursor[..4]);
-    *cursor = &cursor[4..];
-    Ok(u32::from_be_bytes(len_bytes))
-}
-
-fn read_ssh_string<'a>(cursor: &mut &'a [u8]) -> std::result::Result<&'a [u8], &'static str> {
-    let len = read_u32(cursor)? as usize;
-    if cursor.len() < len {
-        return Err("truncated_string");
-    }
-    let (value, rest) = cursor.split_at(len);
-    *cursor = rest;
-    Ok(value)
 }
 
 fn describe_caller(caller: Option<&CallerIdentity>) -> String {

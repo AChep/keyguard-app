@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.cli.agent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.environment.EnvironmentFixture
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
@@ -23,7 +24,7 @@ class CliAgentRequestHandlerTest {
     fun `a connection authenticates only once`() = runTest {
         val fixture = EnvironmentFixture(backgroundScope)
         fixture.ready()
-        val request = CliAgentMessages.Request.Kind.Authenticate(CliAgentMessages.AuthenticateRequest())
+        val request = CliAgentMessages.Request.Kind.Authenticate(AgentIpcMessages.AuthenticateRequest())
         assertEquals("invalid_request", fixture.agent().handle(request).error())
     }
 }

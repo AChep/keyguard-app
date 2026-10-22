@@ -1,11 +1,10 @@
 use anyhow::{bail, Context, Result};
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine;
-use prost::Message;
 
 use common_ssh_agent_rust::messages::{
-    ipc_request, ipc_response, CallerIdentity, ErrorResponse, IpcRequest, IpcResponse,
-    ListKeysRequest, ListKeysResponse, SignDataRequest, SignDataResponse, SshKey,
+    ipc_request, ipc_response, ErrorResponse, IpcRequest, IpcResponse, ListKeysRequest,
+    ListKeysResponse, SignDataRequest, SignDataResponse, SshKey,
 };
 
 use keyguard_android_agent_bridge::caller_identity::CallerIdentity as AndroidCallerIdentity;
@@ -43,7 +42,7 @@ pub fn translate_client_packet(
             RequestTranslation::Forward(IpcRequest {
                 id: request_id,
                 request: Some(ipc_request::Request::ListKeys(ListKeysRequest {
-                    caller: caller.map(to_proto_caller_identity),
+                    caller: caller.map(Into::into),
                 })),
             })
         }
@@ -58,26 +57,11 @@ pub fn translate_client_packet(
                     public_key,
                     data,
                     flags,
-                    caller: caller.map(to_proto_caller_identity),
+                    caller: caller.map(Into::into),
                 })),
             })
         }
         _ => RequestTranslation::Failure,
-    }
-}
-
-fn to_proto_caller_identity(caller: &AndroidCallerIdentity) -> CallerIdentity {
-    CallerIdentity {
-        pid: caller.pid.unwrap_or_default(),
-        uid: caller.uid,
-        gid: caller.gid,
-        process_name: caller.process_name.clone().unwrap_or_default(),
-        executable_path: caller.executable_path.clone().unwrap_or_default(),
-        app_pid: 0,
-        app_name: String::new(),
-        app_bundle_path: String::new(),
-        // The Android app bridge supplies trusted package authorization.
-        authorization: None,
     }
 }
 
@@ -109,14 +93,6 @@ pub fn translate_server_response(expected_id: u64, response: IpcResponse) -> Res
 
 pub fn build_failure_packet() -> Vec<u8> {
     vec![SSH_AGENT_FAILURE]
-}
-
-pub fn encode_protobuf_request(request: &IpcRequest) -> Vec<u8> {
-    request.encode_to_vec()
-}
-
-pub fn decode_protobuf_response(bytes: &[u8]) -> Result<IpcResponse> {
-    Ok(IpcResponse::decode(bytes)?)
 }
 
 fn parse_sign_request(payload: &[u8]) -> Option<(String, Vec<u8>, u32)> {
@@ -175,7 +151,7 @@ fn encode_ssh_string(packet: &mut Vec<u8>, bytes: &[u8]) -> Result<()> {
     Ok(())
 }
 
-fn read_u32(cursor: &mut &[u8]) -> Result<u32, &'static str> {
+pub(crate) fn read_u32(cursor: &mut &[u8]) -> Result<u32, &'static str> {
     if cursor.len() < 4 {
         return Err("missing_u32");
     }
@@ -186,7 +162,7 @@ fn read_u32(cursor: &mut &[u8]) -> Result<u32, &'static str> {
     Ok(u32::from_be_bytes(len_bytes))
 }
 
-fn read_ssh_string<'a>(cursor: &mut &'a [u8]) -> Result<&'a [u8], &'static str> {
+pub(crate) fn read_ssh_string<'a>(cursor: &mut &'a [u8]) -> Result<&'a [u8], &'static str> {
     let len = read_u32(cursor)? as usize;
     if cursor.len() < len {
         return Err("truncated_string");

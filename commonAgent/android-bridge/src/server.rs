@@ -88,6 +88,19 @@ fn is_retryable_accept_error(err: &io::Error) -> bool {
     )
 }
 
+/// Runs `future` to completion on a new multi-threaded runtime.
+///
+/// # Errors
+///
+/// Fails when the runtime cannot start, or with the error of `future`.
+pub fn run_blocking<T>(future: impl Future<Output = Result<T>>) -> Result<T> {
+    tokio::runtime::Builder::new_multi_thread()
+        .enable_all()
+        .build()
+        .context("Failed to create Tokio runtime")?
+        .block_on(future)
+}
+
 /// Completes on SIGHUP, SIGINT, or SIGTERM.
 pub async fn wait_for_shutdown_signal() -> Result<()> {
     let mut sighup = signal(SignalKind::hangup()).context("Failed to subscribe to SIGHUP")?;

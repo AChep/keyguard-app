@@ -354,12 +354,12 @@ jobs:
             cargo test "${packages[@]}" --all-features --locked
           done
           # One CLI crate at a time, so features never unify across them.
-          for package in keyguard-cli-protocol keyguard-cli keyguard-cli-agent; do
+          for package in keyguard-agent-ipc keyguard-cli-protocol keyguard-cli keyguard-cli-agent; do
             cargo fmt -p "$package" -- --check
             cargo clippy -p "$package" --all-targets --locked -- -D warnings
           done
           # Together: the agent's tests run the keyguard binary of keyguard-cli.
-          cargo test -p keyguard-cli-protocol -p keyguard-cli -p keyguard-cli-agent --locked
+          cargo test -p keyguard-agent-ipc -p keyguard-cli-protocol -p keyguard-cli -p keyguard-cli-agent --locked
           # zip consumes keyguard-ffi without its jni feature.
           cargo clippy -p keyguard-ffi --all-targets --locked --no-deps -- -D warnings
       - name: "Test reviewed authenticator fork"
@@ -445,7 +445,7 @@ jobs:
         run: cargo test --manifest-path desktopLibNative/src/Cargo.toml --all-targets --locked --offline
       - name: "Run Windows CLI helper Rust tests"
         if: runner.os == 'Windows' && needs.changes.outputs.desktop_native == 'true'
-        run: cargo test -p keyguard-cli-protocol -p keyguard-cli -p keyguard-cli-agent --all-targets --locked --offline
+        run: cargo test -p keyguard-agent-ipc -p keyguard-cli-protocol -p keyguard-cli -p keyguard-cli-agent --all-targets --locked --offline
       - name: "Run environment FIFO regressions"
         if: runner.os != 'Windows' && needs.changes.outputs.desktop_native == 'true'
         run: |
@@ -456,7 +456,7 @@ jobs:
         shell: bash
         run: |
           # One helper at a time, so features never unify across helpers.
-          for package in keyguard-ssh-agent keyguard-gpg-agent keyguard-cli-protocol keyguard-cli keyguard-cli-agent; do
+          for package in keyguard-agent-ipc keyguard-ssh-agent keyguard-gpg-agent keyguard-cli-protocol keyguard-cli keyguard-cli-agent; do
             cargo clippy -p "$package" --all-targets --locked --offline -- -D warnings
           done
       - name: "Test Linux kernel credential protection"

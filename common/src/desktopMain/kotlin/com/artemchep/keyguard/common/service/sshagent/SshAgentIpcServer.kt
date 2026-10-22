@@ -1,11 +1,15 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcAuthenticator
 import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.AgentIpcPeerVerificationPolicy
 import com.artemchep.keyguard.common.service.agent.AgentIpcServer
+import com.artemchep.keyguard.common.service.agent.AgentRpcRequestContext
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
-import com.artemchep.keyguard.common.service.logging.LogLevel
+import com.artemchep.keyguard.common.service.agent.checkAndLog
+import com.artemchep.keyguard.common.service.agent.serve
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.session.SshAgentSessionAccess
@@ -16,7 +20,6 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowNoOp
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import java.nio.file.Path
-import java.security.MessageDigest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -78,26 +81,18 @@ class SshAgentIpcServer private constructor(
         peerVerificationPolicy = AgentIpcPeerVerificationPolicy.TestOnlyUnverified,
     )
 
+    private val authenticator = AgentIpcAuthenticator(authToken)
+
     private val rpcHandler = SshAgentRpcHandler(
-        requestProcessor = requestProcessor,
+        // The agent reports the client's OS-level process name and path, so
+        // bound and strip them before they reach approvals and usage history.
+        requestProcessor = CallerMergingSshAgentRequestProcessor(
+            delegate = requestProcessor,
+            senderAppInfo = null,
+            replaceCallerAuthorization = false,
+        ),
         authenticate = { req ->
-            val tokenMatches = MessageDigest.isEqual(authToken, req.token)
-            val revisionMatches = req.protocolRevision == SshAgentMessages.PROTOCOL_REVISION
-            val success = tokenMatches && revisionMatches
-            if (!revisionMatches) {
-                val errorMessage =
-                    "Authentication failed: protocol revision mismatch " +
-                        "(expected=${SshAgentMessages.PROTOCOL_REVISION}, " +
-                        "actual=${req.protocolRevision})"
-                logRepository.post(TAG, errorMessage, LogLevel.ERROR)
-            } else if (!tokenMatches) {
-                val errorMessage = "Authentication failed: token mismatch"
-                logRepository.post(TAG, errorMessage, LogLevel.ERROR)
-            } else {
-                val successMessage = "Authentication successful"
-                logRepository.post(TAG, successMessage, LogLevel.INFO)
-            }
-            success
+            authenticator.checkAndLog(req, logRepository, TAG, agentName = "SSH agent")
         },
     )
 
@@ -183,18 +178,15 @@ class SshAgentIpcServer private constructor(
         maxConcurrentConnections = maxConcurrentConnections,
         peerVerificationPolicy = peerVerificationPolicy,
         session = { channel ->
-            runSshAgentPacketSession(
-                channel = channel,
-                rpcHandler = rpcHandler,
-                initialContext = SshAgentRpcRequestContext(
-                    authenticated = false,
-                    allowAuthenticate = true,
-                ),
-            )
+            SshAgentPacketSession(rpcHandler, authenticatedByTransport = false)
+                .serve(channel)
         },
     )
 
-    internal fun stop() = server.stop()
+    internal fun stop() {
+        server.stop()
+        authenticator.close()
+    }
 
     /**
      * Starts the IPC server on the given Unix domain socket path.
@@ -225,7 +217,7 @@ class SshAgentIpcServer private constructor(
     ): SshAgentMessages.IpcResponse = rpcHandler
         .processRequest(
             request = request,
-            context = SshAgentRpcRequestContext(
+            context = AgentRpcRequestContext(
                 authenticated = authenticated,
                 allowAuthenticate = true,
             ),
@@ -236,7 +228,7 @@ class SshAgentIpcServer private constructor(
      */
     internal fun handleAuthenticate(
         requestId: Long,
-        req: SshAgentMessages.AuthenticateRequest,
+        req: AgentIpcMessages.AuthenticateRequest,
     ): SshAgentMessages.IpcResponse = rpcHandler
         .handleAuthenticate(requestId, req)
 

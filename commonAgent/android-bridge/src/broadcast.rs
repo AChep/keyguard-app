@@ -26,6 +26,19 @@ pub struct BridgeContract {
     pub extra_session_secret: &'static str,
     /// Prefix of the receiver's result data, followed by the outcome name.
     pub result_prefix: &'static str,
+    /// How the helper treats a receiver that handled the broadcast without
+    /// acknowledging it.
+    pub legacy_acknowledgement: LegacyAcknowledgement,
+}
+
+/// How a helper treats a receiver that handled its broadcast without
+/// acknowledging it.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub enum LegacyAcknowledgement {
+    /// Older releases handled the broadcast that way: connect anyway.
+    Tolerate,
+    /// No release handles the broadcast that way: there is no receiver.
+    Reject,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -235,6 +248,7 @@ mod tests {
         extra_session_id: "com.artemchep.keyguard.extra.TEST_AGENT_SESSION_ID",
         extra_session_secret: "com.artemchep.keyguard.extra.TEST_AGENT_SESSION_SECRET",
         result_prefix: BROADCAST_RESULT_PREFIX,
+        legacy_acknowledgement: LegacyAcknowledgement::Tolerate,
     };
 
     #[test]

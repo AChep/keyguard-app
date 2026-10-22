@@ -9,12 +9,16 @@ syntax = "proto3";
 // the encodings in fixtures/.
 package keyguard.cliagent;
 
-// The caller messages are shared with the SSH and GPG agents: commonAgent/proto.
+// The caller and handshake messages are shared with the SSH and GPG agents:
+// commonAgent/proto.
+import "agent.proto";
 import "caller.proto";
 
 message Request {
   oneof request {
-    AuthenticateRequest authenticate = 1;
+    // The first request of every connection. A rejected one is answered
+    // with `success` false, and the app closes the connection.
+    keyguard.agent.AuthenticateRequest authenticate = 1;
     ManageRequest manage = 2;
     MountsRequest mounts = 3;
     WatchMountsRequest watch_mounts = 4;
@@ -26,7 +30,7 @@ message Request {
 
 message Response {
   oneof response {
-    AuthenticateResponse authenticate = 1;
+    keyguard.agent.AuthenticateResponse authenticate = 1;
     ManageResponse manage = 2;
     // Answers both `mounts` and `watch_mounts`.
     MountsResponse mounts = 3;
@@ -42,16 +46,6 @@ message ErrorResponse {
   // clients receive it as is.
   string code = 1;
 }
-
-// The first request of every connection.
-message AuthenticateRequest {
-  // The 32 bytes the app passed to the agent at launch.
-  bytes token = 1;
-  // Exactly the revision of the app; zero is never valid.
-  uint32 protocol_revision = 2;
-}
-
-message AuthenticateResponse {}
 
 // Environment management of an MCP client. Never answered with values.
 message ManageRequest {

@@ -1,48 +1,28 @@
 package com.artemchep.keyguard.common.service.sshagent
 
-import com.artemchep.keyguard.common.service.agent.CallerIdentity
-
-data class SshAgentRpcRequestContext(
-    val authenticated: Boolean,
-    val allowAuthenticate: Boolean,
-    val callerAugmentation: CallerIdentity? = null,
-    val replaceCallerAuthorization: Boolean = false,
-)
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
+import com.artemchep.keyguard.common.service.agent.AgentRpcRequestContext
+import com.artemchep.keyguard.common.service.agent.agentRpcRequestError
 
 internal class SshAgentRpcHandler(
     private val requestProcessor: SshAgentRequestProcessor,
-    private val authenticate: (SshAgentMessages.AuthenticateRequest) -> Boolean = { false },
+    private val authenticate: (AgentIpcMessages.AuthenticateRequest) -> Boolean = { false },
 ) {
     suspend fun processRequest(
         request: SshAgentMessages.IpcRequest,
-        context: SshAgentRpcRequestContext,
+        context: AgentRpcRequestContext,
     ): SshAgentMessages.IpcResponse {
-        val requestVariantCount =
-            (if (request.authenticate != null) 1 else 0) +
-                (if (request.listKeys != null) 1 else 0) +
-                (if (request.signData != null) 1 else 0)
-        if (requestVariantCount > 1) {
-            return errorResponse(
-                requestId = request.id,
-                message = "Malformed request: multiple request variants set",
-                code = SshAgentMessages.ErrorCode.UNSPECIFIED,
-            )
-        }
-
-        if (!context.allowAuthenticate && request.authenticate != null) {
-            return errorResponse(
-                requestId = request.id,
-                message = "AuthenticateRequest is not supported on this transport",
-                code = SshAgentMessages.ErrorCode.UNSPECIFIED,
-            )
-        }
-
-        if (!context.authenticated && request.authenticate == null) {
-            return errorResponse(
-                requestId = request.id,
-                message = "Not authenticated. Send AuthenticateRequest first.",
-                code = SshAgentMessages.ErrorCode.NOT_AUTHENTICATED,
-            )
+        val variantCount = listOfNotNull(
+            request.authenticate,
+            request.listKeys,
+            request.signData,
+        ).size
+        agentRpcRequestError(
+            variantCount = variantCount,
+            isAuthenticate = request.authenticate != null,
+            context = context,
+        )?.let { error ->
+            return SshAgentMessages.IpcResponse(id = request.id, error = error)
         }
 
         return when {
@@ -53,30 +33,30 @@ internal class SshAgentRpcHandler(
 
             request.listKeys != null -> handleListKeys(
                 requestId = request.id,
-                request = request.listKeys.withAugmentedCaller(context),
+                request = request.listKeys,
             )
 
             request.signData != null -> handleSignData(
                 requestId = request.id,
-                request = request.signData.withAugmentedCaller(context),
+                request = request.signData,
             )
 
             else -> errorResponse(
                 requestId = request.id,
                 message = "Unknown request type",
-                code = SshAgentMessages.ErrorCode.UNSPECIFIED,
+                code = AgentIpcMessages.ErrorCode.UNSPECIFIED,
             )
         }
     }
 
     fun handleAuthenticate(
         requestId: Long,
-        request: SshAgentMessages.AuthenticateRequest,
+        request: AgentIpcMessages.AuthenticateRequest,
     ): SshAgentMessages.IpcResponse = SshAgentMessages.IpcResponse(
         id = requestId,
-        authenticate = SshAgentMessages.AuthenticateResponse(
+        authenticate = AgentIpcMessages.AuthenticateResponse(
             success = authenticate(request),
-            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
         ),
     )
 
@@ -95,7 +75,7 @@ internal class SshAgentRpcHandler(
             SshAgentRequestProcessor.ListKeysResult.VaultLocked -> errorResponse(
                 requestId = requestId,
                 message = "Vault is locked",
-                code = SshAgentMessages.ErrorCode.VAULT_LOCKED,
+                code = AgentIpcMessages.ErrorCode.VAULT_LOCKED,
             )
         }
 
@@ -114,25 +94,25 @@ internal class SshAgentRpcHandler(
             SshAgentRequestProcessor.SignDataResult.VaultLocked -> errorResponse(
                 requestId = requestId,
                 message = "Vault is locked",
-                code = SshAgentMessages.ErrorCode.VAULT_LOCKED,
+                code = AgentIpcMessages.ErrorCode.VAULT_LOCKED,
             )
 
             SshAgentRequestProcessor.SignDataResult.UserDenied -> errorResponse(
                 requestId = requestId,
                 message = "User denied the signing request",
-                code = SshAgentMessages.ErrorCode.USER_DENIED,
+                code = AgentIpcMessages.ErrorCode.USER_DENIED,
             )
 
             SshAgentRequestProcessor.SignDataResult.KeyNotFound -> errorResponse(
                 requestId = requestId,
                 message = "Key not found for the requested public key",
-                code = SshAgentMessages.ErrorCode.KEY_NOT_FOUND,
+                code = AgentIpcMessages.ErrorCode.KEY_NOT_FOUND,
             )
 
             is SshAgentRequestProcessor.SignDataResult.Failure -> errorResponse(
                 requestId = requestId,
                 message = result.message,
-                code = SshAgentMessages.ErrorCode.UNSPECIFIED,
+                code = AgentIpcMessages.ErrorCode.UNSPECIFIED,
             )
         }
 
@@ -142,31 +122,9 @@ internal class SshAgentRpcHandler(
         code: Int,
     ) = SshAgentMessages.IpcResponse(
         id = requestId,
-        error = SshAgentMessages.ErrorResponse(
+        error = AgentIpcMessages.ErrorResponse(
             message = message,
             code = code,
         ),
     )
-
-    private fun SshAgentMessages.ListKeysRequest.withAugmentedCaller(
-        context: SshAgentRpcRequestContext,
-    ): SshAgentMessages.ListKeysRequest =
-        copy(
-            caller = mergeAndroidSshAgentCallerIdentity(
-                caller = caller,
-                senderAppInfo = context.callerAugmentation,
-                replaceCallerAuthorization = context.replaceCallerAuthorization,
-            ),
-        )
-
-    private fun SshAgentMessages.SignDataRequest.withAugmentedCaller(
-        context: SshAgentRpcRequestContext,
-    ): SshAgentMessages.SignDataRequest =
-        copy(
-            caller = mergeAndroidSshAgentCallerIdentity(
-                caller = caller,
-                senderAppInfo = context.callerAugmentation,
-                replaceCallerAuthorization = context.replaceCallerAuthorization,
-            ),
-        )
 }

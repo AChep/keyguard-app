@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigState
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.ApprovalCacheInvalidation
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
@@ -137,7 +138,7 @@ class SshAgentRequestProcessingTest {
         assertEquals(1L, response.id)
         assertNotNull(response.error, "Should return an error")
         assertEquals(
-            SshAgentMessages.ErrorCode.NOT_AUTHENTICATED,
+            AgentIpcMessages.ErrorCode.NOT_AUTHENTICATED,
             response.error!!.code,
         )
         assertNull(response.listKeys)
@@ -148,9 +149,9 @@ class SshAgentRequestProcessingTest {
         val server = createServer()
         val request = SshAgentMessages.IpcRequest(
             id = 2L,
-            authenticate = SshAgentMessages.AuthenticateRequest(
+            authenticate = AgentIpcMessages.AuthenticateRequest(
                 token = authToken.copyOf(),
-                protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
             ),
         )
 
@@ -160,7 +161,7 @@ class SshAgentRequestProcessingTest {
         assertNotNull(response.authenticate)
         assertTrue(response.authenticate!!.success)
         assertEquals(
-            SshAgentMessages.PROTOCOL_REVISION,
+            AgentIpcMessages.PROTOCOL_REVISION,
             response.authenticate?.protocolRevision,
         )
         assertNull(response.error)
@@ -176,7 +177,7 @@ class SshAgentRequestProcessingTest {
 
         assertEquals(3L, response.id)
         assertNotNull(response.error)
-        assertEquals(SshAgentMessages.ErrorCode.UNSPECIFIED, response.error!!.code)
+        assertEquals(AgentIpcMessages.ErrorCode.UNSPECIFIED, response.error!!.code)
     }
 
     @Test
@@ -184,7 +185,7 @@ class SshAgentRequestProcessingTest {
         val server = createServer()
         val request = SshAgentMessages.IpcRequest(
             id = 4L,
-            authenticate = SshAgentMessages.AuthenticateRequest(token = authToken.copyOf()),
+            authenticate = AgentIpcMessages.AuthenticateRequest(token = authToken.copyOf()),
             listKeys = SshAgentMessages.ListKeysRequest(),
         )
 
@@ -192,7 +193,7 @@ class SshAgentRequestProcessingTest {
 
         assertEquals(4L, response.id)
         assertNotNull(response.error)
-        assertEquals(SshAgentMessages.ErrorCode.UNSPECIFIED, response.error!!.code)
+        assertEquals(AgentIpcMessages.ErrorCode.UNSPECIFIED, response.error!!.code)
         assertNull(response.authenticate)
         assertNull(response.listKeys)
         assertNull(response.signData)
@@ -208,7 +209,7 @@ class SshAgentRequestProcessingTest {
         assertEquals(5L, response.id)
         assertNotNull(response.error)
         assertEquals(
-            SshAgentMessages.ErrorCode.NOT_AUTHENTICATED,
+            AgentIpcMessages.ErrorCode.NOT_AUTHENTICATED,
             response.error!!.code,
         )
     }
@@ -220,9 +221,9 @@ class SshAgentRequestProcessingTest {
     @Test
     fun `handleAuthenticate succeeds with correct token`() {
         val server = createServer()
-        val req = SshAgentMessages.AuthenticateRequest(
+        val req = AgentIpcMessages.AuthenticateRequest(
             token = authToken.copyOf(),
-            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
         )
 
         val response = server.handleAuthenticate(requestId = 10L, req = req)
@@ -231,7 +232,7 @@ class SshAgentRequestProcessingTest {
         assertNotNull(response.authenticate)
         assertTrue(response.authenticate!!.success)
         assertEquals(
-            SshAgentMessages.PROTOCOL_REVISION,
+            AgentIpcMessages.PROTOCOL_REVISION,
             response.authenticate?.protocolRevision,
         )
     }
@@ -241,24 +242,24 @@ class SshAgentRequestProcessingTest {
         val server = createServer()
         val missingRevision = server.handleAuthenticate(
             requestId = 11L,
-            req = SshAgentMessages.AuthenticateRequest(token = authToken.copyOf()),
+            req = AgentIpcMessages.AuthenticateRequest(token = authToken.copyOf()),
         )
         val futureRevision = server.handleAuthenticate(
             requestId = 12L,
-            req = SshAgentMessages.AuthenticateRequest(
+            req = AgentIpcMessages.AuthenticateRequest(
                 token = authToken.copyOf(),
-                protocolRevision = SshAgentMessages.PROTOCOL_REVISION + 1,
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION + 1,
             ),
         )
 
         assertTrue(missingRevision.authenticate?.success == false)
         assertTrue(futureRevision.authenticate?.success == false)
         assertEquals(
-            SshAgentMessages.PROTOCOL_REVISION,
+            AgentIpcMessages.PROTOCOL_REVISION,
             missingRevision.authenticate?.protocolRevision,
         )
         assertEquals(
-            SshAgentMessages.PROTOCOL_REVISION,
+            AgentIpcMessages.PROTOCOL_REVISION,
             futureRevision.authenticate?.protocolRevision,
         )
     }
@@ -267,9 +268,9 @@ class SshAgentRequestProcessingTest {
     fun `handleAuthenticate fails with wrong token`() {
         val server = createServer()
         val wrongToken = ByteArray(32) { 0xFF.toByte() }
-        val req = SshAgentMessages.AuthenticateRequest(
+        val req = AgentIpcMessages.AuthenticateRequest(
             token = wrongToken,
-            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
         )
 
         val response = server.handleAuthenticate(requestId = 11L, req = req)
@@ -282,9 +283,9 @@ class SshAgentRequestProcessingTest {
     @Test
     fun `handleAuthenticate fails with empty token`() {
         val server = createServer()
-        val req = SshAgentMessages.AuthenticateRequest(
+        val req = AgentIpcMessages.AuthenticateRequest(
             token = byteArrayOf(),
-            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
         )
 
         val response = server.handleAuthenticate(requestId = 12L, req = req)
@@ -517,6 +518,61 @@ class SshAgentRequestProcessingTest {
         assertNull(event.fingerprint)
     }
 
+    @Test
+    fun `desktop requests sanitize caller display fields and keep authorization`() = runTest {
+        val captured = mutableListOf<CallerIdentity?>()
+        val server = SshAgentIpcServer(
+            logRepository = logRepository,
+            authToken = authToken,
+            scope = CoroutineScope(Dispatchers.Unconfined),
+            requestProcessor = object : SshAgentRequestProcessor {
+                override suspend fun listKeys(
+                    caller: CallerIdentity?,
+                ): SshAgentRequestProcessor.ListKeysResult {
+                    captured += caller
+                    return SshAgentRequestProcessor.ListKeysResult.VaultLocked
+                }
+
+                override suspend fun signData(
+                    request: SshAgentMessages.SignDataRequest,
+                ): SshAgentRequestProcessor.SignDataResult {
+                    captured += request.caller
+                    return SshAgentRequestProcessor.SignDataResult.UserDenied
+                }
+            },
+            testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
+        )
+        val authorization = CallerAuthorization(
+            connectionFingerprint = ByteArray(32) { 7 },
+        )
+        val caller = CallerIdentity(
+            pid = 42,
+            processName = "  ssh   \n‮" + "p".repeat(300),
+            executablePath = "/usr/bin/‮ssh" + "x".repeat(5_000),
+            authorization = authorization,
+        )
+
+        server.handleListKeys(
+            requestId = 1L,
+            req = SshAgentMessages.ListKeysRequest(caller = caller),
+        )
+        server.handleSignData(
+            requestId = 2L,
+            req = SshAgentMessages.SignDataRequest(caller = caller),
+        )
+
+        assertEquals(2, captured.size)
+        captured.forEach { sanitized ->
+            assertNotNull(sanitized)
+            assertEquals(42, sanitized.pid)
+            assertEquals(256, sanitized.processName.length)
+            assertTrue(sanitized.processName.startsWith("ssh p"))
+            assertEquals(4_096, sanitized.executablePath.length)
+            assertTrue(sanitized.executablePath.startsWith("/usr/bin/sshx"))
+            assertEquals(authorization, sanitized.authorization)
+        }
+    }
+
     // ================================================================
     // handleSignData with locked vault
     // ================================================================
@@ -534,7 +590,7 @@ class SshAgentRequestProcessingTest {
 
         assertEquals(30L, response.id)
         assertNotNull(response.error)
-        assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, response.error!!.code)
+        assertEquals(AgentIpcMessages.ErrorCode.VAULT_LOCKED, response.error!!.code)
         assertNull(response.signData)
     }
 
@@ -557,7 +613,7 @@ class SshAgentRequestProcessingTest {
 
         assertEquals(31L, response.id)
         assertNotNull(response.error)
-        assertEquals(SshAgentMessages.ErrorCode.USER_DENIED, response.error!!.code)
+        assertEquals(AgentIpcMessages.ErrorCode.USER_DENIED, response.error!!.code)
         assertNull(response.signData)
         assertEquals(1, approvalPromptCount)
     }
@@ -581,7 +637,7 @@ class SshAgentRequestProcessingTest {
 
         assertEquals(32L, response.id)
         assertNotNull(response.error)
-        assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, response.error!!.code)
+        assertEquals(AgentIpcMessages.ErrorCode.VAULT_LOCKED, response.error!!.code)
         assertNull(response.signData)
         assertEquals(1, approvalPromptCount)
     }
@@ -626,7 +682,7 @@ class SshAgentRequestProcessingTest {
 
         assertEquals(47L, response.id)
         assertNotNull(response.error)
-        assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, response.error!!.code)
+        assertEquals(AgentIpcMessages.ErrorCode.VAULT_LOCKED, response.error!!.code)
         assertEquals(1, approvalPromptCount)
         assertEquals("Cached key", approvalKeyName)
         assertEquals("SHA256:cached", approvalKeyFingerprint)
@@ -666,7 +722,7 @@ class SshAgentRequestProcessingTest {
             ),
         )
 
-        assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, response.error?.code)
+        assertEquals(AgentIpcMessages.ErrorCode.VAULT_LOCKED, response.error?.code)
         assertEquals("SHA256:fallback", approvalKeyName)
     }
 
@@ -702,7 +758,7 @@ class SshAgentRequestProcessingTest {
 
         assertEquals(33L, response.id)
         assertNotNull(response.error)
-        assertEquals(SshAgentMessages.ErrorCode.USER_DENIED, response.error!!.code)
+        assertEquals(AgentIpcMessages.ErrorCode.USER_DENIED, response.error!!.code)
         assertNull(response.signData)
         assertEquals(1, approvalPromptCount)
         assertTrue("User denied the signing request" in logRepository.messages)
@@ -742,7 +798,7 @@ class SshAgentRequestProcessingTest {
 
         assertEquals(35L, response.id)
         assertNotNull(response.error)
-        assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error!!.code)
+        assertEquals(AgentIpcMessages.ErrorCode.KEY_NOT_FOUND, response.error!!.code)
         assertNull(response.signData)
         assertEquals(0, approvalPromptCount)
     }
@@ -783,7 +839,7 @@ class SshAgentRequestProcessingTest {
 
         assertEquals(34L, response.id)
         assertNotNull(response.error)
-        assertEquals(SshAgentMessages.ErrorCode.UNSPECIFIED, response.error!!.code)
+        assertEquals(AgentIpcMessages.ErrorCode.UNSPECIFIED, response.error!!.code)
         assertEquals(1, approvalPromptCount)
     }
 
@@ -815,7 +871,7 @@ class SshAgentRequestProcessingTest {
             ),
         )
 
-        assertEquals(SshAgentMessages.ErrorCode.USER_DENIED, response.error?.code)
+        assertEquals(AgentIpcMessages.ErrorCode.USER_DENIED, response.error?.code)
         val event = history.single()
         assertEquals("signer", event.cipherId)
         assertEquals(SshUsageHistoryRequestType.AGENT_SIGN_DATA, event.request)
@@ -857,7 +913,7 @@ class SshAgentRequestProcessingTest {
             ),
         )
 
-        assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)
+        assertEquals(AgentIpcMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)
         assertEquals(0, approvalPromptCount)
         val event = history.single()
         assertNull(event.cipherId)
@@ -896,7 +952,7 @@ class SshAgentRequestProcessingTest {
             ),
         )
 
-        assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)
+        assertEquals(AgentIpcMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)
         val event = history.single()
         assertEquals(SshUsageHistoryRequestType.AGENT_SIGN_DATA, event.request)
         assertEquals(SshUsageHistoryResponseType.KEY_NOT_FOUND, event.response)
@@ -931,7 +987,7 @@ class SshAgentRequestProcessingTest {
             ),
         )
 
-        assertEquals(SshAgentMessages.ErrorCode.UNSPECIFIED, response.error?.code)
+        assertEquals(AgentIpcMessages.ErrorCode.UNSPECIFIED, response.error?.code)
         val event = history.single()
         assertEquals(SshUsageHistoryRequestType.AGENT_SIGN_DATA, event.request)
         assertEquals(SshUsageHistoryResponseType.FAILURE, event.response)
@@ -966,7 +1022,7 @@ class SshAgentRequestProcessingTest {
             ),
         )
 
-        assertEquals(SshAgentMessages.ErrorCode.UNSPECIFIED, response.error?.code)
+        assertEquals(AgentIpcMessages.ErrorCode.UNSPECIFIED, response.error?.code)
         assertNull(response.signData)
         val event = history.single()
         assertEquals(SshUsageHistoryRequestType.AGENT_SIGN_DATA, event.request)
@@ -1471,9 +1527,9 @@ class SshAgentRequestProcessingTest {
         val authResp = server.processRequest(
             SshAgentMessages.IpcRequest(
                 id = 100L,
-                authenticate = SshAgentMessages.AuthenticateRequest(
+                authenticate = AgentIpcMessages.AuthenticateRequest(
                     token = authToken.copyOf(),
-                    protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                    protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                 ),
             ),
             authenticated = false,
@@ -1509,7 +1565,7 @@ class SshAgentRequestProcessingTest {
             val response = finishPendingSigning(session) {
                 session.valueOrNull = if (replaceSession) createUnlockedSession() else MasterSession.Empty()
             }
-            assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, response.error?.code)
+            assertEquals(AgentIpcMessages.ErrorCode.VAULT_LOCKED, response.error?.code)
             assertNull(response.signData)
         }
     }
@@ -1533,7 +1589,7 @@ class SshAgentRequestProcessingTest {
                     }
                 }
             }
-            assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code, change)
+            assertEquals(AgentIpcMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code, change)
             assertNull(response.signData)
             assertEquals(SshUsageHistoryResponseType.KEY_NOT_FOUND, history.single().response)
         }
@@ -1551,7 +1607,7 @@ class SshAgentRequestProcessingTest {
         ) {
             filter = onlyOtherCipherFilter()
         }
-        assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)
+        assertEquals(AgentIpcMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)
         assertNull(response.signData)
     }
 
@@ -1697,7 +1753,7 @@ class SshAgentRequestProcessingTest {
                     else -> ciphers.value = emptyList()
                 }
             }
-            assertEquals(SshAgentMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)
+            assertEquals(AgentIpcMessages.ErrorCode.KEY_NOT_FOUND, response.error?.code)
             assertNull(response.signData)
             assertEquals(1, approvals, "Remembered request must not prompt again")
             assertEquals(1, cipherReads)
@@ -1745,7 +1801,7 @@ class SshAgentRequestProcessingTest {
                     MasterSession.Empty()
                 }
             }
-            assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, response.error?.code)
+            assertEquals(AgentIpcMessages.ErrorCode.VAULT_LOCKED, response.error?.code)
             assertNull(response.signData)
             assertEquals(1, approvals)
             assertEquals(0, cipherReads, "Stale session must be rejected before reading ciphers")
@@ -1825,9 +1881,9 @@ class SshAgentRequestProcessingTest {
             ) { ApprovalCacheInvalidation.Policy.apply(config) }
 
             val expected = if (deny) {
-                SshAgentMessages.ErrorCode.USER_DENIED
+                AgentIpcMessages.ErrorCode.USER_DENIED
             } else {
-                SshAgentMessages.ErrorCode.KEY_NOT_FOUND
+                AgentIpcMessages.ErrorCode.KEY_NOT_FOUND
             }
             assertEquals(expected, result.error?.code)
             assertNull(result.signData)

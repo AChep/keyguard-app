@@ -39,6 +39,7 @@ internal class AgentIpcServer(
     private val tag: String,
     private val maxConcurrentConnections: Int = 8,
     private val peerVerificationPolicy: AgentIpcPeerVerificationPolicy,
+    private val maxPacketSize: Int = AgentIpcFraming.MAX_PACKET_SIZE,
     private val session: suspend (AgentPacketChannel) -> Unit,
 ) {
     private val serverChannelLock = Any()
@@ -230,7 +231,7 @@ internal class AgentIpcServer(
                 scope.launch(Dispatchers.IO) {
                     try {
                         handleConnection(
-                            channel = WindowsNamedPipePacketChannel(connection),
+                            channel = WindowsNamedPipePacketChannel(connection, maxPacketSize),
                             close = connection::close,
                             verifyPeer = {
                                 when (peerVerification) {
@@ -262,7 +263,7 @@ internal class AgentIpcServer(
         channel: SocketChannel,
         peerVerification: ResolvedAgentIpcPeerVerification,
     ) = handleConnection(
-        channel = AgentIpcProtocol.open(channel),
+        channel = AgentIpcProtocol.open(channel, maxPacketSize),
         close = channel::close,
         verifyPeer = {
             when (peerVerification) {

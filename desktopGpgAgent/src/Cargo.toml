@@ -14,12 +14,11 @@ path = "src/main.rs"
 
 [dependencies]
 anyhow.workspace = true
-bytes.workspace = true
 clap = { workspace = true, features = ["derive"] }
 common-gpg-agent-rust.workspace = true
 keyguard-agent-identity.workspace = true
+keyguard-agent-ipc = { workspace = true, features = ["proto"] }
 keyguard-gpg-agent-assuan.workspace = true
-hex.workspace = true
 tokio = { workspace = true, features = ["full"] }
 tracing.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
@@ -34,6 +33,7 @@ libc.workspace = true
 getrandom = "0.2"
 
 [dev-dependencies]
+prost.workspace = true
 tempfile.workspace = true
 tokio = { workspace = true, features = ["test-util", "io-util", "macros", "rt"] }
 

@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
+import com.artemchep.keyguard.common.service.agent.AgentRpcRequest
+import com.artemchep.keyguard.common.service.agent.AgentRpcResponse
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -10,8 +13,8 @@ import kotlinx.serialization.protobuf.ProtoNumber
  * SSH agent bridge.
  *
  * These definitions must match the shared `commonSshAgent/proto/ssh_agent.proto`
- * schema consumed by the Rust SSH-agent binaries, and its caller messages the
- * `commonAgent/proto/caller.proto` schema shared with the GPG agent. We use
+ * schema consumed by the Rust SSH-agent binaries, and its shared messages the
+ * `commonAgent/proto/` schemas: [AgentIpcMessages] and [CallerIdentity]. We use
  * kotlinx.serialization.protobuf with @ProtoNumber annotations for wire
  * compatibility.
  *
@@ -21,9 +24,6 @@ import kotlinx.serialization.protobuf.ProtoNumber
  */
 @OptIn(ExperimentalSerializationApi::class)
 object SshAgentMessages {
-    /** Exact IPC contract revision required by the current app and agent. */
-    const val PROTOCOL_REVISION = 1
-
     // ================================================================
     // Top-level envelope messages
     // ================================================================
@@ -31,15 +31,15 @@ object SshAgentMessages {
     @Serializable
     data class IpcRequest(
         @ProtoNumber(1)
-        val id: Long = 0L,
+        override val id: Long = 0L,
         // oneof request: only one should be non-null
         @ProtoNumber(2)
-        val authenticate: AuthenticateRequest? = null,
+        override val authenticate: AgentIpcMessages.AuthenticateRequest? = null,
         @ProtoNumber(3)
         val listKeys: ListKeysRequest? = null,
         @ProtoNumber(4)
         val signData: SignDataRequest? = null,
-    )
+    ) : AgentRpcRequest
 
     @Serializable
     data class IpcResponse(
@@ -47,45 +47,14 @@ object SshAgentMessages {
         val id: Long = 0L,
         // oneof response: only one should be non-null
         @ProtoNumber(2)
-        val authenticate: AuthenticateResponse? = null,
+        override val authenticate: AgentIpcMessages.AuthenticateResponse? = null,
         @ProtoNumber(3)
         val listKeys: ListKeysResponse? = null,
         @ProtoNumber(4)
         val signData: SignDataResponse? = null,
         @ProtoNumber(15)
-        val error: ErrorResponse? = null,
-    )
-
-    // ================================================================
-    // Authentication
-    // ================================================================
-
-    @Serializable
-    data class AuthenticateRequest(
-        @ProtoNumber(1)
-        val token: ByteArray = byteArrayOf(),
-        // Keep the wire default at zero so an absent field from a stale agent
-        // cannot be mistaken for the current clean-cutover revision.
-        @ProtoNumber(2)
-        val protocolRevision: Int = 0,
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (this === other) return true
-            if (other !is AuthenticateRequest) return false
-            return token.contentEquals(other.token) &&
-                protocolRevision == other.protocolRevision
-        }
-
-        override fun hashCode(): Int = 31 * token.contentHashCode() + protocolRevision
-    }
-
-    @Serializable
-    data class AuthenticateResponse(
-        @ProtoNumber(1)
-        val success: Boolean = false,
-        @ProtoNumber(2)
-        val protocolRevision: Int = 0,
-    )
+        val error: AgentIpcMessages.ErrorResponse? = null,
+    ) : AgentRpcResponse
 
     // ================================================================
     // Key listing
@@ -167,26 +136,5 @@ object SshAgentMessages {
             result = 31 * result + algorithm.hashCode()
             return result
         }
-    }
-
-    // ================================================================
-    // Error
-    // ================================================================
-
-    @Serializable
-    data class ErrorResponse(
-        @ProtoNumber(1)
-        val message: String = "",
-        @ProtoNumber(2)
-        val code: Int = ErrorCode.UNSPECIFIED,
-    )
-
-    object ErrorCode {
-        const val UNSPECIFIED = 0
-        const val VAULT_LOCKED = 1
-        const val USER_DENIED = 2
-        const val KEY_NOT_FOUND = 3
-        const val AUTH_FAILED = 4
-        const val NOT_AUTHENTICATED = 5
     }
 }

@@ -90,9 +90,6 @@ abstract class AgentManager(
     }
 
     companion object {
-        /** Length of the auth token in bytes. */
-        private const val AUTH_TOKEN_BYTES = 32
-
         /** Maximum time (ms) to wait for the IPC server to bind the socket. */
         private const val IPC_SERVER_READY_TIMEOUT_MS = 5_000L
     }
@@ -191,7 +188,7 @@ abstract class AgentManager(
         }
 
         // Generate cryptographically random auth token.
-        val authToken = cryptoGenerator.seed(AUTH_TOKEN_BYTES)
+        val authToken = cryptoGenerator.seed(AgentIpcAuthenticator.TOKEN_SIZE)
         val authTokenHex = authToken.toHex()
         val agentSessionId = cryptoGenerator.seedHex(length = 16)
         val effectiveAgentSocketPath = agentSocketPath

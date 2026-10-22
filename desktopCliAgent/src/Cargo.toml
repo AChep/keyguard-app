@@ -19,6 +19,7 @@ clap = { workspace = true, features = ["derive"] }
 getrandom.workspace = true
 hex.workspace = true
 keyguard-agent-identity.workspace = true
+keyguard-agent-ipc = { workspace = true, features = ["proto"] }
 keyguard-agent-proto.workspace = true
 keyguard-cli-protocol.workspace = true
 prost.workspace = true
@@ -40,6 +41,7 @@ windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_Storage
 prost-build.workspace = true
 
 [dev-dependencies]
+keyguard-agent-proto = { workspace = true, features = ["fixtures"] }
 tempfile.workspace = true
 
 [lints.clippy]

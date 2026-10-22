@@ -120,7 +120,6 @@
     <ID>CyclomaticComplexMethod:GetPasswordImpl.kt:GetPasswordImpl$override fun invoke: IO&lt;GetPasswordResult?&gt;</ID>
     <ID>CyclomaticComplexMethod:GetSuggestionsImpl.kt:GetSuggestionsImpl$override fun invoke: IO&lt;List&lt;Any?&gt;&gt;</ID>
     <ID>CyclomaticComplexMethod:GpgAgentRequestProcessorImpl.kt:GpgAgentRequestProcessorImpl$private suspend fun &lt;T&gt; runKeyOperation: GpgAgentOperationResult&lt;T&gt;</ID>
-    <ID>CyclomaticComplexMethod:GpgAgentRpcHandler.kt:GpgAgentRpcHandler$suspend fun processRequest: GpgAgentMessages.IpcResponse</ID>
     <ID>CyclomaticComplexMethod:GpgKeyExpirationSelection.kt:internal fun evaluateGpgKeyExpirationSelection: GpgKeyExpirationEvaluation</ID>
     <ID>CyclomaticComplexMethod:GpgKeyExpirationServiceJvm.kt:GpgKeyExpirationServiceJvm$private fun updateOrThrow: GpgKeyExpirationResult.Success</ID>
     <ID>CyclomaticComplexMethod:GpgKeyExpirationServiceJvm.kt:GpgKeyExpirationServiceJvm$private fun updatePrimary: PGPPublicKey</ID>
@@ -927,7 +926,6 @@
     <ID>MagicNumber:AddStateProducer.kt:5000L</ID>
     <ID>MagicNumber:AgentApprovalContent.kt:200L</ID>
     <ID>MagicNumber:AgentIpcPeerVerification.kt:UnixLibC$4</ID>
-    <ID>MagicNumber:AgentIpcProtocol.kt:AgentIpcProtocol.Channel$4</ID>
     <ID>MagicNumber:AgentManager.kt:AgentManager$3</ID>
     <ID>MagicNumber:AnimatedFabVisibility.kt:0.01f</ID>
     <ID>MagicNumber:AppPickerScreen.kt:100L</ID>
@@ -1277,7 +1275,6 @@
     <ID>MagicNumber:WebDavKeePassUrl.kt:3</ID>
     <ID>MagicNumber:WebsiteLeakScreen.kt:0.6f</ID>
     <ID>MagicNumber:WebsiteLeakScreen.kt:0.8f</ID>
-    <ID>MagicNumber:WindowsNamedPipe.kt:WindowsNamedPipePacketChannel$4</ID>
     <ID>MagicNumber:WordlistViewScreen.kt:100L</ID>
     <ID>MagicNumber:broadcastFlow.kt:34</ID>
     <ID>MagicNumber:getHttpCode.kt:500</ID>
@@ -1518,7 +1515,6 @@
     <ID>MaxLineLength:PasskeyCompose.kt:title = getComposeString(Res.string.error_credential_calling_app_not_privileged_add_as_privileged_app_title)</ID>
     <ID>MaxLineLength:PasskeyCreateActivity.kt:PasskeyCreateActivity$(preparedCreateCredentialData as? PasskeyCreateRequest.PreparedCreateCredentialRequest.PublicKey)</ID>
     <ID>MaxLineLength:PlatformUserAgent.kt:get() = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$CHROME_FULL_VERSION Safari/537.36"</ID>
-    <ID>MaxLineLength:ProstDecodeTest.kt:ProstDecodeTest$val hex = "08021a3b0a390a066d792d6b657912137373682d6564323535313920414141412e2e2e1a0b7373682d65643235353139220d5348413235363a616263646566"</ID>
     <ID>MaxLineLength:QuickSearchStateProducer.kt:QuickSearchContentInput$val queryQualifierSuggestion: com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierSuggestion?</ID>
     <ID>MaxLineLength:SecureStorageFailureClassifier.kt:private</ID>
     <ID>MaxLineLength:ServerEnvApiCipherBulkTest.kt:ServerEnvApiCipherBulkTest$RecordedRequest(HttpMethod.Post, "$baseApiUrl/ciphers/bulk-collections", "post-bulk-cipher-collections")</ID>
@@ -1776,7 +1772,6 @@
     <ID>ReturnCount:GetSuggestionsImpl.kt:internal fun DSecret.Uri.matchesAndroidApp: Boolean</ID>
     <ID>ReturnCount:GpgAgentFields.kt:fun DSecret.toGpgAgentSecretOrNull: GpgAgentSecret?</ID>
     <ID>ReturnCount:GpgAgentRequestProcessorImpl.kt:GpgAgentRequestProcessorImpl$private suspend fun &lt;T&gt; runKeyOperation: GpgAgentOperationResult&lt;T&gt;</ID>
-    <ID>ReturnCount:GpgAgentRpcHandler.kt:GpgAgentRpcHandler$suspend fun processRequest: GpgAgentMessages.IpcResponse</ID>
     <ID>ReturnCount:GpgCertificateInspectorJvm.kt:@Suppress("DEPRECATION") private fun PGPSignature.matchesIssuerHint: Boolean</ID>
     <ID>ReturnCount:GpgCertificateInspectorJvm.kt:GpgCertificateInspectorJvm.Companion$fun inspect: GpgCertificateInspectorJvm?</ID>
     <ID>ReturnCount:GpgCertificateInspectorJvm.kt:internal fun PGPSignature.isExpiredAt: Boolean</ID>
@@ -1859,7 +1854,6 @@
     <ID>ReturnCount:AgentBridgeReceiver.kt:AgentBridgeReceiver$private fun parseRequest: BroadcastRequest?</ID>
     <ID>ReturnCount:AgentBridgeReceiver.kt:AgentBridgeReceiver$private suspend fun handleRequest: AgentBridgeContract.BroadcastOutcome</ID>
     <ID>ReturnCount:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
-    <ID>ReturnCount:SshAgentRpcHandler.kt:SshAgentRpcHandler$suspend fun processRequest: SshAgentMessages.IpcResponse</ID>
     <ID>ReturnCount:AgentBridgeService.kt:AgentBridgeService$override fun onStartCommand: Int</ID>
     <ID>ReturnCount:SshAgentTcpProxyBridge.kt:internal fun buildAndroidFrameworkPackageAuthorization: CallerAuthorization?</ID>
     <ID>ReturnCount:SshAgentTcpProxyBridge.kt:internal fun mergeAndroidSshAgentCallerIdentity: CallerIdentity?</ID>

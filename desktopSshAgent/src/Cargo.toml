@@ -27,8 +27,7 @@ futures.workspace = true
 async-trait.workspace = true
 
 # Protobuf IPC
-prost.workspace = true
-bytes.workspace = true
+keyguard-agent-ipc = { workspace = true, features = ["proto"] }
 
 # CLI
 clap = { workspace = true, features = ["derive"] }
@@ -40,9 +39,6 @@ thiserror.workspace = true
 # Logging
 tracing.workspace = true
 tracing-subscriber = { workspace = true, features = ["env-filter"] }
-
-# Hex encoding for auth token
-hex.workspace = true
 
 # Platform directories
 dirs.workspace = true
@@ -59,6 +55,8 @@ windows-sys = { workspace = true, features = [
 ] }
 
 [dev-dependencies]
+hex.workspace = true
+prost.workspace = true
 signature.workspace = true
 tokio = { workspace = true, features = ["test-util", "io-util", "macros", "rt"] }
 tempfile.workspace = true

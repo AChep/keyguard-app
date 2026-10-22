@@ -41,20 +41,21 @@ pub fn verify_unix_ipc_server(
     Ok(())
 }
 
-/// Returns the PID of the named-pipe server, verifying that it is
-/// `expected_pid` when given.
-///
-/// The PID alone does not prove the server's user; callers without an
-/// expected PID must check the server process owner themselves.
+/// Verifies that the named-pipe server runs as the current user and, when
+/// `expected_pid` is given, is that process. A predictable pipe name alone
+/// does not prove who serves it: another login must not reserve it.
 ///
 /// # Errors
 ///
-/// Fails when the server PID is unavailable or does not match.
+/// Fails when the server PID is unavailable or does not match, or when the
+/// server process cannot be opened or belongs to another user.
 #[cfg(windows)]
 pub fn verify_named_pipe_ipc_server(
     pipe: &impl std::os::windows::io::AsRawHandle,
     expected_pid: Option<u32>,
-) -> Result<u32> {
+) -> Result<()> {
+    use windows_sys::Win32::System::Threading::PROCESS_QUERY_LIMITED_INFORMATION;
+
     let mut server_pid = 0u32;
     // SAFETY: the caller's pipe handle stays valid for the duration of this
     // call, and server_pid points to writable u32 storage.
@@ -75,7 +76,8 @@ pub fn verify_named_pipe_ipc_server(
             );
         }
     }
-    Ok(server_pid)
+    crate::windows::open_current_user_process(server_pid, PROCESS_QUERY_LIMITED_INFORMATION)?;
+    Ok(())
 }
 
 #[cfg(all(test, unix))]

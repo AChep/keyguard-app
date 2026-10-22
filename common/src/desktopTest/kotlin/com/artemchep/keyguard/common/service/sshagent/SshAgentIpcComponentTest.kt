@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.sshagent
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
 import com.artemchep.keyguard.common.service.agent.cleanupAgentIpcEndpoint
@@ -66,9 +67,9 @@ class SshAgentIpcComponentTest {
                 // Send authenticate request.
                 val authRequest = SshAgentMessages.IpcRequest(
                     id = 1L,
-                    authenticate = SshAgentMessages.AuthenticateRequest(
+                    authenticate = AgentIpcMessages.AuthenticateRequest(
                         token = authToken.copyOf(),
-                        protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                        protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                     ),
                 )
                 sendMessage(client, authRequest)
@@ -90,9 +91,9 @@ class SshAgentIpcComponentTest {
                     client,
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = authToken.copyOf(),
-                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )
@@ -126,9 +127,9 @@ class SshAgentIpcComponentTest {
                     client,
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = badToken,
-                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )
@@ -158,7 +159,7 @@ class SshAgentIpcComponentTest {
                 assertEquals(1L, response.id)
                 assertNotNull(response.error)
                 assertEquals(
-                    SshAgentMessages.ErrorCode.NOT_AUTHENTICATED,
+                    AgentIpcMessages.ErrorCode.NOT_AUTHENTICATED,
                     response.error!!.code,
                 )
             }
@@ -174,9 +175,9 @@ class SshAgentIpcComponentTest {
                     client,
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = authToken.copyOf(),
-                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )
@@ -210,7 +211,7 @@ class SshAgentIpcComponentTest {
                 )
                 val r3 = readResponseWithTimeout(client, "sign data response")
                 assertEquals(3L, r3.id)
-                assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, r3.error!!.code)
+                assertEquals(AgentIpcMessages.ErrorCode.VAULT_LOCKED, r3.error!!.code)
             }
         }
     }
@@ -224,9 +225,9 @@ class SshAgentIpcComponentTest {
                     client,
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = authToken.copyOf(),
-                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )
@@ -247,7 +248,7 @@ class SshAgentIpcComponentTest {
                 )
                 val r2 = readResponseWithTimeout(client, "sign data response")
                 assertEquals(2L, r2.id)
-                assertEquals(SshAgentMessages.ErrorCode.USER_DENIED, r2.error!!.code)
+                assertEquals(AgentIpcMessages.ErrorCode.USER_DENIED, r2.error!!.code)
             }
         }
     }
@@ -261,9 +262,9 @@ class SshAgentIpcComponentTest {
                     firstClient,
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = authToken.copyOf(),
-                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )

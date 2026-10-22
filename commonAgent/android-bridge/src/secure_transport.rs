@@ -108,13 +108,23 @@ where
         session_id: &[u8],
         session_secret: &[u8],
     ) -> TransportResult<Self> {
+        let tool_challenge = random_bytes(CHALLENGE_LEN);
+        Self::connect_as_tool_with_challenge(stream, session_id, session_secret, &tool_challenge)
+            .await
+    }
+
+    async fn connect_as_tool_with_challenge(
+        stream: S,
+        session_id: &[u8],
+        session_secret: &[u8],
+        tool_challenge: &[u8],
+    ) -> TransportResult<Self> {
         validate_session(session_id, session_secret)?;
         let mut transport = Self::new_tool(stream, session_id, session_secret)?;
 
-        let tool_challenge = random_bytes(CHALLENGE_LEN);
         let mut hello_payload = Vec::with_capacity(SESSION_ID_LEN + CHALLENGE_LEN);
         hello_payload.extend_from_slice(session_id);
-        hello_payload.extend_from_slice(&tool_challenge);
+        hello_payload.extend_from_slice(tool_challenge);
         transport
             .write_frame(FRAME_TYPE_TOOL_HELLO, &hello_payload)
             .await?;
@@ -129,7 +139,7 @@ where
         if &app_hello[..SESSION_ID_LEN] != session_id {
             return transport.poison(TransportError::protocol("App hello session id mismatch"));
         }
-        if &app_hello[SESSION_ID_LEN..SESSION_ID_LEN + CHALLENGE_LEN] != tool_challenge.as_slice() {
+        if &app_hello[SESSION_ID_LEN..SESSION_ID_LEN + CHALLENGE_LEN] != tool_challenge {
             return transport.poison(TransportError::protocol("App hello challenge mismatch"));
         }
 
@@ -495,6 +505,9 @@ fn random_bytes(size: usize) -> Vec<u8> {
     rand::thread_rng().fill_bytes(&mut bytes);
     bytes
 }
+
+#[cfg(test)]
+mod vectors;
 
 #[cfg(test)]
 mod tests {

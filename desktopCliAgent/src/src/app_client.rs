@@ -1,22 +1,25 @@
 //! The private channel to the app that started this agent.
 use crate::protocol::{
-    AuthenticateRequest, MountStatus, MountStatusRequest, PROTOCOL_REVISION, Private, Request,
-    Response, request, response,
+    MountStatus, MountStatusRequest, Private, Request, Response, request, response,
 };
-use anyhow::{Context, Result, ensure};
+use anyhow::{Context, Result, bail};
+use keyguard_agent_ipc::{
+    handshake::{authenticate_request, check_authenticate_response},
+    launch::AuthToken,
+};
 use keyguard_cli_protocol::{
     frame::{read_frame, write_frame},
     transport,
 };
 use prost::Message;
-use std::{path::PathBuf, sync::Arc, time::Duration};
+use std::{path::PathBuf, time::Duration};
 use zeroize::Zeroizing;
 
 #[derive(Clone)]
 pub(crate) struct AppClient {
     pub(crate) socket: PathBuf,
     pub(crate) pid: u32,
-    pub(crate) token: Arc<Zeroizing<[u8; 32]>>,
+    pub(crate) token: AuthToken,
 }
 
 impl AppClient {
@@ -32,17 +35,16 @@ impl AppClient {
         tokio::time::timeout(Duration::from_secs(70), async {
             let mut stream = transport::connect(&self.socket, Some(self.pid)).await?;
             let auth = Private(Request {
-                request: Some(request::Request::Authenticate(AuthenticateRequest {
-                    token: self.token.to_vec(),
-                    protocol_revision: PROTOCOL_REVISION,
-                })),
+                request: Some(request::Request::Authenticate(authenticate_request(
+                    &self.token,
+                ))),
             });
             write_frame(&mut *stream, &Zeroizing::new(auth.0.encode_to_vec())).await?;
             let response = read_response(&mut *stream).await?;
-            ensure!(
-                matches!(response.0, response::Response::Authenticate(_)),
-                "authentication_failed"
-            );
+            let response::Response::Authenticate(auth) = &response.0 else {
+                bail!("authentication_failed");
+            };
+            check_authenticate_response(auth).context("authentication_failed")?;
             write_frame(&mut *stream, &Zeroizing::new(request.0.encode_to_vec())).await?;
             read_response(&mut *stream).await
         })

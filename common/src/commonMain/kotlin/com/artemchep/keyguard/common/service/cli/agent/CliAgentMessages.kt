@@ -2,6 +2,7 @@
 
 package com.artemchep.keyguard.common.service.cli.agent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
@@ -11,8 +12,9 @@ import kotlinx.serialization.protobuf.ProtoOneOf
 
 /**
  * The private channel between Keyguard and its CLI agent. Mirrors
- * `desktopCliAgent/proto/cli_agent.proto`; the shared encodings in
- * `desktopCliAgent/proto/fixtures/` pin both sides.
+ * `desktopCliAgent/proto/cli_agent.proto`, with the handshake of
+ * [AgentIpcMessages]; the shared encodings in `desktopCliAgent/proto/fixtures/`
+ * pin both sides.
  *
  * Fields default to their proto3 defaults, so an omitted field decodes and
  * a default value is not encoded, as with the Rust side. Each `oneof` is a
@@ -20,9 +22,6 @@ import kotlinx.serialization.protobuf.ProtoOneOf
  * always encoded.
  */
 object CliAgentMessages {
-    /** The exact revision of the private protocol that the agent must speak. */
-    const val PROTOCOL_REVISION = 1
-
     /** A message without fields. */
     @Serializable
     data object Empty
@@ -36,7 +35,7 @@ object CliAgentMessages {
         sealed interface Kind {
             @Serializable
             @SerialName("authenticate")
-            data class Authenticate(@ProtoNumber(1) val value: AuthenticateRequest) : Kind
+            data class Authenticate(@ProtoNumber(1) val value: AgentIpcMessages.AuthenticateRequest) : Kind
 
             @Serializable
             @SerialName("manage")
@@ -73,7 +72,7 @@ object CliAgentMessages {
         sealed interface Kind {
             @Serializable
             @SerialName("authenticate")
-            data class Authenticate(@ProtoNumber(1) val value: Empty) : Kind
+            data class Authenticate(@ProtoNumber(1) val value: AgentIpcMessages.AuthenticateResponse) : Kind
 
             @Serializable
             @SerialName("manage")
@@ -107,15 +106,6 @@ object CliAgentMessages {
     data class ErrorResponse(
         @ProtoNumber(1)
         val code: String = "",
-    )
-
-    @Serializable
-    class AuthenticateRequest(
-        /** The 32 bytes the app passed to the agent at launch. */
-        @ProtoNumber(1)
-        val token: ByteArray = byteArrayOf(),
-        @ProtoNumber(2)
-        val protocolRevision: Int = 0,
     )
 
     /** Environment management of an MCP client. Never answered with values. */

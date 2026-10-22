@@ -3,12 +3,17 @@ name = "keyguard-agent-proto"
 version.workspace = true
 edition = "2021"
 rust-version.workspace = true
-description = "Shared protobuf caller schema of the Keyguard SSH, GPG and CLI agent IPC"
+description = "Shared protobuf caller, handshake and error schema of the Keyguard SSH, GPG and CLI agent IPC"
 license-file.workspace = true
 repository.workspace = true
 publish = false
 
+[features]
+# The golden-fixture helpers that the agents' wire tests share.
+fixtures = ["dep:hex"]
+
 [dependencies]
+hex = { workspace = true, optional = true }
 prost.workspace = true
 
 [build-dependencies]

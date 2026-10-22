@@ -8,9 +8,10 @@ import com.artemchep.keyguard.apple.agent.readPacket
 import com.artemchep.keyguard.apple.agent.writePacket
 import com.artemchep.keyguard.apple.environments.EnvironmentBookmarkTransfers
 import com.artemchep.keyguard.common.model.AgentStatus
+import com.artemchep.keyguard.common.service.agent.AgentIpcAuthenticator
+import com.artemchep.keyguard.common.service.agent.AgentPacketReply
 import com.artemchep.keyguard.common.service.cli.CliPlatformCapability
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentHost
-import com.artemchep.keyguard.common.service.cli.agent.CliAgentPacketReply
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentPacketSession
 import com.artemchep.keyguard.platform.appleAppGroupContainerPath
 import kotlinx.cinterop.ExperimentalForeignApi
@@ -67,7 +68,7 @@ internal class MacosCliAgentRuntime(
     ) { socket, stateDirectory ->
         listOf(
             "--cli-socket", socket,
-            "--state-dir", stateDirectory,
+            "--state-dir", requireNotNull(stateDirectory),
         )
     }
 
@@ -76,7 +77,7 @@ internal class MacosCliAgentRuntime(
         host: CliAgentHost,
         authToken: ByteArray,
     ): CliAgentRuntimeHandle {
-        require(authToken.size == AUTH_TOKEN_SIZE)
+        require(authToken.size == AgentIpcAuthenticator.TOKEN_SIZE)
         val handle = helper.start(
             scope = scope,
             authToken = authToken,
@@ -89,8 +90,6 @@ internal class MacosCliAgentRuntime(
         }
     }
 }
-
-private const val AUTH_TOKEN_SIZE = 32
 
 private const val IO_TIMEOUT_MS = 70_000L
 
@@ -123,14 +122,14 @@ internal class MacosCliAgentIpcServer(
         }
     }
 
-    private suspend fun readReply(client: Int, session: CliAgentPacketSession): CliAgentPacketReply? {
+    private suspend fun readReply(client: Int, session: CliAgentPacketSession): AgentPacketReply? {
         val packet = withTimeoutOrNull(IO_TIMEOUT_MS) {
             readPacket(client, CliAgentPacketSession.MAX_PACKET_SIZE)
         } ?: return null
         return processPacket(client, session, packet)
     }
 
-    private suspend fun sendReply(client: Int, reply: CliAgentPacketReply): Boolean = try {
+    private suspend fun sendReply(client: Int, reply: AgentPacketReply): Boolean = try {
         withTimeoutOrNull(IO_TIMEOUT_MS) {
             writePacket(client, reply.packet, CliAgentPacketSession.MAX_PACKET_SIZE)
         } == true && !reply.close
@@ -142,13 +141,13 @@ internal class MacosCliAgentIpcServer(
         client: Int,
         session: CliAgentPacketSession,
         packet: ByteArray,
-    ): CliAgentPacketReply? = try {
-        withTimeoutOrNull<CliAgentPacketReply?>(IO_TIMEOUT_MS) {
-            coroutineScope<CliAgentPacketReply?> {
+    ): AgentPacketReply? = try {
+        withTimeoutOrNull<AgentPacketReply?>(IO_TIMEOUT_MS) {
+            coroutineScope<AgentPacketReply?> {
                 val response = async { session.process(packet) }
                 val disconnect = async { awaitDisconnect(client) }
                 try {
-                    select<CliAgentPacketReply?> {
+                    select<AgentPacketReply?> {
                         response.onAwait { it }
                         disconnect.onAwait { response.cancel(); null }
                     }

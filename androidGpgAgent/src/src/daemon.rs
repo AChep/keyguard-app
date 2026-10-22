@@ -2,40 +2,28 @@
 
 use anyhow::{Context, Result};
 use keyguard_agent_identity::caller_guard::CallerGuard;
-use keyguard_android_agent_bridge::broadcast::BroadcastCommandSpec;
+use keyguard_android_agent_bridge::bridge::BridgeConfig;
 use keyguard_android_agent_bridge::caller_identity::caller_from_unix_stream;
 use keyguard_android_agent_bridge::log_debug;
-use keyguard_android_agent_bridge::server::{serve_clients, wait_for_shutdown_signal};
+use keyguard_android_agent_bridge::server::{self, serve_clients, wait_for_shutdown_signal};
 use keyguard_gpg_agent_assuan::ipc::IpcClient;
 use keyguard_gpg_agent_assuan::{serve_connection, AgentInfo};
 use std::sync::Arc;
 use tokio::net::{UnixListener, UnixStream};
-use tokio::time::Duration;
 
 use crate::transport::BridgeTransport;
 
-pub(crate) struct Config {
-    pub(crate) android_component: String,
-    pub(crate) connect_timeout: Duration,
-    pub(crate) debug: bool,
-    pub(crate) broadcast_command: BroadcastCommandSpec,
-}
-
 pub(crate) fn run_blocking(
     listener: std::os::unix::net::UnixListener,
-    config: Config,
+    config: BridgeConfig,
     info: AgentInfo,
 ) -> Result<i32> {
-    let runtime = tokio::runtime::Builder::new_multi_thread()
-        .enable_all()
-        .build()
-        .context("Failed to create Tokio runtime")?;
-    runtime.block_on(run(listener, Arc::new(config), Arc::new(info)))
+    server::run_blocking(run(listener, Arc::new(config), Arc::new(info)))
 }
 
 async fn run(
     listener: std::os::unix::net::UnixListener,
-    config: Arc<Config>,
+    config: Arc<BridgeConfig>,
     info: Arc<AgentInfo>,
 ) -> Result<i32> {
     let listener =
@@ -58,7 +46,7 @@ async fn run(
 
 async fn handle_client_connection(
     client: UnixStream,
-    config: Arc<Config>,
+    config: Arc<BridgeConfig>,
     info: Arc<AgentInfo>,
 ) -> Result<()> {
     let caller = caller_from_unix_stream(&client);
@@ -88,14 +76,16 @@ async fn handle_client_connection(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use keyguard_android_agent_bridge::broadcast::BroadcastCommandSpec;
     use std::ffi::OsString;
     use std::path::Path;
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    use tokio::time::Duration;
 
     /// Records each broadcast in [marker], then runs [answer] as `am` would.
-    fn config_recording_broadcasts(marker: &Path, answer: &str) -> Arc<Config> {
+    fn config_recording_broadcasts(marker: &Path, answer: &str) -> Arc<BridgeConfig> {
         let script = format!("printf x >> '{}'; {answer}", marker.display());
-        Arc::new(Config {
+        Arc::new(BridgeConfig {
             android_component: "component".to_string(),
             connect_timeout: Duration::from_secs(60),
             debug: false,
@@ -110,7 +100,7 @@ mod tests {
         })
     }
 
-    async fn transcript(config: Arc<Config>, commands: &str) -> String {
+    async fn transcript(config: Arc<BridgeConfig>, commands: &str) -> String {
         let (mut client, server) = UnixStream::pair().unwrap();
         let info = Arc::new(AgentInfo::new("socket".to_string(), "2.5.24".to_string()));
         let session = tokio::spawn(handle_client_connection(server, config, info));

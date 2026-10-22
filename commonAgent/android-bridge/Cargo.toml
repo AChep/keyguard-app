@@ -16,12 +16,14 @@ hkdf.workspace = true
 keyguard-agent-identity.workspace = true
 keyguard-agent-proto.workspace = true
 libc.workspace = true
+prost.workspace = true
 rand.workspace = true
 sha2.workspace = true
-tokio = { workspace = true, features = ["io-util", "macros", "net", "process", "rt", "signal", "sync", "time"] }
+tokio = { workspace = true, features = ["io-util", "macros", "net", "process", "rt", "rt-multi-thread", "signal", "sync", "time"] }
 zeroize.workspace = true
 
 [target.'cfg(unix)'.dev-dependencies]
+keyguard-agent-proto = { workspace = true, features = ["fixtures"] }
 tokio = { workspace = true, features = ["io-util", "macros", "net", "process", "rt", "rt-multi-thread", "signal", "sync", "test-util", "time"] }
 
 [lints.clippy]

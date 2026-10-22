@@ -2,14 +2,16 @@ syntax = "proto3";
 
 package keyguard.gpgagent;
 
-// The caller messages are shared with the SSH agent: commonAgent/proto.
+// The caller, handshake and error messages are shared with the SSH and CLI
+// agents: commonAgent/proto.
+import "agent.proto";
 import "caller.proto";
 
 message IpcRequest {
   uint64 id = 1;
 
   oneof request {
-    AuthenticateRequest authenticate = 2;
+    keyguard.agent.AuthenticateRequest authenticate = 2;
     ListKeysRequest list_keys = 3;
     SignHashRequest sign_hash = 4;
     PkdecryptRequest pkdecrypt = 5;
@@ -20,22 +22,12 @@ message IpcResponse {
   uint64 id = 1;
 
   oneof response {
-    AuthenticateResponse authenticate = 2;
+    keyguard.agent.AuthenticateResponse authenticate = 2;
     ListKeysResponse list_keys = 3;
     SignHashResponse sign_hash = 4;
     PkdecryptResponse pkdecrypt = 5;
-    ErrorResponse error = 15;
+    keyguard.agent.ErrorResponse error = 15;
   }
-}
-
-message AuthenticateRequest {
-  bytes token = 1;
-  uint32 protocol_revision = 2;
-}
-
-message AuthenticateResponse {
-  bool success = 1;
-  uint32 protocol_revision = 2;
 }
 
 message ListKeysRequest {
@@ -87,19 +79,4 @@ message PkdecryptResponse {
   // the legacy shared-secret value or the unwrapped session-key block, matching
   // the PkdecryptRequest.unwrap_ecdh mode.
   string value_sexp = 1;
-}
-
-message ErrorResponse {
-  string message = 1;
-  ErrorCode code = 2;
-}
-
-enum ErrorCode {
-  ERROR_CODE_UNSPECIFIED = 0;
-  ERROR_CODE_VAULT_LOCKED = 1;
-  ERROR_CODE_USER_DENIED = 2;
-  ERROR_CODE_KEY_NOT_FOUND = 3;
-  ERROR_CODE_AUTH_FAILED = 4;
-  ERROR_CODE_NOT_AUTHENTICATED = 5;
-  ERROR_CODE_UNSUPPORTED = 6;
 }

@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
-import com.artemchep.keyguard.common.service.agent.AgentPacketChannel
+import com.artemchep.keyguard.common.service.agent.AgentPacketSession
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_APP_BUNDLE_P
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_EXECUTABLE_PATH_LENGTH
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_NAME_LENGTH
 import com.artemchep.keyguard.common.service.agent.isUnsafeAgentCallerDisplayCodePoint
+import com.artemchep.keyguard.common.service.agent.serve
 import java.io.EOFException
 import java.net.Socket
 import java.net.SocketException
@@ -36,6 +37,7 @@ internal suspend fun runSshAgentProxyBridge(
     sessionId: ByteArray,
     sessionSecret: ByteArray,
     senderAppInfo: CallerIdentity? = null,
+    onOversizeResponse: (size: Int) -> Unit = {},
     connectHostCandidates: List<String> = DEFAULT_CONNECT_HOST_CANDIDATES,
     connectTimeoutMs: Int = DEFAULT_CONNECT_TIMEOUT_MS,
     connectDeadlineMs: Long = DEFAULT_CONNECT_DEADLINE_MS,
@@ -50,8 +52,11 @@ internal suspend fun runSshAgentProxyBridge(
     delayMs: (suspend (Long) -> Unit)? = null,
 ) {
     val rpcHandler = SshAgentRpcHandler(
-        requestProcessor = requestProcessor,
-        authenticate = { false },
+        requestProcessor = CallerMergingSshAgentRequestProcessor(
+            delegate = requestProcessor,
+            senderAppInfo = senderAppInfo,
+            replaceCallerAuthorization = true,
+        ),
     )
 
     runAndroidAgentProxySession(
@@ -69,25 +74,46 @@ internal suspend fun runSshAgentProxyBridge(
         socketFactory = socketFactory,
         monotonicTimeMs = monotonicTimeMs,
         delayMs = delayMs,
-    ) { channel, readPacket, writePacket ->
-        runSshAgentPacketSession(
-            channel = channel,
+    ) { maxPacketSize ->
+        SshAgentPacketSession(
             rpcHandler = rpcHandler,
-            initialContext = SshAgentRpcRequestContext(
-                authenticated = true,
-                allowAuthenticate = false,
-                callerAugmentation = senderAppInfo,
-                replaceCallerAuthorization = true,
-            ),
-            readPacket = readPacket,
-            writePacket = writePacket,
+            authenticatedByTransport = true,
+            maxPacketSize = maxPacketSize,
+            onOversizeResponse = onOversizeResponse,
         )
     }
 }
 
 /**
+ * Runs every request's caller through [mergeAndroidSshAgentCallerIdentity],
+ * which bounds and strips its display fields. The Android bridge attributes
+ * requests to the app that sent the broadcast and never trusts the helper's
+ * own authorization; desktop passes no sender and keeps the authorization.
+ */
+internal class CallerMergingSshAgentRequestProcessor(
+    private val delegate: SshAgentRequestProcessor,
+    private val senderAppInfo: CallerIdentity?,
+    private val replaceCallerAuthorization: Boolean,
+) : SshAgentRequestProcessor {
+    override suspend fun listKeys(
+        caller: CallerIdentity?,
+    ): SshAgentRequestProcessor.ListKeysResult = delegate.listKeys(caller.merged())
+
+    override suspend fun signData(
+        request: SshAgentMessages.SignDataRequest,
+    ): SshAgentRequestProcessor.SignDataResult =
+        delegate.signData(request.copy(caller = request.caller.merged()))
+
+    private fun CallerIdentity?.merged(): CallerIdentity? = mergeAndroidSshAgentCallerIdentity(
+        caller = this,
+        senderAppInfo = senderAppInfo,
+        replaceCallerAuthorization = replaceCallerAuthorization,
+    )
+}
+
+/**
  * Connects back to a Termux helper's proxy port, completes the session
- * handshake and runs [block] with packet I/O bounded by socket deadlines.
+ * handshake and serves a [session] with packet I/O bounded by socket deadlines.
  * The read deadline doubles as the idle timeout between requests, so each
  * protocol picks one that outlasts its helper's own idle limit.
  */
@@ -108,11 +134,8 @@ internal suspend fun runAndroidAgentProxySession(
     // Null default (not `= { delay(it) }`) to avoid a Kotlin 2.4.0 JVM-backend crash;
     // see withAndroidSshAgentProxySocket. Forwarded as-is to the connector.
     delayMs: (suspend (Long) -> Unit)? = null,
-    block: suspend (
-        channel: AgentPacketChannel,
-        readPacket: suspend (AgentPacketChannel) -> ByteArray?,
-        writePacket: suspend (AgentPacketChannel, ByteArray) -> Unit,
-    ) -> Unit,
+    /** Creates the session of a connection, whose packets the transport caps at the given size. */
+    session: (maxPacketSize: Int) -> AgentPacketSession<*, *>,
 ) {
     withAndroidSshAgentProxySocket(
         proxyPort = proxyPort,
@@ -137,25 +160,25 @@ internal suspend fun runAndroidAgentProxySession(
             )
         }
         runProxySessionQuietly(socket) {
-            block(
-                channel,
-                { packetChannel ->
+            session(SshAgentTcpProtocol.MAX_FRAME_PAYLOAD_SIZE).serve(
+                readPacket = {
                     runSocketOperationWithDeadline(
                         socket = socket,
                         timeoutMs = packetReadTimeoutMs,
                         operationName = "$agentName proxy packet read",
                     ) {
-                        packetChannel.readPacket()
+                        channel.readPacket()
                     }
                 },
-                { packetChannel, packet ->
+                writePacket = { packet ->
                     runSocketOperationWithDeadline(
                         socket = socket,
                         timeoutMs = packetWriteTimeoutMs,
                         operationName = "$agentName proxy packet write",
                     ) {
-                        packetChannel.writePacket(packet)
+                        channel.writePacket(packet)
                     }
+                    true
                 },
             )
         }

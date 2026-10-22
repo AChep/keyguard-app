@@ -4,6 +4,17 @@ use anyhow::{bail, Context, Result};
 use std::ffi::CString;
 use std::io;
 
+/// Exits with the code of `result`, or prints its error and exits with 1.
+pub fn exit_with(result: Result<i32>) -> ! {
+    std::process::exit(match result {
+        Ok(code) => code,
+        Err(err) => {
+            eprintln!("{err:#}");
+            1
+        }
+    })
+}
+
 /// Points `fd` at `/dev/null`, for a daemon detached from its terminal.
 pub fn redirect_null(fd: i32, write: bool) -> Result<()> {
     let path = CString::new("/dev/null").context("Invalid /dev/null path")?;

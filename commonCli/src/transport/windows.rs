@@ -1,15 +1,14 @@
 use anyhow::{Result, ensure};
-use keyguard_agent_identity::windows::{current_user_sid_string, token_user_sid_string};
+use keyguard_agent_identity::windows::open_current_user_process;
 use std::{
-    os::windows::io::{AsHandle, AsRawHandle, FromRawHandle, OwnedHandle},
+    os::windows::io::{AsRawHandle, OwnedHandle},
     path::Path,
 };
 use windows_sys::Win32::{
     Foundation::WAIT_TIMEOUT,
-    Security::TOKEN_QUERY,
     System::Threading::{
-        OpenProcess, OpenProcessToken, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SYNCHRONIZE,
-        QueryFullProcessImageNameW, WaitForSingleObject,
+        PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SYNCHRONIZE, QueryFullProcessImageNameW,
+        WaitForSingleObject,
     },
 };
 
@@ -22,28 +21,10 @@ pub struct Process {
 impl Process {
     pub fn open(pid: u32) -> Result<Self> {
         use std::os::windows::ffi::OsStringExt;
-        // SAFETY: this read-only access mask requests a process handle by PID.
-        let process = unsafe {
-            OpenProcess(
-                PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_SYNCHRONIZE,
-                0,
-                pid,
-            )
-        };
-        ensure!(!process.is_null(), "peer_unavailable");
-        // SAFETY: OpenProcess transferred this non-null owned handle.
-        let handle = unsafe { OwnedHandle::from_raw_handle(process.cast()) };
-        let mut token = std::ptr::null_mut();
-        // SAFETY: handle is live and token is writable for the returned handle.
-        let opened =
-            unsafe { OpenProcessToken(handle.as_raw_handle().cast(), TOKEN_QUERY, &mut token) };
-        ensure!(opened != 0, "peer_unavailable");
-        // SAFETY: OpenProcessToken transferred this non-null owned handle.
-        let token = unsafe { OwnedHandle::from_raw_handle(token.cast()) };
-        ensure!(
-            token_user_sid_string(token.as_handle())? == current_user_sid_string()?,
-            "peer_owner_mismatch"
-        );
+        let handle = open_current_user_process(
+            pid,
+            PROCESS_QUERY_LIMITED_INFORMATION | PROCESS_SYNCHRONIZE,
+        )?;
         let mut buffer = vec![0u16; 32768];
         let mut size = buffer.len() as u32;
         // SAFETY: handle remains live and buffer has size writable UTF-16 units.

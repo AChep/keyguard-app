@@ -39,16 +39,18 @@ internal class AgentHelperHandle(
 }
 
 /** Runs a bundled helper from the App Group directory [directoryName] and serves
- * it over a private IPC socket. [dataDirectoryName] is a private subdirectory
- * passed to the helper through [arguments], which follow the IPC socket and parent PID. */
+ * it over a private IPC socket. [dataDirectoryName] names an optional private
+ * subdirectory; it and the [publicSocket] path are passed to the helper through
+ * [arguments], which follow the IPC socket and parent PID. */
 @OptIn(ExperimentalForeignApi::class)
 internal class AgentHelperRuntime(
     private val name: String,
     private val binaryPath: () -> String?,
     private val groupPath: () -> String?,
     private val directoryName: String,
-    private val dataDirectoryName: String,
-    private val arguments: (publicSocket: String, dataDirectory: String) -> List<String>,
+    private val dataDirectoryName: String? = null,
+    private val publicSocket: (group: String, directory: String) -> String = { _, directory -> "$directory/s" },
+    private val arguments: (publicSocket: String, dataDirectory: String?) -> List<String>,
 ) {
     /** Returns once the helper is ready; a failure before that is thrown, a later
      * one is passed to [onFailure]. The helper lives in [scope] and receives a copy
@@ -100,11 +102,11 @@ internal class AgentHelperRuntime(
         val binary = requireNotNull(binaryPath()) { "Bundled $name is unavailable" }
         val group = requireNotNull(groupPath()) { "$name requires a provisioned, writable App Group" }
         val directory = group.trimEnd('/') + "/" + directoryName
-        val publicSocket = "$directory/s"
+        val publicSocket = publicSocket(group, directory)
         requireSocketPath(publicSocket)
         ensurePrivateDirectory(directory)
-        val dataDirectory = "$directory/$dataDirectoryName"
-        ensurePrivateDirectory(dataDirectory)
+        val dataDirectory = dataDirectoryName?.let { "$directory/$it" }
+        dataDirectory?.let(::ensurePrivateDirectory)
         val ipcDirectory = createPrivateIpcDirectory(directory)
         val ipcSocket = ipcDirectory.path + "/i"
         val helper = AgentHelperProcess(

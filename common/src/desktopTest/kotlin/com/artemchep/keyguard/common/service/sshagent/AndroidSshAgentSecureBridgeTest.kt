@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import java.net.InetSocketAddress
 import java.net.ServerSocket
@@ -17,6 +18,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -238,7 +240,7 @@ class AndroidSshAgentSecureBridgeTest {
                 val requestPayload = ProtoBuf.encodeToByteArray(
                     SshAgentMessages.IpcRequest(
                         id = 43L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(token = byteArrayOf(1, 2, 3)),
+                        authenticate = AgentIpcMessages.AuthenticateRequest(token = byteArrayOf(1, 2, 3)),
                     ),
                 )
 
@@ -269,7 +271,7 @@ class AndroidSshAgentSecureBridgeTest {
                     val response = ProtoBuf.decodeFromByteArray<SshAgentMessages.IpcResponse>(responsePayload)
                     val error = requireNotNull(response.error)
                     assertEquals(43L, response.id)
-                    assertEquals(SshAgentMessages.ErrorCode.UNSPECIFIED, error.code)
+                    assertEquals(AgentIpcMessages.ErrorCode.UNSPECIFIED, error.code)
                     assertEquals(
                         "AuthenticateRequest is not supported on this transport",
                         error.message,
@@ -415,6 +417,67 @@ class AndroidSshAgentSecureBridgeTest {
     }
 
     @Test
+    fun `bridge answers a response over the frame limit with an error and stays open`() = runBlocking {
+        withTimeout(5_000) {
+            val bridgeScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+            try {
+                // The first listing cannot fit into one bridge frame.
+                val names = ArrayDeque(listOf("k".repeat(SshAgentTcpProtocol.MAX_FRAME_PAYLOAD_SIZE), "Key"))
+                val requestProcessor = createRequestProcessor(
+                    listKeys = {
+                        SshAgentRequestProcessor.ListKeysResult.Success(
+                            SshAgentMessages.ListKeysResponse(
+                                keys = listOf(SshAgentMessages.SshKey(name = names.removeFirst())),
+                            ),
+                        )
+                    },
+                )
+                val oversizeResponses = CopyOnWriteArrayList<Int>()
+                val sessionId = ByteArray(SshAgentTcpProtocol.SESSION_ID_LENGTH) { 0x11 }
+                val sessionSecret = ByteArray(SshAgentTcpProtocol.SESSION_SECRET_LENGTH) { 0x22 }
+
+                ServerSocket().use { server ->
+                    server.bind(InetSocketAddress("127.0.0.1", 0))
+
+                    val bridgeJob = bridgeScope.launch {
+                        runSshAgentProxyBridge(
+                            requestProcessor = requestProcessor,
+                            proxyPort = server.localPort,
+                            sessionId = sessionId,
+                            sessionSecret = sessionSecret,
+                            onOversizeResponse = { oversizeResponses += it },
+                            connectHostCandidates = listOf("127.0.0.1"),
+                        )
+                    }
+                    val toolJob = async(Dispatchers.IO) {
+                        server.accept().use { socket ->
+                            val toolChannel = SshAgentTcpProtocol.openAsTool(
+                                input = socket.getInputStream(),
+                                output = socket.getOutputStream(),
+                                sessionId = sessionId,
+                                sessionSecret = sessionSecret,
+                            )
+                            listOf(51L, 52L).map { id -> toolChannel.listKeys(id) }
+                        }
+                    }
+
+                    val (oversize, next) = toolJob.await()
+                    assertEquals(51L, oversize.id)
+                    assertNull(oversize.listKeys)
+                    assertEquals(AgentIpcMessages.ErrorCode.UNSPECIFIED, oversize.error?.code)
+                    assertTrue(oversizeResponses.single() > SshAgentTcpProtocol.MAX_FRAME_PAYLOAD_SIZE)
+                    assertEquals(52L, next.id)
+                    assertEquals("Key", next.listKeys?.keys?.single()?.name)
+                    bridgeJob.join()
+                    assertFalse(bridgeJob.isCancelled)
+                }
+            } finally {
+                bridgeScope.cancel()
+            }
+        }
+    }
+
+    @Test
     fun `blocked proxy write is interrupted by closing its socket at the deadline`() = runBlocking {
         val closeSignal = CountDownLatch(1)
         val socket = object : Socket() {
@@ -437,6 +500,13 @@ class AndroidSshAgentSecureBridgeTest {
 
         assertTrue(error.message.orEmpty().contains("test proxy write timed out"))
         assertTrue(socket.isClosed)
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private fun SshAgentTcpProtocol.Channel.listKeys(id: Long): SshAgentMessages.IpcResponse {
+        val request = SshAgentMessages.IpcRequest(id = id, listKeys = SshAgentMessages.ListKeysRequest())
+        writePacket(ProtoBuf.encodeToByteArray(request))
+        return ProtoBuf.decodeFromByteArray(requireNotNull(readPacket()))
     }
 
     private fun createRequestProcessor(

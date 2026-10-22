@@ -2,13 +2,10 @@
 //! holds them, and the Kotlin tests check the same files: each fixture
 //! decodes to its message, and the message encodes back to it.
 use super::*;
-use keyguard_agent_proto::{
-    CallerAuthorization, CallerAuthorizationEvidenceSource, CallerAuthorizationSubject,
-    CallerAuthorizationSubjectKind, CallerIdentity,
-};
+use keyguard_agent_identity::IPC_PROTOCOL_REVISION;
+use keyguard_agent_proto::fixtures::{check, verified_caller};
+use keyguard_agent_proto::{AuthenticateRequest, AuthenticateResponse, CallerIdentity};
 use keyguard_cli_protocol::cli::{CliCommand, RunRequest};
-use prost::Message;
-use std::fmt::Write;
 
 const REQUESTS: &str = include_str!("../../../proto/fixtures/requests.pbhex");
 const RESPONSES: &str = include_str!("../../../proto/fixtures/responses.pbhex");
@@ -41,27 +38,6 @@ fn local_env_file(status: MountStatus) -> LocalEnvFile {
         enabled: true,
         status: status.into(),
         account_id: Some("a".into()),
-    }
-}
-
-/// A caller whose terminal session the platform verified.
-fn verified_caller() -> CallerIdentity {
-    CallerIdentity {
-        pid: 42,
-        process_name: "node".into(),
-        executable_path: "/usr/bin/node".into(),
-        app_name: "Terminal".into(),
-        app_bundle_path: "/Applications/Terminal.app".into(),
-        authorization: Some(CallerAuthorization {
-            connection_fingerprint: vec![0x22; 32],
-            subjects: vec![CallerAuthorizationSubject {
-                kind: CallerAuthorizationSubjectKind::TerminalSession.into(),
-                evidence_source: CallerAuthorizationEvidenceSource::MacosTerminalSession.into(),
-                fingerprint: vec![0x33; 32],
-            }],
-            authorization_context_fingerprint: Vec::new(),
-        }),
-        ..CallerIdentity::default()
     }
 }
 
@@ -99,7 +75,7 @@ fn requests() -> Vec<(&'static str, Request)> {
             "authenticate",
             request::Request::Authenticate(AuthenticateRequest {
                 token: vec![0x11; 32],
-                protocol_revision: PROTOCOL_REVISION,
+                protocol_revision: IPC_PROTOCOL_REVISION,
             }),
         ),
         request(
@@ -169,7 +145,17 @@ fn responses() -> Vec<(&'static str, Response)> {
     vec![
         response(
             "authenticate",
-            response::Response::Authenticate(AuthenticateResponse {}),
+            response::Response::Authenticate(AuthenticateResponse {
+                success: true,
+                protocol_revision: IPC_PROTOCOL_REVISION,
+            }),
+        ),
+        response(
+            "authenticate_rejected",
+            response::Response::Authenticate(AuthenticateResponse {
+                success: false,
+                protocol_revision: IPC_PROTOCOL_REVISION,
+            }),
         ),
         response(
             "error",
@@ -274,43 +260,6 @@ fn responses() -> Vec<(&'static str, Response)> {
             }),
         ),
     ]
-}
-
-/// The name and bytes of each fixture, in file order.
-fn fixtures(text: &str) -> Vec<(&str, Vec<u8>)> {
-    text.lines()
-        .map(str::trim)
-        .filter(|line| !line.is_empty() && !line.starts_with('#'))
-        .map(|line| {
-            let (name, hex) = line
-                .split_once(' ')
-                .expect("a fixture is a name and its hex");
-            (name, hex::decode(hex.trim()).expect("hex digits"))
-        })
-        .collect()
-}
-
-/// Checks that the fixtures are exactly the `expected` messages. Reports every
-/// mismatch at once, as the fixture lines to review.
-fn check<M: Message + Default + PartialEq>(text: &str, expected: &[(&str, M)]) {
-    let fixtures = fixtures(text);
-    let mut mismatches = String::new();
-    let names = fixtures.iter().map(|(name, _)| *name);
-    if !names.eq(expected.iter().map(|(name, _)| *name)) {
-        mismatches.push_str("fixtures and test cases must name the same messages, in order\n");
-    }
-    for (name, message) in expected {
-        let encoded = message.encode_to_vec();
-        let fixture = fixtures.iter().find(|(fixture, _)| fixture == name);
-        let matches = fixture.is_some_and(|(_, bytes)| {
-            *bytes == encoded
-                && M::decode(bytes.as_slice()).is_ok_and(|decoded| decoded == *message)
-        });
-        if !matches {
-            let _ = writeln!(mismatches, "{name} {}", hex::encode(&encoded));
-        }
-    }
-    assert!(mismatches.is_empty(), "\n{mismatches}");
 }
 
 #[test]

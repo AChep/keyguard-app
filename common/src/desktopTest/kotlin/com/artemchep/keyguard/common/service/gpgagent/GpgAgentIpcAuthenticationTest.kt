@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
@@ -20,22 +21,22 @@ class GpgAgentIpcAuthenticationTest {
         val server = createServer()
         val current = server.handleAuthenticate(
             requestId = 1L,
-            request = GpgAgentMessages.AuthenticateRequest(
+            request = AgentIpcMessages.AuthenticateRequest(
                 token = authToken.copyOf(),
-                protocolRevision = GpgAgentMessages.PROTOCOL_REVISION,
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
             ),
         )
         val missing = server.handleAuthenticate(
             requestId = 2L,
-            request = GpgAgentMessages.AuthenticateRequest(
+            request = AgentIpcMessages.AuthenticateRequest(
                 token = authToken.copyOf(),
             ),
         )
         val future = server.handleAuthenticate(
             requestId = 3L,
-            request = GpgAgentMessages.AuthenticateRequest(
+            request = AgentIpcMessages.AuthenticateRequest(
                 token = authToken.copyOf(),
-                protocolRevision = GpgAgentMessages.PROTOCOL_REVISION + 1,
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION + 1,
             ),
         )
 
@@ -44,7 +45,7 @@ class GpgAgentIpcAuthenticationTest {
         assertFalse(future.authenticate?.success == true)
         listOf(current, missing, future).forEach { response ->
             assertEquals(
-                GpgAgentMessages.PROTOCOL_REVISION,
+                AgentIpcMessages.PROTOCOL_REVISION,
                 response.authenticate?.protocolRevision,
             )
         }
@@ -54,15 +55,15 @@ class GpgAgentIpcAuthenticationTest {
     fun `matching revision does not weaken token authentication`() {
         val response = createServer().handleAuthenticate(
             requestId = 4L,
-            request = GpgAgentMessages.AuthenticateRequest(
+            request = AgentIpcMessages.AuthenticateRequest(
                 token = ByteArray(32) { 0x7f },
-                protocolRevision = GpgAgentMessages.PROTOCOL_REVISION,
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
             ),
         )
 
         assertFalse(response.authenticate?.success == true)
         assertEquals(
-            GpgAgentMessages.PROTOCOL_REVISION,
+            AgentIpcMessages.PROTOCOL_REVISION,
             response.authenticate?.protocolRevision,
         )
     }

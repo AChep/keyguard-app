@@ -385,7 +385,11 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 self.assertFalse(any(result[flag] for flag in FLAGS))
 
     def test_shared_rust_agents_affect_desktop_helpers_but_not_apk_bundles(self):
-        for path in ("commonAgent/src/lib.rs", "commonSshAgent/src/lib.rs"):
+        for path in (
+            "commonAgent/src/lib.rs",
+            "commonAgent/ipc/src/frame.rs",
+            "commonSshAgent/src/lib.rs",
+        ):
             with self.subTest(path=path):
                 result = classify([path])
                 self.assertTrue(result["desktop"])
@@ -393,7 +397,11 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 self.assertFalse(result["android_run"])
 
     def test_shared_agent_identity_lints_the_cli_helpers(self):
-        for path in ("commonAgent/src/caller_guard.rs", "commonAgent/proto/caller.proto"):
+        for path in (
+            "commonAgent/src/caller_guard.rs",
+            "commonAgent/ipc/src/frame.rs",
+            "commonAgent/proto/caller.proto",
+        ):
             with self.subTest(path=path):
                 self.assertTrue(classify([path])["native_quality"])
         self.assertFalse(classify(["commonSshAgent/src/lib.rs"])["native_quality"])

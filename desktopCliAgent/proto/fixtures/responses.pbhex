@@ -1,7 +1,8 @@
 # Response encodings that Keyguard sends and the agent receives, one `<name> <hex>` per line.
 # Each decodes to the message its name stands for. Rust encodes that message back to it.
 # Both test suites check this file: src/src/protocol/fixtures.rs and CliAgentProtocolTest.kt.
-authenticate 0a00
+authenticate 0a0408011001
+authenticate_rejected 0a021001
 error 7a0d0a0b757365725f64656e696564
 manage_accounts 12110a0f0a0d0a01611208506572736f6e616c
 manage_environments 121a12180a160a01651201611a0a50726f64756374696f6e20022801

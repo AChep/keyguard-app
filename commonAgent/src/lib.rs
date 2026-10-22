@@ -38,7 +38,9 @@ pub struct RelayedCaller {
 /// Size of opaque authorization fingerprints carried over protobuf IPC.
 pub const PRINCIPAL_FINGERPRINT_LEN: usize = 32;
 
-/// Exact IPC contract revision required by current desktop agents and apps.
+/// Exact revision of the private IPC that the SSH, GPG and CLI agents speak
+/// with the app. Kotlin mirrors it as `AgentIpcMessages.PROTOCOL_REVISION`,
+/// and the agents' golden fixtures pin both.
 pub const IPC_PROTOCOL_REVISION: u32 = 1;
 
 /// Exact stdout record an agent binary emits once its public endpoint is

@@ -10,11 +10,8 @@ import com.sun.jna.ptr.IntByReference
 import com.sun.jna.win32.StdCallLibrary
 import java.io.EOFException
 import java.io.IOException
-import java.nio.ByteBuffer
 import java.nio.channels.ClosedChannelException
 import java.util.concurrent.atomic.AtomicBoolean
-
-private const val MAX_PACKET_SIZE = 16 * 1024 * 1024
 
 private const val PIPE_ACCESS_DUPLEX = 0x00000003
 private const val FILE_FLAG_FIRST_PIPE_INSTANCE = 0x00080000
@@ -406,18 +403,17 @@ internal class WindowsNamedPipeConnection(
 
 internal class WindowsNamedPipePacketChannel(
     private val connection: WindowsNamedPipeConnection,
+    private val maxPacketSize: Int = AgentIpcFraming.MAX_PACKET_SIZE,
 ) : AgentPacketChannel {
     override fun readPacket(): ByteArray? {
-        val lenBuf = ByteArray(4)
+        val lenBuf = ByteArray(AgentIpcFraming.HEADER_SIZE)
         val bytesRead = readFully(lenBuf)
-        if (bytesRead < 4) {
+        if (bytesRead < AgentIpcFraming.HEADER_SIZE) {
             return null
         }
 
-        val len = ByteBuffer.wrap(lenBuf).int
-        if (len <= 0 || len > MAX_PACKET_SIZE) {
-            throw IllegalArgumentException("Invalid message length: $len")
-        }
+        val len = AgentIpcFraming.decodeHeader(lenBuf)
+        AgentIpcFraming.requireValidSize(len, maxPacketSize)
 
         val packet = ByteArray(len)
         readFully(packet)
@@ -425,13 +421,7 @@ internal class WindowsNamedPipePacketChannel(
     }
 
     override fun writePacket(packet: ByteArray) {
-        require(packet.size in 1..MAX_PACKET_SIZE) {
-            "Invalid message length: ${packet.size}"
-        }
-
-        val lenBuf = ByteBuffer.allocate(4)
-            .putInt(packet.size)
-            .array()
+        val lenBuf = AgentIpcFraming.encodeHeader(packet.size, maxPacketSize)
         connection.write(lenBuf, 0, lenBuf.size)
         connection.write(packet, 0, packet.size)
         connection.flush()

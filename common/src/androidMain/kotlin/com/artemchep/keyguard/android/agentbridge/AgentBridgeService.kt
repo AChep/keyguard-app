@@ -306,8 +306,15 @@ class AgentBridgeService : Service(), KeyguardKoinOwner {
                     return@CoroutineExceptionHandler
                 }
 
-                Log.w(TAG, "Failed to connect to $bridge agent proxy port=$proxyPort", error)
+                Log.w(TAG, "$bridge agent bridge failed, proxy port=$proxyPort", error)
                 showBridgeErrorToast(bridge, error)
+            }
+            val onOversizeResponse: (Int) -> Unit = { size ->
+                Log.w(
+                    TAG,
+                    "Answered a $bridge agent request with an error: its $size-byte response " +
+                        "exceeds the bridge limit of ${SshAgentTcpProtocol.MAX_FRAME_PAYLOAD_SIZE} bytes",
+                )
             }
             val enabled = bridge.isEnabled(koin)
             when (bridge) {
@@ -324,6 +331,7 @@ class AgentBridgeService : Service(), KeyguardKoinOwner {
                                 sessionId = sessionId,
                                 sessionSecret = sessionSecret,
                                 senderAppInfo = senderAppInfo,
+                                onOversizeResponse = onOversizeResponse,
                             )
                         }
                     }
@@ -342,6 +350,7 @@ class AgentBridgeService : Service(), KeyguardKoinOwner {
                                 sessionId = sessionId,
                                 sessionSecret = sessionSecret,
                                 senderAppInfo = senderAppInfo,
+                                onOversizeResponse = onOversizeResponse,
                             )
                         }
                     }

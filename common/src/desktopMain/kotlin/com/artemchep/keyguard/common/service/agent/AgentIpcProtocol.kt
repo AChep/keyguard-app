@@ -5,27 +5,24 @@ import java.nio.ByteBuffer
 import java.nio.channels.SocketChannel
 
 internal object AgentIpcProtocol {
-    private const val MAX_PACKET_SIZE = 16 * 1024 * 1024
-
     fun open(
         channel: SocketChannel,
-    ): Channel = Channel(channel)
+        maxPacketSize: Int = AgentIpcFraming.MAX_PACKET_SIZE,
+    ): Channel = Channel(channel, maxPacketSize)
 
     internal class Channel(
         private val channel: SocketChannel,
+        private val maxPacketSize: Int,
     ) : AgentPacketChannel {
         override fun readPacket(): ByteArray? {
-            val lenBuf = ByteBuffer.allocate(4)
+            val lenBuf = ByteBuffer.allocate(AgentIpcFraming.HEADER_SIZE)
             val bytesRead = readFully(lenBuf)
-            if (bytesRead < 4) {
+            if (bytesRead < AgentIpcFraming.HEADER_SIZE) {
                 return null
             }
 
-            lenBuf.flip()
-            val len = lenBuf.int
-            if (len <= 0 || len > MAX_PACKET_SIZE) {
-                throw IllegalArgumentException("Invalid message length: $len")
-            }
+            val len = AgentIpcFraming.decodeHeader(lenBuf.array())
+            AgentIpcFraming.requireValidSize(len, maxPacketSize)
 
             val msgBuf = ByteBuffer.allocate(len)
             readFully(msgBuf)
@@ -39,11 +36,9 @@ internal object AgentIpcProtocol {
         override fun writePacket(
             packet: ByteArray,
         ) {
-            require(packet.size in 1..MAX_PACKET_SIZE) {
-                "Invalid message length: ${packet.size}"
-            }
-            val buf = ByteBuffer.allocate(4 + packet.size)
-            buf.putInt(packet.size)
+            val header = AgentIpcFraming.encodeHeader(packet.size, maxPacketSize)
+            val buf = ByteBuffer.allocate(header.size + packet.size)
+            buf.put(header)
             buf.put(packet)
             buf.flip()
             while (buf.hasRemaining()) {

@@ -1,12 +1,12 @@
 package com.artemchep.keyguard.common.service.environment
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.cli.CliServiceException
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages.ManageResponse
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages.Request
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages.Response
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentPacketSession
-import com.artemchep.keyguard.common.service.cli.agent.error
 import com.artemchep.keyguard.common.service.cli.agent.manageResult
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -28,11 +28,14 @@ class EnvironmentAgentChannelTest {
         fixture.ready()
         val packetSession = CliAgentPacketSession(fixture.agent(), ByteArray(32))
         val authenticate = Request.Kind.Authenticate(
-            CliAgentMessages.AuthenticateRequest(token = ByteArray(32), protocolRevision = 2),
+            AgentIpcMessages.AuthenticateRequest(
+                token = ByteArray(32),
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION + 1,
+            ),
         )
         val refused = packetSession.process(ProtoBuf.encodeToByteArray(Request(authenticate)))
         assertTrue(refused.close)
-        assertEquals("unauthorized", ProtoBuf.decodeFromByteArray<Response>(refused.packet).response.error())
+        assertEquals(rejected, ProtoBuf.decodeFromByteArray<Response>(refused.packet).response)
     }
 
     @Test
@@ -43,7 +46,7 @@ class EnvironmentAgentChannelTest {
         val unauthenticated = CliAgentPacketSession(handler, ByteArray(32))
         val denied = unauthenticated.process(ProtoBuf.encodeToByteArray(Request(resolveMount("epoch"))))
         assertTrue(denied.close)
-        assertEquals("unauthorized", ProtoBuf.decodeFromByteArray<Response>(denied.packet).response.error())
+        assertEquals(rejected, ProtoBuf.decodeFromByteArray<Response>(denied.packet).response)
         val malformed = CliAgentPacketSession(handler, ByteArray(32))
         val error = assertFailsWith<CliServiceException> {
             malformed.process("{broken:$SECRET".encodeToByteArray())
@@ -60,7 +63,10 @@ class EnvironmentAgentChannelTest {
         fixture.autoApprove(backgroundScope)
         val packetSession = CliAgentPacketSession(fixture.agent(), ByteArray(32))
         val authenticate = Request.Kind.Authenticate(
-            CliAgentMessages.AuthenticateRequest(token = ByteArray(32), protocolRevision = 1),
+            AgentIpcMessages.AuthenticateRequest(
+                token = ByteArray(32),
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
+            ),
         )
         val authenticated = packetSession.process(ProtoBuf.encodeToByteArray(Request(authenticate)))
         assertFalse(authenticated.close)
@@ -72,4 +78,9 @@ class EnvironmentAgentChannelTest {
         assertFalse("secret description" in content)
         packetSession.close()
     }
+
+    /** The app's answer to a first request that does not authenticate. */
+    private val rejected = Response.Kind.Authenticate(
+        AgentIpcMessages.AuthenticateResponse(success = false, protocolRevision = AgentIpcMessages.PROTOCOL_REVISION),
+    )
 }

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.apple.agent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcFraming
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
@@ -100,14 +101,14 @@ internal suspend fun writeFully(fd: Int, bytes: ByteArray): Boolean {
 
 /** Reads one length-prefixed packet of at most [maxSize] bytes; null on EOF or an invalid size. */
 internal suspend fun readPacket(fd: Int, maxSize: Int): ByteArray? {
-    val header = readFully(fd, 4) ?: return null
-    val size = header.fold(0) { value, byte -> (value shl 8) or (byte.toInt() and 0xff) }
-    return if (size in 1..maxSize) readFully(fd, size) else null
+    val header = readFully(fd, AgentIpcFraming.HEADER_SIZE) ?: return null
+    val size = AgentIpcFraming.decodeHeader(header)
+    return if (AgentIpcFraming.isValidSize(size, maxSize)) readFully(fd, size) else null
 }
 
 internal suspend fun writePacket(fd: Int, packet: ByteArray, maxSize: Int): Boolean {
-    if (packet.size !in 1..maxSize) return false
-    val header = ByteArray(4) { index -> (packet.size ushr (24 - index * 8)).toByte() }
+    if (!AgentIpcFraming.isValidSize(packet.size, maxSize)) return false
+    val header = AgentIpcFraming.encodeHeader(packet.size, maxSize)
     return writeFully(fd, header) && writeFully(fd, packet)
 }
 

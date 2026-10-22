@@ -6,16 +6,14 @@ mod rpc;
 use anyhow::{Context, Result};
 use clap::Parser;
 use daemon::{run_blocking, Config};
-use keyguard_android_agent_bridge::broadcast::{BridgeContract, BroadcastCommandSpec};
-use keyguard_android_agent_bridge::process::{fork_daemon, prefers_csh};
+use keyguard_android_agent_bridge::bridge::{BridgeConfig, DEFAULT_CONNECT_TIMEOUT_MS};
+use keyguard_android_agent_bridge::broadcast::{BridgeContract, LegacyAcknowledgement};
+use keyguard_android_agent_bridge::process::{exit_with, fork_daemon, prefers_csh};
 use keyguard_android_agent_bridge::socket_guard::{EnsureSocket, SocketGuard};
 use process::{kill_existing_agent, print_auth_socket_export, print_env_exports};
 use rand::RngCore;
 use std::ffi::OsString;
 use std::path::PathBuf;
-use tokio::time::Duration;
-
-const DEFAULT_CONNECT_TIMEOUT_MS: u64 = 60_000;
 
 const DEFAULT_COMPONENT: &str =
     "com.artemchep.keyguard/com.artemchep.keyguard.android.sshagent.SshAgentReceiver";
@@ -28,6 +26,8 @@ pub(crate) const SSH_AGENT_CONTRACT: BridgeContract = BridgeContract {
     extra_session_id: "com.artemchep.keyguard.extra.SSH_AGENT_SESSION_ID",
     extra_session_secret: "com.artemchep.keyguard.extra.SSH_AGENT_SESSION_SECRET",
     result_prefix: "keyguard.ssh-agent.broadcast.v1:",
+    // Older Keyguard releases handled the SSH broadcast without acknowledging it.
+    legacy_acknowledgement: LegacyAcknowledgement::Tolerate,
 };
 
 #[derive(Parser, Debug)]
@@ -69,13 +69,7 @@ struct Args {
 }
 
 fn main() {
-    std::process::exit(match try_main() {
-        Ok(code) => code,
-        Err(err) => {
-            eprintln!("{err:#}");
-            1
-        }
-    });
+    exit_with(try_main())
 }
 
 fn try_main() -> Result<i32> {
@@ -103,11 +97,8 @@ fn try_main() -> Result<i32> {
     let socket_file = socket_guard.path().to_path_buf();
     let listener = socket_guard.bind_listener()?;
     let config = Config {
-        android_component: args.android_component,
-        connect_timeout: Duration::from_millis(args.connect_timeout_ms),
-        debug: args.debug,
+        bridge: BridgeConfig::new(args.android_component, args.connect_timeout_ms, args.debug),
         socket_path: socket_file.clone(),
-        broadcast_command: BroadcastCommandSpec::default(),
     };
 
     let has_cmd = !args.cmd.is_empty();

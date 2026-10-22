@@ -50,7 +50,6 @@
     <ID>LongMethod:WatchtowerController.kt:WatchtowerController$@OptIn(ExperimentalCoroutinesApi::class) fun makeSession: WatchtowerSession</ID>
     <ID>LongMethod:WatchtowerController.kt:WatchtowerController$private suspend fun buildWatchtowerSnapshot: WatchtowerSnapshot</ID>
     <ID>LoopWithTooManyJumpStatements:AuthSnapshots.kt:for</ID>
-    <ID>LoopWithTooManyJumpStatements:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$while</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$private suspend fun suggestions: List&lt;AutofillSuggestionSnapshot&gt;</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$suspend fun loadAutofillCredential: AutofillCredentialSnapshot?</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$suspend fun loadOneTimeCode: String?</ID>
@@ -59,10 +58,6 @@
     <ID>ReturnCount:PasskeyController.kt:PasskeyController$suspend fun assertPasskey: PasskeyAssertionSnapshot?</ID>
     <ID>ReturnCount:PasskeyController.kt:PasskeyController$suspend fun createPasskey: PasskeyRegistrationSnapshot?</ID>
     <ID>ReturnCount:QuickCopyController.kt:QuickCopyController$suspend fun quickCopyCipherField</ID>
-    <ID>ReturnCount:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$private fun readPacket: ByteArray?</ID>
-    <ID>ReturnCount:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$private suspend fun dispatch: SshAgentMessages.IpcResponse</ID>
-    <ID>ReturnCount:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$suspend fun start</ID>
-    <ID>ReturnCount:SshAgentManagerApple.kt:SshAgentManagerApple$fun start: Boolean</ID>
     <ID>TooGenericExceptionCaught:AddFormSaveState.kt:AddFormSaveState$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:AuthPromptHost.kt:AuthPromptHost$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:BackupsController.kt:BackupsController$e: Throwable</ID>

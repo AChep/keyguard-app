@@ -8,15 +8,21 @@ pub mod proto {
 // Re-export the main types for convenience.
 pub use proto::*;
 
-// The caller messages are generated once, in keyguard-agent-proto.
+// The caller, handshake and error messages are generated once, in
+// keyguard-agent-proto.
 pub use keyguard_agent_proto::{
-    CallerAuthorization, CallerAuthorizationEvidenceSource, CallerAuthorizationSubject,
-    CallerAuthorizationSubjectKind, CallerIdentity,
+    AuthenticateRequest, AuthenticateResponse, CallerAuthorization,
+    CallerAuthorizationEvidenceSource, CallerAuthorizationSubject, CallerAuthorizationSubjectKind,
+    CallerIdentity, ErrorCode, ErrorResponse,
 };
+
+#[cfg(test)]
+mod fixtures;
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use keyguard_agent_identity::IPC_PROTOCOL_REVISION;
     use prost::Message;
 
     #[test]
@@ -25,7 +31,7 @@ mod tests {
             id: 1,
             request: Some(ipc_request::Request::Authenticate(AuthenticateRequest {
                 token: vec![0xAA; 32],
-                protocol_revision: 1,
+                protocol_revision: IPC_PROTOCOL_REVISION,
             })),
         };
 
@@ -36,7 +42,7 @@ mod tests {
         match decoded.request {
             Some(ipc_request::Request::Authenticate(auth)) => {
                 assert_eq!(auth.token, vec![0xAA; 32]);
-                assert_eq!(auth.protocol_revision, 1);
+                assert_eq!(auth.protocol_revision, IPC_PROTOCOL_REVISION);
             }
             _ => panic!("Expected Authenticate request"),
         }
@@ -93,7 +99,7 @@ mod tests {
             id: 1,
             response: Some(ipc_response::Response::Authenticate(AuthenticateResponse {
                 success: true,
-                protocol_revision: 1,
+                protocol_revision: IPC_PROTOCOL_REVISION,
             })),
         };
 
@@ -104,7 +110,7 @@ mod tests {
         match decoded.response {
             Some(ipc_response::Response::Authenticate(auth)) => {
                 assert!(auth.success);
-                assert_eq!(auth.protocol_revision, 1);
+                assert_eq!(auth.protocol_revision, IPC_PROTOCOL_REVISION);
             }
             _ => panic!("Expected Authenticate response"),
         }
@@ -385,7 +391,7 @@ mod tests {
             id: 10,
             request: Some(ipc_request::Request::Authenticate(AuthenticateRequest {
                 token: vec![],
-                protocol_revision: 1,
+                protocol_revision: IPC_PROTOCOL_REVISION,
             })),
         };
 

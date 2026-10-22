@@ -112,7 +112,7 @@ internal class SshAgentController(
         putSshAgent(value).launchIn(ctx.scope)
     }
 
-    private fun startSshAgent() {
+    private suspend fun startSshAgent() {
         if (sshAgentHandle?.isRunning == true) return
         if (!sshAgentRuntime.isBinaryAvailable) {
             sshAgentStatusService.set(AgentStatus.Unsupported)
@@ -160,7 +160,12 @@ internal class SshAgentController(
         runScope.launch {
             requests.denyWhenSessionEnds(getVaultSession)
         }
-        val handle = sshAgentRuntime.start(runScope, config)
+        val handle = try {
+            sshAgentRuntime.start(runScope, config)
+        } finally {
+            // The runtime owns a separate copy for its serving lifetime.
+            token.fill(0)
+        }
         if (handle != null) {
             sshAgentHandle = handle
             sshAgentStatusService.set(AgentStatus.Ready)

@@ -11,13 +11,15 @@ fn main() -> Result<()> {
 
     println!("cargo:rerun-if-changed={}", proto_file.display());
     println!("cargo:rerun-if-changed={}", proto_dir.display());
-    println!(
-        "cargo:rerun-if-changed={}",
-        caller_proto_dir.join("caller.proto").display()
-    );
+    for shared in ["caller.proto", "agent.proto"] {
+        println!(
+            "cargo:rerun-if-changed={}",
+            caller_proto_dir.join(shared).display()
+        );
+    }
 
     prost_build::Config::new()
-        // keyguard-agent-proto owns the generated caller types.
+        // keyguard-agent-proto owns the generated shared types.
         .extern_path(".keyguard.agent", "::keyguard_agent_proto::proto")
         .compile_protos(&[proto_file], &[proto_dir, caller_proto_dir])?;
     Ok(())

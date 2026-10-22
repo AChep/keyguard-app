@@ -17,7 +17,9 @@ use windows_sys::Win32::Security::{
     GetLengthSid, GetTokenInformation, IsValidSid, TokenUser, PSECURITY_DESCRIPTOR, PSID,
     SECURITY_ATTRIBUTES, TOKEN_INFORMATION_CLASS, TOKEN_QUERY, TOKEN_USER,
 };
-use windows_sys::Win32::System::Threading::{GetCurrentProcess, OpenProcessToken};
+use windows_sys::Win32::System::Threading::{
+    GetCurrentProcess, OpenProcess, OpenProcessToken, PROCESS_ACCESS_RIGHTS,
+};
 
 const MAX_TOKEN_INFORMATION_SIZE: usize = 1024 * 1024;
 // The documented maximum SID string is below this hard bound.
@@ -58,6 +60,49 @@ pub fn token_user_sid_string(token: BorrowedHandle<'_>) -> io::Result<String> {
     let token_user: TOKEN_USER = unsafe { user_buffer.read() }?;
     // SAFETY: the SID points into `user_buffer`, which outlives this call.
     unsafe { sid_string(token_user.User.Sid) }
+}
+
+/// Fails unless `process` runs as the account that runs this process.
+///
+/// # Errors
+///
+/// Fails with `peer_unavailable` when the process token cannot be read, and
+/// with `peer_owner_mismatch` when it belongs to another user.
+pub fn ensure_current_user_process(process: BorrowedHandle<'_>) -> anyhow::Result<()> {
+    let mut token = std::ptr::null_mut();
+    // SAFETY: `process` is a live process handle for the duration of this
+    // call, and `token` is writable HANDLE storage.
+    let opened =
+        unsafe { OpenProcessToken(process.as_raw_handle().cast(), TOKEN_QUERY, &mut token) };
+    anyhow::ensure!(opened != 0, "peer_unavailable");
+    // SAFETY: OpenProcessToken succeeded and transferred this owned handle.
+    let token = unsafe { OwnedHandle::from_raw_handle(token.cast()) };
+    anyhow::ensure!(
+        token_user_sid_string(token.as_handle())? == current_user_sid_string()?,
+        "peer_owner_mismatch"
+    );
+    Ok(())
+}
+
+/// Opens the process `pid` with `access`, and fails unless it runs as the
+/// account that runs this process.
+///
+/// # Errors
+///
+/// Fails with `peer_unavailable` when the process cannot be opened, and as
+/// [`ensure_current_user_process`] does otherwise.
+pub fn open_current_user_process(
+    pid: u32,
+    access: PROCESS_ACCESS_RIGHTS,
+) -> anyhow::Result<OwnedHandle> {
+    // SAFETY: OpenProcess takes a PID value and returns either null or a new
+    // owned process handle.
+    let process = unsafe { OpenProcess(access, 0, pid) };
+    anyhow::ensure!(!process.is_null(), "peer_unavailable");
+    // SAFETY: OpenProcess returned this non-null handle, owned from here on.
+    let process = unsafe { OwnedHandle::from_raw_handle(process.cast()) };
+    ensure_current_user_process(process.as_handle())?;
+    Ok(process)
 }
 
 /// The SDDL that grants the current user, and only that user, full access to

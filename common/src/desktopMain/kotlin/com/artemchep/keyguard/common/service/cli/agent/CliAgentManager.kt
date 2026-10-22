@@ -42,6 +42,7 @@ class CliAgentManager(
             // Mount long polls and interactive requests each own a connection.
             maxConcurrentConnections = 32,
             peerVerificationPolicy = AgentIpcPeerVerificationPolicy.ExactProcess(expectedPeerProcess),
+            maxPacketSize = CliAgentPacketSession.MAX_PACKET_SIZE,
             session = { channel ->
                 val session = CliAgentPacketSession(handler, authToken)
                 try {

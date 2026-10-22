@@ -6,35 +6,41 @@ pub mod proto {
 
 pub use proto::*;
 
-// The caller messages are generated once, in keyguard-agent-proto.
+// The caller, handshake and error messages are generated once, in
+// keyguard-agent-proto.
 pub use keyguard_agent_proto::{
-    CallerAuthorization, CallerAuthorizationEvidenceSource, CallerAuthorizationSubject,
-    CallerAuthorizationSubjectKind, CallerIdentity,
+    AuthenticateRequest, AuthenticateResponse, CallerAuthorization,
+    CallerAuthorizationEvidenceSource, CallerAuthorizationSubject, CallerAuthorizationSubjectKind,
+    CallerIdentity, ErrorCode, ErrorResponse,
 };
+
+#[cfg(test)]
+mod fixtures;
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use keyguard_agent_identity::IPC_PROTOCOL_REVISION;
     use prost::Message;
 
     #[test]
     fn authenticate_revision_round_trip() {
         let request = AuthenticateRequest {
             token: vec![0xA5; 32],
-            protocol_revision: 1,
+            protocol_revision: IPC_PROTOCOL_REVISION,
         };
         let request = AuthenticateRequest::decode(request.encode_to_vec().as_slice())
             .expect("decode authenticate request");
-        assert_eq!(request.protocol_revision, 1);
+        assert_eq!(request.protocol_revision, IPC_PROTOCOL_REVISION);
 
         let response = AuthenticateResponse {
             success: true,
-            protocol_revision: 1,
+            protocol_revision: IPC_PROTOCOL_REVISION,
         };
         let response = AuthenticateResponse::decode(response.encode_to_vec().as_slice())
             .expect("decode authenticate response");
         assert!(response.success);
-        assert_eq!(response.protocol_revision, 1);
+        assert_eq!(response.protocol_revision, IPC_PROTOCOL_REVISION);
     }
 
     #[test]

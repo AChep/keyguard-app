@@ -1,12 +1,15 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcAuthenticator
 import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.AgentIpcPeerVerificationPolicy
 import com.artemchep.keyguard.common.service.agent.AgentIpcServer
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
 import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
+import com.artemchep.keyguard.common.service.agent.checkAndLog
+import com.artemchep.keyguard.common.service.agent.serve
 import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentRequestProcessorImpl
-import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.session.GpgAgentSessionAccess
@@ -18,7 +21,6 @@ import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.crypto.NativeGpgAgentCrypto
 import java.nio.file.Path
-import java.security.MessageDigest
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -68,26 +70,12 @@ class GpgAgentIpcServer private constructor(
         peerVerificationPolicy = AgentIpcPeerVerificationPolicy.TestOnlyUnverified,
     )
 
+    private val authenticator = AgentIpcAuthenticator(authToken)
+
     private val rpcHandler = GpgAgentRpcHandler(
         requestProcessor = requestProcessor,
         authenticate = { req ->
-            val tokenMatches = MessageDigest.isEqual(authToken, req.token)
-            val revisionMatches = req.protocolRevision == GpgAgentMessages.PROTOCOL_REVISION
-            val success = tokenMatches && revisionMatches
-            if (!revisionMatches) {
-                logRepository.post(
-                    TAG,
-                    "GPG agent authentication failed: protocol revision mismatch " +
-                        "(expected=${GpgAgentMessages.PROTOCOL_REVISION}, " +
-                        "actual=${req.protocolRevision})",
-                    LogLevel.ERROR,
-                )
-            } else if (!tokenMatches) {
-                logRepository.post(TAG, "GPG agent authentication failed: token mismatch", LogLevel.ERROR)
-            } else {
-                logRepository.post(TAG, "GPG agent authentication successful", LogLevel.INFO)
-            }
-            success
+            authenticator.checkAndLog(req, logRepository, TAG, agentName = "GPG agent")
         },
     )
 
@@ -175,23 +163,20 @@ class GpgAgentIpcServer private constructor(
         maxConcurrentConnections = maxConcurrentConnections,
         peerVerificationPolicy = peerVerificationPolicy,
         session = { channel ->
-            runGpgAgentPacketSession(
-                channel = channel,
-                rpcHandler = rpcHandler,
-                initialContext = GpgAgentRpcRequestContext(
-                    authenticated = false,
-                    allowAuthenticate = true,
-                ),
-            )
+            GpgAgentPacketSession(rpcHandler, authenticatedByTransport = false)
+                .serve(channel)
         },
     )
 
-    internal fun stop() = server.stop()
+    internal fun stop() {
+        server.stop()
+        authenticator.close()
+    }
 
     /** Processes the authentication handshake without opening a transport. */
     internal fun handleAuthenticate(
         requestId: Long,
-        request: GpgAgentMessages.AuthenticateRequest,
+        request: AgentIpcMessages.AuthenticateRequest,
     ): GpgAgentMessages.IpcResponse = rpcHandler.handleAuthenticate(requestId, request)
 
     suspend fun start(

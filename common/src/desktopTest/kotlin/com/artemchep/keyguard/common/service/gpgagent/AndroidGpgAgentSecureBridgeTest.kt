@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProtocol
 import com.artemchep.keyguard.common.service.sshagent.androidBridgeAuthorization
@@ -119,15 +120,15 @@ class AndroidGpgAgentSecureBridgeTest {
             senderAppInfo = null,
             request = GpgAgentMessages.IpcRequest(
                 id = 9L,
-                authenticate = GpgAgentMessages.AuthenticateRequest(
+                authenticate = AgentIpcMessages.AuthenticateRequest(
                     token = ByteArray(32),
-                    protocolRevision = GpgAgentMessages.PROTOCOL_REVISION,
+                    protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                 ),
             ),
         )
 
         assertNull(response.authenticate)
-        assertEquals(GpgAgentMessages.ErrorCode.UNSPECIFIED, response.error?.code)
+        assertEquals(AgentIpcMessages.ErrorCode.UNSPECIFIED, response.error?.code)
     }
 
     @Test

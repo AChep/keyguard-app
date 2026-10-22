@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcFraming
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
+import com.artemchep.keyguard.common.service.agent.AgentPacketReply
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.async
@@ -30,7 +33,7 @@ class GpgAgentPacketSessionTest {
                 listKeys = GpgAgentMessages.ListKeysRequest(),
             )))
             assertEquals(7L, decode(reply).id)
-            assertEquals(GpgAgentMessages.ErrorCode.NOT_AUTHENTICATED, decode(reply).error?.code)
+            assertEquals(AgentIpcMessages.ErrorCode.NOT_AUTHENTICATED, decode(reply).error?.code)
             assertFalse(reply.close)
             assertEquals(0, processor.calls)
         } finally {
@@ -42,12 +45,12 @@ class GpgAgentPacketSessionTest {
     fun wrongTokenOrRevisionReturnsFinalAuthenticationFailure() = runTest {
         for (request in listOf(
             authentication(token = ByteArray(32) { 99 }),
-            authentication(revision = GpgAgentMessages.PROTOCOL_REVISION + 1),
+            authentication(revision = AgentIpcMessages.PROTOCOL_REVISION + 1),
         )) {
             val session = GpgAgentPacketSession(Processor(), token)
             val reply = session.process(encode(request))
             assertEquals(false, decode(reply).authenticate?.success)
-            assertEquals(GpgAgentMessages.PROTOCOL_REVISION, decode(reply).authenticate?.protocolRevision)
+            assertEquals(AgentIpcMessages.PROTOCOL_REVISION, decode(reply).authenticate?.protocolRevision)
             assertTrue(reply.close)
             assertFailsWith<IllegalStateException> { session.process(encode(authentication())) }
         }
@@ -124,7 +127,7 @@ class GpgAgentPacketSessionTest {
         val reply = session.process(encode(authentication().copy(
             listKeys = GpgAgentMessages.ListKeysRequest(),
         )))
-        assertEquals(GpgAgentMessages.ErrorCode.UNSPECIFIED, decode(reply).error?.code)
+        assertEquals(AgentIpcMessages.ErrorCode.UNSPECIFIED, decode(reply).error?.code)
         assertTrue(reply.close)
         assertEquals(0, processor.calls)
         assertFailsWith<IllegalStateException> { session.process(encode(authentication())) }
@@ -135,7 +138,7 @@ class GpgAgentPacketSessionTest {
         for (packet in listOf(
             byteArrayOf(),
             byteArrayOf(0xff.toByte()),
-            ByteArray(GpgAgentPacketSession.MAX_PACKET_SIZE + 1),
+            ByteArray(AgentIpcFraming.MAX_PACKET_SIZE + 1),
         )) {
             val processor = Processor()
             val session = GpgAgentPacketSession(processor, token)
@@ -145,21 +148,76 @@ class GpgAgentPacketSessionTest {
         }
     }
 
+    @Test
+    fun theSessionErasesTheSuppliedTokenOnceHandled() = runTest {
+        var supplied: AgentIpcMessages.AuthenticateRequest? = null
+        val session = GpgAgentPacketSession(
+            rpcHandler = GpgAgentRpcHandler(
+                requestProcessor = Processor(),
+                authenticate = { request ->
+                    supplied = request
+                    true
+                },
+            ),
+            authenticatedByTransport = false,
+        )
+        try {
+            assertEquals(true, decode(session.process(encode(authentication()))).authenticate?.success)
+            assertContentEquals(ByteArray(token.size), supplied?.token)
+        } finally {
+            session.close()
+        }
+    }
+
+    @Test
+    fun oversizeResponseIsAnsweredWithAnErrorAndKeepsTheSessionOpen() = runTest {
+        val processor = Processor(keyName = "k".repeat(100))
+        val sizes = mutableListOf<Int>()
+        val session = GpgAgentPacketSession(
+            rpcHandler = GpgAgentRpcHandler(processor),
+            authenticatedByTransport = true,
+            maxPacketSize = 96,
+            onOversizeResponse = { sizes += it },
+        )
+        try {
+            val oversize = session.process(encode(GpgAgentMessages.IpcRequest(
+                id = 21,
+                listKeys = GpgAgentMessages.ListKeysRequest(),
+            )))
+            assertEquals(21L, decode(oversize).id)
+            assertEquals(AgentIpcMessages.ErrorCode.UNSPECIFIED, decode(oversize).error?.code)
+            assertTrue(decode(oversize).error?.message.orEmpty().contains("96-byte limit"))
+            assertFalse(oversize.close)
+            assertTrue(sizes.single() > 96)
+
+            val next = session.process(encode(GpgAgentMessages.IpcRequest(
+                id = 22,
+                signHash = GpgAgentMessages.SignHashRequest(keygrip = "sign-key"),
+            )))
+            assertEquals(22L, decode(next).id)
+            assertEquals("signature", decode(next).signHash?.sexp)
+        } finally {
+            session.close()
+        }
+    }
+
     private fun authentication(
         token: ByteArray = this.token,
-        revision: Int = GpgAgentMessages.PROTOCOL_REVISION,
+        revision: Int = AgentIpcMessages.PROTOCOL_REVISION,
     ) = GpgAgentMessages.IpcRequest(
         id = 1,
-        authenticate = GpgAgentMessages.AuthenticateRequest(token = token, protocolRevision = revision),
+        authenticate = AgentIpcMessages.AuthenticateRequest(token = token, protocolRevision = revision),
     )
 
     private fun encode(request: GpgAgentMessages.IpcRequest) = ProtoBuf.encodeToByteArray(request)
 
-    private fun decode(reply: GpgAgentPacketReply): GpgAgentMessages.IpcResponse =
+    private fun decode(reply: AgentPacketReply): GpgAgentMessages.IpcResponse =
         ProtoBuf.decodeFromByteArray(reply.packet)
 
     private class Processor(
         private val beforeSign: suspend () -> Unit = {},
+        /** Lists one key of this name, or none. */
+        private val keyName: String? = null,
     ) : GpgAgentRequestProcessor {
         var calls = 0
         var sign: GpgAgentMessages.SignHashRequest? = null
@@ -169,7 +227,8 @@ class GpgAgentPacketSessionTest {
             caller: CallerIdentity?,
         ): GpgAgentRequestProcessor.ListKeysResult {
             calls++
-            return GpgAgentRequestProcessor.ListKeysResult.Success(GpgAgentMessages.ListKeysResponse())
+            val keys = listOfNotNull(keyName).map { GpgAgentMessages.GpgKey(name = it) }
+            return GpgAgentRequestProcessor.ListKeysResult.Success(GpgAgentMessages.ListKeysResponse(keys = keys))
         }
 
         override suspend fun signHash(

@@ -1,11 +1,15 @@
-//! Caller schema shared by the SSH, GPG and CLI agent IPC protocols.
+//! The caller schema and the handshake and error messages shared by the SSH,
+//! GPG and CLI agent IPC protocols.
 
-/// Generated protobuf messages of `caller.proto`.
+/// Generated protobuf messages of `caller.proto` and `agent.proto`.
 pub mod proto {
     include!(concat!(env!("OUT_DIR"), "/keyguard.agent.rs"));
 }
 
 pub use proto::*;
+
+#[cfg(feature = "fixtures")]
+pub mod fixtures;
 
 #[cfg(test)]
 mod tests {

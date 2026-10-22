@@ -584,6 +584,7 @@ dependencies = [
 name = "common-gpg-agent-rust"
 version = "3.5.0"
 dependencies = [
+ "keyguard-agent-identity",
  "keyguard-agent-proto",
  "prost",
  "prost-build",
@@ -593,6 +594,7 @@ dependencies = [
 name = "common-ssh-agent-rust"
 version = "3.5.0"
 dependencies = [
+ "keyguard-agent-identity",
  "keyguard-agent-proto",
  "prost",
  "prost-build",
@@ -1408,9 +1410,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyguard-agent-ipc"
+version = "3.5.0"
+dependencies = [
+ "anyhow",
+ "common-ssh-agent-rust",
+ "getrandom 0.3.4",
+ "hex",
+ "keyguard-agent-identity",
+ "keyguard-agent-proto",
+ "prost",
+ "tokio",
+ "tracing",
+ "windows-sys 0.61.2",
+ "zeroize",
+]
+
+[[package]]
 name = "keyguard-agent-proto"
 version = "3.5.0"
 dependencies = [
+ "hex",
  "prost",
  "prost-build",
 ]
@@ -1435,6 +1455,7 @@ dependencies = [
  "keyguard-agent-identity",
  "keyguard-agent-proto",
  "libc",
+ "prost",
  "rand",
  "sha2 0.10.9",
  "tokio",
@@ -1499,6 +1520,7 @@ dependencies = [
  "getrandom 0.3.4",
  "hex",
  "keyguard-agent-identity",
+ "keyguard-agent-ipc",
  "keyguard-agent-proto",
  "keyguard-agent-proto-adapter",
  "keyguard-cli-protocol",
@@ -1520,9 +1542,9 @@ version = "3.5.0"
 dependencies = [
  "anyhow",
  "dirs",
- "getrandom 0.3.4",
  "hex",
  "keyguard-agent-identity",
+ "keyguard-agent-ipc",
  "serde",
  "serde_json",
  "sha2 0.10.9",
@@ -1574,16 +1596,16 @@ name = "keyguard-gpg-agent"
 version = "3.5.0"
 dependencies = [
  "anyhow",
- "bytes",
  "clap",
  "common-gpg-agent-rust",
  "dirs",
  "getrandom 0.2.17",
- "hex",
  "keyguard-agent-identity",
+ "keyguard-agent-ipc",
  "keyguard-agent-proto-adapter",
  "keyguard-gpg-agent-assuan",
  "libc",
+ "prost",
  "tempfile",
  "tokio",
  "tracing",
@@ -1598,6 +1620,7 @@ dependencies = [
  "common-gpg-agent-rust",
  "hex",
  "keyguard-agent-identity",
+ "keyguard-agent-ipc",
  "keyguard-agent-proto-adapter",
  "prost",
  "tempfile",
@@ -1680,13 +1703,13 @@ version = "3.5.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "bytes",
  "clap",
  "common-ssh-agent-rust",
  "dirs",
  "futures",
  "hex",
  "keyguard-agent-identity",
+ "keyguard-agent-ipc",
  "keyguard-agent-proto-adapter",
  "libc",
  "prost",

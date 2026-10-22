@@ -1,8 +1,8 @@
 package com.artemchep.keyguard.common.service.cli.agent
 
-import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
-import com.artemchep.keyguard.common.service.agent.CallerAuthorization
-import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
+import com.artemchep.keyguard.common.service.agent.AgentFixtures
+import com.artemchep.keyguard.common.service.agent.AgentFixtures.verifiedCaller
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages.ManageResponse
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages.Request
@@ -13,7 +13,6 @@ import com.artemchep.keyguard.common.service.environment.EnvironmentRunCliReques
 import com.artemchep.keyguard.common.service.environment.EnvironmentRunCliResult
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
-import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -28,23 +27,23 @@ import kotlin.test.assertEquals
 class CliAgentProtocolTest {
     @Test
     fun requestsDecodeFromTheSharedFixtures() {
-        check("requests.pbhex", requests().mapValues { (_, request) -> Request(request) })
+        AgentFixtures.check("requests.pbhex", requests().mapValues { (_, request) -> Request(request) })
         // An absent value keeps the variable as it is; an empty one is set.
-        val fixture = fixtures("requests.pbhex").getValue("manage").hexToByteArray()
+        val fixture = AgentFixtures.read("requests.pbhex").getValue("manage")
         val manage = ProtoBuf.decodeFromByteArray<Request>(fixture).request as Request.Kind.Manage
         assertEquals(listOf(6, 0, null), manage.value.variables.map { it.value?.size })
     }
 
     @Test
     fun responsesDecodeFromTheSharedFixtures() {
-        check("responses.pbhex", responses().mapValues { (_, response) -> Response(response) })
+        AgentFixtures.check("responses.pbhex", responses().mapValues { (_, response) -> Response(response) })
     }
 
     /** The JSON of `keyguard run` in the fixtures is the command as Kotlin reads and writes it. */
     @Test
     fun runFixturesHoldTheCommandAsJson() {
         for ((fixture, account) in listOf("cli_run" to null, "cli_run_in_account" to "Work")) {
-            val bytes = fixtures("requests.pbhex").getValue(fixture).hexToByteArray()
+            val bytes = AgentFixtures.read("requests.pbhex").getValue(fixture)
             val cli = (ProtoBuf.decodeFromByteArray<Request>(bytes).request as Request.Kind.Cli).value
             assertEquals("run", cli.command)
             assertEquals(
@@ -57,7 +56,7 @@ class CliAgentProtocolTest {
                 CliJson.decodeFromString(EnvironmentRunCliRequest.serializer(), cli.request.decodeToString()),
             )
         }
-        val bytes = fixtures("responses.pbhex").getValue("cli_run").hexToByteArray()
+        val bytes = AgentFixtures.read("responses.pbhex").getValue("cli_run")
         val cli = (ProtoBuf.decodeFromByteArray<Response>(bytes).response as Response.Kind.Cli).value
         assertEquals(
             """{"ok":true,"variables":{"TOKEN":"secret","EMPTY":""}}""",
@@ -69,7 +68,10 @@ class CliAgentProtocolTest {
     /** The messages of the fixtures, by name, as the Rust tests build them. */
     private fun requests() = linkedMapOf(
         "authenticate" to Request.Kind.Authenticate(
-            CliAgentMessages.AuthenticateRequest(token = ByteArray(32) { 0x11 }, protocolRevision = 1),
+            AgentIpcMessages.AuthenticateRequest(
+                token = ByteArray(32) { 0x11 },
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
+            ),
         ),
         "manage" to Request.Kind.Manage(
             CliAgentMessages.ManageRequest(
@@ -103,7 +105,8 @@ class CliAgentProtocolTest {
     )
 
     private fun responses() = linkedMapOf(
-        "authenticate" to Response.Kind.Authenticate(CliAgentMessages.Empty),
+        "authenticate" to authenticateResponse(success = true),
+        "authenticate_rejected" to authenticateResponse(success = false),
         "error" to Response.Kind.Error(CliAgentMessages.ErrorResponse("user_denied")),
         "manage_accounts" to manage(
             ManageResponse.Result.Accounts(
@@ -161,43 +164,6 @@ class CliAgentProtocolTest {
     private fun localEnvFile(status: CliAgentMessages.MountStatus) =
         CliAgentMessages.LocalEnvFile("m", "e", "/work/.env", enabled = true, status = status, accountId = "a")
 
-    /**
-     * Checks that each fixture decodes to its message. Equal messages have
-     * equal Kotlin encodings, also those with byte fields. The encodings
-     * themselves can differ from the fixtures: kotlinx writes the empty byte
-     * fields that prost leaves out, which decode the same.
-     */
-    private inline fun <reified T> check(name: String, messages: Map<String, T>) {
-        val fixtures = fixtures(name)
-        assertEquals(fixtures.keys.toList(), messages.keys.toList(), "The same messages, in order")
-        for ((fixture, message) in messages) {
-            val decoded = ProtoBuf.decodeFromByteArray<T>(fixtures.getValue(fixture).hexToByteArray())
-            assertEquals(
-                ProtoBuf.encodeToByteArray(message).toHexString(),
-                ProtoBuf.encodeToByteArray(decoded).toHexString(),
-                fixture,
-            )
-        }
-    }
-
-    private fun verifiedCaller() = CallerIdentity(
-        pid = 42,
-        processName = "node",
-        executablePath = "/usr/bin/node",
-        appName = "Terminal",
-        appBundlePath = "/Applications/Terminal.app",
-        authorization = CallerAuthorization(
-            connectionFingerprint = ByteArray(32) { 0x22 },
-            subjects = listOf(
-                CallerAuthorizationSubject(
-                    kind = AgentCallerAuthorizationSchema.SubjectKind.TERMINAL_SESSION,
-                    evidenceSource = AgentCallerAuthorizationSchema.EvidenceSource.MACOS_TERMINAL_SESSION,
-                    fingerprint = ByteArray(32) { 0x33 },
-                ),
-            ),
-        ),
-    )
-
     /** A `keyguard run` request, with the JSON that `commonCli` writes: its keys are sorted. */
     private fun run(account: String?) = Request.Kind.Cli(
         CliAgentMessages.CliRequest(
@@ -213,15 +179,7 @@ class CliAgentProtocolTest {
 
     private fun manage(result: ManageResponse.Result) = Response.Kind.Manage(ManageResponse(result))
 
-    /** The hex of each fixture by its name, in file order. */
-    private fun fixtures(name: String): Map<String, String> {
-        val text = requireNotNull(javaClass.getResource("/fixtures/$name")) { "Missing fixture $name" }.readText()
-        return text.lineSequence()
-            .map(String::trim)
-            .filter { it.isNotEmpty() && !it.startsWith("#") }
-            .associate { line ->
-                val (fixture, hex) = line.split(' ', limit = 2)
-                fixture to hex.trim()
-            }
-    }
+    private fun authenticateResponse(success: Boolean) = Response.Kind.Authenticate(
+        AgentIpcMessages.AuthenticateResponse(success, AgentIpcMessages.PROTOCOL_REVISION),
+    )
 }

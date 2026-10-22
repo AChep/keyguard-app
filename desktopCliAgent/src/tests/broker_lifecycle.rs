@@ -6,6 +6,7 @@ mod fifo_cancellation;
 #[path = "broker_lifecycle/mount_reconciliation.rs"]
 mod mount_reconciliation;
 
+use keyguard_agent_identity::IPC_PROTOCOL_REVISION;
 use prost::Message;
 use serde_json::{Value, json};
 use std::{
@@ -186,14 +187,17 @@ impl App {
                     };
                     assert_eq!(
                         auth,
-                        Op::Authenticate(protocol::AuthenticateRequest {
+                        Op::Authenticate(keyguard_agent_proto::AuthenticateRequest {
                             token: vec![0x11; 32],
-                            protocol_revision: 1,
+                            protocol_revision: IPC_PROTOCOL_REVISION,
                         })
                     );
                     write_response(
                         &mut stream,
-                        Reply::Authenticate(protocol::AuthenticateResponse {}),
+                        Reply::Authenticate(keyguard_agent_proto::AuthenticateResponse {
+                            success: true,
+                            protocol_revision: IPC_PROTOCOL_REVISION,
+                        }),
                     )
                     .await;
                     let Some(request) = read_request(&mut stream).await else {

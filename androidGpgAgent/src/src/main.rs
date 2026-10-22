@@ -7,21 +7,20 @@ mod transport;
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use daemon::{run_blocking, Config};
+use daemon::run_blocking;
 use home::{user_home, ManagedHome};
-use keyguard_android_agent_bridge::broadcast::{BridgeContract, BroadcastCommandSpec};
+use keyguard_android_agent_bridge::bridge::{BridgeConfig, DEFAULT_CONNECT_TIMEOUT_MS};
+use keyguard_android_agent_bridge::broadcast::{BridgeContract, LegacyAcknowledgement};
 use keyguard_android_agent_bridge::process::{
-    fork_daemon, prefers_csh, render_export, shell_quote,
+    exit_with, fork_daemon, prefers_csh, render_export, shell_quote,
 };
 use keyguard_android_agent_bridge::socket_guard::{EnsureSocket, SocketGuard};
 use keyguard_gpg_agent_assuan::gpgconf::{gpg_version, gpgconf_agent_socket_path};
 use keyguard_gpg_agent_assuan::version::resolve_gnupg_version;
 use keyguard_gpg_agent_assuan::AgentInfo;
 use std::path::{Path, PathBuf};
-use tokio::time::Duration;
 use tracing::level_filters::LevelFilter;
 
-const DEFAULT_CONNECT_TIMEOUT_MS: u64 = 60_000;
 const GNUPGHOME_ENV: &str = "GNUPGHOME";
 
 const DEFAULT_COMPONENT: &str =
@@ -35,6 +34,9 @@ pub(crate) const GPG_AGENT_CONTRACT: BridgeContract = BridgeContract {
     extra_session_id: "com.artemchep.keyguard.extra.GPG_AGENT_SESSION_ID",
     extra_session_secret: "com.artemchep.keyguard.extra.GPG_AGENT_SESSION_SECRET",
     result_prefix: "keyguard.gpg-agent.broadcast.v1:",
+    // Unlike SSH, no Keyguard release handles the GPG agent without
+    // acknowledging it, so a missing answer means no receiver.
+    legacy_acknowledgement: LegacyAcknowledgement::Reject,
 };
 
 /// Starts the agent for the managed GnuPG home unless it is already running,
@@ -70,13 +72,7 @@ struct Args {
 }
 
 fn main() {
-    std::process::exit(match try_main() {
-        Ok(code) => code,
-        Err(err) => {
-            eprintln!("{err:#}");
-            1
-        }
-    });
+    exit_with(try_main())
 }
 
 fn try_main() -> Result<i32> {
@@ -108,12 +104,7 @@ fn try_main() -> Result<i32> {
         socket_path.to_string_lossy().into_owned(),
         resolve_gnupg_version(gpg_version(&home.path)),
     );
-    let config = Config {
-        android_component: args.android_component,
-        connect_timeout: Duration::from_millis(args.connect_timeout_ms),
-        debug: args.debug,
-        broadcast_command: BroadcastCommandSpec::default(),
-    };
+    let config = BridgeConfig::new(args.android_component, args.connect_timeout_ms, args.debug);
 
     if args.foreground || args.debug {
         print_home_export(is_csh, &home.path);

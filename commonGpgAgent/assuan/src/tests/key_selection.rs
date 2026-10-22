@@ -1,11 +1,12 @@
 //! Key selection and lifetime through the command dispatcher and protobuf IPC.
 
-use crate::ipc::{read_frame, write_frame, FramedStream};
+use crate::ipc::FramedStream;
 use crate::*;
 use common_gpg_agent_rust::messages::{
     ipc_request::Request, ipc_response::Response, ErrorCode, ErrorResponse, GpgKey, IpcRequest,
     IpcResponse, ListKeysResponse, PkdecryptResponse, SignHashResponse,
 };
+use keyguard_agent_ipc::frame::{read_frame, write_frame, MAX_AGENT_FRAME};
 use prost::Message;
 use std::collections::VecDeque;
 use std::time::Duration;
@@ -30,7 +31,7 @@ impl CommandSession {
         let (ipc_stream, mut peer) = tokio::io::duplex(4096);
         let backend = tokio::spawn(async move {
             let mut requests = Vec::new();
-            while let Ok(bytes) = read_frame(&mut peer).await {
+            while let Ok(bytes) = read_frame(&mut peer, MAX_AGENT_FRAME).await {
                 let request = IpcRequest::decode(bytes.as_slice()).unwrap();
                 let payload = request.request.unwrap();
                 let response = IpcResponse {
@@ -39,7 +40,9 @@ impl CommandSession {
                 }
                 .encode_to_vec();
                 requests.push(payload);
-                write_frame(&mut peer, &response).await.unwrap();
+                write_frame(&mut peer, &response, MAX_AGENT_FRAME)
+                    .await
+                    .unwrap();
             }
             requests
         });

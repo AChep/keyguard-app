@@ -1,7 +1,12 @@
 package com.artemchep.keyguard.common.service.cli.agent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcAuthentication
+import com.artemchep.keyguard.common.service.agent.AgentIpcAuthenticator
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
+import com.artemchep.keyguard.common.service.agent.AgentPacketProtocol
+import com.artemchep.keyguard.common.service.agent.AgentPacketReply
+import com.artemchep.keyguard.common.service.agent.AgentPacketSession
 import com.artemchep.keyguard.common.service.cli.CliServiceException
-import com.artemchep.keyguard.util.foundation.constantTimeEquals
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
@@ -9,74 +14,75 @@ import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
 
 /** Transport-independent session for the app's verified, private channel to the CLI agent. */
-@OptIn(ExperimentalSerializationApi::class)
 class CliAgentPacketSession(
-    private val handler: CliAgentRequestHandler,
+    handler: CliAgentRequestHandler,
     authToken: ByteArray,
 ) {
-    private val expectedToken = authToken.copyOf()
-    private var authenticated = false
-    private var closed = false
+    private val session = AgentPacketSession(CliAgentPacketProtocol(handler, AgentIpcAuthenticator(authToken)))
 
-    init { require(authToken.size == AUTH_TOKEN_BYTES) }
-
-    suspend fun process(packet: ByteArray): CliAgentPacketReply = try {
-        processInternal(packet)
+    /** Its errors never hold the packet: any but cancellation is `invalid_request`. */
+    suspend fun process(packet: ByteArray): AgentPacketReply = try {
+        session.process(packet)
     } catch (e: CancellationException) {
-        close()
         throw e
     } catch (_: Exception) {
-        close()
         throw CliServiceException("invalid_request")
     }
 
-    private suspend fun processInternal(packet: ByteArray): CliAgentPacketReply {
-        check(!closed)
-        require(packet.size in 1..MAX_PACKET_SIZE)
-        val request = ProtoBuf.decodeFromByteArray<CliAgentMessages.Request>(packet).request
-        val response: CliAgentMessages.Response.Kind
-        if (!authenticated) {
-            val supplied = (request as? CliAgentMessages.Request.Kind.Authenticate)?.value
-            authenticated = try {
-                supplied != null &&
-                    supplied.protocolRevision == CliAgentMessages.PROTOCOL_REVISION &&
-                    expectedToken.constantTimeEquals(supplied.token)
-            } finally { supplied?.token?.fill(0) }
-            response = if (authenticated) {
-                CliAgentMessages.Response.Kind.Authenticate(CliAgentMessages.Empty)
-            } else {
-                cliAgentError("unauthorized")
-            }
-            if (!authenticated) close()
-        } else {
-            try {
-                response = handler.handle(request)
-            } finally {
-                request.wipe()
-            }
-        }
-        val encoded = try {
-            ProtoBuf.encodeToByteArray(CliAgentMessages.Response(response))
-        } finally {
-            response.wipe()
-        }
-        require(encoded.size <= MAX_PACKET_SIZE)
-        return CliAgentPacketReply(encoded, closed)
-    }
-
-    fun close() {
-        closed = true
-        authenticated = false
-        expectedToken.fill(0)
-    }
+    fun close() = session.close()
 
     companion object {
-        private const val AUTH_TOKEN_BYTES = 32
         const val MAX_PACKET_SIZE = 1024 * 1024
     }
 }
 
-class CliAgentPacketReply(val packet: ByteArray, val close: Boolean)
+/**
+ * The first request must authenticate. A rejected agent learns the app's
+ * revision, then the connection closes.
+ */
+@OptIn(ExperimentalSerializationApi::class)
+private class CliAgentPacketProtocol(
+    private val handler: CliAgentRequestHandler,
+    private val authenticator: AgentIpcAuthenticator,
+) : AgentPacketProtocol<CliAgentMessages.Request.Kind, CliAgentMessages.Response.Kind> {
+    override val maxPacketSize: Int get() = CliAgentPacketSession.MAX_PACKET_SIZE
+
+    override fun decode(packet: ByteArray) = ProtoBuf.decodeFromByteArray<CliAgentMessages.Request>(packet).request
+
+    override fun encode(response: CliAgentMessages.Response.Kind) =
+        ProtoBuf.encodeToByteArray(CliAgentMessages.Response(response))
+
+    override suspend fun handle(
+        request: CliAgentMessages.Request.Kind,
+        authenticated: Boolean,
+    ): CliAgentMessages.Response.Kind {
+        if (authenticated) return handler.handle(request)
+        val supplied = (request as? CliAgentMessages.Request.Kind.Authenticate)?.value
+        val success = supplied != null && authenticator.check(supplied) == AgentIpcAuthentication.ACCEPTED
+        return CliAgentMessages.Response.Kind.Authenticate(
+            AgentIpcMessages.AuthenticateResponse(
+                success = success,
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
+            ),
+        )
+    }
+
+    override fun authenticatedAfter(
+        request: CliAgentMessages.Request.Kind,
+        response: CliAgentMessages.Response.Kind,
+        authenticated: Boolean,
+    ): Boolean? = if (authenticated) {
+        null
+    } else {
+        (response as? CliAgentMessages.Response.Kind.Authenticate)?.value?.success == true
+    }
+
+    override fun wipeRequest(request: CliAgentMessages.Request.Kind) = request.wipe()
+
+    override fun wipeResponse(response: CliAgentMessages.Response.Kind) = response.wipe()
+
+    override fun close() = authenticator.close()
+}
 
 // Every case is listed, so that a new one decides whether it holds values.
 

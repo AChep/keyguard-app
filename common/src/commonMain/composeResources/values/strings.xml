@@ -328,6 +328,7 @@
     <string name="key_type">Key type</string>
     <string name="key_pair">Key pair</string>
     <string name="key_id">Key ID</string>
+    <string name="keygrip">Keygrip</string>
     <string name="algorithm">Algorithm</string>
     <string name="created">Created</string>
     <string name="expires">Expires</string>
@@ -2455,6 +2456,11 @@
     <string name="gpg_keyserver_status_title">GPG keyserver</string>
     <string name="gpg_keyserver_status_not_checked">Not checked</string>
     <string name="gpg_keyserver_status_checked_at">Checked <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="gpg_keyserver_status_verified">Verified</string>
+    <string name="gpg_keyserver_status_found_unverified">Found, no verified e-mail</string>
+    <string name="gpg_keyserver_status_not_found">Not found</string>
+    <string name="gpg_keyserver_last_checked">Last checked</string>
+    <string name="gpg_keyserver_last_refreshed">Last refreshed</string>
 
     <string name="gpg_agent_history_request_sign_hash">Sign hash</string>
     <string name="gpg_agent_history_request_decrypt">Decrypt</string>

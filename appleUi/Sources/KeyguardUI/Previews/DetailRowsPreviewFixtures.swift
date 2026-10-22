@@ -15,7 +15,7 @@ enum DetailRowsPreviewFixtures {
         totp: TotpFieldSnapshot? = nil, attachment: AttachmentFieldSnapshot? = nil,
         url: String? = nil, markdown: Bool = false, monospace: Bool = false,
         severity: VaultAlertSeverity? = nil, colorize: Bool = false, uriIcon: UriIconSnapshot? = nil,
-        reference: VaultReferenceSnapshot? = nil
+        reference: VaultReferenceSnapshot? = nil, label: String? = nil
     ) -> VaultItemSnapshot {
         VaultItemSnapshot(
             id: id, kind: kind, title: title, text: text, concealed: concealed, monospace: monospace,
@@ -26,7 +26,7 @@ enum DetailRowsPreviewFixtures {
             cardNumberFormatted: kind == .card && visible ? "4111 1111 1111 1111" : nil,
             cardNumberObscured: kind == .card ? "•••• •••• •••• 1111" : nil,
             isVisible: visible, revealActionId: reveal, revealLocked: locked, alertSeverity: severity,
-            colorize: colorize, uriIcon: uriIcon, reference: reference
+            colorize: colorize, uriIcon: uriIcon, reference: reference, label: label
         )
     }
 

@@ -200,6 +200,7 @@ internal suspend fun buildVaultItemSnapshots(
                     revealActionId = revealActionId,
                     revealLocked = revealLocked,
                     reference = reference,
+                    label = item.label,
                 )
             }
 
@@ -1029,6 +1030,8 @@ data class VaultItemSnapshot(
     val uriIcon: UriIconSnapshot? = null,
     // VALUE only: the item and the field the value is read from.
     val reference: VaultReferenceSnapshot? = null,
+    // VALUE only: a short label shown next to the value, such as "Primary".
+    val label: String? = null,
 )
 
 /**

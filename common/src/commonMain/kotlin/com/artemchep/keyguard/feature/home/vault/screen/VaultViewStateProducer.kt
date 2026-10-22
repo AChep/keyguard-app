@@ -62,12 +62,14 @@ import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DFolderTree
 import com.artemchep.keyguard.common.model.DGlobalUrlOverride
+import com.artemchep.keyguard.common.model.DGpgKeyserverState
 import com.artemchep.keyguard.common.model.DOrganization
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.DWatchtowerAlertType
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilder
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
+import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.model.LinkInfo
 import com.artemchep.keyguard.common.model.LinkInfoAndroid
 import com.artemchep.keyguard.common.model.LinkInfoExecute
@@ -124,6 +126,7 @@ import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPrivateKeyArmored
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPublicKeyArmored
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgKeygrip
 import com.artemchep.keyguard.common.service.gpgagent.parseGpgAgentMetadataOrNull
 import com.artemchep.keyguard.common.service.gpgagent.toGpgFingerprintUriOrNull
 import com.artemchep.keyguard.common.service.gpgkeyserver.isEligibleForGpgKeyserverRefresh
@@ -159,6 +162,7 @@ import com.artemchep.keyguard.common.usecase.GetConcealFields
 import com.artemchep.keyguard.common.usecase.GetFolderTreeById
 import com.artemchep.keyguard.common.usecase.GetFolders
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverConfig
+import com.artemchep.keyguard.common.usecase.GetGpgKeyserverState
 import com.artemchep.keyguard.common.usecase.GetGravatarUrl
 import com.artemchep.keyguard.common.usecase.GetJustDeleteMeByUrl
 import com.artemchep.keyguard.common.usecase.GetJustGetMyDataByUrl
@@ -382,6 +386,7 @@ fun vaultViewScreenState(
         checkPasswordLeak = get(),
         uploadGpgPublicKey = get(),
         getGpgKeyserverConfig = get(),
+        getGpgKeyserverState = get(),
         refreshGpgPublicKeys = get(),
         verifyGpgPublicKey = get(),
         retryCipher = get(),
@@ -496,6 +501,7 @@ fun vaultViewScreenState(
     checkPasswordLeak: CheckPasswordLeak,
     uploadGpgPublicKey: UploadGpgPublicKey,
     getGpgKeyserverConfig: GetGpgKeyserverConfig,
+    getGpgKeyserverState: GetGpgKeyserverState,
     refreshGpgPublicKeys: RefreshGpgPublicKeys,
     verifyGpgPublicKey: VerifyGpgPublicKey,
     retryCipher: RetryCipher,
@@ -604,6 +610,7 @@ fun vaultViewScreenState(
         checkPasswordLeak = checkPasswordLeak,
         uploadGpgPublicKey = uploadGpgPublicKey,
         getGpgKeyserverConfig = getGpgKeyserverConfig,
+        getGpgKeyserverState = getGpgKeyserverState,
         refreshGpgPublicKeys = refreshGpgPublicKeys,
         verifyGpgPublicKey = verifyGpgPublicKey,
         retryCipher = retryCipher,
@@ -691,6 +698,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
     checkPasswordLeak: CheckPasswordLeak,
     uploadGpgPublicKey: UploadGpgPublicKey,
     getGpgKeyserverConfig: GetGpgKeyserverConfig,
+    getGpgKeyserverState: GetGpgKeyserverState,
     refreshGpgPublicKeys: RefreshGpgPublicKeys,
     verifyGpgPublicKey: VerifyGpgPublicKey,
     retryCipher: RetryCipher,
@@ -1344,6 +1352,23 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
             }
             getCollections()
         }
+    // The keyserver results are stored apart from the
+    // item, so they change independently of it.
+    val gpgKeyserverStateFlow = secretFlow
+        .map { cipher ->
+            cipher
+                ?.takeIf { it.type == DSecret.Type.GpgKey }
+                ?.getGpgAgentFingerprint()
+                ?.normalizeGpgFingerprint()
+                ?.takeIf { it.isNotEmpty() }
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { fingerprint ->
+            if (fingerprint == null) {
+                return@flatMapLatest flowOf(null)
+            }
+            getGpgKeyserverState(fingerprint)
+        }
     return combine(
         accountFlow,
         cipherExtraFlow,
@@ -1358,6 +1383,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
         getMarkdown(),
         environmentMountsFlow,
         environmentCollectionsFlow,
+        gpgKeyserverStateFlow,
     ) { array ->
         val accountOrNull = array[0] as DAccount?
         val secretSauceOrNull = array[1] as CipherSauce?
@@ -1373,6 +1399,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
         val markdown = array[10] as Boolean
         val mountsSection = array[11] as EnvironmentMountsSection
         val allCollections = array[12] as List<DCollection>
+        val gpgKeyserverState = array[13] as DGpgKeyserverState?
 
         val content = when {
             accountOrNull == null || secretOrNull == null -> VaultViewState.Content.NotFound
@@ -1687,6 +1714,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                         androidAppGooglePlayParser = androidAppGooglePlayParser,
                         androidAppFDroidParser = androidAppFDroidParser,
                         mountsSection = mountsSection,
+                        gpgKeyserverState = gpgKeyserverState,
                         verify = verify,
                         elevatedAccessGranted = fff,
                     ).toList().transformShapes(),
@@ -1763,6 +1791,7 @@ private fun RememberStateFlowScope.oh(
     androidAppGooglePlayParser: AndroidAppGooglePlayParser,
     androidAppFDroidParser: AndroidAppFDroidParser,
     mountsSection: EnvironmentMountsSection,
+    gpgKeyserverState: DGpgKeyserverState?,
     verify: ((() -> Unit) -> Unit)?,
     elevatedAccessGranted: MutableStateFlow<Boolean>,
 ) = flow<VaultViewItem> {
@@ -1924,6 +1953,7 @@ private fun RememberStateFlowScope.oh(
         cipher = cipher,
         accountId = account.id,
         gpgFingerprint = gpgFingerprint,
+        keyserverState = gpgKeyserverState,
         now = now,
         gpgPublicKeyParser = gpgPublicKeyParser,
         gpgPublicKeyExport = gpgPublicKeyExport,
@@ -4615,6 +4645,7 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
     cipher: DSecret,
     accountId: AccountId,
     gpgFingerprint: String?,
+    keyserverState: DGpgKeyserverState?,
     now: Instant,
     gpgPublicKeyParser: GpgPublicKeyParser,
     gpgPublicKeyExport: GpgKeyPublicExport,
@@ -4757,6 +4788,28 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
             title = translate(Res.string.key_id),
             value = gpgKeyId.chunkedGpgFingerprint(),
             maxLines = 1,
+            monospace = true,
+            colorize = true,
+            elevated = true,
+        )
+    }
+
+    // Not chunked: the keygrip should match the output of
+    // gpg --with-keygrip and be pasteable into sshcontrol.
+    val gpgKeygrip = parsedGpgKey
+        ?.keygrip
+        ?.normalizeGpgKeygrip()
+        ?.takeIf { it.isNotEmpty() }
+    if (gpgKeygrip != null) {
+        items += create(
+            copy = copy,
+            cryptoGenerator = cryptoGenerator,
+            cipherLocalId = cipher.id,
+            id = "gpg.keygrip",
+            accountId = accountId,
+            title = translate(Res.string.keygrip),
+            value = gpgKeygrip,
+            maxLines = 2,
             monospace = true,
             colorize = true,
             elevated = true,
@@ -4937,10 +4990,31 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
                     value = subKeyKeyId.chunkedGpgFingerprint(),
                 )
             }
+            subKey.keygrip
+                ?.normalizeGpgKeygrip()
+                ?.takeIf { it.isNotEmpty() }
+                ?.let { keygrip ->
+                    rows += VaultViewItem.Table.Row(
+                        title = translate(Res.string.keygrip),
+                        value = keygrip,
+                    )
+                }
             subKey.formatGpgAlgorithm()?.let { algorithm ->
                 rows += VaultViewItem.Table.Row(
                     title = translate(Res.string.algorithm),
                     value = algorithm,
+                )
+            }
+            subKey.createdAt?.let { createdAt ->
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.created),
+                    value = dateFormatter.formatDate(createdAt),
+                )
+            }
+            subKey.expiresAt?.let { expiresAt ->
+                rows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.expires),
+                    value = dateFormatter.formatDate(expiresAt),
                 )
             }
             if (subKeyCapabilities.isNotEmpty()) {
@@ -4949,16 +5023,15 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
                     value = subKeyCapabilities.joinToString(),
                 )
             }
-            if (subKey.revoked) {
+            val subKeyStatus = when {
+                subKey.revoked -> Res.string.revoked
+                subKey.expiresAt?.let { it <= now } == true -> Res.string.expired
+                else -> null
+            }
+            if (subKeyStatus != null) {
                 rows += VaultViewItem.Table.Row(
                     title = translate(Res.string.gpg_key_status),
-                    value = translate(Res.string.revoked),
-                )
-            }
-            subKey.expiresAt?.let { expiresAt ->
-                rows += VaultViewItem.Table.Row(
-                    title = translate(Res.string.expires),
-                    value = dateFormatter.formatDate(expiresAt),
+                    value = translate(subKeyStatus),
                 )
             }
             if (rows.isEmpty()) {
@@ -4997,6 +5070,85 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
                 label = primaryLabel.takeIf { userId == gpgPrimaryUserId },
                 maxLines = 4,
                 elevated = true,
+            )
+        }
+    }
+
+    // Same grouping and labels as the
+    // User IDs screen.
+    val gpgUserIdHistory = parsedGpgKey
+        ?.userIdHistory
+        .orEmpty()
+        .map { it.copy(userId = it.userId.trim()) }
+        .filter { it.userId.isNotEmpty() && it.userId !in gpgUserIds }
+        .distinctBy { it.userId }
+    if (gpgUserIdHistory.isNotEmpty()) {
+        items += VaultViewItem.Section(
+            id = "gpg.userIdHistory.section",
+            text = translate(Res.string.gpg_user_ids_history),
+        )
+        val revokedLabel = translate(Res.string.revoked)
+        val inactiveLabel = translate(Res.string.gpg_user_ids_inactive)
+        gpgUserIdHistory.forEachIndexed { index, identity ->
+            items += create(
+                copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
+                id = "gpg.userIdHistory.$index",
+                accountId = accountId,
+                title = null,
+                value = identity.userId,
+                label = if (identity.revoked) revokedLabel else inactiveLabel,
+                maxLines = 4,
+                elevated = true,
+            )
+        }
+    }
+
+    if (keyserverState != null) {
+        val keyserverRows = mutableListOf<VaultViewItem.Table.Row>()
+        keyserverState.sourceKeyserver
+            ?.takeIf { it.isNotBlank() }
+            ?.let { keyserver ->
+                keyserverRows += VaultViewItem.Table.Row(
+                    title = translate(Res.string.pref_item_gpg_keyserver_url_title),
+                    value = keyserver,
+                )
+            }
+        val keyserverStatus = when (keyserverState.verificationStatus) {
+            GpgKeyserverVerificationStatus.VERIFIED -> Res.string.gpg_keyserver_status_verified
+            GpgKeyserverVerificationStatus.FOUND_UNVERIFIED -> Res.string.gpg_keyserver_status_found_unverified
+            GpgKeyserverVerificationStatus.NOT_FOUND -> Res.string.gpg_keyserver_status_not_found
+            GpgKeyserverVerificationStatus.REVOKED -> Res.string.revoked
+            GpgKeyserverVerificationStatus.UNKNOWN -> null
+        }
+        if (keyserverStatus != null) {
+            keyserverRows += VaultViewItem.Table.Row(
+                title = translate(Res.string.status),
+                value = translate(keyserverStatus),
+            )
+        }
+        keyserverState.lastCheckedAt?.let { checkedAt ->
+            keyserverRows += VaultViewItem.Table.Row(
+                title = translate(Res.string.gpg_keyserver_last_checked),
+                value = dateFormatter.formatDateTime(checkedAt),
+            )
+        }
+        keyserverState.lastRefreshedAt?.let { refreshedAt ->
+            keyserverRows += VaultViewItem.Table.Row(
+                title = translate(Res.string.gpg_keyserver_last_refreshed),
+                value = dateFormatter.formatDateTime(refreshedAt),
+            )
+        }
+        if (keyserverRows.isNotEmpty()) {
+            items += VaultViewItem.Section(
+                id = "gpg.keyserver.section",
+                text = translate(Res.string.gpg_keyserver_status_title),
+            )
+            items += VaultViewItem.Table(
+                id = "gpg.keyserver",
+                elevation = 1.dp,
+                rows = keyserverRows,
             )
         }
     }

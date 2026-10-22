@@ -207,6 +207,7 @@ internal class CipherDetailController(
                 environmentMounts = get(),
                 gpgPublicKeyParser = get(),
                 getGpgKeyserverConfig = get(),
+                getGpgKeyserverState = get(),
                 changeGpgKeyExpirationById = get(),
                 uploadGpgPublicKey = get(),
                 refreshGpgPublicKeys = get(),

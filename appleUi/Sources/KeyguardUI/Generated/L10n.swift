@@ -4141,6 +4141,14 @@ public enum L10n {
     public static var gpgKeyserverErrorV6Unsupported: String {
         String(localized: "gpg_keyserver_error_v6_unsupported", bundle: AppLocalization.shared.bundle)
     }
+    /// gpg_keyserver_last_checked
+    public static var gpgKeyserverLastChecked: String {
+        String(localized: "gpg_keyserver_last_checked", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_keyserver_last_refreshed
+    public static var gpgKeyserverLastRefreshed: String {
+        String(localized: "gpg_keyserver_last_refreshed", bundle: AppLocalization.shared.bundle)
+    }
     /// gpg_keyserver_refresh_failed_title
     public static var gpgKeyserverRefreshFailedTitle: String {
         String(localized: "gpg_keyserver_refresh_failed_title", bundle: AppLocalization.shared.bundle)
@@ -4197,13 +4205,25 @@ public enum L10n {
     public static func gpgKeyserverStatusCheckedAt(_ a1: String) -> String {
         String(format: String(localized: "gpg_keyserver_status_checked_at", bundle: AppLocalization.shared.bundle), a1)
     }
+    /// gpg_keyserver_status_found_unverified
+    public static var gpgKeyserverStatusFoundUnverified: String {
+        String(localized: "gpg_keyserver_status_found_unverified", bundle: AppLocalization.shared.bundle)
+    }
     /// gpg_keyserver_status_not_checked
     public static var gpgKeyserverStatusNotChecked: String {
         String(localized: "gpg_keyserver_status_not_checked", bundle: AppLocalization.shared.bundle)
     }
+    /// gpg_keyserver_status_not_found
+    public static var gpgKeyserverStatusNotFound: String {
+        String(localized: "gpg_keyserver_status_not_found", bundle: AppLocalization.shared.bundle)
+    }
     /// gpg_keyserver_status_title
     public static var gpgKeyserverStatusTitle: String {
         String(localized: "gpg_keyserver_status_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// gpg_keyserver_status_verified
+    public static var gpgKeyserverStatusVerified: String {
+        String(localized: "gpg_keyserver_status_verified", bundle: AppLocalization.shared.bundle)
     }
     /// gpg_keyserver_upload_success_title
     public static var gpgKeyserverUploadSuccessTitle: String {
@@ -5172,6 +5192,10 @@ public enum L10n {
     /// key_type
     public static var keyType: String {
         String(localized: "key_type", bundle: AppLocalization.shared.bundle)
+    }
+    /// keygrip
+    public static var keygrip: String {
+        String(localized: "keygrip", bundle: AppLocalization.shared.bundle)
     }
     /// largetype_action_show_in_large_type_and_lock_title
     public static var largetypeActionShowInLargeTypeAndLockTitle: String {

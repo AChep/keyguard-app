@@ -51,6 +51,7 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.encrypted
 import com.artemchep.keyguard.provider.bitwarden.crypto.transform
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.ProfileEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.SendTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SyncEntity
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.CipherSyncOps
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.CollectionSyncOps
@@ -557,6 +558,43 @@ class SyncByBitwardenTokenV2Impl(
                     .executeAsList()
                     .map { it.data_ }
                     .filterByAccountId(user.id) { it.accountId }
+            val serverSends = response.sends.orEmpty()
+
+            // Filter-out the send of the type from the future
+            // that we do not know about.
+            val unknownSendRemoteIds = serverSends
+                .asSequence()
+                .filter { it.type == SendTypeEntity.Unknown }
+                .map { it.id }
+                .toSet()
+            if (unknownSendRemoteIds.isNotEmpty()) {
+                diagnostics.unknownSendTypesSkipped(
+                    accountId = user.id,
+                    remoteIds = unknownSendRemoteIds.sorted(),
+                )
+            }
+
+            val existingSendsToSync = kotlin.run {
+                if (unknownSendRemoteIds.isEmpty()) {
+                    return@run existingSends
+                }
+
+                existingSends.filter { send ->
+                    val remoteId = send.service.remote?.id
+                    remoteId !in unknownSendRemoteIds
+                }
+            }
+            val serverSendsToSync = kotlin.run {
+                if (unknownSendRemoteIds.isEmpty()) {
+                    return@run serverSends
+                }
+
+                serverSends.filter { send ->
+                    val remoteId = send.id
+                    remoteId !in unknownSendRemoteIds
+                }
+            }
+
             val sendOps =
                 SendSyncOps(
                     accountId = user.id,
@@ -576,8 +614,8 @@ class SyncByBitwardenTokenV2Impl(
                     EntitySyncConfig(
                         name = "sends",
                         strategy = SendSyncStrategy(),
-                        localEntities = existingSends,
-                        serverEntities = response.sends.orEmpty(),
+                        localEntities = existingSendsToSync,
+                        serverEntities = serverSendsToSync,
                         ops = sendOps,
                     ),
                 )

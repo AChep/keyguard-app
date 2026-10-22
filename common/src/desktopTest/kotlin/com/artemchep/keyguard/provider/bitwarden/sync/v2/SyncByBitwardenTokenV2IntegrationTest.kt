@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenToken
 import com.artemchep.keyguard.crypto.CipherEncryptorImpl
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
@@ -275,6 +276,69 @@ class SyncByBitwardenTokenV2IntegrationTest {
     }
 
     @Test
+    fun `sync skips unknown send types and preserves existing local copies`() = runTest {
+        val server = UploadTestServer()
+        server.revisionDate = "rev-unknown-sends"
+        val fixture = createFullSyncFixture(server)
+        server.profile = fixture.profile
+        val preservedSend =
+            testSend(
+                localId = "send-local-preserved",
+                remoteId = "send-unknown-existing",
+                localRevisionDate = T0,
+                remoteRevisionDate = T0,
+                file = BitwardenSend.File(
+                    id = "unused",
+                    fileName = "unused",
+                ),
+            ).copy(
+                name = "Preserved Send",
+                type = BitwardenSend.Type.Text,
+                file = null,
+                text = BitwardenSend.Text(text = "Local content"),
+            )
+        fixture.database.sendQueries.insert(
+            accountId = preservedSend.accountId,
+            sendId = preservedSend.sendId,
+            data = preservedSend,
+        )
+        server.syncResponseOverride = unknownSendsSyncResponse(
+            profileJson = UploadTestServer.json.encodeToString(server.profile),
+        )
+
+        fixture.sync.invoke(fixture.user).invoke()
+
+        assertEquals(
+            listOf(HttpMethod.Get to "/api/accounts/revision-date", HttpMethod.Get to "/api/sync"),
+            server.requests.map { it.method to it.path },
+        )
+        val savedSends =
+            fixture.database.sendQueries
+                .getByAccountId(ACCOUNT_ID)
+                .executeAsList()
+                .map { it.data_ }
+        assertEquals(listOf(preservedSend), savedSends)
+
+        val logMessages = fixture.logRepository.messages()
+        assertTrue(
+            logMessages.any { message ->
+                message.contains("unknown_send_types_skipped") &&
+                    message.contains("count=2") &&
+                    message.contains("send-unknown-existing") &&
+                    message.contains("send-unknown-new")
+            },
+        )
+        assertTrue(
+            logMessages.any { message ->
+                message.contains("entity_plan_built entity=sends") &&
+                    message.contains("local_count=0") &&
+                    message.contains("server_count=0") &&
+                    message.contains("total_actions=0")
+            },
+        )
+    }
+
+    @Test
     fun `expired access token is refreshed before sync requests`() = runTest {
         val server = UploadTestServer()
         server.refreshedAccessToken = "access-token-refreshed-before-sync"
@@ -354,6 +418,52 @@ class SyncByBitwardenTokenV2IntegrationTest {
         assertEquals(server.refreshedAccessToken, fixture.savedUser().token?.accessToken)
     }
 }
+
+/**
+ * A sync response with a Bitwarden Item Send (type 2) and
+ * a Send of a type from the future.
+ */
+private fun unknownSendsSyncResponse(
+    profileJson: String,
+) = """
+    {
+      "profile": $profileJson,
+      "folders": [],
+      "ciphers": [],
+      "collections": [],
+      "sends": [
+        {
+          "id": "send-unknown-new",
+          "accessId": "access-send-unknown-new",
+          "type": 2,
+          "authType": 0,
+          "name": "Ignored new send",
+          "data": {
+            "encryptionVersion": 1,
+            "data": "sealed",
+            "metadata": { "itemId": "cipher-1" }
+          },
+          "key": "send-key",
+          "accessCount": 0,
+          "emails": "a@example.com",
+          "disabled": false,
+          "revisionDate": "2024-01-01T00:00:01Z",
+          "deletionDate": "2024-01-08T00:00:00Z"
+        },
+        {
+          "id": "send-unknown-existing",
+          "accessId": "access-send-unknown-existing",
+          "type": 999,
+          "name": "Ignored existing send",
+          "key": "send-key",
+          "accessCount": 0,
+          "disabled": false,
+          "revisionDate": "2024-01-01T00:00:02Z",
+          "deletionDate": "2024-01-08T00:00:00Z"
+        }
+      ]
+    }
+""".trimIndent()
 
 private data class FullSyncFixture(
     val sync: SyncByBitwardenTokenV2Impl,

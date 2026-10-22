@@ -484,10 +484,10 @@ fn populate_macos_details(identity: &mut CallerIdentity, pid: u32) {
         }
     }
 
-    // Retain only a bundle path enclosing the direct executable. This path is
+    // Retain only the application of a direct bundle executable. This path is
     // movable/renameable display metadata; it must remain secondary to the
     // authenticated code-signing label assigned below.
-    if let Some(app_bundle_path) = find_app_bundle_path(&identity.executable_path) {
+    if let Some(app_bundle_path) = crate::macos::outer_app_bundle_path(&identity.executable_path) {
         identity.app_pid = pid;
         identity.app_bundle_path = app_bundle_path;
     }
@@ -580,22 +580,6 @@ fn macos_proc_name(pid: u32) -> Option<String> {
     }
     let len = buf.iter().position(|&b| b == 0).unwrap_or(buf.len());
     Some(String::from_utf8_lossy(&buf[..len]).to_string())
-}
-
-#[cfg(target_os = "macos")]
-fn find_app_bundle_path(executable_path: &str) -> Option<String> {
-    use std::path::Path;
-
-    let path = Path::new(executable_path);
-    for ancestor in path.ancestors() {
-        let Some(name) = ancestor.file_name().and_then(|s| s.to_str()) else {
-            continue;
-        };
-        if name.ends_with(".app") {
-            return Some(ancestor.to_string_lossy().to_string());
-        }
-    }
-    None
 }
 
 #[cfg(all(test, target_os = "macos"))]

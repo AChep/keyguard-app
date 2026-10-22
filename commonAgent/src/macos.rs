@@ -1724,9 +1724,16 @@ fn process_path(pid: u32) -> Result<String, MacosCodeSigningFailure> {
     Ok(path.to_owned())
 }
 
-fn outer_app_bundle_path(executable_path: &str) -> Option<String> {
-    std::path::Path::new(executable_path)
-        .ancestors()
+/// The outermost `.app` of a bundle's main executable, which sits directly in
+/// `Contents/MacOS`. A tool elsewhere in a bundle, such as Xcode's
+/// `Contents/Developer/usr/bin/git`, acts for the process that started it.
+pub(crate) fn outer_app_bundle_path(executable_path: &str) -> Option<String> {
+    let path = std::path::Path::new(executable_path);
+    let macos = path.parent()?;
+    if macos.file_name()? != "MacOS" || macos.parent()?.file_name()? != "Contents" {
+        return None;
+    }
+    path.ancestors()
         .filter(|ancestor| {
             ancestor
                 .file_name()
@@ -2651,9 +2658,10 @@ mod tests {
         );
     }
 
-    /// Adds a bundled CLI that the terminal command (60) started.
-    fn insert_relay(source: &FixtureSource) {
-        const CLI: &str = "/Applications/Keyguard.app/Contents/Resources/keyguard";
+    const BUNDLED_CLI: &str = "/Applications/Keyguard.app/Contents/Resources/keyguard";
+
+    /// Adds a CLI at `cli` that the terminal command (60) started.
+    fn insert_relay(source: &FixtureSource, cli: &str) {
         source.processes.borrow_mut().insert(
             70,
             MacosProcessSnapshot {
@@ -2665,8 +2673,8 @@ mod tests {
                 real_uid: 501,
                 start_seconds: 1070,
                 start_microseconds: 200,
-                executable_path: CLI.to_owned(),
-                bundle_path: outer_app_bundle_path(CLI).unwrap_or_default(),
+                executable_path: cli.to_owned(),
+                bundle_path: outer_app_bundle_path(cli).unwrap_or_default(),
             },
         );
         source.change(60, |command| {
@@ -2676,31 +2684,142 @@ mod tests {
 
     #[test]
     fn relayed_caller_is_the_parent_in_its_own_application() {
-        let source = FixtureSource::iterm();
-        insert_relay(&source);
-        let session = collect_terminal_session(&source, 70, 501).expect("terminal session");
-        let direct = collect_origin_application(&source, 70, 501, session.as_ref(), false)
-            .expect("direct walk")
-            .expect("relay application");
-        assert_eq!(direct.display_name, "Keyguard");
+        for (cli, direct_application) in [
+            // The bundled CLI is a tool of the bundle, not its application.
+            (BUNDLED_CLI, "iTerm"),
+            (
+                "/Applications/Keyguard.app/Contents/MacOS/keyguard",
+                "Keyguard",
+            ),
+        ] {
+            let source = FixtureSource::iterm();
+            insert_relay(&source, cli);
+            let session = collect_terminal_session(&source, 70, 501).expect("terminal session");
+            let direct = collect_origin_application(&source, 70, 501, session.as_ref(), false)
+                .expect("direct walk")
+                .expect("direct application");
+            assert_eq!(direct.display_name, direct_application);
 
-        let relayed =
-            collect_relayed_caller(&source, 70, 501, session.as_ref()).expect("relayed caller");
-        assert_eq!(relayed.pid(), 60);
-        assert_eq!(relayed.executable_path(), "/Users/test/.local/bin/claude");
-        assert_eq!(
-            relayed
-                .application()
-                .expect("terminal application")
-                .display_name(),
-            "iTerm"
+            let relayed =
+                collect_relayed_caller(&source, 70, 501, session.as_ref()).expect("relayed caller");
+            assert_eq!(relayed.pid(), 60);
+            assert_eq!(relayed.executable_path(), "/Users/test/.local/bin/claude");
+            assert_eq!(
+                relayed
+                    .application()
+                    .expect("terminal application")
+                    .display_name(),
+                "iTerm"
+            );
+        }
+    }
+
+    const XCODE_GIT: &str = "/Applications/Xcode-beta.app/Contents/Developer/usr/bin/git";
+
+    /// Runs the peer (60) as `ssh-keygen` under the Xcode `git` (55) that
+    /// `/usr/bin/git` executes, started by `parent_pid`.
+    fn insert_xcode_git(source: &FixtureSource, parent_pid: u32) {
+        source.processes.borrow_mut().insert(
+            55,
+            MacosProcessSnapshot {
+                pid: 55,
+                parent_pid,
+                session_id: 40,
+                controlling_tty: 100,
+                effective_uid: 501,
+                real_uid: 501,
+                start_seconds: 1055,
+                start_microseconds: 200,
+                executable_path: XCODE_GIT.to_owned(),
+                bundle_path: outer_app_bundle_path(XCODE_GIT).unwrap_or_default(),
+            },
         );
+        source.change(60, |peer| {
+            peer.parent_pid = 55;
+            peer.executable_path = "/usr/bin/ssh-keygen".to_owned();
+        });
+    }
+
+    #[test]
+    fn only_a_main_executable_names_its_outermost_application() {
+        const CODE: &str = "/Applications/Visual Studio Code.app";
+        for (executable_path, application) in [
+            (
+                "/Applications/Visual Studio Code.app/Contents/MacOS/Code",
+                Some(CODE),
+            ),
+            (
+                "/Applications/Visual Studio Code.app/Contents/Frameworks/\
+                 Code Helper (Plugin).app/Contents/MacOS/Code Helper (Plugin)",
+                Some(CODE),
+            ),
+            (
+                "/Applications/Foo.app/Contents/XPCServices/Bar.xpc/Contents/MacOS/Bar",
+                Some("/Applications/Foo.app"),
+            ),
+            (XCODE_GIT, None),
+            (
+                "/Applications/Docker.app/Contents/Resources/bin/docker",
+                None,
+            ),
+            (BUNDLED_CLI, None),
+            ("/Applications/Foo.app/Contents/MacOS/bin/tool", None),
+            ("/Library/Foo/Bar.xpc/Contents/MacOS/Bar", None),
+            ("/usr/bin/ssh-keygen", None),
+        ] {
+            assert_eq!(
+                outer_app_bundle_path(executable_path).as_deref(),
+                application,
+                "{executable_path}"
+            );
+        }
+    }
+
+    #[test]
+    fn xcode_git_in_a_terminal_names_the_terminal() {
+        let source = FixtureSource::iterm();
+        insert_xcode_git(&source, 50);
+        let (session, app) = source.collect();
+        assert!(session.expect("terminal session").login.is_some());
+        let app = app.expect("terminal application");
+        assert_eq!(app.display_name, "iTerm");
+        assert_eq!(app.pid, 20);
+        assert_eq!(app.accepted_chain.len(), 6);
+    }
+
+    #[test]
+    fn xcode_git_started_by_an_application_names_that_application() {
+        const CODE: &str = "/Applications/Visual Studio Code.app";
+        let source = FixtureSource::iterm();
+        insert_xcode_git(&source, 30);
+        source.change(60, |peer| peer.controlling_tty = 0);
+        source.change(55, |git| git.controlling_tty = 0);
+        for (pid, executable_path) in [
+            (
+                30,
+                format!(
+                    "{CODE}/Contents/Frameworks/Code Helper (Plugin).app/Contents/MacOS/\
+                     Code Helper (Plugin)"
+                ),
+            ),
+            (20, format!("{CODE}/Contents/MacOS/Code")),
+        ] {
+            source.change(pid, |process| {
+                process.bundle_path = outer_app_bundle_path(&executable_path).unwrap_or_default();
+                process.executable_path = executable_path;
+            });
+        }
+        let (session, app) = source.collect();
+        assert!(session.is_none());
+        let app = app.expect("launching application");
+        assert_eq!(app.display_name, "Visual Studio Code");
+        assert_eq!(app.pid, 20);
     }
 
     #[test]
     fn relayed_caller_rejects_a_parent_that_changes_during_collection() {
         let source = FixtureSource::iterm();
-        insert_relay(&source);
+        insert_relay(&source, BUNDLED_CLI);
         let session = collect_terminal_session(&source, 70, 501).expect("terminal session");
         // launchd adopts the relay once its parent exits.
         *source.mutate_on_application.borrow_mut() = Some(|processes| {

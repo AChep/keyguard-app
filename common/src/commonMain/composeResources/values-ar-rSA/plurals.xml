@@ -144,6 +144,14 @@
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> كلمة مرور سابقة محفوظة</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> كلمة مرور سابقة محفوظة</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> environment with item references that cannot be transferred</item>
+        <item quantity="two"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> عنصر مؤرشف</item>
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> عنصر مؤرشف</item>
@@ -328,5 +336,13 @@
         <item quantity="few">تنتهي الموافقة خلال <xliff:g id="seconds" example="30">%1$d</xliff:g> ثوانٍ</item>
         <item quantity="many">تنتهي الموافقة خلال <xliff:g id="seconds" example="30">%1$d</xliff:g> ثانيةً</item>
         <item quantity="other">تنتهي الموافقة خلال <xliff:g id="seconds" example="30">%1$d</xliff:g> ثانية</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="zero"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> active User ID</item>
+        <item quantity="two"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
     </plurals>
 </resources>

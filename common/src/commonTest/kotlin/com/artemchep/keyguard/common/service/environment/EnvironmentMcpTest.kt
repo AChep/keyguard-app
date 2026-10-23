@@ -22,6 +22,36 @@ import kotlin.test.assertTrue
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class, ExperimentalSerializationApi::class)
 class EnvironmentMcpTest {
     @Test
+    fun `unsupported local files reject Windows paths before approval`() = runTest {
+        val fixture = EnvironmentFixture(backgroundScope)
+        fixture.ready()
+        fixture.mounts.configure(supported = false)
+        fixture.autoApprove(backgroundScope)
+        val response = fixture.broker().handle(manageRequest(
+            tool = "create_local_env_file",
+            arguments = mapOf("environment_id" to "environment", "path" to "C:\\Temp\\qa.env"),
+        ))
+        assertEquals("unsupported_platform", response.error())
+        assertEquals(listOf(EnvironmentCapability.Authenticate.name), fixture.approvedCapabilities.value)
+        assertTrue(fixture.mounts.state.value.mounts.isEmpty())
+    }
+
+    @Test
+    fun `unsupported local files reject Unix paths before approval`() = runTest {
+        val fixture = EnvironmentFixture(backgroundScope)
+        fixture.ready()
+        fixture.mounts.configure(supported = false)
+        fixture.autoApprove(backgroundScope)
+        val response = fixture.broker().handle(manageRequest(
+            tool = "create_local_env_file",
+            arguments = mapOf("environment_id" to "environment", "path" to "/tmp/qa.env"),
+        ))
+        assertEquals("unsupported_platform", response.error())
+        assertEquals(listOf(EnvironmentCapability.Authenticate.name), fixture.approvedCapabilities.value)
+        assertTrue(fixture.mounts.state.value.mounts.isEmpty())
+    }
+
+    @Test
     fun `MCP variable listing exposes metadata but no stored values or notes`() = runTest {
         val fixture = EnvironmentFixture(backgroundScope)
         fixture.ready()

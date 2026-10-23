@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.service.agent.AgentApprovalBroker
-import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.agent.AgentManager
 import com.artemchep.keyguard.common.service.agent.denyWhenSessionEnds
 import com.artemchep.keyguard.common.service.agent.macosDevAgentSocketPath
@@ -13,6 +12,8 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.util.agentipc.AgentIpcExpectedPeer
+import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
 import kotlinx.coroutines.*
 
 /**
@@ -56,7 +57,6 @@ class SshAgentManager(
         authToken: ByteArray,
         sessionId: String,
         scope: CoroutineScope,
-        expectedPeerProcess: Deferred<Process>,
     ): IpcServerRunner {
         scope.launch { approvals.denyWhenSessionEnds(getVaultSession()) }
         val ipcServer = SshAgentIpcServer(
@@ -70,7 +70,6 @@ class SshAgentManager(
             pendingUsageHistoryQueue = pendingUsageHistoryQueue,
             authToken = authToken,
             scope = scope,
-            expectedPeerProcess = expectedPeerProcess,
             sessionId = sessionId,
             onApprovalRequest = { prompt ->
                 val result = approvals.request { expiresAt ->
@@ -83,15 +82,14 @@ class SshAgentManager(
             },
         )
         return object : IpcServerRunner {
-            override suspend fun start(
-                endpoint: AgentIpcEndpoint,
-                onReady: CompletableDeferred<Unit>?,
-            ) {
-                ipcServer.start(endpoint, onReady = onReady)
+            override fun bind(location: AgentIpcLocation) = ipcServer.bind(location)
+
+            override suspend fun serve(expectedPeer: suspend () -> AgentIpcExpectedPeer) {
+                ipcServer.serve(expectedPeer)
             }
 
-            override fun stop() {
-                ipcServer.stop()
+            override fun close() {
+                ipcServer.close()
             }
         }
     }

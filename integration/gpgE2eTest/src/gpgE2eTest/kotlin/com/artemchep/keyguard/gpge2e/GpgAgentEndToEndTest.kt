@@ -1,11 +1,11 @@
 package com.artemchep.keyguard.gpge2e
 
 import com.artemchep.keyguard.common.model.GpgKeyConfig
-import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
 import com.artemchep.keyguard.common.service.gpgagent.isWindowsNamedPipePath
 import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
+import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
@@ -119,18 +119,14 @@ class GpgAgentEndToEndTest {
                 authToken = ByteArray(32).also { SecureRandom().nextBytes(it) },
                 gnupgVersion = clientGpg.gnupgVersion(),
             )
-            val ipcEndpoint = if (isWindows()) {
-                AgentIpcEndpoint.WindowsPipe("\\\\.\\pipe\\kg-gpge2e-$token-ipc")
+            val ipcLocation = if (isWindows()) {
+                AgentIpcLocation.WindowsPipe(prefix = "", exactName = "kg-gpge2e-$token-ipc")
             } else {
-                val ipcSocketPath = workRoot.resolve("ipc.sock")
-                AgentIpcEndpoint.UnixSocket(
-                    socketPath = ipcSocketPath,
-                    directory = workRoot,
-                )
+                AgentIpcLocation.UnixDirectory(parent = workRoot.toString(), exactName = "ipc")
             }
             gpgAgentSocket = gpgAgentSocketForClientHome(clientHome)
             prepareGpgAgentSocketDirectory(clientHome, gpgAgentSocket)
-            launcher.start(ipcEndpoint = ipcEndpoint, gpgSocket = gpgAgentSocket)
+            launcher.start(ipcLocation = ipcLocation, gpgSocket = gpgAgentSocket)
         }
 
         @JvmStatic
@@ -373,7 +369,7 @@ class GpgAgentEndToEndTest {
             )
             try {
                 defaultLauncher.start(
-                    ipcEndpoint = AgentIpcEndpoint.UnixSocket(caseRoot.resolve("ipc.sock"), caseRoot),
+                    ipcLocation = AgentIpcLocation.UnixDirectory(parent = caseRoot.toString(), exactName = "ipc"),
                     environmentOverrides = environment,
                 )
                 externalSocketDirectory = !socketDirectory.toRealPath().startsWith(home.toRealPath())

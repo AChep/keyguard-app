@@ -8,6 +8,10 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.util.agentipc.AgentIpcException
+import com.artemchep.keyguard.util.agentipc.AgentIpcExpectedPeer
+import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
+import com.artemchep.keyguard.util.agentipc.asAgentIpcExpectedPeer
 import kotlinx.coroutines.*
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
@@ -30,10 +34,12 @@ private const val AGENT_OUTPUT_DRAIN_TIMEOUT_MS = 200L
  *
  * Responsibilities:
  * - Generates a cryptographically random authentication token
- * - Creates the IPC Unix domain socket
+ * - Creates the private IPC endpoint
  * - Starts the IPC server to handle requests from the agent
  * - Spawns the Rust agent binary as a child process
- * - Cleans up on shutdown (kills the process, removes sockets)
+ * - Stops that process if its IPC server fails, so that its supervisor
+ *   restarts both
+ * - Cleans up on shutdown (kills the process, closes the endpoint)
  *
  * The pieces that differ between agents (log/error strings, the concrete
  * IPC server construction and any agent-specific request routing) are
@@ -53,7 +59,7 @@ abstract class AgentManager(
      *   strings, e.g. "SSH agent" / "GPG agent".
      * @param binaryBaseName Base name of the agent binary (without the
      *   platform-specific extension), e.g. "keyguard-ssh-agent".
-     * @param ipcSocketPrefix Prefix for the temporary IPC socket file,
+     * @param ipcSocketPrefix Prefix of the private IPC endpoint's name,
      *   e.g. "keyguard-ipc" / "keyguard-gpg-ipc".
      * @param agentSocketArg CLI flag used to pass the optional agent socket
      *   path to the binary, e.g. "--ssh-socket" / "--gpg-socket".
@@ -84,14 +90,17 @@ abstract class AgentManager(
      * lifecycle to start it without knowing its concrete type.
      */
     protected interface IpcServerRunner {
-        suspend fun start(endpoint: AgentIpcEndpoint, onReady: CompletableDeferred<Unit>?)
+        /**
+         * Creates the endpoint at [location], which exists once this returns,
+         * and returns the value of the helper's `--ipc-socket`.
+         */
+        fun bind(location: AgentIpcLocation): String
 
-        fun stop()
-    }
+        /** Serves the helper's connections, accepting none before [expectedPeer] returns. */
+        suspend fun serve(expectedPeer: suspend () -> AgentIpcExpectedPeer)
 
-    companion object {
-        /** Maximum time (ms) to wait for the IPC server to bind the socket. */
-        private const val IPC_SERVER_READY_TIMEOUT_MS = 5_000L
+        /** Closes the endpoint and every connection. Idempotent and non-blocking. */
+        fun close()
     }
 
     private val mutex = Mutex()
@@ -100,7 +109,6 @@ abstract class AgentManager(
     private var ipcServerRunner: IpcServerRunner? = null
     private var serverJob: Job? = null
     private var serverScope: CoroutineScope? = null
-    private var ipcEndpoint: AgentIpcEndpoint? = null
 
     val defaultBinaryPath: Path? by lazy {
         findAgentBinary(config.binaryBaseName)
@@ -115,14 +123,11 @@ abstract class AgentManager(
      * @param authToken The shared authentication token.
      * @param sessionId The agent session identifier.
      * @param scope The coroutine scope that owns the server.
-     * @param expectedPeerProcess Completed with the exact child process after
-     *   it is spawned. The IPC transport waits for this before accepting.
      */
     protected abstract fun createIpcServer(
         authToken: ByteArray,
         sessionId: String,
         scope: CoroutineScope,
-        expectedPeerProcess: Deferred<Process>,
     ): IpcServerRunner
 
     /**
@@ -130,9 +135,9 @@ abstract class AgentManager(
      *
      * This will:
      * 1. Generate a random auth token
-     * 2. Start the IPC server on a Unix domain socket
-     * 3. Wait for the server to be ready (socket bound)
-     * 4. Spawn the Rust agent binary
+     * 2. Create the private IPC endpoint
+     * 3. Spawn the Rust agent binary
+     * 4. Serve the IPC connections of that exact process
      *
      * @param scope The coroutine scope for the IPC server.
      * @param binaryPath Path to the agent binary.
@@ -173,7 +178,6 @@ abstract class AgentManager(
             ipcServerRunner != null -> true
             serverScope != null -> true
             serverJob != null -> true
-            ipcEndpoint != null -> true
             else -> false
         }
         if (hasStaleState) {
@@ -194,10 +198,6 @@ abstract class AgentManager(
         val effectiveAgentSocketPath = agentSocketPath
             ?: config.defaultAgentSocketPath
 
-        // Determine IPC endpoint.
-        val ipcEndpoint = createAgentIpcEndpoint(config.ipcSocketPrefix)
-        this.ipcEndpoint = ipcEndpoint
-
         val serverScope = kotlin.run {
             val parentJob = scope.coroutineContext[Job]
             CoroutineScope(scope.coroutineContext + SupervisorJob(parentJob))
@@ -206,59 +206,47 @@ abstract class AgentManager(
 
         logRepository.post(config.tag, "Starting ${config.displayName} system", LogLevel.INFO)
         logRepository.post(config.tag, "Binary: $binaryPath", LogLevel.INFO)
-        logRepository.post(config.tag, "IPC endpoint: ${ipcEndpoint.displayName}", LogLevel.INFO)
-        effectiveAgentSocketPath?.let {
-            logRepository.post(config.tag, "${config.agentSocketLogLabel}: $it", LogLevel.INFO)
-        }
 
-        // Start the IPC server. It binds before the helper is spawned, but its
-        // accept loop remains gated on this exact Process handle.
-        val expectedPeerProcess = CompletableDeferred<Process>()
         val ipcServer = createIpcServer(
             authToken = authToken,
             sessionId = agentSessionId,
             scope = serverScope,
-            expectedPeerProcess = expectedPeerProcess,
         )
         ipcServerRunner = ipcServer
 
-        // The server signals readiness via this deferred once the
-        // socket is bound and it starts accepting connections.
-        val serverReady = CompletableDeferred<Unit>()
+        // The endpoint exists before the helper is spawned, so the helper's
+        // one connection attempt cannot race its creation.
+        val ipcEndpoint = try {
+            ipcServer.bind(agentIpcLocation(config.ipcSocketPrefix))
+        } catch (e: Exception) {
+            stopLocked()
+            throw e.asAgentIpcAppException()
+        }
+        logRepository.post(config.tag, "IPC endpoint: $ipcEndpoint", LogLevel.INFO)
+        effectiveAgentSocketPath?.let {
+            logRepository.post(config.tag, "${config.agentSocketLogLabel}: $it", LogLevel.INFO)
+        }
 
+        // The server accepts nothing until it knows the exact child process.
+        val spawnedProcess = CompletableDeferred<Process>()
         serverJob = serverScope.launch(Dispatchers.IO) {
             try {
-                ipcServer.start(ipcEndpoint, onReady = serverReady)
+                ipcServer.serve { spawnedProcess.await().asAgentIpcExpectedPeer() }
             } catch (e: Exception) {
-                val serverFailure = e.takeUnless { it is CancellationException }
-                    ?: IllegalStateException("IPC server was cancelled before the helper was ready")
                 if (e !is CancellationException) {
                     logRepository.post(
                         config.tag,
-                        "IPC server failed: ${e.message}\n${e.stackTraceToString()}",
+                        "IPC server failed: ${ipcServerFailureName(e)}",
                         LogLevel.ERROR,
                     )
+                    // A helper without its transport serves no one. Stopping it
+                    // ends the supervisor's wait for it, which then restarts both.
+                    // The server fails only once it knows the process.
+                    val process = spawnedProcess.await()
+                    process.closeStdinQuietly()
+                    process.destroy()
                 }
-                // If the server fails before signalling readiness,
-                // complete exceptionally so we don't hang forever.
-                serverReady.completeExceptionally(serverFailure)
-                // The server may already have signalled readiness and be
-                // waiting for the helper Process. Wake that gate as well so a
-                // concurrent startup cannot publish a child to a dead server.
-                expectedPeerProcess.completeExceptionally(serverFailure)
             }
-        }
-
-        // Wait for the IPC server to bind the socket, with a timeout.
-        try {
-            withTimeout(IPC_SERVER_READY_TIMEOUT_MS) {
-                serverReady.await()
-            }
-            logRepository.post(config.tag, "IPC server is ready", LogLevel.INFO)
-        } catch (e: Exception) {
-            expectedPeerProcess.completeExceptionally(e)
-            stopLocked()
-            throw e
         }
 
         // Spawn the Rust agent binary.
@@ -266,7 +254,7 @@ abstract class AgentManager(
             val command = mutableListOf(
                 binaryPath.toAbsolutePath().toString(),
                 "--ipc-socket",
-                ipcEndpoint.argument,
+                ipcEndpoint,
                 "--parent-pid",
                 ProcessHandle.current().pid().toString(),
             )
@@ -280,6 +268,7 @@ abstract class AgentManager(
             // streams are retained as bounded startup diagnostics, so they are
             // drained through pipes rather than inherited.
             val process = ProcessBuilder(command).start()
+            spawnedProcess.complete(process)
             val startupReady = CompletableDeferred<Unit>()
             val startupDiagnostics = AgentProcessDiagnosticTail()
             val outputDrains = drainAgentProcessOutput(
@@ -310,10 +299,6 @@ abstract class AgentManager(
             val processExit = observeProcessExit(process)
             val processStdin = process.outputStream
             agentProcess = process
-            publishExpectedPeerProcess(
-                expectedPeerProcess = expectedPeerProcess,
-                process = process,
-            )
             // Pass the auth token via stdin -- this avoids exposing the
             // token in the process environment, which is readable by
             // other same-user processes on Linux and macOS. Keep stdin
@@ -362,7 +347,6 @@ abstract class AgentManager(
             }
             return process
         } catch (e: Exception) {
-            expectedPeerProcess.completeExceptionally(e)
             stopLocked()
             throw e
         }
@@ -387,11 +371,9 @@ abstract class AgentManager(
         val process = agentProcess
         agentProcess = null
 
-        // Stop the agent process before closing the IPC transport. The agent
-        // holds an open IPC connection that our server is blocked reading
-        // from. On Windows the pipe handles are synchronous, so closing a
-        // handle waits for that pending read, and the read only ends once the
-        // agent disconnects, which it does after seeing stdin EOF or dying.
+        // Stop the agent process first, so that it sees stdin EOF and removes
+        // its public socket while its IPC connection still works. The order is
+        // not needed for the transport: closing it never blocks.
         process?.let {
             try {
                 it.closeStdinQuietly()
@@ -411,13 +393,12 @@ abstract class AgentManager(
             }
         }
 
-        // Closing the transport is what releases a blocking Unix accept() or
-        // Windows ConnectNamedPipe() call. Coroutine cancellation alone cannot
-        // make progress until that blocking call returns.
+        // Closing removes the endpoint, wakes every pending call and releases
+        // a server that still waits for its helper, even before it was served.
         val ipcServerRunner = ipcServerRunner
         this.ipcServerRunner = null
         try {
-            ipcServerRunner?.stop()
+            ipcServerRunner?.close()
         } catch (e: Exception) {
             logRepository.post(
                 config.tag,
@@ -431,17 +412,6 @@ abstract class AgentManager(
         serverJob = null
         serverScope?.cancel()
         serverScope = null
-
-        // Explicitly delete the IPC endpoint in case the server's
-        // finally block doesn't get a chance to run (e.g. abrupt shutdown).
-        ipcEndpoint?.let { endpoint ->
-            try {
-                cleanupAgentIpcEndpoint(endpoint)
-            } catch (e: Exception) {
-                logRepository.post(config.tag, "Error deleting IPC endpoint: ${e.message}", LogLevel.ERROR)
-            }
-        }
-        ipcEndpoint = null
     }
 
     private fun Process.closeStdinQuietly() {
@@ -635,20 +605,13 @@ private fun agentStartupFailureMessage(
     }
 }
 
-internal suspend fun publishExpectedPeerProcess(
-    expectedPeerProcess: CompletableDeferred<Process>,
-    process: Process,
-) {
-    if (expectedPeerProcess.complete(process)) {
-        return
-    }
-
-    // If the IPC server completed the gate exceptionally after signalling
-    // readiness, preserve that failure instead of replacing it with a
-    // misleading duplicate-publication error.
-    expectedPeerProcess.await()
-    error("Expected IPC peer process was already published")
-}
+/**
+ * Why an IPC server failed, as fixed text: the kind of a transport failure,
+ * else the class of the error. Never its message.
+ */
+private fun ipcServerFailureName(e: Exception): String =
+    (e as? AgentIpcException)?.kind?.name?.lowercase()
+        ?: e.javaClass.simpleName
 
 private const val BUILD_TYPE_DEV = "DEV"
 

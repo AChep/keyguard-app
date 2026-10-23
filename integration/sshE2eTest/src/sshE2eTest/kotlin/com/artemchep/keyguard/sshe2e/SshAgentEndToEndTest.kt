@@ -2,9 +2,9 @@ package com.artemchep.keyguard.sshe2e
 
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
-import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.sshagent.sshPublicKeysMatch
 import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
+import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
@@ -53,14 +53,10 @@ class SshAgentEndToEndTest {
                 processor = processor,
                 authToken = authToken,
             )
-            val ipcEndpoint = if (isWindows()) {
-                AgentIpcEndpoint.WindowsPipe("\\\\.\\pipe\\kg-sshe2e-$token-ipc")
+            val ipcLocation = if (isWindows()) {
+                AgentIpcLocation.WindowsPipe(prefix = "", exactName = "kg-sshe2e-$token-ipc")
             } else {
-                val ipcSocketPath = workRoot.resolve("ipc.sock")
-                AgentIpcEndpoint.UnixSocket(
-                    socketPath = ipcSocketPath,
-                    directory = workRoot,
-                )
+                AgentIpcLocation.UnixDirectory(parent = workRoot.toString(), exactName = "ipc")
             }
             sshSocket = if (isWindows()) {
                 "\\\\.\\pipe\\kg-sshe2e-$token-agent"
@@ -69,7 +65,7 @@ class SshAgentEndToEndTest {
                     .toAbsolutePath()
                     .toString()
             }
-            launcher.start(ipcEndpoint = ipcEndpoint, sshSocket = sshSocket)
+            launcher.start(ipcLocation = ipcLocation, sshSocket = sshSocket)
             ssh = SshCli(sshSocket)
         }
 
@@ -172,7 +168,10 @@ class SshAgentEndToEndTest {
             )
             try {
                 defaultLauncher.start(
-                    ipcEndpoint = AgentIpcEndpoint.UnixSocket(workRoot.resolve("default-ipc.sock"), workRoot),
+                    ipcLocation = AgentIpcLocation.UnixDirectory(
+                        parent = workRoot.toString(),
+                        exactName = "default-ipc",
+                    ),
                     environmentOverrides = mapOf("HOME" to userHome.toString()),
                 )
                 val result = SshCli(socket.toString()).run("ssh-add", "-L")

@@ -207,6 +207,7 @@ private class EnvironmentManagementOperation(
         "append_variables" -> appendVariables()
         "create_local_env_file" -> {
             val id = environment(argument("environment_id")).id
+            if (!mounts.state.value.supported) throw EnvironmentServiceException("unsupported_platform")
             // Approve the path in the form it is stored.
             val path = normalizeEnvironmentMountPath(argument("path"))
                 ?: throw EnvironmentServiceException("invalid_path")

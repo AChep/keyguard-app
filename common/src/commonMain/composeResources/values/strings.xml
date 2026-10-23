@@ -839,6 +839,8 @@
     <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
     <string name="error_failed_agent_start">Failed to start the <xliff:g id="protocol" example="SSH">%1$s</xliff:g> agent</string>
+    <string name="error_agent_ipc_unavailable">A component of Keyguard is missing. Reinstall Keyguard.</string>
+    <string name="error_agent_ipc_endpoint">Could not create the agent&apos;s private connection</string>
     <string name="error_failed_power_lock_start">Could not enable automatic vault locking. Restart Keyguard to try again.</string>
     <string name="error_quick_search_autotype_permission">Accessibility access required</string>
     <string name="error_quick_search_autotype_unavailable">Could not focus the destination</string>

@@ -348,6 +348,32 @@ class NativeBundleTest(unittest.TestCase):
                 with self.assertRaisesRegex(verify.InspectionError, "missing bundled library keyguard_windows_passkeys_jni.dll"):
                     verify.inspect_desktop(root, "windows", "x64")
 
+    def test_every_desktop_package_requires_the_agent_ipc_library(self) -> None:
+        # Edited in the DESKTOP_MODULES literal, so Windows inherits it.
+        self.assertIn("agent_ipc", verify.WINDOWS_DESKTOP_MODULES)
+        self.assertNotIn("agent_ipc", verify.APPLE_APP_MODULES)
+        for platform, bridge, suffix in (("linux", "keyguard-lib", ""), ("macos", "keyguard-lib", ""),
+                                         ("windows", "keyguard-lib.dll", ".exe")):
+            with self.subTest(platform=platform), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                modules = verify.WINDOWS_DESKTOP_MODULES if platform == "windows" else verify.DESKTOP_MODULES
+                names = [verify.library_filename(name, platform) for name in modules] + [bridge]
+                names += [helper + suffix for helper in ("keyguard-ssh-agent", "keyguard-gpg-agent", "keyguard-cli-agent", "keyguard")]
+                for name in names:
+                    (root / name).write_bytes(b"")
+                    (root / name).chmod(0o755)
+
+                exports = desktop_exports(platform, modules, bridge)
+                with patch.object(verify, "inspect_windows_runtime"), \
+                        patch.object(verify, "require_architecture"), \
+                        patch.object(verify, "read_exports", side_effect=exports), \
+                        patch.object(verify.binary, "inspect_hardening", return_value="hardened"):
+                    verify.inspect_desktop(root, platform, "x86_64")
+                    library = verify.library_filename("agent_ipc", platform)
+                    (root / library).unlink()
+                    with self.assertRaisesRegex(verify.InspectionError, f"missing bundled library {library}"):
+                        verify.inspect_desktop(root, platform, "x86_64")
+
     def test_apple_archive_checks_members_and_full_module_contract(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp, "libkeyguard_io_c.a")
@@ -359,6 +385,18 @@ class NativeBundleTest(unittest.TestCase):
                     verify.inspect_apple([path], "aarch64", False)
             with self.assertRaisesRegex(verify.InspectionError, "truncated"):
                 verify.archive_members(path, archive(macho())[:-10])
+
+    def test_agent_ipc_archive_holds_exactly_the_reviewed_c_abi(self) -> None:
+        module = verify.MODULES["agent_ipc"]
+        self.assertEqual((11, 12), (len(module.exports("jni")), len(module.exports("c"))))
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp, "libkeyguard_agent_ipc_c.a")
+            path.write_bytes(archive(macho()))
+            with patch.object(verify, "read_exports", return_value=set(module.exports("c"))):
+                verify.inspect_apple([path], "aarch64", False)
+            with patch.object(verify, "read_exports", return_value=set(module.exports("c")) | {"keyguard_agent_ipc_unreviewed"}):
+                with self.assertRaisesRegex(verify.InspectionError, "unreviewed API exports: keyguard_agent_ipc_unreviewed"):
+                    verify.inspect_apple([path], "aarch64", False)
 
     def test_apple_app_and_crypto_link_contracts_are_distinct(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

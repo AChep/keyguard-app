@@ -95,7 +95,7 @@ impl ServerHandler for Bridge {
     fn get_info(&self) -> ServerConfig {
         ServerConfig::new(ServerCapabilities::builder().enable_tools().build())
             .with_server_info(Implementation::new("keyguard-environments", env!("CARGO_PKG_VERSION")))
-            .with_instructions("Manage Keyguard environments. Call authenticate first and approve access in Keyguard. Secret values are never returned. Existing environment values can only be delivered through user-approved local .env files. No shell execution, exports, resources, or deletion tools are provided.")
+            .with_instructions("Manage Keyguard environments. Call authenticate first and approve access in Keyguard. Secret values are never returned. To use existing values, run a local command with keyguard run on Windows, Linux, or macOS, or create a user-approved local .env file on Linux and macOS. No shell execution, exports, resources, or deletion tools are provided.")
     }
 
     async fn list_tools(
@@ -167,6 +167,9 @@ fn tool_error(code: &str, message: String) -> CallToolResponse {
 /// The message for an error `code`, worded for an MCP client.
 fn message(code: &str) -> String {
     match code {
+        "integration_disabled" => {
+            "MCP access is turned off. Turn it on in Keyguard's Developer settings under Environments > MCP."
+        }
         "unavailable" => {
             "Keyguard is not running, or its CLI agent is stopped. Open Keyguard, then call authenticate again."
         }
@@ -219,6 +222,33 @@ async fn run(socket: PathBuf) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn initialization_explains_cross_platform_value_delivery() {
+        let bridge = Bridge {
+            socket: PathBuf::new(),
+            stream: Arc::new(Mutex::new(None)),
+        };
+        let instructions = bridge.get_info().instructions.unwrap();
+        assert!(instructions.contains("keyguard run"));
+        assert!(instructions.contains("Linux and macOS"));
+        assert!(instructions.contains("Secret values are never returned"));
+        assert!(instructions.contains("No shell execution"));
+    }
+
+    #[test]
+    fn disabled_integration_points_to_the_mcp_setting() {
+        let CallToolResponse::Complete(response) =
+            tool_error("integration_disabled", message("integration_disabled"))
+        else {
+            panic!("expected a completed error response");
+        };
+        let value = serde_json::to_value(response).unwrap();
+        assert_eq!(value["structuredContent"]["error"], "integration_disabled");
+        let diagnostic = value["structuredContent"]["message"].as_str().unwrap();
+        assert!(diagnostic.contains("MCP"), "{diagnostic}");
+        assert!(diagnostic.contains("Developer"), "{diagnostic}");
+    }
 
     #[test]
     fn every_error_code_gets_a_message() {

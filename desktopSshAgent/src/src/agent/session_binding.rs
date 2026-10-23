@@ -240,10 +240,34 @@ pub(super) struct ParsedSessionBinding {
 
 impl ParsedSessionBinding {
     pub(super) fn verify_signature(&self) -> Result<(), SessionBindError> {
+        let mut signature = self.signature.clone();
+        if let (KeyData::Rsa(key), Algorithm::Rsa { hash: Some(_) }) =
+            (&self.verification_key, signature.algorithm())
+        {
+            let modulus_len = key
+                .n
+                .as_positive_bytes()
+                .ok_or(SessionBindError::SignatureVerification)?
+                .len();
+            let bytes = signature.as_bytes();
+            if bytes.is_empty() || bytes.len() > modulus_len {
+                return Err(SessionBindError::SignatureVerification);
+            }
+            if bytes.len() < modulus_len {
+                // RFC 8332 section 3 permits omitted leading zero octets. The
+                // RSA verifier needs the full modulus width, excluding the
+                // SSH mpint's sign byte. Cryptographic verification still
+                // rejects signatures that lost any nonzero octets.
+                let mut padded = vec![0; modulus_len];
+                padded[modulus_len - bytes.len()..].copy_from_slice(bytes);
+                signature = Signature::new(signature.algorithm(), padded)
+                    .map_err(|_| SessionBindError::SignatureVerification)?;
+            }
+        }
         SessionBind {
             host_key: self.verification_key.clone(),
             session_id: self.session_id.to_vec(),
-            signature: self.signature.clone(),
+            signature,
             is_forwarding: self.is_forwarding,
         }
         .verify_signature()
@@ -345,6 +369,68 @@ fn parse_host_verification_key(host_key_blob: &[u8]) -> Result<KeyData, SessionB
     Ok(host_key)
 }
 
+fn validate_userauth_key(
+    algorithm: &str,
+    public_key_blob: &[u8],
+    requested_key: &KeyData,
+) -> Result<(), SessionBindError> {
+    let certificate_algorithm = match algorithm {
+        "ssh-ed25519-cert-v01@openssh.com" => Some(Algorithm::Ed25519),
+        // RSA SHA-2 selects the signature algorithm, but the certificate blob
+        // still encodes its key type as `ssh-rsa-cert-v01@openssh.com`.
+        "ssh-rsa-cert-v01@openssh.com"
+        | "rsa-sha2-256-cert-v01@openssh.com"
+        | "rsa-sha2-512-cert-v01@openssh.com" => Some(Algorithm::Rsa { hash: None }),
+        _ if algorithm.ends_with("-cert-v01@openssh.com") => {
+            return Err(SessionBindError::InvalidBoundUserauth(
+                "unsupported certificate algorithm",
+            ));
+        }
+        _ => None,
+    };
+    let (algorithm, public_key) = if let Some(algorithm) = certificate_algorithm {
+        // OpenSSH may select a plain agent key to sign authentication with a
+        // user certificate. Bind its embedded key to that selection; the SSH
+        // server remains responsible for certificate trust and validity.
+        let certificate = Certificate::from_bytes(public_key_blob)
+            .map_err(|_| SessionBindError::InvalidBoundUserauth("invalid certificate"))?;
+        if !certificate.cert_type().is_user() {
+            return Err(SessionBindError::InvalidBoundUserauth(
+                "expected a user certificate",
+            ));
+        }
+        (algorithm, certificate.public_key().clone())
+    } else {
+        let algorithm = Algorithm::new(algorithm)
+            .map_err(|_| SessionBindError::InvalidBoundUserauth("invalid public-key algorithm"))?;
+        let mut public_key_reader = public_key_blob;
+        let public_key = KeyData::decode(&mut public_key_reader)
+            .map_err(|_| SessionBindError::InvalidBoundUserauth("invalid public key"))?;
+        if !public_key_reader.is_empty() {
+            return Err(SessionBindError::InvalidBoundUserauth(
+                "public key contains trailing bytes",
+            ));
+        }
+        (algorithm, public_key)
+    };
+    let key_algorithm = public_key.algorithm();
+    let algorithm_matches = match (&key_algorithm, &algorithm) {
+        // RFC 8332 RSA SHA-2 identifiers intentionally differ from the
+        // `ssh-rsa` identifier encoded inside the public-key blob.
+        (Algorithm::Rsa { .. }, Algorithm::Rsa { .. }) => true,
+        _ => key_algorithm == algorithm,
+    };
+    if !algorithm_matches {
+        return Err(SessionBindError::InvalidBoundUserauth(
+            "public-key algorithm does not match the embedded key",
+        ));
+    }
+    if &public_key != requested_key {
+        return Err(SessionBindError::SigningKeyMismatch);
+    }
+    Ok(())
+}
+
 fn validate_bound_userauth_request(
     bindings: &[VerifiedSessionBinding],
     request: &SignRequest,
@@ -395,36 +481,10 @@ fn validate_bound_userauth_request(
 
     let algorithm = read_ssh_string(&mut input, "userauth algorithm", MAX_USERAUTH_FIELD_LEN)?;
     let algorithm = std::str::from_utf8(algorithm)
-        .ok()
-        .and_then(|algorithm| Algorithm::new(algorithm).ok())
-        .ok_or(SessionBindError::InvalidBoundUserauth(
-            "invalid public-key algorithm",
-        ))?;
-    let key_algorithm = request.pubkey.algorithm();
-    let algorithm_matches = match (&key_algorithm, &algorithm) {
-        // RFC 8332 RSA SHA-2 identifiers intentionally differ from the
-        // `ssh-rsa` identifier encoded inside the public-key blob.
-        (Algorithm::Rsa { .. }, Algorithm::Rsa { .. }) => true,
-        _ => key_algorithm == algorithm,
-    };
-    if !algorithm_matches {
-        return Err(SessionBindError::InvalidBoundUserauth(
-            "public-key algorithm does not match the requested key",
-        ));
-    }
+        .map_err(|_| SessionBindError::InvalidBoundUserauth("invalid public-key algorithm"))?;
     let public_key_blob =
         read_ssh_string(&mut input, "userauth public key", MAX_HOST_KEY_BLOB_LEN)?;
-    let mut public_key_reader = public_key_blob;
-    let public_key = KeyData::decode(&mut public_key_reader)
-        .map_err(|_| SessionBindError::InvalidBoundUserauth("invalid public key"))?;
-    if !public_key_reader.is_empty() {
-        return Err(SessionBindError::InvalidBoundUserauth(
-            "public key contains trailing bytes",
-        ));
-    }
-    if public_key != request.pubkey {
-        return Err(SessionBindError::SigningKeyMismatch);
-    }
+    validate_userauth_key(algorithm, public_key_blob, &request.pubkey)?;
 
     match method {
         PUBLICKEY_METHOD => {

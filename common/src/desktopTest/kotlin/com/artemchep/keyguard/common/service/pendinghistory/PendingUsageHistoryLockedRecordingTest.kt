@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.pendinghistory
 
+import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
@@ -12,6 +13,9 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor.G
 import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentRequestProcessorImpl
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepositoryEmpty
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRow
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorImpl
 import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
@@ -173,10 +177,24 @@ class PendingUsageHistoryLockedRecordingTest {
             override fun invoke(): Flow<SshAgentFilter> = flowOf(SshAgentFilter())
         },
         scope = backgroundScope,
+        sshAgentPublicKeyRepository = SshSigningCatalog,
         pendingUsageHistoryQueue = queue,
         sessionId = SESSION_ID,
         onApprovalRequest = { approve() },
     )
+
+    /** A locked catalog that offers every requested key for signing. */
+    private object SshSigningCatalog : SshAgentPublicKeyRepository by SshAgentPublicKeyRepositoryEmpty {
+        override fun getByPublicKey(publicKey: String): IO<List<SshAgentPublicKeyRow>> = {
+            listOf(
+                SshAgentPublicKeyRow(
+                    accountId = "account", cipherId = "cipher", canSign = true,
+                    publicKeyBlobSha256 = "cached-hash", publicKey = publicKey,
+                    keyType = "ssh-ed25519", fingerprint = "SHA256:cached", name = "Cached key",
+                ),
+            )
+        }
+    }
 
     private object LockedGetVaultSession : GetVaultSession {
         override val valueOrNull: MasterSession? = null

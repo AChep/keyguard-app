@@ -171,6 +171,8 @@ jobs:
             max_workers: 2
             tasks: >-
               :desktopLibJvm:jvmTest
+              :util:agent-ipc:checkComposeFree
+              :util:agent-ipc:desktopTest
               :util:crypto:desktopTest
               :util:dns:checkComposeFree
               :util:dns:desktopTest

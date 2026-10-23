@@ -55,6 +55,10 @@ kotlin {
         }
 
         sharedAppleMain()
+        // The macOS agents' transport; iOS never links it.
+        getByName("macosMain").dependencies {
+            implementation(project(":util:agent-ipc"))
+        }
 
         // Runtime tests for the Apple bridge; `iosTest` holds the graph tests
         // for the iOS application root.

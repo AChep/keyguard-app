@@ -2,36 +2,23 @@ package com.artemchep.keyguard.apple.cli
 
 import com.artemchep.keyguard.apple.agent.AgentHelperIpcServer
 import com.artemchep.keyguard.apple.agent.AgentHelperRuntime
-import com.artemchep.keyguard.apple.agent.AgentIpcListener
-import com.artemchep.keyguard.apple.agent.awaitReadable
-import com.artemchep.keyguard.apple.agent.readPacket
-import com.artemchep.keyguard.apple.agent.writePacket
+import com.artemchep.keyguard.apple.agent.asAgentByteStream
+import com.artemchep.keyguard.apple.agent.bindAgentHelperIpcHost
 import com.artemchep.keyguard.apple.environments.EnvironmentBookmarkTransfers
 import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.common.service.agent.AgentIpcAuthenticator
-import com.artemchep.keyguard.common.service.agent.AgentPacketReply
+import com.artemchep.keyguard.common.service.agent.serveCliAgentConnection
 import com.artemchep.keyguard.common.service.cli.CliPlatformCapability
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentHost
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentPacketSession
 import com.artemchep.keyguard.platform.appleAppGroupContainerPath
+import com.artemchep.keyguard.util.agentipc.AgentIpcConnection
+import com.artemchep.keyguard.util.agentipc.AgentIpcExpectedPeer
+import kotlinx.atomicfu.locks.SynchronizedObject
+import kotlinx.atomicfu.locks.synchronized
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.currentCoroutineContext
-import kotlinx.coroutines.ensureActive
-import kotlinx.coroutines.selects.select
-import kotlinx.coroutines.withTimeoutOrNull
 import platform.Foundation.NSBundle
-import platform.posix.EAGAIN
-import platform.posix.EINTR
-import platform.posix.EWOULDBLOCK
-import platform.posix.MSG_DONTWAIT
-import platform.posix.MSG_PEEK
-import platform.posix.errno
-import platform.posix.recv
 
 internal actual fun createCliAgentRuntime(): CliAgentRuntime = MacosCliAgentRuntime()
 
@@ -81,7 +68,7 @@ internal class MacosCliAgentRuntime(
         val handle = helper.start(
             scope = scope,
             authToken = authToken,
-            server = { ipcSocket, token, childPid -> MacosCliAgentIpcServer(ipcSocket, host, token, childPid) },
+            server = { parent, token -> MacosCliAgentIpcServer(parent, host, token) },
             onFailure = { host.reportStatus(AgentStatus.Failed) },
         )
         return object : CliAgentRuntimeHandle {
@@ -91,95 +78,65 @@ internal class MacosCliAgentRuntime(
     }
 }
 
+// The CLI client gives each connection 70 seconds.
 private const val IO_TIMEOUT_MS = 70_000L
 
 private const val MAX_CONNECTIONS = 32
 
+/** Each connection of the CLI agent authenticates, then makes exactly one request.
+ * Input or the end of the stream while it is processed cancels it, and with it
+ * any approval it waits for. */
 internal class MacosCliAgentIpcServer(
-    path: String,
-    private val host: CliAgentHost,
+    parent: String,
+    host: CliAgentHost,
     authToken: ByteArray,
-    private val childPid: () -> Int?,
 ) : AgentHelperIpcServer {
-    private val listener = AgentIpcListener(path, MAX_CONNECTIONS)
-    private val token = authToken.copyOf()
     private val bookmarks = EnvironmentBookmarkTransfers(host.mounts)
     private val handler = host.createRequestHandler(directoryAccess = bookmarks)
+    private val ipc = bindAgentHelperIpcHost(parent, MAX_CONNECTIONS)
+
+    private val lock = SynchronizedObject()
+
+    // Guarded by the lock; zeroed on close.
+    private val token = authToken.copyOf()
+    private var closed = false
+
+    override val endpoint: String get() = ipc.endpoint
 
     // Never include packet contents or provider errors in diagnostics.
-    override suspend fun serve() = listener.serve(childPid = childPid, handle = ::handle)
+    override suspend fun serve(expectedPeer: suspend () -> AgentIpcExpectedPeer) {
+        ipc.serve(expectedPeer, ::serveConnection)
+    }
 
-    private suspend fun handle(client: Int) {
-        val session = CliAgentPacketSession(handler, token)
+    private suspend fun serveConnection(connection: AgentIpcConnection) {
+        val session = createSession()
+            ?: return
         try {
-            var connected = true
-            while (connected) {
-                val reply = readReply(client, session) ?: break
-                connected = sendReply(client, reply)
-            }
+            serveCliAgentConnection(
+                stream = connection.asAgentByteStream(),
+                maxPacketSize = CliAgentPacketSession.MAX_PACKET_SIZE,
+                process = session::process,
+                ioTimeoutMs = IO_TIMEOUT_MS,
+            )
         } finally {
             session.close()
         }
     }
 
-    private suspend fun readReply(client: Int, session: CliAgentPacketSession): AgentPacketReply? {
-        val packet = withTimeoutOrNull(IO_TIMEOUT_MS) {
-            readPacket(client, CliAgentPacketSession.MAX_PACKET_SIZE)
-        } ?: return null
-        return processPacket(client, session, packet)
-    }
-
-    private suspend fun sendReply(client: Int, reply: AgentPacketReply): Boolean = try {
-        withTimeoutOrNull(IO_TIMEOUT_MS) {
-            writePacket(client, reply.packet, CliAgentPacketSession.MAX_PACKET_SIZE)
-        } == true && !reply.close
-    } finally {
-        reply.packet.fill(0)
-    }
-
-    private suspend fun processPacket(
-        client: Int,
-        session: CliAgentPacketSession,
-        packet: ByteArray,
-    ): AgentPacketReply? = try {
-        withTimeoutOrNull<AgentPacketReply?>(IO_TIMEOUT_MS) {
-            coroutineScope<AgentPacketReply?> {
-                val response = async { session.process(packet) }
-                val disconnect = async { awaitDisconnect(client) }
-                try {
-                    select<AgentPacketReply?> {
-                        response.onAwait { it }
-                        disconnect.onAwait { response.cancel(); null }
-                    }
-                } finally {
-                    disconnect.cancel()
-                }
-            }
-        }
-    } finally {
-        packet.fill(0)
+    /**
+     * A session with its own copy of the token, or null once the server is
+     * closed: a zeroed token must never authenticate anyone.
+     */
+    private fun createSession(): CliAgentPacketSession? = synchronized(lock) {
+        if (closed) null else CliAgentPacketSession(handler, token)
     }
 
     override fun close() {
-        listener.close()
-        token.fill(0)
-        bookmarks.close()
-    }
-}
-
-/** One private request is outstanding per connection. EOF cancels its approval;
- * additional data while processing is rejected instead of being pipelined. */
-@OptIn(ExperimentalForeignApi::class)
-private suspend fun awaitDisconnect(fd: Int) {
-    val byte = ByteArray(1)
-    while (true) {
-        currentCoroutineContext().ensureActive()
-        val count = byte.usePinned { recv(fd, it.addressOf(0), 1u, MSG_PEEK or MSG_DONTWAIT) }
-        when {
-            count >= 0L -> return
-            errno == EINTR -> continue
-            errno == EAGAIN || errno == EWOULDBLOCK -> awaitReadable(fd)
-            else -> return
+        ipc.stop()
+        synchronized(lock) {
+            closed = true
+            token.fill(0)
         }
+        bookmarks.close()
     }
 }

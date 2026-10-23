@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.KotlinMultiplatformAndroidHostTestCompilation
+import com.artemchep.keyguard.buildplugins.cargo.configureNativeLibraryTests
 import com.artemchep.keyguard.buildplugins.kotlin.configureComposeIosSwiftRuntime
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleMain
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleTest
@@ -67,6 +68,10 @@ val versionInfo = keyguardVersionInfo()
 tasks.withType<Test>().configureEach {
     timeout.set(Duration.ofMinutes(10))
 }
+
+// The desktop agents serve their helpers over util/agent-ipc. Only the desktop
+// tests load its library, so the Android host tests never build it.
+configureNativeLibraryTests(":util:agent-ipc", testTaskName = "desktopTest")
 
 tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest>().configureEach {
     // Foundation file coordination requires the simulator's running system services.
@@ -238,6 +243,9 @@ kotlin {
             kotlin.include("com/artemchep/keyguard/common/service/directorywatcher/**")
             kotlin.include("com/artemchep/keyguard/common/service/agent/AgentIpcAuthenticatorTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/agent/AgentIpcFramingTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/CliAgentConnectionTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/FakeAgentConnection.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/FramedAgentPacketChannelTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/gpgagent/GpgAgentPacketSessionTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/licensekey/Kg2LicenseKeyDecoderTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/text/impl/Base32ServiceImplTest.kt")
@@ -309,6 +317,7 @@ kotlin {
 
         getByName("desktopMain") {
             dependencies {
+                api(project(":util:agent-ipc"))
                 api(project(":util:windows-passkeys"))
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.google.zxing.javase)

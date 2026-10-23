@@ -42,11 +42,10 @@ internal class MacosSshAgentRuntime(
             helper.start(
                 scope = scope,
                 authToken = config.authToken,
-                server = { ipcSocket, token, childPid ->
+                server = { parent, token ->
                     AgentPacketIpcServer(
-                        path = ipcSocket,
+                        parent = parent,
                         authToken = token,
-                        childPid = childPid,
                         maxConnections = MAX_CONNECTIONS,
                         // The agent keeps one connection across idle periods.
                         ioTimeoutMs = null,
@@ -54,7 +53,8 @@ internal class MacosSshAgentRuntime(
                     ) { authToken -> SshAgentPacketSession(config.processor, authToken) }
                 },
                 onFailure = { e ->
-                    config.log("SSH agent stopped: ${e.message}")
+                    // An IPC failure has no message; its cause names the kind.
+                    config.log("SSH agent stopped: ${e.message ?: e.cause?.message}")
                     config.onTerminated()
                 },
                 onReady = { config.log("SSH agent ready") },
@@ -62,7 +62,7 @@ internal class MacosSshAgentRuntime(
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            config.log("Failed to start the SSH agent: ${e.message}")
+            config.log("Failed to start the SSH agent: ${e.message ?: e.cause?.message}")
             return null
         }
         return object : SshAgentRuntimeHandle {

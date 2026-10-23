@@ -1,14 +1,24 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
-import com.artemchep.keyguard.common.service.agent.OWNER_ONLY_DIRECTORY_PERMISSIONS
-import com.artemchep.keyguard.common.service.agent.OWNER_ONLY_FILE_PERMISSIONS
 import java.nio.file.FileAlreadyExistsException
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.NoSuchFileException
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFileAttributeView
+import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.attribute.PosixFilePermissions
+
+internal val OWNER_ONLY_DIRECTORY_PERMISSIONS = setOf(
+    PosixFilePermission.OWNER_READ,
+    PosixFilePermission.OWNER_WRITE,
+    PosixFilePermission.OWNER_EXECUTE,
+)
+
+internal val OWNER_ONLY_FILE_PERMISSIONS = setOf(
+    PosixFilePermission.OWNER_READ,
+    PosixFilePermission.OWNER_WRITE,
+)
 
 internal fun prepareLinuxManagedGpgHome(
     home: Path,

@@ -47,6 +47,7 @@ jobs:
       apple: ${{ steps.select.outputs.apple }}
       io: ${{ steps.select.outputs.io }}
       instance: ${{ steps.select.outputs.instance }}
+      agent_ipc: ${{ steps.select.outputs.agent_ipc }}
       crypto: ${{ steps.select.outputs.crypto }}
       fuzz: ${{ steps.select.outputs.fuzz }}
       native_quality: ${{ steps.select.outputs.native_quality }}
@@ -335,6 +336,8 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup_rust
         with:
+          # Agent IPC is linted for the Windows and Apple targets it ships on.
+          targets: "x86_64-pc-windows-msvc,aarch64-apple-darwin"
           cache-key: native-quality
       - uses: ./.github/actions/setup_protobuf
       - name: "Check native utility protocol drift"
@@ -344,14 +347,23 @@ jobs:
         shell: bash
         run: |
           # One module at a time, so features never unify across modules.
-          for module in ffi io instance zip zxcvbn yubikey fido2 windows-passkeys; do
+          for module in ffi io instance zip zxcvbn yubikey fido2 windows-passkeys agent-ipc; do
             packages=()
             for crate in util/"$module"/rust/crates/*/; do
               packages+=(-p "$(basename "$crate")")
             done
+            test_arguments=()
+            if [[ "$module" == agent-ipc ]]; then
+              # tests/wake.rs times 100 ms wake-ups, so no test runs beside another.
+              test_arguments=(-- --test-threads=1)
+            fi
             cargo fmt "${packages[@]}" -- --check
             cargo clippy "${packages[@]}" --all-targets --all-features --locked --no-deps -- -D warnings
-            cargo test "${packages[@]}" --all-features --locked
+            cargo test "${packages[@]}" --all-features --locked "${test_arguments[@]}"
+          done
+          for target in x86_64-pc-windows-msvc aarch64-apple-darwin; do
+            cargo clippy -p keyguard-agent-ipc-core -p keyguard-agent-ipc-jni -p keyguard-agent-ipc-c \
+              --target "$target" --lib --bins --locked --no-deps -- -D warnings
           done
           # One CLI crate at a time, so features never unify across them.
           for package in keyguard-agent-ipc keyguard-cli-protocol keyguard-cli keyguard-cli-agent; do
@@ -487,6 +499,28 @@ jobs:
           ${{ matrix.gradle }} --continue --max-workers=1
           "-Pkeyguard.nativeCargo.cargoOffline=true"
           :util:ffi:desktopTest :util:io:desktopTest :util:instance:desktopTest :desktopApp:jvmTest
+      # Windows runs these in agent-ipc-windows, Linux x64 in native-quality.
+      - name: "Run agent IPC Rust regressions"
+        if: needs.changes.outputs.agent_ipc == 'true' && (runner.os == 'macOS' || (runner.os == 'Linux' && matrix.arch == 'aarch64'))
+        shell: bash
+        run: |
+          packages=(-p keyguard-agent-ipc-core -p keyguard-agent-ipc-jni -p keyguard-agent-ipc-c)
+          cargo fmt "${packages[@]}" -- --check
+          cargo clippy "${packages[@]}" --all-targets --all-features --locked --offline --no-deps -- -D warnings
+          # tests/wake.rs times 100 ms wake-ups, so no test runs beside another.
+          cargo test "${packages[@]}" --all-features --locked --offline -- --test-threads=1
+      - name: "Run agent IPC JVM regressions"
+        if: needs.changes.outputs.agent_ipc == 'true' && (runner.os != 'Linux' || matrix.arch == 'aarch64')
+        run: >-
+          ${{ matrix.gradle }} --continue --max-workers=1
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          :util:agent-ipc:desktopTest
+          :common:desktopTest
+          --tests "com.artemchep.keyguard.common.service.agent.*"
+          --tests "*AgentIpc*"
+          --tests "com.artemchep.keyguard.common.service.cli.agent.*"
+          --tests "*SshAgentIpcComponent*"
+          --tests "*GpgAgentIpcAuthentication*"
       - name: "Run security key JVM regressions"
         if: needs.changes.outputs.desktop == 'true'
         run: >-
@@ -554,6 +588,7 @@ jobs:
         run: >-
           ./gradlew --continue --max-workers=1
           -Pkeyguard.nativeCargo.cargoOffline=true
+          :util:agent-ipc:macosArm64Test
           :util:crypto:macosArm64Test
           :util:dns:macosArm64Test
           :util:ffi:macosArm64Test
@@ -683,14 +718,18 @@ jobs:
           archives=()
           while IFS= read -r -d '' archive; do
             archives+=("$archive")
-          done < <(find util/crypto/build util/io/build util/zip/build util/zxcvbn/build -type f -name 'libkeyguard_*.a' -print0)
-          test "${#archives[@]}" -ge 4
+          done < <(find util/crypto/build util/io/build util/zip/build util/zxcvbn/build util/agent-ipc/build -type f -name 'libkeyguard_*.a' -print0)
+          test "${#archives[@]}" -ge 5
           python3 scripts/verify_native_bundle.py apple --arch aarch64 \
             appleApp/build/bin/iosArm64/debugTest/test.kexe \
             appleApp/build/bin/iosSimulatorArm64/debugTest/test.kexe \
             "${archives[@]}"
           python3 scripts/verify_native_bundle.py apple --arch aarch64 --require-crypto-exports \
             util/crypto/build/bin/macosArm64/debugTest/test.kexe
+          # The macOS app links agent IPC through a real call site (D19). Read
+          # all symbols first: grep -q under pipefail could fail on SIGPIPE.
+          symbols="$(llvm-nm -gU appleApp/build/bin/macosArm64/debugTest/test.kexe)"
+          grep -q keyguard_agent_ipc_abi_version <<< "$symbols"
 
       - name: "Upload native regression reports"
         if: always()
@@ -708,6 +747,8 @@ jobs:
             util/io/build/test-results/
             util/instance/build/reports/tests/
             util/instance/build/test-results/
+            util/agent-ipc/build/reports/tests/
+            util/agent-ipc/build/test-results/
             common/build/reports/tests/
             common/build/test-results/
             desktopApp/build/reports/tests/
@@ -887,10 +928,40 @@ jobs:
         shell: pwsh
         run: ./util/windows-passkeys/abi/test-integration.ps1 -Target ${{ matrix.target }}
 
+  agent-ipc-windows:
+    name: "Agent IPC Windows (${{ matrix.name }})"
+    needs: changes
+    if: needs.changes.outputs.agent_ipc == 'true'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: x64
+            os: windows-2025
+            target: x86_64-pc-windows-msvc
+          - name: ARM64
+            os: windows-11-arm
+            target: aarch64-pc-windows-msvc
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_rust
+        with:
+          targets: ${{ matrix.target }}
+          cache-key: agent-ipc-windows
+      # tests/wake.rs times 100 ms wake-ups, so no test runs beside another.
+      - name: "Run agent IPC Rust tests"
+        run: cargo test -p keyguard-agent-ipc-core -p keyguard-agent-ipc-jni -p keyguard-agent-ipc-c --target ${{ matrix.target }} --all-features --locked -- --test-threads=1
+      - name: "Lint agent IPC Rust code"
+        run: cargo clippy -p keyguard-agent-ipc-core -p keyguard-agent-ipc-jni -p keyguard-agent-ipc-c --target ${{ matrix.target }} --all-targets --all-features --locked --offline --no-deps -- -D warnings
+
   native-checks:
     name: "Native checks"
     if: always()
-    needs: [changes, crypto-quality, native-quality, rust-fuzz, desktop-bundle, android-bundle, wear-runtime, fixed-host-performance, windows-passkey-abi]
+    needs: [changes, crypto-quality, native-quality, rust-fuzz, desktop-bundle, android-bundle, wear-runtime, fixed-host-performance, windows-passkey-abi, agent-ipc-windows]
     runs-on: ubuntu-24.04
     steps:
       - name: "Require every selected check to succeed"
@@ -908,6 +979,7 @@ jobs:
               "crypto-quality": "crypto", "native-quality": "native_quality",
               "rust-fuzz": "fuzz", "desktop-bundle": "desktop_run",
               "android-bundle": "android_run", "wear-runtime": "wear",
+              "agent-ipc-windows": "agent_ipc",
           }
           for job, flag in flags.items():
               if selected.get(flag) == "true" and results[job]["result"] != "success":

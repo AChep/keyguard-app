@@ -44,7 +44,7 @@ internal class MacosGpgAgentRuntime(
         val handle = helper.start(
             scope = scope,
             authToken = config.authToken,
-            server = { ipcSocket, token, childPid -> macosGpgIpcServer(ipcSocket, config, token, childPid) },
+            server = { parent, token -> macosGpgIpcServer(parent, config, token) },
             onFailure = { e -> config.onTerminated(e.message) },
             onReady = { config.log("GPG agent ready") },
         )
@@ -62,14 +62,12 @@ private const val IO_TIMEOUT_MS = 30_000L
 private const val MAX_CONNECTIONS = 8
 
 internal fun macosGpgIpcServer(
-    path: String,
+    parent: String,
     config: GpgAgentRuntimeConfig,
     authToken: ByteArray,
-    childPid: () -> Int?,
 ) = AgentPacketIpcServer(
-    path = path,
+    parent = parent,
     authToken = authToken,
-    childPid = childPid,
     maxConnections = MAX_CONNECTIONS,
     ioTimeoutMs = IO_TIMEOUT_MS,
     onConnectionFailure = { config.log("GPG IPC connection closed") },

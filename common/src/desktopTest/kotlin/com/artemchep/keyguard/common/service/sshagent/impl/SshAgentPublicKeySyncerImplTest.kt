@@ -32,6 +32,39 @@ import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SshAgentPublicKeySyncerImplTest {
+    @Test
+    fun `syncer does not expose keys without a supported private signer`() = runTest {
+        val repository = RecordingSshAgentPublicKeyRepository()
+        val signer = createSshSecret(
+            id = "signer",
+            name = "Signer",
+            publicKey = buildOpenSshPublicKey("ssh-ed25519", seed = 1),
+            fingerprint = "SHA256:key",
+        )
+        val publicOnly = signer.copy(id = "public-only", sshKey = signer.sshKey?.copy(privateKey = null))
+        val unsupported = createSshSecret(
+            id = "ec",
+            name = "ECDSA",
+            publicKey = buildOpenSshPublicKey("ecdsa-sha2-nistp256", seed = 2),
+            fingerprint = "SHA256:ec",
+        )
+        val syncer = createSyncer(
+            repository = repository,
+            ciphers = MutableStateFlow(listOf(publicOnly, unsupported, signer)),
+            sshAgentEnabled = MutableStateFlow(true),
+            displayKeyNames = MutableStateFlow(true),
+            filter = MutableStateFlow(SshAgentFilter()),
+            defaultDispatcher = StandardTestDispatcher(testScheduler),
+        )
+        val job = syncer.launch(this)
+        try {
+            advanceUntilIdle()
+            assertEquals(listOf("signer"), repository.keys.map { it.cipherId })
+        } finally {
+            job.cancel()
+        }
+    }
+
     private val cryptoGenerator = CryptoGeneratorJvm()
     private val base64Service = Base64ServiceJvm()
 

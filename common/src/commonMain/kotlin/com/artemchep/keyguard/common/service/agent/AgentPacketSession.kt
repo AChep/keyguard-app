@@ -141,14 +141,3 @@ suspend fun AgentPacketSession<*, *>.serve(
         close()
     }
 }
-
-/** Serves this session over [channel] until it ends or a reply closes it. */
-internal suspend fun AgentPacketSession<*, *>.serve(
-    channel: AgentPacketChannel,
-) = serve(
-    readPacket = channel::readPacket,
-    writePacket = { packet ->
-        channel.writePacket(packet)
-        true
-    },
-)

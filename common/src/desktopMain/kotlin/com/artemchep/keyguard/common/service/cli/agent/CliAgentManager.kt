@@ -1,23 +1,14 @@
 package com.artemchep.keyguard.common.service.cli.agent
 
-import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
-import com.artemchep.keyguard.common.service.agent.AgentIpcPeerVerificationPolicy
-import com.artemchep.keyguard.common.service.agent.AgentIpcServer
 import com.artemchep.keyguard.common.service.agent.AgentManager
 import com.artemchep.keyguard.common.service.agent.findAgentBinary
 import com.artemchep.keyguard.common.service.agent.macosDevAgentSocketPath
-import com.artemchep.keyguard.common.service.cli.CliServiceException
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.util.agentipc.AgentIpcExpectedPeer
+import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
 import java.nio.file.Path
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
 
 /** Runs the agent that serves the CLI, MCP, and local `.env` files. */
 class CliAgentManager(
@@ -34,58 +25,22 @@ class CliAgentManager(
         authToken: ByteArray,
         sessionId: String,
         scope: CoroutineScope,
-        expectedPeerProcess: Deferred<Process>,
     ): IpcServerRunner {
-        val handler = host.createRequestHandler()
-        val server = AgentIpcServer(
-            logRepository = logRepository, scope = scope, tag = "CliAgentIpc",
-            // Mount long polls and interactive requests each own a connection.
-            maxConcurrentConnections = 32,
-            peerVerificationPolicy = AgentIpcPeerVerificationPolicy.ExactProcess(expectedPeerProcess),
-            maxPacketSize = CliAgentPacketSession.MAX_PACKET_SIZE,
-            session = { channel ->
-                val session = CliAgentPacketSession(handler, authToken)
-                try {
-                    val auth = channel.readPacket()
-                    if (auth != null) {
-                        val reply = try { session.process(auth) } finally { auth.fill(0) }
-                        try { channel.writePacket(reply.packet) } finally { reply.packet.fill(0) }
-                        if (!reply.close) {
-                            val packet = channel.readPacket()
-                            if (packet != null) coroutineScope {
-                                val operation = async { try { session.process(packet) } finally { packet.fill(0) } }
-                                // One request per connection. EOF (or unexpected further input)
-                                // cancels its native approval before any subsequent side effect.
-                                // This observer uses application scope: closing the connection on
-                                // return unblocks its IO without waiting for a blocking read here.
-                                val disconnect = scope.launch(Dispatchers.IO) {
-                                    try { channel.readPacket()?.fill(0) } finally { operation.cancel() }
-                                }
-                                try {
-                                    val response = operation.await()
-                                    try { channel.writePacket(response.packet) } finally { response.packet.fill(0) }
-                                } finally {
-                                    disconnect.cancel()
-                                    operation.cancel()
-                                }
-                            }
-                        }
-                    }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (_: Exception) {
-                    // Parsing/codec exceptions may embed request bytes; do not pass
-                    // them into the shared transport's diagnostic logger.
-                    throw CliServiceException("connection_closed")
-                } finally {
-                    session.close()
-                }
-            },
+        val server = CliAgentIpcServer(
+            logRepository = logRepository,
+            authToken = authToken,
+            handler = host.createRequestHandler(),
         )
         return object : IpcServerRunner {
-            override suspend fun start(endpoint: AgentIpcEndpoint, onReady: CompletableDeferred<Unit>?) =
-                server.start(endpoint, onReady)
-            override fun stop() = server.stop()
+            override fun bind(location: AgentIpcLocation) = server.bind(location)
+
+            override suspend fun serve(expectedPeer: suspend () -> AgentIpcExpectedPeer) {
+                server.serve(expectedPeer)
+            }
+
+            override fun close() {
+                server.close()
+            }
         }
     }
 }

@@ -5,7 +5,7 @@ use super::session_binding::{
 use super::*;
 use crate::ipc::messages::{
     CallerAuthorization, CallerAuthorizationEvidenceSource, CallerAuthorizationSubject,
-    CallerAuthorizationSubjectKind, SshKey,
+    CallerAuthorizationSubjectKind, SignDataRequest, SshKey,
 };
 use keyguard_agent_identity::PRINCIPAL_FINGERPRINT_LEN;
 use signature::Signer;
@@ -15,6 +15,9 @@ use ssh_key::public::KeyData;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Mutex;
 use tracing::instrument::WithSubscriber;
+
+mod certificate_userauth;
+mod rsa_session_binding;
 
 async fn capture_logs<T>(action: impl std::future::Future<Output = T>) -> (T, String) {
     let output = tempfile::NamedTempFile::new().unwrap();
@@ -185,6 +188,20 @@ fn bound_userauth_data(
     let public_key_blob = ssh_key::PublicKey::new(public_key.clone(), "")
         .to_bytes()
         .expect("test public key should encode");
+    bound_userauth_data_with_key_blob(
+        session_id,
+        public_key.algorithm().as_str(),
+        &public_key_blob,
+        host_key_blob,
+    )
+}
+
+fn bound_userauth_data_with_key_blob(
+    session_id: &[u8],
+    algorithm: &str,
+    public_key_blob: &[u8],
+    host_key_blob: Option<&[u8]>,
+) -> Vec<u8> {
     let method = if host_key_blob.is_some() {
         HOSTBOUND_PUBLICKEY_METHOD
     } else {
@@ -198,8 +215,8 @@ fn bound_userauth_data(
     push_ssh_string(&mut output, SSH_CONNECTION_SERVICE);
     push_ssh_string(&mut output, method);
     output.push(1);
-    push_ssh_string(&mut output, public_key.algorithm().as_str().as_bytes());
-    push_ssh_string(&mut output, &public_key_blob);
+    push_ssh_string(&mut output, algorithm.as_bytes());
+    push_ssh_string(&mut output, public_key_blob);
     if let Some(host_key_blob) = host_key_blob {
         push_ssh_string(&mut output, host_key_blob);
     }
@@ -215,6 +232,7 @@ struct FakeKeyProvider {
     should_fail_sign: Arc<AtomicBool>,
     last_list_caller: Arc<Mutex<Option<CallerIdentity>>>,
     last_sign_caller: Arc<Mutex<Option<CallerIdentity>>>,
+    last_sign_request: Arc<Mutex<Option<SignDataRequest>>>,
 }
 
 use std::sync::Arc;
@@ -228,6 +246,7 @@ impl FakeKeyProvider {
             should_fail_sign: Arc::new(AtomicBool::new(false)),
             last_list_caller: Arc::new(Mutex::new(None)),
             last_sign_caller: Arc::new(Mutex::new(None)),
+            last_sign_request: Arc::new(Mutex::new(None)),
         }
     }
 
@@ -251,6 +270,10 @@ impl FakeKeyProvider {
     fn last_sign_caller(&self) -> Option<CallerIdentity> {
         self.last_sign_caller.lock().ok().and_then(|v| v.clone())
     }
+
+    fn last_sign_request(&self) -> Option<SignDataRequest> {
+        self.last_sign_request.lock().unwrap().clone()
+    }
 }
 
 #[ssh_agent_lib::async_trait]
@@ -269,11 +292,17 @@ impl KeyProvider for FakeKeyProvider {
 
     async fn sign_data(
         &self,
-        _public_key: &str,
-        _data: &[u8],
-        _flags: u32,
+        public_key: &str,
+        data: &[u8],
+        flags: u32,
         caller: Option<CallerIdentity>,
     ) -> Result<SignDataResponse> {
+        *self.last_sign_request.lock().unwrap() = Some(SignDataRequest {
+            public_key: public_key.to_owned(),
+            data: data.to_vec(),
+            flags,
+            caller: caller.clone(),
+        });
         if let Ok(mut slot) = self.last_sign_caller.lock() {
             *slot = caller;
         }
@@ -431,6 +460,42 @@ async fn sign_ipc_error_returns_failure() {
     assert!(result.is_err(), "Should fail when IPC sign fails");
     assert!(logs.contains("Signing request failed"), "{logs}");
     assert!(!logs.contains("Simulated sign_data failure"), "{logs}");
+}
+
+#[tokio::test]
+async fn sign_preserves_legacy_and_sha2_rsa_wire_signatures() {
+    use ssh_encoding::{Decode, Encode};
+
+    let public_key = include_str!(
+        "../../../../thirdParty/rust/ssh-key-0.6.7-keyguard/tests/examples/id_rsa_3072.pub"
+    );
+    let pubkey = ssh_key::PublicKey::from_openssh(public_key).unwrap();
+    for (flags, algorithm) in [(0, "ssh-rsa"), (2, "rsa-sha2-256"), (4, "rsa-sha2-512")] {
+        let raw_signature = vec![42; 384];
+        let provider = FakeKeyProvider::new(vec![SshKey {
+            name: "rsa".to_owned(),
+            public_key: public_key.to_owned(),
+            key_type: "ssh-rsa".to_owned(),
+            fingerprint: String::new(),
+        }])
+        .with_sign_result(SignDataResponse {
+            signature: raw_signature.clone(),
+            algorithm: algorithm.to_owned(),
+        });
+        let signature = KeyguardAgent::new(provider)
+            .sign(SignRequest {
+                pubkey: pubkey.key_data().clone(),
+                data: vec![1, 2, 3],
+                flags,
+            })
+            .await
+            .unwrap();
+        let mut wire = Vec::new();
+        signature.encode(&mut wire).unwrap();
+        let decoded = Signature::decode(&mut wire.as_slice()).unwrap();
+        assert_eq!(decoded.algorithm().as_str(), algorithm);
+        assert_eq!(decoded.as_bytes(), raw_signature);
+    }
 }
 
 #[tokio::test]

@@ -913,10 +913,11 @@ mod tests {
     /// code this crate forbids, so pin the call to the source text instead.
     #[test]
     fn secret_buffer_chacha20_poly1305_seals_before_appending_the_tag() {
-        let body = include_str!("primitives.rs")
-            .split("pub(crate) fn chacha20_poly1305_in_place(")
-            .nth(1)
-            .and_then(|source| source.split("\n}\n").next())
+        let source = include_str!("primitives.rs").replace("\r\n", "\n");
+        let body = source
+            .split_once("pub(crate) fn chacha20_poly1305_in_place(")
+            .and_then(|(_, source)| source.split_once("\n}\n"))
+            .map(|(body, _)| body)
             .expect("chacha20_poly1305_in_place body");
         assert!(body.contains(".seal_in_place_separate_tag("));
         assert!(!body.contains("seal_in_place_append_tag"));

@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.apple.agent
 
+import com.artemchep.keyguard.util.agentipc.AgentIpcException
+import com.artemchep.keyguard.util.agentipc.AgentIpcExpectedPeer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -17,11 +19,27 @@ import platform.posix.getpid
 
 /** The private IPC server of a helper started by [AgentHelperRuntime]. */
 internal interface AgentHelperIpcServer {
-    suspend fun serve()
+    /** The helper's `--ipc-socket`. The endpoint exists once the server is created. */
+    val endpoint: String
 
-    /** Call only after serve and all its children have completed. */
+    /**
+     * Serves the helper's connections until [close]. Accepts nothing before
+     * [expectedPeer] returns, and only connections of that process. Throws
+     * [AgentIpcException] when the endpoint fails.
+     */
+    suspend fun serve(expectedPeer: suspend () -> AgentIpcExpectedPeer)
+
+    /** Closes the endpoint and every connection, and erases the token. Idempotent. */
     fun close()
 }
+
+/**
+ * A helper's private endpoint failed. It has no message, so the controllers
+ * show their localized start failure; the [cause] names the failure kind.
+ */
+internal class AgentHelperIpcException(
+    cause: AgentIpcException,
+) : Exception(null, cause)
 
 /** A ready helper. Its lifetime ends when the helper exits or on [stop]. */
 internal class AgentHelperHandle(
@@ -39,9 +57,10 @@ internal class AgentHelperHandle(
 }
 
 /** Runs a bundled helper from the App Group directory [directoryName] and serves
- * it over a private IPC socket. [dataDirectoryName] names an optional private
- * subdirectory; it and the [publicSocket] path are passed to the helper through
- * [arguments], which follow the IPC socket and parent PID. */
+ * it over a private IPC endpoint, created in a new run directory there.
+ * [dataDirectoryName] names an optional private subdirectory; it and the
+ * [publicSocket] path are passed to the helper through [arguments], which follow
+ * the IPC endpoint and parent PID. */
 @OptIn(ExperimentalForeignApi::class)
 internal class AgentHelperRuntime(
     private val name: String,
@@ -54,12 +73,13 @@ internal class AgentHelperRuntime(
 ) {
     /** Returns once the helper is ready; a failure before that is thrown, a later
      * one is passed to [onFailure]. The helper lives in [scope] and receives a copy
-     * of [authToken] that is wiped when its lifetime ends. */
+     * of [authToken] that is wiped when its lifetime ends. [server] creates the
+     * private endpoint under the given parent directory. */
     @Suppress("TooGenericExceptionCaught") // Own the helper lifetime even when launch or readiness fails.
     suspend fun start(
         scope: CoroutineScope,
         authToken: ByteArray,
-        server: (ipcSocket: String, token: ByteArray, childPid: () -> Int?) -> AgentHelperIpcServer,
+        server: (parent: String, token: ByteArray) -> AgentHelperIpcServer,
         onFailure: (Exception) -> Unit,
         onReady: () -> Unit = {},
     ): AgentHelperHandle {
@@ -72,8 +92,9 @@ internal class AgentHelperRuntime(
                 ready.cancel(e)
                 throw e
             } catch (e: Exception) {
-                if (!ready.completeExceptionally(e)) {
-                    onFailure(e)
+                val failure = e.withoutIpcMessage()
+                if (!ready.completeExceptionally(failure)) {
+                    onFailure(failure)
                 }
             } finally {
                 token.fill(0)
@@ -95,7 +116,7 @@ internal class AgentHelperRuntime(
 
     private suspend fun runHelper(
         token: ByteArray,
-        createServer: (ipcSocket: String, token: ByteArray, childPid: () -> Int?) -> AgentHelperIpcServer,
+        createServer: (parent: String, token: ByteArray) -> AgentHelperIpcServer,
         ready: CompletableDeferred<AgentHelperHandle>,
         onReady: () -> Unit,
     ): Unit = coroutineScope {
@@ -107,34 +128,41 @@ internal class AgentHelperRuntime(
         ensurePrivateDirectory(directory)
         val dataDirectory = dataDirectoryName?.let { "$directory/$it" }
         dataDirectory?.let(::ensurePrivateDirectory)
-        val ipcDirectory = createPrivateIpcDirectory(directory)
-        val ipcSocket = ipcDirectory.path + "/i"
-        val helper = AgentHelperProcess(
-            name,
-            binary,
-            listOf(
-                "--ipc-socket", ipcSocket,
-                "--parent-pid", getpid().toString(),
-            ) + arguments(publicSocket, dataDirectory),
-        )
         var server: AgentHelperIpcServer? = null
+        var helper: AgentHelperProcess? = null
         var serverJob: Job? = null
         try {
-            // Binding is synchronous and complete before the child can connect.
-            server = createServer(ipcSocket, token, helper::pid)
-            serverJob = launch { server.serve() }
-            helper.launch(this, token)
+            // Binding is synchronous and complete before the child can connect. The
+            // endpoint's run directory is created under [directory], and removed on close.
+            val ipcServer = createServer(directory, token)
+            server = ipcServer
+            val process = AgentHelperProcess(
+                name,
+                binary,
+                listOf(
+                    "--ipc-socket", ipcServer.endpoint,
+                    "--parent-pid", getpid().toString(),
+                ) + arguments(publicSocket, dataDirectory),
+            )
+            helper = process
+            // Nothing is accepted before this exact child is launched.
+            val peer = CompletableDeferred<AgentIpcExpectedPeer>()
+            serverJob = launch { ipcServer.serve { peer.await() } }
+            process.launch(this, token) { peer.complete(process.expectedPeer) }
             val lifetime = currentCoroutineContext().job
-            ready.complete(AgentHelperHandle(lifetime, helper, publicSocket))
+            ready.complete(AgentHelperHandle(lifetime, process, publicSocket))
             onReady()
-            error("$name exited with status ${helper.awaitExit()}")
+            error("$name exited with status ${process.awaitExit()}")
         } finally {
             withContext(NonCancellable) {
                 serverJob?.cancelAndJoin()
                 server?.close()
-                helper.stop()
-                ipcDirectory.removeIfOwned()
+                helper?.stop()
             }
         }
     }
 }
+
+/** An [AgentIpcException] as an [AgentHelperIpcException]; any other failure as it is. */
+private fun Exception.withoutIpcMessage(): Exception =
+    if (this is AgentIpcException) AgentHelperIpcException(this) else this

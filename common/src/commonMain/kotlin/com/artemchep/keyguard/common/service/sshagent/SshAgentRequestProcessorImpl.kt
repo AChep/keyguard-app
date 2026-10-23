@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicyNoOp
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -95,6 +96,9 @@ class SshAgentRequestProcessorImpl(
                 fingerprint = sshKey.fingerprint.orEmpty(),
             )
         }
+            // As in the locked catalog, list each distinct key once. Signing
+            // resolves the first matching cipher, the one listed here.
+            .distinctBy { decodeSshPublicKeyBlob(it.publicKey)?.toHex() ?: it.publicKey }
         recordSshUsage(
             vault = vault,
             cipherId = null,
@@ -122,6 +126,21 @@ class SshAgentRequestProcessorImpl(
 
         var approvalGranted = false
         val cachedKey = if (wasVaultLocked) getCachedSshKey(request.publicKey) else null
+        if (wasVaultLocked && cachedKey == null) {
+            // While locked, the agent offers only the catalog's signing-capable
+            // keys. Any other key would fail after unlock, so do not prompt.
+            recordPendingSshUsage(
+                cipherId = null,
+                caller = request.caller,
+                request = SshUsageHistoryRequestType.AGENT_SIGN_DATA,
+                response = SshUsageHistoryResponseType.KEY_NOT_FOUND,
+                fingerprint = null,
+                // Collapse repeated probes so they can not push rarer
+                // denial events past the queue cap.
+                coalescenceKey = "SSH|AGENT_SIGN_DATA|KEY_NOT_FOUND|${request.caller?.processName.orEmpty()}",
+            )
+            return SshAgentRequestProcessor.SignDataResult.KeyNotFound
+        }
 
         if (wasVaultLocked) {
             logRepository.post(TAG, "Vault is locked, requesting approval before SSH signing", LogLevel.INFO)
@@ -291,6 +310,7 @@ class SshAgentRequestProcessorImpl(
         // distinct key once, so collapse ciphers sharing a public key.
         sshAgentPublicKeyRepository.get()
             .bind()
+            .filter { it.isEligibleForSshAgent() }
             .distinctBy { it.publicKeyBlobSha256 }
     } catch (e: Exception) {
         e.throwIfFatalOrCancellation()
@@ -301,12 +321,11 @@ class SshAgentRequestProcessorImpl(
     private suspend fun getCachedSshKey(
         publicKey: String,
     ): SshAgentPublicKeyRow? = try {
-        // The same key may live in more than one cipher; for the
-        // approval display any of the matching rows works, so take
-        // the first one of the deterministically ordered result.
+        // Only signing-capable entries may label an approval. A public-only
+        // duplicate must not mask the signer in the ordered catalog.
         sshAgentPublicKeyRepository.getByPublicKey(publicKey)
             .bind()
-            .firstOrNull()
+            .firstOrNull { it.isEligibleForSshAgent() }
     } catch (e: Exception) {
         e.throwIfFatalOrCancellation()
         logRepository.post(TAG, "Failed to read cached SSH public key: ${e.message}", LogLevel.ERROR)

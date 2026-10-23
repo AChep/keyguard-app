@@ -17,6 +17,7 @@ members = [
     "desktopGpgAgent/src",
     "desktopLibNative/src",
     "desktopSshAgent/src",
+    "util/agent-ipc/rust/crates/*",
     "util/ffi/rust/crates/*",
     "util/fido2/rust/crates/*",
     "util/instance/rust/crates/*",

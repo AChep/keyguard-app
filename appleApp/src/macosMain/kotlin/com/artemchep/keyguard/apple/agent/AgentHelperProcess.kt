@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.apple.agent
 
 import com.artemchep.keyguard.common.util.toHex
+import com.artemchep.keyguard.util.agentipc.AgentIpcExpectedPeer
+import com.artemchep.keyguard.util.agentipc.asAgentIpcExpectedPeer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -44,15 +46,19 @@ internal class AgentHelperProcess(
         task.setTerminationHandler { exited.complete(Unit) }
     }
 
-    /** The live child's PID, or null once it has exited. */
-    val pid: Int? get() = task.processIdentifier.takeIf { task.isRunning() }
+    /** This child as the one peer its IPC server serves: its PID while it runs. */
+    val expectedPeer: AgentIpcExpectedPeer = task.asAgentIpcExpectedPeer()
 
     val isRunning: Boolean get() = task.isRunning()
 
-    /** Launches the helper, sends it [token], and waits for its readiness line.
-     * Stderr is drained in [scope] until [stop]. */
-    suspend fun launch(scope: CoroutineScope, token: ByteArray) {
+    /** Launches the helper, calls [onLaunched] once this exact child exists, sends
+     * it [token], and waits for its readiness line. Stderr is drained in [scope]
+     * until [stop]. */
+    suspend fun launch(scope: CoroutineScope, token: ByteArray, onLaunched: () -> Unit = {}) {
         check(task.launchAndReturnError(null)) { "Could not launch the bundled $name" }
+        // Its IPC server accepts nothing before then; the child may connect before
+        // it reports readiness.
+        onLaunched()
         val inputFd = stdin.fileHandleForWriting.fileDescriptor
         val outputFd = stdout.fileHandleForReading.fileDescriptor
         val errorFd = stderr.fileHandleForReading.fileDescriptor

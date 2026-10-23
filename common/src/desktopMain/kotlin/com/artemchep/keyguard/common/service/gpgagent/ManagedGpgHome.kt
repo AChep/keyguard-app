@@ -1,10 +1,10 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
-import com.artemchep.keyguard.common.service.agent.currentUnixEffectiveUid
 import com.artemchep.keyguard.common.service.agent.macosDevAgentSocketPath
 import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.platform.Platform
+import com.sun.security.auth.module.UnixSystem
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -170,8 +170,12 @@ internal fun gpgEnvPath(name: String): Path? =
         ?.takeIf { it.isNotBlank() }
         ?.let { Path.of(it) }
 
-private fun currentUnixUid(): Long? = runCatchingNonFatal {
-    currentUnixEffectiveUid()
+/**
+ * The user ID of this process on Linux and macOS. It is the real user ID,
+ * which equals the effective one: Keyguard is never setuid.
+ */
+internal fun currentUnixUid(): Long? = runCatchingNonFatal {
+    UnixSystem().uid
 }.getOrNull()
 
 private const val FLATPAK_APP_ID_FALLBACK = "com.artemchep.keyguard"

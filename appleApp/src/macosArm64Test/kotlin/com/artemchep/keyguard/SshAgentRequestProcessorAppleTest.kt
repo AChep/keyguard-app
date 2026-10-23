@@ -1,5 +1,6 @@
 package com.artemchep.keyguard
 
+import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.CheckPasswordSetLeakRequest
 import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DFilter
@@ -20,7 +21,9 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.session.SshAgentSessionAccess
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepositoryEmpty
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRow
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor.SignDataResult
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorImpl
 import com.artemchep.keyguard.common.service.tld.TldService
@@ -388,7 +391,18 @@ class SshAgentRequestProcessorAppleTest {
                 }
             },
             scope = scope.backgroundScope,
-            sshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
+            // The catalog the syncer writes for this vault, so locked requests prompt.
+            sshAgentPublicKeyRepository = object : SshAgentPublicKeyRepository by SshAgentPublicKeyRepositoryEmpty {
+                override fun getByPublicKey(publicKey: String): IO<List<SshAgentPublicKeyRow>> = {
+                    listOf(
+                        SshAgentPublicKeyRow(
+                            accountId = "account", cipherId = "signer", canSign = true,
+                            publicKeyBlobSha256 = "signer-hash", publicKey = key.publicKeyOpenSsh,
+                            keyType = "ssh-ed25519", fingerprint = key.publicFingerprint, name = "Signer",
+                        ),
+                    )
+                }
+            },
             sessionId = "test",
             onApprovalRequest = {
                 approvals++

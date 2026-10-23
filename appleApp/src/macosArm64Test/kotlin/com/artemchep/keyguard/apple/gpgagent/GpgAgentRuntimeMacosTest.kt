@@ -1,68 +1,31 @@
 package com.artemchep.keyguard.apple.gpgagent
 
-import platform.posix.SHUT_WR
 import com.artemchep.keyguard.apple.agent.ensurePrivateDirectory
-import com.artemchep.keyguard.apple.agent.readPacket
 import com.artemchep.keyguard.apple.agent.requireSocketPath
-import com.artemchep.keyguard.apple.agent.socketAddress
-import com.artemchep.keyguard.apple.agent.verifiedChildPeer
-import com.artemchep.keyguard.common.service.agent.AgentIpcFraming
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.convert
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.usePinned
-import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.channels.Channel
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSString
 import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.NSUUID
 import platform.Foundation.create
 import platform.Foundation.writeToFile
-import platform.posix.AF_UNIX
-import platform.posix.F_SETFL
-import platform.posix.O_NONBLOCK
-import platform.posix.SOCK_STREAM
-import platform.posix.accept
-import platform.posix.bind
 import platform.posix.chmod
-import platform.posix.close
-import platform.posix.connect
-import platform.posix.fcntl
-import platform.posix.getpid
-import platform.posix.listen
 import platform.posix.mkdir
-import platform.posix.read
-import platform.posix.shutdown
-import platform.posix.socket
-import platform.posix.socketpair
 import platform.posix.symlink
-import platform.posix.write
 import kotlin.test.Test
-import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import kotlin.coroutines.CoroutineContext
 
 @OptIn(ExperimentalForeignApi::class)
 class GpgAgentRuntimeMacosTest {
@@ -73,10 +36,6 @@ class GpgAgentRuntimeMacosTest {
         assertFailsWith<IllegalArgumentException> { requireSocketPath("/" + "é".repeat(52)) }
         assertFailsWith<IllegalArgumentException> { requireSocketPath("relative/socket") }
         assertFailsWith<IllegalArgumentException> { requireSocketPath("/path\u0000/socket") }
-        val encoded = socketAddress("/tmp/gpg")
-        assertEquals(encoded.size, encoded[0].toInt())
-        assertEquals(AF_UNIX, encoded[1].toInt())
-        assertEquals(0, encoded.last().toInt())
     }
 
     @Test
@@ -90,100 +49,6 @@ class GpgAgentRuntimeMacosTest {
         assertEquals(0, mkdir("$root/shared", 0x1c0u))
         assertEquals(0, chmod("$root/shared", 0x1ffu))
         assertFailsWith<IllegalStateException> { ensurePrivateDirectory("$root/shared") }
-    }
-
-    @Test
-    fun kernelPeerMustMatchLiveExpectedProcess() = inTemporaryDirectory { root ->
-        val listener = socket(AF_UNIX, SOCK_STREAM, 0)
-        val client = socket(AF_UNIX, SOCK_STREAM, 0)
-        assertTrue(listener >= 0 && client >= 0)
-        try {
-            val address = socketAddress("$root/s")
-            assertEquals(0, address.usePinned { bind(listener, it.addressOf(0).reinterpret(), address.size.convert()) })
-            assertEquals(0, listen(listener, 1))
-            assertEquals(
-                0,
-                address.usePinned { connect(client, it.addressOf(0).reinterpret(), address.size.convert()) },
-            )
-            val accepted = accept(listener, null, null)
-            assertTrue(accepted >= 0)
-            try {
-                assertTrue(verifiedChildPeer(accepted, getpid()))
-                assertFalse(verifiedChildPeer(accepted, null))
-                assertFalse(verifiedChildPeer(accepted, -1))
-                assertFalse(verifiedChildPeer(accepted, getpid() + 1))
-            } finally {
-                close(accepted)
-            }
-        } finally {
-            close(client)
-            close(listener)
-        }
-    }
-
-    @Test
-    fun framingHandlesFragmentationTruncationAndOversizedPackets() = runBlocking {
-        socketPair { reader, writer ->
-            val expected = byteArrayOf(1, 2, 3)
-            val writing = launch {
-                for (byte in byteArrayOf(0, 0, 0, 3, 1, 2, 3)) {
-                    sendBytes(writer, byteArrayOf(byte))
-                    delay(2)
-                }
-            }
-            assertContentEquals(expected, withTimeout(2_000) { readPacket(reader, AgentIpcFraming.MAX_PACKET_SIZE) })
-            writing.join()
-            sendBytes(writer, byteArrayOf(1, 0, 0, 1)) // 16 MiB + 1
-            assertNull(readPacket(reader, AgentIpcFraming.MAX_PACKET_SIZE))
-            sendBytes(writer, byteArrayOf(0, 0, 0, 0))
-            assertNull(readPacket(reader, AgentIpcFraming.MAX_PACKET_SIZE))
-            sendBytes(writer, byteArrayOf(0, 0, 0, 3, 1))
-            shutdown(writer, SHUT_WR)
-            assertNull(readPacket(reader, AgentIpcFraming.MAX_PACKET_SIZE))
-        }
-    }
-
-    @Test
-    fun cancellationInterruptsAnIdleFrameRead() = runBlocking {
-        socketPair { reader, _ ->
-            val read = async { readPacket(reader, AgentIpcFraming.MAX_PACKET_SIZE) }
-            delay(30)
-            withTimeout(1_000) { read.cancelAndJoin() }
-        }
-    }
-
-    @Test
-    fun cancellationBeforeConnectionDispatchClosesTheAcceptedDescriptor() = inTemporaryDirectory { root ->
-        runBlocking {
-            val dispatcher = QueuedDispatcher()
-            val server = macosGpgIpcServer("$root/i", config(), ByteArray(32)) { getpid() }
-            val client = socket(AF_UNIX, SOCK_STREAM, 0)
-            assertTrue(client >= 0)
-            var serving: Job? = null
-            try {
-                val address = socketAddress(server.path)
-                assertEquals(
-                    0,
-                    address.usePinned { connect(client, it.addressOf(0).reinterpret(), address.size.convert()) },
-                )
-                assertEquals(0, fcntl(client, F_SETFL, O_NONBLOCK))
-                serving = launch(dispatcher) { server.serve() }
-                // Run the accept loop once, then cancel before any dispatched
-                // connection coroutine can begin. Its descriptor must still close.
-                dispatcher.runNext()
-                serving.cancel()
-                // Descriptor watches release on a GCD queue, so cancellation
-                // completes asynchronously.
-                dispatcher.runUntil { serving.isCompleted }
-                val buffer = ByteArray(1)
-                assertEquals(0L, buffer.usePinned { read(client, it.addressOf(0), 1u) })
-            } finally {
-                serving?.cancel()
-                dispatcher.runUntil { serving?.isCompleted != false }
-                close(client)
-                server.close()
-            }
-        }
     }
 
     @Test
@@ -259,37 +124,5 @@ class GpgAgentRuntimeMacosTest {
 
     private fun writeText(path: String, text: String) {
         assertTrue(NSString.create(string = text).writeToFile(path, true, NSUTF8StringEncoding, null))
-    }
-
-    private suspend fun socketPair(block: suspend (Int, Int) -> Unit) {
-        val pair = IntArray(2)
-        assertEquals(0, pair.usePinned { socketpair(AF_UNIX, SOCK_STREAM, 0, it.addressOf(0)) })
-        try {
-            assertEquals(0, fcntl(pair[0], F_SETFL, O_NONBLOCK))
-            block(pair[0], pair[1])
-        } finally {
-            close(pair[0])
-            close(pair[1])
-        }
-    }
-
-    private fun sendBytes(fd: Int, bytes: ByteArray) {
-        assertEquals(bytes.size.toLong(), bytes.usePinned { write(fd, it.addressOf(0), bytes.size.convert()) })
-    }
-
-    private class QueuedDispatcher : CoroutineDispatcher() {
-        private val queue = Channel<Runnable>(Channel.UNLIMITED)
-
-        override fun dispatch(context: CoroutineContext, block: Runnable) {
-            check(queue.trySend(block).isSuccess)
-        }
-
-        fun runNext() { queue.tryReceive().getOrThrow().run() }
-
-        fun runUntil(done: () -> Boolean) = runBlocking {
-            withTimeout(2_000) {
-                while (!done()) queue.receive().run()
-            }
-        }
     }
 }

@@ -51,7 +51,7 @@ class NativeModule:
 
 
 # These are reviewed ABI contracts, not symbols inferred from the artifact being
-# checked. ZIP is native on Apple only; instance is desktop/macOS only.
+# checked. ZIP is native on Apple only; instance and agent IPC are desktop/macOS only.
 MODULES = {
     "windows_passkeys": NativeModule("windows_passkeys", "com_artemchep_keyguard_util_windowspasskeys_NativeWindowsPasskeys",
                                       ("abiVersion", "create", "execute", "cancel", "close"), ()),
@@ -81,8 +81,15 @@ MODULES = {
         "abi_version", "writer_open", "writer_begin_entry", "writer_write", "writer_end_entry",
         "writer_finish", "writer_abort", "reader_open", "reader_next_entry", "reader_read", "reader_close",
     )),
+    "agent_ipc": NativeModule("agent_ipc", "com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni", (
+        "abiVersion", "lastError", "listen", "endpoint", "accept", "closeListener", "peerPid",
+        "read", "write", "awaitInput", "close",
+    ), (
+        "abi_version", "last_error", "clear_error", "listen", "endpoint", "accept", "close_listener",
+        "peer_pid", "read", "write", "await_input", "close",
+    )),
 }
-DESKTOP_MODULES = ("crypto", "io", "zxcvbn", "instance", "yubikey", "fido2")
+DESKTOP_MODULES = ("crypto", "io", "zxcvbn", "instance", "yubikey", "fido2", "agent_ipc")
 # The passkey provider exists only on Windows; other desktop packages do not bundle it.
 WINDOWS_DESKTOP_MODULES = DESKTOP_MODULES + ("windows_passkeys",)
 ANDROID_MODULES = ("crypto", "io", "zxcvbn")

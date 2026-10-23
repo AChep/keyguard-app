@@ -85,6 +85,8 @@ val bundledAppResources = bundledAppResourcesFrom(
         ":desktopCliAgent",
         ":desktopCli",
         ":desktopLibNative",
+        // The private channel between the app and its agent helpers.
+        ":util:agent-ipc",
         ":util:crypto",
         ":util:io",
         ":util:zxcvbn",

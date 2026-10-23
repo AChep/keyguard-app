@@ -8,9 +8,9 @@ on:
         required: false
         default: false
         type: boolean
-  # Kotlin tests only: skip Android, desktop JVM, Swift, Xcode and agent
-  # helper changes, and changes that no test reads. Check Tests already
-  # compiles the translations.
+  # Kotlin tests only: skip Android, desktop JVM, Swift, Xcode, agent helper
+  # and agent IPC (desktop and macOS only) changes, and changes that no test
+  # reads. Check Tests already compiles the translations.
   push:
     branches:
       - master
@@ -55,6 +55,7 @@ on:
       - '!desktopSshAgent/**'
       - '!iosApp/**'
       - '!macosApp/**'
+      - '!util/agent-ipc/**'
       - '!xcode/**'
       - '.github/actions/setup_gradle/**'
       - '.github/actions/setup_rust/**'
@@ -105,6 +106,7 @@ on:
       - '!desktopSshAgent/**'
       - '!iosApp/**'
       - '!macosApp/**'
+      - '!util/agent-ipc/**'
       - '!xcode/**'
       - '.github/actions/setup_gradle/**'
       - '.github/actions/setup_rust/**'

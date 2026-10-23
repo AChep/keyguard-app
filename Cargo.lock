@@ -1427,6 +1427,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyguard-agent-ipc-c"
+version = "3.5.0"
+dependencies = [
+ "keyguard-agent-ipc-core",
+ "keyguard-ffi",
+ "zeroize",
+]
+
+[[package]]
+name = "keyguard-agent-ipc-core"
+version = "3.5.0"
+dependencies = [
+ "getrandom 0.3.4",
+ "keyguard-agent-ipc",
+ "keyguard-ffi",
+ "libc",
+ "tempfile",
+ "tokio",
+ "windows-sys 0.61.2",
+ "zeroize",
+]
+
+[[package]]
+name = "keyguard-agent-ipc-jni"
+version = "3.5.0"
+dependencies = [
+ "jni",
+ "keyguard-agent-ipc-core",
+ "keyguard-ffi",
+ "zeroize",
+]
+
+[[package]]
 name = "keyguard-agent-proto"
 version = "3.5.0"
 dependencies = [

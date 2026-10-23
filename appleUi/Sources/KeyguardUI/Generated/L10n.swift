@@ -2577,6 +2577,14 @@ public enum L10n {
     public static var errorAccountAlreadyExists: String {
         String(localized: "error_account_already_exists", bundle: AppLocalization.shared.bundle)
     }
+    /// error_agent_ipc_endpoint
+    public static var errorAgentIpcEndpoint: String {
+        String(localized: "error_agent_ipc_endpoint", bundle: AppLocalization.shared.bundle)
+    }
+    /// error_agent_ipc_unavailable
+    public static var errorAgentIpcUnavailable: String {
+        String(localized: "error_agent_ipc_unavailable", bundle: AppLocalization.shared.bundle)
+    }
     /// error_credential_calling_app_not_privileged
     public static var errorCredentialCallingAppNotPrivileged: String {
         String(localized: "error_credential_calling_app_not_privileged", bundle: AppLocalization.shared.bundle)

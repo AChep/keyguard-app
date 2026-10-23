@@ -2,17 +2,12 @@ package com.artemchep.keyguard.common.service.gpgagent
 
 import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
-import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
-import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-@OptIn(TestOnlyUnverifiedAgentIpcApi::class)
 class GpgAgentIpcAuthenticationTest {
     private val authToken = ByteArray(32) { it.toByte() }
 
@@ -71,9 +66,7 @@ class GpgAgentIpcAuthenticationTest {
     private fun createServer() = GpgAgentIpcServer(
         logRepository = LogRepositoryBridge(emptyList()),
         authToken = authToken,
-        scope = CoroutineScope(Dispatchers.Unconfined),
         requestProcessor = NoOpRequestProcessor,
-        testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
     )
 
     private object NoOpRequestProcessor : GpgAgentRequestProcessor {

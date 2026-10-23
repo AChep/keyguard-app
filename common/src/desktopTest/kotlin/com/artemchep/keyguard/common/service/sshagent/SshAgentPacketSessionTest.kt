@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
-import com.artemchep.keyguard.common.service.agent.AgentPacketChannel
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.agent.serve
 import kotlinx.coroutines.test.runTest
@@ -45,7 +44,7 @@ class SshAgentPacketSessionTest {
         )
 
         SshAgentPacketSession(rpcHandler, authenticatedByTransport = false)
-            .serve(channel)
+            .serve(channel::readPacket, channel::writePacket)
 
         assertEquals(2, channel.responses.size)
         val authResponse = SshAgentProtoCodec.decodeResponse(channel.responses[0])
@@ -80,7 +79,7 @@ class SshAgentPacketSessionTest {
         )
 
         SshAgentPacketSession(rpcHandler, authenticatedByTransport = false)
-            .serve(channel)
+            .serve(channel::readPacket, channel::writePacket)
 
         assertEquals(1, channel.responses.size)
         val authResponse = SshAgentProtoCodec.decodeResponse(channel.responses.single())
@@ -118,7 +117,7 @@ class SshAgentPacketSessionTest {
         )
 
         SshAgentPacketSession(rpcHandler, authenticatedByTransport = true)
-            .serve(channel)
+            .serve(channel::readPacket, channel::writePacket)
 
         assertEquals(2, channel.responses.size)
         val authResponse = SshAgentProtoCodec.decodeResponse(channel.responses[0])
@@ -172,7 +171,7 @@ class SshAgentPacketSessionTest {
         )
 
         SshAgentPacketSession(rpcHandler, authenticatedByTransport = true)
-            .serve(channel)
+            .serve(channel::readPacket, channel::writePacket)
 
         assertEquals(1, channel.responses.size)
         assertEquals(7, capturedCaller?.pid)
@@ -197,18 +196,19 @@ class SshAgentPacketSessionTest {
 
     private class FakePacketChannel(
         requests: List<ByteArray>,
-    ) : AgentPacketChannel {
+    ) {
         private val requests = ArrayDeque(requests)
 
         val responses = mutableListOf<ByteArray>()
 
-        override fun readPacket(): ByteArray? = requests.removeFirstOrNull()
+        fun readPacket(): ByteArray? = requests.removeFirstOrNull()
 
-        override fun writePacket(
+        fun writePacket(
             packet: ByteArray,
-        ) {
+        ): Boolean {
             // The session zeroes a packet once it is sent.
             responses += packet.copyOf()
+            return true
         }
     }
 }

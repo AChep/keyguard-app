@@ -105,11 +105,8 @@ impl Builder {
         valid_after: u64,
         valid_before: u64,
     ) -> Result<Self> {
-        let valid_after =
-            UnixTime::new(valid_after).map_err(|_| Field::ValidAfter.invalid_error())?;
-
-        let valid_before =
-            UnixTime::new(valid_before).map_err(|_| Field::ValidBefore.invalid_error())?;
+        let valid_after = UnixTime::new(valid_after);
+        let valid_before = UnixTime::new(valid_before);
 
         if valid_before < valid_after {
             return Err(Field::ValidBefore.invalid_error());

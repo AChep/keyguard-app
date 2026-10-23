@@ -151,7 +151,7 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 self.assertEqual(enabled, {"crypto", "native_quality"})
 
     def test_ffi_selects_every_native_bridge_consumer(self):
-        consumers = ("io", "instance", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
+        consumers = ("io", "instance", "agent_ipc", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
         for path in (
             "util/ffi/rust/crates/keyguard-ffi/src/operation.rs",
             "util/ffi/src/jvmMain/kotlin/com/artemchep/keyguard/util/ffi/JniLibrary.kt",
@@ -196,6 +196,7 @@ class NativeChangeClassificationTest(unittest.TestCase):
             "util/zip/rust/crates/keyguard-zip-core/Cargo.toml": (False, False, True),
             "util/instance/rust/crates/keyguard-instance-core/Cargo.toml": (True, False, False),
             "util/ffi/rust/crates/keyguard-ffi/Cargo.toml": (True, True, True),
+            "util/agent-ipc/rust/crates/keyguard-agent-ipc-core/Cargo.toml": (True, False, True),
         }
         for path, expected in cases.items():
             with self.subTest(path=path):
@@ -251,6 +252,59 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 self.assertFalse(result["android_run"])
                 self.assertFalse(result["instance"])
                 self.assertEqual([host["platform"] for host in result["desktop_matrix"]["include"]], ["macos"])
+
+    def test_agent_ipc_shared_sources_select_desktop_and_native_macos_consumers(self):
+        for path in (
+            "util/agent-ipc/rust/crates/keyguard-agent-ipc-core/src/windows.rs",
+            "util/agent-ipc/rust/crates/keyguard-agent-ipc-c/include/keyguard_agent_ipc.h",
+            "util/agent-ipc/src/commonMain/kotlin/com/artemchep/keyguard/util/agentipc/AgentIpcHost.kt",
+            "util/agent-ipc/build.gradle.kts",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                enabled = {flag for flag in FLAGS if result[flag]}
+                expected = {"agent_ipc", "desktop", "desktop_regressions", "apple", "apple_regressions"}
+                if "/rust/" in path:
+                    expected.add("native_quality")
+                self.assertEqual(enabled, expected)
+                self.assertEqual([row["platform"] for row in result["desktop_matrix"]["include"]], ["linux", "macos", "windows"])
+
+    def test_agent_ipc_jni_binding_selects_only_desktop(self):
+        result = classify(["util/agent-ipc/src/desktopMain/kotlin/com/artemchep/keyguard/util/agentipc/NativeAgentIpcJni.kt"])
+        enabled = {flag for flag in FLAGS if result[flag]}
+        self.assertEqual(enabled, {"agent_ipc", "desktop", "desktop_regressions"})
+
+    def test_agent_ipc_apple_binding_selects_only_native_macos(self):
+        for path in (
+            "util/agent-ipc/src/appleInteropMain/kotlin/com/artemchep/keyguard/util/agentipc/NativeAgentIpc.kt",
+            "util/agent-ipc/src/macosArm64Main/kotlin/com/artemchep/keyguard/util/agentipc/AgentIpcTaskPeer.kt",
+            "util/agent-ipc/src/nativeInterop/cinterop/nativeAgentIpc.def",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                enabled = {flag for flag in FLAGS if result[flag]}
+                self.assertEqual(enabled, {"agent_ipc", "apple", "apple_regressions"})
+                self.assertEqual([host["platform"] for host in result["desktop_matrix"]["include"]], ["macos"])
+
+    def test_agent_ipc_rust_tests_keep_platform_regressions_without_packaging(self):
+        for relative in ("tests/wake.rs", "tests/windows_pipe.rs", "src/unix/tests.rs"):
+            with self.subTest(relative=relative):
+                result = classify([f"util/agent-ipc/rust/crates/keyguard-agent-ipc-core/{relative}"])
+                enabled = {flag for flag in FLAGS if result[flag]}
+                self.assertEqual(enabled, {"agent_ipc", "desktop_regressions", "native_quality"})
+                self.assertEqual([row["platform"] for row in result["desktop_matrix"]["include"]], ["macos", "windows"])
+
+    def test_agent_ipc_kotlin_tests_select_their_platform_regressions(self):
+        cases = {
+            "commonTest": {"agent_ipc", "desktop_regressions", "apple_regressions"},
+            "desktopTest": {"agent_ipc", "desktop_regressions"},
+            "macosArm64Test": {"agent_ipc", "apple_regressions"},
+        }
+        for source_set, expected in cases.items():
+            with self.subTest(source_set=source_set):
+                result = classify([f"util/agent-ipc/src/{source_set}/kotlin/com/artemchep/keyguard/util/agentipc/AgentIpcHostTest.kt"])
+                enabled = {flag for flag in FLAGS if result[flag]}
+                self.assertEqual(enabled, expected)
 
     def test_zip_jvm_implementation_does_not_request_native_work(self):
         result = classify(["util/zip/src/jvmMain/kotlin/Zip4jArchive.kt"])
@@ -479,6 +533,42 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 result = classify([path])
                 for flag in ("desktop", "desktop_native", "apple", "native_quality"):
                     self.assertTrue(result[flag])
+
+    def test_agent_ipc_replays_the_cli_and_helper_clients(self):
+        for path in (
+            "commonCli/src/transport.rs",
+            "desktopCliAgent/proto/fixtures/requests.pbhex",
+            "commonAgent/ipc/src/stream.rs",
+            "commonAgent/ipc/tests/stream.rs",
+            "commonAgent/src/tests.rs",
+        ):
+            with self.subTest(path=path):
+                self.assertTrue(classify([path])["agent_ipc"])
+        self.assertFalse(classify(["desktopCli/src/src/main.rs"])["agent_ipc"])
+        # Helper tests still build no packages.
+        result = classify(["commonAgent/ipc/tests/stream.rs"])
+        self.assertEqual({flag for flag in FLAGS if result[flag]}, {"agent_ipc"})
+
+    def test_desktop_agent_services_select_agent_ipc_regressions(self):
+        cases = {
+            "common/src/commonMain/kotlin/com/artemchep/keyguard/common/service/agent/AgentPacketSession.kt": True,
+            "common/src/commonTest/kotlin/com/artemchep/keyguard/common/service/cli/agent/CliAgentConnectionTest.kt": True,
+            "common/src/desktopMain/kotlin/com/artemchep/keyguard/common/service/agent/AgentManager.kt": False,
+            "common/src/jvmMain/kotlin/com/artemchep/keyguard/common/service/sshagent/SshAgentTcpProtocol.kt": False,
+            "common/src/desktopTest/kotlin/com/artemchep/keyguard/common/service/gpgagent/GpgAgentIpcAuthenticationTest.kt": False,
+        }
+        for path, native_macos in cases.items():
+            with self.subTest(path=path):
+                result = classify([path])
+                expected = {"agent_ipc", "desktop_regressions"} | ({"apple_regressions"} if native_macos else set())
+                self.assertEqual({flag for flag in FLAGS if result[flag]}, expected)
+                self.assertEqual([row["platform"] for row in result["desktop_matrix"]["include"]], ["macos", "windows"])
+        for path in (
+            "common/src/androidMain/kotlin/com/artemchep/keyguard/common/service/sshagent/AndroidSshAgent.kt",
+            "common/src/desktopMain/kotlin/com/artemchep/keyguard/common/service/keyboard/KeyboardShortcuts.kt",
+        ):
+            with self.subTest(path=path):
+                self.assertFalse(classify([path])["agent_ipc"])
 
     def test_targeted_manual_keeps_representative_hosts(self):
         result = classify([], all_checks=True)

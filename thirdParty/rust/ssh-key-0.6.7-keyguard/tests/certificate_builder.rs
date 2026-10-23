@@ -33,6 +33,23 @@ const PRNG_SEED: [u8; 32] = [42; 32];
 
 #[cfg(feature = "ed25519")]
 #[test]
+fn build_certificate_with_forever_expiry() {
+    let mut rng = ChaCha8Rng::from_seed(PRNG_SEED);
+    let ca = PrivateKey::random(&mut rng, Algorithm::Ed25519).unwrap();
+    let mut builder =
+        certificate::Builder::new(vec![42; 32], ca.public_key(), ISSUED_AT, u64::MAX).unwrap();
+    builder.all_principals_valid().unwrap();
+    let cert = builder.sign(&ca).unwrap();
+    let cert = ssh_key::Certificate::from_bytes(&cert.to_bytes().unwrap()).unwrap();
+    assert_eq!(cert.valid_before(), u64::MAX);
+    assert!(cert
+        .validate_at(u64::MAX - 1, &[ca.fingerprint(Default::default())])
+        .is_ok());
+    assert!(certificate::Builder::new(vec![42; 32], ca.public_key(), u64::MAX, ISSUED_AT).is_err());
+}
+
+#[cfg(feature = "ed25519")]
+#[test]
 fn ed25519_sign_and_verify() {
     const SERIAL: u64 = 42;
     const KEY_ID: &str = "example";

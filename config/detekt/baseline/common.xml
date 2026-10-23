@@ -36,8 +36,6 @@
     <ID>ComplexCondition:VaultListStateProducer.kt:keepOtp &amp;&amp; keepPasskey &amp;&amp; keepPassword &amp;&amp; keepAttachment</ID>
     <ID>ComplexCondition:VaultViewStateProducer.kt:cipherIdentity.address1 != null || cipherIdentity.address2 != null || cipherIdentity.address3 != null || cipherIdentity.city != null || cipherIdentity.state != null || cipherIdentity.postalCode != null || cipherIdentity.country != null</ID>
     <ID>ComplexCondition:VaultViewStateProducer.kt:cipherIdentity.company != null || cipherIdentity.ssn != null || cipherIdentity.passportNumber != null || cipherIdentity.licenseNumber != null</ID>
-    <ID>ComplexCondition:WindowsNamedPipe.kt:WindowsNamedPipeConnection$error == ERROR_BROKEN_PIPE || error == ERROR_PIPE_NOT_CONNECTED || error == ERROR_NO_DATA || error == ERROR_HANDLE_EOF</ID>
-    <ID>ComplexCondition:WindowsNamedPipe.kt:WindowsNamedPipeConnection$error == ERROR_INVALID_HANDLE || error == ERROR_OPERATION_ABORTED || error == ERROR_BROKEN_PIPE || error == ERROR_NO_DATA || error == ERROR_PIPE_NOT_CONNECTED</ID>
     <ID>CyclomaticComplexMethod:AccountListViewModel.kt:suspend fun RememberStateFlowScope.accountListScreenStateProducer: Flow&lt;AccountListStateWrapper&gt;</ID>
     <ID>CyclomaticComplexMethod:AccountViewStateProducer.kt:@OptIn(ExperimentalMaterial3Api::class) private fun buildItemsFlow: Flow&lt;VaultViewItem&gt;</ID>
     <ID>CyclomaticComplexMethod:AccountViewStateProducer.kt:suspend fun RememberStateFlowScope.accountStateProducer: Flow&lt;AccountViewState&gt;</ID>
@@ -315,25 +313,6 @@
     <ID>FunctionParameterNaming:AddCipher.kt:_totp: String? = old?.login?.totp</ID>
     <ID>FunctionParameterNaming:AddCipher.kt:_uris: List&lt;DSecret.Uri&gt;? = old?.login?.uris ?.map { uri -&gt; uri.toDomain() }</ID>
     <ID>FunctionParameterNaming:AddCipher.kt:_username: String? = old?.login?.username</ID>
-    <ID>FunctionParameterNaming:WindowsNamedPipe.kt:Kernel32$ClientProcessId: IntByReference</ID>
-    <ID>FunctionParameterNaming:WindowsNamedPipe.kt:Kernel32$Pipe: Pointer</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$DesiredAccess: Int</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$ProcessHandle: Pointer</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$ReturnLength: IntByReference</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$SecurityDescriptor: PointerByReference</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$SecurityDescriptorSize: IntByReference?</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$Sid: Pointer</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$StringSDRevision: Int</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$StringSecurityDescriptor: WString</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$StringSid: PointerByReference</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$TokenHandle: Pointer</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$TokenHandle: PointerByReference</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$TokenInformation: Pointer?</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$TokenInformationClass: Int</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$TokenInformationLength: Int</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityKernel32$InheritHandle: Boolean</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityKernel32$ProcessAccess: Int</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityKernel32$ProcessId: Int</ID>
     <ID>InvalidPackageDeclaration:Getter.kt:package arrow.optics</ID>
     <ID>InvalidPackageDeclaration:SecureKeysetFailure.kt:package db_key_value.encrypted</ID>
     <ID>InvalidPackageDeclaration:UploadAttachmentManager.kt:package com.artemchep.keyguard.android.uploader</ID>
@@ -417,8 +396,6 @@
     <ID>LongMethod:AddStateProducer.kt:suspend fun createItem4</ID>
     <ID>LongMethod:AddUriCipher.kt:AddUriCipherImpl$override fun invoke: IO&lt;Boolean&gt;</ID>
     <ID>LongMethod:AgentApprovalContent.kt:@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class) @Composable fun AgentApprovalContent</ID>
-    <ID>LongMethod:AgentIpcServer.kt:AgentIpcServer$private suspend fun startUnix</ID>
-    <ID>LongMethod:AgentIpcServer.kt:AgentIpcServer$private suspend fun startWindows</ID>
     <ID>LongMethod:AgentManager.kt:AgentManager$private suspend fun startLocked: Process</ID>
     <ID>LongMethod:AgentSetupComponents.kt:@Composable internal fun AgentSetupCodeBlock</ID>
     <ID>LongMethod:AndroidAssetLinksRpBinding.kt:AndroidAssetLinksRpBinding$private suspend fun obtainAllowedAndroidAppTargets: Map&lt;AndroidAppRelation, Map&lt;AndroidAppPackageName, AndroidAppTarget&gt;&gt;</ID>
@@ -894,7 +871,6 @@
     <ID>LongMethod:changePasswordAction.kt:suspend fun SequenceScope&lt;SendItem?&gt;.yieldCipherIdentityItems</ID>
     <ID>LongMethod:cipherChangeGpgKeyExpirationAction.kt:fun RememberStateFlowScope.cipherChangeGpgKeyExpiryAction</ID>
     <ID>LongMethod:popup.kt:@Composable private fun BasicPopup</ID>
-    <ID>LoopWithTooManyJumpStatements:AgentIpcServer.kt:AgentIpcServer$while</ID>
     <ID>LoopWithTooManyJumpStatements:AgentPacketSession.kt:while</ID>
     <ID>LoopWithTooManyJumpStatements:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStore$while</ID>
     <ID>LoopWithTooManyJumpStatements:CipherCrypto.kt:CipherFieldDecodeScope$for</ID>
@@ -925,7 +901,6 @@
     <ID>MagicNumber:AddScreenScope.kt:AddScreenScope$100L</ID>
     <ID>MagicNumber:AddStateProducer.kt:5000L</ID>
     <ID>MagicNumber:AgentApprovalContent.kt:200L</ID>
-    <ID>MagicNumber:AgentIpcPeerVerification.kt:UnixLibC$4</ID>
     <ID>MagicNumber:AgentManager.kt:AgentManager$3</ID>
     <ID>MagicNumber:AnimatedFabVisibility.kt:0.01f</ID>
     <ID>MagicNumber:AppPickerScreen.kt:100L</ID>
@@ -1308,7 +1283,6 @@
     <ID>MatchingDeclarationName:AddPrivilegedApp.kt:AddPrivilegedAppImpl : AddPrivilegedApp</ID>
     <ID>MatchingDeclarationName:AddSshUsageHistory.kt:AddSshUsageHistoryImpl : AddSshUsageHistory</ID>
     <ID>MatchingDeclarationName:AddUriCipher.kt:AddUriCipherImpl : AddUriCipher</ID>
-    <ID>MatchingDeclarationName:AgentIpcPeerVerification.kt:UnixAgentPeerCredentials</ID>
     <ID>MatchingDeclarationName:AlphabeticalSort.kt:AlphabeticalSendSort : SendSort</ID>
     <ID>MatchingDeclarationName:AndFilter.kt:AndSendFilter : SendFilterPureSendFilter</ID>
     <ID>MatchingDeclarationName:ArchiveCipherById.kt:ArchiveCipherByIdImpl : ArchiveCipherById</ID>
@@ -1891,11 +1865,9 @@
     <ID>ReturnCount:WatchtowerSyncerImpl.kt:WatchtowerInactivePasskey.Companion$context(tldService: TldService) private suspend fun findMatch: PassKeyServiceInfo?</ID>
     <ID>ReturnCount:WatchtowerSyncerImpl.kt:WatchtowerInactiveTfa.Companion$context(tldService: TldService) private suspend fun findMatch: TwoFaServiceInfo?</ID>
     <ID>ReturnCount:WatchtowerSyncerImpl.kt:WatchtowerIncomplete$private fun hasAlert: String?</ID>
-    <ID>ReturnCount:WindowsNamedPipe.kt:WindowsNamedPipeConnection$fun read: Int</ID>
     <ID>ReturnCount:PlatformVaultModule.kt:DatabaseSqlManagerInFileApple$private fun isPlaintextSqliteDatabaseFile: Boolean</ID>
     <ID>ReturnCount:getHttpCode.kt:fun Throwable.getHttpCode: Int</ID>
     <ID>ReturnCount:screenFlow.kt:private fun Context.isScreenOn: Boolean</ID>
-    <ID>ThrowsCount:AgentIpcPeerVerification.kt:UnixLibC$fun macosPeerCredentials: UnixAgentPeerCredentials</ID>
     <ID>ThrowsCount:AgentStartupRetry.kt:internal suspend fun &lt;T&gt; retryAgentStartup: T</ID>
     <ID>ThrowsCount:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStore$override suspend fun read: Source</ID>
     <ID>ThrowsCount:BackupObjectStore.kt:BackupObjectStore$suspend fun test: BackupObjectStoreTestResult</ID>
@@ -1912,12 +1884,9 @@
     <ID>ThrowsCount:SyncResult.kt:internal fun SyncResult.requireCleanForRevisionCache</ID>
     <ID>ThrowsCount:TotpServiceImpl.kt:TotpServiceImpl$private fun decodeSecretKey: ByteArray</ID>
     <ID>ThrowsCount:VerifyGpgPublicKeyImpl.kt:VerifyGpgPublicKeyImpl$private fun parsePublicKey: GpgPublicKeyInfo</ID>
-    <ID>ThrowsCount:WindowsNamedPipe.kt:WindowsNamedPipeConnection$fun write</ID>
-    <ID>ThrowsCount:WindowsOwnerOnlySecurity.kt:private fun windowsProcessUserSidString: String</ID>
     <ID>TooGenericExceptionCaught:AccountSyncScheduler.kt:AccountSyncScheduler$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:AddCipher.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:AgentApprovalCacheConfig.kt:AgentApprovalCacheConfigState$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:AgentIpcServer.kt:AgentIpcServer$e: Exception</ID>
     <ID>TooGenericExceptionCaught:AgentManager.kt:AgentManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:AgentStartupRetry.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:AndroidTreeBackupObjectStore.kt:AndroidTreeBackupObjectStore$e: Exception</ID>
@@ -1996,8 +1965,6 @@
     <ID>TooGenericExceptionCaught:WatchtowerSyncerImpl.kt:WatchtowerClient$e: Exception</ID>
     <ID>TooGenericExceptionCaught:WatchtowerSyncerImpl.kt:WatchtowerDuplicateUris$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:WindowScreenshotProtectionEffect.kt:e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:WindowsNamedPipe.kt:WindowsNamedPipeServer$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:WindowsOwnerOnlySecurity.kt:WindowsOwnerOnlySecurityAttributes.Companion$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:PlatformVaultModule.kt:DatabaseSqlManagerInFileApple$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:http.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:http.kt:f: Exception</ID>

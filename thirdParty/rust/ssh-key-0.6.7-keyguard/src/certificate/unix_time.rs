@@ -8,49 +8,22 @@ use encoding::{Decode, Encode, Reader, Writer};
 #[cfg(feature = "std")]
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-/// Maximum allowed value for a Unix timestamp.
-pub const MAX_SECS: u64 = i64::MAX as u64;
-
 /// Unix timestamps as used in OpenSSH certificates.
+///
+/// Preserve the full unsigned wire value, including `u64::MAX` ("forever").
+/// Decoding and signature verification must not depend on platform time limits.
 #[derive(Copy, Clone, Eq, PartialEq, PartialOrd, Ord)]
 pub(super) struct UnixTime {
     /// Number of seconds since the Unix epoch
     secs: u64,
-
-    /// System time corresponding to this Unix timestamp
-    #[cfg(feature = "std")]
-    time: SystemTime,
 }
 
 impl UnixTime {
     /// Create a new Unix timestamp.
     ///
-    /// `secs` is the number of seconds since the Unix epoch and must be less
-    /// than or equal to `i64::MAX`.
-    #[cfg(not(feature = "std"))]
-    pub fn new(secs: u64) -> Result<Self> {
-        if secs <= MAX_SECS {
-            Ok(Self { secs })
-        } else {
-            Err(Error::Time)
-        }
-    }
-
-    /// Create a new Unix timestamp.
-    ///
-    /// This version requires `std` and ensures there's a valid `SystemTime`
-    /// representation with an infallible conversion (which also improves the
-    /// `Debug` output)
-    #[cfg(feature = "std")]
-    pub fn new(secs: u64) -> Result<Self> {
-        if secs > MAX_SECS {
-            return Err(Error::Time);
-        }
-
-        match UNIX_EPOCH.checked_add(Duration::from_secs(secs)) {
-            Some(time) => Ok(Self { secs, time }),
-            None => Err(Error::Time),
-        }
+    /// `secs` is the number of seconds since the Unix epoch.
+    pub const fn new(secs: u64) -> Self {
+        Self { secs }
     }
 
     /// Get the current time as a Unix timestamp.
@@ -64,7 +37,7 @@ impl Decode for UnixTime {
     type Error = Error;
 
     fn decode(reader: &mut impl Reader) -> Result<Self> {
-        u64::decode(reader)?.try_into()
+        Ok(Self::new(u64::decode(reader)?))
     }
 }
 
@@ -86,17 +59,16 @@ impl From<UnixTime> for u64 {
 }
 
 #[cfg(feature = "std")]
-impl From<UnixTime> for SystemTime {
-    fn from(unix_time: UnixTime) -> SystemTime {
-        unix_time.time
-    }
-}
-
-impl TryFrom<u64> for UnixTime {
+impl TryFrom<UnixTime> for SystemTime {
     type Error = Error;
 
-    fn try_from(unix_secs: u64) -> Result<UnixTime> {
-        Self::new(unix_secs)
+    fn try_from(unix_time: UnixTime) -> Result<SystemTime> {
+        if unix_time.secs == u64::MAX {
+            return Err(Error::Time);
+        }
+        UNIX_EPOCH
+            .checked_add(Duration::from_secs(unix_time.secs))
+            .ok_or(Error::Time)
     }
 }
 
@@ -105,7 +77,7 @@ impl TryFrom<SystemTime> for UnixTime {
     type Error = Error;
 
     fn try_from(time: SystemTime) -> Result<UnixTime> {
-        Self::new(time.duration_since(UNIX_EPOCH)?.as_secs())
+        Ok(Self::new(time.duration_since(UNIX_EPOCH)?.as_secs()))
     }
 }
 
@@ -117,16 +89,45 @@ impl fmt::Debug for UnixTime {
 
 #[cfg(test)]
 mod tests {
-    use super::{UnixTime, MAX_SECS};
-    use crate::Error;
+    use super::UnixTime;
+    use alloc::vec::Vec;
+    use encoding::{Decode, Encode};
 
     #[test]
-    fn new_with_max_secs() {
-        assert!(UnixTime::new(MAX_SECS).is_ok());
+    fn unsigned_timestamps_round_trip() {
+        for seconds in [0, i64::MAX as u64, 1u64 << 63, u64::MAX] {
+            let bytes = seconds.to_be_bytes();
+            let time = UnixTime::decode(&mut bytes.as_slice()).expect("unsigned wire timestamp");
+            assert_eq!(u64::from(time), seconds);
+            let mut encoded = Vec::new();
+            time.encode(&mut encoded).expect("encode timestamp");
+            assert_eq!(encoded, bytes);
+        }
     }
 
+    #[cfg(feature = "std")]
     #[test]
-    fn new_over_max_secs_returns_error() {
-        assert_eq!(UnixTime::new(MAX_SECS + 1), Err(Error::Time));
+    fn system_time_conversion_is_checked() {
+        use super::{Duration, SystemTime, UNIX_EPOCH};
+        use crate::Error;
+
+        let time = UNIX_EPOCH
+            .checked_add(Duration::from_secs(4_000_000_000))
+            .expect("finite time");
+        let unix_time = UnixTime::try_from(time).expect("time after epoch");
+        assert_eq!(u64::from(unix_time), 4_000_000_000);
+        assert_eq!(SystemTime::try_from(unix_time), Ok(time));
+        assert_eq!(
+            SystemTime::try_from(UnixTime::new(u64::MAX)),
+            Err(Error::Time)
+        );
+        assert_eq!(
+            UnixTime::try_from(
+                UNIX_EPOCH
+                    .checked_sub(Duration::from_secs(1))
+                    .expect("time before epoch")
+            ),
+            Err(Error::Time)
+        );
     }
 }

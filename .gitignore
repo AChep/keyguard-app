@@ -21,6 +21,11 @@ bin/
 gen/
 out/
 
+# Cargo source fixture used by the agent IPC cross-process tests.
+!/util/agent-ipc/rust/crates/keyguard-agent-ipc-core/src/bin/
+/util/agent-ipc/rust/crates/keyguard-agent-ipc-core/src/bin/*
+!/util/agent-ipc/rust/crates/keyguard-agent-ipc-core/src/bin/agent-ipc-fixture.rs
+
 # Python generated files
 __pycache__/
 *.pyc

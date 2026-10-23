@@ -59,6 +59,7 @@
     <string name="advanced_options">Avançado</string>
     <string name="file">Arquivo</string>
     <string name="choose_file">Escolher arquivo</string>
+    <string name="choose_folder">Choose folder</string>
     <string name="file_picker_selected_file_label">Arquivo selecionado</string>
     <string name="file_name_placeholder">Nome do arquivo</string>
     <string name="file_status_pending_upload">Envio pendente</string>
@@ -87,6 +88,8 @@
     <string name="status">Status</string>
     <string name="status_running">Executando</string>
     <string name="status_failed_to_start">Falha ao iniciar</string>
+    <string name="status_starting">Starting</string>
+    <string name="status_ready">Ready</string>
     <string name="ready_status_beta">Beta</string>
     <string name="ready_status_alpha">Alfa</string>
     <string name="learn_more">Saiba mais</string>
@@ -320,6 +323,7 @@
     <string name="key_type">Tipo de chave</string>
     <string name="key_pair">Par de chaves</string>
     <string name="key_id">ID da chave</string>
+    <string name="keygrip">Keygrip</string>
     <string name="algorithm">Algoritmo</string>
     <string name="created">Criado</string>
     <string name="expires">Expira em</string>
@@ -408,6 +412,10 @@
     <string name="ciphers_action_edit_title">Editar</string>
     <string name="ciphers_action_merge_title">Mesclar em…</string>
     <string name="ciphers_action_copy_title">Copiar para…</string>
+    <string name="ciphers_copy_attachments_note">Attachments are not copied.</string>
+    <string name="ciphers_copy_warning_links">Copies do not keep links to other items.</string>
+    <string name="ciphers_copy_warning_environment_references">Variables that reference other items become unset in the copies.</string>
+    <string name="ciphers_copy_error_unsupported_environment">Some environments use a format this version of Keyguard cannot read. Update Keyguard to copy them to another account.</string>
     <string name="ciphers_action_export_title">Exportar…</string>
     <string name="ciphers_action_change_folder_title">Mover para a pasta</string>
     <string name="ciphers_action_change_name_title">Renomear</string>
@@ -614,38 +622,17 @@
     <string name="gpg_key_expiry_unresolved_revocation_message">Não é possível verificar uma revogação designada porque a chave pública do revogador não está disponível. Importe-a e tente novamente.</string>
     <string name="gpg_key_expiry_unsupported_signing_hash_message">Esta chave só pode ser recertificada com um algoritmo de resumo inseguro. Migre para uma chave moderna.</string>
     <string name="gpg_key_expiry_missing_self_signature_message">Esta chave não possui autoassinatura válida, portanto não pode ser renovada. Ele pode estar corrompido ou incompleto.</string>
-    <string name="gpg_user_id_revocation_dialog_title">Revogar ID de usuário GPG</string>
-    <string name="gpg_user_id_revocation_dialog_message">Selecione o ID do usuário a ser revogado. A revogação adiciona uma declaração assinada ao certificado e não apaga a identidade ou o seu histórico.</string>
     <string name="gpg_user_id_revocation_confirm">Revogar</string>
     <string name="gpg_user_id_revocation_last_identity_message">Uma chave GPG deve manter pelo menos um ID de usuário utilizável. Adicione um substituto antes de revogar este.</string>
-    <string name="gpg_user_id_revocation_no_identity_message">Esta chave não possui ID de usuário ativo que possa ser revogada.</string>
-    <string name="gpg_user_id_replacement_dialog_title">Substituir ID de usuário GPG</string>
-    <string name="gpg_user_id_replacement_dialog_message">Selecione o ID de usuário antigo. O Keyguard adicionará a substituição e revogará esse ID de usuário exato em uma atualização.</string>
-    <string name="gpg_user_id_replacement_confirm_next">Próximo</string>
-    <string name="gpg_user_id_replacement_no_identity_message">Esta chave não possui ID de usuário ativo que possa ser substituído.</string>
-    <string name="gpg_user_id_replacement_value_title">Nova ID de usuário GPG</string>
-    <string name="gpg_user_id_replacement_value_message">Insira a nova ID de usuário OpenPGP exato. O Keyguard não irá cortá-la ou normalizá-la.</string>
     <string name="gpg_user_id_replacement_value_label">ID do Usuário</string>
-    <string name="gpg_user_id_replacement_value_hint">Nome &lt;email@example.com&gt;</string>
     <string name="gpg_user_id_replacement_value_confirm">Substituir</string>
     <string name="gpg_user_id_replacement_invalid_message_with_limit">Insira um ID de usuário não vazio, com no máximo <xliff:g id="byte_limit" example="1024">%1$d</xliff:g> bytes em UTF-8 e sem caracteres de controle.</string>
     <string name="gpg_user_id_replacement_same_identity_message">Insira um ID de usuário diferente da identidade selecionada.</string>
     <string name="gpg_user_id_replacement_duplicate_message">Esse ID de usuário já está ativo nesta chave.</string>
     <string name="gpg_user_id_replacement_title">Substituir ID do Usuário</string>
-    <string name="gpg_user_id_replacement_success_title">ID de usuário GPG substituído</string>
-    <string name="gpg_user_id_replacement_success_message">Salve este item e redistribua ou carregue sua chave pública para publicar a substituição.</string>
-    <string name="gpg_user_id_replacement_already_done_message">Esta substituição já foi aplicada. Nenhuma nova assinatura foi criada.</string>
-    <string name="gpg_user_id_replacement_failed_title">Falha ao substituir o ID de usuário GPG</string>
-    <string name="gpg_user_id_replacement_failed_message">O ID do usuário não pôde ser substituído. A chave original permaneceu inalterada.</string>
     <string name="gpg_user_id_replacement_retired_message">Esse ID de usuário exato foi revogado anteriormente e não pode ser adicionado novamente.</string>
     <string name="gpg_user_id_replacement_target_missing">O ID do usuário selecionado foi alterado ou não está mais ativo. Reabra a chave e tente novamente.</string>
-    <string name="gpg_user_id_replacement_private_key_required">Importe a chave privada para substituir um de seus IDs de usuário.</string>
-    <string name="gpg_user_id_replacement_unavailable">A substituição do ID do usuário GPG não é suportada nesta plataforma.</string>
     <string name="gpg_user_id_revocation_title">Revogar ID do Usuário</string>
-    <string name="gpg_user_id_revocation_success_title">ID de usuário GPG revogado</string>
-    <string name="gpg_user_id_revocation_success_message">Salve este item e redistribua ou carregue sua chave pública para publicar a revogação.</string>
-    <string name="gpg_user_id_revocation_already_done_message">Este ID de usuário já foi revogado. Nenhuma nova assinatura foi criada.</string>
-    <string name="gpg_user_id_revocation_failed_title">Falha ao revogar o ID de usuário do GPG</string>
     <string name="gpg_user_id_revocation_failed_message">O ID do usuário não pôde ser revogado. A chave original permaneceu inalterada.</string>
     <string name="gpg_user_id_revocation_target_missing">O ID do usuário selecionado foi alterado ou não é mais elegível. Reabra a chave e tente novamente.</string>
     <string name="gpg_user_id_revocation_private_key_required">Importe a chave privada para revogar um de seus IDs de usuário.</string>
@@ -668,6 +655,7 @@
     <string name="copy_send">Copiar envio</string>
     <string name="copy_package_name">Copiar nome do pacote</string>
     <string name="copy_bundle_id">Copiar ID do pacote</string>
+    <string name="copy_id">Copy ID</string>
     <string name="copy_password">Copiar senha</string>
     <string name="copy_username">Copiar nome de usuário</string>
     <string name="copy_email">Copiar e-mail</string>
@@ -689,6 +677,7 @@
     <string name="copied_uri">URI copiada</string>
     <string name="copied_tag">Copiou uma etiqueta</string>
     <string name="copied_package_name">Nome do pacote copiado</string>
+    <string name="copied_id">Copied an ID</string>
     <string name="copied_key">Chave copiada</string>
     <string name="copied_fingerprint">Impressão digital copiada</string>
     <string name="copied_password">Senha copiada</string>
@@ -713,7 +702,7 @@
         Shows up as an entry in the system credential picker when the app
         requesting passkeys (usually a browser) is not on the privileged apps
         list. Tapping it opens Keyguard, which offers to grant the privilege -->
-    <string name="autofill_authorize_app">Authorize this app</string>
+    <string name="autofill_authorize_app">Autorizar este aplicativo</string>
     <string name="autofill_no_matching_logins">Nenhum login correspondente</string>
     <string name="autofill_passwords_section">Senhas</string>
     <string name="autofill_verification_codes_section">Códigos de verificação</string>
@@ -780,9 +769,9 @@
     <string name="error_invalid_card_number">Número de cartão inválido</string>
     <string name="error_webdav_url_required">A URL do WebDAV é obrigatória</string>
     <string name="error_webdav_file_url_required">Insira a URL WebDAV completa para um recurso de arquivo</string>
-    <string name="error_s3_endpoint_invalid">Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment</string>
-    <string name="error_s3_bucket_required">Bucket is required</string>
-    <string name="error_s3_bucket_invalid">Enter a valid bucket name</string>
+    <string name="error_s3_endpoint_invalid">Insira uma URL completa com HTTP ou HTTPS, sem credenciais, parâmetros de consulta ou fragmentos</string>
+    <string name="error_s3_bucket_required">Bucket é obrigatório</string>
+    <string name="error_s3_bucket_invalid">Insira um nome de bucket válido</string>
     <string name="error_s3_prefix_invalid">The prefix cannot contain empty, ".", or ".." segments</string>
     <string name="error_s3_key_required">Enter the object key of a database file</string>
     <string name="error_s3_key_invalid">The object key cannot contain empty, ".", or ".." segments</string>
@@ -797,6 +786,7 @@
     <string name="error_otp_key_must_not_be_empty">A chave secreta da senha única não pode estar vazia</string>
     <string name="error_otp_key_is_invalid">Chave secreta da senha de uso único é inválida</string>
     <string name="error_failed_file_already_exists">Falha ao criar o arquivo. Substituição do arquivo existente não é permitido</string>
+    <string name="error_account_already_exists">This account is already added to Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Falha ao criar uma chave, memória insuficiente. Por favor, verifique as configurações do servidor KDF.</string>
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
     <string name="error_failed_create_passkey">Falha ao criar uma chave de acesso</string>
@@ -814,6 +804,8 @@
     <string name="biometric_error_policy_not_installed_flatpak">O Keyguard precisa de uma regra única de permissão do sistema para usar a autenticação do sistema. Execute este comando em um terminal no host e tente novamente:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Falha ao descriptografar a chave biométrica</string>
     <string name="error_failed_agent_start">Não foi possível iniciar o agente <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
+    <string name="error_agent_ipc_unavailable">A component of Keyguard is missing. Reinstall Keyguard.</string>
+    <string name="error_agent_ipc_endpoint">Could not create the agent&apos;s private connection</string>
     <string name="error_failed_power_lock_start">Não foi possível ativar o bloqueio automático do cofre. Reinicie o Keyguard para tentar novamente.</string>
     <string name="error_quick_search_autotype_permission">É necessário permitir o acesso à Acessibilidade</string>
     <string name="error_quick_search_autotype_unavailable">Não foi possível focar o destino</string>
@@ -822,6 +814,7 @@
     <string name="error_quick_search_autotype_busy">A digitação automática já está em andamento</string>
     <string name="error_quick_search_autotype_keys_held">Solte todas as teclas e os botões do mouse e tente novamente</string>
     <string name="error_credential_calling_app_not_privileged">O aplicativo de chamada não está na lista de privilégios e não pode solicitar autenticação em nome de outros aplicativos.</string>
+    <string name="error_credential_not_stored">This item cannot store the credential.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
@@ -1174,6 +1167,7 @@
     <string name="cipher_type_ssh_key">Chave SSH</string>
     <string name="cipher_type_gpg_key">Chave GPG</string>
     <string name="cipher_type_passkey">Chave de acesso</string>
+    <string name="cipher_type_environment">Environment</string>
     <string name="field_type_text">Texto</string>
     <string name="field_type_text_concealed">Texto (oculto)</string>
     <string name="field_type_boolean">Booleano</string>
@@ -1815,7 +1809,7 @@
     <string name="pref_item_load_website_icons_title">Carregar ícones de sites</string>
     <string name="pref_item_load_website_icons_text">A consulta pelo ícone do site pode vazar o endereço do site para o provedor de Internet</string>
     <string name="pref_item_load_gravatar_icons_title">Carregar ícones do Gravatar</string>
-    <string name="pref_item_markdown_title">Formatação de texto rica</string>
+    <string name="pref_item_markdown_title">Formatação de texto avançada</string>
     <string name="pref_item_markdown_text">Use Markdown para formatar notas</string>
     <string name="pref_item_locale_title">Idioma</string>
     <string name="pref_item_locale_help_translation_button">Sugerir tradução</string>
@@ -1926,8 +1920,6 @@
     <string name="pref_item_ssh_agent_text">Autentique seus clientes Git e SSH sem que eles consigam ler sua chave privada</string>
     <string name="pref_item_agent_status_unsupported">Não suportado</string>
     <string name="pref_item_agent_status_stopped">Parado</string>
-    <string name="pref_item_agent_status_starting">Iniciando</string>
-    <string name="pref_item_agent_status_ready">Pronto</string>
     <string name="pref_item_agent_status_failed">Falhou</string>
     <string name="pref_item_agent_approval_window_title">Lembrar aprovações de chaves</string>
     <string name="pref_item_agent_local_storage_title">Armazenamento local</string>
@@ -1936,6 +1928,7 @@
     <string name="pref_item_agent_display_key_names_note">Uma cópia não criptografada do título do item será armazenada localmente</string>
     <string name="pref_item_agent_approval_window_always_ask">Sempre perguntar</string>
     <string name="pref_item_agent_approval_window_until_lock">Até que o cofre seja bloqueado</string>
+    <string name="pref_item_approval_window_title">Remember approvals</string>
     <string name="pref_item_ssh_agent_approval_remember_note">An approved signature is remembered for this long per key and application, instead of asking every time.</string>
     <string name="pref_item_agent_filters_text">Escolha quais chaves <xliff:g id="protocol" example="SSH">%1$s</xliff:g> podem ser acessadas pelo agente %1$s</string>
     <string name="pref_item_agent_filters_summary_all">Todas as chaves acessíveis</string>
@@ -2213,6 +2206,14 @@
     <string name="gpg_agent_setup_step_5_text">Use o mesmo GNUPGHOME quando o Git assinar commits. Mantenha a configuração local em um repositório ou altere --local para --global.</string>
     <string name="gpg_agent_setup_windows_native_gnupg_note">O Windows requer uma instalação nativa do GnuPG. O GPG incluído no Git for Windows não é compatível com esta configuração.</string>
     <string name="gpg_agent_setup_macos_step_2_text">Execute estes comandos no Terminal enquanto o Keyguard estiver em execução. Eles preparam <xliff:g id="path" example="~/.keyguard/gnupg">%1$s</xliff:g> e conectam o GnuPG instalado ao Keyguard. Depois, defina GNUPGHOME no mesmo shell antes de importar chaves ou assinar.</string>
+    <string name="gpg_agent_setup_android_termux_text">On Android, Keyguard provides the GPG agent via a dedicated helper package. Enable GPG agent in Keyguard, install and configure the package, and approve requests when GnuPG connects.</string>
+    <string name="gpg_agent_setup_android_termux_step_3_title">Configure GnuPG</string>
+    <string name="gpg_agent_setup_android_termux_step_3_shell_current">Start the package and export GNUPGHOME into your current shell:</string>
+    <string name="gpg_agent_setup_android_termux_import_title">Import the public key</string>
+    <string name="gpg_agent_setup_android_termux_import_text">Export the public key from the GPG Key item in Keyguard. Keyguard saves it to Downloads. Give Termux access to shared storage once, then import the key. This exposes only public key material.</string>
+    <string name="gpg_agent_setup_android_termux_git_title">Sign Git commits</string>
+    <string name="gpg_agent_setup_android_how_does_it_work_1">The GPG agent receives requests from GnuPG, then forwards them to the Keyguard app instead of handling the sensitive operation itself.</string>
+    <string name="gpg_agent_setup_android_how_does_it_work_2">The communication is done in two steps: first the agent signals the app to start a session, then both sides connect over a local TCP channel and exchange encrypted messages. The GPG agent acts as a relay, while the Keyguard app performs the actual operations.</string>
     <string name="gpg_keys_capability_sign">Assinar</string>
     <string name="gpg_key_status">Status da chave GPG</string>
     <string name="gpg_key_status_revoked_text">Esta chave GPG foi revogada e não deve ser usada.</string>
@@ -2305,6 +2306,11 @@
     <string name="gpg_keyserver_search_revoked_label">Revogada</string>
     <string name="gpg_keyserver_search_index_label">Índice</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">Chave pública GPG não encontrada no servidor de chaves</string>
+    <string name="gpg_keyserver_search_scan_no_fingerprint_title">The QR code has no GPG key fingerprint</string>
+    <string name="gpg_keyserver_error_unexpected_fingerprint">The keyserver returned a GPG public key with a different fingerprint</string>
+    <string name="gpg_keyserver_error_v6_unsupported">This keyserver does not support V6 GPG keys</string>
+    <string name="gpg_keyserver_error_short_key_id_title">Short key IDs are not supported</string>
+    <string name="gpg_keyserver_error_short_key_id_text">Short key IDs are not unique. Search by fingerprint or long key ID.</string>
     <string name="gpg_keyserver_upload_success_title">Chave pública GPG enviada</string>
     <string name="gpg_keyserver_upload_verify_already_published_text">Os endereços de e-mail selecionados já foram verificados.</string>
     <string name="gpg_keyserver_refresh_success_title">Chave pública GPG atualizada</string>
@@ -2319,6 +2325,11 @@
     <string name="gpg_keyserver_status_title">Servidor de chaves GPG</string>
     <string name="gpg_keyserver_status_not_checked">Não verificado</string>
     <string name="gpg_keyserver_status_checked_at">Verificado <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="gpg_keyserver_status_verified">Verified</string>
+    <string name="gpg_keyserver_status_found_unverified">Found, no verified e-mail</string>
+    <string name="gpg_keyserver_status_not_found">Not found</string>
+    <string name="gpg_keyserver_last_checked">Last checked</string>
+    <string name="gpg_keyserver_last_refreshed">Last refreshed</string>
     <string name="gpg_agent_history_request_sign_hash">Assinar hash</string>
     <string name="gpg_agent_history_request_decrypt">Descriptografar</string>
     <string name="gpg_agent_history_response_unsupported">Não suportado</string>
@@ -2396,4 +2407,137 @@
     <string name="storage_missing_configuration">This build is missing its shared storage configuration. Install a correctly configured build to continue.</string>
     <string name="storage_unavailable">Keyguard cannot access its storage container. Try again. If the problem persists, check the app’s signing and App Group configuration.</string>
     <string name="storage_unwritable">Keyguard cannot write to its storage container. Check available space and storage access, then try again.</string>
+    <string name="sso_login">Log in with SSO</string>
+    <string name="sso_unlock">Continue</string>
+    <string name="sso_unlock_note">Enter your Bitwarden master password to decrypt your account.</string>
+    <string name="sso_browser_note">Complete sign-in in your browser, then return to Keyguard.</string>
+    <string name="sso_browser_success">You can close this page and return to Keyguard.</string>
+    <string name="sso_error_callback">The SSO response does not match this sign-in attempt. Try again.</string>
+    <string name="sso_error_authentication">SSO sign-in could not be completed. Try again.</string>
+    <string name="sso_error_unsupported">This account needs a decryption method or account setup that Keyguard does not support. Open the web vault to continue.</string>
+    <string name="sso_error_password">Wrong master password for this Bitwarden account. Try again.</string>
+    <string name="sso_error_key_connector">Could not get the decryption key from Key Connector. Try again.</string>
+    <string name="sso_error_account">SSO returned a different account. Sign in with the email and server selected in Keyguard.</string>
+    <string name="sso_error_ports">The local SSO callback ports are busy. Close other sign-in attempts and try again.</string>
+    <string name="passkey_provider_consent">Your system will store the websites and account names of your passkeys so it can suggest them while Keyguard is locked. Private keys stay in your encrypted vault.</string>
+    <string name="passkey_provider_unsupported">Update your operating system to use Keyguard as a passkey provider.</string>
+    <string name="passkey_provider_unpackaged">Install Keyguard from the Microsoft Store or an MSIX package to use passkeys.</string>
+    <string name="passkey_provider_unregistered">Register Keyguard to save and use passkeys in apps and browsers.</string>
+    <string name="passkey_provider_disabled">Registered. Enable Keyguard in your system's passkey settings.</string>
+    <string name="passkey_provider_enabled">Keyguard can save and use passkeys.</string>
+    <string name="passkey_provider_error">Could not complete the passkey request</string>
+    <string name="passkey_provider_unavailable">The passkey provider is unavailable. Restart Keyguard and try again.</string>
+    <string name="passkey_provider_cache_error">Passkey suggestions could not be updated. Keyguard will retry while your vault is unlocked.</string>
+    <string name="passkey_provider_open_settings">Open passkey settings</string>
+    <string name="attachment_archive_empty">This folder is empty.</string>
+    <string name="attachment_archive_encrypted">Encrypted</string>
+    <string name="attachment_archive_unavailable">Cannot open or save this entry.</string>
+    <string name="attachment_archive_save">Save file</string>
+    <string name="attachment_archive_back">Back</string>
+    <string name="attachment_archive_password">Archive password</string>
+    <string name="attachment_archive_error_password">Incorrect password or damaged file. Try again.</string>
+    <string name="attachment_archive_error_invalid">This ZIP archive is damaged or contains ambiguous entries.</string>
+    <string name="attachment_archive_error_unsupported">This ZIP format is not supported.</string>
+    <string name="attachment_archive_error_entries">This archive contains too many files or folders to preview.</string>
+    <string name="attachment_archive_error_export_size">This file exceeds the <xliff:g id="size_limit" example="128 MiB">%1$s</xliff:g> save limit.</string>
+    <string name="attachment_archive_error_export">Failed to save this file.</string>
+    <string name="attachment_archive_error_export_cleanup">Could not remove the incomplete file. Delete it from the selected destination.</string>
+    <string name="gpg_user_ids_add">Add User ID</string>
+    <string name="gpg_user_ids_primary">Primary</string>
+    <string name="gpg_user_ids_make_primary">Make primary</string>
+    <string name="gpg_user_ids_replace">Replace…</string>
+    <string name="gpg_user_ids_revoke">Revoke…</string>
+    <string name="gpg_user_ids_history">Identity history</string>
+    <string name="gpg_user_ids_inactive">Inactive</string>
+    <string name="gpg_user_ids_exact">Exact User ID</string>
+    <string name="gpg_user_ids_structured">Name and email</string>
+    <string name="gpg_user_ids_email_optional">Email (optional)</string>
+    <string name="gpg_user_ids_draft_message">Changes apply when you save this item. Share the updated public key to publish them.</string>
+    <string name="gpg_user_ids_add_message">Add another name or email to this key. The current primary stays the same.</string>
+    <string name="gpg_user_ids_replace_message">The replacement will be added and the selected User ID revoked. Its history remains on the key.</string>
+    <string name="gpg_user_ids_revoke_message">Revoke this User ID? This adds a signed revocation and keeps its history. After sharing the updated public key, revocation cannot be undone.</string>
+    <string name="gpg_user_ids_private_required">Import the private key to manage User IDs.</string>
+    <string name="gpg_user_ids_read_only">User IDs can be viewed, but this key cannot currently certify changes.</string>
+    <string name="gpg_user_ids_unavailable">Managing User IDs is unavailable on this platform.</string>
+    <string name="gpg_user_ids_invalid_form">Enter a name and, optionally, a valid email. For other formats, use an exact User ID.</string>
+    <string name="gpg_user_ids_conflict">The key changed. Cancel this action and try again.</string>
+    <string name="gpg_user_ids_failed">The User ID could not be updated. The key was left unchanged.</string>
+    <string name="gpg_user_ids_empty">No active User IDs</string>
+    <string name="gpg_user_ids_retry_at">The key’s signature times prevent this change. Try again after %1$s. Check that your devices’ clocks are correct.</string>
+    <string name="gpg_user_ids_time_conflict">The key’s signature times prevent this change. Check that your devices’ clocks are correct.</string>
+    <string name="cipher_field_picker_items_title">Choose an item</string>
+    <string name="cipher_field_picker_fields_title">Choose a field</string>
+    <string name="cipher_field_picker_items_empty">No items with a password or custom fields</string>
+    <string name="cipher_field_picker_duplicate">Duplicate field name</string>
+    <string name="environments_title">Environments</string>
+    <string name="environments_description">Store environment variables and pass them to local tools.</string>
+    <string name="environments_create">New environment</string>
+    <string name="environments_search">Search environments</string>
+    <string name="environments_empty">No environments</string>
+    <string name="environments_locked">Unlock Keyguard to manage environments.</string>
+    <string name="environments_name">Environment name</string>
+    <string name="environments_variables">Variables</string>
+    <string name="environments_add_variable">Add variable</string>
+    <string name="environments_variable_name">Variable name</string>
+    <string name="environments_variable_error_invalid_name">Use only Latin letters, digits, and underscores. Do not start with a digit.</string>
+    <string name="environments_variable_error_duplicate_name">This name is already used</string>
+    <string name="environments_variable_type">Variable type</string>
+    <string name="environments_variable_type_value">Value</string>
+    <string name="environments_variable_type_reference">Reference to an item</string>
+    <string name="environments_reference_unavailable">Item not available</string>
+    <string name="environments_unset">Unset</string>
+    <string name="environments_variable_unsupported">Unsupported value</string>
+    <string name="environments_read_only">You can view this environment but not edit it.</string>
+    <string name="environments_error_unsupported_format">This version of Keyguard cannot read some of this environment's data, so it is read-only. Update Keyguard, or edit it in the app that last changed it.</string>
+    <string name="environments_error_limits_exceeded">Too many variables, or a name is too long. Remove some variables or shorten their names.</string>
+    <string name="environments_import">Import .env</string>
+    <string name="environments_import_drop_here">Drop a .env file to import its variables</string>
+    <string name="environments_import_note">Importing replaces this environment's variables. Keyguard does not delete the source file.</string>
+    <string name="environments_import_text">Paste .env content</string>
+    <string name="environments_import_file">Choose .env file</string>
+    <string name="environments_import_error_parse">This is not valid .env content</string>
+    <string name="environments_import_preview">Preview import</string>
+    <string name="environments_import_preview_title">Variables to import</string>
+    <string name="environments_import_apply">Replace variables</string>
+    <string name="environments_mounts">Local .env files</string>
+    <string name="environments_mounts_empty">No local .env files</string>
+    <string name="environments_mount_note">Each file is a named pipe, so every read returns the current values. Read it from one process at a time. Approvals last for the MCP approval window, and end when the environment changes.</string>
+    <string name="environments_mount_create">Create local .env file</string>
+    <string name="environments_mount_path">Absolute path of the new .env file</string>
+    <string name="environments_flatpak_note">Keyguard needs Flatpak permission to use this folder. Run this command on the host, then restart Keyguard. The folder must be writable.</string>
+    <string name="environments_mount_status_error">Unavailable. Check that nothing else uses this path and that its folder is writable.</string>
+    <string name="environments_mount_disable">Disable local .env file</string>
+    <string name="environments_mount_open_environment">Open environment</string>
+    <string name="environments_mount_unsupported">Local .env files are not supported on this platform.</string>
+    <string name="environments_mounts_error_unavailable">Local .env files are unavailable. Restart Keyguard and try again.</string>
+    <string name="environments_mcp_enable">Enable MCP access</string>
+    <string name="environments_mcp_setup">MCP client configuration</string>
+    <string name="environments_mcp_note">MCP clients can create and edit environments. They never see variable values or other vault items. You approve what each client can do.</string>
+    <string name="environments_approval_title">Environment access request</string>
+    <string name="environments_approval_message_known_app"><xliff:g id="who" example="Claude Code">%1$s</xliff:g> wants to access your environments:</string>
+    <string name="environments_approval_message_unknown_app">A local process wants to access your environments:</string>
+    <string name="environments_local_process">Local process</string>
+    <string name="environments_approval_client">Client name (unverified): <xliff:g id="client" example="Claude Code">%1$s</xliff:g></string>
+    <string name="environments_capability_authenticate">Connect to Keyguard</string>
+    <string name="environments_capability_list">List environments</string>
+    <string name="environments_capability_create">Create an environment</string>
+    <string name="environments_capability_rename">Rename an environment</string>
+    <string name="environments_capability_variables">List variable names and types</string>
+    <string name="environments_capability_update">Add or update environment variables</string>
+    <string name="environments_capability_create_mount">Create a local .env file</string>
+    <string name="environments_capability_mounts">List local .env files</string>
+    <string name="environments_capability_read">Read this local .env file</string>
+    <string name="environments_grant_directory">To allow access, choose the folder that contains the requested file.</string>
+    <string name="environments_grant_error_wrong_folder">Wrong folder. Choose the folder shown in this request.</string>
+    <string name="environments_approval_note">Keyguard remembers this approval for the MCP approval window, or until the vault locks.</string>
+    <string name="environments_approval_local_file_note">While the approval lasts, any process running under your account can read this file.</string>
+    <string name="cli_title">Command line</string>
+    <string name="cli_enable">Enable command-line access</string>
+    <string name="cli_note">Use Keyguard from a terminal, for example to run a command with an environment's variables. Keyguard asks for your approval first.</string>
+    <string name="cli_usage">Usage</string>
+    <string name="cli_path">Location of the command-line tool</string>
+    <string name="cli_capability_run">Run a command with this environment</string>
+    <string name="cli_approval_working_directory">In <xliff:g id="directory" example="/home/user/project">%1$s</xliff:g></string>
+    <string name="cli_approval_run_note">Only this command and the processes it starts receive the values.</string>
+    <string name="cli_approval_run_terminal_note">Later commands from this terminal tab run without asking until the approval expires or the vault locks. Anything running in this tab can use the approval, including coding agents.</string>
 </resources>

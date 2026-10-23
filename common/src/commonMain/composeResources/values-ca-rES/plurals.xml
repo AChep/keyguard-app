@@ -72,6 +72,10 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> contrasenya anterior desada</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> contrasenyes anteriors desades</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> environment with item references that cannot be transferred</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> element arxivat</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> elements arxivats</item>
@@ -164,5 +168,9 @@
     <plurals name="agent_approval_expires_in_seconds_plural">
         <item quantity="one">Caduca d'aquí a <xliff:g id="seconds" example="1">%1$d</xliff:g> segon</item>
         <item quantity="other">Caduca d'aquí a <xliff:g id="seconds" example="30">%1$d</xliff:g> segons</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> active User ID</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
     </plurals>
 </resources>

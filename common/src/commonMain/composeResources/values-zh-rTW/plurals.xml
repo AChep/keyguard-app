@@ -54,6 +54,9 @@
     <plurals name="skipped_password_history_note">
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 個已儲存的舊密碼</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 個已封存的條目</item>
     </plurals>
@@ -123,5 +126,8 @@
     </plurals>
     <plurals name="agent_approval_expires_in_seconds_plural">
         <item quantity="other"><xliff:g id="seconds" example="30">%1$d</xliff:g> 秒後到期</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
     </plurals>
 </resources>

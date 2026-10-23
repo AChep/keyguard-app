@@ -90,6 +90,11 @@
         <item quantity="few"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> environment with item references that cannot be transferred</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> archived item</item>
         <item quantity="few"><xliff:g id="number">%1$d</xliff:g> archived items</item>
@@ -205,5 +210,10 @@
         <item quantity="one">Expiră în <xliff:g id="seconds" example="1">%1$d</xliff:g> secundă</item>
         <item quantity="few">Expiră în <xliff:g id="seconds" example="30">%1$d</xliff:g> secunde</item>
         <item quantity="other">Expiră în <xliff:g id="seconds" example="30">%1$d</xliff:g> de secunde</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> active User ID</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
     </plurals>
 </resources>

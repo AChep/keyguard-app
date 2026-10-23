@@ -4541,45 +4541,13 @@ public enum L10n {
     public static var gpgUserIdMutationKeyRevokedMessage: String {
         String(localized: "gpg_user_id_mutation_key_revoked_message", bundle: AppLocalization.shared.bundle)
     }
-    /// gpg_user_id_replacement_already_done_message
-    public static var gpgUserIdReplacementAlreadyDoneMessage: String {
-        String(localized: "gpg_user_id_replacement_already_done_message", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_replacement_confirm_next
-    public static var gpgUserIdReplacementConfirmNext: String {
-        String(localized: "gpg_user_id_replacement_confirm_next", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_replacement_dialog_message
-    public static var gpgUserIdReplacementDialogMessage: String {
-        String(localized: "gpg_user_id_replacement_dialog_message", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_replacement_dialog_title
-    public static var gpgUserIdReplacementDialogTitle: String {
-        String(localized: "gpg_user_id_replacement_dialog_title", bundle: AppLocalization.shared.bundle)
-    }
     /// gpg_user_id_replacement_duplicate_message
     public static var gpgUserIdReplacementDuplicateMessage: String {
         String(localized: "gpg_user_id_replacement_duplicate_message", bundle: AppLocalization.shared.bundle)
     }
-    /// gpg_user_id_replacement_failed_message
-    public static var gpgUserIdReplacementFailedMessage: String {
-        String(localized: "gpg_user_id_replacement_failed_message", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_replacement_failed_title
-    public static var gpgUserIdReplacementFailedTitle: String {
-        String(localized: "gpg_user_id_replacement_failed_title", bundle: AppLocalization.shared.bundle)
-    }
     /// gpg_user_id_replacement_invalid_message_with_limit
     public static func gpgUserIdReplacementInvalidMessageWithLimit(_ a1: Int) -> String {
         String(format: String(localized: "gpg_user_id_replacement_invalid_message_with_limit", bundle: AppLocalization.shared.bundle), a1)
-    }
-    /// gpg_user_id_replacement_no_identity_message
-    public static var gpgUserIdReplacementNoIdentityMessage: String {
-        String(localized: "gpg_user_id_replacement_no_identity_message", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_replacement_private_key_required
-    public static var gpgUserIdReplacementPrivateKeyRequired: String {
-        String(localized: "gpg_user_id_replacement_private_key_required", bundle: AppLocalization.shared.bundle)
     }
     /// gpg_user_id_replacement_retired_message
     public static var gpgUserIdReplacementRetiredMessage: String {
@@ -4589,14 +4557,6 @@ public enum L10n {
     public static var gpgUserIdReplacementSameIdentityMessage: String {
         String(localized: "gpg_user_id_replacement_same_identity_message", bundle: AppLocalization.shared.bundle)
     }
-    /// gpg_user_id_replacement_success_message
-    public static var gpgUserIdReplacementSuccessMessage: String {
-        String(localized: "gpg_user_id_replacement_success_message", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_replacement_success_title
-    public static var gpgUserIdReplacementSuccessTitle: String {
-        String(localized: "gpg_user_id_replacement_success_title", bundle: AppLocalization.shared.bundle)
-    }
     /// gpg_user_id_replacement_target_missing
     public static var gpgUserIdReplacementTargetMissing: String {
         String(localized: "gpg_user_id_replacement_target_missing", bundle: AppLocalization.shared.bundle)
@@ -4605,73 +4565,29 @@ public enum L10n {
     public static var gpgUserIdReplacementTitle: String {
         String(localized: "gpg_user_id_replacement_title", bundle: AppLocalization.shared.bundle)
     }
-    /// gpg_user_id_replacement_unavailable
-    public static var gpgUserIdReplacementUnavailable: String {
-        String(localized: "gpg_user_id_replacement_unavailable", bundle: AppLocalization.shared.bundle)
-    }
     /// gpg_user_id_replacement_value_confirm
     public static var gpgUserIdReplacementValueConfirm: String {
         String(localized: "gpg_user_id_replacement_value_confirm", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_replacement_value_hint
-    public static var gpgUserIdReplacementValueHint: String {
-        String(localized: "gpg_user_id_replacement_value_hint", bundle: AppLocalization.shared.bundle)
     }
     /// gpg_user_id_replacement_value_label
     public static var gpgUserIdReplacementValueLabel: String {
         String(localized: "gpg_user_id_replacement_value_label", bundle: AppLocalization.shared.bundle)
     }
-    /// gpg_user_id_replacement_value_message
-    public static var gpgUserIdReplacementValueMessage: String {
-        String(localized: "gpg_user_id_replacement_value_message", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_replacement_value_title
-    public static var gpgUserIdReplacementValueTitle: String {
-        String(localized: "gpg_user_id_replacement_value_title", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_revocation_already_done_message
-    public static var gpgUserIdRevocationAlreadyDoneMessage: String {
-        String(localized: "gpg_user_id_revocation_already_done_message", bundle: AppLocalization.shared.bundle)
-    }
     /// gpg_user_id_revocation_confirm
     public static var gpgUserIdRevocationConfirm: String {
         String(localized: "gpg_user_id_revocation_confirm", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_revocation_dialog_message
-    public static var gpgUserIdRevocationDialogMessage: String {
-        String(localized: "gpg_user_id_revocation_dialog_message", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_revocation_dialog_title
-    public static var gpgUserIdRevocationDialogTitle: String {
-        String(localized: "gpg_user_id_revocation_dialog_title", bundle: AppLocalization.shared.bundle)
     }
     /// gpg_user_id_revocation_failed_message
     public static var gpgUserIdRevocationFailedMessage: String {
         String(localized: "gpg_user_id_revocation_failed_message", bundle: AppLocalization.shared.bundle)
     }
-    /// gpg_user_id_revocation_failed_title
-    public static var gpgUserIdRevocationFailedTitle: String {
-        String(localized: "gpg_user_id_revocation_failed_title", bundle: AppLocalization.shared.bundle)
-    }
     /// gpg_user_id_revocation_last_identity_message
     public static var gpgUserIdRevocationLastIdentityMessage: String {
         String(localized: "gpg_user_id_revocation_last_identity_message", bundle: AppLocalization.shared.bundle)
     }
-    /// gpg_user_id_revocation_no_identity_message
-    public static var gpgUserIdRevocationNoIdentityMessage: String {
-        String(localized: "gpg_user_id_revocation_no_identity_message", bundle: AppLocalization.shared.bundle)
-    }
     /// gpg_user_id_revocation_private_key_required
     public static var gpgUserIdRevocationPrivateKeyRequired: String {
         String(localized: "gpg_user_id_revocation_private_key_required", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_revocation_success_message
-    public static var gpgUserIdRevocationSuccessMessage: String {
-        String(localized: "gpg_user_id_revocation_success_message", bundle: AppLocalization.shared.bundle)
-    }
-    /// gpg_user_id_revocation_success_title
-    public static var gpgUserIdRevocationSuccessTitle: String {
-        String(localized: "gpg_user_id_revocation_success_title", bundle: AppLocalization.shared.bundle)
     }
     /// gpg_user_id_revocation_target_missing
     public static var gpgUserIdRevocationTargetMissing: String {
@@ -5992,14 +5908,6 @@ public enum L10n {
     /// pref_item_agent_status_failed
     public static var prefItemAgentStatusFailed: String {
         String(localized: "pref_item_agent_status_failed", bundle: AppLocalization.shared.bundle)
-    }
-    /// pref_item_agent_status_ready
-    public static var prefItemAgentStatusReady: String {
-        String(localized: "pref_item_agent_status_ready", bundle: AppLocalization.shared.bundle)
-    }
-    /// pref_item_agent_status_starting
-    public static var prefItemAgentStatusStarting: String {
-        String(localized: "pref_item_agent_status_starting", bundle: AppLocalization.shared.bundle)
     }
     /// pref_item_agent_status_stopped
     public static var prefItemAgentStatusStopped: String {

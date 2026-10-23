@@ -108,6 +108,12 @@
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> uložených předchozích hesel</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> uložených předchozích hesel</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> environment with item references that cannot be transferred</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> archivovaná položka</item>
         <item quantity="few"><xliff:g id="number">%1$d</xliff:g> archivované položky</item>
@@ -246,5 +252,11 @@
         <item quantity="few">Vyprší za <xliff:g id="seconds" example="30">%1$d</xliff:g> sekundy</item>
         <item quantity="many">Vyprší za <xliff:g id="seconds" example="30">%1$d</xliff:g> sekundy</item>
         <item quantity="other">Vyprší za <xliff:g id="seconds" example="30">%1$d</xliff:g> sekund</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> active User ID</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
     </plurals>
 </resources>

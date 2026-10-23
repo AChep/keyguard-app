@@ -22,8 +22,9 @@ security-key application strings, and private-key decoding.
 Slice 6 additionally keeps the bcrypt KDF output in one contiguous
 `Zeroizing<Vec<u8>>`; the cipher key and IV are borrowed from that owner for the
 complete decrypt operation. Changes to the effective manifest, provenance, or
-local source require the native-crypto topology/source guard and SSH import
-compatibility corpus. `Cargo.toml.orig` must remain byte-for-byte upstream.
+local source require the `util/crypto/tools/native-crypto-policy` check and
+`SshImportCompatibilityCorpusTest`. `Cargo.toml.orig` must remain byte-for-byte
+upstream.
 
 The signature container also accepts legacy `ssh-rsa` (SHA-1) algorithm labels
 for agent response encoding and decoding, matching Keyguard's existing native
@@ -44,3 +45,10 @@ OpenSSH_for_Windows_9.5p2 using `ssh-keygen -s <test-ca> -I <key-id> -n test-use
 certify the existing `id_ed25519.pub` and `id_rsa_3072.pub` test keys using a
 throwaway Ed25519 CA. Tests consume the public fixtures without invoking
 OpenSSH or requiring the CA private key.
+
+RSA private-key conversion to RustCrypto preserves both prime factors, `p` and
+`q`; upstream 0.6.7 passed `p` twice, causing valid signing keys to be rejected.
+Regression tests check both borrowed and owned conversions, exact component
+round trips, and RSA certificate signing and verification. CI exercises these
+paths with `crypto,std`; the application's `keyguard-decryption,std` feature
+selection remains unchanged and does not enable this conversion.

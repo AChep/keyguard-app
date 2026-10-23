@@ -146,6 +146,13 @@ jobs:
             -A clippy::to_string_trait_impl \
             -A clippy::derivable_impls \
             -A clippy::useless_conversion
+          cargo clippy \
+            --package ssh-key --no-default-features \
+            --features crypto,std --lib --test certificate --test certificate_builder --locked -- \
+            -D warnings \
+            -A clippy::to_string_trait_impl \
+            -A clippy::derivable_impls \
+            -A clippy::useless_conversion
           cargo test \
             --workspace --exclude ssh-key --exclude authenticator --all-features --locked
           cargo test \
@@ -155,6 +162,11 @@ jobs:
             --package ssh-key --no-default-features \
             --features keyguard-decryption,std \
             --test encrypted_private_key --locked
+          # Certificate signing and RSA conversion require features excluded
+          # from the application's decryption-only configuration.
+          cargo test \
+            --package ssh-key --no-default-features \
+            --features crypto,std --lib --test certificate --test certificate_builder --locked
       - name: "Run POLYVAL forced-software backend tests"
         working-directory: thirdParty/rust
         env:

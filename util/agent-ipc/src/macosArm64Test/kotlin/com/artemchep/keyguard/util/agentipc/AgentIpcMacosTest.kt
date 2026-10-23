@@ -22,6 +22,7 @@ import platform.Foundation.NSTask
 import platform.Foundation.NSURL
 import platform.Foundation.NSUUID
 import platform.Foundation.create
+import platform.Foundation.waitUntilExit
 import platform.Foundation.writeToFile
 import platform.posix.S_IFDIR
 import platform.posix.S_IFMT
@@ -92,11 +93,13 @@ class AgentIpcMacosTest {
             val events = Channel<AgentIpcEvent>(Channel.UNLIMITED)
             val host = AgentIpcHost(AgentIpcListener.bind(agentIpcTestLocation()), 8) { events.trySend(it) }
             val child = CompletableDeferred<NSTask>()
+            val releaseChild = CompletableDeferred<Unit>()
             val serving = launch {
                 host.serve({ child.await().asAgentIpcExpectedPeer() }) { connection ->
                     assertEquals("ping", connection.readExactly(4).decodeToString())
-                    // Written before the close, so the client still reads it.
                     connection.write("pong".encodeToByteArray())
+                    // Netcat exits on socket EOF. Keep it alive for the foreign-PID check.
+                    withTimeout(5_000) { releaseChild.await() }
                 }
             }
             // `exec` keeps the shell's process ID, so the client is the task itself.
@@ -120,7 +123,8 @@ class AgentIpcMacosTest {
                 }
                 assertEquals("pong", readBytes("$root/reply").decodeToString())
 
-                // This process is not the child.
+                // This process is not the child, which still runs.
+                assertTrue(task.isRunning())
                 connectAgentIpcTestClient(host.endpoint).use { client ->
                     assertEquals(0, client.readToEnd().size)
                 }
@@ -130,6 +134,7 @@ class AgentIpcMacosTest {
                     withTimeout(5_000) { events.receive() },
                 )
             } finally {
+                releaseChild.complete(Unit)
                 if (task.isRunning()) task.terminate()
                 host.stop()
                 withTimeout(5_000) { serving.join() }

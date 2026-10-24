@@ -1445,7 +1445,7 @@ impl ClearVerificationSession {
         while index < data.len() {
             if self.state == ClearVerifyState::SignatureArmor {
                 self.push_signature(&data[index..])?;
-                return Ok(output.to_vec());
+                return Ok(std::mem::take(&mut *output));
             }
             let byte = data[index];
             if self.previous_input_was_cr {
@@ -1471,7 +1471,7 @@ impl ClearVerificationSession {
                 }
             }
         }
-        Ok(output.to_vec())
+        Ok(std::mem::take(&mut *output))
     }
 
     /// Verifies the retained canonical text against the trailing signature

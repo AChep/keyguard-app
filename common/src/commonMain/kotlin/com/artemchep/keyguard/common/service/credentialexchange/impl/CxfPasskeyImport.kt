@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.credentialexchange.impl
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyKeyMaterial
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyKeyProfile
@@ -36,11 +37,7 @@ internal fun mapImportCredentialId(
         ?.let { value -> runCatchingNonFatal { cxfUrlSafeBase64.decode(value) }.getOrNull() }
         ?.takeIf { it.isNotEmpty() }
         ?: return null
-    return try {
-        PasskeyCredentialId.decode(bytes)
-    } finally {
-        bytes.fill(0)
-    }
+    return bytes.useAndClear(PasskeyCredentialId::decode)
 }
 
 /**
@@ -55,11 +52,9 @@ internal fun mapImportKey(
 ): CxfImportedPasskeyKey? {
     val der = decodeImportKeyDer(key)
         ?: return null
-    return try {
-        passkeyCrypto.inspectKeyMaterialOrNull(der)
+    return der.useAndClear {
+        passkeyCrypto.inspectKeyMaterialOrNull(it)
             ?.encodeImportedKey()
-    } finally {
-        der.fill(0)
     }
 }
 
@@ -116,7 +111,7 @@ internal fun mapImportUserHandle(
 
 private fun mapDecodedImportUserHandle(
     bytes: ByteArray,
-): CxfImportUserHandle = try {
+): CxfImportUserHandle = bytes.useAndClear {
     if (bytes.isEmpty()) {
         // A non-empty spelling that decodes to no bytes says the same thing `""`
         // does; kept so a laxer codec cannot store an empty handle.
@@ -126,8 +121,6 @@ private fun mapDecodedImportUserHandle(
     } else {
         CxfImportUserHandle.Present(PasskeyBase64.encodeToString(bytes))
     }
-} finally {
-    bytes.fill(0)
 }
 
 /**

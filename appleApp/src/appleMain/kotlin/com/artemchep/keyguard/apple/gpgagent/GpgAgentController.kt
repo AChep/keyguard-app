@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
+import com.artemchep.keyguard.common.service.agent.AgentIpcAuthenticator
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.seedHex
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
@@ -34,6 +35,7 @@ import com.artemchep.keyguard.common.usecase.PutGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.PutGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.PutGpgAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.RemoveGpgUsageHistory
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.feature.gpgagent.filter.gpgAgentFiltersStateProducer
 import com.artemchep.keyguard.feature.gpgagent.help.macosSandboxGpgAgentSetupCommand
 import com.artemchep.keyguard.feature.gpgagent.history.GpgAgentHistoryItem
@@ -145,8 +147,8 @@ internal class GpgAgentController(
             scope.launch(Dispatchers.Main) {
                 requests.denyWhenSessionEnds(di.get())
             }
-            val authToken = cryptoGenerator.seed(32)
-            handle = try {
+            // The runtime owns a separate copy for its serving lifetime.
+            handle = cryptoGenerator.seed(AgentIpcAuthenticator.TOKEN_SIZE).useAndClear { authToken ->
                 runtime.start(
                     scope,
                     GpgAgentRuntimeConfig(
@@ -165,9 +167,6 @@ internal class GpgAgentController(
                         log = { logger.post("GpgAgent", it, LogLevel.INFO) },
                     ),
                 )
-            } finally {
-                // The runtime owns a separate copy for its serving lifetime.
-                authToken.fill(0)
             }
             if (handle?.isRunning == true) {
                 setStatus(GpgAgentRunState.READY)

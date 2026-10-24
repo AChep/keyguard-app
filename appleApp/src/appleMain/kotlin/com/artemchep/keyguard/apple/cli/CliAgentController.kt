@@ -2,9 +2,11 @@ package com.artemchep.keyguard.apple.cli
 
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardRuntime
+import com.artemchep.keyguard.common.service.agent.AgentIpcAuthenticator
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentHost
 import com.artemchep.keyguard.common.service.cli.agent.supervise
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.feature.cli.cliMcpArguments
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -28,11 +30,8 @@ internal class CliAgentController(private val ctx: CoreContext) {
                     available = runtime.isBinaryAvailable,
                     start = { scope ->
                         // The runtime keeps its own copy of the token.
-                        val token = ctx.koin.get<CryptoGenerator>().seed(32)
-                        try {
+                        ctx.koin.get<CryptoGenerator>().seed(AgentIpcAuthenticator.TOKEN_SIZE).useAndClear { token ->
                             runtime.start(scope, host, token)
-                        } finally {
-                            token.fill(0)
                         }
                     },
                     join = { handle ->

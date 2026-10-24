@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.agent
 
+import com.artemchep.keyguard.common.util.useAndClear
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
@@ -53,10 +54,8 @@ suspend fun serveCliAgentConnection(
     }
     val request = withIoTimeout(ioTimeoutMs, discard = ::wipePacket) { channel.readPacket() }
         ?: return
-    try {
-        channel.respondWhileConnected(stream, request, process, ioTimeoutMs)
-    } finally {
-        request.fill(0)
+    request.useAndClear {
+        channel.respondWhileConnected(stream, it, process, ioTimeoutMs)
     }
 }
 
@@ -67,10 +66,8 @@ private suspend fun FramedAgentPacketChannel.authenticate(
 ): Boolean {
     val packet = withIoTimeout(ioTimeoutMs, discard = ::wipePacket) { readPacket() }
         ?: return false
-    val reply = try {
-        withIoTimeout(ioTimeoutMs, discard = ::wipeReply) { process(packet) }
-    } finally {
-        packet.fill(0)
+    val reply = packet.useAndClear {
+        withIoTimeout(ioTimeoutMs, discard = ::wipeReply) { process(it) }
     }
     return reply != null && writeReply(reply, ioTimeoutMs) && !reply.close
 }

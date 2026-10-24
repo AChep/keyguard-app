@@ -10,7 +10,9 @@ use jni::{
     objects::{JByteArray, JIntArray, JLongArray, JObject, JString},
     sys::{jint, jlong, jlongArray},
 };
-use keyguard_ffi::{PanicHook, flatten as unwrap, java_string};
+use keyguard_ffi::{
+    PanicHook, flatten as unwrap, java_byte_range, java_string, jbytes, jbytes_mut,
+};
 use keyguard_io_core::{abi, bridge};
 use zeroize::Zeroizing;
 
@@ -50,21 +52,6 @@ fn java_txn_options(
     Ok(abi::TxnOptionsWire::from_jni_fields(fields))
 }
 
-fn checked_range(array_length: jint, offset: jint, length: jint) -> Result<usize, i64> {
-    let (Ok(array_length), Ok(offset), Ok(length)) = (
-        usize::try_from(array_length),
-        usize::try_from(offset),
-        usize::try_from(length),
-    ) else {
-        return Err(abi::pack_bridge_invalid_argument());
-    };
-    offset
-        .checked_add(length)
-        .filter(|end| *end <= array_length)
-        .map(|_| length)
-        .ok_or_else(abi::pack_bridge_invalid_argument)
-}
-
 /// Copies a caller-selected Java byte-array range into a zeroized buffer.
 fn java_bytes(
     environment: &JNIEnv<'_>,
@@ -72,17 +59,10 @@ fn java_bytes(
     offset: jint,
     length: jint,
 ) -> Result<Zeroizing<Vec<u8>>, i64> {
-    let array_length = environment
-        .get_array_length(input)
-        .map_err(|_| abi::pack_bridge_invalid_argument())?;
-    let length = checked_range(array_length, offset, length)?;
+    let length = java_byte_range(environment, input, offset, length)?;
     let mut buffer = Zeroizing::new(vec![0_u8; length]);
-    // SAFETY: jbyte and u8 share size, alignment, and layout; the cast only
-    // changes signedness and the slice covers the buffer's exact extent.
-    let signed =
-        unsafe { std::slice::from_raw_parts_mut(buffer.as_mut_ptr().cast::<i8>(), buffer.len()) };
     environment
-        .get_byte_array_region(input, offset, signed)
+        .get_byte_array_region(input, offset, jbytes_mut(&mut buffer))
         .map_err(|_| abi::pack_bridge_invalid_argument())?;
     Ok(buffer)
 }
@@ -288,21 +268,15 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchRe
     unwrap(contained(|| {
         let handle = java_handle(handle)?;
         let position = u64::try_from(position).map_err(|_| abi::pack_bridge_invalid_argument())?;
-        let array_length = environment
-            .get_array_length(&output)
-            .map_err(|_| abi::pack_bridge_invalid_argument())?;
-        let length = checked_range(array_length, offset, length)?;
+        let length = java_byte_range(&environment, &output, offset, length)?;
         let mut buffer = Zeroizing::new(vec![0_u8; length]);
         let result = bridge::scratch_read_at(handle, position, &mut buffer);
         if result <= 0 {
             return Ok(result);
         }
         let read = result as usize;
-        // SAFETY: jbyte and u8 share size, alignment, and layout; the cast
-        // only changes signedness and `read` never exceeds the buffer length.
-        let signed = unsafe { std::slice::from_raw_parts(buffer.as_ptr().cast::<i8>(), read) };
         environment
-            .set_byte_array_region(&output, offset, signed)
+            .set_byte_array_region(&output, offset, jbytes(&buffer[..read]))
             .map_err(|_| abi::pack_bridge_invalid_argument())?;
         Ok(result)
     }))
@@ -357,15 +331,6 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_sweepOrph
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn checked_range_accepts_empty_tail_and_rejects_overflow() {
-        assert_eq!(checked_range(4, 4, 0), Ok(0));
-        assert_eq!(checked_range(4, 0, 4), Ok(4));
-        assert!(checked_range(4, 3, 2).is_err());
-        assert!(checked_range(4, -1, 1).is_err());
-        assert!(checked_range(4, 0, -1).is_err());
-    }
 
     #[test]
     fn negative_handles_are_rejected_as_invalid_arguments() {

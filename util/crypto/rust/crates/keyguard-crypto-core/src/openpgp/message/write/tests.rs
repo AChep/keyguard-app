@@ -19,6 +19,7 @@ use crate::openpgp::adapter::write::{
     encode_decrypt_final, encode_encrypt_final, encrypt as encrypt_request, encrypt_stream_input,
     sign as sign_request,
 };
+use crate::openpgp::crypto::secret::is_rsa_private_algorithm;
 use crate::openpgp::policy::ValidatedCertificate;
 use crate::openpgp::{
     adapter::key::{generate as generate_key_request, import as import_key_request},
@@ -6306,6 +6307,40 @@ fn rsa_generation_signing_and_decryption_use_the_sensitive_adapter() {
     )
     .expect("decode RSA decryption");
     assert_eq!(decrypted.data, content);
+}
+
+#[test]
+fn rsa_signed_encryption_uses_the_sensitive_adapter() {
+    let _stream_guard = STREAM_TEST_LOCK
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner);
+    let material = generated_rsa_material();
+    let content = b"AWS-LC RSA signed encryption";
+    // Encryption always signs at the current time.
+    let operation_time = u64::from(Timestamp::now().as_secs());
+    for streaming in [false, true] {
+        let encrypted = signed_encryption_output(
+            &material.private_key_armored,
+            std::slice::from_ref(&material.public_key_armored),
+            &[],
+            content,
+            operation_time,
+            streaming,
+        );
+        let (plaintext, verification) = decrypt_recipient_bound_case(
+            &encrypted,
+            &material.private_key_armored,
+            &material.public_key_armored,
+            operation_time + 1,
+            streaming,
+        );
+        assert_eq!(plaintext, content, "streaming={streaming}");
+        assert_eq!(
+            verification.status,
+            OpenPgpVerificationStatus::Valid as i32,
+            "streaming={streaming}",
+        );
+    }
 }
 
 #[test]

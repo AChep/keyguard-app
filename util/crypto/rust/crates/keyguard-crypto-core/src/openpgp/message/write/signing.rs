@@ -141,35 +141,18 @@ pub(super) fn detached_signature_hasher(
     signature_time: Timestamp,
     signature_type: SignatureType,
 ) -> Result<(SignatureHasher, HashAlgorithm, SignatureVersion), OpenPgpWriteError> {
-    if is_rsa_private_algorithm(packet.algorithm()) {
-        let adapter = AwsLcRsaSecretKey::new(packet)?;
-        signature_hasher_with_key(&adapter, signature_time, signature_type)
-    } else {
-        match packet {
-            SecretPacketRef::Primary(key) => {
-                signature_hasher_with_key(key, signature_time, signature_type)
-            }
-            SecretPacketRef::Subkey(key) => {
-                signature_hasher_with_key(key, signature_time, signature_type)
-            }
-        }
-    }
+    let signer = OpenPgpSecretSigner::for_packet(packet)?;
+    signature_hasher_with_key(&signer.as_ref(), signature_time, signature_type)
 }
 
 pub(super) fn sign_hasher_with_packet(
     hasher: SignatureHasher,
     packet: SecretPacketRef<'_>,
 ) -> Result<pgp::packet::Signature, OpenPgpWriteError> {
-    if is_rsa_private_algorithm(packet.algorithm()) {
-        let adapter = AwsLcRsaSecretKey::new(packet)?;
-        hasher.sign(&adapter, &Password::empty())
-    } else {
-        match packet {
-            SecretPacketRef::Primary(key) => hasher.sign(key, &Password::empty()),
-            SecretPacketRef::Subkey(key) => hasher.sign(key, &Password::empty()),
-        }
-    }
-    .map_err(|_| OpenPgpWriteError::CryptoFailure)
+    let signer = OpenPgpSecretSigner::for_packet(packet)?;
+    hasher
+        .sign(&signer.as_ref(), &Password::empty())
+        .map_err(|_| OpenPgpWriteError::CryptoFailure)
 }
 
 pub(super) fn signature_hasher_with_key(

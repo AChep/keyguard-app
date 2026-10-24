@@ -184,6 +184,13 @@ impl<'a> SecretPacketRef<'a> {
             Self::Subkey(key) => key.unlock(password, operation),
         }
     }
+
+    fn signing_key(self) -> &'a dyn SigningKey {
+        match self {
+            Self::Primary(key) => key,
+            Self::Subkey(key) => key,
+        }
+    }
 }
 
 /// rPGP signing/decryption-key adapter that routes RSA private operations to
@@ -232,6 +239,11 @@ impl<'a> OpenPgpSecretSigner<'a> {
             .then(|| AwsLcRsaSecretKey::new(packet))
             .transpose()?;
         Ok(Self { fallback, rsa })
+    }
+
+    /// Uses the packet's own rPGP implementation as the non-RSA fallback.
+    pub(crate) fn for_packet(packet: SecretPacketRef<'a>) -> Result<Self, SecretKeyAdapterError> {
+        Self::new(packet, packet.signing_key())
     }
 
     pub(crate) fn as_ref(&self) -> SigningKeyRef<'_> {

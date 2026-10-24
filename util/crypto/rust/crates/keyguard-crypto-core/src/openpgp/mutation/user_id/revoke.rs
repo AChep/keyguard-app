@@ -5,7 +5,7 @@
 //! artifact the caller may publish, so the stored certificate and the
 //! distributed one can never carry different statements.
 
-use pgp::{armor::BlockType, types::SigningKey};
+use pgp::armor::BlockType;
 
 use crate::openpgp::{
     certificate::{
@@ -78,11 +78,9 @@ pub(crate) fn revoke_user_id_request(
         return Err(UserIdMutationFailure::ProtectedSecretKey);
     }
 
-    let signer = OpenPgpSecretSigner::new(
-        SecretPacketRef::Primary(&preflight.secret.primary_key),
-        &preflight.secret.primary_key as &dyn SigningKey,
-    )
-    .map_err(|_| UserIdMutationFailure::InternalFailure)?;
+    let signer =
+        OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(&preflight.secret.primary_key))
+            .map_err(|_| UserIdMutationFailure::InternalFailure)?;
     let signer = signer.as_ref();
     let revocation = UserIdRevocationBuilder::new(
         signer,

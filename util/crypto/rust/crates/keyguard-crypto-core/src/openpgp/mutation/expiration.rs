@@ -247,11 +247,9 @@ pub(crate) fn update_expiration_request(
     if preflight.secret.primary_key.secret_params().is_encrypted() {
         return Err(ExpirationUpdateFailure::ProtectedSecretKey);
     }
-    let primary_signer = OpenPgpSecretSigner::new(
-        SecretPacketRef::Primary(&preflight.secret.primary_key),
-        &preflight.secret.primary_key as &dyn SigningKey,
-    )
-    .map_err(|_| ExpirationUpdateFailure::InternalFailure)?;
+    let primary_signer =
+        OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(&preflight.secret.primary_key))
+            .map_err(|_| ExpirationUpdateFailure::InternalFailure)?;
     let primary_signer = primary_signer.as_ref();
 
     let mut mutated = preflight.packet_set.clone();
@@ -738,8 +736,7 @@ fn create_primary_binding(
     if secret_subkey.secret_params().is_encrypted() {
         return Err(ExpirationUpdateFailure::ProtectedSecretKey);
     }
-    let packet = SecretPacketRef::Subkey(secret_subkey);
-    let signer = OpenPgpSecretSigner::new(packet, secret_subkey as &dyn SigningKey)
+    let signer = OpenPgpSecretSigner::for_packet(SecretPacketRef::Subkey(secret_subkey))
         .map_err(|_| ExpirationUpdateFailure::InternalFailure)?;
     let signer = signer.as_ref();
     let hash_algorithm =

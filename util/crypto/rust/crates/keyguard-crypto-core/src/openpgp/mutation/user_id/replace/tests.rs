@@ -89,11 +89,8 @@ fn material_with_secondary_user_id_exportability(
     let mut material = generated_material_version(version);
     let secret = parse_single_secret(&material.private_key_armored).expect("parse secret");
     let public = parse_single_public(&material.public_key_armored).expect("parse public");
-    let signer = OpenPgpSecretSigner::new(
-        SecretPacketRef::Primary(&secret.primary_key),
-        &secret.primary_key as &dyn SigningKey,
-    )
-    .expect("resolve signer");
+    let signer = OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(&secret.primary_key))
+        .expect("resolve signer");
     let signer = signer.as_ref();
     let template = select_effective_certification(&public, &public.details.users[0], REFERENCE)
         .expect("select primary template");
@@ -294,11 +291,8 @@ fn replacement_canonically_resolves_tied_conflicting_certifications() {
     let material = generated_material();
     let secret = parse_single_secret(&material.private_key_armored).expect("parse secret");
     let public = parse_single_public(&material.public_key_armored).expect("parse public");
-    let signer = OpenPgpSecretSigner::new(
-        SecretPacketRef::Primary(&secret.primary_key),
-        &secret.primary_key as &dyn SigningKey,
-    )
-    .expect("resolve signer");
+    let signer = OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(&secret.primary_key))
+        .expect("resolve signer");
     let signer = signer.as_ref();
     let primary_user = &public.details.users[0];
     let template = select_effective_certification(&public, primary_user, REFERENCE)
@@ -369,11 +363,8 @@ fn add_secondary_user_id(
 ) -> Vec<u8> {
     let secret = parse_single_secret(&material.private_key_armored).expect("parse secret");
     let public = parse_single_public(&material.public_key_armored).expect("parse public");
-    let signer = OpenPgpSecretSigner::new(
-        SecretPacketRef::Primary(&secret.primary_key),
-        &secret.primary_key as &dyn SigningKey,
-    )
-    .expect("resolve signer");
+    let signer = OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(&secret.primary_key))
+        .expect("resolve signer");
     let signer = signer.as_ref();
     let primary_user = &public.details.users[0];
     let policy_template = select_effective_certification(&public, primary_user, REFERENCE)
@@ -451,11 +442,8 @@ fn recertify_primary_user_id(
 ) -> Vec<u8> {
     let secret = parse_single_secret(&material.private_key_armored).expect("parse secret");
     let public = parse_single_public(&material.public_key_armored).expect("parse public");
-    let signer = OpenPgpSecretSigner::new(
-        SecretPacketRef::Primary(&secret.primary_key),
-        &secret.primary_key as &dyn SigningKey,
-    )
-    .expect("resolve signer");
+    let signer = OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(&secret.primary_key))
+        .expect("resolve signer");
     let signer = signer.as_ref();
     let primary_user = &public.details.users[0];
     let policy_template = select_effective_certification(&public, primary_user, REFERENCE)

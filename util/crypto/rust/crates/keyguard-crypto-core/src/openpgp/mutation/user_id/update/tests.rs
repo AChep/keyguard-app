@@ -265,11 +265,8 @@ fn certify_identity(
     };
     let mut secret = parse_single_secret(&material.private_key_armored).expect("secret");
     let public = secret.to_public_key();
-    let signer = OpenPgpSecretSigner::new(
-        SecretPacketRef::Primary(&secret.primary_key),
-        &secret.primary_key as &dyn SigningKey,
-    )
-    .expect("signer");
+    let signer = OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(&secret.primary_key))
+        .expect("signer");
     let signer = signer.as_ref();
     let mut config = existing_user_id_recertification_config(
         &public.details.users[0].signatures[0],
@@ -575,11 +572,8 @@ fn adding_an_identity_keeps_the_pinned_implicit_primary_non_revocable() {
         let mut secret =
             parse_single_secret(&material(version).private_key_armored).expect("secret");
         let public = secret.to_public_key();
-        let signer = OpenPgpSecretSigner::new(
-            SecretPacketRef::Primary(&secret.primary_key),
-            &secret.primary_key as &dyn SigningKey,
-        )
-        .expect("signer");
+        let signer = OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(&secret.primary_key))
+            .expect("signer");
         let mut config = existing_user_id_recertification_config(
             &public.details.users[0].signatures[0],
             signer.as_ref(),

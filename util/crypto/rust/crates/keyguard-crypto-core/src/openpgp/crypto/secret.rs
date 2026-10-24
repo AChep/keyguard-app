@@ -222,28 +222,23 @@ impl<'a> AwsLcRsaSecretKey<'a> {
     }
 }
 
-/// Shared secret-key signer acquisition used by target-specific certificate
-/// mutations. RSA is always routed through AWS-LC; other supported algorithms
-/// use rPGP's packet implementation.
+/// Shared secret-key signer acquisition used by certificate generation,
+/// mutations and message signing. RSA is always routed through AWS-LC; other
+/// supported algorithms use rPGP's packet implementation.
 pub(crate) struct OpenPgpSecretSigner<'a> {
     fallback: &'a dyn SigningKey,
     rsa: Option<AwsLcRsaSecretKey<'a>>,
 }
 
 impl<'a> OpenPgpSecretSigner<'a> {
-    pub(crate) fn new(
-        packet: SecretPacketRef<'a>,
-        fallback: &'a dyn SigningKey,
-    ) -> Result<Self, SecretKeyAdapterError> {
+    pub(crate) fn for_packet(packet: SecretPacketRef<'a>) -> Result<Self, SecretKeyAdapterError> {
         let rsa = is_rsa_private_algorithm(packet.algorithm())
             .then(|| AwsLcRsaSecretKey::new(packet))
             .transpose()?;
-        Ok(Self { fallback, rsa })
-    }
-
-    /// Uses the packet's own rPGP implementation as the non-RSA fallback.
-    pub(crate) fn for_packet(packet: SecretPacketRef<'a>) -> Result<Self, SecretKeyAdapterError> {
-        Self::new(packet, packet.signing_key())
+        Ok(Self {
+            fallback: packet.signing_key(),
+            rsa,
+        })
     }
 
     pub(crate) fn as_ref(&self) -> SigningKeyRef<'_> {

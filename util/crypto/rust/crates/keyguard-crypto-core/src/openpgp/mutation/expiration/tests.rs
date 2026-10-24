@@ -182,11 +182,8 @@ fn assert_defective_back_signature_is_regenerated(defect: BackSignatureDefect) {
             .expect("back-signature issuer key ID"),
     );
     let defective_back_signature = {
-        let signer = OpenPgpSecretSigner::new(
-            SecretPacketRef::Subkey(signing_subkey),
-            signing_subkey as &dyn SigningKey,
-        )
-        .expect("acquire signing-subkey signer");
+        let signer = OpenPgpSecretSigner::for_packet(SecretPacketRef::Subkey(signing_subkey))
+            .expect("acquire signing-subkey signer");
         back_config
             .sign_primary_key_binding(
                 &signer.as_ref(),
@@ -217,11 +214,8 @@ fn assert_defective_back_signature_is_regenerated(defect: BackSignatureDefect) {
         .expect("embedded defective back signature"),
     );
     let defective_binding = {
-        let signer = OpenPgpSecretSigner::new(
-            SecretPacketRef::Primary(&secret.primary_key),
-            &secret.primary_key as &dyn SigningKey,
-        )
-        .expect("acquire primary-key signer");
+        let signer = OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(&secret.primary_key))
+            .expect("acquire primary-key signer");
         binding_config
             .sign_subkey_binding(
                 &signer.as_ref(),

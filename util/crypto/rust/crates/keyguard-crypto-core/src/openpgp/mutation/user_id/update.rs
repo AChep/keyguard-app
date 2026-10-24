@@ -2,7 +2,7 @@
 
 use std::borrow::Cow;
 
-use pgp::types::{KeyDetails, KeyVersion, SigningKey};
+use pgp::types::{KeyDetails, KeyVersion};
 
 use crate::openpgp::{
     certificate::{
@@ -77,10 +77,9 @@ pub(crate) fn update_user_id_request(
             .chain(signature_creation_time(policy_template).map(u64::from))
             .max();
         let time = next_signature_time(preflight.reference_time, newest)?;
-        let secret_signer = OpenPgpSecretSigner::new(
-            SecretPacketRef::Primary(&preflight.secret.primary_key),
-            &preflight.secret.primary_key as &dyn SigningKey,
-        )
+        let secret_signer = OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(
+            &preflight.secret.primary_key,
+        ))
         .map_err(|_| Failure::InternalFailure)?;
         let signer = secret_signer.as_ref();
         if let Some(value) = plan.new_identity {

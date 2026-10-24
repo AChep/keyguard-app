@@ -45,11 +45,8 @@ fn material_with_retained_second_user_id(
     let mut material = generated_material();
     let secret = parse_single_secret(&material.private_key_armored).expect("parse secret");
     let public = parse_single_public(&material.public_key_armored).expect("parse public");
-    let signer = OpenPgpSecretSigner::new(
-        SecretPacketRef::Primary(&secret.primary_key),
-        &secret.primary_key as &dyn SigningKey,
-    )
-    .expect("resolve signer");
+    let signer = OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(&secret.primary_key))
+        .expect("resolve signer");
     let signer = signer.as_ref();
     let mut user_id_body = None;
     let signature_bodies = certifications
@@ -153,11 +150,8 @@ fn add_user_id_certifications(
 ) -> Vec<u8> {
     let secret = parse_single_secret(&material.private_key_armored).expect("parse secret");
     let public = parse_single_public(&material.public_key_armored).expect("parse public");
-    let signer = OpenPgpSecretSigner::new(
-        SecretPacketRef::Primary(&secret.primary_key),
-        &secret.primary_key as &dyn SigningKey,
-    )
-    .expect("resolve signer");
+    let signer = OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(&secret.primary_key))
+        .expect("resolve signer");
     let signer = signer.as_ref();
     let mut user_id_body = None;
     let signature_bodies = certifications

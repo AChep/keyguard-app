@@ -1705,6 +1705,54 @@ fn verifies_primary_subkey_binding(
     })
 }
 
+fn authenticate_identity<'a>(
+    signatures: &'a [Signature],
+    primary: &PublicKey,
+    tag: Tag,
+    identity: &impl Serialize,
+    classify: fn(&Signature, CertificateValidationTimes) -> SignatureTier,
+    times: CertificateValidationTimes,
+    budget: &mut OpenPgpPolicyBudget,
+) -> Result<IdentityAuthentication<'a>, OpenPgpPolicyError> {
+    let mut certifications = Vec::new();
+    let mut verified_any = Vec::new();
+    let mut revocations = Vec::new();
+    let mut templates = Vec::new();
+    for signature in signatures {
+        if is_certification(signature.typ()) {
+            // Every self-issued certification is verified, including ones
+            // no policy tier accepts: mutation chronology still has to
+            // sort a new statement after one a peer might retain.
+            if signature_matches_signer(signature, primary) {
+                budget.charge_public_key_verification()?;
+                if verifies_primary_certification(signature, primary, tag, identity) {
+                    verified_any.push(signature);
+                    match classify(signature, times) {
+                        SignatureTier::Authenticated => certifications.push(signature),
+                        SignatureTier::Template => {
+                            templates.push(PolicyInactiveTemplate(signature));
+                        }
+                        SignatureTier::Rejected => {}
+                    }
+                }
+            }
+        } else if signature.typ() == Some(SignatureType::CertRevocation)
+            && signature_matches_signer(signature, primary)
+        {
+            budget.charge_public_key_verification()?;
+            if verifies_primary_certification(signature, primary, tag, identity) {
+                revocations.push(signature);
+            }
+        }
+    }
+    Ok(IdentityAuthentication {
+        verified_certifications: certifications,
+        verified_any_certifications: verified_any,
+        verified_revocations: revocations,
+        verified_templates: templates,
+    })
+}
+
 fn authenticate_certificate_bindings<'a>(
     certificate: &'a pgp::composed::SignedPublicKey,
     times: CertificateValidationTimes,
@@ -1772,104 +1820,39 @@ fn authenticate_certificate_bindings<'a>(
         }
     }
 
-    let mut user_ids = Vec::with_capacity(certificate.details.users.len());
-    for user in &certificate.details.users {
-        let mut certifications = Vec::new();
-        let mut verified_any = Vec::new();
-        let mut revocations = Vec::new();
-        let mut templates = Vec::new();
-        for signature in &user.signatures {
-            if is_certification(signature.typ()) {
-                // Every self-issued certification is verified, including ones
-                // no policy tier accepts: mutation chronology still has to
-                // sort a new statement after one a peer might retain.
-                if signature_matches_signer(signature, &certificate.primary_key) {
-                    budget.charge_public_key_verification()?;
-                    if verifies_primary_certification(
-                        signature,
-                        &certificate.primary_key,
-                        Tag::UserId,
-                        &user.id,
-                    ) {
-                        verified_any.push(signature);
-                        match signature_tier(signature, times) {
-                            SignatureTier::Authenticated => certifications.push(signature),
-                            SignatureTier::Template => {
-                                templates.push(PolicyInactiveTemplate(signature));
-                            }
-                            SignatureTier::Rejected => {}
-                        }
-                    }
-                }
-            } else if signature.typ() == Some(SignatureType::CertRevocation)
-                && signature_matches_signer(signature, &certificate.primary_key)
-            {
-                budget.charge_public_key_verification()?;
-                if verifies_primary_certification(
-                    signature,
-                    &certificate.primary_key,
-                    Tag::UserId,
-                    &user.id,
-                ) {
-                    revocations.push(signature);
-                }
-            }
-        }
-        user_ids.push(IdentityAuthentication {
-            verified_certifications: certifications,
-            verified_any_certifications: verified_any,
-            verified_revocations: revocations,
-            verified_templates: templates,
-        });
-    }
+    let user_ids = certificate
+        .details
+        .users
+        .iter()
+        .map(|user| {
+            authenticate_identity(
+                &user.signatures,
+                &certificate.primary_key,
+                Tag::UserId,
+                &user.id,
+                signature_tier,
+                times,
+                budget,
+            )
+        })
+        .collect::<Result<Vec<_>, _>>()?;
 
-    let mut user_attributes = Vec::with_capacity(certificate.details.user_attributes.len());
-    for attribute in &certificate.details.user_attributes {
-        let mut certifications = Vec::new();
-        let mut verified_any = Vec::new();
-        let mut revocations = Vec::new();
-        let mut templates = Vec::new();
-        for signature in &attribute.signatures {
-            if is_certification(signature.typ()) {
-                if signature_matches_signer(signature, &certificate.primary_key) {
-                    budget.charge_public_key_verification()?;
-                    if verifies_primary_certification(
-                        signature,
-                        &certificate.primary_key,
-                        Tag::UserAttribute,
-                        &attribute.attr,
-                    ) {
-                        verified_any.push(signature);
-                        match user_attribute_certification_signature_tier(signature, times) {
-                            SignatureTier::Authenticated => certifications.push(signature),
-                            SignatureTier::Template => {
-                                templates.push(PolicyInactiveTemplate(signature));
-                            }
-                            SignatureTier::Rejected => {}
-                        }
-                    }
-                }
-            } else if signature.typ() == Some(SignatureType::CertRevocation)
-                && signature_matches_signer(signature, &certificate.primary_key)
-            {
-                budget.charge_public_key_verification()?;
-                if verifies_primary_certification(
-                    signature,
-                    &certificate.primary_key,
-                    Tag::UserAttribute,
-                    &attribute.attr,
-                ) {
-                    revocations.push(signature);
-                }
-            }
-        }
-        user_attributes.push(IdentityAuthentication {
-            verified_certifications: certifications,
-            verified_any_certifications: verified_any,
-            verified_revocations: revocations,
-            verified_templates: templates,
-        });
-    }
+    let user_attributes = certificate
+        .details
+        .user_attributes
+        .iter()
+        .map(|attribute| {
+            authenticate_identity(
+                &attribute.signatures,
+                &certificate.primary_key,
+                Tag::UserAttribute,
+                &attribute.attr,
+                user_attribute_certification_signature_tier,
+                times,
+                budget,
+            )
+        })
+        .collect::<Result<Vec<_>, _>>()?;
 
     let mut subkeys = Vec::with_capacity(certificate.public_subkeys.len());
     for subkey in &certificate.public_subkeys {

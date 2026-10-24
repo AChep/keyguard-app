@@ -3447,6 +3447,89 @@ fn unmatched_third_party_certification_does_not_consume_verification_budget() {
 }
 
 #[test]
+fn unmatched_user_attribute_certification_does_not_consume_verification_budget() {
+    let mut target = generated_test_secret("Budget Target <budget-target@example.test>");
+    let signer = generated_test_secret("Budget Signer <budget-signer@example.test>");
+    let attribute = UserAttribute::new_image(Bytes::from_static(b"budget User Attribute fixture"))
+        .expect("create User Attribute");
+    let self_certification = user_attribute_self_certification(
+        &target,
+        &attribute,
+        (TEST_TIME + 1) as u32,
+        HashAlgorithm::Sha256,
+        Vec::new(),
+    );
+    target.details.user_attributes = vec![SignedUserAttribute::new(
+        attribute.clone(),
+        vec![self_certification],
+    )];
+    let baseline = target.to_public_key();
+    let mut baseline_budget = OpenPgpPolicyBudget::default();
+    validate_certificate(
+        &baseline,
+        &all_components(std::slice::from_ref(&baseline)),
+        TEST_TIME + 2,
+        &mut baseline_budget,
+    )
+    .expect("evaluate baseline certificate");
+
+    let mut config = SignatureConfig::v4(
+        SignatureType::CertPositive,
+        signer.primary_key.algorithm(),
+        HashAlgorithm::Sha256,
+    );
+    config.hashed_subpackets = vec![
+        Subpacket::regular(SubpacketData::SignatureCreationTime(Timestamp::from_secs(
+            (TEST_TIME + 1) as u32,
+        )))
+        .expect("third-party certification creation time"),
+        Subpacket::regular(SubpacketData::IssuerFingerprint(
+            signer.primary_key.fingerprint(),
+        ))
+        .expect("third-party certification issuer"),
+    ];
+    let certification = config
+        .sign_certification(
+            &signer.primary_key,
+            target.primary_key.public_key(),
+            &Password::empty(),
+            Tag::UserAttribute,
+            &attribute,
+        )
+        .expect("sign third-party User Attribute certification");
+    certification
+        .verify_third_party_certification(
+            target.primary_key.public_key(),
+            signer.primary_key.public_key(),
+            Tag::UserAttribute,
+            &attribute,
+        )
+        .expect("third-party User Attribute certification remains mathematically valid");
+    target.details.user_attributes[0]
+        .signatures
+        .push(certification);
+
+    let public = target.to_public_key();
+    let mut budget = OpenPgpPolicyBudget::default();
+    validate_certificate(
+        &public,
+        &all_components(std::slice::from_ref(&public)),
+        TEST_TIME + 2,
+        &mut budget,
+    )
+    .expect("evaluate certificate with an unrelated User Attribute certification");
+
+    assert_eq!(
+        budget.public_key_verifications,
+        baseline_budget.public_key_verifications,
+    );
+    assert_eq!(
+        budget.request_public_key_verifications,
+        baseline_budget.request_public_key_verifications,
+    );
+}
+
+#[test]
 fn public_verification_request_limit_cannot_multiply_across_certificates() {
     let mut budget = OpenPgpPolicyBudget::default();
     for fingerprint in [b"certificate-one".as_slice(), b"certificate-two".as_slice()] {

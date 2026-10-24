@@ -15,7 +15,8 @@ use std::collections::HashMap;
 use base64ct::{Base64, Encoding};
 use keyguard_crypto_sensitive::{
     DigestAlgorithm, DigestContext, HmacContext, RsaPrimeComponents, RsaPrivateComponents,
-    SensitiveBackendError, complete_rsa_pkcs1_der,
+    SensitiveBackendError, SensitiveRsaError, check_rsa_private_key_support,
+    complete_rsa_pkcs1_der,
 };
 use pkcs1::RsaPrivateKey;
 use pkcs8::{
@@ -416,6 +417,7 @@ const fn map_import_error(error: ImportError) -> PrimitiveError {
 fn rsa_material_from_openssh(keypair: &RsaKeypair) -> Result<SshKeyMaterial, ImportError> {
     let modulus = positive_mpint(&keypair.public.n)?;
     let public_exponent = positive_mpint(&keypair.public.e)?;
+    validate_rsa_private_key_support(&modulus, &public_exponent)?;
     let mut private_exponent = sensitive_positive_mpint(&keypair.private.d)?;
     let mut prime_p = sensitive_positive_mpint(&keypair.private.p)?;
     let mut prime_q = sensitive_positive_mpint(&keypair.private.q)?;
@@ -662,7 +664,7 @@ fn validate_rsa_triplet(
     public_exponent: &[u8],
     private_exponent: &[u8],
 ) -> Result<(), ImportError> {
-    validate_rsa_public_components(modulus, public_exponent)?;
+    validate_rsa_private_key_support(modulus, public_exponent)?;
     if private_exponent.len() > modulus.len() {
         Err(ImportError::MalformedKey)
     } else {
@@ -675,6 +677,24 @@ fn validate_rsa_public_components(
     public_exponent: &[u8],
 ) -> Result<(), ImportError> {
     ssh_keys::validate_rsa_public_components(modulus, public_exponent).map_err(map_primitive_error)
+}
+
+/// Admits only private keys that the signing backend can use.
+///
+/// Public-key decoding accepts a wider range, so a valid key can still be
+/// unsupported here. Malformed values keep failing the public checks first.
+fn validate_rsa_private_key_support(
+    modulus: &[u8],
+    public_exponent: &[u8],
+) -> Result<(), ImportError> {
+    validate_rsa_public_components(modulus, public_exponent)?;
+    check_rsa_private_key_support(modulus, public_exponent).map_err(|error| match error {
+        SensitiveRsaError::InvalidKeySize => ImportError::UnsupportedAlgorithm,
+        SensitiveRsaError::InvalidKey => ImportError::MalformedKey,
+        SensitiveRsaError::AllocationFailure | SensitiveRsaError::BackendFailure => {
+            ImportError::BackendFailure
+        }
+    })
 }
 
 fn wrap_rsa_pkcs8_with_parameters(
@@ -1180,6 +1200,7 @@ fn normalize_putty_rsa(
     let public_exponent = public.read_positive_mpint()?;
     let modulus = public.read_positive_mpint()?;
     public.finish_zero_padding()?;
+    validate_rsa_private_key_support(modulus, public_exponent)?;
 
     // PuTTY requires d, p, q and iqmp (Appendix C.3.1) and rejects records
     // without them. The factors also bind v1's unauthenticated public blob to
@@ -1401,18 +1422,6 @@ mod tests {
 
     const OPENSSH_NONE: &str = include_str!(
         "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/openssh/id_ed25519"
-    );
-    const RSA_512_PKCS8: &str = concat!(
-        "-----BEGIN PRIVATE KEY-----\n",
-        "MIIBVgIBADANBgkqhkiG9w0BAQEFAASCAUAwggE8AgEAAkEAv1eNChgOjTbDmuNq\n",
-        "Qy2zizY+TRobUQraS0GRWMvKz/XEayiyAjMdsYmf+AfjNYiaH+XyeHbU4wWQcbkU\n",
-        "V0z4UQIDAQABAkEAvVnPyhhqdham1eWNZ/OXBQHl/3kBZV7fDbBSPNRX3Rj7RtBS\n",
-        "Q73TEq8NvxAKJJQH0MNbgt7t5oIh2jiFdRkTvQIhAO54Jy8iJvfjYLc56Fi1qLip\n",
-        "aSezmfbHGvyYUs+TllUvAiEAzWh9cHcCpLU7eLDuqkbJ2XZpavTB1WxfkrcHduRx\n",
-        "Kn8CIQC/LVxckQikmoki2y3GUHxe7pH63iWEjcK41nUtLKjMyQIgeVRKG/9AIXgn\n",
-        "i8+++fdcTUZDWHkAcYdVIL1Z/GFNcxMCIQDmG2Gj8qCcvHGYGoVx3YlsSj6F39VJ\n",
-        "/zDcDK88UMMc1g==\n",
-        "-----END PRIVATE KEY-----\n",
     );
     const OPENSSH_ENCRYPTED: [&str; 10] = [
         include_str!(
@@ -2420,9 +2429,7 @@ mod tests {
     }
 
     #[test]
-    fn imported_rsa_modulus_bounds_match_jdk21_without_changing_generation_policy() {
-        assert_eq!(success(RSA_512_PKCS8, None).r#type, SshKeyType::Rsa as i32);
-
+    fn rsa_public_modulus_bounds_match_jdk21() {
         let exponent = [3_u8];
         let modulus_512 = [0x80_u8; 64];
         let modulus_511 = [0x7f_u8; 64];
@@ -2453,22 +2460,7 @@ mod tests {
     fn openssh_rsa_normalization_retains_complete_crt_and_signs() {
         let generated = generate_rsa_pkcs1_der(1_024).expect("RSA generation");
         let parsed = RsaPrivateKey::from_der(&generated).expect("generated PKCS#1");
-        let keypair = RsaKeypair {
-            public: RsaPublicKey {
-                n: mpint(parsed.modulus.as_bytes()),
-                e: mpint(parsed.public_exponent.as_bytes()),
-            },
-            private: SshRsaPrivateKey {
-                d: mpint(parsed.private_exponent.as_bytes()),
-                iqmp: mpint(parsed.coefficient.as_bytes()),
-                p: mpint(parsed.prime1.as_bytes()),
-                q: mpint(parsed.prime2.as_bytes()),
-            },
-        };
-        let openssh = PrivateKey::new_with_checkint(KeypairData::Rsa(keypair), "", 0x1234_5678)
-            .expect("OpenSSH RSA key")
-            .to_openssh(LineEnding::LF)
-            .expect("OpenSSH PEM");
+        let openssh = encode_test_openssh_rsa(&parsed);
 
         let material = success(&openssh, None);
         let info = PrivateKeyInfo::from_der(&material.private_key).expect("PKCS#8 output");
@@ -2498,20 +2490,10 @@ mod tests {
     fn openssh_rsa_late_component_failure_uses_zeroizing_guards() {
         let generated = generate_rsa_pkcs1_der(1_024).expect("RSA generation");
         let parsed = RsaPrivateKey::from_der(&generated).expect("generated PKCS#1");
-        let keypair = RsaKeypair {
-            public: RsaPublicKey {
-                n: mpint(parsed.modulus.as_bytes()),
-                e: mpint(parsed.public_exponent.as_bytes()),
-            },
-            private: SshRsaPrivateKey {
-                d: mpint(parsed.private_exponent.as_bytes()),
-                p: mpint(parsed.prime1.as_bytes()),
-                q: mpint(parsed.prime2.as_bytes()),
-                // Parsing fails only after d, p, and q have been copied into
-                // Zeroizing guards, exercising their early-return path.
-                iqmp: Mpint::from_bytes(&[0xff]).expect("negative mpint"),
-            },
-        };
+        let mut keypair = test_openssh_rsa_keypair(&parsed);
+        // Parsing fails only after d, p, and q have been copied into
+        // Zeroizing guards, exercising their early-return path.
+        keypair.private.iqmp = Mpint::from_bytes(&[0xff]).expect("negative mpint");
 
         assert!(matches!(
             rsa_material_from_openssh(&keypair),
@@ -2544,6 +2526,77 @@ mod tests {
             ] {
                 assert!(component.iter().any(|byte| *byte != 0));
             }
+        }
+    }
+
+    #[test]
+    fn unsupported_rsa_private_keys_are_rejected_at_import_in_every_container() {
+        // Admission reads only n and e, so the private values are
+        // placeholders. A key that got past it would fail as malformed.
+        let placeholder = UintRef::new(&[0x03]).expect("placeholder component");
+        for (label, bits, public_exponent) in [
+            ("RSA-512", 512, &[0x01, 0x00, 0x01][..]),
+            (
+                "RSA-1024 with a 41-bit exponent",
+                1_024,
+                &[0x01, 0x00, 0x00, 0x00, 0x00, 0x0f],
+            ),
+            ("RSA-16384", 16_384, &[0x01, 0x00, 0x01]),
+        ] {
+            let modulus = vec![0xff; bits / 8];
+            let private = RsaPrivateKey {
+                modulus: UintRef::new(&modulus).expect("modulus"),
+                public_exponent: UintRef::new(public_exponent).expect("public exponent"),
+                private_exponent: placeholder,
+                prime1: placeholder,
+                prime2: placeholder,
+                exponent1: placeholder,
+                exponent2: placeholder,
+                coefficient: placeholder,
+                other_prime_infos: None,
+            };
+
+            for (container, document) in test_rsa_private_key_containers(&private) {
+                assert!(
+                    matches!(
+                        result(&document, None),
+                        ssh_private_key_import_result::Result::Error(error)
+                            if error.reason
+                                == SshPrivateKeyImportErrorReason::UnsupportedAlgorithm as i32
+                    ),
+                    "{label} as {container}",
+                );
+            }
+
+            // Public-key decoding keeps its wider policy for the same key.
+            let public_key = ssh_keys::encode_rsa_public(
+                private.modulus.as_bytes(),
+                private.public_exponent.as_bytes(),
+            )
+            .expect("RSA public key");
+            let public_key = SshPublicKey::from_bytes(&public_key)
+                .and_then(|key| key.to_openssh())
+                .expect("OpenSSH public key");
+            assert!(ssh_keys::public_key_decode(public_key).is_ok(), "{label}");
+        }
+    }
+
+    #[test]
+    fn supported_rsa_private_key_imports_signs_and_exports_in_every_container() {
+        let generated = generate_rsa_pkcs1_der(1_024).expect("RSA generation");
+        let private = RsaPrivateKey::from_der(&generated).expect("generated PKCS#1");
+
+        for (container, document) in test_rsa_private_key_containers(&private) {
+            let material = success(&document, None);
+            let formatted = ssh_keys::format_private_key_text(&material.private_key)
+                .expect("format imported RSA");
+            for flags in [0x00, 0x02, 0x04] {
+                assert!(
+                    ssh_keys::sign(formatted.clone(), None, b"message".to_vec(), flags).is_ok(),
+                    "{container} with flags {flags}",
+                );
+            }
+            export_imported_material_for_cxf(material);
         }
     }
 
@@ -2764,6 +2817,69 @@ mod tests {
 
     fn mpint(value: &[u8]) -> Mpint {
         Mpint::from_positive_bytes(value).expect("positive RSA component")
+    }
+
+    fn test_openssh_rsa_keypair(private: &RsaPrivateKey<'_>) -> RsaKeypair {
+        RsaKeypair {
+            public: RsaPublicKey {
+                n: mpint(private.modulus.as_bytes()),
+                e: mpint(private.public_exponent.as_bytes()),
+            },
+            private: SshRsaPrivateKey {
+                d: mpint(private.private_exponent.as_bytes()),
+                iqmp: mpint(private.coefficient.as_bytes()),
+                p: mpint(private.prime1.as_bytes()),
+                q: mpint(private.prime2.as_bytes()),
+            },
+        }
+    }
+
+    fn encode_test_openssh_rsa(private: &RsaPrivateKey<'_>) -> Zeroizing<String> {
+        let keypair = KeypairData::Rsa(test_openssh_rsa_keypair(private));
+        PrivateKey::new_with_checkint(keypair, "", 0x1234_5678)
+            .expect("OpenSSH RSA key")
+            .to_openssh(LineEnding::LF)
+            .expect("OpenSSH PEM")
+    }
+
+    /// Encodes one RSA key in every unencrypted container that import reads.
+    fn test_rsa_private_key_containers(private: &RsaPrivateKey<'_>) -> [(&'static str, String); 4] {
+        let pkcs1 = Zeroizing::new(private.to_der().expect("PKCS#1 DER"));
+        let pkcs8 = wrap_rsa_pkcs8_with_parameters(&pkcs1, Some(AnyRef::NULL)).expect("PKCS#8 DER");
+
+        // PuTTY stores e and n in the public blob, and d, p, q and iqmp in the
+        // private blob.
+        let public_key = ssh_keys::encode_rsa_public(
+            private.modulus.as_bytes(),
+            private.public_exponent.as_bytes(),
+        )
+        .expect("PuTTY public blob");
+        let mut private_key = Vec::new();
+        for component in [
+            private.private_exponent,
+            private.prime1,
+            private.prime2,
+            private.coefficient,
+        ] {
+            let component = mpint(component.as_bytes());
+            let length = u32::try_from(component.as_bytes().len()).expect("mpint length");
+            private_key.extend_from_slice(&length.to_be_bytes());
+            private_key.extend_from_slice(component.as_bytes());
+        }
+        let putty = replace_putty_keypair(
+            include_str!(
+                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v3-rsa-none.ppk"
+            ),
+            &public_key,
+            &private_key,
+        );
+
+        [
+            ("PKCS#1 PEM", encode_test_pem("RSA PRIVATE KEY", &pkcs1)),
+            ("PKCS#8 PEM", encode_test_pem("PRIVATE KEY", &pkcs8)),
+            ("OpenSSH", encode_test_openssh_rsa(private).to_string()),
+            ("PuTTY", putty),
+        ]
     }
 
     fn mutate_openssh_outer_public(document: &str) -> String {
@@ -3005,6 +3121,26 @@ mod tests {
         lines[header] = format!("{prefix}{}", replacement.len());
         lines.splice(header + 1..header + 1 + count, replacement);
         lines.join("\n") + "\n"
+    }
+
+    fn replace_putty_keypair(document: &str, public_key: &[u8], private_key: &[u8]) -> String {
+        let document = replace_putty_payload(document, "Public-Lines", public_key);
+        let document = replace_putty_payload(&document, "Private-Lines", private_key);
+        let parsed = PuttyDocument::parse(document.as_bytes()).expect("PuTTY document");
+        let PuttyPrivatePayload { mac_key, .. } = parsed
+            .private_payload(None)
+            .expect("unencrypted PuTTY payload");
+        let mac = putty_mac(
+            parsed.mac_algorithm(),
+            &mac_key,
+            parsed.algorithm,
+            parsed.encryption,
+            parsed.comment,
+            public_key,
+            private_key,
+        )
+        .expect("PuTTY MAC");
+        replace_putty_private_mac(&document, &encode_test_hex(&mac))
     }
 
     fn corrupt_putty_private_base64_tail(document: &str) -> String {

@@ -20,6 +20,9 @@ use crate::{DigestAlgorithm, DigestContext};
 const MIN_RSA_MODULUS_BYTES: usize = 128;
 const MAX_RSA_MODULUS_BYTES: usize = 1_024;
 const MAX_PUBLIC_EXPONENT_BYTES: usize = 16;
+// Modulus sizes accepted by every private operation path.
+const MIN_RSA_PRIVATE_MODULUS_BITS: usize = 1_024;
+const MAX_RSA_PRIVATE_MODULUS_BITS: usize = 8_192;
 const MAX_PRIVATE_DER_BYTES: usize = 16 * 1_024;
 const MAX_RECOVERY_BASES: u32 = 64;
 const MAX_RECOVERY_SQUARINGS: usize = 128;
@@ -64,7 +67,7 @@ impl RsaSignatureHash {
 /// Stable, non-sensitive failures from the RSA compatibility backend.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SensitiveRsaError {
-    /// Key generation was requested with a size outside the frozen set.
+    /// A key size or public exponent is outside the supported set.
     InvalidKeySize,
     /// Supplied private components were malformed or mathematically invalid.
     InvalidKey,
@@ -77,7 +80,7 @@ pub enum SensitiveRsaError {
 impl fmt::Display for SensitiveRsaError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
-            Self::InvalidKeySize => "invalid RSA key size",
+            Self::InvalidKeySize => "unsupported RSA key size or exponent",
             Self::InvalidKey => "invalid RSA private key",
             Self::AllocationFailure => "RSA backend allocation failure",
             Self::BackendFailure => "RSA backend failure",
@@ -279,6 +282,48 @@ pub fn generate_rsa_pkcs1_der(bits: u32) -> Result<Zeroizing<Vec<u8>>, Sensitive
     aws_lc::init();
     let key = RsaKey::generate(bits)?;
     key.to_pkcs1_der()
+}
+
+/// Checks that private operations support an RSA key with this `n` and `e`.
+///
+/// Import admission calls this before completing or storing a private key, so
+/// a key that cannot sign is rejected up front. Only the public values are
+/// read. The modulus must fit the bounds shared by every private path, and
+/// AWS-LC's own public-key check, which caps `e` at 33 bits, must accept the
+/// pair.
+///
+/// # Errors
+///
+/// Returns [`SensitiveRsaError::InvalidKeySize`] for a well-formed key whose
+/// size or exponent is unsupported, and [`SensitiveRsaError::InvalidKey`] for
+/// an even modulus or an even or trivial exponent.
+pub fn check_rsa_private_key_support(
+    modulus: &[u8],
+    public_exponent: &[u8],
+) -> Result<(), SensitiveRsaError> {
+    aws_lc::init();
+    let modulus = BigNum::from_bytes(modulus)?;
+    let public_exponent = BigNum::from_bytes(public_exponent)?;
+    // SAFETY: both pointers borrow live, uniquely owned BIGNUMs.
+    let (well_formed, modulus_bits) = unsafe {
+        (
+            aws_lc::BN_is_odd(modulus.as_ptr()) == 1
+                && aws_lc::BN_is_odd(public_exponent.as_ptr()) == 1
+                && aws_lc::BN_cmp_word(public_exponent.as_ptr(), 1) > 0,
+            aws_lc::BN_num_bits(modulus.as_ptr()) as usize,
+        )
+    };
+    if !well_formed {
+        return Err(SensitiveRsaError::InvalidKey);
+    }
+    if !(MIN_RSA_PRIVATE_MODULUS_BITS..=MAX_RSA_PRIVATE_MODULUS_BITS).contains(&modulus_bits) {
+        return Err(SensitiveRsaError::InvalidKeySize);
+    }
+    // SAFETY: both pointers borrow live BIGNUMs. AWS-LC duplicates them into
+    // a new RSA object and applies the public checks of `RSA_check_key`.
+    let raw = unsafe { aws_lc::RSA_new_public_key(modulus.as_ptr(), public_exponent.as_ptr()) };
+    let _key = RsaKey(NonNull::new(raw).ok_or(SensitiveRsaError::InvalidKeySize)?);
+    Ok(())
 }
 
 /// Completes an OpenSSH RSA key and returns validated PKCS#1 DER.
@@ -544,7 +589,7 @@ fn validate_recovery_inputs(
 ) -> Result<(), SensitiveRsaError> {
     let one = BigUint::from(1_u8);
     let modulus_bits = modulus.bits();
-    if !(1_024..=8_192).contains(&modulus_bits)
+    if !(MIN_RSA_PRIVATE_MODULUS_BITS..=MAX_RSA_PRIVATE_MODULUS_BITS).contains(&modulus_bits)
         || modulus.is_even()
         || public_exponent <= &one
         || public_exponent >= modulus
@@ -829,7 +874,8 @@ impl RsaKey {
         // application-specific limits on n and d.
         // SAFETY: all pointers borrow live, uniquely owned BIGNUMs.
         let valid_bounds = unsafe {
-            (1_024..=8_192).contains(&aws_lc::BN_num_bits(modulus.as_ptr()))
+            (MIN_RSA_PRIVATE_MODULUS_BITS..=MAX_RSA_PRIVATE_MODULUS_BITS)
+                .contains(&(aws_lc::BN_num_bits(modulus.as_ptr()) as usize))
                 && aws_lc::BN_cmp_word(private_exponent.as_ptr(), 1) > 0
                 && aws_lc::BN_cmp(private_exponent.as_ptr(), modulus.as_ptr()) < 0
         };
@@ -1575,6 +1621,62 @@ mod tests {
     }
 
     #[test]
+    fn private_key_support_matches_the_private_operation_limits() {
+        const EXPONENT_65537: &[u8] = &[0x01, 0x00, 0x01];
+        for bits in [
+            MIN_RSA_PRIVATE_MODULUS_BITS,
+            2_048,
+            MAX_RSA_PRIVATE_MODULUS_BITS,
+        ] {
+            assert_eq!(
+                check_rsa_private_key_support(&odd_modulus(bits), EXPONENT_65537),
+                Ok(()),
+                "{bits}-bit modulus",
+            );
+        }
+        for bits in [
+            512,
+            MIN_RSA_PRIVATE_MODULUS_BITS - 1,
+            MAX_RSA_PRIVATE_MODULUS_BITS + 1,
+            16_384,
+        ] {
+            assert_eq!(
+                check_rsa_private_key_support(&odd_modulus(bits), EXPONENT_65537),
+                Err(SensitiveRsaError::InvalidKeySize),
+                "{bits}-bit modulus",
+            );
+        }
+
+        // AWS-LC admits public exponents of at most 33 bits.
+        let modulus = odd_modulus(2_048);
+        for exponent in [&[0x03][..], EXPONENT_65537, &[0x01, 0xff, 0xff, 0xff, 0xff]] {
+            assert_eq!(check_rsa_private_key_support(&modulus, exponent), Ok(()));
+        }
+        for exponent in [
+            &[0x02, 0x00, 0x00, 0x00, 0x01][..],
+            &[0x01, 0x00, 0x00, 0x00, 0x00, 0x0f],
+        ] {
+            assert_eq!(
+                check_rsa_private_key_support(&modulus, exponent),
+                Err(SensitiveRsaError::InvalidKeySize),
+            );
+        }
+
+        let mut even_modulus = modulus.clone();
+        *even_modulus.last_mut().unwrap() ^= 1;
+        assert_eq!(
+            check_rsa_private_key_support(&even_modulus, EXPONENT_65537),
+            Err(SensitiveRsaError::InvalidKey),
+        );
+        for exponent in [&[][..], &[0x01], &[0x01, 0x00, 0x00]] {
+            assert_eq!(
+                check_rsa_private_key_support(&modulus, exponent),
+                Err(SensitiveRsaError::InvalidKey),
+            );
+        }
+    }
+
+    #[test]
     fn signing_rejects_empty_and_oversized_components() {
         let empty = RsaPrivateComponents::new(Vec::new(), vec![1, 0, 1], vec![1], None);
         assert_eq!(
@@ -1607,6 +1709,12 @@ mod tests {
             sign_rsa_pkcs1_v1_5(&components, RsaSignatureHash::Sha256, b"message"),
             Err(SensitiveRsaError::InvalidKey),
         );
+    }
+
+    fn odd_modulus(bits: usize) -> Vec<u8> {
+        let mut modulus = vec![0xff; bits.div_ceil(8)];
+        modulus[0] >>= modulus.len() * 8 - bits;
+        modulus
     }
 
     fn parse_pkcs1_der(der: &[u8]) -> RsaKey {

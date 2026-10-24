@@ -188,11 +188,11 @@ const tabClass =
      so the light theme dims less. */
   [data-hero-devices-v2] {
     --device-dim: 0.22;
-    --device-glow: 22%;
+    --device-glow: 8.8%;
   }
   :global(.dark) [data-hero-devices-v2] {
     --device-dim: 0.5;
-    --device-glow: 34%;
+    --device-glow: 13.6%;
   }
 
   /* Tab indicator: the highlighted copy, clipped to a pill by the script.
@@ -242,7 +242,7 @@ const tabClass =
     background: radial-gradient(
       closest-side,
       color-mix(in oklab, var(--primary) var(--device-glow), transparent),
-      color-mix(in oklab, var(--primary) 8%, transparent) 55%,
+      color-mix(in oklab, var(--primary) 3.2%, transparent) 55%,
       transparent
     );
   }

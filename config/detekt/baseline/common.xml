@@ -860,7 +860,6 @@
     <ID>LongMethod:WordlistListStateProducer.kt:suspend fun RememberStateFlowScope.wordlistListStateProducer: Flow&lt;Loadable&lt;WordlistListState&gt;&gt;</ID>
     <ID>LongMethod:WordlistViewScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun WordlistViewScreen</ID>
     <ID>LongMethod:WordlistViewStateProducer.kt:suspend fun RememberStateFlowScope.wordlistViewStateProducer: Flow&lt;Loadable&lt;WordlistViewState&gt;&gt;</ID>
-    <ID>LongMethod:WrkerImpl.kt:WrkerImpl$override fun start</ID>
     <ID>LongMethod:Yubi.kt:@Composable private fun YubiKitManager.rememberYubiKeyUsbState: State&lt;Loadable&lt;YubiKeyUsbState&gt;&gt;</ID>
     <ID>LongMethod:YubiKey.kt:@Composable fun YubiKeyUsbCard</ID>
     <ID>LongMethod:YubiScreen.kt:@Composable fun YubiKeyManual</ID>

@@ -34,10 +34,7 @@ import coil3.SingletonImageLoader
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.di.ImageLoadingModule
 import com.artemchep.keyguard.common.di.setFromKoin
-import com.artemchep.keyguard.common.io.attempt
-import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.app.AppIconFetcher
@@ -69,11 +66,11 @@ import com.artemchep.keyguard.common.service.quicksearch.QuickSearchWindowManage
 import com.artemchep.keyguard.common.service.session.VaultLockHotkeyService
 import com.artemchep.keyguard.common.service.session.VaultPowerLockService
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
+import com.artemchep.keyguard.common.service.session.VaultSessionPersister
 import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.agent.superviseAgent
 import com.artemchep.keyguard.desktop.ui.showAgentFailure
-import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
@@ -81,7 +78,6 @@ import com.artemchep.keyguard.common.usecase.GetGpgAgent
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetMinimizeOnCopy
 import com.artemchep.keyguard.common.usecase.GetSshAgent
-import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.ShowMessage
@@ -148,7 +144,6 @@ import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeys
 import dev.nucleusframework.composenativetray.tray.api.Tray
 import java.util.Locale
 import kotlin.system.exitProcess
-import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.CancellationException
@@ -157,7 +152,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -279,8 +273,6 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
     val cryptoGenerator by lazy { koin.get<CryptoGenerator>() }
     val getVaultSession by lazy { koin.get<GetVaultSession>() }
     val putVaultSession by lazy { koin.get<PutVaultSession>() }
-    val getVaultPersist by lazy { koin.get<GetVaultPersist>() }
-    val keyReadWriteRepository by lazy { koin.get<KeyReadWriteRepository>() }
     getVaultSession()
         .map { session ->
             val key = session as? MasterSession.Key
@@ -320,32 +312,10 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
         .launchIn(GlobalScope)
 
     // persist
-    combine(
-        getVaultSession(),
-        getVaultPersist(),
-    ) { session, persist ->
-        val persistedMasterKey = if (persist && session is MasterSession.Key) {
-            session.masterKey
-        } else {
-            null
-        }
-        persistedMasterKey
+    val vaultSessionPersister by lazy { koin.get<VaultSessionPersister>() }
+    GlobalScope.launch {
+        vaultSessionPersister.run()
     }
-        .onEach { masterKey ->
-            val persistedSession = if (masterKey != null) {
-                PersistedSession(
-                    masterKey = masterKey,
-                    createdAt = Clock.System.now(),
-                    persistedAt = Clock.System.now(),
-                )
-            } else {
-                null
-            }
-            keyReadWriteRepository.put(persistedSession)
-                .attempt()
-                .bind()
-        }
-        .launchIn(GlobalScope)
 
     val appWorker by lazy { koin.get<AppWorker>(qualifier = named(AppWorker.Feature.SYNC)) }
     val processLifecycleFlow = MutableStateFlow(LeLifecycleState.RESUMED)

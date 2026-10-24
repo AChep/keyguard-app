@@ -6,14 +6,14 @@
 //! a re-certification that pins it. All of them are applied to one packet set
 //! and finalized once.
 
-use pgp::{armor::BlockType, packet::Signature};
+use pgp::packet::Signature;
 
 use crate::openpgp::{
     certificate::{
         CertificateAddition, CertificateIndex, CertificateSignatureOwner, KeyMaterial,
         PublicCertificatePacketSet, UserIdCertificationBuilder, UserIdRevocationBuilder,
-        armor_key_packets, existing_user_id_recertification_config, identity_id,
-        new_user_id_certification_config, serialize_packet_body,
+        existing_user_id_recertification_config, identity_id, new_user_id_certification_config,
+        serialize_packet_body,
     },
     crypto::{
         secret::{OpenPgpSecretSigner, SecretPacketRef},
@@ -29,8 +29,8 @@ use crate::openpgp::{
 
 use super::{
     PrimaryKeyPolicySnapshot, UserIdMutationFailure, UserIdPostconditions, is_valid_new_user_id,
-    map_certification_error, recertify_user_id, reject_present_user_id, user_id_index,
-    user_id_policy_template,
+    map_certification_error, recertify_user_id, reject_present_user_id, stage_user_id_additions,
+    user_id_index, user_id_policy_template,
 };
 
 pub(crate) struct UserIdReplacementInput {
@@ -255,24 +255,9 @@ pub(crate) fn replace_user_id_request(
         signature_bodies: vec![serialize_packet_body(&certification.signature)?],
     });
 
-    // The replacement and its revocation inherit the old identity's local
-    // policy. Certification Revocations do not acquire RFC export semantics
-    // from a type-4 subpacket, so suppress the operation artifact explicitly
-    // instead of broadening generic signature filtering again.
-    let artifact = if mutation_is_local {
-        Vec::new()
-    } else {
-        preflight
-            .packet_set
-            .fragment(&additions, &preflight.canonical.bytes)?
-    };
-    let mut mutated = preflight.packet_set.clone();
-    mutated.apply_additions(&additions)?;
-    let artifact_armored = if artifact.is_empty() {
-        Vec::new()
-    } else {
-        armor_key_packets(&artifact, BlockType::PublicKey)?
-    };
+    // The replacement and its revocation inherit the old identity's local policy.
+    let (mutated, artifact_armored) =
+        stage_user_id_additions(&preflight, &additions, mutation_is_local)?;
 
     finish_success(
         &preflight,

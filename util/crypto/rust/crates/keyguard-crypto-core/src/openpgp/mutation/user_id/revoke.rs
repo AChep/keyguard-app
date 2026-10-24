@@ -5,13 +5,10 @@
 //! artifact the caller may publish, so the stored certificate and the
 //! distributed one can never carry different statements.
 
-use pgp::armor::BlockType;
-
 use crate::openpgp::{
     certificate::{
         CertificateAddition, CertificateIndex, CertificateSignatureOwner, KeyMaterial,
-        PublicCertificatePacketSet, UserIdRevocationBuilder, armor_key_packets,
-        serialize_packet_body,
+        PublicCertificatePacketSet, UserIdRevocationBuilder, serialize_packet_body,
     },
     crypto::{
         secret::{OpenPgpSecretSigner, SecretPacketRef},
@@ -35,7 +32,9 @@ pub(crate) struct UserIdRevocationSuccess {
     pub(crate) effective_at_epoch_seconds: u64,
 }
 
-use super::{UserIdMutationFailure, map_certification_error, user_id_index};
+use super::{
+    UserIdMutationFailure, map_certification_error, stage_user_id_additions, user_id_index,
+};
 
 pub(crate) fn revoke_user_id_request(
     mut request: UserIdRevocationInput,
@@ -100,25 +99,8 @@ pub(crate) fn revoke_user_id_request(
         },
         body: serialize_packet_body(&revocation)?,
     }];
-    // Exportable Certification does not apply to Certification Revocations,
-    // so generic certificate export correctly ignores the copied type-4
-    // subpacket. The operation still inherits the source certification's
-    // privacy contract and must not publish an artifact for a local identity.
-    let artifact = if mutation_is_local {
-        Vec::new()
-    } else {
-        preflight
-            .packet_set
-            .fragment(&additions, &preflight.canonical.bytes)?
-    };
-    let mut mutated = preflight.packet_set.clone();
-    mutated.apply_additions(&additions)?;
-
-    let artifact_armored = if artifact.is_empty() {
-        Vec::new()
-    } else {
-        armor_key_packets(&artifact, BlockType::PublicKey)?
-    };
+    let (mutated, artifact_armored) =
+        stage_user_id_additions(&preflight, &additions, mutation_is_local)?;
     finish_success(
         &preflight,
         &mutated,

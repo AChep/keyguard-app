@@ -3,7 +3,7 @@ use crate::openpgp::adapter::wire::{
     Message as _, OpenPgpKeyGenerateRequest, OpenPgpKeyKind, OpenPgpKeyMaterial,
 };
 use crate::openpgp::certificate::{
-    canonicalize_public_certificate, parse_single_public, parse_single_secret,
+    armor_key_packets, canonicalize_public_certificate, parse_single_public, parse_single_secret,
     project_secret_certificate, rebuild_secret_certificate,
 };
 use crate::openpgp::crypto::verification::{is_certification, signature_config_is_non_exportable};
@@ -13,6 +13,7 @@ use crate::openpgp::policy::{
     PolicySelection, all_components, select_newest_policy_signature, signature_expired,
     signature_is_revocable, validate_certificate,
 };
+use pgp::armor::BlockType;
 use pgp::composed::SignedPublicKey;
 use pgp::packet::KeyFlags;
 use pgp::packet::{Subpacket, SubpacketData};

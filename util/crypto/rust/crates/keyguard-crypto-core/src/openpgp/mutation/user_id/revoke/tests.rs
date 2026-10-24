@@ -1,4 +1,5 @@
 use pgp::{
+    armor::BlockType,
     crypto::hash::HashAlgorithm,
     packet::{SignatureConfig, SignatureType, Subpacket, SubpacketData},
     types::{KeyDetails, Timestamp},
@@ -12,8 +13,8 @@ use crate::{
         Message as _, OpenPgpKeyGenerateRequest, OpenPgpKeyKind, OpenPgpKeyMaterial,
     },
     openpgp::certificate::{
-        UserIdCertificationBuilder, canonicalize_public_certificate, identity_id,
-        parse_single_public, parse_single_secret, project_secret_certificate,
+        UserIdCertificationBuilder, armor_key_packets, canonicalize_public_certificate,
+        identity_id, parse_single_public, parse_single_secret, project_secret_certificate,
         rebuild_secret_certificate,
     },
     openpgp::crypto::verification::signature_config_is_non_exportable,

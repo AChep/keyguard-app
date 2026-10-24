@@ -11,14 +11,16 @@ pub(crate) use update::{UserIdUpdate, UserIdUpdateInput, update_user_id_request}
 use super::{MutationPreflight, impl_mutation_failure_conversions};
 use crate::openpgp::{
     certificate::{
-        CertificateAddition, CertificateSignatureOwner, UserIdCertificationBuilder,
-        UserIdCertificationError, identity_id, serialize_packet_body,
+        CertificateAddition, CertificateSignatureOwner, PublicCertificatePacketSet,
+        UserIdCertificationBuilder, UserIdCertificationError, armor_key_packets, identity_id,
+        serialize_packet_body,
     },
     crypto::signer::SigningKeyRef,
     packet::USER_ID_TAG,
     policy::{ValidatedCertificate, signature_is_primary, signature_is_revocable},
 };
 use pgp::{
+    armor::BlockType,
     composed::SignedPublicKey,
     packet::{KeyFlags, Signature, SignatureConfig},
     types::{KeyDetails, KeyVersion},
@@ -229,6 +231,36 @@ fn reject_present_user_id(
             UserIdMutationFailure::DuplicateIdentity
         },
     )
+}
+
+/// Applies `additions` to a copy of the preflight packet set and builds the
+/// armored public artifact carrying exactly those additions.
+///
+/// A local-only mutation publishes nothing. Exportable Certification does not
+/// apply to Certification Revocations, so generic certificate export correctly
+/// ignores a copied type-4 subpacket; the operation still inherits the source
+/// certification's privacy contract and must not publish a local identity.
+fn stage_user_id_additions(
+    preflight: &MutationPreflight,
+    additions: &[CertificateAddition],
+    local_only: bool,
+) -> Result<(PublicCertificatePacketSet, Vec<u8>), UserIdMutationFailure> {
+    // Fragment against the unmutated set: it rejects identities already present.
+    let artifact = if local_only {
+        Vec::new()
+    } else {
+        preflight
+            .packet_set
+            .fragment(additions, &preflight.canonical.bytes)?
+    };
+    let mut mutated = preflight.packet_set.clone();
+    mutated.apply_additions(additions)?;
+    let artifact_armored = if artifact.is_empty() {
+        Vec::new()
+    } else {
+        armor_key_packets(&artifact, BlockType::PublicKey)?
+    };
+    Ok((mutated, artifact_armored))
 }
 
 const fn map_certification_error(error: UserIdCertificationError) -> UserIdMutationFailure {

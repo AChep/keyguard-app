@@ -16,31 +16,14 @@ class SshRunner(
 
     fun run(
         spec: SshRequestSpec,
-        maxApprovals: Int = OpenPgpRunner.DEFAULT_MAX_APPROVALS,
-    ): IpcExchange {
-        val legs = mutableListOf<IpcExchange.Leg>()
-        var request: Intent? = spec.toIntent()
-        var approvalsUsed = 0
-        while (request != null) {
-            val leg = call(request)
-            legs += leg
-            val pendingIntent = leg
-                .interactionPendingIntent(SshAuthenticationApi.EXTRA_PENDING_INTENT)
-                ?.takeIf { approvalsUsed < maxApprovals }
-            request = if (pendingIntent == null) {
-                null
-            } else {
-                approvalsUsed++
-                val outcome = approvals.launch(pendingIntent)
-                legs += IpcExchange.Leg(
-                    label = "approval #$approvalsUsed",
-                    approval = outcome,
-                )
-                outcome.retryIntent
-            }
-        }
-        return IpcExchange(legs).recorded()
-    }
+        maxApprovals: Int = DEFAULT_MAX_APPROVALS,
+    ): IpcExchange = runApprovalExchange(
+        initial = spec.toIntent(),
+        approvals = approvals,
+        maxApprovals = maxApprovals,
+        intentExtra = SshAuthenticationApi.EXTRA_PENDING_INTENT,
+        call = ::call,
+    )
 
     private fun call(request: Intent): IpcExchange.Leg {
         val label = request.action?.substringAfterLast('.') ?: "<no action>"

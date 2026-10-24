@@ -43,8 +43,10 @@ unsafe fn open_with(
         return Err(pack_bridge_invalid_argument());
     }
     // SAFETY: Forwarded from this function's own contract.
+    // The view does not outlive this call.
     let path = unsafe { string_from_raw(path_ptr, path_len) }?;
     // SAFETY: Forwarded from this function's own contract.
+    // The view does not outlive this call.
     let password = unsafe { string_from_raw(password_ptr, password_len) }?;
     let password = (password_len != 0).then_some(password);
     let handle = open(path, password)?;
@@ -99,6 +101,7 @@ pub unsafe extern "C" fn keyguard_zip_writer_begin_entry(
 ) -> i64 {
     unwrap(contained(|| {
         // SAFETY: Forwarded from this function's own contract.
+        // The view does not outlive this call.
         let name = unsafe { string_from_raw(name_ptr, name_len) }?;
         keyguard_zip_core::begin_entry(handle, name)?;
         Ok(0)
@@ -120,6 +123,7 @@ pub unsafe extern "C" fn keyguard_zip_writer_write(
 ) -> i64 {
     unwrap(contained(|| {
         // SAFETY: Forwarded from this function's own contract.
+        // The view does not outlive this call.
         let data = unsafe { bytes_from_raw(data_ptr, data_len) }?;
         keyguard_zip_core::write(handle, data)?;
         Ok(0)
@@ -199,6 +203,7 @@ pub unsafe extern "C" fn keyguard_zip_reader_next_entry(
 ) -> i64 {
     unwrap(contained(|| {
         // SAFETY: Forwarded from this function's own contract.
+        // The view does not outlive this call.
         let name_buf = unsafe { bytes_from_raw_mut(name_ptr, name_cap) }?;
         match keyguard_zip_core::reader_next_entry(handle, name_buf)? {
             Some(name_len) => i64::try_from(name_len).map_err(|_| pack_bridge_internal()),
@@ -222,6 +227,7 @@ pub unsafe extern "C" fn keyguard_zip_reader_read(
 ) -> i64 {
     unwrap(contained(|| {
         // SAFETY: Forwarded from this function's own contract.
+        // The view does not outlive this call.
         let buf = unsafe { bytes_from_raw_mut(buf_ptr, buf_cap) }?;
         let read = keyguard_zip_core::reader_read(handle, buf)?;
         i64::try_from(read).map_err(|_| pack_bridge_internal())
@@ -256,8 +262,10 @@ pub unsafe extern "C" fn keyguard_zip_memory_open(
             return Err(pack_bridge_invalid_argument());
         }
         // SAFETY: Forwarded from this function's contract.
+        // The view does not outlive this call.
         let data = unsafe { bytes_from_raw(data_ptr, data_len) }?;
         // SAFETY: Forwarded from this function's contract.
+        // The view does not outlive this call.
         let password = unsafe { string_from_raw(password_ptr, password_len) }?;
         let reader = keyguard_zip_core::memory_reader::MemoryReader::open(
             data,
@@ -282,6 +290,7 @@ pub unsafe extern "C" fn keyguard_zip_memory_read(
 ) -> i64 {
     unwrap(contained(|| {
         // SAFETY: Forwarded from this function's contract.
+        // The view does not outlive this call.
         let output = unsafe { bytes_from_raw_mut(output, length) }?;
         let count = keyguard_zip_core::registry::memory_read(handle, output)?;
         i64::try_from(count).map_err(|_| pack_bridge_internal())

@@ -45,6 +45,7 @@ pub unsafe extern "C" fn keyguard_agent_ipc_last_error(buffer: *mut u8, capacity
         };
         if capacity >= diagnostic.len() {
             // SAFETY: Forwarded from this function's own contract.
+            // The view does not outlive this call.
             if let Ok(out) = unsafe { bytes_from_raw_mut(buffer, capacity) } {
                 out[..diagnostic.len()].copy_from_slice(diagnostic.as_bytes());
             }
@@ -79,10 +80,13 @@ pub unsafe extern "C" fn keyguard_agent_ipc_listen(
 ) -> i64 {
     bridge::export(PANIC_HOOK, "listen", || {
         // SAFETY: Forwarded from this function's own contract.
+        // The view does not outlive this call.
         let parent = unsafe { string_from_raw(parent, parent_length) }?;
         // SAFETY: Forwarded from this function's own contract.
+        // The view does not outlive this call.
         let prefix = unsafe { string_from_raw(prefix, prefix_length) }?;
         // SAFETY: Forwarded from this function's own contract.
+        // The view does not outlive this call.
         let exact_name = unsafe { string_from_raw(exact_name, exact_length) }?;
         Ok(bridge::listen(parent, prefix, exact_name))
     })
@@ -103,6 +107,7 @@ pub unsafe extern "C" fn keyguard_agent_ipc_endpoint(
 ) -> i64 {
     bridge::export(PANIC_HOOK, "endpoint", || {
         // SAFETY: Forwarded from this function's own contract.
+        // The view does not outlive this call.
         let out = unsafe { bytes_from_raw_mut(buffer, capacity) }?;
         let size = bridge::endpoint(listener, |endpoint| {
             let bytes = endpoint.as_bytes();
@@ -153,6 +158,7 @@ pub unsafe extern "C" fn keyguard_agent_ipc_read(
 ) -> i64 {
     bridge::export(PANIC_HOOK, "read", || {
         // SAFETY: Forwarded from this function's own contract.
+        // The view does not outlive this call.
         let out = unsafe { bytes_from_raw_mut(buffer, capacity) }?;
         let mut scratch = Zeroizing::new(vec![0_u8; capacity.min(bridge::MAX_READ_BYTES)]);
         let count = bridge::read(connection, &mut scratch);
@@ -184,6 +190,7 @@ pub unsafe extern "C" fn keyguard_agent_ipc_write(
 ) -> i64 {
     bridge::export(PANIC_HOOK, "write", || {
         // SAFETY: Forwarded from this function's own contract.
+        // The view does not outlive this call.
         let data = unsafe { bytes_from_raw(buffer, length) }?;
         Ok(bridge::write(connection, data))
     })

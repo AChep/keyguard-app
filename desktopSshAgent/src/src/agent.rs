@@ -293,7 +293,9 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
                     Err(AgentError::ExtensionFailure)
                 }
             },
-            _ => Err(AgentError::ExtensionFailure),
+            // RFC 9987 section 5.8 reserves extension failure for supported
+            // extensions; an unsupported name receives generic failure.
+            _ => Err(AgentError::Failure),
         }
     }
 }

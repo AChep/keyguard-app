@@ -204,8 +204,6 @@ pub(super) enum SessionBindError {
     InvalidSignatureEncoding,
     #[error("session ID must not be empty")]
     EmptySessionId,
-    #[error("invalid forwarding flag {0}; expected 0 or 1")]
-    InvalidForwardingFlag(u8),
     #[error("session binding contains {0} trailing bytes")]
     TrailingData(usize),
     #[error("host-key signature verification failed")]
@@ -301,11 +299,8 @@ pub(super) fn parse_session_binding(
         })?;
     input = &input[1..];
 
-    let is_forwarding = match forwarding_flag {
-        0 => false,
-        1 => true,
-        other => return Err(SessionBindError::InvalidForwardingFlag(other)),
-    };
+    // RFC 4251 section 5 requires every nonzero boolean to be read as true.
+    let is_forwarding = forwarding_flag != 0;
 
     if !input.is_empty() {
         return Err(SessionBindError::TrailingData(input.len()));

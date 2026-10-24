@@ -319,6 +319,13 @@ async fn handle_request<T: Session>(session: &mut T, request: Request) -> Respon
     }
 }
 
+/// Exercises the production dispatch and frame encoder without a local socket.
+#[cfg(test)]
+pub(crate) async fn response_frame<T: Session>(session: &mut T, request: Request) -> Vec<u8> {
+    let response = handle_request(session, request).await;
+    encode_response_frame(&response, MAX_AGENT_FRAME_LEN).expect("response fits agent limits")
+}
+
 fn encode_response_frame(
     response: &Response,
     max_frame_len: usize,

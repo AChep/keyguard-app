@@ -1,24 +1,8 @@
 name: "Setup Protobuf"
-description: "Install the Protobuf compiler on the current runner"
+description: "Install the pinned Protobuf compiler on the current runner"
 runs:
   using: "composite"
   steps:
-    - name: "Install Protobuf compiler (Linux)"
-      if: runner.os == 'Linux'
+    - name: "Install Protobuf compiler"
       shell: bash
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y protobuf-compiler
-        protoc --version
-    - name: "Install Protobuf compiler (macOS)"
-      if: runner.os == 'macOS'
-      shell: bash
-      run: |
-        brew install protobuf
-        protoc --version
-    - name: "Install Protobuf compiler (Windows)"
-      if: runner.os == 'Windows'
-      shell: pwsh
-      run: |
-        choco install protoc --yes --no-progress
-        protoc --version
+      run: python "$GITHUB_ACTION_PATH/setup_protobuf.py"

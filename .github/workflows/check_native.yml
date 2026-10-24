@@ -65,6 +65,7 @@ jobs:
           python3 -m unittest
           scripts/test_classify_native_changes.py
           scripts/test_prefetch_native.py
+          scripts/test_setup_protobuf.py
           scripts/test_verify_native_bundle.py
           scripts/test_check_bouncycastle_policy.py
           scripts/test_run_native_package_smoke.py

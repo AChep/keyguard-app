@@ -692,10 +692,10 @@ jobs:
           $imageRoot = Join-Path $env:RUNNER_TEMP 'msi-upgrade-image'
           ./scripts/verify_windows_msi.ps1 -Directory packages/arm64 -Version $env:MSI_VERSION `
             -Architecture aarch64 -ExtractDirectory $imageRoot
-          $launchers = @(Get-ChildItem -LiteralPath $imageRoot -Filter Keyguard.exe -Recurse -File)
-          if ($launchers.Count -ne 1) { throw 'Expected one extracted ARM64 app image.' }
+          $appImage = python -c 'from pathlib import Path; import sys; from scripts.run_native_package_smoke import find_windows_launcher; print(find_windows_launcher(Path(sys.argv[1])).parent)' $imageRoot
+          if ($LASTEXITCODE -ne 0) { throw 'Could not locate the extracted ARM64 app image.' }
           # Only the installer version differs; the payload remains the tested release image.
-          ./scripts/package_windows_arm64_msi.ps1 -AppImage $launchers[0].DirectoryName `
+          ./scripts/package_windows_arm64_msi.ps1 -AppImage $appImage `
             -Version 0.0.0 -WixDirectory $env:WIX_DIRECTORY -OutputDirectory packages/previous
       - name: "Test installation, upgrades, and uninstall"
         shell: pwsh

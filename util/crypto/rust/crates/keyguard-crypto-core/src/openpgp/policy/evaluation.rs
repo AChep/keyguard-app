@@ -16,7 +16,10 @@ use pgp::{
 
 use crate::openpgp::{
     certificate::PublicComponent,
-    crypto::signature_key_hash_data,
+    crypto::key_signature::{
+        certification_signature_digest, direct_key_signature_digest, signature_key_hash_data,
+        verify_key_signature_digest,
+    },
     crypto::verification::{
         is_certification, key_signature_verification_acceptable, signature_creation_time,
         signature_ignoring_unhashed_issuer_hints, signature_matches_signer,
@@ -110,25 +113,15 @@ impl PublicComponent {
         primary: &PublicKey,
         budget: &mut OpenPgpPolicyBudget,
     ) -> Result<bool, OpenPgpPolicyError> {
-        if !key_signature_verification_acceptable(self) {
-            return Ok(false);
-        }
-        if !signature_matches_signer(signature, self) {
+        if !key_signature_verification_acceptable(self)
+            || signature.typ() != Some(SignatureType::KeyRevocation)
+            || !signature_matches_signer(signature, self)
+        {
             return Ok(false);
         }
         budget.charge_public_key_verification()?;
-        Ok(
-            signature_ignoring_unhashed_issuer_hints(signature).is_some_and(
-                |signature| match self {
-                    Self::Primary(key) => signature
-                        .verify_key_third_party(primary, &OpenPgpVerifier(key))
-                        .is_ok(),
-                    Self::Subkey(key) => signature
-                        .verify_key_third_party(primary, &OpenPgpVerifier(key))
-                        .is_ok(),
-                },
-            ),
-        )
+        Ok(direct_key_signature_digest(signature, primary)
+            .is_some_and(|digest| verify_key_signature_digest(signature, self, &digest)))
     }
 
     /// Verifies a third-party certification signature over an identity; the
@@ -141,34 +134,17 @@ impl PublicComponent {
         identity: &impl Serialize,
         budget: &mut OpenPgpPolicyBudget,
     ) -> Result<bool, OpenPgpPolicyError> {
-        if !key_signature_verification_acceptable(self) {
-            return Ok(false);
-        }
-        if !signature_matches_signer(signature, self) {
+        if !key_signature_verification_acceptable(self)
+            || !(is_certification(signature.typ())
+                || signature.typ() == Some(SignatureType::CertRevocation))
+            || !signature_matches_signer(signature, self)
+        {
             return Ok(false);
         }
         budget.charge_public_key_verification()?;
         Ok(
-            signature_ignoring_unhashed_issuer_hints(signature).is_some_and(
-                |signature| match self {
-                    Self::Primary(key) => signature
-                        .verify_third_party_certification(
-                            primary,
-                            &OpenPgpVerifier(key),
-                            tag,
-                            identity,
-                        )
-                        .is_ok(),
-                    Self::Subkey(key) => signature
-                        .verify_third_party_certification(
-                            primary,
-                            &OpenPgpVerifier(key),
-                            tag,
-                            identity,
-                        )
-                        .is_ok(),
-                },
-            ),
+            certification_signature_digest(signature, primary, tag, identity)
+                .is_some_and(|digest| verify_key_signature_digest(signature, self, &digest)),
         )
     }
 
@@ -221,10 +197,10 @@ where
     if let SignatureVersionSpecific::V6 { salt } = &config.version_specific {
         hasher.update(salt);
     }
-    let Some(primary_hash_data) = signature_key_hash_data(primary) else {
+    let Some(primary_hash_data) = signature_key_hash_data(config.version(), primary) else {
         return false;
     };
-    let Some(subkey_hash_data) = signature_key_hash_data(subkey) else {
+    let Some(subkey_hash_data) = signature_key_hash_data(config.version(), subkey) else {
         return false;
     };
     hasher.update(&primary_hash_data);
@@ -248,26 +224,6 @@ where
             .verify(config.hash_alg, &digest, value)
             .is_ok()
     })
-}
-
-/// Computes the digest signed by a primary-key-only signature.
-///
-/// `pgp` deliberately limits its direct-key helpers to signature types 0x1F
-/// and 0x20. RFC 9580 also defines type 0x30 over this same data when it
-/// revokes a Direct Key signature, so that narrow case is handled here.
-pub(super) fn direct_key_signature_digest<K>(signature: &Signature, key: &K) -> Option<Vec<u8>>
-where
-    K: KeyDetails + Serialize,
-{
-    let config = signature.config()?;
-    let mut hasher = config.hash_alg.new_hasher().ok()?;
-    if let SignatureVersionSpecific::V6 { salt } = &config.version_specific {
-        hasher.update(salt);
-    }
-    hasher.update(&signature_key_hash_data(key)?);
-    let signature_data_len = config.hash_signature_data(&mut hasher).ok()?;
-    hasher.update(&config.trailer(signature_data_len).ok()?);
-    Some(hasher.finalize().to_vec())
 }
 
 fn verify_direct_certification_revocation<V, K>(
@@ -402,52 +358,6 @@ fn certification_revocation_selector(
         hash_algorithm,
         digest,
     }
-}
-
-/// Computes the digest signed by a User ID or User Attribute certification.
-///
-/// RFC 9580 §5.2.3.33 identifies a target by the algorithms and hash of the
-/// target signature itself. This is the certification's original signed-data
-/// digest, not the signature-over-signature input used by type 0x50.
-pub(super) fn certification_signature_digest<K>(
-    signature: &Signature,
-    primary: &K,
-    tag: Tag,
-    identity: &impl Serialize,
-) -> Option<Vec<u8>>
-where
-    K: KeyDetails + Serialize,
-{
-    let config = signature.config()?;
-    let mut hasher = config.hash_alg.new_hasher().ok()?;
-    if let SignatureVersionSpecific::V6 { salt } = &config.version_specific {
-        hasher.update(salt);
-    }
-    hasher.update(&signature_key_hash_data(primary)?);
-
-    let identity_len = identity.write_len();
-    let mut identity_body = Vec::with_capacity(identity_len);
-    identity.to_writer(&mut identity_body).ok()?;
-    if identity_body.len() != identity_len {
-        return None;
-    }
-    match config.version_specific {
-        SignatureVersionSpecific::V2 { .. } | SignatureVersionSpecific::V3 { .. } => {}
-        SignatureVersionSpecific::V4 | SignatureVersionSpecific::V6 { .. } => {
-            let prefix = match tag {
-                Tag::UserId => 0xb4,
-                Tag::UserAttribute => 0xd1,
-                _ => return None,
-            };
-            hasher.update(&[prefix]);
-            hasher.update(&u32::try_from(identity_len).ok()?.to_be_bytes());
-        }
-    }
-    hasher.update(&identity_body);
-
-    let signature_data_len = config.hash_signature_data(&mut hasher).ok()?;
-    hasher.update(&config.trailer(signature_data_len).ok()?);
-    Some(hasher.finalize().to_vec())
 }
 
 /// Hashes a target candidate at most once and only when its algorithms match.

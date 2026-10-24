@@ -22,8 +22,14 @@ use prost::{Message, bytes::Bytes};
 use super::{acceptance::*, budget::*, evaluation::*, model::*, selection::*};
 use crate::{
     openpgp::adapter::key::generate as generate_key_request,
-    openpgp::adapter::wire::{OpenPgpKeyGenerateRequest, OpenPgpKeyKind, OpenPgpKeyMaterial},
+    openpgp::adapter::wire::{
+        OpenPgpKeyGenerateRequest, OpenPgpKeyKind, OpenPgpKeyMaterial, OpenPgpKeyVersion,
+    },
     openpgp::certificate::PublicComponent,
+    openpgp::crypto::key_signature::{
+        certification_signature_digest, direct_key_signature_digest,
+        tests::{KeyFraming, sign_signed_data, signed_data_digest, third_party_signature_config},
+    },
     openpgp::crypto::verification::*,
     openpgp::format::hex_upper,
     openpgp::key::generate_rsa_certificate_for_test,
@@ -158,9 +164,35 @@ fn generated_test_secret_at_with_kind(
     rsa_bits: u32,
     creation_time: u64,
 ) -> SignedSecretKey {
+    generated_test_secret_with_version(
+        user_id,
+        kind,
+        OpenPgpKeyVersion::Unspecified,
+        rsa_bits,
+        creation_time,
+    )
+}
+
+fn generated_v6_test_secret(user_id: &str) -> SignedSecretKey {
+    generated_test_secret_with_version(
+        user_id,
+        OpenPgpKeyKind::Ed25519X25519,
+        OpenPgpKeyVersion::V6,
+        0,
+        TEST_TIME,
+    )
+}
+
+fn generated_test_secret_with_version(
+    user_id: &str,
+    kind: OpenPgpKeyKind,
+    version: OpenPgpKeyVersion,
+    rsa_bits: u32,
+    creation_time: u64,
+) -> SignedSecretKey {
     let material = OpenPgpKeyMaterial::decode(
         generate_key_request(OpenPgpKeyGenerateRequest {
-            version: 0,
+            version: version as i32,
             kind: kind as i32,
             user_id: user_id.to_owned(),
             rsa_bits,
@@ -4025,6 +4057,249 @@ fn designated_revocation_fails_closed_until_the_authority_key_verifies_it() {
         policy.primary_component().authorize_mutation(),
         Err(MutationAuthorizationError::Revoked),
     );
+}
+
+/// Signs `signature_type` by `signer` over `target`'s first User ID.
+fn cross_version_identity_signature(
+    signer: &SignedSecretKey,
+    target: &SignedSecretKey,
+    signature_type: SignatureType,
+    creation_time: u32,
+    framing: KeyFraming,
+    additional_hashed_subpackets: Vec<Subpacket>,
+) -> Signature {
+    let mut config =
+        third_party_signature_config(&signer.primary_key, signature_type, creation_time);
+    if signature_type == SignatureType::CertRevocation {
+        config.hashed_subpackets.push(
+            Subpacket::regular(SubpacketData::RevocationReason(
+                RevocationCode::CertUserIdInvalid,
+                Vec::new().into(),
+            ))
+            .expect("certification revocation reason"),
+        );
+    }
+    config
+        .hashed_subpackets
+        .extend(additional_hashed_subpackets);
+    let signed_data = framing
+        .user_id_certification_data(target.primary_key.public_key(), &target.details.users[0].id);
+    sign_signed_data(config, &signer.primary_key, &signed_data)
+}
+
+fn authority_certifies_first_user_id(
+    authority: &SignedSecretKey,
+    target: &SignedSecretKey,
+    signatures: &[Signature],
+) -> bool {
+    trusted_authority_certifies_identity(
+        target.primary_key.public_key(),
+        Tag::UserId,
+        &target.details.users[0].id,
+        signatures,
+        &PublicComponent::Primary(authority.primary_key.public_key().clone()),
+        TEST_TIME + 3,
+        &mut OpenPgpPolicyBudget::default(),
+    )
+    .expect("evaluate third-party certification")
+}
+
+#[test]
+fn cross_version_certification_frames_the_target_by_signature_version() {
+    let v4 = generated_test_secret("V4 Certified <v4-certified@example.test>");
+    let v6 = generated_v6_test_secret("V6 Certified <v6-certified@example.test>");
+    for (authority, target) in [(&v6, &v4), (&v4, &v6)] {
+        let signature_framing = KeyFraming::of_signer(authority.primary_key.version());
+        let key_framing = KeyFraming::of_signer(target.primary_key.version());
+        for (framing, certifies) in [(signature_framing, true), (key_framing, false)] {
+            let certification = cross_version_identity_signature(
+                authority,
+                target,
+                SignatureType::CertGeneric,
+                (TEST_TIME + 1) as u32,
+                framing,
+                Vec::new(),
+            );
+            assert_eq!(
+                authority_certifies_first_user_id(authority, target, &[certification]),
+                certifies,
+                "{:?} authority, {:?} target, {framing:?} framing",
+                authority.primary_key.version(),
+                target.primary_key.version(),
+            );
+        }
+    }
+}
+
+#[test]
+fn cross_version_certification_revocation_frames_the_target_by_signature_version() {
+    let v4 = generated_test_secret("V4 Revoked <v4-revoked@example.test>");
+    let v6 = generated_v6_test_secret("V6 Revoked <v6-revoked@example.test>");
+    for (authority, target) in [(&v6, &v4), (&v4, &v6)] {
+        let signature_framing = KeyFraming::of_signer(authority.primary_key.version());
+        let key_framing = KeyFraming::of_signer(target.primary_key.version());
+        let certification = cross_version_identity_signature(
+            authority,
+            target,
+            SignatureType::CertGeneric,
+            (TEST_TIME + 1) as u32,
+            signature_framing,
+            Vec::new(),
+        );
+        let config = certification.config().expect("certification config");
+        let target_digest = signed_data_digest(
+            config,
+            &signature_framing.user_id_certification_data(
+                target.primary_key.public_key(),
+                &target.details.users[0].id,
+            ),
+        );
+        let selector =
+            signature_target_subpacket(config.pub_alg, config.hash_alg, target_digest, true);
+        for (framing, selectors, revoked) in [
+            (signature_framing, Vec::new(), true),
+            (signature_framing, vec![selector], true),
+            (key_framing, Vec::new(), false),
+        ] {
+            let case = format!(
+                "{:?} authority, {:?} target, {framing:?} framing, targeted: {}",
+                authority.primary_key.version(),
+                target.primary_key.version(),
+                !selectors.is_empty(),
+            );
+            let revocation = cross_version_identity_signature(
+                authority,
+                target,
+                SignatureType::CertRevocation,
+                (TEST_TIME + 2) as u32,
+                framing,
+                selectors,
+            );
+            assert_eq!(
+                authority_certifies_first_user_id(
+                    authority,
+                    target,
+                    &[certification.clone(), revocation],
+                ),
+                !revoked,
+                "{case}",
+            );
+        }
+    }
+}
+
+/// Generates a V6 certificate whose Direct Key signature declares `revoker`.
+fn v6_target_with_designated_revoker(revoker: &SignedSecretKey) -> SignedSecretKey {
+    let mut target = generated_v6_test_secret("V6 Revocable <v6-revocable@example.test>");
+    let mut config = third_party_signature_config(
+        &target.primary_key,
+        SignatureType::Key,
+        (TEST_TIME + 1) as u32,
+    );
+    config
+        .hashed_subpackets
+        .push(designated_revoker_subpacket(revoker));
+    let declaration = config
+        .sign_key(
+            &target.primary_key,
+            &Password::empty(),
+            target.primary_key.public_key(),
+        )
+        .expect("sign v6 designated-revoker declaration");
+    target.details.direct_signatures.push(declaration);
+    target
+}
+
+#[test]
+fn v4_designated_revoker_frames_v6_components_by_signature_version() {
+    let revoker = generated_test_secret("V4 Revoker <v4-revoker@example.test>");
+    let revoker_public = revoker.to_public_key();
+    let revocation_time = (TEST_TIME + 2) as u32;
+    let revocation = |signature_type, signed_data: &[u8]| {
+        sign_signed_data(
+            third_party_signature_config(&revoker.primary_key, signature_type, revocation_time),
+            &revoker.primary_key,
+            signed_data,
+        )
+    };
+    for (framing, expected) in [
+        (KeyFraming::V4, RevocationStatus::Revoked),
+        (KeyFraming::V6, RevocationStatus::NotRevoked),
+    ] {
+        let mut primary_target = v6_target_with_designated_revoker(&revoker);
+        let primary_signed_data = framing.frame(primary_target.primary_key.public_key());
+        primary_target
+            .details
+            .revocation_signatures
+            .push(revocation(
+                SignatureType::KeyRevocation,
+                &primary_signed_data,
+            ));
+
+        let mut subkey_target = v6_target_with_designated_revoker(&revoker);
+        let subkey = subkey_target.secret_subkeys[0].key.public_key().clone();
+        let mut subkey_signed_data = framing.frame(subkey_target.primary_key.public_key());
+        subkey_signed_data.extend(framing.frame(&subkey));
+        subkey_target.secret_subkeys[0].signatures.push(revocation(
+            SignatureType::SubkeyRevocation,
+            &subkey_signed_data,
+        ));
+
+        let mut user_id_target = v6_target_with_designated_revoker(&revoker);
+        let user_id_revocation = cross_version_identity_signature(
+            &revoker,
+            &user_id_target,
+            SignatureType::CertRevocation,
+            revocation_time,
+            framing,
+            Vec::new(),
+        );
+        user_id_target.details.users[0]
+            .signatures
+            .push(user_id_revocation);
+
+        assert_eq!(
+            revocation_status_with_revoker(&primary_target, &revoker_public, |policy| {
+                policy.primary.revocation_status
+            }),
+            expected,
+            "primary key, {framing:?} framing",
+        );
+        assert_eq!(
+            revocation_status_with_revoker(&subkey_target, &revoker_public, |policy| {
+                policy
+                    .subkey(&subkey)
+                    .expect("revoked subkey policy")
+                    .policy()
+                    .revocation_status
+            }),
+            expected,
+            "subkey, {framing:?} framing",
+        );
+        assert_eq!(
+            revocation_status_with_revoker(&user_id_target, &revoker_public, |policy| {
+                policy.user_ids[0].revocation_status
+            }),
+            expected,
+            "User ID, {framing:?} framing",
+        );
+    }
+}
+
+fn revocation_status_with_revoker(
+    target: &SignedSecretKey,
+    revoker: &pgp::composed::SignedPublicKey,
+    status: impl FnOnce(&ValidatedCertificate<'_>) -> RevocationStatus,
+) -> RevocationStatus {
+    let public = target.to_public_key();
+    let policy = validate_certificate(
+        &public,
+        &all_components(&[public.clone(), revoker.clone()]),
+        TEST_TIME + 3,
+        &mut OpenPgpPolicyBudget::default(),
+    )
+    .expect("evaluate designated revocation");
+    status(&policy)
 }
 
 #[test]

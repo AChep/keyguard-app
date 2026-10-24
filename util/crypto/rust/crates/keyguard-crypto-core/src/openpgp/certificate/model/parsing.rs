@@ -567,7 +567,7 @@ impl PublicCertificatePacketSet {
             hasher.update(salt);
         }
 
-        hasher.update(&signature_key_hash_data(primary)?);
+        hasher.update(&signature_key_hash_data(signature.version(), primary)?);
         match placement {
             SignaturePlacement::Direct => {}
             SignaturePlacement::Identity(identity) => {
@@ -590,7 +590,7 @@ impl PublicCertificatePacketSet {
             SignaturePlacement::Subkey(fingerprint) => {
                 let component = self.subkeys.get(fingerprint)?;
                 let subkey = parse_public_subkey(&component.packet).ok()?;
-                hasher.update(&signature_key_hash_data(&subkey)?);
+                hasher.update(&signature_key_hash_data(signature.version(), &subkey)?);
             }
             SignaturePlacement::Unowned => return None,
         }

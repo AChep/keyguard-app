@@ -149,6 +149,44 @@ mod tests {
         }
     }
 
+    /// rPGP methods that frame the signed key by the key's version.
+    const RPGP_KEY_VERSION_FRAMED_METHODS: &[&str] =
+        &["verify_key_third_party", "verify_third_party_certification"];
+
+    #[test]
+    fn third_party_key_signatures_frame_keys_by_signature_version() {
+        // RFC 9580 frames the signed key by the signature's version. A
+        // third-party signer may differ in version from the signed key.
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/openpgp");
+        let mut calls = Vec::new();
+        for path in production_sources(&root) {
+            let name = path
+                .strip_prefix(&root)
+                .expect("source under the OpenPGP root")
+                .to_string_lossy()
+                .replace('\\', "/");
+            let source = std::fs::read_to_string(&path)
+                .expect("read OpenPGP source")
+                .replace("\r\n", "\n");
+            let source = without_line_comments(without_test_module(&source));
+            for method in RPGP_KEY_VERSION_FRAMED_METHODS {
+                for (dot, _) in source.match_indices(&format!(".{method}")) {
+                    if source[dot + 1 + method.len()..]
+                        .trim_start()
+                        .starts_with('(')
+                    {
+                        let line = source[..dot].matches('\n').count() + 1;
+                        calls.push(format!("{name}:{line}: .{method}"));
+                    }
+                }
+            }
+        }
+        assert!(
+            calls.is_empty(),
+            "verify through crypto::key_signature instead: {calls:#?}"
+        );
+    }
+
     fn production_sources(directory: &std::path::Path) -> Vec<std::path::PathBuf> {
         let mut sources = Vec::new();
         for entry in std::fs::read_dir(directory).expect("list OpenPGP sources") {

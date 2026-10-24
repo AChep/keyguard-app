@@ -15,7 +15,10 @@ use pgp::{
 use prost::bytes::Bytes;
 use rand::{SeedableRng, rngs::StdRng};
 
-use crate::openpgp::policy::{OpenPgpPolicyBudget, certificate_components, validate_certificate};
+use crate::openpgp::{
+    crypto::key_signature::tests::{KeyFraming, sign_signed_data, third_party_signature_config},
+    policy::{OpenPgpPolicyBudget, certificate_components, validate_certificate},
+};
 
 const PUBLIC_KEY: &[u8] = include_bytes!("../../../../tests/fixtures/openpgp/cv25519-public.asc");
 const SECRET_KEY: &[u8] = include_bytes!("../../../../tests/fixtures/openpgp/cv25519-secret.asc");
@@ -909,7 +912,7 @@ fn v3_user_id_certification(
         .new_hasher()
         .expect("create v3 certification hasher");
     hasher.update(
-        &signature_key_hash_data(secret.primary_key.public_key())
+        &signature_key_hash_data(SignatureVersion::V3, secret.primary_key.public_key())
             .expect("serialize v4 primary key for v3 signature"),
     );
     hasher.update(&identity.body);
@@ -4110,6 +4113,91 @@ fn authenticated_matching_designated_revocation_exports_its_sensitive_declaratio
     assert!(contains_packet_body(&raw, &declaration));
     assert!(!contains_packet_body(&raw, &unrelated_declaration));
     assert!(contains_packet_body(&raw, &revocation));
+}
+
+#[test]
+fn cross_version_designated_revocation_exports_its_sensitive_declaration() {
+    let target = generated_v6_secret(0x5636_5843_5653_4e53);
+    let revoker = parse_secret(OTHER_SECRET_KEY);
+    assert_eq!(revoker.primary_key.version(), KeyVersion::V4);
+    let declaration = v6_designated_revoker_declaration(&target, &revoker);
+    let candidates = vec![PublicComponent::Primary(
+        revoker.primary_key.public_key().clone(),
+    )];
+    for (framing, exported) in [(KeyFraming::V4, true), (KeyFraming::V6, false)] {
+        let revocation = CanonicalPacket {
+            tag: SIGNATURE_TAG,
+            body: sign_signed_data(
+                third_party_signature_config(
+                    &revoker.primary_key,
+                    SignatureType::KeyRevocation,
+                    1_782_541_500,
+                ),
+                &revoker.primary_key,
+                &framing.frame(target.primary_key.public_key()),
+            )
+            .to_bytes()
+            .expect("serialize cross-version designated revocation"),
+        };
+        let mut certificate = certificate_packet_set(&target);
+        certificate
+            .direct
+            .insert(declaration.clone())
+            .expect("attach sensitive declaration");
+        certificate
+            .direct
+            .insert(revocation)
+            .expect("attach cross-version designated revocation");
+
+        let canonical = certificate
+            .finalize_with_revocation_candidates(&candidates)
+            .expect("finalize revoked certificate");
+        assert_eq!(
+            contains_packet_body(&canonical.bytes, &declaration),
+            exported,
+            "canonical export, {framing:?} framing",
+        );
+        let raw = raw_transferable_bytes_with_candidates(&certificate, &candidates);
+        assert_eq!(
+            contains_packet_body(&raw, &declaration),
+            exported,
+            "raw export, {framing:?} framing",
+        );
+    }
+}
+
+#[test]
+fn cross_version_certification_prefix_uses_the_signature_version_framing() {
+    let target = parse_secret(SECRET_KEY);
+    let authority = generated_v6_secret(0x5636_5843_5650_5246);
+    assert_eq!(target.primary_key.version(), KeyVersion::V4);
+    let certificate = certificate_packet_set(&target);
+    let identity = certificate
+        .identity_order
+        .first()
+        .expect("target user ID")
+        .clone();
+    let user_id = &target.details.users[0].id;
+    for (framing, matches) in [(KeyFraming::V6, true), (KeyFraming::V4, false)] {
+        let certification = sign_signed_data(
+            third_party_signature_config(
+                &authority.primary_key,
+                SignatureType::CertGeneric,
+                1_782_541_400,
+            ),
+            &authority.primary_key,
+            &framing.user_id_certification_data(target.primary_key.public_key(), user_id),
+        );
+        assert_eq!(
+            certificate.signature_digest_prefix_matches_placement(
+                target.primary_key.public_key(),
+                &certification,
+                &SignaturePlacement::Identity(identity.clone()),
+            ),
+            Some(matches),
+            "{framing:?} framing",
+        );
+    }
 }
 
 #[test]

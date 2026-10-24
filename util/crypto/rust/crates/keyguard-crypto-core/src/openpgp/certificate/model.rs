@@ -44,7 +44,9 @@ use thiserror::Error;
 use crate::{
     MAX_CONTROL_ENVELOPE_BYTES,
     openpgp::{
-        crypto::signature_key_hash_data,
+        crypto::key_signature::{
+            direct_key_signature_digest, signature_key_hash_data, verify_key_signature_digest,
+        },
         crypto::verification::{
             cryptographic_signature_material_cmp, key_signature_verification_acceptable,
             signature_algorithm_acceptable, signature_config_is_non_exportable,
@@ -1051,26 +1053,13 @@ fn component_verifies_key_revocation(
 ) -> Result<bool, CertificateMergeError> {
     if !key_signature_verification_acceptable(candidate)
         || signature.typ() != Some(SignatureType::KeyRevocation)
+        || !signature_matches_signer(signature, candidate)
     {
         return Ok(false);
     }
-    let Some(signature) = signature_ignoring_unhashed_issuer_hints(signature) else {
-        return Ok(false);
-    };
-    if !signature_matches_signer(&signature, candidate)
-        || signature
-            .config()
-            .is_none_or(|config| config.pub_alg != candidate.algorithm())
-    {
-        return Ok(false);
-    }
-    budget.verify(|| match candidate {
-        PublicComponent::Primary(key) => signature
-            .verify_key_third_party(primary, &OpenPgpVerifier(key))
-            .is_ok(),
-        PublicComponent::Subkey(key) => signature
-            .verify_key_third_party(primary, &OpenPgpVerifier(key))
-            .is_ok(),
+    budget.verify(|| {
+        direct_key_signature_digest(signature, primary)
+            .is_some_and(|digest| verify_key_signature_digest(signature, candidate, &digest))
     })
 }
 

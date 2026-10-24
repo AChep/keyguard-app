@@ -70,6 +70,8 @@ jobs:
         run: pnpm lint:prose
       - name: "Build"
         run: pnpm build
+      - name: "Check Markdown exports and agent discovery"
+        run: pnpm check:agents
       - name: "Check links from the app and README"
         run: pnpm check:links
       - name: "Check links in the built site"

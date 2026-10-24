@@ -11,11 +11,19 @@ interface Props {
 // Availability badges: platforms, premium and release stage, read from the
 // doc's frontmatter. Shown under the title of a doc and of its feature page.
 const { doc, class: className } = Astro.props;
-const platforms = expandPlatforms(doc.data.platforms).map(platformLabel).join(' · ');
+const platformIds = expandPlatforms(doc.data.platforms);
+const platforms = platformIds.map(platformLabel).join(' · ');
 const stage = doc.data.stage && DOC_STAGE_LABELS[doc.data.stage];
 ---
 
-<div class:list={['flex flex-wrap items-center gap-2 text-sm', className]} data-pagefind-ignore>
+<div
+  class:list={['flex flex-wrap items-center gap-2 text-sm', className]}
+  data-pagefind-ignore
+  data-doc-meta
+  data-platforms={JSON.stringify(platformIds)}
+  data-premium={String(doc.data.premium)}
+  data-stage={doc.data.stage}
+>
   <span class="text-on-surface-variant">{platforms}</span>
   {
     doc.data.premium && (

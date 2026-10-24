@@ -43,6 +43,7 @@ const canonical = Astro.site
     <Font cssVariable="--font-inter" preload={[{ subset: 'latin' }]} />
     {canonical && <link rel="canonical" href={canonical} />}
     <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="describedby" href="/llms.txt" type="text/plain" />
     <meta name="generator" content={Astro.generator} />
     <title>{fullTitle}</title>
     <meta name="description" content={description} />

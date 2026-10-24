@@ -39,6 +39,8 @@ jobs:
         run: pnpm check
       - name: "Build"
         run: pnpm build
+      - name: "Check Markdown exports and agent discovery"
+        run: pnpm check:agents
       - name: "Upload Pages artifact"
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
         with:
@@ -48,13 +50,27 @@ jobs:
     name: "Deploy to GitHub Pages"
     needs: build
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Set up Node"
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: server/web/.nvmrc
+          package-manager-cache: false
       - name: "Deploy"
         id: deployment
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128
+      - name: "Check deployed agent access"
+        env:
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: node server/web/scripts/smoke-agent-docs.mjs

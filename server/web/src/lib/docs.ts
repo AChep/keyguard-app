@@ -24,6 +24,9 @@ export interface DocGroup {
   entries: DocEntry[];
 }
 
+/** Static Markdown counterpart of a documentation page. */
+export const docMarkdownPath = (id: string) => `/docs/${id}/index.md`;
+
 const byOrder = (a: CollectionEntry<'docs'>, b: CollectionEntry<'docs'>) =>
   a.data.order - b.data.order || a.data.title.localeCompare(b.data.title);
 

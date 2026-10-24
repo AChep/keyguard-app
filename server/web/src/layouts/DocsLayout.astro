@@ -5,7 +5,8 @@ import DocLink from '../components/DocLink.astro';
 import DocMeta from '../components/DocMeta.astro';
 import PlatformMatrix from '../components/docs/PlatformMatrix.astro';
 import TroubleshootingIndex from '../components/docs/TroubleshootingIndex.astro';
-import { getDocGroups, resolveRelated } from '../lib/docs';
+import MarkdownActions from '../components/docs/MarkdownActions.astro';
+import { docMarkdownPath, getDocGroups, resolveRelated } from '../lib/docs';
 
 interface Props {
   title: string;
@@ -27,6 +28,7 @@ const search = import.meta.env.PROD;
 <BaseLayout title={title} description={description}>
   <Fragment slot="head">
     {search && <link rel="stylesheet" href="/pagefind/pagefind-component-ui.css" />}
+    {import.meta.env.PROD && entry && <link rel="alternate" type="text/markdown" href={docMarkdownPath(entry.id)} />}
   </Fragment>
 
   <div class="mx-auto flex max-w-6xl flex-col gap-10 px-6 py-12 md:flex-row">
@@ -82,6 +84,7 @@ const search = import.meta.env.PROD;
         {title}
       </h1>
       {entry && <DocMeta doc={entry} class="mt-3" />}
+      {import.meta.env.PROD && entry && <MarkdownActions href={docMarkdownPath(entry.id)} />}
       <div class="mt-6">
         <slot />
         {entry?.data.generated === 'platform-support' && <PlatformMatrix />}

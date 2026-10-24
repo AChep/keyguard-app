@@ -10,7 +10,12 @@ pnpm lint:docs    # page structure and Markdown
 pnpm lint:prose   # Vale, needs the vale binary
 pnpm build        # site and search index
 pnpm check:links  # URLs the app and README link to, after build
+pnpm check:agents # Markdown exports, generated content and discovery, after build
 ```
+
+The build exports each rendered doc to `/docs/<id>/index.md` and lists the exports in `/llms.txt`.
+The exports include availability metadata and generated tables. Markdown links and copy controls appear only in
+the built site. After deployment, `pnpm check:agents:live https://keyguard.dev` checks responses and content types.
 
 ## Sections
 

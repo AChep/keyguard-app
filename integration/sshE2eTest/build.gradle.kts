@@ -16,6 +16,7 @@ keyguardE2e {
 configureNativeLibraryTests(":util:agent-ipc")
 
 dependencies {
+    sshE2eTestImplementation(project(":integration:testProcess"))
     sshE2eTestImplementation(project(":common"))
     sshE2eTestImplementation(project(":util:crypto"))
     sshE2eTestImplementation(libs.kotlinx.coroutines.core)

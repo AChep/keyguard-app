@@ -16,6 +16,7 @@ keyguardE2e {
 configureNativeLibraryTests(":util:agent-ipc")
 
 dependencies {
+    gpgE2eTestImplementation(project(":integration:testProcess"))
     gpgE2eTestImplementation(project(":common"))
     gpgE2eTestImplementation(libs.kotlinx.coroutines.core)
     gpgE2eTestImplementation(libs.kotlinx.coroutines.test)

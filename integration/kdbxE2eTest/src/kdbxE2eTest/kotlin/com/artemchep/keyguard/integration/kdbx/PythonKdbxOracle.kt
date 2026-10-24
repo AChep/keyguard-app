@@ -1,7 +1,9 @@
 package com.artemchep.keyguard.integration.kdbx
 
+import com.artemchep.keyguard.integration.process.runProcess
+import java.io.IOException
 import java.nio.file.Path
-import java.util.concurrent.TimeUnit
+import java.util.concurrent.TimeoutException
 
 internal class PythonKdbxOracle(
     private val executable: String,
@@ -63,27 +65,29 @@ internal class PythonKdbxOracle(
 
     private fun run(arguments: List<String>) {
         val command = listOf(executable, driver.toString()) + arguments
-        val process = try {
-            ProcessBuilder(command)
-                .directory(workingDirectory.toFile())
-                .redirectErrorStream(true)
-                .start()
-        } catch (error: Exception) {
+        val result = try {
+            runProcess(command, timeoutSeconds = TIMEOUT_SECONDS) {
+                directory(workingDirectory.toFile())
+                redirectErrorStream(true)
+            }
+        } catch (error: IOException) {
             throw AssertionError("Could not start Python command: ${command.joinToString(" ")}", error)
+        } catch (error: TimeoutException) {
+            throw AssertionError("Python command timed out: ${command.joinToString(" ")}", error)
         }
-        if (!process.waitFor(2, TimeUnit.MINUTES)) {
-            process.destroyForcibly()
-            throw AssertionError("Python command timed out: ${command.joinToString(" ")}")
-        }
-        val output = process.inputStream.readBytes().decodeToString().trim()
+        val output = result.stdout.trim()
         if (output.isNotEmpty()) {
             println(output)
         }
-        if (process.exitValue() != 0) {
+        if (!result.isSuccess) {
             throw AssertionError(
-                "Python command failed with exit code ${process.exitValue()}:\n" +
+                "Python command failed with exit code ${result.exitCode}:\n" +
                     command.joinToString(" ") + "\n" + output,
             )
         }
+    }
+
+    private companion object {
+        const val TIMEOUT_SECONDS = 120L
     }
 }

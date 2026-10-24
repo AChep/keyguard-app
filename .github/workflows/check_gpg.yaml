@@ -17,6 +17,7 @@ on:
       - 'desktopGpgAgent/**'
       - 'androidGpgAgent/**'
       - 'integration/gpgE2eTest/**'
+      - 'integration/testProcess/**'
       - 'appleApp/src/**/gpgagent/**'
       - 'appleApp/src/appleMain/kotlin/com/artemchep/keyguard/apple/KeyguardCore.kt'
       - 'appleApp/src/macosMain/kotlin/com/artemchep/keyguard/MacosAppModule.kt'
@@ -48,6 +49,7 @@ on:
       - 'desktopGpgAgent/**'
       - 'androidGpgAgent/**'
       - 'integration/gpgE2eTest/**'
+      - 'integration/testProcess/**'
       - 'appleApp/src/**/gpgagent/**'
       - 'appleApp/src/appleMain/kotlin/com/artemchep/keyguard/apple/KeyguardCore.kt'
       - 'appleApp/src/macosMain/kotlin/com/artemchep/keyguard/MacosAppModule.kt'
@@ -159,7 +161,7 @@ jobs:
         run: cargo test --manifest-path desktopGpgAgent/src/Cargo.toml --all-targets --locked
       - uses: ./.github/actions/setup_gpg
       - name: "Run GPG end-to-end tests"
-        run: ${{ matrix.gradle }} :integration:gpgE2eTest:gpgE2eTest
+        run: ${{ matrix.gradle }} :integration:testProcess:test :integration:gpgE2eTest:gpgE2eTest
       - name: "Upload test reports"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
@@ -168,4 +170,6 @@ jobs:
           path: |
             integration/gpgE2eTest/build/reports/tests/
             integration/gpgE2eTest/build/test-results/
+            integration/testProcess/build/reports/tests/
+            integration/testProcess/build/test-results/
           retention-days: 7

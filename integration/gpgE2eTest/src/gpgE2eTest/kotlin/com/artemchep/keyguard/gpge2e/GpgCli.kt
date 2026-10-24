@@ -1,17 +1,8 @@
 package com.artemchep.keyguard.gpge2e
 
+import com.artemchep.keyguard.integration.process.ProcessResult
+import com.artemchep.keyguard.integration.process.runProcess
 import java.nio.file.Path
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.TimeoutException
-
-data class ProcessResult(
-    val exitCode: Int,
-    val stdout: String,
-    val stderr: String,
-) {
-    val isSuccess: Boolean get() = exitCode == 0
-}
 
 /**
  * Thin wrapper around the real `gpg` / `gpgconf` binaries, bound to a particular
@@ -64,35 +55,12 @@ class GpgCli(
             timeoutSeconds: Long,
             toolchain: GpgToolchain = GpgToolchain.current,
             environmentOverrides: Map<String, String?> = emptyMap(),
-        ): ProcessResult {
-            val builder = ProcessBuilder(command)
-            toolchain.applyToEnvironment(builder.environment())
+        ): ProcessResult = runProcess(command, stdin, timeoutSeconds) {
+            toolchain.applyToEnvironment(environment())
             environmentOverrides.forEach { (name, value) ->
-                if (value == null) builder.environment().remove(name) else builder.environment()[name] = value
+                if (value == null) environment().remove(name) else environment()[name] = value
             }
-            builder.environment()["GNUPGHOME"] = gnupgHome.toAbsolutePath().toString()
-            val process = builder.start()
-            if (stdin != null) {
-                process.outputStream.use { it.write(stdin) }
-            } else {
-                process.outputStream.close()
-            }
-            // Drain the streams on background threads, otherwise a process
-            // that outputs nothing but never exits would block the reads and
-            // the timeout below would never get a chance to fire.
-            val stdoutFuture = CompletableFuture.supplyAsync { process.inputStream.readBytes() }
-            val stderrFuture = CompletableFuture.supplyAsync { process.errorStream.readBytes() }
-            if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
-                process.destroyForcibly()
-                throw TimeoutException(
-                    "Timed out after ${timeoutSeconds}s running: ${command.joinToString(" ")}",
-                )
-            }
-            return ProcessResult(
-                exitCode = process.exitValue(),
-                stdout = stdoutFuture.get(timeoutSeconds, TimeUnit.SECONDS).decodeToString(),
-                stderr = stderrFuture.get(timeoutSeconds, TimeUnit.SECONDS).decodeToString(),
-            )
+            environment()["GNUPGHOME"] = gnupgHome.toAbsolutePath().toString()
         }
     }
 }

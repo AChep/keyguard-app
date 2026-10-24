@@ -1,27 +1,24 @@
 package com.artemchep.keyguard.integration.webdav
 
+import com.artemchep.keyguard.integration.process.CapturedProcess
+import com.artemchep.keyguard.integration.process.freePort
 import com.artemchep.keyguard.util.webdav.KtorWebDavClient
 import com.artemchep.keyguard.util.webdav.WebDavAuthorization
 import com.artemchep.keyguard.util.webdav.WebDavClientConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
-import java.io.IOException
-import java.io.InputStream
 import java.net.HttpURLConnection
 import java.net.URI
-import java.net.ServerSocket
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.Comparator
 import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.deleteRecursively
 
 internal class HacdiasWebDavServer private constructor(
     val root: Path,
     val baseUrl: String,
-    private val process: Process,
-    private val stdout: ProcessOutput,
-    private val stderr: ProcessOutput,
+    private val process: CapturedProcess,
     private val tempDir: Path,
 ) : AutoCloseable {
     fun client(
@@ -44,25 +41,13 @@ internal class HacdiasWebDavServer private constructor(
     fun diagnostics(): String = buildString {
         appendLine("webdav baseUrl: $baseUrl")
         appendLine("webdav root: $root")
-        appendLine("webdav alive: ${process.isAlive}")
-        appendLine("webdav exit: ${runCatching { process.exitValue() }.getOrNull()}")
-        appendLine("webdav stdout:")
-        appendLine(stdout.text())
-        appendLine("webdav stderr:")
-        appendLine(stderr.text())
+        append(process.diagnostics("webdav"))
     }
 
+    @OptIn(ExperimentalPathApi::class)
     override fun close() {
-        if (process.isAlive) {
-            process.destroy()
-            if (!process.waitFor(5, TimeUnit.SECONDS)) {
-                process.destroyForcibly()
-                process.waitFor(5, TimeUnit.SECONDS)
-            }
-        }
-        stdout.join()
-        stderr.join()
-        deleteRecursively(tempDir)
+        process.close()
+        tempDir.deleteRecursively()
     }
 
     companion object {
@@ -86,14 +71,10 @@ internal class HacdiasWebDavServer private constructor(
             val process = ProcessBuilder("webdav", "--config", configFile.toString())
                 .directory(tempDir.toFile())
                 .start()
-            val stdout = ProcessOutput(process.inputStream, "webdav-e2e-stdout")
-            val stderr = ProcessOutput(process.errorStream, "webdav-e2e-stderr")
             val server = HacdiasWebDavServer(
                 root = root,
                 baseUrl = "http://127.0.0.1:$port$prefix",
-                process = process,
-                stdout = stdout,
-                stderr = stderr,
+                process = CapturedProcess(process, "webdav-e2e"),
                 tempDir = tempDir,
             )
             try {
@@ -111,11 +92,6 @@ internal class HacdiasWebDavServer private constructor(
             return "http://127.0.0.1:$port/"
         }
 
-        private fun freePort(): Int = ServerSocket(0).use { socket ->
-            socket.reuseAddress = true
-            socket.localPort
-        }
-
         private fun normalizePrefix(
             value: String,
         ): String {
@@ -125,19 +101,6 @@ internal class HacdiasWebDavServer private constructor(
             }
             val withLeadingSlash = if (trimmed.startsWith('/')) trimmed else "/$trimmed"
             return if (withLeadingSlash.endsWith('/')) withLeadingSlash else "$withLeadingSlash/"
-        }
-
-        private fun deleteRecursively(
-            path: Path,
-        ) {
-            if (!Files.exists(path)) {
-                return
-            }
-            Files.walk(path).use { paths ->
-                paths
-                    .sorted(Comparator.reverseOrder())
-                    .forEach(Files::deleteIfExists)
-            }
         }
     }
 
@@ -243,35 +206,3 @@ private fun ServerConfig.toYaml(
 
 private fun String.yamlString(): String =
     "\"" + replace("\\", "\\\\").replace("\"", "\\\"") + "\""
-
-private class ProcessOutput(
-    input: InputStream,
-    name: String,
-) {
-    private val buffer = StringBuilder()
-    private val thread = thread(
-        start = true,
-        isDaemon = true,
-        name = name,
-    ) {
-        try {
-            input.bufferedReader().useLines { lines ->
-                lines.forEach { line ->
-                    synchronized(buffer) {
-                        buffer.appendLine(line)
-                    }
-                }
-            }
-        } catch (_: IOException) {
-            // Process shutdown can close streams before the reader drains them.
-        }
-    }
-
-    fun text(): String = synchronized(buffer) {
-        buffer.toString()
-    }
-
-    fun join() {
-        thread.join(TimeUnit.SECONDS.toMillis(1))
-    }
-}

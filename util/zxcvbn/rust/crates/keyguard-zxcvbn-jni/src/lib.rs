@@ -10,10 +10,10 @@ use jni::{
     objects::{JLongArray, JObject, JObjectArray, JString},
     sys::{jint, jlong},
 };
-use keyguard_ffi::{PanicHook, flatten as unwrap, java_string};
+use keyguard_ffi::{PanicHook, flatten as unwrap, java_string_within};
 use keyguard_zxcvbn_core::{
-    MAX_USER_INPUTS, ResultWire,
-    abi::{pack_bridge_error, pack_bridge_invalid_argument},
+    MAX_PASSWORD_BYTES, MAX_USER_INPUT_BYTES, MAX_USER_INPUTS, ResultWire,
+    abi::{pack_bridge_error, pack_bridge_input_too_long, pack_bridge_invalid_argument},
 };
 use zeroize::Zeroizing;
 
@@ -29,17 +29,20 @@ fn contained<R>(body: impl FnOnce() -> R) -> Result<R, i64> {
     keyguard_ffi::contained(PANIC_HOOK, body)
 }
 
-/// Copies a nullable `java.lang.String[]` into zeroized owned strings.
+/// Copies a nullable `java.lang.String[]` into zeroized owned strings, or
+/// returns `None` when an element is over [`MAX_USER_INPUT_BYTES`].
 ///
 /// A null array is the hot path's "no user inputs" and is equivalent to an
-/// empty one. The element count is rejected before any element is read so an
-/// absurd array never causes an allocation.
+/// empty one. The element count is rejected before any element is read, and
+/// each element is bounded before it is copied, so an absurd array never
+/// causes a large allocation. An over-long element does not end the walk, so
+/// a later invalid element is still reported.
 fn java_string_array(
     environment: &mut JNIEnv<'_>,
     values: &JObjectArray<'_>,
-) -> Result<Vec<Zeroizing<String>>, i64> {
+) -> Result<Option<Vec<Zeroizing<String>>>, i64> {
     if values.is_null() {
-        return Ok(Vec::new());
+        return Ok(Some(Vec::new()));
     }
     let length = environment
         .get_array_length(values)
@@ -49,14 +52,19 @@ fn java_string_array(
         return Err(pack_bridge_invalid_argument());
     }
     let mut inputs = Vec::with_capacity(length);
+    let mut too_long = false;
     for index in 0..length {
         let index = jint::try_from(index).map_err(|_| pack_bridge_invalid_argument())?;
         let element = environment
             .get_object_array_element(values, index)
             .map_err(|_| pack_bridge_invalid_argument())?;
-        inputs.push(java_string(environment, &JString::from(element))?);
+        let element = JString::from(element);
+        match java_string_within(environment, &element, MAX_USER_INPUT_BYTES)? {
+            Some(input) => inputs.push(input),
+            None => too_long = true,
+        }
     }
-    Ok(inputs)
+    Ok((!too_long).then_some(inputs))
 }
 
 /// Validates that the caller-allocated output array has the ABI v1 length.
@@ -99,7 +107,12 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_zxcvbn_NativeZxcvbnJni_e
         // caller that cannot receive it is wasted work on a hot path.
         java_result_array(&environment, &out)?;
         let user_inputs = java_string_array(&mut environment, &user_inputs)?;
-        let password = java_string(&environment, &password)?;
+        let password = java_string_within(&environment, &password, MAX_PASSWORD_BYTES)?;
+        // Sizes are judged only after every argument was read, so an invalid
+        // argument still wins, as it did when only the core checked sizes.
+        let (Some(user_inputs), Some(password)) = (user_inputs, password) else {
+            return Err(pack_bridge_input_too_long());
+        };
         let borrowed: Vec<&str> = user_inputs.iter().map(|input| input.as_str()).collect();
         let wire = keyguard_zxcvbn_core::estimate(password.as_str(), &borrowed)
             .map_err(pack_bridge_error)?;
@@ -133,7 +146,7 @@ mod tests {
     fn core_errors_pack_into_the_documented_bridge_failures() {
         assert_eq!(
             pack_bridge_error(BridgeError::InputTooLong),
-            abi::pack_bridge_input_too_long()
+            pack_bridge_input_too_long()
         );
         assert_eq!(
             pack_bridge_error(BridgeError::InvalidArgument),

@@ -26,6 +26,65 @@ pub fn java_string(
     environment: &JNIEnv<'_>,
     value: &JString<'_>,
 ) -> Result<Zeroizing<String>, i64> {
+    let length = string_length(environment, value)?;
+    copy_string(environment, value, length)
+}
+
+/// UTF-16 units the bounded reader validates per JNI call.
+const SCAN_CHUNK_UNITS: usize = 256;
+
+/// Copies a `java.lang.String` only when it fits `max_utf8_bytes`.
+///
+/// Returns `None` for a well-formed string over the limit. Every well-formed
+/// UTF-16 unit encodes to at least one UTF-8 byte, so a string with more
+/// units than the limit is too long or malformed. It is validated in
+/// fixed-size chunks and never copied whole.
+///
+/// # Errors
+///
+/// As [`java_string`]. A malformed string is an error even when it is also
+/// too long.
+pub fn java_string_within(
+    environment: &JNIEnv<'_>,
+    value: &JString<'_>,
+    max_utf8_bytes: usize,
+) -> Result<Option<Zeroizing<String>>, i64> {
+    let length = string_length(environment, value)?;
+    if length <= max_utf8_bytes {
+        let string = copy_string(environment, value, length)?;
+        return Ok((string.len() <= max_utf8_bytes).then_some(string));
+    }
+    let mut chunk = Zeroizing::new([0_u16; SCAN_CHUNK_UNITS]);
+    let mut pending_high = false;
+    let mut start = 0;
+    while start < length {
+        let units = &mut chunk[..SCAN_CHUNK_UNITS.min(length - start)];
+        string_region(environment, value, start, units)?;
+        pending_high = scan_utf16(pending_high, units)?;
+        start += units.len();
+    }
+    if pending_high {
+        Err(BRIDGE_INVALID_ARGUMENT)
+    } else {
+        Ok(None)
+    }
+}
+
+/// Validates `units` as the continuation of a UTF-16 sequence and returns
+/// whether it ends between the halves of a surrogate pair.
+fn scan_utf16(mut pending_high: bool, units: &[u16]) -> Result<bool, i64> {
+    for &unit in units {
+        // A low surrogate must follow a high one, and only a low one may.
+        if pending_high != (0xDC00..=0xDFFF).contains(&unit) {
+            return Err(BRIDGE_INVALID_ARGUMENT);
+        }
+        pending_high = (0xD800..=0xDBFF).contains(&unit);
+    }
+    Ok(pending_high)
+}
+
+/// Returns the UTF-16 length of a `java.lang.String`, rejecting null.
+fn string_length(environment: &JNIEnv<'_>, value: &JString<'_>) -> Result<usize, i64> {
     if value.is_null() {
         return Err(BRIDGE_INVALID_ARGUMENT);
     }
@@ -33,40 +92,67 @@ pub fn java_string(
     // SAFETY: `JNIEnv` owns a valid JNI function table for this native call.
     let functions = unsafe { &**raw_environment };
     let get_length = functions.GetStringLength.ok_or(BRIDGE_INVALID_ARGUMENT)?;
-    let get_region = functions.GetStringRegion.ok_or(BRIDGE_INVALID_ARGUMENT)?;
     // SAFETY: Null was rejected and JNI export signatures guarantee that
     // `value` is a live local java.lang.String reference.
     let length = unsafe { get_length(raw_environment, value.as_raw()) };
-    let length = usize::try_from(length).map_err(|_| BRIDGE_INVALID_ARGUMENT)?;
+    usize::try_from(length).map_err(|_| BRIDGE_INVALID_ARGUMENT)
+}
+
+/// Copies and decodes all `length` UTF-16 units of a string that
+/// [`string_length`] accepted.
+fn copy_string(
+    environment: &JNIEnv<'_>,
+    value: &JString<'_>,
+    length: usize,
+) -> Result<Zeroizing<String>, i64> {
     let mut utf16 = Zeroizing::new(vec![0_u16; length]);
-    if length != 0 {
-        let length = i32::try_from(length).map_err(|_| BRIDGE_INVALID_ARGUMENT)?;
-        // SAFETY: The requested region is the string's exact UTF-16 extent and
-        // the output buffer has matching writable capacity.
-        unsafe {
-            get_region(
-                raw_environment,
-                value.as_raw(),
-                0,
-                length,
-                utf16.as_mut_ptr(),
-            );
-        }
-        if environment.exception_check().unwrap_or(true) {
-            // The JNI spec permits only a short list of functions while an
-            // exception is pending — "the native code must first clear the
-            // exception before making other JNI calls" — and the calls that
-            // build a bridge's return value are not on it. Leaving the
-            // exception pending aborts the VM under `-Xcheck:jni`. Bridges
-            // report stable packed codes rather than Java exceptions, so
-            // discarding it and returning invalid-argument is the contract.
-            let _ = environment.exception_clear();
-            return Err(BRIDGE_INVALID_ARGUMENT);
-        }
-    }
+    string_region(environment, value, 0, &mut utf16)?;
     String::from_utf16(&utf16)
         .map(Zeroizing::new)
         .map_err(|_| BRIDGE_INVALID_ARGUMENT)
+}
+
+/// Copies `units.len()` UTF-16 units from `start` of a string that
+/// [`string_length`] accepted.
+fn string_region(
+    environment: &JNIEnv<'_>,
+    value: &JString<'_>,
+    start: usize,
+    units: &mut [u16],
+) -> Result<(), i64> {
+    let raw_environment = environment.get_raw();
+    // SAFETY: `JNIEnv` owns a valid JNI function table for this native call.
+    let functions = unsafe { &**raw_environment };
+    let get_region = functions.GetStringRegion.ok_or(BRIDGE_INVALID_ARGUMENT)?;
+    if units.is_empty() {
+        return Ok(());
+    }
+    let start = jint::try_from(start).map_err(|_| BRIDGE_INVALID_ARGUMENT)?;
+    let length = jint::try_from(units.len()).map_err(|_| BRIDGE_INVALID_ARGUMENT)?;
+    // SAFETY: `string_length` rejected null, the requested region lies within
+    // the string's UTF-16 extent it reported, and the output buffer has
+    // matching writable capacity.
+    unsafe {
+        get_region(
+            raw_environment,
+            value.as_raw(),
+            start,
+            length,
+            units.as_mut_ptr(),
+        );
+    }
+    if environment.exception_check().unwrap_or(true) {
+        // The JNI spec permits only a short list of functions while an
+        // exception is pending — "the native code must first clear the
+        // exception before making other JNI calls" — and the calls that
+        // build a bridge's return value are not on it. Leaving the
+        // exception pending aborts the VM under `-Xcheck:jni`. Bridges
+        // report stable packed codes rather than Java exceptions, so
+        // discarding it and returning invalid-argument is the contract.
+        let _ = environment.exception_clear();
+        return Err(BRIDGE_INVALID_ARGUMENT);
+    }
+    Ok(())
 }
 
 /// Checks `array[offset..offset + length]`, which must not be null, and
@@ -167,6 +253,40 @@ mod tests {
             checked_range(jint::MAX, jint::MAX, jint::MAX),
             Err(BRIDGE_INVALID_ARGUMENT)
         );
+    }
+
+    #[test]
+    fn utf16_scan_matches_decode_utf16_at_every_split() {
+        const UNITS: [u16; 10] = [
+            0x41, 0xE9, 0x20AC, 0xD7FF, 0xD800, 0xDBFF, 0xDC00, 0xDFFF, 0xE000, 0xFFFF,
+        ];
+        let mut sequence = Vec::new();
+        for length in 0..=5 {
+            for mut index in 0..UNITS.len().pow(length) {
+                sequence.clear();
+                for _ in 0..length {
+                    sequence.push(UNITS[index % UNITS.len()]);
+                    index /= UNITS.len();
+                }
+                let decoded: Result<String, _> =
+                    char::decode_utf16(sequence.iter().copied()).collect::<Result<_, _>>();
+                if let Ok(decoded) = &decoded {
+                    // The bounded reader's gate relies on this.
+                    assert!(decoded.len() >= sequence.len(), "{sequence:04X?}");
+                }
+                for chunk in 1..=6 {
+                    let scanned = sequence
+                        .chunks(chunk)
+                        .try_fold(false, scan_utf16)
+                        .is_ok_and(|pending_high| !pending_high);
+                    assert_eq!(
+                        scanned,
+                        decoded.is_ok(),
+                        "{sequence:04X?} in chunks of {chunk}"
+                    );
+                }
+            }
+        }
     }
 
     #[test]

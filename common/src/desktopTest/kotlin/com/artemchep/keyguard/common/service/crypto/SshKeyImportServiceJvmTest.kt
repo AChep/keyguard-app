@@ -222,7 +222,21 @@ class SshKeyImportServiceJvmTest {
     }
 
     @Test
-    fun `imported incomplete PuTTY RSA key signs through native crypto`() {
+    fun `PuTTY RSA key without private factors is malformed`() {
+        assertEquals(
+            SshKeyImportResult.Error(SshKeyImportError.MalformedKey),
+            service.`import`(
+                SshKeyImportRequest(
+                    content = toPuTTYRsaPrivateKey(generateRsaKeyPair(), includeFactors = false),
+                    fileName = "id_rsa.ppk",
+                    passphrase = null,
+                ),
+            ),
+        )
+    }
+
+    @Test
+    fun `imported PuTTY RSA key signs through native crypto`() {
         val sourceKeyPair = generateRsaKeyPair()
         val imported = service.`import`(
             SshKeyImportRequest(
@@ -232,7 +246,7 @@ class SshKeyImportServiceJvmTest {
             ),
         )
         val keyPair = assertIs<SshKeyImportResult.Success>(imported).keyPair
-        val data = "PuTTY n-e-d compatibility".encodeToByteArray()
+        val data = "PuTTY RSA import".encodeToByteArray()
 
         val result = NativeCrypto.ssh.sign(
             privateKeyPem = keyPair.privateKey.ssh,
@@ -513,7 +527,10 @@ class SshKeyImportServiceJvmTest {
         }
     }
 
-    private fun toPuTTYRsaPrivateKey(keyPair: java.security.KeyPair): String {
+    private fun toPuTTYRsaPrivateKey(
+        keyPair: java.security.KeyPair,
+        includeFactors: Boolean = true,
+    ): String {
         val publicKey = keyPair.public as RSAPublicKey
         val privateKey = keyPair.private as RSAPrivateCrtKey
 
@@ -522,8 +539,14 @@ class SshKeyImportServiceJvmTest {
             publicKey.publicExponent.encodeMpint(),
             publicKey.modulus.encodeMpint(),
         )
+        // PuTTY's iqmp is q^-1 mod p, the same value as the JDK CRT coefficient.
+        val privateFields = listOf(privateKey.privateExponent) + if (includeFactors) {
+            listOf(privateKey.primeP, privateKey.primeQ, privateKey.crtCoefficient)
+        } else {
+            emptyList()
+        }
         val privatePayload = encodeSshWire(
-            privateKey.privateExponent.encodeMpint(),
+            *privateFields.map { it.encodeMpint() }.toTypedArray(),
         )
 
         val comment = "keyguard-test-rsa"

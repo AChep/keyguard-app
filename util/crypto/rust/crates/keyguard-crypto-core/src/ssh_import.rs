@@ -22,7 +22,7 @@ use pkcs8::{
     AlgorithmIdentifierRef, ObjectIdentifier, PrivateKeyInfo,
     der::{
         Decode as _, Encode as _,
-        asn1::{AnyRef, OctetStringRef, UintRef},
+        asn1::{AnyRef, OctetStringRef},
     },
 };
 use prost::Message;
@@ -648,25 +648,6 @@ fn rsa_material_from_parsed(
     })
 }
 
-fn rsa_material_from_components(
-    modulus: &[u8],
-    public_exponent: &[u8],
-    private_exponent: &[u8],
-) -> Result<SshKeyMaterial, ImportError> {
-    let modulus = validate_rsa_component(modulus)?;
-    let public_exponent = validate_rsa_component(public_exponent)?;
-    let private_exponent = validate_rsa_component(private_exponent)?;
-    validate_rsa_triplet(modulus, public_exponent, private_exponent)?;
-    let private_key = incomplete_rsa_pkcs8(modulus, public_exponent, private_exponent)?;
-    let public_key =
-        ssh_keys::encode_rsa_public(modulus, public_exponent).map_err(map_primitive_error)?;
-    Ok(SshKeyMaterial {
-        r#type: SshKeyType::Rsa as i32,
-        private_key: private_key.to_vec(),
-        public_key,
-    })
-}
-
 fn validate_rsa_component(value: &[u8]) -> Result<&[u8], ImportError> {
     let value = strip_leading_zeroes(value);
     if value.is_empty() || value.len() > MAX_RSA_COMPONENT_BYTES {
@@ -696,10 +677,6 @@ fn validate_rsa_public_components(
     ssh_keys::validate_rsa_public_components(modulus, public_exponent).map_err(map_primitive_error)
 }
 
-fn wrap_rsa_pkcs8(pkcs1: &[u8]) -> Result<Zeroizing<Vec<u8>>, ImportError> {
-    wrap_rsa_pkcs8_with_parameters(pkcs1, Some(AnyRef::NULL))
-}
-
 fn wrap_rsa_pkcs8_with_parameters(
     pkcs1: &[u8],
     parameters: Option<AnyRef<'_>>,
@@ -714,34 +691,6 @@ fn wrap_rsa_pkcs8_with_parameters(
     .to_der()
     .map(Zeroizing::new)
     .map_err(|_| ImportError::BackendFailure)
-}
-
-fn incomplete_rsa_pkcs8(
-    modulus: &[u8],
-    public_exponent: &[u8],
-    private_exponent: &[u8],
-) -> Result<Zeroizing<Vec<u8>>, ImportError> {
-    let zero_bytes = [0_u8];
-    let zero = UintRef::new(&zero_bytes).map_err(|_| ImportError::MalformedKey)?;
-    let modulus = UintRef::new(modulus).map_err(|_| ImportError::MalformedKey)?;
-    let public_exponent = UintRef::new(public_exponent).map_err(|_| ImportError::MalformedKey)?;
-    let private_exponent = UintRef::new(private_exponent).map_err(|_| ImportError::MalformedKey)?;
-    let pkcs1 = Zeroizing::new(
-        RsaPrivateKey {
-            modulus,
-            public_exponent,
-            private_exponent,
-            prime1: zero,
-            prime2: zero,
-            exponent1: zero,
-            exponent2: zero,
-            coefficient: zero,
-            other_prime_infos: None,
-        }
-        .to_der()
-        .map_err(|_| ImportError::BackendFailure)?,
-    );
-    wrap_rsa_pkcs8(&pkcs1)
 }
 
 fn material_public_ed25519(material: &SshKeyMaterial) -> Option<&[u8]> {
@@ -832,7 +781,7 @@ fn import_putty(content: &[u8], passphrase: Option<&[u8]>) -> Result<ImportOutco
     let integrity = document.verify_mac(&mac_key, &public_key, &private_key)?;
 
     let material = match document.algorithm {
-        "ssh-rsa" => normalize_putty_rsa(&public_key, &private_key, integrity)?,
+        "ssh-rsa" => normalize_putty_rsa(&public_key, &private_key)?,
         "ssh-ed25519" if integrity == PuttyIntegrity::WholeFile => {
             normalize_putty_ed25519(&public_key, &private_key)?
         }
@@ -1223,7 +1172,6 @@ fn sensitive_hmac(
 fn normalize_putty_rsa(
     public_key: &[u8],
     private_key: &[u8],
-    integrity: PuttyIntegrity,
 ) -> Result<SshKeyMaterial, ImportError> {
     let mut public = WireReader::new(public_key);
     if public.read_string()? != b"ssh-rsa" {
@@ -1233,27 +1181,24 @@ fn normalize_putty_rsa(
     let modulus = public.read_positive_mpint()?;
     public.finish_zero_padding()?;
 
+    // PuTTY requires d, p, q and iqmp (Appendix C.3.1) and rejects records
+    // without them. The factors also bind v1's unauthenticated public blob to
+    // the private exponent (Appendix C.5.2) before the CRT key is completed.
     let mut private = WireReader::new(private_key);
     let private_exponent = private.read_positive_mpint()?;
-    if integrity == PuttyIntegrity::PrivateOnly {
-        // V1 leaves the public blob unauthenticated. Validate its relationship
-        // to all private components before returning a key (PuTTY Appendix C.5.2).
-        let prime_p = private.read_positive_mpint()?;
-        let prime_q = private.read_positive_mpint()?;
-        let coefficient = private.read_positive_mpint()?;
-        let components = RsaPrivateComponents::new(
-            modulus.to_vec(),
-            public_exponent.to_vec(),
-            private_exponent.to_vec(),
-            None,
-        );
-        let primes =
-            RsaPrimeComponents::new(prime_p.to_vec(), prime_q.to_vec(), coefficient.to_vec());
+    let prime_p = private.read_positive_mpint()?;
+    let prime_q = private.read_positive_mpint()?;
+    let coefficient = private.read_positive_mpint()?;
+    let components = RsaPrivateComponents::new(
+        modulus.to_vec(),
+        public_exponent.to_vec(),
+        private_exponent.to_vec(),
+        None,
+    );
+    let primes = RsaPrimeComponents::new(prime_p.to_vec(), prime_q.to_vec(), coefficient.to_vec());
+    let pkcs1 =
         complete_rsa_pkcs1_der(&components, &primes).map_err(|_| ImportError::MalformedKey)?;
-    }
-    // SSHJ deliberately imports only d and ignores optional p/q/iqmp fields.
-    // Permit those fields and AES block padding while retaining n/e/d output.
-    rsa_material_from_components(modulus, public_exponent, private_exponent)
+    normalize_rsa_pkcs1(&pkcs1)
 }
 
 fn normalize_putty_ed25519(
@@ -1408,6 +1353,7 @@ fn decode_bounded_base64_secret(value: &str) -> Result<Zeroizing<Vec<u8>>, Impor
 #[cfg(test)]
 mod tests {
     use keyguard_crypto_sensitive::generate_rsa_pkcs1_der;
+    use pkcs8::der::asn1::UintRef;
     use ssh_key::{
         LineEnding, Mpint,
         private::{KeypairData, RsaKeypair, RsaPrivateKey as SshRsaPrivateKey},
@@ -2303,7 +2249,8 @@ mod tests {
         let mut invalid = private.clone();
         invalid.public_exponent = UintRef::new(&exponent_one).expect("positive exponent one");
         let invalid_pkcs1 = Zeroizing::new(invalid.to_der().expect("invalid test PKCS#1"));
-        let invalid_pkcs8 = wrap_rsa_pkcs8(&invalid_pkcs1).expect("invalid test PKCS#8");
+        let invalid_pkcs8 = wrap_rsa_pkcs8_with_parameters(&invalid_pkcs1, Some(AnyRef::NULL))
+            .expect("invalid test PKCS#8");
         let input = encode_test_pem("PRIVATE KEY", &invalid_pkcs8);
 
         assert_error(&input, None, SshPrivateKeyImportErrorReason::MalformedKey);
@@ -2536,7 +2483,7 @@ mod tests {
             assert!(component.iter().any(|byte| *byte != 0));
         }
 
-        let formatted = ssh_keys::format_private_key_text(SshKeyType::Rsa, &material.private_key)
+        let formatted = ssh_keys::format_private_key_text(&material.private_key)
             .expect("format complete imported RSA");
         ssh_keys::sign(
             formatted,
@@ -2573,28 +2520,31 @@ mod tests {
     }
 
     #[test]
-    fn putty_rsa_keeps_incomplete_ned_pkcs8_compatibility() {
-        let document = include_str!(
-            "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-rsa-none.ppk"
-        );
-        let material = success(document, None);
-        let info = PrivateKeyInfo::from_der(&material.private_key).expect("PKCS#8 output");
-        let private = RsaPrivateKey::from_der(info.private_key).expect("PKCS#1 output");
-        for component in [
-            private.prime1.as_bytes(),
-            private.prime2.as_bytes(),
-            private.exponent1.as_bytes(),
-            private.exponent2.as_bytes(),
-            private.coefficient.as_bytes(),
+    fn putty_rsa_imports_complete_crt_for_all_versions() {
+        for document in [
+            include_str!(
+                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v1-rsa-none.ppk"
+            ),
+            include_str!(
+                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-rsa-none.ppk"
+            ),
+            include_str!(
+                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v3-rsa-none.ppk"
+            ),
         ] {
-            assert_eq!(component, &[0]);
+            let material = success(document, None);
+            let info = PrivateKeyInfo::from_der(&material.private_key).expect("PKCS#8 output");
+            let private = RsaPrivateKey::from_der(info.private_key).expect("PKCS#1 output");
+            for component in [
+                private.prime1.as_bytes(),
+                private.prime2.as_bytes(),
+                private.exponent1.as_bytes(),
+                private.exponent2.as_bytes(),
+                private.coefficient.as_bytes(),
+            ] {
+                assert!(component.iter().any(|byte| *byte != 0));
+            }
         }
-        let digest = sensitive_digest(DigestAlgorithm::Sha256, &[&material.private_key])
-            .expect("SHA-256 golden");
-        assert_eq!(
-            encode_test_hex(&digest),
-            "f290cb725f4985c52d3651968fb45c05271f0ce63f1c0d6e547ac59f41364ad0",
-        );
     }
 
     #[test]

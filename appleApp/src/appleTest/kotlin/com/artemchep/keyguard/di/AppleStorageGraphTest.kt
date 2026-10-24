@@ -22,6 +22,7 @@ import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUplo
 import com.artemchep.keyguard.util.io.readBytes
 import com.artemchep.keyguard.util.io.resolve
 import com.artemchep.keyguard.util.io.toKotlinxIoPath
+import io.ktor.client.HttpClient
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.awaitCancellation
@@ -36,8 +37,10 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
+import kotlin.test.assertNotSame
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
+import org.koin.core.qualifier.named
 import kotlin.time.Instant
 
 class AppleStorageGraphTest {
@@ -140,6 +143,17 @@ class AppleStorageGraphTest {
                 koin.withVaultSession(MasterKey(MasterKdfVersion.LATEST, ByteArray(32))) { session ->
                     assertNotNull(session.resolve { get<VaultDatabaseManager>() })
                 }
+            }
+        }
+    }
+
+    @Test
+    fun defaultAndCurlHttpClientsAreSeparateInstances() = runTest {
+        withTestAppleStorage { directories ->
+            directories.withKoin { koin ->
+                val default = koin.get<HttpClient>()
+                val curl = koin.get<HttpClient>(named("curl"))
+                assertNotSame(default, curl)
             }
         }
     }

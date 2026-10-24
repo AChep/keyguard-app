@@ -98,8 +98,8 @@ impl<K: KeyProvider> KeyguardAgent<K> {
 
     /// Refuses the operation when the accepted caller changed. On Windows,
     /// also refreshes the best-effort pipe-opener evidence.
-    fn ensure_caller_valid(&mut self) -> Result<(), AgentError> {
-        if let Err(error) = self.caller_guard.revalidate() {
+    async fn ensure_caller_valid(&mut self) -> Result<(), AgentError> {
+        if let Err(error) = self.caller_guard.revalidate_async().await {
             warn!(%error, "Caller identity changed; refusing agent operation");
             return Err(AgentError::Failure);
         }
@@ -180,7 +180,7 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
     async fn request_identities(&mut self) -> Result<Vec<Identity>, AgentError> {
         debug!("Handling RequestIdentities");
 
-        self.ensure_caller_valid()?;
+        self.ensure_caller_valid().await?;
 
         let keys_response = self
             .key_provider
@@ -220,7 +220,7 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
             return Err(AgentError::Failure);
         }
 
-        self.ensure_caller_valid()?;
+        self.ensure_caller_valid().await?;
 
         // Find the matching key by comparing the public key data.
         let keys_response = self
@@ -249,7 +249,7 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
         debug!("Requesting signature from Keyguard");
 
         // Request signing from Keyguard (may prompt user for approval).
-        self.ensure_caller_valid()?;
+        self.ensure_caller_valid().await?;
         let sign_caller = self.caller_for_sign();
         let sign_response = self
             .key_provider

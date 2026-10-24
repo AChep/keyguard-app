@@ -2,6 +2,8 @@
 
 use crate::ipc::client::IpcClient;
 use anyhow::{Context, Result};
+use common_gpg_agent_rust::messages::CallerIdentity;
+use keyguard_agent_identity::caller_guard::CallerGuard;
 use keyguard_agent_identity::socket_lifecycle::{
     current_uid, entry_identity, wait_for_shutdown_request, SocketLifecycle,
 };
@@ -15,7 +17,7 @@ use std::os::unix::ffi::OsStringExt;
 use std::os::unix::fs::MetadataExt;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
-use tokio::net::UnixListener;
+use tokio::net::{UnixListener, UnixStream};
 use tokio::sync::{oneshot, Semaphore};
 use tokio::task::{JoinError, JoinSet};
 use tracing::{info, warn};
@@ -270,6 +272,29 @@ async fn accept_until<F, R>(
 where
     F: Future<Output = R>,
 {
+    accept_until_with(
+        listener,
+        ipc_client,
+        info,
+        shutdown,
+        max_connections,
+        keyguard_agent_proto_adapter::caller_from_unix_stream,
+    )
+    .await
+}
+
+async fn accept_until_with<F, R, I>(
+    listener: UnixListener,
+    ipc_client: IpcClient,
+    info: Arc<assuan::AgentInfo>,
+    shutdown: F,
+    max_connections: usize,
+    identify: I,
+) -> Result<R>
+where
+    F: Future<Output = R>,
+    I: Fn(&UnixStream) -> (Option<CallerIdentity>, CallerGuard) + Clone + Send + 'static,
+{
     if max_connections == 0 {
         anyhow::bail!("maximum GPG agent connections must be greater than zero");
     }
@@ -313,12 +338,20 @@ where
             }
         };
 
-        let (caller, caller_guard) = keyguard_agent_proto_adapter::caller_from_unix_stream(&stream);
+        let identify = identify.clone();
         let ipc_client = ipc_client.clone();
         let info = Arc::clone(&info);
         tasks.spawn(async move {
-            // Keep the permit for the full Assuan session.
-            let _permit = permit;
+            // Identity collection reads /proc or validates code signatures. Keep it
+            // off the listener and workers. The stream and permit stay with the
+            // blocking work until it returns, even if shutdown aborts this task.
+            // The permit is then kept for the full Assuan session.
+            let (stream, caller, caller_guard, _permit) = tokio::task::spawn_blocking(move || {
+                let (caller, guard) = identify(&stream);
+                (stream, caller, guard, permit)
+            })
+            .await
+            .context("GPG caller identity collection did not complete")?;
             assuan::serve_connection(stream, ipc_client, caller, caller_guard, info).await
         });
     };
@@ -517,13 +550,19 @@ fn validate_external_socket_parent(parent: &Path, uid: libc::uid_t) -> Result<()
 #[cfg(test)]
 mod tests {
     use super::*;
+    use common_gpg_agent_rust::messages::{ipc_request, ipc_response};
     use keyguard_agent_identity::socket_lifecycle::lifecycle_lock_path;
+    use keyguard_gpg_agent_assuan::ipc::{BoxFuture, IpcTransport};
     use std::fs;
     use std::os::unix::ffi::OsStrExt;
     use std::os::unix::fs::{symlink, PermissionsExt};
     use std::os::unix::net::UnixListener as StdUnixListener;
-    use std::sync::atomic::{AtomicBool, Ordering};
+    use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+    use std::sync::{Condvar, Mutex};
+    use std::time::Duration;
     use tempfile::tempdir;
+    use tokio::io::AsyncReadExt;
+    use tokio::time::timeout;
 
     #[test]
     fn connection_cap_preserves_fd_reserve_and_never_reaches_zero() {
@@ -956,5 +995,106 @@ mod tests {
 
         assert!(dropped.load(Ordering::SeqCst));
         assert!(tasks.is_empty());
+    }
+
+    #[derive(Default)]
+    struct Gate {
+        open: Mutex<bool>,
+        opened: Condvar,
+    }
+
+    impl Gate {
+        fn wait(&self) {
+            let open = self.open.lock().unwrap();
+            let _open = self.opened.wait_while(open, |open| !*open).unwrap();
+        }
+
+        fn open(&self) {
+            *self.open.lock().unwrap() = true;
+            self.opened.notify_all();
+        }
+    }
+
+    /// Opens the gate when dropped. A Tokio test runtime waits for blocking
+    /// tasks on drop, so a failed assert must not leave them gated.
+    struct GateGuard(Arc<Gate>);
+
+    impl Drop for GateGuard {
+        fn drop(&mut self) {
+            self.0.open();
+        }
+    }
+
+    struct UnusedTransport;
+
+    impl IpcTransport for UnusedTransport {
+        fn round_trip(
+            &self,
+            _request: ipc_request::Request,
+        ) -> BoxFuture<'_, Result<ipc_response::Response>> {
+            Box::pin(async { anyhow::bail!("an unserved connection must not reach IPC") })
+        }
+    }
+
+    #[tokio::test]
+    async fn blocked_identity_collection_does_not_stall_accepts_or_shutdown() {
+        let tmp = tempdir().expect("tempdir");
+        let socket_path = tmp.path().join("S.gpg-agent");
+        let listener = UnixListener::bind(&socket_path).expect("bind socket");
+        let gate = Arc::new(Gate::default());
+        let gate_guard = GateGuard(Arc::clone(&gate));
+        let entered = Arc::new(AtomicUsize::new(0));
+        let identify = {
+            let entered = Arc::clone(&entered);
+            move |_: &UnixStream| {
+                entered.fetch_add(1, Ordering::SeqCst);
+                gate.wait();
+                (None, CallerGuard::default())
+            }
+        };
+
+        let mut clients = Vec::new();
+        for _ in 0..2 {
+            clients.push(UnixStream::connect(&socket_path).await.expect("connect"));
+        }
+
+        let (shutdown_tx, shutdown_rx) = oneshot::channel();
+        let listener_task = tokio::spawn(accept_until_with(
+            listener,
+            IpcClient::new(UnusedTransport),
+            Arc::new(assuan::AgentInfo::new("test".into(), "2.5.24".into())),
+            async move {
+                let _ = shutdown_rx.await;
+            },
+            2,
+            identify,
+        ));
+
+        // Both collections are blocked at once, so they are not serialized.
+        timeout(Duration::from_secs(1), async {
+            while entered.load(Ordering::SeqCst) < 2 {
+                tokio::task::yield_now().await;
+            }
+        })
+        .await
+        .expect("both identity collections must start");
+        shutdown_tx.send(()).unwrap();
+        timeout(Duration::from_secs(1), listener_task)
+            .await
+            .expect("shutdown must not wait for blocked identity collection")
+            .unwrap()
+            .unwrap();
+
+        // The orphaned collections finish and drop their streams without the
+        // Assuan greeting.
+        drop(gate_guard);
+        for client in &mut clients {
+            let mut byte = [0u8; 1];
+            let read = timeout(Duration::from_secs(1), client.read(&mut byte))
+                .await
+                .expect("orphaned collection must drop its stream")
+                .unwrap();
+            assert_eq!(read, 0);
+        }
     }
 }

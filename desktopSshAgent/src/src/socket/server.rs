@@ -122,6 +122,9 @@ enum ConnectionError {
 
     #[error("SSH agent I/O error: {0}")]
     Io(#[from] io::Error),
+
+    #[error("SSH agent caller identity collection did not complete")]
+    IdentityUnavailable,
 }
 
 /// Runs a bounded listener until the supplied shutdown future completes.
@@ -132,7 +135,7 @@ pub(super) async fn listen_until<L, A, F, R>(
 ) -> Result<R, AgentError>
 where
     L: ListeningSocket + fmt::Debug + Send,
-    A: Agent<L>,
+    A: Agent<L> + Clone,
     F: Future<Output = R>,
 {
     listen_until_with_limits(listener, agent, shutdown, ServerLimits::default()).await
@@ -140,13 +143,13 @@ where
 
 async fn listen_until_with_limits<L, A, F, R>(
     mut listener: L,
-    mut agent: A,
+    agent: A,
     shutdown: F,
     limits: ServerLimits,
 ) -> Result<R, AgentError>
 where
     L: ListeningSocket + fmt::Debug + Send,
-    A: Agent<L>,
+    A: Agent<L> + Clone,
     F: Future<Output = R>,
 {
     if limits.max_connections == 0 {
@@ -195,8 +198,19 @@ where
             }
         };
 
-        let session = agent.new_session(&stream);
-        tasks.spawn(serve_connection(stream, session, permit, limits));
+        let mut factory = agent.clone();
+        tasks.spawn(async move {
+            // Identity collection reads /proc or validates code signatures. Keep it
+            // off the listener and workers. The stream and permit stay with the
+            // blocking work until it returns, even if shutdown aborts this task.
+            let (stream, session, permit) = tokio::task::spawn_blocking(move || {
+                let session = BlockingSession(Box::new(factory.new_session(&stream)));
+                (stream, session, permit)
+            })
+            .await
+            .map_err(|_| ConnectionError::IdentityUnavailable)?;
+            serve_connection(stream, session, permit, limits).await
+        });
     };
 
     tasks.abort_all();
@@ -205,6 +219,17 @@ where
     }
 
     outcome
+}
+
+/// A session created on the blocking pool. `Agent::new_session` returns an
+/// opaque type that captures the borrowed stream, so it leaves the closure boxed.
+struct BlockingSession(Box<dyn Session>);
+
+#[ssh_agent_lib::async_trait]
+impl Session for BlockingSession {
+    async fn handle(&mut self, request: Request) -> Result<Response, AgentError> {
+        self.0.handle(request).await
+    }
 }
 
 async fn serve_connection<S, T>(
@@ -416,6 +441,7 @@ fn connection_error_kind(error: &ConnectionError) -> &'static str {
         ConnectionError::Protocol(_) => "protocol_error",
         ConnectionError::Encoding(_) => "encoding_error",
         ConnectionError::Io(_) => "io_error",
+        ConnectionError::IdentityUnavailable => "identity_unavailable",
     }
 }
 
@@ -433,6 +459,7 @@ mod tests {
     use super::*;
     use ssh_agent_lib::proto::Extension;
     use std::sync::atomic::{AtomicUsize, Ordering};
+    use std::sync::{Condvar, Mutex};
     use tokio::io::{duplex, DuplexStream};
     use tokio::sync::{mpsc, oneshot};
     use tokio::task::yield_now;
@@ -862,6 +889,7 @@ mod tests {
     #[ssh_agent_lib::async_trait]
     impl Session for AdmissionSession {}
 
+    #[derive(Clone)]
     struct TestAgent {
         created: Arc<AtomicUsize>,
         active: Arc<AtomicUsize>,
@@ -909,7 +937,7 @@ mod tests {
         limits.max_connections = 1;
 
         let (mut first_client, first_server) = duplex(16);
-        let (_second_client, second_server) = duplex(16);
+        let (mut second_client, second_server) = duplex(16);
         stream_tx.send(first_server).await.unwrap();
         stream_tx.send(second_server).await.unwrap();
 
@@ -931,6 +959,8 @@ mod tests {
             yield_now().await;
         }
         assert_eq!(accepted.load(Ordering::SeqCst), 1);
+        // Sessions are created on the blocking pool, which counts `active` last.
+        wait_for_count(&active, 1).await;
         assert_eq!(created.load(Ordering::SeqCst), 1);
         assert_eq!(active.load(Ordering::SeqCst), 1);
 
@@ -938,10 +968,166 @@ mod tests {
         first_client.write_all(&0u32.to_be_bytes()).await.unwrap();
         wait_for_count(&accepted, 2).await;
         wait_for_count(&created, 2).await;
+        // A response proves the second session reached its connection task,
+        // so shutdown drops it there rather than on the blocking pool.
+        write_test_frame(&mut second_client, &[11]).await;
+        assert_eq!(read_test_frame(&mut second_client).await, vec![5]);
         assert_eq!(max_active.load(Ordering::SeqCst), 1);
 
         shutdown_tx.send(()).unwrap();
         listener_task.await.unwrap().unwrap();
         assert_eq!(active.load(Ordering::SeqCst), 0);
+    }
+
+    #[derive(Default)]
+    struct Gate {
+        open: Mutex<bool>,
+        opened: Condvar,
+    }
+
+    impl Gate {
+        fn wait(&self) {
+            let open = self.open.lock().unwrap();
+            let _open = self.opened.wait_while(open, |open| !*open).unwrap();
+        }
+
+        fn open(&self) {
+            *self.open.lock().unwrap() = true;
+            self.opened.notify_all();
+        }
+    }
+
+    /// Opens the gate when dropped. A Tokio test runtime waits for blocking
+    /// tasks on drop, so a failed assert must not leave them gated.
+    struct GateGuard(Arc<Gate>);
+
+    impl Drop for GateGuard {
+        fn drop(&mut self) {
+            self.0.open();
+        }
+    }
+
+    #[derive(Clone, Default)]
+    struct GatedAgent {
+        gate: Arc<Gate>,
+        entered: Arc<AtomicUsize>,
+        returned: Arc<AtomicUsize>,
+        handled: Arc<AtomicUsize>,
+    }
+
+    impl Agent<TestListener> for GatedAgent {
+        fn new_session(&mut self, _socket: &DuplexStream) -> impl Session {
+            self.entered.fetch_add(1, Ordering::SeqCst);
+            self.gate.wait();
+            self.returned.fetch_add(1, Ordering::SeqCst);
+            CountingSession {
+                calls: Arc::clone(&self.handled),
+            }
+        }
+    }
+
+    #[tokio::test]
+    async fn blocked_identity_collection_does_not_stall_accepts_or_shutdown() {
+        let (stream_tx, stream_rx) = mpsc::channel(2);
+        let listener = TestListener {
+            streams: stream_rx,
+            accepted: Arc::new(AtomicUsize::new(0)),
+        };
+        let agent = GatedAgent::default();
+        let gate = GateGuard(Arc::clone(&agent.gate));
+        let mut limits = test_limits(8);
+        limits.max_connections = 2;
+
+        let mut clients = Vec::new();
+        for _ in 0..2 {
+            let (mut client, server) = duplex(16);
+            write_test_frame(&mut client, &[11]).await;
+            stream_tx.send(server).await.unwrap();
+            clients.push(client);
+        }
+
+        let (shutdown_tx, shutdown_rx) = oneshot::channel();
+        let listener_agent = agent.clone();
+        let listener_task = tokio::spawn(async move {
+            listen_until_with_limits(
+                listener,
+                listener_agent,
+                async move {
+                    let _ = shutdown_rx.await;
+                },
+                limits,
+            )
+            .await
+        });
+
+        // Both collections are blocked at once, so they are not serialized.
+        wait_for_count(&agent.entered, 2).await;
+        shutdown_tx.send(()).unwrap();
+        timeout(Duration::from_secs(1), listener_task)
+            .await
+            .expect("shutdown must not wait for blocked identity collection")
+            .unwrap()
+            .unwrap();
+        assert_eq!(agent.returned.load(Ordering::SeqCst), 0);
+
+        // The orphaned collections finish and drop their streams unserved.
+        drop(gate);
+        for client in &mut clients {
+            let mut byte = [0u8; 1];
+            let read = timeout(Duration::from_secs(1), client.read(&mut byte))
+                .await
+                .expect("orphaned collection must drop its stream")
+                .unwrap();
+            assert_eq!(read, 0);
+        }
+        assert_eq!(agent.handled.load(Ordering::SeqCst), 0);
+    }
+
+    #[tokio::test]
+    async fn blocked_identity_collection_keeps_its_permit() {
+        let (stream_tx, stream_rx) = mpsc::channel(2);
+        let accepted = Arc::new(AtomicUsize::new(0));
+        let listener = TestListener {
+            streams: stream_rx,
+            accepted: Arc::clone(&accepted),
+        };
+        let agent = GatedAgent::default();
+        let gate = GateGuard(Arc::clone(&agent.gate));
+        let mut limits = test_limits(8);
+        limits.max_connections = 1;
+
+        let (first_client, first_server) = duplex(16);
+        let (_second_client, second_server) = duplex(16);
+        stream_tx.send(first_server).await.unwrap();
+        stream_tx.send(second_server).await.unwrap();
+
+        let (shutdown_tx, shutdown_rx) = oneshot::channel();
+        let listener_agent = agent.clone();
+        let listener_task = tokio::spawn(async move {
+            listen_until_with_limits(
+                listener,
+                listener_agent,
+                async move {
+                    let _ = shutdown_rx.await;
+                },
+                limits,
+            )
+            .await
+        });
+
+        // The first client is gone, but its blocked collection still owns the
+        // only permit.
+        wait_for_count(&agent.entered, 1).await;
+        drop(first_client);
+        for _ in 0..20 {
+            yield_now().await;
+        }
+        assert_eq!(accepted.load(Ordering::SeqCst), 1);
+
+        drop(gate);
+        wait_for_count(&accepted, 2).await;
+
+        shutdown_tx.send(()).unwrap();
+        listener_task.await.unwrap().unwrap();
     }
 }

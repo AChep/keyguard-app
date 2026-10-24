@@ -4,7 +4,10 @@
 //! process that was verified at accept time. Helpers keep one guard per
 //! connection and re-sample it immediately before each sensitive operation.
 
+use std::sync::Arc;
 use thiserror::Error;
+#[cfg(unix)]
+use tokio::task::JoinError;
 
 /// Retained platform identity of one accepted public-agent connection.
 ///
@@ -64,6 +67,51 @@ impl CallerGuard {
         }
         Ok(())
     }
+
+    /// Whether [`revalidate`](Self::revalidate) checks a retained identity.
+    #[must_use]
+    pub fn is_retained(&self) -> bool {
+        #[cfg(target_os = "macos")]
+        {
+            self.macos.is_some()
+        }
+        #[cfg(target_os = "linux")]
+        {
+            self.linux.is_some()
+        }
+        #[cfg(not(any(target_os = "macos", target_os = "linux")))]
+        {
+            false
+        }
+    }
+
+    /// [`revalidate`](Self::revalidate) on Tokio's blocking pool: it reads
+    /// /proc or validates code signatures. A check that panics or is cut off
+    /// by shutdown fails.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`CallerChanged`] when the retained peer changed or the check
+    /// did not complete. Callers must refuse the request.
+    pub async fn revalidate_async(self: &Arc<Self>) -> Result<(), CallerChanged> {
+        if !self.is_retained() {
+            return Ok(());
+        }
+        #[cfg(unix)]
+        {
+            let guard = Arc::clone(self);
+            joined(tokio::task::spawn_blocking(move || guard.revalidate()).await)
+        }
+        #[cfg(not(unix))]
+        {
+            self.revalidate()
+        }
+    }
+}
+
+#[cfg(unix)]
+fn joined(result: Result<Result<(), CallerChanged>, JoinError>) -> Result<(), CallerChanged> {
+    result.unwrap_or(Err(CallerChanged::Interrupted))
 }
 
 /// The retained caller identity no longer matches the accepted peer.
@@ -77,6 +125,9 @@ pub enum CallerChanged {
     #[cfg(target_os = "linux")]
     #[error("Linux caller identity changed: {0}")]
     Linux(crate::linux_identity::LinuxIdentityError),
+    /// The revalidation panicked or was cut off by shutdown.
+    #[error("caller revalidation did not complete")]
+    Interrupted,
 }
 
 #[cfg(test)]
@@ -86,5 +137,24 @@ mod tests {
     #[test]
     fn guard_without_retained_identity_revalidates() {
         assert!(CallerGuard::default().revalidate().is_ok());
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn guard_without_retained_identity_revalidates_async() {
+        assert!(Arc::new(CallerGuard::default())
+            .revalidate_async()
+            .await
+            .is_ok());
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn panicked_revalidation_is_interrupted() {
+        let result = tokio::task::spawn_blocking(|| -> Result<(), CallerChanged> {
+            panic!("revalidation panicked")
+        })
+        .await;
+        assert!(matches!(joined(result), Err(CallerChanged::Interrupted)));
     }
 }

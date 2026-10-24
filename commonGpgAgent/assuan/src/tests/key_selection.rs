@@ -66,7 +66,7 @@ impl CommandSession {
                 parse_command(command),
                 &mut self.state,
                 &self.ipc_client,
-                &CallerGuard::default(),
+                &Arc::new(CallerGuard::default()),
                 None,
                 &AgentInfo::for_test(),
                 &mut reader,

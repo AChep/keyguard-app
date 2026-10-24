@@ -94,6 +94,7 @@ async fn serve_connection_with_timeouts_and_guard<S>(
 where
     S: AsyncRead + AsyncWrite + Unpin,
 {
+    let caller_guard = Arc::new(caller_guard);
     let (read_half, write_half) = tokio::io::split(stream);
     let mut reader = DeadlineReader::new(BufReader::new(read_half), timeouts);
     let mut write_half = DeadlineWriter::new(write_half, timeouts.write);

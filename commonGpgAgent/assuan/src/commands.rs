@@ -3,6 +3,7 @@
 use crate::ipc::{IpcClient, IpcError};
 use anyhow::Result;
 use common_gpg_agent_rust::messages::{CallerIdentity, ErrorCode, GpgKey};
+use std::sync::Arc;
 use tokio::io::{AsyncBufRead, AsyncWriteExt};
 use tracing::warn;
 
@@ -41,7 +42,7 @@ pub(super) async fn handle_command<R: AsyncBufRead + Unpin, W: AsyncWriteExt + U
     command: ParsedCommand<'_>,
     state: &mut SessionState,
     ipc_client: &IpcClient,
-    caller_guard: &CallerGuard,
+    caller_guard: &Arc<CallerGuard>,
     caller: Option<CallerIdentity>,
     info: &AgentInfo,
     reader: &mut DeadlineReader<R>,
@@ -146,7 +147,7 @@ async fn handle_getinfo<W: AsyncWriteExt + Unpin>(
 async fn handle_havekey<W: AsyncWriteExt + Unpin>(
     args: &str,
     ipc_client: &IpcClient,
-    caller_guard: &CallerGuard,
+    caller_guard: &Arc<CallerGuard>,
     caller: Option<CallerIdentity>,
     write: &mut W,
 ) -> Result<()> {
@@ -201,7 +202,7 @@ async fn handle_havekey<W: AsyncWriteExt + Unpin>(
 async fn handle_keyinfo<W: AsyncWriteExt + Unpin>(
     args: &str,
     ipc_client: &IpcClient,
-    caller_guard: &CallerGuard,
+    caller_guard: &Arc<CallerGuard>,
     caller: Option<CallerIdentity>,
     write: &mut W,
 ) -> Result<()> {
@@ -290,7 +291,7 @@ async fn handle_sethash<W: AsyncWriteExt + Unpin>(
 async fn handle_pksign<W: AsyncWriteExt + Unpin>(
     state: &mut SessionState,
     ipc_client: &IpcClient,
-    caller_guard: &CallerGuard,
+    caller_guard: &Arc<CallerGuard>,
     caller: Option<CallerIdentity>,
     write: &mut W,
 ) -> Result<()> {
@@ -328,7 +329,7 @@ async fn handle_pksign<W: AsyncWriteExt + Unpin>(
         return Ok(());
     }
 
-    if let Err(error) = caller_guard.revalidate() {
+    if let Err(error) = caller_guard.revalidate_async().await {
         warn!(%error, "Refusing PKSIGN after caller identity changed");
         write_error(write, ERR_GENERAL, "caller identity changed").await?;
         return Ok(());
@@ -355,7 +356,7 @@ async fn handle_pkdecrypt<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
     args: &str,
     state: &SessionState,
     ipc_client: &IpcClient,
-    caller_guard: &CallerGuard,
+    caller_guard: &Arc<CallerGuard>,
     caller: Option<CallerIdentity>,
     reader: &mut DeadlineReader<R>,
     write: &mut W,
@@ -427,7 +428,7 @@ async fn handle_pkdecrypt<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
         return Ok(false);
     }
 
-    if let Err(error) = caller_guard.revalidate() {
+    if let Err(error) = caller_guard.revalidate_async().await {
         warn!(%error, "Refusing PKDECRYPT after caller identity changed");
         write_error(write, ERR_GENERAL, "caller identity changed").await?;
         return Ok(false);
@@ -540,10 +541,10 @@ async fn inquire_ciphertext<R: AsyncBufRead + Unpin, W: AsyncWriteExt + Unpin>(
 
 async fn list_keys(
     ipc_client: &IpcClient,
-    caller_guard: &CallerGuard,
+    caller_guard: &Arc<CallerGuard>,
     caller: Option<CallerIdentity>,
 ) -> Result<Vec<GpgKey>> {
-    caller_guard.revalidate()?;
+    caller_guard.revalidate_async().await?;
     ipc_client
         .list_keys(caller)
         .await

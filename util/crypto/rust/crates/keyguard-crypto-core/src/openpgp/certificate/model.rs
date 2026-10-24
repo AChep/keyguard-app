@@ -63,10 +63,12 @@ use crate::{
 
 use super::PublicComponent;
 
+mod budget;
 mod canonicalization;
 mod export;
 mod parsing;
 
+pub(crate) use budget::{ExportClassificationBudget, SignatureRehomingBudget};
 pub(crate) use canonicalization::{
     merge_public_certificate_packet_sets, normalize_expected_fingerprint,
     parse_public_certificate_packet_set_with_budget,
@@ -1222,132 +1224,6 @@ struct PendingSignature {
     packet: CanonicalPacket,
     signature: Arc<Signature>,
     syntactic_placement: Option<SignaturePlacement>,
-}
-
-#[derive(Debug, Default)]
-pub(crate) struct SignatureRehomingBudget {
-    verifications: usize,
-    request_verifications: usize,
-    active_certificate: Option<FingerprintKey>,
-    inactive_certificate_verifications: BTreeMap<FingerprintKey, usize>,
-    #[cfg(test)]
-    request_limit: Option<usize>,
-}
-
-/// Request-scoped accounting for cryptographic work performed solely to
-/// classify ordinary transferable output.
-///
-/// This budget is deliberately independent from the policy budget:
-/// structural parsing may derive an export view, but must not consume the
-/// caller's later policy-verification allowance.
-#[derive(Debug, Default)]
-pub(crate) struct ExportClassificationBudget {
-    verifications: usize,
-    request_verifications: usize,
-    active_certificate: Option<FingerprintKey>,
-    inactive_certificate_verifications: BTreeMap<FingerprintKey, usize>,
-    #[cfg(test)]
-    request_limit: Option<usize>,
-}
-
-impl ExportClassificationBudget {
-    #[cfg(test)]
-    pub(crate) fn with_request_limit(request_limit: usize) -> Self {
-        Self {
-            request_limit: Some(request_limit),
-            ..Self::default()
-        }
-    }
-
-    fn request_limit(&self) -> usize {
-        #[cfg(test)]
-        if let Some(request_limit) = self.request_limit {
-            return request_limit;
-        }
-        MAX_EXPORT_CLASSIFICATION_VERIFICATIONS_PER_REQUEST
-    }
-
-    fn begin_certificate(&mut self, fingerprint: &FingerprintKey) {
-        if self.active_certificate.as_ref() == Some(fingerprint) {
-            return;
-        }
-        if let Some(active) = self.active_certificate.take() {
-            self.inactive_certificate_verifications
-                .insert(active, self.verifications);
-        }
-        self.verifications = self
-            .inactive_certificate_verifications
-            .remove(fingerprint)
-            .unwrap_or_default();
-        self.active_certificate = Some(fingerprint.clone());
-    }
-
-    fn verify(&mut self, verify: impl FnOnce() -> bool) -> Result<bool, CertificateMergeError> {
-        let request_limit = self.request_limit();
-        let request_verifications = self
-            .request_verifications
-            .checked_add(1)
-            .filter(|count| *count <= request_limit)
-            .ok_or(CertificateMergeError::ResourceLimit)?;
-        let verifications = self
-            .verifications
-            .checked_add(1)
-            .filter(|count| *count <= MAX_EXPORT_CLASSIFICATION_VERIFICATIONS)
-            .ok_or(CertificateMergeError::ResourceLimit)?;
-        self.request_verifications = request_verifications;
-        self.verifications = verifications;
-        Ok(verify())
-    }
-}
-
-impl SignatureRehomingBudget {
-    #[cfg(test)]
-    pub(crate) fn with_request_limit(request_limit: usize) -> Self {
-        Self {
-            request_limit: Some(request_limit),
-            ..Self::default()
-        }
-    }
-
-    fn request_limit(&self) -> usize {
-        #[cfg(test)]
-        if let Some(request_limit) = self.request_limit {
-            return request_limit;
-        }
-        MAX_SIGNATURE_REHOMING_VERIFICATIONS_PER_REQUEST
-    }
-
-    fn begin_certificate(&mut self, fingerprint: &FingerprintKey) {
-        if self.active_certificate.as_ref() == Some(fingerprint) {
-            return;
-        }
-        if let Some(active) = self.active_certificate.take() {
-            self.inactive_certificate_verifications
-                .insert(active, self.verifications);
-        }
-        self.verifications = self
-            .inactive_certificate_verifications
-            .remove(fingerprint)
-            .unwrap_or_default();
-        self.active_certificate = Some(fingerprint.clone());
-    }
-
-    fn verify(&mut self, verify: impl FnOnce() -> bool) -> Result<bool, CertificateMergeError> {
-        let request_limit = self.request_limit();
-        let request_verifications = self
-            .request_verifications
-            .checked_add(1)
-            .filter(|count| *count <= request_limit)
-            .ok_or(CertificateMergeError::ResourceLimit)?;
-        let verifications = self
-            .verifications
-            .checked_add(1)
-            .filter(|count| *count <= MAX_SIGNATURE_REHOMING_VERIFICATIONS)
-            .ok_or(CertificateMergeError::ResourceLimit)?;
-        self.request_verifications = request_verifications;
-        self.verifications = verifications;
-        Ok(verify())
-    }
 }
 
 impl CertificateComponent {

@@ -80,6 +80,9 @@ impl OperationRegistry {
     }
 
     /// Allocates a cancellation token, not a device. Returns zero on failure.
+    ///
+    /// IDs run from 1 to `i64::MAX` and are never reissued, so a late cancel or
+    /// close never reaches a newer operation. Once they run out, every call fails.
     pub fn create(&self) -> u64 {
         let Ok(mut operations) = self.operations.lock() else {
             return 0;
@@ -87,10 +90,14 @@ impl OperationRegistry {
         if operations.len() >= MAX_OPERATIONS {
             return 0;
         }
-        let id = self.next_id.fetch_add(1, Ordering::Relaxed);
-        if id == 0 || id > i64::MAX as u64 {
+        let Ok(id) = self
+            .next_id
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |id| {
+                (id <= i64::MAX as u64).then(|| id + 1)
+            })
+        else {
             return 0;
-        }
+        };
         operations.insert(id, Arc::new(AtomicBool::new(false)));
         id
     }
@@ -306,6 +313,35 @@ mod tests {
         assert_eq!(registry.create(), 0);
         registry.close(ids[0]);
         assert_ne!(registry.create(), 0);
+    }
+
+    /// A wrapping counter reissued IDs after 2^64 creates: a late close
+    /// canceled a newer operation and a live token could be replaced.
+    #[test]
+    fn exhausted_ids_fail_permanently_without_reissuing_ids() {
+        let registry = OperationRegistry::new();
+        let live = registry.create();
+        let stale = registry.create();
+        registry.close(stale);
+
+        registry.next_id.store(i64::MAX as u64, Ordering::Relaxed);
+        let last = registry.create();
+        assert_eq!(last, i64::MAX as u64);
+        registry.close(last);
+        for _ in 0..3 {
+            assert_eq!(registry.create(), 0);
+        }
+        assert_eq!(
+            registry.next_id.load(Ordering::Relaxed),
+            i64::MAX as u64 + 1
+        );
+
+        registry.next_id.store(u64::MAX, Ordering::Relaxed);
+        assert_eq!(registry.create(), 0);
+        assert_eq!(registry.next_id.load(Ordering::Relaxed), u64::MAX);
+
+        assert_eq!(begin(&registry, stale), Err(Status::InvalidArgument));
+        assert_eq!(begin(&registry, live), Ok(()));
     }
 
     #[test]

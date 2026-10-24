@@ -345,13 +345,17 @@ impl<L, C> Registry<L, C> {
                 (live < MAX_LIVE_HANDLES).then_some(live + 1)
             })
             .map_err(|_| Failure::new(Error::Io, operation, "handle_limit"))?;
-        let handle = self.next.fetch_add(1, Ordering::SeqCst);
-        let registered = i64::try_from(handle)
+        // Stops at `i64::MAX` instead of wrapping, so no handle is 0 or reused.
+        let registered = self
+            .next
+            .fetch_update(Ordering::SeqCst, Ordering::SeqCst, |next| {
+                i64::try_from(next).is_ok().then(|| next + 1)
+            })
             .map_err(|_| Failure::new(Error::Internal, operation, "handle_exhausted"))
-            .and_then(|code| {
+            .and_then(|handle| {
                 table
                     .insert(handle, Arc::clone(value), operation)
-                    .map(|()| code)
+                    .map(|()| handle as i64)
             });
         if registered.is_err() {
             self.live.fetch_sub(1, Ordering::SeqCst);
@@ -472,6 +476,55 @@ mod tests {
             .unwrap();
         assert!(next > MAX_LIVE_HANDLES as i64);
         assert_eq!(Arc::strong_count(&connection), MAX_LIVE_HANDLES + 1);
+    }
+
+    /// A wrapping counter issued handle 0 and then reused handles after 2^64
+    /// registrations, overwriting live entries and leaking live-count slots.
+    #[test]
+    fn exhausted_handles_fail_permanently_without_reuse() {
+        let registry = TestRegistry::new();
+        let connection = Arc::new(7);
+        let live = registry
+            .register(&registry.connections, &connection, "t")
+            .unwrap();
+        let stale = registry
+            .register(&registry.connections, &connection, "t")
+            .unwrap();
+        assert!(
+            registry
+                .release(&registry.connections, stale as u64, "t")
+                .is_ok()
+        );
+
+        registry.next.store(i64::MAX as u64, Ordering::SeqCst);
+        assert_eq!(
+            registry.register(&registry.connections, &connection, "t"),
+            Ok(i64::MAX)
+        );
+        for start in [i64::MAX as u64 + 1, u64::MAX] {
+            registry.next.store(start, Ordering::SeqCst);
+            for _ in 0..3 {
+                let failure = registry
+                    .register(&registry.listeners, &Arc::new("listener"), "listen")
+                    .err()
+                    .unwrap();
+                assert_eq!(failure.kind(), Error::Internal);
+                assert_eq!(failure.to_string(), "listen: handle_exhausted");
+            }
+            assert_eq!(registry.next.load(Ordering::SeqCst), start);
+        }
+        // Failed attempts hold no slot; the two live connections do.
+        assert_eq!(registry.live.load(Ordering::SeqCst), 2);
+        assert_eq!(
+            registry
+                .connections
+                .get(stale as u64, "t")
+                .err()
+                .unwrap()
+                .kind(),
+            Error::InvalidHandle
+        );
+        assert_eq!(*registry.connections.get(live as u64, "t").unwrap(), 7);
     }
 
     #[test]

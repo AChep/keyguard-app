@@ -66,7 +66,10 @@ pub trait Protocol: Send + Sync + 'static {
     /// nothing and prompts no one.
     fn is_retry_safe(payload: &Self::Payload) -> bool;
 
-    /// Zeroes the token of `request`, if it authenticates, once it is sent.
+    /// Zeroes the token of `request`, if it authenticates. The client calls it
+    /// when it drops an authentication request: once it is sent, or when a
+    /// timeout or an abort cancels the send. It runs in `Drop`, so it must not
+    /// panic.
     fn wipe(request: &mut Self::Request);
 }
 
@@ -222,6 +225,16 @@ struct Reconnect {
     token: AuthToken,
 }
 
+/// An authentication request, whose token is wiped when it drops: once it is
+/// sent, or when a timeout or an abort cancels the send.
+struct PrivateRequest<P: Protocol>(P::Request);
+
+impl<P: Protocol> Drop for PrivateRequest<P> {
+    fn drop(&mut self) {
+        P::wipe(&mut self.0);
+    }
+}
+
 impl<P: Protocol> Client<P> {
     /// Connects to the app and authenticates with `token`, which the client
     /// keeps to authenticate again after a reconnect.
@@ -270,10 +283,12 @@ impl<P: Protocol> Client<P> {
         token: &AuthToken,
     ) -> Result<()> {
         let id = next_id.fetch_add(1, Ordering::Relaxed);
-        let mut request = P::request(id, P::authenticate(authenticate_request(token)));
+        let request =
+            PrivateRequest::<P>(P::request(id, P::authenticate(authenticate_request(token))));
 
-        let response = Self::request_once(stream, &request).await;
-        P::wipe(&mut request);
+        let response = Self::request_once(stream, &request.0).await;
+        // Wipe as soon as the exchange ends, before the answer is checked.
+        drop(request);
         let response = response.context("IPC transport failed during authenticate")?;
         let (response_id, reply) = P::response(response);
         if response_id != id {

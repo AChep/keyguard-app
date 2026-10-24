@@ -821,3 +821,165 @@ async fn request_timeout_invalidates_without_retry_and_next_request_reconnects()
     first_server_task.await.unwrap();
     second_server_task.await.unwrap();
 }
+
+/// The tags of the tokens that [`ProbeIpc`] wiped. A tag is the first byte
+/// of a token, so tests that run in parallel tell their wipes apart.
+static WIPED: std::sync::Mutex<Vec<u8>> = std::sync::Mutex::new(Vec::new());
+
+/// The SSH agent's protocol, which records each token that it wipes.
+struct ProbeIpc;
+
+impl Protocol for ProbeIpc {
+    type Request = <SshIpc as Protocol>::Request;
+    type Response = <SshIpc as Protocol>::Response;
+    type Payload = <SshIpc as Protocol>::Payload;
+    type Reply = <SshIpc as Protocol>::Reply;
+
+    fn request(id: u64, payload: Self::Payload) -> Self::Request {
+        SshIpc::request(id, payload)
+    }
+
+    fn authenticate(request: AuthenticateRequest) -> Self::Payload {
+        SshIpc::authenticate(request)
+    }
+
+    fn response(response: Self::Response) -> (u64, Option<Self::Reply>) {
+        SshIpc::response(response)
+    }
+
+    fn error(reply: Self::Reply) -> Result<Self::Reply, ErrorResponse> {
+        SshIpc::error(reply)
+    }
+
+    fn authenticated(reply: &Self::Reply) -> Option<&AuthenticateResponse> {
+        SshIpc::authenticated(reply)
+    }
+
+    fn is_retry_safe(payload: &Self::Payload) -> bool {
+        SshIpc::is_retry_safe(payload)
+    }
+
+    fn wipe(request: &mut Self::Request) {
+        let tag = authentication_token(request).and_then(|token| token.first().copied());
+        SshIpc::wipe(request);
+        if let Some(tag) = tag
+            && authentication_token(request).is_some_and(|token| token.iter().all(|&b| b == 0))
+        {
+            WIPED.lock().unwrap().push(tag);
+        }
+    }
+}
+
+/// The token of `request`, if it authenticates.
+fn authentication_token(request: &IpcRequest) -> Option<&[u8]> {
+    match &request.request {
+        Some(ipc_request::Request::Authenticate(authenticate)) => Some(&authenticate.token),
+        _ => None,
+    }
+}
+
+/// How many times [`ProbeIpc`] wiped a token tagged `tag`.
+fn wipes(tag: u8) -> usize {
+    WIPED.lock().unwrap().iter().filter(|&&t| t == tag).count()
+}
+
+/// A client with the token `[tag; 32]`, whose first connection is broken.
+/// Its reconnect receives the authentication, which resolves the receiver,
+/// and never answers it.
+fn client_with_stalled_reconnect(
+    tag: u8,
+) -> (Client<ProbeIpc>, tokio::sync::oneshot::Receiver<()>) {
+    let (client_stream1, server_stream1) = tokio::io::duplex(64 * 1024);
+    drop(server_stream1);
+    let (client_stream2, server_stream2) = tokio::io::duplex(64 * 1024);
+    let client = Client::<ProbeIpc>::from_stream_with_reconnect(
+        client_stream1,
+        vec![tag; 32],
+        vec![Box::new(client_stream2)],
+    );
+
+    let (authentication_seen_tx, authentication_seen_rx) = tokio::sync::oneshot::channel();
+    tokio::spawn(async move {
+        let mut connection = IpcStream::new(server_stream2);
+        let request = connection.read_request().await.unwrap();
+        assert!(matches!(
+            request.request,
+            Some(ipc_request::Request::Authenticate(_))
+        ));
+        authentication_seen_tx.send(()).unwrap();
+
+        // Keep the connection open without replying.
+        std::future::pending::<()>().await;
+    });
+    (client, authentication_seen_rx)
+}
+
+#[tokio::test]
+async fn a_sent_authentication_wipes_its_token() {
+    let token = [0xC1; 32];
+    let (client_stream, server_stream) = tokio::io::duplex(64 * 1024);
+    let mut server = IpcStream::new(server_stream);
+    let client = Client::<ProbeIpc>::from_stream(client_stream);
+
+    let server_task = tokio::spawn(async move {
+        let request = server.read_request().await.unwrap();
+        match request.request {
+            Some(ipc_request::Request::Authenticate(auth)) => assert_eq!(auth.token, token),
+            _ => panic!("Expected Authenticate request"),
+        }
+        server
+            .write_response(&auth_ok_response(request.id))
+            .await
+            .unwrap();
+    });
+
+    client.authenticate(&test_auth_token(&token)).await.unwrap();
+    server_task.await.unwrap();
+    assert_eq!(wipes(0xC1), 1);
+}
+
+#[tokio::test(start_paused = true)]
+async fn a_timed_out_authentication_wipes_its_token() {
+    let (client_stream, server_stream) = tokio::io::duplex(64 * 1024);
+    let mut server = IpcStream::new(server_stream);
+    let client = Client::<ProbeIpc>::from_stream(client_stream);
+
+    let authenticate_client = client.clone();
+    let authenticate_task = tokio::spawn(async move {
+        authenticate_client
+            .authenticate(&test_auth_token(&[0xC2; 32]))
+            .await
+    });
+
+    let request = server.read_request().await.unwrap();
+    assert!(matches!(
+        request.request,
+        Some(ipc_request::Request::Authenticate(_))
+    ));
+
+    tokio::time::advance(AUTHENTICATION_TIMEOUT).await;
+    let error = authenticate_task.await.unwrap().unwrap_err().to_string();
+    assert!(error.contains("authentication timed out"), "{error}");
+    assert_eq!(wipes(0xC2), 1);
+}
+
+#[tokio::test(start_paused = true)]
+async fn a_timed_out_reconnect_wipes_its_token() {
+    let (client, authentication_seen) = client_with_stalled_reconnect(0xC3);
+
+    assert!(client.request(list_keys()).await.is_err());
+    authentication_seen.await.unwrap();
+    assert_eq!(wipes(0xC3), 1);
+}
+
+#[tokio::test(start_paused = true)]
+async fn an_aborted_reconnect_wipes_its_token() {
+    let (client, authentication_seen) = client_with_stalled_reconnect(0xC4);
+    let request_task = tokio::spawn(async move { client.request(list_keys()).await });
+
+    authentication_seen.await.unwrap();
+    request_task.abort();
+    assert!(request_task.await.unwrap_err().is_cancelled());
+    // The task drops its future before it reports the cancellation.
+    assert_eq!(wipes(0xC4), 1);
+}

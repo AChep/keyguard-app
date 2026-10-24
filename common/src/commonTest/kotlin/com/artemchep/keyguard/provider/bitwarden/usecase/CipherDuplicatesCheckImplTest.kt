@@ -182,6 +182,31 @@ class CipherDuplicatesCheckImplTest {
     }
 
     @Test
+    fun `ssh keys match across padded and unpadded fingerprint spellings`() {
+        val fingerprint = "SHA256:c27gjT+NOdQL2rVL0IoPqoNi3mqkOJzT5gusylsO2wE"
+        val groups = duplicatesCheck(
+            ciphers = listOf(
+                sshSecret(
+                    id = "legacy",
+                    privateKey = "private-pkcs8",
+                    fingerprint = "$fingerprint=",
+                ),
+                sshSecret(
+                    id = "canonical",
+                    privateKey = "private-openssh",
+                    fingerprint = fingerprint,
+                ),
+            ),
+        )
+
+        assertEquals(1, groups.size)
+        assertEquals(
+            setOf("legacy", "canonical"),
+            groups.single().ciphers.map { it.id }.toSet(),
+        )
+    }
+
+    @Test
     fun `environment variable order and different metadata do not prevent exact content matches`() {
         val variables = listOf(literalVariable("TOKEN", "secret"), literalVariable("PORT", "8080"))
         val first = environmentSecret("first", variables, name = "Project", notes = "Original")
@@ -474,6 +499,22 @@ private fun gpgSecret(
         publicKeyArmored = publicKeyArmored,
         fingerprint = fingerprint,
         metadata = metadata,
+    ),
+)
+
+private fun sshSecret(
+    id: String,
+    privateKey: String,
+    fingerprint: String,
+) = createSecret(
+    id = id,
+    name = "SSH key",
+    accountId = "account",
+    type = DSecret.Type.SshKey,
+    sshKey = DSecret.SshKey(
+        privateKey = privateKey,
+        publicKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJFbe+FucfgSuwMTJuoy7vkjKCGtOTLMNrfRoqhJaCeS",
+        fingerprint = fingerprint,
     ),
 )
 

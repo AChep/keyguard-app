@@ -11,9 +11,8 @@ intentionally public and must never be reused.
   algorithm, cipher/KDF, passphrase flow, expected domain result, golden ID,
   provenance, and coverage state.
 - `public-key-goldens.tsv` stores exact normalized OpenSSH public keys and
-  Keyguard's existing SHA-256 fingerprint spelling. The public identities were
-  checked independently with OpenSSH `ssh-keygen`; Keyguard intentionally
-  retains trailing Base64 padding.
+  SHA-256 fingerprints. Both were checked independently with OpenSSH
+  `ssh-keygen`; fingerprints use its unpadded Base64 spelling.
 - `legacy-pem-dek-matrix.tsv` freezes all 42 BC 1.84 legacy `DEK-Info`
   spellings: AES/DES/DES-EDE/DES-EDE3/Blowfish/RC2 across every reachable
   CBC/CFB/OFB/ECB spelling, including the bare EDE aliases.

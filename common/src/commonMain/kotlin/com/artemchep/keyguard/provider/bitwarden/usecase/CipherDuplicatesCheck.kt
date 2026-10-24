@@ -739,7 +739,9 @@ class CipherDuplicatesCheckImpl(
     }
 
     private fun processSshKey(sshKey: DSecret.SshKey): DSecret.SshKey {
-        return sshKey
+        return sshKey.copy(
+            fingerprint = sshKey.fingerprint?.normalizeSshFingerprint(),
+        )
     }
 
     private fun processGpgKey(gpgKey: DSecret.GpgKey): DSecret.GpgKey {
@@ -787,6 +789,10 @@ class CipherDuplicatesCheckImpl(
         ?.trim()
         ?.replace("\r\n", "\n")
         ?.takeIf(String::isNotBlank)
+
+    // Older Keyguard items keep the Base64 padding that OpenSSH omits.
+    private fun String.normalizeSshFingerprint(): String =
+        if (startsWith("SHA256:")) removeSuffix("=") else this
 
     private fun processString(str: String) = str
         .lowercase()

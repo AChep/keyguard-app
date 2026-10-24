@@ -8,7 +8,7 @@ use aws_lc_rs::{
     rand::{SecureRandom, SystemRandom},
     signature::{Ed25519KeyPair, KeyPair},
 };
-use base64ct::{Base64, Encoding};
+use base64ct::{Base64, Base64Unpadded, Encoding};
 use ed25519_dalek::VerifyingKey as Ed25519VerifyingKey;
 use keyguard_crypto_sensitive::{
     RsaCrtComponents, RsaPrivateComponents, RsaSignatureHash, SensitiveRsaError,
@@ -872,9 +872,11 @@ fn format_public_key_text(
     Ok(format!("{prefix} {}", Base64::encode_string(public_key)))
 }
 
+// OpenSSH (`ssh-keygen -l -E sha256`) omits the Base64 padding. Older vault
+// records may still store the padded spelling.
 fn fingerprint(value: &[u8]) -> String {
     let digest = aws_lc_rs::digest::digest(&aws_lc_rs::digest::SHA256, value);
-    format!("SHA256:{}", Base64::encode_string(digest.as_ref()))
+    format!("SHA256:{}", Base64Unpadded::encode_string(digest.as_ref()))
 }
 
 fn decode_private_pem(value: &str) -> Result<Zeroizing<Vec<u8>>, PrimitiveError> {
@@ -1023,8 +1025,10 @@ mod tests {
         RSA_PKCS1_1024_8192_SHA512_FOR_LEGACY_USE_ONLY, RsaPublicKeyComponents, UnparsedPublicKey,
     };
     use pkcs8::der::asn1::UintRef;
+    use ssh_key::{Fingerprint, HashAlg};
 
     use super::*;
+    use crate::protocol::{SshPrivateKeyImportResult, ssh_private_key_import_result};
 
     #[test]
     fn secret_buffer_private_key_formatting_includes_all_line_breaks() {
@@ -1149,8 +1153,7 @@ mod tests {
         )
         .expect("description payload");
         assert!(described.private_fingerprint.starts_with("SHA256:"));
-        assert!(described.private_fingerprint.ends_with('='));
-        assert!(described.public_fingerprint.ends_with('='));
+        assert!(described.public_fingerprint.starts_with("SHA256:"));
     }
 
     #[test]
@@ -2022,6 +2025,74 @@ mod tests {
             public_key_decode("s".repeat(MAX_KEY_BYTES + 1)),
             Err(PrimitiveError::ResourceLimit),
         ));
+    }
+
+    // From `ssh-keygen -l -E sha256` (OpenSSH 10.5p1) for the keys above. Both
+    // contain `+`, so a URL-safe alphabet fails here as well as padding.
+    const RSA_OPENSSH_FINGERPRINT: &str = "SHA256:VAITiDKeiNdourIEcW+mVbbopsz8pUwP4BbFjUOmAaU";
+    const ED25519_GOLDEN_OPENSSH_FINGERPRINT: &str =
+        "SHA256:c27gjT+NOdQL2rVL0IoPqoNi3mqkOJzT5gusylsO2wE";
+
+    #[test]
+    fn public_fingerprint_matches_openssh_for_imported_and_persisted_keys() {
+        for (private_pem, expected) in [
+            (RSA_OPENSSH_UNENCRYPTED_PEM, RSA_OPENSSH_FINGERPRINT),
+            (
+                ED25519_GOLDEN_OPENSSH_PEM,
+                ED25519_GOLDEN_OPENSSH_FINGERPRINT,
+            ),
+        ] {
+            // File import describes the normalized material.
+            let imported = description(imported_material(private_pem));
+            assert_eq!(imported.public_fingerprint, expected);
+
+            // The vault view parses the stored texts, then describes them again.
+            let persisted = material(
+                parse(
+                    imported.private_key_pem.clone(),
+                    imported.public_key_openssh.clone(),
+                )
+                .expect("persisted SSH key"),
+            );
+            assert_eq!(description(persisted).public_fingerprint, expected);
+        }
+    }
+
+    #[test]
+    fn generated_public_fingerprints_match_the_independent_openssh_spelling() {
+        for (key_type, rsa_bits) in [(SshKeyType::Ed25519, 0), (SshKeyType::Rsa, 2048)] {
+            let generated = material(generate(key_type, rsa_bits).expect("key generation"));
+            // RustCrypto formats like OpenSSH, and its parser rejects padding.
+            let expected = PublicKey::from_bytes(&generated.public_key)
+                .expect("generated public key")
+                .fingerprint(HashAlg::Sha256);
+            let actual = description(generated).public_fingerprint.clone();
+            assert_eq!(actual, expected.to_string());
+            assert_eq!(actual.parse::<Fingerprint>().ok(), Some(expected));
+        }
+    }
+
+    fn imported_material(private_pem: &str) -> SshKeyMaterial {
+        let payload = crate::ssh_import::import(private_pem.as_bytes().to_vec(), None)
+            .expect("SSH private key import");
+        let result = SshPrivateKeyImportResult::decode(payload.as_slice())
+            .expect("SSH import result payload")
+            .result;
+        let Some(ssh_private_key_import_result::Result::Success(success)) = result else {
+            panic!("expected a successful SSH private key import");
+        };
+        success.key_material.expect("imported SSH key material")
+    }
+
+    fn description(mut material: SshKeyMaterial) -> SshKeyDescription {
+        let key_type = SshKeyType::try_from(material.r#type).expect("supported SSH key type");
+        let payload = describe(
+            key_type,
+            std::mem::take(&mut material.private_key),
+            std::mem::take(&mut material.public_key),
+        )
+        .expect("SSH key description");
+        SshKeyDescription::decode(payload.as_slice()).expect("SSH key description payload")
     }
 
     fn public_key_decode_result(payload: Vec<u8>) -> SshPublicKeyDecodeResult {

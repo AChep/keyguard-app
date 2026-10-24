@@ -414,9 +414,12 @@ jobs:
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
       - uses: ./.github/actions/setup_python
-      - name: "Test Windows native process cleanup"
+      - name: "Test Windows package layout and process cleanup"
         if: runner.os == 'Windows'
-        run: python -m unittest scripts/test_run_native_package_smoke.py
+        run: >-
+          python -m unittest
+          scripts.test_verify_native_bundle.WindowsRuntimeTest
+          scripts.test_run_native_package_smoke
       - name: "Select latest stable Xcode"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && (needs.changes.outputs.apple == 'true' || needs.changes.outputs.apple_regressions == 'true')
         shell: bash

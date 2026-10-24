@@ -250,29 +250,6 @@ class NativeBundleTest(unittest.TestCase):
                     pe_exports(machine=machine),
                 )
 
-    def test_windows_runtime_requires_matching_launcher_and_jvm(self) -> None:
-        for arch, machine, wrong in (("x86_64", 0x8664, 0xAA64), ("aarch64", 0xAA64, 0x8664)):
-            with self.subTest(arch=arch), tempfile.TemporaryDirectory() as tmp:
-                root = Path(tmp)
-                launcher = root / "Keyguard.exe"
-                runtime = root / "runtime/bin/server/jvm.dll"
-                runtime.parent.mkdir(parents=True)
-                for path in (launcher, runtime):
-                    path.write_bytes(pe_exports(machine=machine))
-                verify.inspect_windows_runtime(root, arch)
-                for path in (launcher, runtime):
-                    path.write_bytes(pe_exports(machine=wrong))
-                    with self.assertRaisesRegex(verify.InspectionError, "wrong architecture"):
-                        verify.inspect_windows_runtime(root, arch)
-                    path.unlink()
-                    with self.assertRaises(verify.InspectionError):
-                        verify.inspect_windows_runtime(root, arch)
-                    path.write_bytes(pe_exports(machine=machine))
-                (root / "duplicate").mkdir()
-                (root / "duplicate/Keyguard.exe").write_bytes(pe_exports(machine=machine))
-                with self.assertRaisesRegex(verify.InspectionError, "expected one Windows launcher"):
-                    verify.inspect_windows_runtime(root, arch)
-
     def test_pe_coff_symbols_do_not_satisfy_export_contract(self) -> None:
         data = bytearray(pe_exports())
         # Add a defined external COFF symbol that is absent from the export table.
@@ -422,6 +399,45 @@ class NativeBundleTest(unittest.TestCase):
             policy.scan_artifact.return_value = ["bcprov.jar"]
             with self.assertRaisesRegex(verify.InspectionError, "bcprov.jar"):
                 verify.inspect_dependency_policy([Path("package")])
+
+
+class WindowsRuntimeTest(unittest.TestCase):
+    def test_requires_matching_launcher_and_jvm(self) -> None:
+        for arch, machine, wrong in (("x86_64", 0x8664, 0xAA64), ("aarch64", 0xAA64, 0x8664)):
+            for prefix in ("", "Program Files/Keyguard"):
+                with self.subTest(arch=arch, prefix=prefix), tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    app = root / prefix
+                    resources = app / "app/resources"
+                    resources.mkdir(parents=True)
+                    (resources / "keyguard.exe").write_bytes(pe_exports(machine=machine))
+                    (app / "app/Keyguard.cfg").touch()
+                    launcher = app / "Keyguard.exe"
+                    runtime = app / "runtime/bin/server/jvm.dll"
+                    runtime.parent.mkdir(parents=True)
+                    for path in (launcher, runtime):
+                        path.write_bytes(pe_exports(machine=machine))
+                    verify.inspect_windows_runtime(root, arch)
+                    for path in (launcher, runtime):
+                        path.write_bytes(pe_exports(machine=wrong))
+                        with self.assertRaisesRegex(verify.InspectionError, "wrong architecture"):
+                            verify.inspect_windows_runtime(root, arch)
+                        path.unlink()
+                        message = "launcher is missing" if path == launcher else "missing bundled runtime binary"
+                        with self.assertRaisesRegex(verify.InspectionError, message):
+                            verify.inspect_windows_runtime(root, arch)
+                        path.write_bytes(pe_exports(machine=machine))
+                    (root / "duplicate/app").mkdir(parents=True)
+                    (root / "duplicate/app/Keyguard.cfg").touch()
+                    with self.assertRaisesRegex(verify.InspectionError, "Expected one Windows application root"):
+                        verify.inspect_windows_runtime(root, arch)
+
+    def test_requires_application_config(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "Keyguard.exe").write_bytes(pe_exports())
+            with self.assertRaisesRegex(verify.InspectionError, "Expected one Windows application root"):
+                verify.inspect_windows_runtime(root, "x86_64")
 
 
 if __name__ == "__main__":

@@ -18,12 +18,12 @@ if __package__:
     from . import check_bouncycastle_policy as dependencies
     from . import native_bundle_android as android
     from . import native_bundle_binary as binary
-    from .run_native_package_smoke import run_smoke
+    from .run_native_package_smoke import find_windows_launcher, run_smoke
 else:
     import check_bouncycastle_policy as dependencies
     import native_bundle_android as android
     import native_bundle_binary as binary
-    from run_native_package_smoke import run_smoke
+    from run_native_package_smoke import find_windows_launcher, run_smoke
 
 REPOSITORY = Path(__file__).resolve().parent.parent
 InspectionError = binary.InspectionError
@@ -196,10 +196,10 @@ def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
 
 
 def inspect_windows_runtime(root: Path, arch: str) -> None:
-    launchers = sorted(path for path in root.rglob("Keyguard.exe") if path.is_file())
-    if len(launchers) != 1:
-        raise InspectionError(f"{root}: expected one Windows launcher; found {len(launchers)}")
-    launcher = launchers[0]
+    try:
+        launcher = find_windows_launcher(root)
+    except RuntimeError as error:
+        raise InspectionError(str(error)) from error
     for path in (launcher, launcher.parent / "runtime/bin/server/jvm.dll"):
         if not path.is_file():
             raise InspectionError(f"{root}: missing bundled runtime binary {path}")

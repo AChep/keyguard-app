@@ -31,6 +31,11 @@ jobs:
           lfs: true
           submodules: recursive
           persist-credentials: false
+      - name: "Test Windows package layout"
+        run: >-
+          python -m unittest
+          scripts.test_verify_native_bundle.WindowsRuntimeTest
+          scripts.test_run_native_package_smoke.WindowsLauncherTest
       - name: "Setup Gradle (x64)"
         if: matrix.msix_arch == 'x64'
         uses: ./.github/actions/setup_gradle

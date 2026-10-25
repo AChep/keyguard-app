@@ -10,6 +10,7 @@ use ssh_agent_lib::agent::Session;
 use ssh_agent_lib::error::AgentError;
 use ssh_agent_lib::proto::Extension;
 use ssh_agent_lib::proto::Identity;
+use ssh_agent_lib::proto::PublicCredential;
 use ssh_agent_lib::proto::SignRequest;
 use ssh_encoding::Encode;
 use ssh_key::{Algorithm, Signature};
@@ -197,7 +198,7 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
             match parse_openssh_pubkey(&key.public_key) {
                 Ok(pubkey) => {
                     identities.push(Identity {
-                        pubkey: pubkey.key_data().clone(),
+                        credential: PublicCredential::Key(pubkey.key_data().clone()),
                         comment: key.name.clone(),
                     });
                 }
@@ -214,6 +215,13 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
 
     async fn sign(&mut self, request: SignRequest) -> Result<Signature, AgentError> {
         debug!("Handling SignRequest");
+
+        // Keyguard offers only plain keys. ssh-agent-lib 0.5 decoded a
+        // certificate as an opaque key that matched none, so keep refusing it.
+        let PublicCredential::Key(requested_key) = &request.credential else {
+            warn!("Refusing sign request for an SSH certificate credential");
+            return Err(AgentError::Failure);
+        };
 
         if let Err(error) = self.session_bindings.validate_sign_request(&request) {
             warn!(%error, "Refusing sign request that does not match its SSH session binding");
@@ -237,7 +245,7 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
                 .keys
                 .iter()
                 .find(|key| match parse_openssh_pubkey(&key.public_key) {
-                    Ok(pubkey) => *pubkey.key_data() == request.pubkey,
+                    Ok(pubkey) => pubkey.key_data() == requested_key,
                     Err(_) => false,
                 });
 

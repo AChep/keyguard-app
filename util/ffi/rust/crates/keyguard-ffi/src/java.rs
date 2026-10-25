@@ -3,13 +3,33 @@
 #![allow(unsafe_code)]
 
 use jni::{
-    JNIEnv,
+    Env, EnvUnowned, Outcome,
     objects::{JByteArray, JString},
     sys::{jbyte, jbyteArray, jint},
 };
 use zeroize::Zeroizing;
 
 use crate::{BRIDGE_INVALID_ARGUMENT, OperationLimits, OperationStatus, PanicHook, contained};
+
+/// Runs `body` with the environment of the current native method call.
+///
+/// Call it inside [`contained`]: neither acquiring the environment nor `body`
+/// catches a panic, so one unwinds to that boundary rather than becoming a
+/// Java exception.
+pub fn with_java_env<'local, R>(
+    environment: &mut EnvUnowned<'local>,
+    body: impl FnOnce(&mut Env<'local>) -> R,
+) -> R {
+    let outcome = environment
+        .with_env_no_catch(|environment| Ok::<_, jni::errors::Error>(body(environment)))
+        .into_outcome();
+    match outcome {
+        Outcome::Ok(value) => value,
+        Outcome::Err(_) | Outcome::Panic(_) => {
+            unreachable!("the body cannot fail, and panics are not caught")
+        }
+    }
+}
 
 /// Copies a `java.lang.String` into a zeroized owned string.
 ///
@@ -22,10 +42,7 @@ use crate::{BRIDGE_INVALID_ARGUMENT, OperationLimits, OperationStatus, PanicHook
 ///
 /// Returns [`BRIDGE_INVALID_ARGUMENT`] for a null reference, a Java exception
 /// raised while copying, or invalid UTF-16.
-pub fn java_string(
-    environment: &JNIEnv<'_>,
-    value: &JString<'_>,
-) -> Result<Zeroizing<String>, i64> {
+pub fn java_string(environment: &Env<'_>, value: &JString<'_>) -> Result<Zeroizing<String>, i64> {
     let length = string_length(environment, value)?;
     copy_string(environment, value, length)
 }
@@ -45,7 +62,7 @@ const SCAN_CHUNK_UNITS: usize = 256;
 /// As [`java_string`]. A malformed string is an error even when it is also
 /// too long.
 pub fn java_string_within(
-    environment: &JNIEnv<'_>,
+    environment: &Env<'_>,
     value: &JString<'_>,
     max_utf8_bytes: usize,
 ) -> Result<Option<Zeroizing<String>>, i64> {
@@ -84,14 +101,14 @@ fn scan_utf16(mut pending_high: bool, units: &[u16]) -> Result<bool, i64> {
 }
 
 /// Returns the UTF-16 length of a `java.lang.String`, rejecting null.
-fn string_length(environment: &JNIEnv<'_>, value: &JString<'_>) -> Result<usize, i64> {
+fn string_length(environment: &Env<'_>, value: &JString<'_>) -> Result<usize, i64> {
     if value.is_null() {
         return Err(BRIDGE_INVALID_ARGUMENT);
     }
     let raw_environment = environment.get_raw();
-    // SAFETY: `JNIEnv` owns a valid JNI function table for this native call.
-    let functions = unsafe { &**raw_environment };
-    let get_length = functions.GetStringLength.ok_or(BRIDGE_INVALID_ARGUMENT)?;
+    // SAFETY: `Env` owns a valid JNI function table for this native call, and
+    // every JNI version provides the 1.1 functions.
+    let get_length = unsafe { (**raw_environment).v1_1.GetStringLength };
     // SAFETY: Null was rejected and JNI export signatures guarantee that
     // `value` is a live local java.lang.String reference.
     let length = unsafe { get_length(raw_environment, value.as_raw()) };
@@ -101,7 +118,7 @@ fn string_length(environment: &JNIEnv<'_>, value: &JString<'_>) -> Result<usize,
 /// Copies and decodes all `length` UTF-16 units of a string that
 /// [`string_length`] accepted.
 fn copy_string(
-    environment: &JNIEnv<'_>,
+    environment: &Env<'_>,
     value: &JString<'_>,
     length: usize,
 ) -> Result<Zeroizing<String>, i64> {
@@ -115,15 +132,15 @@ fn copy_string(
 /// Copies `units.len()` UTF-16 units from `start` of a string that
 /// [`string_length`] accepted.
 fn string_region(
-    environment: &JNIEnv<'_>,
+    environment: &Env<'_>,
     value: &JString<'_>,
     start: usize,
     units: &mut [u16],
 ) -> Result<(), i64> {
     let raw_environment = environment.get_raw();
-    // SAFETY: `JNIEnv` owns a valid JNI function table for this native call.
-    let functions = unsafe { &**raw_environment };
-    let get_region = functions.GetStringRegion.ok_or(BRIDGE_INVALID_ARGUMENT)?;
+    // SAFETY: `Env` owns a valid JNI function table for this native call, and
+    // every JVM that loads the bridges provides the JNI 1.2 functions.
+    let get_region = unsafe { (**raw_environment).v1_2.GetStringRegion };
     if units.is_empty() {
         return Ok(());
     }
@@ -141,7 +158,7 @@ fn string_region(
             units.as_mut_ptr(),
         );
     }
-    if environment.exception_check().unwrap_or(true) {
+    if environment.exception_check() {
         // The JNI spec permits only a short list of functions while an
         // exception is pending — "the native code must first clear the
         // exception before making other JNI calls" — and the calls that
@@ -149,7 +166,7 @@ fn string_region(
         // exception pending aborts the VM under `-Xcheck:jni`. Bridges
         // report stable packed codes rather than Java exceptions, so
         // discarding it and returning invalid-argument is the contract.
-        let _ = environment.exception_clear();
+        environment.exception_clear();
         return Err(BRIDGE_INVALID_ARGUMENT);
     }
     Ok(())
@@ -163,15 +180,16 @@ fn string_region(
 /// Returns [`BRIDGE_INVALID_ARGUMENT`] for a null array, a negative offset or
 /// length, or a range that overflows or ends past the array.
 pub fn java_byte_range(
-    environment: &JNIEnv<'_>,
+    environment: &Env<'_>,
     array: &JByteArray<'_>,
     offset: jint,
     length: jint,
 ) -> Result<usize, i64> {
     // Also rejects a null array, without calling into the JVM.
-    let array_length = environment
-        .get_array_length(array)
-        .map_err(|_| BRIDGE_INVALID_ARGUMENT)?;
+    let array_length = array
+        .len(environment)
+        .map_err(|_| BRIDGE_INVALID_ARGUMENT)
+        .and_then(|length| jint::try_from(length).map_err(|_| BRIDGE_INVALID_ARGUMENT))?;
     checked_range(array_length, offset, length)
 }
 
@@ -210,29 +228,35 @@ pub fn jbytes_mut(bytes: &mut [u8]) -> &mut [jbyte] {
 pub fn execute_operation<E: OperationStatus>(
     hook: PanicHook,
     limits: OperationLimits,
-    environment: &JNIEnv<'_>,
+    environment: &mut EnvUnowned<'_>,
     request: &JByteArray<'_>,
     execute: impl FnOnce(&[u8]) -> Vec<u8>,
 ) -> jbyteArray {
     let response = contained(hook, || {
-        // Also rejects a null array.
-        let Ok(length) = environment.get_array_length(request) else {
-            return vec![E::INVALID_ARGUMENT.code()];
-        };
-        if !usize::try_from(length).is_ok_and(|length| limits.accepts_request(length)) {
-            return vec![E::INVALID_ARGUMENT.code()];
-        }
-        match environment.convert_byte_array(request) {
-            Ok(bytes) => execute(&Zeroizing::new(bytes)),
-            Err(_) => vec![E::INTERNAL.code()],
-        }
+        with_java_env(environment, |environment| {
+            // Also rejects a null array.
+            let Ok(length) = request.len(environment) else {
+                return vec![E::INVALID_ARGUMENT.code()];
+            };
+            if !limits.accepts_request(length) {
+                return vec![E::INVALID_ARGUMENT.code()];
+            }
+            match environment.convert_byte_array(request) {
+                Ok(bytes) => execute(&Zeroizing::new(bytes)),
+                Err(_) => vec![E::INTERNAL.code()],
+            }
+        })
     })
     .unwrap_or_else(|_| vec![E::INTERNAL.code()]);
     let response = Zeroizing::new(response);
-    contained(hook, || environment.byte_array_from_slice(&response))
-        .ok()
-        .and_then(Result::ok)
-        .map_or(std::ptr::null_mut(), JByteArray::into_raw)
+    contained(hook, || {
+        with_java_env(environment, |environment| {
+            environment.byte_array_from_slice(&response)
+        })
+    })
+    .ok()
+    .and_then(Result::ok)
+    .map_or(std::ptr::null_mut(), JByteArray::into_raw)
 }
 
 #[cfg(test)]

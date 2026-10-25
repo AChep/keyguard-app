@@ -16,14 +16,14 @@
 //!   `-Xcheck:jni` once the bridge builds its return value.
 
 use jni::{
-    JNIEnv,
+    Env, EnvUnowned,
     objects::{JByteArray, JObject, JString},
     sys::{jint, jlong, jstring},
 };
 use keyguard_agent_ipc_core::bridge;
 use keyguard_ffi::{
     BRIDGE_INTERNAL, BRIDGE_INVALID_ARGUMENT, PanicHook, java_byte_range, java_string, jbytes,
-    jbytes_mut,
+    jbytes_mut, with_java_env,
 };
 use zeroize::Zeroizing;
 
@@ -43,16 +43,18 @@ fn scalar(operation: &'static str, body: impl FnOnce() -> Result<i64, i64>) -> i
 /// Runs an export that calls back into the JVM. A Java exception that is still
 /// pending when `body` returns is cleared.
 fn with_environment(
-    environment: &JNIEnv<'_>,
+    environment: &mut EnvUnowned<'_>,
     operation: &'static str,
-    body: impl FnOnce() -> Result<i64, i64>,
+    body: impl FnOnce(&mut Env<'_>) -> Result<i64, i64>,
 ) -> i64 {
     scalar(operation, || {
-        let result = body();
-        if environment.exception_check().unwrap_or(true) {
-            let _ = environment.exception_clear();
-        }
-        result
+        with_java_env(environment, |environment| {
+            let result = body(environment);
+            if environment.exception_check() {
+                environment.exception_clear();
+            }
+            result
+        })
     })
 }
 
@@ -62,10 +64,7 @@ fn java_handle(handle: jlong) -> Result<u64, i64> {
 }
 
 /// A nullable string. Null is none, which the bridge takes as empty.
-fn optional_string(
-    environment: &JNIEnv<'_>,
-    value: &JString<'_>,
-) -> Result<Zeroizing<String>, i64> {
+fn optional_string(environment: &Env<'_>, value: &JString<'_>) -> Result<Zeroizing<String>, i64> {
     if value.is_null() {
         return Ok(Zeroizing::new(String::new()));
     }
@@ -75,7 +74,7 @@ fn optional_string(
 /// Returns the ABI version.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni_abiVersion(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
 ) -> jint {
     keyguard_ffi::contained(PANIC_HOOK, || keyguard_agent_ipc_core::ABI_VERSION as jint)
@@ -86,17 +85,19 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJ
 /// does not clear it.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni_lastError(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
 ) -> jstring {
     keyguard_ffi::contained(PANIC_HOOK, || {
-        let diagnostic = bridge::last_error()
-            .and_then(|diagnostic| environment.new_string(diagnostic).ok())
-            .map_or(std::ptr::null_mut(), |diagnostic| diagnostic.into_raw());
-        if diagnostic.is_null() && environment.exception_check().unwrap_or(true) {
-            let _ = environment.exception_clear();
-        }
-        diagnostic
+        with_java_env(&mut environment, |environment| {
+            let diagnostic = bridge::last_error()
+                .and_then(|diagnostic| environment.new_string(diagnostic).ok())
+                .map_or(std::ptr::null_mut(), |diagnostic| diagnostic.into_raw());
+            if diagnostic.is_null() && environment.exception_check() {
+                environment.exception_clear();
+            }
+            diagnostic
+        })
     })
     .unwrap_or(std::ptr::null_mut())
 }
@@ -105,16 +106,16 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJ
 /// `parent` is none (Windows); a null `exactName` asks for a random name.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni_listen(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     parent: JString<'_>,
     prefix: JString<'_>,
     exact_name: JString<'_>,
 ) -> jlong {
-    with_environment(&environment, "listen", || {
-        let parent = optional_string(&environment, &parent)?;
-        let prefix = java_string(&environment, &prefix)?;
-        let exact_name = optional_string(&environment, &exact_name)?;
+    with_environment(&mut environment, "listen", |environment| {
+        let parent = optional_string(environment, &parent)?;
+        let prefix = java_string(environment, &prefix)?;
+        let exact_name = optional_string(environment, &exact_name)?;
         Ok(bridge::listen(&parent, &prefix, &exact_name))
     })
 }
@@ -122,12 +123,12 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJ
 /// Returns the listener's socket path or pipe name, or null with a diagnostic.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni_endpoint(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     listener: jlong,
 ) -> jstring {
     let mut endpoint: jstring = std::ptr::null_mut();
-    let code = with_environment(&environment, "endpoint", || {
+    let code = with_environment(&mut environment, "endpoint", |environment| {
         let listener = java_handle(listener)?;
         match bridge::endpoint(listener, |value| environment.new_string(value)) {
             Ok(Ok(value)) => {
@@ -153,7 +154,7 @@ fn accept(listener: jlong) -> i64 {
 /// Blocks until a client connects and returns the connection's handle.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni_accept(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     listener: jlong,
 ) -> jlong {
@@ -169,7 +170,7 @@ fn close_listener(listener: jlong) -> i64 {
 /// Closes a listener and consumes its handle; wakes a blocked accept.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni_closeListener(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     listener: jlong,
 ) -> jlong {
@@ -185,7 +186,7 @@ fn peer_pid(connection: jlong) -> i64 {
 /// The peer's process ID from the accept snapshot; `-7` when not verifiable.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni_peerPid(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     connection: jlong,
 ) -> jlong {
@@ -196,16 +197,16 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJ
 /// at end of stream. A zero `length` is `-1`.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni_read(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     connection: jlong,
     buffer: JByteArray<'_>,
     offset: jint,
     length: jint,
 ) -> jlong {
-    with_environment(&environment, "read", || {
+    with_environment(&mut environment, "read", |environment| {
         let connection = java_handle(connection)?;
-        let length = java_byte_range(&environment, &buffer, offset, length)?;
+        let length = java_byte_range(environment, &buffer, offset, length)?;
         let mut scratch = Zeroizing::new(vec![0_u8; length.min(bridge::MAX_READ_BYTES)]);
         let count = bridge::read(connection, &mut scratch);
         if count > 0 {
@@ -213,8 +214,8 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJ
                 .ok()
                 .and_then(|count| scratch.get(..count))
                 .ok_or(BRIDGE_INTERNAL)?;
-            environment
-                .set_byte_array_region(&buffer, offset, jbytes(filled))
+            buffer
+                .set_region(environment, offset, jbytes(filled))
                 .map_err(|_| BRIDGE_INTERNAL)?;
         }
         Ok(count)
@@ -225,24 +226,24 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJ
 /// A zero `length` returns 0 without a system call.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni_write(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     connection: jlong,
     buffer: JByteArray<'_>,
     offset: jint,
     length: jint,
 ) -> jlong {
-    with_environment(&environment, "write", || {
+    with_environment(&mut environment, "write", |environment| {
         let connection = java_handle(connection)?;
-        let length = java_byte_range(&environment, &buffer, offset, length)?;
+        let length = java_byte_range(environment, &buffer, offset, length)?;
         // Rejected before copying, so an oversized array is never duplicated.
         if length > bridge::MAX_WRITE_BYTES {
             return Err(BRIDGE_INVALID_ARGUMENT);
         }
         let mut data = Zeroizing::new(vec![0_u8; length]);
         if length != 0 {
-            environment
-                .get_byte_array_region(&buffer, offset, jbytes_mut(&mut data))
+            buffer
+                .get_region(environment, offset, jbytes_mut(&mut data))
                 .map_err(|_| BRIDGE_INVALID_ARGUMENT)?;
         }
         Ok(bridge::write(connection, &data))
@@ -258,7 +259,7 @@ fn await_input(connection: jlong) -> i64 {
 /// Waits without consuming input: 1 when input is readable, 0 at end of stream.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni_awaitInput(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     connection: jlong,
 ) -> jlong {
@@ -272,7 +273,7 @@ fn close(connection: jlong) -> i64 {
 /// Closes a connection and consumes its handle; wakes every blocked call on it.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni_close(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     connection: jlong,
 ) -> jlong {

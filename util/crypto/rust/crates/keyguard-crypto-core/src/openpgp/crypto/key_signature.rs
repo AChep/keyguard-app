@@ -1,7 +1,7 @@
 //! Signed data of signatures over keys and identities.
 //!
 //! RFC 9580 section 5.2.4 frames every hashed key by the signature's version.
-//! rPGP 0.20 frames it by the key's version instead, which agrees only when
+//! rPGP 0.21 frames it by the key's version instead, which agrees only when
 //! the signer and the signed key share a version. Third-party signatures may
 //! cross versions, so Keyguard computes and verifies their digests here.
 

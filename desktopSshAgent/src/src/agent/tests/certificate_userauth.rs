@@ -22,6 +22,33 @@ const FOREVER_RSA_CERT: &str = include_str!(concat!(
 ));
 
 #[tokio::test]
+async fn certificate_credentials_are_refused() {
+    let cert = Certificate::from_openssh(FOREVER_ED25519_CERT).unwrap();
+    let provider = FakeKeyProvider::new(vec![SshKey {
+        name: "certificate backing key".to_owned(),
+        public_key: PublicKey::new(cert.public_key().clone(), "")
+            .to_openssh()
+            .unwrap(),
+        key_type: cert.algorithm().as_str().to_owned(),
+        fingerprint: String::new(),
+    }])
+    .with_sign_result(SignDataResponse {
+        signature: vec![42; 64],
+        algorithm: "ssh-ed25519".to_owned(),
+    });
+    let mut agent = KeyguardAgent::new(provider.clone());
+    let result = agent
+        .sign(SignRequest {
+            credential: PublicCredential::Cert(Box::new(cert)),
+            data: vec![1, 2, 3],
+            flags: 0,
+        })
+        .await;
+    assert!(result.is_err());
+    assert!(provider.last_sign_request().is_none());
+}
+
+#[tokio::test]
 async fn certificate_userauth_accepts_openssh_forever_certificates() {
     for (algorithm, signature_algorithm, flags) in CASES {
         let text = if signature_algorithm == "ssh-ed25519" {
@@ -61,7 +88,7 @@ async fn certificate_userauth_accepts_openssh_forever_certificates() {
             );
             let result = agent
                 .sign(SignRequest {
-                    pubkey: cert.public_key().clone(),
+                    credential: PublicCredential::Key(cert.public_key().clone()),
                     data: data.clone(),
                     flags,
                 })
@@ -137,7 +164,7 @@ async fn session_bind_accepts_forever_host_certificate_and_requires_exact_destin
     ] {
         assert!(agent
             .sign(SignRequest {
-                pubkey: user.key_data().clone(),
+                credential: PublicCredential::Key(user.key_data().clone()),
                 data: bound_userauth_data(SESSION_ID, user.key_data(), Some(&destination)),
                 flags: 0,
             })
@@ -149,7 +176,7 @@ async fn session_bind_accepts_forever_host_certificate_and_requires_exact_destin
     let data = bound_userauth_data(SESSION_ID, user.key_data(), Some(&host_blob));
     assert!(agent
         .sign(SignRequest {
-            pubkey: user.key_data().clone(),
+            credential: PublicCredential::Key(user.key_data().clone()),
             data: data.clone(),
             flags: 0
         })
@@ -236,7 +263,7 @@ async fn certificate_userauth_preserves_payload_and_signing_flags() {
             // OpenSSH selects the plain agent key, while the bytes to sign
             // contain the certificate supplied by CertificateFile.
             let request = SignRequest {
-                pubkey: key.key_data().clone(),
+                credential: PublicCredential::Key(key.key_data().clone()),
                 data: data.clone(),
                 flags,
             };
@@ -323,7 +350,7 @@ async fn certificate_userauth_rejects_invalid_identity_before_ipc() {
         let mut agent = bound_agent(provider.clone(), false).await;
         let result = agent
             .sign(SignRequest {
-                pubkey: ed.key_data().clone(),
+                credential: PublicCredential::Key(ed.key_data().clone()),
                 data: bound_userauth_data_with_key_blob(SESSION_ID, algorithm, &key_blob, None),
                 flags: 0,
             })
@@ -385,7 +412,7 @@ async fn certificate_userauth_preserves_session_and_destination_checks() {
         let error = agent
             .session_bindings
             .validate_sign_request(&SignRequest {
-                pubkey: key.key_data().clone(),
+                credential: PublicCredential::Key(key.key_data().clone()),
                 data: data.clone(),
                 flags: 0,
             })
@@ -406,7 +433,7 @@ async fn certificate_userauth_preserves_session_and_destination_checks() {
         }
         assert!(agent
             .sign(SignRequest {
-                pubkey: key.key_data().clone(),
+                credential: PublicCredential::Key(key.key_data().clone()),
                 data,
                 flags: 0
             })

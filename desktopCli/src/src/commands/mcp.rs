@@ -214,7 +214,7 @@ async fn run(socket: PathBuf) -> Result<()> {
         socket,
         stream: Arc::new(Mutex::new(None)),
     };
-    let service = bridge.serve(rmcp::transport::stdio()).await?;
+    let service = bridge.serve(rmcp::transport::stdio_pipes()).await?;
     service.waiting().await?;
     Ok(())
 }

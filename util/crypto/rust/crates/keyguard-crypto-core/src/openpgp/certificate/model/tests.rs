@@ -4712,18 +4712,12 @@ fn signing_subkey_transferable_export_requires_a_valid_back_signature() {
             .expect("parse corrupt backsig")
     };
     let wrong_key = test_primary_key_binding(&secret, &wrong_signer);
-    let wrong_type = test_embedded_binding(&secret, &secret, SignatureType::SubkeyBinding);
     let cases = [
         ("valid hashed backsig", Some((valid.clone(), true)), true),
         ("valid unhashed backsig", Some((valid.clone(), false)), true),
         ("missing backsig", None, false),
         ("corrupt backsig", Some((corrupt, true)), false),
         ("wrong-key backsig", Some((wrong_key, true)), false),
-        (
-            "wrong-type embedded signature",
-            Some((wrong_type, true)),
-            false,
-        ),
     ];
 
     for (case, embedded, expected_exported) in cases {
@@ -4772,6 +4766,45 @@ fn signing_subkey_transferable_export_requires_a_valid_back_signature() {
                 "{label} binding: {case}",
             );
         }
+    }
+
+    // rPGP rejects an embedded signature that is not a primary-key binding
+    // while parsing, so the importer keeps such a binding as an opaque packet,
+    // like any other malformed signature, and the subkey stays unbound.
+    let wrong_type = test_embedded_binding(&secret, &secret, SignatureType::SubkeyBinding);
+    let binding = test_subkey_binding(
+        &secret,
+        Some(signing_flags()),
+        None,
+        Some((wrong_type, true)),
+    );
+    let mut certificate = certificate_packet_set(&secret);
+    let fingerprint = certificate
+        .subkey_order
+        .first()
+        .cloned()
+        .expect("generated signing subkey");
+    let subkey_bundle = certificate
+        .subkeys
+        .get_mut(&fingerprint)
+        .expect("generated signing subkey bundle");
+    subkey_bundle.attached = AttachedPackets::default();
+    let subkey_packet = subkey_bundle.packet.clone();
+    let mut document = certificate
+        .finalize()
+        .expect("finalize unbound test certificate")
+        .retained_bytes;
+    binding
+        .write_to(&mut document)
+        .expect("write wrong-type binding");
+    let imported = parse_document(&document)
+        .into_iter()
+        .next()
+        .expect("imported test certificate");
+    let canonical = imported.finalize().expect("finalize imported certificate");
+    assert!(contains_packet_body(&canonical.retained_bytes, &binding));
+    for exported in [&canonical.bytes, &raw_transferable_bytes(&imported)] {
+        assert!(!contains_packet_body(exported, &subkey_packet));
     }
 }
 

@@ -479,7 +479,7 @@ fn validate_bound_userauth_request(
         .map_err(|_| SessionBindError::InvalidBoundUserauth("invalid public-key algorithm"))?;
     let public_key_blob =
         read_ssh_string(&mut input, "userauth public key", MAX_HOST_KEY_BLOB_LEN)?;
-    validate_userauth_key(algorithm, public_key_blob, &request.pubkey)?;
+    validate_userauth_key(algorithm, public_key_blob, request.credential.key_data())?;
 
     match method {
         PUBLICKEY_METHOD => {

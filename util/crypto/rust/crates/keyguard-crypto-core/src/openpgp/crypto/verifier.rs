@@ -13,7 +13,7 @@ use pgp::{
 
 /// Adapts rPGP verification without changing the retained signature packets.
 ///
-/// GnuPG accepts both ECDSA S representatives. rPGP 0.20 forwards secp256k1
+/// GnuPG accepts both ECDSA S representatives. rPGP 0.21 forwards secp256k1
 /// signatures to k256, which accepts only low-S. Normalize a temporary copy
 /// at the public-key operation boundary, leaving hashing, issuer checks,
 /// certificate policy, and wire preservation to their existing owners.

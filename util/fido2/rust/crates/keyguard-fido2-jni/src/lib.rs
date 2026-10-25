@@ -1,6 +1,6 @@
 //! JNI exports for the Kotlin utility; no JVM-specific device behavior lives here.
 use jni::{
-    JNIEnv,
+    EnvUnowned,
     objects::{JByteArray, JObject},
     sys::{jbyteArray, jint, jlong},
 };
@@ -16,21 +16,21 @@ const PANIC_HOOK: PanicHook = if cfg!(test) {
 
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_fido2_NativeFido2Jni_abiVersion(
-    _env: JNIEnv<'_>,
+    _env: EnvUnowned<'_>,
     _object: JObject<'_>,
 ) -> jint {
     core::ABI_VERSION as jint
 }
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_fido2_NativeFido2Jni_create(
-    _env: JNIEnv<'_>,
+    _env: EnvUnowned<'_>,
     _object: JObject<'_>,
 ) -> jlong {
     contained(PANIC_HOOK, core::create).unwrap_or(0) as jlong
 }
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_fido2_NativeFido2Jni_cancel(
-    _env: JNIEnv<'_>,
+    _env: EnvUnowned<'_>,
     _object: JObject<'_>,
     id: jlong,
 ) {
@@ -38,7 +38,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_fido2_NativeFido2Jni_can
 }
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_fido2_NativeFido2Jni_close(
-    _env: JNIEnv<'_>,
+    _env: EnvUnowned<'_>,
     _object: JObject<'_>,
     id: jlong,
 ) {
@@ -46,12 +46,12 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_fido2_NativeFido2Jni_clo
 }
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_fido2_NativeFido2Jni_execute(
-    env: JNIEnv<'_>,
+    mut env: EnvUnowned<'_>,
     _object: JObject<'_>,
     id: jlong,
     request: JByteArray<'_>,
 ) -> jbyteArray {
-    execute_operation::<core::Error>(PANIC_HOOK, core::LIMITS, &env, &request, |request| {
+    execute_operation::<core::Error>(PANIC_HOOK, core::LIMITS, &mut env, &request, |request| {
         core::execute(id as u64, request)
     })
 }

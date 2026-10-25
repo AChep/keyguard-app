@@ -64,7 +64,7 @@ where
         .port();
 
     let mut nonce = [0u8; ASSUAN_NONCE_LEN];
-    getrandom::getrandom(&mut nonce)
+    getrandom::fill(&mut nonce)
         .map_err(|e| anyhow::anyhow!("failed to generate Windows Assuan socket nonce: {e}"))?;
     // The marker guard stays alive for the rest of this function, so a broken
     // stdout pipe below removes the marker before startup fails.

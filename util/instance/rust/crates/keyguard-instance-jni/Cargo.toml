@@ -13,7 +13,9 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 jni.workspace = true
+keyguard-ffi = { workspace = true, features = ["jni"] }
 keyguard-instance-core = { path = "../keyguard-instance-core" }
+zeroize.workspace = true
 
 [lints]
 workspace = true

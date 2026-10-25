@@ -132,7 +132,7 @@ async fn exited_macos_peer_is_rejected_before_key_provider_on_repeated_requests(
         let pubkey = ssh_key::PublicKey::from_openssh(TEST_ED25519_PUBKEY).unwrap();
         assert!(agent
             .sign(SignRequest {
-                pubkey: pubkey.key_data().clone(),
+                credential: PublicCredential::Key(pubkey.key_data().clone()),
                 data: vec![1, 2, 3],
                 flags: 0,
             })
@@ -432,8 +432,8 @@ async fn sign_no_matching_key_returns_failure() {
 
     // Build a SignRequest with a pubkey that doesn't match any key.
     let request = SignRequest {
-        pubkey: ssh_key::public::KeyData::Ed25519(ssh_key::public::Ed25519PublicKey(
-            Default::default(),
+        credential: PublicCredential::Key(ssh_key::public::KeyData::Ed25519(
+            ssh_key::public::Ed25519PublicKey(Default::default()),
         )),
         data: vec![1, 2, 3],
         flags: 0,
@@ -462,7 +462,7 @@ async fn sign_ipc_error_returns_failure() {
     // Parse the real pubkey to get the matching KeyData.
     let pubkey = ssh_key::PublicKey::from_openssh(TEST_ED25519_PUBKEY).unwrap();
     let request = SignRequest {
-        pubkey: pubkey.key_data().clone(),
+        credential: PublicCredential::Key(pubkey.key_data().clone()),
         data: vec![1, 2, 3],
         flags: 0,
     };
@@ -495,7 +495,7 @@ async fn sign_preserves_legacy_and_sha2_rsa_wire_signatures() {
         });
         let signature = KeyguardAgent::new(provider)
             .sign(SignRequest {
-                pubkey: pubkey.key_data().clone(),
+                credential: PublicCredential::Key(pubkey.key_data().clone()),
                 data: vec![1, 2, 3],
                 flags,
             })
@@ -527,7 +527,7 @@ async fn sign_returns_valid_signature() {
 
     let pubkey = ssh_key::PublicKey::from_openssh(TEST_ED25519_PUBKEY).unwrap();
     let request = SignRequest {
-        pubkey: pubkey.key_data().clone(),
+        credential: PublicCredential::Key(pubkey.key_data().clone()),
         data: vec![1, 2, 3],
         flags: 0,
     };
@@ -578,7 +578,7 @@ async fn caller_identity_is_forwarded_to_provider() {
     // Sign should forward identity.
     let pubkey = ssh_key::PublicKey::from_openssh(TEST_ED25519_PUBKEY).unwrap();
     let request = SignRequest {
-        pubkey: pubkey.key_data().clone(),
+        credential: PublicCredential::Key(pubkey.key_data().clone()),
         data: vec![1, 2, 3],
         flags: 0,
     };
@@ -627,7 +627,7 @@ async fn verified_session_binding_partitions_sign_authorization_only() {
 
     agent
         .sign(SignRequest {
-            pubkey: pubkey.key_data().clone(),
+            credential: PublicCredential::Key(pubkey.key_data().clone()),
             data: bound_userauth_data(b"bound-sign-session", pubkey.key_data(), None),
             flags: 0,
         })
@@ -699,7 +699,7 @@ async fn session_binding_preserves_subject_and_sets_separate_cache_context() {
 
     agent
         .sign(SignRequest {
-            pubkey: pubkey.key_data().clone(),
+            credential: PublicCredential::Key(pubkey.key_data().clone()),
             data: bound_userauth_data(b"v2-bound-session", pubkey.key_data(), None),
             flags: 0,
         })
@@ -790,7 +790,7 @@ async fn sign_list_keys_failure_during_sign_returns_error() {
 
     let pubkey = ssh_key::PublicKey::from_openssh(TEST_ED25519_PUBKEY).unwrap();
     let request = SignRequest {
-        pubkey: pubkey.key_data().clone(),
+        credential: PublicCredential::Key(pubkey.key_data().clone()),
         data: vec![1, 2, 3],
         flags: 0,
     };
@@ -819,8 +819,8 @@ async fn sign_with_only_invalid_keys_returns_failure() {
     let mut agent = KeyguardAgent::new(provider);
 
     let request = SignRequest {
-        pubkey: ssh_key::public::KeyData::Ed25519(ssh_key::public::Ed25519PublicKey(
-            Default::default(),
+        credential: PublicCredential::Key(ssh_key::public::KeyData::Ed25519(
+            ssh_key::public::Ed25519PublicKey(Default::default()),
         )),
         data: vec![1, 2, 3],
         flags: 0,
@@ -970,7 +970,7 @@ async fn session_bind_invalid_signature_poisoned_connection_cannot_sign() {
     let pubkey = ssh_key::PublicKey::from_openssh(TEST_ED25519_PUBKEY).unwrap();
     let sign_result = agent
         .sign(SignRequest {
-            pubkey: pubkey.key_data().clone(),
+            credential: PublicCredential::Key(pubkey.key_data().clone()),
             data: vec![1, 2, 3],
             flags: 0,
         })
@@ -1081,7 +1081,7 @@ async fn session_bind_forwarding_hop_cannot_sign() {
 
     let result = agent
         .sign(SignRequest {
-            pubkey: public_key.key_data().clone(),
+            credential: PublicCredential::Key(public_key.key_data().clone()),
             data: bound_userauth_data(b"forwarding-hop", public_key.key_data(), None),
             flags: 0,
         })
@@ -1109,7 +1109,7 @@ async fn session_bind_wrong_session_sign_request_is_rejected_before_ipc() {
 
     let result = agent
         .sign(SignRequest {
-            pubkey: public_key.key_data().clone(),
+            credential: PublicCredential::Key(public_key.key_data().clone()),
             data: bound_userauth_data(b"wrong-session", public_key.key_data(), None),
             flags: 0,
         })
@@ -1145,14 +1145,14 @@ async fn forwarded_path_requires_the_final_hostbound_key() {
 
     let plain_result = agent
         .sign(SignRequest {
-            pubkey: public_key.key_data().clone(),
+            credential: PublicCredential::Key(public_key.key_data().clone()),
             data: bound_userauth_data(b"final-session", public_key.key_data(), None),
             flags: 0,
         })
         .await;
     let wrong_host_result = agent
         .sign(SignRequest {
-            pubkey: public_key.key_data().clone(),
+            credential: PublicCredential::Key(public_key.key_data().clone()),
             data: bound_userauth_data(
                 b"final-session",
                 public_key.key_data(),
@@ -1163,7 +1163,7 @@ async fn forwarded_path_requires_the_final_hostbound_key() {
         .await;
     let correct_host_result = agent
         .sign(SignRequest {
-            pubkey: public_key.key_data().clone(),
+            credential: PublicCredential::Key(public_key.key_data().clone()),
             data: bound_userauth_data(
                 b"final-session",
                 public_key.key_data(),

@@ -29,8 +29,7 @@ keyguard-agent-proto-adapter.workspace = true
 libc.workspace = true
 
 [target.'cfg(windows)'.dependencies]
-# An older major than the workspace's getrandom.
-getrandom = "0.2"
+getrandom.workspace = true
 
 [dev-dependencies]
 prost.workspace = true

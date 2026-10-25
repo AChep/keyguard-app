@@ -18,7 +18,7 @@ base64ct = { version = "=1.8.3", features = ["alloc"] }
 keyguard-crypto-sensitive = { path = "../crates/keyguard-crypto-sensitive" }
 keyguard-crypto-core = { path = "../crates/keyguard-crypto-core" }
 libfuzzer-sys = "=0.4.13"
-prost = { version = "=0.13.5", default-features = false, features = ["derive", "std"] }
+prost = { version = "=0.14.4", default-features = false, features = ["derive", "std"] }
 
 [[bin]]
 name = "dispatch"

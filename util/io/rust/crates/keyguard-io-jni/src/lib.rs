@@ -6,12 +6,12 @@
 //! reported as a bridge failure with no path or payload disclosure.
 
 use jni::{
-    JNIEnv,
+    Env, EnvUnowned,
     objects::{JByteArray, JIntArray, JLongArray, JObject, JString},
     sys::{jint, jlong, jlongArray},
 };
 use keyguard_ffi::{
-    PanicHook, flatten as unwrap, java_byte_range, java_string, jbytes, jbytes_mut,
+    PanicHook, flatten as unwrap, java_byte_range, java_string, jbytes, jbytes_mut, with_java_env,
 };
 use keyguard_io_core::{abi, bridge};
 use zeroize::Zeroizing;
@@ -33,51 +33,45 @@ fn java_handle(handle: jlong) -> Result<u64, i64> {
 }
 
 fn java_txn_options(
-    environment: &JNIEnv<'_>,
+    environment: &Env<'_>,
     options: &JIntArray<'_>,
 ) -> Result<abi::TxnOptionsWire, i64> {
     if options.is_null() {
         return Err(abi::pack_bridge_invalid_argument());
     }
-    let length = environment
-        .get_array_length(options)
+    let length = options
+        .len(environment)
         .map_err(|_| abi::pack_bridge_invalid_argument())?;
-    if usize::try_from(length).ok() != Some(abi::TxnOptionsWire::JNI_FIELD_COUNT) {
+    if length != abi::TxnOptionsWire::JNI_FIELD_COUNT {
         return Err(abi::pack_bridge_invalid_argument());
     }
     let mut fields = [0_i32; abi::TxnOptionsWire::JNI_FIELD_COUNT];
-    environment
-        .get_int_array_region(options, 0, &mut fields)
+    options
+        .get_region(environment, 0, &mut fields)
         .map_err(|_| abi::pack_bridge_invalid_argument())?;
     Ok(abi::TxnOptionsWire::from_jni_fields(fields))
 }
 
 /// Copies a caller-selected Java byte-array range into a zeroized buffer.
 fn java_bytes(
-    environment: &JNIEnv<'_>,
+    environment: &Env<'_>,
     input: &JByteArray<'_>,
     offset: jint,
     length: jint,
 ) -> Result<Zeroizing<Vec<u8>>, i64> {
     let length = java_byte_range(environment, input, offset, length)?;
     let mut buffer = Zeroizing::new(vec![0_u8; length]);
-    environment
-        .get_byte_array_region(input, offset, jbytes_mut(&mut buffer))
+    input
+        .get_region(environment, offset, jbytes_mut(&mut buffer))
         .map_err(|_| abi::pack_bridge_invalid_argument())?;
     Ok(buffer)
 }
 
-fn java_long_array(environment: &JNIEnv<'_>, fields: &[jlong]) -> jlongArray {
-    let Ok(length) = jint::try_from(fields.len()) else {
+fn java_long_array(environment: &mut Env<'_>, fields: &[jlong]) -> jlongArray {
+    let Ok(array) = environment.new_long_array(fields.len()) else {
         return std::ptr::null_mut();
     };
-    let Ok(array) = environment.new_long_array(length) else {
-        return std::ptr::null_mut();
-    };
-    if environment
-        .set_long_array_region(&array, 0, fields)
-        .is_err()
-    {
+    if array.set_region(environment, 0, fields).is_err() {
         return std::ptr::null_mut();
     }
     JLongArray::into_raw(array)
@@ -86,7 +80,7 @@ fn java_long_array(environment: &JNIEnv<'_>, fields: &[jlong]) -> jlongArray {
 /// Returns the native function ABI version.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_abiVersion(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
 ) -> jint {
     contained(|| keyguard_io_core::ABI_VERSION as jint).unwrap_or(0)
@@ -95,20 +89,22 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_abiVersio
 /// Opens and retains an existing absolute directory.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_directoryOpen(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     directory: JString<'_>,
 ) -> jlong {
     unwrap(contained(|| {
-        let directory = java_string(&environment, &directory)?;
-        Ok(bridge::directory_open(&directory))
+        with_java_env(&mut environment, |environment| {
+            let directory = java_string(environment, &directory)?;
+            Ok(bridge::directory_open(&directory))
+        })
     }))
 }
 
 /// Closes one retained-directory handle.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_directoryClose(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
@@ -121,36 +117,40 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_directory
 /// failure.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnBegin(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     destination: JString<'_>,
     options: JIntArray<'_>,
 ) -> jlong {
     unwrap(contained(|| {
-        let destination = java_string(&environment, &destination)?;
-        let options = java_txn_options(&environment, &options)?;
-        Ok(bridge::txn_begin(&destination, options))
+        with_java_env(&mut environment, |environment| {
+            let destination = java_string(environment, &destination)?;
+            let options = java_txn_options(environment, &options)?;
+            Ok(bridge::txn_begin(&destination, options))
+        })
     }))
 }
 
 /// Opens an atomic-write transaction beneath a retained directory.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnBeginAtDirectory(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     directory_handle: jlong,
     relative_destination: JString<'_>,
     options: JIntArray<'_>,
 ) -> jlong {
     unwrap(contained(|| {
-        let directory_handle = java_handle(directory_handle)?;
-        let destination = java_string(&environment, &relative_destination)?;
-        let options = java_txn_options(&environment, &options)?;
-        Ok(bridge::txn_begin_at_directory(
-            directory_handle,
-            &destination,
-            options,
-        ))
+        with_java_env(&mut environment, |environment| {
+            let directory_handle = java_handle(directory_handle)?;
+            let destination = java_string(environment, &relative_destination)?;
+            let options = java_txn_options(environment, &options)?;
+            Ok(bridge::txn_begin_at_directory(
+                directory_handle,
+                &destination,
+                options,
+            ))
+        })
     }))
 }
 
@@ -163,7 +163,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnBeginA
 /// reports that original write failure.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnWrite(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
     input: JByteArray<'_>,
@@ -171,9 +171,11 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnWrite(
     length: jint,
 ) -> jlong {
     unwrap(contained(|| {
-        let handle = java_handle(handle)?;
-        let bytes = java_bytes(&environment, &input, offset, length)?;
-        Ok(bridge::txn_write(handle, &bytes))
+        with_java_env(&mut environment, |environment| {
+            let handle = java_handle(handle)?;
+            let bytes = java_bytes(environment, &input, offset, length)?;
+            Ok(bridge::txn_write(handle, &bytes))
+        })
     }))
 }
 
@@ -181,7 +183,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnWrite(
 /// report or failure.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnCommit(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
@@ -192,7 +194,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnCommit
 /// failure.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnAbort(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
@@ -203,13 +205,15 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_txnAbort(
 /// failure.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchOpen(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     directory: JString<'_>,
 ) -> jlong {
     unwrap(contained(|| {
-        let directory = java_string(&environment, &directory)?;
-        Ok(bridge::scratch_open(&directory))
+        with_java_env(&mut environment, |environment| {
+            let directory = java_string(environment, &directory)?;
+            Ok(bridge::scratch_open(&directory))
+        })
     }))
 }
 
@@ -217,7 +221,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchOp
 /// count or a packed failure.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchWrite(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
     input: JByteArray<'_>,
@@ -225,16 +229,18 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchWr
     length: jint,
 ) -> jlong {
     unwrap(contained(|| {
-        let handle = java_handle(handle)?;
-        let bytes = java_bytes(&environment, &input, offset, length)?;
-        Ok(bridge::scratch_write(handle, &bytes))
+        with_java_env(&mut environment, |environment| {
+            let handle = java_handle(handle)?;
+            let bytes = java_bytes(environment, &input, offset, length)?;
+            Ok(bridge::scratch_write(handle, &bytes))
+        })
     }))
 }
 
 /// Seals scratch storage for reading; returns zero or a packed failure.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchSeal(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
@@ -244,7 +250,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchSe
 /// Returns the scratch length in bytes or a packed failure.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchLength(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
@@ -257,7 +263,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchLe
 /// returns the byte count, `-1` at end-of-file, or a packed failure.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchReadAt(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
     position: jlong,
@@ -266,19 +272,22 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchRe
     length: jint,
 ) -> jlong {
     unwrap(contained(|| {
-        let handle = java_handle(handle)?;
-        let position = u64::try_from(position).map_err(|_| abi::pack_bridge_invalid_argument())?;
-        let length = java_byte_range(&environment, &output, offset, length)?;
-        let mut buffer = Zeroizing::new(vec![0_u8; length]);
-        let result = bridge::scratch_read_at(handle, position, &mut buffer);
-        if result <= 0 {
-            return Ok(result);
-        }
-        let read = result as usize;
-        environment
-            .set_byte_array_region(&output, offset, jbytes(&buffer[..read]))
-            .map_err(|_| abi::pack_bridge_invalid_argument())?;
-        Ok(result)
+        with_java_env(&mut environment, |environment| {
+            let handle = java_handle(handle)?;
+            let position =
+                u64::try_from(position).map_err(|_| abi::pack_bridge_invalid_argument())?;
+            let length = java_byte_range(environment, &output, offset, length)?;
+            let mut buffer = Zeroizing::new(vec![0_u8; length]);
+            let result = bridge::scratch_read_at(handle, position, &mut buffer);
+            if result <= 0 {
+                return Ok(result);
+            }
+            let read = result as usize;
+            output
+                .set_region(environment, offset, jbytes(&buffer[..read]))
+                .map_err(|_| abi::pack_bridge_invalid_argument())?;
+            Ok(result)
+        })
     }))
 }
 
@@ -286,7 +295,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchRe
 /// failure.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchClose(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
@@ -301,7 +310,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_scratchCl
 /// a one-element array containing the packed negative failure.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_sweepOrphans(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     directory: JString<'_>,
     older_than_ms: jlong,
@@ -312,7 +321,9 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_sweepOrph
         if role_mask & !bridge::SWEEP_ROLE_MASK_ALL != 0 {
             return Err(abi::pack_bridge_invalid_argument());
         }
-        let directory = java_string(&environment, &directory)?;
+        let directory = with_java_env(&mut environment, |environment| {
+            java_string(environment, &directory)
+        })?;
         let older_than_ms =
             u64::try_from(older_than_ms).map_err(|_| abi::pack_bridge_invalid_argument())?;
         bridge::sweep(&directory, older_than_ms, role_mask)
@@ -325,7 +336,12 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_io_NativeIoJni_sweepOrph
     // Marshalling is itself contained. This is the only entry point that has to
     // build a Java object to return, and doing so outside the boundary would let
     // a panic in the `jni` layer unwind across `extern "system"`.
-    contained(|| java_long_array(&environment, &fields)).unwrap_or(std::ptr::null_mut())
+    contained(|| {
+        with_java_env(&mut environment, |environment| {
+            java_long_array(environment, &fields)
+        })
+    })
+    .unwrap_or(std::ptr::null_mut())
 }
 
 #[cfg(test)]

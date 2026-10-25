@@ -106,6 +106,9 @@ enum ConnectionError {
     #[error("SSH agent request has {remaining} trailing bytes")]
     TrailingRequestData { remaining: usize },
 
+    #[error("SSH agent request is not canonically encoded")]
+    NonCanonicalRequest,
+
     #[error("SSH agent response is too large: {length} bytes (maximum {max})")]
     ResponseTooLarge { length: usize, max: usize },
 
@@ -330,6 +333,13 @@ fn decode_request(frame: &[u8]) -> Result<Request, ConnectionError> {
             remaining: reader.len(),
         });
     }
+    // ssh-agent-lib ignores bytes after a key or certificate inside its
+    // length prefix, so accept only a frame that is the request's own encoding.
+    let mut encoded = Vec::with_capacity(frame.len());
+    request.encode(&mut encoded)?;
+    if encoded != frame {
+        return Err(ConnectionError::NonCanonicalRequest);
+    }
     Ok(request)
 }
 
@@ -436,6 +446,7 @@ fn connection_error_kind(error: &ConnectionError) -> &'static str {
         ConnectionError::WriteTimeout(_) => "write_timeout",
         ConnectionError::InvalidFrameLength { .. } => "invalid_frame_length",
         ConnectionError::TrailingRequestData { .. } => "trailing_request_data",
+        ConnectionError::NonCanonicalRequest => "non_canonical_request",
         ConnectionError::ResponseTooLarge { .. } => "response_too_large",
         ConnectionError::ResponseLengthMismatch { .. } => "response_length_mismatch",
         ConnectionError::Protocol(_) => "protocol_error",
@@ -458,12 +469,20 @@ fn response_error_kind(error: &ConnectionError) -> &'static str {
 mod tests {
     use super::*;
     use ssh_agent_lib::proto::Extension;
+    use ssh_key::private::Ed25519Keypair;
+    use ssh_key::public::KeyData;
+    use ssh_key::Certificate;
     use std::sync::atomic::{AtomicUsize, Ordering};
     use std::sync::{Condvar, Mutex};
     use tokio::io::{duplex, DuplexStream};
     use tokio::sync::{mpsc, oneshot};
     use tokio::task::yield_now;
     use tokio::time::advance;
+
+    const FOREVER_ED25519_CERT: &str = include_str!(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../thirdParty/rust/ssh-key-0.6.7-keyguard/tests/examples/ed25519-user-forever-cert.pub"
+    ));
 
     fn test_limits(max_frame_len: usize) -> ServerLimits {
         ServerLimits {
@@ -492,6 +511,15 @@ mod tests {
             .write_all(payload)
             .await
             .expect("test frame payload must be writable");
+    }
+
+    /// Encodes an `SSH_AGENTC_SIGN_REQUEST` frame body for a raw credential blob.
+    fn sign_request_frame(credential: &[u8]) -> Vec<u8> {
+        let mut frame = vec![13];
+        credential.encode(&mut frame).unwrap();
+        b"data"[..].encode(&mut frame).unwrap();
+        0u32.encode(&mut frame).unwrap();
+        frame
     }
 
     async fn read_test_frame(stream: &mut DuplexStream) -> Vec<u8> {
@@ -576,6 +604,33 @@ mod tests {
             error,
             ConnectionError::TrailingRequestData { remaining: 1 }
         ));
+    }
+
+    #[test]
+    fn sign_request_credential_must_be_canonical() {
+        let mut key = Vec::new();
+        KeyData::Ed25519(Ed25519Keypair::from_seed(&[7; 32]).public)
+            .encode(&mut key)
+            .unwrap();
+        let cert = Certificate::from_openssh(FOREVER_ED25519_CERT)
+            .unwrap()
+            .to_bytes()
+            .unwrap();
+        for credential in [key, cert] {
+            assert!(matches!(
+                decode_request(&sign_request_frame(&credential)),
+                Ok(Request::SignRequest(_))
+            ));
+
+            let mut padded = credential;
+            padded.push(0);
+            let error = decode_request(&sign_request_frame(&padded))
+                .expect_err("bytes after a credential inside its length must be rejected");
+            assert!(
+                matches!(error, ConnectionError::NonCanonicalRequest),
+                "unexpected error: {error:?}"
+            );
+        }
     }
 
     #[test]

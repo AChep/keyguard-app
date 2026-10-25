@@ -138,7 +138,7 @@ async fn session_bind_short_rsa_signatures_allow_signing() {
                 // exact host-certificate matching for the host-bound method.
                 let result = agent
                     .sign(SignRequest {
-                        pubkey: public_key.key_data().clone(),
+                        credential: PublicCredential::Key(public_key.key_data().clone()),
                         data: bound_userauth_data(
                             &session_id,
                             public_key.key_data(),
@@ -174,7 +174,7 @@ async fn session_bind_invalid_rsa_signatures_still_block_signing() {
                 assert!(agent.verified_session_binding_context().is_none());
                 assert!(agent
                     .sign(SignRequest {
-                        pubkey: public_key.key_data().clone(),
+                        credential: PublicCredential::Key(public_key.key_data().clone()),
                         data: bound_userauth_data(
                             &session_id,
                             public_key.key_data(),

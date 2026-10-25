@@ -702,7 +702,7 @@ fn direct_certification_revocation(
         .extend(additional_hashed_subpackets);
     config.unhashed_subpackets = unhashed_subpackets;
 
-    // pgp 0.20 intentionally rejects type 0x30 in `sign_key`, although
+    // pgp 0.21 intentionally rejects type 0x30 in `sign_key`, although
     // RFC 9580 defines the same primary-key-only hash input for this case.
     let unsigned = Signature::from_config(config.clone(), [0, 0], SignatureBytes::Mpis(Vec::new()))
         .expect("construct unsigned direct certification revocation");

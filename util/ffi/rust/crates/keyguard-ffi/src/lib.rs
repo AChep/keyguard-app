@@ -27,6 +27,7 @@ pub use failure::{
 #[cfg(feature = "jni")]
 pub use java::{
     execute_operation, java_byte_range, java_string, java_string_within, jbytes, jbytes_mut,
+    with_java_env,
 };
 pub use operation::{
     OperationGuard, OperationLimits, OperationRegistry, OperationStatus, execute_into, respond,

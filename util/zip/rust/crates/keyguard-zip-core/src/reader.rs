@@ -4,7 +4,7 @@
 //!
 //! # Why a self-referential cell
 //!
-//! `zip` 8.6.0 has no owned entry reader: `by_index` returns a `ZipFile` that
+//! `zip` 9.1.0 has no owned entry reader: `by_index` returns a `ZipFile` that
 //! borrows the archive mutably, and neither `read::stream` (no seek, no
 //! per-entry password) nor `by_index_seek` (stored entries only) substitutes.
 //! Holding an entry across ABI calls means owning the archive and a borrow of
@@ -121,6 +121,7 @@ impl ArchiveReader {
         };
         let name = archive
             .name_for_index(index)
+            .and_then(Result::ok)
             .expect("the name was just measured");
         name_buf[..name_len].copy_from_slice(name.as_bytes());
 
@@ -131,12 +132,12 @@ impl ArchiveReader {
             // until the cell is dropped or unwrapped. See the module docs.
             let archive = unsafe { &mut *archive.get() };
             if password.is_some() {
-                // Inspect the same metadata used by the decryptor before it can
-                // discard the password for plaintext or accept legacy ZipCrypto.
+                // Inspect the decryptor's metadata without seeking to the entry,
+                // before it can discard the password for plaintext or accept ZipCrypto.
                 let entry = archive
-                    .by_index_raw(index)
+                    .by_index_data(index)
                     .map_err(|error| open_entry_failure(&error))?;
-                if !entry.encrypted() || entry.get_metadata().aes_mode.is_none() {
+                if !entry.encrypted() || entry.get_metadata().aes_settings().is_none() {
                     return Err(pack_bridge_error(BridgeError::EncryptionRequired));
                 }
             }
@@ -192,7 +193,7 @@ impl ArchiveReader {
 /// Returns the byte length of entry `index`'s name if it fits both the ABI
 /// limit and a buffer of `capacity` bytes.
 fn measure_name(archive: &ZipArchive<File>, index: usize, capacity: usize) -> Result<usize, i64> {
-    let Some(name) = archive.name_for_index(index) else {
+    let Some(Ok(name)) = archive.name_for_index(index) else {
         return Err(pack_archive_error(Operation::NextEntry, FailureKind::Other));
     };
     if name.len() > MAX_ENTRY_NAME_BYTES {

@@ -584,7 +584,7 @@ class NativeChangeClassificationTest(unittest.TestCase):
         self.assertEqual([(row["platform"], row["arch"]) for row in result["desktop_matrix"]["include"]], [("macos", "aarch64")])
 
     def test_shared_toolchain_and_build_plugins_request_all_semantic_checks(self):
-        for path in ("rust-toolchain.toml", "buildPlugins/src/main/kotlin/Cargo.kt", ".github/actions/prefetch_native/prefetch.sh", "gradle/libs.versions.toml"):
+        for path in ("rust-toolchain.toml", ".cargo/config.toml", "buildPlugins/src/main/kotlin/Cargo.kt", ".github/actions/prefetch_native/prefetch.sh", "gradle/libs.versions.toml"):
             with self.subTest(path=path):
                 result = classify([path])
                 self.assertTrue(all(result[flag] for flag in FLAGS if flag != "wear"))

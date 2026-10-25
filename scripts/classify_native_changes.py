@@ -60,7 +60,7 @@ def classify(paths, *, full=False, all_checks=False):
         if path.endswith(".xcstrings"):
             continue
         if (
-            path in {"build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.properties", "gradlew", "gradlew.bat", "rust-toolchain.toml"}
+            path in {"build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.properties", "gradlew", "gradlew.bat", "rust-toolchain.toml", ".cargo/config.toml"}
             or path.startswith(("gradle/", "buildPlugins/"))
             or path.startswith((".github/actions/setup_rust/", ".github/actions/setup_gradle/", ".github/actions/prefetch_native/", ".github/actions/setup_protobuf/"))
             or path in {".github/workflows/check_native.yml", ".github/workflows/check_native_crypto.yml", ".github/workflows/check_native_io.yml"}

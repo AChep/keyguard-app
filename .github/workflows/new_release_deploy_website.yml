@@ -39,6 +39,15 @@ jobs:
         run: pnpm check
       - name: "Build"
         run: pnpm build
+        env:
+          PUBLIC_PURCHASE_ENABLED: ${{ vars.PUBLIC_PURCHASE_ENABLED || 'false' }}
+          PUBLIC_PADDLE_ENVIRONMENT: ${{ vars.PUBLIC_PADDLE_ENVIRONMENT || 'sandbox' }}
+          PUBLIC_PADDLE_CLIENT_TOKEN: ${{ vars.PUBLIC_PADDLE_CLIENT_TOKEN }}
+          PUBLIC_PADDLE_PRICE_ID: ${{ vars.PUBLIC_PADDLE_PRICE_ID }}
+          PUBLIC_LICENSE_API_URL: ${{ vars.PUBLIC_LICENSE_API_URL }}
+          PUBLIC_PURCHASE_TERMS_URL: ${{ vars.PUBLIC_PURCHASE_TERMS_URL }}
+          PUBLIC_PURCHASE_PRIVACY_URL: ${{ vars.PUBLIC_PURCHASE_PRIVACY_URL }}
+          PUBLIC_PURCHASE_REFUND_URL: ${{ vars.PUBLIC_PURCHASE_REFUND_URL }}
       - name: "Check Markdown exports and agent discovery"
         run: pnpm check:agents
       - name: "Upload Pages artifact"

@@ -3,21 +3,23 @@ import { Image } from 'astro:assets';
 import { SITE, NAV } from '../consts';
 import Icon from './Icon.astro';
 import logo from '../assets/logo.png';
+import { readPurchaseConfig } from '../lib/purchaseConfig';
 const path = Astro.url.pathname;
+const purchaseEnabled = readPurchaseConfig(import.meta.env).enabled;
 const isActive = (href: string) =>
   href === '/' ? path === '/' : path.startsWith(href);
 ---
 
 <header class="glass-bar sticky top-0 z-50">
   <nav class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-    <a href="/" class="flex items-center gap-2 font-bold text-on-surface">
+    <a href="/" aria-label={SITE.name} class="flex items-center gap-2 font-bold text-on-surface">
       <Image src={logo} alt="" width={28} height={28} densities={[2]} loading="eager" class="rounded-md" />
-      <span>{SITE.name}</span>
+      <span class="max-[379px]:hidden">{SITE.name}</span>
     </a>
 
-    <ul class="flex items-center gap-6 text-sm font-medium text-on-surface-variant">
+    <ul class="flex items-center gap-3 text-sm font-medium text-on-surface-variant sm:gap-6">
       {
-        NAV.map((item) => (
+        NAV.filter((item) => item.href !== '/purchase/' || purchaseEnabled).map((item) => (
           <li>
             <a
               href={item.href}

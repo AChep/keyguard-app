@@ -1,0 +1,114 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { readPurchaseConfig } from '../lib/purchaseConfig';
+
+const config = readPurchaseConfig(import.meta.env);
+
+const button = 'rounded-full px-5 py-2.5 text-sm font-semibold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50';
+const primaryButton = `${button} bg-primary text-on-primary`;
+const secondaryButton = `${button} bg-surface-container-high text-on-surface`;
+---
+
+<BaseLayout title="Purchase" description="Buy a Keyguard Premium lifetime license, or find other ways to get Premium.">
+  <meta slot="head" name="referrer" content="no-referrer" />
+
+  <section class="mx-auto max-w-5xl px-6 py-16 sm:py-20" data-purchase data-config={JSON.stringify(config)}>
+    <header class="text-center">
+      <h1 class="text-4xl font-semibold tracking-tight text-on-surface">Keyguard Premium</h1>
+    </header>
+
+    <div class="mx-auto mt-12 max-w-xl">
+      <section aria-labelledby="lifetime-title" class="surface-card rounded-2xl p-6">
+        <header class="flex items-center gap-3">
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-container text-on-primary-container">
+            <Icon name="key" class="h-5 w-5" />
+          </div>
+          <div class="min-w-0">
+            <div class="flex flex-wrap items-center gap-x-2">
+              <h2 id="lifetime-title" class="opsz-text text-xl font-semibold text-on-surface">Lifetime license</h2>
+              {(config.enabled || config.previewEnabled) && config.environment === 'sandbox' && (
+                <span class="rounded-full border border-outline-variant px-2 py-0.5 text-xs font-medium text-on-surface-variant">
+                  Test checkout
+                </span>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <div data-price-status role="status" aria-live="polite" aria-atomic="true" class="mt-5">
+          <p class="flex flex-wrap items-baseline gap-x-2 text-on-surface">
+            <span data-price class="text-3xl font-semibold tracking-tight empty:hidden"></span>
+            <span data-price-currency class="text-sm text-on-surface-variant empty:hidden"></span>
+          </p>
+          <p data-price-message class="mt-1 text-sm text-on-surface-variant">Price unavailable</p>
+          <button type="button" data-price-retry hidden class="mt-2 text-sm font-medium text-primary underline underline-offset-4 disabled:opacity-50">Retry price</button>
+        </div>
+
+        <div role="status" aria-live="polite" aria-atomic="true" class="mt-6">
+          <h3 data-status-title class="opsz-text font-semibold text-on-surface empty:hidden">{config.enabled ? '' : 'Web checkout is unavailable'}</h3>
+          <p data-status-message class="mt-1 text-sm leading-relaxed text-on-surface-variant empty:hidden">{config.enabled
+            ? "Your license key appears here after payment. It isn't sent by email."
+            : ''}</p>
+        </div>
+        <div class="mt-5 flex flex-wrap gap-3">
+          <button type="button" data-start disabled class={primaryButton}>Buy lifetime license</button>
+          <button type="button" data-resume hidden class={primaryButton}>Continue checkout</button>
+          <button type="button" data-retry hidden class={secondaryButton}>Check payment status</button>
+        </div>
+        <noscript>
+          <p class="mt-4 text-sm text-on-surface-variant">Enable JavaScript to view pricing and use web checkout.</p>
+        </noscript>
+        <div data-license hidden class="mt-6">
+          <label for="license-key" class="text-sm font-medium text-on-surface">Your license key</label>
+          <textarea id="license-key" data-license-key readonly rows="5" spellcheck="false" class="mt-2 w-full resize-none rounded-xl border border-outline-variant bg-surface p-3 font-mono text-sm leading-relaxed text-on-surface focus:outline-2 focus:outline-primary"></textarea>
+          <div class="mt-3 flex flex-wrap gap-3">
+            <button type="button" data-copy class={primaryButton}>Copy key</button>
+            <button type="button" data-download class={secondaryButton}>Download key</button>
+          </div>
+          <p data-copy-status role="status" class="mt-3 text-sm text-on-surface-variant"></p>
+          <p class="mt-4 text-sm leading-relaxed text-on-surface-variant">
+            On Google Play builds, paste it in <strong class="font-medium text-on-surface">Settings &gt; Keyguard Premium &gt; Link existing entitlement token</strong>.
+          </p>
+        </div>
+        <p data-reference hidden class="mt-5 break-all text-xs text-on-surface-variant"></p>
+
+        {config.legalLinks.length > 0 && (
+          <div class="mt-6 border-t border-outline-variant pt-4 text-sm leading-relaxed text-on-surface-variant">
+            <ul class="flex flex-wrap gap-x-5 gap-y-2">
+              {config.legalLinks.map((link) => (
+                <li><a href={link.href} class="font-medium text-primary hover:opacity-80" rel="noreferrer">{link.label}</a></li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </section>
+
+      <section aria-labelledby="why-title" class="mt-14">
+        <h2 id="why-title" class="opsz-text text-xl font-semibold text-on-surface">Why not free?</h2>
+        <div class="mt-3 space-y-3 text-sm leading-relaxed text-on-surface-variant">
+          <p>
+            Keyguard is built by one developer, Artem Chepurnyi. Premium pays for the time it takes to fix bugs,
+            keep up with platform changes, maintain the Bitwarden and KeePass integrations, and build new features.
+          </p>
+        </div>
+      </section>
+
+      <section aria-labelledby="options-title" class="mt-10">
+        <h2 id="options-title" class="opsz-text text-xl font-semibold text-on-surface">Other ways to get Premium</h2>
+        <p class="mt-3 text-sm leading-relaxed text-on-surface-variant">
+          You can also subscribe or buy a lifetime license in <strong class="font-medium text-on-surface">Settings &gt; Keyguard Premium</strong>.
+          Google Play subscriptions last 3 months or 1 year. If you already purchased through Google Play,
+          <a href="/docs/license-keys/#create-a-key-from-google-play" class="font-medium text-primary hover:opacity-80">create a license key</a>
+          on that device to use Premium with another Google account.
+        </p>
+      </section>
+    </div>
+  </section>
+</BaseLayout>
+
+<script>
+  import { mountPurchase } from '../lib/purchase';
+  const root = document.querySelector<HTMLElement>('[data-purchase]');
+  if (root) mountPurchase(root);
+</script>

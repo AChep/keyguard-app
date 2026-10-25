@@ -13,5 +13,5 @@
     // Same-page anchors exist.
     "MD051": true
   },
-  "globs": ["src/content/docs/**/*.md"]
+  "globs": ["src/content/docs/**/*.md", "src/pages/**/*.md"]
 }

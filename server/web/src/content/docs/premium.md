@@ -1,6 +1,6 @@
 ---
 title: Premium
-description: "What needs premium on Google Play builds, and how to buy it."
+description: "What Keyguard Premium unlocks, and how to buy a subscription or lifetime license."
 section: get-started
 type: reference
 order: 20
@@ -24,17 +24,18 @@ backups and export.
 
 ## Purchase options
 
-Buy premium in **Settings > Keyguard Premium**.
+Buy premium in **Settings > Keyguard Premium**, or buy a lifetime license
+on the [Purchase](/purchase/) page when web checkout is available.
 
 | Option | Details |
 | --- | --- |
-| Subscription | 3 months or 1 year. If you've never subscribed, you may get a free trial. Cancel before it ends and you aren't charged. |
-| Lifetime | A single one-time purchase |
+| Subscription | Buy in the app. On Google Play, choose 3 months or 1 year. A free trial may be available for a first subscription. |
+| Lifetime | A single one-time purchase in the app or through Paddle on the website. Web purchases provide a license key. |
 
 To manage or cancel a subscription, open **Settings > Keyguard Premium** and
 select **Manage on Play Store**.
 
-To use a purchase on a device signed in to another Google account, see
+To use a web purchase, or a Google Play purchase on another Google account, see
 [License keys](/docs/license-keys/).
 
 ## Why Keyguard is commercial

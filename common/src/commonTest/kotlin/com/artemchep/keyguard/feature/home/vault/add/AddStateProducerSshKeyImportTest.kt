@@ -49,6 +49,68 @@ class AddStateProducerSshKeyImportTest {
             onReadError = {
                 fail("Read error path should not be used for a successful import.")
             },
+            onCertificate = { fail("A private key is not a certificate.") },
+        )
+
+        assertEquals(expectedKeyPair, importedKeyPair)
+    }
+
+    @Test
+    fun `a certificate file fills the certificate instead of importing a key`() = kotlinx.coroutines.test.runTest {
+        val info = FilePickerResult(
+            uri = leParseUri("content://ssh/key-cert.pub"),
+            name = "id_ed25519-cert.pub",
+            size = 1024L,
+        )
+        var certificate: String? = null
+
+        handleSshKeyFileImport(
+            info = info,
+            readBytes = {
+                "\nssh-ed25519-cert-v01@openssh.com AAAA user@example.com\n".encodeToByteArray()
+            },
+            importSshKey = {
+                fail("A certificate is not a private key.")
+            },
+            onSuccess = {
+                fail("Success path should not be used for a certificate.")
+            },
+            onNeedsPassphrase = { _, _, _ ->
+                fail("Encrypted-key path should not be used for a certificate.")
+            },
+            onImportError = { _ ->
+                fail("Import error path should not be used for a certificate.")
+            },
+            onReadError = {
+                fail("Read error path should not be used for a certificate.")
+            },
+            onCertificate = { certificate = it },
+        )
+
+        assertEquals("ssh-ed25519-cert-v01@openssh.com AAAA user@example.com", certificate)
+    }
+
+    @Test
+    fun `a private key file is imported even when certificates are accepted`() = kotlinx.coroutines.test.runTest {
+        val info = FilePickerResult(
+            uri = leParseUri("content://ssh/key"),
+            name = "id_ed25519",
+            size = 1024L,
+        )
+        val expectedKeyPair = createKeyPair()
+        var importedKeyPair: KeyPair? = null
+
+        handleSshKeyFileImport(
+            info = info,
+            readBytes = {
+                "-----BEGIN OPENSSH PRIVATE KEY-----\nAAAA\n".encodeToByteArray()
+            },
+            importSshKey = { SshKeyImportResult.Success(expectedKeyPair) },
+            onSuccess = { importedKeyPair = it },
+            onNeedsPassphrase = { _, _, _ -> fail("Unexpected passphrase prompt.") },
+            onImportError = { _ -> fail("Unexpected import error.") },
+            onReadError = { fail("Unexpected read error.") },
+            onCertificate = { fail("A private key is not a certificate.") },
         )
 
         assertEquals(expectedKeyPair, importedKeyPair)
@@ -83,6 +145,7 @@ class AddStateProducerSshKeyImportTest {
             onReadError = {
                 fail("Read error path should not be used for the passphrase flow.")
             },
+            onCertificate = { fail("A private key is not a certificate.") },
         )
 
         assertEquals(SshKeyImportResult.NeedsPassphrase("OpenSSH"), passphraseRequest?.first)
@@ -121,6 +184,7 @@ class AddStateProducerSshKeyImportTest {
             onReadError = {
                 readErrorShown = true
             },
+            onCertificate = { fail("Certificate path should not be used when reading the file fails.") },
         )
 
         assertFalse(importCalled)
@@ -145,6 +209,7 @@ class AddStateProducerSshKeyImportTest {
             },
             onImportError = { fail("Unexpected import error") },
             onReadError = { fail("Unexpected read error") },
+            onCertificate = { fail("Unexpected certificate") },
         )
         assertContentEquals(ByteArray(content.size), content)
     }
@@ -161,6 +226,7 @@ class AddStateProducerSshKeyImportTest {
                 onNeedsPassphrase = { _, _, _ -> throw CancellationException() },
                 onImportError = { fail("Unexpected import error") },
                 onReadError = { fail("Unexpected read error") },
+                onCertificate = { fail("Unexpected certificate") },
             )
         }
         assertContentEquals(byteArrayOf(0), content)

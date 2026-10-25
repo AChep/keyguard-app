@@ -8,7 +8,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60"
+        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60, 61"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -108,6 +108,8 @@ pub mod native_request {
         OpenPgpStreamDrain(super::OpenPgpStreamDrainRequest),
         #[prost(message, tag = "60")]
         OpenPgpUserIdUpdate(super::OpenPgpUserIdUpdateRequest),
+        #[prost(message, tag = "61")]
+        SshCertificateDescribe(super::SshCertificateDescribeRequest),
     }
 }
 /// Ends a decryption session's input and returns one bounded output chunk.
@@ -455,6 +457,16 @@ pub struct SshPublicKeyDecodeRequest {
     pub public_key_openssh: ::prost::alloc::string::String,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SshCertificateDescribeRequest {
+    /// An OpenSSH certificate line ("<type>-cert-v01@openssh.com <base64> \[comment\]").
+    #[prost(string, tag = "1")]
+    pub certificate_openssh: ::prost::alloc::string::String,
+    /// The item's OpenSSH public key. When present, the result reports whether
+    /// the certificate certifies this key.
+    #[prost(string, optional, tag = "2")]
+    pub public_key_openssh: ::core::option::Option<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshPrivateKeyImportRequest {
     /// Raw file bytes preserve non-UTF-8 PPK comments. UTF-8 text is wire-compatible.
     #[prost(bytes = "vec", tag = "1")]
@@ -558,6 +570,43 @@ pub struct SshPublicKeyDecodeResult {
     /// X.509 SubjectPublicKeyInfo DER encoding of the public key.
     #[prost(bytes = "vec", tag = "2")]
     pub spki_der: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SshCertificateOption {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Empty for flag options, such as the permit-pty extension.
+    #[prost(string, tag = "2")]
+    pub value: ::prost::alloc::string::String,
+}
+/// Domain payload returned inside NativeResponse.bytes_value. The CA signature
+/// is not verified: the SSH server decides whether it trusts the certificate.
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SshCertificateDescription {
+    #[prost(enumeration = "SshCertificateType", tag = "1")]
+    pub r#type: i32,
+    #[prost(string, tag = "2")]
+    pub key_id: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub serial: u64,
+    #[prost(string, repeated, tag = "4")]
+    pub principals: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Unix seconds. A certificate that never expires reports the int64 maximum
+    /// as valid_before, so that signed 64-bit callers can compare it directly.
+    #[prost(int64, tag = "5")]
+    pub valid_after: i64,
+    #[prost(int64, tag = "6")]
+    pub valid_before: i64,
+    /// The CA key fingerprint as `ssh-keygen -l -E sha256` prints it.
+    #[prost(string, tag = "7")]
+    pub ca_fingerprint: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "8")]
+    pub critical_options: ::prost::alloc::vec::Vec<SshCertificateOption>,
+    #[prost(message, repeated, tag = "9")]
+    pub extensions: ::prost::alloc::vec::Vec<SshCertificateOption>,
+    /// Whether the certificate certifies the request's public key.
+    #[prost(bool, tag = "10")]
+    pub public_key_matches: bool,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshPrivateKeyImportSuccess {
@@ -1928,6 +1977,35 @@ impl PasskeyKeyError {
             "PASSKEY_KEY_ERROR_MALFORMED" => Some(Self::Malformed),
             "PASSKEY_KEY_ERROR_UNSUPPORTED" => Some(Self::Unsupported),
             "PASSKEY_KEY_ERROR_RESOURCE_LIMIT" => Some(Self::ResourceLimit),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SshCertificateType {
+    Unspecified = 0,
+    User = 1,
+    Host = 2,
+}
+impl SshCertificateType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "SSH_CERTIFICATE_TYPE_UNSPECIFIED",
+            Self::User => "SSH_CERTIFICATE_TYPE_USER",
+            Self::Host => "SSH_CERTIFICATE_TYPE_HOST",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "SSH_CERTIFICATE_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+            "SSH_CERTIFICATE_TYPE_USER" => Some(Self::User),
+            "SSH_CERTIFICATE_TYPE_HOST" => Some(Self::Host),
             _ => None,
         }
     }

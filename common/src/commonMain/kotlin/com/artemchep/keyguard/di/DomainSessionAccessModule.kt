@@ -26,6 +26,7 @@ import com.artemchep.keyguard.common.usecase.impl.WatchtowerIncomplete
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerNotifications
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordPwned
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordStrength
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerSshCertificateUnusable
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSshKeyStrength
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerUnsecureWebsite
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerWeakGpgKey
@@ -107,6 +108,7 @@ class DomainSessionAccessModule {
                             get<WatchtowerBroadUris>(),
                             get<WatchtowerPasswordStrength>(),
                             get<WatchtowerSshKeyStrength>(),
+                            get<WatchtowerSshCertificateUnusable>(),
                             get<WatchtowerGpgKeyUnusable>(),
                             get<WatchtowerWeakGpgKey>(),
                             get<WatchtowerGpgKeyPublishing>(),

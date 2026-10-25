@@ -95,6 +95,30 @@ Later requests can ask you to choose a key, unlock the vault or authenticate.
 To revoke an app, select it in **Settings > Developer > Connected apps**, then
 select **Revoke**.
 
+## Sign in with a certificate
+
+An OpenSSH certificate is your public key signed by a certificate authority. A
+server that trusts the authority accepts it without your key in
+`authorized_keys`.
+
+1. Edit the **SSH Key** item.
+2. Paste the contents of the key's `-cert.pub` file into **Certificate**, or
+   drop the file on the key.
+3. Save the item.
+
+The agent offers the certificate before the key while the certificate is
+valid. The item shows why a certificate isn't offered: it expired, isn't valid
+yet, is a host certificate or is for another key. Apps that use the OpenKeychain
+API get the key only.
+
+Keyguard doesn't renew certificates. To use one that your certificate authority
+renews often, keep it on disk and point `CertificateFile` at it:
+
+```sshconfig
+Host <HOST>
+  CertificateFile ~/.ssh/<KEY_NAME>-cert.pub
+```
+
 ## Review request history
 
 In **Settings > Developer > SSH agent**, select **Request log**. Each entry

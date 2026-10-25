@@ -4,7 +4,9 @@ import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.service.sshagent.sshPublicKeysMatch
 import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
+import com.artemchep.keyguard.integration.process.freePort
 import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
+import java.net.Socket
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
@@ -223,6 +225,183 @@ class SshAgentEndToEndTest {
                 "Expected ssh-add -L output to contain ${key.name}:\n${publicKeysResult.describe()}",
             )
         }
+    }
+
+    @Test
+    fun `a certificate is listed first and signs with real ssh-keygen`() {
+        val dir = Files.createTempDirectory(workRoot, "certificate-")
+        val principal = "certificate@keyguard.test"
+        val issued = issueCertificate(dir, principal)
+        val allowedSignersFile = dir.resolve("allowed_signers")
+        val signatureFile = dir.resolve("message.sig")
+        val namespace = "keyguard-e2e-certificate"
+        val message = "Hello from Keyguard SSH agent E2E: certificate\n".encodeToByteArray()
+
+        withCertifiedAgent(dir, issued) { cli ->
+            val listResult = cli.run("ssh-add", "-L")
+            assertTrue(listResult.isSuccess, listResult.describe())
+            val listed = listResult.stdout
+                .lineSequence()
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .toList()
+            assertEquals(keys.size + 1, listed.size, listResult.describe())
+            assertTrue(sshPublicKeysMatch(listed.first(), issued.certificate), listResult.describe())
+
+            // ssh-keygen asks the agent to sign as the certificate, and
+            // the signature carries it to the verifier.
+            val signResult = cli.run(
+                "ssh-keygen", "-Y", "sign", "-f", issued.certificateFile.toString(), "-n", namespace,
+                stdin = message,
+            )
+            assertTrue(signResult.isSuccess, signResult.describe())
+            Files.writeString(signatureFile, signResult.stdout)
+
+            Files.writeString(allowedSignersFile, "$principal cert-authority ${issued.caPublicKey}\n")
+            val verifyResult = cli.run(
+                "ssh-keygen", "-Y", "verify", "-f", allowedSignersFile.toString(),
+                "-I", principal, "-n", namespace, "-s", signatureFile.toString(),
+                stdin = message,
+            )
+            assertTrue(verifyResult.isSuccess, verifyResult.describe())
+        }
+    }
+
+    @Test
+    fun `a certificate signs in to a real sshd that trusts only its authority`() {
+        // A throwaway sshd runs as the current user, so it can only sign in that user.
+        val sshd = Path.of("/usr/sbin/sshd")
+        assumeTrue(!isWindows() && Files.isExecutable(sshd))
+        val user = System.getProperty("user.name")
+        val dir = Files.createTempDirectory(workRoot, "sshd-")
+        val issued = issueCertificate(dir, principal = user)
+        val hostKeyFile = dir.resolve("host")
+        val hostKeyResult = ssh.run(
+            "ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-f", hostKeyFile.toString(),
+        )
+        assertTrue(hostKeyResult.isSuccess, hostKeyResult.describe())
+        val port = freePort()
+        val config = dir.resolve("sshd_config")
+        Files.writeString(
+            config,
+            """
+            ListenAddress 127.0.0.1
+            Port $port
+            HostKey $hostKeyFile
+            PidFile ${dir.resolve("sshd.pid")}
+            AuthorizedKeysFile none
+            TrustedUserCAKeys ${dir.resolve("ca.pub")}
+            PubkeyAuthentication yes
+            PasswordAuthentication no
+            KbdInteractiveAuthentication no
+            UsePAM no
+            StrictModes no
+            """.trimIndent() + "\n",
+        )
+        val server = ProcessBuilder(sshd.toString(), "-D", "-e", "-f", config.toString())
+            .redirectErrorStream(true)
+            .redirectOutput(dir.resolve("sshd.log").toFile())
+            .start()
+        try {
+            awaitPort(port)
+            withCertifiedAgent(dir, issued) { cli ->
+                val result = cli.run(
+                    "ssh", "-F", "none", "-p", port.toString(),
+                    "-o", "BatchMode=yes",
+                    "-o", "StrictHostKeyChecking=no",
+                    "-o", "UserKnownHostsFile=/dev/null",
+                    "-o", "IdentityAgent=${cli.socket}",
+                    "$user@127.0.0.1", "echo", "keyguard-certificate-ok",
+                )
+                val log = Files.readString(dir.resolve("sshd.log"))
+                assertTrue(result.isSuccess, result.describe() + "\nsshd:\n$log")
+                assertTrue(result.stdout.contains("keyguard-certificate-ok"), result.describe())
+                assertTrue(log.contains("ED25519-CERT"), "sshd did not accept a certificate:\n$log")
+            }
+        } finally {
+            server.destroy()
+            server.waitFor()
+        }
+    }
+
+    private class IssuedCertificate(
+        val key: TestSshKey,
+        val certificate: String,
+        val certificateFile: Path,
+        val caPublicKey: String,
+    )
+
+    /** Issues a certificate for the Ed25519 key with OpenSSH itself, valid around now. */
+    private fun issueCertificate(
+        dir: Path,
+        principal: String,
+    ): IssuedCertificate {
+        val key = keys.single { it.keyType == "ssh-ed25519" }
+        val caFile = dir.resolve("ca")
+        val publicKeyFile = dir.resolve("key.pub")
+        Files.writeString(publicKeyFile, key.publicKey + "\n")
+        val caResult = ssh.run(
+            "ssh-keygen", "-q", "-t", "ed25519", "-N", "", "-C", "Keyguard E2E CA",
+            "-f", caFile.toString(),
+        )
+        assertTrue(caResult.isSuccess, caResult.describe())
+        val issueResult = ssh.run(
+            "ssh-keygen", "-q", "-s", caFile.toString(), "-I", "keyguard-e2e",
+            "-n", principal, "-V", "-5m:+1h", publicKeyFile.toString(),
+        )
+        assertTrue(issueResult.isSuccess, issueResult.describe())
+        val certificateFile = dir.resolve("key-cert.pub")
+        return IssuedCertificate(
+            key = key,
+            certificate = Files.readString(certificateFile).trim(),
+            certificateFile = certificateFile,
+            caPublicKey = Files.readString(dir.resolve("ca.pub")).trim(),
+        )
+    }
+
+    /** Runs an agent that holds the [issued] certificate next to the generated keys. */
+    private fun withCertifiedAgent(
+        dir: Path,
+        issued: IssuedCertificate,
+        block: (SshCli) -> Unit,
+    ) {
+        val token = randomHex(4)
+        val launcher = KeyguardSshAgentLauncher(
+            binaryPath = binaryPath,
+            processor = TestSshAgentRequestProcessor(
+                keys = keys.map { if (it == issued.key) it.copy(certificate = issued.certificate) else it },
+            ),
+            authToken = ByteArray(32).also { SecureRandom().nextBytes(it) },
+        )
+        val socket = if (isWindows()) {
+            "\\\\.\\pipe\\kg-sshe2e-$token-certificate"
+        } else {
+            dir.resolve("c.sock").toAbsolutePath().toString()
+        }
+        try {
+            launcher.start(
+                ipcLocation = if (isWindows()) {
+                    AgentIpcLocation.WindowsPipe(prefix = "", exactName = "kg-sshe2e-$token-certificate-ipc")
+                } else {
+                    AgentIpcLocation.UnixDirectory(parent = dir.toString(), exactName = "ipc")
+                },
+                sshSocket = socket,
+            )
+            block(SshCli(socket))
+        } finally {
+            launcher.stop()
+        }
+    }
+
+    private fun awaitPort(port: Int) {
+        repeat(100) {
+            val listening = runCatching {
+                Socket("127.0.0.1", port).close()
+            }.isSuccess
+            if (listening) return
+            Thread.sleep(50)
+        }
+        error("sshd did not listen on port $port")
     }
 
     @Test

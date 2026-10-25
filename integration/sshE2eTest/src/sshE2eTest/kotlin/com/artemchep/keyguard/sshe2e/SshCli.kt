@@ -4,7 +4,7 @@ import com.artemchep.keyguard.integration.process.ProcessResult
 import com.artemchep.keyguard.integration.process.runProcess
 
 class SshCli(
-    private val socket: String,
+    val socket: String,
 ) {
     fun run(
         vararg args: String,

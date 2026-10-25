@@ -425,6 +425,8 @@ data class DSecret(
         val privateKey: String? = null,
         val publicKey: String? = null,
         val fingerprint: String? = null,
+        /** An OpenSSH certificate line that certifies the [publicKey]. */
+        val certificate: String? = null,
     ) {
         companion object
     }

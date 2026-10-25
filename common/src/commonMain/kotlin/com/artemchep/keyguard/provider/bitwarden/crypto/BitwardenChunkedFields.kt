@@ -25,6 +25,24 @@ internal object BitwardenChunkedFields {
     /** The prefix of the names of every field that carries the value of [baseName]. */
     fun prefix(baseName: String): String = "$baseName.$VERSION."
 
+    /** Keeps the [value] in a single [baseName] field if it fits one, or chunks it. */
+    fun encodeSingleOrChunked(
+        baseName: String,
+        value: String,
+        type: BitwardenCipher.Field.Type,
+    ): List<BitwardenCipher.Field> =
+        if (value.encodeToByteArray().size <= CHUNK_MAX_UTF8_BYTES) {
+            listOf(
+                BitwardenCipher.Field(
+                    name = baseName,
+                    value = value,
+                    type = type,
+                ),
+            )
+        } else {
+            encode(baseName, value, type)
+        }
+
     fun encode(
         baseName: String,
         value: String,

@@ -302,6 +302,7 @@ internal class AddItemController(
                         textService = get(),
                         dateFormatter = get(),
                         sshKeyImportService = get(),
+                        sshCertificateParser = get(),
                         gpgKeyImportService = get(),
                         gpgKeyEditorImportReconciler = get(),
                         gpgPublicKeyParser = get(),

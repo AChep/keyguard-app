@@ -75,6 +75,7 @@ The review screen counts what Keyguard skips.
 | --- | --- |
 | Attachments | Both directions |
 | [GPG keys](/docs/gpg-keys/) | Export |
+| Certificates of SSH keys. The key transfers without it. | Export |
 | Archived items and items in the trash | Export |
 | Password history | Export. Only the current password transfers. |
 | Environments with item references | Export |

@@ -1,6 +1,6 @@
 ---
 title: Custom field conventions
-description: "Custom-field names that Keyguard reads as Wi-Fi credentials, tags, item links, GPG keys and environments."
+description: "Custom-field names that Keyguard reads as Wi-Fi credentials, tags, item links, GPG keys, SSH certificates and environments."
 section: reference
 type: reference
 order: 40
@@ -48,6 +48,19 @@ the same names.
 
 Numbers start at 1, without gaps. Keyguard hides these fields from the item's
 custom fields. A field with an invalid value stays a regular custom field.
+
+## SSH certificates
+
+On a Bitwarden server, the certificate of an **SSH Key** item is stored in a
+text field.
+
+| Field | Value |
+| --- | --- |
+| `keyguard.ssh.certificate` | The OpenSSH certificate line |
+
+A certificate longer than 3,500 bytes is split into numbered fields, such as
+`keyguard.ssh.certificate.v1.part.1`, plus a
+`keyguard.ssh.certificate.v1.sha256` checksum field.
 
 ## Tags
 

@@ -195,10 +195,10 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
 
         let mut identities = Vec::new();
         for key in &keys_response.keys {
-            match parse_openssh_pubkey(&key.public_key) {
-                Ok(pubkey) => {
+            match parse_openssh_credential(&key.public_key) {
+                Ok(credential) => {
                     identities.push(Identity {
-                        credential: PublicCredential::Key(pubkey.key_data().clone()),
+                        credential,
                         comment: key.name.clone(),
                     });
                 }
@@ -215,13 +215,6 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
 
     async fn sign(&mut self, request: SignRequest) -> Result<Signature, AgentError> {
         debug!("Handling SignRequest");
-
-        // Keyguard offers only plain keys. ssh-agent-lib 0.5 decoded a
-        // certificate as an opaque key that matched none, so keep refusing it.
-        let PublicCredential::Key(requested_key) = &request.credential else {
-            warn!("Refusing sign request for an SSH certificate credential");
-            return Err(AgentError::Failure);
-        };
 
         if let Err(error) = self.session_bindings.validate_sign_request(&request) {
             warn!(%error, "Refusing sign request that does not match its SSH session binding");
@@ -240,14 +233,12 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
                 AgentError::Failure
             })?;
 
-        let matching_key =
-            keys_response
-                .keys
-                .iter()
-                .find(|key| match parse_openssh_pubkey(&key.public_key) {
-                    Ok(pubkey) => pubkey.key_data() == requested_key,
-                    Err(_) => false,
-                });
+        // A certificate matches only itself; Keyguard signs with the key it
+        // certifies. OpenSSH 10.3+ sends the certificate, older clients the key.
+        let matching_key = keys_response.keys.iter().find(|key| {
+            parse_openssh_credential(&key.public_key)
+                .is_ok_and(|credential| credentials_match(&credential, &request.credential))
+        });
 
         let Some(key) = matching_key else {
             warn!("No matching key found for sign request");
@@ -311,6 +302,34 @@ impl<K: KeyProvider> Session for KeyguardAgent<K> {
 /// Parses an OpenSSH public key string (authorized_keys format).
 pub(crate) fn parse_openssh_pubkey(pubkey_str: &str) -> Result<ssh_key::PublicKey, ssh_key::Error> {
     ssh_key::PublicKey::from_openssh(pubkey_str)
+}
+
+/// Parses an OpenSSH public key or certificate line into an agent identity.
+pub(crate) fn parse_openssh_credential(value: &str) -> Result<PublicCredential, ssh_key::Error> {
+    let algorithm = value.split_whitespace().next().unwrap_or_default();
+    // Told apart as ssh-agent-lib tells apart the credential of a sign request.
+    if Algorithm::new_certificate(algorithm).is_ok() {
+        let certificate = ssh_key::Certificate::from_openssh(value)?;
+        Ok(PublicCredential::Cert(Box::new(certificate)))
+    } else {
+        let public_key = parse_openssh_pubkey(value)?;
+        Ok(PublicCredential::Key(public_key.key_data().clone()))
+    }
+}
+
+/// Compares the wire encodings: a listed certificate keeps the comment of its
+/// OpenSSH line, which a sign request never carries.
+fn credentials_match(listed: &PublicCredential, requested: &PublicCredential) -> bool {
+    match (listed, requested) {
+        (PublicCredential::Key(listed), PublicCredential::Key(requested)) => listed == requested,
+        (PublicCredential::Cert(listed), PublicCredential::Cert(requested)) => {
+            matches!(
+                (listed.to_bytes(), requested.to_bytes()),
+                (Ok(listed), Ok(requested)) if listed == requested
+            )
+        }
+        _ => false,
+    }
 }
 
 /// SSH agent session factory that captures per-connection socket metadata.

@@ -238,6 +238,8 @@ data class BitwardenCipher(
         EXPIRING,
         @SerialName("weakSshKey")
         WEAK_SSH_KEY,
+        @SerialName("sshCertificateUnusable")
+        SSH_CERTIFICATE_UNUSABLE,
         @SerialName("gpgKeyUnusable")
         GPG_KEY_UNUSABLE,
         @SerialName("weakGpgKey")
@@ -390,6 +392,8 @@ data class BitwardenCipher(
         val privateKey: String? = null,
         val publicKey: String? = null,
         val fingerprint: String? = null,
+        /** An OpenSSH certificate line that certifies the [publicKey]. */
+        val certificate: String? = null,
     ) {
         companion object
     }

@@ -261,6 +261,9 @@ internal class CxfSecretMapper(
             val credential = mapSshKey(sshKey)
             if (credential != null) {
                 credentials += credential
+                if (!sshKey.certificate.isNullOrBlank()) {
+                    skips += CxfExportSkipReason.SshCertificate
+                }
             } else {
                 skips += CxfExportSkipReason.SshKey
             }
@@ -395,7 +398,8 @@ internal class CxfSecretMapper(
         /**
          * Credential- and member-level reasons only —
          * [CxfExportSkipReason.Passkey], [CxfExportSkipReason.Otp],
-         * [CxfExportSkipReason.SshKey], [CxfExportSkipReason.GpgKey],
+         * [CxfExportSkipReason.SshKey], [CxfExportSkipReason.SshCertificate],
+         * [CxfExportSkipReason.GpgKey],
          * [CxfExportSkipReason.Attachment] and
          * [CxfExportSkipReason.PasswordHistory]. Never
          * [CxfExportSkipReason.Item], and never a whole-account or

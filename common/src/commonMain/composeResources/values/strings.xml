@@ -591,6 +591,8 @@
     <string name="key_action_save_public_key_saved_downloads_success_title">Public key saved to Downloads</string>
     <string name="key_action_save_unencrypted_private_key_title">Save unencrypted private key</string>
     <string name="key_action_save_unencrypted_private_key_saved_downloads_success_title">Unencrypted private key saved to Downloads</string>
+    <string name="key_action_save_certificate_title">Save certificate</string>
+    <string name="key_action_save_certificate_saved_downloads_success_title">Certificate saved to Downloads</string>
     <string name="ssh_key_action_add_key_title">Add keys</string>
     <string name="ssh_key_action_replace_key_title">Replace keys</string>
     <string name="key_import_title">Import <xliff:g id="protocol" example="SSH">%1$s</xliff:g> key</string>
@@ -661,12 +663,28 @@
     <string name="gpg_user_id_revocation_private_key_required">Import the private key to revoke one of its User IDs.</string>
     <string name="gpg_user_id_revocation_unavailable">GPG User-ID revocation is not supported on this platform.</string>
     <string name="gpg_user_id_mutation_key_revoked_message">A revoked GPG key cannot be changed.</string>
-    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key</string>
+    <string name="ssh_key_import_drop_here">Drop a file to import an SSH key or certificate</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
     <string name="ssh_key_import_error_unsupported_algorithm">Only RSA and Ed25519 SSH keys are supported.</string>
     <string name="key_import_error_read">Unable to read the selected file.</string>
     <string name="key_import_passphrase_title">Passphrase</string>
     <string name="ssh_key_import_passphrase_dialog_message">This <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> key is encrypted.</string>
+    <string name="ssh_certificate_import_success_title">Imported SSH certificate</string>
+
+    <!-- An OpenSSH certificate: a CA signature over an SSH public key -->
+    <string name="ssh_certificate">Certificate</string>
+    <string name="ssh_certificate_note">The contents of the key&apos;s <xliff:g id="suffix" example="-cert.pub">%1$s</xliff:g> file, signed by your certificate authority.</string>
+    <string name="ssh_certificate_principals">Principals</string>
+    <!-- The serial number of an SSH certificate -->
+    <string name="ssh_certificate_serial">Serial</string>
+    <string name="ssh_certificate_authority">Certificate authority</string>
+    <string name="ssh_certificate_critical_options">Critical options</string>
+    <string name="ssh_certificate_extensions">Extensions</string>
+    <string name="ssh_certificate_problem_malformed">This is not an OpenSSH certificate.</string>
+    <string name="ssh_certificate_problem_host_certificate">This is a host certificate. Signing in needs a user certificate.</string>
+    <string name="ssh_certificate_problem_key_mismatch">This certificate is for another key.</string>
+    <string name="ssh_certificate_problem_not_yet_valid">This certificate is valid from <xliff:g id="date" example="Jan 1, 2027">%1$s</xliff:g>.</string>
+    <string name="ssh_certificate_problem_expired">This certificate expired on <xliff:g id="date" example="Jan 1, 2026">%1$s</xliff:g>.</string>
 
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selected</string>
     <string name="selection_clear_action">Clear selection</string>
@@ -1617,6 +1635,8 @@
     <string name="watchtower_item_reused_passwords_text">Don't use the same password on multiple websites. Generate unique passwords to improve security.</string>
     <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
     <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
+    <string name="watchtower_item_unusable_ssh_certificates_title">Unusable SSH certificates</string>
+    <string name="watchtower_item_unusable_ssh_certificates_text">SSH key items whose certificate is expired, not yet valid, malformed, a host certificate, or for another key.</string>
     <string name="watchtower_item_unusable_gpg_keys_title">Unusable GPG keys</string>
     <string name="watchtower_item_unusable_gpg_keys_text">GPG key items that are revoked, expired, malformed, or missing usable signing or decryption material.</string>
     <string name="watchtower_item_weak_gpg_keys_title">Weak GPG keys</string>

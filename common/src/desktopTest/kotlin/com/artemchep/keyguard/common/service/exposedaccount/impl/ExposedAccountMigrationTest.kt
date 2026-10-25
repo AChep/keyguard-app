@@ -24,7 +24,7 @@ class ExposedAccountMigrationTest {
         DatabaseExposed.Schema.migrate(
             driver = driver,
             oldVersion = 6,
-            newVersion = DatabaseExposed.Schema.version,
+            newVersion = ACCOUNT_NAME_ONLY_SCHEMA_VERSION,
             // The exposed database manager vacuums after this callback. It has
             // to fire once the email and host columns are already gone.
             AfterVersion(6) {
@@ -65,7 +65,7 @@ class ExposedAccountMigrationTest {
                 DatabaseExposed.Schema.migrate(
                     driver = driver,
                     oldVersion = 6,
-                    newVersion = DatabaseExposed.Schema.version,
+                    newVersion = ACCOUNT_NAME_ONLY_SCHEMA_VERSION,
                 )
                 driver.execute(
                     identifier = null,
@@ -83,6 +83,12 @@ class ExposedAccountMigrationTest {
         }
     }
 }
+
+/**
+ * The version after the account migration. Later migrations touch tables
+ * that the version 6 fixture below does not create.
+ */
+private const val ACCOUNT_NAME_ONLY_SCHEMA_VERSION = 7L
 
 /**
  * The two tables the migration touches, as version 6 of the schema had them.

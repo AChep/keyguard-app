@@ -679,6 +679,40 @@ sealed interface DFilter {
     }
 
     @Serializable
+    @SerialName("by_unusable_ssh_certificates")
+    data object ByUnusableSshCertificates : PrimitiveSimple {
+        @Transient
+        override val key: String = "unusable_ssh_certificates"
+
+        @Transient
+        override val content
+            get() = PrimitiveSimple.Content(
+                title = Res.string.watchtower_item_unusable_ssh_certificates_title
+                    .let(TextHolder::Res),
+                icon = Icons.Outlined.KeyguardSshKey,
+            )
+
+        override suspend fun prepare(
+            context: CipherFilterContext,
+            ciphers: List<DSecret>,
+        ) = kotlin.run {
+            val ids = filterWatchtowerAlert(
+                context = context,
+                ciphers = ciphers,
+                type = DWatchtowerAlertType.SSH_CERTIFICATE_UNUSABLE,
+            )
+                .map { it.id }
+                .toSet()
+            ::predicate.partially1(ids)
+        }
+
+        private fun predicate(
+            ids: Set<String>,
+            cipher: DSecret,
+        ) = cipher.id in ids
+    }
+
+    @Serializable
     @SerialName("by_unusable_gpg_keys")
     data object ByUnusableGpgKeys : PrimitiveSimple {
         @Transient

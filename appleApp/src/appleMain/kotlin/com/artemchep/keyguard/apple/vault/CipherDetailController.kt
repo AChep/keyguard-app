@@ -156,6 +156,8 @@ internal class CipherDetailController(
                 keyPairGenerator = get(),
                 keyPrivateExport = get(),
                 keyPublicExport = get(),
+                keyCertificateExport = get(),
+                sshCertificateParser = get(),
                 gpgKeyExport = get(),
                 gpgPublicKeyExport = get(),
                 gpgPrivateKeyExport = get(),

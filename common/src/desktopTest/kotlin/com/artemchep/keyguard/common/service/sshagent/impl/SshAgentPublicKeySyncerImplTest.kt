@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.model.testCipherFilterContext
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRow
+import com.artemchep.keyguard.common.service.sshagent.TEST_ED25519_USER_CERTIFICATE
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentDisplayKeyNames
@@ -249,6 +250,53 @@ class SshAgentPublicKeySyncerImplTest {
         }
     }
 
+    @Test
+    fun `syncer stores certificates without their comments`() = runTest {
+        val repository = RecordingSshAgentPublicKeyRepository()
+        val publicKey = buildOpenSshPublicKey("ssh-ed25519", seed = 1)
+        val syncer = createSyncer(
+            repository = repository,
+            ciphers = MutableStateFlow(
+                listOf(
+                    createSshSecret(
+                        id = "certified",
+                        name = "Certified",
+                        publicKey = publicKey,
+                        fingerprint = "SHA256:certified",
+                        certificate = "\n$TEST_ED25519_USER_CERTIFICATE\n",
+                    ),
+                    createSshSecret(
+                        id = "malformed",
+                        name = "Malformed",
+                        publicKey = buildOpenSshPublicKey("ssh-ed25519", seed = 2),
+                        fingerprint = "SHA256:malformed",
+                        certificate = "ssh-ed25519-cert-v01@openssh.com AAAA... user@example.com",
+                    ),
+                ),
+            ),
+            sshAgentEnabled = MutableStateFlow(true),
+            displayKeyNames = MutableStateFlow(true),
+            filter = MutableStateFlow(SshAgentFilter()),
+            defaultDispatcher = StandardTestDispatcher(testScheduler),
+        )
+
+        val job = syncer.launch(this)
+        try {
+            advanceUntilIdle()
+
+            val certificates = repository.keys.associate { it.cipherId to it.certificate }
+            assertEquals(
+                mapOf(
+                    "certified" to TEST_ED25519_USER_CERTIFICATE.substringBeforeLast(' '),
+                    "malformed" to null,
+                ),
+                certificates,
+            )
+        } finally {
+            job.cancel()
+        }
+    }
+
     private fun createSyncer(
         repository: SshAgentPublicKeyRepository,
         ciphers: Flow<List<DSecret>>,
@@ -319,6 +367,7 @@ class SshAgentPublicKeySyncerImplTest {
         publicKey: String,
         fingerprint: String,
         deletedDate: Instant? = null,
+        certificate: String? = null,
     ): DSecret = secret(
         id = id,
         name = name,
@@ -328,6 +377,7 @@ class SshAgentPublicKeySyncerImplTest {
             privateKey = "private-key-placeholder",
             publicKey = publicKey,
             fingerprint = fingerprint,
+            certificate = certificate,
         ),
     )
 

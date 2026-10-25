@@ -117,6 +117,7 @@ private fun DFilter?.canPersist(): Boolean = when (this) {
     DFilter.ByPasskeys,
     is DFilter.ByPasswordStrength,
     DFilter.ByWeakSshKeys,
+    DFilter.ByUnusableSshCertificates,
     DFilter.ByUnusableGpgKeys,
     DFilter.ByWeakGpgKeys,
     DFilter.ByGpgKeyPublishing,

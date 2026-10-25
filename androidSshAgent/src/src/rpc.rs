@@ -359,6 +359,47 @@ mod tests {
     }
 
     #[test]
+    fn certificate_identities_pass_through_as_their_blob() {
+        // Keyguard decides which certificate to offer and which key signs for
+        // it; the bridge only moves the blob between the wire and the line.
+        let algorithm = "ssh-ed25519-cert-v01@openssh.com";
+        let blob = public_key_blob(algorithm, &[1, 2, 3, 4]);
+        let line = format!("{algorithm} {} comment", STANDARD.encode(&blob));
+        let response = IpcResponse {
+            id: 7,
+            response: Some(ipc_response::Response::ListKeys(ListKeysResponse {
+                keys: vec![SshKey {
+                    name: "certificate".to_string(),
+                    public_key: line,
+                    key_type: algorithm.to_string(),
+                    fingerprint: "SHA256:abc".to_string(),
+                }],
+            })),
+        };
+        let packet = translate_server_response(7, response).unwrap();
+        let mut cursor = &packet[1..];
+        assert_eq!(read_u32(&mut cursor).unwrap(), 1);
+        assert_eq!(read_ssh_string(&mut cursor).unwrap(), blob.as_slice());
+
+        let mut packet = vec![SSH_AGENT_SIGN_REQUEST];
+        packet.extend_from_slice(&ssh_string(&blob));
+        packet.extend_from_slice(&ssh_string(b"payload"));
+        packet.extend_from_slice(&0u32.to_be_bytes());
+        match translate_client_packet(&packet, 8, None) {
+            RequestTranslation::Forward(request) => match request.request {
+                Some(ipc_request::Request::SignData(sign)) => {
+                    assert_eq!(
+                        sign.public_key,
+                        format!("{algorithm} {}", STANDARD.encode(&blob))
+                    );
+                }
+                other => panic!("unexpected request variant: {other:?}"),
+            },
+            RequestTranslation::Failure => panic!("expected forwarded request"),
+        }
+    }
+
+    #[test]
     fn translate_response_sign_data_encodes_sign_response() {
         let response = IpcResponse {
             id: 9,

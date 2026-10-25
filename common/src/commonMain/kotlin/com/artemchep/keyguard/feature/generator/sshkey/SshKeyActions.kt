@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.io.effectTap
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.usecase.KeyCertificateExport
 import com.artemchep.keyguard.common.usecase.KeyPairExport
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
@@ -95,6 +96,30 @@ object SshKeyActions {
                     .effectTap { uri ->
                         val title =
                             Res.string.key_action_save_public_key_saved_downloads_success_title
+                        sendSuccessMessage(
+                            title = title,
+                            uri = uri,
+                        )
+                    }
+                    .launchIn(appScope)
+            },
+        )
+    }
+
+    context(stateScope: RememberStateFlowScope)
+    fun saveCertificate(
+        certificate: String,
+        certificateExport: KeyCertificateExport,
+    ): FlatItemAction = with(stateScope) {
+        FlatItemAction(
+            id = "sshKey.saveCertificate",
+            leading = icon(Icons.Outlined.Save),
+            title = Res.string.key_action_save_certificate_title.wrap(),
+            onClick = {
+                certificateExport(certificate)
+                    .effectTap { uri ->
+                        val title =
+                            Res.string.key_action_save_certificate_saved_downloads_success_title
                         sendSuccessMessage(
                             title = title,
                             uri = uri,

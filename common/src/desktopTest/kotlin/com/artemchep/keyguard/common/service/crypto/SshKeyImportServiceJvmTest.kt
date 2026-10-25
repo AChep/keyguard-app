@@ -324,6 +324,7 @@ class SshKeyImportServiceJvmTest {
                 },
                 onImportError = { error("Unexpected import error: $it") },
                 onReadError = { error("Unexpected read error") },
+                onCertificate = { error("Unexpected certificate") },
             )
             assertTrue(imported, fixture)
             assertContentEquals(ByteArray(raw.size), ownedBytes)

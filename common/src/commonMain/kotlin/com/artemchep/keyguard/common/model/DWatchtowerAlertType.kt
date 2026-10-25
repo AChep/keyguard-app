@@ -25,6 +25,11 @@ enum class DWatchtowerAlertType(
         title = Res.string.watchtower_item_weak_ssh_keys_title,
         level = Level.ERROR,
     ),
+    SSH_CERTIFICATE_UNUSABLE(
+        value = 17L,
+        title = Res.string.watchtower_item_unusable_ssh_certificates_title,
+        level = Level.WARNING,
+    ),
     GPG_KEY_UNUSABLE(
         value = 14L,
         title = Res.string.watchtower_item_unusable_gpg_keys_title,

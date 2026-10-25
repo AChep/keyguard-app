@@ -14,6 +14,7 @@ mod pkcs8_pbes2;
 mod primitives;
 pub mod protocol;
 mod sessions;
+mod ssh_certificates;
 mod ssh_import;
 mod ssh_keys;
 
@@ -524,6 +525,12 @@ fn execute_one_shot(
         native_request::Operation::SshPublicKeyDecode(mut request) => {
             ssh_keys::public_key_decode(std::mem::take(&mut request.public_key_openssh))?
         }
+        native_request::Operation::SshCertificateDescribe(mut request) => {
+            ssh_certificates::describe(
+                std::mem::take(&mut request.certificate_openssh),
+                request.public_key_openssh.take(),
+            )?
+        }
         native_request::Operation::PasskeyKeyGenerate(request) => {
             passkeys::generate(request.algorithm)?
         }
@@ -615,6 +622,7 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::SshPrivateKeyImport(_) => "ssh_private_key_import",
         native_request::Operation::SshKeyExportCxf(_) => "ssh_key_export_cxf",
         native_request::Operation::SshPublicKeyDecode(_) => "ssh_public_key_decode",
+        native_request::Operation::SshCertificateDescribe(_) => "ssh_certificate_describe",
         native_request::Operation::PasskeyKeyGenerate(_) => "passkey_key_generate",
         native_request::Operation::PasskeyKeyInspect(_) => "passkey_key_inspect",
         native_request::Operation::PasskeySign(_) => "passkey_sign",

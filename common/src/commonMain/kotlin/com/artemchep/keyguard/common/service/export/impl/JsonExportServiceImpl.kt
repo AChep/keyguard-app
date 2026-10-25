@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.common.service.export.impl
 
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenEnvironmentFieldCodec
+import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenSshCertificateFieldCodec
+import com.artemchep.keyguard.provider.bitwarden.mapper.toCertificateTransportFields
 import com.artemchep.keyguard.provider.bitwarden.mapper.toTransportFields
 import arrow.core.getOrElse
 import arrow.core.getOrNone
@@ -197,14 +199,22 @@ class JsonExportServiceImpl(
             val list = buildList {
                 addAll(gpgFields)
                 val environmentFields = environment?.toTransportFields().orEmpty()
+                // The Bitwarden SSH key has no certificate, so it is
+                // written out as a custom field, as Keyguard syncs it.
+                val certificateFields = sshKey
+                    ?.takeIf { type == DSecret.Type.SshKey }
+                    ?.toCertificateTransportFields()
+                    .orEmpty()
                 val userFields = fields
                     .filterNot { field ->
                         val gpgField = gpgFields.isNotEmpty() && field.name in GPG_FIELD_NAMES
                         val environmentField = environmentFields.isNotEmpty() &&
                                 BitwardenEnvironmentFieldCodec.isTransportField(field.name)
-                        gpgField || environmentField
+                        val certificateField = certificateFields.isNotEmpty() &&
+                                BitwardenSshCertificateFieldCodec.isTransportField(field.name)
+                        gpgField || environmentField || certificateField
                     }
-                (environmentFields + userFields)
+                (environmentFields + userFields + certificateFields)
                     .forEach { field ->
                         val type = FieldTypeEntity.of(field.type)
                         val linkedId = field.linkedId?.let(LinkedIdTypeEntity::of)
@@ -218,7 +228,7 @@ class JsonExportServiceImpl(
                         )
                     }
                 // The export schema has no place for the links, so they are
-                // written out as custom fields after the GPG and user fields.
+                // written out as custom fields after the other fields.
                 CipherLinkFields
                     .format(links.map(DSecret.Link::remoteCipherId))
                     .forEach { (name, value) ->

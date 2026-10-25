@@ -48,6 +48,7 @@ import com.artemchep.keyguard.common.model.create.address3
 import com.artemchep.keyguard.common.model.create.brand
 import com.artemchep.keyguard.common.model.create.card
 import com.artemchep.keyguard.common.model.create.cardholderName
+import com.artemchep.keyguard.common.model.create.certificate
 import com.artemchep.keyguard.common.model.create.city
 import com.artemchep.keyguard.common.model.create.code
 import com.artemchep.keyguard.common.model.create.company
@@ -102,11 +103,15 @@ import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementService
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementServiceUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationService
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationServiceUnsupported
+import com.artemchep.keyguard.common.service.crypto.SSH_CERTIFICATE_FILE_SUFFIX
+import com.artemchep.keyguard.common.service.crypto.SshCertificateParser
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportError
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
+import com.artemchep.keyguard.common.service.crypto.isSshCertificateFile
 import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
+import com.artemchep.keyguard.common.service.crypto.problemAt
 import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
 import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.gpgagent.isCanonical
@@ -176,6 +181,7 @@ import com.artemchep.keyguard.feature.home.vault.link.cipherLinkTargetsByRemoteI
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultItemPresentation
+import com.artemchep.keyguard.feature.home.vault.util.formatSshCertificateProblem
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -219,6 +225,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -257,6 +264,7 @@ fun produceAddScreenState(
         textService = get(),
         dateFormatter = get(),
         sshKeyImportService = get(),
+        sshCertificateParser = get(),
         gpgKeyImportService = getOrNull() ?: GpgKeyImportServiceUnsupported,
         gpgKeyEditorImportReconciler = get(),
         gpgPublicKeyParser = getOrNull() ?: GpgPublicKeyParserUnsupported,
@@ -301,6 +309,7 @@ fun produceAddScreenState(
     textService: TextService,
     dateFormatter: DateFormatter,
     sshKeyImportService: SshKeyImportService,
+    sshCertificateParser: SshCertificateParser,
     gpgKeyImportService: GpgKeyImportService,
     gpgKeyEditorImportReconciler: GpgKeyEditorImportReconciler,
     gpgPublicKeyParser: GpgPublicKeyParser,
@@ -347,6 +356,7 @@ fun produceAddScreenState(
         textService = textService,
         dateFormatter = dateFormatter,
         sshKeyImportService = sshKeyImportService,
+        sshCertificateParser = sshCertificateParser,
         gpgKeyImportService = gpgKeyImportService,
         gpgKeyEditorImportReconciler = gpgKeyEditorImportReconciler,
         gpgPublicKeyParser = gpgPublicKeyParser,
@@ -381,6 +391,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     textService: TextService,
     dateFormatter: DateFormatter,
     sshKeyImportService: SshKeyImportService,
+    sshCertificateParser: SshCertificateParser,
     gpgKeyImportService: GpgKeyImportService,
     gpgKeyEditorImportReconciler: GpgKeyEditorImportReconciler,
     gpgPublicKeyParser: GpgPublicKeyParser,
@@ -475,6 +486,8 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         args = args,
         textService = textService,
         sshKeyImportService = sshKeyImportService,
+        sshCertificateParser = sshCertificateParser,
+        dateFormatter = dateFormatter,
         showMessage = showMessage,
         filePickerIntentSink = filePickerEvents,
         confirmationRouteFactory = confirmationRouteFactory,
@@ -3783,11 +3796,19 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
     args: AddRoute.Args,
     textService: TextService,
     sshKeyImportService: SshKeyImportService,
+    sshCertificateParser: SshCertificateParser,
+    dateFormatter: DateFormatter,
     showMessage: ShowMessage,
     filePickerIntentSink: EventFlow<FilePickerIntent<*>>,
     confirmationRouteFactory: ConfirmationRouteFactory,
 ): TmpSshKey {
     val prefix = "sshKey"
+
+    // Importing a -cert.pub file through the key fills the certificate.
+    val certificateHandle = textFieldHandle(
+        key = "$prefix.certificate",
+        initial = args.initialValue?.sshKey?.certificate.orEmpty(),
+    )
 
     val sshKey = kotlin.run {
         val id = "$prefix.sshKey"
@@ -3894,6 +3915,14 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                     showMessage.copy(msg)
                     sink.value = keyPair.toDecor()
                 },
+                onCertificate = { certificate ->
+                    val msg = ToastMessage(
+                        type = ToastMessage.Type.SUCCESS,
+                        title = translate(Res.string.ssh_certificate_import_success_title),
+                    )
+                    showMessage.copy(msg)
+                    certificateHandle.setText(certificate)
+                },
                 onNeedsPassphrase = { result, fileName, content ->
                     onImportKeyWithPassphrase(
                         result = result,
@@ -3949,12 +3978,14 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                     ),
                 ),
             populator = { state ->
-                val sshKey = CreateRequest.SshKey(
-                    privateKey = state.keyPair?.privateKey,
-                    publicKey = state.keyPair?.publicKey,
-                    fingerprint = state.keyPair?.fingerprint,
-                )
-                CreateRequest.sshKey.set(this, sshKey)
+                // The certificate has a field of its own.
+                CreateRequest.sshKey.modify(this) { sshKey ->
+                    sshKey.copy(
+                        privateKey = state.keyPair?.privateKey,
+                        publicKey = state.keyPair?.publicKey,
+                        fingerprint = state.keyPair?.fingerprint,
+                    )
+                }
             },
         )
         AddStateItem.SshKey(
@@ -3968,6 +3999,75 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                 },
             ),
             state = stateItem,
+        )
+    }
+    val certificate = kotlin.run {
+        val label = translate(Res.string.ssh_certificate)
+        val publicKeyFlow = sshKey.state.flow
+            .map { it.keyPair?.publicKey }
+            .distinctUntilChanged()
+        val vlFlow = combine(
+            certificateHandle.sink
+                .map { it.text }
+                .debounce(80L)
+                .distinctUntilChanged(),
+            publicKeyFlow,
+        ) { text, publicKey ->
+            if (text.isBlank()) return@combine null
+            val problem = sshCertificateParser.parse(
+                certificate = text,
+                publicKey = publicKey,
+            ).problemAt(
+                epochSeconds = Clock.System.now().epochSeconds,
+                // The key may be added after its certificate.
+                hasPublicKey = !publicKey.isNullOrBlank(),
+            )
+                ?: return@combine null
+            TextFieldModel.Vl(
+                type = TextFieldModel.Vl.Type.WARNING,
+                text = formatSshCertificateProblem(
+                    problem = problem,
+                    dateFormatter = dateFormatter,
+                ),
+            )
+        }
+            .flowOn(Dispatchers.Default)
+            .onStart { emit(null) }
+        val stateFlow = combine(
+            certificateHandle.sink,
+            vlFlow,
+        ) { cell, vl ->
+            AddStateItem.Text.State(
+                value = TextFieldModel(
+                    text = cell.text,
+                    textRevision = cell.revision,
+                    vl = vl,
+                    onChange = certificateHandle::onChange,
+                    onSetText = certificateHandle::setText,
+                ),
+                label = label,
+            )
+        }
+            .persistingStateIn(
+                scope = screenScope,
+                started = SharingStarted.WhileSubscribed(),
+                initialValue = AddStateItem.Text.State(
+                    value = TextFieldModel.empty,
+                    label = label,
+                ),
+            )
+        AddStateItem.Text<CreateRequest>(
+            id = certificateHandle.id,
+            note = translate(Res.string.ssh_certificate_note, SSH_CERTIFICATE_FILE_SUFFIX),
+            state = LocalStateItem<AddStateItem.Text.State, CreateRequest>(
+                flow = stateFlow,
+                populator = { state ->
+                    val certificate = state.value.text
+                        .trim()
+                        .takeIf { it.isNotEmpty() }
+                    CreateRequest.sshKey.certificate.set(this, certificate)
+                },
+            ),
         )
     }
 //    val sshKeySuggestions = createItem2(
@@ -3984,6 +4084,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
         sshKey = sshKey,
         items = listOfNotNull<AddStateItem>(
             sshKey,
+            certificate,
 //            sshKeySuggestions,
         ),
     )
@@ -4644,7 +4745,13 @@ internal suspend fun handleSshKeyFileImport(
     onNeedsPassphrase: suspend (SshKeyImportResult.NeedsPassphrase, String?, ByteArray) -> Unit,
     onImportError: suspend (SshKeyImportError) -> Unit,
     onReadError: suspend () -> Unit,
+    onCertificate: suspend (String) -> Unit,
 ) = withKeyFileBytes(info, readBytes, onReadError) { content ->
+    if (isSshCertificateFile(content)) {
+        // A certificate is public, so its text needs no clearing.
+        onCertificate(content.decodeToString().trim())
+        return@withKeyFileBytes
+    }
     when (
         val result = importSshKey(
             SshKeyImportRequest(

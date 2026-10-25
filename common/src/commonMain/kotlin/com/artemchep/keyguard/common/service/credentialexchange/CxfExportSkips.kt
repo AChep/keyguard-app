@@ -48,6 +48,15 @@ enum class CxfExportSkipReason {
     SshKey,
 
     /**
+     * The certificate of an exported SSH key. CXF v1.0 §3.3.15 has no
+     * certificate member, so the key travels without it.
+     *
+     * Counted once per exported key that holds a certificate. A key that is not
+     * exported is counted under [SshKey] alone: its certificate is lost with it.
+     */
+    SshCertificate,
+
+    /**
      * A GPG key the item holds. CXF v1.0 §3.3 defines no OpenPGP credential —
      * the ssh-key credential carries a PKCS#8 private key of an SSH key type,
      * not an armored PGP block — so the key has no encoding at all.

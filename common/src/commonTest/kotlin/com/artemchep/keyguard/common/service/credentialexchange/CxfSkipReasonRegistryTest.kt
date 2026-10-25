@@ -111,6 +111,18 @@ class CxfSkipReasonRegistryTest {
                 ),
             )
         },
+        CxfExportSkipReason.SshCertificate to {
+            exportOf(
+                cxfSecret(
+                    type = DSecret.Type.SshKey,
+                    sshKey = DSecret.SshKey(
+                        privateKey = "pem",
+                        publicKey = "ssh-ed25519 AAAA",
+                        certificate = "ssh-ed25519-cert-v01@openssh.com AAAA",
+                    ),
+                ),
+            )
+        },
         CxfExportSkipReason.GpgKey to {
             exportOf(cxfSecret(type = DSecret.Type.GpgKey).copy(gpgKey = cxfGpgKey()))
         },
@@ -210,6 +222,10 @@ class CxfSkipReasonRegistryTest {
         // already counts it as `UnknownCredential` along with every other kind it
         // does not model, so it is owed no row of its own.
         //
+        // `SshCertificate` is a member of an exported SSH key rather than a
+        // credential of its own: CXF spells no certificate, so an incoming
+        // ssh-key credential can never carry one for import to lose.
+        //
         // Environment references use provider ids in a Keyguard-specific
         // payload. Export withholds the environment until it can remap them;
         // this is not the standard CXF item-reference credential, which import
@@ -219,6 +235,7 @@ class CxfSkipReasonRegistryTest {
         // new entry.
         val exportOnly = setOf(
             CxfExportSkipReason.Archived.name,
+            CxfExportSkipReason.SshCertificate.name,
             CxfExportSkipReason.GpgKey.name,
             CxfExportSkipReason.Attachment.name,
             CxfExportSkipReason.PasswordHistory.name,

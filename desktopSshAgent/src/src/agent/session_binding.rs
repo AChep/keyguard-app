@@ -2,7 +2,7 @@
 
 use anyhow::Result;
 use ssh_agent_lib::proto::extension::SessionBind;
-use ssh_agent_lib::proto::SignRequest;
+use ssh_agent_lib::proto::{PublicCredential, SignRequest};
 use ssh_encoding::Decode;
 use ssh_key::public::KeyData;
 use ssh_key::sha2::{Digest, Sha256};
@@ -480,6 +480,16 @@ fn validate_bound_userauth_request(
     let public_key_blob =
         read_ssh_string(&mut input, "userauth public key", MAX_HOST_KEY_BLOB_LEN)?;
     validate_userauth_key(algorithm, public_key_blob, request.credential.key_data())?;
+    // A request for a certificate signs in with exactly that certificate, not
+    // with the plain key or another certificate over the same key.
+    if let PublicCredential::Cert(certificate) = &request.credential {
+        let certificate_blob = certificate
+            .to_bytes()
+            .map_err(|_| SessionBindError::InvalidBoundUserauth("invalid certificate"))?;
+        if public_key_blob != certificate_blob.as_slice() {
+            return Err(SessionBindError::SigningKeyMismatch);
+        }
+    }
 
     match method {
         PUBLICKEY_METHOD => {

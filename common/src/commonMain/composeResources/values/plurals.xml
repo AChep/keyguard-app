@@ -120,6 +120,14 @@
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
     </plurals>
+    <plurals name="skipped_ssh_certificates_note">
+        <item quantity="zero"><xliff:g id="number" example="0">%1$d</xliff:g> SSH certificates</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH certificate</item>
+        <item quantity="two"><xliff:g id="number" example="2">%1$d</xliff:g> SSH certificates</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH certificates</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH certificates</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH certificates</item>
+    </plurals>
     <plurals name="skipped_gpg_keys_note">
         <item quantity="zero"><xliff:g id="number" example="0">%1$d</xliff:g> GPG keys</item>
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG key</item>

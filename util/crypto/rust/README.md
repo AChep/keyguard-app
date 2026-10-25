@@ -103,7 +103,8 @@ python3 ../../../scripts/native_protocol.py generate crypto
 
 Run the bounded fuzz targets with `cargo fuzz run dispatch`,
 `cargo fuzz run session_lifecycle`, `cargo fuzz run ssh_private_key_import`,
-and `cargo fuzz run openpgp_read`. Release performance baselines are
+`cargo fuzz run ssh_certificate_describe`, and `cargo fuzz run openpgp_read`.
+Release performance baselines are
 `cargo bench -p keyguard-crypto-core --bench argon2` and
 `cargo bench -p keyguard-crypto-core --bench bulk_primitives`. The diagnostic
 `small_primitives` bench separates fused protobuf encode/dispatch cost from the

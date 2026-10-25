@@ -948,7 +948,7 @@ fn strip_leading_zeroes(mut value: &[u8]) -> &[u8] {
     value
 }
 
-fn bound_text(value: &str) -> Result<(), PrimitiveError> {
+pub(crate) fn bound_text(value: &str) -> Result<(), PrimitiveError> {
     if value.is_empty() {
         Err(PrimitiveError::InvalidArgument)
     } else if value.len() > MAX_KEY_BYTES {

@@ -42,6 +42,13 @@ doc = false
 bench = false
 
 [[bin]]
+name = "ssh_certificate_describe"
+path = "fuzz_targets/ssh_certificate_describe.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "openpgp_read"
 path = "fuzz_targets/openpgp_read.rs"
 test = false

@@ -937,6 +937,7 @@ private suspend fun BitwardenCipher.SshKey.Companion.of(
     privateKey = request.sshKey.privateKey,
     publicKey = request.sshKey.publicKey,
     fingerprint = request.sshKey.fingerprint,
+    certificate = request.sshKey.certificate,
 )
 
 private suspend fun BitwardenCipher.GpgKey.Companion.of(

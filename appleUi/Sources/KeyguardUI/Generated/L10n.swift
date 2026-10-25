@@ -5121,6 +5121,14 @@ public enum L10n {
     public static var justgetmydataTitle: String {
         String(localized: "justgetmydata_title", bundle: AppLocalization.shared.bundle)
     }
+    /// key_action_save_certificate_saved_downloads_success_title
+    public static var keyActionSaveCertificateSavedDownloadsSuccessTitle: String {
+        String(localized: "key_action_save_certificate_saved_downloads_success_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// key_action_save_certificate_title
+    public static var keyActionSaveCertificateTitle: String {
+        String(localized: "key_action_save_certificate_title", bundle: AppLocalization.shared.bundle)
+    }
     /// key_action_save_public_key_saved_downloads_success_title
     public static var keyActionSavePublicKeySavedDownloadsSuccessTitle: String {
         String(localized: "key_action_save_public_key_saved_downloads_success_title", bundle: AppLocalization.shared.bundle)
@@ -8665,6 +8673,58 @@ public enum L10n {
     public static var sshAgentSetupWindowsTitle: String {
         String(localized: "ssh_agent_setup_windows_title", bundle: AppLocalization.shared.bundle)
     }
+    /// ssh_certificate
+    public static var sshCertificate: String {
+        String(localized: "ssh_certificate", bundle: AppLocalization.shared.bundle)
+    }
+    /// ssh_certificate_authority
+    public static var sshCertificateAuthority: String {
+        String(localized: "ssh_certificate_authority", bundle: AppLocalization.shared.bundle)
+    }
+    /// ssh_certificate_critical_options
+    public static var sshCertificateCriticalOptions: String {
+        String(localized: "ssh_certificate_critical_options", bundle: AppLocalization.shared.bundle)
+    }
+    /// ssh_certificate_extensions
+    public static var sshCertificateExtensions: String {
+        String(localized: "ssh_certificate_extensions", bundle: AppLocalization.shared.bundle)
+    }
+    /// ssh_certificate_import_success_title
+    public static var sshCertificateImportSuccessTitle: String {
+        String(localized: "ssh_certificate_import_success_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// ssh_certificate_note
+    public static func sshCertificateNote(_ a1: String) -> String {
+        String(format: String(localized: "ssh_certificate_note", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// ssh_certificate_principals
+    public static var sshCertificatePrincipals: String {
+        String(localized: "ssh_certificate_principals", bundle: AppLocalization.shared.bundle)
+    }
+    /// ssh_certificate_problem_expired
+    public static func sshCertificateProblemExpired(_ a1: String) -> String {
+        String(format: String(localized: "ssh_certificate_problem_expired", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// ssh_certificate_problem_host_certificate
+    public static var sshCertificateProblemHostCertificate: String {
+        String(localized: "ssh_certificate_problem_host_certificate", bundle: AppLocalization.shared.bundle)
+    }
+    /// ssh_certificate_problem_key_mismatch
+    public static var sshCertificateProblemKeyMismatch: String {
+        String(localized: "ssh_certificate_problem_key_mismatch", bundle: AppLocalization.shared.bundle)
+    }
+    /// ssh_certificate_problem_malformed
+    public static var sshCertificateProblemMalformed: String {
+        String(localized: "ssh_certificate_problem_malformed", bundle: AppLocalization.shared.bundle)
+    }
+    /// ssh_certificate_problem_not_yet_valid
+    public static func sshCertificateProblemNotYetValid(_ a1: String) -> String {
+        String(format: String(localized: "ssh_certificate_problem_not_yet_valid", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// ssh_certificate_serial
+    public static var sshCertificateSerial: String {
+        String(localized: "ssh_certificate_serial", bundle: AppLocalization.shared.bundle)
+    }
     /// ssh_client
     public static var sshClient: String {
         String(localized: "ssh_client", bundle: AppLocalization.shared.bundle)
@@ -9529,6 +9589,14 @@ public enum L10n {
     public static var watchtowerItemUnusableGpgKeysTitle: String {
         String(localized: "watchtower_item_unusable_gpg_keys_title", bundle: AppLocalization.shared.bundle)
     }
+    /// watchtower_item_unusable_ssh_certificates_text
+    public static var watchtowerItemUnusableSshCertificatesText: String {
+        String(localized: "watchtower_item_unusable_ssh_certificates_text", bundle: AppLocalization.shared.bundle)
+    }
+    /// watchtower_item_unusable_ssh_certificates_title
+    public static var watchtowerItemUnusableSshCertificatesTitle: String {
+        String(localized: "watchtower_item_unusable_ssh_certificates_title", bundle: AppLocalization.shared.bundle)
+    }
     /// watchtower_item_vulnerable_accounts_text
     public static var watchtowerItemVulnerableAccountsText: String {
         String(localized: "watchtower_item_vulnerable_accounts_text", bundle: AppLocalization.shared.bundle)
@@ -10137,6 +10205,14 @@ public enum L10n {
     public static func skippedPasswordHistoryNote(_ count: Int) -> String {
         String(
             format: NSLocalizedString("skipped_password_history_note", bundle: AppLocalization.shared.bundle, comment: ""),
+            locale: AppLocalization.shared.locale,
+            count
+        )
+    }
+    /// skipped_ssh_certificates_note (plural)
+    public static func skippedSshCertificatesNote(_ count: Int) -> String {
+        String(
+            format: NSLocalizedString("skipped_ssh_certificates_note", bundle: AppLocalization.shared.bundle, comment: ""),
             locale: AppLocalization.shared.locale,
             count
         )

@@ -56,6 +56,8 @@ while the vault is locked. None of them are secret:
   names. The [SSH agent](/docs/ssh-agent/) and [GPG agent](/docs/gpg-agent/)
   read them to find a key while the vault is locked. Using a key still needs an
   unlocked vault and your approval.
+- Your SSH certificates, with their key IDs and principals, so the SSH agent can
+  offer them while the vault is locked.
 - Your accounts' names, so Android can list your accounts for
   [Credential Exchange](/docs/credential-exchange/).
 - The [Blocked URIs](/docs/blocked-uris/) set to work while the vault is locked.

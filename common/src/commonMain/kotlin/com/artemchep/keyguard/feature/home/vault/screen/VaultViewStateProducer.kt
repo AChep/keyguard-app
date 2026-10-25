@@ -112,8 +112,11 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.crypto.SshCertificate
+import com.artemchep.keyguard.common.service.crypto.SshCertificateParser
 import com.artemchep.keyguard.common.service.crypto.hasAuthenticatedMetadata
 import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
+import com.artemchep.keyguard.common.service.crypto.problemAt
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
@@ -178,6 +181,7 @@ import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
+import com.artemchep.keyguard.common.usecase.KeyCertificateExport
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.usecase.MarkWatchtowerAlertAsRead
@@ -253,6 +257,8 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryA
 import com.artemchep.keyguard.feature.home.vault.util.cipherCreateEnvironmentMountAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewSshAgentHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
+import com.artemchep.keyguard.feature.home.vault.util.formatSshCertificateProblem
+import com.artemchep.keyguard.feature.home.vault.util.formatSshCertificateTime
 import com.artemchep.keyguard.feature.home.vault.watchtower
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewDialogRoute
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataViewDialogRoute
@@ -264,6 +270,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.keyboard.KeyShortcut
 import com.artemchep.keyguard.feature.navigation.keyboard.interceptKeyEvents
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
@@ -330,6 +337,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.currentKoinScope
 
@@ -369,6 +377,8 @@ fun vaultViewScreenState(
             ?: GpgPublicKeyParserUnsupported,
         keyPrivateExport = get(),
         keyPublicExport = get(),
+        keyCertificateExport = get(),
+        sshCertificateParser = get(),
         gpgKeyExport = get(),
         gpgPublicKeyExport = get(),
         gpgPrivateKeyExport = get(),
@@ -484,6 +494,8 @@ fun vaultViewScreenState(
     gpgPublicKeyParser: GpgPublicKeyParser,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
+    keyCertificateExport: KeyCertificateExport,
+    sshCertificateParser: SshCertificateParser,
     gpgKeyExport: GpgKeyExport,
     gpgPublicKeyExport: GpgKeyPublicExport,
     gpgPrivateKeyExport: GpgKeyPrivateExport,
@@ -593,6 +605,8 @@ fun vaultViewScreenState(
         gpgPublicKeyParser = gpgPublicKeyParser,
         keyPrivateExport = keyPrivateExport,
         keyPublicExport = keyPublicExport,
+        keyCertificateExport = keyCertificateExport,
+        sshCertificateParser = sshCertificateParser,
         gpgKeyExport = gpgKeyExport,
         gpgPublicKeyExport = gpgPublicKeyExport,
         gpgPrivateKeyExport = gpgPrivateKeyExport,
@@ -681,6 +695,8 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
     gpgPublicKeyParser: GpgPublicKeyParser,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
+    keyCertificateExport: KeyCertificateExport,
+    sshCertificateParser: SshCertificateParser,
     gpgKeyExport: GpgKeyExport,
     gpgPublicKeyExport: GpgKeyPublicExport,
     gpgPrivateKeyExport: GpgKeyPrivateExport,
@@ -1678,6 +1694,8 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                         gpgPublicKeyParser = gpgPublicKeyParser,
                         keyPrivateExport = keyPrivateExport,
                         keyPublicExport = keyPublicExport,
+                        keyCertificateExport = keyCertificateExport,
+                        sshCertificateParser = sshCertificateParser,
                         gpgPublicKeyExport = gpgPublicKeyExport,
                         gpgPrivateKeyExport = gpgPrivateKeyExport,
                         cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
@@ -1755,6 +1773,8 @@ private fun RememberStateFlowScope.oh(
     gpgPublicKeyParser: GpgPublicKeyParser,
     keyPrivateExport: KeyPrivateExport,
     keyPublicExport: KeyPublicExport,
+    keyCertificateExport: KeyCertificateExport,
+    sshCertificateParser: SshCertificateParser,
     gpgPublicKeyExport: GpgKeyPublicExport,
     gpgPrivateKeyExport: GpgKeyPrivateExport,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
@@ -2126,6 +2146,67 @@ private fun RememberStateFlowScope.oh(
                 rows = rows,
             )
             emit(typeItem)
+        }
+        val certificate = sshKey.certificate
+        if (certificate != null) {
+            val section = VaultViewItem.Section(
+                id = "sshKey.certificate.section",
+                text = translate(Res.string.ssh_certificate),
+            )
+            emit(section)
+
+            val description = withContext(Dispatchers.Default) {
+                sshCertificateParser.parse(
+                    certificate = certificate,
+                    publicKey = sshKey.publicKey,
+                )
+            }
+            val problem = description.problemAt(
+                epochSeconds = now.epochSeconds,
+                hasPublicKey = !sshKey.publicKey.isNullOrBlank(),
+            )
+            if (problem != null) {
+                val problemItem = VaultViewItem.Info(
+                    id = "sshKey.certificate.problem",
+                    name = translate(Res.string.ssh_certificate),
+                    message = formatSshCertificateProblem(
+                        problem = problem,
+                        dateFormatter = dateFormatter,
+                    ),
+                )
+                emit(problemItem)
+            }
+            val certificateItem = create(
+                copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
+                id = "sshKey.certificate",
+                accountId = account.id,
+                title = translate(Res.string.ssh_certificate),
+                value = certificate,
+                maxLines = 4, // a certificate is too long to always show
+                monospace = true,
+                colorize = true,
+                elevated = true,
+                onBuildActions = {
+                    this += SshKeyActions.saveCertificate(
+                        certificate = certificate,
+                        certificateExport = keyCertificateExport,
+                    )
+                },
+            )
+            emit(certificateItem)
+            if (description != null) {
+                val detailsItem = VaultViewItem.Table(
+                    id = "sshKey.certificate.details",
+                    elevation = 1.dp,
+                    rows = createSshCertificateRows(
+                        certificate = description,
+                        dateFormatter = dateFormatter,
+                    ),
+                )
+                emit(detailsItem)
+            }
         }
     }
 
@@ -5227,6 +5308,63 @@ fun List<ContextItem>.verify(
             is FlatItemAction -> it.verify(verify)
         }
     }
+
+private suspend fun TranslatorScope.createSshCertificateRows(
+    certificate: SshCertificate,
+    dateFormatter: DateFormatter,
+): List<VaultViewItem.Table.Row> = buildList {
+    if (certificate.principals.isNotEmpty()) {
+        this += VaultViewItem.Table.Row(
+            title = translate(Res.string.ssh_certificate_principals),
+            value = certificate.principals.joinToString(separator = "\n"),
+        )
+    }
+    // A certificate without a start is valid from the Unix epoch.
+    if (certificate.validAfter > 0L) {
+        this += VaultViewItem.Table.Row(
+            title = translate(Res.string.valid_from),
+            value = formatSshCertificateTime(certificate.validAfter, dateFormatter),
+        )
+    }
+    this += VaultViewItem.Table.Row(
+        title = translate(Res.string.expires),
+        value = if (certificate.validBefore == Long.MAX_VALUE) {
+            translate(Res.string.expiration_date_never)
+        } else {
+            formatSshCertificateTime(certificate.validBefore, dateFormatter)
+        },
+    )
+    if (certificate.keyId.isNotEmpty()) {
+        this += VaultViewItem.Table.Row(
+            title = translate(Res.string.key_id),
+            value = certificate.keyId,
+        )
+    }
+    this += VaultViewItem.Table.Row(
+        title = translate(Res.string.ssh_certificate_serial),
+        value = certificate.serial.toString(),
+    )
+    this += VaultViewItem.Table.Row(
+        title = translate(Res.string.ssh_certificate_authority),
+        value = certificate.caFingerprint,
+    )
+    if (certificate.criticalOptions.isNotEmpty()) {
+        this += VaultViewItem.Table.Row(
+            title = translate(Res.string.ssh_certificate_critical_options),
+            value = certificate.criticalOptions.joinToString(separator = "\n") { it.format() },
+        )
+    }
+    if (certificate.extensions.isNotEmpty()) {
+        this += VaultViewItem.Table.Row(
+            title = translate(Res.string.ssh_certificate_extensions),
+            value = certificate.extensions.joinToString(separator = "\n") { it.format() },
+        )
+    }
+}
+
+// Formatted as `ssh-keygen -L` prints them.
+private fun SshCertificate.Option.format() =
+    if (value.isEmpty()) name else "$name $value"
 
 fun List<FlatItemAction>.verify(
     verify: ((() -> Unit) -> Unit)? = null,

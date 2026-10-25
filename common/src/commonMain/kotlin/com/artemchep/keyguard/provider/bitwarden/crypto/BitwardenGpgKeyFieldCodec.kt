@@ -102,17 +102,7 @@ internal object BitwardenGpgKeyFieldCodec {
     ) {
         val content = value?.takeIf { it.isNotBlank() }
             ?: return
-        val contentBytes = content.encodeToByteArray()
-        if (contentBytes.size <= BitwardenChunkedFields.CHUNK_MAX_UTF8_BYTES) {
-            addGpgField(
-                name = name,
-                value = content,
-                type = type,
-            )
-            return
-        }
-
-        addAll(BitwardenChunkedFields.encode(name, content, type))
+        addAll(BitwardenChunkedFields.encodeSingleOrChunked(name, content, type))
     }
 
     private fun MutableList<BitwardenCipher.Field>.addGpgField(

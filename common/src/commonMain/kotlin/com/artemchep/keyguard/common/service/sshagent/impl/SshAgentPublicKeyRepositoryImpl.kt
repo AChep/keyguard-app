@@ -62,6 +62,7 @@ class SshAgentPublicKeyRepositoryImpl(
                         fingerprint = key.fingerprint,
                         canSign = key.canSign,
                         name = key.name,
+                        certificate = key.certificate,
                     )
                 }
         }
@@ -97,5 +98,6 @@ class SshAgentPublicKeyRepositoryImpl(
         fingerprint = entity.fingerprint,
         canSign = entity.canSign,
         name = entity.name,
+        certificate = entity.certificate,
     )
 }

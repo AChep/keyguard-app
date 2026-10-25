@@ -14,7 +14,17 @@ class TestSshAgentRequestProcessor(
     ): SshAgentRequestProcessor.ListKeysResult =
         SshAgentRequestProcessor.ListKeysResult.Success(
             response = SshAgentMessages.ListKeysResponse(
-                keys = keys.map { key ->
+                // Like Keyguard, list the certificates before the keys.
+                keys = keys.mapNotNull { key ->
+                    val certificate = key.certificate
+                        ?: return@mapNotNull null
+                    SshAgentMessages.SshKey(
+                        name = key.name,
+                        publicKey = certificate,
+                        keyType = certificate.substringBefore(' '),
+                        fingerprint = key.fingerprint,
+                    )
+                } + keys.map { key ->
                     SshAgentMessages.SshKey(
                         name = key.name,
                         publicKey = key.publicKey,
@@ -29,6 +39,9 @@ class TestSshAgentRequestProcessor(
         request: SshAgentMessages.SignDataRequest,
     ): SshAgentRequestProcessor.SignDataResult {
         val key = keys.firstOrNull { sshPublicKeysMatch(it.publicKey, request.publicKey) }
+            ?: keys.firstOrNull { key ->
+                key.certificate?.let { sshPublicKeysMatch(it, request.publicKey) } == true
+            }
             ?: return SshAgentRequestProcessor.SignDataResult.KeyNotFound
         return try {
             SshAgentRequestProcessor.SignDataResult.Success(

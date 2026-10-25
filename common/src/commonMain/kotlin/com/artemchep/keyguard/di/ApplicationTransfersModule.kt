@@ -25,6 +25,7 @@ import com.artemchep.keyguard.common.usecase.CheckS3Connection
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
+import com.artemchep.keyguard.common.usecase.KeyCertificateExport
 import com.artemchep.keyguard.common.usecase.KeyPairExport
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
@@ -34,6 +35,7 @@ import com.artemchep.keyguard.common.usecase.impl.CheckS3ConnectionImpl
 import com.artemchep.keyguard.common.usecase.impl.GpgKeyExportImpl
 import com.artemchep.keyguard.common.usecase.impl.GpgKeyPrivateExportImpl
 import com.artemchep.keyguard.common.usecase.impl.GpgKeyPublicExportImpl
+import com.artemchep.keyguard.common.usecase.impl.KeyCertificateExportImpl
 import com.artemchep.keyguard.common.usecase.impl.KeyPairExportImpl
 import com.artemchep.keyguard.common.usecase.impl.KeyPrivateExportImpl
 import com.artemchep.keyguard.common.usecase.impl.KeyPublicExportImpl
@@ -92,6 +94,8 @@ internal class ApplicationTransfersModule {
         single<KeyPublicExportImpl>() bind KeyPublicExport::class
 
         single<KeyPrivateExportImpl>() bind KeyPrivateExport::class
+
+        single<KeyCertificateExportImpl>() bind KeyCertificateExport::class
 
         single<GpgKeyExportImpl>() bind GpgKeyExport::class
 

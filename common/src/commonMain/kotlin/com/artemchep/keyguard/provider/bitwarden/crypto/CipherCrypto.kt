@@ -15,6 +15,8 @@ fun BitwardenCipher.transform(
         mode = itemCrypto.mode,
     ).encodeGpgKeyCustomFields(
         mode = itemCrypto.mode,
+    ).encodeSshCertificateCustomFields(
+        mode = itemCrypto.mode,
     ).encodeCipherLinkCustomFields(
         mode = itemCrypto.mode,
     )
@@ -51,7 +53,7 @@ fun BitwardenCipher.transform(
         },
     ).let { transformedCipher ->
         if (globalCrypto.mode == BitwardenCrCta.Mode.DECRYPT) {
-            return@let decodeEntity(transformedCipher)
+            return@let decodeEntity(transformedCipher.decodeSshCertificateCustomFields())
         }
 
         transformedCipher
@@ -126,6 +128,25 @@ private fun BitwardenCipher.encodeGpgKeyCustomFields(
     )
 }
 
+private fun BitwardenCipher.encodeSshCertificateCustomFields(
+    mode: BitwardenCrCta.Mode,
+): BitwardenCipher {
+    val sshKey = sshKey
+        ?.takeIf {
+            mode == BitwardenCrCta.Mode.ENCRYPT &&
+                    BitwardenSshCertificateFieldCodec.appliesTo(type) &&
+                    !it.certificate.isNullOrBlank()
+        }
+        ?: return this
+    return copy(
+        // The certificate is auxiliary data, append it after the user's own custom fields.
+        fields = fields.filterNot { BitwardenSshCertificateFieldCodec.isTransportField(it.name) } +
+                BitwardenSshCertificateFieldCodec.encode(sshKey.certificate.orEmpty()),
+        // The Bitwarden SSH key has no certificate field.
+        sshKey = sshKey.copy(certificate = null),
+    )
+}
+
 private fun BitwardenCipher.encodeCipherLinkCustomFields(
     mode: BitwardenCrCta.Mode,
 ): BitwardenCipher {
@@ -196,6 +217,17 @@ private fun BitwardenCipher.decodeEnvironment(): BitwardenEnvironmentFieldCodec.
 
 private fun BitwardenCipher.decodeGpg() =
     if (BitwardenGpgKeyFieldCodec.appliesTo(type)) BitwardenGpgKeyFieldCodec.decode(fields) else null
+
+/** Moves the certificate of an SSH key from its custom fields into the key. */
+private fun BitwardenCipher.decodeSshCertificateCustomFields(): BitwardenCipher {
+    val decoded = takeIf { BitwardenSshCertificateFieldCodec.appliesTo(type) }
+        ?.let { BitwardenSshCertificateFieldCodec.decode(fields) }
+        ?: return this
+    return copy(
+        fields = decoded.remainingFields,
+        sshKey = (sshKey ?: BitwardenCipher.SshKey()).copy(certificate = decoded.certificate),
+    )
+}
 
 /**
  * Tracks fields claimed by the individual decoders while preserving the

@@ -149,6 +149,7 @@ data class CreateRequest(
         val privateKey: String? = null,
         val publicKey: String? = null,
         val fingerprint: String? = null,
+        val certificate: String? = null,
     ) {
         companion object;
     }

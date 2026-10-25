@@ -197,6 +197,13 @@ internal data class SshPublicKeyDecodeOperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
+@SerialName("ssh_certificate_describe")
+internal data class SshCertificateDescribeOperationProto(
+    @ProtoNumber(61)
+    val value: SshCertificateDescribeRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
 @SerialName("passkey_key_generate")
 internal data class PasskeyKeyGenerateOperationProto(
     @ProtoNumber(48)
@@ -830,6 +837,58 @@ internal data class SshPublicKeyDecodeResultProto(
     val type: SshKeyTypeProto,
     @ProtoNumber(2)
     val spkiDer: ByteArray,
+)
+
+@Serializable
+internal data class SshCertificateDescribeRequestProto(
+    @ProtoNumber(1)
+    val certificateOpenSsh: String,
+    @ProtoNumber(2)
+    val publicKeyOpenSsh: String? = null,
+)
+
+@Serializable
+internal enum class SshCertificateTypeProto {
+    @ProtoNumber(0)
+    UNSPECIFIED,
+
+    @ProtoNumber(1)
+    USER,
+
+    @ProtoNumber(2)
+    HOST,
+}
+
+@Serializable
+internal data class SshCertificateOptionProto(
+    @ProtoNumber(1)
+    val name: String = "",
+    @ProtoNumber(2)
+    val value: String = "",
+)
+
+@Serializable
+internal data class SshCertificateDescriptionProto(
+    @ProtoNumber(1)
+    val type: SshCertificateTypeProto = SshCertificateTypeProto.UNSPECIFIED,
+    @ProtoNumber(2)
+    val keyId: String = "",
+    @ProtoNumber(3)
+    val serial: Long = 0L,
+    @ProtoNumber(4)
+    val principals: List<String> = emptyList(),
+    @ProtoNumber(5)
+    val validAfter: Long = 0L,
+    @ProtoNumber(6)
+    val validBefore: Long = 0L,
+    @ProtoNumber(7)
+    val caFingerprint: String = "",
+    @ProtoNumber(8)
+    val criticalOptions: List<SshCertificateOptionProto> = emptyList(),
+    @ProtoNumber(9)
+    val extensions: List<SshCertificateOptionProto> = emptyList(),
+    @ProtoNumber(10)
+    val publicKeyMatches: Boolean = false,
 )
 
 @Serializable

@@ -10,6 +10,9 @@ import com.artemchep.keyguard.common.model.AppFont
 import com.artemchep.keyguard.common.model.AppTheme
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.AutotypeSpeed
+import com.artemchep.keyguard.common.model.GlobalShortcutAction
+import com.artemchep.keyguard.common.model.GlobalShortcutConfig
+import com.artemchep.keyguard.common.model.GlobalShortcutsConfig
 import com.artemchep.keyguard.common.model.GpgAgentFilter
 import com.artemchep.keyguard.common.model.GpgKeyserverConfig
 import com.artemchep.keyguard.common.model.NavAnimation
@@ -34,6 +37,7 @@ import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepositor
 import com.artemchep.keyguard.common.service.settings.entity.VersionLogEntity
 import com.artemchep.keyguard.common.service.settings.entity.of
 import com.artemchep.keyguard.common.service.settings.entity.toDomain
+import com.artemchep.keyguard.common.service.shortcut.GlobalShortcutsConfigState
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasWatch
@@ -45,6 +49,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
@@ -115,6 +120,7 @@ class SettingsRepositoryImpl(
         private const val KEY_TWO_PANEL_LAYOUT_LANDSCAPE = "two_panel_layout_landscape"
         private const val KEY_TWO_PANEL_LAYOUT_PORTRAIT = "two_panel_layout_portrait"
         private const val KEY_USE_EXTERNAL_BROWSER = "use_external_browser"
+        private const val KEY_GLOBAL_SHORTCUTS = "keyboard.global_shortcuts"
         private const val KEY_CLOSE_TO_TRAY = "close_to_tray"
         private const val KEY_MINIMIZE_ON_COPY = "minimize_on_copy"
         private const val KEY_FONT = "font"
@@ -369,6 +375,26 @@ class SettingsRepositoryImpl(
     private val useExternalBrowserPref =
         store.getBoolean(KEY_USE_EXTERNAL_BROWSER, false)
 
+    private val globalShortcutsRawPref =
+        store.getString(
+            key = KEY_GLOBAL_SHORTCUTS,
+            defaultValue = json.encodeToString(GlobalShortcutsConfig()),
+        )
+
+    private val globalShortcutsConfigState =
+        GlobalShortcutsConfigState(
+            preference = globalShortcutsRawPref,
+            json = json,
+        )
+
+    private val globalShortcutsPref = globalShortcutsRawPref
+        .coordinated(
+            set = { _, persist ->
+                globalShortcutsConfigState.update(persist)
+            },
+            delete = globalShortcutsConfigState::update,
+        )
+
     private val closeToTrayPref =
         store.getBoolean(KEY_CLOSE_TO_TRAY, false)
 
@@ -510,6 +536,7 @@ class SettingsRepositoryImpl(
             allowTwoPanelLayoutInLandscapePref,
             allowTwoPanelLayoutInPortraitPref,
             useExternalBrowserPref,
+            globalShortcutsPref,
             closeToTrayPref,
             minimizeOnCopyPref,
             navAnimationPref,
@@ -929,6 +956,15 @@ class SettingsRepositoryImpl(
 
     override fun setUseExternalBrowser(useExternalBrowser: Boolean) = useExternalBrowserPref
         .setAndCommit(useExternalBrowser)
+
+    override fun setGlobalShortcut(
+        action: GlobalShortcutAction,
+        config: GlobalShortcutConfig,
+    ) = globalShortcutsConfigState
+        .put(action, config)
+
+    override fun getGlobalShortcuts() = globalShortcutsConfigState
+        .config()
 
     override fun setCloseToTray(
         closeToTray: Boolean,

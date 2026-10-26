@@ -141,6 +141,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingThemeUseAmo
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutLandscapeProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutPortraitProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingUnreadWatchtowerAlerts
+import com.artemchep.keyguard.feature.home.settings.component.settingKeyboardShortcutsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingUrlOverrideProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingUseExternalBrowserProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultClearProvider
@@ -239,6 +240,7 @@ object Setting {
     const val FEATURES_OVERVIEW = "features_overview"
     const val URL_OVERRIDE = "url_override"
     const val WEBDAV_TRANSACTIONS = "webdav_transactions"
+    const val KEYBOARD_SHORTCUTS = "keyboard_shortcuts"
     const val CONNECTED_APPS = "connected_apps"
     const val SSH_SETTINGS = "ssh_settings"
     const val SSH_AGENT = "ssh_agent"
@@ -384,6 +386,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.FEATURES_OVERVIEW to ::settingFeaturesOverviewProvider,
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
     Setting.WEBDAV_TRANSACTIONS to ::settingWebDavTransactionsProvider,
+    Setting.KEYBOARD_SHORTCUTS to ::settingKeyboardShortcutsProvider,
     Setting.CONNECTED_APPS to ::settingConnectedAppsProvider,
     Setting.SSH_SETTINGS to ::settingSshSettingsProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,

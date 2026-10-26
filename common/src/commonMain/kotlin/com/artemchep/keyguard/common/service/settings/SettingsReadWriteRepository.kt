@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.settings
 
+import com.artemchep.keyguard.common.model.GlobalShortcutAction
+import com.artemchep.keyguard.common.model.GlobalShortcutConfig
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.AppColors
@@ -28,6 +30,11 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
     //
     // Actual settings
     //
+
+    fun setGlobalShortcut(
+        action: GlobalShortcutAction,
+        config: GlobalShortcutConfig,
+    ): IO<Unit>
 
     fun setAutofillDefaultMatchDetection(
         matchDetection: String,

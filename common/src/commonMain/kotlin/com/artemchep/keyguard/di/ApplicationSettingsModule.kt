@@ -51,6 +51,7 @@ import com.artemchep.keyguard.common.usecase.GetClipboardAutoClearVariants
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefreshVariants
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
+import com.artemchep.keyguard.common.usecase.GetGlobalShortcuts
 import com.artemchep.keyguard.common.usecase.GetColors
 import com.artemchep.keyguard.common.usecase.GetColorsVariants
 import com.artemchep.keyguard.common.usecase.GetConcealFields
@@ -183,6 +184,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoClearVariantsI
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoRefreshImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoRefreshVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCloseToTrayImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGlobalShortcutsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetColorsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetColorsVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetConcealFieldsImpl
@@ -421,6 +423,8 @@ internal class ApplicationSettingsModule {
         single<GetUseExternalBrowserImpl>() bind GetUseExternalBrowser::class
 
         single<PutUserExternalBrowserImpl>() bind PutUseExternalBrowser::class
+
+        single<GetGlobalShortcutsImpl>() bind GetGlobalShortcuts::class
 
         single<GetCloseToTrayImpl>() bind GetCloseToTray::class
 

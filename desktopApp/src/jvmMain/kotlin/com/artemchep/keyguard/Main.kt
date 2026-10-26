@@ -55,16 +55,24 @@ import com.artemchep.keyguard.di.ApplicationCoroutineScope
 import kotlinx.coroutines.CoroutineScope
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsService
+import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.GlobalShortcutAction
+import com.artemchep.keyguard.common.model.LockReason
+import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
+import com.artemchep.keyguard.common.service.shortcut.GlobalShortcutController
+import com.artemchep.keyguard.common.service.shortcut.DesktopGlobalShortcutController
+import com.artemchep.keyguard.common.usecase.GetGlobalShortcuts
+import com.artemchep.keyguard.common.usecase.PutGlobalShortcut
+import com.artemchep.keyguard.common.usecase.impl.PutGlobalShortcutImpl
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.passkey.WindowsPasskeyService
-import com.artemchep.keyguard.common.service.quicksearch.DesktopLibGlobalHotKeyRegistrar
-import com.artemchep.keyguard.common.service.quicksearch.QuickSearchHotkeyService
 import com.artemchep.keyguard.common.service.quicksearch.QuickSearchWindowManager
-import com.artemchep.keyguard.common.service.session.VaultLockHotkeyService
 import com.artemchep.keyguard.common.service.session.VaultPowerLockService
+import com.artemchep.keyguard.common.service.shortcut.DesktopLibGlobalHotKeyRegistrar
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.session.VaultSessionPersister
 import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
@@ -167,6 +175,7 @@ import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.KoinIsolatedContext
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.named
+import org.koin.dsl.bind
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.single
@@ -228,6 +237,15 @@ private class DesktopApplicationModule {
     val module = module {
         single { WindowStateManager(get<KeyValueStoreFactory>().get(Files.WINDOW_STATE), get()) }
         single { QuickSearchWindowManager() }
+        single {
+            val repository = get<SettingsReadWriteRepository>()
+            DesktopGlobalShortcutController(
+                configurations = get<GetGlobalShortcuts>()(),
+                persist = { action, config -> repository.setGlobalShortcut(action, config).invoke() },
+                registrar = DesktopLibGlobalHotKeyRegistrar(name = "Global shortcuts"),
+            )
+        } bind GlobalShortcutController::class
+        single<PutGlobalShortcutImpl>() bind PutGlobalShortcut::class
         single<KeychainRepository> { KeychainRepositoryNative() }
         single<AutotypeService> { AutotypeServiceNative(get()) }
         single<NotificationRepository> { NotificationRepositoryNative(get()) }
@@ -443,39 +461,34 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
                     )
                 } else null
             }
-            val quickSearchHotkeyRegistrar = remember {
-                DesktopLibGlobalHotKeyRegistrar(
-                    name = "Quick search",
-                )
-            }
-            val vaultLockHotkeyRegistrar = remember {
-                DesktopLibGlobalHotKeyRegistrar(
-                    name = "Vault lock",
-                )
-            }
-            DisposableEffect(
-                quickSearchWindowManager,
-                quickSearchHotkeyRegistrar,
-                autotypeController,
-            ) {
-                val stop = QuickSearchHotkeyService(
-                    windowManager = quickSearchWindowManager,
-                    globalHotKeyRegistrar = quickSearchHotkeyRegistrar,
-                    beforeOpen = { autotypeController?.captureTarget() },
-                ).start()
-                onDispose(stop)
-            }
             val clearVaultSession = koinInject<ClearVaultSession>()
-            DisposableEffect(
+            val globalShortcutController = koinInject<DesktopGlobalShortcutController>()
+            LaunchedEffect(globalShortcutController) {
+                globalShortcutController.run()
+            }
+            LaunchedEffect(
+                globalShortcutController,
+                quickSearchWindowManager,
+                autotypeController,
                 clearVaultSession,
-                vaultLockHotkeyRegistrar,
             ) {
-                val stop = VaultLockHotkeyService(
-                    clearVaultSession = clearVaultSession,
-                    globalHotKeyRegistrar = vaultLockHotkeyRegistrar,
-                    scope = GlobalScope,
-                ).start()
-                onDispose(stop)
+                // Handle presses off the UI thread, like the native callbacks did.
+                withContext(Dispatchers.IO) {
+                    globalShortcutController.presses.collect { action ->
+                        when (action) {
+                            GlobalShortcutAction.QuickSearch -> {
+                                autotypeController?.captureTarget()
+                                quickSearchWindowManager.requestOpen()
+                            }
+
+                            GlobalShortcutAction.LockVault -> {
+                                val reason = TextHolder.Res(Res.string.lock_reason_manually)
+                                clearVaultSession(LockReason.LOCK, reason)
+                                    .launchIn(GlobalScope)
+                            }
+                        }
+                    }
+                }
             }
 
             val showMessage = koinInject<ShowMessage>()

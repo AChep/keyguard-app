@@ -10,7 +10,7 @@ related: [quick-search, search, lock-and-unlock]
 
 ## Global shortcuts
 
-Global shortcuts work in any app while Keyguard is running. On Linux, they need an X11 session.
+Global shortcuts work in any app while Keyguard is running. On Linux, they need an X11 session. To change or turn off these shortcuts, open **Settings > Other > Keyboard shortcuts**.
 
 | Linux and Windows | macOS | Action |
 | :---------------- | :---- | :----- |

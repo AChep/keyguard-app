@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.settings
 
+import com.artemchep.keyguard.common.model.GlobalShortcutsConfig
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.AppColors
@@ -37,6 +38,8 @@ interface SettingsReadRepository {
     //
     // Actual settings
     //
+
+    fun getGlobalShortcuts(): Flow<GlobalShortcutsConfig>
 
     fun getAutofillDefaultMatchDetection(): Flow<String>
 

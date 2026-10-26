@@ -204,6 +204,24 @@ class GlobalHotKeyInteropTest {
         )
     }
 
+    @Test
+    fun `map native global hotkey spec passes the macOS character of letters and digits`() {
+        fun macosKeyCode(key: GlobalHotKeyKey) = mapNativeGlobalHotKeySpec(
+            platform = GlobalHotKeyPlatform.MacOS,
+            spec = GlobalHotKeySpec(
+                key = key,
+                isMetaPressed = true,
+            ),
+        )?.keyCode
+
+        assertEquals(('l'.code shl 16) or 0x25, macosKeyCode(GlobalHotKeyKey.L))
+        assertEquals(('a'.code shl 16) or 0x00, macosKeyCode(GlobalHotKeyKey.A))
+        assertEquals(('z'.code shl 16) or 0x06, macosKeyCode(GlobalHotKeyKey.Z))
+        assertEquals(('0'.code shl 16) or 0x1D, macosKeyCode(GlobalHotKeyKey.Digit0))
+        assertEquals(('9'.code shl 16) or 0x19, macosKeyCode(GlobalHotKeyKey.Digit9))
+        assertEquals(0x7A, macosKeyCode(GlobalHotKeyKey.F1))
+    }
+
     private class FakeDesktopLibJna : DesktopLibJna {
         var registerNativeGlobalHotKeyResult: Int = 1
         var globalHotKeyCallback: DesktopLibJna.GlobalHotKeyCallback? = null

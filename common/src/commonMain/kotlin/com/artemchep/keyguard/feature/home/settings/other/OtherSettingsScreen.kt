@@ -37,6 +37,7 @@ fun rememberSettingsOtherItems(
                     SettingPaneItem.Item(Setting.URL_OVERRIDE),
                     SettingPaneItem.Item(Setting.WEBDAV_TRANSACTIONS),
                     SettingPaneItem.Item(Setting.AUTOTYPE_SPEED),
+                    SettingPaneItem.Item(Setting.KEYBOARD_SHORTCUTS),
                 ),
             ),
             SettingPaneItem.Group(

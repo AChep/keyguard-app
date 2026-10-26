@@ -117,6 +117,11 @@ static const int32_t KGHotKeyUnavailable = -4;
 @property(nonatomic, assign) EventHotKeyRef ref;
 @property(nonatomic, assign) kg_hotkey_callback_t callback;
 @property(nonatomic, assign, getter=isPressed) BOOL pressed;
+@property(nonatomic, assign) uint32_t keyCode;
+@property(nonatomic, assign) uint32_t modifiers;
+// Zero for keys registered by a fixed key code.
+@property(nonatomic, assign) unichar character;
+@property(nonatomic, assign) uint32_t fallbackKeyCode;
 @end
 
 @implementation KGHotKeyEntry
@@ -278,8 +283,162 @@ static bool kg_install_hotkey_handler(void) {
     return true;
 }
 
-static int32_t kg_register_global_hotkey_inner(
+static unichar kg_ascii_lowercase(unichar character) {
+    return character >= 'A' && character <= 'Z' ? (unichar) (character + ('a' - 'A')) : character;
+}
+
+// Letters and digits arrive as (character << 16) | fallback key code. Carbon
+// matches physical key codes, so find the key that types the character in the
+// current Latin layout; the recorder captured that key label. Like Chromium's
+// layout-aware global shortcuts. Only the main key block is searched, so a
+// digit never resolves to the keypad. The layout is NULL when unavailable.
+static uint32_t kg_hotkey_key_code_in_layout(
+        const UCKeyboardLayout *layout,
+        unichar character,
+        uint32_t fallback
+) {
+    if (layout == NULL) {
+        return fallback;
+    }
+
+    const unichar target = kg_ascii_lowercase(character);
+    for (UInt16 key_code = 0; key_code < kVK_F17; key_code++) {
+        UInt32 dead_key_state = 0;
+        UniChar chars[4];
+        UniCharCount length = 0;
+        const OSStatus status = UCKeyTranslate(
+                layout,
+                key_code,
+                kUCKeyActionDown,
+                0,
+                LMGetKbdType(),
+                kUCKeyTranslateNoDeadKeysMask,
+                &dead_key_state,
+                sizeof(chars) / sizeof(chars[0]),
+                &length,
+                chars
+        );
+        if (status == noErr && length == 1 && kg_ascii_lowercase(chars[0]) == target) {
+            return key_code;
+        }
+    }
+    return fallback;
+}
+
+// The returned layout is owned by the source and lives until it is released.
+static const UCKeyboardLayout *kg_hotkey_layout_of(TISInputSourceRef source) {
+    if (source == NULL) {
+        return NULL;
+    }
+
+    CFDataRef data = TISGetInputSourceProperty(source, kTISPropertyUnicodeKeyLayoutData);
+    return data == NULL ? NULL : (const UCKeyboardLayout *) CFDataGetBytePtr(data);
+}
+
+static uint32_t kg_hotkey_key_code_for_character(unichar character, uint32_t fallback) {
+    TISInputSourceRef source = TISCopyCurrentASCIICapableKeyboardLayoutInputSource();
+    const uint32_t result =
+            kg_hotkey_key_code_in_layout(kg_hotkey_layout_of(source), character, fallback);
+    if (source != NULL) {
+        CFRelease(source);
+    }
+    return result;
+}
+
+static OSStatus kg_register_event_hotkey(
+        int32_t hotkey_id,
         uint32_t key_code,
+        uint32_t modifiers,
+        EventHotKeyRef *hotkey_ref
+) {
+    const EventHotKeyID event_hotkey_id = {
+            .signature = KGHotKeySignature,
+            .id = (UInt32) hotkey_id,
+    };
+    return RegisterEventHotKey(
+            key_code,
+            modifiers,
+            event_hotkey_id,
+            GetApplicationEventTarget(),
+            0,
+            hotkey_ref
+    );
+}
+
+// Runs on the main thread. Moves character shortcuts to the keys that type
+// their characters in the newly selected layout.
+static void kg_hotkey_refresh_layout(void) {
+    TISInputSourceRef source = TISCopyCurrentASCIICapableKeyboardLayoutInputSource();
+    const UCKeyboardLayout *layout = kg_hotkey_layout_of(source);
+    [kg_hotkey_registry() enumerateKeysAndObjectsUsingBlock:^(
+            NSNumber *key,
+            KGHotKeyEntry *entry,
+            BOOL *stop
+    ) {
+        (void) stop;
+        if (entry.character == 0) {
+            return;
+        }
+        const uint32_t key_code =
+                kg_hotkey_key_code_in_layout(layout, entry.character, entry.fallbackKeyCode);
+        if (key_code == entry.keyCode) {
+            return;
+        }
+
+        // Register the new key first, so a failure keeps the old one working.
+        EventHotKeyRef hotkey_ref = NULL;
+        const OSStatus status =
+                kg_register_event_hotkey(key.intValue, key_code, entry.modifiers, &hotkey_ref);
+        if (status != noErr || hotkey_ref == NULL) {
+            NSLog(@"HotKey Layout: Failed to move hotkey: %d", (int) status);
+            return;
+        }
+        UnregisterEventHotKey(entry.ref);
+        entry.ref = hotkey_ref;
+        entry.keyCode = key_code;
+        entry.pressed = NO;
+    }];
+    if (source != NULL) {
+        CFRelease(source);
+    }
+}
+
+static void kg_on_input_source_changed(
+        CFNotificationCenterRef _center,
+        void *_observer,
+        CFNotificationName _name,
+        const void *_object,
+        CFDictionaryRef _user_info
+) {
+    (void) _center;
+    (void) _observer;
+    (void) _name;
+    (void) _object;
+    (void) _user_info;
+    kg_enqueue_on_main(^{
+        kg_hotkey_refresh_layout();
+    });
+}
+
+static void kg_observe_input_source_changes(void) {
+    static bool observing = false;
+    if (observing) {
+        return;
+    }
+
+    observing = true;
+    CFNotificationCenterAddObserver(
+            CFNotificationCenterGetDistributedCenter(),
+            NULL,
+            &kg_on_input_source_changed,
+            kTISNotifySelectedKeyboardInputSourceChanged,
+            NULL,
+            CFNotificationSuspensionBehaviorDeliverImmediately
+    );
+}
+
+static int32_t kg_register_global_hotkey_inner(
+        uint32_t native_key_code,
         uint32_t modifiers,
         kg_hotkey_callback_t callback
 ) {
@@ -291,20 +450,15 @@ static int32_t kg_register_global_hotkey_inner(
         return KGNativeInternalError;
     }
 
+    const unichar character = (unichar) (native_key_code >> 16);
+    const uint32_t fallback_key_code = native_key_code & 0xFFFF;
+    const uint32_t key_code = character == 0
+            ? fallback_key_code
+            : kg_hotkey_key_code_for_character(character, fallback_key_code);
+
     const int32_t hotkey_id = kg_hotkey_next_id++;
-    const EventHotKeyID event_hotkey_id = {
-            .signature = KGHotKeySignature,
-            .id = (UInt32) hotkey_id,
-    };
     EventHotKeyRef hotkey_ref = NULL;
-    const OSStatus status = RegisterEventHotKey(
-            key_code,
-            modifiers,
-            event_hotkey_id,
-            GetApplicationEventTarget(),
-            0,
-            &hotkey_ref
-    );
+    const OSStatus status = kg_register_event_hotkey(hotkey_id, key_code, modifiers, &hotkey_ref);
     if (status != noErr || hotkey_ref == NULL) {
         NSLog(@"HotKey Register: Failed to register hotkey: %d", (int) status);
         return KGHotKeyUnavailable;
@@ -314,7 +468,14 @@ static int32_t kg_register_global_hotkey_inner(
     entry.ref = hotkey_ref;
     entry.callback = callback;
     entry.pressed = NO;
+    entry.keyCode = key_code;
+    entry.modifiers = modifiers;
+    entry.character = character;
+    entry.fallbackKeyCode = fallback_key_code;
     kg_hotkey_registry()[@(hotkey_id)] = entry;
+    if (character != 0) {
+        kg_observe_input_source_changes();
+    }
     return hotkey_id;
 }
 

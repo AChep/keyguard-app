@@ -8,6 +8,8 @@ import com.artemchep.keyguard.common.service.extract.PlatformLinkInfoExtractorRe
 import com.artemchep.keyguard.common.service.logging.PlatformLogSinkRegistry
 import com.artemchep.keyguard.common.service.logging.inmemory.InMemoryLogRepository
 import com.artemchep.keyguard.common.service.logging.kotlin.LogRepositoryKotlin
+import com.artemchep.keyguard.common.service.shortcut.DesktopGlobalShortcutController
+import com.artemchep.keyguard.common.service.shortcut.GlobalShortcutController
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.createDesktopKoinApplication
@@ -37,6 +39,7 @@ class DesktopKoinGraphTest {
             assertSame(koin.get<LogRepositoryKotlin>(), koin.get<PlatformLogSinkRegistry>().values.single())
             assertSame(AndroidIpcRegistrationServiceNone, koin.get<AndroidIpcRegistrationService>())
             assertSame(VaultRouteFactoryDefault, koin.get<VaultRouteFactory>())
+            assertSame(koin.get<DesktopGlobalShortcutController>(), koin.get<GlobalShortcutController>())
             assertTrue(koin.get<PlatformLinkInfoExtractorRegistry>().values.isEmpty())
             assertNotNull(koin.get<CoroutineDispatcher>(named<DatabaseDispatcher>()))
             assertFailsWith<NoDefinitionFoundException> { koin.get<GetCiphers>() }

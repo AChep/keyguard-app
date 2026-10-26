@@ -2705,4 +2705,20 @@
     <string name="cli_approval_working_directory">In <xliff:g id="directory" example="/home/user/project">%1$s</xliff:g></string>
     <string name="cli_approval_run_note">Only this command and the processes it starts receive the values.</string>
     <string name="cli_approval_run_terminal_note">Later commands from this terminal tab run without asking until the approval expires or the vault locks. Anything running in this tab can use the approval, including coding agents.</string>
+
+    <string name="keyboard_shortcuts_title">Keyboard shortcuts</string>
+    <string name="keyboard_shortcuts_action_quick_search">Quick search</string>
+    <string name="keyboard_shortcuts_status_active">Active</string>
+    <string name="keyboard_shortcuts_status_recording">Paused while recording</string>
+    <string name="keyboard_shortcuts_recorder_hint">Press a shortcut…</string>
+    <!-- Accessibility label of the button that shows an action's shortcut -->
+    <string name="keyboard_shortcuts_binding_label"><xliff:g id="action" example="Quick search">%1$s</xliff:g> shortcut</string>
+    <string name="keyboard_shortcuts_error_duplicate">Already used by <xliff:g id="action" example="Lock vault">%1$s</xliff:g>. Choose another shortcut or turn off that action.</string>
+    <string name="keyboard_shortcuts_error_invalid">Use a supported key with a modifier other than Shift.</string>
+    <string name="keyboard_shortcuts_error_unsupported_platform">Global shortcuts are not supported on this platform.</string>
+    <string name="keyboard_shortcuts_error_unsupported_session">Global shortcuts need an X11 session.</string>
+    <string name="keyboard_shortcuts_error_unavailable">This shortcut is unavailable. Another app may be using it.</string>
+    <string name="keyboard_shortcuts_error_registration">Could not register the shortcut. Try again.</string>
+    <string name="keyboard_shortcuts_error_persistence">Could not save the shortcut. Try again.</string>
+    <string name="keyboard_shortcuts_error_persistence_restoration">Could not save the shortcut or undo the change. Restart Keyguard, then check your shortcuts.</string>
 </resources>

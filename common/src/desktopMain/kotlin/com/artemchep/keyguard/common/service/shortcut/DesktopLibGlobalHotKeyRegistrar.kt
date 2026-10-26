@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.common.service.quicksearch
+package com.artemchep.keyguard.common.service.shortcut
 
 import com.artemchep.autotype.GlobalHotKeyRegistrationResult
 import com.artemchep.autotype.GlobalHotKeyRegistrationFailureReason

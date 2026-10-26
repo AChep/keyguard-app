@@ -11,6 +11,8 @@ use std::thread;
     path = "hotkey/stub.rs"
 )]
 mod imp;
+#[cfg(any(test, target_os = "linux", target_os = "windows"))]
+mod worker;
 
 #[allow(unused_imports)]
 pub(crate) use crate::ffi::{REGISTER_STATUS_INTERNAL_ERROR, REGISTER_STATUS_UNSUPPORTED_PLATFORM};
@@ -38,12 +40,6 @@ struct CallbackInvocation {
 #[allow(dead_code)]
 enum CallbackMessage {
     Invoke(CallbackInvocation),
-}
-
-#[allow(dead_code)]
-pub(crate) enum UnregisterResponse {
-    Removed(CallbackRegistration),
-    Unchanged,
 }
 
 #[allow(dead_code)]
@@ -110,6 +106,14 @@ impl CallbackRegistration {
         lifecycle.retired = true;
     }
 
+    fn is_active(&self) -> bool {
+        self.state
+            .lifecycle
+            .lock()
+            .expect("hotkey callback lifecycle mutex poisoned")
+            .active
+    }
+
     fn wait_until_idle(&self) {
         let mut lifecycle = self
             .state
@@ -157,6 +161,8 @@ impl CallbackDispatcher {
                                 (invocation.registration.callback)(invocation.id);
                             }
                             invocation.registration.finish_invoke();
+                            #[cfg(any(test, target_os = "linux", target_os = "windows"))]
+                            worker::callback_finished(invocation.id, &invocation.registration);
                         }
                     }
                 }
@@ -179,22 +185,10 @@ impl CallbackDispatcher {
             .get()
             .is_some_and(|thread_id| *thread_id == thread::current().id())
     }
-
-    pub(crate) fn complete_unregister(&self, response: UnregisterResponse) -> bool {
-        match response {
-            UnregisterResponse::Removed(registration) => {
-                if !self.is_current_thread() {
-                    registration.wait_until_idle();
-                }
-                true
-            }
-            UnregisterResponse::Unchanged => false,
-        }
-    }
 }
 
 #[allow(dead_code)]
-pub(crate) fn with_restartable_thread<T: Clone, R>(
+pub(crate) fn with_restartable_thread<T: Clone + PartialEq, R>(
     slot: &Mutex<Option<T>>,
     mut start: impl FnMut() -> Result<T, i32>,
     mut operation: impl FnMut(&T) -> Option<R>,
@@ -213,7 +207,9 @@ pub(crate) fn with_restartable_thread<T: Clone, R>(
         }
 
         let mut guard = slot.lock().expect("hotkey thread slot mutex poisoned");
-        *guard = None;
+        if guard.as_ref() == Some(&thread) {
+            *guard = None;
+        }
         if attempt == 1 {
             return Err(REGISTER_STATUS_INTERNAL_ERROR);
         }
@@ -227,13 +223,20 @@ pub(crate) fn register(key_code: u32, modifiers: u32, callback: HotKeyPressedCal
 }
 
 pub(crate) fn unregister(id: i32) -> bool {
-    imp::unregister(id)
+    #[cfg(any(target_os = "linux", target_os = "windows"))]
+    {
+        worker::unregister(id, |owner| imp::unregister(id, owner))
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "windows")))]
+    {
+        imp::unregister(id)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::{
-        with_restartable_thread, CallbackDispatcher, CallbackRegistration, UnregisterResponse,
+        with_restartable_thread, CallbackDispatcher, CallbackRegistration,
         REGISTER_STATUS_INTERNAL_ERROR, REGISTER_STATUS_INVALID_SHORTCUT,
         REGISTER_STATUS_UNAVAILABLE, REGISTER_STATUS_UNSUPPORTED_PLATFORM,
         REGISTER_STATUS_UNSUPPORTED_SESSION,
@@ -244,26 +247,8 @@ mod tests {
     use std::thread;
     use std::time::Duration;
 
-    struct TestUnregisterRequest {
-        response_tx: mpsc::Sender<UnregisterResponse>,
-        processed_tx: Option<mpsc::SyncSender<()>>,
-    }
-
-    struct ReentrantUnregisterContext {
-        entered_tx: mpsc::SyncSender<()>,
-        proceed_rx: mpsc::Receiver<()>,
-        command_tx: mpsc::Sender<TestUnregisterRequest>,
-        dispatcher: CallbackDispatcher,
-        result_tx: mpsc::SyncSender<bool>,
-    }
-
     static CALLBACK_SENDER: Mutex<Option<mpsc::Sender<String>>> = Mutex::new(None);
     static BLOCKING_CALLBACK: Mutex<Option<(mpsc::SyncSender<()>, mpsc::Receiver<()>)>> =
-        Mutex::new(None);
-    static REENTRANT_DISPATCHER: Mutex<Option<CallbackDispatcher>> = Mutex::new(None);
-    static REENTRANT_REGISTRATION: Mutex<Option<CallbackRegistration>> = Mutex::new(None);
-    static CALLBACK_ID_SENDER: Mutex<Option<mpsc::Sender<i32>>> = Mutex::new(None);
-    static REENTRANT_UNREGISTER_CONTEXT: Mutex<Option<ReentrantUnregisterContext>> =
         Mutex::new(None);
 
     unsafe extern "C" fn record_callback_thread(_id: i32) {
@@ -287,63 +272,6 @@ mod tests {
         };
         let _ = entered_tx.send(());
         let _ = release_rx.recv();
-    }
-
-    unsafe extern "C" fn retire_from_callback(id: i32) {
-        let dispatcher = REENTRANT_DISPATCHER
-            .lock()
-            .expect("reentrant dispatcher mutex poisoned")
-            .as_ref()
-            .expect("reentrant dispatcher missing")
-            .clone();
-        let registration = REENTRANT_REGISTRATION
-            .lock()
-            .expect("reentrant registration mutex poisoned")
-            .as_ref()
-            .expect("reentrant registration missing")
-            .clone();
-        registration.retire();
-        let success = dispatcher.complete_unregister(UnregisterResponse::Removed(registration));
-        if let Some(tx) = CALLBACK_ID_SENDER
-            .lock()
-            .expect("callback id sender mutex poisoned")
-            .as_ref()
-        {
-            let _ = tx.send(if success { -id } else { id });
-        }
-    }
-
-    unsafe extern "C" fn unregister_via_command_worker(_id: i32) {
-        let Some(context) = REENTRANT_UNREGISTER_CONTEXT
-            .lock()
-            .expect("reentrant unregister context mutex poisoned")
-            .take()
-        else {
-            return;
-        };
-        let _ = context.entered_tx.send(());
-        let _ = context.proceed_rx.recv();
-
-        let (response_tx, response_rx) = mpsc::channel();
-        let request = TestUnregisterRequest {
-            response_tx,
-            processed_tx: None,
-        };
-        let success = context.command_tx.send(request).is_ok()
-            && response_rx
-                .recv()
-                .is_ok_and(|response| context.dispatcher.complete_unregister(response));
-        let _ = context.result_tx.send(success);
-    }
-
-    unsafe extern "C" fn record_callback_id(id: i32) {
-        if let Some(tx) = CALLBACK_ID_SENDER
-            .lock()
-            .expect("callback id sender mutex poisoned")
-            .as_ref()
-        {
-            let _ = tx.send(id);
-        }
     }
 
     #[test]
@@ -396,6 +324,25 @@ mod tests {
         );
 
         assert_eq!(Ok(2), result);
+    }
+
+    #[test]
+    fn failed_old_operation_does_not_discard_a_replacement_worker() {
+        let slot = Mutex::new(Some(1));
+        let result = with_restartable_thread(
+            &slot,
+            || panic!("replacement already exists"),
+            |worker| {
+                if *worker == 1 {
+                    *slot.lock().unwrap() = Some(2);
+                    None
+                } else {
+                    Some(*worker)
+                }
+            },
+        );
+        assert_eq!(Ok(2), result);
+        assert_eq!(Some(2), *slot.lock().unwrap());
     }
 
     #[test]
@@ -472,132 +419,6 @@ mod tests {
             .recv_timeout(Duration::from_secs(1))
             .expect("callback registration did not become idle");
         wait_thread.join().expect("wait thread panicked");
-    }
-
-    #[test]
-    fn reentrant_retirement_skips_queued_invocations_without_waiting() {
-        let dispatcher =
-            CallbackDispatcher::start("keyguard-hotkey-reentrant-test").expect("dispatcher");
-        let (tx, rx) = mpsc::channel();
-        *CALLBACK_ID_SENDER
-            .lock()
-            .expect("callback id sender mutex poisoned") = Some(tx);
-
-        let reentrant_registration = CallbackRegistration::new(Some(retire_from_callback))
-            .expect("reentrant callback registration");
-        *REENTRANT_DISPATCHER
-            .lock()
-            .expect("reentrant dispatcher mutex poisoned") = Some(dispatcher.clone());
-        *REENTRANT_REGISTRATION
-            .lock()
-            .expect("reentrant registration mutex poisoned") = Some(reentrant_registration.clone());
-        assert!(dispatcher.dispatch(&reentrant_registration, 7));
-        assert_eq!(
-            -7,
-            rx.recv_timeout(Duration::from_secs(1))
-                .expect("reentrant callback deadlocked"),
-        );
-
-        assert!(dispatcher.dispatch(&reentrant_registration, 7));
-        let live_registration = CallbackRegistration::new(Some(record_callback_id))
-            .expect("live callback registration");
-        assert!(dispatcher.dispatch(&live_registration, 8));
-        assert_eq!(
-            8,
-            rx.recv_timeout(Duration::from_secs(1))
-                .expect("live callback was not dispatched"),
-        );
-
-        *REENTRANT_REGISTRATION
-            .lock()
-            .expect("reentrant registration mutex poisoned") = None;
-        *REENTRANT_DISPATCHER
-            .lock()
-            .expect("reentrant dispatcher mutex poisoned") = None;
-        *CALLBACK_ID_SENDER
-            .lock()
-            .expect("callback id sender mutex poisoned") = None;
-    }
-
-    #[test]
-    fn external_unregister_wait_does_not_block_reentrant_worker_command() {
-        let dispatcher =
-            CallbackDispatcher::start("keyguard-hotkey-deadlock-test").expect("dispatcher");
-        let registration = CallbackRegistration::new(Some(unregister_via_command_worker))
-            .expect("callback registration");
-        let (command_tx, command_rx) = mpsc::channel::<TestUnregisterRequest>();
-        let registration_worker = registration.clone();
-        let worker_thread = thread::spawn(move || {
-            let mut registration = Some(registration_worker);
-            while let Ok(request) = command_rx.recv() {
-                let response = match registration.take() {
-                    Some(registration) => {
-                        registration.retire();
-                        UnregisterResponse::Removed(registration)
-                    }
-                    None => UnregisterResponse::Unchanged,
-                };
-                let _ = request.response_tx.send(response);
-                if let Some(processed_tx) = request.processed_tx {
-                    let _ = processed_tx.send(());
-                }
-            }
-        });
-
-        let (entered_tx, entered_rx) = mpsc::sync_channel(1);
-        let (proceed_tx, proceed_rx) = mpsc::sync_channel(1);
-        let (callback_result_tx, callback_result_rx) = mpsc::sync_channel(1);
-        *REENTRANT_UNREGISTER_CONTEXT
-            .lock()
-            .expect("reentrant unregister context mutex poisoned") =
-            Some(ReentrantUnregisterContext {
-                entered_tx,
-                proceed_rx,
-                command_tx: command_tx.clone(),
-                dispatcher: dispatcher.clone(),
-                result_tx: callback_result_tx,
-            });
-
-        assert!(dispatcher.dispatch(&registration, 7));
-        entered_rx
-            .recv_timeout(Duration::from_secs(1))
-            .expect("callback did not start");
-
-        let (response_tx, response_rx) = mpsc::channel();
-        let (processed_tx, processed_rx) = mpsc::sync_channel(1);
-        command_tx
-            .send(TestUnregisterRequest {
-                response_tx,
-                processed_tx: Some(processed_tx),
-            })
-            .expect("external unregister request failed");
-        let dispatcher_external = dispatcher.clone();
-        let (external_result_tx, external_result_rx) = mpsc::sync_channel(1);
-        let external_thread = thread::spawn(move || {
-            let response = response_rx.recv().expect("unregister response missing");
-            let result = dispatcher_external.complete_unregister(response);
-            let _ = external_result_tx.send(result);
-        });
-
-        processed_rx
-            .recv_timeout(Duration::from_secs(1))
-            .expect("worker did not retire the callback");
-        assert_eq!(
-            Err(mpsc::TryRecvError::Empty),
-            external_result_rx.try_recv(),
-        );
-
-        proceed_tx.send(()).expect("release reentrant callback");
-        assert!(!callback_result_rx
-            .recv_timeout(Duration::from_secs(1))
-            .expect("reentrant unregister command deadlocked"));
-        assert!(external_result_rx
-            .recv_timeout(Duration::from_secs(1))
-            .expect("external unregister did not finish"));
-
-        external_thread.join().expect("external thread panicked");
-        drop(command_tx);
-        worker_thread.join().expect("worker thread panicked");
     }
 
     #[test]

@@ -146,7 +146,7 @@ export function mountPurchase(root: HTMLElement): void {
         retry.hidden = true;
         licenseKey.value = result.licenseKey;
         license.hidden = false;
-        status('Your lifetime license is ready', 'Copy or download your key now. It is not sent by email.');
+        status('', '');
       } else if (result.status === 'pending') {
         resume.hidden = !(canResume && config.enabled && !session.paymentSubmitted);
         scheduleCheck();
@@ -321,7 +321,7 @@ export function mountPurchase(root: HTMLElement): void {
   element<HTMLButtonElement>('[data-copy]').addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(licenseKey.value);
-      copyStatus.textContent = 'Key copied. Save it in a secure place.';
+      copyStatus.textContent = '';
     } catch {
       licenseKey.focus();
       licenseKey.select();

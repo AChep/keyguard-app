@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.download.DownloadWriter
 import com.artemchep.keyguard.common.service.download.awaitCompleteResult
 import com.artemchep.keyguard.common.service.download.writeBytes
 import com.artemchep.keyguard.common.service.export.impl.ExportManagerBase
+import com.artemchep.keyguard.common.service.export.model.ExportFormat
 import com.artemchep.keyguard.common.service.export.model.ExportRequest
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.usecase.DateFormatter
@@ -94,6 +95,77 @@ class ExportManagerTest {
             assertNull(manager.getProgressFlowByExportId(result.exportId).first())
             // A late subscriber still sees completion after the pool entry is removed.
             assertEquals("file:///export.zip", result.flow.awaitCompleteResult().getOrNull())
+        } finally {
+            windowJob.cancelAndJoin()
+        }
+    }
+
+    @Test
+    fun kdbxExportUsesKdbxFileAndLoadsAttachments() = runBlocking {
+        val windowJob = Job()
+        val window = object : WindowCoroutineScope {
+            override val coroutineContext = windowJob + Dispatchers.Default
+        }
+        val output = Buffer()
+        val kdbx = object : KdbxExportService {
+            override suspend fun export(
+                sink: Sink,
+                password: String,
+                data: ExportVaultData,
+                loadAttachment: KdbxAttachmentLoader?,
+            ) {
+                val loader = assertNotNull(loadAttachment)
+                val cipher = data.ciphers.single()
+                val content = Buffer()
+                loader.load(cipher, cipher.attachments.single(), content)
+                sink.write("$password:".encodeToByteArray() + content.readByteArray())
+            }
+        }
+        val manager = manager(window, object : DirsService {
+            override fun saveToDownloads(fileName: String, write: suspend (Sink) -> Unit) = ioEffect {
+                assertEquals("keyguard_export_test.kdbx", fileName)
+                write(output)
+                "file:///export.kdbx"
+            }
+        }, kdbx = kdbx) {}
+        try {
+            val request = ExportRequest(DFilter.All, "secret", true, ExportFormat.Kdbx)
+            val result = manager.queue(request)
+            assertEquals("file:///export.kdbx", withTimeout(5000) { result.flow.awaitCompleteResult() }.getOrNull())
+            assertEquals("secret:attachment bytes", output.readString())
+        } finally {
+            windowJob.cancelAndJoin()
+        }
+    }
+
+    @Test
+    fun kdbxExportWithoutAttachmentsHasNoAttachmentLoader() = runBlocking {
+        val windowJob = Job()
+        val window = object : WindowCoroutineScope {
+            override val coroutineContext = windowJob + Dispatchers.Default
+        }
+        var loaderProvided: Boolean? = null
+        val kdbx = object : KdbxExportService {
+            override suspend fun export(
+                sink: Sink,
+                password: String,
+                data: ExportVaultData,
+                loadAttachment: KdbxAttachmentLoader?,
+            ) {
+                loaderProvided = loadAttachment != null
+            }
+        }
+        val manager = manager(window, object : DirsService {
+            override fun saveToDownloads(fileName: String, write: suspend (Sink) -> Unit) = ioEffect {
+                write(Buffer())
+                "file:///export.kdbx"
+            }
+        }, kdbx = kdbx) {}
+        try {
+            val request = ExportRequest(DFilter.All, "secret", false, ExportFormat.Kdbx)
+            val result = manager.queue(request)
+            assertEquals("file:///export.kdbx", withTimeout(5000) { result.flow.awaitCompleteResult() }.getOrNull())
+            assertEquals(false, loaderProvided)
         } finally {
             windowJob.cancelAndJoin()
         }
@@ -213,6 +285,7 @@ class ExportManagerTest {
     private fun manager(
         window: WindowCoroutineScope,
         dirs: DirsService,
+        kdbx: KdbxExportService = stub { error("Must not export a KDBX file") },
         onFilter: (DFilter) -> Unit,
     ): ExportManagerBase {
         val lockerScope = CoroutineScope(window.coroutineContext)
@@ -237,6 +310,7 @@ class ExportManagerTest {
                 }
                 override fun exportJson(data: ExportVaultData) = "{\"items\":[]}"
             },
+            kdbxExportService = kdbx,
             dirsService = dirs,
             zipService = createZipService(),
             dateFormatter = stub<DateFormatter> { "test" },

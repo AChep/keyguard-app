@@ -2881,6 +2881,10 @@ public enum L10n {
     public static var exportaccountAttachmentsNote: String {
         String(localized: "exportaccount_attachments_note", bundle: AppLocalization.shared.bundle)
     }
+    /// exportaccount_confirm_password_label
+    public static var exportaccountConfirmPasswordLabel: String {
+        String(localized: "exportaccount_confirm_password_label", bundle: AppLocalization.shared.bundle)
+    }
     /// exportaccount_export_button
     public static var exportaccountExportButton: String {
         String(localized: "exportaccount_export_button", bundle: AppLocalization.shared.bundle)
@@ -2897,9 +2901,25 @@ public enum L10n {
     public static var exportaccountExportSuccess: String {
         String(localized: "exportaccount_export_success", bundle: AppLocalization.shared.bundle)
     }
+    /// exportaccount_format_kdbx
+    public static var exportaccountFormatKdbx: String {
+        String(localized: "exportaccount_format_kdbx", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_format_kdbx_note
+    public static var exportaccountFormatKdbxNote: String {
+        String(localized: "exportaccount_format_kdbx_note", bundle: AppLocalization.shared.bundle)
+    }
     /// exportaccount_format_note
     public static var exportaccountFormatNote: String {
         String(localized: "exportaccount_format_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_format_title
+    public static var exportaccountFormatTitle: String {
+        String(localized: "exportaccount_format_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_format_zip
+    public static var exportaccountFormatZip: String {
+        String(localized: "exportaccount_format_zip", bundle: AppLocalization.shared.bundle)
     }
     /// exportaccount_header_title
     public static var exportaccountHeaderTitle: String {
@@ -2909,9 +2929,61 @@ public enum L10n {
     public static var exportaccountIncludeAttachmentsTitle: String {
         String(localized: "exportaccount_include_attachments_title", bundle: AppLocalization.shared.bundle)
     }
+    /// exportaccount_kdbx_attachment_too_large
+    public static var exportaccountKdbxAttachmentTooLarge: String {
+        String(localized: "exportaccount_kdbx_attachment_too_large", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_kdbx_attachments_note
+    public static var exportaccountKdbxAttachmentsNote: String {
+        String(localized: "exportaccount_kdbx_attachments_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_kdbx_confirm_password_label
+    public static var exportaccountKdbxConfirmPasswordLabel: String {
+        String(localized: "exportaccount_kdbx_confirm_password_label", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_kdbx_password_label
+    public static var exportaccountKdbxPasswordLabel: String {
+        String(localized: "exportaccount_kdbx_password_label", bundle: AppLocalization.shared.bundle)
+    }
     /// exportaccount_password_label
     public static var exportaccountPasswordLabel: String {
         String(localized: "exportaccount_password_label", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_review_attachments_enabled
+    public static func exportaccountReviewAttachmentsEnabled(_ a1: String) -> String {
+        String(format: String(localized: "exportaccount_review_attachments_enabled", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// exportaccount_wizard_format_detail
+    public static var exportaccountWizardFormatDetail: String {
+        String(localized: "exportaccount_wizard_format_detail", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_wizard_format_title
+    public static var exportaccountWizardFormatTitle: String {
+        String(localized: "exportaccount_wizard_format_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_wizard_items_detail
+    public static var exportaccountWizardItemsDetail: String {
+        String(localized: "exportaccount_wizard_items_detail", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_wizard_items_title
+    public static var exportaccountWizardItemsTitle: String {
+        String(localized: "exportaccount_wizard_items_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_wizard_password_detail
+    public static var exportaccountWizardPasswordDetail: String {
+        String(localized: "exportaccount_wizard_password_detail", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_wizard_password_title
+    public static var exportaccountWizardPasswordTitle: String {
+        String(localized: "exportaccount_wizard_password_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_wizard_review_detail
+    public static var exportaccountWizardReviewDetail: String {
+        String(localized: "exportaccount_wizard_review_detail", bundle: AppLocalization.shared.bundle)
+    }
+    /// exportaccount_wizard_review_title
+    public static var exportaccountWizardReviewTitle: String {
+        String(localized: "exportaccount_wizard_review_title", bundle: AppLocalization.shared.bundle)
     }
     /// feat_header_title
     public static var featHeaderTitle: String {
@@ -10021,6 +10093,14 @@ public enum L10n {
     public static func emailleakBreachAccountsCountPlural(_ count: Int) -> String {
         String(
             format: NSLocalizedString("emailleak_breach_accounts_count_plural", bundle: AppLocalization.shared.bundle, comment: ""),
+            locale: AppLocalization.shared.locale,
+            count
+        )
+    }
+    /// exportaccount_items_count_plural (plural)
+    public static func exportaccountItemsCountPlural(_ count: Int) -> String {
+        String(
+            format: NSLocalizedString("exportaccount_items_count_plural", bundle: AppLocalization.shared.bundle, comment: ""),
             locale: AppLocalization.shared.locale,
             count
         )

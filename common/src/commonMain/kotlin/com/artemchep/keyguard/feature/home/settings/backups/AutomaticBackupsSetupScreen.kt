@@ -1,56 +1,19 @@
 package com.artemchep.keyguard.feature.home.settings.backups
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.semantics.heading
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.service.backup.BackupStoreConfig
 import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
-import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
-import com.artemchep.keyguard.ui.ScaffoldLazyColumn
-import com.artemchep.keyguard.ui.scaffoldContentWindowInsets
-import com.artemchep.keyguard.ui.screenMaxWidthCompact
-import com.artemchep.keyguard.ui.theme.Dimens
-import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
+import com.artemchep.keyguard.ui.wizard.WizardBackButton
+import com.artemchep.keyguard.ui.wizard.WizardBottomBar
+import com.artemchep.keyguard.ui.wizard.WizardHeader
+import com.artemchep.keyguard.ui.wizard.WizardScaffold
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -65,75 +28,33 @@ internal fun AutomaticBackupsSetupScreen() {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun AutomaticBackupsSetupContent(state: AutomaticBackupsSetupState?) {
-    val scrollBehavior = ToolbarBehavior.behavior()
-    val step = state?.data?.step
-    val listState = remember(step) { LazyListState() }
-    ScaffoldLazyColumn(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        expressive = true,
-        topAppBarScrollBehavior = scrollBehavior,
-        listState = listState,
-        topBar = {
-            LargeToolbar(
-                title = { Text(stringResource(Res.string.pref_item_automatic_backups_wizard_title)) },
-                navigationIcon = { BackupSetupBackButton(state) },
-                scrollBehavior = scrollBehavior,
+    WizardScaffold(
+        title = stringResource(Res.string.pref_item_automatic_backups_wizard_title),
+        step = state?.data?.step,
+        navigationIcon = {
+            WizardBackButton(
+                onBack = state?.onBack,
+                enabled = state?.data?.isSaving != true,
             )
         },
         bottomBar = {
             if (state != null) BackupSetupBottomBar(state)
         },
-    ) {
-        item("setup") {
-            BackupSetupColumn {
-                if (state == null) {
-                    KeyguardLoadingIndicator(modifier = Modifier.align(Alignment.CenterHorizontally))
-                } else {
-                    Crossfade(
-                        targetState = state.data.step,
-                        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-                        label = "backup_setup_step",
-                    ) { currentStep ->
-                        Column(verticalArrangement = Arrangement.spacedBy(Dimens.verticalPadding)) {
-                            BackupSetupHeader(currentStep)
-                            when (currentStep) {
-                                BackupSetupStep.Destination -> BackupSetupDestination(state)
-                                BackupSetupStep.Protection -> BackupSetupProtection(state)
-                                BackupSetupStep.Contents -> BackupSetupContents(state)
-                                BackupSetupStep.Review -> BackupSetupReview(state)
-                            }
-                        }
-                    }
-                }
+    ) { step ->
+        if (state != null) {
+            BackupSetupHeader(step)
+            when (step) {
+                BackupSetupStep.Destination -> BackupSetupDestination(state)
+                BackupSetupStep.Protection -> BackupSetupProtection(state)
+                BackupSetupStep.Contents -> BackupSetupContents(state)
+                BackupSetupStep.Review -> BackupSetupReview(state)
             }
         }
     }
     if (state?.data?.confirmingDiscard == true) {
         BackupSetupDiscardDialog(state)
-    }
-}
-
-@Composable
-private fun BackupSetupBackButton(state: AutomaticBackupsSetupState?) {
-    val focusManager = LocalFocusManager.current
-    if (state == null) {
-        NavigationIcon()
-    } else {
-        IconButton(
-            enabled = !state.data.isSaving,
-            onClick = {
-                focusManager.clearFocus()
-                state.onBack()
-            },
-        ) {
-            Icon(
-                Icons.AutoMirrored.Outlined.ArrowBack,
-                contentDescription = stringResource(Res.string.additem_key_generator_back_title),
-            )
-        }
     }
 }
 
@@ -155,50 +76,20 @@ private fun BackupSetupDiscardDialog(state: AutomaticBackupsSetupState) {
 }
 
 @Composable
-private fun BackupSetupColumn(content: @Composable ColumnScope.() -> Unit) {
-    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.TopCenter) {
-        Column(
-            modifier = Modifier.widthIn(max = screenMaxWidthCompact).fillMaxWidth()
-                .padding(vertical = Dimens.verticalPadding),
-            content = content,
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
 private fun BackupSetupBottomBar(state: AutomaticBackupsSetupState) {
-    val focusManager = LocalFocusManager.current
-    Surface {
-        Box(
-            modifier = Modifier.fillMaxWidth().windowInsetsPadding(
-                scaffoldContentWindowInsets.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
-            ),
-        ) {
-            BackupSetupColumn {
-                Button(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = Dimens.fieldHorizontalPadding),
-                    shapes = ButtonDefaults.shapes(),
-                    enabled = state.onContinue != null,
-                    onClick = {
-                        focusManager.clearFocus()
-                        state.onContinue?.invoke()
-                    },
-                ) {
-                    if (state.data.isSaving) {
-                        KeyguardLoadingIndicator(modifier = Modifier.size(ButtonDefaults.IconSize))
-                        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
-                    }
-                    Text(stringResource(when {
-                        state.data.isSaving -> Res.string.pref_item_automatic_backups_wizard_verifying_status
-                        state.data.step == BackupSetupStep.Review ->
-                            Res.string.pref_item_automatic_backups_enable_button
-                        else -> Res.string.continue_
-                    }))
-                }
-            }
-        }
-    }
+    val text = stringResource(
+        when {
+            state.data.isSaving -> Res.string.pref_item_automatic_backups_wizard_verifying_status
+            state.data.step == BackupSetupStep.Review ->
+                Res.string.pref_item_automatic_backups_enable_button
+            else -> Res.string.continue_
+        },
+    )
+    WizardBottomBar(
+        text = text,
+        onClick = state.onContinue,
+        loading = state.data.isSaving,
+    )
 }
 
 @Composable
@@ -215,34 +106,12 @@ private fun BackupSetupHeader(step: BackupSetupStep) {
         BackupSetupStep.Contents -> Res.string.pref_item_automatic_backups_wizard_contents_detail
         BackupSetupStep.Review -> Res.string.pref_item_automatic_backups_wizard_review_detail
     }
-    Column(
-        modifier = Modifier.padding(horizontal = Dimens.textHorizontalPadding),
-        verticalArrangement = Arrangement.spacedBy(Dimens.verticalPadding),
-    ) {
-        Text(
-            text = stringResource(
-                Res.string.pref_item_automatic_backups_wizard_step_label,
-                step.ordinal + 1,
-                BackupSetupStep.entries.size,
-            ),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-        )
-        LinearProgressIndicator(
-            modifier = Modifier.fillMaxWidth(),
-            progress = { (step.ordinal + 1).toFloat() / BackupSetupStep.entries.size },
-        )
-        Text(
-            modifier = Modifier.semantics { heading() },
-            text = stringResource(title),
-            style = MaterialTheme.typography.headlineMedium,
-        )
-        Text(
-            text = stringResource(detail),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+    WizardHeader(
+        stepNumber = step.ordinal + 1,
+        stepCount = BackupSetupStep.entries.size,
+        title = stringResource(title),
+        detail = stringResource(detail),
+    )
 }
 
 @Composable

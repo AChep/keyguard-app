@@ -834,6 +834,10 @@ internal class NavigationStackController(
         entry(instanceId)?.exportState?.passwordFlow?.value?.model?.onChange?.invoke(text)
     }
 
+    fun setExportConfirmationPassword(instanceId: Long, text: String) = onMain {
+        entry(instanceId)?.exportState?.confirmationPasswordFlow?.value?.model?.onChange?.invoke(text)
+    }
+
     fun popScreen(scope: String) = onMain {
         val entry = stacks[scope]?.removeLastOrNull() ?: return@onMain
         entry.release()

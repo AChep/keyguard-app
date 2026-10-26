@@ -1096,6 +1096,9 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setExportPassword(instanceId: Long, text: String) =
         navigationStackController.setExportPassword(instanceId, text)
 
+    fun setExportConfirmationPassword(instanceId: Long, text: String) =
+        navigationStackController.setExportConfirmationPassword(instanceId, text)
+
     fun pushCollectionsList(accountId: String, organizationId: String?, title: String) =
         navigationStackController.pushCollectionsList(accountId, organizationId, title)
 

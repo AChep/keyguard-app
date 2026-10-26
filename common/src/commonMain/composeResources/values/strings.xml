@@ -1692,8 +1692,26 @@
     <string name="exportaccount_header_title">Export items</string>
     <string name="exportaccount_password_label">Archive password</string>
     <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
+    <string name="exportaccount_format_title">Format</string>
+    <string name="exportaccount_format_zip">ZIP archive</string>
+    <string name="exportaccount_format_kdbx">KeePass database (KDBX)</string>
+    <string name="exportaccount_kdbx_password_label">Database password</string>
+    <string name="exportaccount_format_kdbx_note">Export vault as a KeePass database. Folders become groups. Organizations and collections are not exported.</string>
+    <string name="exportaccount_kdbx_attachment_too_large">An attachment is too large for a KeePass database. Export as a ZIP archive or without attachments.</string>
     <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_kdbx_attachments_note">Vault will be kept unlocked during the export process. The attachments are stored in the database. The attachments are never stored in an unencrypted form in the process.</string>
     <string name="exportaccount_include_attachments_title">Export attachments</string>
+    <string name="exportaccount_confirm_password_label">Confirm archive password</string>
+    <string name="exportaccount_kdbx_confirm_password_label">Confirm database password</string>
+    <string name="exportaccount_wizard_format_title">Choose a format</string>
+    <string name="exportaccount_wizard_format_detail">Pick a file type that the app you are moving to can import.</string>
+    <string name="exportaccount_wizard_items_title">Choose items</string>
+    <string name="exportaccount_wizard_items_detail">Use the filters to choose which items to export.</string>
+    <string name="exportaccount_wizard_password_title">Protect the file</string>
+    <string name="exportaccount_wizard_password_detail">Keyguard encrypts the file with this password. You need it to open the file.</string>
+    <string name="exportaccount_wizard_review_title">Review the export</string>
+    <string name="exportaccount_wizard_review_detail">Check your choices, then export the file.</string>
+    <string name="exportaccount_review_attachments_enabled">Enabled, <xliff:g id="size" example="12 MB">%1$s</xliff:g></string>
     <string name="exportaccount_export_button">Export</string>
     <string name="exportaccount_export_started">Export started</string>
     <string name="exportaccount_export_success">Export complete</string>

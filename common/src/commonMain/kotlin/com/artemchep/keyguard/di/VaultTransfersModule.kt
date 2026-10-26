@@ -9,6 +9,8 @@ import com.artemchep.keyguard.common.service.download.KeePassAttachmentSourceLoa
 import com.artemchep.keyguard.common.service.download.KeePassAttachmentSourceResolverImpl
 import com.artemchep.keyguard.common.service.export.ExportVaultDataService
 import com.artemchep.keyguard.common.service.export.ExportVaultDataServiceImpl
+import com.artemchep.keyguard.common.service.export.KdbxExportService
+import com.artemchep.keyguard.common.service.export.impl.KdbxExportServiceImpl
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keepass.DefaultKeePassAttachmentStorageFactory
 import com.artemchep.keyguard.common.service.keepass.KeePassAttachmentReader
@@ -34,6 +36,7 @@ import com.artemchep.keyguard.common.usecase.impl.MarkBackupAsDirtyImpl
 import com.artemchep.keyguard.common.usecase.impl.UploadGpgPublicKeyImpl
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenCipherRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassCipherCodec
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadGarbageCollector
 import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadGarbageCollectorImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ExportLogsImpl
@@ -73,6 +76,24 @@ internal class VaultTransfersModule {
             }
 
             scoped<ExportVaultDataServiceImpl>() bind ExportVaultDataService::class
+
+            scoped<KdbxExportService> {
+                KdbxExportServiceImpl(
+                    cipherRepository = get(),
+                    getFolderTreeById = get(),
+                    cipherCodec = KeePassCipherCodec(
+                        cryptoGenerator = get(),
+                        base32Service = get(),
+                        base64Service = get(),
+                        fileService = get(),
+                        pendingUploadCoordinator = get(),
+                        getPasswordStrength = get(),
+                        json = get(),
+                        gpgKeyMetadataResolver = getOrNull(),
+                    ),
+                    stagingSpoolFactory = get(),
+                )
+            }
 
             scoped<BackupRunner> {
                 BackupRunner(

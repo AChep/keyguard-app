@@ -131,7 +131,7 @@ struct BackupSetupWizardContent: View {
     private func page(_ step: BackupSetupStep) -> some View {
         Form {
             Section {
-                BackupWizardHeader(
+                WizardHeader(
                     title: step.title,
                     subtitle: step.subtitle,
                     systemImage: step.systemImage,
@@ -157,8 +157,8 @@ struct BackupSetupWizardContent: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .navigationBarBackButtonHidden(s.isTestingLocation)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            Button {
+        .wizardFooter {
+            WizardPrimaryButton {
                 advance(from: step)
             } label: {
                 HStack {
@@ -174,14 +174,8 @@ struct BackupSetupWizardContent: View {
                     )
                     .frame(maxWidth: .infinity)
                 }
-                .padding(.vertical, 4)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
             .disabled(!canAdvance(from: step) || s.isTestingLocation || !s.loaded)
-            .keyboardShortcut(.defaultAction)
-            .padding(16)
-            .background(.bar)
         }
         .disabled(s.isTestingLocation)
     }
@@ -327,31 +321,16 @@ struct BackupSetupWizardContent: View {
     }
 
     private func destinationChoice(kind: String, title: String, detail: String, symbol: String) -> some View {
-        Button {
+        WizardChoiceRow(
+            title: title,
+            detail: detail,
+            systemImage: symbol,
+            selected: s.storeKind == kind
+        ) {
             applyRemoteFields()
             setStoreKind(kind)
             hasEdits = true
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: symbol)
-                    .font(.title2)
-                    .foregroundStyle(.tint)
-                    .frame(width: 36)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title).font(.headline).foregroundStyle(.primary)
-                    Text(detail).font(.subheadline).foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: s.storeKind == kind ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(s.storeKind == kind ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
-                    .accessibilityHidden(true)
-            }
-            .padding(.vertical, 8)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(s.storeKind == kind ? .isSelected : [])
     }
 
     private var protectionSection: some View {

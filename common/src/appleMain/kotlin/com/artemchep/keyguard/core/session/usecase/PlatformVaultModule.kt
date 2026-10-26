@@ -78,6 +78,7 @@ class PlatformVaultModule {
                     windowCoroutineScope = get(),
                     cryptoGenerator = get(),
                     exportVaultDataService = get(),
+                    kdbxExportService = get(),
                     dirsService = get(),
                     zipService = get(),
                     dateFormatter = get(),

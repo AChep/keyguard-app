@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLoader
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.export.ExportVaultDataService
+import com.artemchep.keyguard.common.service.export.KdbxExportService
 import com.artemchep.keyguard.common.service.export.impl.ExportManagerBase
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.usecase.DateFormatter
@@ -33,6 +34,7 @@ class ExportManagerImpl(
     windowCoroutineScope: WindowCoroutineScope,
     cryptoGenerator: CryptoGenerator,
     exportVaultDataService: ExportVaultDataService,
+    kdbxExportService: KdbxExportService,
     dirsService: DirsService,
     zipService: ZipService,
     dateFormatter: DateFormatter,
@@ -45,6 +47,7 @@ class ExportManagerImpl(
     windowCoroutineScope = windowCoroutineScope,
     cryptoGenerator = cryptoGenerator,
     exportVaultDataService = exportVaultDataService,
+    kdbxExportService = kdbxExportService,
     dirsService = dirsService,
     zipService = zipService,
     dateFormatter = dateFormatter,

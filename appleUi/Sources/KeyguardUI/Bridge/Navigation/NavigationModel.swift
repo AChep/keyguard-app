@@ -246,6 +246,10 @@ final class NavigationModel: SnapshotObserving {
         core.setExportPassword(instanceId: instanceId, text: text)
     }
 
+    func setExportConfirmationPassword(instanceId: Int64, text: String) {
+        core.setExportConfirmationPassword(instanceId: instanceId, text: text)
+    }
+
     func pushCollectionsList(accountId: String, organizationId: String?, title: String) {
         core.pushCollectionsList(accountId: accountId, organizationId: organizationId, title: title)
     }

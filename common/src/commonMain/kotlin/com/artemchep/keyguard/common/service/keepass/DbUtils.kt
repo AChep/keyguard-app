@@ -399,7 +399,7 @@ private fun Exception.isRetryableStaleDecodeFailure(): Boolean = when (this) {
 
 private val KEEPASS_REMOTE_READ_RETRY_DELAY = 750.milliseconds
 
-private fun createKeePassDatabase(
+internal fun createKeePassDatabase(
     credentials: Credentials,
 ) = KeePassDatabase.Ver4x.create(
     rootName = "Keyguard database",

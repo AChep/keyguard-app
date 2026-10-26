@@ -1,13 +1,6 @@
 package com.artemchep.keyguard.feature.home.settings.backups
 
-import androidx.compose.material.darkColors
-import androidx.compose.material.lightColors
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialExpressiveTheme
-import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.LocalInspectionMode
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.backup.BackupConfig
 import com.artemchep.keyguard.common.service.backup.BackupRunProgress
@@ -20,11 +13,7 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.pref_item_automatic_backups_wizard_password_mismatch_error
-import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
-import com.artemchep.keyguard.ui.theme.GlobalExpressive
-import com.artemchep.keyguard.ui.theme.LocalExpressive
-import com.artemchep.keyguard.ui.theme.plainDarkColorScheme
-import com.artemchep.keyguard.ui.theme.plainLightColorScheme
+import com.artemchep.keyguard.ui.wizard.WizardPreview
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -34,34 +23,16 @@ import org.jetbrains.compose.resources.stringResource
 import kotlin.time.Instant
 
 /** A service-free host shared by IDE previews and Desktop render checks. */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 internal fun AutomaticBackupsPreview(
     dark: Boolean = false,
     expressive: Boolean = true,
     content: @Composable () -> Unit,
-) {
-    val scheme = if (dark) plainDarkColorScheme() else plainLightColorScheme()
-    MaterialExpressiveTheme(colorScheme = scheme) {
-        androidx.compose.material.MaterialTheme(
-            colors = (if (dark) darkColors() else lightColors()).copy(
-                primary = scheme.primary,
-                onPrimary = scheme.onPrimary,
-                secondary = scheme.secondary,
-                onSecondary = scheme.onSecondary,
-            ),
-        ) {
-            CompositionLocalProvider(
-                LocalInspectionMode provides true,
-                GlobalExpressive provides expressive,
-                LocalExpressive provides expressive,
-                LocalSurfaceColor provides scheme.surface,
-            ) {
-                Surface(content = content)
-            }
-        }
-    }
-}
+) = WizardPreview(
+    dark = dark,
+    expressive = expressive,
+    content = content,
+)
 
 internal object AutomaticBackupsPreviewData {
     const val CUSTOM_MAX_SNAPSHOTS = 17

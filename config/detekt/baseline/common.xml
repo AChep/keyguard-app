@@ -12,7 +12,6 @@
     <ID>ComplexCondition:CompanionAuthSecurityAndroid.kt:x.signum() &lt; 0 || x &gt;= p || y.signum() &lt; 0 || y &gt;= p</ID>
     <ID>ComplexCondition:DownloadInfoRepositoryController.kt:DownloadInfoRepositoryController$existing.url == url &amp;&amp; existing.urlIsOneTime == urlIsOneTime &amp;&amp; existing.name == name &amp;&amp; existing.encryptionKeyBase64 == encryptionKeyBase64 &amp;&amp; existing.error == error</ID>
     <ID>ComplexCondition:DuplicatesListStateProducer.kt:canDelete &amp;&amp; selectedCiphers .all { it.deletedDate != null || it.service.remote == null || it.hasError }</ID>
-    <ID>ComplexCondition:ExportScreen.kt:items != null &amp;&amp; attachments != null &amp;&amp; password != null &amp;&amp; content != null</ID>
     <ID>ComplexCondition:FileWatcherServiceAndroid.kt:FileObserver.DELETE in event || FileObserver.DELETE_SELF in event || FileObserver.MOVED_FROM in event || FileObserver.MOVE_SELF in event</ID>
     <ID>ComplexCondition:GeneratorStateProducer.kt:type is GeneratorType2.Username || type is GeneratorType2.EmailCatchAll || type is GeneratorType2.EmailPlusAddressing || type is GeneratorType2.EmailSubdomainAddressing || type is GeneratorType2.EmailRelay</ID>
     <ID>ComplexCondition:GetSuggestionsImpl.kt:GetSuggestionsImpl$AutofillHint.EMAIL_ADDRESS in target.hints || AutofillHint.PHONE_NUMBER in target.hints || AutofillHint.USERNAME in target.hints || AutofillHint.PASSWORD in target.hints || AutofillHint.APP_OTP in target.hints || // If the username is specified then we are forced to search // through the logins. autofillTargetUsername != null</ID>
@@ -525,8 +524,6 @@
     <ID>LongMethod:EntitySyncExecutorV2Test.kt:EntitySyncExecutorV2Test$@Test fun `executor runs actions in deterministic sync phases`</ID>
     <ID>LongMethod:EquivalentDomainsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable fun EquivalentDomainsContent</ID>
     <ID>LongMethod:ErrorEntity.kt:fun ErrorEntity.toException</ID>
-    <ID>LongMethod:ExportScreen.kt:@Composable private fun ColumnScope.ExportContentOk</ID>
-    <ID>LongMethod:ExportScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun ExportScreen</ID>
     <ID>LongMethod:ExportWorker.kt:ExportWorker$@OptIn(ExperimentalCoroutinesApi::class) private suspend fun internalDoWork: Result</ID>
     <ID>LongMethod:FastmailEmailRelay.kt:FastmailEmailRelay$override fun generate: IO&lt;String&gt;</ID>
     <ID>LongMethod:FavouriteToggleButton.kt:@Composable fun FavouriteToggleButton</ID>

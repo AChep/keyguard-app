@@ -1,7 +1,7 @@
 import SwiftUI
 
-/// Compact step identity and progress for the backup setup flow.
-struct BackupWizardHeader: View {
+/// Compact step identity and progress for a multi-step flow.
+struct WizardHeader: View {
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
 
     let title: String
@@ -73,7 +73,7 @@ struct BackupWizardHeader: View {
 
 #Preview {
     ScrollView {
-        BackupWizardHeader(
+        WizardHeader(
             title: "Protect your vault",
             subtitle: "Choose where to keep your encrypted backups.",
             systemImage: "externaldrive.badge.checkmark",

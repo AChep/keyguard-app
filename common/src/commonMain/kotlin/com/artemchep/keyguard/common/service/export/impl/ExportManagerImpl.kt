@@ -16,7 +16,11 @@ import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.download.DownloadWriter
 import com.artemchep.keyguard.common.service.download.awaitCompleteResult
 import com.artemchep.keyguard.common.service.export.ExportManager
+import com.artemchep.keyguard.common.service.export.ExportVaultData
 import com.artemchep.keyguard.common.service.export.ExportVaultDataService
+import com.artemchep.keyguard.common.service.export.KdbxAttachmentLoader
+import com.artemchep.keyguard.common.service.export.KdbxExportService
+import com.artemchep.keyguard.common.service.export.model.ExportFormat
 import com.artemchep.keyguard.common.service.export.model.ExportRequest
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.usecase.DateFormatter
@@ -49,11 +53,13 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.io.Sink
 
 open class ExportManagerBase(
     private val windowCoroutineScope: WindowCoroutineScope,
     private val cryptoGenerator: CryptoGenerator,
     private val exportVaultDataService: ExportVaultDataService,
+    private val kdbxExportService: KdbxExportService,
     private val dirsService: DirsService,
     private val zipService: ZipService,
     private val dateFormatter: DateFormatter,
@@ -92,6 +98,7 @@ open class ExportManagerBase(
             filter = request.filter,
             password = request.password,
             exportAttachments = request.attachments,
+            format = request.format,
         )
         onLaunch(entry.id)
         return ExportManager.QueueResult(
@@ -105,6 +112,7 @@ open class ExportManagerBase(
         filter: DFilter,
         password: String,
         exportAttachments: Boolean,
+        format: ExportFormat,
     ) = kotlin.run {
         val id = cryptoGenerator.uuid()
 
@@ -132,7 +140,7 @@ open class ExportManagerBase(
                     val keepAlive = launch { vaultSessionLocker.keepAlive() }
                     try {
                         channelFlow {
-                            send(invoke(filter, password, exportAttachments))
+                            send(invoke(filter, password, exportAttachments, format))
                         }.collect { progress.value = it }
                     } finally {
                         keepAlive.cancel()
@@ -153,11 +161,9 @@ open class ExportManagerBase(
         filter: DFilter,
         password: String,
         exportAttachments: Boolean,
+        format: ExportFormat,
     ): DownloadProgress.Complete {
         val data = exportVaultDataService.create(filter)
-        // Map vault data to the JSON export
-        // in the target type.
-        val json = exportVaultDataService.exportJson(data)
 
         // Obtain a list of attachments to
         // download.
@@ -170,7 +176,7 @@ open class ExportManagerBase(
         val fileName = kotlin.run {
             val now = Clock.System.now()
             val dt = dateFormatter.formatDateTimeMachine(now)
-            "keyguard_export_$dt.zip"
+            "keyguard_export_$dt.${format.extension}"
         }
         val fileUri = coroutineScope {
             val eventFlow = EventFlow<Unit>()
@@ -192,31 +198,25 @@ open class ExportManagerBase(
                     .collect()
             }
 
+            val onDownloadUpdated: () -> Unit = { eventFlow.emit(Unit) }
             val uri = dirsService.saveToDownloads(fileName) { os ->
-                val entriesAttachments = attachments?.attachments.orEmpty()
-                    .map { entry ->
-                        createDownloadFileZipEntry(
-                            entry = entry,
-                            onDownloadUpdated = { eventFlow.emit(Unit) },
-                        )
-                    }
-                val entries = listOf(
-                    ZipEntry(
-                        name = "vault.json",
-                        data = ZipEntry.Data.In {
-                            json.toSource()
-                        },
-                    ),
-                ) + entriesAttachments
-                zipService.zip(
-                    outputStream = os,
-                    config = ZipConfig(
-                        encryption = ZipConfig.Encryption(
-                            password = password,
-                        ),
-                    ),
-                    entries = entries,
-                )
+                when (format) {
+                    ExportFormat.Zip -> writeZip(
+                        sink = os,
+                        data = data,
+                        password = password,
+                        attachments = attachments,
+                        onDownloadUpdated = onDownloadUpdated,
+                    )
+
+                    ExportFormat.Kdbx -> writeKdbx(
+                        sink = os,
+                        data = data,
+                        password = password,
+                        attachments = attachments,
+                        onDownloadUpdated = onDownloadUpdated,
+                    )
+                }
             }.bind()
             monitorJob.cancelAndJoin()
 
@@ -227,56 +227,134 @@ open class ExportManagerBase(
         return DownloadProgress.Complete(fileUri.right())
     }
 
-    @OptIn(ExperimentalAtomicApi::class)
+    private suspend fun writeZip(
+        sink: Sink,
+        data: ExportVaultData,
+        password: String,
+        attachments: AttachmentList?,
+        onDownloadUpdated: () -> Unit,
+    ) {
+        // Map vault data to the JSON export
+        // in the target type.
+        val json = exportVaultDataService.exportJson(data)
+
+        val entriesAttachments = attachments?.attachments.orEmpty()
+            .map { entry ->
+                createDownloadFileZipEntry(
+                    entry = entry,
+                    onDownloadUpdated = onDownloadUpdated,
+                )
+            }
+        val entries = listOf(
+            ZipEntry(
+                name = "vault.json",
+                data = ZipEntry.Data.In {
+                    json.toSource()
+                },
+            ),
+        ) + entriesAttachments
+        zipService.zip(
+            outputStream = sink,
+            config = ZipConfig(
+                encryption = ZipConfig.Encryption(
+                    password = password,
+                ),
+            ),
+            entries = entries,
+        )
+    }
+
+    private suspend fun writeKdbx(
+        sink: Sink,
+        data: ExportVaultData,
+        password: String,
+        attachments: AttachmentList?,
+        onDownloadUpdated: () -> Unit,
+    ) {
+        val loadAttachment = attachments
+            ?.let { list ->
+                val entries = list.attachments
+                    .associateBy { it.cipher.id to it.attachment.id }
+                KdbxAttachmentLoader { cipher, attachment, output ->
+                    val entry = entries.getValue(cipher.id to attachment.id)
+                    downloadAttachment(
+                        entry = entry,
+                        sink = output,
+                        onDownloadUpdated = onDownloadUpdated,
+                    )
+                }
+            }
+        kdbxExportService.export(
+            sink = sink,
+            password = password,
+            data = data,
+            loadAttachment = loadAttachment,
+        )
+    }
+
     private fun createDownloadFileZipEntry(
         entry: AttachmentWithLiveProgress,
         onDownloadUpdated: () -> Unit,
     ): ZipEntry {
-        val cipher = entry.cipher
         val attachment = entry.attachment
-        val data = ZipEntry.Data.Out {
-            val writer = DownloadWriter.SinkWriter(it)
-            val request = DownloadAttachmentRequest.ByLocalCipherAttachment(
-                localCipherId = cipher.id,
-                remoteCipherId = cipher.service.remote?.id,
-                attachmentId = attachment.id,
-            )
-            val meta = downloadAttachmentMetadata(request)
-                .bind()
-
-            val fileLoaderFlow = downloadSourceLoader.fileLoader(
-                request = meta,
-                writer = writer,
-            )
-            val result = fileLoaderFlow
-                .onEach { progress ->
-                    val downloaded = when (progress) {
-                        is DownloadProgress.Loading -> {
-                            progress.downloaded
-                        }
-
-                        DownloadProgress.None,
-                        is DownloadProgress.Complete -> null
-                    }
-                    if (downloaded != null) {
-                        entry.downloaded.store(downloaded)
-                        onDownloadUpdated()
-                    }
-                }
-                .awaitCompleteResult()
-            result.fold(
-                ifLeft = { error ->
-                    throw error
-                },
-                ifRight = {
-                    entry.downloaded.store(entry.total)
-                    onDownloadUpdated()
-                },
+        val data = ZipEntry.Data.Out { sink ->
+            downloadAttachment(
+                entry = entry,
+                sink = sink,
+                onDownloadUpdated = onDownloadUpdated,
             )
         }
         return ZipEntry(
             name = "attachments/${attachment.id}/${attachment.fileName()}",
             data = data,
+        )
+    }
+
+    @OptIn(ExperimentalAtomicApi::class)
+    private suspend fun downloadAttachment(
+        entry: AttachmentWithLiveProgress,
+        sink: Sink,
+        onDownloadUpdated: () -> Unit,
+    ) {
+        val cipher = entry.cipher
+        val attachment = entry.attachment
+        val writer = DownloadWriter.SinkWriter(sink)
+        val request = DownloadAttachmentRequest.ByLocalCipherAttachment(
+            localCipherId = cipher.id,
+            remoteCipherId = cipher.service.remote?.id,
+            attachmentId = attachment.id,
+        )
+        val meta = downloadAttachmentMetadata(request)
+            .bind()
+
+        val fileLoaderFlow = downloadSourceLoader.fileLoader(
+            request = meta,
+            writer = writer,
+        )
+        val result = fileLoaderFlow
+            .onEach { progress ->
+                val downloaded = when (progress) {
+                    is DownloadProgress.Loading -> {
+                        progress.downloaded
+                    }
+
+                    DownloadProgress.None,
+                    is DownloadProgress.Complete -> null
+                }
+                if (downloaded != null) {
+                    entry.downloaded.store(downloaded)
+                    onDownloadUpdated()
+                }
+            }
+            .awaitCompleteResult()
+        result.fold(
+            ifLeft = { error ->
+                throw error
+            },
+            ifRight = {
+                entry.downloaded.store(entry.total)
+                onDownloadUpdated()
+            },
         )
     }
 

@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.model.Premium
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.usecase.GetCachePremium
 import com.artemchep.keyguard.common.usecase.GetDebugPremium
@@ -30,7 +31,7 @@ import kotlinx.coroutines.flow.transform
  * license.
  */
 class GetPurchasedImpl(
-    private val config: FlavorConfig,
+    config: FlavorConfig,
     /**
      * Verified store verdicts. Emits nothing while the store is loading
      * or failed in an unknown way.
@@ -41,8 +42,14 @@ class GetPurchasedImpl(
     getCachePremium: GetCachePremium,
     putCachePremium: PutCachePremium,
     windowCoroutineScope: WindowCoroutineScope,
+    /**
+     * What the build grants when nothing is paid for.
+     */
+    withoutPurchase: Premium = Premium.NONE,
     release: Boolean = isRelease,
 ) : GetPurchased {
+    private val unpaid = if (config.isFreeAsBeer) Premium.INCLUDED else withoutPurchase
+
     private val storeFlow = merge(
         getCachePremium()
             .map { PremiumStatus(isPremium = it, isUpstream = false) },
@@ -63,14 +70,17 @@ class GetPurchasedImpl(
         .map { it.isPremium }
 
     private val sharedFlow = combine(
-        storeFlow,
+        // Free builds never ask the store.
+        if (config.isFreeAsBeer) flowOf(false) else storeFlow,
         getLicensePremium(),
         if (release) flowOf(false) else getDebugPremium(),
-    ) { purchased, licensed, debug -> purchased || licensed || debug }
+    ) { purchased, licensed, debug ->
+        if (purchased || licensed || debug) Premium.PURCHASED else unpaid
+    }
         .distinctUntilChanged()
         .shareIn(windowCoroutineScope, SharingStarted.WhileSubscribed(5_000L), replay = 1)
 
-    override fun invoke() = if (config.isFreeAsBeer) flowOf(true) else sharedFlow
+    override fun invoke() = sharedFlow
 
     private data class PremiumStatus(
         val isUpstream: Boolean,

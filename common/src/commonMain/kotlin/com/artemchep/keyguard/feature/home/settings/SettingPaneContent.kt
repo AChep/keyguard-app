@@ -25,7 +25,6 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAboutAppCha
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutAppProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutTeamProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutTelegramProvider
-import com.artemchep.keyguard.feature.home.settings.component.settingApkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAppIconsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillBlockUriProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillCopyTotpProvider
@@ -99,6 +98,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingKeepScreenO
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchAppPicker
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchYubiKey
 import com.artemchep.keyguard.feature.home.settings.component.settingLicenseClaimProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingLicensePurchaseProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingLocalizationProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingLogsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMarkdownProvider
@@ -297,10 +297,10 @@ object Setting {
     const val CLEAR_CACHE = "clear_cache"
     const val RESET_WATCHTOWER_ALERTS = "reset_watchtower_alerts"
     const val UNREAD_WATCHTOWER_ALERTS = "unread_watchtower_alerts"
-    const val APK = "apk"
     const val SUBSCRIPTIONS = "subscriptions"
     const val SUBSCRIPTIONS_IN_STORE = "subscriptions_in_store"
     const val SUBSCRIPTIONS_DEBUG = "subscriptions_debug"
+    const val LICENSE_PURCHASE = "license_purchase"
     const val LICENSE_CLAIM = "license_claim"
     const val LICENSE_REDEEM = "license_redeem"
     const val SCREEN_DELAY = "screen_delay"
@@ -444,10 +444,10 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.CLEAR_CACHE to ::settingClearCache,
     Setting.RESET_WATCHTOWER_ALERTS to ::settingResetWatchtowerAlerts,
     Setting.UNREAD_WATCHTOWER_ALERTS to ::settingUnreadWatchtowerAlerts,
-    Setting.APK to ::settingApkProvider,
     Setting.SUBSCRIPTIONS to ::settingSubscriptionsProvider,
     Setting.SUBSCRIPTIONS_IN_STORE to ::settingSubscriptionsPlayStoreProvider,
     Setting.SUBSCRIPTIONS_DEBUG to ::settingSubscriptionsDebug,
+    Setting.LICENSE_PURCHASE to ::settingLicensePurchaseProvider,
     Setting.LICENSE_CLAIM to ::settingLicenseClaimProvider,
     Setting.LICENSE_REDEEM to ::settingRedeemLicenseProvider,
     Setting.SCREEN_DELAY to ::settingScreenDelay,

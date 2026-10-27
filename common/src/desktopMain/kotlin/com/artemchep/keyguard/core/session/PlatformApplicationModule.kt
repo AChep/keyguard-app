@@ -21,6 +21,7 @@ import com.artemchep.keyguard.common.model.AutofillTarget
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
+import com.artemchep.keyguard.common.model.Premium
 import com.artemchep.keyguard.common.model.Product
 import com.artemchep.keyguard.common.model.RichResult
 import com.artemchep.keyguard.common.model.Subscription
@@ -88,6 +89,7 @@ import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.util.yubikey.NativeYubiKeyClient
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.GetLocaleImpl
+import com.artemchep.keyguard.common.usecase.impl.GetPurchasedImpl
 import com.artemchep.keyguard.common.usecase.impl.PutLocaleImpl
 import com.artemchep.keyguard.common.worker.WorkerRegistry
 import com.artemchep.keyguard.common.worker.Wrker
@@ -164,10 +166,6 @@ class GetSuggestionsImpl : GetSuggestions<Any?> {
         val msg = "Autofill suggestions are not supported on desktop."
         ioRaise(RuntimeException(msg))
     }
-}
-
-class GetPurchasedDesktop : GetPurchased {
-    override fun invoke(): Flow<Boolean> = flowOf(true)
 }
 
 class CleanUpAttachmentImpl : CleanUpAttachment {
@@ -371,7 +369,18 @@ class PlatformApplicationModule {
             )
         }
         single<GetPurchased> {
-            GetPurchasedDesktop()
+            GetPurchasedImpl(
+                config = get(),
+                // Desktop has no store; licenses are bought on the website.
+                storePurchased = emptyFlow(),
+                getLicensePremium = get(),
+                getDebugPremium = get(),
+                getCachePremium = get(),
+                putCachePremium = get(),
+                windowCoroutineScope = get(),
+                // Desktop builds unlock premium features without a license.
+                withoutPurchase = Premium.INCLUDED,
+            )
         }
 
         single<CleanUpAttachment> {

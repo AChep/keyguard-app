@@ -6,6 +6,7 @@ import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.util.hasAutofill
 import com.artemchep.keyguard.platform.util.hasSubscription
 import com.artemchep.keyguard.platform.util.hasWatch
+import com.artemchep.keyguard.platform.util.hasWebPurchase
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.passkeys
@@ -70,6 +71,8 @@ fun settingsCatalog(
     config: FlavorConfig,
     platform: Platform = CurrentPlatform,
     release: Boolean = isRelease,
+    includePremium: Boolean = (platform.hasSubscription() || platform.hasWebPurchase()) &&
+        !config.isFreeAsBeer,
     includeAutofill: Boolean = platform.hasAutofill() || !release,
     includeWatchtower: Boolean = true,
     includeDeveloper: Boolean = true,
@@ -81,12 +84,12 @@ fun settingsCatalog(
     SettingsCatalogItem.Section(
         id = "section.premium",
         title = Res.string.pref_section_premium_title,
-    ).takeIf { platform.hasSubscription() && !config.isFreeAsBeer },
+    ).takeIf { includePremium },
     SettingsCatalogItem.Action(
         destination = SettingsDestination.SUBSCRIPTION,
         title = Res.string.pref_item_subscription_title,
         text = Res.string.pref_item_subscription_text,
-    ).takeIf { platform.hasSubscription() && !config.isFreeAsBeer },
+    ).takeIf { includePremium },
     SettingsCatalogItem.Section(
         id = "section.options",
         title = Res.string.pref_section_options_title,

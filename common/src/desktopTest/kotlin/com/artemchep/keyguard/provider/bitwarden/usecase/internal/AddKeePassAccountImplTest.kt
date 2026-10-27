@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DAccount
 import com.artemchep.keyguard.common.model.Password
+import com.artemchep.keyguard.common.model.Premium
 import com.artemchep.keyguard.common.model.S3AccessKey
 import com.artemchep.keyguard.common.model.S3Bucket
 import com.artemchep.keyguard.common.model.S3Location
@@ -471,7 +472,7 @@ class AddKeePassAccountImplTest {
             }
         }
         val getPurchased = object : GetPurchased {
-            override fun invoke() = flowOf(purchased)
+            override fun invoke() = flowOf(if (purchased) Premium.PURCHASED else Premium.NONE)
         }
         val getAccounts = object : GetAccounts {
             override fun invoke() = flowOf(accounts)

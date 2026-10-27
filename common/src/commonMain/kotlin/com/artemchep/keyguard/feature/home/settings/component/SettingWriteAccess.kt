@@ -3,7 +3,7 @@ package com.artemchep.keyguard.feature.home.settings.component
 import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.io.launchIn
-import com.artemchep.keyguard.common.usecase.GetPurchased
+import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetWriteAccess
 import com.artemchep.keyguard.common.usecase.PutWriteAccess
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
@@ -18,19 +18,19 @@ fun settingWriteAccessProvider(
 ) = settingWriteAccessProvider(
     getWriteAccess = koinScope.get(),
     putWriteAccess = koinScope.get(),
-    getPurchased = koinScope.get(),
+    getCanWrite = koinScope.get(),
     windowCoroutineScope = koinScope.get(),
 )
 
 fun settingWriteAccessProvider(
     getWriteAccess: GetWriteAccess,
     putWriteAccess: PutWriteAccess,
-    getPurchased: GetPurchased,
+    getCanWrite: GetCanWrite,
     windowCoroutineScope: WindowCoroutineScope,
 ): SettingComponent = combine(
-    getPurchased(),
+    getCanWrite(),
     getWriteAccess(),
-) { purchased, writeAccess ->
+) { canWrite, writeAccess ->
     val onCheckedChange = { shouldHaveWriteAccess: Boolean ->
         putWriteAccess(shouldHaveWriteAccess)
             .launchIn(windowCoroutineScope)
@@ -40,7 +40,7 @@ fun settingWriteAccessProvider(
     SettingIi {
         SettingWriteAccess(
             checked = writeAccess,
-            onCheckedChange = onCheckedChange.takeIf { purchased },
+            onCheckedChange = onCheckedChange.takeIf { canWrite },
         )
     }
 }

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import com.artemchep.keyguard.common.model.isActive
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCanAddAccount
 import com.artemchep.keyguard.common.usecase.GetPurchased
@@ -12,7 +13,9 @@ class GetCanAddAccountImpl(
     private val getAccounts: GetAccounts,
 ) : GetCanAddAccount {
     override fun invoke() = combine(
-        getPurchased(),
+        getPurchased()
+            .map { it.isActive }
+            .distinctUntilChanged(),
         getAccounts()
             .map { it.isNotEmpty() }
             .distinctUntilChanged(),

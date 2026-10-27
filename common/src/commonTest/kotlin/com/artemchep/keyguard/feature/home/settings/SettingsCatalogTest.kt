@@ -60,6 +60,25 @@ class SettingsCatalogTest {
     }
 
     @Test
+    fun `desktop offers premium for web purchases unless the flavor is free`() {
+        val platforms = listOf(
+            Platform.Desktop.Linux(isFlatpak = false),
+            Platform.Desktop.Windows,
+            Platform.Desktop.MacOS.Jvm,
+        )
+        platforms.forEach { platform ->
+            fun ids(free: Boolean) = settingsCatalog(
+                config = FlavorConfig(isFreeAsBeer = free),
+                platform = platform,
+                release = true,
+            ).map { it.id }
+
+            assertEquals(listOf("section.premium", "subscription"), ids(free = false).take(2))
+            assertFalse("subscription" in ids(free = true))
+        }
+    }
+
+    @Test
     fun `host capability overrides only remove their own routes`() {
         val items = settingsCatalog(
             config = FlavorConfig(isFreeAsBeer = false),

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.model.Premium
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.usecase.GetCachePremium
 import com.artemchep.keyguard.common.usecase.GetDebugPremium
@@ -31,11 +32,11 @@ class GetPurchasedImplTest {
         val fixture = Fixture(this)
         val values = fixture.collect()
         runCurrent()
-        assertEquals(false, values.last())
+        assertEquals(Premium.NONE, values.last())
 
         fixture.license.value = true
         runCurrent()
-        assertEquals(true, values.last())
+        assertEquals(Premium.PURCHASED, values.last())
         assertTrue(fixture.writes.isEmpty())
     }
 
@@ -49,7 +50,7 @@ class GetPurchasedImplTest {
 
         fixture.license.value = true
         runCurrent()
-        assertTrue(premium.await())
+        assertEquals(Premium.PURCHASED, premium.await())
     }
 
     @Test
@@ -59,12 +60,12 @@ class GetPurchasedImplTest {
         fixture.license.value = true
         fixture.store.value = false
         runCurrent()
-        assertEquals(true, values.last())
+        assertEquals(Premium.PURCHASED, values.last())
         assertEquals(listOf(false), fixture.writes)
 
         fixture.license.value = false // vault lock, token removal, or expiry
         runCurrent()
-        assertEquals(false, values.last())
+        assertEquals(Premium.NONE, values.last())
         assertEquals(listOf(false), fixture.writes)
     }
 
@@ -73,12 +74,12 @@ class GetPurchasedImplTest {
         val fixture = Fixture(this, cached = true)
         val values = fixture.collect()
         runCurrent()
-        assertEquals(true, values.last())
+        assertEquals(Premium.PURCHASED, values.last())
         assertTrue(fixture.writes.isEmpty())
 
         fixture.store.value = false
         runCurrent()
-        assertEquals(false, values.last())
+        assertEquals(Premium.NONE, values.last())
         assertEquals(listOf(false), fixture.writes)
     }
 
@@ -88,7 +89,7 @@ class GetPurchasedImplTest {
         val values = fixture.collect()
         fixture.store.value = true
         runCurrent()
-        assertEquals(true, values.last())
+        assertEquals(Premium.PURCHASED, values.last())
         assertEquals(listOf(true), fixture.writes)
     }
 
@@ -98,7 +99,7 @@ class GetPurchasedImplTest {
         fixture.debug.value = true
         val values = fixture.collect()
         runCurrent()
-        assertEquals(false, values.last())
+        assertEquals(Premium.NONE, values.last())
     }
 
     @Test
@@ -107,11 +108,11 @@ class GetPurchasedImplTest {
         val values = fixture.collect()
         fixture.debug.value = true
         runCurrent()
-        assertEquals(true, values.last())
+        assertEquals(Premium.PURCHASED, values.last())
 
         fixture.debug.value = false
         runCurrent()
-        assertFalse(values.last())
+        assertEquals(Premium.NONE, values.last())
         assertTrue(fixture.writes.isEmpty())
     }
 
@@ -124,7 +125,7 @@ class GetPurchasedImplTest {
         runCurrent()
         fixture.debug.value = false
         runCurrent()
-        assertTrue(values.all { it })
+        assertTrue(values.all { it == Premium.PURCHASED })
         assertTrue(fixture.writes.isEmpty())
     }
 
@@ -133,7 +134,42 @@ class GetPurchasedImplTest {
         val fixture = Fixture(this, free = true)
         val values = fixture.collect()
         runCurrent()
-        assertEquals(listOf(true), values)
+        assertEquals(listOf(Premium.INCLUDED), values)
+        assertTrue(fixture.writes.isEmpty())
+    }
+
+    @Test
+    fun freeFlavorIgnoresTheStoreButNotLicenses() = runTest {
+        val fixture = Fixture(this, cached = true, free = true)
+        val values = fixture.collect()
+        fixture.store.value = true
+        runCurrent()
+        assertEquals(Premium.INCLUDED, values.last())
+
+        fixture.license.value = true
+        runCurrent()
+        assertEquals(Premium.PURCHASED, values.last())
+
+        fixture.license.value = false
+        runCurrent()
+        assertEquals(Premium.INCLUDED, values.last())
+        assertTrue(fixture.writes.isEmpty())
+    }
+
+    @Test
+    fun includedPremiumIsReportedUntilSomethingIsPaid() = runTest {
+        val fixture = Fixture(this, withoutPurchase = Premium.INCLUDED)
+        val values = fixture.collect()
+        runCurrent()
+        assertEquals(Premium.INCLUDED, values.last())
+
+        fixture.license.value = true
+        runCurrent()
+        assertEquals(Premium.PURCHASED, values.last())
+
+        fixture.license.value = false
+        runCurrent()
+        assertEquals(Premium.INCLUDED, values.last())
         assertTrue(fixture.writes.isEmpty())
     }
 
@@ -142,6 +178,7 @@ class GetPurchasedImplTest {
         cached: Boolean = false,
         release: Boolean = false,
         free: Boolean = false,
+        withoutPurchase: Premium = Premium.NONE,
     ) {
         /** A store verdict, or `null` while the store is loading or failing. */
         val store = MutableStateFlow<Boolean?>(null)
@@ -160,11 +197,12 @@ class GetPurchasedImplTest {
                 override fun invoke(premium: Boolean) = ioEffect { writes += premium; cache.value = premium }
             },
             windowCoroutineScope = object : WindowCoroutineScope, CoroutineScope by scope.backgroundScope {},
+            withoutPurchase = withoutPurchase,
             release = release,
         )
 
-        fun collect(): List<Boolean> {
-            val values = mutableListOf<Boolean>()
+        fun collect(): List<Premium> {
+            val values = mutableListOf<Premium>()
             scope.backgroundScope.launch(UnconfinedTestDispatcher(scope.testScheduler)) {
                 purchased().toList(values)
             }

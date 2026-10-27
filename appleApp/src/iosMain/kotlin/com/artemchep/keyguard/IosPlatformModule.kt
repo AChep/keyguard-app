@@ -2,9 +2,9 @@ package com.artemchep.keyguard
 
 import com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability
 
-import com.artemchep.keyguard.apple.billing.GetPurchasedApple
 import com.artemchep.keyguard.apple.billing.SubscriptionServiceApple
 import com.artemchep.keyguard.apple.billing.appleIsFreeDistribution
+import com.artemchep.keyguard.apple.billing.appleStorePurchased
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationServiceNone
@@ -85,6 +85,7 @@ import com.artemchep.keyguard.copy.DirsServiceIos
 import com.artemchep.keyguard.copy.FileServiceApple
 import com.artemchep.keyguard.common.usecase.impl.GetAppBuildDateImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAppBuildRefImpl
+import com.artemchep.keyguard.common.usecase.impl.GetPurchasedImpl
 import com.artemchep.keyguard.copy.GetBarcodeImageIos
 import com.artemchep.keyguard.copy.NumberFormatterApple
 import com.artemchep.keyguard.copy.PowerServiceIos
@@ -269,13 +270,13 @@ internal class IosPlatformModule {
             ExecuteCommandImpl()
         }
         single<GetPurchased> {
-            GetPurchasedApple(
+            GetPurchasedImpl(
                 config = get(),
-                subscriptionService = get(),
+                storePurchased = get<SubscriptionService>().appleStorePurchased(),
+                getLicensePremium = get(),
                 getDebugPremium = get(),
                 getCachePremium = get(),
                 putCachePremium = get(),
-                getLicensePremium = get(),
                 windowCoroutineScope = get(),
             )
         }

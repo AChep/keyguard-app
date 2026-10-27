@@ -11,6 +11,8 @@ import com.artemchep.keyguard.android.credentialexchange.CredentialExchangeImpor
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
 import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
+import com.artemchep.keyguard.billing.googlePlayPurchased
+import com.artemchep.keyguard.billing.hasGooglePlayServices
 import com.artemchep.keyguard.common.PlatformTemporaryArtifactRootRegistry
 import com.artemchep.keyguard.common.TemporaryArtifactRoot
 import com.artemchep.keyguard.common.io.ioUnit
@@ -210,9 +212,10 @@ class PlatformApplicationModule {
         }
         single<GetPurchased> {
             GetPurchasedImpl(
-                context = get(),
                 config = get(),
-                subscriptionService = get(),
+                storePurchased = get<SubscriptionService>().googlePlayPurchased(
+                    hasGooglePlayServices = get<Context>().hasGooglePlayServices(),
+                ),
                 getLicensePremium = get(),
                 getDebugPremium = get(),
                 getCachePremium = get(),

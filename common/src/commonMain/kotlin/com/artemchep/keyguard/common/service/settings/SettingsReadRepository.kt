@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigProvi
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
+import com.artemchep.keyguard.common.service.licensekey.model.LicenseEntitlement
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Duration
 import kotlin.time.Instant
@@ -96,6 +97,8 @@ interface SettingsReadRepository {
     fun getDebugScreenDelay(): Flow<Boolean>
 
     fun getCachePremium(): Flow<Boolean>
+
+    fun getCacheLicenseExpiry(): Flow<LicenseEntitlement.Expiry?>
 
     fun getCacheNavItemsConfig(): Flow<NavItemsConfig?>
 

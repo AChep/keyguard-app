@@ -6,13 +6,16 @@ import com.artemchep.keyguard.common.model.RichResult
 import com.artemchep.keyguard.common.model.orNull
 import com.artemchep.keyguard.common.service.licensekey.LicenseClaimSource
 import com.artemchep.keyguard.common.service.licensekey.LicenseManager
+import com.artemchep.keyguard.common.service.licensekey.model.licensedUntil
 import com.artemchep.keyguard.common.service.licensekey.model.selectBestLicenseClaimCandidate
+import com.artemchep.keyguard.common.usecase.PutCacheLicenseExpiry
 import com.artemchep.keyguard.common.usecase.RefreshLicense
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -20,6 +23,7 @@ import kotlinx.coroutines.launch
 class LicenseSyncer(
     private val licenseManager: LicenseManager,
     private val refreshLicense: RefreshLicense,
+    private val putCacheLicenseExpiry: PutCacheLicenseExpiry,
     private val licenseClaimSource: LicenseClaimSource?,
     private val licenseAutoClaim: Boolean = AUTO_CLAIM_LICENSE,
 ) {
@@ -32,6 +36,19 @@ class LicenseSyncer(
             refreshLicense()
                 .attempt()
                 .bind()
+        }
+        // Keep the license expiry outside of the vault,
+        // so premium is known while the vault is locked.
+        launch {
+            licenseManager.redeemed
+                .map { entitlement -> entitlement?.licensedUntil() }
+                .distinctUntilChanged()
+                .onEach { expiry ->
+                    putCacheLicenseExpiry(expiry)
+                        .attempt()
+                        .bind()
+                }
+                .collect()
         }
 
         // Only auto-claim the license if the appropriate flag is enabled.

@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
+import com.artemchep.keyguard.common.service.licensekey.model.LicenseEntitlement
 import kotlin.time.Duration
 import kotlin.time.Instant
 
@@ -142,6 +143,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setCachePremium(
         premium: Boolean,
+    ): IO<Unit>
+
+    fun setCacheLicenseExpiry(
+        expiry: LicenseEntitlement.Expiry?,
     ): IO<Unit>
 
     fun setCacheNavItemsConfig(

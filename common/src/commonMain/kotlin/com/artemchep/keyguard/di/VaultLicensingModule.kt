@@ -36,6 +36,7 @@ internal class VaultLicensingModule {
                 LicenseSyncer(
                     licenseManager = get(),
                     refreshLicense = get(),
+                    putCacheLicenseExpiry = get(),
                     licenseClaimSource = getOrNull(),
                 )
             }

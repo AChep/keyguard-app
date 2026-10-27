@@ -1,21 +1,18 @@
-package com.artemchep.keyguard.apple.billing
+package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.ioEffect
-import com.artemchep.keyguard.common.model.Product
-import com.artemchep.keyguard.common.model.RichResult
-import com.artemchep.keyguard.common.model.Subscription
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
-import com.artemchep.keyguard.common.service.subscription.SubscriptionService
 import com.artemchep.keyguard.common.usecase.GetCachePremium
 import com.artemchep.keyguard.common.usecase.GetDebugPremium
 import com.artemchep.keyguard.common.usecase.GetLicensePremium
 import com.artemchep.keyguard.common.usecase.PutCachePremium
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.TestScope
@@ -28,66 +25,89 @@ import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class GetPurchasedAppleTest {
+class GetPurchasedImplTest {
     @Test
-    fun unknownAndFailedStoreKeepCacheButVerifiedRevocationRemovesIt() = runTest {
+    fun licenseGrantsPremiumWhileStoreIsUnknown() = runTest {
+        val fixture = Fixture(this)
+        val values = fixture.collect()
+        runCurrent()
+        assertEquals(false, values.last())
+
+        fixture.license.value = true
+        runCurrent()
+        assertEquals(true, values.last())
+        assertTrue(fixture.writes.isEmpty())
+    }
+
+    @Test
+    fun oneShotReadWaitsForTheLicense() = runTest {
+        val fixture = Fixture(this)
+        fixture.license.value = null
+        val premium = async { fixture.purchased().first() }
+        runCurrent()
+        assertFalse(premium.isCompleted)
+
+        fixture.license.value = true
+        runCurrent()
+        assertTrue(premium.await())
+    }
+
+    @Test
+    fun licenseDoesNotPolluteThePurchaseCache() = runTest {
+        val fixture = Fixture(this)
+        val values = fixture.collect()
+        fixture.license.value = true
+        fixture.store.value = false
+        runCurrent()
+        assertEquals(true, values.last())
+        assertEquals(listOf(false), fixture.writes)
+
+        fixture.license.value = false // vault lock, token removal, or expiry
+        runCurrent()
+        assertEquals(false, values.last())
+        assertEquals(listOf(false), fixture.writes)
+    }
+
+    @Test
+    fun unknownStoreKeepsCacheButVerifiedRevocationRemovesIt() = runTest {
         val fixture = Fixture(this, cached = true)
         val values = fixture.collect()
         runCurrent()
         assertEquals(true, values.last())
-        fixture.store.value = RichResult.Failure(Exception("offline"))
-        runCurrent()
-        assertEquals(true, values.last())
         assertTrue(fixture.writes.isEmpty())
-        fixture.store.value = RichResult.Success(false)
+
+        fixture.store.value = false
         runCurrent()
         assertEquals(false, values.last())
         assertEquals(listOf(false), fixture.writes)
     }
 
     @Test
-    fun linkedLicenseWorksWhileStoreIsLoadingAndDoesNotPollutePurchaseCache() = runTest {
+    fun purchaseIsCached() = runTest {
         val fixture = Fixture(this)
         val values = fixture.collect()
-        runCurrent()
-        fixture.license.value = true
-        runCurrent()
-        assertEquals(true, values.last())
-        fixture.store.value = RichResult.Success(false)
+        fixture.store.value = true
         runCurrent()
         assertEquals(true, values.last())
-        assertEquals(listOf(false), fixture.writes)
-        fixture.license.value = false // vault lock, token removal, or expiry
-        runCurrent()
-        assertEquals(false, values.last())
+        assertEquals(listOf(true), fixture.writes)
     }
 
     @Test
-    fun releaseIgnoresDebugAndErrorDoesNotGrantPremium() = runTest {
+    fun releaseIgnoresDebugPremium() = runTest {
         val fixture = Fixture(this, release = true)
         fixture.debug.value = true
-        fixture.store.value = RichResult.Failure(Exception("StoreKit unavailable"))
-        assertFalse(fixture.purchased().first())
-        assertTrue(fixture.writes.isEmpty())
-    }
-
-    @Test
-    fun directDistributionNeverCachesItsFreeGrant() = runTest {
-        val fixture = Fixture(this, free = true)
-        assertTrue(fixture.purchased().first())
-        assertTrue(fixture.writes.isEmpty())
-    }
-
-    @Test
-    fun debugOverrideGrantsAndRevokesPremiumWithoutCachingIt() = runTest {
-        val fixture = Fixture(this)
         val values = fixture.collect()
         runCurrent()
-        assertFalse(values.last())
+        assertEquals(false, values.last())
+    }
 
+    @Test
+    fun debugPremiumIsNotCached() = runTest {
+        val fixture = Fixture(this)
+        val values = fixture.collect()
         fixture.debug.value = true
         runCurrent()
-        assertTrue(values.last())
+        assertEquals(true, values.last())
 
         fixture.debug.value = false
         runCurrent()
@@ -108,33 +128,38 @@ class GetPurchasedAppleTest {
         assertTrue(fixture.writes.isEmpty())
     }
 
+    @Test
+    fun freeFlavorIsAlwaysPremiumAndNeverCached() = runTest {
+        val fixture = Fixture(this, free = true)
+        val values = fixture.collect()
+        runCurrent()
+        assertEquals(listOf(true), values)
+        assertTrue(fixture.writes.isEmpty())
+    }
+
     private class Fixture(
         private val scope: TestScope,
         cached: Boolean = false,
         release: Boolean = false,
         free: Boolean = false,
     ) {
-        val store = MutableStateFlow<RichResult<Boolean>>(RichResult.Loading())
-        val license = MutableStateFlow(false)
+        /** A store verdict, or `null` while the store is loading or failing. */
+        val store = MutableStateFlow<Boolean?>(null)
+        /** A license, or `null` while the license is not read yet. */
+        val license = MutableStateFlow<Boolean?>(false)
         val debug = MutableStateFlow(false)
         val cache = MutableStateFlow(cached)
         val writes = mutableListOf<Boolean>()
-        val purchased = GetPurchasedApple(
+        val purchased = GetPurchasedImpl(
             config = FlavorConfig(isFreeAsBeer = free),
-            subscriptionService = object : SubscriptionService {
-                override fun purchased() = store
-                override fun subscriptions(): Flow<List<Subscription>?> = flowOf(null)
-                override fun products(): Flow<List<Product>?> = flowOf(null)
-            },
+            storePurchased = store.filterNotNull(),
+            getLicensePremium = object : GetLicensePremium { override fun invoke() = license.filterNotNull() },
             getDebugPremium = object : GetDebugPremium { override fun invoke() = debug },
             getCachePremium = object : GetCachePremium { override fun invoke() = cache },
             putCachePremium = object : PutCachePremium {
                 override fun invoke(premium: Boolean) = ioEffect { writes += premium; cache.value = premium }
             },
-            getLicensePremium = object : GetLicensePremium { override fun invoke() = license },
-            windowCoroutineScope = object : WindowCoroutineScope {
-                override val coroutineContext = scope.backgroundScope.coroutineContext
-            },
+            windowCoroutineScope = object : WindowCoroutineScope, CoroutineScope by scope.backgroundScope {},
             release = release,
         )
 

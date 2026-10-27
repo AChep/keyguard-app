@@ -166,7 +166,7 @@ class GetSuggestionsImpl : GetSuggestions<Any?> {
     }
 }
 
-class GetPurchasedImpl : GetPurchased {
+class GetPurchasedDesktop : GetPurchased {
     override fun invoke(): Flow<Boolean> = flowOf(true)
 }
 
@@ -371,7 +371,7 @@ class PlatformApplicationModule {
             )
         }
         single<GetPurchased> {
-            GetPurchasedImpl()
+            GetPurchasedDesktop()
         }
 
         single<CleanUpAttachment> {

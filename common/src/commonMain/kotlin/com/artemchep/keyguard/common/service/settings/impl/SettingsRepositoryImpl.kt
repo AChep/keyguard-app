@@ -33,6 +33,7 @@ import com.artemchep.keyguard.common.service.keyvalue.getObject
 import com.artemchep.keyguard.common.service.keyvalue.getSerializable
 import com.artemchep.keyguard.common.service.keyvalue.mapToObjectPreference
 import com.artemchep.keyguard.common.service.keyvalue.setAndCommit
+import com.artemchep.keyguard.common.service.licensekey.model.LicenseEntitlement
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
 import com.artemchep.keyguard.common.service.settings.entity.VersionLogEntity
 import com.artemchep.keyguard.common.service.settings.entity.of
@@ -89,6 +90,8 @@ class SettingsRepositoryImpl(
         private const val KEY_DEBUG_PREMIUM = "debug_premium"
         private const val KEY_DEBUG_SCREEN_DELAY = "debug_screen_delay"
         private const val KEY_CACHE_PREMIUM = "cache_premium"
+        private const val KEY_CACHE_LICENSE_EXPIRY = "cache_license_expiry"
+        private const val CACHE_LICENSE_EXPIRY_LIFETIME = "lifetime"
         private const val KEY_CACHE_NAV_ITEMS_CONFIG = "cache_nav_items_config"
         private const val KEY_APP_ICONS = "app_icons"
         private const val KEY_WEBSITE_ICONS = "website_icons"
@@ -222,6 +225,26 @@ class SettingsRepositoryImpl(
 
     private val cachePremiumPref =
         store.getBoolean(KEY_CACHE_PREMIUM, false)
+
+    private val cacheLicenseExpiryPref =
+        store.getObject<LicenseEntitlement.Expiry?>(
+            KEY_CACHE_LICENSE_EXPIRY,
+            defaultValue = null,
+            serialize = { expiry ->
+                when (expiry) {
+                    null -> ""
+                    LicenseEntitlement.Expiry.Lifetime -> CACHE_LICENSE_EXPIRY_LIFETIME
+                    is LicenseEntitlement.Expiry.PaidThrough -> expiry.yearMonth
+                }
+            },
+            deserialize = { value ->
+                when (value) {
+                    "" -> null
+                    CACHE_LICENSE_EXPIRY_LIFETIME -> LicenseEntitlement.Expiry.Lifetime
+                    else -> LicenseEntitlement.Expiry.PaidThrough(value)
+                }
+            },
+        )
 
     private val appIconsPref =
         store.getBoolean(KEY_APP_ICONS, true)
@@ -473,6 +496,7 @@ class SettingsRepositoryImpl(
         KEY_DEBUG_PREMIUM,
         KEY_DEBUG_SCREEN_DELAY,
         KEY_CACHE_PREMIUM,
+        KEY_CACHE_LICENSE_EXPIRY,
         KEY_CACHE_NAV_ITEMS_CONFIG,
         KEY_ONBOARDING_LAST_VISIT,
         KEY_VERSION_LOG,
@@ -508,6 +532,7 @@ class SettingsRepositoryImpl(
             debugPremiumPref,
             debugScreenDelayPref,
             cachePremiumPref,
+            cacheLicenseExpiryPref,
             appIconsPref,
             websiteIconsPref,
             markdownPref,
@@ -744,6 +769,11 @@ class SettingsRepositoryImpl(
         .setAndCommit(premium)
 
     override fun getCachePremium() = cachePremiumPref
+
+    override fun setCacheLicenseExpiry(expiry: LicenseEntitlement.Expiry?) = cacheLicenseExpiryPref
+        .setAndCommit(expiry)
+
+    override fun getCacheLicenseExpiry() = cacheLicenseExpiryPref
 
     override fun setCacheNavItemsConfig(config: NavItemsConfig?) = cacheNavItemsConfigPref
         .setAndCommit(config)

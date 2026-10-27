@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.service.agent.macosDevAgentSocketPath
 import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.flatpakId
 import com.sun.security.auth.module.UnixSystem
 import java.nio.file.Files
 import java.nio.file.Path
@@ -112,11 +113,6 @@ private fun flatpakManagedGpgHomePath(): Path =
             .resolve("data")
             .resolve("gnupg")
 
-private fun flatpakId(): String =
-    System.getenv("FLATPAK_ID")
-        ?.takeIf { it.isNotBlank() }
-        ?: FLATPAK_APP_ID_FALLBACK
-
 internal fun linuxManagedGpgHome(
     userHome: Path,
     xdgDataHome: String?,
@@ -177,5 +173,3 @@ internal fun gpgEnvPath(name: String): Path? =
 internal fun currentUnixUid(): Long? = runCatchingNonFatal {
     UnixSystem().uid
 }.getOrNull()
-
-private const val FLATPAK_APP_ID_FALLBACK = "com.artemchep.keyguard"

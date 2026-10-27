@@ -13,6 +13,11 @@ The upstream MPL-2.0 license, `.cargo_vcs_info.json`, and byte-exact
 
 ## Local changes
 
+Each change has its own removal condition. Once none remain, remove the fork
+and its `[patch.crates-io]` entries.
+
+### Credential ID recovery
+
 `GetAssertion::finalize_result` restores an omitted credential descriptor only
 when the actual request allow-list has exactly one entry. This handles CTAP2.0
 responses after the library filters a caller's longer list during preflight.
@@ -20,10 +25,52 @@ Explicit descriptors remain unchanged; missing IDs on empty or ambiguous lists
 remain missing so the caller can reject them. Authentication data, signatures,
 PIN/UV processing, and PRF outputs are not modified.
 
-The regression tests exercise preflight selection followed by CBOR response
-decoding, explicit IDs, and ambiguous/discoverable requests. The effective
-manifest adds the reviewed-vendor marker and declares upstream's `cfg(fuzzing)`.
-`examples/ctap2_discoverable_creds.rs` has formatting-only changes for rustfmt.
+The regression tests in `src/ctap2/commands/get_assertion/keyguard_tests.rs`
+exercise preflight selection followed by CBOR response decoding, explicit IDs,
+and ambiguous/discoverable requests.
+
+Remove this change when an upstream release includes equivalent recovery and
+passes these regressions.
+
+### Flatpak device discovery
+
+The Linux monitor uses polling alone inside Flatpak, rescanning hidraw nodes
+every 500 ms. Udev event delivery in a sandbox varies by runtime and libudev
+version, so relying on it can miss keys plugged in after an operation starts.
+Outside Flatpak, discovery continues to use udev events.
+
+A rescan waits for read/write access and identifies nodes by path, filesystem
+device and inode, so a replacement at the same path is discovered. Failed
+enumeration preserves existing workers; unreadable metadata preserves a known
+node until a later scan. Known non-FIDO nodes stay cached until removal or
+replacement. Flatpak device initialization retries I/O failures while the
+request is alive, including descriptor-read failures. Selection and subsequent
+authentication/configuration operations are never retried by this mechanism.
+Workers stop when the path's identity changes, so initialization retries cannot
+continue against a replacement while waiting for the next scan.
+
+All Linux discovery paths deduplicate before announcing devices or starting
+workers. Monitor exit and drop cancel workers, including after setup errors.
+The helpers in `src/transport/linux_rescan.rs` have Linux unit tests. Linux
+tests also include the production monitor with fake workers and selector
+notifications, because library unit tests replace `platform` with a mock.
+
+The change spans `src/transport/linux_rescan.rs`,
+`src/transport/linux/monitor.rs`, their `keyguard_tests.rs`, the module wiring
+in `src/transport/mod.rs`, the initialization retry in `src/statemachine.rs`,
+and descriptor-error propagation in `src/transport/linux/device.rs` and
+`src/transport/linux/hidraw.rs`. `LePlatform.kt` in `common` mirrors its
+Flatpak detection.
+
+Remove this change when an upstream release discovers keys inside Flatpak
+without udev events, including a key replaced at the same path, and the Flatpak
+build finds a key plugged in during an operation.
+
+### Build and formatting
+
+The effective manifest adds the reviewed-vendor marker and declares upstream's
+`cfg(fuzzing)`. `examples/ctap2_discoverable_creds.rs` has formatting-only
+changes for rustfmt. These exist only to build the fork.
 
 ## Consumers and checks
 
@@ -52,6 +99,5 @@ runs the fork tests on Linux/macOS and builds the native consumers on
 Linux/macOS/Windows. Windows uses its separate OS WebAuthn backend. Fork-only
 edits select the FIDO2 consumer checks through `classify_native_changes.py`.
 
-Remove this patch when an upstream release includes equivalent recovery and
-passes these regressions. The native-crypto workspace does not consume this
-fork; its dependency policy is unchanged.
+The native-crypto workspace does not consume this fork; its dependency policy
+is unchanged.

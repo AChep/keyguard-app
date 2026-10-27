@@ -44,9 +44,3 @@ to another method, or use another device.
   returns the result to Keyguard. Use it for passkeys managed by a browser and
   for legacy U2F credentials. If Android asks which app should open the return
   link, choose Keyguard.
-
-## Limitations
-
-| Build | Limitation |
-| --- | --- |
-| Flatpak | **FIDO2 Web Authentication** isn't available. Use another method. |

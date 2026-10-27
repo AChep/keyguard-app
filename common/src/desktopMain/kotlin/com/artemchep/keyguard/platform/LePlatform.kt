@@ -4,12 +4,21 @@ import org.apache.commons.lang3.SystemUtils
 import java.io.File
 
 /**
- * Mirrors the detection in the native `linux_shared.rs`, util/yubikey's
- * `NativeYubiKey` and util/fido2's `NativeFido2`; keep all of them in sync.
+ * Mirrors the detection in the native `linux_shared.rs` and the
+ * `linux_rescan.rs` of the authenticator fork in thirdParty/rust; keep all
+ * of them in sync.
  */
 private val isFlatpak: Boolean
     get() = System.getenv("container") == "flatpak" ||
         File("/.flatpak-info").exists()
+
+/** The installed app ID, which differs for repackaged or branch builds. */
+internal fun flatpakId(): String =
+    System.getenv("FLATPAK_ID")
+        ?.takeIf { it.isNotBlank() }
+        ?: FLATPAK_APP_ID_FALLBACK
+
+private const val FLATPAK_APP_ID_FALLBACK = "com.artemchep.keyguard"
 
 actual val CurrentPlatform: Platform by lazy {
     when {

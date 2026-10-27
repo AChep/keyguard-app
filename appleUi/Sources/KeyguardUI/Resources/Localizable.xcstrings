@@ -164845,6 +164845,209 @@
         }
       }
     },
+    "error_flatpak_device_access" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "af" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "ar" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "bn" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "ca" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "cs" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "da" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "en-GB" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "en-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "fi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "he" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "hu" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "it" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "ja" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "nb" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "nl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "pl" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "pt-BR" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "pt-PT" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "ro" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "ru" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "sr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "sv" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "tr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "uk" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "vi" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyguard needs device access to use security keys. Run this command in a terminal on the host, then restart Keyguard:\n%1$@"
+          }
+        }
+      }
+    },
     "error_incorrect_password" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -512959,6 +513162,12 @@
           }
         },
         "el" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Value"
+          }
+        },
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Value"

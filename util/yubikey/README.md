@@ -9,12 +9,13 @@ localization, and screen lifecycle remain in the application.
   `YubiKeyActivityProtocol`. The caller supplies its Activity Result adapter.
 - JVM desktop and native macOS use `NativeYubiKeyClient`, backed by the same Rust
   OTP/HID implementation. JNI and C are thin, versioned adapters.
-- iOS and the shipped Flatpak sandbox report unsupported. Desktop OTP text entry
-  remains an application concern. NFC challenge-response is Android-only.
+- iOS reports unsupported. Desktop OTP text entry remains an application
+  concern. NFC challenge-response is Android-only.
 
 The desktop backend requires an enabled OTP interface and access to its HID
-feature reports. Linux requires suitable host udev permissions. The macOS app
-sandbox requires the USB device entitlement. No device access occurs at startup.
+feature reports. Linux requires suitable host udev permissions, and Flatpak
+also requires `--device=all`. The macOS app sandbox requires the USB device
+entitlement. No device access occurs at startup.
 
 ## Contract
 

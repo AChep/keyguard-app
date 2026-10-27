@@ -2961,6 +2961,10 @@ public enum L10n {
     public static func errorFileMustBeNOrSmaller(_ a1: String) -> String {
         String(format: String(localized: "error_file_must_be_n_or_smaller", bundle: AppLocalization.shared.bundle), a1)
     }
+    /// error_flatpak_device_access
+    public static func errorFlatpakDeviceAccess(_ a1: String) -> String {
+        String(format: String(localized: "error_flatpak_device_access", bundle: AppLocalization.shared.bundle), a1)
+    }
     /// error_incorrect_password
     public static var errorIncorrectPassword: String {
         String(localized: "error_incorrect_password", bundle: AppLocalization.shared.bundle)

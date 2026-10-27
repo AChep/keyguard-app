@@ -12,10 +12,10 @@ use crate::errors::AuthenticatorError;
 use crate::statecallback::StateCallback;
 use crate::status_update::{send_status, InteractiveUpdate};
 use crate::transport::device_selector::{
-    BlinkResult, Device, DeviceBuildParameters, DeviceCommand, DeviceSelectorEvent,
+    BlinkResult, Device, DeviceBuildParameters, DeviceCommand, DeviceID, DeviceSelectorEvent,
 };
 use crate::transport::platform::transaction::Transaction;
-use crate::transport::{hid::HIDDevice, FidoDevice, FidoProtocol};
+use crate::transport::{errors::HIDError, hid::HIDDevice, FidoDevice, FidoProtocol};
 use crate::{InteractiveRequest, ManageResult};
 use std::sync::mpsc::{channel, RecvTimeoutError, Sender};
 
@@ -34,25 +34,30 @@ impl StateMachine {
     fn init_device(
         info: DeviceBuildParameters,
         selector: &Sender<DeviceSelectorEvent>,
+        _alive: &dyn Fn() -> bool,
     ) -> Option<Device> {
-        // Create a new device.
-        let mut dev = match Device::new(info) {
-            Ok(dev) => dev,
-            Err((e, id)) => {
-                info!("error happened with device: {}", e);
-                let _ = selector.send(DeviceSelectorEvent::NotAToken(id));
-                return None;
-            }
+        let report_error = |(error, id)| {
+            info!("error initializing device: {}", error);
+            // Don't let an unavailable device hold up selection of other keys.
+            let _ = selector.send(DeviceSelectorEvent::NotAToken(id));
+            error
         };
 
-        // Try initializing it.
-        if let Err(e) = dev.init() {
-            warn!("error while initializing device: {}", e);
-            let _ = selector.send(DeviceSelectorEvent::NotAToken(dev.id()));
-            return None;
+        #[cfg(all(target_os = "linux", not(test)))]
+        if crate::transport::linux_rescan::is_flatpak() {
+            return crate::transport::linux_rescan::retry_initialization(
+                || Self::try_init_device(info.clone()).map_err(report_error),
+                _alive,
+            );
         }
 
-        Some(dev)
+        Self::try_init_device(info).map_err(report_error).ok()
+    }
+
+    fn try_init_device(info: DeviceBuildParameters) -> Result<Device, (HIDError, DeviceID)> {
+        let mut dev = Device::new(info)?;
+        dev.init().map_err(|error| (error, dev.id()))?;
+        Ok(dev)
     }
 
     fn wait_for_device_selector(
@@ -130,7 +135,7 @@ impl StateMachine {
             cbc.clone(),
             status,
             move |info, selector, status, alive| {
-                let mut dev = match Self::init_device(info, &selector) {
+                let mut dev = match Self::init_device(info, &selector, alive) {
                     Some(dev) => dev,
                     None => return,
                 };
@@ -171,7 +176,7 @@ impl StateMachine {
             callback.clone(),
             status,
             move |info, selector, status, alive| {
-                let mut dev = match Self::init_device(info, &selector) {
+                let mut dev = match Self::init_device(info, &selector, alive) {
                     Some(dev) => dev,
                     None => return,
                 };
@@ -219,7 +224,7 @@ impl StateMachine {
             callback.clone(),
             status,
             move |info, selector, status, alive| {
-                let mut dev = match Self::init_device(info, &selector) {
+                let mut dev = match Self::init_device(info, &selector, alive) {
                     Some(dev) => dev,
                     None => return,
                 };
@@ -257,7 +262,7 @@ impl StateMachine {
             callback.clone(),
             status,
             move |info, selector, status, alive| {
-                let mut dev = match Self::init_device(info, &selector) {
+                let mut dev = match Self::init_device(info, &selector, alive) {
                     Some(dev) => dev,
                     None => return,
                 };
@@ -308,7 +313,7 @@ impl StateMachine {
             callback.clone(),
             status,
             move |info, selector, status, alive| {
-                let mut dev = match Self::init_device(info, &selector) {
+                let mut dev = match Self::init_device(info, &selector, alive) {
                     Some(dev) => dev,
                     None => return,
                 };

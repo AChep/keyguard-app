@@ -2,7 +2,13 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+#[cfg(not(test))]
 use crate::transport::device_selector::DeviceSelectorEvent;
+use crate::transport::linux_rescan::{
+    diff_scan, is_accessible, is_flatpak, wait_for_rescan, NodeIdentity, Scan,
+};
+#[cfg(test)]
+use keyguard_tests::DeviceSelectorEvent;
 use libc::{c_int, c_short, c_ulong};
 use libudev::EventType;
 use runloop::RunLoop;
@@ -13,9 +19,18 @@ use std::os::unix::io::AsRawFd;
 use std::path::PathBuf;
 use std::sync::{mpsc::Sender, Arc};
 
+#[cfg(test)]
+#[path = "monitor/keyguard_tests.rs"]
+mod keyguard_tests;
+
 const UDEV_SUBSYSTEM: &str = "hidraw";
 const POLLIN: c_short = 0x0001;
 const POLL_TIMEOUT: c_int = 100;
+
+struct TrackedDevice {
+    identity: Option<NodeIdentity>,
+    runloop: RunLoop,
+}
 
 fn poll(fds: &mut Vec<::libc::pollfd>) -> io::Result<()> {
     let nfds = fds.len() as c_ulong;
@@ -34,7 +49,7 @@ where
     F: Fn(PathBuf, Sender<DeviceSelectorEvent>, Sender<crate::StatusUpdate>, &dyn Fn() -> bool)
         + Sync,
 {
-    runloops: HashMap<PathBuf, RunLoop>,
+    runloops: HashMap<PathBuf, TrackedDevice>,
     new_device_cb: Arc<F>,
     selector_sender: Sender<DeviceSelectorEvent>,
     status_sender: Sender<crate::StatusUpdate>,
@@ -61,25 +76,21 @@ where
     }
 
     pub fn run(&mut self, alive: &dyn Fn() -> bool) -> Result<(), Box<dyn Error>> {
+        let result = self.run_inner(alive);
+        self.remove_all_devices();
+        result
+    }
+
+    fn run_inner(&mut self, alive: &dyn Fn() -> bool) -> Result<(), Box<dyn Error>> {
         let ctx = libudev::Context::new()?;
-
-        let mut enumerator = libudev::Enumerator::new(&ctx)?;
-        enumerator.match_subsystem(UDEV_SUBSYSTEM)?;
-
-        // Iterate all existing devices.
-        let paths: Vec<PathBuf> = enumerator
-            .scan_devices()?
-            .filter_map(|dev| dev.devnode().map(|p| p.to_owned()))
-            .collect();
-
-        // Add them all in one go to avoid race conditions in DeviceSelector
-        // (8 devices should be added, but the first returns already before all
-        // others are known to DeviceSelector)
-        self.selector_sender
-            .send(DeviceSelectorEvent::DevicesAdded(paths.clone()))?;
-        for path in paths {
-            self.add_device(path);
+        // Keyguard: sandbox udev events are not reliable across runtimes. Use
+        // polling alone there, so an event cannot duplicate a scanned device.
+        if is_flatpak() {
+            self.run_polling(alive, || scan(&ctx));
+            return Ok(());
         }
+
+        self.add_devices(scan(&ctx)?);
 
         let mut monitor = libudev::Monitor::new(&ctx)?;
         monitor.match_subsystem(UDEV_SUBSYSTEM)?;
@@ -101,9 +112,6 @@ where
             }
         }
 
-        // Remove all tracked devices.
-        self.remove_all_devices();
-
         Ok(())
     }
 
@@ -112,10 +120,8 @@ where
 
         match (event.event_type(), path) {
             (EventType::Add, Some(path)) => {
-                let _ = self
-                    .selector_sender
-                    .send(DeviceSelectorEvent::DevicesAdded(vec![path.clone()]));
-                self.add_device(path);
+                let identity = NodeIdentity::read(&path);
+                self.add_devices(std::iter::once((path, identity)).collect());
             }
             (EventType::Remove, Some(path)) => {
                 self.remove_device(&path);
@@ -124,7 +130,71 @@ where
         }
     }
 
-    fn add_device(&mut self, path: PathBuf) {
+    fn run_polling(
+        &mut self,
+        alive: &dyn Fn() -> bool,
+        mut scan: impl FnMut() -> Result<Scan, Box<dyn Error>>,
+    ) {
+        while alive() {
+            match scan() {
+                Ok(scanned) => self.rescan(scanned),
+                // Preserve the current snapshot on a transient enumeration failure.
+                Err(error) => warn!("Could not rescan security keys: {}", error),
+            }
+            if !wait_for_rescan(alive) {
+                break;
+            }
+        }
+    }
+
+    fn rescan(&mut self, scanned: Scan) {
+        let tracked = self
+            .runloops
+            .iter()
+            .map(|(path, device)| (path.clone(), device.identity))
+            .collect();
+        let (removed, added) = diff_scan(&tracked, &scanned, is_accessible);
+
+        for path in removed {
+            self.remove_device(&path);
+        }
+        self.add_devices(
+            added
+                .into_iter()
+                .map(|path| {
+                    let identity = scanned[&path];
+                    (path, identity)
+                })
+                .collect(),
+        );
+    }
+
+    fn add_devices(&mut self, mut devices: Scan) {
+        // Deduplicate before notifying the selector as well as before spawning.
+        devices.retain(|path, _| !self.runloops.contains_key(path));
+        if devices.is_empty() {
+            return;
+        }
+        // Announce the whole batch before any worker can finish initialization.
+        if self
+            .selector_sender
+            .send(DeviceSelectorEvent::DevicesAdded(
+                devices.keys().cloned().collect(),
+            ))
+            .is_err()
+        {
+            // The selector closes once it chooses a key. Keep that worker alive.
+            return;
+        }
+        for (path, identity) in devices {
+            if let Err(error) = self.add_device(path.clone(), identity) {
+                warn!("Could not start security key worker: {}", error);
+                self.remove_device(&path);
+            }
+        }
+    }
+
+    fn add_device(&mut self, path: PathBuf, identity: Option<NodeIdentity>) -> io::Result<()> {
         let f = self.new_device_cb.clone();
         let key = path.clone();
         let selector_sender = self.selector_sender.clone();
@@ -132,24 +202,37 @@ where
         debug!("Adding device {}", path.to_string_lossy());
 
         let runloop = RunLoop::new(move |alive| {
-            if alive() {
-                f(path, selector_sender, status_sender, alive);
+            // A retry must not initialize a replacement under the old worker's
+            // identity while the monitor is waiting for its next scan.
+            let keep_alive = || {
+                alive()
+                    && !matches!((identity, NodeIdentity::read(&path)),
+                        (Some(expected), Some(current)) if expected != current)
+            };
+            if keep_alive() {
+                f(path.clone(), selector_sender, status_sender, &keep_alive);
             }
-        });
+        })?;
 
-        if let Ok(runloop) = runloop {
-            self.runloops.insert(key, runloop);
-        }
+        self.runloops
+            .insert(key, TrackedDevice { identity, runloop });
+        Ok(())
     }
+}
 
+impl<F> Monitor<F>
+where
+    F: Fn(PathBuf, Sender<DeviceSelectorEvent>, Sender<crate::StatusUpdate>, &dyn Fn() -> bool)
+        + Sync,
+{
     fn remove_device(&mut self, path: &PathBuf) {
         let _ = self
             .selector_sender
             .send(DeviceSelectorEvent::DeviceRemoved(path.clone()));
 
         debug!("Removing device {}", path.to_string_lossy());
-        if let Some(runloop) = self.runloops.remove(path) {
-            runloop.cancel();
+        if let Some(device) = self.runloops.remove(path) {
+            device.runloop.cancel();
         }
     }
 
@@ -159,6 +242,28 @@ where
             self.remove_device(&path);
         }
     }
+}
+
+impl<F> Drop for Monitor<F>
+where
+    F: Fn(PathBuf, Sender<DeviceSelectorEvent>, Sender<crate::StatusUpdate>, &dyn Fn() -> bool)
+        + Sync,
+{
+    fn drop(&mut self) {
+        self.remove_all_devices();
+    }
+}
+
+fn scan(ctx: &libudev::Context) -> Result<Scan, Box<dyn Error>> {
+    let mut enumerator = libudev::Enumerator::new(ctx)?;
+    enumerator.match_subsystem(UDEV_SUBSYSTEM)?;
+    Ok(enumerator
+        .scan_devices()?
+        .filter_map(|dev| {
+            dev.devnode()
+                .map(|path| (path.to_owned(), NodeIdentity::read(path)))
+        })
+        .collect())
 }
 
 pub fn get_property_linux(path: &PathBuf, prop_name: &str) -> io::Result<String> {

@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.artemchep.keyguard.platform.requireSecurityKeyAccess
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.CollectedEffect
@@ -50,6 +51,7 @@ private fun NativeFido2Dialog(prompt: Fido2Prompt) {
     DisposableEffect(prompt) { onDispose { prompt.cancel() } }
     LaunchedEffect(prompt, attempt) {
         try {
+            requireSecurityKeyAccess(Res.string.fido2_error_title)
             val result = NativeFido2Client().execute(prompt.operation, submittedPin)
             prompt.complete(Result.success(result))
         } catch (error: CancellationException) {

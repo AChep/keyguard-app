@@ -81,7 +81,7 @@ impl HIDDevice for Device {
             .open(&path)
             .map_err(|e| (HIDError::IO(Some(path.clone()), e), path.clone()))?;
         let (in_rpt_size, out_rpt_size) = hidraw::read_hid_rpt_sizes_or_defaults(fd.as_raw_fd());
-        let mut res = Self {
+        let res = Self {
             path,
             fd,
             in_rpt_size,
@@ -92,7 +92,13 @@ impl HIDDevice for Device {
             authenticator_info: None,
             protocol: FidoProtocol::CTAP2,
         };
-        if res.is_u2f() {
+        // Preserve descriptor I/O failures so Flatpak discovery can retry them.
+        if hidraw::is_u2f_device(res.fd.as_raw_fd()).map_err(|error| {
+            (
+                HIDError::IO(Some(res.path.clone()), error),
+                res.path.clone(),
+            )
+        })? {
             info!("new device {:?}", res.path);
             Ok(res)
         } else {
@@ -152,7 +158,7 @@ impl FidoDevice for Device {
     }
 
     fn is_u2f(&mut self) -> bool {
-        hidraw::is_u2f_device(self.fd.as_raw_fd())
+        hidraw::is_u2f_device(self.fd.as_raw_fd()).unwrap_or(false)
     }
 
     fn get_shared_secret(&self) -> Option<&SharedSecret> {

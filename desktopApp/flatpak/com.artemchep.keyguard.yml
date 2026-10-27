@@ -9,6 +9,8 @@ finish-args:
   - --share=ipc
   - --socket=x11
   - --device=dri
+  # Yubikey/FIDO2 security keys; no narrower permission exposes /dev/hidraw
+  - --device=all
   - --filesystem=xdg-download:create
   - --filesystem=xdg-run/gnupg:create
   - --talk-name=org.kde.StatusNotifierWatcher

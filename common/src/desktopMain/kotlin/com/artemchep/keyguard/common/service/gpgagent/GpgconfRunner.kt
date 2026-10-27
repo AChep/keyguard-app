@@ -25,9 +25,14 @@ internal class GpgconfRunner {
     private val executable: Path by lazy(::resolveExecutable)
 
     // Use the gpg from the same installation; a bare gpgconf resolves gpg from PATH too.
-    private val gpgExecutable: Path by lazy {
-        val name = if (CurrentPlatform is Platform.Desktop.Windows) "gpg.exe" else "gpg"
-        executable.resolveSibling(name)
+    private val gpgExecutable: Path by lazy { sibling("gpg") }
+
+    /** The client from the same GnuPG installation as the running agent's socket resolver. */
+    val agentClientExecutable: Path by lazy { sibling("gpg-connect-agent") }
+
+    private fun sibling(name: String): Path {
+        val fileName = if (CurrentPlatform is Platform.Desktop.Windows) "$name.exe" else name
+        return executable.resolveSibling(fileName)
     }
 
     fun resolveAgentSocket(home: Path): Path {

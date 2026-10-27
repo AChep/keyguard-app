@@ -18,6 +18,7 @@ base64 = { workspace = true, features = ["std"] }
 clap = { workspace = true, features = ["derive"] }
 common-ssh-agent-rust.workspace = true
 keyguard-android-agent-bridge.workspace = true
+keyguard-agent-setup.workspace = true
 libc.workspace = true
 prost.workspace = true
 rand.workspace = true

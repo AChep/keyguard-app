@@ -9,6 +9,8 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.agent.help.AgentSetupCodeBlock
 import com.artemchep.keyguard.feature.agent.help.AgentSetupParagraph
 import com.artemchep.keyguard.feature.agent.help.AgentSetupTermuxInstall
+import com.artemchep.keyguard.feature.agent.help.AgentTermuxAutomaticSetup
+import com.artemchep.keyguard.feature.agent.help.SetupAgent
 import com.artemchep.keyguard.feature.home.vault.component.LargeSection
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.res.Res
@@ -39,6 +41,7 @@ internal fun ColumnScope.GpgAgentSetupAndroidPlatformContent() {
     AgentSetupTermuxInstall(
         installCommand = GPG_AGENT_TERMUX_PKG_INSTALL,
     )
+    AgentTermuxAutomaticSetup(SetupAgent.GPG)
     GpgAgentSetupAndroidStep(
         title = stringResource(Res.string.gpg_agent_setup_android_termux_step_3_title),
         texts = listOf(

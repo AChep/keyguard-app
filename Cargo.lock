@@ -1269,6 +1269,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyguard-agent-setup"
+version = "3.5.0"
+dependencies = [
+ "anyhow",
+ "dirs",
+ "libc",
+ "serde",
+ "serde_json",
+ "sha2 0.10.9",
+ "tempfile",
+ "windows-sys",
+]
+
+[[package]]
 name = "keyguard-android-agent-bridge"
 version = "3.5.0"
 dependencies = [
@@ -1294,6 +1308,7 @@ dependencies = [
  "clap",
  "common-gpg-agent-rust",
  "keyguard-agent-identity",
+ "keyguard-agent-setup",
  "keyguard-android-agent-bridge",
  "keyguard-gpg-agent-assuan",
  "libc",
@@ -1312,6 +1327,7 @@ dependencies = [
  "base64 0.23.1",
  "clap",
  "common-ssh-agent-rust",
+ "keyguard-agent-setup",
  "keyguard-android-agent-bridge",
  "libc",
  "prost",
@@ -1325,6 +1341,7 @@ version = "3.5.0"
 dependencies = [
  "anyhow",
  "clap",
+ "keyguard-agent-setup",
  "keyguard-cli-protocol",
  "rmcp",
  "serde_json",

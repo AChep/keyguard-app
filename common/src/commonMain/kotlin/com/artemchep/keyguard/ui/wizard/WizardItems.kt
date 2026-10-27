@@ -34,26 +34,32 @@ fun WizardChoice(
     icon: ImageVector,
     selected: Boolean,
     shapeState: Int,
+    enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
-    val backgroundColor = if (selected) {
-        MaterialTheme.colorScheme.secondaryContainer
-    } else Color.Unspecified
     FlatItemLayoutExpressive(
         rowModifier = Modifier.semantics {
             this.selected = selected
             role = Role.RadioButton
         },
         shapeState = shapeState,
-        backgroundColor = backgroundColor,
+        backgroundColor = wizardSelectedBackground(selected),
         leading = { Icon(icon, contentDescription = null) },
         content = {
             Text(title, style = MaterialTheme.typography.titleMedium)
         },
-        trailing = { RadioButton(selected = selected, onClick = null) },
-        onClick = onClick,
+        trailing = { RadioButton(selected = selected, onClick = null, enabled = enabled) },
+        onClick = onClick.takeIf { enabled },
     )
 }
+
+/**
+ * The background of a selected
+ * or checked option.
+ */
+@Composable
+fun wizardSelectedBackground(selected: Boolean): Color =
+    if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Unspecified
 
 /**
  * A row of the summary that a wizard

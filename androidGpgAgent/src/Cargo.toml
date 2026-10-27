@@ -18,6 +18,7 @@ clap = { workspace = true, features = ["derive"] }
 common-gpg-agent-rust.workspace = true
 keyguard-agent-identity.workspace = true
 keyguard-android-agent-bridge.workspace = true
+keyguard-agent-setup.workspace = true
 keyguard-gpg-agent-assuan.workspace = true
 libc.workspace = true
 prost.workspace = true

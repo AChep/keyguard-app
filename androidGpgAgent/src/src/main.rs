@@ -44,6 +44,13 @@ pub(crate) const GPG_AGENT_CONTRACT: BridgeContract = BridgeContract {
 #[derive(Parser, Debug)]
 #[command(name = "keyguard-android-gpg-agent", version, about)]
 struct Args {
+    /// Review and configure startup for these Termux shells: bash,zsh,fish.
+    #[arg(long, value_delimiter = ',', conflicts_with_all = ["undo_setup", "homedir", "foreground", "debug"])]
+    setup_shells: Vec<keyguard_agent_setup::Shell>,
+
+    /// Review removal of configuration created by --setup-shells.
+    #[arg(long, conflicts_with_all = ["homedir", "foreground", "debug"])]
+    undo_setup: bool,
     /// GnuPG home to serve. Default: ~/.keyguard/gnupg.
     #[arg(long, value_name = "dir")]
     homedir: Option<PathBuf>,
@@ -77,6 +84,18 @@ fn main() {
 
 fn try_main() -> Result<i32> {
     let args = Args::parse();
+    if args.undo_setup {
+        keyguard_agent_setup::termux::undo(keyguard_agent_setup::AgentKind::Gpg)?;
+        return Ok(0);
+    }
+    if !args.setup_shells.is_empty() {
+        let home = ManagedHome::default_for(&user_home()?).path;
+        keyguard_agent_setup::termux::setup(
+            keyguard_agent_setup::Agent::Gpg { home },
+            args.setup_shells,
+        )?;
+        return Ok(0);
+    }
     let is_csh = prefers_csh(args.csh, args.bash);
 
     let user_home = user_home()?;

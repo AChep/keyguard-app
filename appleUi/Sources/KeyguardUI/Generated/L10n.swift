@@ -609,6 +609,290 @@ public enum L10n {
     public static var agentApprovalsHeaderTitle: String {
         String(localized: "agent_approvals_header_title", bundle: AppLocalization.shared.bundle)
     }
+    /// agent_auto_setup_applied
+    public static var agentAutoSetupApplied: String {
+        String(localized: "agent_auto_setup_applied", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_apply_action
+    public static var agentAutoSetupApplyAction: String {
+        String(localized: "agent_auto_setup_apply_action", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_applying_status
+    public static var agentAutoSetupApplyingStatus: String {
+        String(localized: "agent_auto_setup_applying_status", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_check_action
+    public static var agentAutoSetupCheckAction: String {
+        String(localized: "agent_auto_setup_check_action", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_check_failed
+    public static var agentAutoSetupCheckFailed: String {
+        String(localized: "agent_auto_setup_check_failed", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_check_retry_action
+    public static var agentAutoSetupCheckRetryAction: String {
+        String(localized: "agent_auto_setup_check_retry_action", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_check_succeeded
+    public static var agentAutoSetupCheckSucceeded: String {
+        String(localized: "agent_auto_setup_check_succeeded", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_checking_status
+    public static var agentAutoSetupCheckingStatus: String {
+        String(localized: "agent_auto_setup_checking_status", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_configure_action
+    public static var agentAutoSetupConfigureAction: String {
+        String(localized: "agent_auto_setup_configure_action", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_conflict_changed_block
+    public static func agentAutoSetupConflictChangedBlock(_ a1: String) -> String {
+        String(format: String(localized: "agent_auto_setup_conflict_changed_block", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// agent_auto_setup_conflict_compiled_startup
+    public static func agentAutoSetupConflictCompiledStartup(_ a1: String) -> String {
+        String(format: String(localized: "agent_auto_setup_conflict_compiled_startup", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// agent_auto_setup_conflict_unrecorded_block
+    public static func agentAutoSetupConflictUnrecordedBlock(_ a1: String) -> String {
+        String(format: String(localized: "agent_auto_setup_conflict_unrecorded_block", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// agent_auto_setup_conflict_zdotdir
+    public static func agentAutoSetupConflictZdotdir(_ a1: String) -> String {
+        String(format: String(localized: "agent_auto_setup_conflict_zdotdir", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// agent_auto_setup_conflicts_title
+    public static var agentAutoSetupConflictsTitle: String {
+        String(localized: "agent_auto_setup_conflicts_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_diagnostics_title
+    public static var agentAutoSetupDiagnosticsTitle: String {
+        String(localized: "agent_auto_setup_diagnostics_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_discard_action
+    public static var agentAutoSetupDiscardAction: String {
+        String(localized: "agent_auto_setup_discard_action", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_discard_message
+    public static var agentAutoSetupDiscardMessage: String {
+        String(localized: "agent_auto_setup_discard_message", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_discard_title
+    public static var agentAutoSetupDiscardTitle: String {
+        String(localized: "agent_auto_setup_discard_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_enable_required
+    public static func agentAutoSetupEnableRequired(_ a1: String) -> String {
+        String(format: String(localized: "agent_auto_setup_enable_required", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// agent_auto_setup_error_busy
+    public static var agentAutoSetupErrorBusy: String {
+        String(localized: "agent_auto_setup_error_busy", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_error_details_title
+    public static var agentAutoSetupErrorDetailsTitle: String {
+        String(localized: "agent_auto_setup_error_details_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_error_failed
+    public static var agentAutoSetupErrorFailed: String {
+        String(localized: "agent_auto_setup_error_failed", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_error_files_changed
+    public static var agentAutoSetupErrorFilesChanged: String {
+        String(localized: "agent_auto_setup_error_files_changed", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_error_managed_block
+    public static func agentAutoSetupErrorManagedBlock(_ a1: String) -> String {
+        String(format: String(localized: "agent_auto_setup_error_managed_block", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// agent_auto_setup_error_no_powershell
+    public static var agentAutoSetupErrorNoPowershell: String {
+        String(localized: "agent_auto_setup_error_no_powershell", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_error_unsafe_file
+    public static func agentAutoSetupErrorUnsafeFile(_ a1: String) -> String {
+        String(format: String(localized: "agent_auto_setup_error_unsafe_file", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// agent_auto_setup_error_update_required
+    public static var agentAutoSetupErrorUpdateRequired: String {
+        String(localized: "agent_auto_setup_error_update_required", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_external_check_text
+    public static var agentAutoSetupExternalCheckText: String {
+        String(localized: "agent_auto_setup_external_check_text", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_external_unverified_note
+    public static var agentAutoSetupExternalUnverifiedNote: String {
+        String(localized: "agent_auto_setup_external_unverified_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_file_create_label
+    public static var agentAutoSetupFileCreateLabel: String {
+        String(localized: "agent_auto_setup_file_create_label", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_file_remove_label
+    public static var agentAutoSetupFileRemoveLabel: String {
+        String(localized: "agent_auto_setup_file_remove_label", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_file_update_label
+    public static var agentAutoSetupFileUpdateLabel: String {
+        String(localized: "agent_auto_setup_file_update_label", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_gpg_note
+    public static var agentAutoSetupGpgNote: String {
+        String(localized: "agent_auto_setup_gpg_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_host_error
+    public static var agentAutoSetupHostError: String {
+        String(localized: "agent_auto_setup_host_error", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_host_label
+    public static var agentAutoSetupHostLabel: String {
+        String(localized: "agent_auto_setup_host_label", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_hosts_all
+    public static var agentAutoSetupHostsAll: String {
+        String(localized: "agent_auto_setup_hosts_all", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_hosts_one
+    public static var agentAutoSetupHostsOne: String {
+        String(localized: "agent_auto_setup_hosts_one", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_intro
+    public static var agentAutoSetupIntro: String {
+        String(localized: "agent_auto_setup_intro", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_macos_gpg_prepare_detail
+    public static var agentAutoSetupMacosGpgPrepareDetail: String {
+        String(localized: "agent_auto_setup_macos_gpg_prepare_detail", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_macos_gpg_prepare_title
+    public static var agentAutoSetupMacosGpgPrepareTitle: String {
+        String(localized: "agent_auto_setup_macos_gpg_prepare_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_macos_shell_note
+    public static var agentAutoSetupMacosShellNote: String {
+        String(localized: "agent_auto_setup_macos_shell_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_no_changes
+    public static var agentAutoSetupNoChanges: String {
+        String(localized: "agent_auto_setup_no_changes", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_overrides_note
+    public static var agentAutoSetupOverridesNote: String {
+        String(localized: "agent_auto_setup_overrides_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_overrides_title
+    public static var agentAutoSetupOverridesTitle: String {
+        String(localized: "agent_auto_setup_overrides_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_refresh_action
+    public static var agentAutoSetupRefreshAction: String {
+        String(localized: "agent_auto_setup_refresh_action", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_remove_action
+    public static var agentAutoSetupRemoveAction: String {
+        String(localized: "agent_auto_setup_remove_action", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_review_required_note
+    public static var agentAutoSetupReviewRequiredNote: String {
+        String(localized: "agent_auto_setup_review_required_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_review_retry_action
+    public static var agentAutoSetupReviewRetryAction: String {
+        String(localized: "agent_auto_setup_review_retry_action", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_reviewing_status
+    public static var agentAutoSetupReviewingStatus: String {
+        String(localized: "agent_auto_setup_reviewing_status", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_ssh_config_only
+    public static var agentAutoSetupSshConfigOnly: String {
+        String(localized: "agent_auto_setup_ssh_config_only", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_ssh_note
+    public static var agentAutoSetupSshNote: String {
+        String(localized: "agent_auto_setup_ssh_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_step_check_detail
+    public static var agentAutoSetupStepCheckDetail: String {
+        String(localized: "agent_auto_setup_step_check_detail", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_step_check_title
+    public static var agentAutoSetupStepCheckTitle: String {
+        String(localized: "agent_auto_setup_step_check_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_step_finish_title
+    public static var agentAutoSetupStepFinishTitle: String {
+        String(localized: "agent_auto_setup_step_finish_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_step_review_detail
+    public static var agentAutoSetupStepReviewDetail: String {
+        String(localized: "agent_auto_setup_step_review_detail", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_step_review_no_changes_detail
+    public static var agentAutoSetupStepReviewNoChangesDetail: String {
+        String(localized: "agent_auto_setup_step_review_no_changes_detail", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_step_review_title
+    public static var agentAutoSetupStepReviewTitle: String {
+        String(localized: "agent_auto_setup_step_review_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_step_run_detail
+    public static var agentAutoSetupStepRunDetail: String {
+        String(localized: "agent_auto_setup_step_run_detail", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_step_run_title
+    public static var agentAutoSetupStepRunTitle: String {
+        String(localized: "agent_auto_setup_step_run_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_step_settings_detail
+    public static var agentAutoSetupStepSettingsDetail: String {
+        String(localized: "agent_auto_setup_step_settings_detail", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_step_settings_title
+    public static var agentAutoSetupStepSettingsTitle: String {
+        String(localized: "agent_auto_setup_step_settings_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_step_undo_detail
+    public static var agentAutoSetupStepUndoDetail: String {
+        String(localized: "agent_auto_setup_step_undo_detail", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_step_undo_title
+    public static var agentAutoSetupStepUndoTitle: String {
+        String(localized: "agent_auto_setup_step_undo_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_termux_run_note
+    public static var agentAutoSetupTermuxRunNote: String {
+        String(localized: "agent_auto_setup_termux_run_note", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_title
+    public static var agentAutoSetupTitle: String {
+        String(localized: "agent_auto_setup_title", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_unavailable
+    public static var agentAutoSetupUnavailable: String {
+        String(localized: "agent_auto_setup_unavailable", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_unavailable_flatpak
+    public static func agentAutoSetupUnavailableFlatpak(_ a1: String) -> String {
+        String(format: String(localized: "agent_auto_setup_unavailable_flatpak", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// agent_auto_setup_undo_action
+    public static var agentAutoSetupUndoAction: String {
+        String(localized: "agent_auto_setup_undo_action", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_undone
+    public static var agentAutoSetupUndone: String {
+        String(localized: "agent_auto_setup_undone", bundle: AppLocalization.shared.bundle)
+    }
+    /// agent_auto_setup_wizard_title
+    public static func agentAutoSetupWizardTitle(_ a1: String) -> String {
+        String(format: String(localized: "agent_auto_setup_wizard_title", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// agent_auto_setup_wizard_undo_title
+    public static func agentAutoSetupWizardUndoTitle(_ a1: String) -> String {
+        String(format: String(localized: "agent_auto_setup_wizard_undo_title", bundle: AppLocalization.shared.bundle), a1)
+    }
     /// agent_binary_unavailable_text
     public static var agentBinaryUnavailableText: String {
         String(localized: "agent_binary_unavailable_text", bundle: AppLocalization.shared.bundle)
@@ -2120,6 +2404,10 @@ public enum L10n {
     /// domain
     public static var domain: String {
         String(localized: "domain", bundle: AppLocalization.shared.bundle)
+    }
+    /// done
+    public static var done: String {
+        String(localized: "done", bundle: AppLocalization.shared.bundle)
     }
     /// download
     public static var download: String {
@@ -9005,6 +9293,58 @@ public enum L10n {
     public static var textClearAction: String {
         String(localized: "text_clear_action", bundle: AppLocalization.shared.bundle)
     }
+    /// text_diff_added_line
+    public static var textDiffAddedLine: String {
+        String(localized: "text_diff_added_line", bundle: AppLocalization.shared.bundle)
+    }
+    /// text_diff_copy
+    public static var textDiffCopy: String {
+        String(localized: "text_diff_copy", bundle: AppLocalization.shared.bundle)
+    }
+    /// text_diff_create_empty_file
+    public static var textDiffCreateEmptyFile: String {
+        String(localized: "text_diff_create_empty_file", bundle: AppLocalization.shared.bundle)
+    }
+    /// text_diff_line_endings
+    public static var textDiffLineEndings: String {
+        String(localized: "text_diff_line_endings", bundle: AppLocalization.shared.bundle)
+    }
+    /// text_diff_loading
+    public static var textDiffLoading: String {
+        String(localized: "text_diff_loading", bundle: AppLocalization.shared.bundle)
+    }
+    /// text_diff_new_line
+    public static func textDiffNewLine(_ a1: Int) -> String {
+        String(format: String(localized: "text_diff_new_line", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// text_diff_no_changes
+    public static var textDiffNoChanges: String {
+        String(localized: "text_diff_no_changes", bundle: AppLocalization.shared.bundle)
+    }
+    /// text_diff_no_newline
+    public static var textDiffNoNewline: String {
+        String(localized: "text_diff_no_newline", bundle: AppLocalization.shared.bundle)
+    }
+    /// text_diff_original_line
+    public static func textDiffOriginalLine(_ a1: Int) -> String {
+        String(format: String(localized: "text_diff_original_line", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// text_diff_remove_empty_file
+    public static var textDiffRemoveEmptyFile: String {
+        String(localized: "text_diff_remove_empty_file", bundle: AppLocalization.shared.bundle)
+    }
+    /// text_diff_removed_line
+    public static var textDiffRemovedLine: String {
+        String(localized: "text_diff_removed_line", bundle: AppLocalization.shared.bundle)
+    }
+    /// text_diff_simplified
+    public static var textDiffSimplified: String {
+        String(localized: "text_diff_simplified", bundle: AppLocalization.shared.bundle)
+    }
+    /// text_diff_title
+    public static var textDiffTitle: String {
+        String(localized: "text_diff_title", bundle: AppLocalization.shared.bundle)
+    }
     /// tfa_directory_search_placeholder
     public static var tfaDirectorySearchPlaceholder: String {
         String(localized: "tfa_directory_search_placeholder", bundle: AppLocalization.shared.bundle)
@@ -9981,6 +10321,14 @@ public enum L10n {
     public static func agentApprovalExpiresInSecondsPlural(_ count: Int) -> String {
         String(
             format: NSLocalizedString("agent_approval_expires_in_seconds_plural", bundle: AppLocalization.shared.bundle, comment: ""),
+            locale: AppLocalization.shared.locale,
+            count
+        )
+    }
+    /// agent_auto_setup_files_to_change_plural (plural)
+    public static func agentAutoSetupFilesToChangePlural(_ count: Int) -> String {
+        String(
+            format: NSLocalizedString("agent_auto_setup_files_to_change_plural", bundle: AppLocalization.shared.bundle, comment: ""),
             locale: AppLocalization.shared.locale,
             count
         )

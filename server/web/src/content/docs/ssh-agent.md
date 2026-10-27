@@ -26,8 +26,30 @@ approval.
 
 ## Set up the agent on desktop
 
-**Settings > Developer > SSH agent > SSH client setup** shows these commands
-for your platform.
+Open **Settings > Developer > SSH agent > SSH client setup**. Under
+**Automatic configuration**, select **Configure automatically**. Choose all
+SSH hosts or one host or alias, and optionally select your shells. Continue
+to review the file changes, then select **Apply changes**. The wizard checks
+the agent connection after applying. Open a new terminal and test remote
+authentication with your chosen key.
+
+Setup supports Bash, Zsh, Fish, PowerShell 7 and Windows PowerShell 5.1.
+It adds Keyguard's settings to the end of each file and leaves your lines unchanged.
+
+**Check these lines** lists lines that can take precedence over Keyguard's settings.
+These are `SSH_AUTH_SOCK` lines that run later, and `IdentityAgent` lines earlier in `~/.ssh/config`.
+Make sure they don't select another agent.
+
+If no files need changes, select **Check agent connection**.
+This tests Keyguard's endpoint; it does not prove which settings your shell loads.
+
+Setup stops for symlinked files, or for a compiled Zsh startup file (`.zwc`)
+dated in the future. Resolve these manually, then review again.
+
+The undo icon in **Automatic configuration** opens a review of recorded settings to remove.
+Undo preserves other edits and does not stop agents or change the Windows OpenSSH service.
+
+For manual setup:
 
 1. Add this line to your shell profile, with your platform's path from
    [Endpoints](#endpoints):
@@ -54,12 +76,15 @@ Host *
   IdentityAgent "${HOME}/.keyguard/ssh-agent.sock"
 ```
 
-On Windows, leave the pipe path unquoted:
+On Windows, use forward slashes in the SSH configuration:
 
 ```sshconfig
 Host *
-  IdentityAgent \\.\pipe\keyguard-ssh-agent
+  IdentityAgent "//./pipe/keyguard-ssh-agent"
 ```
+
+`ssh-add` reads `SSH_AUTH_SOCK`, not `IdentityAgent`. Select a terminal
+environment or set the variable explicitly before using `ssh-add -L`.
 
 ## Set up the agent in Termux
 
@@ -69,14 +94,15 @@ Termux reaches Keyguard through a helper package.
 2. In Keyguard, open **Settings > Developer > SSH agent > SSH client setup**.
 3. In Termux, run the commands under **Install package**. They add Keyguard's
    APT repository and install `openssh` and `keyguard-android-ssh-agent`.
-4. Add these lines to your Termux shell startup file, such as `~/.bashrc`:
+4. Review and apply startup configuration for your shell:
 
    ```sh
-   if [ -x "$PREFIX/bin/keyguard-android-ssh-agent" ]; then
-     eval "$("$PREFIX/bin/keyguard-android-ssh-agent" --ensure -a "$PREFIX/tmp/keyguard-ssh-agent.sock")"
-   fi
+   keyguard-android-ssh-agent --setup-shells bash
    ```
 
+   Choose `bash`, `zsh`, `fish`, or a comma-separated list. The helper asks
+   before editing files. To review removal, run
+   `keyguard-android-ssh-agent --undo-setup`.
 5. Open a new Termux session.
 6. Run `ssh-add -L`. It lists the public keys that Keyguard serves.
 

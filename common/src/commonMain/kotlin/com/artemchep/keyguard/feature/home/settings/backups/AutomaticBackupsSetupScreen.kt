@@ -1,8 +1,5 @@
 package com.artemchep.keyguard.feature.home.settings.backups
 
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import com.artemchep.keyguard.common.model.fold
@@ -12,6 +9,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.wizard.WizardBackButton
 import com.artemchep.keyguard.ui.wizard.WizardBottomBar
+import com.artemchep.keyguard.ui.wizard.WizardDiscardDialog
 import com.artemchep.keyguard.ui.wizard.WizardHeader
 import com.artemchep.keyguard.ui.wizard.WizardScaffold
 import org.jetbrains.compose.resources.stringResource
@@ -54,25 +52,14 @@ internal fun AutomaticBackupsSetupContent(state: AutomaticBackupsSetupState?) {
         }
     }
     if (state?.data?.confirmingDiscard == true) {
-        BackupSetupDiscardDialog(state)
+        WizardDiscardDialog(
+            title = stringResource(Res.string.pref_item_automatic_backups_wizard_discard_title),
+            text = stringResource(Res.string.pref_item_automatic_backups_wizard_discard_message),
+            action = stringResource(Res.string.pref_item_automatic_backups_wizard_discard_action),
+            onDiscard = state.onDiscard,
+            onDismiss = state.onDismissDiscard,
+        )
     }
-}
-
-@Composable
-private fun BackupSetupDiscardDialog(state: AutomaticBackupsSetupState) {
-    AlertDialog(
-        onDismissRequest = state.onDismissDiscard,
-        title = { Text(stringResource(Res.string.pref_item_automatic_backups_wizard_discard_title)) },
-        text = { Text(stringResource(Res.string.pref_item_automatic_backups_wizard_discard_message)) },
-        confirmButton = {
-            TextButton(onClick = state.onDiscard) {
-                Text(stringResource(Res.string.pref_item_automatic_backups_wizard_discard_action))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = state.onDismissDiscard) { Text(stringResource(Res.string.cancel)) }
-        },
-    )
 }
 
 @Composable

@@ -20,6 +20,11 @@ server. To set it up, see
 | `keyguard help [<COMMAND>]` | Prints the help of a command, the same as `--help` |
 | `keyguard mcp` | Runs the environment management MCP server over stdio |
 | `keyguard run` | Runs a command with the variables of an environment |
+| `keyguard agents setup` | Reviews SSH or GPG client configuration and asks before applying |
+| `keyguard agents plan` | Prints a read-only JSON configuration plan |
+| `keyguard agents apply` | Reads a reviewed JSON plan from stdin and applies it if files are unchanged |
+| `keyguard agents undo <ssh\|gpg>` | Previews removal; `--review` asks before applying, `--apply` applies immediately |
+| `keyguard agents verify` | Queries the specified agent through an installed client |
 
 - `-h`, `--help` prints help for any command.
 - `-V`, `--version` works on `keyguard` alone.

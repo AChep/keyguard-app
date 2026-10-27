@@ -31,8 +31,28 @@ desktop approval.
 
 ## Set up the agent on desktop
 
-**Settings > Developer > GPG agent > GPG client setup** shows these commands
-for your platform.
+Open **Settings > Developer > GPG agent > GPG client setup**. Under
+**Automatic configuration**, select **Configure automatically**. Choose your
+shells, continue to review the files, then select **Apply changes**. The wizard
+checks the agent connection after applying. Open a new terminal afterward.
+Bash, Zsh, Fish, PowerShell 7 and Windows PowerShell 5.1 are supported.
+
+Setup selects Keyguard's separate GnuPG home. It does not copy keyrings or
+trust settings, import private keys, or change Git signing. Import your public
+certificates using the steps below. The connection check lists the keys served
+by the agent; sign a test message to check the complete signing flow.
+
+Setup adds Keyguard's settings to the end of each shell profile and leaves your lines unchanged.
+**Check these lines** lists `GNUPGHOME` lines that run later and can replace Keyguard's value.
+Make sure they don't select another GnuPG home.
+
+If no files need changes, select **Check agent connection**.
+It tests Keyguard's endpoint; it does not prove which settings your shell loads.
+
+The undo icon in **Automatic configuration** removes recorded settings while preserving other edits.
+Existing terminals and graphical applications keep their current environment.
+
+For manual shell configuration:
 
 1. Add the `GNUPGHOME` line for your platform, listed below, to your shell
    profile.
@@ -83,15 +103,15 @@ Termux reaches Keyguard through a helper package. It serves the GnuPG home
 2. In Keyguard, open **Settings > Developer > GPG agent > GPG client setup**.
 3. In Termux, run the commands under **Install package**. They add Keyguard's
    APT repository and install `gnupg` and `keyguard-android-gpg-agent`.
-4. Add these lines to your Termux shell startup file, such as `~/.bashrc`:
+4. Review and apply startup configuration for your shell:
 
    ```sh
-   if [ -x "$PREFIX/bin/keyguard-android-gpg-agent" ]; then
-     eval "$("$PREFIX/bin/keyguard-android-gpg-agent")"
-   fi
+   keyguard-android-gpg-agent --setup-shells bash
    ```
 
-   The helper starts once and sets `GNUPGHOME`.
+   Choose `bash`, `zsh`, `fish`, or a comma-separated list. The helper asks
+   before editing files. New terminals start the helper and set `GNUPGHOME`.
+   To review removal, run `keyguard-android-gpg-agent --undo-setup`.
 5. Open a new Termux session.
 
 Keyguard saves an exported public key to Downloads. To import it in Termux,

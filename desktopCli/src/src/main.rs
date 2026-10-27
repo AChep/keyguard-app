@@ -8,12 +8,13 @@ use std::{fmt::Write, path::PathBuf};
 
 mod client;
 mod commands {
+    pub(crate) mod agents;
     pub(crate) mod mcp;
     pub(crate) mod run;
 }
 mod errors;
 
-use commands::{mcp, run};
+use commands::{agents, mcp, run};
 
 /// Lays out help like the 1Password CLI: the description, a one-line usage,
 /// then the sections.
@@ -66,6 +67,8 @@ struct Connection {
 
 #[derive(Subcommand)]
 enum Command {
+    /// Review, configure, verify, or undo SSH and GPG client setup.
+    Agents(agents::Args),
     /// Get help for any command.
     #[command(
         override_usage = "keyguard help [command]",
@@ -122,6 +125,7 @@ fn print_help(command: Option<String>) {
 #[tokio::main]
 async fn main() {
     let code = match Cli::parse().command {
+        Command::Agents(args) => agents::main(args),
         Command::Help { command } => {
             print_help(command);
             0

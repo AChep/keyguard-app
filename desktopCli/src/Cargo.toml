@@ -17,6 +17,7 @@ path = "src/main.rs"
 anyhow.workspace = true
 clap = { workspace = true, features = ["derive"] }
 keyguard-cli-protocol.workspace = true
+keyguard-agent-setup.workspace = true
 rmcp = { workspace = true, features = ["server", "transport-io"] }
 serde_json.workspace = true
 tokio = { workspace = true, features = ["full"] }

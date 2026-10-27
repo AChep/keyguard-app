@@ -341,4 +341,8 @@
         <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> active User ID</item>
         <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
     </plurals>
+    <plurals name="agent_auto_setup_files_to_change_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> file to change</item>
+        <item quantity="other"><xliff:g id="number" example="2">%1$d</xliff:g> files to change</item>
+    </plurals>
 </resources>

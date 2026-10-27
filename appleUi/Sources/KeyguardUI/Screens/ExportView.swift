@@ -66,8 +66,6 @@ struct ExportView: View {
                     title: step.title,
                     subtitle: step.subtitle,
                     systemImage: step.systemImage,
-                    stepLabel: L10n.prefItemAutomaticBackupsWizardStepLabel(
-                        step.number, ExportWizardStep.allCases.count),
                     step: step.number,
                     stepCount: ExportWizardStep.allCases.count
                 )

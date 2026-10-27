@@ -8,6 +8,13 @@ struct GpgAgentSetupView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 12) {
                 Text(L10n.gpgAgentSetupIntro).foregroundStyle(.secondary)
+                if let home = model.gpgAgentStatus.gpgHome {
+                    AgentAutomaticSetupView(
+                        agent: .gpg(
+                            home: home,
+                            preparationCommand: model.gpgAgentStatus.running ? model.gpgAgentStatus.setupCommand : nil
+                        ), enabled: model.gpgAgentSettings.enabled)
+                }
 
                 step(L10n.gpgAgentSetupStep1Title)
                 Text(L10n.gpgAgentSetupStep1Text)

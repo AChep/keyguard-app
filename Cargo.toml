@@ -8,6 +8,7 @@ members = [
     "commonAgent/ipc",
     "commonAgent/proto",
     "commonAgent/proto-adapter",
+    "commonAgent/setup",
     "commonCli",
     "commonGpgAgent",
     "commonGpgAgent/assuan",
@@ -52,6 +53,7 @@ keyguard-android-agent-bridge = { path = "commonAgent/android-bridge" }
 keyguard-agent-ipc = { path = "commonAgent/ipc", default-features = false }
 keyguard-agent-proto = { path = "commonAgent/proto" }
 keyguard-agent-proto-adapter = { path = "commonAgent/proto-adapter" }
+keyguard-agent-setup = { path = "commonAgent/setup" }
 keyguard-cli-protocol = { path = "commonCli" }
 keyguard-gpg-agent-assuan = { path = "commonGpgAgent/assuan" }
 keyguard-ffi = { path = "util/ffi/rust/crates/keyguard-ffi" }

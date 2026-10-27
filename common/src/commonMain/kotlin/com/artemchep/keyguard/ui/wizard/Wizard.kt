@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -27,6 +28,7 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -138,7 +140,8 @@ fun WizardColumn(content: @Composable ColumnScope.() -> Unit) {
 
 /**
  * The primary action of a step, disabled
- * while [onClick] is `null`.
+ * while [onClick] is `null`, with optional
+ * [guidance] above it.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -146,18 +149,23 @@ fun WizardBottomBar(
     text: String,
     onClick: (() -> Unit)?,
     loading: Boolean = false,
+    modifier: Modifier = Modifier,
+    tonal: Boolean = false,
+    guidance: @Composable ColumnScope.() -> Unit = {},
 ) {
     val focusManager = LocalFocusManager.current
     Surface {
         Box(
-            modifier = Modifier.fillMaxWidth().windowInsetsPadding(
+            modifier = modifier.fillMaxWidth().windowInsetsPadding(
                 scaffoldContentWindowInsets.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom),
             ),
         ) {
             WizardColumn {
+                guidance()
                 Button(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = Dimens.fieldHorizontalPadding),
                     shapes = ButtonDefaults.shapes(),
+                    colors = if (tonal) ButtonDefaults.filledTonalButtonColors() else ButtonDefaults.buttonColors(),
                     enabled = onClick != null,
                     onClick = {
                         focusManager.clearFocus()
@@ -176,6 +184,31 @@ fun WizardBottomBar(
 }
 
 /**
+ * Asks to confirm leaving a wizard
+ * with unsaved choices.
+ */
+@Composable
+fun WizardDiscardDialog(
+    title: String,
+    text: String,
+    action: String,
+    onDiscard: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = { Text(text) },
+        confirmButton = {
+            TextButton(onClick = onDiscard) { Text(action) }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.cancel)) }
+        },
+    )
+}
+
+/**
  * The step label, progress, title and detail of a step.
  */
 @Composable
@@ -183,7 +216,7 @@ fun WizardHeader(
     stepNumber: Int,
     stepCount: Int,
     title: String,
-    detail: String,
+    detail: String?,
 ) {
     Column(
         modifier = Modifier.padding(horizontal = Dimens.textHorizontalPadding),
@@ -209,10 +242,12 @@ fun WizardHeader(
             text = title,
             style = MaterialTheme.typography.headlineMedium,
         )
-        Text(
-            text = detail,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
+        if (detail != null) {
+            Text(
+                text = detail,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
     }
 }

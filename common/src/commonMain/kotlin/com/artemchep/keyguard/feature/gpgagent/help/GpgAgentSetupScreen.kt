@@ -7,11 +7,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.build.BuildKonfig
+import com.artemchep.keyguard.feature.agent.help.AgentAutomaticSetup
 import com.artemchep.keyguard.feature.agent.help.AgentSetupBodyLabel
 import com.artemchep.keyguard.feature.agent.help.AgentSetupCodeBlock
 import com.artemchep.keyguard.feature.agent.help.AgentSetupParagraph
 import com.artemchep.keyguard.feature.agent.help.AgentSetupScaffold
 import com.artemchep.keyguard.feature.agent.help.AgentSetupSectionDivider
+import com.artemchep.keyguard.feature.agent.help.SetupAgent
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
@@ -76,6 +78,7 @@ fun GpgAgentSetupScreen() {
 
 @Composable
 private fun ColumnScope.GpgAgentSetupScreenContent() {
+    AgentAutomaticSetup(SetupAgent.GPG)
     AgentSetupParagraph(
         text = stringResource(Res.string.gpg_agent_setup_intro),
     )

@@ -2,6 +2,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">OK</string>
     <string name="close">Close</string>
+    <string name="done">Done</string>
     <string name="quit">Quit</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
@@ -2739,4 +2740,92 @@
     <string name="keyboard_shortcuts_error_registration">Could not register the shortcut. Try again.</string>
     <string name="keyboard_shortcuts_error_persistence">Could not save the shortcut. Try again.</string>
     <string name="keyboard_shortcuts_error_persistence_restoration">Could not save the shortcut or undo the change. Restart Keyguard, then check your shortcuts.</string>
+
+    <string name="agent_auto_setup_title">Automatic configuration</string>
+    <string name="agent_auto_setup_intro">Connect your terminals to Keyguard. Choose your settings, review the changes, then check the connection.</string>
+    <string name="agent_auto_setup_unavailable">Automatic configuration requires the bundled Keyguard CLI. Use the manual setup instructions if it is unavailable.</string>
+    <string name="agent_auto_setup_unavailable_flatpak">Flatpak cannot edit host terminal or SSH settings. Run the commands below in a host terminal. A separately installed Keyguard CLI can also review and apply configuration with <xliff:g id="command" example="keyguard agents setup">%1$s</xliff:g>.</string>
+    <string name="agent_auto_setup_enable_required">Enable the <xliff:g id="protocol" example="SSH">%1$s</xliff:g> agent in Settings before configuring it automatically.</string>
+    <string name="agent_auto_setup_configure_action">Configure automatically</string>
+    <string name="agent_auto_setup_undo_action">Undo configuration</string>
+    <string name="agent_auto_setup_wizard_title">Configure <xliff:g id="protocol" example="SSH">%1$s</xliff:g> agent</string>
+    <string name="agent_auto_setup_wizard_undo_title">Undo <xliff:g id="protocol" example="SSH">%1$s</xliff:g> configuration</string>
+    <string name="agent_auto_setup_discard_title">Discard setup?</string>
+    <string name="agent_auto_setup_discard_message">Your choices will be discarded.</string>
+    <string name="agent_auto_setup_discard_action">Discard</string>
+    <string name="agent_auto_setup_step_settings_title">Choose settings</string>
+    <string name="agent_auto_setup_step_settings_detail">Choose the connections and terminals that should use Keyguard.</string>
+    <string name="agent_auto_setup_step_review_title">Review changes</string>
+    <string name="agent_auto_setup_step_review_detail">Check the files below before applying.</string>
+    <string name="agent_auto_setup_step_review_no_changes_detail">No file changes are needed. Check the agent connection to continue.</string>
+    <string name="agent_auto_setup_step_undo_title">Review removal</string>
+    <string name="agent_auto_setup_step_undo_detail">Remove the settings recorded by Keyguard. Review the files before continuing.</string>
+    <string name="agent_auto_setup_step_run_title">Run setup</string>
+    <string name="agent_auto_setup_step_run_detail">Run the command in your terminal. The helper shows the changes and asks before applying them.</string>
+    <string name="agent_auto_setup_step_check_title">Check connection</string>
+    <string name="agent_auto_setup_step_check_detail">Open a new terminal to use the configuration. Signing and remote authentication still need a test with your chosen key.</string>
+    <string name="agent_auto_setup_step_finish_title">Finish</string>
+    <string name="agent_auto_setup_hosts_all">All SSH hosts</string>
+    <string name="agent_auto_setup_hosts_one">One SSH host or alias</string>
+    <string name="agent_auto_setup_host_label">Host or alias</string>
+    <string name="agent_auto_setup_host_error">Enter a host or alias using letters, numbers, dots, hyphens, or underscores.</string>
+    <string name="agent_auto_setup_ssh_config_only">SSH configuration only</string>
+    <string name="agent_auto_setup_reviewing_status">Reviewing changes</string>
+    <string name="agent_auto_setup_applying_status">Applying changes</string>
+    <string name="agent_auto_setup_review_required_note">Review the current configuration before continuing.</string>
+    <string name="agent_auto_setup_apply_action">Apply changes</string>
+    <string name="agent_auto_setup_remove_action">Remove configuration</string>
+    <string name="agent_auto_setup_check_action">Check agent connection</string>
+    <string name="agent_auto_setup_refresh_action">Refresh review</string>
+    <string name="agent_auto_setup_review_retry_action">Retry review</string>
+    <!-- The pending change to a configuration file, shown under its path -->
+    <string name="agent_auto_setup_file_create_label">Create file</string>
+    <string name="agent_auto_setup_file_update_label">Update file</string>
+    <string name="agent_auto_setup_file_remove_label">Remove file</string>
+    <string name="agent_auto_setup_ssh_note">SSH configuration applies to OpenSSH clients. Other clients and ssh-add may also need a shell selected in the previous step.</string>
+    <string name="agent_auto_setup_gpg_note">Selected terminals will use Keyguard's separate GnuPG home. Existing public keys and trust settings are not copied. Import the public certificate of each key you want to use.</string>
+    <string name="agent_auto_setup_overrides_title">Check these lines</string>
+    <string name="agent_auto_setup_overrides_note">These lines name the same setting and can take precedence over Keyguard's. Make sure they don't select another agent. Undo leaves them in place.</string>
+    <string name="agent_auto_setup_conflicts_title">Action required</string>
+    <string name="agent_auto_setup_conflict_zdotdir"><xliff:g id="path" example="~/.zshenv">%1$s</xliff:g> sets ZDOTDIR, so Zsh may read another .zshrc. Configure Zsh manually, or deselect it.</string>
+    <string name="agent_auto_setup_conflict_compiled_startup"><xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> has a compiled copy dated in the future, which Zsh loads instead. Delete or recompile it, or deselect Zsh.</string>
+    <string name="agent_auto_setup_conflict_changed_block">Keyguard's settings in <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> were edited. Remove them manually, or restore the recorded settings.</string>
+    <string name="agent_auto_setup_conflict_unrecorded_block">Keyguard's settings in <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> have no undo record. Remove them manually.</string>
+    <string name="agent_auto_setup_error_files_changed">Files changed after the review. Refresh the review.</string>
+    <string name="agent_auto_setup_error_busy">Another agent setup is running. Try again when it finishes.</string>
+    <string name="agent_auto_setup_error_unsafe_file">Keyguard can't safely edit <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g>. Check the details, then fix the file or configure it manually.</string>
+    <string name="agent_auto_setup_error_managed_block">Keyguard's settings in <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> don't match its records. Fix or remove them manually, then refresh the review.</string>
+    <string name="agent_auto_setup_error_no_powershell">Couldn't find a PowerShell profile. Install PowerShell, or deselect it.</string>
+    <string name="agent_auto_setup_error_update_required">The Keyguard CLI and the app are different versions. Update Keyguard, then try again.</string>
+    <string name="agent_auto_setup_error_failed">Agent setup failed. Check the details.</string>
+    <string name="agent_auto_setup_error_details_title">Details</string>
+    <string name="agent_auto_setup_no_changes">No file changes needed.</string>
+    <string name="agent_auto_setup_termux_run_note">Run this command in Termux after installing the helper. It reviews changes to your selected shells and asks before applying. New terminals start the helper automatically.</string>
+    <string name="agent_auto_setup_macos_shell_note">Run these commands in a Bash or Zsh terminal.</string>
+    <string name="agent_auto_setup_macos_gpg_prepare_title">Prepare the GnuPG home</string>
+    <string name="agent_auto_setup_macos_gpg_prepare_detail">Run this command first while the GPG agent is enabled, then run the setup command below.</string>
+    <string name="agent_auto_setup_external_unverified_note">Keyguard cannot check commands run in another terminal. Continuing does not confirm that configuration succeeded.</string>
+    <string name="agent_auto_setup_external_check_text">After the helper confirms setup, open a new terminal and run this command to check the connection.</string>
+    <string name="agent_auto_setup_applied">Configuration applied.</string>
+    <string name="agent_auto_setup_undone">Recorded configuration removed. Open a new terminal.</string>
+    <string name="agent_auto_setup_checking_status">Checking the agent connection…</string>
+    <string name="agent_auto_setup_check_succeeded">Agent connection verified.</string>
+    <string name="agent_auto_setup_check_failed">Configuration is saved, but the agent did not respond. Make sure it is enabled and Keyguard is unlocked, then try again.</string>
+    <string name="agent_auto_setup_check_retry_action">Retry connection check</string>
+    <string name="agent_auto_setup_diagnostics_title">Connection details</string>
+
+    <string name="text_diff_title">File changes</string>
+    <string name="text_diff_copy">Copy diff</string>
+    <string name="text_diff_loading">Preparing diff…</string>
+    <string name="text_diff_no_changes">No text changes.</string>
+    <string name="text_diff_create_empty_file">Create an empty file.</string>
+    <string name="text_diff_remove_empty_file">Remove the empty file.</string>
+    <string name="text_diff_simplified">Changes are shown as a block replacement.</string>
+    <string name="text_diff_line_endings">Line endings changed. LF and CRLF labels identify the endings.</string>
+    <string name="text_diff_no_newline">No newline at end of file</string>
+    <!-- Screen reader labels for the lines of a diff -->
+    <string name="text_diff_added_line">Added line</string>
+    <string name="text_diff_removed_line">Removed line</string>
+    <string name="text_diff_original_line">Original line <xliff:g id="number" example="12">%1$d</xliff:g></string>
+    <string name="text_diff_new_line">New line <xliff:g id="number" example="12">%1$d</xliff:g></string>
 </resources>

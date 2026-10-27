@@ -23,12 +23,16 @@ use tracing_subscriber::EnvFilter;
 #[command(name = "keyguard-ssh-agent", version, about)]
 struct Args {
     /// Path to the IPC socket for communicating with the Keyguard app.
-    #[arg(long)]
-    ipc_socket: PathBuf,
+    #[arg(long, required_unless_present = "print_socket")]
+    ipc_socket: Option<PathBuf>,
 
     /// PID of the Keyguard desktop process that owns the private IPC server.
+    #[arg(long, required_unless_present = "print_socket")]
+    parent_pid: Option<u32>,
+
+    /// Print the resolved socket path without starting or contacting an agent.
     #[arg(long)]
-    parent_pid: u32,
+    print_socket: bool,
 
     /// Path to the SSH agent socket to listen on.
     /// If not specified, uses a platform-specific default.
@@ -43,6 +47,15 @@ struct Args {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
+    let ssh_socket_path = args
+        .ssh_socket
+        .unwrap_or_else(config::default_ssh_agent_socket_path);
+    if args.print_socket {
+        println!("{}", ssh_socket_path.display());
+        return Ok(());
+    }
+    let ipc_socket = args.ipc_socket.context("--ipc-socket is required")?;
+    let parent_pid = args.parent_pid.context("--parent-pid is required")?;
 
     // Keep routine activity out of logs in every build unless explicitly enabled.
     let filter = if args.verbose {
@@ -68,23 +81,17 @@ async fn main() -> Result<()> {
         .await
         .context("Failed to read auth token from stdin")?;
 
-    // Determine the SSH agent socket path.
-    let ssh_socket_path = args
-        .ssh_socket
-        .unwrap_or_else(config::default_ssh_agent_socket_path);
-
     info!(
-        ipc_socket = %args.ipc_socket.display(),
+        ipc_socket = %ipc_socket.display(),
         ssh_socket = %ssh_socket_path.display(),
         "Configuration loaded"
     );
 
     // Connect to the Keyguard IPC server and authenticate.
     // The client keeps the token to re-authenticate after a reconnect.
-    let ipc_client =
-        ipc::client::IpcClient::connect(&args.ipc_socket, launch.token, args.parent_pid)
-            .await
-            .context("Failed to connect to Keyguard IPC server")?;
+    let ipc_client = ipc::client::IpcClient::connect(&ipc_socket, launch.token, parent_pid)
+        .await
+        .context("Failed to connect to Keyguard IPC server")?;
     info!("Authenticated with Keyguard IPC server");
 
     // Create the SSH agent session factory backed by the IPC client.
@@ -105,4 +112,20 @@ async fn main() -> Result<()> {
     })?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod args_tests {
+    use super::*;
+
+    #[test]
+    fn discovery_does_not_require_runtime_credentials() {
+        assert!(
+            Args::try_parse_from(["agent", "--print-socket"])
+                .unwrap()
+                .print_socket
+        );
+        assert!(Args::try_parse_from(["agent"]).is_err());
+        assert!(Args::try_parse_from(["agent", "--ipc-socket", "/ipc"]).is_err());
+    }
 }

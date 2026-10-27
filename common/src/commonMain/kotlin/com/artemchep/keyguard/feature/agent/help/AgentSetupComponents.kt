@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -136,7 +137,7 @@ internal fun AgentSetupCodeBlock(
         Modifier
     }
 
-    val clipboardService = koinInject<ClipboardService>()
+    val clipboardService = if (LocalInspectionMode.current) null else koinInject<ClipboardService>()
     val copyDescription = stringResource(Res.string.copy)
     Row(
         modifier = Modifier
@@ -222,7 +223,7 @@ internal fun AgentSetupCodeBlock(
         }
         IconButton(
             onClick = {
-                clipboardService.setPrimaryClip(
+                clipboardService?.setPrimaryClip(
                     value = text,
                     concealed = false,
                 )

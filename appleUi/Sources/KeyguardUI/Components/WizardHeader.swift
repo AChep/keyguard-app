@@ -7,7 +7,6 @@ struct WizardHeader: View {
     let title: String
     let subtitle: String
     let systemImage: String
-    let stepLabel: String
     let step: Int
     let stepCount: Int
 
@@ -16,7 +15,7 @@ struct WizardHeader: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 8) {
-                Text(stepLabel)
+                Text(L10n.prefItemAutomaticBackupsWizardStepLabel(step, stepCount))
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
@@ -77,7 +76,6 @@ struct WizardHeader: View {
             title: "Protect your vault",
             subtitle: "Choose where to keep your encrypted backups.",
             systemImage: "externaldrive.badge.checkmark",
-            stepLabel: "Step 1 of 4",
             step: 1,
             stepCount: 4
         )

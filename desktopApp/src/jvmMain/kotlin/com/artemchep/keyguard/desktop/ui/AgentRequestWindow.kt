@@ -68,8 +68,6 @@ internal fun <T : Any> ApplicationScope.AgentRequestWindow(
         transparent = true,
         alwaysOnTop = true,
         resizable = false,
-        // A normal top-level window, applied before the dialog is shown, so
-        // Wayland maps the approval surface before focus is requested.
         type = agentApprovalWindowType,
         focusRequestKey = focusRequestKey,
         focusTag = focusTag,

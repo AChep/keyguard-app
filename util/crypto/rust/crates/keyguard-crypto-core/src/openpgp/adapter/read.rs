@@ -189,6 +189,8 @@ fn public_key_info(info: PublicKeyInfo) -> OpenPgpPublicKeyInfo {
         public_key_armored: info.public_key_armored,
         subkeys: info.subkeys.into_iter().map(public_subkey_info).collect(),
         user_id_details: info.user_id_details.into_iter().map(user_id_info).collect(),
+        user_id_history: info.user_id_history.into_iter().map(user_id_info).collect(),
+        can_modify_user_ids: info.can_modify_user_ids,
         component_fingerprints: info.component_fingerprints,
         revocation_authority_fingerprints: info.revocation_authority_fingerprints,
         authenticated: info.authenticated,
@@ -218,6 +220,11 @@ fn user_id_info(info: UserIdInfo) -> OpenPgpUserIdInfo {
     OpenPgpUserIdInfo {
         identity_id: info.identity_id,
         user_id: info.user_id,
+        primary: info.primary,
+        revoked: info.revoked,
+        can_revoke: info.can_revoke,
+        can_replace: info.can_replace,
+        can_make_primary: info.can_make_primary,
     }
 }
 

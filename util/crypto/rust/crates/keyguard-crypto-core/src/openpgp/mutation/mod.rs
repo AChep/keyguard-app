@@ -6,27 +6,22 @@
 mod expiration;
 mod material;
 mod reconcile;
-mod replace_user_id;
-mod revoke_user_id;
+mod user_id;
+
+pub(crate) use user_id::{
+    UserIdMutationFailure, UserIdReplacementInput, UserIdRevocationInput, UserIdUpdate,
+    UserIdUpdateInput, replace_user_id_request, revoke_user_id_request, update_user_id_request,
+};
 
 pub(crate) use expiration::{
     ExpirationUpdateFailure, ExpirationUpdateInput, update_expiration_request,
 };
-pub(crate) use material::{
-    MutationPreflight, next_signature_time, validate_mutation_document_bounds,
-};
+pub(crate) use material::{MutationDocuments, MutationPreflight};
 pub(crate) use reconcile::{
     CertificateMaterialContributions, CertificateMaterialReconcileInput, MaterialInputContribution,
     MaterialInputError, MaterialPairError, MaterialWithheldReason, ReconcileError,
     reconcile_certificate_material_request,
 };
-pub(crate) use replace_user_id::{
-    UserIdReplacementFailure, UserIdReplacementInput, replace_user_id_request,
-};
-pub(crate) use revoke_user_id::{
-    UserIdRevocationFailure, UserIdRevocationInput, revoke_user_id_request,
-};
-
 /// Implements the failure conversions every mutation workflow shares.
 ///
 /// Expiration renewal, User ID revocation and User ID replacement report the
@@ -34,6 +29,7 @@ pub(crate) use revoke_user_id::{
 /// enums with identical reason mappings; this macro writes those mappings
 /// once. `revoked` names the one divergent case: the failure variant an
 /// authorization [`MutationAuthorizationError::Revoked`][revoked] maps to.
+/// The failure enum must also carry `TimeConflict` and `RetryAt(u64)`.
 ///
 /// [revoked]: crate::openpgp::policy::MutationAuthorizationError::Revoked
 macro_rules! impl_mutation_failure_conversions {
@@ -63,6 +59,16 @@ macro_rules! impl_mutation_failure_conversions {
             }
         }
 
+        impl From<crate::openpgp::mutation::material::MutationRequestError> for $failure {
+            fn from(error: crate::openpgp::mutation::material::MutationRequestError) -> Self {
+                use crate::openpgp::mutation::material::MutationRequestError;
+                match error {
+                    MutationRequestError::EmptyPrivateKey => Self::EmptyPrivateKey,
+                    MutationRequestError::ResourceLimit => Self::ResourceLimit,
+                }
+            }
+        }
+
         impl From<crate::openpgp::policy::OpenPgpPolicyError> for $failure {
             fn from(error: crate::openpgp::policy::OpenPgpPolicyError) -> Self {
                 use crate::openpgp::policy::OpenPgpPolicyError;
@@ -85,6 +91,28 @@ macro_rules! impl_mutation_failure_conversions {
                     MutationAuthorizationError::IndeterminateRevocation => {
                         Self::UnresolvedRevocationAuthority
                     }
+                }
+            }
+        }
+
+        impl From<crate::openpgp::policy::SignatureTimeError> for $failure {
+            fn from(error: crate::openpgp::policy::SignatureTimeError) -> Self {
+                use crate::openpgp::policy::SignatureTimeError;
+                match error {
+                    SignatureTimeError::RetryAt(time) => Self::RetryAt(time),
+                    SignatureTimeError::Unrepresentable | SignatureTimeError::TooFarAhead => {
+                        Self::TimeConflict
+                    }
+                }
+            }
+        }
+
+        impl $failure {
+            /// Exact time at which a mutation blocked by signature ordering may be retried.
+            pub(crate) const fn retry_at(self) -> Option<u64> {
+                match self {
+                    Self::RetryAt(time) => Some(time),
+                    _ => None,
                 }
             }
         }

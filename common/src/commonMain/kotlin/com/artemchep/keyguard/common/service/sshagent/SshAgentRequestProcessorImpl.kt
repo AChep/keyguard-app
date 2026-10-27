@@ -9,6 +9,9 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.filterCiphers
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
+import com.artemchep.keyguard.common.service.crypto.SshCertificateParser
+import com.artemchep.keyguard.common.service.crypto.isSshCertificate
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistory
@@ -22,14 +25,16 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicyNoOp
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.util.toHex
+import com.artemchep.keyguard.crypto.NativeSshCertificateParser
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
+import kotlin.time.Clock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
 
 class SshAgentRequestProcessorImpl(
@@ -52,22 +57,23 @@ class SshAgentRequestProcessorImpl(
     private val pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
     private val sessionId: String = "",
     private val json: Json = Json,
+    private val clock: Clock = Clock.System,
+    private val sshCertificateParser: SshCertificateParser = NativeSshCertificateParser,
     private val onApprovalRequest: suspend (SshAgentApprovalPrompt) -> Boolean = { true },
-    private val onGetListRequest: suspend (caller: SshAgentMessages.CallerIdentity?) -> Boolean = { _ -> false },
 ) : SshAgentRequestProcessor {
     companion object {
         private const val TAG = "SshAgentRequestProcessor"
-
-        internal const val APPROVAL_TIMEOUT_MS = 60_000L
     }
 
     override suspend fun listKeys(
-        caller: SshAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ): SshAgentRequestProcessor.ListKeysResult {
+        val now = clock.now().epochSeconds
         val vault = getSshKeysFromVault()
         if (vault == null) {
             val keys = getCachedSshKeys()
-                .map { it.toSshKeyMessage() }
+                .map { it.toSshKeyMessage() to it.certificate }
+                .withCertificatesFirst(now)
             recordPendingSshUsage(
                 cipherId = null,
                 caller = caller,
@@ -87,17 +93,20 @@ class SshAgentRequestProcessorImpl(
             )
         }
 
-        val keys = vault.sshKeys.mapNotNull { secret ->
-            val sshKey = secret.sshKey ?: return@mapNotNull null
-            val publicKey = sshKey.publicKey ?: return@mapNotNull null
-            val keyType = extractSshKeyType(publicKey) ?: "unknown"
-            SshAgentMessages.SshKey(
-                name = secret.name,
-                publicKey = publicKey,
-                keyType = keyType,
-                fingerprint = sshKey.fingerprint.orEmpty(),
-            )
-        }
+        val keys = vault.sshKeys
+            .mapNotNull { secret ->
+                val sshKey = secret.sshKey ?: return@mapNotNull null
+                val publicKey = sshKey.publicKey ?: return@mapNotNull null
+                val keyType = extractSshKeyType(publicKey) ?: "unknown"
+                val key = SshAgentMessages.SshKey(
+                    name = secret.name,
+                    publicKey = publicKey,
+                    keyType = keyType,
+                    fingerprint = sshKey.fingerprint.orEmpty(),
+                )
+                key to sshKey.certificate
+            }
+            .withCertificatesFirst(now)
         recordSshUsage(
             vault = vault,
             cipherId = null,
@@ -125,6 +134,21 @@ class SshAgentRequestProcessorImpl(
 
         var approvalGranted = false
         val cachedKey = if (wasVaultLocked) getCachedSshKey(request.publicKey) else null
+        if (wasVaultLocked && cachedKey == null) {
+            // While locked, the agent offers only the catalog's signing-capable
+            // keys. Any other key would fail after unlock, so do not prompt.
+            recordPendingSshUsage(
+                cipherId = null,
+                caller = request.caller,
+                request = SshUsageHistoryRequestType.AGENT_SIGN_DATA,
+                response = SshUsageHistoryResponseType.KEY_NOT_FOUND,
+                fingerprint = null,
+                // Collapse repeated probes so they can not push rarer
+                // denial events past the queue cap.
+                coalescenceKey = "SSH|AGENT_SIGN_DATA|KEY_NOT_FOUND|${request.caller?.processName.orEmpty()}",
+            )
+            return SshAgentRequestProcessor.SignDataResult.KeyNotFound
+        }
 
         if (wasVaultLocked) {
             logRepository.post(TAG, "Vault is locked, requesting approval before SSH signing", LogLevel.INFO)
@@ -171,7 +195,7 @@ class SshAgentRequestProcessorImpl(
             return SshAgentRequestProcessor.SignDataResult.VaultLocked
         }
 
-        val matchingSecret = vault.findKeyByPublicKey(request.publicKey) ?: run {
+        val matchingSecret = vault.findKeyByPublicKey(request.publicKey, sshCertificateParser) ?: run {
             recordSshUsage(
                 vault = vault,
                 cipherId = null,
@@ -245,7 +269,9 @@ class SshAgentRequestProcessorImpl(
             return SshAgentRequestProcessor.SignDataResult.VaultLocked
         }
         val currentSecret = if (requiresApproval) {
-            currentVault.restrictTo(matchingSecret).findKeyByPublicKey(request.publicKey)
+            currentVault
+                .restrictTo(matchingSecret)
+                .findKeyByPublicKey(request.publicKey, sshCertificateParser)
         } else {
             matchingSecret
         }
@@ -290,11 +316,11 @@ class SshAgentRequestProcessorImpl(
     }
 
     private suspend fun getCachedSshKeys(): List<SshAgentPublicKeyRow> = try {
-        // The catalog is cipher-grained; the agent protocol lists each
-        // distinct key once, so collapse ciphers sharing a public key.
+        // The catalog is cipher-grained; ciphers sharing a public key are
+        // collapsed when listed, after their certificates are taken.
         sshAgentPublicKeyRepository.get()
             .bind()
-            .distinctBy { it.publicKeyBlobSha256 }
+            .filter { it.isEligibleForSshAgent() }
     } catch (e: Exception) {
         e.throwIfFatalOrCancellation()
         logRepository.post(TAG, "Failed to read cached SSH public keys: ${e.message}", LogLevel.ERROR)
@@ -304,12 +330,27 @@ class SshAgentRequestProcessorImpl(
     private suspend fun getCachedSshKey(
         publicKey: String,
     ): SshAgentPublicKeyRow? = try {
-        // The same key may live in more than one cipher; for the
-        // approval display any of the matching rows works, so take
-        // the first one of the deterministically ordered result.
+        // Only signing-capable entries may label an approval. A public-only
+        // duplicate must not mask the signer in the ordered catalog.
         sshAgentPublicKeyRepository.getByPublicKey(publicKey)
             .bind()
-            .firstOrNull()
+            .firstOrNull { it.isEligibleForSshAgent() }
+            // The catalog indexes keys only, so look for the certificate.
+            ?: if (isSshCertificate(publicKey)) {
+                sshAgentPublicKeyRepository.get()
+                    .bind()
+                    .firstOrNull { row ->
+                        row.isEligibleForSshAgent() &&
+                                sshCertificateMatches(
+                                    certificate = row.certificate,
+                                    publicKey = row.publicKey,
+                                    credential = publicKey,
+                                    parser = sshCertificateParser,
+                                )
+                    }
+            } else {
+                null
+            }
     } catch (e: Exception) {
         e.throwIfFatalOrCancellation()
         logRepository.post(TAG, "Failed to read cached SSH public key: ${e.message}", LogLevel.ERROR)
@@ -322,6 +363,24 @@ class SshAgentRequestProcessorImpl(
         keyType = keyType,
         fingerprint = fingerprint,
     )
+
+    /**
+     * Lists the offered certificates before the keys: a server that trusts only
+     * the certificate would otherwise spend an authentication attempt on each key.
+     * Each distinct key or certificate is listed once. Duplicates are dropped after
+     * the certificates are taken, so a key's certificate is offered whichever of its
+     * ciphers holds it. Signing resolves the first matching cipher, the one listed here.
+     */
+    private fun List<Pair<SshAgentMessages.SshKey, String?>>.withCertificatesFirst(
+        epochSeconds: Long,
+    ): List<SshAgentMessages.SshKey> {
+        val certificates = mapNotNull { (key, certificate) ->
+            key.toCertificateMessage(certificate, epochSeconds, sshCertificateParser)
+        }
+        val keys = map { (key, _) -> key }
+        return (certificates + keys)
+            .distinctBy { decodeSshPublicKeyBlob(it.publicKey)?.toHex() ?: it.publicKey }
+    }
 
     // Guard clauses reject unsupported or stale input before accessing the active session.
     @Suppress("ReturnCount")
@@ -362,7 +421,7 @@ class SshAgentRequestProcessorImpl(
     @Suppress("LongParameterList")
     private suspend fun recordPendingSshUsage(
         cipherId: String?,
-        caller: SshAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
         request: SshUsageHistoryRequestType,
         response: SshUsageHistoryResponseType,
         fingerprint: String?,
@@ -389,7 +448,7 @@ class SshAgentRequestProcessorImpl(
     private suspend fun recordSshUsage(
         vault: SshVaultContext,
         cipherId: String?,
-        caller: SshAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
         request: SshUsageHistoryRequestType,
         response: SshUsageHistoryResponseType,
         fingerprint: String?,
@@ -412,7 +471,7 @@ class SshAgentRequestProcessorImpl(
     }
 
     private fun encodeCaller(
-        caller: SshAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ): String? {
         caller ?: return null
         return runCatching {
@@ -420,25 +479,11 @@ class SshAgentRequestProcessorImpl(
         }.getOrNull()
     }
 
-    private suspend fun requestVaultUnlock(
-        caller: SshAgentMessages.CallerIdentity?,
-    ): Boolean {
-        val unlocked = try {
-            onGetListRequest(caller)
-        } catch (e: Exception) {
-            if (e is CancellationException) throw e
-            logRepository.post(TAG, "Unlock request failed: ${e.message}", LogLevel.ERROR)
-            false
-        }
-        return unlocked
-    }
-
+    // The approval broker owns the deadline of the prompt.
     private suspend fun requestSigningApproval(
         prompt: SshAgentApprovalPrompt,
     ): Boolean = try {
-        withTimeoutOrNull(APPROVAL_TIMEOUT_MS) {
-            onApprovalRequest(prompt)
-        } ?: false
+        onApprovalRequest(prompt)
     } catch (e: Exception) {
         if (e is CancellationException) throw e
         logRepository.post(TAG, "Approval request failed: ${e.message}", LogLevel.ERROR)
@@ -450,10 +495,23 @@ class SshAgentRequestProcessorImpl(
         val sshKeys: List<DSecret>,
         val addSshUsageHistory: AddSshUsageHistory,
     ) {
-        fun findKeyByPublicKey(publicKey: String): DSecret? = sshKeys
+        fun findKeyByPublicKey(
+            publicKey: String,
+            parser: SshCertificateParser,
+        ): DSecret? = sshKeys
             .firstOrNull { secret ->
                 val candidate = secret.sshKey?.publicKey ?: return@firstOrNull false
                 sshPublicKeysMatch(candidate, publicKey)
+            }
+            // A request for a certificate is signed by the key it certifies.
+            ?: sshKeys.firstOrNull { secret ->
+                val sshKey = secret.sshKey ?: return@firstOrNull false
+                sshCertificateMatches(
+                    certificate = sshKey.certificate,
+                    publicKey = sshKey.publicKey,
+                    credential = publicKey,
+                    parser = parser,
+                )
             }
 
         /** Keeps only the keys that belong to the given cipher. */

@@ -22,7 +22,7 @@ EXTRA_DESKTOP_HOSTS = [
 FLAGS = (
     "desktop", "desktop_regressions", "android", "android_runtime",
     "apple", "apple_regressions", "io", "instance", "crypto", "fuzz",
-    "native_quality", "desktop_native", "wear",
+    "native_quality", "desktop_native", "wear", "agent_ipc",
 )
 
 
@@ -60,7 +60,7 @@ def classify(paths, *, full=False, all_checks=False):
         if path.endswith(".xcstrings"):
             continue
         if (
-            path in {"build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.properties", "gradlew", "gradlew.bat", "rust-toolchain.toml"}
+            path in {"build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.properties", "gradlew", "gradlew.bat", "rust-toolchain.toml", ".cargo/config.toml"}
             or path.startswith(("gradle/", "buildPlugins/"))
             or path.startswith((".github/actions/setup_rust/", ".github/actions/setup_gradle/", ".github/actions/prefetch_native/", ".github/actions/setup_protobuf/"))
             or path in {".github/workflows/check_native.yml", ".github/workflows/check_native_crypto.yml", ".github/workflows/check_native_io.yml"}
@@ -91,9 +91,9 @@ def classify(paths, *, full=False, all_checks=False):
                 enable("native_quality")
                 if is_rust_test_path(path):
                     continue
-            enable("io", "instance", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
+            enable("io", "instance", "agent_ipc", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
             continue
-        module = re.match(r"util/(crypto|dns|io|zxcvbn|zip|instance|webauthn|yubikey|fido2|windows-passkeys)/(.+)", path)
+        module = re.match(r"util/(crypto|dns|io|zxcvbn|zip|instance|webauthn|yubikey|fido2|windows-passkeys|agent-ipc)/(.+)", path)
         if module:
             name, relative = module.groups()
             if name in {"yubikey", "fido2"}:
@@ -120,6 +120,31 @@ def classify(paths, *, full=False, all_checks=False):
                     enable("native_quality")
                 if not (test_source or rust_test or relative.startswith("schema/fixtures/")):
                     enable("desktop")
+                continue
+            if name == "agent-ipc":
+                # Desktop loads the JNI library; native macOS links the C archive
+                # through cinterop. Android and iOS never use the module.
+                enable("agent_ipc")
+                if relative.startswith("rust/"):
+                    enable("native_quality")
+                    if rust_test:
+                        # Windows runs in its own job, Linux x64 in Rust quality.
+                        enable("desktop_regressions")
+                    else:
+                        enable("desktop", "desktop_regressions", "apple", "apple_regressions")
+                elif test_source:
+                    if source_set.startswith("macos"):
+                        enable("apple_regressions")
+                    else:
+                        enable("desktop_regressions")
+                        if source_set == "commonTest":
+                            enable("apple_regressions")
+                elif source_set == "desktopMain":
+                    enable("desktop", "desktop_regressions")
+                elif source_set.startswith(("apple", "macos", "native")):
+                    enable("apple", "apple_regressions")
+                else:
+                    enable("desktop", "desktop_regressions", "apple", "apple_regressions")
                 continue
             if name == "crypto":
                 if relative.startswith("rust/fuzz/"):
@@ -182,7 +207,16 @@ def classify(paths, *, full=False, all_checks=False):
                 enable("crypto")
                 continue
             enable("crypto", "fuzz", "desktop", "android", "apple", "apple_regressions")
+        if path.startswith(("commonCli/", "desktopCli/", "desktopCliAgent/")):
+            enable("desktop", "desktop_native", "apple", "native_quality")
+            # The agent IPC CLI replay runs the CLI agent's app client and fixtures.
+            if path.startswith(("commonCli/", "desktopCliAgent/")):
+                enable("agent_ipc")
+            continue
         if path.startswith(("desktopLibNative/", "desktopSshAgent/", "desktopGpgAgent/", "commonAgent/", "commonSshAgent/", "commonGpgAgent/")):
+            # Agent IPC tests connect through the helpers' commonAgent/ipc client.
+            if path.startswith("commonAgent/"):
+                enable("agent_ipc")
             if is_rust_test_path(path):
                 if path.startswith("desktopLibNative/"):
                     enable("desktop_native")
@@ -191,11 +225,22 @@ def classify(paths, *, full=False, all_checks=False):
             enable("desktop", "desktop_native")
             if path.startswith(("desktopGpgAgent/", "commonAgent/", "commonGpgAgent/")):
                 enable("apple")
+            # Native utility Rust quality lints the CLI helpers, which
+            # consume commonAgent.
+            if path.startswith("commonAgent/"):
+                enable("native_quality")
         if re.match(r"androidApp/src/androidTest/.+/(nativebundle|io|crypto)/", path):
             enable("android_runtime")
             if "/test/io/" in path:
                 enable("io")
             continue
+        # The desktop agents serve over util/agent-ipc; their shared framing in
+        # commonMain also runs on native macOS.
+        agent_service = re.match(r"common/src/(commonMain|commonTest|desktopMain|jvmMain|desktopTest)/kotlin/.+/service/(agent|sshagent|gpgagent|cli/agent)/", path)
+        if agent_service:
+            enable("agent_ipc", "desktop_regressions")
+            if agent_service.group(1) in {"commonMain", "commonTest"}:
+                enable("apple_regressions")
         if re.match(r"[^/]+/src/[^/]*Test/", path):
             if re.match(r"appleApp/src/(apple|macos|common)[^/]*Test/", path):
                 enable("apple_regressions")

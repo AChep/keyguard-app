@@ -1,20 +1,15 @@
 package com.artemchep.keyguard.apple.core
 
 import com.artemchep.keyguard.common.AppWorker
-import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.LockReason
-import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
-import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
+import com.artemchep.keyguard.common.service.session.VaultSessionPersister
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetLocale
-import com.artemchep.keyguard.common.usecase.GetVaultPersist
-import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.copy.AppleManagedImportFiles
@@ -25,12 +20,10 @@ import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.onState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.lock_reason_manually
-import kotlin.time.Clock
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.core.qualifier.named
@@ -44,9 +37,7 @@ import platform.Foundation.NSUserDefaults
 internal class AppLifecycleController(
     private val ctx: CoreContext,
 ) {
-    private val getVaultSession: GetVaultSession by lazy { ctx.koin.get() }
-    private val getVaultPersist: GetVaultPersist by lazy { ctx.koin.get() }
-    private val keyReadWriteRepository: KeyReadWriteRepository by lazy { ctx.koin.get() }
+    private val vaultSessionPersister: VaultSessionPersister by lazy { ctx.koin.get() }
     private val vaultSessionLocker: VaultSessionLocker by lazy { ctx.koin.get() }
     private val clearVaultSession: ClearVaultSession by lazy { ctx.koin.get() }
 
@@ -131,24 +122,7 @@ internal class AppLifecycleController(
 
     private fun startVaultPersist() {
         ctx.backgroundScope.launch {
-            combine(
-                getVaultSession(),
-                getVaultPersist(),
-            ) { session, persist ->
-                val key = session as? MasterSession.Key
-                key?.masterKey?.takeIf { persist }
-            }.collect { masterKey ->
-                val persistedSession = masterKey?.let {
-                    PersistedSession(
-                        masterKey = it,
-                        createdAt = Clock.System.now(),
-                        persistedAt = Clock.System.now(),
-                    )
-                }
-                keyReadWriteRepository.put(persistedSession)
-                    .attempt()
-                    .bind()
-            }
+            vaultSessionPersister.run()
         }
     }
 

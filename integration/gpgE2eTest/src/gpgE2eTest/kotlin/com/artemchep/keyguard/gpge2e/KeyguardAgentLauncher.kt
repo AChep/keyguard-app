@@ -2,13 +2,15 @@ package com.artemchep.keyguard.gpge2e
 
 import com.artemchep.keyguard.common.service.agent.AGENT_STARTUP_READY_RECORD
 import com.artemchep.keyguard.common.service.agent.AGENT_STARTUP_READY_TIMEOUT_MS
-import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.agent.AgentProcessDiagnosticTail
 import com.artemchep.keyguard.common.service.agent.awaitAgentStartupReadiness
 import com.artemchep.keyguard.common.service.agent.drainAgentProcessOutput
 import com.artemchep.keyguard.common.service.agent.observeProcessExit
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentIpcServer
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
+import com.artemchep.keyguard.util.agentipc.AgentIpcExpectedPeer
+import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
+import com.artemchep.keyguard.util.agentipc.asAgentIpcExpectedPeer
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +19,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withTimeout
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.net.InetAddress
@@ -35,70 +36,60 @@ class KeyguardAgentLauncher(
     private val binaryPath: Path,
     private val processor: GpgAgentRequestProcessor,
     private val authToken: ByteArray,
+    /** Null exercises the agent's fallback version. */
+    private val gnupgVersion: String? = null,
 ) {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var serverJob: Job? = null
     private var ipcServer: GpgAgentIpcServer? = null
     private var process: Process? = null
     private var processStdin: OutputStream? = null
-    private var ipcEndpoint: AgentIpcEndpoint? = null
 
     /**
-     * @param ipcEndpoint endpoint for the Kotlin <-> Rust IPC channel.
+     * @param ipcLocation where to create the endpoint of the Kotlin <-> Rust IPC channel.
      * @param gpgSocket the endpoint to bind, or null to exercise the platform default.
      */
     fun start(
-        ipcEndpoint: AgentIpcEndpoint,
+        ipcLocation: AgentIpcLocation,
         gpgSocket: String? = null,
         environmentOverrides: Map<String, String?> = emptyMap(),
     ) {
-        this.ipcEndpoint = ipcEndpoint
-
-        val log = TestLogRepository()
-        val expectedPeerProcess = CompletableDeferred<Process>()
         val server = GpgAgentIpcServer(
-            logRepository = log,
+            logRepository = TestLogRepository(),
             authToken = authToken,
-            scope = scope,
             requestProcessor = processor,
-            expectedPeerProcess = expectedPeerProcess,
         )
         this.ipcServer = server
 
-        val onReady = CompletableDeferred<Unit>()
-        serverJob = scope.launch {
-            runCatching {
-                server.start(ipcEndpoint, onReady = onReady)
-            }.onFailure { e ->
-                onReady.completeExceptionally(e)
-                expectedPeerProcess.completeExceptionally(e)
-            }
-        }
-
         try {
-            runBlocking {
-                withTimeout(5_000) { onReady.await() }
+            // The endpoint exists before the agent starts; the server accepts
+            // nothing until it knows the agent's process.
+            val ipcEndpoint = server.bind(ipcLocation)
+            val expectedPeer = CompletableDeferred<AgentIpcExpectedPeer>()
+            serverJob = scope.launch {
+                server.serve { expectedPeer.await() }
             }
             val proc = launchProcess(ipcEndpoint, gpgSocket, environmentOverrides)
             process = proc
-            initializeProcess(proc, expectedPeerProcess)
+            expectedPeer.complete(proc.asAgentIpcExpectedPeer())
+            initializeProcess(proc)
         } catch (e: Exception) {
-            expectedPeerProcess.completeExceptionally(e)
             stop()
             throw e
         }
     }
 
     private fun launchProcess(
-        ipcEndpoint: AgentIpcEndpoint,
+        ipcEndpoint: String,
         gpgSocket: String?,
         environmentOverrides: Map<String, String?>,
     ): Process {
         val verbose = System.getProperty("keyguard.gpgE2e.verbose") == "true"
         val command = buildList {
             add(binaryPath.toAbsolutePath().toString())
-            addAll(listOf("--ipc-socket", ipcEndpoint.argument))
+            addAll(listOf("--ipc-socket", ipcEndpoint))
             addAll(listOf("--parent-pid", ProcessHandle.current().pid().toString()))
+            if (gnupgVersion != null) addAll(listOf("--gnupg-version", gnupgVersion))
             if (gpgSocket != null) addAll(listOf("--gpg-socket", gpgSocket))
             if (verbose) add("--verbose")
         }
@@ -112,7 +103,6 @@ class KeyguardAgentLauncher(
 
     private fun initializeProcess(
         proc: Process,
-        expectedPeerProcess: CompletableDeferred<Process>,
     ) {
         val startupReady = CompletableDeferred<Unit>()
         val diagnostics = AgentProcessDiagnosticTail()
@@ -128,9 +118,6 @@ class KeyguardAgentLauncher(
             logReadFailure = { message -> System.err.println(message) },
         )
         val processExit = observeProcessExit(proc)
-        check(expectedPeerProcess.complete(proc)) {
-            "Expected GPG IPC peer process was already published"
-        }
         val procStdin = proc.outputStream.also { processStdin = it }
         val authTokenHex = authToken.joinToString("") { "%02x".format(it) }
         procStdin.write(authTokenHex.encodeToByteArray())
@@ -283,21 +270,12 @@ class KeyguardAgentLauncher(
             }
         }
         process = null
-        ipcServer?.let { runCatching { invokeStop(it) } }
+        // Closing also removes the endpoint.
+        ipcServer?.close()
+        ipcServer = null
         serverJob?.cancel()
         serverJob = null
         scope.cancel()
-        (ipcEndpoint as? AgentIpcEndpoint.UnixSocket)?.let { endpoint ->
-            runCatching { Files.deleteIfExists(endpoint.socketPath) }
-        }
-        ipcEndpoint = null
-    }
-
-    private fun invokeStop(server: GpgAgentIpcServer) {
-        // GpgAgentIpcServer.stop() is internal; reach it reflectively from this module.
-        val method = GpgAgentIpcServer::class.java.getDeclaredMethod("stop")
-        method.isAccessible = true
-        method.invoke(server)
     }
 
     private data class WindowsAssuanMarker(

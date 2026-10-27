@@ -126,6 +126,16 @@ interface SettingsReadRepository {
 
     fun getGpgAgentApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy>
 
+    /** How long an MCP client, or a reader of a local `.env` file, keeps an approval. */
+    fun getEnvironmentsMcpApprovalWindow(): Flow<Duration>
+
+    fun getEnvironmentsMcpApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy>
+
+    /** How long a terminal tab keeps a `keyguard` CLI approval. */
+    fun getCliApprovalWindow(): Flow<Duration>
+
+    fun getCliApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy>
+
     fun getGpgAgentDisplayKeyNames(): Flow<Boolean>
 
     fun getGpgAgentFilter(): Flow<GpgAgentFilter>

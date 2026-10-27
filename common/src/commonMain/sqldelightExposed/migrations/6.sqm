@@ -1,0 +1,19 @@
+-- Stop mirroring account emails and server hosts: only the name is needed to
+-- label an account before unlock.
+--
+-- The table is rebuilt rather than emptied. An empty mirror is what unregisters
+-- Keyguard from the credential-transfer picker, so the rows have to survive the
+-- upgrade until the next unlocked sync rewrites them. Rebuilding also avoids
+-- `ALTER TABLE ... DROP COLUMN`, which needs SQLite 3.35.
+CREATE TABLE account_new (
+  accountId TEXT NOT NULL PRIMARY KEY,
+  name TEXT NOT NULL
+);
+
+INSERT INTO account_new(accountId, name)
+SELECT accountId, name
+FROM account;
+
+DROP TABLE account;
+
+ALTER TABLE account_new RENAME TO account;

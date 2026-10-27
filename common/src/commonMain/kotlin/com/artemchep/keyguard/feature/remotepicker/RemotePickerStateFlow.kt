@@ -6,6 +6,8 @@ import arrow.core.Either
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.model.map
+import com.artemchep.keyguard.ui.Breadcrumb
+import com.artemchep.keyguard.ui.pathBreadcrumbs
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -13,7 +15,7 @@ import kotlinx.coroutines.flow.map
 
 private class RemotePickerDirectoryView(
     val path: String,
-    val breadcrumbs: List<RemotePickerState.Breadcrumb>,
+    val breadcrumbs: List<Breadcrumb>,
     val content: Loadable<Either<Throwable, List<RemotePickerState.Item>>>,
     val existingNames: List<String>,
 )
@@ -122,7 +124,7 @@ private fun remotePickerDirectoryFlow(
         }
         RemotePickerDirectoryView(
             path = path,
-            breadcrumbs = remotePickerBreadcrumbs(path, onPathChange),
+            breadcrumbs = pathBreadcrumbs(path, onClick = onPathChange),
             content = content,
             existingNames = remotePickerExistingNames(
                 content.getOrNull()?.getOrNull().orEmpty(),

@@ -11,7 +11,7 @@ publish = false
 
 [dependencies]
 # Keep code generation aligned with the runtime of the crypto and root workspaces.
-prost-build = "=0.13.5"
+prost-build = "=0.14.4"
 
 [lints.rust]
 unsafe_code = "forbid"

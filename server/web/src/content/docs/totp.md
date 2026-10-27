@@ -1,46 +1,72 @@
 ---
-title: One-time passwords (TOTP)
-description: Store authenticator keys in your login items — QR scanning, supported code types, and auto-copy.
-category: guides
-order: 3
+title: One-time passwords
+description: "Store authenticator keys in login items and use TOTP, HOTP, Steam and mOTP codes."
+section: vault
+type: feature
+order: 40
+platforms: [android, wear-os, linux, macos, windows]
+related: [items, autofill, wear-os]
 ---
 
-A login item can carry an **authenticator key**, turning Keyguard into your
-two-factor code generator: the current code sits right next to the username
-and password it belongs to, with a countdown and a copy button, and it syncs
-to every device — including your [watch](/docs/wear-os/).
+A login item can hold an authenticator key. Keyguard then shows the item's
+current one-time password next to its username and password, and the key
+syncs with the item to your other devices.
 
-## Adding a key to an item
+:::note
+One vault unlock protects both the password and its second factor. For your
+most critical accounts, keep the second factor in a separate app or on a
+hardware key.
+:::
 
-While editing a login item, set the **Authenticator key** in one of three
-ways:
+## Add an authenticator key
 
-- **Scan the QR code** the website shows you, using the camera;
-- **Load from a file** — pick a screenshot or photo of the QR code;
-- **Paste it** — either a full `otpauth://` URL or just the raw secret key.
+1. Open the login item and select the edit (pencil) icon.
+2. In **Authenticator key**, enter a full `otpauth://`, `steam://` or
+   `motp://` URI, or only the secret key.
+3. Select **Save**. The item shows the current code.
 
-Since adding a key edits the item, it follows the same
-[premium rule](/docs/premium/) as other vault edits — generating and copying
-codes is free.
+To read the key from a QR code instead, select the scan button in the
+**Authenticator key** field:
 
-## Supported code types
+| Option | Platforms | Reads the QR code from |
+| --- | --- | --- |
+| **Scan QR code** | Android | The camera |
+| **Load from a file** | Android, Linux, macOS, Windows | An image file, such as a screenshot |
 
-| Type            | Notes                                                       |
-| :-------------- | :----------------------------------------------------------- |
-| **TOTP**        | SHA-1, SHA-256, or SHA-512; 1–9 digits (default 6); custom period (default 30 s) |
-| **HOTP**        | Counter-based variant, same algorithms                       |
-| **Steam Guard** | `steam://` secrets; the 5-character Steam code format        |
-| **mOTP**        | `motp://` secrets, with PIN support                          |
+### From Google Authenticator
 
-## Using the codes
+Keyguard reads the QR codes that Google Authenticator exports. It fills the
+field with the first account in the code and skips the rest.
 
-The item view shows the current code with a **countdown timer**, a preview
-of the upcoming code, and one-tap copy. There's also an option to 
-**Auto-copy one-time passwords** — when autofill fills a login, the 
-matching code is copied to the clipboard automatically, ready to paste 
-into the verification field.
+1. In Google Authenticator, start an export and select only the account to
+   move.
+2. In the login's **Authenticator key** field, scan the QR code that Google
+   Authenticator shows.
+3. Select **Save**.
 
-> Storing the second factor next to the password means one vault unlock
-> protects both. That's a deliberate trade-off — convenience against
-> separation of factors. For your most critical accounts, consider keeping 
-> the second factor in a separate app or on a hardware key.
+Repeat for each account. A pasted `otpauth-migration://` link isn't
+converted, so scan the code instead.
+
+## Use a code
+
+The item shows the current code, a countdown and the next code. The code's
+menu has these actions:
+
+- **Copy one-time password** copies the current code.
+- **Copy secret key** copies the authenticator key.
+- **Show as Barcode** shows the key as a QR code, so another authenticator
+  app can scan it. See
+  [QR codes and large type](/docs/items/#qr-codes-and-large-type).
+
+When autofill fills a login, Keyguard copies its one-time password to the
+clipboard. To stop this, turn off
+**Auto-copy one-time passwords** in **Settings > Autofill**.
+
+## Code types
+
+| Type | Key format | Code |
+| --- | --- | --- |
+| TOTP | `otpauth://totp/…`, or a bare secret key | SHA-1 (default), SHA-256 or SHA-512; 1–9 digits (default 6); custom period (default 30 seconds) |
+| HOTP | `otpauth://hotp/…` | Counter-based, with the same algorithms and digits as TOTP |
+| Steam Guard | `steam://…` | 5 characters, every 30 seconds |
+| mOTP | `motp://…` | 6 characters, every 10 seconds, with PIN support |

@@ -17,6 +17,7 @@ enum RootAppSheetRoute: String, Identifiable, Equatable, CaseIterable {
     case colorPicker
     case infoDialog
     case accountPicker
+    case cipherFieldPicker
 
     var id: String { rawValue }
 
@@ -37,6 +38,7 @@ enum RootAppSheetRoute: String, Identifiable, Equatable, CaseIterable {
             (.colorPicker, model.colorPicker != nil),
             (.infoDialog, model.infoDialog != nil),
             (.accountPicker, model.accountPicker != nil),
+            (.cipherFieldPicker, model.cipherFieldPicker != nil),
         ]
         return preferred(
             available: Set(availability.compactMap { $0.1 ? $0.0 : nil }),
@@ -91,6 +93,8 @@ enum RootAppSheetRoute: String, Identifiable, Equatable, CaseIterable {
             model.closeInfoDialog()
         case .accountPicker:
             model.closeAccountPicker()
+        case .cipherFieldPicker:
+            model.closeCipherFieldPicker()
         }
     }
 }

@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.retry
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.io.shared
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
@@ -15,6 +16,7 @@ import com.artemchep.keyguard.common.model.MasterPassword
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.database.DatabaseSqlManager
 import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
+import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
 import com.artemchep.keyguard.common.usecase.GenerateMasterHashUseCase
@@ -44,6 +46,13 @@ class ExposedDatabaseManagerImpl(
     companion object {
         private const val TAG = "ExposedDatabaseManager"
 
+        /**
+         * The migration that stopped mirroring account emails and server hosts.
+         * Dropping their table leaves the old values in free pages, so the
+         * database is vacuumed once that upgrade has committed.
+         */
+        private const val ACCOUNT_NAME_ONLY_VERSION = 6L
+
         private val mutex = Mutex()
     }
 
@@ -55,11 +64,22 @@ class ExposedDatabaseManagerImpl(
                     urlBlockAdapter = UrlBlock.Adapter(InstantToLongAdapter),
                 )
             }
-            val callbacks = arrayOf<AfterVersion>(
+            // Migrations run inside a transaction, where VACUUM is not allowed,
+            // so the callback only flags it to run after the upgrade commits.
+            var vacuumAfterUpgrade = false
+            val callbacks = arrayOf(
+                AfterVersion(
+                    afterVersion = ACCOUNT_NAME_ONLY_VERSION,
+                ) {
+                    vacuumAfterUpgrade = true
+                },
             )
             val sqlHelper = sqlManager
                 .create(masterKey, databaseFactory, DatabaseExposed.Schema, *callbacks)
                 .bind()
+            if (vacuumAfterUpgrade) {
+                vacuum(sqlHelper.driver)
+            }
             sqlHelper
         }
         .retry { e, attempt ->
@@ -69,6 +89,24 @@ class ExposedDatabaseManagerImpl(
         .shared("dbIo")
 
     override fun get() = dbIo.map { it.database }
+
+    private fun vacuum(driver: SqlDriver) {
+        // Best effort: the old values are already unreachable through the schema,
+        // and a failed rebuild must not keep the database from opening.
+        runCatchingNonFatal {
+            driver.execute(
+                identifier = null,
+                sql = "VACUUM",
+                parameters = 0,
+            )
+        }.onFailure { e ->
+            logRepository.post(
+                tag = TAG,
+                message = "Failed to vacuum the database: ${e.message}",
+                level = LogLevel.ERROR,
+            )
+        }
+    }
 
     override fun <T> mutate(
         tag: String,

@@ -235,16 +235,12 @@ private suspend fun TranslatorScope.toItem(
         else -> translate(Res.string.agent_history_unknown_key)
     }
     val formattedDate = dateFormatter.formatDateTime(event.instant)
-    val details = buildList {
-        add(requestText)
-        callerInfo?.secondaryLabel
-            ?.let(::add)
-        keyText
-            ?.let(::add)
-        fingerprintText
-            ?.takeIf { it != keyText }
-            ?.let(::add)
-    }.joinToString(separator = " • ")
+    val details = buildSshUsageHistoryDescription(
+        request = requestText,
+        key = keyText,
+        fingerprint = fingerprintText,
+        caller = callerInfo?.secondaryLabel,
+    )
 
     return SshAgentHistoryItem.Value(
         id = "ssh_history.${event.id.orEmpty()}",

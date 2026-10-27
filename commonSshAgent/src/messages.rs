@@ -8,9 +8,21 @@ pub mod proto {
 // Re-export the main types for convenience.
 pub use proto::*;
 
+// The caller, handshake and error messages are generated once, in
+// keyguard-agent-proto.
+pub use keyguard_agent_proto::{
+    AuthenticateRequest, AuthenticateResponse, CallerAuthorization,
+    CallerAuthorizationEvidenceSource, CallerAuthorizationSubject, CallerAuthorizationSubjectKind,
+    CallerIdentity, ErrorCode, ErrorResponse,
+};
+
+#[cfg(test)]
+mod fixtures;
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use keyguard_agent_identity::IPC_PROTOCOL_REVISION;
     use prost::Message;
 
     #[test]
@@ -19,7 +31,7 @@ mod tests {
             id: 1,
             request: Some(ipc_request::Request::Authenticate(AuthenticateRequest {
                 token: vec![0xAA; 32],
-                protocol_revision: 1,
+                protocol_revision: IPC_PROTOCOL_REVISION,
             })),
         };
 
@@ -30,7 +42,7 @@ mod tests {
         match decoded.request {
             Some(ipc_request::Request::Authenticate(auth)) => {
                 assert_eq!(auth.token, vec![0xAA; 32]);
-                assert_eq!(auth.protocol_revision, 1);
+                assert_eq!(auth.protocol_revision, IPC_PROTOCOL_REVISION);
             }
             _ => panic!("Expected Authenticate request"),
         }
@@ -53,62 +65,6 @@ mod tests {
             decoded.request,
             Some(ipc_request::Request::ListKeys(_))
         ));
-    }
-
-    #[test]
-    fn caller_authorization_round_trip() {
-        let connection = vec![0x5A; 32];
-        let original = CallerIdentity {
-            pid: 123,
-            uid: 456,
-            gid: 789,
-            process_name: "ssh".to_string(),
-            executable_path: "/usr/bin/ssh".to_string(),
-            app_pid: 321,
-            app_name: "Terminal".to_string(),
-            app_bundle_path: "/Applications/Terminal.app".to_string(),
-            authorization: Some(CallerAuthorization {
-                connection_fingerprint: connection.clone(),
-                subjects: Vec::new(),
-                authorization_context_fingerprint: Vec::new(),
-            }),
-        };
-
-        let encoded = original.encode_to_vec();
-        let decoded = CallerIdentity::decode(&encoded[..]).expect("decode caller identity");
-        let authorization = decoded.authorization.expect("authorization field");
-
-        assert_eq!(authorization.connection_fingerprint, connection);
-        assert!(authorization.subjects.is_empty());
-        assert!(authorization.authorization_context_fingerprint.is_empty());
-    }
-
-    #[test]
-    fn multi_subject_caller_authorization_round_trip() {
-        let subject = vec![0x11; 32];
-        let connection = vec![0x22; 32];
-        let context = vec![0x33; 32];
-        let authorization = CallerAuthorization {
-            connection_fingerprint: connection.clone(),
-            subjects: vec![CallerAuthorizationSubject {
-                kind: CallerAuthorizationSubjectKind::StableApplication as i32,
-                evidence_source: CallerAuthorizationEvidenceSource::MacosApplicationAncestry as i32,
-                fingerprint: subject.clone(),
-            }],
-            authorization_context_fingerprint: context.clone(),
-        };
-
-        let encoded = authorization.encode_to_vec();
-        let decoded = CallerAuthorization::decode(&encoded[..]).expect("decode authorization");
-
-        assert_eq!(decoded.connection_fingerprint, connection);
-        assert_eq!(decoded.authorization_context_fingerprint, context);
-        assert_eq!(decoded.subjects.len(), 1);
-        assert_eq!(decoded.subjects[0].fingerprint, subject);
-        assert_eq!(
-            CallerAuthorizationSubjectKind::try_from(decoded.subjects[0].kind),
-            Ok(CallerAuthorizationSubjectKind::StableApplication)
-        );
     }
 
     #[test]
@@ -143,7 +99,7 @@ mod tests {
             id: 1,
             response: Some(ipc_response::Response::Authenticate(AuthenticateResponse {
                 success: true,
-                protocol_revision: 1,
+                protocol_revision: IPC_PROTOCOL_REVISION,
             })),
         };
 
@@ -154,7 +110,7 @@ mod tests {
         match decoded.response {
             Some(ipc_response::Response::Authenticate(auth)) => {
                 assert!(auth.success);
-                assert_eq!(auth.protocol_revision, 1);
+                assert_eq!(auth.protocol_revision, IPC_PROTOCOL_REVISION);
             }
             _ => panic!("Expected Authenticate response"),
         }
@@ -435,7 +391,7 @@ mod tests {
             id: 10,
             request: Some(ipc_request::Request::Authenticate(AuthenticateRequest {
                 token: vec![],
-                protocol_revision: 1,
+                protocol_revision: IPC_PROTOCOL_REVISION,
             })),
         };
 

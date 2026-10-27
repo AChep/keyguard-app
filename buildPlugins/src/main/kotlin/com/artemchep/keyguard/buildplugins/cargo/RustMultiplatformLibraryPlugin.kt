@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.buildplugins.cargo
 
 import com.android.build.api.variant.KotlinMultiplatformAndroidComponentsExtension
-import com.artemchep.keyguard.buildplugins.androidssh.AndroidCargoEnvironment
+import com.artemchep.keyguard.buildplugins.androidagent.AndroidCargoEnvironment
 import com.artemchep.keyguard.buildplugins.libs
 import com.artemchep.keyguard.buildplugins.version
 import com.artemchep.keyguard.buildplugins.versionInt

@@ -9,6 +9,9 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandJvm
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentApprovalWindowMemory
+import com.artemchep.keyguard.common.service.http.KeyguardHttpUserAgent
+import com.artemchep.keyguard.common.service.http.configureKeyguardHttpClient
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
 import com.artemchep.keyguard.common.service.licensekey.EcdsaP256LicenseSignatureVerifier
 import com.artemchep.keyguard.common.service.licensekey.LicenseSignatureVerifier
@@ -20,6 +23,8 @@ import com.artemchep.keyguard.common.usecase.CheckWebDavConnection
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAppBuildDate
 import com.artemchep.keyguard.common.usecase.GetAppBuildRef
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -43,23 +48,13 @@ import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyImportService
 import com.artemchep.keyguard.crypto.NativeGpgOpenPgpService
 import com.artemchep.keyguard.crypto.NativeGpgOpenPgpVerifier
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.crypto.ssl.installPlatformTrustManager
-import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.isRelease
-import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
-import com.artemchep.keyguard.provider.bitwarden.api.builder.configureBitwardenHttpRetry
 import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadService
 import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadServiceJvm
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
-import io.ktor.client.plugins.CurlUserAgent
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.UserAgent
-import io.ktor.client.plugins.cache.HttpCache
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.http.ContentType
-import io.ktor.serialization.kotlinx.KotlinxSerializationConverter
 import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -92,6 +87,14 @@ class GlobalModuleJvm {
                 getSshAgentApprovalCachePolicy = get<GetSshAgentApprovalCachePolicy>(),
             )
         }
+        single<GpgAgentApprovalWindowMemory> {
+            GpgAgentApprovalWindowMemory(
+                getGpgAgentApprovalWindow = get<GetGpgAgentApprovalWindow>(),
+                getVaultSession = get<GetVaultSession>(),
+                scope = get<CoroutineScope>(qualifier = named<ApplicationCoroutineScope>()),
+                getGpgAgentApprovalCachePolicy = get<GetGpgAgentApprovalCachePolicy>(),
+            )
+        }
         single<LicenseSignatureVerifier> {
             EcdsaP256LicenseSignatureVerifier()
         }
@@ -108,6 +111,9 @@ class GlobalModuleJvm {
         }
         single<GetAppBuildRef> {
             GetAppBuildRefImpl()
+        }
+        single<PrivateTemporaryDirProvider> {
+            PrivateTemporaryDirProvider.Default
         }
         // Repositories
         single<FileEncryptionCodec> {
@@ -164,6 +170,7 @@ class GlobalModuleJvm {
         single<GpgOpenPgpService> {
             NativeGpgOpenPgpService(
                 stagingSpoolFactory = get(),
+                stagingDirectoryProvider = get(),
             )
         }
         single<GpgOpenPgpVerifier> {
@@ -173,53 +180,26 @@ class GlobalModuleJvm {
             val json: Json = get()
             val okHttpClient: OkHttpClient = get()
             HttpClient(OkHttp) {
-                install(UserAgent) {
-                    agent = BitwardenPersona.of(CurrentPlatform)
-                        .userAgent
-                }
                 engine {
                     preconfigured = okHttpClient
                 }
-    //            install(Logging) {
-    //                level = if (isRelease) LogLevel.INFO else LogLevel.ALL
-    //            }
-                install(ContentNegotiation) {
-                    register(ContentType.Application.Json, KotlinxSerializationConverter(json))
-                }
-                install(WebSockets) {
-                    pingIntervalMillis = 20_000
-                }
-                install(HttpCache) {
-                    // In memory.
-                }
-                install(HttpRequestRetry) {
-                    configureBitwardenHttpRetry()
-                }
+                configureKeyguardHttpClient(
+                    json = json,
+                    userAgent = KeyguardHttpUserAgent.Bitwarden,
+                )
             }
         }
         single<HttpClient>(qualifier = named("curl")) {
             val json: Json = get()
             val okHttpClient: OkHttpClient = get()
             HttpClient(OkHttp) {
-                CurlUserAgent()
                 engine {
                     preconfigured = okHttpClient
                 }
-    //            install(Logging) {
-    //                level = if (isRelease) LogLevel.INFO else LogLevel.ALL
-    //            }
-                install(ContentNegotiation) {
-                    register(ContentType.Application.Json, KotlinxSerializationConverter(json))
-                }
-                install(WebSockets) {
-                    pingIntervalMillis = 20_000
-                }
-                install(HttpCache) {
-                    // In memory.
-                }
-                install(HttpRequestRetry) {
-                    configureBitwardenHttpRetry()
-                }
+                configureKeyguardHttpClient(
+                    json = json,
+                    userAgent = KeyguardHttpUserAgent.Curl,
+                )
             }
         }
         single<OkHttpClient> {

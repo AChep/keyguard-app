@@ -9,6 +9,7 @@ kotlin {
         getByName("commonMain") {
             dependencies {
                 api(libs.kotlinx.coroutines.core)
+                implementation(libs.kotlinx.atomicfu)
             }
         }
         getByName("commonTest") {

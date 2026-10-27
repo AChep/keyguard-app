@@ -124,7 +124,10 @@ struct NavStackContainer<Content: View>: View {
     @ViewBuilder
     private func screenView(for id: Int64) -> some View {
         if let entry = entries.first(where: { $0.instanceId == id }) {
-            if entry.kind == ScreenEntryKind.cipherDetail {
+            if entry.kind == ScreenEntryKind.environments {
+                EnvironmentsScreen(environmentId: entry.environmentId, create: entry.createEnvironment)
+                    .id(entry.instanceId)
+            } else if entry.kind == ScreenEntryKind.cipherDetail {
                 StackCipherDetailView(entry: entry)
             } else if entry.kind == ScreenEntryKind.vaultList {
                 if usesPanels {

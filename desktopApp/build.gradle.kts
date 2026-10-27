@@ -3,6 +3,8 @@ import com.artemchep.keyguard.buildplugins.cargo.detectHostPlatform
 import com.artemchep.keyguard.buildplugins.cargo.isLinux
 import com.artemchep.keyguard.buildplugins.cargo.msixArchitecture
 import com.artemchep.keyguard.buildplugins.cargo.tarballSuffix
+import com.artemchep.keyguard.buildplugins.resources.ResourcesCommonExtension
+import com.artemchep.keyguard.buildplugins.resources.macBundleLocalizationsPlistXml
 import groovy.xml.XmlUtil
 import java.util.UUID
 import org.apache.tools.ant.filters.ReplaceTokens
@@ -67,6 +69,8 @@ val hostPlatform = detectHostPlatform()
 val executableAppResourceNames = setOf(
     "keyguard-ssh-agent",
     "keyguard-gpg-agent",
+    "keyguard-cli-agent",
+    "keyguard",
     "keyguard-lib",
 )
 
@@ -79,7 +83,12 @@ val bundledAppResources = bundledAppResourcesFrom(
         ":util:fido2",
         ":desktopSshAgent",
         ":desktopGpgAgent",
+        // The agent accepts only the keyguard CLI bundled next to it.
+        ":desktopCliAgent",
+        ":desktopCli",
         ":desktopLibNative",
+        // The private channel between the app and its agent helpers.
+        ":util:agent-ipc",
         ":util:crypto",
         ":util:io",
         ":util:zxcvbn",
@@ -92,43 +101,9 @@ val jbrLauncher = extensions.getByType<JavaToolchainService>().launcherFor {
     vendor.set(JvmVendorSpec.JETBRAINS)
 }
 
-val macExtraPlistKeys: String
-    get() = """
-      <key>CFBundleLocalizations</key>
-      <array>
-        <string>af_ZA</string>
-        <string>ca_ES</string>
-        <string>de_DE</string>
-        <string>es_ES</string>
-        <string>ja_JP</string>
-        <string>no_NO</string>
-        <string>pt_PT</string>
-        <string>sr_SP</string>
-        <string>uk_UA</string>
-        <string>zh_TW</string>
-        <string>ar_SA</string>
-        <string>cs_CZ</string>
-        <string>el_GR</string>
-        <string>fr_FR</string>
-        <string>it_IT</string>
-        <string>ko_KR</string>
-        <string>pl_PL</string>
-        <string>ro_RO</string>
-        <string>sv_SE</string>
-        <string>vi_VN</string>
-        <string>da_DK</string>
-        <string>en_US</string>
-        <string>en_GB</string>
-        <string>fi_FI</string>
-        <string>hu_HU</string>
-        <string>iw_IL</string>
-        <string>nl_NL</string>
-        <string>pt_BR</string>
-        <string>ru_RU</string>
-        <string>tr_TR</string>
-        <string>zh_CN</string>
-      </array>
-    """
+val macExtraPlistKeys = macBundleLocalizationsPlistXml(
+    resourcesDir = layout.settingsDirectory.dir("common/" + ResourcesCommonExtension.DEFAULT_COMPOSE_RESOURCES_PATH),
+)
 
 val bundledAppResourcesDir = layout.buildDirectory.dir("app-resources")
 
@@ -162,7 +137,7 @@ compose.desktop {
                 iconFile.set(project.file("icon.icns"))
                 entitlementsFile.set(project.file("default.entitlements"))
                 infoPlist {
-                    this.extraKeysRawXml = macExtraPlistKeys
+                    this.extraKeysRawXml = macExtraPlistKeys.get()
                 }
             }
             windows {

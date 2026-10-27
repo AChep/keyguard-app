@@ -16,11 +16,15 @@ on:
       - 'commonAgent/**'
       - 'androidSshAgent/**'
       - 'desktopSshAgent/**'
+      - 'util/agent-ipc/**'
       - 'util/crypto/**'
+      - 'util/ffi/**'
       - 'thirdParty/rust/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
+      - 'buildPlugins/src/main/**'
       - 'integration/sshE2eTest/**'
+      - 'integration/testProcess/**'
       - 'common/src/**/sshagent/**'
       - 'common/src/**/service/agent/**'
       - 'common/src/**/*Ssh*'
@@ -37,11 +41,15 @@ on:
       - 'commonAgent/**'
       - 'androidSshAgent/**'
       - 'desktopSshAgent/**'
+      - 'util/agent-ipc/**'
       - 'util/crypto/**'
+      - 'util/ffi/**'
       - 'thirdParty/rust/**'
       - 'Cargo.toml'
       - 'Cargo.lock'
+      - 'buildPlugins/src/main/**'
       - 'integration/sshE2eTest/**'
+      - 'integration/testProcess/**'
       - 'common/src/**/sshagent/**'
       - 'common/src/**/service/agent/**'
       - 'common/src/**/*Ssh*'
@@ -70,11 +78,22 @@ jobs:
       - name: "Run Rust static analysis"
         run: |
           cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonAgent/proto/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonAgent/proto-adapter/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonAgent/ipc/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path commonSshAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonAgent/android-bridge/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path androidSshAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path desktopSshAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+      - name: "Test shared agent schema, adapters and IPC"
+        run: |
+          cargo test --manifest-path commonAgent/proto/Cargo.toml --locked
+          cargo test --manifest-path commonAgent/proto-adapter/Cargo.toml --locked
+          cargo test --manifest-path commonAgent/ipc/Cargo.toml --locked
       - name: "Test commonSshAgent crate"
         run: cargo test --manifest-path commonSshAgent/Cargo.toml
+      - name: "Test Android agent bridge crate"
+        run: cargo test --manifest-path commonAgent/android-bridge/Cargo.toml --locked
       - name: "Test androidSshAgent crate"
         run: cargo test --manifest-path androidSshAgent/src/Cargo.toml --locked
       - name: "Test desktopSshAgent crate"
@@ -112,9 +131,14 @@ jobs:
       - name: "Run platform Rust static analysis"
         run: |
           cargo clippy --manifest-path commonAgent/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
+          cargo clippy --manifest-path commonAgent/ipc/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
           cargo clippy --manifest-path desktopSshAgent/src/Cargo.toml --all-targets --locked -- -D clippy::undocumented_unsafe_blocks
       - name: "Test shared caller identity on this platform"
         run: cargo test --manifest-path commonAgent/Cargo.toml --all-targets --locked
+      - name: "Test shared caller adapter on this platform"
+        run: cargo test --manifest-path commonAgent/proto-adapter/Cargo.toml --all-targets --locked
+      - name: "Test shared agent IPC on this platform"
+        run: cargo test --manifest-path commonAgent/ipc/Cargo.toml --all-targets --locked
       - name: "Test desktop SSH agent on this platform"
         run: cargo test --manifest-path desktopSshAgent/src/Cargo.toml --all-targets --locked
       - name: "Setup OpenSSH (Linux)"

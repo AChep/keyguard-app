@@ -1,0 +1,240 @@
+---
+// Ambient hero background: a faint grid of base64 glyphs taken from a real
+// ChaCha20 keystream, with simplex noise making their visibility flow.
+// Decorative only: hidden from assistive tech, ignores the pointer.
+---
+
+<canvas
+  data-hero-keystream
+  aria-hidden="true"
+  class="pointer-events-none absolute inset-0 -z-10 h-full w-full"
+></canvas>
+
+<script>
+  import { chacha20Keystream } from '../lib/chacha20';
+  import { createSimplex3 } from '../lib/simplex';
+
+  const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+  // Same stack as Tailwind's `font-mono`.
+  const FONT_FAMILY = 'ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace';
+  const FONT_PX = 13;
+  const CELL_W = 14; // px
+  const CELL_H = 22; // px
+  const MAX_DPR = 2;
+
+  // Peak glyph opacity per theme; the flow scales it down to FLOW_FLOOR.
+  const BASE_LIGHT = 0.12;
+  const BASE_DARK = 0.16;
+  const FLOW_FLOOR = 0.18;
+  const FLOW_SCALE = 1 / 280; // noise units per px
+  const FLOW_SPEED = 0.06; // noise units per second
+  const FLOW_DRIFT = 4; // px per second
+
+  // Edge fades as fractions of the hero height, and dimming behind text.
+  const FADE_TOP = 0.08;
+  const FADE_BOTTOM = 0.25;
+  const QUIET = 0.7;
+  const QUIET_EDGE = 48; // px
+
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  const smoothstep = (e0: number, e1: number, x: number) => {
+    const t = Math.min(1, Math.max(0, (x - e0) / (e1 - e0)));
+    return t * t * (3 - 2 * t);
+  };
+
+  function init(canvas: HTMLCanvasElement) {
+    const hero = canvas.parentElement;
+    const ctx = canvas.getContext('2d');
+    if (!hero || !ctx) return;
+
+    // A fresh key and nonce on every page load.
+    const key = crypto.getRandomValues(new Uint32Array(8));
+    const nonce = crypto.getRandomValues(new Uint32Array(3));
+    const noise = createSimplex3();
+
+    let width = 0;
+    let height = 0;
+    let dpr = 0;
+    let cols = 0;
+    let rows = 0;
+    let originX = 0;
+    let originY = 0;
+    let glyphW = 0; // atlas cell, device px
+    let glyphH = 0;
+    let colPx = new Float32Array(0); // glyph top-left, device px
+    let rowPx = new Float32Array(0);
+    let glyph = new Uint8Array(0);
+    let weight = new Float32Array(0);
+    let atlas: HTMLCanvasElement | null = null;
+    let baseAlpha = BASE_LIGHT;
+
+    let clock = 0; // seconds of animation, paused while off-screen
+    let last = 0;
+    let raf = 0;
+    let visible = false;
+
+    // One glyph per cell: the keystream, base64-encoded (3 bytes → 4 glyphs).
+    // It depends only on the key and the grid, so resizes reflow it in place.
+    const encode = () => {
+      const n = cols * rows;
+      const quads = Math.ceil(n / 4);
+      const bytes = chacha20Keystream(key, nonce, 0, quads * 3);
+      const out = new Uint8Array(quads * 4);
+      for (let i = 0, j = 0; i < out.length; i += 4, j += 3) {
+        const v = (bytes[j] << 16) | (bytes[j + 1] << 8) | bytes[j + 2];
+        out[i] = v >>> 18;
+        out[i + 1] = (v >>> 12) & 63;
+        out[i + 2] = (v >>> 6) & 63;
+        out[i + 3] = v & 63;
+      }
+      return out.subarray(0, n);
+    };
+
+    // Pre-rendered glyphs; drawImage is much cheaper than fillText per cell.
+    const applyTheme = () => {
+      const c = document.createElement('canvas');
+      c.width = glyphW * ALPHABET.length;
+      c.height = glyphH;
+      const g = c.getContext('2d');
+      if (!g) return;
+      g.font = `${FONT_PX * dpr}px ${FONT_FAMILY}`;
+      g.fillStyle = getComputedStyle(hero).getPropertyValue('--on-surface-variant').trim();
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      for (let i = 0; i < ALPHABET.length; i++) {
+        g.fillText(ALPHABET[i], i * glyphW + glyphW / 2, glyphH / 2);
+      }
+      atlas = c;
+      baseAlpha = document.documentElement.classList.contains('dark') ? BASE_DARK : BASE_LIGHT;
+    };
+
+    const layout = () => {
+      const rect = hero.getBoundingClientRect();
+      const nextDpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
+      if (rect.width !== width || rect.height !== height || nextDpr !== dpr) {
+        width = rect.width;
+        height = rect.height;
+        dpr = nextDpr;
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        cols = Math.ceil(width / CELL_W);
+        rows = Math.ceil(height / CELL_H);
+        originX = (width - cols * CELL_W) / 2;
+        originY = (height - rows * CELL_H) / 2;
+        // Even sizes keep the glyph centers on whole device pixels.
+        glyphW = 2 * Math.ceil((CELL_W * dpr) / 2);
+        glyphH = 2 * Math.ceil((CELL_H * dpr) / 2);
+        colPx = Float32Array.from({ length: cols }, (_, c) => Math.round((originX + (c + 0.5) * CELL_W) * dpr) - glyphW / 2);
+        rowPx = Float32Array.from({ length: rows }, (_, r) => Math.round((originY + (r + 0.5) * CELL_H) * dpr) - glyphH / 2);
+        glyph = encode();
+        applyTheme();
+      }
+
+      // Fade out at the top and bottom edges, and dim the field behind text.
+      const quiet = Array.from(hero.querySelectorAll('[data-keystream-quiet]'), (el) => {
+        const r = el.getBoundingClientRect();
+        return [r.left - rect.left, r.top - rect.top, r.right - rect.left, r.bottom - rect.top];
+      });
+      weight = new Float32Array(cols * rows);
+      for (let row = 0; row < rows; row++) {
+        const y = originY + (row + 0.5) * CELL_H;
+        const edge = smoothstep(0, height * FADE_TOP, y) * smoothstep(height, height * (1 - FADE_BOTTOM), y);
+        for (let col = 0; col < cols; col++) {
+          const x = originX + (col + 0.5) * CELL_W;
+          let w = edge;
+          for (const [l, t, r, b] of quiet) {
+            const d = Math.hypot(Math.max(l - x, 0, x - r), Math.max(t - y, 0, y - b));
+            w *= 1 - QUIET * smoothstep(QUIET_EDGE, 0, d);
+          }
+          weight[row * cols + col] = w;
+        }
+      }
+    };
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (!atlas) return;
+
+      const z = clock * FLOW_SPEED;
+      const drift = clock * FLOW_DRIFT;
+      for (let row = 0; row < rows; row++) {
+        const y = originY + (row + 0.5) * CELL_H;
+        for (let col = 0; col < cols; col++) {
+          const i = row * cols + col;
+          const w = weight[i];
+          if (w < 0.01) continue;
+          const x = originX + (col + 0.5) * CELL_W;
+
+          // Two octaves of drifting noise: light through frosted glass.
+          const fx = (x - drift) * FLOW_SCALE;
+          const fy = (y - drift * 0.5) * FLOW_SCALE;
+          const n = 0.5 + 0.32 * noise(fx, fy, z) + 0.18 * noise(fx * 2.3, fy * 2.3, z * 1.7 + 17);
+          const alpha = baseAlpha * w * (FLOW_FLOOR + (1 - FLOW_FLOOR) * smoothstep(0.4, 0.8, n));
+          if (alpha < 0.006) continue;
+
+          ctx.globalAlpha = alpha;
+          ctx.drawImage(atlas, glyph[i] * glyphW, 0, glyphW, glyphH, colPx[col], rowPx[row], glyphW, glyphH);
+        }
+      }
+      ctx.globalAlpha = 1;
+    };
+
+    const loop = (now: number) => {
+      // Cap the step so a throttled or hidden tab resumes without a jump.
+      clock += Math.min(Math.max(0, (now - last) / 1000), 1 / 20);
+      last = now;
+      draw();
+      raf = requestAnimationFrame(loop);
+    };
+
+    const start = () => {
+      if (raf || !visible || reduceMotion.matches) return;
+      last = performance.now();
+      raf = requestAnimationFrame(loop);
+    };
+
+    const stop = () => {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    };
+
+    // With reduced motion the field is drawn once, as a still frame.
+    layout();
+    if (reduceMotion.matches) draw();
+
+    new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible) start();
+      else stop();
+    }).observe(hero);
+
+    let pending = 0;
+    const relayout = () => {
+      cancelAnimationFrame(pending);
+      pending = requestAnimationFrame(() => {
+        layout();
+        if (reduceMotion.matches) draw();
+      });
+    };
+    new ResizeObserver(relayout).observe(hero);
+    document.fonts?.ready.then(relayout);
+
+    // The theme toggle switches the `dark` class live.
+    new MutationObserver(() => {
+      applyTheme();
+      if (reduceMotion.matches) draw();
+    }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    reduceMotion.addEventListener('change', () => {
+      if (reduceMotion.matches) {
+        stop();
+        draw();
+      } else {
+        start();
+      }
+    });
+  }
+
+  document.querySelectorAll<HTMLCanvasElement>('[data-hero-keystream]').forEach(init);
+</script>

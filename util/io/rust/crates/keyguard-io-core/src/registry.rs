@@ -59,6 +59,8 @@ pub enum RegistryError {
     UnknownHandle,
     /// The entry is concurrently in use and cannot be consumed.
     Busy,
+    /// Every sequence number was issued; no handle is ever minted again.
+    Exhausted,
 }
 
 impl<T> Registry<T> {
@@ -73,23 +75,25 @@ impl<T> Registry<T> {
     }
 
     /// Registers an object and returns its positive, kind-tagged handle.
-    pub fn insert(&self, value: T) -> u64 {
-        let entry = Arc::new(Mutex::new(value));
-        loop {
-            // Positive Java `long` range; a zero sequence is reserved so no
-            // handle is ever zero, and the tag occupies the bits above it.
-            let sequence = self.next_handle.fetch_add(1, Ordering::Relaxed) & SEQUENCE_MASK;
-            if sequence == 0 {
-                continue;
-            }
-            let handle = ((self.kind as u64) << KIND_SHIFT) | sequence;
-            let mut shard = self.lock_shard(handle);
-            if shard.contains_key(&handle) {
-                continue;
-            }
-            shard.insert(handle, entry);
-            return handle;
-        }
+    ///
+    /// Sequences run from 1 to [`SEQUENCE_MASK`] and are never reissued, so a
+    /// stale handle never resolves to a newer object.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RegistryError::Exhausted`] once every sequence was issued;
+    /// `value` is then dropped.
+    pub fn insert(&self, value: T) -> Result<u64, RegistryError> {
+        let sequence = self
+            .next_handle
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |next| {
+                (next <= SEQUENCE_MASK).then(|| next + 1)
+            })
+            .map_err(|_| RegistryError::Exhausted)?;
+        let handle = ((self.kind as u64) << KIND_SHIFT) | sequence;
+        self.lock_shard(handle)
+            .insert(handle, Arc::new(Mutex::new(value)));
+        Ok(handle)
     }
 
     /// Whether `handle` was minted by this registry.
@@ -189,7 +193,7 @@ mod tests {
     #[test]
     fn insert_with_remove_round_trips() {
         let registry = Registry::new(RegistryKind::Transaction);
-        let handle = registry.insert(41_u32);
+        let handle = registry.insert(41_u32).expect("insert must succeed");
         assert!(handle > 0);
 
         registry
@@ -212,9 +216,9 @@ mod tests {
         let directories = Registry::new(RegistryKind::Directory);
         let scratches = Registry::new(RegistryKind::Scratch);
 
-        let transaction = transactions.insert(10_u32);
-        let directory = directories.insert(20_u32);
-        let scratch = scratches.insert(30_u32);
+        let transaction = transactions.insert(10_u32).expect("insert must succeed");
+        let directory = directories.insert(20_u32).expect("insert must succeed");
+        let scratch = scratches.insert(30_u32).expect("insert must succeed");
 
         // The sequence numbers collide; only the tag distinguishes them.
         assert_eq!(transaction & SEQUENCE_MASK, directory & SEQUENCE_MASK);
@@ -250,7 +254,7 @@ mod tests {
             RegistryKind::Scratch,
         ] {
             let registry = Registry::new(kind);
-            let handle = registry.insert(0_u8);
+            let handle = registry.insert(0_u8).expect("insert must succeed");
             assert!(handle != 0, "{kind:?} handle must not be zero");
             assert!(
                 handle <= i64::MAX as u64,
@@ -263,7 +267,9 @@ mod tests {
     #[test]
     fn concurrent_entries_do_not_contend_and_stay_isolated() {
         let registry = Arc::new(Registry::new(RegistryKind::Transaction));
-        let handles: Vec<u64> = (0..64).map(|value| registry.insert(value)).collect();
+        let handles: Vec<u64> = (0..64)
+            .map(|value| registry.insert(value).expect("insert must succeed"))
+            .collect();
 
         let threads: Vec<_> = handles
             .iter()
@@ -295,7 +301,7 @@ mod tests {
     /// reclaim the descriptor or the staged file it held.
     fn busy_removal_still_consumes_the_handle() {
         let registry = Registry::new(RegistryKind::Transaction);
-        let handle = registry.insert(7_u8);
+        let handle = registry.insert(7_u8).expect("insert must succeed");
         let held = registry.clone_entry_for_tests(handle);
 
         assert_eq!(registry.remove(handle), Err(RegistryError::Busy));
@@ -313,5 +319,29 @@ mod tests {
         // The concurrent user holds the only remaining reference.
         assert_eq!(Arc::strong_count(&held), 1);
         drop(held);
+    }
+
+    /// A masked, wrapping sequence reissued a removed handle after 2^60
+    /// inserts, so a stale close consumed an unrelated newer object.
+    #[test]
+    fn exhausted_sequences_fail_permanently_without_reissuing_handles() {
+        let registry = Registry::new(RegistryKind::Transaction);
+        let stale = registry.insert(1_u8).expect("insert must succeed");
+        assert_eq!(registry.remove(stale), Ok(1));
+
+        registry.next_handle.store(SEQUENCE_MASK, Ordering::Relaxed);
+        let last = registry
+            .insert(2)
+            .expect("the last sequence must be issued");
+        assert_eq!(last & SEQUENCE_MASK, SEQUENCE_MASK);
+        assert!(i64::try_from(last).is_ok());
+        for _ in 0..3 {
+            assert_eq!(registry.insert(3), Err(RegistryError::Exhausted));
+        }
+        assert_eq!(
+            registry.with(stale, |_| ()),
+            Err(RegistryError::UnknownHandle)
+        );
+        assert_eq!(registry.remove(last), Ok(2));
     }
 }

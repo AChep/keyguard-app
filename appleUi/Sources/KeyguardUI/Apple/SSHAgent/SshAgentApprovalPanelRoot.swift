@@ -1,26 +1,16 @@
 #if os(macOS)
 import SwiftUI
-import KeyguardShared
 
-/// SwiftUI root hosted inside `SshAgentApprovalPanel`. Supplies its own card
-/// background + rounded corners because the hosting panel is transparent.
-struct SshAgentApprovalPanelRoot: View {
-    @Environment(SshAgentModel.self) private var sshAgentModel
-
-    var body: some View {
-        Group {
-            if let request = sshAgentModel.sshAgentRequests.first {
-                SshAgentApprovalView(request: request)
-                    // A new request must not inherit the previous button's
-                    // pressed/focused state or its pending activation.
-                    .id(request.id)
-            }
+extension AgentApprovalPanelController {
+    /// The SSH agent approval panel.
+    public static func sshAgent(model: AppViewModel) -> AgentApprovalPanelController {
+        let sshAgentModel = model.sshAgent
+        // Start here, not in `ContentView.onAppear`, which never fires in
+        // menu-bar-only mode.
+        sshAgentModel.startSshAgentObservation()
+        return AgentApprovalPanelController(model: model, requests: { sshAgentModel.sshAgentRequests }) {
+            SshAgentApprovalView(request: $0)
         }
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12).strokeBorder(.separator, lineWidth: 1)
-        )
     }
 }
 

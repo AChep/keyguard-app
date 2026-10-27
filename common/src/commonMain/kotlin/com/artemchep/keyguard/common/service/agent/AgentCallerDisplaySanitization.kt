@@ -4,7 +4,7 @@ package com.artemchep.keyguard.common.service.agent
 const val MAX_AGENT_CALLER_NAME_LENGTH = 256
 
 /** Maximum UTF-16 length for a caller executable path. */
-internal const val MAX_AGENT_CALLER_EXECUTABLE_PATH_LENGTH = 4 * 1024
+const val MAX_AGENT_CALLER_EXECUTABLE_PATH_LENGTH = 4 * 1024
 
 /** Maximum UTF-16 length for a caller package, bundle, or application path. */
 const val MAX_AGENT_CALLER_APP_BUNDLE_PATH_LENGTH = 512

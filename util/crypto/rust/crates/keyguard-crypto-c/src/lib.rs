@@ -394,6 +394,11 @@ impl FastOutput {
         self.len <= MAX_FAST_SLICE_BYTES
     }
 
+    /// # Safety
+    ///
+    /// `self` must pass [`Self::is_valid`]. A non-zero `len` must address
+    /// initialized, writable bytes in one allocation, accessed only through
+    /// the returned slice for the caller-chosen `'a`.
     unsafe fn as_mut_slice<'a>(self) -> &'a mut [u8] {
         if self.len == 0 {
             &mut []
@@ -656,6 +661,11 @@ impl FastInput {
         self.len <= MAX_FAST_SLICE_BYTES && (self.len == 0 || !self.ptr.is_null())
     }
 
+    /// # Safety
+    ///
+    /// `self` must pass [`Self::is_valid`]. A non-zero `len` must address
+    /// initialized bytes in one allocation that stay allocated and unchanged
+    /// for the caller-chosen `'a`.
     unsafe fn as_slice<'a>(self) -> &'a [u8] {
         if self.len == 0 {
             &[]

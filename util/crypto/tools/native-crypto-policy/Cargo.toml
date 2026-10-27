@@ -10,10 +10,10 @@ publish = false
 [workspace]
 
 [dependencies]
-anyhow = "=1.0.103"
-serde = { version = "=1.0.228", features = ["derive"] }
-time = "=0.3.53"
-toml = "=1.1.3"
+anyhow = "=1.0.104"
+serde = { version = "=1.0.229", features = ["derive"] }
+time = "=0.3.55"
+toml = "=1.1.8"
 
 [lints.rust]
 unsafe_code = "forbid"

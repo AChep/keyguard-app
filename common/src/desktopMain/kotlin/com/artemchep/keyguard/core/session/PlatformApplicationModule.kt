@@ -7,6 +7,8 @@ import com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability
 import arrow.core.partially1
 import arrow.optics.Getter
 import com.artemchep.autotype.biometricsIsSupported
+import com.artemchep.keyguard.common.PlatformTemporaryArtifactRootRegistry
+import com.artemchep.keyguard.common.TemporaryArtifactRoot
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
@@ -82,6 +84,7 @@ import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PutLocale
+import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.util.yubikey.NativeYubiKeyClient
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.GetLocaleImpl
@@ -259,13 +262,32 @@ class PlatformApplicationModule {
         includes(WindowsPasskeyModule().module)
         single { PlatformLinkInfoExtractorRegistry(emptyList()) }
         single { PlatformLogSinkRegistry(listOf(get<LogRepositoryKotlin>())) }
-        single { WorkerRegistry(listOf(get<BackupSchedulerWorker>())) }
+        single { WorkerRegistry(listOf(get<BackupSchedulerWorker>(), get<WatchtowerSyncer>())) }
         single {
             ClearDataHookRegistry(
                 when (CurrentPlatform) {
                     is Platform.Desktop.Windows -> listOf(get<WindowsPasskeyService>())
                     else -> emptyList()
                 },
+            )
+        }
+        single {
+            val dataDirectory: DataDirectory = get()
+            PlatformTemporaryArtifactRootRegistry(
+                listOf(
+                    TemporaryArtifactRoot(
+                        label = "desktop-data",
+                        provideDirectory = {
+                            LocalPath(dataDirectory.dataBlocking())
+                        },
+                    ),
+                    TemporaryArtifactRoot(
+                        label = "desktop-downloads",
+                        provideDirectory = {
+                            LocalPath(dataDirectory.downloadsBlocking())
+                        },
+                    ),
+                ),
             )
         }
 

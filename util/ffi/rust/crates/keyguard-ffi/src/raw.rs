@@ -1,4 +1,7 @@
 //! Readers for buffers borrowed from a C caller.
+//!
+//! The caller picks each view's lifetime; bridges drop views before their
+//! export returns.
 
 #![allow(unsafe_code)]
 
@@ -15,8 +18,10 @@ use crate::BRIDGE_INVALID_ARGUMENT;
 ///
 /// # Safety
 ///
-/// A non-null `pointer` must be valid for `length` readable bytes for the
-/// duration of the call.
+/// If `pointer` is non-null and `length` is non-zero, `pointer` must address
+/// `length` initialized bytes in one allocation. The caller chooses `'a`. For
+/// all of `'a`, not only this call, the bytes must stay allocated and must not
+/// be written through any other pointer.
 pub unsafe fn bytes_from_raw<'a>(pointer: *const u8, length: usize) -> Result<&'a [u8], i64> {
     if length == 0 {
         return Ok(&[]);
@@ -24,8 +29,8 @@ pub unsafe fn bytes_from_raw<'a>(pointer: *const u8, length: usize) -> Result<&'
     if pointer.is_null() || length > isize::MAX as usize {
         return Err(BRIDGE_INVALID_ARGUMENT);
     }
-    // SAFETY: Null and oversized inputs were rejected; the caller contract
-    // guarantees `length` readable bytes.
+    // SAFETY: Null and oversized inputs were rejected; the caller guarantees
+    // `length` initialized bytes in one allocation, unchanged for `'a`.
     Ok(unsafe { slice::from_raw_parts(pointer, length) })
 }
 
@@ -37,8 +42,10 @@ pub unsafe fn bytes_from_raw<'a>(pointer: *const u8, length: usize) -> Result<&'
 ///
 /// # Safety
 ///
-/// A non-null `pointer` must be valid for `length` writable, unaliased bytes
-/// for the duration of the call.
+/// If `pointer` is non-null and `length` is non-zero, `pointer` must address
+/// `length` initialized, writable bytes in one allocation. The caller chooses
+/// `'a`. For all of `'a`, not only this call, the bytes must stay allocated and
+/// must not be read or written except through the returned slice.
 pub unsafe fn bytes_from_raw_mut<'a>(pointer: *mut u8, length: usize) -> Result<&'a mut [u8], i64> {
     if length == 0 {
         return Ok(&mut []);
@@ -46,8 +53,9 @@ pub unsafe fn bytes_from_raw_mut<'a>(pointer: *mut u8, length: usize) -> Result<
     if pointer.is_null() || length > isize::MAX as usize {
         return Err(BRIDGE_INVALID_ARGUMENT);
     }
-    // SAFETY: Null and oversized inputs were rejected; the caller contract
-    // guarantees `length` writable, unaliased bytes.
+    // SAFETY: Null and oversized inputs were rejected; the caller guarantees
+    // `length` initialized, writable bytes in one allocation, accessed only
+    // through this slice for `'a`.
     Ok(unsafe { slice::from_raw_parts_mut(pointer, length) })
 }
 
@@ -114,5 +122,19 @@ mod tests {
                 Err(BRIDGE_INVALID_ARGUMENT),
             );
         }
+    }
+
+    #[test]
+    fn views_borrow_the_callers_buffer() {
+        let mut owner = [0_u8; 3];
+        // SAFETY: `owner` outlives both views, and each view is the only
+        // access to it while it lives.
+        unsafe {
+            bytes_from_raw_mut(owner.as_mut_ptr(), owner.len())
+                .unwrap()
+                .copy_from_slice(b"kg!");
+            assert_eq!(bytes_from_raw(owner.as_ptr(), owner.len()), Ok(&b"kg!"[..]));
+        }
+        assert_eq!(&owner, b"kg!");
     }
 }

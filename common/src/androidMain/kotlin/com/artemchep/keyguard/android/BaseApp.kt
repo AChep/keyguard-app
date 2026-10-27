@@ -7,19 +7,16 @@ import androidx.lifecycle.lifecycleScope
 import com.artemchep.bindin.bindBlock
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.io.attempt
-import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.model.PersistedSession
 import com.artemchep.keyguard.common.model.Screen
 import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
-import com.artemchep.keyguard.common.service.vault.KeyReadWriteRepository
+import com.artemchep.keyguard.common.service.session.VaultSessionPersister
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterScreenOff
-import com.artemchep.keyguard.common.usecase.GetVaultPersist
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.worker.WorkerRegistry
@@ -36,9 +33,7 @@ import kotlin.getValue
 import kotlin.time.Clock
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
@@ -185,39 +180,8 @@ fun <T> T.installVaultKeepAlive() where T : BaseApp, T : KeyguardKoinOwner {
 }
 
 fun <T> T.installVaultPersistedSession() where T : BaseApp, T : KeyguardKoinOwner {
-    val getVaultSession: GetVaultSession by lazy { koin.get() }
-    val getVaultPersist: GetVaultPersist by lazy { koin.get() }
-    val keyReadWriteRepository: KeyReadWriteRepository by lazy { koin.get() }
-
-    val processLifecycleOwner = ProcessLifecycleOwner.get()
-
-    // persist
-    processLifecycleOwner.bindBlock {
-        combine(
-            getVaultSession(),
-            getVaultPersist(),
-        ) { session, persist ->
-            val persistedMasterKey = if (persist && session is MasterSession.Key) {
-                session.masterKey
-            } else {
-                null
-            }
-            persistedMasterKey
-        }
-            .onEach { masterKey ->
-                val persistedSession = if (masterKey != null) {
-                    PersistedSession(
-                        masterKey = masterKey,
-                        createdAt = Clock.System.now(),
-                        persistedAt = Clock.System.now(),
-                    )
-                } else {
-                    null
-                }
-                keyReadWriteRepository.put(persistedSession)
-                    .attempt()
-                    .bind()
-            }
-            .collect()
+    val vaultSessionPersister: VaultSessionPersister by lazy { koin.get() }
+    ProcessLifecycleOwner.get().bindBlock {
+        vaultSessionPersister.run()
     }
 }

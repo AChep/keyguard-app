@@ -1,60 +1,57 @@
 ---
-title: Migrating to Keyguard
-description: How to bring your passwords into Keyguard — and how to take them with you if you leave.
-category: get-started
-order: 3
+title: Import from another password manager
+description: "Move your passwords into Keyguard through a Bitwarden account, a KeePass database or Credential Exchange."
+section: backup
+type: how-to
+order: 10
+platforms: all
+related: [bitwarden/self-hosted, keepass, credential-exchange, export]
 ---
 
-Keyguard can store your data either in a
-[Bitwarden account](https://bitwarden.com) or in a [KeePass (KDBX) file](https://keepass.info/help/kb/kdbx.html).
+To move your items into Keyguard, import them into the Bitwarden account or
+KeePass database that Keyguard opens.
 
-## Coming from another password manager
+### Before you begin
 
-Pick the path that matches where your vault will live:
+- A Bitwarden account or KeePass database to import into. Keyguard stores items
+  in one of the two. See [Connect to a Bitwarden server](/docs/bitwarden/self-hosted/)
+  or [KeePass databases](/docs/keepass/).
 
-### Into a Bitwarden account
+## Import into a Bitwarden account
 
-Use the **Bitwarden web vault's importer**: log in to your server's web vault
-([bitwarden.com](https://vault.bitwarden.com), [bitwarden.eu](https://vault.bitwarden.eu), or your self-hosted instance), open **Tools →
-Import data**, and pick your old manager's export format — Bitwarden supports
-dozens. Once imported, sign in to that account in Keyguard and your items
-sync down automatically.
+The Bitwarden web vault reads the export formats of most password managers.
 
-### Into a KeePass database
+1. In your old password manager, export your data.
+2. Sign in to your server's web vault:
+   [vault.bitwarden.com](https://vault.bitwarden.com),
+   [vault.bitwarden.eu](https://vault.bitwarden.eu), or your self-hosted
+   server.
+3. Select **Tools > Import data**.
+4. Select your old password manager's format.
+5. Import the exported file.
+6. In Keyguard, add the account, as in
+   [Connect to a Bitwarden server](/docs/bitwarden/self-hosted/). If you added
+   it before, sync it. The items appear in your vault.
 
-If you prefer a local, server-free vault, export your data from your old
-manager into a **KDBX** file (most managers and converters can produce one)
-and [open it in Keyguard](/docs/keepass/).
+## Import into a KeePass database
 
-### Directly from another Android app
+1. In your old password manager, export your data.
+2. In a KeePass app, such as [KeePassXC](https://keepassxc.org), import the
+   export into a new database.
+3. Open the database file in Keyguard, as in
+   [KeePass databases](/docs/keepass/).
 
-First choose whether you want to use Keyguard with a Bitwarden account or 
-a local KDBX database.
+## Import from another Android app
 
-Then, if your old password manager is installed on the same Android device and
-supports the [credential exchange](/docs/credential-exchange/) standard: open
-the account you want the items to land in, choose **Import from another app**,
-and pick it from the list — logins, passkeys, one-time passwords, cards,
-identities, notes, SSH keys and folders are supported.
+If your old password manager is on the same Android device and supports
+Credential Exchange, follow
+[Importing from another app](/docs/credential-exchange/#importing-from-another-app).
 
-## Coming from the official Bitwarden apps
+## Switch from the official Bitwarden apps
 
-Sign in with the same account and server to access your vault directly. Keyguard
-can run side by side with the official apps.
+In Keyguard, sign in to the same account and server. Your vault syncs, and
+Keyguard runs side by side with the official apps.
 
-## Leaving Keyguard
+## Verify
 
-Your data remains portable at all times:
-
-- **Bitwarden accounts** stay compatible with the official clients and
-  the web vault at all times.
-- **KeePass databases** remain ordinary `.kdbx` files that other KeePass
-  apps can open.
-- Keyguard can also **export** your items as a password-protected, encrypted
-  ZIP archive containing JSON data — optionally including attachments. Find
-  it via the export action, and see the
-  [data export feature page](/features/data-export/) for details.
-- On Android, another app can **import one account's items directly** through
-  [credential exchange](/docs/credential-exchange/) — a narrower copy than the
-  archive above: no attachments, no [GPG keys](/docs/gpg-keys/), no archived
-  items, and only the credential kinds the other app asks for.
+In Keyguard, search for one of the imported items. It appears in the results.

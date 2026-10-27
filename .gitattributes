@@ -1,3 +1,8 @@
 common/src/desktopTest/resources/ssh-import-corpus/** text eol=lf
 util/crypto/rust/crates/keyguard-crypto-core/tests/fixtures/openpgp/*.asc text eol=lf
 util/crypto/rust/crates/keyguard-crypto-core/tests/fixtures/openpgp/*.txt text eol=lf
+
+# Apple localization files generated from shared Compose resources.
+appleUi/Sources/KeyguardUI/Resources/Localizable.xcstrings linguist-generated=true
+appleUi/Sources/KeyguardUI/Generated/L10n.swift linguist-generated=true
+iosApp/Resources/InfoPlist.xcstrings linguist-generated=true

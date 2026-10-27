@@ -28,31 +28,6 @@ internal fun joinRemotePickerPath(
     name: String,
 ): String = if (parent.isEmpty()) name else "$parent/$name"
 
-/** Builds the breadcrumbs of a `/`-separated [path] relative to the picker root. */
-internal fun remotePickerBreadcrumbs(
-    path: String,
-    onClick: (String) -> Unit,
-): List<RemotePickerState.Breadcrumb> {
-    val parts = path
-        .split('/')
-        .filter { part -> part.isNotEmpty() }
-    val paths = parts.runningFold("") { parent, part ->
-        joinRemotePickerPath(parent, part)
-    }
-    return paths.mapIndexed { index, itemPath ->
-        RemotePickerState.Breadcrumb(
-            name = if (index == 0) "/" else parts[index - 1],
-            onClick = if (index == paths.lastIndex) {
-                null
-            } else {
-                {
-                    onClick(itemPath)
-                }
-            },
-        )
-    }
-}
-
 /** [ignoreCase] tells whether the storage treats names that differ only in case as the same file. */
 internal fun validateRemotePickerFileName(
     fileName: String,

@@ -1,4 +1,5 @@
 import com.android.build.api.dsl.KotlinMultiplatformAndroidHostTestCompilation
+import com.artemchep.keyguard.buildplugins.cargo.configureNativeLibraryTests
 import com.artemchep.keyguard.buildplugins.kotlin.configureComposeIosSwiftRuntime
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleMain
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleTest
@@ -13,6 +14,7 @@ import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import com.artemchep.keyguard.buildplugins.version.keyguardVersionInfo
 import org.gradle.api.tasks.testing.Test
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import java.time.Duration
 
@@ -67,6 +69,10 @@ tasks.withType<Test>().configureEach {
     timeout.set(Duration.ofMinutes(10))
 }
 
+// The desktop agents serve their helpers over util/agent-ipc. Only the desktop
+// tests load its library, so the Android host tests never build it.
+configureNativeLibraryTests(":util:agent-ipc", testTaskName = "desktopTest")
+
 tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest>().configureEach {
     // Foundation file coordination requires the simulator's running system services.
     // Standalone processes cannot coordinate access to Files-provider directories.
@@ -86,13 +92,21 @@ kotlin {
             isIncludeAndroidResources = true
         }
     }
-    macosArm64 {
-        // SQLCipher is supplied by Xcode, so keep its integration tests opt-in.
-        // ./gradlew :common:macosArm64SqlCipherTest -PsqlCipherFrameworkDir=/path/containing/SQLCipher.framework
-        providers.gradleProperty("sqlCipherFrameworkDir").orNull?.let { frameworkDir ->
+    // Explicit integration binaries use the same SQLCipher artifact as the apps.
+    // Ordinary graph tests keep the system SQLite linker setup.
+    targets.withType<KotlinNativeTargetWithTests<*>>().configureEach {
+        val slice = when (name) {
+            "macosArm64" -> "macos-arm64_x86_64"
+            "iosSimulatorArm64" -> "ios-arm64_x86_64-simulator"
+            else -> null
+        }
+        val frameworkDir = providers.gradleProperty("sqlCipherXcframeworkDir").orNull
+            ?.let { root -> slice?.let { "$root/$it" } }
+        if (frameworkDir != null) {
             val mainCompilation = compilations.getByName("main")
             val sqlCipherTest = compilations.create("sqlCipherTest") {
                 associateWith(mainCompilation)
+                defaultSourceSet.kotlin.srcDirs("src/appleSqlCipherTest/kotlin", "src/appleTestFixtures/kotlin")
                 defaultSourceSet.dependencies {
                     implementation(kotlin("test"))
                     implementation(libs.kotlinx.coroutines.test)
@@ -106,8 +120,8 @@ kotlin {
             testRuns.create("sqlCipher") {
                 setExecutionSourceFrom(sqlCipherBinary)
             }
-            // Both test compilations include the same common Compose resources.
-            tasks.withType<Copy>().matching { it.name == "copyTestComposeResourcesForMacosArm64" }.configureEach {
+            val targetSuffix = name.replaceFirstChar(Char::uppercaseChar)
+            tasks.withType<Copy>().matching { it.name == "copyTestComposeResourcesFor$targetSuffix" }.configureEach {
                 duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             }
         }
@@ -167,6 +181,8 @@ kotlin {
                 api(project(":util:zip"))
                 api(project(":util:kdbx"))
                 api(project(":util:crypto"))
+                api(project(":feature:cli"))
+                api(project(":feature:environments"))
                 api(project(":util:dns"))
                 api(project(":util:s3"))
                 api(project(":util:signalr"))
@@ -225,6 +241,11 @@ kotlin {
             kotlin.include("com/artemchep/keyguard/common/service/backup/**")
             kotlin.include("com/artemchep/keyguard/common/service/s3/InMemoryS3Client.kt")
             kotlin.include("com/artemchep/keyguard/common/service/directorywatcher/**")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/AgentIpcAuthenticatorTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/AgentIpcFramingTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/CliAgentConnectionTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/FakeAgentConnection.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/FramedAgentPacketChannelTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/gpgagent/GpgAgentPacketSessionTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/licensekey/Kg2LicenseKeyDecoderTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/text/impl/Base32ServiceImplTest.kt")
@@ -258,12 +279,19 @@ kotlin {
         }
 
         sharedAppleTest(parent = appleCommonTest)
+        getByName("appleTest").kotlin.srcDir("src/appleTestFixtures/kotlin")
 
         getByName("androidHostTest") {
             kotlin.srcDir("src/androidUnitTest/kotlin")
         }
 
         getByName("desktopTest") {
+            // The golden fixtures of the agents' private channels, fixtures/,
+            // which their Rust tests check as well.
+            resources.srcDir("../commonSshAgent/proto")
+            resources.srcDir("../commonGpgAgent/proto")
+            resources.srcDir("../desktopCliAgent/proto")
+            resources.srcDir("../commonAgent/android-bridge/tests")
             dependencies {
                 // The backup tests inspect the archives the repository wrote
                 // with zip4j's own reader, independently of `util/zip`.
@@ -289,6 +317,7 @@ kotlin {
 
         getByName("desktopMain") {
             dependencies {
+                api(project(":util:agent-ipc"))
                 api(project(":util:windows-passkeys"))
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.google.zxing.javase)

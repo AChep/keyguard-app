@@ -2,6 +2,7 @@
 
 package com.artemchep.keyguard.common.model
 
+import com.artemchep.keyguard.feature.environments.EnvironmentPayload
 import kotlin.jvm.JvmName
 
 import androidx.compose.material.icons.Icons
@@ -72,6 +73,7 @@ data class DSecret(
     val identity: Identity? = null,
     val sshKey: SshKey? = null,
     val gpgKey: GpgKey? = null,
+    val environment: EnvironmentPayload? = null,
 ) : HasAccountId, HasCipherId {
     companion object {
         private const val ignoreLength = 3
@@ -207,6 +209,7 @@ data class DSecret(
         Identity,
         SshKey,
         GpgKey,
+        Environment,
     }
 
     sealed interface Attachment {
@@ -422,6 +425,8 @@ data class DSecret(
         val privateKey: String? = null,
         val publicKey: String? = null,
         val fingerprint: String? = null,
+        /** An OpenSSH certificate line that certifies the [publicKey]. */
+        val certificate: String? = null,
     ) {
         companion object
     }
@@ -460,6 +465,7 @@ fun DSecret.Type.iconImageVector() = when (this) {
     DSecret.Type.SecureNote -> Icons.Outlined.KeyguardNote
     DSecret.Type.SshKey -> Icons.Outlined.KeyguardSshKey
     DSecret.Type.GpgKey -> Icons.Outlined.KeyguardGpgKey
+    DSecret.Type.Environment -> Icons.Outlined.Code
     DSecret.Type.None -> Icons.Stub
 }
 
@@ -517,6 +523,7 @@ fun DSecret.Type.titleH() = when (this) {
     DSecret.Type.SecureNote -> Res.string.cipher_type_note
     DSecret.Type.SshKey -> Res.string.cipher_type_ssh_key
     DSecret.Type.GpgKey -> Res.string.cipher_type_gpg_key
+    DSecret.Type.Environment -> Res.string.cipher_type_environment
     DSecret.Type.None -> Res.string.cipher_type_unknown
 }
 

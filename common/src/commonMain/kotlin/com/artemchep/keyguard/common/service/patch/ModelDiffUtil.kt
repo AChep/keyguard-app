@@ -99,7 +99,9 @@ class ModelDiffUtil {
             val children: List<DiffFinderNode<Focus>> = emptyList(),
         ) : DiffFinderNode<Input>
 
-        class Leaf<Input : Any, Focus : Any>(
+        // The finder gets null for an absent focus, so a
+        // finder that handles null declares a nullable focus.
+        class Leaf<Input : Any, Focus>(
             override val lens: Lens<Input, out Focus?>,
             val finder: DiffFinder<Focus> = DiffApplierBySingleValue(),
         ) : DiffFinderNode<Input>

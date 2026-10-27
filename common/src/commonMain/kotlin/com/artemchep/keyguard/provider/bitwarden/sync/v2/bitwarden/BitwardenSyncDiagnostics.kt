@@ -67,6 +67,14 @@ class BitwardenSyncDiagnostics(
             "count=${remoteIds.size} remote_ids=${remoteIds.csv()}"
     }
 
+    suspend fun unknownSendTypesSkipped(
+        accountId: String,
+        remoteIds: List<String>,
+    ) = debug {
+        "unknown_send_types_skipped account_id=$accountId " +
+            "count=${remoteIds.size} remote_ids=${remoteIds.csv()}"
+    }
+
     suspend fun cipherMergeStarted(
         localId: String,
         remoteId: String,

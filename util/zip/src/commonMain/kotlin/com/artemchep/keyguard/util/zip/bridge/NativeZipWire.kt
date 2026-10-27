@@ -3,7 +3,7 @@ package com.artemchep.keyguard.util.zip.bridge
 import com.artemchep.keyguard.util.zip.ZipException
 import com.artemchep.keyguard.util.zip.ZipEncryptionRequiredException
 
-internal const val NATIVE_ZIP_ABI_VERSION: Int = 1
+internal const val NATIVE_ZIP_ABI_VERSION: Int = 2
 
 internal const val NATIVE_ZIP_STATUS_SUCCESS: Long = 0L
 

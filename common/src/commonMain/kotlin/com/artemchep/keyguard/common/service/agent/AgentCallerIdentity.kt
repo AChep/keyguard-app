@@ -154,8 +154,13 @@ object AgentCallerAuthorizationSchema {
  */
 fun AgentCallerIdentity?.toApprovalCacheIdentity(
     policy: AgentApprovalCachePolicy = AgentApprovalCachePolicy.Default,
+): AgentApprovalCacheIdentity? = this?.authorization.toApprovalCacheIdentity(policy)
+
+/** Selects a cache-safe subject from authorization [evidence][AgentCallerAuthorization] alone. */
+fun AgentCallerAuthorization?.toApprovalCacheIdentity(
+    policy: AgentApprovalCachePolicy = AgentApprovalCachePolicy.Default,
 ): AgentApprovalCacheIdentity? {
-    val authorization = this?.authorization
+    val authorization = this
         ?: return null
     if (authorization.connectionFingerprint.size != AgentCallerAuthorizationSchema.FINGERPRINT_SIZE) {
         return null

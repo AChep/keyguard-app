@@ -77,6 +77,7 @@ data class PasskeyCredentialSnapshot(
 )
 
 enum class AttachmentPreviewKindSnapshot {
+    ARCHIVE,
     LOADING,
     IMAGE,
     TEXT,
@@ -110,6 +111,16 @@ data class AttachmentPreviewSnapshot(
     val errorMessage: String? = null,
     val imageDecodeErrorMessage: String? = null,
     val canCopy: Boolean = false,
+    val archivePath: String = "",
+    /** The breadcrumb names; every one but the last opens its folder. */
+    val archiveBreadcrumbs: List<String> = emptyList(),
+    val archiveEntries: List<AttachmentArchiveEntrySnapshot> = emptyList(),
+    val canGoBack: Boolean = false,
+    val canSave: Boolean = false,
+    val busy: Boolean = false,
+    val needsPassword: Boolean = false,
+    val passwordIncorrect: Boolean = false,
+    val exportId: String? = null,
 )
 
 /**
@@ -308,6 +319,7 @@ data class AccountPickerSnapshot(
     val title: String,
     /** An informational note above the sections, e.g. why some accounts are missing. */
     val note: String? = null,
+    val warnings: List<String> = emptyList(),
     val sections: List<AccountPickerSectionSnapshot>,
     val confirmEnabled: Boolean,
 )
@@ -358,6 +370,28 @@ data class CipherLinkPickerItemSnapshot(
     val text: String?,
 )
 
+/**
+ * A drill-down picker of a field of another item: the items first, then the
+ * fields of the [item] the user opened. Values are never part of it.
+ */
+data class CipherFieldPickerSnapshot(
+    val query: String,
+    val queryRevision: Int,
+    /** The opened item, `null` while the items are listed. */
+    val item: CipherLinkPickerItemSnapshot?,
+    val items: List<CipherLinkPickerItemSnapshot>,
+    val fields: List<CipherFieldPickerFieldSnapshot>,
+)
+
+data class CipherFieldPickerFieldSnapshot(
+    val id: String,
+    val title: String,
+    val text: String,
+    val password: Boolean,
+    /** `false` if the field can not be referenced, for example a duplicate name. */
+    val enabled: Boolean,
+)
+
 /** User-entered attempt only; the expected password stays inside the shared producer. */
 data class PasswordMemorySnapshot(
     val value: String,
@@ -365,3 +399,23 @@ data class PasswordMemorySnapshot(
     val error: String?,
     val canVerify: Boolean,
 )
+
+
+data class AttachmentArchiveEntrySnapshot(
+    val id: String,
+    val name: String,
+    val directory: Boolean,
+    val size: String?,
+    val encrypted: Boolean,
+    val canOpen: Boolean,
+    val canSave: Boolean,
+)
+
+data class AttachmentArchiveExportSnapshot(
+    val id: String,
+    val requestId: String,
+    val uri: String,
+    val name: String,
+)
+
+enum class AttachmentArchiveExportOutcomeSnapshot { SAVED, CANCELLED, FAILED }

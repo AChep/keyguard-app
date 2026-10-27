@@ -1,0 +1,30 @@
+[package]
+name = "keyguard-android-agent-bridge"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+description = "Termux-side bridge from a Keyguard agent helper to the Keyguard Android app"
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[target.'cfg(unix)'.dependencies]
+anyhow.workspace = true
+base64 = { workspace = true, features = ["std"] }
+chacha20poly1305.workspace = true
+hkdf.workspace = true
+keyguard-agent-identity.workspace = true
+keyguard-agent-proto.workspace = true
+libc.workspace = true
+prost.workspace = true
+rand.workspace = true
+sha2.workspace = true
+tokio = { workspace = true, features = ["io-util", "macros", "net", "process", "rt", "rt-multi-thread", "signal", "sync", "time"] }
+zeroize.workspace = true
+
+[target.'cfg(unix)'.dev-dependencies]
+keyguard-agent-proto = { workspace = true, features = ["fixtures"] }
+tokio = { workspace = true, features = ["io-util", "macros", "net", "process", "rt", "rt-multi-thread", "signal", "sync", "test-util", "time"] }
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

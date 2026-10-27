@@ -21,19 +21,19 @@ argon2 = { version = "=0.5.3", default-features = false, features = ["alloc", "z
 blake2 = { version = "=0.10.6", default-features = false }
 block-buffer = "=0.10.4"
 blowfish = { version = "=0.9.1", features = ["bcrypt", "zeroize"] }
-aws-lc-rs = { version = "=1.17.0", default-features = false, features = ["non-fips"] }
-aws-lc-sys = { version = "=0.41.0", default-features = false }
+aws-lc-rs = { version = "=1.18.2", default-features = false, features = ["non-fips"] }
+aws-lc-sys = { version = "=0.46.0", default-features = false }
 cbc = { version = "=0.1.2", default-features = false, features = ["alloc", "block-padding", "zeroize"] }
 chacha20 = { version = "=0.9.1", default-features = false, features = ["zeroize"] }
 cipher = { version = "=0.4.4", default-features = false, features = ["alloc", "block-padding", "zeroize"] }
 digest = "=0.10.7"
 des = { version = "=0.8.1", features = ["zeroize"] }
 ed25519-dalek = { version = "=2.2.0", default-features = false, features = ["fast", "std", "zeroize"] }
-flate2 = { version = "=1.1.9", default-features = false, features = ["zlib-rs"] }
-jni = { version = "=0.21.1", default-features = false }
+flate2 = { version = "=1.1.10", default-features = false, features = ["zlib-rs"] }
+jni = { version = "=0.22.4", default-features = false }
 k256 = { version = "=0.13.4", default-features = false, features = ["ecdsa"] }
 num-bigint-dig = { version = "=0.8.6", default-features = false, features = ["zeroize"] }
-num-integer = { version = "=0.1.46", default-features = false }
+num-integer = { version = "=0.1.47", default-features = false }
 ocb3 = { version = "=0.1.0", default-features = false, features = ["alloc", "zeroize"] }
 # `alloc` is what gates `EncodePublicKey` alongside `pkcs8`; passkeys.rs relies
 # on it directly, so declare it rather than inherit it from `pgp`'s defaults.
@@ -41,15 +41,15 @@ p256 = { version = "=0.13.2", default-features = false, features = ["alloc", "ec
 p384 = { version = "=0.13.1", default-features = false, features = ["ecdh", "ecdsa"] }
 p521 = { version = "=0.13.3", default-features = false, features = ["ecdh", "ecdsa"] }
 pkcs8 = { version = "=0.10.2", default-features = false }
-pgp = { version = "=0.20.0", default-features = false }
-prost = { version = "=0.13.5", default-features = false, features = ["derive", "std"] }
-rand = { version = "=0.8.7", default-features = false }
+pgp = { version = "=0.21.0", default-features = false }
+prost = { version = "=0.14.4", default-features = false, features = ["derive", "std"] }
+rand = { version = "=0.8.8", default-features = false }
 # `EcParameters`/`EcPrivateKey` live behind `der`; passkeys.rs imports both, so
 # declare it rather than inherit it from `pgp`'s defaults.
 sec1 = { version = "=0.7.3", default-features = false, features = ["alloc", "der"] }
 rc2 = { version = "=0.8.1", features = ["zeroize"] }
 salsa20 = { version = "=0.10.2", default-features = false, features = ["zeroize"] }
-thiserror = "=2.0.18"
+thiserror = "=2.0.21"
 twofish = { version = "=0.7.1", default-features = false, features = ["zeroize"] }
 x25519-dalek = { version = "=2.0.1", default-features = false, features = ["alloc", "precomputed-tables", "static_secrets", "zeroize"] }
 zeroize = { version = "=1.9.0", features = ["alloc"] }

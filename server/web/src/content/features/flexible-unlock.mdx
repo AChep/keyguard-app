@@ -5,18 +5,18 @@ icon: "🔓"
 group: "Security"
 order: 6
 featured: false
-premium: false
+doc: lock-and-unlock
 ---
 
 import unlockScreen from '../../assets/screenshots/unlock-screen.png';
 import unlockSettings from '../../assets/screenshots/unlock-methods-settings.png';
 
-Choose the vault unlock method. Type your app password, use the device biometrics, or tap a hardware YubiKey.
+Unlock your vault with your app password, your device's biometrics or system
+sign-in, or a hardware key such as a YubiKey.
 
 <Screenshot src={unlockScreen} caption="The vault unlock screen offering a password field alongside a biometric prompt and a YubiKey option." />
 
-Biometrics are fingerprint or face unlock on Android, Touch ID on macOS, and Windows Hello on Windows 11. YubiKey unlock uses HMAC-SHA1 challenge-response over USB on Android and desktop, or NFC on Android. It is unavailable in Flatpak. Enable it in the security settings, and the unlock screen offers what you enabled.
+The unlock screen offers every method you turn on. Your app password always
+works as a fallback, and the vault locks itself when you step away.
 
 <Screenshot src={unlockSettings} caption="Settings where the user selects which unlock methods are enabled for the vault." />
-
-[Locking & unlocking](/docs/lock-and-unlock/) explains the difference between the Keyguard app password and the Bitwarden vault password and covers the auto-lock settings.

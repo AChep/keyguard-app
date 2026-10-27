@@ -11,22 +11,16 @@ import com.artemchep.keyguard.common.service.gpgagent.isCanonical
 import com.artemchep.keyguard.common.usecase.GetPasswordStrength
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.hasPendingAttachmentMutations
+import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
+import com.artemchep.keyguard.feature.environments.EnvironmentFormat
+import com.artemchep.keyguard.feature.environments.EnvironmentPayload
+import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenEnvironmentFieldCodec
+import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenSshCertificateFieldCodec
 
 suspend fun BitwardenCipher.toDomain(
     getPasswordStrength: GetPasswordStrength,
 ): DSecret {
-    val type: DSecret.Type = when (type) {
-        BitwardenCipher.Type.Login -> DSecret.Type.Login
-        BitwardenCipher.Type.SecureNote -> if (gpgKey != null) {
-            DSecret.Type.GpgKey
-        } else {
-            DSecret.Type.SecureNote
-        }
-        BitwardenCipher.Type.Card -> DSecret.Type.Card
-        BitwardenCipher.Type.Identity -> DSecret.Type.Identity
-        BitwardenCipher.Type.SshKey -> DSecret.Type.SshKey
-        BitwardenCipher.Type.GpgKey -> DSecret.Type.GpgKey
-    }
+    val type = domainType()
     val ignoredAlerts = ignoredAlerts
         .map { (key, value) ->
             val k = key.toDomain()
@@ -82,10 +76,52 @@ suspend fun BitwardenCipher.toDomain(
         identity = identity?.toDomain(),
         sshKey = sshKey?.toDomain(),
         gpgKey = gpgKey?.toDomain(),
+        environment = environment?.toDomain(),
         // other
         passwordHistory = passwordHistory.map(BitwardenCipher.Login.PasswordHistory::toDomain),
     )
 }
+
+private fun BitwardenCipher.domainType(): DSecret.Type = when (type) {
+    BitwardenCipher.Type.Login -> DSecret.Type.Login
+    BitwardenCipher.Type.SecureNote -> if (gpgKey != null) {
+        DSecret.Type.GpgKey
+    } else {
+        DSecret.Type.SecureNote
+    }
+    BitwardenCipher.Type.Card -> DSecret.Type.Card
+    BitwardenCipher.Type.Identity -> DSecret.Type.Identity
+    BitwardenCipher.Type.SshKey -> DSecret.Type.SshKey
+    BitwardenCipher.Type.GpgKey -> DSecret.Type.GpgKey
+    BitwardenCipher.Type.Environment -> DSecret.Type.Environment
+}
+
+fun BitwardenCipher.Environment.toDomain(): EnvironmentPayload = when (document) {
+    // Nothing is stored, so an edit can not lose data this version does not read.
+    null -> EnvironmentDefinition().let { definition ->
+        EnvironmentPayload.Decoded(definition, EnvironmentFormat.encode(definition), lossless = true)
+    }
+
+    else -> EnvironmentFormat.decode(document)
+        ?: EnvironmentPayload.Unsupported(document = document)
+}
+
+fun BitwardenCipher.Environment.Companion.of(
+    payload: EnvironmentPayload,
+) = BitwardenCipher.Environment(document = payload.document)
+
+/** The fields the environment is synced as, for exports in the Bitwarden format. */
+fun EnvironmentPayload.toTransportFields(): List<DSecret.Field> =
+    BitwardenEnvironmentFieldCodec.encode(BitwardenCipher.Environment.of(this))
+        .map(BitwardenCipher.Field::toDomain)
+
+/** The fields the certificate is synced as, for exports in the Bitwarden format. */
+fun DSecret.SshKey.toCertificateTransportFields(): List<DSecret.Field> =
+    certificate
+        ?.takeIf { it.isNotBlank() }
+        ?.let(BitwardenSshCertificateFieldCodec::encode)
+        ?.map(BitwardenCipher.Field::toDomain)
+        .orEmpty()
 
 fun BitwardenCipher.Login.Uri.toDomain() = DSecret.Uri(
     uri = uri.orEmpty(),
@@ -110,6 +146,7 @@ fun BitwardenCipher.IgnoreAlertType.toDomain() = when (this) {
     BitwardenCipher.IgnoreAlertType.INCOMPLETE -> DWatchtowerAlertType.INCOMPLETE
     BitwardenCipher.IgnoreAlertType.EXPIRING -> DWatchtowerAlertType.EXPIRING
     BitwardenCipher.IgnoreAlertType.WEAK_SSH_KEY -> DWatchtowerAlertType.WEAK_SSH_KEY
+    BitwardenCipher.IgnoreAlertType.SSH_CERTIFICATE_UNUSABLE -> DWatchtowerAlertType.SSH_CERTIFICATE_UNUSABLE
     BitwardenCipher.IgnoreAlertType.GPG_KEY_UNUSABLE -> DWatchtowerAlertType.GPG_KEY_UNUSABLE
     BitwardenCipher.IgnoreAlertType.WEAK_GPG_KEY -> DWatchtowerAlertType.WEAK_GPG_KEY
     BitwardenCipher.IgnoreAlertType.GPG_KEY_PUBLISHING -> DWatchtowerAlertType.GPG_KEY_PUBLISHING
@@ -288,6 +325,7 @@ fun BitwardenCipher.SshKey.toDomain() = DSecret.SshKey(
     privateKey = privateKey.oh(),
     publicKey = publicKey.oh(),
     fingerprint = fingerprint.oh(),
+    certificate = certificate.oh(),
 )
 
 fun BitwardenCipher.GpgKey.toDomain() = DSecret.GpgKey(

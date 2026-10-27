@@ -150,6 +150,11 @@ jobs:
               :common:desktopTest
               :feature:android-ipc-presentation:checkComposeFree
               :feature:android-ipc-presentation:desktopTest
+              :feature:cli:checkComposeFree
+              :feature:cli:desktopTest
+              :feature:environments:checkComposeFree
+              :feature:environments:checkEnvironmentLimits
+              :feature:environments:desktopTest
               :standard:presentation:checkComposeFree
               :standard:presentation:desktopTest
               :desktopApp:jvmTest
@@ -166,6 +171,8 @@ jobs:
             max_workers: 2
             tasks: >-
               :desktopLibJvm:jvmTest
+              :util:agent-ipc:checkComposeFree
+              :util:agent-ipc:desktopTest
               :util:crypto:desktopTest
               :util:dns:checkComposeFree
               :util:dns:desktopTest

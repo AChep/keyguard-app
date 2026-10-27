@@ -14,6 +14,7 @@ mod pkcs8_pbes2;
 mod primitives;
 pub mod protocol;
 mod sessions;
+mod ssh_certificates;
 mod ssh_import;
 mod ssh_keys;
 
@@ -32,7 +33,7 @@ use sessions::SessionError;
 /// Native function ABI version.
 pub const ABI_VERSION: u32 = 1;
 /// Protobuf request/response protocol version.
-pub const PROTOCOL_VERSION: u32 = 2;
+pub const PROTOCOL_VERSION: u32 = 3;
 /// Maximum encoded request or response envelope size (16 MiB).
 pub const MAX_CONTROL_ENVELOPE_BYTES: usize = 16 * 1024 * 1024;
 /// Maximum raw streaming update size (64 KiB).
@@ -524,6 +525,12 @@ fn execute_one_shot(
         native_request::Operation::SshPublicKeyDecode(mut request) => {
             ssh_keys::public_key_decode(std::mem::take(&mut request.public_key_openssh))?
         }
+        native_request::Operation::SshCertificateDescribe(mut request) => {
+            ssh_certificates::describe(
+                std::mem::take(&mut request.certificate_openssh),
+                request.public_key_openssh.take(),
+            )?
+        }
         native_request::Operation::PasskeyKeyGenerate(request) => {
             passkeys::generate(request.algorithm)?
         }
@@ -566,6 +573,9 @@ fn execute_one_shot(
         }
         native_request::Operation::OpenPgpUserIdRevocation(request) => {
             openpgp::adapter::revoke_user_id(request)?
+        }
+        native_request::Operation::OpenPgpUserIdUpdate(request) => {
+            openpgp::adapter::update_user_id(request)?
         }
         native_request::Operation::OpenPgpUserIdReplacement(request) => {
             openpgp::adapter::replace_user_id(request)?
@@ -612,6 +622,7 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::SshPrivateKeyImport(_) => "ssh_private_key_import",
         native_request::Operation::SshKeyExportCxf(_) => "ssh_key_export_cxf",
         native_request::Operation::SshPublicKeyDecode(_) => "ssh_public_key_decode",
+        native_request::Operation::SshCertificateDescribe(_) => "ssh_certificate_describe",
         native_request::Operation::PasskeyKeyGenerate(_) => "passkey_key_generate",
         native_request::Operation::PasskeyKeyInspect(_) => "passkey_key_inspect",
         native_request::Operation::PasskeySign(_) => "passkey_sign",
@@ -633,6 +644,7 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         }
         native_request::Operation::OpenPgpUserIdRevocation(_) => "open_pgp_user_id_revocation",
         native_request::Operation::OpenPgpUserIdReplacement(_) => "open_pgp_user_id_replacement",
+        native_request::Operation::OpenPgpUserIdUpdate(_) => "open_pgp_user_id_update",
         native_request::Operation::OpenPgpAgentSign(_) => "open_pgp_agent_sign",
         native_request::Operation::OpenPgpAgentDecrypt(_) => "open_pgp_agent_decrypt",
     }
@@ -848,6 +860,7 @@ mod tests {
 
     #[test]
     fn decoded_secret_requests_zeroize_on_every_early_return_path() {
+        use protocol::{OpenPgpUserIdUpdateRequest, open_pgp_user_id_update_request};
         let unsupported = NativeRequest {
             protocol_version: PROTOCOL_VERSION + 1,
             operation: Some(native_request::Operation::Hmac(HmacRequest {
@@ -930,6 +943,55 @@ mod tests {
             Some(NativeErrorCode::InvalidArgument as i32)
         );
         assert_eq!(protocol::zeroized_secret_request_drops(), 1);
+
+        for (version, change, malformed, expected) in [
+            (
+                PROTOCOL_VERSION + 1,
+                Some(open_pgp_user_id_update_request::Change::NewUserId(
+                    "New".to_owned(),
+                )),
+                false,
+                NativeErrorCode::UnsupportedProtocol,
+            ),
+            (
+                PROTOCOL_VERSION,
+                None,
+                false,
+                NativeErrorCode::InvalidArgument,
+            ),
+            (
+                PROTOCOL_VERSION,
+                None,
+                true,
+                NativeErrorCode::InvalidRequest,
+            ),
+        ] {
+            let mut request = NativeRequest {
+                protocol_version: version,
+                operation: Some(native_request::Operation::OpenPgpUserIdUpdate(
+                    OpenPgpUserIdUpdateRequest {
+                        private_key: b"update-private-key".to_vec(),
+                        public_key: b"update-public-key".to_vec(),
+                        expected_primary_fingerprint: "00".to_owned(),
+                        candidate_revocation_keys: Vec::new(),
+                        reference_time_epoch_seconds: 1,
+                        change,
+                    },
+                )),
+            }
+            .encode_to_vec();
+            if malformed {
+                request.push(0x80);
+            }
+            protocol::reset_zeroized_secret_request_drops();
+            let response =
+                NativeResponse::decode(call(&request).as_slice()).expect("update response");
+            assert_eq!(
+                response.status.map(|status| status.code),
+                Some(expected as i32)
+            );
+            assert_eq!(protocol::zeroized_secret_request_drops(), 1);
+        }
 
         let mut malformed = NativeRequest {
             protocol_version: PROTOCOL_VERSION,
@@ -1219,7 +1281,7 @@ mod tests {
     #[test]
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
-        assert_eq!(PROTOCOL_VERSION, 2);
+        assert_eq!(PROTOCOL_VERSION, 3);
         assert_eq!(CAPABILITIES, 0xf7fffffff);
         assert_eq!(CAPABILITIES & (1 << 31), 0, "bit 31 is retired");
         assert_eq!(CAPABILITY_OPENPGP_V6_GENERATION_MUTATION, 1 << 35);
@@ -1242,24 +1304,26 @@ mod tests {
     }
 
     #[test]
-    fn protocol_v2_rejects_v1_requests() {
-        let request = NativeRequest {
-            protocol_version: 1,
-            operation: Some(native_request::Operation::Digest(DigestRequest {
-                algorithm: HashAlgorithm::Sha256 as i32,
-                data: b"legacy-v1-request".to_vec(),
-            })),
-        };
+    fn protocol_v3_rejects_older_requests() {
+        for protocol_version in [1, 2] {
+            let request = NativeRequest {
+                protocol_version,
+                operation: Some(native_request::Operation::Digest(DigestRequest {
+                    algorithm: HashAlgorithm::Sha256 as i32,
+                    data: b"legacy-request".to_vec(),
+                })),
+            };
 
-        let response = NativeResponse::decode(call(&request.encode_to_vec()).as_slice())
-            .expect("unsupported-protocol response must decode");
+            let response = NativeResponse::decode(call(&request.encode_to_vec()).as_slice())
+                .expect("unsupported-protocol response must decode");
 
-        assert_eq!(response.protocol_version, PROTOCOL_VERSION);
-        assert_eq!(
-            response.status.map(|status| status.code),
-            Some(NativeErrorCode::UnsupportedProtocol as i32),
-        );
-        assert!(response.result.is_none());
+            assert_eq!(response.protocol_version, PROTOCOL_VERSION);
+            assert_eq!(
+                response.status.map(|status| status.code),
+                Some(NativeErrorCode::UnsupportedProtocol as i32),
+            );
+            assert!(response.result.is_none());
+        }
     }
 
     #[test]
@@ -1282,7 +1346,7 @@ mod tests {
 
         let mut encrypted = plaintext.clone();
         primitives::chacha20_poly1305_in_place(
-            CipherDirection::Encrypt,
+            primitives::CipherOperation::Encrypt,
             &key,
             &nonce,
             &associated_data,
@@ -1292,7 +1356,7 @@ mod tests {
         assert_eq!(encrypted, expected);
 
         primitives::chacha20_poly1305_in_place(
-            CipherDirection::Decrypt,
+            primitives::CipherOperation::Decrypt,
             &key,
             &nonce,
             &associated_data,

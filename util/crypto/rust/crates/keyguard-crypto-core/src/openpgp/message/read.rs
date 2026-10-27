@@ -61,7 +61,7 @@ use crate::openpgp::{
     format::{fingerprint_hex, hex_upper, normalize_fingerprint},
     packet::{
         MARKER_TAG, PADDING_TAG, PUBLIC_KEY_TAG, PUBLIC_SUBKEY_TAG, RawPacketError,
-        RawPacketStream, SECRET_KEY_TAG, SECRET_SUBKEY_TAG, SIGNATURE_TAG,
+        RawPacketStream, SECRET_KEY_TAG, SECRET_SUBKEY_TAG, SIGNATURE_TAG, USER_ID_TAG,
         armor::{RawPackets, key_block_include_checksum},
         dearmor_bounded, serialize_params, take_mpi,
     },
@@ -1445,7 +1445,7 @@ impl ClearVerificationSession {
         while index < data.len() {
             if self.state == ClearVerifyState::SignatureArmor {
                 self.push_signature(&data[index..])?;
-                return Ok(output.to_vec());
+                return Ok(std::mem::take(&mut *output));
             }
             let byte = data[index];
             if self.previous_input_was_cr {
@@ -1471,7 +1471,7 @@ impl ClearVerificationSession {
                 }
             }
         }
-        Ok(output.to_vec())
+        Ok(std::mem::take(&mut *output))
     }
 
     /// Verifies the retained canonical text against the trailing signature
@@ -2122,21 +2122,48 @@ fn public_key_info(
     } else {
         armor_public_key_packets(original_packets, include_armor_checksum)?
     };
-    let user_id_details = policy
-        .authenticated_user_ids()
-        .filter_map(|validated| {
-            let user = certificate.details.users.get(validated.index())?;
-            let value = user.id.as_str()?;
-            Some(UserIdInfo {
-                identity_id: identity_id(13, validated.packet_body()),
-                user_id: value.to_owned(),
-            })
-        })
-        .collect();
-    let user_ids = policy
+    let can_modify_user_ids = policy.authorize_user_id_addition().is_ok();
+    let primary_index = policy.primary_user_id().map(|id| id.index());
+    let mut user_id_details = Vec::new();
+    let mut user_id_history = Vec::new();
+    for (index, user) in certificate.details.users.iter().enumerate() {
+        let Some(value) = user.id.as_str() else {
+            continue;
+        };
+        let Some(identity) = policy.user_id_at(index) else {
+            continue;
+        };
+        // Retained identities are displayable only with verified self-certification
+        // evidence. A raw, unattested User ID packet is never presented as an owner.
+        if identity.revocation_exportability_template().is_none() {
+            continue;
+        }
+        let active = identity.authenticated();
+        let info = UserIdInfo {
+            identity_id: identity_id(USER_ID_TAG, user.id.id()),
+            user_id: value.to_owned(),
+            primary: primary_index == Some(index),
+            revoked: identity.revocation_status.is_revoked(),
+            can_replace: policy.authorize_user_id_replacement(index).is_ok(),
+            can_revoke: policy.can_revoke_user_id(index),
+            can_make_primary: policy.authorize_user_id_primary_selection(index).is_ok(),
+        };
+        if active {
+            user_id_details.push(info);
+        } else {
+            user_id_history.push(info);
+        }
+    }
+    let mut user_ids = policy
         .authenticated_user_ids()
         .map(|validated| String::from_utf8_lossy(validated.packet_body()).into_owned())
         .collect::<Vec<_>>();
+    // Existing consumers use the first identity as the certificate's display name.
+    // Preserve packet order among the remaining identities without rewriting packets.
+    if let Some(primary) = policy.primary_user_id() {
+        let primary = String::from_utf8_lossy(primary.packet_body());
+        user_ids.sort_by_key(|id| id != primary.as_ref());
+    }
     Some(PublicKeyInfo {
         fingerprint: fingerprint_hex(primary.key),
         keygrip: keygrip(primary.key.public_params()),
@@ -2153,6 +2180,8 @@ fn public_key_info(
         public_key_armored,
         subkeys,
         user_id_details,
+        user_id_history,
+        can_modify_user_ids,
         component_fingerprints: certificate_components(certificate)
             .map(|component| component.fingerprint_hex())
             .collect(),
@@ -2437,7 +2466,13 @@ fn verify_prepared(
                 })
                 .collect::<Vec<_>>();
             let mut buffer = [0u8; VERIFY_BUFFER_BYTES];
-            let mut text_canonicalizer = StreamingTextCanonicalizer::default();
+            // Binary signatures hash the raw bytes. Normalize only when a
+            // usable hasher signs canonical text.
+            let mut text_canonicalizer = hashers
+                .iter()
+                .flatten()
+                .any(|hasher| hasher.text_mode)
+                .then(StreamingTextCanonicalizer::default);
             loop {
                 let count = input
                     .read(&mut buffer)
@@ -2446,16 +2481,21 @@ fn verify_prepared(
                     break;
                 }
                 let input = &buffer[..count];
-                let normalized_text = text_canonicalizer.update(input)?;
+                let normalized_text: &[u8] = match text_canonicalizer.as_mut() {
+                    Some(canonicalizer) => canonicalizer.update(input)?,
+                    None => &[],
+                };
                 for hasher in hashers.iter_mut().flatten() {
                     hasher.update(input, normalized_text);
                 }
             }
-            let normalized_text_tail = text_canonicalizer.finish();
-            if !normalized_text_tail.is_empty() {
-                for hasher in hashers.iter_mut().flatten() {
-                    if hasher.text_mode {
-                        hasher.hasher.update(normalized_text_tail);
+            if let Some(canonicalizer) = text_canonicalizer.as_mut() {
+                let normalized_text_tail = canonicalizer.finish();
+                if !normalized_text_tail.is_empty() {
+                    for hasher in hashers.iter_mut().flatten() {
+                        if hasher.text_mode {
+                            hasher.hasher.update(normalized_text_tail);
+                        }
                     }
                 }
             }

@@ -60,7 +60,9 @@ pub fn current_uid() -> libc::uid_t {
     unsafe { libc::getuid() }
 }
 
-fn current_euid() -> libc::uid_t {
+/// Returns the effective user ID of the current process.
+#[must_use]
+pub fn current_euid() -> libc::uid_t {
     // SAFETY: `geteuid` has no preconditions and only reads the effective user
     // ID maintained by the operating system for this process.
     unsafe { libc::geteuid() }

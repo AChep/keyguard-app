@@ -18,7 +18,7 @@ zeroize.workspace = true
 
 [target.'cfg(target_os = "linux")'.dependencies]
 serde = { workspace = true, features = ["derive"] }
-zbus = { workspace = true, features = ["async-io", "blocking-api"] }
+zbus = { workspace = true, features = ["default-rt", "proxy"] }
 
 [target.'cfg(windows)'.dependencies]
 subtle.workspace = true

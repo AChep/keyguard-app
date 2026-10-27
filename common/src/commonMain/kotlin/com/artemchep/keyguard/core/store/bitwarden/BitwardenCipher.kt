@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.core.store.bitwarden
 
+import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
+import com.artemchep.keyguard.feature.environments.EnvironmentFormat
+import com.artemchep.keyguard.feature.environments.EnvironmentMerge
 import arrow.optics.Getter
 import arrow.optics.Lens
 import arrow.optics.optics
@@ -7,6 +10,7 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.Companion.isSameDiffValueAs
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffApplierByListValue
+import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffApplierBySingleValue
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffFinder
 import com.artemchep.keyguard.common.service.patch.ModelDiffUtil.DiffFinderNode
 import com.artemchep.keyguard.common.service.text.Base64Service
@@ -77,6 +81,7 @@ data class BitwardenCipher(
     val identity: Identity? = null,
     val sshKey: SshKey? = null,
     val gpgKey: GpgKey? = null,
+    val environment: Environment? = null,
     // other
     val passwordHistory: List<PasswordHistory> = login?.passwordHistory.orEmpty(),
 ) : BitwardenService.Has<BitwardenCipher> {
@@ -94,6 +99,7 @@ data class BitwardenCipher(
         Identity("Identity"),
         SshKey("SSH Key"),
         GpgKey("GPG Key"),
+        Environment("Environment"),
     }
 
     @Serializable
@@ -232,6 +238,8 @@ data class BitwardenCipher(
         EXPIRING,
         @SerialName("weakSshKey")
         WEAK_SSH_KEY,
+        @SerialName("sshCertificateUnusable")
+        SSH_CERTIFICATE_UNUSABLE,
         @SerialName("gpgKeyUnusable")
         GPG_KEY_UNUSABLE,
         @SerialName("weakGpgKey")
@@ -384,6 +392,8 @@ data class BitwardenCipher(
         val privateKey: String? = null,
         val publicKey: String? = null,
         val fingerprint: String? = null,
+        /** An OpenSSH certificate line that certifies the [publicKey]. */
+        val certificate: String? = null,
     ) {
         companion object
     }
@@ -395,6 +405,23 @@ data class BitwardenCipher(
         val fingerprint: String? = null,
         val metadata: GpgAgentKeyMetadata? = null,
     ) {
+        companion object
+    }
+
+    /**
+     * Stored as it is synced, so that refactoring the
+     * environment model never changes the stored data.
+     */
+    @Serializable
+    data class Environment(
+        /**
+         * The `EnvironmentFormat` document, exactly as read or last edited, or `null`
+         * if nothing is stored: an empty environment.
+         */
+        val document: String? = null,
+    ) {
+        override fun toString(): String = "Environment([redacted])"
+
         companion object
     }
 }
@@ -497,8 +524,52 @@ fun BitwardenCipher.Companion.getMergeRules() = kotlin.run {
             ),
             DiffFinderNode.Leaf(BitwardenCipher.sshKey),
             DiffFinderNode.Leaf(BitwardenCipher.gpgKey),
+            DiffFinderNode.Leaf(
+                lens = BitwardenCipher.environment,
+                finder = DiffApplierByEnvironment,
+            ),
         ),
     )
+}
+
+/**
+ * Keeps the changed environment if only one side changed it. If both did,
+ * merges them variable by variable, or keeps one complete environment if the
+ * variables conflict or a document is not read losslessly.
+ */
+private object DiffApplierByEnvironment : DiffFinder<BitwardenCipher.Environment?> {
+    private val environmentApplier = DiffApplierBySingleValue<BitwardenCipher.Environment?>()
+
+    override fun compare(
+        base: BitwardenCipher.Environment?,
+        a: BitwardenCipher.Environment?,
+        b: BitwardenCipher.Environment?,
+    ): BitwardenCipher.Environment? {
+        val bothChanged = !isSameDiffValueAs(a, base) && !isSameDiffValueAs(b, base) && !isSameDiffValueAs(a, b)
+        val merged = if (bothChanged) merge(base, a, b) else null
+        return merged ?: environmentApplier.compare(base, a, b)
+    }
+
+    private fun merge(
+        base: BitwardenCipher.Environment?,
+        local: BitwardenCipher.Environment?,
+        remote: BitwardenCipher.Environment?,
+    ): BitwardenCipher.Environment? {
+        val baseDefinition = base.losslessDefinition()
+        val localDefinition = local.losslessDefinition()
+        val remoteDefinition = remote.losslessDefinition()
+        if (baseDefinition == null || localDefinition == null || remoteDefinition == null) return null
+        return EnvironmentMerge.merge(baseDefinition, localDefinition, remoteDefinition)
+            ?.let { BitwardenCipher.Environment(document = EnvironmentFormat.encode(it)) }
+    }
+
+    private fun BitwardenCipher.Environment?.losslessDefinition() = when {
+        this == null -> null
+        document == null -> EnvironmentDefinition()
+        else -> EnvironmentFormat.decode(document)
+            ?.takeIf { it.lossless }
+            ?.definition
+    }
 }
 
 private object DiffApplierByLoginUriList : DiffFinder<List<BitwardenCipher.Login.Uri>> {

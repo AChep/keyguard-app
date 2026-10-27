@@ -1,0 +1,96 @@
+name: "✔️ Check Bitwarden E2E"
+
+on:
+  workflow_dispatch:
+    inputs:
+      cache-write-only:
+        description: 'Cache write only'
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/actions/setup_gradle/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_bitwarden_e2e.yaml'
+      - 'build.gradle.kts'
+      - 'buildPlugins/**'
+      - 'common/src/commonMain/kotlin/com/artemchep/keyguard/provider/bitwarden/**'
+      - 'common/src/desktopMain/**'
+      - 'common/src/jvmMain/**'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'integration/bitwardenE2eTest/**'
+      - 'server/bw/**'
+      - 'settings.gradle'
+      - 'util/crypto/**'
+      - 'util/foundation/**'
+      - 'util/messagepack/**'
+      - 'util/signalr/**'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/actions/setup_gradle/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_bitwarden_e2e.yaml'
+      - 'build.gradle.kts'
+      - 'buildPlugins/**'
+      - 'common/src/commonMain/kotlin/com/artemchep/keyguard/provider/bitwarden/**'
+      - 'common/src/desktopMain/**'
+      - 'common/src/jvmMain/**'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'integration/bitwardenE2eTest/**'
+      - 'server/bw/**'
+      - 'settings.gradle'
+      - 'util/crypto/**'
+      - 'util/foundation/**'
+      - 'util/messagepack/**'
+      - 'util/signalr/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-bitwarden-e2e:
+    name: Check Bitwarden E2E
+    runs-on: ubuntu-latest
+    env:
+      # Skips the Testcontainers environment check, which pulls `alpine`.
+      TESTCONTAINERS_CHECKS_DISABLE: "true"
+      # The runner is ephemeral, so the Ryuk cleanup sidecar (a Docker Hub pull) adds nothing.
+      TESTCONTAINERS_RYUK_DISABLED: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "x86_64-unknown-linux-gnu"
+      - name: "Run Bitwarden E2E tests"
+        run: ./gradlew --continue :integration:bitwardenE2eTest:bitwardenE2eTest
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: bitwarden-e2e-test-reports
+          path: |
+            integration/bitwardenE2eTest/build/test-results/**
+            integration/bitwardenE2eTest/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21

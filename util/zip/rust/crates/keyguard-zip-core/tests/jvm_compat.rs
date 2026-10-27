@@ -64,7 +64,8 @@ fn names_in_order(archive: &ZipArchive<std::io::Cursor<Vec<u8>>>) -> Vec<String>
             archive
                 .name_for_index(index)
                 .expect("every index must name an entry")
-                .to_owned()
+                .expect("every name must decode")
+                .into_owned()
         })
         .collect()
 }

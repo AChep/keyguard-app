@@ -9,6 +9,7 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
 import com.artemchep.keyguard.feature.home.vault.component.obscureCardNumber
+import com.artemchep.keyguard.feature.home.vault.component.vaultItemReferenceLabel
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.VaultUriIcon
 import com.artemchep.keyguard.feature.localization.textResource
@@ -165,6 +166,20 @@ internal suspend fun buildVaultItemSnapshots(
                     else -> true
                 }
                 val revealActionId = if (gated) onRequestReveal?.invoke(item) else null
+                val reference = item.reference?.let { reference ->
+                    val label = vaultItemReferenceLabel(
+                        item = reference.item,
+                        field = reference.field,
+                    )
+                    VaultReferenceSnapshot(
+                        title = label.title,
+                        text = label.text,
+                        unavailable = label.unavailable,
+                        clickActionId = reference.onClick?.let { onClick ->
+                            "${item.id}:reference".also { id -> actionHandlers[id] = onClick }
+                        },
+                    )
+                }
                 out += VaultItemSnapshot(
                     id = item.id,
                     kind = VaultItemKind.VALUE,
@@ -184,6 +199,8 @@ internal suspend fun buildVaultItemSnapshots(
                     isVisible = isVisible,
                     revealActionId = revealActionId,
                     revealLocked = revealLocked,
+                    reference = reference,
+                    label = item.label,
                 )
             }
 
@@ -1011,6 +1028,23 @@ data class VaultItemSnapshot(
     val colorize: Boolean = false,
     // URI only: resolved artwork and its loading/disabled/failure placeholder.
     val uriIcon: UriIconSnapshot? = null,
+    // VALUE only: the item and the field the value is read from.
+    val reference: VaultReferenceSnapshot? = null,
+    // VALUE only: a short label shown next to the value, such as "Primary".
+    val label: String? = null,
+)
+
+/**
+ * The item and the field a value is read from, or the field and an error if
+ * the item is not available; [clickActionId] opens the item, `null` if it can not.
+ * [text] is `null` if the item has no name, or is not available: the UI shows
+ * the error text in its place.
+ */
+data class VaultReferenceSnapshot(
+    val title: String,
+    val text: String?,
+    val unavailable: Boolean,
+    val clickActionId: String?,
 )
 
 enum class VaultFilterItemKind {

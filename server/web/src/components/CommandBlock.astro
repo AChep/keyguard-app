@@ -1,28 +1,26 @@
 ---
 interface Props {
-  label: string;
   code: string;
+  // What the command installs, for the copy button's accessible name.
+  label: string;
 }
-const { label, code } = Astro.props;
+const { code, label } = Astro.props;
 ---
 
-<div class="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-high">
-  <div class="flex items-center justify-between gap-3 border-b border-outline-variant px-4 py-2">
-    <span class="text-xs font-medium text-on-surface-variant">{label}</span>
-    <button
-      type="button"
-      class="copy-btn inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-on-surface-variant transition hover:text-primary"
-      data-code={code}
-      aria-label={`Copy ${label} command`}
-    >
-      <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <rect x="9" y="9" width="13" height="13" rx="2"></rect>
-        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-      </svg>
-      <span class="copy-label">Copy</span>
-    </button>
-  </div>
-  <pre class="overflow-x-auto px-4 py-3 text-sm leading-relaxed"><code class="font-mono text-on-surface">{code}</code></pre>
+<div class="flex items-start gap-2 rounded-xl bg-surface-container py-1.5 pr-1.5 pl-4">
+  <pre class="min-w-0 flex-1 overflow-x-auto py-1 text-sm leading-relaxed"><code class="font-mono text-on-surface">{code}</code></pre>
+  <button
+    type="button"
+    class="copy-btn inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-medium text-on-surface-variant transition hover:bg-surface-container-high hover:text-on-surface"
+    data-code={code}
+    aria-label={`Copy ${label} command`}
+  >
+    <svg class="copy-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="9" y="9" width="13" height="13" rx="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+    <span class="copy-label">Copy</span>
+  </button>
 </div>
 
 <script>

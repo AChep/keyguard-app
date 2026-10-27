@@ -20,7 +20,7 @@ import com.artemchep.keyguard.ui.icons.icon
 @Composable
 fun GpgAgentApprovalContent(
     request: GpgAgentApprovalRequest,
-    onDismiss: () -> Unit,
+    onDecision: (approved: Boolean, reason: String) -> Unit,
 ) {
     val title = when (request.operation) {
         GpgAgentOperation.SIGN -> Res.string.agent_request_approval_sign_title
@@ -44,6 +44,6 @@ fun GpgAgentApprovalContent(
         keyFingerprint = request.keyFingerprint.ifBlank { request.keygrip },
         cipherId = request.cipherId,
         keyIcon = icon<RowScope>(Icons.Outlined.KeyguardGpgKey),
-        onDismiss = onDismiss,
+        onDecision = onDecision,
     )
 }

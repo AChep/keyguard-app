@@ -21,8 +21,9 @@
   --color-primary-container: var(--primary-container);
   --color-on-primary-container: var(--on-primary-container);
 
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
-    Roboto, Helvetica, Arial, sans-serif;
+  /* Inter is provided by Astro's Fonts API via --font-inter (see BaseLayout). */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 :root {
@@ -40,6 +41,11 @@
   --on-primary: #ffffff;
   --primary-container: #c7eaf6;
   --on-primary-container: #06384a;
+
+  /* Caution callouts (light) */
+  --caution: #b45309;
+  --caution-container: #fdf0dc;
+  --on-caution-container: #4a2a05;
 
   /* Display font for headings & section titles. The DM Sans family (with an
      optimized fallback) is provided by Astro's Fonts API via --font-dm-sans;
@@ -69,6 +75,11 @@
   --primary-container: #0a4a61;
   --on-primary-container: #c7eaf6;
 
+  /* Caution callouts (dark) */
+  --caution: #f5b75c;
+  --caution-container: #3d2a0d;
+  --on-caution-container: #fde7c4;
+
   /* Liquid-glass materials (dark) */
   --glass-bg: rgba(0, 0, 0, 0.62);
   --glass-border: rgba(255, 255, 255, 0.1);
@@ -88,6 +99,12 @@ html {
   h4 {
     font-family: var(--font-display);
   }
+}
+
+/* Keeps DM Sans at its default (text) optical size, instead of the display
+   cut that browsers pick for large text from the font's opsz axis. */
+@utility opsz-text {
+  font-optical-sizing: none;
 }
 
 /* --- Liquid-glass surfaces --------------------------------------------------- */
@@ -112,6 +129,38 @@ html {
   box-shadow:
     0 8px 18px -6px rgba(0, 0, 0, 0.22),
     0 28px 52px -16px rgba(0, 0, 0, 0.38);
+}
+
+/* Cover glass over a device screen: a faint static reflection and a light
+   band (::before) that the hero carousel sweeps across. */
+.device-glare {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.07) 0%,
+    rgba(255, 255, 255, 0.02) 32%,
+    transparent 34%
+  );
+}
+.device-glare::before {
+  content: "";
+  position: absolute;
+  inset: -20% auto -20% 0;
+  width: 40%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.06) 35%,
+    rgba(255, 255, 255, 0.12) 50%,
+    rgba(255, 255, 255, 0.06) 65%,
+    transparent
+  );
+  transform: translateX(-130%) skewX(-20deg);
 }
 
 /* Solid card surface with a subtle top highlight (no border, no drop shadow). */
@@ -187,7 +236,8 @@ html[data-theme-setting="dark"] .theme-icon-dark {
 .prose-doc li {
   margin-bottom: 0.35rem;
 }
-.prose-doc a {
+/* Badge links (DocMeta) keep their own pill styles. */
+.prose-doc a:not(.doc-badge) {
   color: var(--primary);
   text-decoration: underline;
   text-underline-offset: 2px;
@@ -238,4 +288,68 @@ html[data-theme-setting="dark"] .theme-icon-dark {
 }
 .prose-doc tbody tr:nth-child(even) {
   background: color-mix(in srgb, var(--surface-container) 45%, transparent);
+}
+.prose-doc tbody th {
+  background: var(--surface-container);
+  font-weight: 600;
+}
+
+/* Callouts: `:::note` and `:::caution` (src/lib/remark-asides.mjs). */
+.prose-doc .callout {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 3px solid var(--primary);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--primary-container) 55%, transparent);
+  color: var(--on-surface);
+}
+.prose-doc .callout > :last-child {
+  margin-bottom: 0;
+}
+.prose-doc .callout-title {
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+}
+.prose-doc .callout-caution {
+  border-left-color: var(--caution);
+  background: var(--caution-container);
+  color: var(--on-caution-container);
+}
+
+/* Collapsed blocks: `:::details[Summary]` (src/lib/remark-asides.mjs). */
+.prose-doc .details {
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--outline-variant);
+  border-radius: 0.75rem;
+}
+.prose-doc .details > summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+.prose-doc .details[open] > summary {
+  margin-bottom: 0.5rem;
+}
+.prose-doc .details > :last-child {
+  margin-bottom: 0;
+}
+
+/* --- Docs search (Pagefind Component UI) ------------------------------------- */
+/* Pagefind declares its variables on :root in a stylesheet loaded later, so
+   the doubled selector is needed to win. The site tokens switch with `.dark`. */
+:root:root {
+  --pf-text: var(--on-surface);
+  --pf-text-secondary: var(--on-surface-variant);
+  --pf-text-muted: var(--on-surface-variant);
+  --pf-background: var(--surface);
+  --pf-border: var(--outline-variant);
+  --pf-border-focus: var(--outline);
+  --pf-skeleton: var(--surface-container);
+  --pf-skeleton-shine: var(--surface-container-high);
+  --pf-hover: var(--surface-container);
+  --pf-mark: var(--on-surface);
+  --pf-outline-focus: var(--primary);
+  --pf-border-radius: 0.75rem;
+  --pf-font: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, Helvetica, Arial, sans-serif;
 }

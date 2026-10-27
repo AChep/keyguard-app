@@ -38,6 +38,7 @@ class FingerprintCompletenessTest {
         "identity.firstName",
         "sshKey.fingerprint",
         "gpgKey.fingerprint",
+        "environment",
     )
 
     private val coveredFields: Map<String, List<String>> = mapOf(
@@ -72,6 +73,7 @@ class FingerprintCompletenessTest {
         "identity" to listOf("identity.firstName"),
         "sshKey" to listOf("sshKey.fingerprint"),
         "gpgKey" to listOf("gpgKey.fingerprint"),
+        "environment" to listOf("environment"),
     )
 
     private val excludedFields: Map<String, String> = mapOf(

@@ -1,50 +1,112 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import CommandBlock from '../components/CommandBlock.astro';
-import { PLATFORMS, RELEASES_URL, REPO_URL } from '../consts';
+import FeatureCard from '../components/FeatureCard.astro';
+import PlatformDialog from '../components/download/PlatformDialog.astro';
+import PlatformLogo from '../components/download/PlatformLogo.astro';
+import { PLATFORMS, RELEASES_URL } from '../consts';
+import { PLATFORM_VISUALS } from '../platformVisuals';
 ---
 
-<BaseLayout title="Download" description="Get Keyguard for Android, Linux, macOS, and Windows.">
-  <section class="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+<BaseLayout title="Download" description="Get Keyguard for Android, Wear OS, Linux, macOS, and Windows.">
+  {/* Without JS the dialogs can't open, so show them in the page instead. */}
+  <noscript slot="head">
+    <style is:inline>
+      dialog[data-platform] {
+        position: static !important;
+        display: block !important;
+        margin: 2rem auto !important;
+        opacity: 1 !important;
+        transform: none !important;
+      }
+      dialog[data-platform] > div {
+        max-height: none !important;
+      }
+      dialog[data-platform] form[method='dialog'] {
+        display: none !important;
+      }
+    </style>
+  </noscript>
+
+  <section class="mx-auto max-w-5xl px-6 py-16 sm:py-20">
     <header class="text-center">
-      <h1 class="text-4xl font-extrabold tracking-tight text-on-surface">Download</h1>
+      <h1 class="text-4xl font-semibold tracking-tight text-on-surface">Download</h1>
     </header>
 
-    <div class="mt-16 space-y-14">
+    {/* Cards link to their dialogs; the script below opens them. */}
+    <div class="mt-12 grid gap-6 sm:grid-cols-6">
       {
-        PLATFORMS.map((p) => {
-          const links = [
-            ...p.stores,
-            ...(p.direct ? [{ label: p.direct.label, href: p.direct.href }] : []),
-          ];
-          return (
-            <div>
-              <h2 class="text-2xl font-bold tracking-tight text-on-surface">{p.name}</h2>
-
-              <p class="mt-3 text-sm">
-                {links.map((l, i) => (
-                  <Fragment>
-                    {i > 0 && (
-                      <span class="px-2 text-on-surface-variant" aria-hidden="true">·</span>
-                    )}
-                    <a href={l.href} class="font-medium text-primary hover:opacity-80">
-                      {l.label}
-                    </a>
-                  </Fragment>
-                ))}
-              </p>
-
-              {p.commands.length > 0 && (
-                <div class="mt-5 space-y-3">
-                  {p.commands.map((c) => (
-                    <CommandBlock label={c.label} code={c.code} />
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })
+        PLATFORMS.map((platform) => (
+          <FeatureCard
+            title={platform.name}
+            href={`#${platform.id}`}
+            visual={PLATFORM_VISUALS[platform.id]}
+            class={platform.wide ? 'sm:col-span-3' : 'sm:col-span-2'}
+            data-platform-open={platform.id}
+            aria-haspopup="dialog"
+          >
+            <PlatformLogo slot="icon" id={platform.id} class="h-5 w-5" />
+            {platform.options
+              .filter((option) => !option.addon)
+              .map((option) => option.name)
+              .join(' · ')}
+          </FeatureCard>
+        ))
       }
     </div>
+
+    <p class="mt-10 text-center text-sm text-on-surface-variant">
+      All files are on <a href={RELEASES_URL} class="font-medium text-primary hover:opacity-80">GitHub Releases</a>.
+    </p>
   </section>
+
+  {PLATFORMS.map((platform) => <PlatformDialog platform={platform} />)}
 </BaseLayout>
+
+<script>
+  const dialogs = [...document.querySelectorAll<HTMLDialogElement>('dialog[data-platform]')];
+
+  function openDialog(id: string) {
+    const dialog = dialogs.find((d) => d.id === id);
+    if (!dialog || dialog.open) return;
+    for (const other of dialogs) {
+      if (other.open) other.close();
+    }
+    dialog.showModal();
+    // Start at the title rather than the close button, so reading begins at the top.
+    dialog.querySelector<HTMLElement>('h2')?.focus();
+  }
+
+  // `/download/#linux` opens the Linux dialog.
+  function openFromHash() {
+    openDialog(decodeURIComponent(location.hash.slice(1)));
+  }
+
+  for (const link of document.querySelectorAll<HTMLAnchorElement>('[data-platform-open]')) {
+    link.addEventListener('click', (event) => {
+      const id = link.dataset.platformOpen ?? '';
+      if (!dialogs.some((d) => d.id === id)) return;
+      event.preventDefault();
+      openDialog(id);
+      history.replaceState(null, '', `#${id}`);
+    });
+  }
+
+  for (const dialog of dialogs) {
+    // Close on a backdrop click, but not when a text selection ends there.
+    let pressedBackdrop = false;
+    dialog.addEventListener('pointerdown', (event) => {
+      pressedBackdrop = event.target === dialog;
+    });
+    dialog.addEventListener('click', (event) => {
+      if (pressedBackdrop && event.target === dialog) dialog.close();
+    });
+    dialog.addEventListener('close', () => {
+      if (location.hash === `#${dialog.id}`) {
+        history.replaceState(null, '', location.pathname + location.search);
+      }
+    });
+  }
+
+  openFromHash();
+  window.addEventListener('hashchange', openFromHash);
+</script>

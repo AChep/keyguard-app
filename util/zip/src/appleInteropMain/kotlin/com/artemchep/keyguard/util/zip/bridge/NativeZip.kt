@@ -2,6 +2,9 @@
 
 package com.artemchep.keyguard.util.zip.bridge
 
+import com.artemchep.keyguard.util.zip.ffi.keyguard_zip_memory_open
+import com.artemchep.keyguard.util.zip.ffi.keyguard_zip_memory_read
+import com.artemchep.keyguard.util.zip.ffi.keyguard_zip_memory_close
 import com.artemchep.keyguard.util.zip.ffi.keyguard_zip_abi_version
 import com.artemchep.keyguard.util.zip.ffi.keyguard_zip_reader_close
 import com.artemchep.keyguard.util.zip.ffi.keyguard_zip_reader_next_entry
@@ -22,7 +25,26 @@ import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.usePinned
 import kotlin.text.CharacterCodingException
 
+@Suppress("TooManyFunctions") // One entry point per native ABI operation.
 internal actual object NativeZip {
+    actual fun memoryOpen(bytes: ByteArray, index: Int, offset: Int, password: String): Long {
+        val secret = password.strictUtf8OrNull() ?: return NATIVE_ZIP_BRIDGE_INVALID_ARGUMENT
+        return try {
+            bytes.withNativePointer { data, size ->
+                secret.withNativePointer { pass, passSize ->
+                    keyguard_zip_memory_open(data, size, index.convert(), offset.toULong(), pass, passSize)
+                }
+            }
+        } finally { secret.fill(0) }
+    }
+
+    actual fun memoryRead(handle: Long, buffer: ByteArray, count: Int): Long =
+        buffer.withNativeRange(0, count) { pointer, size ->
+            keyguard_zip_memory_read(handle.toULong(), pointer, size)
+        }
+
+    actual fun memoryClose(handle: Long): Long = keyguard_zip_memory_close(handle.toULong())
+
     actual fun abiVersion(): Int = keyguard_zip_abi_version().toInt()
 
     actual fun open(path: String, password: String): Long =

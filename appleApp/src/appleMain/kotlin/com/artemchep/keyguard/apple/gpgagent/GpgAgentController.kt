@@ -13,11 +13,11 @@ import com.artemchep.keyguard.apple.core.sessionKoin
 import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
-import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
+import com.artemchep.keyguard.common.service.agent.AgentIpcAuthenticator
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.seedHex
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
@@ -30,21 +30,21 @@ import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindowVariants
 import com.artemchep.keyguard.common.usecase.GetGpgAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
-import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutGpgAgent
 import com.artemchep.keyguard.common.usecase.PutGpgAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.PutGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.PutGpgAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.RemoveGpgUsageHistory
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.feature.gpgagent.filter.gpgAgentFiltersStateProducer
 import com.artemchep.keyguard.feature.gpgagent.help.macosSandboxGpgAgentSetupCommand
 import com.artemchep.keyguard.feature.gpgagent.history.GpgAgentHistoryItem
 import com.artemchep.keyguard.feature.gpgagent.history.GpgAgentHistoryState
 import com.artemchep.keyguard.feature.gpgagent.history.gpgAgentHistoryStateProducer
 import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.feature.home.settings.component.agentApprovalWindowTitle
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.format
 import kotlin.time.Duration
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -54,7 +54,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -76,7 +75,7 @@ internal class GpgAgentController(
     private val getApprovalWindowVariants: GetGpgAgentApprovalWindowVariants by lazy { ctx.koin.get() }
     private val getApprovalCachePolicy: GetGpgAgentApprovalCachePolicy by lazy { ctx.koin.get() }
     private val getFilter: GetGpgAgentFilter by lazy { ctx.koin.get() }
-    private val requests = GpgAgentApprovalQueue()
+    private val requests = gpgAgentApprovalQueue()
     private val status = MutableStateFlow(GpgAgentStatusSnapshot.empty)
     private val retry = MutableStateFlow(0L)
     private val lifecycleMutex = Mutex()
@@ -141,17 +140,15 @@ internal class GpgAgentController(
                 pendingUsageHistoryQueue = di.get(),
                 sessionId = cryptoGenerator.seedHex(length = 16),
                 json = di.get(),
-                onApprovalRequest = requests::await,
+                onApprovalRequest = { prompt ->
+                    requests.await(prompt, deadline = prompt.expiresAt)
+                },
             )
             scope.launch(Dispatchers.Main) {
-                var previousSession: MasterSession.Key? = null
-                di.get<GetVaultSession>()().collect { session ->
-                    if (previousSession != null && previousSession !== session) requests.denyAll()
-                    previousSession = session as? MasterSession.Key
-                }
+                requests.denyWhenSessionEnds(di.get())
             }
-            val authToken = cryptoGenerator.seed(32)
-            handle = try {
+            // The runtime owns a separate copy for its serving lifetime.
+            handle = cryptoGenerator.seed(AgentIpcAuthenticator.TOKEN_SIZE).useAndClear { authToken ->
                 runtime.start(
                     scope,
                     GpgAgentRuntimeConfig(
@@ -170,9 +167,6 @@ internal class GpgAgentController(
                         log = { logger.post("GpgAgent", it, LogLevel.INFO) },
                     ),
                 )
-            } finally {
-                // The runtime owns a separate copy for its serving lifetime.
-                authToken.fill(0)
             }
             if (handle?.isRunning == true) {
                 setStatus(GpgAgentRunState.READY)
@@ -265,11 +259,11 @@ internal class GpgAgentController(
                 val snapshot = GpgAgentSettingsSnapshot(
                     loaded = true,
                     enabled = enabled,
-                    approvalWindowTitle = approvalWindowTitle(window, context),
+                    approvalWindowTitle = agentApprovalWindowTitle(window, context),
                     approvalWindowOptions = variants.map { duration ->
                         SettingOptionSnapshot(
                             id = duration.inWholeMilliseconds.toString(),
-                            title = approvalWindowTitle(duration, context),
+                            title = agentApprovalWindowTitle(duration, context),
                             selected = duration == window,
                         )
                     },
@@ -307,12 +301,6 @@ internal class GpgAgentController(
 
     fun setGpgAgentDisplayKeyNames(value: Boolean) {
         ctx.koin.get<PutGpgAgentDisplayKeyNames>()(value).launchIn(ctx.scope)
-    }
-
-    private suspend fun approvalWindowTitle(duration: Duration, context: LeContext): String = when (duration) {
-        Duration.ZERO -> textResource(Res.string.pref_item_agent_approval_window_always_ask, context)
-        Duration.INFINITE -> textResource(Res.string.pref_item_agent_approval_window_until_lock, context)
-        else -> duration.format(context)
     }
 
     private suspend fun approvalCachePolicyTitle(policy: AgentApprovalCachePolicy, context: LeContext): String =

@@ -71,8 +71,6 @@ class ExposedAccountSyncerImpl(
                 ExposedAccount(
                     accountId = profile.accountId,
                     name = profile.name,
-                    email = profile.email,
-                    host = profile.accountHost,
                 )
             },
         // Entry ids, however, are minted for every account including hidden ones,

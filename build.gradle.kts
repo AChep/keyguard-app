@@ -1,5 +1,8 @@
 import com.artemchep.keyguard.buildplugins.apple.appleDeploymentConfigContent
 import com.artemchep.keyguard.buildplugins.apple.updateSwiftPackageDeploymentTargets
+import com.artemchep.keyguard.buildplugins.cargo.cargoWorkspaceVersionUpdates
+import com.artemchep.keyguard.buildplugins.cargo.writeCargoWorkspaceVersionUpdates
+import com.artemchep.keyguard.buildplugins.version.requireAppVersionName
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.jvm.toolchain.JvmVendorSpec
@@ -45,9 +48,7 @@ tasks.named<UpdateDaemonJvm>("updateDaemonJvm") {
 val appleVersionConfig = layout.projectDirectory.file("xcode/Version.xcconfig")
 val appleVersionConfigContent =
     libs.versions.appVersionName.map { version ->
-        require(version.matches(Regex("[0-9]+\\.[0-9]+\\.[0-9]+"))) {
-            "Apple marketing versions must use major.minor.patch; appVersionName is '$version'."
-        }
+        requireAppVersionName(version)
         "// Generated from gradle/libs.versions.toml. Do not edit.\n" +
             "// Regenerate with ./gradlew generateAppleVersion.\n" +
             "MARKETING_VERSION = $version\n"
@@ -78,6 +79,36 @@ tasks.register("checkAppleVersion") {
         check(config.asFile.isFile && config.asFile.readText() == content.get()) {
             "xcode/Version.xcconfig is missing or stale. Run ./gradlew generateAppleVersion " +
                 "and commit the updated file."
+        }
+    }
+}
+
+// Only the root Cargo workspace reports appVersionName; the crypto workspace keeps a
+// fixed version. Update the committed Cargo metadata explicitly; builds never rewrite it.
+tasks.register("generateRustVersion") {
+    group = "build setup"
+    description = "Updates Rust workspace and lockfile versions from the version catalog."
+    val rootDir = layout.projectDirectory.asFile
+    val version = libs.versions.appVersionName
+    doLast {
+        val updates = cargoWorkspaceVersionUpdates(rootDir, version.get())
+        writeCargoWorkspaceVersionUpdates(rootDir, updates)
+        updates.keys.forEach { path -> logger.lifecycle("Updated $path") }
+    }
+}
+
+tasks.register("checkRustVersion") {
+    group = "verification"
+    description = "Checks that committed Rust versions match the version catalog."
+    // Order an explicitly requested generation first, but never regenerate during a check.
+    mustRunAfter("generateRustVersion")
+    val rootDir = layout.projectDirectory.asFile
+    val version = libs.versions.appVersionName
+    doLast {
+        val stale = cargoWorkspaceVersionUpdates(rootDir, version.get()).keys
+        check(stale.isEmpty()) {
+            "${stale.joinToString()} has stale Rust versions. Run ./gradlew generateAppVersions " +
+                "and commit the updated files."
         }
     }
 }
@@ -146,4 +177,17 @@ tasks.register("checkAppleConfiguration") {
     group = "verification"
     description = "Checks generated Apple build configuration against the version catalog."
     dependsOn("checkAppleVersion", "checkAppleDeploymentTargets")
+}
+
+tasks.register("generateAppVersions") {
+    group = "build setup"
+    description = "Updates committed Apple configuration and Rust versions from the version catalog."
+    dependsOn("generateAppleConfiguration", "generateRustVersion")
+}
+
+// CI runs this check; keep its inputs in the check_lint.yml path filters.
+tasks.register("checkAppVersions") {
+    group = "verification"
+    description = "Checks committed Apple configuration and Rust versions against the version catalog."
+    dependsOn("checkAppleConfiguration", "checkRustVersion")
 }

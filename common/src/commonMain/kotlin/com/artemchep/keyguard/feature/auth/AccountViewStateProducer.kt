@@ -569,6 +569,22 @@ suspend fun RememberStateFlowScope.accountStateProducer(
                 if (accountOrNull == null) {
                     return@section
                 }
+                // The profile ID is assigned on the first sync, hide
+                // the action until then.
+                val profileId = profileOrNull?.profileId
+                    ?: return@section
+
+                this += copyText.FlatItemAction(
+                    id = "account.copyId",
+                    title = Res.string.copy_id.wrap(),
+                    value = profileId,
+                    type = CopyText.Type.ID,
+                )
+            }
+            section {
+                if (accountOrNull == null) {
+                    return@section
+                }
 
                 this += FlatItemAction(
                     id = "account.signOut",

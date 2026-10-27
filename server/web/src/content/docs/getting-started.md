@@ -1,32 +1,48 @@
 ---
-title: Getting started
-description: Install Keyguard and connect your first vault.
-category: get-started
-order: 1
+title: Get started with Keyguard
+description: "Install Keyguard, create its local vault, and add your first Bitwarden or KeePass account."
+section: get-started
+type: tutorial
+order: 10
+platforms: all
+related: [autofill, lock-and-unlock, backups, migrating, watchtower]
 ---
 
-Welcome to Keyguard! This guide walks you through installing the app and
-connecting your first vault.
+In this tutorial, you install Keyguard, create its local vault, and add your
+first account. At the end, your items are in Keyguard and you can search them.
 
-## 1. Install the app
+### Before you begin
 
-Pick your platform on the [Download](/download/) page. Android & Wear OS, Linux, Mac OS and Windows are supported.
+- A Bitwarden or Vaultwarden account, or a KeePass (`.kdbx`) database.
+  Keyguard can also create a new KeePass database.
 
-## 2. Create local vault
+## Install the app
 
-Choose an app password and create the local vault. The app password protects everything Keyguard keeps on this device, [independent of your Bitwarden or KDBX password](/docs/lock-and-unlock/).
+1. Download Keyguard for your platform from the [Download](/download/) page.
+2. Install Keyguard.
+3. Open Keyguard. It asks you to create a vault.
 
-## 3. Add an account
+## Create the local vault
 
-Keyguard is a client for the **Bitwarden** platform and for **KeePass (KDBX)** files:
+The app password protects Keyguard's data on this device. It's separate from
+your Bitwarden or KeePass password.
 
-- sign in to a Bitwarden or self-hosted Vaultwarden server, or
-- open a local `.kdbx` database.
+1. In **App password**, enter a new password.
+2. Optional: to unlock with biometrics, select **Biometric authentication**.
+   It appears only on devices that support it.
+3. Select **Create a vault**. Keyguard opens your empty vault.
 
-## 4. Unlock and explore
+## Add an account
 
-After unlocking, your items appear instantly. Try the [**search**](/docs/search/) — it
-understands fields, folders, and tags — then open
-[**watchtower**](/docs/watchtower/) to see the health of your vault at a
-glance. Next: set up [autofill](/docs/autofill/) on Android, read about
-[security](/docs/security/), or setup [automatic backups](/docs/backups/).
+1. On the empty vault screen, select **Bitwarden** or **KeePass**.
+2. Sign in to your Bitwarden account, or open your `.kdbx` file. Your items
+   appear in the vault.
+
+For a self-hosted server, SSO, or a database on WebDAV or S3, see
+[Connect to a Bitwarden server](/docs/bitwarden/self-hosted/) or
+[KeePass databases](/docs/keepass/).
+
+## Search your vault
+
+In **Search vault**, enter part of an item's name. Matching items appear as you
+type.

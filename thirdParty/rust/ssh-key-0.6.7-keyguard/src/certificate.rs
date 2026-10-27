@@ -287,20 +287,27 @@ impl Certificate {
     }
 
     /// Valid before (Unix time).
+    ///
+    /// `u64::MAX` means the certificate does not expire.
     pub fn valid_before(&self) -> u64 {
         self.valid_before.into()
     }
 
     /// Valid after (system time).
+    ///
+    /// Returns [`Error::Time`] if the timestamp cannot be represented.
     #[cfg(feature = "std")]
-    pub fn valid_after_time(&self) -> SystemTime {
-        self.valid_after.into()
+    pub fn valid_after_time(&self) -> Result<SystemTime> {
+        self.valid_after.try_into()
     }
 
     /// Valid before (system time).
+    ///
+    /// Returns [`Error::Time`] for an unbounded expiry or a timestamp which
+    /// cannot be represented. Use [`Certificate::valid_before`] for the raw value.
     #[cfg(feature = "std")]
-    pub fn valid_before_time(&self) -> SystemTime {
-        self.valid_before.into()
+    pub fn valid_before_time(&self) -> Result<SystemTime> {
+        self.valid_before.try_into()
     }
 
     /// The critical options section of the certificate specifies zero or more
@@ -391,7 +398,7 @@ impl Certificate {
             return Err(Error::CertificateValidation);
         }
 
-        let unix_timestamp = UnixTime::new(unix_timestamp)?;
+        let unix_timestamp = UnixTime::new(unix_timestamp);
 
         // From PROTOCOL.certkeys:
         //

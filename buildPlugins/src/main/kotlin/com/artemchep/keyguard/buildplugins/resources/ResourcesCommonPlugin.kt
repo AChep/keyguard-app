@@ -41,11 +41,7 @@ class ResourcesCommonPlugin : Plugin<Project> {
         ) {
             localeDirectoryNames.set(
                 providers.provider {
-                    extension.composeResourcesDir.get().asFile.listFiles()
-                        ?.filter { file -> file.isDirectory && file.name.startsWith("values") }
-                        ?.map { it.name }
-                        ?.sorted()
-                        ?: emptyList()
+                    localeDirectoryNames(extension.composeResourcesDir.get().asFile)
                 },
             )
             defaultLocale.set(extension.defaultLocale)

@@ -95,6 +95,11 @@ internal sealed interface ScreenKind {
     val entryKind: ScreenEntryKind
     val defaultTitle: String
 
+    data class Environments(val environmentId: String?, val create: Boolean) : ScreenKind {
+        override val entryKind get() = ScreenEntryKind.ENVIRONMENTS
+        override val defaultTitle get() = ""
+    }
+
     data class CipherDetail(
         val itemId: String,
         val accountId: String,
@@ -279,6 +284,7 @@ internal sealed interface ScreenKind {
 
 /** Swift-facing discriminator for a navigation-stack entry. */
 enum class ScreenEntryKind {
+    ENVIRONMENTS,
     CIPHER_DETAIL,
     VAULT_LIST,
     WATCHTOWER,
@@ -344,6 +350,8 @@ data class ScreenEntrySnapshot(
     val cipherId: String?,
     val cipherAccountId: String?,
     val fromList: Boolean,
+    val environmentId: String? = null,
+    val createEnvironment: Boolean = false,
 )
 
 /**
@@ -478,6 +486,8 @@ internal class NavigationStackController(
             cipherId = (kind as? ScreenKind.CipherDetail)?.itemId,
             cipherAccountId = (kind as? ScreenKind.CipherDetail)?.accountId,
             fromList = fromList,
+            environmentId = (kind as? ScreenKind.Environments)?.environmentId,
+            createEnvironment = (kind as? ScreenKind.Environments)?.create == true,
         )
     }
 
@@ -1102,6 +1112,11 @@ internal class NavigationStackController(
 
     /** Exhaustive on purpose: the compiler forces every new [RouteDescriptor] to get a mapping here. */
     private fun descriptorScreen(descriptor: RouteDescriptor): ScreenKind? = when (descriptor) {
+        RouteDescriptor.Environments -> ScreenKind.Environments(environmentId = null, create = false)
+        is RouteDescriptor.EnvironmentEdit -> ScreenKind.Environments(
+            environmentId = descriptor.environmentId,
+            create = descriptor.environmentId == null,
+        )
         is RouteDescriptor.VaultCipherView ->
             ScreenKind.CipherDetail(itemId = descriptor.itemId, accountId = descriptor.accountId)
 
@@ -1528,6 +1543,7 @@ internal class NavigationStackController(
 
             // Self-observing screens: the Swift view starts its own observation from the
             // entry's scalar args on appear, so there is no producer to launch here.
+            is ScreenKind.Environments,
             ScreenKind.GeneratorHistory,
             ScreenKind.Subscriptions,
             is ScreenKind.PasswordHistory,

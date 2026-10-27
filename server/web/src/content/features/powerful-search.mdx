@@ -5,24 +5,19 @@ icon: "🔍"
 group: "Essentials"
 order: 3
 featured: true
-premium: false
+doc: search
 ---
 
 import searchFields from '../../assets/screenshots/search-multiple-fields.png';
 import searchAttachment from '../../assets/screenshots/search-attachment-qualifier.png';
 
-Search matches item titles and fields, so a username, an email address, or a
-fragment of a website finds the right entry. Results update as you type, across
-a vault of thousands of entries.
-
-When several results look alike, narrow them down. You can refine by item type, folder, or tags to cut a broad list into a precise one without leaving the search field.
+Search matches titles and fields as you type, so a username, an email address
+or part of a website finds the right item. Filters by item type, folder and tag
+cut a broad list down without leaving the search field.
 
 <Screenshot src={searchFields} caption="A partial query surfaces matches instantly, highlighted across titles, fields, and attachments." />
 
-Qualifiers narrow it further. `attachment:` matches items by the names of the files attached to them, and the type and tag filters stack on top.
+Qualifiers narrow a search to one field. `attachment:` finds items by the
+names of their files, and stacks with the type and tag filters.
 
 <Screenshot src={searchAttachment} caption="The attachment: qualifier narrows results to items with a matching file, alongside the type and tag filters." />
-
-### Search syntax
-
-See the [search documentation](/docs/search/) for more details on supported features and query syntax.

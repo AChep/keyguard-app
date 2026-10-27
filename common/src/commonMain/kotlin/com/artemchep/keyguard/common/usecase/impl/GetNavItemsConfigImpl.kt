@@ -6,7 +6,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.NavItemRef
 import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.NavItemsConfigDefaults
-import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
+import com.artemchep.keyguard.common.service.gpgagent.isEligibleForGpgAgent
 import com.artemchep.keyguard.common.service.settings.SettingsReadRepository
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -143,7 +143,7 @@ class GetNavItemsConfigImpl(
             // An empty snapshot means the ciphers are not loaded yet.
             ciphers
                 .takeIf { it.isNotEmpty() }
-                ?.any { cipher -> cipher.toGpgAgentSecretOrNull() != null }
+                ?.any { cipher -> cipher.isEligibleForGpgAgent() }
         }
 
     private fun Flow<NavItemsConfigStatus>.onEachCacheUpstream() =

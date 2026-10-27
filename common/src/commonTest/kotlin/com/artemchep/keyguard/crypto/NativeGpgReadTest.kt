@@ -31,9 +31,19 @@ class NativeGpgReadTest {
         )
 
         assertEquals(
-            listOf(GpgUserIdInfo(USER_ID_IDENTITY_ID, USER_ID)),
+            listOf(
+                GpgUserIdInfo(
+                    USER_ID_IDENTITY_ID,
+                    USER_ID,
+                    primary = true,
+                    canReplace = true,
+                    canMakePrimary = true,
+                ),
+            ),
             result.keys.single().userIdDetails,
         )
+        assertTrue(result.keys.single().userIdHistory.isEmpty())
+        assertTrue(result.keys.single().canModifyUserIds)
     }
 
     @Test

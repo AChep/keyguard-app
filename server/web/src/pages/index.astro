@@ -4,8 +4,12 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import Hero from '../components/Hero.astro';
 import FeatureCard from '../components/FeatureCard.astro';
 
+// Featured features shown as large cards, first in the grid.
+const LARGE = ['autofill', 'watchtower'];
+
 const featured = (await getCollection('features', ({ data }) => data.featured)).sort(
   (a, b) =>
+    Number(LARGE.includes(b.id)) - Number(LARGE.includes(a.id)) ||
     (a.data.order ?? 0) - (b.data.order ?? 0) ||
     a.data.title.localeCompare(b.data.title),
 );
@@ -15,19 +19,25 @@ const featured = (await getCollection('features', ({ data }) => data.featured)).
   <Hero />
 
   <section class="mx-auto max-w-6xl px-6 py-16">
-    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="mb-8 flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+      <h2 class="opsz-text text-3xl font-medium tracking-[-0.03em] text-on-surface sm:text-4xl">Features</h2>
+      <a href="/features/" class="font-medium text-primary hover:opacity-80">
+        See all features
+      </a>
+    </div>
+    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
       {
         featured.map((f) => (
-          <FeatureCard title={f.data.title} slug={f.id} href={`/features/${f.id}/`}>
+          <FeatureCard
+            title={f.data.title}
+            slug={f.id}
+            href={`/features/${f.id}/`}
+            large={LARGE.includes(f.id)}
+          >
             {f.data.summary}
           </FeatureCard>
         ))
       }
-    </div>
-    <div class="mt-10 text-center">
-      <a href="/features/" class="font-medium text-primary hover:opacity-80">
-        See all features
-      </a>
     </div>
   </section>
 </BaseLayout>

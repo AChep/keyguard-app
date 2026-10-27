@@ -6,6 +6,7 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 
 data class OrganizationConfirmationState(
     val content: Loadable<Content> = Loadable.Loading,
+    val warnings: List<AccountChangeWarning> = emptyList(),
     val onDeny: (() -> Unit)? = null,
     val onConfirm: (() -> Unit)? = null,
 ) {

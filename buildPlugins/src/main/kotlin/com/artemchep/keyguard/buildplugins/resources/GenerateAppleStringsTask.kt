@@ -35,10 +35,9 @@ abstract class GenerateAppleStringsTask : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        val valueDirs = composeResourcesDir.get().asFile.listFiles()
-            ?.filter { it.isDirectory && it.name.startsWith("values") }
-            ?.sortedBy { it.name }
-            .orEmpty()
+        val resourcesDir = composeResourcesDir.get().asFile
+        val valueDirs = localeDirectoryNames(resourcesDir)
+            .map(resourcesDir::resolve)
 
         val locales = sortedSetOf<String>()
         // key -> (appleLocale -> converted value)
@@ -341,26 +340,23 @@ abstract class GenerateAppleStringsTask : DefaultTask() {
         // `%%` is a token too, so the percent after it is never read as a specifier.
         private val FORMAT_SPECIFIER = Regex("""%(?:(\d+)\$)?([sdf%])""")
 
-        private val LANGUAGE = Regex("[a-z]{2,3}")
-
         private val JSON = JsonGenerator.Options().disableUnicodeEscaping().build()
 
         private fun appleLocale(dirName: String): String? {
             if (dirName == "values") return BASE_LOCALE
-            if (!dirName.startsWith("values-")) return null
-            val parts = dirName.removePrefix("values-").split('-')
-            val language = parts.first().takeIf { LANGUAGE.matches(it) } ?: return null
-            val region = parts.getOrNull(1)?.removePrefix("r")?.takeIf(String::isNotEmpty)
+            val directory = parseLocaleDirectory(dirName) ?: return null
+            val region = directory.region
 
-            val mapped = when (language) {
+            val mapped = when (directory.language) {
                 "iw" -> "he" // legacy Hebrew code
                 "in" -> "id" // legacy Indonesian code
                 "ji" -> "yi" // legacy Yiddish code
                 "no" -> "nb" // Norwegian -> Bokmål on Apple
-                else -> language
+                else -> directory.language
             }
 
             if (mapped == "zh") {
+                directory.script?.let { return "zh-$it" }
                 return if (region in setOf("TW", "HK", "MO")) "zh-Hant" else "zh-Hans"
             }
 

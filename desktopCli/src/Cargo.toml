@@ -1,0 +1,32 @@
+[package]
+name = "keyguard-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "The keyguard command-line tool"
+license-file.workspace = true
+repository.workspace = true
+publish = false
+autobins = false
+
+[[bin]]
+name = "keyguard"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap = { workspace = true, features = ["derive"] }
+keyguard-cli-protocol.workspace = true
+rmcp = { workspace = true, features = ["server", "transport-io"] }
+serde_json.workspace = true
+tokio = { workspace = true, features = ["full"] }
+zeroize.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_System_Console", "Win32_System_JobObjects", "Win32_System_Threading"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

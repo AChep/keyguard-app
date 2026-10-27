@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase.internal
 
+import com.artemchep.keyguard.common.exception.AccountAlreadyExistsException
 import com.artemchep.keyguard.common.exception.PremiumException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
@@ -24,8 +25,10 @@ import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.QueueSyncById
 import com.artemchep.keyguard.common.usecase.SyncById
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenProfile
 import com.artemchep.keyguard.core.store.bitwarden.FileLocation
 import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
+import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.TestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.createTestDatabase
@@ -123,6 +126,62 @@ class AddKeePassAccountImplTest {
 
             assertTrue(db.accountQueries.get().executeAsList().isEmpty())
             assertEquals(emptyList(), fixture.queuedSyncs)
+            assertEquals(emptyList(), fixture.directSyncs)
+        }
+    }
+
+    @Test
+    fun `open of a copy of an added database fails before inserting account or scheduling sync`() = runTest {
+        val testScope = this
+        withTempDirectory("keyguard-add-keepass-test") { dir ->
+            val dbPath = dir.resolve("vault.kdbx")
+            val prepared = prepareKeePassDatabase(
+                fileService = fileService,
+                params = params(
+                    mode = AddKeePassAccountParams.Mode.New(allowOverwrite = false),
+                    dbUri = dbPath.toUri().toString(),
+                    password = "secret",
+                ),
+            )
+            val db = createTestDatabase()
+            val fixture = createFixture(db = db, scope = testScope)
+            val accountId = fixture.useCase(
+                params(
+                    mode = AddKeePassAccountParams.Mode.Open,
+                    dbUri = dbPath.toUri().toString(),
+                    password = "secret",
+                ),
+            ).bind()
+            // The first sync uses the root group UUID as the profile ID.
+            db.profileQueries.insert(
+                profileId = prepared.rootGroupId,
+                accountId = accountId.id,
+                data = BitwardenProfile(
+                    accountId = accountId.id,
+                    profileId = prepared.rootGroupId,
+                    name = "",
+                    keyBase64 = "",
+                    privateKeyBase64 = "",
+                    email = "",
+                    masterPasswordHint = null,
+                ),
+            )
+            advanceUntilIdle()
+
+            val copyPath = Files.copy(dbPath, dir.resolve("vault-copy.kdbx"))
+            assertFailsWith<AccountAlreadyExistsException> {
+                fixture.useCase(
+                    params(
+                        mode = AddKeePassAccountParams.Mode.Open,
+                        dbUri = copyPath.toUri().toString(),
+                        password = "secret",
+                    ),
+                ).bind()
+            }
+            advanceUntilIdle()
+
+            assertEquals(accountId.id, db.accountQueries.get().executeAsList().single().accountId)
+            assertEquals(listOf(accountId), fixture.queuedSyncs)
             assertEquals(emptyList(), fixture.directSyncs)
         }
     }
@@ -429,6 +488,7 @@ class AddKeePassAccountImplTest {
             base64Service = testBase64Service,
             webDavClientFactory = webDavClientFactory,
             s3ClientFactory = s3ClientFactory,
+            stagingSpoolFactory = DefaultStagingSpoolFactory(),
             db = TestVaultDatabaseManager(db),
         )
         return Fixture(

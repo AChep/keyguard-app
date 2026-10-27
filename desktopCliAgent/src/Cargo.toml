@@ -1,0 +1,48 @@
+[package]
+name = "keyguard-cli-agent"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "Keyguard's CLI agent: the endpoint of the keyguard CLI and MCP, and local environment files"
+license-file.workspace = true
+repository.workspace = true
+publish = false
+autobins = false
+
+[[bin]]
+name = "keyguard-cli-agent"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap = { workspace = true, features = ["derive"] }
+getrandom.workspace = true
+hex.workspace = true
+keyguard-agent-identity.workspace = true
+keyguard-agent-ipc = { workspace = true, features = ["proto"] }
+keyguard-agent-proto.workspace = true
+keyguard-cli-protocol.workspace = true
+prost.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+sha2.workspace = true
+tokio = { workspace = true, features = ["full"] }
+zeroize.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+dirs.workspace = true
+keyguard-agent-proto-adapter.workspace = true
+libc.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_System_Pipes"] }
+
+[build-dependencies]
+prost-build.workspace = true
+
+[dev-dependencies]
+keyguard-agent-proto = { workspace = true, features = ["fixtures"] }
+tempfile.workspace = true
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

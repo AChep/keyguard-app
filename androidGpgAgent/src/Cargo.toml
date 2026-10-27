@@ -1,0 +1,32 @@
+[package]
+name = "keyguard-android-gpg-agent"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+description = "Standalone Android GPG agent bridge for Keyguard"
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[[bin]]
+name = "keyguard-android-gpg-agent"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+clap = { workspace = true, features = ["derive"] }
+common-gpg-agent-rust.workspace = true
+keyguard-agent-identity.workspace = true
+keyguard-android-agent-bridge.workspace = true
+keyguard-gpg-agent-assuan.workspace = true
+libc.workspace = true
+prost.workspace = true
+tokio = { workspace = true, features = ["io-util", "macros", "net", "process", "rt-multi-thread", "signal", "sync", "time"] }
+tracing.workspace = true
+tracing-subscriber.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

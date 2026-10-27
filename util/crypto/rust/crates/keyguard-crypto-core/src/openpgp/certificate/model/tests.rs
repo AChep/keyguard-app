@@ -15,7 +15,10 @@ use pgp::{
 use prost::bytes::Bytes;
 use rand::{SeedableRng, rngs::StdRng};
 
-use crate::openpgp::policy::{OpenPgpPolicyBudget, certificate_components, validate_certificate};
+use crate::openpgp::{
+    crypto::key_signature::tests::{KeyFraming, sign_signed_data, third_party_signature_config},
+    policy::{OpenPgpPolicyBudget, certificate_components, validate_certificate},
+};
 
 const PUBLIC_KEY: &[u8] = include_bytes!("../../../../tests/fixtures/openpgp/cv25519-public.asc");
 const SECRET_KEY: &[u8] = include_bytes!("../../../../tests/fixtures/openpgp/cv25519-secret.asc");
@@ -909,7 +912,7 @@ fn v3_user_id_certification(
         .new_hasher()
         .expect("create v3 certification hasher");
     hasher.update(
-        &signature_key_hash_data(secret.primary_key.public_key())
+        &signature_key_hash_data(SignatureVersion::V3, secret.primary_key.public_key())
             .expect("serialize v4 primary key for v3 signature"),
     );
     hasher.update(&identity.body);
@@ -2608,90 +2611,6 @@ fn unowned_certifications_count_against_the_component_limit_after_rehoming() {
 }
 
 #[test]
-fn signature_rehoming_has_a_fixed_verification_budget() {
-    let mut budget = SignatureRehomingBudget::default();
-    for _ in 0..MAX_SIGNATURE_REHOMING_VERIFICATIONS {
-        assert!(budget.verify(|| true).expect("verification within cap"));
-    }
-    assert!(matches!(
-        budget.verify(|| true),
-        Err(CertificateMergeError::ResourceLimit)
-    ));
-}
-
-#[test]
-fn signature_rehoming_request_limit_cannot_multiply_across_certificates() {
-    let mut budget = SignatureRehomingBudget::default();
-    for marker in [1_u8, 2] {
-        budget.begin_certificate(&FingerprintKey {
-            version: 4,
-            bytes: vec![marker; 20],
-        });
-        for _ in 0..MAX_SIGNATURE_REHOMING_VERIFICATIONS {
-            assert!(!budget.verify(|| false).expect("verification within cap"));
-        }
-    }
-    assert_eq!(
-        budget.request_verifications,
-        MAX_SIGNATURE_REHOMING_VERIFICATIONS_PER_REQUEST,
-    );
-
-    budget.begin_certificate(&FingerprintKey {
-        version: 4,
-        bytes: vec![3; 20],
-    });
-    assert!(matches!(
-        budget.verify(|| false),
-        Err(CertificateMergeError::ResourceLimit)
-    ));
-    assert_eq!(budget.verifications, 0);
-}
-
-#[test]
-fn export_classification_has_a_fixed_verification_budget() {
-    let mut budget = ExportClassificationBudget::default();
-    budget.begin_certificate(&FingerprintKey {
-        version: 4,
-        bytes: vec![1; 20],
-    });
-    for _ in 0..MAX_EXPORT_CLASSIFICATION_VERIFICATIONS {
-        assert!(budget.verify(|| true).expect("verification within cap"));
-    }
-    assert!(matches!(
-        budget.verify(|| true),
-        Err(CertificateMergeError::ResourceLimit)
-    ));
-}
-
-#[test]
-fn export_classification_request_limit_cannot_multiply_across_certificates() {
-    let mut budget = ExportClassificationBudget::default();
-    for marker in [1_u8, 2] {
-        budget.begin_certificate(&FingerprintKey {
-            version: 4,
-            bytes: vec![marker; 20],
-        });
-        for _ in 0..MAX_EXPORT_CLASSIFICATION_VERIFICATIONS {
-            assert!(!budget.verify(|| false).expect("verification within cap"));
-        }
-    }
-    assert_eq!(
-        budget.request_verifications,
-        MAX_EXPORT_CLASSIFICATION_VERIFICATIONS_PER_REQUEST,
-    );
-
-    budget.begin_certificate(&FingerprintKey {
-        version: 4,
-        bytes: vec![3; 20],
-    });
-    assert!(matches!(
-        budget.verify(|| false),
-        Err(CertificateMergeError::ResourceLimit)
-    ));
-    assert_eq!(budget.verifications, 0);
-}
-
-#[test]
 fn exhausted_request_rehoming_budget_rejects_the_next_certificate_pipeline() {
     let mut budget = SignatureRehomingBudget::default();
     for marker in [1_u8, 2] {
@@ -4197,6 +4116,91 @@ fn authenticated_matching_designated_revocation_exports_its_sensitive_declaratio
 }
 
 #[test]
+fn cross_version_designated_revocation_exports_its_sensitive_declaration() {
+    let target = generated_v6_secret(0x5636_5843_5653_4e53);
+    let revoker = parse_secret(OTHER_SECRET_KEY);
+    assert_eq!(revoker.primary_key.version(), KeyVersion::V4);
+    let declaration = v6_designated_revoker_declaration(&target, &revoker);
+    let candidates = vec![PublicComponent::Primary(
+        revoker.primary_key.public_key().clone(),
+    )];
+    for (framing, exported) in [(KeyFraming::V4, true), (KeyFraming::V6, false)] {
+        let revocation = CanonicalPacket {
+            tag: SIGNATURE_TAG,
+            body: sign_signed_data(
+                third_party_signature_config(
+                    &revoker.primary_key,
+                    SignatureType::KeyRevocation,
+                    1_782_541_500,
+                ),
+                &revoker.primary_key,
+                &framing.frame(target.primary_key.public_key()),
+            )
+            .to_bytes()
+            .expect("serialize cross-version designated revocation"),
+        };
+        let mut certificate = certificate_packet_set(&target);
+        certificate
+            .direct
+            .insert(declaration.clone())
+            .expect("attach sensitive declaration");
+        certificate
+            .direct
+            .insert(revocation)
+            .expect("attach cross-version designated revocation");
+
+        let canonical = certificate
+            .finalize_with_revocation_candidates(&candidates)
+            .expect("finalize revoked certificate");
+        assert_eq!(
+            contains_packet_body(&canonical.bytes, &declaration),
+            exported,
+            "canonical export, {framing:?} framing",
+        );
+        let raw = raw_transferable_bytes_with_candidates(&certificate, &candidates);
+        assert_eq!(
+            contains_packet_body(&raw, &declaration),
+            exported,
+            "raw export, {framing:?} framing",
+        );
+    }
+}
+
+#[test]
+fn cross_version_certification_prefix_uses_the_signature_version_framing() {
+    let target = parse_secret(SECRET_KEY);
+    let authority = generated_v6_secret(0x5636_5843_5650_5246);
+    assert_eq!(target.primary_key.version(), KeyVersion::V4);
+    let certificate = certificate_packet_set(&target);
+    let identity = certificate
+        .identity_order
+        .first()
+        .expect("target user ID")
+        .clone();
+    let user_id = &target.details.users[0].id;
+    for (framing, matches) in [(KeyFraming::V6, true), (KeyFraming::V4, false)] {
+        let certification = sign_signed_data(
+            third_party_signature_config(
+                &authority.primary_key,
+                SignatureType::CertGeneric,
+                1_782_541_400,
+            ),
+            &authority.primary_key,
+            &framing.user_id_certification_data(target.primary_key.public_key(), user_id),
+        );
+        assert_eq!(
+            certificate.signature_digest_prefix_matches_placement(
+                target.primary_key.public_key(),
+                &certification,
+                &SignaturePlacement::Identity(identity.clone()),
+            ),
+            Some(matches),
+            "{framing:?} framing",
+        );
+    }
+}
+
+#[test]
 fn forged_matching_issuer_hint_does_not_reveal_a_sensitive_declaration() {
     let target = parse_secret(SECRET_KEY);
     let revoker = parse_secret(OTHER_SECRET_KEY);
@@ -4708,18 +4712,12 @@ fn signing_subkey_transferable_export_requires_a_valid_back_signature() {
             .expect("parse corrupt backsig")
     };
     let wrong_key = test_primary_key_binding(&secret, &wrong_signer);
-    let wrong_type = test_embedded_binding(&secret, &secret, SignatureType::SubkeyBinding);
     let cases = [
         ("valid hashed backsig", Some((valid.clone(), true)), true),
         ("valid unhashed backsig", Some((valid.clone(), false)), true),
         ("missing backsig", None, false),
         ("corrupt backsig", Some((corrupt, true)), false),
         ("wrong-key backsig", Some((wrong_key, true)), false),
-        (
-            "wrong-type embedded signature",
-            Some((wrong_type, true)),
-            false,
-        ),
     ];
 
     for (case, embedded, expected_exported) in cases {
@@ -4768,6 +4766,45 @@ fn signing_subkey_transferable_export_requires_a_valid_back_signature() {
                 "{label} binding: {case}",
             );
         }
+    }
+
+    // rPGP rejects an embedded signature that is not a primary-key binding
+    // while parsing, so the importer keeps such a binding as an opaque packet,
+    // like any other malformed signature, and the subkey stays unbound.
+    let wrong_type = test_embedded_binding(&secret, &secret, SignatureType::SubkeyBinding);
+    let binding = test_subkey_binding(
+        &secret,
+        Some(signing_flags()),
+        None,
+        Some((wrong_type, true)),
+    );
+    let mut certificate = certificate_packet_set(&secret);
+    let fingerprint = certificate
+        .subkey_order
+        .first()
+        .cloned()
+        .expect("generated signing subkey");
+    let subkey_bundle = certificate
+        .subkeys
+        .get_mut(&fingerprint)
+        .expect("generated signing subkey bundle");
+    subkey_bundle.attached = AttachedPackets::default();
+    let subkey_packet = subkey_bundle.packet.clone();
+    let mut document = certificate
+        .finalize()
+        .expect("finalize unbound test certificate")
+        .retained_bytes;
+    binding
+        .write_to(&mut document)
+        .expect("write wrong-type binding");
+    let imported = parse_document(&document)
+        .into_iter()
+        .next()
+        .expect("imported test certificate");
+    let canonical = imported.finalize().expect("finalize imported certificate");
+    assert!(contains_packet_body(&canonical.retained_bytes, &binding));
+    for exported in [&canonical.bytes, &raw_transferable_bytes(&imported)] {
+        assert!(!contains_packet_body(exported, &subkey_packet));
     }
 }
 

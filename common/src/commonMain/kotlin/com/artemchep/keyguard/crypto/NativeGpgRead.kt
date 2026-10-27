@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgUserIdInfo
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMetadataResolution
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.util.isHexDigit
 import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
@@ -86,7 +87,7 @@ object NativeGpgKeyMetadataResolver : GpgKeyMetadataResolver {
         val normalizedFingerprint = fingerprint
             ?.normalizeGpgFingerprint()
             .orEmpty()
-        if (normalizedFingerprint.any { character -> !character.isAsciiHexDigit() }) {
+        if (normalizedFingerprint.any { character -> !character.isHexDigit() }) {
             return null
         }
         val privateKeyData = privateKeyArmored
@@ -187,9 +188,6 @@ object NativeGpgOpenPgpVerifier : GpgOpenPgpVerifier {
         "open_pgp_detached_verify.stream_open"
 }
 
-private fun Char.isAsciiHexDigit(): Boolean =
-    this in '0'..'9' || this in 'A'..'F'
-
 private fun Source.readBoundedAndClose(
     limit: Int,
     operation: String,
@@ -228,12 +226,9 @@ internal fun NativeOpenPgpPublicKeyInfo.toDomain(): GpgPublicKeyInfo = GpgPublic
     authenticated = authenticated,
     renewal = renewal.toDomain(),
     weakSelfSignatureAlgorithms = weakSelfSignatureAlgorithms,
-    userIdDetails = userIdDetails.map { value ->
-        GpgUserIdInfo(
-            identityId = value.identityId,
-            userId = value.userId,
-        )
-    },
+    userIdDetails = userIdDetails.map { it.toDomain() },
+    userIdHistory = userIdHistory.map { it.toDomain() },
+    canModifyUserIds = canModifyUserIds,
 )
 
 private fun NativeOpenPgpPublicSubKeyInfo.toDomain(): GpgPublicSubKeyInfo = GpgPublicSubKeyInfo(
@@ -282,4 +277,15 @@ internal fun NativeOpenPgpVerification.toDomain(): GpgOpenPgpVerification =
             }
         },
         signatures = signatures.map { result -> result.toDomain() },
+    )
+
+private fun com.artemchep.keyguard.nativecrypto.NativeOpenPgpUserIdInfo.toDomain(): GpgUserIdInfo =
+    GpgUserIdInfo(
+        identityId = identityId,
+        userId = userId,
+        primary = primary,
+        revoked = revoked,
+        canRevoke = canRevoke,
+        canReplace = canReplace,
+        canMakePrimary = canMakePrimary,
     )

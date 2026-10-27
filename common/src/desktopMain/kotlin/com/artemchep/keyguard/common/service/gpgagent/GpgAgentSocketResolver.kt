@@ -22,6 +22,31 @@ internal class GpgAgentSocketResolver(
 ) {
     private val gpgconf = GpgconfRunner()
 
+    // The installed version does not change while the app runs; failures are retried.
+    @Volatile
+    private var gpgVersion: String? = null
+
+    suspend fun helperArguments(): List<String> = withContext(Dispatchers.IO) {
+        val platform = CurrentPlatform
+        val home = ManagedGpgHome.ofPlatformOrNull(platform, dataDirectory)
+            ?: return@withContext emptyList()
+        // The sandbox cannot see the host's gpg; the agent then reports its fallback version.
+        if (platform is Platform.Desktop.Linux && platform.isFlatpak) {
+            return@withContext emptyList()
+        }
+        runCatchingNonFatal {
+            val version = gpgVersion
+                ?: gpgconf.resolveGpgVersion(home.path).also { version ->
+                    gpgVersion = version
+                    logRepository.post(TAG, "GnuPG client version: $version", LogLevel.INFO)
+                }
+            listOf("--gnupg-version", version)
+        }.getOrElse { e ->
+            logRepository.post(TAG, "Could not detect the GnuPG client version: ${e.message}", LogLevel.WARNING)
+            emptyList()
+        }
+    }
+
     suspend fun resolveOrNull(): Path? = withContext(Dispatchers.IO) {
         val platform = CurrentPlatform
         val home = ManagedGpgHome.ofPlatformOrNull(platform, dataDirectory)

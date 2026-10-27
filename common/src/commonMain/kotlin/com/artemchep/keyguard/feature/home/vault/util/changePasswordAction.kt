@@ -9,6 +9,7 @@ import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.EditNotifications
 import androidx.compose.material.icons.outlined.FileCopy
@@ -88,6 +89,7 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.feature.send.add.SendAddRoute
+import com.artemchep.keyguard.feature.environments.mount.EnvironmentMountRoute
 import com.artemchep.keyguard.feature.sshagent.history.SshAgentHistoryRoute
 import com.artemchep.keyguard.platform.LeSystem
 import com.artemchep.keyguard.res.Res
@@ -852,10 +854,8 @@ fun RememberStateFlowScope.cipherCopyToAction(
             val ciphersHaveAttachments = ciphers.any { it.attachments.isNotEmpty() }
             val note = when {
                 ciphersHaveAttachments -> {
-                    val text =
-                        "Copying a cipher does not copy its attachments, this feature is work in progress."
                     SimpleNote(
-                        text = text,
+                        text = translate(Res.string.ciphers_copy_attachments_note),
                         type = SimpleNote.Type.INFO,
                     )
                 }
@@ -870,6 +870,7 @@ fun RememberStateFlowScope.cipherCopyToAction(
                             note = note,
                             icon = iconImageVector,
                         ),
+                        accountChangeWarnings = cipherCopyWarnings(ciphers) { translate(it) },
                     ),
                 ),
             ) { result ->
@@ -1180,6 +1181,24 @@ fun RememberStateFlowScope.cipherViewPasswordHistoryAction(
             val intent = NavigationIntent.NavigateToRoute(
                 VaultViewPasswordHistoryRoute(
                     itemId = cipher.id,
+                ),
+            )
+            navigate(intent)
+        },
+    )
+}
+
+fun RememberStateFlowScope.cipherCreateEnvironmentMountAction(
+    cipher: DSecret,
+) = kotlin.run {
+    FlatItemAction(
+        id = "cipher.createEnvironmentMount",
+        leading = icon(Icons.Outlined.Description),
+        title = Res.string.environments_mount_create.wrap(),
+        onClick = {
+            val intent = NavigationIntent.NavigateToRoute(
+                EnvironmentMountRoute(
+                    environmentId = cipher.id,
                 ),
             )
             navigate(intent)

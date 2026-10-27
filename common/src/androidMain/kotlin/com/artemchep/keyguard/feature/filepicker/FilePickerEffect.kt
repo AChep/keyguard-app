@@ -118,7 +118,7 @@ actual fun FilePickerEffect(
                 context.toFilePickerResult(
                     uri = uri,
                     size = null,
-                )
+                ).copy(created = true)
             }
             intent.onResult(info)
         }

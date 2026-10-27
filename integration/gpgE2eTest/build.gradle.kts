@@ -1,3 +1,4 @@
+import com.artemchep.keyguard.buildplugins.cargo.configureNativeLibraryTests
 import com.artemchep.keyguard.buildplugins.testing.E2eToolchain
 import com.artemchep.keyguard.buildplugins.testing.forwardSystemProperties
 
@@ -11,7 +12,11 @@ keyguardE2e {
     toolchain = E2eToolchain.GPG
 }
 
+// The Kotlin side of the private channel runs over util/agent-ipc.
+configureNativeLibraryTests(":util:agent-ipc")
+
 dependencies {
+    gpgE2eTestImplementation(project(":integration:testProcess"))
     gpgE2eTestImplementation(project(":common"))
     gpgE2eTestImplementation(libs.kotlinx.coroutines.core)
     gpgE2eTestImplementation(libs.kotlinx.coroutines.test)

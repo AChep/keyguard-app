@@ -15,13 +15,13 @@ import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.add.AddState
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.RouteResultHandler
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
-import kotlinx.atomicfu.atomic
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
@@ -69,7 +69,7 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
     args: ConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<ConfirmationResult>,
 ): Flow<ConfirmationState> {
-    val resultHandler = ConfirmationResultHandler(transmitter)
+    val resultHandler = RouteResultHandler(transmitter)
     screenScope.coroutineContext.job.invokeOnCompletion {
         resultHandler.complete(ConfirmationResult.Deny)
     }
@@ -243,23 +243,6 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
                 },
             )
         }
-}
-
-/** Claims the result before navigation can dispose the dialog and report a dismissal. */
-internal class ConfirmationResultHandler(
-    private val transmitter: RouteResultTransmitter<ConfirmationResult>,
-) {
-    private val completed = atomic(false)
-
-    fun complete(
-        result: ConfirmationResult,
-        beforeTransmit: () -> Unit = {},
-    ) {
-        if (completed.compareAndSet(expect = false, update = true)) {
-            beforeTransmit()
-            transmitter(result)
-        }
-    }
 }
 
 private suspend fun RememberStateFlowScope.confirmationStringItem(

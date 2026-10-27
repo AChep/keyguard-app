@@ -55,6 +55,10 @@ kotlin {
         }
 
         sharedAppleMain()
+        // The macOS agents' transport; iOS never links it.
+        getByName("macosMain").dependencies {
+            implementation(project(":util:agent-ipc"))
+        }
 
         // Runtime tests for the Apple bridge; `iosTest` holds the graph tests
         // for the iOS application root.
@@ -64,6 +68,9 @@ kotlin {
             }
         }
         sharedAppleTest()
+        // KMP has no test fixtures, and a fixtures module would depend on
+        // `common`, which common's own tests cannot use. Share the sources.
+        getByName("appleTest").kotlin.srcDir("../common/src/appleTestFixtures/kotlin")
     }
 }
 

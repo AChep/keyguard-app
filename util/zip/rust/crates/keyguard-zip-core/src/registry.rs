@@ -26,6 +26,7 @@ use crate::{
 enum Entry {
     Writer(Box<ArchiveWriter>),
     Reader(ArchiveReader),
+    MemoryReader(crate::memory_reader::MemoryReader),
 }
 
 struct Registry {
@@ -146,4 +147,33 @@ pub fn take_reader(handle: u64) -> Result<ArchiveReader, i64> {
         }
         None => Err(invalid_handle()),
     }
+}
+
+/// Registers an in-memory entry reader.
+pub fn insert_memory_reader(reader: crate::memory_reader::MemoryReader) -> u64 {
+    insert(Entry::MemoryReader(reader))
+}
+
+/// Reads one chunk of an in-memory entry.
+///
+/// # Errors
+/// Returns an invalid-handle or archive read failure.
+pub fn memory_read(handle: u64, output: &mut [u8]) -> Result<usize, i64> {
+    match lock().entries.get_mut(&handle) {
+        Some(Entry::MemoryReader(reader)) => reader.read(output),
+        _ => Err(invalid_handle()),
+    }
+}
+
+/// Closes an in-memory entry, releasing its bytes.
+///
+/// # Errors
+/// Returns an invalid-handle failure for unknown or other kinds of handle.
+pub fn memory_close(handle: u64) -> Result<(), i64> {
+    let mut registry = lock();
+    if !matches!(registry.entries.get(&handle), Some(Entry::MemoryReader(_))) {
+        return Err(invalid_handle());
+    }
+    registry.entries.remove(&handle);
+    Ok(())
 }

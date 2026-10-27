@@ -1,13 +1,23 @@
 [workspace]
 resolver = "2"
 members = [
+    "androidGpgAgent/src",
     "androidSshAgent/src",
     "commonAgent",
+    "commonAgent/android-bridge",
+    "commonAgent/ipc",
+    "commonAgent/proto",
+    "commonAgent/proto-adapter",
+    "commonCli",
     "commonGpgAgent",
+    "commonGpgAgent/assuan",
     "commonSshAgent",
+    "desktopCli/src",
+    "desktopCliAgent/src",
     "desktopGpgAgent/src",
     "desktopLibNative/src",
     "desktopSshAgent/src",
+    "util/agent-ipc/rust/crates/*",
     "util/ffi/rust/crates/*",
     "util/fido2/rust/crates/*",
     "util/instance/rust/crates/*",
@@ -25,7 +35,8 @@ exclude = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+# Generated from appVersionName; run ./gradlew generateAppVersions after a bump.
+version = "3.5.0"
 edition = "2024"
 rust-version = "1.94.0"
 license-file = "LICENSE"
@@ -37,6 +48,12 @@ repository = "https://github.com/AChep/keyguard-app"
 common-gpg-agent-rust = { path = "commonGpgAgent" }
 common-ssh-agent-rust = { path = "commonSshAgent" }
 keyguard-agent-identity = { path = "commonAgent" }
+keyguard-android-agent-bridge = { path = "commonAgent/android-bridge" }
+keyguard-agent-ipc = { path = "commonAgent/ipc", default-features = false }
+keyguard-agent-proto = { path = "commonAgent/proto" }
+keyguard-agent-proto-adapter = { path = "commonAgent/proto-adapter" }
+keyguard-cli-protocol = { path = "commonCli" }
+keyguard-gpg-agent-assuan = { path = "commonGpgAgent/assuan" }
 keyguard-ffi = { path = "util/ffi/rust/crates/keyguard-ffi" }
 keyguard-fido2-core = { path = "util/fido2/rust/crates/keyguard-fido2-core" }
 keyguard-yubikey-core = { path = "util/yubikey/rust/crates/keyguard-yubikey-core" }
@@ -45,30 +62,31 @@ anyhow = "1"
 async-trait = "0.1"
 # Exact: matches the reviewed credential-ID recovery patch below.
 authenticator = { version = "=0.5.0", default-features = false }
-base64 = "0.22.1"
+base64 = { version = "0.23.1", default-features = false }
 bytes = "1"
 cc = "1"
 ciborium = "0.2.2"
 chacha20poly1305 = "0.10"
 clap = "4"
-dirs = "6"
+dirs = "7"
 futures = "0.3"
-getrandom = "0.3.4"
+getrandom = "0.4.3"
 hex = "0.4"
 hidapi = { version = "2.6.7", default-features = false }
 hkdf = "0.12"
-jni = { version = "0.21.1", default-features = false }
+jni = { version = "0.22.4", default-features = false }
 libc = "0.2.186"
 # Keep runtime and code generation aligned with the crypto workspace and native-protocol.
-prost = "=0.13.5"
-prost-build = "=0.13.5"
+prost = "=0.14.4"
+prost-build = "=0.14.4"
 rand = "0.8"
 self_cell = "1.3.0"
 serde = "1"
 serde_json = "1"
+rmcp = { version = "=3.7.0", default-features = false }
 sha2 = "0.10.9"
 signature = "2"
-ssh-agent-lib = "0.5"
+ssh-agent-lib = "0.6"
 # Exact: these must match the reviewed forks in [patch.crates-io].
 ssh-encoding = "=0.2.0"
 ssh-key = "=0.6.7"
@@ -83,9 +101,9 @@ windows = "0.62.2"
 windows-core = "0.62.2"
 windows-future = "0.3.2"
 windows-sys = "0.61.2"
-zbus = { version = "5", default-features = false }
+zbus = { version = "6", default-features = false }
 zeroize = "1.9.0"
-zip = { version = "8.6.0", default-features = false }
+zip = { version = "9.1.0", default-features = false }
 zxcvbn = { version = "3.1.1", default-features = false }
 
 [workspace.lints.rust]

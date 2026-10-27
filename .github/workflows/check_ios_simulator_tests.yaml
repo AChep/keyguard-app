@@ -8,9 +8,9 @@ on:
         required: false
         default: false
         type: boolean
-  # Kotlin tests only: skip Android, desktop JVM, Swift, Xcode and agent
-  # helper changes, and changes that no test reads. Check Tests already
-  # compiles the translations.
+  # Kotlin tests only: skip Android, desktop JVM, Swift, Xcode, agent helper
+  # and agent IPC (desktop and macOS only) changes, and changes that no test
+  # reads. Check Tests already compiles the translations.
   push:
     branches:
       - master
@@ -25,6 +25,7 @@ on:
       - '!androidApp/**'
       - '!androidBenchmark/**'
       - '!androidLibAutofill/**'
+      - '!androidGpgAgent/**'
       - '!androidSshAgent/**'
       - '!androidTest/**'
       - '!artwork/**'
@@ -54,10 +55,13 @@ on:
       - '!desktopSshAgent/**'
       - '!iosApp/**'
       - '!macosApp/**'
+      - '!util/agent-ipc/**'
       - '!xcode/**'
       - '.github/actions/setup_gradle/**'
       - '.github/actions/setup_rust/**'
       - '.github/workflows/check_ios_simulator_tests.yaml'
+      - 'xcode/scripts/prepare-sqlcipher-tests.sh'
+      - '**/xcshareddata/swiftpm/Package.resolved'
   pull_request:
     branches:
       - master
@@ -72,6 +76,7 @@ on:
       - '!androidApp/**'
       - '!androidBenchmark/**'
       - '!androidLibAutofill/**'
+      - '!androidGpgAgent/**'
       - '!androidSshAgent/**'
       - '!androidTest/**'
       - '!artwork/**'
@@ -101,10 +106,13 @@ on:
       - '!desktopSshAgent/**'
       - '!iosApp/**'
       - '!macosApp/**'
+      - '!util/agent-ipc/**'
       - '!xcode/**'
       - '.github/actions/setup_gradle/**'
       - '.github/actions/setup_rust/**'
       - '.github/workflows/check_ios_simulator_tests.yaml'
+      - 'xcode/scripts/prepare-sqlcipher-tests.sh'
+      - '**/xcshareddata/swiftpm/Package.resolved'
 
 permissions:
   contents: read
@@ -150,9 +158,13 @@ jobs:
             exit 1
           fi
           xcrun simctl bootstatus "$device" -b
+      - name: "Prepare SQLCipher integration tests"
+        run: bash xcode/scripts/prepare-sqlcipher-tests.sh
       - name: "Run iOS simulator tests"
         run: >-
           ./gradlew --continue
+          -PsqlCipherXcframeworkDir="$PWD/build/sqlcipher-tests/SQLCipher.xcframework"
+          :common:iosSimulatorArm64SqlCipherTest
           :common:iosSimulatorArm64Test
           :feature:android-ipc-presentation:iosSimulatorArm64Test
           :standard:presentation:iosSimulatorArm64Test

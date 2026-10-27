@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.apple.sshagent
 
-import com.artemchep.keyguard.apple.core.sessionKoin
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AgentStatus
 import com.artemchep.keyguard.common.model.Loadable
@@ -9,7 +8,9 @@ import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.seedHex
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalPrompt
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
+import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorImpl
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
@@ -21,11 +22,14 @@ import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutSshAgent
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.PutSshAgentDisplayKeyNames
-import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.sshagent.filter.SshAgentFiltersState
 import com.artemchep.keyguard.feature.sshagent.filter.sshAgentFiltersStateProducer
 import com.artemchep.keyguard.apple.KeyguardCore
+import com.artemchep.keyguard.apple.core.sessionKoin
+import com.artemchep.keyguard.apple.agent.AgentApprovalQueue
+import com.artemchep.keyguard.apple.agent.snapshotCallerName
+import com.artemchep.keyguard.apple.agent.snapshotCallerPath
 import com.artemchep.keyguard.apple.core.AgentFilterActions
 import com.artemchep.keyguard.apple.core.AgentFiltersSession
 import com.artemchep.keyguard.apple.core.AgentFiltersSnapshot
@@ -36,19 +40,14 @@ import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.completeOnPop
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
+import com.artemchep.keyguard.feature.home.settings.component.agentApprovalWindowTitle
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.ui.format
-import kotlin.time.Clock
 import kotlin.time.Duration
-import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
@@ -56,12 +55,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.scope.Scope
-
-/** The per-sign approval window, in ms. Mirrors the IPC processor's own timeout. */
-private const val SSH_APPROVAL_TIMEOUT_MS = 60_000L
 
 /**
  * The on/off state is the shared persisted "ssh_agent" preference; [startSshAgentApplier] reacts to it.
@@ -91,10 +85,11 @@ internal class SshAgentController(
     private var sshAgentGeneration = 0
     private var sshAgentRunScope: CoroutineScope? = null
     private var sshAgentApplierJob: Job? = null
-    private val sshApprovals = mutableMapOf<String, CompletableDeferred<Boolean>>()
-    private var sshPendingRequests: List<SshAgentRequestSnapshot> = emptyList()
-    private var sshRequestsHandler: ((List<SshAgentRequestSnapshot>) -> Unit)? = null
-    private var sshRequestCounter = 0
+    private val requests = AgentApprovalQueue(
+        idPrefix = "ssh",
+        idOf = SshAgentRequestSnapshot::id,
+        toSnapshot = SshAgentApprovalPrompt::toSnapshot,
+    )
 
     private var latestSshApprovalWindowVariants: List<Duration> = emptyList()
 
@@ -117,7 +112,7 @@ internal class SshAgentController(
         putSshAgent(value).launchIn(ctx.scope)
     }
 
-    private fun startSshAgent() {
+    private suspend fun startSshAgent() {
         if (sshAgentHandle?.isRunning == true) return
         if (!sshAgentRuntime.isBinaryAvailable) {
             sshAgentStatusService.set(AgentStatus.Unsupported)
@@ -136,16 +131,22 @@ internal class SshAgentController(
         // Each run gets a fresh generation so a stale termination callback from a
         // previous run never flips the status of the current one.
         val generation = ++sshAgentGeneration
-        val config = SshAgentRuntimeConfig(
-            authToken = token,
-            sessionId = cryptoGenerator.seedHex(length = 16),
+        val processor = SshAgentRequestProcessorImpl(
             logRepository = logRepository,
             getVaultSession = getVaultSession,
+            sessionAccess = ctx.koin.get(),
             getSshAgentApprovalWindow = getSshAgentApprovalWindow,
             getSshAgentApprovalCachePolicy = ctx.koin.get(),
             getSshAgentFilter = getSshAgentFilter,
+            scope = runScope,
             sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
-            onApproval = { info -> awaitSshApproval(info) },
+            pendingUsageHistoryQueue = ctx.koin.get(),
+            sessionId = cryptoGenerator.seedHex(length = 16),
+            onApprovalRequest = requests::await,
+        )
+        val config = SshAgentRuntimeConfig(
+            authToken = token,
+            processor = processor,
             onTerminated = {
                 // Arbitrary thread; hop to the main scope before touching state.
                 ctx.scope.launch {
@@ -156,7 +157,15 @@ internal class SshAgentController(
             },
             log = { message -> logRepository.post("SshAgent", message, LogLevel.INFO) },
         )
-        val handle = sshAgentRuntime.start(runScope, config)
+        runScope.launch {
+            requests.denyWhenSessionEnds(getVaultSession)
+        }
+        val handle = try {
+            sshAgentRuntime.start(runScope, config)
+        } finally {
+            // The runtime owns a separate copy for its serving lifetime.
+            token.fill(0)
+        }
         if (handle != null) {
             sshAgentHandle = handle
             sshAgentStatusService.set(AgentStatus.Ready)
@@ -175,31 +184,15 @@ internal class SshAgentController(
         sshAgentHandle = null
         sshAgentRunScope?.cancel()
         sshAgentRunScope = null
-        sshApprovals.values.forEach { it.complete(false) }
-        sshApprovals.clear()
-        sshPendingRequests = emptyList()
-        notifySshRequests()
+        requests.denyAll()
         sshAgentStatusService.set(AgentStatus.Stopped)
     }
 
     fun observeSshAgentRequests(
         onChange: (List<SshAgentRequestSnapshot>) -> Unit,
-    ): KeyguardCancellable {
-        sshRequestsHandler = onChange
-        onChange(sshPendingRequests)
-        val job = ctx.scope.launch {
-            try {
-                awaitCancellation()
-            } finally {
-                sshRequestsHandler = null
-            }
-        }
-        return KeyguardCancellable(job)
-    }
+    ): KeyguardCancellable = ctx.launchObserver { requests.requests.collectOnMain(onChange) }
 
-    fun resolveSshAgentRequest(id: String, approved: Boolean) {
-        sshApprovals[id]?.complete(approved)
-    }
+    fun resolveSshAgentRequest(id: String, approved: Boolean) = requests.resolve(id, approved)
 
     fun observeSshAgentStatus(
         onChange: (SshAgentStatusSnapshot) -> Unit,
@@ -226,42 +219,6 @@ internal class SshAgentController(
         return KeyguardCancellable(job)
     }
 
-    private suspend fun awaitSshApproval(info: SshAgentApprovalInfo): Boolean {
-        val id = "ssh-${++sshRequestCounter}"
-        val deferred = CompletableDeferred<Boolean>()
-        val timeoutMs = SSH_APPROVAL_TIMEOUT_MS
-        val expiresAtEpochMs = Clock.System.now().toEpochMilliseconds() + timeoutMs
-        withContext(Dispatchers.Main) {
-            sshApprovals[id] = deferred
-            sshPendingRequests = sshPendingRequests + SshAgentRequestSnapshot(
-                id = id,
-                keyName = info.keyName,
-                keyFingerprint = info.keyFingerprint,
-                callerName = info.callerName,
-                callerPath = info.callerPath,
-                timeoutMs = timeoutMs,
-                expiresAtEpochMs = expiresAtEpochMs,
-            )
-            notifySshRequests()
-        }
-        return try {
-            withTimeoutOrNull(timeoutMs) { deferred.await() } ?: false
-        } finally {
-            // Always drain the request — even when the IPC processor's own approval
-            // timeout (or a dropped connection / agent stop) cancels this coroutine —
-            // so the approval panel can never get stuck on screen.
-            withContext(NonCancellable + Dispatchers.Main) {
-                sshApprovals.remove(id)
-                sshPendingRequests = sshPendingRequests.filterNot { it.id == id }
-                notifySshRequests()
-            }
-        }
-    }
-
-    private fun notifySshRequests() {
-        sshRequestsHandler?.invoke(sshPendingRequests)
-    }
-
     fun observeSshAgentSettings(
         onChange: (SshAgentSettingsSnapshot) -> Unit,
     ): KeyguardCancellable {
@@ -281,11 +238,11 @@ internal class SshAgentController(
                 SshAgentSettingsSnapshot(
                     loaded = true,
                     enabled = enabled,
-                    approvalWindowTitle = sshApprovalWindowTitle(approvalWindow.first, leContext),
+                    approvalWindowTitle = agentApprovalWindowTitle(approvalWindow.first, leContext),
                     approvalWindowOptions = approvalWindow.second.map { duration ->
                         SettingOptionSnapshot(
                             id = duration.inWholeMilliseconds.toString(),
-                            title = sshApprovalWindowTitle(duration, leContext),
+                            title = agentApprovalWindowTitle(duration, leContext),
                             selected = duration == approvalWindow.first,
                         )
                     },
@@ -296,13 +253,6 @@ internal class SshAgentController(
         }
         return KeyguardCancellable(job)
     }
-
-    private suspend fun sshApprovalWindowTitle(duration: Duration, context: LeContext): String =
-        when (duration) {
-            Duration.ZERO -> textResource(Res.string.pref_item_agent_approval_window_always_ask, context)
-            Duration.INFINITE -> textResource(Res.string.pref_item_agent_approval_window_until_lock, context)
-            else -> duration.format(context)
-        }
 
     fun setSshAgentApprovalWindow(optionId: String) {
         val duration = latestSshApprovalWindowVariants
@@ -354,3 +304,17 @@ internal class SshAgentController(
     }
 
 }
+
+internal fun SshAgentApprovalPrompt.toSnapshot(
+    id: String,
+    timeoutMs: Long,
+    expiresAtEpochMs: Long,
+) = SshAgentRequestSnapshot(
+    id = id,
+    keyName = keyName,
+    keyFingerprint = keyFingerprint,
+    callerName = caller.snapshotCallerName(),
+    callerPath = caller.snapshotCallerPath(),
+    timeoutMs = timeoutMs,
+    expiresAtEpochMs = expiresAtEpochMs,
+)

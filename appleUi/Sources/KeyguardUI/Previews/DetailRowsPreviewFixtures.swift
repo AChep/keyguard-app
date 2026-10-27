@@ -14,7 +14,8 @@ enum DetailRowsPreviewFixtures {
         visible: Bool = false, locked: Bool = false, reveal: String? = nil,
         totp: TotpFieldSnapshot? = nil, attachment: AttachmentFieldSnapshot? = nil,
         url: String? = nil, markdown: Bool = false, monospace: Bool = false,
-        severity: VaultAlertSeverity? = nil, colorize: Bool = false, uriIcon: UriIconSnapshot? = nil
+        severity: VaultAlertSeverity? = nil, colorize: Bool = false, uriIcon: UriIconSnapshot? = nil,
+        reference: VaultReferenceSnapshot? = nil, label: String? = nil
     ) -> VaultItemSnapshot {
         VaultItemSnapshot(
             id: id, kind: kind, title: title, text: text, concealed: concealed, monospace: monospace,
@@ -25,7 +26,7 @@ enum DetailRowsPreviewFixtures {
             cardNumberFormatted: kind == .card && visible ? "4111 1111 1111 1111" : nil,
             cardNumberObscured: kind == .card ? "•••• •••• •••• 1111" : nil,
             isVisible: visible, revealActionId: reveal, revealLocked: locked, alertSeverity: severity,
-            colorize: colorize, uriIcon: uriIcon
+            colorize: colorize, uriIcon: uriIcon, reference: reference, label: label
         )
     }
 
@@ -159,6 +160,17 @@ enum DetailRowsPreviewFixtures {
             item("unicode", title: "Обліковий запис", text: "開発用アカウント — حساب العمل"),
             item("untitled", text: "A value without a label"),
             item("empty", title: "Empty value", text: ""),
+            item(
+                "reference", title: "DB_PASSWORD", text: "synthetic-password",
+                actions: [action("copy-reference", "Copy", copy: true)], monospace: true,
+                reference: VaultReferenceSnapshot(
+                    title: "Example database", text: "Password", unavailable: false,
+                    clickActionId: "open-reference")),
+            item(
+                "reference-unavailable", title: "API_KEY", concealed: true, locked: true, monospace: true,
+                reference: VaultReferenceSnapshot(
+                    title: "API_KEY", text: nil, unavailable: true,
+                    clickActionId: nil)),
             item(
                 "plain-note", .note,
                 text: String(repeating: "Plain text notes remain readable at narrow widths. ", count: 10)),

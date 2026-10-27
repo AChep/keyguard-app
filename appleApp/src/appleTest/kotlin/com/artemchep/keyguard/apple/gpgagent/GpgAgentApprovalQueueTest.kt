@@ -1,12 +1,11 @@
 package com.artemchep.keyguard.apple.gpgagent
 
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentApprovalPrompt
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceTimeBy
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -14,12 +13,14 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class GpgAgentApprovalQueueTest {
     @Test
     fun simultaneousRequestsHaveIndependentDecisionsAndOperationContext() = runTest {
-        val queue = GpgAgentApprovalQueue(StandardTestDispatcher(testScheduler), nowEpochMs = { 1_000L })
+        val queue = gpgAgentApprovalQueue(nowEpochMs = { 1_000L })
         val sign = async { queue.await(prompt(GpgAgentOperation.SIGN)) }
         val decrypt = async { queue.await(prompt(GpgAgentOperation.DECRYPT)) }
         runCurrent()
@@ -39,7 +40,7 @@ class GpgAgentApprovalQueueTest {
 
     @Test
     fun expiryDeniesAndRemovesThePrompt() = runTest {
-        val queue = GpgAgentApprovalQueue(StandardTestDispatcher(testScheduler), timeoutMs = 1_000L)
+        val queue = gpgAgentApprovalQueue(timeout = 1.seconds)
         val result = async { queue.await(prompt(GpgAgentOperation.SIGN)) }
         runCurrent()
         assertEquals(1, queue.requests.value.size)
@@ -51,7 +52,7 @@ class GpgAgentApprovalQueueTest {
 
     @Test
     fun cancellationAndStoppingDrainEveryPrompt() = runTest {
-        val queue = GpgAgentApprovalQueue(StandardTestDispatcher(testScheduler))
+        val queue = gpgAgentApprovalQueue()
         val cancelled = async { queue.await(prompt(GpgAgentOperation.SIGN)) }
         val stopped = async { queue.await(prompt(GpgAgentOperation.DECRYPT)) }
         runCurrent()
@@ -74,7 +75,7 @@ class GpgAgentApprovalQueueTest {
     @Test
     fun unknownCallerRemainsUnknownAndProcessNameIsOnlyDisplayFallback() {
         val knownProcess = prompt(GpgAgentOperation.SIGN).copy(
-            caller = GpgAgentMessages.CallerIdentity(processName = "gpg"),
+            caller = CallerIdentity(processName = "gpg"),
         ).toSnapshot("id", 1_000L, 2_000L)
         assertEquals("gpg", knownProcess.callerName)
         assertEquals("", knownProcess.callerPath)
@@ -85,7 +86,7 @@ class GpgAgentApprovalQueueTest {
 
     private fun prompt(operation: GpgAgentOperation) = GpgAgentApprovalPrompt(
         operation = operation,
-        caller = GpgAgentMessages.CallerIdentity(
+        caller = CallerIdentity(
             appName = "Terminal",
             processName = "gpg",
             executablePath = "/usr/local/bin/gpg",
@@ -95,5 +96,6 @@ class GpgAgentApprovalQueueTest {
         keygrip = "keygrip",
         accountId = "account",
         cipherId = "cipher",
+        expiresAt = Instant.DISTANT_FUTURE,
     )
 }

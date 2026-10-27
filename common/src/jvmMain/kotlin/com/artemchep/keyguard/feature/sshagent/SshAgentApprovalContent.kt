@@ -13,13 +13,12 @@ import com.artemchep.keyguard.res.protocol_ssh
  * Renders the content for the SSH signing approval window.
  *
  * @param request The pending approval request.
- * @param onDismiss Called after the request has been resolved (either
- *   approved or denied) so the caller can close the window.
+ * @param onDecision Answers the request; the reason is only logged.
  */
 @Composable
 fun SshAgentApprovalContent(
     request: SshAgentApprovalRequest,
-    onDismiss: () -> Unit,
+    onDecision: (approved: Boolean, reason: String) -> Unit,
 ) {
     AgentApprovalContent(
         request = request,
@@ -30,6 +29,6 @@ fun SshAgentApprovalContent(
         keyName = request.keyName,
         keyFingerprint = request.keyFingerprint,
         cipherId = request.cipherId,
-        onDismiss = onDismiss,
+        onDecision = onDecision,
     )
 }

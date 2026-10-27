@@ -8,7 +8,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59"
+        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60, 61"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -106,16 +106,20 @@ pub mod native_request {
         ),
         #[prost(message, tag = "59")]
         OpenPgpStreamDrain(super::OpenPgpStreamDrainRequest),
+        #[prost(message, tag = "60")]
+        OpenPgpUserIdUpdate(super::OpenPgpUserIdUpdateRequest),
+        #[prost(message, tag = "61")]
+        SshCertificateDescribe(super::SshCertificateDescribeRequest),
     }
 }
 /// Ends a decryption session's input and returns one bounded output chunk.
 /// Repeat until bytes_value is empty, then stream_finish returns final metadata.
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpStreamDrainRequest {
     #[prost(uint64, tag = "1")]
     pub handle: u64,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct NativeStreamOpenRequest {
     #[prost(uint32, tag = "1")]
     pub protocol_version: u32,
@@ -127,7 +131,7 @@ pub struct NativeStreamOpenRequest {
 }
 /// Nested message and enum types in `NativeStreamOpenRequest`.
 pub mod native_stream_open_request {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Operation {
         #[prost(message, tag = "11")]
         Digest(super::DigestStreamOpenRequest),
@@ -159,19 +163,19 @@ pub mod native_stream_open_request {
         OpenPgpClearVerify(super::OpenPgpClearVerifyStreamOpenRequest),
     }
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DigestStreamOpenRequest {
     #[prost(enumeration = "HashAlgorithm", tag = "1")]
     pub algorithm: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct HmacStreamOpenRequest {
     #[prost(enumeration = "HashAlgorithm", tag = "1")]
     pub algorithm: i32,
     #[prost(bytes = "vec", tag = "2")]
     pub key: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct AesCbcPkcs7StreamOpenRequest {
     #[prost(enumeration = "CipherDirection", tag = "1")]
     pub direction: i32,
@@ -180,7 +184,7 @@ pub struct AesCbcPkcs7StreamOpenRequest {
     #[prost(bytes = "vec", tag = "3")]
     pub iv: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct AesCbcPkcs7HmacSha256EncryptStreamOpenRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub encryption_key: ::prost::alloc::vec::Vec<u8>,
@@ -189,7 +193,7 @@ pub struct AesCbcPkcs7HmacSha256EncryptStreamOpenRequest {
     #[prost(bytes = "vec", tag = "3")]
     pub iv: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct AesCbcPkcs7HmacSha256DecryptStreamOpenRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub encryption_key: ::prost::alloc::vec::Vec<u8>,
@@ -200,7 +204,7 @@ pub struct AesCbcPkcs7HmacSha256DecryptStreamOpenRequest {
     #[prost(bytes = "vec", tag = "4")]
     pub expected_mac: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct TwofishCbcPkcs7StreamOpenRequest {
     #[prost(enumeration = "CipherDirection", tag = "1")]
     pub direction: i32,
@@ -209,7 +213,7 @@ pub struct TwofishCbcPkcs7StreamOpenRequest {
     #[prost(bytes = "vec", tag = "3")]
     pub iv: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct HkdfSha256Request {
     #[prost(bytes = "vec", tag = "1")]
     pub seed: ::prost::alloc::vec::Vec<u8>,
@@ -221,7 +225,7 @@ pub struct HkdfSha256Request {
     #[prost(uint32, tag = "4")]
     pub length: u32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Pbkdf2Sha256Request {
     #[prost(bytes = "vec", tag = "1")]
     pub seed: ::prost::alloc::vec::Vec<u8>,
@@ -232,7 +236,7 @@ pub struct Pbkdf2Sha256Request {
     #[prost(uint32, tag = "4")]
     pub length: u32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Argon2Request {
     #[prost(enumeration = "Argon2Mode", tag = "1")]
     pub mode: i32,
@@ -256,12 +260,12 @@ pub struct Argon2Request {
     #[prost(bytes = "vec", optional, tag = "10")]
     pub associated_data: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RandomBytesRequest {
     #[prost(uint32, tag = "1")]
     pub length: u32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct HmacRequest {
     #[prost(enumeration = "HashAlgorithm", tag = "1")]
     pub algorithm: i32,
@@ -270,21 +274,21 @@ pub struct HmacRequest {
     #[prost(bytes = "vec", tag = "3")]
     pub data: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct DigestRequest {
     #[prost(enumeration = "HashAlgorithm", tag = "1")]
     pub algorithm: i32,
     #[prost(bytes = "vec", tag = "2")]
     pub data: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct AesEcbNoPaddingEncryptRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub key: ::prost::alloc::vec::Vec<u8>,
     #[prost(bytes = "vec", tag = "2")]
     pub data: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct AesEcbNoPaddingTransformRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub key: ::prost::alloc::vec::Vec<u8>,
@@ -293,7 +297,7 @@ pub struct AesEcbNoPaddingTransformRequest {
     #[prost(uint32, tag = "3")]
     pub rounds: u32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct AesCbcPkcs7Request {
     #[prost(enumeration = "CipherDirection", tag = "1")]
     pub direction: i32,
@@ -306,7 +310,7 @@ pub struct AesCbcPkcs7Request {
 }
 /// Fused Bitwarden-compatible AES-CBC-PKCS#7 and HMAC-SHA256 encryption.
 /// The MAC authenticates iv || ciphertext without an intermediate JVM roundtrip.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct AesCbcPkcs7HmacSha256EncryptRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub encryption_key: ::prost::alloc::vec::Vec<u8>,
@@ -318,7 +322,7 @@ pub struct AesCbcPkcs7HmacSha256EncryptRequest {
     pub plaintext: ::prost::alloc::vec::Vec<u8>,
 }
 /// Domain payload returned inside NativeResponse.bytes_value.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct AesCbcPkcs7HmacSha256EncryptResult {
     #[prost(bytes = "vec", tag = "1")]
     pub ciphertext: ::prost::alloc::vec::Vec<u8>,
@@ -327,7 +331,7 @@ pub struct AesCbcPkcs7HmacSha256EncryptResult {
 }
 /// Fused Bitwarden-compatible authenticated decryption. The expected MAC is
 /// verified over iv || ciphertext before CBC decryption is attempted.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct AesCbcPkcs7HmacSha256DecryptRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub encryption_key: ::prost::alloc::vec::Vec<u8>,
@@ -340,7 +344,7 @@ pub struct AesCbcPkcs7HmacSha256DecryptRequest {
     #[prost(bytes = "vec", tag = "5")]
     pub expected_mac: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct StreamCipherXorAtOffsetRequest {
     #[prost(enumeration = "StreamCipherAlgorithm", tag = "1")]
     pub algorithm: i32,
@@ -353,7 +357,7 @@ pub struct StreamCipherXorAtOffsetRequest {
     #[prost(bytes = "vec", tag = "5")]
     pub data: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RsaOaepDecryptRequest {
     #[prost(enumeration = "RsaOaepHash", tag = "1")]
     pub hash: i32,
@@ -362,7 +366,7 @@ pub struct RsaOaepDecryptRequest {
     #[prost(bytes = "vec", tag = "3")]
     pub ciphertext: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RsaOaepEncryptRequest {
     #[prost(enumeration = "RsaOaepHash", tag = "1")]
     pub hash: i32,
@@ -371,12 +375,12 @@ pub struct RsaOaepEncryptRequest {
     #[prost(bytes = "vec", tag = "3")]
     pub plaintext: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct RsaPkcs8ToSpkiRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub private_key_pkcs8: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshAgentTcpChaCha20Poly1305Request {
     #[prost(enumeration = "CipherDirection", tag = "1")]
     pub direction: i32,
@@ -389,7 +393,7 @@ pub struct SshAgentTcpChaCha20Poly1305Request {
     #[prost(bytes = "vec", tag = "5")]
     pub payload: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshKeyGenerateRequest {
     #[prost(enumeration = "SshKeyType", tag = "1")]
     pub r#type: i32,
@@ -397,14 +401,14 @@ pub struct SshKeyGenerateRequest {
     #[prost(uint32, tag = "2")]
     pub rsa_bits: u32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshKeyParseRequest {
     #[prost(string, tag = "1")]
     pub private_key_pem: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub public_key_openssh: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshKeyDescribeRequest {
     #[prost(enumeration = "SshKeyType", tag = "1")]
     pub r#type: i32,
@@ -413,12 +417,12 @@ pub struct SshKeyDescribeRequest {
     #[prost(bytes = "vec", tag = "3")]
     pub public_key: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshPrivateKeyRsaBitsRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub private_key: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshAgentSignRequest {
     #[prost(string, tag = "1")]
     pub private_key_pem: ::prost::alloc::string::String,
@@ -430,7 +434,7 @@ pub struct SshAgentSignRequest {
     #[prost(uint32, tag = "4")]
     pub flags: u32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshKeyExportCxfRequest {
     /// Stored PEM text: OpenSSH-armored (either algorithm), PKCS#8, or PKCS#1.
     #[prost(string, tag = "1")]
@@ -440,19 +444,29 @@ pub struct SshKeyExportCxfRequest {
     #[prost(string, tag = "2")]
     pub public_key_openssh: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshKeyExportCxfResult {
     #[prost(enumeration = "SshKeyType", tag = "1")]
     pub r#type: i32,
     #[prost(bytes = "vec", tag = "2")]
     pub private_key_pkcs8: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshPublicKeyDecodeRequest {
     #[prost(string, tag = "1")]
     pub public_key_openssh: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SshCertificateDescribeRequest {
+    /// An OpenSSH certificate line ("<type>-cert-v01@openssh.com <base64> \[comment\]").
+    #[prost(string, tag = "1")]
+    pub certificate_openssh: ::prost::alloc::string::String,
+    /// The item's OpenSSH public key. When present, the result reports whether
+    /// the certificate certifies this key.
+    #[prost(string, optional, tag = "2")]
+    pub public_key_openssh: ::core::option::Option<::prost::alloc::string::String>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshPrivateKeyImportRequest {
     /// Raw file bytes preserve non-UTF-8 PPK comments. UTF-8 text is wire-compatible.
     #[prost(bytes = "vec", tag = "1")]
@@ -462,17 +476,17 @@ pub struct SshPrivateKeyImportRequest {
     #[prost(bytes = "vec", optional, tag = "2")]
     pub passphrase_utf8: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PasskeyKeyGenerateRequest {
     #[prost(enumeration = "PasskeyAlgorithm", tag = "1")]
     pub algorithm: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PasskeyKeyInspectRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub private_key_pkcs8: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PasskeySignRequest {
     #[prost(enumeration = "PasskeyAlgorithm", tag = "1")]
     pub algorithm: i32,
@@ -482,7 +496,7 @@ pub struct PasskeySignRequest {
     pub data: ::prost::alloc::vec::Vec<u8>,
 }
 /// Domain payload returned by passkey generation and successful inspection.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PasskeyKeyMaterial {
     #[prost(enumeration = "PasskeyKeyProfile", tag = "1")]
     pub profile: i32,
@@ -496,14 +510,14 @@ pub struct PasskeyKeyMaterial {
     pub public_key_spki: ::prost::alloc::vec::Vec<u8>,
 }
 /// Exactly one of key_material and error must be populated.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PasskeyKeyInspection {
     #[prost(message, optional, tag = "1")]
     pub key_material: ::core::option::Option<PasskeyKeyMaterial>,
     #[prost(enumeration = "PasskeyKeyError", tag = "2")]
     pub error: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PasskeySignature {
     #[prost(enumeration = "PasskeyAlgorithm", tag = "1")]
     pub algorithm: i32,
@@ -511,7 +525,7 @@ pub struct PasskeySignature {
     pub signature_der: ::prost::alloc::vec::Vec<u8>,
 }
 /// Exactly one of signature and error must be populated.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PasskeySignResult {
     #[prost(message, optional, tag = "1")]
     pub signature: ::core::option::Option<PasskeySignature>,
@@ -519,7 +533,7 @@ pub struct PasskeySignResult {
     pub error: i32,
 }
 /// Domain payload returned inside NativeResponse.bytes_value.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshKeyMaterial {
     #[prost(enumeration = "SshKeyType", tag = "1")]
     pub r#type: i32,
@@ -529,7 +543,7 @@ pub struct SshKeyMaterial {
     pub public_key: ::prost::alloc::vec::Vec<u8>,
 }
 /// Domain payload returned inside NativeResponse.bytes_value.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshKeyDescription {
     #[prost(string, tag = "1")]
     pub private_key_pem: ::prost::alloc::string::String,
@@ -541,7 +555,7 @@ pub struct SshKeyDescription {
     pub public_fingerprint: ::prost::alloc::string::String,
 }
 /// Domain payload returned inside NativeResponse.bytes_value.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshSignature {
     #[prost(string, tag = "1")]
     pub algorithm: ::prost::alloc::string::String,
@@ -549,7 +563,7 @@ pub struct SshSignature {
     pub signature: ::prost::alloc::vec::Vec<u8>,
 }
 /// Domain payload returned inside NativeResponse.bytes_value.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshPublicKeyDecodeResult {
     #[prost(enumeration = "SshKeyType", tag = "1")]
     pub r#type: i32,
@@ -557,17 +571,54 @@ pub struct SshPublicKeyDecodeResult {
     #[prost(bytes = "vec", tag = "2")]
     pub spki_der: ::prost::alloc::vec::Vec<u8>,
 }
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct SshCertificateOption {
+    #[prost(string, tag = "1")]
+    pub name: ::prost::alloc::string::String,
+    /// Empty for flag options, such as the permit-pty extension.
+    #[prost(string, tag = "2")]
+    pub value: ::prost::alloc::string::String,
+}
+/// Domain payload returned inside NativeResponse.bytes_value. The CA signature
+/// is not verified: the SSH server decides whether it trusts the certificate.
 #[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SshCertificateDescription {
+    #[prost(enumeration = "SshCertificateType", tag = "1")]
+    pub r#type: i32,
+    #[prost(string, tag = "2")]
+    pub key_id: ::prost::alloc::string::String,
+    #[prost(uint64, tag = "3")]
+    pub serial: u64,
+    #[prost(string, repeated, tag = "4")]
+    pub principals: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Unix seconds. A certificate that never expires reports the int64 maximum
+    /// as valid_before, so that signed 64-bit callers can compare it directly.
+    #[prost(int64, tag = "5")]
+    pub valid_after: i64,
+    #[prost(int64, tag = "6")]
+    pub valid_before: i64,
+    /// The CA key fingerprint as `ssh-keygen -l -E sha256` prints it.
+    #[prost(string, tag = "7")]
+    pub ca_fingerprint: ::prost::alloc::string::String,
+    #[prost(message, repeated, tag = "8")]
+    pub critical_options: ::prost::alloc::vec::Vec<SshCertificateOption>,
+    #[prost(message, repeated, tag = "9")]
+    pub extensions: ::prost::alloc::vec::Vec<SshCertificateOption>,
+    /// Whether the certificate certifies the request's public key.
+    #[prost(bool, tag = "10")]
+    pub public_key_matches: bool,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshPrivateKeyImportSuccess {
     #[prost(message, optional, tag = "1")]
     pub key_material: ::core::option::Option<SshKeyMaterial>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshPrivateKeyImportNeedsPassphrase {
     #[prost(string, tag = "1")]
     pub format_label: ::prost::alloc::string::String,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshPrivateKeyImportError {
     #[prost(enumeration = "SshPrivateKeyImportErrorReason", tag = "1")]
     pub reason: i32,
@@ -575,14 +626,14 @@ pub struct SshPrivateKeyImportError {
 /// Expected parser and authentication failures are typed domain results. They
 /// intentionally do not use NativeStatus, which is reserved for ABI/envelope,
 /// resource, panic, and unexpected backend failures.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct SshPrivateKeyImportResult {
     #[prost(oneof = "ssh_private_key_import_result::Result", tags = "1, 2, 3")]
     pub result: ::core::option::Option<ssh_private_key_import_result::Result>,
 }
 /// Nested message and enum types in `SshPrivateKeyImportResult`.
 pub mod ssh_private_key_import_result {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Result {
         #[prost(message, tag = "1")]
         Success(super::SshPrivateKeyImportSuccess),
@@ -592,7 +643,7 @@ pub mod ssh_private_key_import_result {
         Error(super::SshPrivateKeyImportError),
     }
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpPublicKeyParseRequest {
     /// ASCII-armored or binary transferable public certificates, or exactly one
     /// transferable secret certificate to parse as its public projection.
@@ -603,7 +654,7 @@ pub struct OpenPgpPublicKeyParseRequest {
     #[prost(uint64, optional, tag = "2")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpCertificationAuthority {
     /// A public-key document that contains the explicitly selected primary key.
     #[prost(bytes = "vec", tag = "1")]
@@ -622,7 +673,7 @@ pub struct OpenPgpUserIdCertificationEvaluateRequest {
     #[prost(uint64, optional, tag = "3")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpUserIdCertificationEvaluateResult {
     /// Exact User ID packet bodies authenticated by the target certificate and
     /// certified by at least one currently usable trusted authority. Consumers
@@ -630,7 +681,7 @@ pub struct OpenPgpUserIdCertificationEvaluateResult {
     #[prost(bytes = "vec", repeated, tag = "1")]
     pub confirmed_user_ids: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpVerifyRequest {
     #[prost(enumeration = "OpenPgpVerifyKind", tag = "1")]
     pub kind: i32,
@@ -647,7 +698,7 @@ pub struct OpenPgpVerifyRequest {
     #[prost(uint64, optional, tag = "5")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpDetachedVerifyStreamOpenRequest {
     /// The large file body is supplied only through streamUpdate calls.
     #[prost(bytes = "vec", tag = "1")]
@@ -657,7 +708,7 @@ pub struct OpenPgpDetachedVerifyStreamOpenRequest {
     #[prost(uint64, optional, tag = "3")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpClearVerifyStreamOpenRequest {
     /// The complete cleartext-signed document (headers, body, and the trailing
     /// armored signature) is supplied only through streamUpdate calls, which
@@ -677,7 +728,7 @@ pub struct OpenPgpClearVerifyResult {
     #[prost(bool, tag = "2")]
     pub body_valid_utf8: bool,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpMetadataResolveRequest {
     /// Secret rings are parsed structurally; private material is never decrypted
     /// by this read-path operation.
@@ -695,7 +746,7 @@ pub struct OpenPgpMetadataResolveRequest {
     #[prost(uint64, optional, tag = "5")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpPublicSubKeyInfo {
     #[prost(string, tag = "1")]
     pub fingerprint: ::prost::alloc::string::String,
@@ -789,13 +840,27 @@ pub struct OpenPgpPublicKeyInfo {
     pub weak_self_signature_algorithms: ::prost::alloc::vec::Vec<
         ::prost::alloc::string::String,
     >,
+    #[prost(message, repeated, tag = "21")]
+    pub user_id_history: ::prost::alloc::vec::Vec<OpenPgpUserIdInfo>,
+    #[prost(bool, tag = "22")]
+    pub can_modify_user_ids: bool,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpUserIdInfo {
     #[prost(string, tag = "1")]
     pub identity_id: ::prost::alloc::string::String,
     #[prost(string, tag = "2")]
     pub user_id: ::prost::alloc::string::String,
+    #[prost(bool, tag = "3")]
+    pub primary: bool,
+    #[prost(bool, tag = "4")]
+    pub revoked: bool,
+    #[prost(bool, tag = "5")]
+    pub can_revoke: bool,
+    #[prost(bool, tag = "6")]
+    pub can_replace: bool,
+    #[prost(bool, tag = "7")]
+    pub can_make_primary: bool,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpPublicKeyParseSuccess {
@@ -808,7 +873,7 @@ pub struct OpenPgpPublicKeyParseSuccess {
     #[prost(uint32, tag = "2")]
     pub skipped_certificates: u32,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpPublicKeyParseError {
     #[prost(enumeration = "OpenPgpPublicKeyParseErrorReason", tag = "1")]
     pub reason: i32,
@@ -853,7 +918,7 @@ pub struct OpenPgpVerification {
     #[prost(message, repeated, tag = "9")]
     pub signatures: ::prost::alloc::vec::Vec<OpenPgpVerification>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpKeyComponentIndexV2 {
     #[prost(string, tag = "1")]
     pub fingerprint: ::prost::alloc::string::String,
@@ -870,7 +935,7 @@ pub struct OpenPgpKeyComponentIndexV2 {
     #[prost(enumeration = "OpenPgpAgentOperation", repeated, tag = "7")]
     pub agent_operations: ::prost::alloc::vec::Vec<i32>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpLegacyDesignatedRevokerV2 {
     #[prost(uint32, tag = "1")]
     pub public_key_algorithm_id: u32,
@@ -894,7 +959,7 @@ pub struct OpenPgpCertificateIndexV2 {
         OpenPgpLegacyDesignatedRevokerV2,
     >,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpComponentPolicyV2 {
     #[prost(string, tag = "1")]
     pub fingerprint: ::prost::alloc::string::String,
@@ -931,7 +996,7 @@ pub struct OpenPgpMetadataResolveResult {
     #[prost(message, optional, tag = "2")]
     pub resolution: ::core::option::Option<OpenPgpMetadataResolutionV2>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpKeyGenerateRequest {
     #[prost(enumeration = "OpenPgpKeyKind", tag = "1")]
     pub kind: i32,
@@ -948,7 +1013,7 @@ pub struct OpenPgpKeyGenerateRequest {
     #[prost(enumeration = "OpenPgpKeyVersion", tag = "6")]
     pub version: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpKeyMaterial {
     #[prost(bytes = "vec", tag = "1")]
     pub private_key_armored: ::prost::alloc::vec::Vec<u8>,
@@ -957,7 +1022,7 @@ pub struct OpenPgpKeyMaterial {
     #[prost(string, tag = "3")]
     pub fingerprint: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpKeyImportRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub key_data: ::prost::alloc::vec::Vec<u8>,
@@ -967,29 +1032,29 @@ pub struct OpenPgpKeyImportRequest {
     #[prost(uint64, optional, tag = "3")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpKeyImportSuccess {
     #[prost(message, optional, tag = "1")]
     pub key_material: ::core::option::Option<OpenPgpKeyMaterial>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpKeyImportNeedsPassphrase {
     #[prost(string, tag = "1")]
     pub format_label: ::prost::alloc::string::String,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpKeyImportError {
     #[prost(enumeration = "OpenPgpKeyImportErrorReason", tag = "1")]
     pub reason: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpKeyImportResult {
     #[prost(oneof = "open_pgp_key_import_result::Result", tags = "1, 2, 3")]
     pub result: ::core::option::Option<open_pgp_key_import_result::Result>,
 }
 /// Nested message and enum types in `OpenPgpKeyImportResult`.
 pub mod open_pgp_key_import_result {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Result {
         #[prost(message, tag = "1")]
         Success(super::OpenPgpKeyImportSuccess),
@@ -999,7 +1064,7 @@ pub mod open_pgp_key_import_result {
         Error(super::OpenPgpKeyImportError),
     }
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpSignRequest {
     #[prost(enumeration = "OpenPgpSignKind", tag = "1")]
     pub kind: i32,
@@ -1023,7 +1088,7 @@ pub struct OpenPgpSignRequest {
         ::prost::alloc::vec::Vec<u8>,
     >,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpDetachedSignStreamOpenRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub private_key: ::prost::alloc::vec::Vec<u8>,
@@ -1040,7 +1105,7 @@ pub struct OpenPgpDetachedSignStreamOpenRequest {
         ::prost::alloc::vec::Vec<u8>,
     >,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpClearSignStreamOpenRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub private_key: ::prost::alloc::vec::Vec<u8>,
@@ -1055,7 +1120,7 @@ pub struct OpenPgpClearSignStreamOpenRequest {
         ::prost::alloc::vec::Vec<u8>,
     >,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpEncryptRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub content: ::prost::alloc::vec::Vec<u8>,
@@ -1083,7 +1148,7 @@ pub struct OpenPgpEncryptRequest {
         ::prost::alloc::vec::Vec<u8>,
     >,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpEncryptStreamOpenRequest {
     #[prost(bytes = "vec", repeated, tag = "1")]
     pub public_keys: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
@@ -1107,14 +1172,14 @@ pub struct OpenPgpEncryptStreamOpenRequest {
         ::prost::alloc::vec::Vec<u8>,
     >,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpEncryptResult {
     #[prost(bytes = "vec", tag = "1")]
     pub data: ::prost::alloc::vec::Vec<u8>,
     #[prost(enumeration = "OpenPgpProtectionMode", tag = "2")]
     pub protection_mode: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpEncryptFinal {
     /// Final compression/literal/signature/encryption trailer bytes.
     #[prost(bytes = "vec", tag = "1")]
@@ -1122,7 +1187,7 @@ pub struct OpenPgpEncryptFinal {
     #[prost(enumeration = "OpenPgpProtectionMode", tag = "2")]
     pub protection_mode: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpDecryptRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub content: ::prost::alloc::vec::Vec<u8>,
@@ -1137,7 +1202,7 @@ pub struct OpenPgpDecryptRequest {
     #[prost(bool, optional, tag = "5")]
     pub allow_signed_only: ::core::option::Option<bool>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpDecryptStreamOpenRequest {
     #[prost(bytes = "vec", repeated, tag = "1")]
     pub private_keys: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
@@ -1159,7 +1224,7 @@ pub struct OpenPgpDecryptStreamOpenRequest {
 /// every field except original_size is attacker-malleable even when the
 /// signature is valid. Encrypted messages integrity-protect the header, but
 /// it remains whatever the sender chose to claim.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpLiteralMetadata {
     /// Raw sender-embedded file name bytes: unauthenticated and unvalidated.
     /// Unsafe as a filesystem path or for unescaped display (GnuPG
@@ -1231,7 +1296,7 @@ pub struct OpenPgpDecryptFinal {
     #[prost(enumeration = "OpenPgpDecryptionWarning", repeated, tag = "7")]
     pub warnings: ::prost::alloc::vec::Vec<i32>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpExpirationUpdateRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub private_key: ::prost::alloc::vec::Vec<u8>,
@@ -1257,10 +1322,13 @@ pub struct OpenPgpExpirationUpdateSuccess {
     #[prost(message, optional, tag = "3")]
     pub certificate_index: ::core::option::Option<OpenPgpCertificateIndexV2>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpExpirationUpdateError {
     #[prost(enumeration = "OpenPgpExpirationUpdateErrorReason", tag = "1")]
     pub reason: i32,
+    /// Present only for a retryable TIME_CONFLICT; no native waiting or signing occurred.
+    #[prost(uint64, optional, tag = "2")]
+    pub retry_at_epoch_seconds: ::core::option::Option<u64>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpExpirationUpdateResult {
@@ -1277,7 +1345,7 @@ pub mod open_pgp_expiration_update_result {
         Error(super::OpenPgpExpirationUpdateError),
     }
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpCertificateMaterialReconcileError {
     #[prost(enumeration = "OpenPgpCertificateMaterialInputErrorReason", tag = "1")]
     pub existing_public_input_error: i32,
@@ -1292,7 +1360,7 @@ pub struct OpenPgpCertificateMaterialReconcileError {
 }
 /// V2 separates packet-preserving local state from ordinary transferable
 /// OpenPGP objects.
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpCertificateMaterialReconcileV2Request {
     #[prost(string, tag = "1")]
     pub expected_primary_fingerprint: ::prost::alloc::string::String,
@@ -1313,7 +1381,7 @@ pub struct OpenPgpCertificateMaterialReconcileV2Request {
         ::prost::alloc::vec::Vec<u8>,
     >,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpCertificateMaterialInputContribution {
     #[prost(bool, tag = "1")]
     pub present: bool,
@@ -1322,7 +1390,7 @@ pub struct OpenPgpCertificateMaterialInputContribution {
     #[prost(bool, tag = "3")]
     pub unique_secret_capability: bool,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpCertificateMaterialContributions {
     #[prost(message, optional, tag = "1")]
     pub existing_public: ::core::option::Option<
@@ -1341,7 +1409,7 @@ pub struct OpenPgpCertificateMaterialContributions {
         OpenPgpCertificateMaterialInputContribution,
     >,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpCertificateMaterialReconcileV2Success {
     #[prost(bytes = "vec", tag = "1")]
     pub local_public_material: ::prost::alloc::vec::Vec<u8>,
@@ -1364,7 +1432,7 @@ pub struct OpenPgpCertificateMaterialReconcileV2Success {
     )]
     pub withheld_reasons: ::prost::alloc::vec::Vec<i32>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpCertificateMaterialReconcileV2Result {
     #[prost(
         oneof = "open_pgp_certificate_material_reconcile_v2_result::Result",
@@ -1376,7 +1444,7 @@ pub struct OpenPgpCertificateMaterialReconcileV2Result {
 }
 /// Nested message and enum types in `OpenPgpCertificateMaterialReconcileV2Result`.
 pub mod open_pgp_certificate_material_reconcile_v2_result {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Result {
         #[prost(message, tag = "1")]
         Success(super::OpenPgpCertificateMaterialReconcileV2Success),
@@ -1384,7 +1452,7 @@ pub mod open_pgp_certificate_material_reconcile_v2_result {
         Error(super::OpenPgpCertificateMaterialReconcileError),
     }
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpUserIdRevocationRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub private_key: ::prost::alloc::vec::Vec<u8>,
@@ -1416,11 +1484,6 @@ pub struct OpenPgpUserIdRevocationSuccess {
     #[prost(message, optional, tag = "6")]
     pub certificate_index: ::core::option::Option<OpenPgpCertificateIndexV2>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct OpenPgpUserIdRevocationError {
-    #[prost(enumeration = "OpenPgpUserIdRevocationErrorReason", tag = "1")]
-    pub reason: i32,
-}
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpUserIdRevocationResult {
     #[prost(oneof = "open_pgp_user_id_revocation_result::Result", tags = "1, 2")]
@@ -1433,10 +1496,10 @@ pub mod open_pgp_user_id_revocation_result {
         #[prost(message, tag = "1")]
         Success(super::OpenPgpUserIdRevocationSuccess),
         #[prost(message, tag = "2")]
-        Error(super::OpenPgpUserIdRevocationError),
+        Error(super::OpenPgpUserIdMutationError),
     }
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpUserIdReplacementRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub private_key: ::prost::alloc::vec::Vec<u8>,
@@ -1476,10 +1539,13 @@ pub struct OpenPgpUserIdReplacementSuccess {
     #[prost(message, optional, tag = "9")]
     pub certificate_index: ::core::option::Option<OpenPgpCertificateIndexV2>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
-pub struct OpenPgpUserIdReplacementError {
-    #[prost(enumeration = "OpenPgpUserIdReplacementErrorReason", tag = "1")]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct OpenPgpUserIdMutationError {
+    #[prost(enumeration = "OpenPgpUserIdMutationErrorReason", tag = "1")]
     pub reason: i32,
+    /// Present only for a retryable TIME_CONFLICT; no native waiting or signing occurred.
+    #[prost(uint64, optional, tag = "2")]
+    pub retry_at_epoch_seconds: ::core::option::Option<u64>,
 }
 #[derive(Clone, PartialEq, ::prost::Message)]
 pub struct OpenPgpUserIdReplacementResult {
@@ -1493,10 +1559,10 @@ pub mod open_pgp_user_id_replacement_result {
         #[prost(message, tag = "1")]
         Success(super::OpenPgpUserIdReplacementSuccess),
         #[prost(message, tag = "2")]
-        Error(super::OpenPgpUserIdReplacementError),
+        Error(super::OpenPgpUserIdMutationError),
     }
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpAgentSignRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub private_key: ::prost::alloc::vec::Vec<u8>,
@@ -1511,24 +1577,24 @@ pub struct OpenPgpAgentSignRequest {
         ::prost::alloc::vec::Vec<u8>,
     >,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpAgentSignSuccess {
     #[prost(bytes = "vec", tag = "1")]
     pub canonical_sexp: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpAgentError {
     #[prost(enumeration = "OpenPgpAgentErrorReason", tag = "1")]
     pub reason: i32,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpAgentSignResult {
     #[prost(oneof = "open_pgp_agent_sign_result::Result", tags = "1, 2")]
     pub result: ::core::option::Option<open_pgp_agent_sign_result::Result>,
 }
 /// Nested message and enum types in `OpenPgpAgentSignResult`.
 pub mod open_pgp_agent_sign_result {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Result {
         #[prost(message, tag = "1")]
         Success(super::OpenPgpAgentSignSuccess),
@@ -1536,7 +1602,7 @@ pub mod open_pgp_agent_sign_result {
         Error(super::OpenPgpAgentError),
     }
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpAgentDecryptRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub private_key: ::prost::alloc::vec::Vec<u8>,
@@ -1547,19 +1613,19 @@ pub struct OpenPgpAgentDecryptRequest {
     #[prost(bool, tag = "4")]
     pub unwrap_ecdh: bool,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpAgentDecryptSuccess {
     #[prost(bytes = "vec", tag = "1")]
     pub canonical_sexp: ::prost::alloc::vec::Vec<u8>,
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpAgentDecryptResult {
     #[prost(oneof = "open_pgp_agent_decrypt_result::Result", tags = "1, 2")]
     pub result: ::core::option::Option<open_pgp_agent_decrypt_result::Result>,
 }
 /// Nested message and enum types in `OpenPgpAgentDecryptResult`.
 pub mod open_pgp_agent_decrypt_result {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Result {
         #[prost(message, tag = "1")]
         Success(super::OpenPgpAgentDecryptSuccess),
@@ -1567,7 +1633,7 @@ pub mod open_pgp_agent_decrypt_result {
         Error(super::OpenPgpAgentError),
     }
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct NativeResponse {
     #[prost(uint32, tag = "1")]
     pub protocol_version: u32,
@@ -1578,7 +1644,7 @@ pub struct NativeResponse {
 }
 /// Nested message and enum types in `NativeResponse`.
 pub mod native_response {
-    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
     pub enum Result {
         #[prost(bytes, tag = "10")]
         BytesValue(::prost::alloc::vec::Vec<u8>),
@@ -1588,13 +1654,65 @@ pub mod native_response {
         Uint64Value(u64),
     }
 }
-#[derive(Clone, PartialEq, ::prost::Message)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct NativeStatus {
     #[prost(enumeration = "NativeErrorCode", tag = "1")]
     pub code: i32,
     /// Stable, non-secret operation identifier; empty before operation decoding.
     #[prost(string, tag = "2")]
     pub operation: ::prost::alloc::string::String,
+}
+/// Identity additions and primary selection share the mutation error vocabulary.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct OpenPgpUserIdUpdateRequest {
+    #[prost(bytes = "vec", tag = "1")]
+    pub private_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub public_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "3")]
+    pub expected_primary_fingerprint: ::prost::alloc::string::String,
+    #[prost(bytes = "vec", repeated, tag = "4")]
+    pub candidate_revocation_keys: ::prost::alloc::vec::Vec<
+        ::prost::alloc::vec::Vec<u8>,
+    >,
+    #[prost(uint64, tag = "5")]
+    pub reference_time_epoch_seconds: u64,
+    #[prost(oneof = "open_pgp_user_id_update_request::Change", tags = "6, 7")]
+    pub change: ::core::option::Option<open_pgp_user_id_update_request::Change>,
+}
+/// Nested message and enum types in `OpenPgpUserIdUpdateRequest`.
+pub mod open_pgp_user_id_update_request {
+    #[derive(Clone, PartialEq, Eq, Hash, ::prost::Oneof)]
+    pub enum Change {
+        #[prost(string, tag = "6")]
+        NewUserId(::prost::alloc::string::String),
+        #[prost(string, tag = "7")]
+        PrimaryIdentityId(::prost::alloc::string::String),
+    }
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpUserIdUpdateSuccess {
+    #[prost(message, optional, tag = "1")]
+    pub key_material: ::core::option::Option<OpenPgpKeyMaterial>,
+    #[prost(message, optional, tag = "2")]
+    pub certificate_index: ::core::option::Option<OpenPgpCertificateIndexV2>,
+    #[prost(bool, tag = "3")]
+    pub changed: bool,
+}
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct OpenPgpUserIdUpdateResult {
+    #[prost(oneof = "open_pgp_user_id_update_result::Result", tags = "1, 2")]
+    pub result: ::core::option::Option<open_pgp_user_id_update_result::Result>,
+}
+/// Nested message and enum types in `OpenPgpUserIdUpdateResult`.
+pub mod open_pgp_user_id_update_result {
+    #[derive(Clone, PartialEq, ::prost::Oneof)]
+    pub enum Result {
+        #[prost(message, tag = "1")]
+        Success(super::OpenPgpUserIdUpdateSuccess),
+        #[prost(message, tag = "2")]
+        Error(super::OpenPgpUserIdMutationError),
+    }
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
@@ -1859,6 +1977,35 @@ impl PasskeyKeyError {
             "PASSKEY_KEY_ERROR_MALFORMED" => Some(Self::Malformed),
             "PASSKEY_KEY_ERROR_UNSUPPORTED" => Some(Self::Unsupported),
             "PASSKEY_KEY_ERROR_RESOURCE_LIMIT" => Some(Self::ResourceLimit),
+            _ => None,
+        }
+    }
+}
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum SshCertificateType {
+    Unspecified = 0,
+    User = 1,
+    Host = 2,
+}
+impl SshCertificateType {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "SSH_CERTIFICATE_TYPE_UNSPECIFIED",
+            Self::User => "SSH_CERTIFICATE_TYPE_USER",
+            Self::Host => "SSH_CERTIFICATE_TYPE_HOST",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "SSH_CERTIFICATE_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
+            "SSH_CERTIFICATE_TYPE_USER" => Some(Self::User),
+            "SSH_CERTIFICATE_TYPE_HOST" => Some(Self::Host),
             _ => None,
         }
     }
@@ -2766,147 +2913,7 @@ impl OpenPgpCertificateMaterialWithheldReason {
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]
-pub enum OpenPgpUserIdRevocationErrorReason {
-    Unspecified = 0,
-    EmptyPrivateKey = 1,
-    MalformedKey = 2,
-    FingerprintMismatch = 3,
-    TargetNotFound = 4,
-    LastUserId = 5,
-    UnsupportedKeyVersion = 6,
-    ProtectedSecretKey = 7,
-    MissingSelfSignature = 8,
-    NonRevocable = 9,
-    TimeConflict = 10,
-    SignatureVerificationFailed = 11,
-    /// Reserved wire value. The mutation pipeline derives its metadata directly
-    /// from the certificate it just produced, so this reason is no longer
-    /// produced; the value stays allocated for older clients.
-    MetadataResolutionFailed = 12,
-    InternalFailure = 13,
-    CertificateRevoked = 14,
-    UnresolvedRevocationAuthority = 15,
-    /// No signature hash satisfies both the caller's template and the signing
-    /// key's algorithm-specific digest-size floor.
-    UnsupportedSigningHash = 16,
-}
-impl OpenPgpUserIdRevocationErrorReason {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            Self::Unspecified => "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSPECIFIED",
-            Self::EmptyPrivateKey => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_EMPTY_PRIVATE_KEY"
-            }
-            Self::MalformedKey => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_MALFORMED_KEY"
-            }
-            Self::FingerprintMismatch => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_FINGERPRINT_MISMATCH"
-            }
-            Self::TargetNotFound => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_TARGET_NOT_FOUND"
-            }
-            Self::LastUserId => "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_LAST_USER_ID",
-            Self::UnsupportedKeyVersion => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSUPPORTED_KEY_VERSION"
-            }
-            Self::ProtectedSecretKey => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_PROTECTED_SECRET_KEY"
-            }
-            Self::MissingSelfSignature => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_MISSING_SELF_SIGNATURE"
-            }
-            Self::NonRevocable => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_NON_REVOCABLE"
-            }
-            Self::TimeConflict => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_TIME_CONFLICT"
-            }
-            Self::SignatureVerificationFailed => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED"
-            }
-            Self::MetadataResolutionFailed => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_METADATA_RESOLUTION_FAILED"
-            }
-            Self::InternalFailure => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_INTERNAL_FAILURE"
-            }
-            Self::CertificateRevoked => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_CERTIFICATE_REVOKED"
-            }
-            Self::UnresolvedRevocationAuthority => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY"
-            }
-            Self::UnsupportedSigningHash => {
-                "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSUPPORTED_SIGNING_HASH"
-            }
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSPECIFIED" => {
-                Some(Self::Unspecified)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_EMPTY_PRIVATE_KEY" => {
-                Some(Self::EmptyPrivateKey)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_MALFORMED_KEY" => {
-                Some(Self::MalformedKey)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_FINGERPRINT_MISMATCH" => {
-                Some(Self::FingerprintMismatch)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_TARGET_NOT_FOUND" => {
-                Some(Self::TargetNotFound)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_LAST_USER_ID" => {
-                Some(Self::LastUserId)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSUPPORTED_KEY_VERSION" => {
-                Some(Self::UnsupportedKeyVersion)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_PROTECTED_SECRET_KEY" => {
-                Some(Self::ProtectedSecretKey)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_MISSING_SELF_SIGNATURE" => {
-                Some(Self::MissingSelfSignature)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_NON_REVOCABLE" => {
-                Some(Self::NonRevocable)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_TIME_CONFLICT" => {
-                Some(Self::TimeConflict)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED" => {
-                Some(Self::SignatureVerificationFailed)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_METADATA_RESOLUTION_FAILED" => {
-                Some(Self::MetadataResolutionFailed)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_INTERNAL_FAILURE" => {
-                Some(Self::InternalFailure)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_CERTIFICATE_REVOKED" => {
-                Some(Self::CertificateRevoked)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY" => {
-                Some(Self::UnresolvedRevocationAuthority)
-            }
-            "OPEN_PGP_USER_ID_REVOCATION_ERROR_REASON_UNSUPPORTED_SIGNING_HASH" => {
-                Some(Self::UnsupportedSigningHash)
-            }
-            _ => None,
-        }
-    }
-}
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
-#[repr(i32)]
-pub enum OpenPgpUserIdReplacementErrorReason {
+pub enum OpenPgpUserIdMutationErrorReason {
     Unspecified = 0,
     EmptyPrivateKey = 1,
     MalformedKey = 2,
@@ -2938,160 +2945,157 @@ pub enum OpenPgpUserIdReplacementErrorReason {
     /// Authenticated certificate statements do not resolve to one effective
     /// policy. Advancing the signature clock cannot resolve this conflict.
     PolicyConflict = 23,
+    LastUserId = 24,
 }
-impl OpenPgpUserIdReplacementErrorReason {
+impl OpenPgpUserIdMutationErrorReason {
     /// String value of the enum field names used in the ProtoBuf definition.
     ///
     /// The values are not transformed in any way and thus are considered stable
     /// (if the ProtoBuf definition does not change) and safe for programmatic use.
     pub fn as_str_name(&self) -> &'static str {
         match self {
-            Self::Unspecified => "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSPECIFIED",
+            Self::Unspecified => "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSPECIFIED",
             Self::EmptyPrivateKey => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_EMPTY_PRIVATE_KEY"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_EMPTY_PRIVATE_KEY"
             }
-            Self::MalformedKey => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_MALFORMED_KEY"
-            }
+            Self::MalformedKey => "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_MALFORMED_KEY",
             Self::FingerprintMismatch => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_FINGERPRINT_MISMATCH"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_FINGERPRINT_MISMATCH"
             }
             Self::TargetNotFound => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TARGET_NOT_FOUND"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TARGET_NOT_FOUND"
             }
             Self::TargetInactive => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TARGET_INACTIVE"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TARGET_INACTIVE"
             }
             Self::InvalidNewUserId => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_INVALID_NEW_USER_ID"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_INVALID_NEW_USER_ID"
             }
-            Self::SameIdentity => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_SAME_IDENTITY"
-            }
+            Self::SameIdentity => "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_SAME_IDENTITY",
             Self::DuplicateIdentity => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_DUPLICATE_IDENTITY"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_DUPLICATE_IDENTITY"
             }
             Self::PreviouslyRevokedIdentity => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_PREVIOUSLY_REVOKED_IDENTITY"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_PREVIOUSLY_REVOKED_IDENTITY"
             }
             Self::AmbiguousPrimary => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_AMBIGUOUS_PRIMARY"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_AMBIGUOUS_PRIMARY"
             }
             Self::UnsupportedKeyVersion => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_KEY_VERSION"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_KEY_VERSION"
             }
             Self::ProtectedSecretKey => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_PROTECTED_SECRET_KEY"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_PROTECTED_SECRET_KEY"
             }
             Self::MissingSelfSignature => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_MISSING_SELF_SIGNATURE"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_MISSING_SELF_SIGNATURE"
             }
-            Self::NonRevocable => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_NON_REVOCABLE"
-            }
+            Self::NonRevocable => "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_NON_REVOCABLE",
             Self::UnsupportedTemplate => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_TEMPLATE"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_TEMPLATE"
             }
-            Self::TimeConflict => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TIME_CONFLICT"
-            }
+            Self::TimeConflict => "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TIME_CONFLICT",
             Self::SignatureVerificationFailed => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED"
             }
             Self::MetadataResolutionFailed => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_METADATA_RESOLUTION_FAILED"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_METADATA_RESOLUTION_FAILED"
             }
             Self::InternalFailure => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_INTERNAL_FAILURE"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_INTERNAL_FAILURE"
             }
             Self::CertificateRevoked => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_CERTIFICATE_REVOKED"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_CERTIFICATE_REVOKED"
             }
             Self::UnresolvedRevocationAuthority => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY"
             }
             Self::UnsupportedSigningHash => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_SIGNING_HASH"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_SIGNING_HASH"
             }
             Self::PolicyConflict => {
-                "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_POLICY_CONFLICT"
+                "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_POLICY_CONFLICT"
             }
+            Self::LastUserId => "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_LAST_USER_ID",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
     pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
         match value {
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSPECIFIED" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSPECIFIED" => {
                 Some(Self::Unspecified)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_EMPTY_PRIVATE_KEY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_EMPTY_PRIVATE_KEY" => {
                 Some(Self::EmptyPrivateKey)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_MALFORMED_KEY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_MALFORMED_KEY" => {
                 Some(Self::MalformedKey)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_FINGERPRINT_MISMATCH" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_FINGERPRINT_MISMATCH" => {
                 Some(Self::FingerprintMismatch)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TARGET_NOT_FOUND" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TARGET_NOT_FOUND" => {
                 Some(Self::TargetNotFound)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TARGET_INACTIVE" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TARGET_INACTIVE" => {
                 Some(Self::TargetInactive)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_INVALID_NEW_USER_ID" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_INVALID_NEW_USER_ID" => {
                 Some(Self::InvalidNewUserId)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_SAME_IDENTITY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_SAME_IDENTITY" => {
                 Some(Self::SameIdentity)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_DUPLICATE_IDENTITY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_DUPLICATE_IDENTITY" => {
                 Some(Self::DuplicateIdentity)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_PREVIOUSLY_REVOKED_IDENTITY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_PREVIOUSLY_REVOKED_IDENTITY" => {
                 Some(Self::PreviouslyRevokedIdentity)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_AMBIGUOUS_PRIMARY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_AMBIGUOUS_PRIMARY" => {
                 Some(Self::AmbiguousPrimary)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_KEY_VERSION" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_KEY_VERSION" => {
                 Some(Self::UnsupportedKeyVersion)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_PROTECTED_SECRET_KEY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_PROTECTED_SECRET_KEY" => {
                 Some(Self::ProtectedSecretKey)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_MISSING_SELF_SIGNATURE" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_MISSING_SELF_SIGNATURE" => {
                 Some(Self::MissingSelfSignature)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_NON_REVOCABLE" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_NON_REVOCABLE" => {
                 Some(Self::NonRevocable)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_TEMPLATE" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_TEMPLATE" => {
                 Some(Self::UnsupportedTemplate)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_TIME_CONFLICT" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_TIME_CONFLICT" => {
                 Some(Self::TimeConflict)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_SIGNATURE_VERIFICATION_FAILED" => {
                 Some(Self::SignatureVerificationFailed)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_METADATA_RESOLUTION_FAILED" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_METADATA_RESOLUTION_FAILED" => {
                 Some(Self::MetadataResolutionFailed)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_INTERNAL_FAILURE" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_INTERNAL_FAILURE" => {
                 Some(Self::InternalFailure)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_CERTIFICATE_REVOKED" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_CERTIFICATE_REVOKED" => {
                 Some(Self::CertificateRevoked)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNRESOLVED_REVOCATION_AUTHORITY" => {
                 Some(Self::UnresolvedRevocationAuthority)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_UNSUPPORTED_SIGNING_HASH" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_UNSUPPORTED_SIGNING_HASH" => {
                 Some(Self::UnsupportedSigningHash)
             }
-            "OPEN_PGP_USER_ID_REPLACEMENT_ERROR_REASON_POLICY_CONFLICT" => {
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_POLICY_CONFLICT" => {
                 Some(Self::PolicyConflict)
+            }
+            "OPEN_PGP_USER_ID_MUTATION_ERROR_REASON_LAST_USER_ID" => {
+                Some(Self::LastUserId)
             }
             _ => None,
         }

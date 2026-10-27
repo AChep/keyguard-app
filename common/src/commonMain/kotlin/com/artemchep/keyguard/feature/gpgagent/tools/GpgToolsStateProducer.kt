@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.gpgagent.tools
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.agent.isEligibleForAgent
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptionWarning
@@ -669,6 +670,7 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
             withContext(Dispatchers.Default) {
                 val candidateRevocationKeys = ciphers.toGpgRevocationKeyCandidates()
                 ciphers
+                    .filter { it.isEligibleForAgent() }
                     .mapNotNull { it.toGpgAgentSecretOrNull() }
                     .map { secret ->
                         async {

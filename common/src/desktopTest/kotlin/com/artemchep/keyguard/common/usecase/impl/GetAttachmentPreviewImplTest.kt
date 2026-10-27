@@ -17,6 +17,10 @@ import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptionCodecJvm
+import com.artemchep.keyguard.util.zip.ZipArchive
+import com.artemchep.keyguard.util.zip.ZipConfig
+import com.artemchep.keyguard.util.zip.ZipEntry
+import com.artemchep.keyguard.util.zip.createZipService
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -27,6 +31,9 @@ import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.Buffer
+import kotlinx.io.readByteArray
+import kotlinx.io.readString
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -311,6 +318,34 @@ class GetAttachmentPreviewImplTest {
 
         assertEquals(bytes.size.toLong(), payload.encryptedSize)
         assertContentEquals(bytes, payload.bytes)
+    }
+
+    @Test
+    fun `zip attachments remain browsable through Bitwarden and KeePass sources`() = runTest {
+        val output = Buffer()
+        createZipService().zip(
+            output,
+            ZipConfig(),
+            listOf(ZipEntry("notes.txt", ZipEntry.Data.In { Buffer().apply { write("hello".encodeToByteArray()) } })),
+        )
+        val bytes = output.readByteArray()
+        val key = ByteArray(64) { it.toByte() }
+        val sources = listOf(
+            metadata(
+                DownloadAttachmentRequestData.DirectSource(fileEncryptionCodec.encrypt(bytes, key)),
+                encryptionKey = key,
+            ),
+            metadata(DownloadAttachmentRequestData.KeePassSource("hashref://preview", bytes.size.toLong())),
+        )
+        for (source in sources) {
+            val payload = useCase(source.copy(name = "archive.ZIP"), sourceLoader = sourceLoader(bytes))(
+                request.copy(fileName = "archive.ZIP"),
+            )()
+            assertEquals("archive.ZIP", payload.fileName)
+            ZipArchive(payload.bytes).use { archive ->
+                assertEquals("hello", archive.openEntry(0, maxBytes = 5).use { it.readString() })
+            }
+        }
     }
 
     private fun useCase(

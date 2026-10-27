@@ -18,6 +18,9 @@ interface DateFormatter {
         instant: Instant,
     ): String
 
+    /** Includes seconds for deadlines whose ordering is significant within a minute. */
+    fun formatDateTimeWithSeconds(instant: Instant): String = instant.toString()
+
     fun formatDate(
         instant: Instant,
     ): String

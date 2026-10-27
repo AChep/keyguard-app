@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.Flow
  */
 interface ExposedAccountRepository {
     /**
-     * The mirrored accounts, ordered by label.
+     * The mirrored accounts, ordered by name.
      */
     fun get(): Flow<List<ExposedAccount>>
 
@@ -39,7 +39,7 @@ interface ExposedAccountRepository {
      * Replaces the mirrored accounts with [accounts], and mints an entry id for
      * every account in [allAccountIds] that lacks one.
      *
-     * [allAccountIds] deliberately includes hidden accounts: their labels must not
+     * [allAccountIds] deliberately includes hidden accounts: their names must not
      * be mirrored, but their entry ids have to exist so a stale pick can still be
      * recognised. Existing entry ids are never rewritten.
      */
@@ -55,6 +55,8 @@ interface ExposedAccountRepository {
  * Keeping only registration-relevant fields makes structural equality a precise
  * change key: unrelated profile changes do not cause another platform IPC, while
  * an entry-id rotation cannot be missed.
+ *
+ * [label] is the mirrored account name, and can be blank.
  */
 data class ExposedAccountRegistration(
     val accountId: String,

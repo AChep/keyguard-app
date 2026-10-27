@@ -1,24 +1,20 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.SshAgentFilter
-import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
-import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
-import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
-import com.artemchep.keyguard.common.service.agent.cleanupAgentIpcEndpoint
-import com.artemchep.keyguard.common.service.agent.createAgentIpcEndpoint
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
+import com.artemchep.keyguard.common.service.agent.agentIpcLocation
+import com.artemchep.keyguard.common.service.agent.openAgentIpcTestChannel
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
-import java.io.FileNotFoundException
+import com.artemchep.keyguard.util.agentipc.AgentIpcExpectedPeer
+import com.artemchep.keyguard.util.agentipc.AgentIpcOwnProcessTestApi
 import java.io.IOException
-import java.io.RandomAccessFile
-import java.net.StandardProtocolFamily
-import java.net.UnixDomainSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.ByteChannel
-import java.nio.channels.SocketChannel
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -42,7 +38,7 @@ import kotlinx.serialization.protobuf.ProtoBuf
  */
 @OptIn(
     ExperimentalSerializationApi::class,
-    TestOnlyUnverifiedAgentIpcApi::class,
+    AgentIpcOwnProcessTestApi::class,
 )
 class SshAgentIpcComponentTest {
     private val protoBuf = ProtoBuf
@@ -66,9 +62,9 @@ class SshAgentIpcComponentTest {
                 // Send authenticate request.
                 val authRequest = SshAgentMessages.IpcRequest(
                     id = 1L,
-                    authenticate = SshAgentMessages.AuthenticateRequest(
+                    authenticate = AgentIpcMessages.AuthenticateRequest(
                         token = authToken.copyOf(),
-                        protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                        protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                     ),
                 )
                 sendMessage(client, authRequest)
@@ -90,9 +86,9 @@ class SshAgentIpcComponentTest {
                     client,
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = authToken.copyOf(),
-                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )
@@ -126,9 +122,9 @@ class SshAgentIpcComponentTest {
                     client,
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = badToken,
-                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )
@@ -158,7 +154,7 @@ class SshAgentIpcComponentTest {
                 assertEquals(1L, response.id)
                 assertNotNull(response.error)
                 assertEquals(
-                    SshAgentMessages.ErrorCode.NOT_AUTHENTICATED,
+                    AgentIpcMessages.ErrorCode.NOT_AUTHENTICATED,
                     response.error!!.code,
                 )
             }
@@ -174,9 +170,9 @@ class SshAgentIpcComponentTest {
                     client,
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = authToken.copyOf(),
-                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )
@@ -196,7 +192,7 @@ class SshAgentIpcComponentTest {
                 assertNull(r2.error)
                 assertEquals(emptyList(), r2.listKeys?.keys)
 
-                // Sign data (should get vault locked).
+                // Sign data (the empty locked catalog offers no key).
                 sendMessage(
                     client,
                     SshAgentMessages.IpcRequest(
@@ -210,23 +206,26 @@ class SshAgentIpcComponentTest {
                 )
                 val r3 = readResponseWithTimeout(client, "sign data response")
                 assertEquals(3L, r3.id)
-                assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, r3.error!!.code)
+                assertEquals(AgentIpcMessages.ErrorCode.KEY_NOT_FOUND, r3.error!!.code)
             }
         }
     }
 
     @Test
     fun `server returns user denied for sign data when approval is denied`() = runBlocking {
-        withTestServer(onApprovalRequest = { false }) { endpoint ->
+        withTestServer(
+            sshAgentPublicKeyRepository = signingCatalog,
+            onApprovalRequest = { false },
+        ) { endpoint ->
             connect(endpoint).use { client ->
                 // Authenticate.
                 sendMessage(
                     client,
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = authToken.copyOf(),
-                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )
@@ -247,7 +246,7 @@ class SshAgentIpcComponentTest {
                 )
                 val r2 = readResponseWithTimeout(client, "sign data response")
                 assertEquals(2L, r2.id)
-                assertEquals(SshAgentMessages.ErrorCode.USER_DENIED, r2.error!!.code)
+                assertEquals(AgentIpcMessages.ErrorCode.USER_DENIED, r2.error!!.code)
             }
         }
     }
@@ -261,9 +260,9 @@ class SshAgentIpcComponentTest {
                     firstClient,
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = authToken.copyOf(),
-                            protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
                         ),
                     ),
                 )
@@ -291,98 +290,54 @@ class SshAgentIpcComponentTest {
         }
     }
 
+    /** A locked catalog that offers every requested key for signing. */
+    private val signingCatalog = object : SshAgentPublicKeyRepository by SshAgentPublicKeyRepositoryEmpty {
+        override fun getByPublicKey(publicKey: String): IO<List<SshAgentPublicKeyRow>> = {
+            listOf(
+                SshAgentPublicKeyRow(
+                    accountId = "account", cipherId = "cipher", canSign = true,
+                    publicKeyBlobSha256 = "cached-hash", publicKey = publicKey,
+                    keyType = "ssh-ed25519", fingerprint = "SHA256:cached", name = "Cached key",
+                ),
+            )
+        }
+    }
+
     private suspend fun withTestServer(
         maxConcurrentConnections: Int = 8,
+        sshAgentPublicKeyRepository: SshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
         onApprovalRequest: suspend (SshAgentApprovalPrompt) -> Boolean = { true },
-        block: suspend (AgentIpcEndpoint) -> Unit,
+        block: suspend (String) -> Unit,
     ) {
-        val endpoint = withContext(Dispatchers.IO) {
-            createAgentIpcEndpoint("sshagent-test")
-        }
-        val ready = CompletableDeferred<Unit>()
         val serverScope = CoroutineScope(Dispatchers.IO + Job())
         val server = SshAgentIpcServer(
             logRepository = logRepository,
             getVaultSession = lockedVaultSession,
             sessionAccess = testDomainSessionAccess(),
             getSshAgentFilter = sshAgentFilter,
+            sshAgentPublicKeyRepository = sshAgentPublicKeyRepository,
             authToken = authToken,
             scope = serverScope,
-            testOnlyUnverifiedPeer = TestOnlyUnverifiedAgentIpcPeer,
             maxConcurrentConnections = maxConcurrentConnections,
             onApprovalRequest = onApprovalRequest,
         )
-        val serverJob = serverScope.async {
-            server.start(endpoint, onReady = ready)
-        }
-        serverJob.invokeOnCompletion { failure ->
-            if (failure != null) ready.completeExceptionally(failure)
+        // Connectable once bound; the test process is the helper.
+        val endpoint = server.bind(agentIpcLocation("sshagent-test"))
+        val serverJob = serverScope.launch {
+            server.serve { AgentIpcExpectedPeer.currentProcessForTests() }
         }
         try {
-            awaitServerReady(ready, endpoint.displayName)
             block(endpoint)
         } finally {
             withContext(NonCancellable) {
-                server.stop()
+                server.close()
                 serverScope.cancel()
-                try {
-                    awaitServerStopped(serverJob)
-                } finally {
-                    withContext(Dispatchers.IO) {
-                        cleanupAgentIpcEndpoint(endpoint)
-                    }
-                }
+                awaitServerStopped(serverJob)
             }
         }
     }
 
-    private suspend fun connect(endpoint: AgentIpcEndpoint): ByteChannel =
-        withTimeout(5_000L) {
-            var channel: ByteChannel? = null
-            while (channel == null) {
-                try {
-                    channel = runInterruptible(Dispatchers.IO) { openConnection(endpoint) }
-                } catch (e: FileNotFoundException) {
-                    if (endpoint !is AgentIpcEndpoint.WindowsPipe) throw e
-                    // A connected instance stays busy until the accept loop creates the next one.
-                    delay(10L)
-                }
-            }
-            channel
-        }
-
-    private fun openConnection(endpoint: AgentIpcEndpoint): ByteChannel =
-        when (endpoint) {
-            is AgentIpcEndpoint.UnixSocket -> {
-                val channel = SocketChannel.open(StandardProtocolFamily.UNIX)
-                try {
-                    channel.connect(UnixDomainSocketAddress.of(endpoint.socketPath))
-                    channel
-                } catch (e: IOException) {
-                    channel.close()
-                    throw e
-                }
-            }
-
-            // Closing the FileChannel also closes its owning RandomAccessFile.
-            is AgentIpcEndpoint.WindowsPipe -> RandomAccessFile(endpoint.pipeName, "rw").channel
-        }
-
-    private suspend fun awaitServerReady(
-        ready: CompletableDeferred<Unit>,
-        operation: String,
-    ) {
-        try {
-            withTimeout(5_000L) {
-                ready.await()
-            }
-        } catch (e: TimeoutCancellationException) {
-            throw AssertionError(
-                "Timed out waiting for server readiness in $operation within 5000 ms",
-                e,
-            )
-        }
-    }
+    private suspend fun connect(endpoint: String): ByteChannel = openAgentIpcTestChannel(endpoint)
 
     private suspend fun readResponseWithTimeout(
         channel: ByteChannel,

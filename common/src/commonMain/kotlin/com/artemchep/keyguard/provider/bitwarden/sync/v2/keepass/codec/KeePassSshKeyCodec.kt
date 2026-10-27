@@ -13,9 +13,10 @@ import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
  * | `ssh_privateKey`   | both      | Private key, always concealed.     |
  * | `ssh_publicKey`    | both      | Public key, plain text.            |
  * | `ssh_fingerprint`  | both      | Fingerprint, plain text.           |
+ * | `ssh_certificate`  | both      | OpenSSH certificate, plain text.   |
  *
  * Type detection is intentionally broad: any field whose key starts with
- * `ssh_` selects the SSH-key parser, even when one or more of the three
+ * `ssh_` selects the SSH-key parser, even when one or more of the
  * canonical fields are missing.
  */
 internal class KeePassSshKeyCodec {
@@ -23,6 +24,7 @@ internal class KeePassSshKeyCodec {
         addConcealed(KeePassFieldKey.SSH_PRIVATE_KEY, sshKey.privateKey)
         addPlain(KeePassFieldKey.SSH_PUBLIC_KEY, sshKey.publicKey)
         addPlain(KeePassFieldKey.SSH_FINGERPRINT, sshKey.fingerprint)
+        addPlain(KeePassFieldKey.SSH_CERTIFICATE, sshKey.certificate)
     }
 
     fun decode(scope: DecodeToCipherScope): BitwardenCipher.SshKey =
@@ -30,6 +32,7 @@ internal class KeePassSshKeyCodec {
             privateKey = scope.consumeFieldAndReturnContent(KeePassFieldKey.SSH_PRIVATE_KEY),
             publicKey = scope.consumeFieldAndReturnContent(KeePassFieldKey.SSH_PUBLIC_KEY),
             fingerprint = scope.consumeFieldAndReturnContent(KeePassFieldKey.SSH_FINGERPRINT),
+            certificate = scope.consumeFieldAndReturnContent(KeePassFieldKey.SSH_CERTIFICATE),
         )
 
     /** Whether [remote] carries Keyguard SSH-key custom fields. */

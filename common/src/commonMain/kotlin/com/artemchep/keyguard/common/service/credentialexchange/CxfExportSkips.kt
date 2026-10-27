@@ -48,6 +48,15 @@ enum class CxfExportSkipReason {
     SshKey,
 
     /**
+     * The certificate of an exported SSH key. CXF v1.0 §3.3.15 has no
+     * certificate member, so the key travels without it.
+     *
+     * Counted once per exported key that holds a certificate. A key that is not
+     * exported is counted under [SshKey] alone: its certificate is lost with it.
+     */
+    SshCertificate,
+
+    /**
      * A GPG key the item holds. CXF v1.0 §3.3 defines no OpenPGP credential —
      * the ssh-key credential carries a PKCS#8 private key of an SSH key type,
      * not an armored PGP block — so the key has no encoding at all.
@@ -81,6 +90,17 @@ enum class CxfExportSkipReason {
     PasswordHistory,
 
     /**
+     * An environment containing item references. Their provider ids cannot be
+     * remapped to imported items, so the whole environment is withheld rather
+     * than transferred with broken references or only some of its content.
+     *
+     * Counted once per environment that would contribute a requested
+     * credential. Deleted and fully filtered items stay silent; archived
+     * environments are counted under [Archived] instead.
+     */
+    EnvironmentReference,
+
+    /**
      * An archived item, withheld on purpose.
      *
      * The only reason here that is a *policy* choice rather than a
@@ -102,6 +122,8 @@ enum class CxfExportSkipReason {
     /**
      * A vault item that yielded nothing this format can carry, and whose loss no
      * reason above already explains — an item whose every payload is empty, say.
+     * Also includes an opaque Environment item that cannot be carried atomically:
+     * exporting only some of its raw transport fields would damage the payload.
      *
      * Representability is decided against
      * [CxfCredentialType.ALL][com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType.ALL],

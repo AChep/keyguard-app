@@ -4,6 +4,7 @@ fun attachmentPreviewKindByFileName(
     fileName: String,
 ): AttachmentPreviewKind? {
     val extension = fileName.attachmentPreviewFileExtension()
+    if (extension == "zip") return AttachmentPreviewKind.Archive
     if (extension in ATTACHMENT_PREVIEW_IMAGE_EXTENSIONS) {
         return AttachmentPreviewKind.Image
     }

@@ -9,10 +9,15 @@ repository.workspace = true
 publish = false
 
 [dependencies]
+keyguard-agent-proto.workspace = true
 prost.workspace = true
 
 [build-dependencies]
 prost-build.workspace = true
+
+[dev-dependencies]
+keyguard-agent-identity.workspace = true
+keyguard-agent-proto = { workspace = true, features = ["fixtures"] }
 
 [lints.clippy]
 undocumented_unsafe_blocks = "deny"

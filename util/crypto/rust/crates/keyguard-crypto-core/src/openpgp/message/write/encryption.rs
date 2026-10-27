@@ -594,24 +594,13 @@ where
         .as_ref()
         .map(PreparedSigningKey::packet)
         .transpose()?;
-    let rsa_signer = packet
-        .filter(|packet| is_rsa_private_algorithm(packet.algorithm()))
-        .map(AwsLcRsaSecretKey::new)
-        .transpose()?;
-    let signer: Option<&dyn SigningKey> = if let Some(adapter) = &rsa_signer {
-        Some(adapter)
-    } else {
-        packet.map(|packet| match packet {
-            SecretPacketRef::Primary(key) => key as &dyn SigningKey,
-            SecretPacketRef::Subkey(key) => key as &dyn SigningKey,
-        })
-    };
+    let signer = packet.map(OpenPgpSecretSigner::for_packet).transpose()?;
     let signed = SignedLiteralReader::new(
         input,
         &file_name,
         literal_time,
         signature_time,
-        signer,
+        signer.as_ref().map(|signer| signer.as_ref().0),
         &intended_recipients,
     )?;
     let composed: Box<dyn Read + '_> = match compression_algorithm {

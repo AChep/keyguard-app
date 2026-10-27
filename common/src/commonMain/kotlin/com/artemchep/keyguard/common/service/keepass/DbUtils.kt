@@ -54,7 +54,16 @@ import kotlin.time.Duration.Companion.milliseconds
 
 data class PreparedKeePassDatabase(
     val keyData: ByteArray?,
+    val rootGroupId: String,
 )
+
+/**
+ * KDBX has no database id. The root group UUID is created with the
+ * database and stored in the file, so every device reads the same
+ * value. Copies of the file share it too.
+ */
+val KeePassDatabase.rootGroupId: String
+    get() = content.group.uuid.toString()
 
 suspend fun openKeePassDatabase(
     token: KeePassToken,
@@ -96,11 +105,12 @@ suspend fun openKeePassDatabase(
     )
 }
 
-suspend fun prepareKeePassDatabase(
+internal suspend fun prepareKeePassDatabase(
     fileService: FileService,
     params: AddKeePassAccountParams,
     webDavClientFactory: WebDavClientFactory? = null,
     s3ClientFactory: S3ClientFactory? = null,
+    stagingSpoolFactory: StagingSpoolFactory = DefaultStagingSpoolFactory(),
 ): PreparedKeePassDatabase = withContext(Dispatchers.IO) {
     val keyData = loadKeePassKeyData(
         fileService = fileService,
@@ -136,6 +146,7 @@ suspend fun prepareKeePassDatabase(
                     } else {
                         KeePassDatabaseWriteMode.Create
                     },
+                    stagingSpoolFactory = stagingSpoolFactory,
                 )
             }
         }
@@ -145,13 +156,14 @@ suspend fun prepareKeePassDatabase(
         }
     }
 
-    openKeePassDatabase(
+    val database = openKeePassDatabase(
         storage = storage,
         credentials = credentials,
     )
 
     PreparedKeePassDatabase(
         keyData = keyData,
+        rootGroupId = database.rootGroupId,
     )
 }
 
@@ -179,7 +191,7 @@ internal class StagedDatabase(
  * @return the destination metadata after publishing, or
  *   `null` when it could not be read back.
  */
-suspend fun saveKeePassDatabase(
+internal suspend fun saveKeePassDatabase(
     fileService: FileService,
     token: KeePassToken,
     database: KeePassDatabase,
@@ -187,6 +199,7 @@ suspend fun saveKeePassDatabase(
     webDavClientFactory: WebDavClientFactory? = null,
     s3ClientFactory: S3ClientFactory? = null,
     expectedMetadata: KeePassDatabaseMetadata? = null,
+    stagingSpoolFactory: StagingSpoolFactory = DefaultStagingSpoolFactory(),
 ): KeePassDatabaseMetadata? = withContext(Dispatchers.Default) {
     // Create KDBX credentials
     val credentials = kotlin.run {
@@ -213,6 +226,7 @@ suspend fun saveKeePassDatabase(
             credentials = credentials,
             mode = KeePassDatabaseWriteMode.CreateOrReplace,
             expectedMetadata = expectedMetadata,
+            stagingSpoolFactory = stagingSpoolFactory,
         )
     }
 }
@@ -225,7 +239,7 @@ internal suspend fun stageVerifyAndPublish(
     credentials: Credentials,
     mode: KeePassDatabaseWriteMode,
     expectedMetadata: KeePassDatabaseMetadata? = null,
-    stagingSpoolFactory: StagingSpoolFactory = DefaultStagingSpoolFactory(),
+    stagingSpoolFactory: StagingSpoolFactory,
 ): KeePassDatabaseMetadata? = withContext(Dispatchers.IO) {
     // Encode into private replayable storage and immediately decode the result.
     // This catches corrupt, truncated, or credential-incompatible output before

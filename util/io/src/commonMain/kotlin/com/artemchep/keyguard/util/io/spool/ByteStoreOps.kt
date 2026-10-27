@@ -19,10 +19,14 @@ fun ByteSnapshot.copyTo(output: Sink, checkCancellation: () -> Unit = {}) {
     }
 }
 
-private fun Source.copyTo(
+/**
+ * Copies this source to [output] until it is exhausted, without taking
+ * ownership of either. The [transfer] buffer is zeroed afterwards.
+ */
+fun Source.copyTo(
     output: Sink,
-    transfer: ByteArray,
-    checkCancellation: () -> Unit,
+    transfer: ByteArray = ByteArray(BYTE_SNAPSHOT_TRANSFER_BYTES),
+    checkCancellation: () -> Unit = {},
 ) {
     var consecutiveZeroReads = 0
     try {

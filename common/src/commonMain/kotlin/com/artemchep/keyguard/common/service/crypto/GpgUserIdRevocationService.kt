@@ -14,6 +14,6 @@ object GpgUserIdRevocationServiceUnsupported : GpgUserIdRevocationService {
 
     override fun revoke(request: GpgUserIdRevocationRequest): GpgUserIdRevocationResult =
         GpgUserIdRevocationResult.Error(
-            reason = GpgUserIdRevocationError.UnsupportedPlatform,
+            reason = GpgUserIdMutationError.UnsupportedPlatform,
         )
 }

@@ -57,6 +57,7 @@ import com.artemchep.keyguard.common.usecase.GetFingerprintByAccount
 import com.artemchep.keyguard.common.usecase.GetFolderTree
 import com.artemchep.keyguard.common.usecase.GetFolderTreeById
 import com.artemchep.keyguard.common.usecase.GetFolders
+import com.artemchep.keyguard.common.usecase.GetGpgKeyserverState
 import com.artemchep.keyguard.common.usecase.GetHibpApiToken
 import com.artemchep.keyguard.common.usecase.GetLocalNetworkAccessHint
 import com.artemchep.keyguard.common.usecase.GetMetas
@@ -107,6 +108,7 @@ import com.artemchep.keyguard.common.usecase.impl.CheckHibpApiTokenImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAccountStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCanAddAccountImpl
 import com.artemchep.keyguard.common.usecase.impl.GetEnvSendUrlImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgKeyserverStateImpl
 import com.artemchep.keyguard.common.usecase.impl.GetHibpApiTokenImpl
 import com.artemchep.keyguard.common.usecase.impl.GetLocalNetworkAccessHintImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavItemsConfigImpl
@@ -328,6 +330,7 @@ internal class VaultOperationsModule {
             } bind GpgKeyserverRefreshWorker::class
 
             scoped<VerifyGpgPublicKeyImpl>() bind VerifyGpgPublicKey::class
+            scoped<GetGpgKeyserverStateImpl>() bind GetGpgKeyserverState::class
 
             scoped<GetSendsImpl> {
                 GetSendsImpl(
@@ -499,6 +502,7 @@ internal class VaultOperationsModule {
                     base64Service = get(),
                     webDavClientFactory = get(),
                     s3ClientFactory = get(),
+                    stagingSpoolFactory = get(),
                     db = get(),
                 )
             }

@@ -28,16 +28,14 @@
     <ID>ComplexCondition:SearchTextField.kt:isFocusedState.value &amp;&amp; qualifierSuggestion != null &amp;&amp; onQualifierSuggestion != null &amp;&amp; canAcceptSearchQualifierSuggestion(fieldValue)</ID>
     <ID>ComplexCondition:SearchTextField.kt:keyEvent.key == Key.Tab &amp;&amp; keyEvent.type == KeyEventType.KeyDown &amp;&amp; !keyEvent.isShiftPressed &amp;&amp; qualifierSuggestion != null &amp;&amp; canAcceptSearchQualifierSuggestion(fieldValue)</ID>
     <ID>ComplexCondition:SecureStorageFailureClassifier.kt:causes.any { cause -&gt; cause is AEADBadTagException || cause is BadPaddingException || cause is CorruptionException || // Tink reports malformed keysets as IOException subtypes. Both invalid // hex and invalid protobuf are definitive corruption, not transient I/O. ( stage == SecureStorageStage.KEYSET &amp;&amp; cause.isMalformedTinkKeyset() ) }</ID>
-    <ID>ComplexCondition:SshAgentReceiver.kt:value == null || value.isEmpty() || value.length &gt; MAX_ENCODED_SESSION_PARAMETER_LENGTH || expectedDecodedSize &lt;= 0</ID>
-    <ID>ComplexCondition:SshAgentService.kt:SshAgentService$protocolVersion != SshAgentTcpProtocol.PROTOCOL_VERSION || proxyPort !in 1..65535 || notificationTag == null || sessionId?.size != SshAgentTcpProtocol.SESSION_ID_LENGTH || sessionSecret?.size != SshAgentTcpProtocol.SESSION_SECRET_LENGTH</ID>
+    <ID>ComplexCondition:AgentBridgeReceiver.kt:value == null || value.isEmpty() || value.length &gt; MAX_ENCODED_SESSION_PARAMETER_LENGTH || expectedDecodedSize &lt;= 0</ID>
+    <ID>ComplexCondition:AgentBridgeService.kt:AgentBridgeService$protocolVersion != SshAgentTcpProtocol.PROTOCOL_VERSION || proxyPort !in 1..65535 || notificationTag == null || sessionId?.size != SshAgentTcpProtocol.SESSION_ID_LENGTH || sessionSecret?.size != SshAgentTcpProtocol.SESSION_SECRET_LENGTH</ID>
     <ID>ComplexCondition:SshAgentTcpProxyBridge.kt:!coroutineActive || socket.isClosed || socket.isInputShutdown || socket.isOutputShutdown</ID>
     <ID>ComplexCondition:Suggestions.kt:ignoreCommonWords &amp;&amp; (queryComp.length &lt;= ignoreLength || queryComp in ignoreWords) || queryComp.length &lt;= 1</ID>
     <ID>ComplexCondition:VaultListScreen.kt:llll.isNotEmpty() &amp;&amp; fab &amp;&amp; arg2 is AppMode.Main &amp;&amp; state.query.text == ""</ID>
     <ID>ComplexCondition:VaultListStateProducer.kt:keepOtp &amp;&amp; keepPasskey &amp;&amp; keepPassword &amp;&amp; keepAttachment</ID>
     <ID>ComplexCondition:VaultViewStateProducer.kt:cipherIdentity.address1 != null || cipherIdentity.address2 != null || cipherIdentity.address3 != null || cipherIdentity.city != null || cipherIdentity.state != null || cipherIdentity.postalCode != null || cipherIdentity.country != null</ID>
     <ID>ComplexCondition:VaultViewStateProducer.kt:cipherIdentity.company != null || cipherIdentity.ssn != null || cipherIdentity.passportNumber != null || cipherIdentity.licenseNumber != null</ID>
-    <ID>ComplexCondition:WindowsNamedPipe.kt:WindowsNamedPipeConnection$error == ERROR_BROKEN_PIPE || error == ERROR_PIPE_NOT_CONNECTED || error == ERROR_NO_DATA || error == ERROR_HANDLE_EOF</ID>
-    <ID>ComplexCondition:WindowsNamedPipe.kt:WindowsNamedPipeConnection$error == ERROR_INVALID_HANDLE || error == ERROR_OPERATION_ABORTED || error == ERROR_BROKEN_PIPE || error == ERROR_NO_DATA || error == ERROR_PIPE_NOT_CONNECTED</ID>
     <ID>CyclomaticComplexMethod:AccountListViewModel.kt:suspend fun RememberStateFlowScope.accountListScreenStateProducer: Flow&lt;AccountListStateWrapper&gt;</ID>
     <ID>CyclomaticComplexMethod:AccountViewStateProducer.kt:@OptIn(ExperimentalMaterial3Api::class) private fun buildItemsFlow: Flow&lt;VaultViewItem&gt;</ID>
     <ID>CyclomaticComplexMethod:AccountViewStateProducer.kt:suspend fun RememberStateFlowScope.accountStateProducer: Flow&lt;AccountViewState&gt;</ID>
@@ -120,7 +118,6 @@
     <ID>CyclomaticComplexMethod:GetPasswordImpl.kt:GetPasswordImpl$override fun invoke: IO&lt;GetPasswordResult?&gt;</ID>
     <ID>CyclomaticComplexMethod:GetSuggestionsImpl.kt:GetSuggestionsImpl$override fun invoke: IO&lt;List&lt;Any?&gt;&gt;</ID>
     <ID>CyclomaticComplexMethod:GpgAgentRequestProcessorImpl.kt:GpgAgentRequestProcessorImpl$private suspend fun &lt;T&gt; runKeyOperation: GpgAgentOperationResult&lt;T&gt;</ID>
-    <ID>CyclomaticComplexMethod:GpgAgentRpcHandler.kt:GpgAgentRpcHandler$suspend fun processRequest: GpgAgentMessages.IpcResponse</ID>
     <ID>CyclomaticComplexMethod:GpgKeyExpirationSelection.kt:internal fun evaluateGpgKeyExpirationSelection: GpgKeyExpirationEvaluation</ID>
     <ID>CyclomaticComplexMethod:GpgKeyExpirationServiceJvm.kt:GpgKeyExpirationServiceJvm$private fun updateOrThrow: GpgKeyExpirationResult.Success</ID>
     <ID>CyclomaticComplexMethod:GpgKeyExpirationServiceJvm.kt:GpgKeyExpirationServiceJvm$private fun updatePrimary: PGPPublicKey</ID>
@@ -170,7 +167,7 @@
     <ID>CyclomaticComplexMethod:SettingPaneContent.kt:@Composable fun rememberSettingPaneState: State&lt;SettingPaneState&gt;</ID>
     <ID>CyclomaticComplexMethod:SimpleNote.kt:@Composable fun FlatSimpleNote</ID>
     <ID>CyclomaticComplexMethod:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
-    <ID>CyclomaticComplexMethod:SshAgentService.kt:SshAgentService$override fun onStartCommand: Int</ID>
+    <ID>CyclomaticComplexMethod:AgentBridgeService.kt:AgentBridgeService$override fun onStartCommand: Int</ID>
     <ID>CyclomaticComplexMethod:SshAgentTcpProxySocketConnector.kt:internal suspend fun &lt;T&gt; withAndroidSshAgentProxySocket: T</ID>
     <ID>CyclomaticComplexMethod:SyncByBitwardenTokenV2Impl.kt:SyncByBitwardenTokenV2Impl$context(syncScope: SyncScope) private suspend fun syncV2</ID>
     <ID>CyclomaticComplexMethod:SyncDiffer.kt:SyncDiffer$private fun diffExistingPair: DiffPairVerdict</ID>
@@ -235,7 +232,6 @@
     <ID>EmptyFunctionBlock:MainThread.kt:{ }</ID>
     <ID>EmptyFunctionBlock:OrganizationConfirmationScreen.kt:{ }</ID>
     <ID>EmptyFunctionBlock:RememberStateFlowScopeImpl.kt:RememberStateFlowScopeImpl${ }</ID>
-    <ID>EmptyFunctionBlock:SshAgentGetListContent.kt:{ }</ID>
     <ID>EmptyFunctionBlock:Theme.kt:{ }</ID>
     <ID>EmptyFunctionBlock:UploadAttachmentManager.kt:UploadAttachmentManager${ }</ID>
     <ID>EmptyFunctionBlock:WordlistViewStateProducer.kt:{ }</ID>
@@ -317,25 +313,6 @@
     <ID>FunctionParameterNaming:AddCipher.kt:_totp: String? = old?.login?.totp</ID>
     <ID>FunctionParameterNaming:AddCipher.kt:_uris: List&lt;DSecret.Uri&gt;? = old?.login?.uris ?.map { uri -&gt; uri.toDomain() }</ID>
     <ID>FunctionParameterNaming:AddCipher.kt:_username: String? = old?.login?.username</ID>
-    <ID>FunctionParameterNaming:WindowsNamedPipe.kt:Kernel32$ClientProcessId: IntByReference</ID>
-    <ID>FunctionParameterNaming:WindowsNamedPipe.kt:Kernel32$Pipe: Pointer</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$DesiredAccess: Int</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$ProcessHandle: Pointer</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$ReturnLength: IntByReference</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$SecurityDescriptor: PointerByReference</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$SecurityDescriptorSize: IntByReference?</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$Sid: Pointer</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$StringSDRevision: Int</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$StringSecurityDescriptor: WString</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$StringSid: PointerByReference</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$TokenHandle: Pointer</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$TokenHandle: PointerByReference</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$TokenInformation: Pointer?</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$TokenInformationClass: Int</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityAdvapi32$TokenInformationLength: Int</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityKernel32$InheritHandle: Boolean</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityKernel32$ProcessAccess: Int</ID>
-    <ID>FunctionParameterNaming:WindowsOwnerOnlySecurity.kt:WindowsSecurityKernel32$ProcessId: Int</ID>
     <ID>InvalidPackageDeclaration:Getter.kt:package arrow.optics</ID>
     <ID>InvalidPackageDeclaration:SecureKeysetFailure.kt:package db_key_value.encrypted</ID>
     <ID>InvalidPackageDeclaration:UploadAttachmentManager.kt:package com.artemchep.keyguard.android.uploader</ID>
@@ -419,8 +396,6 @@
     <ID>LongMethod:AddStateProducer.kt:suspend fun createItem4</ID>
     <ID>LongMethod:AddUriCipher.kt:AddUriCipherImpl$override fun invoke: IO&lt;Boolean&gt;</ID>
     <ID>LongMethod:AgentApprovalContent.kt:@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3ExpressiveApi::class) @Composable fun AgentApprovalContent</ID>
-    <ID>LongMethod:AgentIpcServer.kt:AgentIpcServer$private suspend fun startUnix</ID>
-    <ID>LongMethod:AgentIpcServer.kt:AgentIpcServer$private suspend fun startWindows</ID>
     <ID>LongMethod:AgentManager.kt:AgentManager$private suspend fun startLocked: Process</ID>
     <ID>LongMethod:AgentSetupComponents.kt:@Composable internal fun AgentSetupCodeBlock</ID>
     <ID>LongMethod:AndroidAssetLinksRpBinding.kt:AndroidAssetLinksRpBinding$private suspend fun obtainAllowedAndroidAppTargets: Map&lt;AndroidAppRelation, Map&lt;AndroidAppPackageName, AndroidAppTarget&gt;&gt;</ID>
@@ -721,15 +696,14 @@
     <ID>LongMethod:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server handles multiple sequential requests over unix socket`</ID>
     <ID>LongMethod:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest$@Test fun `server rejects connection when max concurrent limit is reached`</ID>
     <ID>LongMethod:SshAgentPublicKeySyncerImplTest.kt:SshAgentPublicKeySyncerImplTest$@Test fun `syncer applies SSH eligibility and filters before caching`</ID>
-    <ID>LongMethod:SshAgentReceiver.kt:SshAgentReceiver$override fun onReceive</ID>
-    <ID>LongMethod:SshAgentReceiver.kt:SshAgentReceiver$private suspend fun handleRequest: SshAgentContract.BroadcastOutcome</ID>
+    <ID>LongMethod:AgentBridgeReceiver.kt:AgentBridgeReceiver$override fun onReceive</ID>
+    <ID>LongMethod:AgentBridgeReceiver.kt:AgentBridgeReceiver$private suspend fun handleRequest: AgentBridgeContract.BroadcastOutcome</ID>
     <ID>LongMethod:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
-    <ID>LongMethod:SshAgentService.kt:SshAgentService$override fun onStartCommand: Int</ID>
+    <ID>LongMethod:AgentBridgeService.kt:AgentBridgeService$override fun onStartCommand: Int</ID>
     <ID>LongMethod:SshAgentSetupScreen.kt:@Composable private fun ColumnScope.SshAgentSetupAndroidPlatformContent</ID>
     <ID>LongMethod:SshAgentSetupScreen.kt:@Composable private fun ColumnScope.SshAgentSetupSupportedPlatformContent</ID>
-    <ID>LongMethod:SshAgentTcpProxyBridge.kt:internal suspend fun runSshAgentProxyBridge</ID>
     <ID>LongMethod:SshAgentTcpProxySocketConnector.kt:internal suspend fun &lt;T&gt; withAndroidSshAgentProxySocket: T</ID>
-    <ID>LongMethod:SshRequestActivity.kt:SshRequestActivity$@Composable override fun Content</ID>
+    <ID>LongMethod:AgentRequestActivity.kt:AgentRequestActivity$@Composable override fun Content</ID>
     <ID>LongMethod:SubscriptionServiceAndroid.kt:SubscriptionServiceAndroid$override fun subscriptions: Flow&lt;List&lt;Subscription&gt;?&gt;</ID>
     <ID>LongMethod:SyncByBitwardenTokenV2Impl.kt:SyncByBitwardenTokenV2Impl$context(syncScope: SyncScope) private suspend fun syncV2</ID>
     <ID>LongMethod:SyncByBitwardenTokenV2Impl.kt:SyncByBitwardenTokenV2Impl$override fun invoke: IO&lt;Unit&gt;</ID>
@@ -863,7 +837,6 @@
     <ID>LongMethod:VaultViewUriItem.kt:@Composable fun VaultViewUriItem</ID>
     <ID>LongMethod:VaultViewUriItem.kt:@Composable private fun UrlAppStoreListingItem</ID>
     <ID>LongMethod:VaultViewUriItem.kt:@Composable private fun UrlAppStoreListingSkeletonItem</ID>
-    <ID>LongMethod:VaultViewUriItem.kt:@Composable private fun UrlOverrideItem</ID>
     <ID>LongMethod:VaultViewValueItem.kt:@Composable fun VaultViewValueItem</ID>
     <ID>LongMethod:VerifyGpgPublicKeyImpl.kt:VerifyGpgPublicKeyImpl$override fun invoke: IO&lt;GpgKeyserverVerifyStatus&gt;</ID>
     <ID>LongMethod:WatchtowerBenchmarkFixtures.kt:private fun createSecret: DSecret</ID>
@@ -887,7 +860,6 @@
     <ID>LongMethod:WordlistListStateProducer.kt:suspend fun RememberStateFlowScope.wordlistListStateProducer: Flow&lt;Loadable&lt;WordlistListState&gt;&gt;</ID>
     <ID>LongMethod:WordlistViewScreen.kt:@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class) @Composable fun WordlistViewScreen</ID>
     <ID>LongMethod:WordlistViewStateProducer.kt:suspend fun RememberStateFlowScope.wordlistViewStateProducer: Flow&lt;Loadable&lt;WordlistViewState&gt;&gt;</ID>
-    <ID>LongMethod:WrkerImpl.kt:WrkerImpl$override fun start</ID>
     <ID>LongMethod:Yubi.kt:@Composable private fun YubiKitManager.rememberYubiKeyUsbState: State&lt;Loadable&lt;YubiKeyUsbState&gt;&gt;</ID>
     <ID>LongMethod:YubiKey.kt:@Composable fun YubiKeyUsbCard</ID>
     <ID>LongMethod:YubiScreen.kt:@Composable fun YubiKeyManual</ID>
@@ -898,7 +870,6 @@
     <ID>LongMethod:changePasswordAction.kt:suspend fun SequenceScope&lt;SendItem?&gt;.yieldCipherIdentityItems</ID>
     <ID>LongMethod:cipherChangeGpgKeyExpirationAction.kt:fun RememberStateFlowScope.cipherChangeGpgKeyExpiryAction</ID>
     <ID>LongMethod:popup.kt:@Composable private fun BasicPopup</ID>
-    <ID>LoopWithTooManyJumpStatements:AgentIpcServer.kt:AgentIpcServer$while</ID>
     <ID>LoopWithTooManyJumpStatements:AgentPacketSession.kt:while</ID>
     <ID>LoopWithTooManyJumpStatements:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStore$while</ID>
     <ID>LoopWithTooManyJumpStatements:CipherCrypto.kt:CipherFieldDecodeScope$for</ID>
@@ -929,8 +900,6 @@
     <ID>MagicNumber:AddScreenScope.kt:AddScreenScope$100L</ID>
     <ID>MagicNumber:AddStateProducer.kt:5000L</ID>
     <ID>MagicNumber:AgentApprovalContent.kt:200L</ID>
-    <ID>MagicNumber:AgentIpcPeerVerification.kt:UnixLibC$4</ID>
-    <ID>MagicNumber:AgentIpcProtocol.kt:AgentIpcProtocol.Channel$4</ID>
     <ID>MagicNumber:AgentManager.kt:AgentManager$3</ID>
     <ID>MagicNumber:AnimatedFabVisibility.kt:0.01f</ID>
     <ID>MagicNumber:AppPickerScreen.kt:100L</ID>
@@ -1207,16 +1176,15 @@
     <ID>MagicNumber:ShimmerArea.kt:ShimmerArea$90</ID>
     <ID>MagicNumber:SkeletonItemPilled.kt:0.4f</ID>
     <ID>MagicNumber:SshAgentPublicKeyNormalizer.kt:4</ID>
-    <ID>MagicNumber:SshAgentReceiver.kt:SshAgentReceiver$65535</ID>
-    <ID>MagicNumber:SshAgentService.kt:SshAgentService$65535</ID>
+    <ID>MagicNumber:AgentBridgeReceiver.kt:AgentBridgeReceiver$65535</ID>
+    <ID>MagicNumber:AgentBridgeService.kt:AgentBridgeService$65535</ID>
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol$12</ID>
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol$4</ID>
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol$8</ID>
     <ID>MagicNumber:SshAgentTcpProtocol.kt:SshAgentTcpProtocol.Channel$16</ID>
     <ID>MagicNumber:SshAgentTcpProxyBridge.kt:1_000_000L</ID>
     <ID>MagicNumber:SshAgentTcpProxySocketConnector.kt:1_000_000L</ID>
-    <ID>MagicNumber:SshRequestActivity.kt:SshRequestActivity$1000L</ID>
-    <ID>MagicNumber:SshRequestActivity.kt:SshRequestActivity$3000L</ID>
+    <ID>MagicNumber:AgentRequestActivity.kt:AgentRequestActivity$1000L</ID>
     <ID>MagicNumber:SubscriptionServiceAndroid.kt:SubscriptionServiceAndroid$1000L</ID>
     <ID>MagicNumber:SurfaceElevation.kt:0.25f</ID>
     <ID>MagicNumber:SurfaceElevation.kt:0.5f</ID>
@@ -1281,7 +1249,6 @@
     <ID>MagicNumber:WebDavKeePassUrl.kt:3</ID>
     <ID>MagicNumber:WebsiteLeakScreen.kt:0.6f</ID>
     <ID>MagicNumber:WebsiteLeakScreen.kt:0.8f</ID>
-    <ID>MagicNumber:WindowsNamedPipe.kt:WindowsNamedPipePacketChannel$4</ID>
     <ID>MagicNumber:WordlistViewScreen.kt:100L</ID>
     <ID>MagicNumber:broadcastFlow.kt:34</ID>
     <ID>MagicNumber:getHttpCode.kt:500</ID>
@@ -1315,7 +1282,6 @@
     <ID>MatchingDeclarationName:AddPrivilegedApp.kt:AddPrivilegedAppImpl : AddPrivilegedApp</ID>
     <ID>MatchingDeclarationName:AddSshUsageHistory.kt:AddSshUsageHistoryImpl : AddSshUsageHistory</ID>
     <ID>MatchingDeclarationName:AddUriCipher.kt:AddUriCipherImpl : AddUriCipher</ID>
-    <ID>MatchingDeclarationName:AgentIpcPeerVerification.kt:UnixAgentPeerCredentials</ID>
     <ID>MatchingDeclarationName:AlphabeticalSort.kt:AlphabeticalSendSort : SendSort</ID>
     <ID>MatchingDeclarationName:AndFilter.kt:AndSendFilter : SendFilterPureSendFilter</ID>
     <ID>MatchingDeclarationName:ArchiveCipherById.kt:ArchiveCipherByIdImpl : ArchiveCipherById</ID>
@@ -1522,7 +1488,6 @@
     <ID>MaxLineLength:PasskeyCompose.kt:title = getComposeString(Res.string.error_credential_calling_app_not_privileged_add_as_privileged_app_title)</ID>
     <ID>MaxLineLength:PasskeyCreateActivity.kt:PasskeyCreateActivity$(preparedCreateCredentialData as? PasskeyCreateRequest.PreparedCreateCredentialRequest.PublicKey)</ID>
     <ID>MaxLineLength:PlatformUserAgent.kt:get() = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/$CHROME_FULL_VERSION Safari/537.36"</ID>
-    <ID>MaxLineLength:ProstDecodeTest.kt:ProstDecodeTest$val hex = "08021a3b0a390a066d792d6b657912137373682d6564323535313920414141412e2e2e1a0b7373682d65643235353139220d5348413235363a616263646566"</ID>
     <ID>MaxLineLength:QuickSearchStateProducer.kt:QuickSearchContentInput$val queryQualifierSuggestion: com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierSuggestion?</ID>
     <ID>MaxLineLength:SecureStorageFailureClassifier.kt:private</ID>
     <ID>MaxLineLength:ServerEnvApiCipherBulkTest.kt:ServerEnvApiCipherBulkTest$RecordedRequest(HttpMethod.Post, "$baseApiUrl/ciphers/bulk-collections", "post-bulk-cipher-collections")</ID>
@@ -1688,7 +1653,7 @@
     <ID>ReturnCount:AddSend.kt:internal suspend fun prepareSendPendingUpload: PreparedSend</ID>
     <ID>ReturnCount:AgentApplicationPresentation.desktop.kt:private fun desktopApplicationLookup: DesktopApplicationLookup?</ID>
     <ID>ReturnCount:AgentBinaryFinder.kt:internal fun findAgentBinary: java.nio.file.Path?</ID>
-    <ID>ReturnCount:AgentCallerIdentity.kt:fun AgentCallerIdentity?.toApprovalCacheIdentity: AgentApprovalCacheIdentity?</ID>
+    <ID>ReturnCount:AgentCallerIdentity.kt:fun AgentCallerAuthorization?.toApprovalCacheIdentity: AgentApprovalCacheIdentity?</ID>
     <ID>ReturnCount:AgentManager.kt:internal fun macosDevAgentSocketPath: Path?</ID>
     <ID>ReturnCount:AgentRequestUiState.kt:fun showNextRequestIfIdle</ID>
     <ID>ReturnCount:AlphabeticalSortPlatformApple.kt:internal actual fun compareAlphabetically: Int</ID>
@@ -1780,7 +1745,6 @@
     <ID>ReturnCount:GetSuggestionsImpl.kt:internal fun DSecret.Uri.matchesAndroidApp: Boolean</ID>
     <ID>ReturnCount:GpgAgentFields.kt:fun DSecret.toGpgAgentSecretOrNull: GpgAgentSecret?</ID>
     <ID>ReturnCount:GpgAgentRequestProcessorImpl.kt:GpgAgentRequestProcessorImpl$private suspend fun &lt;T&gt; runKeyOperation: GpgAgentOperationResult&lt;T&gt;</ID>
-    <ID>ReturnCount:GpgAgentRpcHandler.kt:GpgAgentRpcHandler$suspend fun processRequest: GpgAgentMessages.IpcResponse</ID>
     <ID>ReturnCount:GpgCertificateInspectorJvm.kt:@Suppress("DEPRECATION") private fun PGPSignature.matchesIssuerHint: Boolean</ID>
     <ID>ReturnCount:GpgCertificateInspectorJvm.kt:GpgCertificateInspectorJvm.Companion$fun inspect: GpgCertificateInspectorJvm?</ID>
     <ID>ReturnCount:GpgCertificateInspectorJvm.kt:internal fun PGPSignature.isExpiredAt: Boolean</ID>
@@ -1857,16 +1821,15 @@
     <ID>ReturnCount:Sha256Fingerprint.kt:internal fun String.normalizeSha256FingerprintOrNull: String?</ID>
     <ID>ReturnCount:SshAgentPublicKeyCodec.kt:fun sshPublicKeysMatch: Boolean</ID>
     <ID>ReturnCount:SshAgentPublicKeyNormalizer.kt:fun parseSshAgentPublicKeyMaterial: SshAgentPublicKeyMaterial?</ID>
-    <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$override fun onReceive</ID>
-    <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private fun captureSender: BroadcastSender?</ID>
-    <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private fun getSentFromAppInfo: SshAgentMessages.CallerIdentity?</ID>
-    <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private fun parseRequest: BroadcastRequest?</ID>
-    <ID>ReturnCount:SshAgentReceiver.kt:SshAgentReceiver$private suspend fun handleRequest: SshAgentContract.BroadcastOutcome</ID>
+    <ID>ReturnCount:AgentBridgeReceiver.kt:AgentBridgeReceiver$override fun onReceive</ID>
+    <ID>ReturnCount:AgentBridgeReceiver.kt:AgentBridgeReceiver$private fun captureSender: BroadcastSender?</ID>
+    <ID>ReturnCount:AgentBridgeReceiver.kt:AgentBridgeReceiver$private fun getSentFromAppInfo: CallerIdentity?</ID>
+    <ID>ReturnCount:AgentBridgeReceiver.kt:AgentBridgeReceiver$private fun parseRequest: BroadcastRequest?</ID>
+    <ID>ReturnCount:AgentBridgeReceiver.kt:AgentBridgeReceiver$private suspend fun handleRequest: AgentBridgeContract.BroadcastOutcome</ID>
     <ID>ReturnCount:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
-    <ID>ReturnCount:SshAgentRpcHandler.kt:SshAgentRpcHandler$suspend fun processRequest: SshAgentMessages.IpcResponse</ID>
-    <ID>ReturnCount:SshAgentService.kt:SshAgentService$override fun onStartCommand: Int</ID>
+    <ID>ReturnCount:AgentBridgeService.kt:AgentBridgeService$override fun onStartCommand: Int</ID>
     <ID>ReturnCount:SshAgentTcpProxyBridge.kt:internal fun buildAndroidFrameworkPackageAuthorization: CallerAuthorization?</ID>
-    <ID>ReturnCount:SshAgentTcpProxyBridge.kt:internal fun mergeAndroidSshAgentCallerIdentity: SshAgentMessages.CallerIdentity?</ID>
+    <ID>ReturnCount:SshAgentTcpProxyBridge.kt:internal fun mergeAndroidSshAgentCallerIdentity: CallerIdentity?</ID>
     <ID>ReturnCount:SshAgentTcpProxyBridge.kt:private fun CallerAuthorization?.hasVerifiedAndroidFrameworkPackageSubject: Boolean</ID>
     <ID>ReturnCount:SshAgentTcpProxyBridge.kt:private fun SocketException.isExpectedProxyShutdown: Boolean</ID>
     <ID>ReturnCount:StringComparatorIgnoreCase.kt:StringComparatorIgnoreCase$private fun internalCompare: Int</ID>
@@ -1901,11 +1864,9 @@
     <ID>ReturnCount:WatchtowerSyncerImpl.kt:WatchtowerInactivePasskey.Companion$context(tldService: TldService) private suspend fun findMatch: PassKeyServiceInfo?</ID>
     <ID>ReturnCount:WatchtowerSyncerImpl.kt:WatchtowerInactiveTfa.Companion$context(tldService: TldService) private suspend fun findMatch: TwoFaServiceInfo?</ID>
     <ID>ReturnCount:WatchtowerSyncerImpl.kt:WatchtowerIncomplete$private fun hasAlert: String?</ID>
-    <ID>ReturnCount:WindowsNamedPipe.kt:WindowsNamedPipeConnection$fun read: Int</ID>
     <ID>ReturnCount:PlatformVaultModule.kt:DatabaseSqlManagerInFileApple$private fun isPlaintextSqliteDatabaseFile: Boolean</ID>
     <ID>ReturnCount:getHttpCode.kt:fun Throwable.getHttpCode: Int</ID>
     <ID>ReturnCount:screenFlow.kt:private fun Context.isScreenOn: Boolean</ID>
-    <ID>ThrowsCount:AgentIpcPeerVerification.kt:UnixLibC$fun macosPeerCredentials: UnixAgentPeerCredentials</ID>
     <ID>ThrowsCount:AgentStartupRetry.kt:internal suspend fun &lt;T&gt; retryAgentStartup: T</ID>
     <ID>ThrowsCount:AppleFolderBackupObjectStore.kt:AppleFolderBackupObjectStore$override suspend fun read: Source</ID>
     <ID>ThrowsCount:BackupObjectStore.kt:BackupObjectStore$suspend fun test: BackupObjectStoreTestResult</ID>
@@ -1922,12 +1883,9 @@
     <ID>ThrowsCount:SyncResult.kt:internal fun SyncResult.requireCleanForRevisionCache</ID>
     <ID>ThrowsCount:TotpServiceImpl.kt:TotpServiceImpl$private fun decodeSecretKey: ByteArray</ID>
     <ID>ThrowsCount:VerifyGpgPublicKeyImpl.kt:VerifyGpgPublicKeyImpl$private fun parsePublicKey: GpgPublicKeyInfo</ID>
-    <ID>ThrowsCount:WindowsNamedPipe.kt:WindowsNamedPipeConnection$fun write</ID>
-    <ID>ThrowsCount:WindowsOwnerOnlySecurity.kt:private fun windowsProcessUserSidString: String</ID>
     <ID>TooGenericExceptionCaught:AccountSyncScheduler.kt:AccountSyncScheduler$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:AddCipher.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:AgentApprovalCacheConfig.kt:AgentApprovalCacheConfigState$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:AgentIpcServer.kt:AgentIpcServer$e: Exception</ID>
     <ID>TooGenericExceptionCaught:AgentManager.kt:AgentManager$e: Exception</ID>
     <ID>TooGenericExceptionCaught:AgentStartupRetry.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:AndroidTreeBackupObjectStore.kt:AndroidTreeBackupObjectStore$e: Exception</ID>
@@ -1990,10 +1948,10 @@
     <ID>TooGenericExceptionCaught:SettingAutotypeTest.kt:e: Throwable</ID>
     <ID>TooGenericExceptionCaught:SettingClipboardNotificationSettings.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:SshAgentPublicKeySyncerImpl.kt:SshAgentPublicKeySyncerImpl$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:SshAgentReceiver.kt:SshAgentReceiver$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:SshAgentReceiver.kt:SshAgentReceiver$e: Throwable</ID>
+    <ID>TooGenericExceptionCaught:AgentBridgeReceiver.kt:AgentBridgeReceiver$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AgentBridgeReceiver.kt:AgentBridgeReceiver$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:SshAgentRequestProcessorImpl.kt:SshAgentRequestProcessorImpl$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:SshAgentService.kt:SshAgentService$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AgentBridgeService.kt:AgentBridgeService$e: Exception</ID>
     <ID>TooGenericExceptionCaught:SshAgentTcpProxyBridge.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:SshAgentTcpProxySocketConnector.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:SyncByBitwardenTokenV2Impl.kt:e: Exception</ID>
@@ -2006,8 +1964,6 @@
     <ID>TooGenericExceptionCaught:WatchtowerSyncerImpl.kt:WatchtowerClient$e: Exception</ID>
     <ID>TooGenericExceptionCaught:WatchtowerSyncerImpl.kt:WatchtowerDuplicateUris$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:WindowScreenshotProtectionEffect.kt:e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:WindowsNamedPipe.kt:WindowsNamedPipeServer$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:WindowsOwnerOnlySecurity.kt:WindowsOwnerOnlySecurityAttributes.Companion$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:PlatformVaultModule.kt:DatabaseSqlManagerInFileApple$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:http.kt:e: Exception</ID>
     <ID>TooGenericExceptionCaught:http.kt:f: Exception</ID>
@@ -2118,9 +2074,9 @@
     <ID>TooManyFunctions:SettingsRepositoryImpl.kt:SettingsRepositoryImpl : SettingsReadWriteRepository</ID>
     <ID>TooManyFunctions:SshAgentIpcComponentTest.kt:SshAgentIpcComponentTest</ID>
     <ID>TooManyFunctions:SshAgentMessagesTest.kt:SshAgentMessagesTest</ID>
-    <ID>TooManyFunctions:SshAgentNotifications.kt:SshAgentNotifications</ID>
+    <ID>TooManyFunctions:AgentBridgeNotifications.kt:AgentBridgeNotifications</ID>
     <ID>TooManyFunctions:SshAgentRequestProcessingTest.kt:SshAgentRequestProcessingTest</ID>
-    <ID>TooManyFunctions:SshAgentService.kt:SshAgentService : ServiceKeyguardKoinOwner</ID>
+    <ID>TooManyFunctions:AgentBridgeService.kt:AgentBridgeService : ServiceKeyguardKoinOwner</ID>
     <ID>TooManyFunctions:SshAgentTcpProxyBridge.kt:com.artemchep.keyguard.common.service.sshagent.SshAgentTcpProxyBridge.kt</ID>
     <ID>TooManyFunctions:SshImportCompatibilityCorpusTest.kt:SshImportCompatibilityCorpusTest</ID>
     <ID>TooManyFunctions:SshKeyImportServiceJvmTest.kt:SshKeyImportServiceJvmTest</ID>
@@ -2287,9 +2243,7 @@
     <ID>UnusedParameter:SettingSshAgentSetup.kt:koinScope: Scope</ID>
     <ID>UnusedParameter:SettingSshSettings.kt:windowCoroutineScope: WindowCoroutineScope</ID>
     <ID>UnusedParameter:SettingUrlOverride.kt:koinScope: Scope</ID>
-    <ID>UnusedParameter:SshAgentGetListContent.kt:onDismiss: () -&gt; Unit</ID>
-    <ID>UnusedParameter:SshAgentGetListContent.kt:request: SshAgentGetListRequest</ID>
-    <ID>UnusedParameter:SshRequestNotificationActionReceiver.kt:SshRequestNotificationActionReceiver$context: Context</ID>
+    <ID>UnusedParameter:AgentRequestNotificationActionReceiver.kt:AgentRequestNotificationActionReceiver$context: Context</ID>
     <ID>UnusedParameter:SyncDiffer.kt:SyncDiffer$dateNormalizer: (Instant) -&gt; Long</ID>
     <ID>UnusedParameter:SyncStateProducer.kt:getCollections: GetCollections</ID>
     <ID>UnusedParameter:SyncStateProducer.kt:getOrganizations: GetOrganizations</ID>

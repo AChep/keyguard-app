@@ -1,21 +1,20 @@
 package com.artemchep.keyguard.integration.s3
 
+import com.artemchep.keyguard.integration.process.CapturedProcess
+import com.artemchep.keyguard.integration.process.freePort
 import com.artemchep.keyguard.util.s3.KtorS3Client
 import com.artemchep.keyguard.util.s3.S3ClientConfig
 import com.artemchep.keyguard.util.s3.S3Credentials
 import com.artemchep.keyguard.util.s3.S3SigV4Signer
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
-import java.io.IOException
-import java.io.InputStream
 import java.net.HttpURLConnection
-import java.net.ServerSocket
 import java.net.URI
 import java.nio.file.Files
 import java.nio.file.Path
-import java.util.Comparator
 import java.util.concurrent.TimeUnit
-import kotlin.concurrent.thread
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.deleteRecursively
 import kotlin.time.Clock
 
 /**
@@ -25,9 +24,7 @@ import kotlin.time.Clock
  */
 internal class VersityGwServer private constructor(
     val port: Int,
-    private val process: Process,
-    private val stdout: ProcessOutput,
-    private val stderr: ProcessOutput,
+    private val process: CapturedProcess,
     private val tempDir: Path,
 ) : AutoCloseable {
     val endpoint: String = "http://127.0.0.1:$port"
@@ -92,25 +89,13 @@ internal class VersityGwServer private constructor(
 
     fun diagnostics(): String = buildString {
         appendLine("versitygw endpoint: $endpoint")
-        appendLine("versitygw alive: ${process.isAlive}")
-        appendLine("versitygw exit: ${runCatching { process.exitValue() }.getOrNull()}")
-        appendLine("versitygw stdout:")
-        appendLine(stdout.text())
-        appendLine("versitygw stderr:")
-        appendLine(stderr.text())
+        append(process.diagnostics("versitygw"))
     }
 
+    @OptIn(ExperimentalPathApi::class)
     override fun close() {
-        if (process.isAlive) {
-            process.destroy()
-            if (!process.waitFor(5, TimeUnit.SECONDS)) {
-                process.destroyForcibly()
-                process.waitFor(5, TimeUnit.SECONDS)
-            }
-        }
-        stdout.join()
-        stderr.join()
-        deleteRecursively(tempDir)
+        process.close()
+        tempDir.deleteRecursively()
     }
 
     companion object {
@@ -139,13 +124,9 @@ internal class VersityGwServer private constructor(
             )
                 .directory(tempDir.toFile())
                 .start()
-            val stdout = ProcessOutput(process.inputStream, "versitygw-e2e-stdout")
-            val stderr = ProcessOutput(process.errorStream, "versitygw-e2e-stderr")
             val server = VersityGwServer(
                 port = port,
-                process = process,
-                stdout = stdout,
-                stderr = stderr,
+                process = CapturedProcess(process, "versitygw-e2e"),
                 tempDir = tempDir,
             )
             try {
@@ -160,24 +141,6 @@ internal class VersityGwServer private constructor(
         }
 
         fun unusedEndpoint(): String = "http://127.0.0.1:${freePort()}"
-
-        private fun freePort(): Int = ServerSocket(0).use { socket ->
-            socket.reuseAddress = true
-            socket.localPort
-        }
-
-        private fun deleteRecursively(
-            path: Path,
-        ) {
-            if (!Files.exists(path)) {
-                return
-            }
-            Files.walk(path).use { paths ->
-                paths
-                    .sorted(Comparator.reverseOrder())
-                    .forEach(Files::deleteIfExists)
-            }
-        }
     }
 
     @Suppress("TooGenericExceptionCaught")
@@ -206,37 +169,5 @@ internal class VersityGwServer private constructor(
             Thread.sleep(50)
         }
         throw AssertionError("Timed out waiting for versitygw readiness.", lastFailure)
-    }
-}
-
-private class ProcessOutput(
-    input: InputStream,
-    name: String,
-) {
-    private val buffer = StringBuilder()
-    private val thread = thread(
-        start = true,
-        isDaemon = true,
-        name = name,
-    ) {
-        try {
-            input.bufferedReader().useLines { lines ->
-                lines.forEach { line ->
-                    synchronized(buffer) {
-                        buffer.appendLine(line)
-                    }
-                }
-            }
-        } catch (_: IOException) {
-            // Process shutdown can close streams before the reader drains them.
-        }
-    }
-
-    fun text(): String = synchronized(buffer) {
-        buffer.toString()
-    }
-
-    fun join() {
-        thread.join(TimeUnit.SECONDS.toMillis(1))
     }
 }

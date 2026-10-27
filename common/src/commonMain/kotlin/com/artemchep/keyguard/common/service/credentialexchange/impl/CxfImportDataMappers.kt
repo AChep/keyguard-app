@@ -476,11 +476,7 @@ private fun importSshKeyPair(
         .takeIf { it.length <= MAX_SSH_PRIVATE_KEY_B64_LENGTH }
         ?.let { encoded -> runCatchingNonFatal { cxfUrlSafeBase64.decode(encoded) }.getOrNull() }
         ?: return null
-    val pem = try {
-        buildPkcs8Pem(der)
-    } finally {
-        der.fill(0)
-    }
+    val pem = der.useAndClear(::buildPkcs8Pem)
     // The seam is not total: an oversized or otherwise rejected key raises
     // rather than returning an error result, and this runs inside `parse`,
     // whose contract is that only a malformed document fails it. Fatal
@@ -490,7 +486,7 @@ private fun importSshKeyPair(
         runCatchingNonFatal {
             sshKeyImportService.import(
                 SshKeyImportRequest(
-                    content = pem,
+                    content = it,
                 ),
             )
         }.getOrNull()

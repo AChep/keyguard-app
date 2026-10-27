@@ -1,17 +1,14 @@
 //! keyguard-gpg-agent: GPG agent bridge for Keyguard.
 
-mod assuan;
-#[cfg(unix)]
-mod caller_identity;
 mod config;
 mod ipc;
 mod socket;
 
 use anyhow::{Context, Result};
 use clap::Parser;
-use std::io::Read;
+use keyguard_agent_ipc::launch;
+use keyguard_gpg_agent_assuan::version;
 use std::path::PathBuf;
-use tokio::sync::oneshot;
 use tracing::{error, info};
 use tracing_subscriber::EnvFilter;
 
@@ -34,71 +31,13 @@ struct Args {
     #[arg(long)]
     lifecycle_lock_dir: Option<PathBuf>,
 
+    /// GnuPG client version selected by the desktop host. Invalid values fall back.
+    #[arg(long)]
+    gnupg_version: Option<String>,
+
     /// Enable debug logging. Otherwise RUST_LOG applies, defaulting to warnings and errors.
     #[arg(long, short)]
     verbose: bool,
-}
-
-fn decode_auth_token_from_stdin_line(line: &str) -> Result<Vec<u8>> {
-    let hex_str = line.trim();
-    if hex_str.is_empty() {
-        anyhow::bail!(
-            "No auth token received on stdin. This binary should be launched by Keyguard."
-        );
-    }
-
-    let token = hex::decode(hex_str).with_context(|| {
-        format!(
-            "Auth token from stdin is malformed hex (expected 64 hex chars / 32 bytes, got {} chars)",
-            hex_str.len()
-        )
-    })?;
-    if token.len() != 32 {
-        anyhow::bail!(
-            "Auth token from stdin must decode to exactly 32 bytes; got {} bytes",
-            token.len()
-        );
-    }
-    Ok(token)
-}
-
-fn spawn_stdin_eof_watcher() -> Result<oneshot::Receiver<()>> {
-    let (sender, receiver) = oneshot::channel();
-    std::thread::Builder::new()
-        .name("keyguard-gpg-parent-stdin-watch".to_string())
-        .spawn(move || {
-            let stdin = std::io::stdin();
-            let mut stdin = stdin.lock();
-            let mut buf = [0u8; 1024];
-            loop {
-                match stdin.read(&mut buf) {
-                    Ok(0) | Err(_) => break,
-                    Ok(_) => {}
-                }
-            }
-            let _ = sender.send(());
-        })
-        .context("failed to spawn stdin liveness watcher")?;
-    Ok(receiver)
-}
-
-fn zeroize_bytes(buf: &mut [u8]) {
-    buf.fill(0);
-}
-
-fn zeroize_string(buf: &mut String) {
-    // SAFETY: Replacing every byte with ASCII NUL leaves the string as valid
-    // UTF-8, and `fill` does not change its length or capacity.
-    unsafe {
-        buf.as_bytes_mut().fill(0);
-    }
-    buf.clear();
-}
-
-fn write_startup_ready_record() -> Result<()> {
-    let stdout = std::io::stdout();
-    keyguard_agent_identity::write_startup_ready_record_to(stdout.lock())
-        .context("failed to write GPG agent startup readiness record")
 }
 
 #[tokio::main]
@@ -123,20 +62,9 @@ async fn main() -> Result<()> {
         .init();
     info!("keyguard-gpg-agent starting");
 
-    let mut auth_token = {
-        use std::io::BufRead;
-        let stdin = std::io::stdin();
-        let mut line = String::new();
-        stdin
-            .lock()
-            .read_line(&mut line)
-            .context("failed to read auth token from stdin")?;
-        let decoded = decode_auth_token_from_stdin_line(&line)
-            .context("failed to parse auth token from stdin");
-        zeroize_string(&mut line);
-        decoded?
-    };
-    let parent_stdin_closed = spawn_stdin_eof_watcher()?;
+    let launch = launch::read_launch()
+        .await
+        .context("failed to read the auth token from stdin")?;
 
     let gpg_socket_path = resolve_gpg_socket_path(args.gpg_socket)?;
 
@@ -146,20 +74,29 @@ async fn main() -> Result<()> {
         "Configuration loaded"
     );
 
-    let ipc_client =
-        ipc::client::IpcClient::connect(&args.ipc_socket, &auth_token, args.parent_pid)
-            .await
-            .context("failed to connect to Keyguard IPC server");
-    zeroize_bytes(&mut auth_token);
-    let ipc_client = ipc_client?;
+    // The client keeps the token to re-authenticate after a reconnect.
+    let ipc_client = ipc::client::connect(&args.ipc_socket, launch.token, args.parent_pid)
+        .await
+        .context("failed to connect to Keyguard IPC server")?;
     info!("authenticated with Keyguard IPC server");
+
+    let gnupg_version = version::resolve_gnupg_version(args.gnupg_version);
+    info!(
+        %gnupg_version,
+        keyguard_version = version::KEYGUARD_VERSION,
+        "agent versions"
+    );
 
     socket::serve(
         ipc_client,
+        gnupg_version,
         &gpg_socket_path,
         args.lifecycle_lock_dir.as_deref(),
-        parent_stdin_closed,
-        write_startup_ready_record,
+        launch.parent_gone,
+        || {
+            launch::write_ready_record()
+                .context("failed to write GPG agent startup readiness record")
+        },
     )
     .await
     .map_err(|e| {
@@ -188,7 +125,6 @@ fn resolve_gpg_socket_path(configured: Option<PathBuf>) -> Result<PathBuf> {
 
 #[cfg(test)]
 mod tests {
-    use super::decode_auth_token_from_stdin_line;
     #[cfg(any(unix, windows))]
     use super::resolve_gpg_socket_path;
     #[cfg(unix)]
@@ -215,20 +151,6 @@ mod tests {
             configured.lifecycle_lock_dir.as_deref(),
             Some(std::path::Path::new("/private/app-group/gpg/locks"))
         );
-    }
-
-    #[test]
-    fn auth_token_rejects_wrong_length() {
-        let err = decode_auth_token_from_stdin_line("aa")
-            .unwrap_err()
-            .to_string();
-        assert!(err.contains("exactly 32 bytes"));
-    }
-
-    #[test]
-    fn auth_token_accepts_32_bytes() {
-        let token = decode_auth_token_from_stdin_line(&"ab".repeat(32)).unwrap();
-        assert_eq!(token.len(), 32);
     }
 
     #[cfg(unix)]

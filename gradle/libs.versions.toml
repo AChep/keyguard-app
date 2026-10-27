@@ -11,8 +11,9 @@ androidTargetSdk = "37"
 androidNdk = "27.0.12077973"
 # @keep
 jdk = "21"
+# After changing appVersionName, run ./gradlew generateAppVersions and commit the output.
 # @keep
-appVersionName = "3.4.0"
+appVersionName = "3.5.0"
 # @keep
 appVersionCode = "7"
 # @keep
@@ -72,12 +73,12 @@ commonsCodec = "1.22.1"
 # https://mvnrepository.com/artifact/org.apache.commons/commons-lang3
 commonsLang3 = "3.20.0"
 # https://github.com/JetBrains/compose-multiplatform
-composeMultiplatform = "1.13.0-alpha02"
-composeRuntime = "1.13.0-alpha02"
-composeUi = "1.13.0-alpha02"
-composeFoundation = "1.13.0-alpha02"
-composeMaterial = "1.13.0-alpha02"
-composeMaterial3 = "1.13.0-alpha02"
+composeMultiplatform = "1.13.0-beta01"
+composeRuntime = "1.13.0-beta01"
+composeUi = "1.13.0-beta01"
+composeFoundation = "1.13.0-beta01"
+composeMaterial = "1.13.0-beta01"
+composeMaterial3 = "1.13.0-beta01"
 composeMaterialIconsExtended = "1.7.3"
 # https://github.com/DevSrSouza/compose-icons
 composeOpenIcons = "1.1.1"
@@ -188,6 +189,8 @@ sqldelight = "2.4.0"
 sqliteJdbcCrypt = "3.53.4.0"
 # https://github.com/vinceglb/FileKit
 filekit = "0.16.0"
+# https://github.com/testcontainers/testcontainers-java
+testcontainers = "2.0.5"
 # https://github.com/ohmae/touch-icon-extractor
 touchIcon = "0.9.12"
 # https://github.com/littlerobots/version-catalog-update-plugin
@@ -369,6 +372,7 @@ squareup-logging-interceptor = { module = "com.squareup.okhttp3:logging-intercep
 squareup-okhttp = { module = "com.squareup.okhttp3:okhttp" }
 squareup-okhttp-bom = { module = "com.squareup.okhttp3:okhttp-bom", version.ref = "okHttp" }
 squareup-okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+testcontainers = { module = "org.testcontainers:testcontainers", version.ref = "testcontainers" }
 tony19-logback-android = { module = "com.github.tony19:logback-android", version.ref = "logback" }
 willena-sqlite-jdbc = { module = "io.github.willena:sqlite-jdbc", version.ref = "sqliteJdbcCrypt" }
 vinceglb-filekit-core = { module = "io.github.vinceglb:filekit-core", version.ref = "filekit" }

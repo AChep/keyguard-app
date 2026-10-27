@@ -103,7 +103,11 @@ gradlePlugin {
         }
         register("androidSshAgent") {
             id = "keyguard.android-ssh-agent"
-            implementationClass = "com.artemchep.keyguard.buildplugins.androidssh.AndroidSshAgentPlugin"
+            implementationClass = "com.artemchep.keyguard.buildplugins.androidagent.AndroidSshAgentPlugin"
+        }
+        register("androidGpgAgent") {
+            id = "keyguard.android-gpg-agent"
+            implementationClass = "com.artemchep.keyguard.buildplugins.androidagent.AndroidGpgAgentPlugin"
         }
         register("nativeCryptoConsumer") {
             id = "keyguard.native-crypto-consumer"

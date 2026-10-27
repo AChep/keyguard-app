@@ -132,6 +132,8 @@ class SshAgentPublicKeySyncerImpl(
                     .takeIf { displayKeyNames },
                 cryptoGenerator = cryptoGenerator,
                 base64Service = base64Service,
+                // The agent checks the validity when it offers the certificate.
+                certificate = sshKey.certificate,
             )
         }
 

@@ -672,6 +672,33 @@ class NativeCryptoOpenPgpVerificationValidationTest {
         assertTrue(publicKey.any { byte -> byte != 0.toByte() })
     }
 
+    @Test
+    fun expirationTimeConflictCarriesRetryTimeOnlyWhenRetryable() {
+        fun error(
+            reason: OpenPgpExpirationUpdateErrorReasonProto,
+            retryAt: Long?,
+        ) = OpenPgpExpirationUpdateResultProto(
+            OpenPgpExpirationUpdateErrorOutcomeProto(
+                OpenPgpExpirationUpdateErrorProto(reason, retryAt),
+            ),
+        )
+
+        val retry = error(OpenPgpExpirationUpdateErrorReasonProto.TIME_CONFLICT, 123L)
+            .toPublicExpirationUpdateResult(EXPIRATION_OPERATION)
+        assertEquals(
+            NativeOpenPgpExpirationUpdateResult.Error(
+                reason = NativeOpenPgpExpirationUpdateError.TIME_CONFLICT,
+                retryAtEpochSeconds = 123L,
+            ),
+            retry,
+        )
+        listOf(
+            error(OpenPgpExpirationUpdateErrorReasonProto.INVALID_EXPIRATION, 123L),
+            error(OpenPgpExpirationUpdateErrorReasonProto.TIME_CONFLICT, 0L),
+            error(OpenPgpExpirationUpdateErrorReasonProto.TIME_CONFLICT, 0x1_0000_0000L),
+        ).forEach(::assertMalformedExpiration)
+    }
+
     private fun assertMalformed(response: OpenPgpVerificationProto) {
         val failure = assertFailsWith<NativeCryptoException> {
             decode(response)

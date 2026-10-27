@@ -55,6 +55,17 @@ struct ValueFieldCell: View {
                     monospace: item.monospace,
                     colorize: item.colorize
                 )
+                // A short status next to the value, such as "Primary";
+                // outlined like the Compose badge.
+                if let label = item.label, !label.isEmpty {
+                    Text(label)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 2)
+                        .overlay(Capsule().strokeBorder(Color(platform: .platformSeparator), lineWidth: 1))
+                        .fixedSize()
+                }
             }
         } accessories: {
             // A policy-locked field (org "hide passwords") is never revealable, so it
@@ -73,6 +84,12 @@ struct ValueFieldCell: View {
                         localRevealed.toggle()
                     }
                 }
+            }
+        } footer: {
+            // Under the field: its content is the label of the
+            // actions menu, which can not hold a button.
+            if let reference = item.reference {
+                DetailReferenceChip(reference: reference, invoke: invoke)
             }
         }
     }

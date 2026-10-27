@@ -1,0 +1,7 @@
+extends: existence
+message: "Write 'for example' instead of '%s'."
+level: error
+ignorecase: true
+nonword: true
+tokens:
+  - '\be\.g\.'

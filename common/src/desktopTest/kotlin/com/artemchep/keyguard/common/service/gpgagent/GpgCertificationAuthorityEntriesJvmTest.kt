@@ -10,6 +10,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 
 class GpgCertificationAuthorityEntriesJvmTest {
     @Test
@@ -48,6 +49,25 @@ class GpgCertificationAuthorityEntriesJvmTest {
                 resolver = NativeGpgKeyMetadataResolver,
             ).isEmpty(),
         )
+    }
+
+    @Test
+    fun `certification authority mapping is independent of archive and trash state`() {
+        val cipher = createCipher(generated = generated)
+        val expected = cipher.toGpgCertificationAuthorityEntries(
+            resolver = NativeGpgKeyMetadataResolver,
+        )
+        assertEquals(1, expected.size)
+
+        val date = Instant.parse("2024-02-01T00:00:00Z")
+        listOf(cipher.copy(archivedDate = date), cipher.copy(deletedDate = date)).forEach { inactive ->
+            assertEquals(
+                expected,
+                inactive.toGpgCertificationAuthorityEntries(
+                    resolver = NativeGpgKeyMetadataResolver,
+                ),
+            )
+        }
     }
 
     @Test

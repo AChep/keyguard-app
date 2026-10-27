@@ -1,0 +1,13 @@
+extends: existence
+message: "Don't use '%s'. Write 'select' for buttons and items, 'turn on' or 'turn off' for switches, 'enter' for typing."
+level: error
+ignorecase: true
+tokens:
+  - click
+  - clicks
+  - clicked
+  - clicking
+  - tap
+  - taps
+  - tapped
+  - tapping

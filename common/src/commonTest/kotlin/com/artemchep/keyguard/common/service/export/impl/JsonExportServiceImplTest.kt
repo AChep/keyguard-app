@@ -174,6 +174,56 @@ class JsonExportServiceImplTest {
     }
 
     @Test
+    fun `exports an ssh certificate as the custom field it syncs as`() {
+        val cipher = createSecret(
+            id = "cipher",
+            type = DSecret.Type.SshKey,
+            fields = listOf(
+                DSecret.Field(
+                    name = "keyguard.ssh.certificate",
+                    value = "stale certificate",
+                    type = DSecret.Field.Type.Text,
+                ),
+                DSecret.Field(
+                    name = "Note",
+                    value = "hello",
+                    type = DSecret.Field.Type.Text,
+                ),
+            ),
+            sshKey = DSecret.SshKey(
+                publicKey = "ssh-ed25519 AAAA",
+                certificate = CERTIFICATE,
+            ),
+            links = listOf(
+                DSecret.Link(TARGET_REMOTE_ID),
+            ),
+        )
+
+        assertEquals(
+            listOf(
+                ExportedField(
+                    type = 0,
+                    name = "Note",
+                    value = "hello",
+                ),
+                ExportedField(
+                    type = 0,
+                    name = "keyguard.ssh.certificate",
+                    value = CERTIFICATE,
+                ),
+                ExportedField(
+                    type = 0,
+                    name = "keyguard.link.1",
+                    value = "keyguard://cipher/$TARGET_REMOTE_ID",
+                ),
+            ),
+            exportedFields(cipher)
+                .jsonArray
+                .map { it.jsonObject.toExportedField() },
+        )
+    }
+
+    @Test
     fun `exports null fields when there are no user fields or links`() {
         assertEquals(
             JsonNull,
@@ -215,3 +265,4 @@ private const val OTHER_REMOTE_ID = "c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"
 private const val PRIVATE_KEY_ARMORED = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
 private const val PUBLIC_KEY_ARMORED = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
 private const val FINGERPRINT = "0123456789ABCDEF"
+private const val CERTIFICATE = "ssh-ed25519-cert-v01@openssh.com AAAA user@example.com"

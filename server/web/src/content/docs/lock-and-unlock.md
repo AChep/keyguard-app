@@ -1,113 +1,144 @@
 ---
-title: Locking & unlocking
-description: The app password vs. your account password, biometric and security key unlock, auto-lock settings, and what to do if you forget a password.
-category: get-started
-order: 2
+title: Lock and unlock
+description: "The app password, biometric, YubiKey and security key unlock, auto-lock, and what to do if you forget a password."
+section: security
+type: feature
+order: 10
+platforms: all
+related: [security-settings, security, backups]
 ---
 
-Keyguard involves **two different passwords**, and knowing which is which
-saves a lot of confusion:
+The app password locks everything Keyguard keeps on this device. You unlock
+with it, or with a faster method such as biometrics, a YubiKey or a security
+key, and the vault locks itself again after a delay.
 
-- your **account credentials** — the Bitwarden master password (or the KDBX
-  database password) that protects the vault itself. That vault lives
-  **outside Keyguard** — on the Bitwarden server, or in the `.kdbx` file —
-  and the same credential works in the web vault and any other client;
-- the **app password** — created when you first set up Keyguard, it locks
-  everything Keyguard keeps on this device: the [local copy of your vault](/docs/security/).
+## App password and account passwords
 
-Keyguard uses the app password to derive a secret key that encrypts local data;
-it is never stored on disk or transmitted over the network. Because it
-is local, each of your devices can have a different one, and you can change
-it any time via **Change app password** without touching your accounts.
+Keyguard uses two kinds of password:
 
-## Unlock options
+- Your account password, the Bitwarden master password or the KeePass database
+  password, protects the vault itself. That vault lives on the Bitwarden server
+  or in the `.kdbx` file, and the same password works in other clients.
+- The app password, created when you first set up Keyguard, protects the
+  local copy of your vault on this device. See [Security model](/docs/security/).
 
-Besides typing the app password, you can unlock with:
+The app password never leaves the device, so each device can have its own.
+Changing it doesn't touch your accounts.
 
-- **Biometrics** (Android, macOS, Windows) — enable it during setup or later in the
-  security settings. See [Android](#android) below;
-- **System authentication** (Linux) — the desktop's polkit dialog, which accepts a
-  fingerprint or your login password. See [Linux](#linux) below;
-- **YubiKey** (Android, macOS, Windows, Linux) — unlock over **USB**, or
-  **NFC** on Android, using HMAC-SHA1 challenge-response. Keyguard provisions
-  a key slot when you set it up. Connect one YubiKey at a time. Linux needs
-  permission to access the key’s HID device; the Flatpak build does not support
-  YubiKey vault unlock;
-- **Security key (FIDO2)** (Android USB, macOS, Windows, Linux) — enable it in
-  security settings with a key that supports **PRF / hmac-secret** and user
-  verification. Set a FIDO2 PIN using the key manufacturer’s app first, unless
-  your key has built-in biometric verification. Setup and unlock require your
-  key and its PIN or biometric verification. Windows requires WebAuthn PRF
-  support (Windows 11 22H2 or newer); Linux needs permission to access the key’s
-  HID device. The Flatpak build does not support this option.
+Locking keeps your data on the device, encrypted, and unlocking brings it back.
+Signing out of an account removes its data from Keyguard, including changes that
+haven't synced yet.
 
-Security key enrollment is local to each device. Keep your app password: it
-still unlocks the vault if the key is lost, reset, or unavailable. Changing the
-app password removes FIDO2 enrollment; enable it again with your key afterward.
+## Turn on an unlock method
 
-Individual items can additionally require re-authentication before their
-secrets are revealed, copied or autofilled — see the
-[authentication re-prompt](/docs/items/#per-item-protection). Keyguard then
-asks for your app password or biometrics.
+1. Open **Settings > Security**.
+2. Turn on a method from [Unlock methods](#unlock-methods). For
+   **YubiKey unlock**, select **Provision slot** for slot 1 or 2.
+3. Follow the prompts.
+
+The unlock screen then offers the methods you turned on. Each method is set up
+per device. Your app password still works if a key is lost or reset.
+
+Provisioning a YubiKey slot overwrites its current configuration. Keyguard
+asks first.
 
 ### Android
 
-Keyguard supports only strong biometrics, such as most fingerprint sensors.
-Weak biometrics do not protect encryption keys, so using them would make your vault less secure. 
-If your phone has only weak biometrics set up, Keyguard hides the biometric unlock option.
+Keyguard accepts only strong (Class 3) biometrics, such as most fingerprint
+sensors. Weak biometrics can't protect encryption keys. If your phone has only
+weak biometrics, Keyguard hides **Biometric unlock**.
 
 ### Linux
 
-The option requires polkit and protected storage: memfd_secret, or the Linux process keyring when
-memfd_secret is unavailable. Keyguard hides the option if neither is available.
+**System authentication unlock** shows the desktop's polkit dialog. Whether it
+accepts a fingerprint or your login password depends on the system's PAM setup.
+Keyguard offers the option only when polkit and protected memory
+(memfd_secret, or the kernel's process keyring) are available.
 
-> Keyguard blocks hibernation while the key is held.
-> Disable system authentication or exit Keyguard before hibernating.
-
-The key lives in memory only. After Keyguard restarts, the first unlock needs
-the app password unless the vault key is persisted; the option is available
-again from the next lock.
-
-polkit needs a rule that declares the Keyguard action. The first time you
-enable the option, Keyguard installs it and asks for administrator approval.
-Flatpak cannot write to the host, so run this once instead:
+polkit needs a rule that declares the Keyguard action. The first time you turn
+on the option, Keyguard installs the rule and asks for administrator approval.
+The Flatpak build can't write to the host, so run this command once instead:
 
 ```sh
 flatpak run --command=cat com.artemchep.keyguard /app/share/polkit-1/actions/com.artemchep.keyguard.policy | sudo install -D -m 0644 /dev/stdin /usr/share/polkit-1/actions/com.artemchep.keyguard.policy
 ```
 
+The key lives in memory only. After Keyguard restarts, the first unlock needs the
+app password, unless the vault key is persisted. While the key is held in
+memfd_secret, the kernel blocks hibernation: turn off the option or quit
+Keyguard before you hibernate.
+
+## Lock the vault
+
+Select **Lock vault** in the vault list's menu or in **Settings > Security**.
+On desktop, you can also use the lock shortcut from
+[Global shortcuts](/docs/shortcuts/#global-shortcuts).
+
+## Change the app password
+
+1. In **Settings > Security**, select **Change app password**.
+2. In **Current password**, enter your app password.
+3. In **New password**, enter the new password.
+4. To keep biometric unlock, leave **Biometric authentication** selected.
+5. Select **Change password**.
+
+The change removes **YubiKey unlock** and **Security key (FIDO2)** enrollment.
+Turn them on again afterward.
+
+## Unlock methods
+
+| Method | Platforms | Details |
+| --- | --- | --- |
+| **Biometric unlock** | Android, macOS | Strong biometrics on Android. Touch ID on macOS. |
+| **Windows Hello unlock** | Windows | The Windows Hello prompt. |
+| **System authentication unlock** | Linux | The polkit dialog. See [Linux](#linux). |
+| **YubiKey unlock** | Android, Linux, macOS, Windows | HMAC-SHA1 challenge-response in slot 1 or 2. USB, or NFC on Android. On desktop, connect one YubiKey at a time. On Linux, Keyguard needs access to the key's HID device. |
+| **Security key (FIDO2)** | Android, Linux, macOS, Windows | A USB key with PRF (hmac-secret) and user verification: a FIDO2 PIN, set in the key maker's app, or built-in biometrics. Windows needs WebAuthn PRF support (Windows 11 22H2 or newer). On Linux, Keyguard needs access to the key's HID device. |
+
+With biometric unlock on, **Require app password** sets how often Keyguard
+asks for the app password instead, from **Immediately** to **Never**. The
+default is 14 days. Keyguard also asks after the device's biometric settings
+change.
+
+To protect single items further, see
+[Per-item protection](/docs/items/#per-item-protection).
+
 ## Auto-lock
 
-The security settings control when the vault locks itself:
+These settings are in **Settings > Security**.
 
-- **Lock after a delay** — from *immediately* to *never*, after inactivity;
-- **Lock when screen turns off** (Android, macOS, Windows) — locks when the display or device
-  sleeps. On Windows, **Lock on screen off, sleep, or sign-out** also locks when you
-  lock Windows, sign out, switch users, or disconnect a Remote Desktop session;
-- **Persist vault key on a disk** — with this off, the vault also locks
-  whenever the app is unloaded from memory.
+| Setting | Platforms | What it does |
+| --- | --- | --- |
+| **Lock after a delay** | All | Locks the vault this long after Keyguard leaves the foreground, from **Immediately** to **Never**. The default is 5 minutes. |
+| **Lock when screen turns off** | Android | Locks a few seconds after the screen turns off. |
+| **Lock when screen turns off or device sleeps** | macOS | Locks when the display turns off or the Mac sleeps. |
+| **Lock on screen off, sleep, or sign-out** | Windows | Locks when the display turns off or the PC sleeps, and when you lock Windows, sign out, switch users, or disconnect a Remote Desktop session. |
+| **Persist vault key on a disk** | All | Keeps the vault key on disk, so the vault stays unlocked after the app is unloaded from memory. Turns off the screen-off lock. |
 
-> **Security note on persisting the vault key.** With the option on, the
-> key that unlocks your local data is written to the device's internal
-> storage (Android) or disk (Desktop), so the vault stays unlocked even after the app is unloaded from
-> memory. That is a deliberate trade-off — as the app warns, if the
-> device's storage is compromised, the attacker gains access to
-> the local vault data. Leave it off when that risk matters more to you
-> than the convenience of fewer unlocks.
+The screen-off settings are on by default.
 
-## Lock vs. sign out
+:::caution
+With **Persist vault key on a disk** on, anyone who gets access to the
+device's storage can open your local vault data. Leave it off unless fewer
+unlocks matter more to you.
+:::
 
-**Locking** keeps everything on the device, encrypted — unlocking brings you
-right back. **Signing out** of an account removes its data from Keyguard. 
+## Troubleshooting
 
-## If you forget a password
+### You forgot the app password
 
-- **The app password** — there is no recovery; choose **Erase app data** on
-  the unlock screen and set Keyguard up again. Nothing on the server/file is
-  affected: add the account and your vault re-syncs. The only thing truly lost
-  is local changes that were never synced.
-- **Bitwarden master password** — recovery options (hint, emergency access, organization recovery) 
-  live with your server — check the web vault.
-- **KDBX password** — there is no recovery by design.
+There's no recovery. On the unlock screen's menu, select **Erase app data**.
+It erases at once, without asking to confirm. Then set Keyguard up again and add
+your accounts.
 
-Keep the password safe, and [configure backups](/docs/backups/).
+Your Bitwarden server and KeePass files aren't affected. Only local changes that
+never synced are lost.
+
+### You forgot the Bitwarden master password
+
+Recovery options, such as a password hint, emergency access or organization
+recovery, depend on your server. Check the Bitwarden web vault.
+
+### You forgot the KeePass password
+
+There's no recovery by design. Keep the password somewhere safe.

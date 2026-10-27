@@ -40,7 +40,7 @@ class NativeZipWireTest {
 
     @Test
     fun nativeAbiVersionIsOne() {
-        assertEquals(1, NATIVE_ZIP_ABI_VERSION)
+        assertEquals(2, NATIVE_ZIP_ABI_VERSION)
     }
 
     @Test

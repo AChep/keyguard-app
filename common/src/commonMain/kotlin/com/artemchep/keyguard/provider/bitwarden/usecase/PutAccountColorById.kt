@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.keepass.saveKeePassDatabase
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.s3.S3ClientFactory
+import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.usecase.PutAccountColorById
 import com.artemchep.keyguard.common.util.toHex
@@ -128,6 +129,7 @@ internal class PutKeePassAccountColorByIdImpl(
     private val fileService: FileService,
     private val webDavClientFactory: WebDavClientFactory,
     private val s3ClientFactory: S3ClientFactory,
+    private val stagingSpoolFactory: StagingSpoolFactory,
 ) : PutKeePassAccountColorById {
     override operator fun invoke(
         color: Color,
@@ -181,6 +183,7 @@ internal class PutKeePassAccountColorByIdImpl(
             webDavClientFactory = webDavClientFactory,
             s3ClientFactory = s3ClientFactory,
             expectedMetadata = metadataAfter,
+            stagingSpoolFactory = stagingSpoolFactory,
         )
 
         val newProfile = BitwardenProfile.avatarColor.set(profile, colorHexString)

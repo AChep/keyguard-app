@@ -197,6 +197,13 @@ internal data class SshPublicKeyDecodeOperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
+@SerialName("ssh_certificate_describe")
+internal data class SshCertificateDescribeOperationProto(
+    @ProtoNumber(61)
+    val value: SshCertificateDescribeRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
 @SerialName("passkey_key_generate")
 internal data class PasskeyKeyGenerateOperationProto(
     @ProtoNumber(48)
@@ -833,6 +840,58 @@ internal data class SshPublicKeyDecodeResultProto(
 )
 
 @Serializable
+internal data class SshCertificateDescribeRequestProto(
+    @ProtoNumber(1)
+    val certificateOpenSsh: String,
+    @ProtoNumber(2)
+    val publicKeyOpenSsh: String? = null,
+)
+
+@Serializable
+internal enum class SshCertificateTypeProto {
+    @ProtoNumber(0)
+    UNSPECIFIED,
+
+    @ProtoNumber(1)
+    USER,
+
+    @ProtoNumber(2)
+    HOST,
+}
+
+@Serializable
+internal data class SshCertificateOptionProto(
+    @ProtoNumber(1)
+    val name: String = "",
+    @ProtoNumber(2)
+    val value: String = "",
+)
+
+@Serializable
+internal data class SshCertificateDescriptionProto(
+    @ProtoNumber(1)
+    val type: SshCertificateTypeProto = SshCertificateTypeProto.UNSPECIFIED,
+    @ProtoNumber(2)
+    val keyId: String = "",
+    @ProtoNumber(3)
+    val serial: Long = 0L,
+    @ProtoNumber(4)
+    val principals: List<String> = emptyList(),
+    @ProtoNumber(5)
+    val validAfter: Long = 0L,
+    @ProtoNumber(6)
+    val validBefore: Long = 0L,
+    @ProtoNumber(7)
+    val caFingerprint: String = "",
+    @ProtoNumber(8)
+    val criticalOptions: List<SshCertificateOptionProto> = emptyList(),
+    @ProtoNumber(9)
+    val extensions: List<SshCertificateOptionProto> = emptyList(),
+    @ProtoNumber(10)
+    val publicKeyMatches: Boolean = false,
+)
+
+@Serializable
 internal enum class PasskeyAlgorithmProto {
     @ProtoNumber(0)
     UNSPECIFIED,
@@ -1171,6 +1230,16 @@ internal data class OpenPgpUserIdInfoProto(
     val identityId: String = "",
     @ProtoNumber(2)
     val userId: String = "",
+    @ProtoNumber(3)
+    val primary: Boolean = false,
+    @ProtoNumber(4)
+    val revoked: Boolean = false,
+    @ProtoNumber(5)
+    val canRevoke: Boolean = false,
+    @ProtoNumber(6)
+    val canReplace: Boolean = false,
+    @ProtoNumber(7)
+    val canMakePrimary: Boolean = false,
 )
 
 @Serializable
@@ -1217,6 +1286,10 @@ internal data class OpenPgpPublicKeyInfoProto(
     val renewal: Int = 0,
     @ProtoNumber(20)
     val weakSelfSignatureAlgorithms: List<String> = emptyList(),
+    @ProtoNumber(21)
+    val userIdHistory: List<OpenPgpUserIdInfoProto> = emptyList(),
+    @ProtoNumber(22)
+    val canModifyUserIds: Boolean = false,
 )
 
 @Serializable
@@ -1827,6 +1900,8 @@ internal data class OpenPgpExpirationUpdateErrorProto(
     @ProtoNumber(1)
     val reason: OpenPgpExpirationUpdateErrorReasonProto =
         OpenPgpExpirationUpdateErrorReasonProto.UNSPECIFIED,
+    @ProtoNumber(2)
+    val retryAtEpochSeconds: Long? = null,
 )
 
 @Serializable
@@ -2031,60 +2106,6 @@ internal data class OpenPgpUserIdRevocationRequestProto(
 )
 
 @Serializable
-internal enum class OpenPgpUserIdRevocationErrorReasonProto {
-    @ProtoNumber(0)
-    UNSPECIFIED,
-
-    @ProtoNumber(1)
-    EMPTY_PRIVATE_KEY,
-
-    @ProtoNumber(2)
-    MALFORMED_KEY,
-
-    @ProtoNumber(3)
-    FINGERPRINT_MISMATCH,
-
-    @ProtoNumber(4)
-    TARGET_NOT_FOUND,
-
-    @ProtoNumber(5)
-    LAST_USER_ID,
-
-    @ProtoNumber(6)
-    UNSUPPORTED_KEY_VERSION,
-
-    @ProtoNumber(7)
-    PROTECTED_SECRET_KEY,
-
-    @ProtoNumber(8)
-    MISSING_SELF_SIGNATURE,
-
-    @ProtoNumber(9)
-    NON_REVOCABLE,
-
-    @ProtoNumber(10)
-    TIME_CONFLICT,
-
-    @ProtoNumber(11)
-    SIGNATURE_VERIFICATION_FAILED,
-
-    @ProtoNumber(12)
-    METADATA_RESOLUTION_FAILED,
-
-    @ProtoNumber(13)
-    INTERNAL_FAILURE,
-
-    @ProtoNumber(14)
-    CERTIFICATE_REVOKED,
-
-    @ProtoNumber(15)
-    UNRESOLVED_REVOCATION_AUTHORITY,
-
-    @ProtoNumber(16)
-    UNSUPPORTED_SIGNING_HASH,
-}
-
-@Serializable
 internal data class OpenPgpUserIdRevocationSuccessProto(
     @ProtoNumber(1)
     val keyMaterial: OpenPgpKeyMaterialProto? = null,
@@ -2097,13 +2118,6 @@ internal data class OpenPgpUserIdRevocationSuccessProto(
     val effectiveAtEpochSeconds: Long = 0L,
     @ProtoNumber(6)
     val certificateIndex: OpenPgpCertificateIndexV2Proto? = null,
-)
-
-@Serializable
-internal data class OpenPgpUserIdRevocationErrorProto(
-    @ProtoNumber(1)
-    val reason: OpenPgpUserIdRevocationErrorReasonProto =
-        OpenPgpUserIdRevocationErrorReasonProto.UNSPECIFIED,
 )
 
 @Serializable
@@ -2126,7 +2140,7 @@ internal data class OpenPgpUserIdRevocationSuccessOutcomeProto(
 @SerialName("error")
 internal data class OpenPgpUserIdRevocationErrorOutcomeProto(
     @ProtoNumber(2)
-    val value: OpenPgpUserIdRevocationErrorProto,
+    val value: OpenPgpUserIdMutationErrorProto,
 ) : OpenPgpUserIdRevocationOutcomeProto
 
 @Serializable
@@ -2148,7 +2162,7 @@ internal data class OpenPgpUserIdReplacementRequestProto(
 )
 
 @Serializable
-internal enum class OpenPgpUserIdReplacementErrorReasonProto {
+internal enum class OpenPgpUserIdMutationErrorReasonProto {
     @ProtoNumber(0)
     UNSPECIFIED,
 
@@ -2220,6 +2234,9 @@ internal enum class OpenPgpUserIdReplacementErrorReasonProto {
 
     @ProtoNumber(23)
     POLICY_CONFLICT,
+
+    @ProtoNumber(24)
+    LAST_USER_ID,
 }
 
 @Serializable
@@ -2244,10 +2261,12 @@ internal data class OpenPgpUserIdReplacementSuccessProto(
 )
 
 @Serializable
-internal data class OpenPgpUserIdReplacementErrorProto(
+internal data class OpenPgpUserIdMutationErrorProto(
     @ProtoNumber(1)
-    val reason: OpenPgpUserIdReplacementErrorReasonProto =
-        OpenPgpUserIdReplacementErrorReasonProto.UNSPECIFIED,
+    val reason: OpenPgpUserIdMutationErrorReasonProto =
+        OpenPgpUserIdMutationErrorReasonProto.UNSPECIFIED,
+    @ProtoNumber(2)
+    val retryAtEpochSeconds: Long? = null,
 )
 
 @Serializable
@@ -2270,7 +2289,7 @@ internal data class OpenPgpUserIdReplacementSuccessOutcomeProto(
 @SerialName("error")
 internal data class OpenPgpUserIdReplacementErrorOutcomeProto(
     @ProtoNumber(2)
-    val value: OpenPgpUserIdReplacementErrorProto,
+    val value: OpenPgpUserIdMutationErrorProto,
 ) : OpenPgpUserIdReplacementOutcomeProto
 
 @Serializable
@@ -2481,3 +2500,62 @@ internal fun NativeResponseResultProto.requireBytes(operation: String): ByteArra
             operation = operation,
             code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
         )
+
+
+@Serializable
+@SerialName("open_pgp_user_id_update")
+internal data class OpenPgpUserIdUpdateOperationProto(
+    @ProtoNumber(60) val value: OpenPgpUserIdUpdateRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+internal data class OpenPgpUserIdUpdateRequestProto(
+    @ProtoNumber(1) val privateKey: ByteArray,
+    @ProtoNumber(2) val publicKey: ByteArray,
+    @ProtoNumber(3) val expectedPrimaryFingerprint: String,
+    @ProtoNumber(4) val candidateRevocationKeys: List<ByteArray>,
+    @ProtoNumber(5) val referenceTimeEpochSeconds: Long,
+    @ProtoOneOf val change: OpenPgpUserIdChangeProto,
+)
+
+@Serializable
+internal sealed interface OpenPgpUserIdChangeProto
+
+@Serializable
+@SerialName("new_user_id")
+internal data class OpenPgpUserIdAddChangeProto(
+    @ProtoNumber(6) val value: String,
+) : OpenPgpUserIdChangeProto
+
+@Serializable
+@SerialName("primary_identity_id")
+internal data class OpenPgpUserIdPrimaryChangeProto(
+    @ProtoNumber(7) val value: String,
+) : OpenPgpUserIdChangeProto
+
+@Serializable
+internal data class OpenPgpUserIdUpdateSuccessProto(
+    @ProtoNumber(1) val keyMaterial: OpenPgpKeyMaterialProto? = null,
+    @ProtoNumber(2) val certificateIndex: OpenPgpCertificateIndexV2Proto? = null,
+    @ProtoNumber(3) val changed: Boolean = false,
+)
+
+@Serializable
+internal data class OpenPgpUserIdUpdateResultProto(
+    @ProtoOneOf val result: OpenPgpUserIdUpdateOutcomeProto? = null,
+)
+
+@Serializable
+internal sealed interface OpenPgpUserIdUpdateOutcomeProto
+
+@Serializable
+@SerialName("success")
+internal data class OpenPgpUserIdUpdateSuccessOutcomeProto(
+    @ProtoNumber(1) val value: OpenPgpUserIdUpdateSuccessProto,
+) : OpenPgpUserIdUpdateOutcomeProto
+
+@Serializable
+@SerialName("error")
+internal data class OpenPgpUserIdUpdateErrorOutcomeProto(
+    @ProtoNumber(2) val value: OpenPgpUserIdMutationErrorProto,
+) : OpenPgpUserIdUpdateOutcomeProto

@@ -11,10 +11,12 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.AttachmentPreviewException
 import com.artemchep.keyguard.common.model.AttachmentPreviewKind
+import com.artemchep.keyguard.common.model.AttachmentPreviewLimits
 import com.artemchep.keyguard.common.model.AttachmentPreviewPayload
 import com.artemchep.keyguard.common.model.AttachmentPreviewPolicy
 import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.attachmentPreviewKindByFileName
 import com.artemchep.keyguard.common.model.isMarkdownAttachmentPreview
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
@@ -23,6 +25,7 @@ import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.ui.theme.isDark
@@ -32,7 +35,17 @@ import dev.snipme.highlights.model.ColorHighlight
 import dev.snipme.highlights.model.SyntaxLanguage
 import dev.snipme.highlights.model.SyntaxThemes
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import com.artemchep.keyguard.util.zip.ZipArchive
+import com.artemchep.keyguard.util.zip.ZipArchiveException
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -47,6 +60,7 @@ fun produceAttachmentPreviewState(
         canPreviewAttachment = get(),
         getAttachmentPreview = get(),
         downloadManager = get(),
+        temporaryDirProvider = get(),
     )
 }
 
@@ -56,6 +70,7 @@ fun produceAttachmentPreviewState(
     canPreviewAttachment: CanPreviewAttachment,
     getAttachmentPreview: GetAttachmentPreview,
     downloadManager: DownloadManager,
+    temporaryDirProvider: PrivateTemporaryDirProvider,
 ): Loadable<AttachmentPreviewState> = produceScreenState(
     key = "attachment_preview:${args.localCipherId}:${args.attachmentId}",
     initial = Loadable.Loading,
@@ -64,6 +79,7 @@ fun produceAttachmentPreviewState(
         canPreviewAttachment,
         getAttachmentPreview,
         downloadManager,
+        temporaryDirProvider,
     ),
 ) {
     attachmentPreviewStateProducer(
@@ -71,49 +87,99 @@ fun produceAttachmentPreviewState(
         canPreviewAttachment = canPreviewAttachment,
         getAttachmentPreview = getAttachmentPreview,
         downloadManager = downloadManager,
+        temporaryDirProvider = temporaryDirProvider,
     )
 }
 
+@Suppress("TooGenericExceptionCaught") // Presentation boundary; fatal errors and cancellation are rethrown.
 suspend fun RememberStateFlowScope.attachmentPreviewStateProducer(
     args: AttachmentPreviewRoute.Args,
     canPreviewAttachment: CanPreviewAttachment,
     getAttachmentPreview: GetAttachmentPreview,
     downloadManager: DownloadManager,
+    temporaryDirProvider: PrivateTemporaryDirProvider,
 ): Flow<Loadable<AttachmentPreviewState>> {
     val producerScope = this
     val copyText = copier()
-    val state = createAttachmentPreviewState(
-        args = args,
-        canPreviewAttachment = canPreviewAttachment,
-        getAttachmentPreview = getAttachmentPreview,
-        downloadManager = downloadManager,
-        copyText = copyText,
-    )
-    val content = state.content as? AttachmentPreviewContent.TextLike
-    return if (content?.code?.canSyntaxHighlight() != true) {
-        flowOf(Loadable.Ok(state))
-    } else {
-        flow {
-            emit(Loadable.Ok(state))
-
-            snapshotFlow { producerScope.colorScheme.isDark }
-                .distinctUntilChanged()
-                .collect { isDark ->
-                    val highlightedCode = runCatching {
-                        content.code.withSyntaxHighlighting(isDark = isDark)
-                    }.getOrNull()
-                    if (highlightedCode != null) {
-                        emit(
-                            Loadable.Ok(
-                                state.withCode(highlightedCode),
-                            ),
+    return flow {
+        val state = createAttachmentPreviewState(
+            args = args,
+            canPreviewAttachment = canPreviewAttachment,
+            getAttachmentPreview = getAttachmentPreview,
+            downloadManager = downloadManager,
+            copyText = copyText,
+        )
+        val isDark = snapshotFlow { producerScope.colorScheme.isDark }
+        val archive = state.content as? AttachmentPreviewContent.Archive
+        if (archive != null) {
+            coroutineScope {
+                val session = try {
+                    val tree = withContext(Dispatchers.Default) { archiveTree(archive.source.entries) }
+                    withContext(Dispatchers.Main.immediate) {
+                        AttachmentArchiveSession(
+                            scope = CoroutineScope(this@coroutineScope.coroutineContext + Dispatchers.Main.immediate),
+                            fileName = state.fileName,
+                            archive = archive.source,
+                            copyText = copyText,
+                            onError = producerScope::showArchiveError,
+                            temporaryDirProvider = temporaryDirProvider,
+                            tree = tree,
                         )
                     }
+                } catch (e: Throwable) {
+                    archive.source.close()
+                    e.throwIfFatalOrCancellation()
+                    emit(Loadable.Ok(state.copy(content = AttachmentPreviewContent.Error(e.toPreviewError()))))
+                    return@coroutineScope
                 }
+                val removeBackHandler = producerScope.interceptBackPress(session.state.map { it.onNavigateBack })
+                try {
+                    emitAll(session.state.withHighlightedCode(isDark))
+                } finally {
+                    removeBackHandler()
+                    withContext(NonCancellable + Dispatchers.Main.immediate) { session.close() }
+                }
+            }
+        } else {
+            emit(Loadable.Ok(state))
+            if ((state.content as? AttachmentPreviewContent.TextLike)?.code?.canSyntaxHighlight() == true) {
+                emitAll(flowOf(state).withHighlightedCode(isDark))
+            }
         }
     }
 }
 
+private suspend fun RememberStateFlowScope.showArchiveError(error: AttachmentPreviewError) {
+    val msg = ToastMessage(
+        type = ToastMessage.Type.ERROR,
+        title = translate(error),
+    )
+    message(msg)
+}
+
+/** Highlights code for the theme once per content, not on every other state change. */
+private fun Flow<AttachmentPreviewState>.withHighlightedCode(
+    isDark: Flow<Boolean>,
+): Flow<Loadable<AttachmentPreviewState>> = flow {
+    var cache: Triple<AttachmentPreviewContent, Boolean, AttachmentPreviewContent>? = null
+    val states = combine(this@withHighlightedCode, isDark) { state, dark ->
+        val content = state.content
+        val code = (content as? AttachmentPreviewContent.TextLike)?.code
+        if (code?.canSyntaxHighlight() != true) {
+            cache = null
+            return@combine Loadable.Ok(state)
+        }
+        val highlighted = cache
+            ?.takeIf { it.first === content && it.second == dark }
+            ?.third
+            ?: withContext(Dispatchers.Default) { state.withCode(code.withSyntaxHighlighting(dark)).content }
+                .also { cache = Triple(content, dark, it) }
+        Loadable.Ok(state.copy(content = highlighted))
+    }
+    emitAll(states)
+}
+
+@Suppress("TooGenericExceptionCaught") // Presentation boundary; fatal errors and cancellation are rethrown.
 internal suspend fun createAttachmentPreviewState(
     args: AttachmentPreviewRoute.Args,
     canPreviewAttachment: CanPreviewAttachment,
@@ -156,7 +222,12 @@ internal suspend fun createAttachmentPreviewState(
         },
         ifRight = { payload ->
             fileName = payload.fileName
-            payload.toPreviewContent(copyText = copyText)
+            try {
+                withContext(Dispatchers.Default) { payload.toPreviewContent(copyText = copyText) }
+            } catch (e: Throwable) {
+                e.throwIfFatalOrCancellation()
+                AttachmentPreviewContent.Error(e.toPreviewError())
+            }
         },
     )
     val state = AttachmentPreviewState(
@@ -190,7 +261,8 @@ internal suspend fun cachedAttachmentPreviewLocalUrl(
     }
 }
 
-private fun Throwable.toPreviewError(): AttachmentPreviewError = when (this) {
+internal fun Throwable.toPreviewError(): AttachmentPreviewError = when (this) {
+    is ZipArchiveException -> reason.toPreviewError()
     is AttachmentPreviewException.TooLarge -> AttachmentPreviewError.TooLarge
     is AttachmentPreviewException.NetworkFailed -> AttachmentPreviewError.Network
     is AttachmentPreviewException.DecryptionFailed -> AttachmentPreviewError.Decryption
@@ -208,6 +280,9 @@ private fun AttachmentPreviewPayload.toPreviewContent(
     copyText: CopyText,
 ): AttachmentPreviewContent {
     return when (attachmentPreviewKindByFileName(fileName)) {
+        AttachmentPreviewKind.Archive -> AttachmentPreviewContent.Archive(
+            ZipArchive(bytes, maxEntries = AttachmentPreviewLimits.MAX_ARCHIVE_ENTRIES),
+        )
         AttachmentPreviewKind.Image -> AttachmentPreviewContent.Image(bytes = bytes)
         AttachmentPreviewKind.Markdown -> decodeTextPreview(
             fileName = fileName,
@@ -284,6 +359,7 @@ private fun AttachmentPreviewState.withCode(
     content = when (val content = content) {
         is AttachmentPreviewContent.Text -> content.copy(code = code)
         is AttachmentPreviewContent.Markdown -> content.copy(code = code)
+        is AttachmentPreviewContent.Archive,
         is AttachmentPreviewContent.Image,
         is AttachmentPreviewContent.Error -> content
     },

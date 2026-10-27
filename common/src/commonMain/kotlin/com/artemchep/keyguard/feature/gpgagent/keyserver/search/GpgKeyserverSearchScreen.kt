@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
+import com.artemchep.keyguard.feature.qr.ScanQrButton
 import com.artemchep.keyguard.feature.servicedirectory.ServiceDirectoryListScaffold
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.res.Res
@@ -66,6 +67,11 @@ fun GpgKeyserverSearchScreen(
             KeyItem(
                 modifier = modifier,
                 item = item,
+            )
+        },
+        searchTrailing = {
+            ScanQrButton(
+                onValueChange = state?.onScanned,
             )
         },
     )

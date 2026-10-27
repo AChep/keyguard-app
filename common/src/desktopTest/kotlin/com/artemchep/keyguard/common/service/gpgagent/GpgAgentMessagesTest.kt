@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
@@ -16,31 +18,31 @@ class GpgAgentMessagesTest {
     @Test
     fun `authentication revision round-trips and is emitted as field 2`() {
         val token = ByteArray(32) { it.toByte() }
-        val request = GpgAgentMessages.AuthenticateRequest(
+        val request = AgentIpcMessages.AuthenticateRequest(
             token = token,
-            protocolRevision = GpgAgentMessages.PROTOCOL_REVISION,
+            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
         )
-        val response = GpgAgentMessages.AuthenticateResponse(
+        val response = AgentIpcMessages.AuthenticateResponse(
             success = true,
-            protocolRevision = GpgAgentMessages.PROTOCOL_REVISION,
+            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
         )
 
-        val decodedRequest = ProtoBuf.decodeFromByteArray<GpgAgentMessages.AuthenticateRequest>(
+        val decodedRequest = ProtoBuf.decodeFromByteArray<AgentIpcMessages.AuthenticateRequest>(
             ProtoBuf.encodeToByteArray(request),
         )
-        val decodedResponse = ProtoBuf.decodeFromByteArray<GpgAgentMessages.AuthenticateResponse>(
+        val decodedResponse = ProtoBuf.decodeFromByteArray<AgentIpcMessages.AuthenticateResponse>(
             ProtoBuf.encodeToByteArray(response),
         )
         val revisionOnlyRequest = ProtoBuf.encodeToByteArray(
-            GpgAgentMessages.AuthenticateRequest(
-                protocolRevision = GpgAgentMessages.PROTOCOL_REVISION,
+            AgentIpcMessages.AuthenticateRequest(
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
             ),
         )
 
         assertContentEquals(token, decodedRequest.token)
-        assertEquals(GpgAgentMessages.PROTOCOL_REVISION, decodedRequest.protocolRevision)
+        assertEquals(AgentIpcMessages.PROTOCOL_REVISION, decodedRequest.protocolRevision)
         assertEquals(true, decodedResponse.success)
-        assertEquals(GpgAgentMessages.PROTOCOL_REVISION, decodedResponse.protocolRevision)
+        assertEquals(AgentIpcMessages.PROTOCOL_REVISION, decodedResponse.protocolRevision)
         assertContentEquals(byteArrayOf(0x0a, 0x00, 0x10, 0x01), revisionOnlyRequest)
     }
 
@@ -51,7 +53,7 @@ class GpgAgentMessagesTest {
         val original = GpgAgentMessages.IpcRequest(
             id = 11L,
             listKeys = GpgAgentMessages.ListKeysRequest(
-                caller = GpgAgentMessages.CallerIdentity(
+                caller = CallerIdentity(
                     appName = "Terminal",
                     authorization = CallerAuthorization(
                         connectionFingerprint = connection,

@@ -106,6 +106,7 @@ import com.artemchep.keyguard.feature.gpgkey.gpgKeyExpirationDateRange
 import com.artemchep.keyguard.feature.gpgkey.normalizeGpgKeyCustomExpiryDate
 import com.artemchep.keyguard.feature.gpgkey.shortDescription
 import com.artemchep.keyguard.feature.gpgkey.titleResource
+import com.artemchep.keyguard.feature.gpgkey.userids.buildGpgUserId
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -1745,19 +1746,6 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
     val refreshValue: () -> Unit = {
         val eventId = cryptoGenerator.uuid()
         refreshValueSink.emit(eventId)
-    }
-
-    fun buildGpgUserId(
-        name: String,
-        email: String,
-    ): String {
-        val nameNormalized = name.trim()
-        val emailNormalized = email.trim()
-        return if (emailNormalized.isNotEmpty()) {
-            "$nameNormalized <$emailNormalized>"
-        } else {
-            nameNormalized
-        }
     }
 
     val configBuilderFlow = typeFlow

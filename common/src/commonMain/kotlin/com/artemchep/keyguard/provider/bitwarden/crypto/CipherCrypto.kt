@@ -9,9 +9,13 @@ fun BitwardenCipher.transform(
     itemCrypto: BitwardenCrCta,
     globalCrypto: BitwardenCrCta,
 ): BitwardenCipher {
-    val sourceCipher = encodeKeePassIconCustomField(
+    val sourceCipher = encodeEnvironmentCustomFields(
+        mode = itemCrypto.mode,
+    ).encodeKeePassIconCustomField(
         mode = itemCrypto.mode,
     ).encodeGpgKeyCustomFields(
+        mode = itemCrypto.mode,
+    ).encodeSshCertificateCustomFields(
         mode = itemCrypto.mode,
     ).encodeCipherLinkCustomFields(
         mode = itemCrypto.mode,
@@ -36,6 +40,7 @@ fun BitwardenCipher.transform(
         card = sourceCipher.card?.transform(itemCrypto),
         identity = sourceCipher.identity?.transform(itemCrypto),
         sshKey = sourceCipher.sshKey?.transform(itemCrypto),
+        environment = if (itemCrypto.mode == BitwardenCrCta.Mode.ENCRYPT) null else sourceCipher.environment,
         gpgKey = if (itemCrypto.mode == BitwardenCrCta.Mode.ENCRYPT) {
             null
         } else {
@@ -48,7 +53,7 @@ fun BitwardenCipher.transform(
         },
     ).let { transformedCipher ->
         if (globalCrypto.mode == BitwardenCrCta.Mode.DECRYPT) {
-            return@let decodeEntity(transformedCipher)
+            return@let decodeEntity(transformedCipher.decodeSshCertificateCustomFields())
         }
 
         transformedCipher
@@ -96,6 +101,18 @@ private fun BitwardenCipher.encodeKeePassIconCustomField(
     return copy(fields = listOf(iconField) + renamedFields)
 }
 
+private fun BitwardenCipher.encodeEnvironmentCustomFields(
+    mode: BitwardenCrCta.Mode,
+): BitwardenCipher {
+    val environment = environment
+        ?.takeIf { mode == BitwardenCrCta.Mode.ENCRYPT && BitwardenEnvironmentFieldCodec.appliesTo(type) }
+        ?: return this
+    return copy(
+        fields = BitwardenEnvironmentFieldCodec.encode(environment) +
+                fields.filterNot { BitwardenEnvironmentFieldCodec.isTransportField(it.name) },
+    )
+}
+
 private fun BitwardenCipher.encodeGpgKeyCustomFields(
     mode: BitwardenCrCta.Mode,
 ): BitwardenCipher {
@@ -108,6 +125,25 @@ private fun BitwardenCipher.encodeGpgKeyCustomFields(
             gpgKey = gpgKey,
             fields = fields,
         ),
+    )
+}
+
+private fun BitwardenCipher.encodeSshCertificateCustomFields(
+    mode: BitwardenCrCta.Mode,
+): BitwardenCipher {
+    val sshKey = sshKey
+        ?.takeIf {
+            mode == BitwardenCrCta.Mode.ENCRYPT &&
+                    BitwardenSshCertificateFieldCodec.appliesTo(type) &&
+                    !it.certificate.isNullOrBlank()
+        }
+        ?: return this
+    return copy(
+        // The certificate is auxiliary data, append it after the user's own custom fields.
+        fields = fields.filterNot { BitwardenSshCertificateFieldCodec.isTransportField(it.name) } +
+                BitwardenSshCertificateFieldCodec.encode(sshKey.certificate.orEmpty()),
+        // The Bitwarden SSH key has no certificate field.
+        sshKey = sshKey.copy(certificate = null),
     )
 }
 
@@ -139,15 +175,10 @@ private fun decodeEntity(
                 field.name == "Tag"
     }
 
-    val decodedGpg = if (BitwardenGpgKeyFieldCodec.appliesTo(cipher.type)) {
-        BitwardenGpgKeyFieldCodec.decode(
-            fields = cipher.fields,
-        )
-    } else {
-        null
-    }
+    val decodedEnvironment = cipher.decodeEnvironment()
+    val decodedGpg = if (decodedEnvironment == null) cipher.decodeGpg() else null
     val fields = CipherFieldDecodeScope(
-        source = decodedGpg?.remainingFields ?: cipher.fields,
+        source = decodedEnvironment?.remainingFields ?: decodedGpg?.remainingFields ?: cipher.fields,
     )
     val tags = fields
         .consumeAll(::isTag)
@@ -169,12 +200,32 @@ private fun decodeEntity(
             KeePassIcon.Key -> null
             else -> decodedIcon
         },
-        type = if (decodedGpg != null) {
+        environment = decodedEnvironment?.environment ?: cipher.environment,
+        type = if (decodedEnvironment != null) {
+            BitwardenCipher.Type.Environment
+        } else if (decodedGpg != null) {
             BitwardenCipher.Type.GpgKey
         } else {
             cipher.type
         },
         gpgKey = decodedGpg?.gpgKey ?: cipher.gpgKey,
+    )
+}
+
+private fun BitwardenCipher.decodeEnvironment(): BitwardenEnvironmentFieldCodec.Decoded? =
+    if (BitwardenEnvironmentFieldCodec.appliesTo(type)) BitwardenEnvironmentFieldCodec.decode(fields) else null
+
+private fun BitwardenCipher.decodeGpg() =
+    if (BitwardenGpgKeyFieldCodec.appliesTo(type)) BitwardenGpgKeyFieldCodec.decode(fields) else null
+
+/** Moves the certificate of an SSH key from its custom fields into the key. */
+private fun BitwardenCipher.decodeSshCertificateCustomFields(): BitwardenCipher {
+    val decoded = takeIf { BitwardenSshCertificateFieldCodec.appliesTo(type) }
+        ?.let { BitwardenSshCertificateFieldCodec.decode(fields) }
+        ?: return this
+    return copy(
+        fields = decoded.remainingFields,
+        sshKey = (sshKey ?: BitwardenCipher.SshKey()).copy(certificate = decoded.certificate),
     )
 }
 

@@ -32,6 +32,40 @@ fun interface AgentApprovalCacheConfigProvider<P : Any> {
     fun peek(): AgentApprovalCacheConfig<P>? = null
 }
 
+/** A configuration that never changes, for approvals without user settings. */
+fun <P : Any> fixedAgentApprovalCacheConfig(
+    approvalWindow: Duration,
+    cachePolicy: P,
+): AgentApprovalCacheConfigProvider<P> {
+    val config = AgentApprovalCacheConfig(
+        approvalWindow = approvalWindow,
+        cachePolicy = cachePolicy,
+        revision = 0L,
+    )
+    return object : AgentApprovalCacheConfigProvider<P> {
+        override suspend fun get(): AgentApprovalCacheConfig<P> = config
+
+        override fun peek(): AgentApprovalCacheConfig<P> = config
+    }
+}
+
+/**
+ * The same configuration with its approval window capped at [maxWindow],
+ * for approvals that must expire even when the user remembers them until
+ * the vault locks. "Always ask" stays zero.
+ */
+fun <P : Any> AgentApprovalCacheConfigProvider<P>.limitedTo(
+    maxWindow: Duration,
+): AgentApprovalCacheConfigProvider<P> {
+    val base = this
+    fun AgentApprovalCacheConfig<P>.limited() = copy(approvalWindow = minOf(approvalWindow, maxWindow))
+    return object : AgentApprovalCacheConfigProvider<P> {
+        override suspend fun get(): AgentApprovalCacheConfig<P> = base.get().limited()
+
+        override fun peek(): AgentApprovalCacheConfig<P>? = base.peek()?.limited()
+    }
+}
+
 /**
  * Owns the authoritative in-process approval-cache configuration.
  *

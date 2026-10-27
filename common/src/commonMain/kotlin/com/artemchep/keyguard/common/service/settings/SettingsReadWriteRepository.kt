@@ -193,6 +193,14 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         policy: AgentApprovalCachePolicy,
     ): IO<Unit>
 
+    fun setEnvironmentsMcpApprovalWindow(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setCliApprovalWindow(
+        duration: Duration,
+    ): IO<Unit>
+
     fun setGpgAgentDisplayKeyNames(
         displayKeyNames: Boolean,
     ): IO<Unit>

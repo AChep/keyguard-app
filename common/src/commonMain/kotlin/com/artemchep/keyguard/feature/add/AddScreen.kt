@@ -90,6 +90,7 @@ import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
 import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
+import com.artemchep.keyguard.feature.gpgkey.userids.GpgUserIdsDialog
 import com.artemchep.keyguard.feature.home.vault.component.CompactVaultItem
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
@@ -924,6 +925,7 @@ private fun GpgKeyField(
     shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
+    GpgUserIdsDialog(state.userIds)
     FileDropField(
         modifier = modifier,
         containerPadding = defaultFlatItemPaddingValues(),
@@ -932,10 +934,8 @@ private fun GpgKeyField(
         val supportingRows = listOfNotNull(
             state.expiration
                 ?.let { row -> Res.string.gpg_key_expiry_title to row },
-            state.identityReplacement
-                ?.let { row -> Res.string.gpg_user_id_replacement_title to row },
-            state.identityRevocation
-                ?.let { row -> Res.string.gpg_user_id_revocation_title to row },
+            state.identityManagement
+                ?.let { row -> Res.string.gpg_key_user_ids to row },
         )
         Column {
             FlatItemLayoutExpressive(
@@ -1920,8 +1920,26 @@ private fun AddItem(
 ) = Column(
     modifier = modifier,
 ) {
+    AddButton(
+        modifier = modifier,
+        text = item.text,
+        actions = item.actions,
+    )
+}
+
+/**
+ * A tonal button that adds an item: runs the only action
+ * right away, or shows a menu of the [actions].
+ */
+@Composable
+internal fun AddButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    actions: List<ContextItem>,
+    enabled: Boolean = true,
+) {
     val dropdownShownState = remember { mutableStateOf(false) }
-    if (item.actions.isEmpty()) {
+    if (actions.isEmpty()) {
         dropdownShownState.value = false
     }
 
@@ -1937,9 +1955,10 @@ private fun AddItem(
         modifier = modifier
             .padding(top = 8.dp)
             .padding(horizontal = Dimens.buttonHorizontalPadding),
+        enabled = enabled,
         onClick = {
-            if (item.actions.size == 1) run {
-                val action = item.actions
+            if (actions.size == 1) run {
+                val action = actions
                     .firstNotNullOfOrNull { it as? FlatItemAction }
                 action?.onClick?.invoke()
                 return@Button
@@ -1961,14 +1980,14 @@ private fun AddItem(
                 .width(ButtonDefaults.IconSpacing),
         )
         Text(
-            text = item.text,
+            text = text,
         )
 
         KeyguardDropdownMenu(
             expanded = dropdownShownState.value,
             onDismissRequest = onDismissRequest,
         ) {
-            item.actions.forEachIndexed { index, action ->
+            actions.forEachIndexed { index, action ->
                 DropdownMenuItemFlat(
                     action = action,
                 )

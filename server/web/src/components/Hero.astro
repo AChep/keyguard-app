@@ -1,20 +1,21 @@
 ---
 import { SITE, REPO_URL } from '../consts';
 import HeroDevicesV2 from './HeroDevicesV2.astro';
+import HeroKeystream from './HeroKeystream.astro';
 ---
 
 <section class="relative isolate overflow-hidden bg-surface">
-  <div class="mx-auto max-w-3xl px-6 pt-24 text-center sm:pt-28">
-    <h1 class="text-balance text-4xl font-extrabold tracking-tight text-on-surface sm:text-6xl">
+  <HeroKeystream />
+
+  <div class="mx-auto max-w-4xl px-6 pt-24 text-center sm:pt-28">
+    <h1
+      data-keystream-quiet
+      class="opsz-text text-balance text-[2.75rem] font-medium leading-[1.05] tracking-[-0.035em] text-on-surface sm:text-6xl lg:text-7xl"
+    >
       {SITE.tagline}
     </h1>
-  </div>
-
-  <HeroDevicesV2 />
-
-  <div class="mx-auto max-w-3xl px-6 pb-16 text-center">
-    <p class="mx-auto mt-6 max-w-2xl text-lg text-on-surface-variant">
-      {SITE.description}
+    <p data-keystream-quiet class="mx-auto mt-6 max-w-2xl text-lg text-on-surface-variant">
+      {SITE.subtitle}
     </p>
     <div class="mt-9 flex flex-wrap items-center justify-center gap-4">
       <a
@@ -34,4 +35,6 @@ import HeroDevicesV2 from './HeroDevicesV2.astro';
       </a>
     </div>
   </div>
+
+  <HeroDevicesV2 />
 </section>

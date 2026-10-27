@@ -271,8 +271,13 @@ private fun RememberStateFlowScope.ssoAttemptFlow(
             val result = service.unlock(args.accountId, authenticated, value)
                 .attempt()
                 .bindIn(appScope)
-            // A failure keeps the password step.
-            result.onLeft { message(it) }
+            // Only a wrong password can succeed on a second try;
+            // any other failure ends the attempt.
+            result.onLeft { error ->
+                val isWrongPassword = (error as? SsoException)?.failure == SsoFailure.PASSWORD
+                if (!isWrongPassword) throw error
+                message(error)
+            }
         } while (result.isLeft())
     }
     onSuccess()

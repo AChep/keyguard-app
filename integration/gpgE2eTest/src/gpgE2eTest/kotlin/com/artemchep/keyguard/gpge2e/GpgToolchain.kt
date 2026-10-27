@@ -1,14 +1,17 @@
+@file:OptIn(ExperimentalPathApi::class)
+
 package com.artemchep.keyguard.gpge2e
 
 import com.artemchep.keyguard.common.service.gpgagent.isKnownIncompatibleWindowsGnuPgPath
 import com.artemchep.keyguard.common.service.gpgagent.isWindowsNamedPipePath
+import com.artemchep.keyguard.integration.process.ProcessResult
+import com.artemchep.keyguard.integration.process.runProcess
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
-import java.util.Comparator
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.deleteRecursively
 
 /**
  * Resolves the GnuPG binaries used by the E2E test.
@@ -108,7 +111,7 @@ data class GpgToolchain(
                     gpgconfVersion.stdout.lineSequence().firstOrNull().orEmpty(),
             )
         } finally {
-            deleteRecursively(home)
+            home.deleteRecursively()
         }
     }
 
@@ -117,41 +120,23 @@ data class GpgToolchain(
         command: List<String>,
         gnupgHome: Path? = null,
     ): ProcessResult {
-        val result = runProcess(command, gnupgHome)
+        val result = runPreflightProcess(command, gnupgHome)
         require(result.isSuccess) {
             "$label failed for ${describe()} with exit ${result.exitCode}:\n${result.stdout}"
         }
         return result
     }
 
-    private fun runProcess(
+    private fun runPreflightProcess(
         command: List<String>,
         gnupgHome: Path?,
         timeoutSeconds: Long = 15,
-    ): ProcessResult {
-        val builder = ProcessBuilder(command)
-            .redirectErrorStream(true)
-        applyToEnvironment(builder.environment())
+    ): ProcessResult = runProcess(command, timeoutSeconds = timeoutSeconds) {
+        redirectErrorStream(true)
+        applyToEnvironment(environment())
         if (gnupgHome != null) {
-            builder.environment()["GNUPGHOME"] = gnupgHome.toAbsolutePath().toString()
+            environment()["GNUPGHOME"] = gnupgHome.toAbsolutePath().toString()
         }
-
-        val process = builder.start()
-        process.outputStream.close()
-
-        val output = CompletableFuture.supplyAsync {
-            process.inputStream.readBytes().decodeToString()
-        }
-        if (!process.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
-            process.destroyForcibly()
-            error("Timed out after ${timeoutSeconds}s running: ${command.joinToString(" ")}")
-        }
-
-        return ProcessResult(
-            exitCode = process.exitValue(),
-            stdout = output.get(timeoutSeconds, TimeUnit.SECONDS),
-            stderr = "",
-        )
     }
 
     private fun restrictOwnerOnly(dir: Path) {
@@ -164,19 +149,6 @@ data class GpgToolchain(
                     PosixFilePermission.OWNER_EXECUTE,
                 ),
             )
-        }
-    }
-
-    private fun deleteRecursively(path: Path) {
-        if (!Files.exists(path)) return
-
-        val stream = Files.walk(path)
-        try {
-            stream
-                .sorted(Comparator.reverseOrder())
-                .forEach { Files.deleteIfExists(it) }
-        } finally {
-            stream.close()
         }
     }
 

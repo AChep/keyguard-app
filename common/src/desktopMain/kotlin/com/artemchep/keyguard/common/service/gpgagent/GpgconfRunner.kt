@@ -24,6 +24,12 @@ internal class GpgconfRunner {
 
     private val executable: Path by lazy(::resolveExecutable)
 
+    // Use the gpg from the same installation; a bare gpgconf resolves gpg from PATH too.
+    private val gpgExecutable: Path by lazy {
+        val name = if (CurrentPlatform is Platform.Desktop.Windows) "gpg.exe" else "gpg"
+        executable.resolveSibling(name)
+    }
+
     fun resolveAgentSocket(home: Path): Path {
         val result = run(home, "--list-dirs", "agent-socket")
         require(result.exitCode == 0) {
@@ -36,7 +42,36 @@ internal class GpgconfRunner {
         return parseGpgconfAgentSocket(result.output)
     }
 
+    /** Reads the release version without loading user options or keyrings, or starting an agent. */
+    fun resolveGpgVersion(home: Path): String {
+        val result = run(
+            gpgExecutable,
+            home,
+            "--no-options",
+            "--no-keyring",
+            "--batch",
+            "--no-autostart",
+            "--with-colons",
+            "--list-config",
+            "version",
+        )
+        require(result.exitCode == 0) {
+            formatGpgconfFailure(
+                invocation = "gpg --list-config version",
+                exitCode = result.exitCode,
+                output = result.output,
+            )
+        }
+        return parseGpgVersion(result.output)
+    }
+
     fun run(
+        home: Path,
+        vararg args: String,
+    ): Result = run(executable, home, *args)
+
+    private fun run(
+        executable: Path,
         home: Path,
         vararg args: String,
     ): Result {
@@ -203,6 +238,24 @@ internal fun parseGpgconfAgentSocket(output: String): Path {
     }
     return path
 }
+
+internal fun parseGpgVersion(output: String): String {
+    val version = output
+        .lineSequence()
+        .map { it.trim() }
+        .singleOrNull { it.startsWith("cfg:version:") }
+        ?.removePrefix("cfg:version:")
+        ?: error("gpg did not report a single version. Output: ${formatGpgconfOutput(output)}")
+    // The agent rejects an invalid --gnupg-version at startup.
+    require(version.length <= MAX_GPG_VERSION_LENGTH && GPG_VERSION_PATTERN.matches(version)) {
+        "GnuPG returned an invalid version: $version"
+    }
+    return version
+}
+
+private const val MAX_GPG_VERSION_LENGTH = 128
+
+private val GPG_VERSION_PATTERN = Regex("[0-9]+\\.[0-9]+\\.[0-9]+(?:[-+][A-Za-z0-9._+-]+)?")
 
 internal fun formatGpgconfFailure(
     invocation: String,

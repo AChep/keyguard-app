@@ -47,6 +47,7 @@ jobs:
       apple: ${{ steps.select.outputs.apple }}
       io: ${{ steps.select.outputs.io }}
       instance: ${{ steps.select.outputs.instance }}
+      agent_ipc: ${{ steps.select.outputs.agent_ipc }}
       crypto: ${{ steps.select.outputs.crypto }}
       fuzz: ${{ steps.select.outputs.fuzz }}
       native_quality: ${{ steps.select.outputs.native_quality }}
@@ -64,6 +65,7 @@ jobs:
           python3 -m unittest
           scripts/test_classify_native_changes.py
           scripts/test_prefetch_native.py
+          scripts/test_setup_protobuf.py
           scripts/test_verify_native_bundle.py
           scripts/test_check_bouncycastle_policy.py
           scripts/test_run_native_package_smoke.py
@@ -145,6 +147,13 @@ jobs:
             -A clippy::to_string_trait_impl \
             -A clippy::derivable_impls \
             -A clippy::useless_conversion
+          cargo clippy \
+            --package ssh-key --no-default-features \
+            --features crypto,std --lib --test certificate --test certificate_builder --locked -- \
+            -D warnings \
+            -A clippy::to_string_trait_impl \
+            -A clippy::derivable_impls \
+            -A clippy::useless_conversion
           cargo test \
             --workspace --exclude ssh-key --exclude authenticator --all-features --locked
           cargo test \
@@ -154,6 +163,11 @@ jobs:
             --package ssh-key --no-default-features \
             --features keyguard-decryption,std \
             --test encrypted_private_key --locked
+          # Certificate signing and RSA conversion require features excluded
+          # from the application's decryption-only configuration.
+          cargo test \
+            --package ssh-key --no-default-features \
+            --features crypto,std --lib --test certificate --test certificate_builder --locked
       - name: "Run POLYVAL forced-software backend tests"
         working-directory: thirdParty/rust
         env:
@@ -335,6 +349,8 @@ jobs:
           persist-credentials: false
       - uses: ./.github/actions/setup_rust
         with:
+          # Agent IPC is linted for the Windows and Apple targets it ships on.
+          targets: "x86_64-pc-windows-msvc,aarch64-apple-darwin"
           cache-key: native-quality
       - uses: ./.github/actions/setup_protobuf
       - name: "Check native utility protocol drift"
@@ -344,15 +360,31 @@ jobs:
         shell: bash
         run: |
           # One module at a time, so features never unify across modules.
-          for module in ffi io instance zip zxcvbn yubikey fido2 windows-passkeys; do
+          for module in ffi io instance zip zxcvbn yubikey fido2 windows-passkeys agent-ipc; do
             packages=()
             for crate in util/"$module"/rust/crates/*/; do
               packages+=(-p "$(basename "$crate")")
             done
+            test_arguments=()
+            if [[ "$module" == agent-ipc ]]; then
+              # tests/wake.rs times 100 ms wake-ups, so no test runs beside another.
+              test_arguments=(-- --test-threads=1)
+            fi
             cargo fmt "${packages[@]}" -- --check
             cargo clippy "${packages[@]}" --all-targets --all-features --locked --no-deps -- -D warnings
-            cargo test "${packages[@]}" --all-features --locked
+            cargo test "${packages[@]}" --all-features --locked "${test_arguments[@]}"
           done
+          for target in x86_64-pc-windows-msvc aarch64-apple-darwin; do
+            cargo clippy -p keyguard-agent-ipc-core -p keyguard-agent-ipc-jni -p keyguard-agent-ipc-c \
+              --target "$target" --lib --bins --locked --no-deps -- -D warnings
+          done
+          # One CLI crate at a time, so features never unify across them.
+          for package in keyguard-agent-ipc keyguard-cli-protocol keyguard-cli keyguard-cli-agent; do
+            cargo fmt -p "$package" -- --check
+            cargo clippy -p "$package" --all-targets --locked -- -D warnings
+          done
+          # Together: the agent's tests run the keyguard binary of keyguard-cli.
+          cargo test -p keyguard-agent-ipc -p keyguard-cli-protocol -p keyguard-cli -p keyguard-cli-agent --locked
           # zip consumes keyguard-ffi without its jni feature.
           cargo clippy -p keyguard-ffi --all-targets --locked --no-deps -- -D warnings
       - name: "Test reviewed authenticator fork"
@@ -382,9 +414,12 @@ jobs:
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
       - uses: ./.github/actions/setup_python
-      - name: "Test Windows native process cleanup"
+      - name: "Test Windows package layout and process cleanup"
         if: runner.os == 'Windows'
-        run: python -m unittest scripts/test_run_native_package_smoke.py
+        run: >-
+          python -m unittest
+          scripts.test_verify_native_bundle.WindowsRuntimeTest
+          scripts.test_run_native_package_smoke
       - name: "Select latest stable Xcode"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && (needs.changes.outputs.apple == 'true' || needs.changes.outputs.apple_regressions == 'true')
         shell: bash
@@ -436,6 +471,22 @@ jobs:
       - name: "Run platform helper Rust tests"
         if: needs.changes.outputs.desktop_native == 'true'
         run: cargo test --manifest-path desktopLibNative/src/Cargo.toml --all-targets --locked --offline
+      - name: "Run Windows CLI helper Rust tests"
+        if: runner.os == 'Windows' && needs.changes.outputs.desktop_native == 'true'
+        run: cargo test -p keyguard-agent-ipc -p keyguard-cli-protocol -p keyguard-cli -p keyguard-cli-agent --all-targets --locked --offline
+      - name: "Run environment FIFO regressions"
+        if: runner.os != 'Windows' && needs.changes.outputs.desktop_native == 'true'
+        run: |
+          cargo test -p keyguard-cli-agent --all-targets --locked --offline fifo
+          cargo test -p keyguard-cli-agent --test broker_lifecycle --locked --offline empty_and_refused_readers_keep_eof_without_blocking_later_readers
+      - name: "Check Windows agent helper code"
+        if: runner.os == 'Windows' && needs.changes.outputs.desktop_native == 'true'
+        shell: bash
+        run: |
+          # One helper at a time, so features never unify across helpers.
+          for package in keyguard-agent-ipc keyguard-ssh-agent keyguard-gpg-agent keyguard-cli-protocol keyguard-cli keyguard-cli-agent; do
+            cargo clippy -p "$package" --all-targets --locked --offline -- -D warnings
+          done
       - name: "Test Linux kernel credential protection"
         if: runner.os == 'Linux' && needs.changes.outputs.desktop_native == 'true'
         run: cargo test --manifest-path desktopLibNative/src/Cargo.toml --locked --offline keychain::memory::protected::tests -- --ignored
@@ -464,6 +515,28 @@ jobs:
           ${{ matrix.gradle }} --continue --max-workers=1
           "-Pkeyguard.nativeCargo.cargoOffline=true"
           :util:ffi:desktopTest :util:io:desktopTest :util:instance:desktopTest :desktopApp:jvmTest
+      # Windows runs these in agent-ipc-windows, Linux x64 in native-quality.
+      - name: "Run agent IPC Rust regressions"
+        if: needs.changes.outputs.agent_ipc == 'true' && (runner.os == 'macOS' || (runner.os == 'Linux' && matrix.arch == 'aarch64'))
+        shell: bash
+        run: |
+          packages=(-p keyguard-agent-ipc-core -p keyguard-agent-ipc-jni -p keyguard-agent-ipc-c)
+          cargo fmt "${packages[@]}" -- --check
+          cargo clippy "${packages[@]}" --all-targets --all-features --locked --offline --no-deps -- -D warnings
+          # tests/wake.rs times 100 ms wake-ups, so no test runs beside another.
+          cargo test "${packages[@]}" --all-features --locked --offline -- --test-threads=1
+      - name: "Run agent IPC JVM regressions"
+        if: needs.changes.outputs.agent_ipc == 'true' && (runner.os != 'Linux' || matrix.arch == 'aarch64')
+        run: >-
+          ${{ matrix.gradle }} --continue --max-workers=1
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          :util:agent-ipc:desktopTest
+          :common:desktopTest
+          --tests "com.artemchep.keyguard.common.service.agent.*"
+          --tests "*AgentIpc*"
+          --tests "com.artemchep.keyguard.common.service.cli.agent.*"
+          --tests "*SshAgentIpcComponent*"
+          --tests "*GpgAgentIpcAuthentication*"
       - name: "Run security key JVM regressions"
         if: needs.changes.outputs.desktop == 'true'
         run: >-
@@ -486,6 +559,20 @@ jobs:
         run: |
           cargo test -p keyguard-windows-passkeys-core -p keyguard-windows-passkeys-jni --locked --offline
           cargo clippy -p keyguard-windows-passkeys-core -p keyguard-windows-passkeys-jni --all-targets --locked --offline -- -D warnings
+      - name: "Run Environment and CLI regressions"
+        if: needs.changes.outputs.desktop == 'true'
+        run: >-
+          ${{ matrix.gradle }} --max-workers=1
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          :feature:environments:desktopTest :feature:cli:desktopTest :common:desktopTest --tests "*Environment*" --tests "*Cli*"
+      - name: "Verify dotenv consumer compatibility"
+        if: runner.os == 'Linux' && needs.changes.outputs.desktop == 'true'
+        shell: bash
+        run: |
+          python3 -m venv "$RUNNER_TEMP/keyguard-dotenv"
+          "$RUNNER_TEMP/keyguard-dotenv/bin/pip" install 'python-dotenv==1.2.2'
+          npm install --prefix "$RUNNER_TEMP/keyguard-dotenv-node" --ignore-scripts --no-audit --no-fund dotenv@16.6.1
+          NODE_PATH="$RUNNER_TEMP/keyguard-dotenv-node/node_modules" "$RUNNER_TEMP/keyguard-dotenv/bin/python" scripts/check_environment_dotenv.py
       - name: "Run Windows private staging regressions"
         if: runner.os == 'Windows' && (needs.changes.outputs.io == 'true' || needs.changes.outputs.crypto == 'true')
         run: >-
@@ -517,6 +604,7 @@ jobs:
         run: >-
           ./gradlew --continue --max-workers=1
           -Pkeyguard.nativeCargo.cargoOffline=true
+          :util:agent-ipc:macosArm64Test
           :util:crypto:macosArm64Test
           :util:dns:macosArm64Test
           :util:ffi:macosArm64Test
@@ -538,6 +626,11 @@ jobs:
           :appleApp:assembleKeyguardSharedDebugXCFramework
           :common:generateAppleStrings
           :util:crypto:linkDebugTestMacosArm64
+      - name: "Generate Xcode projects"
+        if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
+        run: |
+          brew install xcodegen
+          xcode/scripts/generate-projects.sh
       # The Gradle step above must publish the XCFramework before SwiftPM resolves
       # its local binary target. Each scheme also builds its AutoFill extension.
       # Keep these sequential: every scheme pre-action republishes the framework with
@@ -566,7 +659,7 @@ jobs:
           ARCHS=arm64 ONLY_ACTIVE_ARCH=YES
           CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=
           build
-      - name: "Verify bundled GPG helper signatures and sandbox inheritance"
+      - name: "Verify bundled helper signatures and sandbox inheritance"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
         run: |
           python3 - <<'PYTHON'
@@ -580,14 +673,17 @@ jobs:
               "com.apple.security.inherit": True,
           }
           for configuration in ("Debug", "AppStoreDebug"):
-              helper = Path("build/xcode/ci-macos/Build/Products") / configuration / "Keyguard.app/Contents/Resources/keyguard-gpg-agent"
-              assert helper.is_file() and os.access(helper, os.X_OK), f"Missing executable helper: {helper}"
-              subprocess.run(["codesign", "--verify", "--strict", str(helper)], check=True)
-              signed = subprocess.run(
-                  ["codesign", "--display", "--xml", "--entitlements", "-", str(helper)],
-                  check=True, stdout=subprocess.PIPE,
-              )
-              assert plistlib.loads(signed.stdout) == expected, f"Invalid helper entitlements: {helper}"
+              resources = Path("build/xcode/ci-macos/Build/Products") / configuration / "Keyguard.app/Contents/Resources"
+              for name in ("keyguard-gpg-agent", "keyguard-cli-agent", "keyguard"):
+                  helper = resources / name
+                  assert helper.is_file() and os.access(helper, os.X_OK), f"Missing executable helper: {helper}"
+                  subprocess.run(["codesign", "--verify", "--strict", str(helper)], check=True)
+                  if name != "keyguard":
+                      signed = subprocess.run(
+                          ["codesign", "--display", "--xml", "--entitlements", "-", str(helper)],
+                          check=True, stdout=subprocess.PIPE,
+                      )
+                      assert plistlib.loads(signed.stdout) == expected, f"Invalid helper entitlements: {helper}"
           PYTHON
       - name: "Test shared Swift UI behavior"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
@@ -638,14 +734,18 @@ jobs:
           archives=()
           while IFS= read -r -d '' archive; do
             archives+=("$archive")
-          done < <(find util/crypto/build util/io/build util/zip/build util/zxcvbn/build -type f -name 'libkeyguard_*.a' -print0)
-          test "${#archives[@]}" -ge 4
+          done < <(find util/crypto/build util/io/build util/zip/build util/zxcvbn/build util/agent-ipc/build -type f -name 'libkeyguard_*.a' -print0)
+          test "${#archives[@]}" -ge 5
           python3 scripts/verify_native_bundle.py apple --arch aarch64 \
             appleApp/build/bin/iosArm64/debugTest/test.kexe \
             appleApp/build/bin/iosSimulatorArm64/debugTest/test.kexe \
             "${archives[@]}"
           python3 scripts/verify_native_bundle.py apple --arch aarch64 --require-crypto-exports \
             util/crypto/build/bin/macosArm64/debugTest/test.kexe
+          # The macOS app links agent IPC through a real call site (D19). Read
+          # all symbols first: grep -q under pipefail could fail on SIGPIPE.
+          symbols="$(llvm-nm -gU appleApp/build/bin/macosArm64/debugTest/test.kexe)"
+          grep -q keyguard_agent_ipc_abi_version <<< "$symbols"
 
       - name: "Upload native regression reports"
         if: always()
@@ -663,6 +763,8 @@ jobs:
             util/io/build/test-results/
             util/instance/build/reports/tests/
             util/instance/build/test-results/
+            util/agent-ipc/build/reports/tests/
+            util/agent-ipc/build/test-results/
             common/build/reports/tests/
             common/build/test-results/
             desktopApp/build/reports/tests/
@@ -842,10 +944,40 @@ jobs:
         shell: pwsh
         run: ./util/windows-passkeys/abi/test-integration.ps1 -Target ${{ matrix.target }}
 
+  agent-ipc-windows:
+    name: "Agent IPC Windows (${{ matrix.name }})"
+    needs: changes
+    if: needs.changes.outputs.agent_ipc == 'true'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: x64
+            os: windows-2025
+            target: x86_64-pc-windows-msvc
+          - name: ARM64
+            os: windows-11-arm
+            target: aarch64-pc-windows-msvc
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_rust
+        with:
+          targets: ${{ matrix.target }}
+          cache-key: agent-ipc-windows
+      # tests/wake.rs times 100 ms wake-ups, so no test runs beside another.
+      - name: "Run agent IPC Rust tests"
+        run: cargo test -p keyguard-agent-ipc-core -p keyguard-agent-ipc-jni -p keyguard-agent-ipc-c --target ${{ matrix.target }} --all-features --locked -- --test-threads=1
+      - name: "Lint agent IPC Rust code"
+        run: cargo clippy -p keyguard-agent-ipc-core -p keyguard-agent-ipc-jni -p keyguard-agent-ipc-c --target ${{ matrix.target }} --all-targets --all-features --locked --offline --no-deps -- -D warnings
+
   native-checks:
     name: "Native checks"
     if: always()
-    needs: [changes, crypto-quality, native-quality, rust-fuzz, desktop-bundle, android-bundle, wear-runtime, fixed-host-performance, windows-passkey-abi]
+    needs: [changes, crypto-quality, native-quality, rust-fuzz, desktop-bundle, android-bundle, wear-runtime, fixed-host-performance, windows-passkey-abi, agent-ipc-windows]
     runs-on: ubuntu-24.04
     steps:
       - name: "Require every selected check to succeed"
@@ -863,6 +995,7 @@ jobs:
               "crypto-quality": "crypto", "native-quality": "native_quality",
               "rust-fuzz": "fuzz", "desktop-bundle": "desktop_run",
               "android-bundle": "android_run", "wear-runtime": "wear",
+              "agent-ipc-windows": "agent_ipc",
           }
           for job, flag in flags.items():
               if selected.get(flag) == "true" and results[job]["result"] != "success":

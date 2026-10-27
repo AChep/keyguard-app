@@ -451,6 +451,11 @@ jobs:
         with:
           lfs: true
           submodules: recursive
+      - name: "Test Windows package layout"
+        run: >-
+          python -m unittest
+          scripts.test_verify_native_bundle.WindowsRuntimeTest
+          scripts.test_run_native_package_smoke.WindowsLauncherTest
       - name: "Setup Gradle (x64)"
         if: matrix.msix_arch == 'x64'
         uses: ./.github/actions/setup_gradle
@@ -687,10 +692,10 @@ jobs:
           $imageRoot = Join-Path $env:RUNNER_TEMP 'msi-upgrade-image'
           ./scripts/verify_windows_msi.ps1 -Directory packages/arm64 -Version $env:MSI_VERSION `
             -Architecture aarch64 -ExtractDirectory $imageRoot
-          $launchers = @(Get-ChildItem -LiteralPath $imageRoot -Filter Keyguard.exe -Recurse -File)
-          if ($launchers.Count -ne 1) { throw 'Expected one extracted ARM64 app image.' }
+          $appImage = python -c 'from pathlib import Path; import sys; from scripts.run_native_package_smoke import find_windows_launcher; print(find_windows_launcher(Path(sys.argv[1])).parent)' $imageRoot
+          if ($LASTEXITCODE -ne 0) { throw 'Could not locate the extracted ARM64 app image.' }
           # Only the installer version differs; the payload remains the tested release image.
-          ./scripts/package_windows_arm64_msi.ps1 -AppImage $launchers[0].DirectoryName `
+          ./scripts/package_windows_arm64_msi.ps1 -AppImage $appImage `
             -Version 0.0.0 -WixDirectory $env:WIX_DIRECTORY -OutputDirectory packages/previous
       - name: "Test installation, upgrades, and uninstall"
         shell: pwsh
@@ -878,7 +883,7 @@ jobs:
           path: |
             androidApp/build/outputs/bundle/**/*.aab
           retention-days: 1
-  build-android-ssh-agent:
+  build-android-termux-agents:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -906,12 +911,23 @@ jobs:
           pip install git+https://github.com/termux/termux-create-package.git@1f2f17c7f6971c938a7c644e5cb46e7913960c8f
       - name: "Build Termux packages"
         run: |
-          ./gradlew :androidSshAgent:packageAndroidSshAgentTermuxAll
+          ./gradlew :androidSshAgent:packageAndroidSshAgentTermuxAll :androidGpgAgent:packageAndroidGpgAgentTermuxAll
+      # Collect every package in one flat directory: an artifact with several
+      # paths keeps their directories, and the release and the APT repo
+      # expect the .deb files at the top level.
+      - name: "Collect .deb"
+        run: |
+          mkdir -p build/termux-debs
+          cp androidSshAgent/build/termux/debs/*.deb \
+            androidGpgAgent/build/termux/debs/*.deb \
+            build/termux-debs/
+          ls -l build/termux-debs
       - name: "Upload .deb"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-termux
-          path: androidSshAgent/build/termux/debs/*.deb
+          path: build/termux-debs/*.deb
+          if-no-files-found: error
           retention-days: 1
   dist:
     runs-on: ubuntu-latest
@@ -920,7 +936,7 @@ jobs:
       - generate-versions
       - build-wearos-app
       - build-android-app
-      - build-android-ssh-agent
+      - build-android-termux-agents
       - build-linux-app
       - notarize-macos-app
       - build-windows-app
@@ -1192,8 +1208,11 @@ jobs:
           git commit -m "Mirror latest Keyguard Termux packages"
           git push origin HEAD:master
   deploy-microsoft-store:
-    name: Deploy Microsoft Store
+    name: Submit Microsoft Store
     runs-on: windows-latest
+    concurrency:
+      group: microsoft-store-submission
+      cancel-in-progress: false
     needs:
       - build-windows-app
       - dist
@@ -1262,9 +1281,9 @@ jobs:
           --sellerId "${{ secrets.MSSTORE_SELLER_ID }}"
           --clientId "${{ secrets.MSSTORE_CLIENT_ID }}"
           --clientSecret "${{ secrets.MSSTORE_CLIENT_SECRET }}"
-      # The submission is left as a draft (--noCommit) so it can be reviewed
-      # in the Partner Center before it is committed. Read it back because the
-      # CLI may otherwise return success without attaching the package.
+      # Upload as a draft (--noCommit) and verify the attached package before
+      # submitting it for certification. The CLI may otherwise return success
+      # without attaching the package.
       - name: "Create and verify draft submission"
         shell: pwsh
         env:
@@ -1305,6 +1324,18 @@ jobs:
             }
             throw "The Store draft does not contain '$env:STORE_UPLOAD_NAME' as PendingUpload. Found: $observedPackages"
           }
+      - name: "Submit for certification"
+        shell: pwsh
+        env:
+          STORE_APP_ID: ${{ secrets.MSSTORE_APP_ID }}
+        run: |
+          msstore submission publish "$env:STORE_APP_ID"
+          if ($LASTEXITCODE -ne 0) {
+            throw "msstore submission publish exited $LASTEXITCODE."
+          }
+
+          "## Microsoft Store submission" >> $env:GITHUB_STEP_SUMMARY
+          "The update was submitted for certification. Microsoft controls certification and publication according to the submission's publishing settings." >> $env:GITHUB_STEP_SUMMARY
   deploy-flathub:
     name: Deploy Flathub
     runs-on: ubuntu-slim

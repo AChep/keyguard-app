@@ -31,6 +31,7 @@ fun <T : TabItem> SegmentedButtonGroup(
     onClick: (T) -> Unit,
     modifier: Modifier = Modifier,
     weight: Float = Float.NaN,
+    isTabEnabled: (T) -> Boolean = { true },
 ) {
     val interactionSourcesState = remember {
         mutableStateMapOf<String, MutableInteractionSource>()
@@ -62,11 +63,12 @@ fun <T : TabItem> SegmentedButtonGroup(
                         checked = tabState.value == tab,
                         interactionSource = interactionSource,
                         weight = weight,
+                        enabled = isTabEnabled(tab),
                         onClick = updatedOnClick,
                     )
                 },
                 menuContent = { state ->
-                    SegmentedMenuItem(tab, state, updatedOnClick)
+                    SegmentedMenuItem(tab, state, isTabEnabled(tab), updatedOnClick)
                 },
             )
         }
@@ -98,6 +100,7 @@ private fun <T : TabItem> ButtonGroupScope.SegmentedToggleButton(
     checked: Boolean,
     interactionSource: MutableInteractionSource,
     weight: Float,
+    enabled: Boolean,
     onClick: (T) -> Unit,
 ) {
     ToggleButton(
@@ -109,6 +112,7 @@ private fun <T : TabItem> ButtonGroupScope.SegmentedToggleButton(
                 } else Modifier.weight(weight),
             ),
         checked = checked,
+        enabled = enabled,
         onCheckedChange = { onClick(tab) },
         interactionSource = interactionSource,
     ) {
@@ -120,10 +124,11 @@ private fun <T : TabItem> ButtonGroupScope.SegmentedToggleButton(
 private fun <T : TabItem> SegmentedMenuItem(
     tab: T,
     menuState: ButtonGroupMenuState,
+    enabled: Boolean,
     onClick: (T) -> Unit,
 ) {
     DropdownMenuItem(
-        enabled = true,
+        enabled = enabled,
         text = { SegmentedTabTitle(tab) },
         onClick = {
             onClick(tab)

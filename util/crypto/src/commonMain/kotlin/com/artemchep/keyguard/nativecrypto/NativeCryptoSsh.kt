@@ -50,6 +50,38 @@ public class NativeSshPublicKey(
     val spkiDer: ByteArray,
 )
 
+public enum class NativeSshCertificateType {
+    USER,
+    HOST,
+}
+
+public data class NativeSshCertificateOption(
+    val name: String,
+    /** Empty for flag options, such as the permit-pty extension. */
+    val value: String,
+)
+
+/**
+ * The fields of an OpenSSH certificate. The CA signature is not verified: the
+ * SSH server decides whether it trusts the certificate.
+ */
+public data class NativeSshCertificate(
+    val type: NativeSshCertificateType,
+    val keyId: String,
+    val serial: ULong,
+    val principals: List<String>,
+    /** Unix seconds. */
+    val validAfter: Long,
+    /** Unix seconds, or [Long.MAX_VALUE] for a certificate that never expires. */
+    val validBefore: Long,
+    /** The CA key fingerprint as `ssh-keygen -l -E sha256` prints it. */
+    val caFingerprint: String,
+    val criticalOptions: List<NativeSshCertificateOption>,
+    val extensions: List<NativeSshCertificateOption>,
+    /** Whether the certificate certifies the public key it was described with. */
+    val publicKeyMatches: Boolean,
+)
+
 public sealed interface NativeSshPrivateKeyImportResult {
     public class Success(
         val keyMaterial: NativeSshKeyMaterial,
@@ -315,6 +347,57 @@ public object NativeCryptoSsh {
     }
 
     /**
+     * Describes an OpenSSH certificate line ("<type>-cert-v01@openssh.com
+     * <base64> [comment]"). Pass the item's [publicKeyOpenSsh] to learn
+     * whether the certificate certifies it. Throws a [NativeCryptoException]
+     * for anything that is not a certificate.
+     */
+    public fun describeCertificate(
+        certificateOpenSsh: String,
+        publicKeyOpenSsh: String? = null,
+    ): NativeSshCertificate {
+        require(certificateOpenSsh.isNotEmpty()) { "SSH certificate must not be empty" }
+        require(certificateOpenSsh.encodeToByteArray().size <= MAX_KEY_BYTES) {
+            "SSH certificate is too large"
+        }
+        if (publicKeyOpenSsh != null) {
+            require(publicKeyOpenSsh.isNotEmpty()) { "SSH public key must not be empty" }
+            require(publicKeyOpenSsh.encodeToByteArray().size <= MAX_KEY_BYTES) {
+                "SSH public key is too large"
+            }
+        }
+        val payload = NativeCrypto.call(
+            operationName = "ssh_certificate_describe",
+            operation = SshCertificateDescribeOperationProto(
+                SshCertificateDescribeRequestProto(
+                    certificateOpenSsh = certificateOpenSsh,
+                    publicKeyOpenSsh = publicKeyOpenSsh,
+                ),
+            ),
+        ).requireBytes("ssh_certificate_describe")
+        val value = decodePayload<SshCertificateDescriptionProto>(
+            operation = "ssh_certificate_describe",
+            payload = payload,
+        )
+        return NativeSshCertificate(
+            type = when (value.type) {
+                SshCertificateTypeProto.USER -> NativeSshCertificateType.USER
+                SshCertificateTypeProto.HOST -> NativeSshCertificateType.HOST
+                SshCertificateTypeProto.UNSPECIFIED -> malformed("ssh_certificate_describe")
+            },
+            keyId = value.keyId,
+            serial = value.serial.toULong(),
+            principals = value.principals,
+            validAfter = value.validAfter,
+            validBefore = value.validBefore,
+            caFingerprint = value.caFingerprint,
+            criticalOptions = value.criticalOptions.map { it.toPublic() },
+            extensions = value.extensions.map { it.toPublic() },
+            publicKeyMatches = value.publicKeyMatches,
+        )
+    }
+
+    /**
      * Frames a signature as the RFC 4253 section 6.6 blob consumed by SSH
      * clients: string(algorithm) followed by string(signature). Stays
      * byte-compatible with the framing the native agent front-ends apply at
@@ -480,6 +563,11 @@ private fun SshKeyTypeProto.toPublic(operation: String): NativeSshKeyType = when
     SshKeyTypeProto.ED25519 -> NativeSshKeyType.ED25519
     SshKeyTypeProto.UNSPECIFIED -> malformed(operation)
 }
+
+private fun SshCertificateOptionProto.toPublic() = NativeSshCertificateOption(
+    name = name,
+    value = value,
+)
 
 private fun malformed(operation: String): Nothing = throw NativeCryptoException(
     operation = operation,

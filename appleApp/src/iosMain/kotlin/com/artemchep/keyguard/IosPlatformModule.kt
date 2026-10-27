@@ -21,7 +21,7 @@ import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseMan
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManagerImpl
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.download.CacheDirProvider
-import com.artemchep.keyguard.common.service.download.CacheDirProviderIos
+import com.artemchep.keyguard.common.service.download.CacheDirProviderApple
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadManagerImpl
 import com.artemchep.keyguard.common.service.download.DownloadRepository
@@ -35,6 +35,7 @@ import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandImpl
 import com.artemchep.keyguard.common.service.extract.PlatformLinkInfoExtractorRegistry
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
+import com.artemchep.keyguard.common.service.http.KeyguardHttpUserAgent
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
 import com.artemchep.keyguard.common.service.licensekey.EcdsaP256LicenseSignatureVerifier
@@ -99,30 +100,16 @@ import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.ApplePlatformServicesModule
 import com.artemchep.keyguard.di.NativeCryptoServicesModule
 import com.artemchep.keyguard.platform.AppleBiometricKeychain
-import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
-import com.artemchep.keyguard.platform.iosKeyguardAtomicDataDirectory
-import com.artemchep.keyguard.platform.iosKeyguardCacheDirectory
-import com.artemchep.keyguard.platform.iosKeyguardDataDirectory
-import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
-import com.artemchep.keyguard.provider.bitwarden.api.builder.configureBitwardenHttpRetry
+import com.artemchep.keyguard.platform.AppleStorageDirectories
 import com.artemchep.keyguard.util.io.resolve
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.darwin.Darwin
-import io.ktor.client.plugins.HttpRequestRetry
-import io.ktor.client.plugins.UserAgent
-import io.ktor.client.plugins.cache.HttpCache
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.plugins.websocket.WebSockets
-import io.ktor.http.ContentType
-import io.ktor.serialization.kotlinx.KotlinxSerializationConverter
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.serialization.json.Json
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
@@ -161,20 +148,23 @@ internal class IosPlatformModule {
             Dispatchers.IO
         }
         single<ClearData> {
+            val directories = get<AppleStorageDirectories>()
             ClearDataApple(
-                directories = { listOf(iosKeyguardDataDirectory(), iosKeyguardCacheDirectory()) },
+                directories = { listOf(directories.data.path, directories.cache) },
                 fingerprintRepository = get(),
                 getStore = get<AppleKeyValueStoreFactory>()::getJson,
             )
         }
         single<HttpClient> {
-            iosHttpClient(
+            appleHttpClient(
                 json = get(),
+                userAgent = KeyguardHttpUserAgent.Bitwarden,
             )
         }
         single<HttpClient>(qualifier = named("curl")) {
-            iosHttpClient(
+            appleHttpClient(
                 json = get(),
+                userAgent = KeyguardHttpUserAgent.Curl,
             )
         }
         single {
@@ -199,13 +189,13 @@ internal class IosPlatformModule {
         single<KeychainRepository> { get<KeychainRepositoryApple>() }
         single<AppleBiometricKeychain> { get<KeychainRepositoryApple>() }
         single<CacheDirProvider> {
-            CacheDirProviderIos
+            CacheDirProviderApple(directories = get())
         }
         single<DownloadRepository> {
             DownloadRepositoryInMemory()
         }
         single<DownloadFileStore> {
-            DownloadFileStoreApple
+            DownloadFileStoreApple(directories = get())
         }
         single<DownloadBackgroundScheduler> {
             DownloadBackgroundSchedulerNoOp
@@ -348,12 +338,12 @@ internal class IosPlatformModule {
 
         // One live store per file, shared by the repositories and by erasure so a
         // ClearData run resets the preferences already held in memory.
-        single { AppleKeyValueStoreFactory(get(), iosKeyguardAtomicDataDirectory()) }
+        single { AppleKeyValueStoreFactory(get(), get<AppleStorageDirectories>().data) }
         single<KeyValueStoreFactory> { get<AppleKeyValueStoreFactory>() }
         single<AndroidIpcRegistrationService> { AndroidIpcRegistrationServiceNone }
         single<ExposedDatabaseManager> {
             val sqlManager = DatabaseSqlManagerInFileApple<DatabaseExposed>(
-                directory = iosKeyguardDataDirectory().resolve("exposed"),
+                directory = get<AppleStorageDirectories>().data.path.resolve("exposed"),
                 fileName = "database_exposed.sqlite",
                 onCreate = { _: DatabaseExposed ->
                     ioUnit()
@@ -373,29 +363,6 @@ internal class IosPlatformModule {
     }
 }
 
-private fun iosHttpClient(
-    json: Json,
-) = HttpClient(Darwin) {
-    install(UserAgent) {
-        agent = BitwardenPersona.of(CurrentPlatform)
-            .userAgent
-    }
-    install(ContentNegotiation) {
-        register(ContentType.Application.Json, KotlinxSerializationConverter(json))
-    }
-    install(WebSockets) {
-        pingIntervalMillis = HTTP_PING_INTERVAL_MS
-    }
-    install(HttpCache) {
-        // In memory.
-    }
-    install(HttpRequestRetry) {
-        configureBitwardenHttpRetry()
-    }
-}
-
 private object IosNoOpCopyEventsSource : CopyEventsSource {
     override val copyEvents: Flow<Unit> = emptyFlow()
 }
-
-private const val HTTP_PING_INTERVAL_MS = 20_000L

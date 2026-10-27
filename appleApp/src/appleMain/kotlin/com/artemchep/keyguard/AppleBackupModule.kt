@@ -20,7 +20,7 @@ internal class AppleBackupModule {
     val module = module {
         single<BackupObjectStoreFactory>(qualifier = named(BackupLocalObjectStoreFactoryTag)) {
             val sessions: SessionReadRepository = get()
-            AppleFolderBackupObjectStoreFactory { expected, updated ->
+            AppleFolderBackupObjectStoreFactory(temporaryDirProvider = get()) { expected, updated ->
                 val session = sessions.get().first() as? MasterSession.Key
                 session?.session?.resolve { get<BackupConfigRepository>() }
                     ?.refreshLocalAccess(expected, updated)?.bind()

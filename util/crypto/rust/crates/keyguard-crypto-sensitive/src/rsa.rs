@@ -20,6 +20,9 @@ use crate::{DigestAlgorithm, DigestContext};
 const MIN_RSA_MODULUS_BYTES: usize = 128;
 const MAX_RSA_MODULUS_BYTES: usize = 1_024;
 const MAX_PUBLIC_EXPONENT_BYTES: usize = 16;
+// Modulus sizes accepted by every private operation path.
+const MIN_RSA_PRIVATE_MODULUS_BITS: usize = 1_024;
+const MAX_RSA_PRIVATE_MODULUS_BITS: usize = 8_192;
 const MAX_PRIVATE_DER_BYTES: usize = 16 * 1_024;
 const MAX_RECOVERY_BASES: u32 = 64;
 const MAX_RECOVERY_SQUARINGS: usize = 128;
@@ -64,7 +67,7 @@ impl RsaSignatureHash {
 /// Stable, non-sensitive failures from the RSA compatibility backend.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SensitiveRsaError {
-    /// Key generation was requested with a size outside the frozen set.
+    /// A key size or public exponent is outside the supported set.
     InvalidKeySize,
     /// Supplied private components were malformed or mathematically invalid.
     InvalidKey,
@@ -77,7 +80,7 @@ pub enum SensitiveRsaError {
 impl fmt::Display for SensitiveRsaError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
         formatter.write_str(match self {
-            Self::InvalidKeySize => "invalid RSA key size",
+            Self::InvalidKeySize => "unsupported RSA key size or exponent",
             Self::InvalidKey => "invalid RSA private key",
             Self::AllocationFailure => "RSA backend allocation failure",
             Self::BackendFailure => "RSA backend failure",
@@ -279,6 +282,48 @@ pub fn generate_rsa_pkcs1_der(bits: u32) -> Result<Zeroizing<Vec<u8>>, Sensitive
     aws_lc::init();
     let key = RsaKey::generate(bits)?;
     key.to_pkcs1_der()
+}
+
+/// Checks that private operations support an RSA key with this `n` and `e`.
+///
+/// Import admission calls this before completing or storing a private key, so
+/// a key that cannot sign is rejected up front. Only the public values are
+/// read. The modulus must fit the bounds shared by every private path, and
+/// AWS-LC's own public-key check, which caps `e` at 33 bits, must accept the
+/// pair.
+///
+/// # Errors
+///
+/// Returns [`SensitiveRsaError::InvalidKeySize`] for a well-formed key whose
+/// size or exponent is unsupported, and [`SensitiveRsaError::InvalidKey`] for
+/// an even modulus or an even or trivial exponent.
+pub fn check_rsa_private_key_support(
+    modulus: &[u8],
+    public_exponent: &[u8],
+) -> Result<(), SensitiveRsaError> {
+    aws_lc::init();
+    let modulus = BigNum::from_bytes(modulus)?;
+    let public_exponent = BigNum::from_bytes(public_exponent)?;
+    // SAFETY: both pointers borrow live, uniquely owned BIGNUMs.
+    let (well_formed, modulus_bits) = unsafe {
+        (
+            aws_lc::BN_is_odd(modulus.as_ptr()) == 1
+                && aws_lc::BN_is_odd(public_exponent.as_ptr()) == 1
+                && aws_lc::BN_cmp_word(public_exponent.as_ptr(), 1) > 0,
+            aws_lc::BN_num_bits(modulus.as_ptr()) as usize,
+        )
+    };
+    if !well_formed {
+        return Err(SensitiveRsaError::InvalidKey);
+    }
+    if !(MIN_RSA_PRIVATE_MODULUS_BITS..=MAX_RSA_PRIVATE_MODULUS_BITS).contains(&modulus_bits) {
+        return Err(SensitiveRsaError::InvalidKeySize);
+    }
+    // SAFETY: both pointers borrow live BIGNUMs. AWS-LC duplicates them into
+    // a new RSA object and applies the public checks of `RSA_check_key`.
+    let raw = unsafe { aws_lc::RSA_new_public_key(modulus.as_ptr(), public_exponent.as_ptr()) };
+    let _key = RsaKey(NonNull::new(raw).ok_or(SensitiveRsaError::InvalidKeySize)?);
+    Ok(())
 }
 
 /// Completes an OpenSSH RSA key and returns validated PKCS#1 DER.
@@ -544,7 +589,7 @@ fn validate_recovery_inputs(
 ) -> Result<(), SensitiveRsaError> {
     let one = BigUint::from(1_u8);
     let modulus_bits = modulus.bits();
-    if !(1_024..=8_192).contains(&modulus_bits)
+    if !(MIN_RSA_PRIVATE_MODULUS_BITS..=MAX_RSA_PRIVATE_MODULUS_BITS).contains(&modulus_bits)
         || modulus.is_even()
         || public_exponent <= &one
         || public_exponent >= modulus
@@ -571,7 +616,6 @@ fn recover_crt(
     private_exponent: &BigUint,
 ) -> Result<RecoveredCrt, SensitiveRsaError> {
     let one = BigUint::from(1_u8);
-    let two = BigUint::from(2_u8);
 
     // `k = e*d - 1` is even for a valid RSA private key. The multiplication
     // result moves directly into a zeroizing owner.
@@ -590,35 +634,85 @@ fn recover_crt(
     let mut modulus_minus_one = Zeroizing::new(modulus.clone());
     *modulus_minus_one -= 1_u8;
 
-    for base_value in 2..2 + MAX_RECOVERY_BASES {
-        let base = BigUint::from(base_value);
-        if base >= *modulus_minus_one {
-            break;
-        }
-
-        let mut previous = Zeroizing::new(base.modpow(&odd_part, modulus));
-        if *previous == one || *previous == *modulus_minus_one {
-            continue;
-        }
-
-        for _ in 0..squarings {
-            let squared = Zeroizing::new(previous.modpow(&two, modulus));
-            if *squared == one {
-                if let Some(recovered) =
-                    derive_crt_from_factor(modulus, private_exponent, &previous)
-                {
+    // Bases are random, as in NIST SP 800-56B Rev. 2 Appendix C.2. At least
+    // half of them split a valid modulus, while a crafted key can make every
+    // fixed base trivial and exhaust the search.
+    let mut checked_prime_power = false;
+    for _ in 0..MAX_RECOVERY_BASES {
+        let base = random_recovery_base(&modulus_minus_one)?;
+        match square_root_of_one(&base, &odd_part, squarings, modulus, &modulus_minus_one) {
+            RecoveryBase::Root(root) => {
+                if let Some(recovered) = derive_crt_from_factor(modulus, private_exponent, &root) {
                     return Ok(recovered);
                 }
-                break;
             }
-            if *squared == *modulus_minus_one {
-                break;
+            RecoveryBase::Trivial => {
+                if !checked_prime_power {
+                    checked_prime_power = true;
+                    if is_prime_power(modulus, &modulus_minus_one) {
+                        return Err(SensitiveRsaError::InvalidKey);
+                    }
+                }
             }
-            previous = squared;
+            // `e*d - 1` is a multiple of the group exponent for a matching
+            // key, so this base proves that n, e and d do not match.
+            RecoveryBase::NotOne => return Err(SensitiveRsaError::InvalidKey),
         }
     }
 
     Err(SensitiveRsaError::InvalidKey)
+}
+
+enum RecoveryBase {
+    Root(Zeroizing<BigUint>),
+    Trivial,
+    NotOne,
+}
+
+/// Squares `base^t` towards `base^(e*d - 1)`, returning the last value before
+/// one when it is a non-trivial square root of one.
+fn square_root_of_one(
+    base: &BigUint,
+    odd_part: &BigUint,
+    squarings: usize,
+    modulus: &BigUint,
+    modulus_minus_one: &BigUint,
+) -> RecoveryBase {
+    let one = BigUint::from(1_u8);
+    let two = BigUint::from(2_u8);
+    let mut value = Zeroizing::new(base.modpow(odd_part, modulus));
+    for _ in 0..squarings {
+        if *value == one || *value == *modulus_minus_one {
+            return RecoveryBase::Trivial;
+        }
+        let squared = Zeroizing::new(value.modpow(&two, modulus));
+        if *squared == one {
+            return RecoveryBase::Root(value);
+        }
+        value = squared;
+    }
+    RecoveryBase::NotOne
+}
+
+/// Draws a base from `[2, n - 2]`. The extra random bytes keep the modular
+/// reduction bias below `2^-64`.
+fn random_recovery_base(modulus_minus_one: &BigUint) -> Result<BigUint, SensitiveRsaError> {
+    let mut random = Zeroizing::new(vec![0_u8; modulus_minus_one.bits().div_ceil(8) + 8]);
+    // SAFETY: `random` is writable for `random.len()` bytes.
+    if unsafe { aws_lc::RAND_bytes(random.as_mut_ptr(), random.len()) } != 1 {
+        return Err(SensitiveRsaError::BackendFailure);
+    }
+    let range = modulus_minus_one - 2_u8;
+    Ok(BigUint::from_bytes_be(&random) % range + 2_u8)
+}
+
+/// Every base is trivial for a prime power `r^k`, whose unit group is cyclic.
+/// Because `r - 1` divides `n - 1`, `2^(n-1) - 1` is a multiple of `r`. For a
+/// two-prime modulus it shares no factor with `n` except with negligible
+/// probability.
+fn is_prime_power(modulus: &BigUint, modulus_minus_one: &BigUint) -> bool {
+    let fermat = BigUint::from(2_u8).modpow(modulus_minus_one, modulus);
+    (fermat - 1_u8).gcd(modulus) != BigUint::from(1_u8)
 }
 
 fn derive_crt_from_factor(
@@ -780,7 +874,8 @@ impl RsaKey {
         // application-specific limits on n and d.
         // SAFETY: all pointers borrow live, uniquely owned BIGNUMs.
         let valid_bounds = unsafe {
-            (1_024..=8_192).contains(&aws_lc::BN_num_bits(modulus.as_ptr()))
+            (MIN_RSA_PRIVATE_MODULUS_BITS..=MAX_RSA_PRIVATE_MODULUS_BITS)
+                .contains(&(aws_lc::BN_num_bits(modulus.as_ptr()) as usize))
                 && aws_lc::BN_cmp_word(private_exponent.as_ptr(), 1) > 0
                 && aws_lc::BN_cmp(private_exponent.as_ptr(), modulus.as_ptr()) < 0
         };
@@ -1119,6 +1214,34 @@ mod tests {
         "95002ec8015b973445b59205aa9b80e9e36b3562448f25c169ebd93bb1f9915",
         "c7f267825abadd0855306c0f328f468a8e3fd3243f86c3edcbcdebadb6ceac027",
     );
+    // Synthetic n = r^2 with e = 65537 and d = e^-1 mod r(r - 1).
+    const PRIME_SQUARE_MODULUS_HEX: &str = concat!(
+        "ec87cbd5aa139fd1f8a78866d5fec23fe8c04022855e2bc9c7fb83652ff6f716",
+        "edc9e55ab3f134d0155029e975b7dc4e0679558b5c68596611b4c4f69fb9259b",
+        "cb2196c1c1eb1d7a384633b07a43aecafa6a182a425d8ca0a87c69fe95b2f910",
+        "9aab3bd323462a4e1a640baa737c39f7bde8f5398f66d900be0944e747f78b41",
+    );
+    const PRIME_SQUARE_PRIVATE_EXPONENT_HEX: &str = concat!(
+        "67774f96fb7af2226b5efdafde543eacae27cae64ee8cec6c9901ffe176934d4",
+        "f6d7a65872f6445ff1b2cb62b077e90ac89232f56f4ac6307bf653627ea402eb",
+        "23e014144670e1cce95df6ecbcf56f28028bcd09f19efdae49cfd380b13110d3",
+        "185e62700b21ff545e6ccf3de5504c53ec03a95027090ea4cfd5cb8e898ee479",
+    );
+    // A valid synthetic RSA-1024 key whose primes are both 3 mod 4 and agree
+    // modulo 8 times every odd prime up to 61. They share each small Legendre
+    // symbol, so every base from 2 to 65 yields only trivial roots of one.
+    const SMALL_BASE_LIAR_MODULUS_HEX: &str = concat!(
+        "e099b2ab4aca6129234e1547d6e2820bc82e1aa6979ebe5573e8e5474c28092a",
+        "2ce8ec3cb552b387ab8869776cc23867669f9edd630d0911c2630ec260030b6e",
+        "737c0dd6ee0a57910397544191bf0b35c1faca7c5a6e109ce3726af7799414db",
+        "dbe6aa88ef67fbf37445f5054ba508f423c5657eb7950288dfc5101762ba0b81",
+    );
+    const SMALL_BASE_LIAR_PRIVATE_EXPONENT_HEX: &str = concat!(
+        "3d0ac3dd18e2e80f14f5a3d3001405ce06900b10b210df201f56acd26eea23e2",
+        "48b4ddf5f0b46bdba4e09f7aa480c249ce2e1d92e6764be32f22e4600355bcce",
+        "f6edadde3b4b41ce3708419abff7c7e7bb69871506ca1a52e64f0e0c93c25c77",
+        "8c7fffaff1169f88d55977e38416a0b29fd652ee8c76ed28a53596ed0b6533",
+    );
 
     #[test]
     fn generation_supports_every_frozen_size_and_exponent() {
@@ -1186,6 +1309,47 @@ mod tests {
         assert_eq!(completed.public_exponent, components.public_exponent);
         assert_eq!(completed.private_exponent, components.private_exponent);
         assert!(matches!(completed.material, RsaPrivateMaterial::Crt(_)));
+    }
+
+    #[test]
+    fn recovery_splits_a_valid_key_that_defeats_small_fixed_bases() {
+        let components = RsaPrivateComponents::new(
+            decode_hex(SMALL_BASE_LIAR_MODULUS_HEX),
+            decode_hex("010001"),
+            decode_hex(SMALL_BASE_LIAR_PRIVATE_EXPONENT_HEX),
+            None,
+        );
+
+        let der = complete_rsa_pkcs1_der_from_components(&components)
+            .expect("random bases must split the modulus");
+        let completed = components_from_key(&parse_pkcs1_der(&der));
+
+        assert_eq!(completed.modulus, components.modulus);
+        assert!(matches!(completed.material, RsaPrivateMaterial::Crt(_)));
+    }
+
+    #[test]
+    fn recovery_rejects_prime_powers_and_mismatched_exponents() {
+        // Either input used to exhaust every recovery base. One base now proves
+        // the mismatch, and one more exponentiation detects the prime power.
+        let mut modulus = vec![0xc3; MIN_RSA_MODULUS_BYTES];
+        modulus[MIN_RSA_MODULUS_BYTES - 1] |= 1;
+        let mut private_exponent = vec![0xa5; MIN_RSA_MODULUS_BYTES - 1];
+        private_exponent[MIN_RSA_MODULUS_BYTES - 2] |= 1;
+        for (modulus, private_exponent) in [
+            (
+                decode_hex(PRIME_SQUARE_MODULUS_HEX),
+                decode_hex(PRIME_SQUARE_PRIVATE_EXPONENT_HEX),
+            ),
+            (modulus, private_exponent),
+        ] {
+            let components =
+                RsaPrivateComponents::new(modulus, decode_hex("010001"), private_exponent, None);
+            assert_eq!(
+                complete_rsa_pkcs1_der_from_components(&components).err(),
+                Some(SensitiveRsaError::InvalidKey),
+            );
+        }
     }
 
     #[test]
@@ -1457,6 +1621,62 @@ mod tests {
     }
 
     #[test]
+    fn private_key_support_matches_the_private_operation_limits() {
+        const EXPONENT_65537: &[u8] = &[0x01, 0x00, 0x01];
+        for bits in [
+            MIN_RSA_PRIVATE_MODULUS_BITS,
+            2_048,
+            MAX_RSA_PRIVATE_MODULUS_BITS,
+        ] {
+            assert_eq!(
+                check_rsa_private_key_support(&odd_modulus(bits), EXPONENT_65537),
+                Ok(()),
+                "{bits}-bit modulus",
+            );
+        }
+        for bits in [
+            512,
+            MIN_RSA_PRIVATE_MODULUS_BITS - 1,
+            MAX_RSA_PRIVATE_MODULUS_BITS + 1,
+            16_384,
+        ] {
+            assert_eq!(
+                check_rsa_private_key_support(&odd_modulus(bits), EXPONENT_65537),
+                Err(SensitiveRsaError::InvalidKeySize),
+                "{bits}-bit modulus",
+            );
+        }
+
+        // AWS-LC admits public exponents of at most 33 bits.
+        let modulus = odd_modulus(2_048);
+        for exponent in [&[0x03][..], EXPONENT_65537, &[0x01, 0xff, 0xff, 0xff, 0xff]] {
+            assert_eq!(check_rsa_private_key_support(&modulus, exponent), Ok(()));
+        }
+        for exponent in [
+            &[0x02, 0x00, 0x00, 0x00, 0x01][..],
+            &[0x01, 0x00, 0x00, 0x00, 0x00, 0x0f],
+        ] {
+            assert_eq!(
+                check_rsa_private_key_support(&modulus, exponent),
+                Err(SensitiveRsaError::InvalidKeySize),
+            );
+        }
+
+        let mut even_modulus = modulus.clone();
+        *even_modulus.last_mut().unwrap() ^= 1;
+        assert_eq!(
+            check_rsa_private_key_support(&even_modulus, EXPONENT_65537),
+            Err(SensitiveRsaError::InvalidKey),
+        );
+        for exponent in [&[][..], &[0x01], &[0x01, 0x00, 0x00]] {
+            assert_eq!(
+                check_rsa_private_key_support(&modulus, exponent),
+                Err(SensitiveRsaError::InvalidKey),
+            );
+        }
+    }
+
+    #[test]
     fn signing_rejects_empty_and_oversized_components() {
         let empty = RsaPrivateComponents::new(Vec::new(), vec![1, 0, 1], vec![1], None);
         assert_eq!(
@@ -1489,6 +1709,12 @@ mod tests {
             sign_rsa_pkcs1_v1_5(&components, RsaSignatureHash::Sha256, b"message"),
             Err(SensitiveRsaError::InvalidKey),
         );
+    }
+
+    fn odd_modulus(bits: usize) -> Vec<u8> {
+        let mut modulus = vec![0xff; bits.div_ceil(8)];
+        modulus[0] >>= modulus.len() * 8 - bits;
+        modulus
     }
 
     fn parse_pkcs1_der(der: &[u8]) -> RsaKey {

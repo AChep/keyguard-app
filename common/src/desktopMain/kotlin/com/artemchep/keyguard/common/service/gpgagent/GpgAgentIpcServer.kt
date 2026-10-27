@@ -1,12 +1,12 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
-import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
-import com.artemchep.keyguard.common.service.agent.AgentIpcPeerVerificationPolicy
-import com.artemchep.keyguard.common.service.agent.AgentIpcServer
-import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcApi
-import com.artemchep.keyguard.common.service.agent.TestOnlyUnverifiedAgentIpcPeer
+import com.artemchep.keyguard.common.service.agent.AgentIpcAuthenticator
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
+import com.artemchep.keyguard.common.service.agent.AgentIpcServerHost
+import com.artemchep.keyguard.common.service.agent.asAgentByteStream
+import com.artemchep.keyguard.common.service.agent.checkAndLog
+import com.artemchep.keyguard.common.service.agent.serveFramed
 import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentRequestProcessorImpl
-import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.session.GpgAgentSessionAccess
@@ -17,79 +17,26 @@ import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindowNoOp
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.crypto.NativeGpgAgentCrypto
-import java.nio.file.Path
-import java.security.MessageDigest
-import kotlinx.coroutines.CompletableDeferred
+import com.artemchep.keyguard.util.agentipc.AgentIpcExpectedPeer
+import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 
-class GpgAgentIpcServer private constructor(
+class GpgAgentIpcServer(
     private val logRepository: LogRepository,
-    private val authToken: ByteArray,
-    private val scope: CoroutineScope,
-    private val requestProcessor: GpgAgentRequestProcessor,
-    private val maxConcurrentConnections: Int = 8,
-    private val peerVerificationPolicy: AgentIpcPeerVerificationPolicy,
+    authToken: ByteArray,
+    requestProcessor: GpgAgentRequestProcessor,
+    maxConcurrentConnections: Int = 8,
 ) {
     companion object {
         private const val TAG = "GpgAgentIpcServer"
-
-        const val APPROVAL_TIMEOUT_MS = GpgAgentRequestProcessorImpl.APPROVAL_TIMEOUT_MS
     }
 
-    constructor(
-        logRepository: LogRepository,
-        authToken: ByteArray,
-        scope: CoroutineScope,
-        requestProcessor: GpgAgentRequestProcessor,
-        maxConcurrentConnections: Int = 8,
-        expectedPeerProcess: Deferred<Process>,
-    ) : this(
-        logRepository = logRepository,
-        authToken = authToken,
-        scope = scope,
-        requestProcessor = requestProcessor,
-        maxConcurrentConnections = maxConcurrentConnections,
-        peerVerificationPolicy = AgentIpcPeerVerificationPolicy.ExactProcess(expectedPeerProcess),
-    )
-
-    @TestOnlyUnverifiedAgentIpcApi
-    internal constructor(
-        logRepository: LogRepository,
-        authToken: ByteArray,
-        scope: CoroutineScope,
-        requestProcessor: GpgAgentRequestProcessor,
-        maxConcurrentConnections: Int = 8,
-        testOnlyUnverifiedPeer: TestOnlyUnverifiedAgentIpcPeer,
-    ) : this(
-        logRepository = logRepository,
-        authToken = authToken,
-        scope = scope,
-        requestProcessor = requestProcessor,
-        maxConcurrentConnections = maxConcurrentConnections,
-        peerVerificationPolicy = AgentIpcPeerVerificationPolicy.TestOnlyUnverified,
-    )
+    private val authenticator = AgentIpcAuthenticator(authToken)
 
     private val rpcHandler = GpgAgentRpcHandler(
         requestProcessor = requestProcessor,
         authenticate = { req ->
-            val tokenMatches = MessageDigest.isEqual(authToken, req.token)
-            val revisionMatches = req.protocolRevision == GpgAgentMessages.PROTOCOL_REVISION
-            val success = tokenMatches && revisionMatches
-            if (!revisionMatches) {
-                logRepository.post(
-                    TAG,
-                    "GPG agent authentication failed: protocol revision mismatch " +
-                        "(expected=${GpgAgentMessages.PROTOCOL_REVISION}, " +
-                        "actual=${req.protocolRevision})",
-                    LogLevel.ERROR,
-                )
-            } else if (!tokenMatches) {
-                logRepository.post(TAG, "GPG agent authentication failed: token mismatch", LogLevel.ERROR)
-            } else {
-                logRepository.post(TAG, "GPG agent authentication successful", LogLevel.INFO)
-            }
-            success
+            authenticator.checkAndLog(req, logRepository, TAG, agentName = "GPG agent")
         },
     )
 
@@ -103,7 +50,6 @@ class GpgAgentIpcServer private constructor(
         getGpgAgentFilter: GetGpgAgentFilter,
         authToken: ByteArray,
         scope: CoroutineScope,
-        expectedPeerProcess: Deferred<Process>,
         sessionId: String = "",
         maxConcurrentConnections: Int = 8,
         onApprovalRequest: suspend (GpgAgentApprovalPrompt) -> Boolean = { true },
@@ -112,7 +58,6 @@ class GpgAgentIpcServer private constructor(
     ) : this(
         logRepository = logRepository,
         authToken = authToken,
-        scope = scope,
         requestProcessor = GpgAgentRequestProcessorImpl(
             logRepository = logRepository,
             crypto = NativeGpgAgentCrypto,
@@ -128,81 +73,40 @@ class GpgAgentIpcServer private constructor(
             onApprovalRequest = onApprovalRequest,
         ),
         maxConcurrentConnections = maxConcurrentConnections,
-        expectedPeerProcess = expectedPeerProcess,
     )
 
-    @TestOnlyUnverifiedAgentIpcApi
-    internal constructor(
-        logRepository: LogRepository,
-        getVaultSession: GetVaultSession,
-        sessionAccess: GpgAgentSessionAccess,
-        getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow = GetGpgAgentApprovalWindowNoOp,
-        getGpgAgentApprovalCachePolicy: GetGpgAgentApprovalCachePolicy =
-            GetGpgAgentApprovalCachePolicyNoOp,
-        getGpgAgentFilter: GetGpgAgentFilter,
-        authToken: ByteArray,
-        scope: CoroutineScope,
-        testOnlyUnverifiedPeer: TestOnlyUnverifiedAgentIpcPeer,
-        sessionId: String = "",
-        maxConcurrentConnections: Int = 8,
-        onApprovalRequest: suspend (GpgAgentApprovalPrompt) -> Boolean = { true },
-        pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
-        gpgPublicKeyRepository: GpgPublicKeyRepository = GpgPublicKeyRepositoryEmpty,
-    ) : this(
+    private val host = AgentIpcServerHost(
         logRepository = logRepository,
-        authToken = authToken,
-        scope = scope,
-        requestProcessor = GpgAgentRequestProcessorImpl(
-            logRepository = logRepository,
-            crypto = NativeGpgAgentCrypto,
-            getVaultSession = getVaultSession,
-            sessionAccess = sessionAccess,
-            getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
-            getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
-            getGpgAgentFilter = getGpgAgentFilter,
-            scope = scope,
-            gpgPublicKeyRepository = gpgPublicKeyRepository,
-            pendingUsageHistoryQueue = pendingUsageHistoryQueue,
-            sessionId = sessionId,
-            onApprovalRequest = onApprovalRequest,
-        ),
-        maxConcurrentConnections = maxConcurrentConnections,
-        testOnlyUnverifiedPeer = testOnlyUnverifiedPeer,
-    )
-
-    private val server = AgentIpcServer(
-        logRepository = logRepository,
-        scope = scope,
         tag = TAG,
-        maxConcurrentConnections = maxConcurrentConnections,
-        peerVerificationPolicy = peerVerificationPolicy,
-        session = { channel ->
-            runGpgAgentPacketSession(
-                channel = channel,
-                rpcHandler = rpcHandler,
-                initialContext = GpgAgentRpcRequestContext(
-                    authenticated = false,
-                    allowAuthenticate = true,
-                ),
-            )
-        },
+        maxConnections = maxConcurrentConnections,
     )
 
-    internal fun stop() = server.stop()
+    /**
+     * Creates the private endpoint at [location], which exists once this
+     * returns, and returns the value of the helper's `--ipc-socket`.
+     */
+    fun bind(location: AgentIpcLocation): String = host.bind(location)
+
+    /**
+     * Serves the helper's connections until [close]. Accepts nothing before
+     * [expectedPeer] returns, and only connections of that process.
+     */
+    suspend fun serve(expectedPeer: suspend () -> AgentIpcExpectedPeer) {
+        host.serve(expectedPeer) { connection ->
+            GpgAgentPacketSession(rpcHandler, authenticatedByTransport = false)
+                .serveFramed(connection.asAgentByteStream())
+        }
+    }
+
+    /** Closes the endpoint and every connection, and erases the token. */
+    fun close() {
+        host.close()
+        authenticator.close()
+    }
 
     /** Processes the authentication handshake without opening a transport. */
     internal fun handleAuthenticate(
         requestId: Long,
-        request: GpgAgentMessages.AuthenticateRequest,
+        request: AgentIpcMessages.AuthenticateRequest,
     ): GpgAgentMessages.IpcResponse = rpcHandler.handleAuthenticate(requestId, request)
-
-    suspend fun start(
-        socketPath: Path,
-        onReady: CompletableDeferred<Unit>? = null,
-    ) = server.start(socketPath, onReady)
-
-    suspend fun start(
-        endpoint: AgentIpcEndpoint,
-        onReady: CompletableDeferred<Unit>? = null,
-    ) = server.start(endpoint, onReady)
 }

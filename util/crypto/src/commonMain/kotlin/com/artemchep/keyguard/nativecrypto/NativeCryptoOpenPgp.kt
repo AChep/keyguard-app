@@ -39,6 +39,11 @@ public data class NativeOpenPgpUserIdInfo(
     /** Stable identifier derived from the exact OpenPGP identity packet body. */
     val identityId: String,
     val userId: String,
+    val primary: Boolean = false,
+    val revoked: Boolean = false,
+    val canRevoke: Boolean = false,
+    val canReplace: Boolean = false,
+    val canMakePrimary: Boolean = false,
 )
 
 public data class NativeOpenPgpPublicKeyInfo(
@@ -79,6 +84,8 @@ public data class NativeOpenPgpPublicKeyInfo(
     val userIdDetails: List<NativeOpenPgpUserIdInfo> = emptyList(),
     /** Distinct digest names from verified renewal-only self-signatures; display metadata only. */
     val weakSelfSignatureAlgorithms: List<String> = emptyList(),
+    val userIdHistory: List<NativeOpenPgpUserIdInfo> = emptyList(),
+    val canModifyUserIds: Boolean = false,
 )
 
 public data class NativeOpenPgpPublicSubKeyInfo(
@@ -365,6 +372,7 @@ public sealed interface NativeOpenPgpExpirationUpdateResult {
 
     public data class Error(
         val reason: NativeOpenPgpExpirationUpdateError,
+        val retryAtEpochSeconds: Long? = null,
     ) : NativeOpenPgpExpirationUpdateResult
 }
 
@@ -473,27 +481,32 @@ public sealed interface NativeOpenPgpUserIdRevocationResult {
     ) : NativeOpenPgpUserIdRevocationResult
 
     public data class Error(
-        val reason: NativeOpenPgpUserIdRevocationError,
+        val reason: NativeOpenPgpUserIdMutationError,
+        val retryAtEpochSeconds: Long? = null,
     ) : NativeOpenPgpUserIdRevocationResult
 }
 
-public enum class NativeOpenPgpUserIdRevocationError {
-    EMPTY_PRIVATE_KEY,
-    MALFORMED_KEY,
-    FINGERPRINT_MISMATCH,
-    TARGET_NOT_FOUND,
-    LAST_USER_ID,
-    UNSUPPORTED_KEY_VERSION,
-    PROTECTED_SECRET_KEY,
-    MISSING_SELF_SIGNATURE,
-    NON_REVOCABLE,
-    TIME_CONFLICT,
-    SIGNATURE_VERIFICATION_FAILED,
-    METADATA_RESOLUTION_FAILED,
-    INTERNAL_FAILURE,
-    CERTIFICATE_REVOKED,
-    UNRESOLVED_REVOCATION_AUTHORITY,
-    UNSUPPORTED_SIGNING_HASH,
+public sealed interface NativeOpenPgpUserIdChange {
+    public data class Add(
+        val userId: String,
+    ) : NativeOpenPgpUserIdChange
+
+    public data class MakePrimary(
+        val identityId: String,
+    ) : NativeOpenPgpUserIdChange
+}
+
+public sealed interface NativeOpenPgpUserIdUpdateResult {
+    public class Success(
+        val keyMaterial: NativeOpenPgpKeyMaterial,
+        val certificateIndex: NativeOpenPgpCertificateIndex,
+        val changed: Boolean,
+    ) : NativeOpenPgpUserIdUpdateResult
+
+    public data class Error(
+        val reason: NativeOpenPgpUserIdMutationError,
+        val retryAtEpochSeconds: Long? = null,
+    ) : NativeOpenPgpUserIdUpdateResult
 }
 
 public sealed interface NativeOpenPgpUserIdReplacementResult {
@@ -517,11 +530,12 @@ public sealed interface NativeOpenPgpUserIdReplacementResult {
     ) : NativeOpenPgpUserIdReplacementResult
 
     public data class Error(
-        val reason: NativeOpenPgpUserIdReplacementError,
+        val reason: NativeOpenPgpUserIdMutationError,
+        val retryAtEpochSeconds: Long? = null,
     ) : NativeOpenPgpUserIdReplacementResult
 }
 
-public enum class NativeOpenPgpUserIdReplacementError {
+public enum class NativeOpenPgpUserIdMutationError {
     EMPTY_PRIVATE_KEY,
     MALFORMED_KEY,
     FINGERPRINT_MISMATCH,
@@ -547,6 +561,7 @@ public enum class NativeOpenPgpUserIdReplacementError {
 
     /** Authenticated certificate policy is ambiguous; advancing the clock cannot resolve it. */
     POLICY_CONFLICT,
+    LAST_USER_ID,
 }
 
 public sealed interface NativeOpenPgpAgentSignResult {
@@ -1529,6 +1544,42 @@ public object NativeCryptoOpenPgp {
         )
     }
 
+    /** Adds an identity or selects the primary identity without retiring another identity. */
+    public fun updateUserId(
+        privateKey: ByteArray,
+        publicKey: ByteArray,
+        expectedPrimaryFingerprint: String,
+        change: NativeOpenPgpUserIdChange,
+        candidateRevocationKeys: List<ByteArray>,
+        referenceTimeEpochSeconds: Long,
+    ): NativeOpenPgpUserIdUpdateResult {
+        require(referenceTimeEpochSeconds >= 0L) { "OpenPGP reference time must not be negative" }
+        requirePreferredFingerprint(expectedPrimaryFingerprint)
+        val changeProto = when (change) {
+            is NativeOpenPgpUserIdChange.Add -> OpenPgpUserIdAddChangeProto(change.userId)
+            is NativeOpenPgpUserIdChange.MakePrimary -> {
+                requireOpenPgpIdentityId(change.identityId)
+                OpenPgpUserIdPrimaryChangeProto(change.identityId)
+            }
+        }
+        val operation = "open_pgp_user_id_update"
+        val payload = NativeCrypto.call(
+            operationName = operation,
+            operation = OpenPgpUserIdUpdateOperationProto(
+                OpenPgpUserIdUpdateRequestProto(
+                    privateKey = privateKey,
+                    publicKey = publicKey,
+                    expectedPrimaryFingerprint = expectedPrimaryFingerprint,
+                    candidateRevocationKeys = candidateRevocationKeys,
+                    referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                    change = changeProto,
+                ),
+            ),
+        ).requireBytes(operation)
+        return decodePayload<OpenPgpUserIdUpdateResultProto>(operation, payload)
+            .toPublicUserIdUpdateResult(operation, expectedPrimaryFingerprint)
+    }
+
     public fun agentSignHash(
         privateKey: ByteArray,
         preferredFingerprint: String,
@@ -1936,6 +1987,7 @@ internal fun OpenPgpExpirationUpdateResultProto.toPublicExpirationUpdateResult(
     is OpenPgpExpirationUpdateErrorOutcomeProto ->
         NativeOpenPgpExpirationUpdateResult.Error(
             reason = outcome.value.reason.toPublic(operation),
+            retryAtEpochSeconds = outcome.value.validatedRetryAt(operation),
         )
 
     null -> malformedOpenPgp(operation)
@@ -2337,85 +2389,12 @@ internal fun OpenPgpUserIdRevocationResultProto.toPublicUserIdRevocationResult(
 
         is OpenPgpUserIdRevocationErrorOutcomeProto -> {
             NativeOpenPgpUserIdRevocationResult.Error(
-                outcome.value.reason.toPublicUserIdRevocationError(operation),
+                outcome.value.reason.toPublicUserIdMutationError(operation),
+                outcome.value.validatedRetryAt(operation),
             )
         }
 
         null -> {
-            malformedOpenPgp(operation)
-        }
-    }
-
-@Suppress("CyclomaticComplexMethod")
-private fun OpenPgpUserIdRevocationErrorReasonProto.toPublicUserIdRevocationError(
-    operation: String,
-): NativeOpenPgpUserIdRevocationError =
-    when (this) {
-        OpenPgpUserIdRevocationErrorReasonProto.EMPTY_PRIVATE_KEY -> {
-            NativeOpenPgpUserIdRevocationError.EMPTY_PRIVATE_KEY
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.MALFORMED_KEY -> {
-            NativeOpenPgpUserIdRevocationError.MALFORMED_KEY
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.FINGERPRINT_MISMATCH -> {
-            NativeOpenPgpUserIdRevocationError.FINGERPRINT_MISMATCH
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.TARGET_NOT_FOUND -> {
-            NativeOpenPgpUserIdRevocationError.TARGET_NOT_FOUND
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.LAST_USER_ID -> {
-            NativeOpenPgpUserIdRevocationError.LAST_USER_ID
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.UNSUPPORTED_KEY_VERSION -> {
-            NativeOpenPgpUserIdRevocationError.UNSUPPORTED_KEY_VERSION
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.PROTECTED_SECRET_KEY -> {
-            NativeOpenPgpUserIdRevocationError.PROTECTED_SECRET_KEY
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.MISSING_SELF_SIGNATURE -> {
-            NativeOpenPgpUserIdRevocationError.MISSING_SELF_SIGNATURE
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.NON_REVOCABLE -> {
-            NativeOpenPgpUserIdRevocationError.NON_REVOCABLE
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.TIME_CONFLICT -> {
-            NativeOpenPgpUserIdRevocationError.TIME_CONFLICT
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.SIGNATURE_VERIFICATION_FAILED -> {
-            NativeOpenPgpUserIdRevocationError.SIGNATURE_VERIFICATION_FAILED
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.METADATA_RESOLUTION_FAILED -> {
-            NativeOpenPgpUserIdRevocationError.METADATA_RESOLUTION_FAILED
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.INTERNAL_FAILURE -> {
-            NativeOpenPgpUserIdRevocationError.INTERNAL_FAILURE
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.CERTIFICATE_REVOKED -> {
-            NativeOpenPgpUserIdRevocationError.CERTIFICATE_REVOKED
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.UNRESOLVED_REVOCATION_AUTHORITY -> {
-            NativeOpenPgpUserIdRevocationError.UNRESOLVED_REVOCATION_AUTHORITY
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.UNSUPPORTED_SIGNING_HASH -> {
-            NativeOpenPgpUserIdRevocationError.UNSUPPORTED_SIGNING_HASH
-        }
-
-        OpenPgpUserIdRevocationErrorReasonProto.UNSPECIFIED -> {
             malformedOpenPgp(operation)
         }
     }
@@ -2476,7 +2455,8 @@ internal fun OpenPgpUserIdReplacementResultProto.toPublicUserIdReplacementResult
 
         is OpenPgpUserIdReplacementErrorOutcomeProto -> {
             NativeOpenPgpUserIdReplacementResult.Error(
-                outcome.value.reason.toPublicUserIdReplacementError(operation),
+                outcome.value.reason.toPublicUserIdMutationError(operation),
+                outcome.value.validatedRetryAt(operation),
             )
         }
 
@@ -2486,103 +2466,105 @@ internal fun OpenPgpUserIdReplacementResultProto.toPublicUserIdReplacementResult
     }
 
 @Suppress("CyclomaticComplexMethod", "LongMethod")
-private fun OpenPgpUserIdReplacementErrorReasonProto.toPublicUserIdReplacementError(
+private fun OpenPgpUserIdMutationErrorReasonProto.toPublicUserIdMutationError(
     operation: String,
-): NativeOpenPgpUserIdReplacementError =
+): NativeOpenPgpUserIdMutationError =
     when (this) {
-        OpenPgpUserIdReplacementErrorReasonProto.EMPTY_PRIVATE_KEY -> {
-            NativeOpenPgpUserIdReplacementError.EMPTY_PRIVATE_KEY
+        OpenPgpUserIdMutationErrorReasonProto.EMPTY_PRIVATE_KEY -> {
+            NativeOpenPgpUserIdMutationError.EMPTY_PRIVATE_KEY
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.MALFORMED_KEY -> {
-            NativeOpenPgpUserIdReplacementError.MALFORMED_KEY
+        OpenPgpUserIdMutationErrorReasonProto.MALFORMED_KEY -> {
+            NativeOpenPgpUserIdMutationError.MALFORMED_KEY
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.FINGERPRINT_MISMATCH -> {
-            NativeOpenPgpUserIdReplacementError.FINGERPRINT_MISMATCH
+        OpenPgpUserIdMutationErrorReasonProto.FINGERPRINT_MISMATCH -> {
+            NativeOpenPgpUserIdMutationError.FINGERPRINT_MISMATCH
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.TARGET_NOT_FOUND -> {
-            NativeOpenPgpUserIdReplacementError.TARGET_NOT_FOUND
+        OpenPgpUserIdMutationErrorReasonProto.TARGET_NOT_FOUND -> {
+            NativeOpenPgpUserIdMutationError.TARGET_NOT_FOUND
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.TARGET_INACTIVE -> {
-            NativeOpenPgpUserIdReplacementError.TARGET_INACTIVE
+        OpenPgpUserIdMutationErrorReasonProto.TARGET_INACTIVE -> {
+            NativeOpenPgpUserIdMutationError.TARGET_INACTIVE
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.INVALID_NEW_USER_ID -> {
-            NativeOpenPgpUserIdReplacementError.INVALID_NEW_USER_ID
+        OpenPgpUserIdMutationErrorReasonProto.INVALID_NEW_USER_ID -> {
+            NativeOpenPgpUserIdMutationError.INVALID_NEW_USER_ID
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.SAME_IDENTITY -> {
-            NativeOpenPgpUserIdReplacementError.SAME_IDENTITY
+        OpenPgpUserIdMutationErrorReasonProto.SAME_IDENTITY -> {
+            NativeOpenPgpUserIdMutationError.SAME_IDENTITY
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.DUPLICATE_IDENTITY -> {
-            NativeOpenPgpUserIdReplacementError.DUPLICATE_IDENTITY
+        OpenPgpUserIdMutationErrorReasonProto.DUPLICATE_IDENTITY -> {
+            NativeOpenPgpUserIdMutationError.DUPLICATE_IDENTITY
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.PREVIOUSLY_REVOKED_IDENTITY -> {
-            NativeOpenPgpUserIdReplacementError.PREVIOUSLY_REVOKED_IDENTITY
+        OpenPgpUserIdMutationErrorReasonProto.PREVIOUSLY_REVOKED_IDENTITY -> {
+            NativeOpenPgpUserIdMutationError.PREVIOUSLY_REVOKED_IDENTITY
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.AMBIGUOUS_PRIMARY -> {
-            NativeOpenPgpUserIdReplacementError.AMBIGUOUS_PRIMARY
+        OpenPgpUserIdMutationErrorReasonProto.AMBIGUOUS_PRIMARY -> {
+            NativeOpenPgpUserIdMutationError.AMBIGUOUS_PRIMARY
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.UNSUPPORTED_KEY_VERSION -> {
-            NativeOpenPgpUserIdReplacementError.UNSUPPORTED_KEY_VERSION
+        OpenPgpUserIdMutationErrorReasonProto.UNSUPPORTED_KEY_VERSION -> {
+            NativeOpenPgpUserIdMutationError.UNSUPPORTED_KEY_VERSION
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.PROTECTED_SECRET_KEY -> {
-            NativeOpenPgpUserIdReplacementError.PROTECTED_SECRET_KEY
+        OpenPgpUserIdMutationErrorReasonProto.PROTECTED_SECRET_KEY -> {
+            NativeOpenPgpUserIdMutationError.PROTECTED_SECRET_KEY
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.MISSING_SELF_SIGNATURE -> {
-            NativeOpenPgpUserIdReplacementError.MISSING_SELF_SIGNATURE
+        OpenPgpUserIdMutationErrorReasonProto.MISSING_SELF_SIGNATURE -> {
+            NativeOpenPgpUserIdMutationError.MISSING_SELF_SIGNATURE
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.NON_REVOCABLE -> {
-            NativeOpenPgpUserIdReplacementError.NON_REVOCABLE
+        OpenPgpUserIdMutationErrorReasonProto.NON_REVOCABLE -> {
+            NativeOpenPgpUserIdMutationError.NON_REVOCABLE
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.UNSUPPORTED_TEMPLATE -> {
-            NativeOpenPgpUserIdReplacementError.UNSUPPORTED_TEMPLATE
+        OpenPgpUserIdMutationErrorReasonProto.UNSUPPORTED_TEMPLATE -> {
+            NativeOpenPgpUserIdMutationError.UNSUPPORTED_TEMPLATE
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.TIME_CONFLICT -> {
-            NativeOpenPgpUserIdReplacementError.TIME_CONFLICT
+        OpenPgpUserIdMutationErrorReasonProto.TIME_CONFLICT -> {
+            NativeOpenPgpUserIdMutationError.TIME_CONFLICT
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.SIGNATURE_VERIFICATION_FAILED -> {
-            NativeOpenPgpUserIdReplacementError.SIGNATURE_VERIFICATION_FAILED
+        OpenPgpUserIdMutationErrorReasonProto.SIGNATURE_VERIFICATION_FAILED -> {
+            NativeOpenPgpUserIdMutationError.SIGNATURE_VERIFICATION_FAILED
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.METADATA_RESOLUTION_FAILED -> {
-            NativeOpenPgpUserIdReplacementError.METADATA_RESOLUTION_FAILED
+        OpenPgpUserIdMutationErrorReasonProto.METADATA_RESOLUTION_FAILED -> {
+            NativeOpenPgpUserIdMutationError.METADATA_RESOLUTION_FAILED
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.INTERNAL_FAILURE -> {
-            NativeOpenPgpUserIdReplacementError.INTERNAL_FAILURE
+        OpenPgpUserIdMutationErrorReasonProto.INTERNAL_FAILURE -> {
+            NativeOpenPgpUserIdMutationError.INTERNAL_FAILURE
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.CERTIFICATE_REVOKED -> {
-            NativeOpenPgpUserIdReplacementError.CERTIFICATE_REVOKED
+        OpenPgpUserIdMutationErrorReasonProto.CERTIFICATE_REVOKED -> {
+            NativeOpenPgpUserIdMutationError.CERTIFICATE_REVOKED
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.UNRESOLVED_REVOCATION_AUTHORITY -> {
-            NativeOpenPgpUserIdReplacementError.UNRESOLVED_REVOCATION_AUTHORITY
+        OpenPgpUserIdMutationErrorReasonProto.UNRESOLVED_REVOCATION_AUTHORITY -> {
+            NativeOpenPgpUserIdMutationError.UNRESOLVED_REVOCATION_AUTHORITY
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.UNSUPPORTED_SIGNING_HASH -> {
-            NativeOpenPgpUserIdReplacementError.UNSUPPORTED_SIGNING_HASH
+        OpenPgpUserIdMutationErrorReasonProto.UNSUPPORTED_SIGNING_HASH -> {
+            NativeOpenPgpUserIdMutationError.UNSUPPORTED_SIGNING_HASH
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.POLICY_CONFLICT -> {
-            NativeOpenPgpUserIdReplacementError.POLICY_CONFLICT
+        OpenPgpUserIdMutationErrorReasonProto.POLICY_CONFLICT -> {
+            NativeOpenPgpUserIdMutationError.POLICY_CONFLICT
         }
 
-        OpenPgpUserIdReplacementErrorReasonProto.UNSPECIFIED -> {
+        OpenPgpUserIdMutationErrorReasonProto.LAST_USER_ID -> NativeOpenPgpUserIdMutationError.LAST_USER_ID
+
+        OpenPgpUserIdMutationErrorReasonProto.UNSPECIFIED -> {
             malformedOpenPgp(operation)
         }
     }
@@ -2769,6 +2751,8 @@ private fun OpenPgpPublicKeyInfoProto.toPublic(
         authenticated = authenticated,
         renewal = renewal.toRenewalAuthorizationOrNone(),
         userIdDetails = userIdDetails.map { value -> value.toPublic(operation) },
+        userIdHistory = userIdHistory.map { value -> value.toPublic(operation) },
+        canModifyUserIds = canModifyUserIds,
         weakSelfSignatureAlgorithms = weakSelfSignatureAlgorithms,
     )
 }
@@ -2780,6 +2764,11 @@ private fun OpenPgpUserIdInfoProto.toPublic(
     return NativeOpenPgpUserIdInfo(
         identityId = identityId,
         userId = userId,
+        primary = primary,
+        revoked = revoked,
+        canRevoke = canRevoke,
+        canReplace = canReplace,
+        canMakePrimary = canMakePrimary,
     )
 }
 
@@ -3233,8 +3222,10 @@ private const val OPEN_PGP_KEYGRIP_HEX_CHARS: Int = 40
 private const val OPEN_PGP_MIN_FINGERPRINT_HEX_CHARS: Int = 32
 private const val OPEN_PGP_MAX_FINGERPRINT_HEX_CHARS: Int = 128
 
-/** Maximum UTF-8 size accepted by the native User ID replacement operation. */
+/** Maximum UTF-8 size accepted by native User ID mutations. */
 const val OPEN_PGP_MAX_USER_ID_UTF8_BYTES: Int = 1_024
+
+private const val OPEN_PGP_MAX_SIGNATURE_EPOCH_SECONDS: Long = 0xFFFF_FFFFL
 
 private const val OPEN_PGP_IDENTITY_ID_PREFIX = "v1:"
 private const val OPEN_PGP_IDENTITY_ID_HEX_CHARS = 64
@@ -3265,9 +3256,9 @@ private fun String.hasOpenPgpIdentityIdEnvelope(): Boolean =
     startsWith(OPEN_PGP_IDENTITY_ID_PREFIX) &&
         length == OPEN_PGP_IDENTITY_ID_PREFIX.length + OPEN_PGP_IDENTITY_ID_HEX_CHARS
 
-/** Applies the exact input constraints enforced by native OpenPGP User ID replacement. */
+/** Applies the exact input constraints enforced by native OpenPGP User ID mutations. */
 public fun String.isValidOpenPgpUserId(): Boolean =
-    !isBlank() && none(Char::isISOControl) && hasValidOpenPgpUserIdUtf8Size()
+    !isBlank() && none { it.isISOControl() || it == '\u2028' || it == '\u2029' } && hasValidOpenPgpUserIdUtf8Size()
 
 private fun String.hasValidOpenPgpUserIdUtf8Size(): Boolean = try {
     encodeToByteArray(throwOnInvalidSequence = true).size <= OPEN_PGP_MAX_USER_ID_UTF8_BYTES
@@ -3319,3 +3310,57 @@ private fun malformedOpenPgp(operation: String): Nothing = throw NativeCryptoExc
     operation = operation,
     code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
 )
+
+internal fun OpenPgpUserIdUpdateResultProto.toPublicUserIdUpdateResult(
+    operation: String,
+    expectedPrimaryFingerprint: String,
+): NativeOpenPgpUserIdUpdateResult = when (val outcome = result) {
+    is OpenPgpUserIdUpdateSuccessOutcomeProto -> {
+        val value = outcome.value
+        val material = value.keyMaterial ?: malformedOpenPgp(operation)
+        var ownershipTransferred = false
+        try {
+            val index = value.certificateIndex?.toPublic(operation) ?: malformedOpenPgp(operation)
+            if (!hasConsistentPrimaryFingerprint(material, index, expectedPrimaryFingerprint)) {
+                malformedOpenPgp(operation)
+            }
+            NativeOpenPgpUserIdUpdateResult.Success(
+                keyMaterial = material.toPublic(operation, requirePrivateKey = true),
+                certificateIndex = index,
+                changed = value.changed,
+            ).also { ownershipTransferred = true }
+        } finally {
+            if (!ownershipTransferred) material.clearSensitiveData()
+        }
+    }
+    is OpenPgpUserIdUpdateErrorOutcomeProto -> NativeOpenPgpUserIdUpdateResult.Error(
+        outcome.value.reason.toPublicUserIdMutationError(operation),
+        outcome.value.validatedRetryAt(operation),
+    )
+    null -> malformedOpenPgp(operation)
+}
+
+private fun OpenPgpUserIdMutationErrorProto.validatedRetryAt(operation: String): Long? =
+    validatedRetryAt(
+        operation = operation,
+        retryAtEpochSeconds = retryAtEpochSeconds,
+        timeConflict = reason == OpenPgpUserIdMutationErrorReasonProto.TIME_CONFLICT,
+    )
+
+private fun OpenPgpExpirationUpdateErrorProto.validatedRetryAt(operation: String): Long? =
+    validatedRetryAt(
+        operation = operation,
+        retryAtEpochSeconds = retryAtEpochSeconds,
+        timeConflict = reason == OpenPgpExpirationUpdateErrorReasonProto.TIME_CONFLICT,
+    )
+
+private fun validatedRetryAt(
+    operation: String,
+    retryAtEpochSeconds: Long?,
+    timeConflict: Boolean,
+): Long? = retryAtEpochSeconds?.also {
+    requireOpenPgpEpoch(operation, it)
+    if (it !in 1L..OPEN_PGP_MAX_SIGNATURE_EPOCH_SECONDS || !timeConflict) {
+        malformedOpenPgp(operation)
+    }
+}

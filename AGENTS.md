@@ -56,11 +56,20 @@ Before starting the work, here's a minimal list to keep in mind:
 - **Docs.** The documentation at `server/web/` should stay up to date. Do not automatically add new sections or pages, unless specifically asked to do so. Only automatically fix the now outdated info.
 - **Delivery.** Changes in the build process usually affect CI/CD scripts.
 
+### Building
+
+Several builds often run on the same machine at once, so keep every build small and on shared settings:
+
+- **Scope.** Run the narrowest task that proves the change, e.g. `./gradlew :common:desktopTest --tests '...'`. Avoid root-level `build`, `check` and `assemble`.
+- **Settings.** Don't override memory or daemon settings: no `-Dorg.gradle.jvmargs`, `kotlin.daemon.jvmargs`, `kotlin.compiler.execution.strategy` or `org.gradle.daemon.registry.base`. Each override starts a daemon other builds can't reuse.
+- **Daemons.** Avoid stopping or killing Gradle or Kotlin daemons (`--stop`, `pkill java`). Other builds might run on them.
+- **Stalls.** Run long builds in the background. If one makes no progress for 10 minutes, run `python3 scripts/report_build_stall.py` and report its output instead of retrying.
+
 ### Lint checks
 
-Run the checks relevant to the changed language:
+Run the checks relevant to the changed language, for each affected module:
 
-- **Kotlin:** `./gradlew detekt` for static analysis, and `./gradlew detektCustomRules` for Keyguard-specific rules;
+- **Kotlin:** `./gradlew :<module>:detekt` for static analysis, and `./gradlew :<module>:detektCustomRules` for Keyguard-specific rules;
 - **Rust:** Run `cargo fmt --all -- --check` and Clippy for the affected crate or workspace;
 - **Swift:** `xcode/scripts/lint-swift.sh` runs strict `swift format` checks; add `--fix` to format sources.
 
@@ -80,6 +89,8 @@ We have a website at `server/web/` that hosts documentation relevant to a user o
 - Shorten or split dense sentences. Less is better.
 - Cut adverbs, or use a stronger verb.
 - Prefer simpler terms.
+
+Page types, sections, frontmatter and the full writing rules are in `server/web/CONTRIBUTING.md`; `pnpm lint:docs` checks them.
 
 ### High-level architecture
 

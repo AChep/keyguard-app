@@ -6,8 +6,7 @@ import KeyguardUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var quickSearch: QuickSearchController?
-    private var sshApproval: SshAgentApprovalController?
-    private var gpgApproval: GpgAgentApprovalController?
+    private var approvals: [AgentApprovalPanelController] = []
 
     /// "Close to the menu bar": when enabled, closing the last window keeps
     /// Keyguard running in the menu bar. Menu-bar-only mode also requires the
@@ -31,8 +30,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func startControllers(model: AppViewModel) {
         guard quickSearch == nil else { return }
         quickSearch = QuickSearchController(model: model)
-        sshApproval = SshAgentApprovalController(model: model)
-        gpgApproval = GpgAgentApprovalController(model: model)
+        approvals = [
+            .sshAgent(model: model),
+            .gpgAgent(model: model),
+            .environments(model: model),
+            .cli(model: model),
+        ]
     }
 }
 

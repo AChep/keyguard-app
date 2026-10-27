@@ -1,5 +1,6 @@
 package com.artemchep.keyguard
 
+import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.CheckPasswordSetLeakRequest
 import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DFilter
@@ -14,12 +15,17 @@ import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigState
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
+import com.artemchep.keyguard.common.service.session.SshAgentSessionAccess
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepositoryEmpty
+import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRow
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessor.SignDataResult
+import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorImpl
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.service.vault.VaultSessionFactory
 import com.artemchep.keyguard.common.usecase.CheckPasswordSetLeak
@@ -65,6 +71,7 @@ import kotlin.time.Instant
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
+/** The shared SSH request processor, as the macOS agent runs it against a native vault session. */
 @OptIn(ExperimentalCoroutinesApi::class)
 class SshAgentRequestProcessorAppleTest {
     @Test
@@ -123,7 +130,7 @@ class SshAgentRequestProcessorAppleTest {
     }
 
     @Test
-    fun unchangedKeySignsAndLockedRequestsDoNotPrompt() = runTest {
+    fun unchangedKeySignsAndLockedRequestsPromptWithoutReadingTheVault() = runTest {
         val fixture = Fixture(this)
         assertIs<SignDataResult.Success>(fixture.finishApproval {})
         assertEquals(2, fixture.cipherReads)
@@ -139,8 +146,9 @@ class SshAgentRequestProcessorAppleTest {
         fixture.vault.valueOrNull = MasterSession.Empty()
         fixture.cipherReads = 0
         fixture.filterReads = 0
+        // Approving does not unlock the vault, so the request still fails.
         assertIs<SignDataResult.VaultLocked>(fixture.processor.signData(fixture.request))
-        assertEquals(1, fixture.approvals)
+        assertEquals(2, fixture.approvals)
         assertEquals(0, fixture.cipherReads)
         assertEquals(0, fixture.filterReads)
     }
@@ -346,7 +354,7 @@ class SshAgentRequestProcessorAppleTest {
         val request = SshAgentMessages.SignDataRequest(
             publicKey = key.publicKeyOpenSsh,
             data = "approval race".encodeToByteArray(),
-            caller = SshAgentMessages.CallerIdentity(
+            caller = CallerIdentity(
                 uid = 1000,
                 gid = 1000,
                 processName = "ssh",
@@ -369,9 +377,10 @@ class SshAgentRequestProcessorAppleTest {
 
             override fun invoke() = config.cachePolicy()
         }
-        val processor = SshAgentRequestProcessorApple(
+        val processor = SshAgentRequestProcessorImpl(
             logRepository = NoOpLogRepository,
             getVaultSession = vault,
+            sessionAccess = sessionKoin.get<SshAgentSessionAccess>(),
             getSshAgentApprovalWindow = getApprovalWindow,
             getSshAgentApprovalCachePolicy = getApprovalCachePolicy,
             getSshAgentFilter = object : GetSshAgentFilter {
@@ -382,9 +391,20 @@ class SshAgentRequestProcessorAppleTest {
                 }
             },
             scope = scope.backgroundScope,
-            sshAgentPublicKeyRepository = SshAgentPublicKeyRepositoryEmpty,
+            // The catalog the syncer writes for this vault, so locked requests prompt.
+            sshAgentPublicKeyRepository = object : SshAgentPublicKeyRepository by SshAgentPublicKeyRepositoryEmpty {
+                override fun getByPublicKey(publicKey: String): IO<List<SshAgentPublicKeyRow>> = {
+                    listOf(
+                        SshAgentPublicKeyRow(
+                            accountId = "account", cipherId = "signer", canSign = true,
+                            publicKeyBlobSha256 = "signer-hash", publicKey = key.publicKeyOpenSsh,
+                            keyType = "ssh-ed25519", fingerprint = key.publicFingerprint, name = "Signer",
+                        ),
+                    )
+                }
+            },
             sessionId = "test",
-            onApproval = {
+            onApprovalRequest = {
                 approvals++
                 started.complete(Unit)
                 finish.await()

@@ -1,0 +1,144 @@
+---
+import Icon from '../Icon.astro';
+import CommandBlock from '../CommandBlock.astro';
+import PlatformLogo from './PlatformLogo.astro';
+import type { DownloadPlatform } from '../../consts';
+import { PLATFORM_VISUALS } from '../../platformVisuals';
+
+// The install options of one platform, in a modal dialog the Download page
+// opens. Its content fills the dialog, so a click on the dialog element itself
+// is a click on the backdrop.
+interface Props {
+  platform: DownloadPlatform;
+}
+const { platform } = Astro.props;
+const visual = PLATFORM_VISUALS[platform.id];
+const titleId = `${platform.id}-title`;
+
+// Splits the [text](href) links out of a description.
+function segments(description: string) {
+  const parts = description.split(/\[([^\]]+)\]\(([^)]+)\)/);
+  const result: { text: string; href?: string }[] = [];
+  for (let i = 0; i < parts.length; i += 3) {
+    if (parts[i]) result.push({ text: parts[i] });
+    if (i + 1 < parts.length) result.push({ text: parts[i + 1], href: parts[i + 2] });
+  }
+  return result;
+}
+---
+
+<dialog
+  id={platform.id}
+  data-platform
+  aria-labelledby={titleId}
+  class="platform-dialog m-auto w-[calc(100%-2rem)] max-w-xl overflow-hidden rounded-3xl border border-outline-variant bg-surface p-0 text-on-surface shadow-2xl backdrop:bg-black/50 backdrop:backdrop-blur-sm"
+>
+  <div class="flex max-h-[calc(100dvh-2rem)] flex-col">
+    <header class="flex items-center gap-3 px-6 pt-6 pb-2">
+      <div class:list={['flex h-10 w-10 shrink-0 items-center justify-center rounded-xl', visual.chip, visual.ink]}>
+        <PlatformLogo id={platform.id} class="h-5 w-5" />
+      </div>
+      <div class="min-w-0 flex-1">
+        <h2 id={titleId} tabindex="-1" class="opsz-text text-xl font-semibold text-on-surface outline-none">
+          {platform.name}
+        </h2>
+        <p class="text-sm text-on-surface-variant">{platform.subtitle}</p>
+      </div>
+      <form method="dialog">
+        <button
+          type="submit"
+          aria-label="Close"
+          class="flex h-9 w-9 items-center justify-center rounded-full text-on-surface-variant transition hover:bg-surface-container hover:text-on-surface"
+        >
+          <Icon name="x" class="h-5 w-5" />
+        </button>
+      </form>
+    </header>
+
+    <ul class="divide-y divide-outline-variant overflow-y-auto px-6 pb-2">
+      {
+        platform.options.map((option) => (
+          <li class="py-4">
+            <div class="flex items-center justify-between gap-4">
+              <div class="min-w-0">
+                <h3 class="flex items-center gap-2 text-sm font-semibold text-on-surface">
+                  {option.name}
+                  {option.addon && (
+                    <span class="rounded-full border border-outline-variant px-2 py-0.5 text-xs font-medium text-on-surface-variant">
+                      Add-on
+                    </span>
+                  )}
+                </h3>
+                {option.description && (
+                  <p class="mt-0.5 text-sm text-on-surface-variant">
+                    {segments(option.description).map((segment) =>
+                      segment.href ? <a href={segment.href} class="text-primary hover:underline">{segment.text}</a> : segment.text,
+                    )}
+                  </p>
+                )}
+              </div>
+              {option.href && (
+                <a
+                  href={option.href}
+                  class:list={[
+                    'inline-flex shrink-0 items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition',
+                    visual.button,
+                  ]}
+                >
+                  {option.action ?? 'Open'}
+                  {option.href.startsWith('http') && <Icon name="external-link" class="h-3.5 w-3.5" />}
+                </a>
+              )}
+            </div>
+            {option.command && (
+              <div class="mt-2.5">
+                <CommandBlock code={option.command} label={option.name} />
+              </div>
+            )}
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</dialog>
+
+<style>
+  .platform-dialog,
+  .platform-dialog::backdrop {
+    opacity: 0;
+    transition-property: opacity, transform, overlay, display;
+    transition-duration: 0.2s;
+    transition-timing-function: ease;
+    transition-behavior: allow-discrete;
+  }
+  .platform-dialog {
+    transform: translateY(8px) scale(0.98);
+  }
+  .platform-dialog[open],
+  .platform-dialog[open]::backdrop {
+    opacity: 1;
+  }
+  .platform-dialog[open] {
+    transform: none;
+  }
+  @starting-style {
+    .platform-dialog[open],
+    .platform-dialog[open]::backdrop {
+      opacity: 0;
+    }
+    .platform-dialog[open] {
+      transform: translateY(8px) scale(0.98);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .platform-dialog,
+    .platform-dialog::backdrop {
+      transition: none;
+    }
+  }
+
+  /* Keep the page behind an open dialog from scrolling. */
+  :global(html:has(dialog[data-platform][open])) {
+    overflow: hidden;
+  }
+</style>

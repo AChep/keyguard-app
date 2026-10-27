@@ -102,6 +102,7 @@ erase_on_drop! {
     OpenPgpExpirationUpdateRequest { private_key },
     OpenPgpUserIdRevocationRequest { private_key },
     OpenPgpUserIdReplacementRequest { private_key },
+    OpenPgpUserIdUpdateRequest { private_key },
     OpenPgpCertificateMaterialReconcileV2Request { existing_secret_certificate, incoming_secret_certificate },
     OpenPgpAgentSignRequest { private_key, hash },
     OpenPgpAgentDecryptRequest { private_key, ciphertext },

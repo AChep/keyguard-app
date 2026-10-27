@@ -1,0 +1,30 @@
+[package]
+name = "keyguard-gpg-agent-assuan"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+description = "Transport-independent gpg-agent Assuan server of the Keyguard GPG agent helpers"
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+anyhow.workspace = true
+common-gpg-agent-rust.workspace = true
+hex.workspace = true
+keyguard-agent-identity.workspace = true
+keyguard-agent-ipc = { workspace = true, features = ["proto"] }
+tokio = { workspace = true, features = ["io-util", "sync", "time"] }
+tracing.workspace = true
+
+[dev-dependencies]
+prost.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["io-util", "macros", "net", "process", "rt", "rt-multi-thread", "sync", "test-util", "time"] }
+tracing-subscriber.workspace = true
+
+[target.'cfg(target_os = "macos")'.dev-dependencies]
+keyguard-agent-proto-adapter.workspace = true
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

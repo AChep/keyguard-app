@@ -6,15 +6,17 @@
 use std::panic::AssertUnwindSafe;
 
 use jni::{
-    JNIEnv,
+    Env, EnvUnowned,
     objects::{JObject, JString},
     sys::{jint, jlong, jstring},
 };
+use keyguard_ffi::{java_string_within, with_java_env};
 use keyguard_instance_core::{Error, bridge};
+use zeroize::Zeroizing;
 
 const INVALID_ARGUMENT: i64 = Error::InvalidArgument as i64;
 const INTERNAL: i64 = Error::Internal as i64;
-const MAX_STRING_UNITS: usize = 65_536;
+const MAX_STRING_BYTES: usize = 65_536;
 
 fn contained(body: impl FnOnce() -> Result<i64, i64>) -> i64 {
     bridge::clear_failure();
@@ -35,59 +37,31 @@ fn contained(body: impl FnOnce() -> Result<i64, i64>) -> i64 {
 /// Returns this thread's last native diagnostic, without consuming it.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJni_lastError(
-    environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
 ) -> jstring {
     std::panic::catch_unwind(AssertUnwindSafe(|| {
-        bridge::last_failure()
-            .and_then(|failure| {
-                environment
-                    .new_string(failure.to_string())
-                    .ok()
-                    .map(|message| message.into_raw())
-            })
-            .unwrap_or(std::ptr::null_mut())
+        with_java_env(&mut environment, |environment| {
+            bridge::last_failure()
+                .and_then(|failure| {
+                    environment
+                        .new_string(failure.to_string())
+                        .ok()
+                        .map(|message| message.into_raw())
+                })
+                .unwrap_or(std::ptr::null_mut())
+        })
     }))
     .unwrap_or(std::ptr::null_mut())
 }
 
-fn java_string(environment: &mut JNIEnv<'_>, value: &JString<'_>) -> Result<String, i64> {
-    if value.is_null() {
-        return Err(INVALID_ARGUMENT);
-    }
-    let raw_environment = environment.get_raw();
-    // SAFETY: JNIEnv owns the live JNI function table for this native call.
-    let functions = unsafe { &**raw_environment };
-    let get_length = functions.GetStringLength.ok_or(INVALID_ARGUMENT)?;
-    let get_region = functions.GetStringRegion.ok_or(INVALID_ARGUMENT)?;
-    // SAFETY: JNI guarantees a live String argument, and null was rejected above.
-    let length = unsafe { get_length(raw_environment, value.as_raw()) };
-    let length = usize::try_from(length).map_err(|_| INVALID_ARGUMENT)?;
-    if length > MAX_STRING_UNITS {
-        return Err(INVALID_ARGUMENT);
-    }
-    let mut utf16 = vec![0_u16; length];
-    if length != 0 {
-        // SAFETY: The requested region and writable UTF-16 buffer have the exact String length.
-        unsafe {
-            get_region(
-                raw_environment,
-                value.as_raw(),
-                0,
-                length as jint,
-                utf16.as_mut_ptr(),
-            )
-        };
-        if environment.exception_check().unwrap_or(true) {
-            let _ = environment.exception_clear();
-            return Err(INVALID_ARGUMENT);
-        }
-    }
-    let result = String::from_utf16(&utf16).map_err(|_| INVALID_ARGUMENT)?;
-    if result.len() > MAX_STRING_UNITS {
-        return Err(INVALID_ARGUMENT);
-    }
-    Ok(result)
+/// Copies a Java string of at most [`MAX_STRING_BYTES`] UTF-8 bytes. A null,
+/// malformed or longer string is an invalid argument.
+fn java_string(environment: &Env<'_>, value: &JString<'_>) -> Result<Zeroizing<String>, i64> {
+    java_string_within(environment, value, MAX_STRING_BYTES)
+        .ok()
+        .flatten()
+        .ok_or(INVALID_ARGUMENT)
 }
 
 fn unsigned(value: jlong) -> Result<u64, i64> {
@@ -97,7 +71,7 @@ fn unsigned(value: jlong) -> Result<u64, i64> {
 /// Returns the fixed native ABI version.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJni_abiVersion(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
 ) -> jint {
     keyguard_instance_core::ABI_VERSION as jint
@@ -105,7 +79,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJ
 
 /// Decodes a coordination config and passes it to `operation`.
 fn arbitrate(
-    environment: &mut JNIEnv<'_>,
+    environment: &mut EnvUnowned<'_>,
     coordination: &JString<'_>,
     runtime: &JString<'_>,
     identity: &JString<'_>,
@@ -114,9 +88,13 @@ fn arbitrate(
 ) -> i64 {
     contained(|| {
         let timeout_ms = unsigned(timeout_ms)?;
-        let coordination = java_string(environment, coordination)?;
-        let runtime = java_string(environment, runtime)?;
-        let identity = java_string(environment, identity)?;
+        let (coordination, runtime, identity) = with_java_env(environment, |environment| {
+            Ok::<_, i64>((
+                java_string(environment, coordination)?,
+                java_string(environment, runtime)?,
+                java_string(environment, identity)?,
+            ))
+        })?;
         Ok(operation(&coordination, &runtime, &identity, timeout_ms))
     })
 }
@@ -124,7 +102,7 @@ fn arbitrate(
 /// Acquires ownership or delivers an acknowledged activation request.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJni_acquireOrActivate(
-    mut environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     coordination: JString<'_>,
     runtime: JString<'_>,
@@ -144,7 +122,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJ
 /// Acquires ownership without activating the current owner, waiting for it to exit.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJni_acquire(
-    mut environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     coordination: JString<'_>,
     runtime: JString<'_>,
@@ -164,7 +142,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJ
 /// Waits for activation or shutdown without holding a JNI string or array borrow.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJni_waitEvent(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
@@ -174,7 +152,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJ
 /// Stops transport work while retaining ownership.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJni_stop(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {
@@ -184,7 +162,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJ
 /// Consumes a handle after stopping transport work.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_util_instance_NativeInstanceJni_close(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
 ) -> jlong {

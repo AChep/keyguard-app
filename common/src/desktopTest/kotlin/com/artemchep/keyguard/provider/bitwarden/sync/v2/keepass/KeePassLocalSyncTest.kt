@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.keepass.prepareKeePassDatabase
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
 import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
+import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestPasswordStrength
 import com.artemchep.keyguard.provider.bitwarden.upload.FailingPendingUploadCoordinator
@@ -108,6 +109,7 @@ class KeePassLocalSyncTest {
         json = testJson,
         db = TestVaultDatabaseManager(db),
         pendingUploadCoordinator = FailingPendingUploadCoordinator,
+        stagingSpoolFactory = DefaultStagingSpoolFactory(),
         gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
     )
 }

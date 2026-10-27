@@ -20,7 +20,8 @@ SMOKE_ARGUMENT = "--native-packaged-smoke"
 SUCCESS_PREFIX = "native packaged smoke passed:"
 REQUIRED_MARKERS = (
     "crypto=PASS", "io=PASS", "zxcvbn=PASS", "instance=PASS", "windowsPasskeys=PASS",
-    "desktopBridge=PASS", "sshHelper=PASS", "gpgHelper=PASS", "koin=PASS", "tls=PASS",
+    "desktopBridge=PASS", "agentIpc=PASS", "sshHelper=PASS", "sshHelperIpc=PASS", "gpgHelper=PASS",
+    "koin=PASS", "tls=PASS",
 )
 RESULT_PATH_ENV = "KEYGUARD_NATIVE_SMOKE_RESULT_PATH"
 RESULT_NONCE_ENV = "KEYGUARD_NATIVE_SMOKE_NONCE"
@@ -33,11 +34,30 @@ def platform_name(value: str) -> str:
     return {"darwin": "macos", "windows": "windows"}.get(platform.system().lower(), "linux")
 
 
+def find_windows_launcher(root: Path) -> Path:
+    # jpackage puts the GUI configuration in app/ beside the native resources.
+    # Searching by executable name also finds the CLI in app/resources/ on
+    # case-insensitive filesystems. MSI extraction may add directories above
+    # the application root, while MSIX and installed packages start at it.
+    app_roots = sorted({
+        config.parent.parent.resolve()
+        for config in root.rglob("app/Keyguard.cfg")
+        if config.is_file()
+    })
+    if len(app_roots) != 1:
+        formatted = ", ".join(map(str, app_roots)) or "none"
+        raise RuntimeError(f"Expected one Windows application root under {root}; found {formatted}")
+    launcher = app_roots[0] / "Keyguard.exe"
+    if not launcher.is_file():
+        raise RuntimeError(f"Packaged Desktop launcher is missing: {launcher}")
+    return launcher
+
+
 def launcher_candidates(root: Path, target_platform: str) -> Iterable[Path]:
     if target_platform == "macos":
         yield from root.rglob("Keyguard.app/Contents/MacOS/Keyguard")
     elif target_platform == "windows":
-        yield from root.rglob("Keyguard.exe")
+        yield find_windows_launcher(root)
     else:
         for candidate in root.rglob("Keyguard"):
             if candidate.parent.name == "bin":

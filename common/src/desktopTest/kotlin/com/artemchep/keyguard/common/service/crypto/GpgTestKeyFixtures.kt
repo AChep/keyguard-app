@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.common.service.crypto
 
+import com.artemchep.keyguard.crypto.armored
+import com.artemchep.keyguard.crypto.parseGpgSecretKeyRingCollection
+
 /**
  * Shared armored secret-key fixtures for the GPG tests.
  *
@@ -75,7 +78,8 @@ object GpgTestKeyFixtures {
     """.trimIndent()
 
     // Real, unprotected (empty-passphrase) Ed25519 primary with a Curve25519
-    // (cv25519, algorithm 18) encryption subkey.
+    // (cv25519, algorithm 18) encryption subkey. User-id:
+    // "Keyguard Test CV25519 <cv25519@test.invalid>".
     val CV25519 = """
         -----BEGIN PGP PRIVATE KEY BLOCK-----
 
@@ -150,3 +154,15 @@ object GpgTestKeyFixtures {
         -----END PGP PRIVATE KEY BLOCK-----
     """.trimIndent()
 }
+
+/**
+ * Derives the public certificate of an armored secret key and re-armors it, the
+ * way a keyserver would serve it.
+ */
+internal fun publicKeyArmoredOf(
+    secretArmored: String,
+): String = parseGpgSecretKeyRingCollection(secretArmored)
+    .keyRings
+    .next()
+    .toCertificate()
+    .armored()

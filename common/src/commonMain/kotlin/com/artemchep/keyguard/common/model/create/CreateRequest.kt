@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.model.create
 
+import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
 import arrow.optics.optics
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
@@ -31,6 +32,7 @@ data class CreateRequest(
     val identity: Identity = Identity(),
     val sshKey: SshKey = SshKey(),
     val gpgKey: GpgKey = GpgKey(),
+    val environment: EnvironmentDefinition? = null,
     // other
     val now: Instant,
 ) {
@@ -147,6 +149,7 @@ data class CreateRequest(
         val privateKey: String? = null,
         val publicKey: String? = null,
         val fingerprint: String? = null,
+        val certificate: String? = null,
     ) {
         companion object;
     }

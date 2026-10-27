@@ -1,0 +1,13 @@
+---
+title: "Environments"
+summary: "Keep environment variables in your vault and hand them to local tools on demand."
+icon: "🧰"
+group: "Security"
+order: 9
+featured: false
+doc: environments
+---
+
+Environments keep the variables of your projects, such as API keys and database URLs, in your vault instead of in plaintext `.env` files. A variable can hold a value or point to the password of another item, so a changed password reaches every project that uses it.
+
+Keyguard hands the values to your tools when they need them: as a local `.env` file that is never written to disk, or by starting a command with `keyguard run`. Through MCP, coding agents can manage environments without receiving the values. You approve each request.

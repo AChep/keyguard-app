@@ -40,9 +40,9 @@ fn contained<R>(body: impl FnOnce() -> R) -> Result<R, i64> {
 
 /// # Safety
 ///
-/// A non-empty user-input array must be a non-null pointer to `length`
-/// readable [`StrView`] records, each describing readable UTF-8 bytes, all
-/// valid for the duration of the call.
+/// If `length` is non-zero, a non-null `inputs` must address `length`
+/// initialized, aligned [`StrView`] records, readable for this call. Each
+/// record must meet the contract of [`string_from_raw`] for the returned `'a`.
 unsafe fn user_inputs_from_raw<'a>(
     inputs: *const StrView,
     length: usize,
@@ -62,7 +62,7 @@ unsafe fn user_inputs_from_raw<'a>(
         .iter()
         .map(|view| {
             // SAFETY: The caller contract covers every record's own bytes for
-            // the duration of the call.
+            // the returned `'a`.
             unsafe { string_from_raw(view.ptr, view.len) }
         })
         .collect()
@@ -116,8 +116,10 @@ pub unsafe extern "C" fn keyguard_zxcvbn_estimate(
         // SAFETY: The caller contract is forwarded from this function's own.
         unsafe { result_size_from_raw(result) }?;
         // SAFETY: The caller contract is forwarded from this function's own.
+        // The views do not outlive this call.
         let inputs = unsafe { user_inputs_from_raw(user_inputs, user_inputs_len) }?;
         // SAFETY: The caller contract is forwarded from this function's own.
+        // The view does not outlive this call.
         let password = unsafe { string_from_raw(password_ptr, password_len) }?;
         let wire = keyguard_zxcvbn_core::estimate(password, &inputs).map_err(pack_bridge_error)?;
         // SAFETY: The declared size covers the complete trivially-copyable

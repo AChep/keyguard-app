@@ -33,7 +33,6 @@
     <ID>LongMethod:GeneratorController.kt:GeneratorController$@OptIn(ExperimentalCoroutinesApi::class) fun makeSession: GeneratorSession</ID>
     <ID>LongMethod:GeneratorController.kt:GeneratorController$private suspend fun buildGeneratorSnapshot: GeneratorSnapshot</ID>
     <ID>LongMethod:GpgAgentController.kt:GpgAgentController$private suspend fun start</ID>
-    <ID>LongMethod:GpgAgentRuntimeMacos.kt:MacosGpgAgentRuntime$private suspend fun runHelper: Unit</ID>
     <ID>LongMethod:GpgAgentSandboxProbeTest.kt:GpgAgentSandboxProbeTest$@Test fun externalGnuPgThroughProvisionedSandbox</ID>
     <ID>LongMethod:GpgToolsSession.kt:GpgToolsSession$fun observeGpgTools: KeyguardCancellable</ID>
     <ID>LongMethod:GroupingControllers.kt:FoldersController$suspend fun produceFoldersInto</ID>
@@ -51,37 +50,21 @@
     <ID>LongMethod:WatchtowerController.kt:WatchtowerController$@OptIn(ExperimentalCoroutinesApi::class) fun makeSession: WatchtowerSession</ID>
     <ID>LongMethod:WatchtowerController.kt:WatchtowerController$private suspend fun buildWatchtowerSnapshot: WatchtowerSnapshot</ID>
     <ID>LoopWithTooManyJumpStatements:AuthSnapshots.kt:for</ID>
-    <ID>LoopWithTooManyJumpStatements:GpgAgentRuntimeMacos.kt:MacosGpgIpcServer$while</ID>
-    <ID>LoopWithTooManyJumpStatements:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$while</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$private suspend fun suggestions: List&lt;AutofillSuggestionSnapshot&gt;</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$suspend fun loadAutofillCredential: AutofillCredentialSnapshot?</ID>
     <ID>ReturnCount:AutofillController.kt:AutofillController$suspend fun loadOneTimeCode: String?</ID>
-    <ID>ReturnCount:GpgAgentRuntimeMacos.kt:@OptIn(ExperimentalForeignApi::class) private suspend fun readFully: ByteArray?</ID>
-    <ID>ReturnCount:GpgAgentRuntimeMacos.kt:@OptIn(ExperimentalForeignApi::class) private suspend fun writeFully: Boolean</ID>
-    <ID>ReturnCount:GpgAgentRuntimeMacos.kt:internal suspend fun readPacket: ByteArray?</ID>
     <ID>ReturnCount:GpgToolsSession.kt:GpgToolsSession$fun finishGpgToolsPublicKey</ID>
     <ID>ReturnCount:GpgToolsSession.kt:GpgToolsSession$fun prepareGpgToolsExport</ID>
     <ID>ReturnCount:PasskeyController.kt:PasskeyController$suspend fun assertPasskey: PasskeyAssertionSnapshot?</ID>
     <ID>ReturnCount:PasskeyController.kt:PasskeyController$suspend fun createPasskey: PasskeyRegistrationSnapshot?</ID>
     <ID>ReturnCount:QuickCopyController.kt:QuickCopyController$suspend fun quickCopyCipherField</ID>
-    <ID>ReturnCount:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$private fun readPacket: ByteArray?</ID>
-    <ID>ReturnCount:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$private suspend fun dispatch: SshAgentMessages.IpcResponse</ID>
-    <ID>ReturnCount:SshAgentIpcServerApple.kt:SshAgentIpcServerApple$suspend fun start</ID>
-    <ID>ReturnCount:SshAgentManagerApple.kt:SshAgentManagerApple$fun start: Boolean</ID>
-    <ID>ReturnCount:SshAgentRequestProcessorApple.kt:SshAgentRequestProcessorApple$override suspend fun signData: SshAgentRequestProcessor.SignDataResult</ID>
-    <ID>ReturnCount:SshAgentRequestProcessorApple.kt:SshAgentRequestProcessorApple$private suspend fun getSshKeysFromVault: SshVaultContext?</ID>
-    <ID>ReturnCount:SshAgentRequestProcessorApple.kt:SshAgentRequestProcessorApple$private suspend fun signWithCurrentKey: SshAgentRequestProcessor.SignDataResult</ID>
     <ID>TooGenericExceptionCaught:AddFormSaveState.kt:AddFormSaveState$error: Throwable</ID>
     <ID>TooGenericExceptionCaught:AuthPromptHost.kt:AuthPromptHost$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:BackupsController.kt:BackupsController$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:ExportExecution.kt:ExportExecution$e: Exception</ID>
     <ID>TooGenericExceptionCaught:GpgAgentController.kt:GpgAgentController$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:GpgAgentRuntimeMacos.kt:MacosGpgAgentRuntime$e: Exception</ID>
-    <ID>TooGenericExceptionCaught:GpgAgentRuntimeMacos.kt:MacosGpgAgentRuntime$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:GpgAgentRuntimeMacos.kt:MacosGpgIpcServer$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:GpgToolsFiles.kt:GpgToolsFiles$e: Throwable</ID>
     <ID>TooGenericExceptionCaught:SecurityController.kt:SecurityController$e: Throwable</ID>
-    <ID>TooGenericExceptionCaught:SshAgentRequestProcessorApple.kt:SshAgentRequestProcessorApple$e: Exception</ID>
     <ID>TooManyFunctions:AddItemController.kt:AddItemController</ID>
     <ID>TooManyFunctions:AppearanceController.kt:AppearanceController</ID>
     <ID>TooManyFunctions:AppleKg2LicenseKeyDecoderTest.kt:AppleKg2LicenseKeyDecoderTest</ID>
@@ -91,7 +74,6 @@
     <ID>TooManyFunctions:DuplicatesSession.kt:DuplicatesSession</ID>
     <ID>TooManyFunctions:EmailRelayController.kt:EmailRelayController</ID>
     <ID>TooManyFunctions:GpgAgentController.kt:GpgAgentController</ID>
-    <ID>TooManyFunctions:GpgAgentRuntimeMacos.kt:com.artemchep.keyguard.apple.gpgagent.GpgAgentRuntimeMacos.kt</ID>
     <ID>TooManyFunctions:GpgAgentRuntimeMacosTest.kt:GpgAgentRuntimeMacosTest</ID>
     <ID>TooManyFunctions:GpgToolsSession.kt:GpgToolsSession</ID>
     <ID>TooManyFunctions:GpgToolsFiles.kt:GpgToolsFiles : GpgToolsOutputCoordinator</ID>

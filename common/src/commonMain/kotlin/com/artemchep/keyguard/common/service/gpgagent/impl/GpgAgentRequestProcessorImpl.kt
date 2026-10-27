@@ -4,16 +4,13 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.AddGpgUsageHistoryRequest
-import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.filterCiphers
-import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheIdentity
-import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
-import com.artemchep.keyguard.common.service.agent.AgentApprovalWindowMemory
-import com.artemchep.keyguard.common.service.agent.flowBackedAgentApprovalCacheConfigProvider
-import com.artemchep.keyguard.common.service.agent.toApprovalCacheIdentity
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_PROMPT_TIMEOUT
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
+import com.artemchep.keyguard.common.service.agent.isEligibleForAgent
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolverUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
@@ -31,11 +28,12 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgAgentSecret
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentUnsupportedAlgorithmException
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepository
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyRepositoryEmpty
-import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
-import com.artemchep.keyguard.common.service.gpgagent.hasPrivateKey
+import com.artemchep.keyguard.common.service.gpgagent.agentKeysFor
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgKeygrip
 import com.artemchep.keyguard.common.service.gpgagent.resolveAuthorizationOrClear
-import com.artemchep.keyguard.common.service.gpgagent.routableAgentKeys
+import com.artemchep.keyguard.common.service.gpgagent.selectGpgAgentKeySource
+import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentKeyInfoRows
+import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentKeys
 import com.artemchep.keyguard.common.service.gpgagent.toGpgAgentSecretOrNull
 import com.artemchep.keyguard.common.service.gpgagent.toGpgPublicKeyEntry
 import com.artemchep.keyguard.common.service.logging.LogLevel
@@ -56,8 +54,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.json.Json
+import kotlin.time.Clock
 
 class GpgAgentRequestProcessorImpl(
     private val logRepository: LogRepository,
@@ -69,6 +67,13 @@ class GpgAgentRequestProcessorImpl(
         GetGpgAgentApprovalCachePolicyNoOp,
     private val getGpgAgentFilter: GetGpgAgentFilter,
     scope: CoroutineScope,
+    private val approvalWindowMemory: GpgAgentApprovalWindowMemory =
+        GpgAgentApprovalWindowMemory(
+            getGpgAgentApprovalWindow = getGpgAgentApprovalWindow,
+            getVaultSession = getVaultSession,
+            scope = scope,
+            getGpgAgentApprovalCachePolicy = getGpgAgentApprovalCachePolicy,
+        ),
     private val gpgPublicKeyRepository: GpgPublicKeyRepository = GpgPublicKeyRepositoryEmpty,
     private val pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
     private val sessionId: String = "",
@@ -77,35 +82,17 @@ class GpgAgentRequestProcessorImpl(
 ) : GpgAgentRequestProcessor {
     companion object {
         private const val TAG = "GpgAgentRequestProcessor"
-
-        internal const val APPROVAL_TIMEOUT_MS = 60_000L
     }
 
-    private val approvalCacheConfig = getGpgAgentApprovalCachePolicy.approvalCacheConfig
-        ?: flowBackedAgentApprovalCacheConfigProvider(
-            approvalWindow = getGpgAgentApprovalWindow(),
-            cachePolicy = getGpgAgentApprovalCachePolicy(),
-            scope = scope,
-        )
-
-    private val approvalWindowMemory =
-        AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>(
-            approvalCacheConfig = approvalCacheConfig,
-            getVaultSession = getVaultSession,
-            scope = scope,
-        )
-
     override suspend fun listKeys(
-        caller: GpgAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ): GpgAgentRequestProcessor.ListKeysResult {
         // The catalog and the vault intentionally keep one entry per
         // (cipher, keygrip) pair, while KEYINFO lists each keygrip once —
-        // both listing paths collapse the cipher dimension here.
+        // both listing paths aggregate capabilities across copies here.
         val vault = getGpgKeysFromVault()
         if (vault == null) {
-            val keys = getCachedGpgKeys()
-                .map { it.toGpgKeyMessage() }
-                .distinctBy { it.keygrip }
+            val keys = getCachedGpgKeys().toGpgAgentKeys()
             recordPendingGpgUsage(
                 cipherId = null,
                 caller = caller,
@@ -124,11 +111,7 @@ class GpgAgentRequestProcessorImpl(
             )
         }
 
-        val keys = vault.gpgSecrets
-            .flatMap { secret ->
-                secret.toGpgKeyMessages()
-            }
-            .distinctBy { it.keygrip }
+        val keys = vault.keyInfoRows().toGpgAgentKeys()
         recordGpgUsage(
             vault = vault,
             cipherId = null,
@@ -152,17 +135,9 @@ class GpgAgentRequestProcessorImpl(
         keygrip = request.keygrip,
         caller = request.caller,
         logNoun = "signing",
-        findKey = { keygrip ->
-            findKeyByKeygrip(
-                keygrip = keygrip,
-                keys = { secret -> secret.authorizedAgentKeys },
-                predicate = { key -> key.canSign },
-            )
-        },
         crypto = { match ->
             crypto.signHash(
-                privateKeyArmored = match.secret.privateKeyArmored
-                    ?: throw GpgAgentKeyNotFoundException(),
+                privateKeyArmored = match.privateKeyArmored,
                 metadataKey = match.metadataKey,
                 hashAlgorithm = request.hashAlgorithm,
                 hash = request.hash,
@@ -179,17 +154,9 @@ class GpgAgentRequestProcessorImpl(
         keygrip = request.keygrip,
         caller = request.caller,
         logNoun = "decryption",
-        findKey = { keygrip ->
-            findKeyByKeygrip(
-                keygrip = keygrip,
-                keys = { secret -> secret.metadata.routableAgentKeys },
-                predicate = { key -> key.canDecrypt },
-            )
-        },
         crypto = { match ->
             crypto.pkdecrypt(
-                privateKeyArmored = match.secret.privateKeyArmored
-                    ?: throw GpgAgentKeyNotFoundException(),
+                privateKeyArmored = match.privateKeyArmored,
                 metadataKey = match.metadataKey,
                 ciphertext = request.ciphertext,
                 unwrapEcdh = request.unwrapEcdh,
@@ -200,19 +167,21 @@ class GpgAgentRequestProcessorImpl(
     /**
      * Shared skeleton for the two vault-backed key operations (sign / decrypt). The two
      * public entry points supply the operation-specific deltas — the operation enum, the
-     * usage-history request type, the key finder predicate, the crypto call and the log
-     * noun — while this function owns the identical approval / vault / usage-recording flow.
+     * usage-history request type, the crypto call and the log noun — while this function
+     * owns the identical approval / vault / usage-recording flow.
      */
     private suspend fun <T> runKeyOperation(
         operation: GpgAgentOperation,
         usageRequestType: GpgUsageHistoryRequestType,
         keygrip: String,
-        caller: GpgAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
         logNoun: String,
-        findKey: GpgVaultContext.(String) -> GpgKeyMatch?,
         crypto: GpgVaultContext.(GpgKeyMatch) -> T,
     ): GpgAgentOperationResult<T> {
         val normalizedKeygrip = keygrip.normalizeGpgKeygrip()
+        // A locked vault can need a second prompt after it unlocks; both
+        // share this deadline, which the Termux helper's timeout covers.
+        val approvalExpiresAt = Clock.System.now() + AGENT_APPROVAL_PROMPT_TIMEOUT
         var session = getVaultSession.valueOrNull as? MasterSession.Key
         val wasVaultLocked = session == null
         if (wasVaultLocked) {
@@ -220,7 +189,7 @@ class GpgAgentRequestProcessorImpl(
         }
 
         var approvalGranted = false
-        val cachedKey = if (wasVaultLocked) getCachedGpgKey(normalizedKeygrip) else null
+        val cachedKey = if (wasVaultLocked) getCachedGpgKey(normalizedKeygrip, operation) else null
 
         if (wasVaultLocked) {
             val approved = requestApproval(
@@ -232,6 +201,7 @@ class GpgAgentRequestProcessorImpl(
                     keygrip = normalizedKeygrip,
                     accountId = cachedKey?.accountId,
                     cipherId = cachedKey?.cipherId,
+                    expiresAt = approvalExpiresAt,
                 ),
             )
             if (!approved) {
@@ -274,15 +244,27 @@ class GpgAgentRequestProcessorImpl(
             return GpgAgentOperationResult.VaultLocked
         }
 
-        val match = vault.findKey(normalizedKeygrip)
+        // Resolve live material only from one selected item. A locked-vault
+        // prompt named the catalog's choice, which can be outdated: the catalog
+        // is evaluated at sync time. Keep that item while it still works;
+        // otherwise use the live choice and ask again below, so the user
+        // approves the item that is actually used.
+        fun GpgAgentKeyInfoRow.findLiveKey() = vault
+            .restrictTo(accountId, cipherId)
+            .findKey(normalizedKeygrip, operation)
+
+        val pinnedMatch = cachedKey?.findLiveKey()
+        val sourceChanged = cachedKey != null && pinnedMatch == null
+        val match = pinnedMatch
+            ?: vault.selectSource(normalizedKeygrip, operation)?.findLiveKey()
             ?: run {
                 recordGpgUsage(
                     vault = vault,
-                    cipherId = null,
+                    cipherId = cachedKey?.cipherId,
                     caller = caller,
                     request = usageRequestType,
                     response = GpgUsageHistoryResponseType.KEY_NOT_FOUND,
-                    fingerprint = null,
+                    fingerprint = cachedKey?.fingerprint,
                     keygrip = normalizedKeygrip,
                 )
                 return GpgAgentOperationResult.KeyNotFound
@@ -317,7 +299,7 @@ class GpgAgentRequestProcessorImpl(
             keygrip = normalizedKeygrip,
         )
 
-        val requiresApproval = !wasVaultLocked && approvalAccess?.canReuseNow() != true
+        val requiresApproval = sourceChanged || (!wasVaultLocked && approvalAccess?.canReuseNow() != true)
         if (requiresApproval) {
             if (approvalAccess?.isRemembered == true) {
                 // Bind the new prompt to the current policy. Any wait here is
@@ -337,6 +319,7 @@ class GpgAgentRequestProcessorImpl(
                     keygrip = normalizedKeygrip,
                     accountId = match.secret.cipher.accountId,
                     cipherId = match.secret.cipher.id,
+                    expiresAt = approvalExpiresAt,
                 ),
             )
             if (!approved) {
@@ -356,7 +339,9 @@ class GpgAgentRequestProcessorImpl(
             return GpgAgentOperationResult.VaultLocked
         }
         val currentMatch = if (requiresApproval) {
-            currentVault.restrictTo(match.secret.cipher).findKey(normalizedKeygrip)
+            currentVault
+                .restrictTo(match.secret.cipher.accountId, match.secret.cipher.id)
+                .findKey(normalizedKeygrip, operation)
         } else {
             match
         }
@@ -407,41 +392,16 @@ class GpgAgentRequestProcessorImpl(
 
     private suspend fun getCachedGpgKey(
         keygrip: String,
+        operation: GpgAgentOperation,
     ): GpgAgentKeyInfoRow? = try {
-        // The same component key may live in more than one cipher; for
-        // the approval display any of the matching rows works, so take
-        // the first one of the deterministically ordered result.
         gpgPublicKeyRepository.getKeyInfoByKeygrip(keygrip)
             .bind()
-            .firstOrNull()
+            .selectGpgAgentKeySource(operation)
     } catch (e: Exception) {
         e.throwIfFatalOrCancellation()
         logRepository.post(TAG, "Failed to read cached GPG public key: ${e.message}", LogLevel.ERROR)
         null
     }
-
-    private fun GpgAgentKeyInfoRow.toGpgKeyMessage() = GpgAgentMessages.GpgKey(
-        name = displayName,
-        keygrip = keygrip,
-        fingerprint = fingerprint,
-        algorithm = algorithm,
-        canSign = canSign,
-        canDecrypt = canDecrypt,
-    )
-
-    private fun GpgAgentSecret.toGpgKeyMessages(): List<GpgAgentMessages.GpgKey> =
-        toGpgPublicKeyEntry(name = cipher.name)
-            .keyInfo
-            .map { key ->
-                GpgAgentMessages.GpgKey(
-                    name = cipher.name,
-                    keygrip = key.keygrip,
-                    fingerprint = key.fingerprint,
-                    algorithm = key.algorithm,
-                    canSign = key.canSign,
-                    canDecrypt = key.canDecrypt,
-                )
-            }
 
     // Guard clauses reject unsupported or stale input before accessing the active session.
     @Suppress("ReturnCount")
@@ -458,6 +418,7 @@ class GpgAgentRequestProcessorImpl(
         val metadataResolver = dependencies.metadataResolver
             ?: GpgKeyMetadataResolverUnsupported
         val gpgSecrets = ciphers
+            .filter { it.isEligibleForAgent() }
             .mapNotNull { it.toGpgAgentSecretOrNull() }
             .map { secret ->
                 secret.resolveAuthorizationOrClear(
@@ -493,7 +454,7 @@ class GpgAgentRequestProcessorImpl(
     @Suppress("LongParameterList")
     private suspend fun recordPendingGpgUsage(
         cipherId: String?,
-        caller: GpgAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
         request: GpgUsageHistoryRequestType,
         response: GpgUsageHistoryResponseType,
         fingerprint: String?,
@@ -522,7 +483,7 @@ class GpgAgentRequestProcessorImpl(
     private suspend fun recordGpgUsage(
         vault: GpgVaultContext,
         cipherId: String?,
-        caller: GpgAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
         request: GpgUsageHistoryRequestType,
         response: GpgUsageHistoryResponseType,
         fingerprint: String?,
@@ -547,7 +508,7 @@ class GpgAgentRequestProcessorImpl(
     }
 
     private fun encodeCaller(
-        caller: GpgAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ): String? {
         caller ?: return null
         return runCatching {
@@ -555,35 +516,31 @@ class GpgAgentRequestProcessorImpl(
         }.getOrNull()
     }
 
+    // The approval broker denies the prompt at its deadline.
     private suspend fun requestApproval(
         prompt: GpgAgentApprovalPrompt,
     ): Boolean = try {
-        withTimeoutOrNull(APPROVAL_TIMEOUT_MS) {
-            onApprovalRequest(prompt)
-        } ?: false
+        onApprovalRequest(prompt)
     } catch (e: Exception) {
         if (e is CancellationException) throw e
         logRepository.post(TAG, "GPG approval request failed: ${e.message}", LogLevel.ERROR)
         false
     }
 
-    private fun GpgVaultContext.findKeyByKeygrip(
+    private fun GpgVaultContext.findKey(
         keygrip: String,
-        keys: (GpgAgentSecret) -> List<GpgAgentKeyMetadataKey>,
-        predicate: (GpgAgentKeyMetadataKey) -> Boolean,
+        operation: GpgAgentOperation,
     ): GpgKeyMatch? = gpgSecrets
         .firstNotNullOfOrNull { secret ->
-            if (!secret.hasPrivateKey) {
-                return@firstNotNullOfOrNull null
-            }
-            keys(secret)
-                .firstOrNull { key ->
-                    predicate(key) && key.keygrip.normalizeGpgKeygrip() == keygrip
-                }
+            val privateKeyArmored = secret.privateKeyArmored
+                ?: return@firstNotNullOfOrNull null
+            secret.agentKeysFor(operation)
+                .firstOrNull { key -> key.keygrip.normalizeGpgKeygrip() == keygrip }
                 ?.let { metadataKey ->
                     GpgKeyMatch(
                         secret = secret,
                         metadataKey = metadataKey,
+                        privateKeyArmored = privateKeyArmored,
                     )
                 }
         }
@@ -594,10 +551,20 @@ class GpgAgentRequestProcessorImpl(
         val candidateRevocationKeys: List<GpgOpenPgpPublicKey>,
         val addGpgUsageHistory: AddGpgUsageHistory,
     ) {
+        /** One row per (cipher, keygrip) pair, as the persisted catalog stores them. */
+        fun keyInfoRows() = gpgSecrets.flatMap { secret ->
+            secret.toGpgPublicKeyEntry(name = secret.cipher.name).toGpgAgentKeyInfoRows()
+        }
+
+        /** Selects the item that serves [operation] with the component [keygrip]. */
+        fun selectSource(keygrip: String, operation: GpgAgentOperation) = keyInfoRows()
+            .filter { it.keygrip == keygrip }
+            .selectGpgAgentKeySource(operation)
+
         /** Keeps only the secrets that belong to the given cipher. */
-        fun restrictTo(cipher: DSecret) = copy(
+        fun restrictTo(accountId: String, cipherId: String) = copy(
             gpgSecrets = gpgSecrets.filter {
-                it.cipher.id == cipher.id && it.cipher.accountId == cipher.accountId
+                it.cipher.id == cipherId && it.cipher.accountId == accountId
             },
         )
     }
@@ -605,6 +572,7 @@ class GpgAgentRequestProcessorImpl(
     private data class GpgKeyMatch(
         val secret: GpgAgentSecret,
         val metadataKey: GpgAgentKeyMetadataKey,
+        val privateKeyArmored: String,
     )
 
     private object NoOpAddGpgUsageHistory : AddGpgUsageHistory {
@@ -613,34 +581,3 @@ class GpgAgentRequestProcessorImpl(
         }
     }
 }
-
-private suspend fun AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>.Session.access(
-    operation: GpgAgentOperation,
-    keygrip: String,
-    caller: GpgAgentMessages.CallerIdentity?,
-): AgentApprovalWindowMemory<GpgApprovalCacheKey, AgentApprovalCachePolicy>.Access = access { policy ->
-    gpgApprovalCacheKey(operation, keygrip, caller, policy)
-}
-
-internal fun gpgApprovalCacheKey(
-    operation: GpgAgentOperation,
-    keygrip: String,
-    caller: GpgAgentMessages.CallerIdentity?,
-    policy: AgentApprovalCachePolicy = AgentApprovalCachePolicy.Default,
-): GpgApprovalCacheKey? {
-    val callerIdentity = caller.toApprovalCacheIdentity(policy)
-        ?: return null
-    return GpgApprovalCacheKey(
-        operation = operation,
-        // The keygrip is already normalized by the caller (runKeyOperation); normalizing
-        // once there keeps a single source of truth for the cache-key identity.
-        keygrip = keygrip,
-        callerIdentity = callerIdentity,
-    )
-}
-
-internal data class GpgApprovalCacheKey(
-    val operation: GpgAgentOperation,
-    val keygrip: String,
-    val callerIdentity: AgentApprovalCacheIdentity,
-)

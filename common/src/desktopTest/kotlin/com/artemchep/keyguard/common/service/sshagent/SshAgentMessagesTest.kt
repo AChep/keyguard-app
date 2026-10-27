@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
@@ -30,9 +32,9 @@ class SshAgentMessagesTest {
         val token = ByteArray(32) { it.toByte() }
         val original = SshAgentMessages.IpcRequest(
             id = 1L,
-            authenticate = SshAgentMessages.AuthenticateRequest(
+            authenticate = AgentIpcMessages.AuthenticateRequest(
                 token = token,
-                protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
             ),
         )
 
@@ -42,7 +44,7 @@ class SshAgentMessagesTest {
         assertEquals(1L, decoded.id)
         assertContentEquals(token, decoded.authenticate?.token)
         assertEquals(
-            SshAgentMessages.PROTOCOL_REVISION,
+            AgentIpcMessages.PROTOCOL_REVISION,
             decoded.authenticate?.protocolRevision,
         )
         assertNull(decoded.listKeys)
@@ -69,7 +71,7 @@ class SshAgentMessagesTest {
 
     @Test
     fun `ListKeysRequest with caller identity round-trips correctly`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             pid = 123,
             uid = 456,
             gid = 789,
@@ -119,7 +121,7 @@ class SshAgentMessagesTest {
 
     @Test
     fun `SignDataRequest with caller identity round-trips correctly`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             pid = 123,
             uid = 456,
             gid = 789,
@@ -150,7 +152,7 @@ class SshAgentMessagesTest {
 
     @Test
     fun `SignDataRequest with Android app caller identity round-trips correctly`() {
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             pid = 123,
             uid = 456,
             gid = 789,
@@ -182,7 +184,7 @@ class SshAgentMessagesTest {
         val connection = ByteArray(32) { it.toByte() }
         val process = ByteArray(32) { (it + 32).toByte() }
         val context = ByteArray(32) { (it + 64).toByte() }
-        val caller = SshAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             appName = "Terminal",
             authorization = CallerAuthorization(
                 connectionFingerprint = connection,
@@ -224,9 +226,9 @@ class SshAgentMessagesTest {
     fun `AuthenticateResponse round-trips correctly`() {
         val original = SshAgentMessages.IpcResponse(
             id = 1L,
-            authenticate = SshAgentMessages.AuthenticateResponse(
+            authenticate = AgentIpcMessages.AuthenticateResponse(
                 success = true,
-                protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
             ),
         )
 
@@ -236,7 +238,7 @@ class SshAgentMessagesTest {
         assertEquals(1L, decoded.id)
         assertTrue(decoded.authenticate!!.success)
         assertEquals(
-            SshAgentMessages.PROTOCOL_REVISION,
+            AgentIpcMessages.PROTOCOL_REVISION,
             decoded.authenticate?.protocolRevision,
         )
         assertNull(decoded.listKeys)
@@ -247,13 +249,13 @@ class SshAgentMessagesTest {
     @Test
     fun `protocol revision is emitted as protobuf field 2`() {
         val requestBytes = protoBuf.encodeToByteArray(
-            SshAgentMessages.AuthenticateRequest(
-                protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+            AgentIpcMessages.AuthenticateRequest(
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
             ),
         )
         val responseBytes = protoBuf.encodeToByteArray(
-            SshAgentMessages.AuthenticateResponse(
-                protocolRevision = SshAgentMessages.PROTOCOL_REVISION,
+            AgentIpcMessages.AuthenticateResponse(
+                protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
             ),
         )
 
@@ -319,9 +321,9 @@ class SshAgentMessagesTest {
     fun `ErrorResponse round-trips correctly`() {
         val original = SshAgentMessages.IpcResponse(
             id = 4L,
-            error = SshAgentMessages.ErrorResponse(
+            error = AgentIpcMessages.ErrorResponse(
                 message = "vault is locked",
-                code = SshAgentMessages.ErrorCode.VAULT_LOCKED,
+                code = AgentIpcMessages.ErrorCode.VAULT_LOCKED,
             ),
         )
 
@@ -331,7 +333,7 @@ class SshAgentMessagesTest {
         assertEquals(4L, decoded.id)
         val error = decoded.error!!
         assertEquals("vault is locked", error.message)
-        assertEquals(SshAgentMessages.ErrorCode.VAULT_LOCKED, error.code)
+        assertEquals(AgentIpcMessages.ErrorCode.VAULT_LOCKED, error.code)
     }
 
     // ================================================================
@@ -366,11 +368,11 @@ class SshAgentMessagesTest {
 
     @Test
     fun `ErrorCode constants have expected values`() {
-        assertEquals(0, SshAgentMessages.ErrorCode.UNSPECIFIED)
-        assertEquals(1, SshAgentMessages.ErrorCode.VAULT_LOCKED)
-        assertEquals(2, SshAgentMessages.ErrorCode.USER_DENIED)
-        assertEquals(3, SshAgentMessages.ErrorCode.KEY_NOT_FOUND)
-        assertEquals(4, SshAgentMessages.ErrorCode.AUTH_FAILED)
-        assertEquals(5, SshAgentMessages.ErrorCode.NOT_AUTHENTICATED)
+        assertEquals(0, AgentIpcMessages.ErrorCode.UNSPECIFIED)
+        assertEquals(1, AgentIpcMessages.ErrorCode.VAULT_LOCKED)
+        assertEquals(2, AgentIpcMessages.ErrorCode.USER_DENIED)
+        assertEquals(3, AgentIpcMessages.ErrorCode.KEY_NOT_FOUND)
+        assertEquals(4, AgentIpcMessages.ErrorCode.AUTH_FAILED)
+        assertEquals(5, AgentIpcMessages.ErrorCode.NOT_AUTHENTICATED)
     }
 }

@@ -66,6 +66,17 @@ class WebDavKeePassUrlTest {
     }
 
     @Test
+    fun `rejects malformed urls without throwing`() {
+        listOf(
+            "100.100.100.100:8080",
+            "https://example.com:invalid/vault.kdbx",
+        ).forEach { url ->
+            assertNull(parseWebDavKeePassFileUrlOrNull(url), url)
+            assertFalse(url.isWebDavKeePassFileUrl(), url)
+        }
+    }
+
+    @Test
     fun `rejects url without database extension`() {
         assertFalse(
             "https://example.com/dav/vault".isWebDavKeePassFileUrl(),

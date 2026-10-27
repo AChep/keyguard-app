@@ -14,6 +14,7 @@ data class GpgKeyserverSearchState(
     val keyserverUrl: String,
     val filter: StateFlow<Filter>,
     val content: Loadable<Either<Throwable, Content>>,
+    val onScanned: (String) -> Unit,
 ) {
     @Immutable
     data class Filter(

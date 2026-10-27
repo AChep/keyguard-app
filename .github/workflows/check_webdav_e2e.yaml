@@ -22,6 +22,7 @@ on:
       - 'gradlew'
       - 'gradlew.bat'
       - 'integration/webdavE2eTest/**'
+      - 'integration/testProcess/**'
       - 'settings.gradle'
       - 'util/webdav/**'
   pull_request:
@@ -38,6 +39,7 @@ on:
       - 'gradlew'
       - 'gradlew.bat'
       - 'integration/webdavE2eTest/**'
+      - 'integration/testProcess/**'
       - 'settings.gradle'
       - 'util/webdav/**'
 

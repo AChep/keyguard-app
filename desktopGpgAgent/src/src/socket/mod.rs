@@ -14,6 +14,7 @@ use tokio::sync::oneshot;
 /// socket.
 pub async fn serve<F>(
     ipc_client: IpcClient,
+    gnupg_version: String,
     socket_path: &Path,
     lifecycle_lock_directory: Option<&Path>,
     parent_stdin_closed: oneshot::Receiver<()>,
@@ -26,6 +27,7 @@ where
     {
         unix::serve(
             ipc_client,
+            gnupg_version,
             socket_path,
             lifecycle_lock_directory,
             parent_stdin_closed,
@@ -39,6 +41,13 @@ where
         if lifecycle_lock_directory.is_some() {
             anyhow::bail!("explicit lifecycle lock directories are only supported on Unix");
         }
-        windows::serve(ipc_client, socket_path, parent_stdin_closed, on_ready).await
+        windows::serve(
+            ipc_client,
+            gnupg_version,
+            socket_path,
+            parent_stdin_closed,
+            on_ready,
+        )
+        .await
     }
 }

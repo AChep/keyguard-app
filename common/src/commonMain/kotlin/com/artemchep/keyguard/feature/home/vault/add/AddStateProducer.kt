@@ -4,7 +4,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AccountBox
 import androidx.compose.material.icons.outlined.Apps
 import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
@@ -49,6 +48,7 @@ import com.artemchep.keyguard.common.model.create.address3
 import com.artemchep.keyguard.common.model.create.brand
 import com.artemchep.keyguard.common.model.create.card
 import com.artemchep.keyguard.common.model.create.cardholderName
+import com.artemchep.keyguard.common.model.create.certificate
 import com.artemchep.keyguard.common.model.create.city
 import com.artemchep.keyguard.common.model.create.code
 import com.artemchep.keyguard.common.model.create.company
@@ -97,22 +97,23 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyImportServiceUnsupport
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserUnsupported
-import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementError
-import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementResult
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdUpdateService
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdUpdateServiceUnsupported
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementService
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementServiceUnsupported
-import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationError
-import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationResult
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationService
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationServiceUnsupported
+import com.artemchep.keyguard.common.service.crypto.SSH_CERTIFICATE_FILE_SUFFIX
+import com.artemchep.keyguard.common.service.crypto.SshCertificateParser
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportError
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportResult
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
+import com.artemchep.keyguard.common.service.crypto.isSshCertificateFile
 import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
+import com.artemchep.keyguard.common.service.crypto.problemAt
 import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
 import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.isCanonical
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.TextService
@@ -134,7 +135,6 @@ import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.ShowMessage
-import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.common.util.flow.foldAsList
@@ -142,12 +142,10 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.common.util.validLuhn
 import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.feature.add.AddStateItem
-import com.artemchep.keyguard.feature.add.AddStateOwnership
-import com.artemchep.keyguard.feature.add.AddStateOwnershipElementHolder
 import com.artemchep.keyguard.feature.add.LocalStateItem
 import com.artemchep.keyguard.feature.add.OwnershipState
-import com.artemchep.keyguard.feature.add.accountFlow
 import com.artemchep.keyguard.feature.add.ownershipHandle
+import com.artemchep.keyguard.feature.add.ownershipPickerFlow
 import com.artemchep.keyguard.feature.apppicker.AppPickerResult
 import com.artemchep.keyguard.feature.apppicker.AppPickerRoute
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
@@ -157,14 +155,11 @@ import com.artemchep.keyguard.feature.auth.common.util.ValidationUri
 import com.artemchep.keyguard.feature.auth.common.util.format
 import com.artemchep.keyguard.feature.auth.common.util.validateUri
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
-import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.awaitConfirmationDialog
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
-import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
-import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationRoute
 import com.artemchep.keyguard.feature.datepicker.DatePickerResult
 import com.artemchep.keyguard.feature.datepicker.DatePickerRoute
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
@@ -172,12 +167,8 @@ import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.gpgkey.expiration.createLocalizedGpgKeyExpirationFailureToast
 import com.artemchep.keyguard.feature.gpgkey.expiration.requestGpgKeyExpirationChange
-import com.artemchep.keyguard.feature.gpgkey.replacement.createLocalizedGpgUserIdReplacementFailureToast
-import com.artemchep.keyguard.feature.gpgkey.replacement.requestGpgUserIdReplacementValue
-import com.artemchep.keyguard.feature.gpgkey.revocation.createLocalizedGpgUserIdRevocationFailureToast
-import com.artemchep.keyguard.feature.gpgkey.selection.GpgUserIdSelectionIdentity
-import com.artemchep.keyguard.feature.gpgkey.selection.GpgUserIdSelectionRoute
-import com.artemchep.keyguard.feature.gpgkey.selection.requestGpgUserIdSelection
+import com.artemchep.keyguard.feature.gpgkey.userids.GpgUserIdsState
+import com.artemchep.keyguard.feature.gpgkey.userids.GpgUserIdsStateProducer
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachmentItemFactory
@@ -190,6 +181,7 @@ import com.artemchep.keyguard.feature.home.vault.link.cipherLinkTargetsByRemoteI
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultItemPresentation
+import com.artemchep.keyguard.feature.home.vault.util.formatSshCertificateProblem
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -223,7 +215,6 @@ import kotlinx.collections.immutable.toPersistentList
 import kotlinx.collections.immutable.toPersistentMap
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -234,6 +225,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
@@ -272,11 +264,13 @@ fun produceAddScreenState(
         textService = get(),
         dateFormatter = get(),
         sshKeyImportService = get(),
+        sshCertificateParser = get(),
         gpgKeyImportService = getOrNull() ?: GpgKeyImportServiceUnsupported,
         gpgKeyEditorImportReconciler = get(),
         gpgPublicKeyParser = getOrNull() ?: GpgPublicKeyParserUnsupported,
         gpgKeyExpirationService = getOrNull() ?: GpgKeyExpirationServiceUnsupported,
         gpgUserIdReplacementService = getOrNull() ?: GpgUserIdReplacementServiceUnsupported,
+        gpgUserIdUpdateService = getOrNull() ?: GpgUserIdUpdateServiceUnsupported,
         gpgUserIdRevocationService = getOrNull() ?: GpgUserIdRevocationServiceUnsupported,
         logRepository = get(),
         clipboardService = get(),
@@ -315,11 +309,13 @@ fun produceAddScreenState(
     textService: TextService,
     dateFormatter: DateFormatter,
     sshKeyImportService: SshKeyImportService,
+    sshCertificateParser: SshCertificateParser,
     gpgKeyImportService: GpgKeyImportService,
     gpgKeyEditorImportReconciler: GpgKeyEditorImportReconciler,
     gpgPublicKeyParser: GpgPublicKeyParser,
     gpgKeyExpirationService: GpgKeyExpirationService,
     gpgUserIdReplacementService: GpgUserIdReplacementService,
+    gpgUserIdUpdateService: GpgUserIdUpdateService,
     gpgUserIdRevocationService: GpgUserIdRevocationService,
     logRepository: LogRepository,
     clipboardService: ClipboardService,
@@ -360,11 +356,13 @@ fun produceAddScreenState(
         textService = textService,
         dateFormatter = dateFormatter,
         sshKeyImportService = sshKeyImportService,
+        sshCertificateParser = sshCertificateParser,
         gpgKeyImportService = gpgKeyImportService,
         gpgKeyEditorImportReconciler = gpgKeyEditorImportReconciler,
         gpgPublicKeyParser = gpgPublicKeyParser,
         gpgKeyExpirationService = gpgKeyExpirationService,
         gpgUserIdReplacementService = gpgUserIdReplacementService,
+        gpgUserIdUpdateService = gpgUserIdUpdateService,
         gpgUserIdRevocationService = gpgUserIdRevocationService,
         logRepository = logRepository,
         clipboardService = clipboardService,
@@ -393,11 +391,13 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     textService: TextService,
     dateFormatter: DateFormatter,
     sshKeyImportService: SshKeyImportService,
+    sshCertificateParser: SshCertificateParser,
     gpgKeyImportService: GpgKeyImportService,
     gpgKeyEditorImportReconciler: GpgKeyEditorImportReconciler,
     gpgPublicKeyParser: GpgPublicKeyParser,
     gpgKeyExpirationService: GpgKeyExpirationService,
     gpgUserIdReplacementService: GpgUserIdReplacementService,
+    gpgUserIdUpdateService: GpgUserIdUpdateService,
     gpgUserIdRevocationService: GpgUserIdRevocationService,
     logRepository: LogRepository,
     clipboardService: ClipboardService,
@@ -486,6 +486,8 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         args = args,
         textService = textService,
         sshKeyImportService = sshKeyImportService,
+        sshCertificateParser = sshCertificateParser,
+        dateFormatter = dateFormatter,
         showMessage = showMessage,
         filePickerIntentSink = filePickerEvents,
         confirmationRouteFactory = confirmationRouteFactory,
@@ -500,6 +502,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         gpgPublicKeyParser = gpgPublicKeyParser,
         gpgKeyExpirationService = gpgKeyExpirationService,
         gpgUserIdReplacementService = gpgUserIdReplacementService,
+        gpgUserIdUpdateService = gpgUserIdUpdateService,
         gpgUserIdRevocationService = gpgUserIdRevocationService,
         showMessage = showMessage,
         filePickerIntentSink = filePickerEvents,
@@ -729,7 +732,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                 DSecret.Type.GpgKey -> flowOf(noteHolder.items + gpgKeyHolder.items)
 
                 DSecret.Type.SshKey -> flowOf(sshKeyHolder.items)
-                DSecret.Type.None -> flowOf(emptyList())
+                DSecret.Type.None, DSecret.Type.Environment -> flowOf(emptyList())
             }
         }
     val noteItem = AddStateItem.Note(
@@ -969,7 +972,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                                 booleanType,
                             )
 
-                            DSecret.Type.None, -> emptyList()
+                            DSecret.Type.None, DSecret.Type.Environment -> emptyList()
                         }
                     },
             )
@@ -1221,7 +1224,10 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     }.combine(gpgKeyHolder.saveEnabled) { state, saveEnabled ->
         state.map { value ->
             value.copy(
-                onSave = value.onSave.takeIf { saveEnabled },
+                onSave = value.onSave.takeIf {
+                    saveEnabled && args.initialValue?.type?.hasGenericEditor() != false &&
+                        args.type?.hasGenericEditor() != false
+                },
             )
         }
     }.combine(attachmentsFileDragFlow) { state, fileDrag ->
@@ -2537,212 +2543,36 @@ private suspend fun RememberStateFlowScope.produceOwnershipFlow(
         },
     )
 
-    val accountFlow = ownershipHandle.accountFlow(readOnly = ro)
-
-    val organizationFlow = combine(
-        ownershipHandle.stateSink
-            .map { it.organizationId }
-            .distinctUntilChanged(),
-        getOrganizations(),
-    ) { organizationId, organizations ->
-        if (organizationId == null) {
-            val item = AddStateOwnership.Element.Item(
-                key = "organization.empty",
-                title = translate(Res.string.organization_none),
-                stub = true,
-            )
-            val el = AddStateOwnership.Element(
-                readOnly = ro,
-                items = listOf(item),
-            )
-            return@combine AddStateOwnershipElementHolder(
-                value = null,
-                element = el,
-            )
-        }
-        val organizationOrNull = organizations
-            .firstOrNull { it.id == organizationId }
-        val el = AddStateOwnership.Element(
-            readOnly = ro,
-            items = listOfNotNull(organizationOrNull)
-                .map { organization ->
-                    val key = "organization.${organization.id}"
-                    AddStateOwnership.Element.Item(
-                        key = key,
-                        title = organization.name,
-                    )
-                },
-        )
-        AddStateOwnershipElementHolder(
-            value = organizationId,
-            element = el,
-        )
-    }
-
-    val collectionFlow = combine(
-        ownershipHandle.stateSink
-            .map { it.collectionIds }
-            .distinctUntilChanged(),
-        getCollections(),
-    ) { collectionIds, collections ->
-        if (collectionIds.isEmpty()) {
-            return@combine AddStateOwnershipElementHolder(
-                value = emptySet(),
-                element = null,
-            )
-        }
-
-        val selectedCollections = collections
-            .sortedWith(StringComparatorIgnoreCase { it.name })
-            .filter { it.id in collectionIds }
-        val el = AddStateOwnership.Element(
-            readOnly = ro,
-            items = selectedCollections
-                .map { collection ->
-                    val key = "collection.${collection.id}"
-                    AddStateOwnership.Element.Item(
-                        key = key,
-                        title = collection.name,
-                    )
-                },
-        )
-        AddStateOwnershipElementHolder(
-            value = collectionIds,
-            element = el,
-        )
-    }
-
-    val folderFlow = combine(
-        ownershipHandle.stateSink
-            .map { it.folder }
-            .distinctUntilChanged(),
-        getFolders(),
-    ) { selectedFolder, folders ->
-        when (selectedFolder) {
-            is FolderInfo.None -> {
-                val item = AddStateOwnership.Element.Item(
-                    key = "folder.empty",
-                    title = translate(Res.string.folder_none),
-                    stub = true,
+    return ownershipPickerFlow(
+        ownershipFlow = ownershipHandle.stateSink
+            .map { data ->
+                CreateRequest.Ownership2(
+                    accountId = data.accountId,
+                    folder = data.folder,
+                    organizationId = data.organizationId,
+                    collectionIds = data.collectionIds,
                 )
-                val el = AddStateOwnership.Element(
-                    readOnly = false,
-                    items = listOf(item),
-                )
-                return@combine AddStateOwnershipElementHolder(
-                    value = selectedFolder,
-                    element = el,
-                )
-            }
-
-            is FolderInfo.New -> {
-                val item = AddStateOwnership.Element.Item(
-                    key = "folder.new",
-                    title = selectedFolder.name,
-                    stub = true,
-                )
-                val el = AddStateOwnership.Element(
-                    readOnly = false,
-                    items = listOf(item),
-                )
-                return@combine AddStateOwnershipElementHolder(
-                    value = selectedFolder,
-                    element = el,
-                )
-            }
-
-            is FolderInfo.Id -> {
-                val selectedFolderOrNull = folders
-                    .firstOrNull { it.id == selectedFolder.id }
-
-                // This might happen if the folder associated with the cipher was deleted.
-                // In that case the cipher continues to have the folder-id set, but we
-                // surface. The possible issue here is that if the "folders" are not complete
-                // yet, then the cipher will be shown as "No folder" for small period of time.
-                val el = if (selectedFolderOrNull == null) {
-                    val item = AddStateOwnership.Element.Item(
-                        key = "folder.empty",
-                        title = translate(Res.string.folder_none),
-                        stub = true,
-                    )
-                    AddStateOwnership.Element(
-                        readOnly = false,
-                        items = listOf(item),
-                    )
-                } else {
-                    AddStateOwnership.Element(
-                        readOnly = false,
-                        items = listOfNotNull(selectedFolderOrNull)
-                            .map { folder ->
-                                val key = "folder.${folder.id}"
-                                AddStateOwnership.Element.Item(
-                                    key = key,
-                                    title = folder.name,
-                                )
-                            },
-                    )
-                }
-                AddStateOwnershipElementHolder(
-                    value = selectedFolder,
-                    element = el,
-                )
-            }
-        }
-    }
-
-    return combine(
-        accountFlow,
-        organizationFlow,
-        collectionFlow,
-        folderFlow,
-    ) { account, organization, collection, folder ->
-        val flags = if (ro) {
-            OrganizationConfirmationRoute.Args.RO_ACCOUNT or
-                    OrganizationConfirmationRoute.Args.RO_ORGANIZATION or
-                    OrganizationConfirmationRoute.Args.RO_COLLECTION
-        } else {
-            0
-        }
-        val data = AddState.Ownership.Data(
-            accountId = account.value,
-            folderId = folder.value,
-            organizationId = organization.value,
-            collectionIds = collection.value,
-        )
-        val ui = AddStateOwnership(
-            account = account.element,
-            organization = organization.element.takeIf { account.value != null },
-            collection = collection.element.takeIf { account.value != null },
-            folder = folder.element,
-            onClick = onClick {
-                val route = registerRouteResultReceiver(
-                    route = OrganizationConfirmationRoute(
-                        args = OrganizationConfirmationRoute.Args(
-                            decor = OrganizationConfirmationRoute.Args.Decor(
-                                title = translate(Res.string.save_to),
-                                icon = Icons.Outlined.AccountBox,
-                            ),
-                            flags = flags,
-                            accountId = account.value,
-                            organizationId = organization.value,
-                            folderId = folder.value,
-                            collectionsIds = collection.value,
-                        ),
-                    ),
-                ) { result ->
-                    if (result is OrganizationConfirmationResult.Confirm) {
-                        val newState = AddItemOwnershipData(
-                            accountId = result.accountId,
-                            organizationId = result.organizationId,
-                            collectionIds = result.collectionsIds,
-                            folder = result.folderId,
-                        )
-                        ownershipHandle.stateSink.value = newState
-                    }
-                }
-                val intent = NavigationIntent.NavigateToRoute(route)
-                navigate(intent)
             },
+        profilesFlow = ownershipHandle.profilesFlow,
+        organizationsFlow = getOrganizations(),
+        collectionsFlow = getCollections(),
+        foldersFlow = getFolders(),
+        readOnly = ro,
+        onChange = { result ->
+            val newState = AddItemOwnershipData(
+                accountId = result.accountId,
+                organizationId = result.organizationId,
+                collectionIds = result.collectionsIds,
+                folder = result.folderId,
+            )
+            ownershipHandle.stateSink.value = newState
+        },
+    ) { ownership, ui ->
+        val data = AddState.Ownership.Data(
+            accountId = ownership.accountId,
+            folderId = ownership.folder,
+            organizationId = ownership.organizationId,
+            collectionIds = ownership.collectionIds,
         )
         AddState.Ownership(
             data = data,
@@ -3949,8 +3779,8 @@ data class KeyPairDecor2Brr(
 data class GpgKeyDecor2Brr(
     val gpgKey: GeneratedGpgKey? = null,
     val expiration: SupportingRow? = null,
-    val identityReplacement: SupportingRow? = null,
-    val identityRevocation: SupportingRow? = null,
+    val identityManagement: SupportingRow? = null,
+    val userIds: GpgUserIdsState? = null,
     val enabled: Boolean = true,
     val onChange: (GeneratedGpgKey) -> Unit,
     val onImport: () -> Unit,
@@ -3966,11 +3796,19 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
     args: AddRoute.Args,
     textService: TextService,
     sshKeyImportService: SshKeyImportService,
+    sshCertificateParser: SshCertificateParser,
+    dateFormatter: DateFormatter,
     showMessage: ShowMessage,
     filePickerIntentSink: EventFlow<FilePickerIntent<*>>,
     confirmationRouteFactory: ConfirmationRouteFactory,
 ): TmpSshKey {
     val prefix = "sshKey"
+
+    // Importing a -cert.pub file through the key fills the certificate.
+    val certificateHandle = textFieldHandle(
+        key = "$prefix.certificate",
+        initial = args.initialValue?.sshKey?.certificate.orEmpty(),
+    )
 
     val sshKey = kotlin.run {
         val id = "$prefix.sshKey"
@@ -4077,6 +3915,14 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                     showMessage.copy(msg)
                     sink.value = keyPair.toDecor()
                 },
+                onCertificate = { certificate ->
+                    val msg = ToastMessage(
+                        type = ToastMessage.Type.SUCCESS,
+                        title = translate(Res.string.ssh_certificate_import_success_title),
+                    )
+                    showMessage.copy(msg)
+                    certificateHandle.setText(certificate)
+                },
                 onNeedsPassphrase = { result, fileName, content ->
                     onImportKeyWithPassphrase(
                         result = result,
@@ -4132,12 +3978,14 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                     ),
                 ),
             populator = { state ->
-                val sshKey = CreateRequest.SshKey(
-                    privateKey = state.keyPair?.privateKey,
-                    publicKey = state.keyPair?.publicKey,
-                    fingerprint = state.keyPair?.fingerprint,
-                )
-                CreateRequest.sshKey.set(this, sshKey)
+                // The certificate has a field of its own.
+                CreateRequest.sshKey.modify(this) { sshKey ->
+                    sshKey.copy(
+                        privateKey = state.keyPair?.privateKey,
+                        publicKey = state.keyPair?.publicKey,
+                        fingerprint = state.keyPair?.fingerprint,
+                    )
+                }
             },
         )
         AddStateItem.SshKey(
@@ -4151,6 +3999,75 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
                 },
             ),
             state = stateItem,
+        )
+    }
+    val certificate = kotlin.run {
+        val label = translate(Res.string.ssh_certificate)
+        val publicKeyFlow = sshKey.state.flow
+            .map { it.keyPair?.publicKey }
+            .distinctUntilChanged()
+        val vlFlow = combine(
+            certificateHandle.sink
+                .map { it.text }
+                .debounce(80L)
+                .distinctUntilChanged(),
+            publicKeyFlow,
+        ) { text, publicKey ->
+            if (text.isBlank()) return@combine null
+            val problem = sshCertificateParser.parse(
+                certificate = text,
+                publicKey = publicKey,
+            ).problemAt(
+                epochSeconds = Clock.System.now().epochSeconds,
+                // The key may be added after its certificate.
+                hasPublicKey = !publicKey.isNullOrBlank(),
+            )
+                ?: return@combine null
+            TextFieldModel.Vl(
+                type = TextFieldModel.Vl.Type.WARNING,
+                text = formatSshCertificateProblem(
+                    problem = problem,
+                    dateFormatter = dateFormatter,
+                ),
+            )
+        }
+            .flowOn(Dispatchers.Default)
+            .onStart { emit(null) }
+        val stateFlow = combine(
+            certificateHandle.sink,
+            vlFlow,
+        ) { cell, vl ->
+            AddStateItem.Text.State(
+                value = TextFieldModel(
+                    text = cell.text,
+                    textRevision = cell.revision,
+                    vl = vl,
+                    onChange = certificateHandle::onChange,
+                    onSetText = certificateHandle::setText,
+                ),
+                label = label,
+            )
+        }
+            .persistingStateIn(
+                scope = screenScope,
+                started = SharingStarted.WhileSubscribed(),
+                initialValue = AddStateItem.Text.State(
+                    value = TextFieldModel.empty,
+                    label = label,
+                ),
+            )
+        AddStateItem.Text<CreateRequest>(
+            id = certificateHandle.id,
+            note = translate(Res.string.ssh_certificate_note, SSH_CERTIFICATE_FILE_SUFFIX),
+            state = LocalStateItem<AddStateItem.Text.State, CreateRequest>(
+                flow = stateFlow,
+                populator = { state ->
+                    val certificate = state.value.text
+                        .trim()
+                        .takeIf { it.isNotEmpty() }
+                    CreateRequest.sshKey.certificate.set(this, certificate)
+                },
+            ),
         )
     }
 //    val sshKeySuggestions = createItem2(
@@ -4167,6 +4084,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
         sshKey = sshKey,
         items = listOfNotNull<AddStateItem>(
             sshKey,
+            certificate,
 //            sshKeySuggestions,
         ),
     )
@@ -4182,6 +4100,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
     gpgPublicKeyParser: GpgPublicKeyParser,
     gpgKeyExpirationService: GpgKeyExpirationService,
     gpgUserIdReplacementService: GpgUserIdReplacementService,
+    gpgUserIdUpdateService: GpgUserIdUpdateService,
     gpgUserIdRevocationService: GpgUserIdRevocationService,
     showMessage: ShowMessage,
     filePickerIntentSink: EventFlow<FilePickerIntent<*>>,
@@ -4241,6 +4160,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             },
             expirationService = gpgKeyExpirationService,
             userIdReplacementService = gpgUserIdReplacementService,
+            userIdUpdateService = gpgUserIdUpdateService,
             userIdRevocationService = gpgUserIdRevocationService,
         )
 
@@ -4446,100 +4366,6 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             }
         }
 
-        suspend fun showIdentityReplacementError(
-            reason: GpgUserIdReplacementError? = null,
-        ) = showMessage.copy(
-            createLocalizedGpgUserIdReplacementFailureToast(reason),
-        )
-
-        suspend fun replaceIdentity(
-            snapshot: GpgKeyMutationGuard.Snapshot,
-            oldIdentityId: String,
-            newUserId: String,
-        ) {
-            when (
-                val outcome = keyMutationCoordinator.replaceUserId(
-                    snapshot = snapshot,
-                    oldIdentityId = oldIdentityId,
-                    newUserId = newUserId,
-                )
-            ) {
-                DraftGpgKeyMutationOutcome.Busy -> Unit
-                DraftGpgKeyMutationOutcome.Conflict ->
-                    showIdentityReplacementError(GpgUserIdReplacementError.TargetNotFound)
-
-                DraftGpgKeyMutationOutcome.Unsupported ->
-                    showIdentityReplacementError(GpgUserIdReplacementError.UnsupportedPlatform)
-
-                DraftGpgKeyMutationOutcome.Failed -> showIdentityReplacementError()
-
-                is DraftGpgKeyMutationOutcome.Complete -> when (val result = outcome.result) {
-                    is GpgUserIdReplacementResult.Success -> showMessage.copy(
-                        ToastMessage(
-                            type = ToastMessage.Type.SUCCESS,
-                            title = translate(Res.string.gpg_user_id_replacement_success_title),
-                            text = translate(
-                                if (result.changed) {
-                                    Res.string.gpg_user_id_replacement_success_message
-                                } else {
-                                    Res.string.gpg_user_id_replacement_already_done_message
-                                },
-                            ),
-                        ),
-                    )
-
-                    is GpgUserIdReplacementResult.Error ->
-                        showIdentityReplacementError(result.reason)
-                }
-            }
-        }
-
-        suspend fun showIdentityRevocationError(
-            reason: GpgUserIdRevocationError? = null,
-        ) = showMessage.copy(
-            createLocalizedGpgUserIdRevocationFailureToast(reason),
-        )
-
-        suspend fun revokeIdentity(
-            snapshot: GpgKeyMutationGuard.Snapshot,
-            identityId: String,
-        ) {
-            when (
-                val outcome = keyMutationCoordinator.revokeUserId(
-                    snapshot = snapshot,
-                    identityId = identityId,
-                )
-            ) {
-                DraftGpgKeyMutationOutcome.Busy -> Unit
-                DraftGpgKeyMutationOutcome.Conflict ->
-                    showIdentityRevocationError(GpgUserIdRevocationError.TargetNotFound)
-
-                DraftGpgKeyMutationOutcome.Unsupported ->
-                    showIdentityRevocationError(GpgUserIdRevocationError.UnsupportedPlatform)
-
-                DraftGpgKeyMutationOutcome.Failed -> showIdentityRevocationError()
-
-                is DraftGpgKeyMutationOutcome.Complete -> when (val result = outcome.result) {
-                    is GpgUserIdRevocationResult.Success -> showMessage.copy(
-                        ToastMessage(
-                            type = ToastMessage.Type.SUCCESS,
-                            title = translate(Res.string.gpg_user_id_revocation_success_title),
-                            text = translate(
-                                if (result.changed) {
-                                    Res.string.gpg_user_id_revocation_success_message
-                                } else {
-                                    Res.string.gpg_user_id_revocation_already_done_message
-                                },
-                            ),
-                        ),
-                    )
-
-                    is GpgUserIdRevocationResult.Error ->
-                        showIdentityRevocationError(result.reason)
-                }
-            }
-        }
-
         suspend fun formatExpiration(
             expiresAt: Instant?,
         ): String = expiresAt
@@ -4565,87 +4391,6 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             ) { change ->
                 screenScope.launch {
                     updateExpiration(snapshot, change)
-                }
-            }
-        }
-
-        fun GpgPublicKeyInfo.selectionIdentities(): List<GpgUserIdSelectionIdentity> =
-            userIdDetails
-                .distinctBy { identity -> identity.identityId }
-                .map { identity ->
-                    GpgUserIdSelectionIdentity(
-                        identityId = identity.identityId,
-                        userId = identity.userId,
-                    )
-                }
-
-        suspend fun requestIdentityReplacement(
-            expectedKey: GeneratedGpgKey,
-            keyInfo: GpgPublicKeyInfo,
-        ) {
-            if (keyMutationCoordinator.inProgress.value) {
-                return
-            }
-            val snapshot = keyMutations.snapshot()
-            if (snapshot.key != expectedKey) {
-                showIdentityReplacementError(GpgUserIdReplacementError.TargetNotFound)
-                return
-            }
-            val identities = keyInfo.selectionIdentities()
-            requestGpgUserIdSelection(
-                activeIdentities = identities,
-                mode = GpgUserIdSelectionRoute.Args.Mode.Replacement,
-            ) { oldIdentityId ->
-                screenScope.launch {
-                    if (!keyMutations.isCurrent(snapshot)) {
-                        showIdentityReplacementError(GpgUserIdReplacementError.TargetNotFound)
-                        return@launch
-                    }
-                    val oldUserId = identities
-                        .firstOrNull { identity -> identity.identityId == oldIdentityId }
-                        ?.userId
-                    if (oldUserId == null) {
-                        showIdentityReplacementError(GpgUserIdReplacementError.TargetNotFound)
-                        return@launch
-                    }
-                    requestGpgUserIdReplacementValue(
-                        oldUserId = oldUserId,
-                        activeUserIds = identities.map { identity -> identity.userId },
-                    ) { newUserId ->
-                        screenScope.launch {
-                            replaceIdentity(
-                                snapshot = snapshot,
-                                oldIdentityId = oldIdentityId,
-                                newUserId = newUserId,
-                            )
-                        }
-                    }
-                }
-            }
-        }
-
-        suspend fun requestIdentityRevocation(
-            expectedKey: GeneratedGpgKey,
-            keyInfo: GpgPublicKeyInfo,
-        ) {
-            if (keyMutationCoordinator.inProgress.value) {
-                return
-            }
-            val snapshot = keyMutations.snapshot()
-            if (snapshot.key != expectedKey) {
-                showIdentityRevocationError(GpgUserIdRevocationError.TargetNotFound)
-                return
-            }
-            requestGpgUserIdSelection(
-                activeIdentities = keyInfo.selectionIdentities(),
-                mode = GpgUserIdSelectionRoute.Args.Mode.Revocation,
-                canRevokeLastIdentity = keyInfo.canRevokeLastIdentity,
-            ) { identityId ->
-                screenScope.launch {
-                    revokeIdentity(
-                        snapshot = snapshot,
-                        identityId = identityId,
-                    )
                 }
             }
         }
@@ -4708,70 +4453,35 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             }
         }
 
-        suspend fun createIdentityMutationDecor(
-            value: GeneratedGpgKey,
-            keyInfo: Loadable<GpgPublicKeyInfo?>,
-            updateInProgress: Boolean,
-            serviceSupported: Boolean,
-            unavailableRes: StringResource,
-            privateKeyRequiredRes: StringResource,
-            identityRestriction: (GpgPublicKeyInfo) -> StringResource?,
-            request: suspend (GeneratedGpgKey, GpgPublicKeyInfo) -> Unit,
-        ): GpgKeyDecor2Brr.SupportingRow? {
-            if (value.publicKeyArmored.isBlank() || keyInfo is Loadable.Loading) {
-                return null
-            }
-            val loadedKeyInfo = (keyInfo as Loadable.Ok).value
-            val supportingText = when {
-                loadedKeyInfo == null -> translate(
-                    if (gpgPublicKeyParser.isSupported) {
-                        Res.string.gpg_key_expiry_key_unreadable
-                    } else {
-                        unavailableRes
-                    },
-                )
-
-                value.privateKeyArmored.isBlank() -> translate(privateKeyRequiredRes)
-                !serviceSupported -> translate(unavailableRes)
-                loadedKeyInfo.revoked ->
-                    translate(Res.string.gpg_user_id_mutation_key_revoked_message)
-
-                else -> identityRestriction(loadedKeyInfo)?.let { translate(it) }
-            }
-            val canMutate = loadedKeyInfo != null &&
-                value.privateKeyArmored.isNotBlank() &&
-                serviceSupported &&
-                !loadedKeyInfo.revoked &&
-                identityRestriction(loadedKeyInfo) == null &&
-                !updateInProgress
-            return GpgKeyDecor2Brr.SupportingRow(
-                text = supportingText,
-                onClick = if (canMutate) {
-                    {
-                        screenScope.launch {
-                            request(value, loadedKeyInfo)
-                        }
-                    }
-                } else {
-                    null
-                },
-            )
-        }
+        val userIds = GpgUserIdsStateProducer(
+            scope = screenScope,
+            mutations = keyMutations,
+            coordinator = keyMutationCoordinator,
+            translator = this,
+            formatDateTime = dateFormatter::formatDateTimeWithSeconds,
+        )
 
         val parsedKeyFlow = sink.withLatestAsyncDecoration { value ->
-            value.publicKeyArmored
+            // The secret certificate retains local-only identity history that an
+            // ordinary public export intentionally withholds.
+            value.privateKeyArmored.ifBlank { value.publicKeyArmored }
                 .takeIf { it.isNotBlank() }
-                ?.let { publicKeyArmored ->
+                ?.let { keyMaterial ->
                     withContext(Dispatchers.Default) {
                         gpgPublicKeyParser.parsePrimaryKeyInfo(
-                            armored = publicKeyArmored,
+                            armored = keyMaterial,
                             fingerprint = value.fingerprint,
                         )
                     }
                 }
         }
         val stateItem = LocalStateItem<GpgKeyDecor2Brr, CreateRequest>(
-            flow = combine(parsedKeyFlow, keyMutationCoordinator.inProgress) { (value, keyInfo), updateInProgress ->
+            flow = combine(
+                parsedKeyFlow,
+                keyMutationCoordinator.inProgress,
+                userIds.editor,
+            ) { (value, keyInfo), updateInProgress, editor ->
+                val info = (keyInfo as? Loadable.Ok)?.value
                 GpgKeyDecor2Brr(
                     gpgKey = value,
                     expiration = createExpirationDecor(
@@ -4779,40 +4489,22 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                         keyInfo = keyInfo,
                         updateInProgress = updateInProgress,
                     ),
-                    identityReplacement = createIdentityMutationDecor(
-                        value = value,
-                        keyInfo = keyInfo,
-                        updateInProgress = updateInProgress,
-                        serviceSupported = gpgUserIdReplacementService.isSupported,
-                        unavailableRes = Res.string.gpg_user_id_replacement_unavailable,
-                        privateKeyRequiredRes =
-                            Res.string.gpg_user_id_replacement_private_key_required,
-                        identityRestriction = { info ->
-                            Res.string.gpg_user_id_replacement_no_identity_message
-                                .takeIf { info.userIdDetails.isEmpty() }
-                        },
-                        request = ::requestIdentityReplacement,
-                    ),
-                    identityRevocation = createIdentityMutationDecor(
-                        value = value,
-                        keyInfo = keyInfo,
-                        updateInProgress = updateInProgress,
-                        serviceSupported = gpgUserIdRevocationService.isSupported,
-                        unavailableRes = Res.string.gpg_user_id_revocation_unavailable,
-                        privateKeyRequiredRes =
-                            Res.string.gpg_user_id_revocation_private_key_required,
-                        identityRestriction = { info ->
-                            when {
-                                info.userIdDetails.isEmpty() ->
-                                    Res.string.gpg_user_id_revocation_no_identity_message
-
-                                info.userIdDetails.size == 1 && !info.canRevokeLastIdentity ->
-                                    Res.string.gpg_user_id_revocation_last_identity_message
-
-                                else -> null
-                            }
-                        },
-                        request = ::requestIdentityRevocation,
+                    identityManagement = if (value.publicKeyArmored.isNotBlank()) {
+                        GpgKeyDecor2Brr.SupportingRow(
+                            value = info?.userIdDetails?.firstOrNull { it.primary }?.userId,
+                            text = info?.let {
+                                val count = it.userIdDetails.size
+                                translate(Res.plurals.gpg_user_ids_count_plural, count, count)
+                            },
+                            onClick = (userIds::open).takeUnless { updateInProgress },
+                        )
+                    } else null,
+                    userIds = userIds.state(
+                        key = value,
+                        info = info,
+                        loading = keyInfo == Loadable.Loading,
+                        busy = updateInProgress,
+                        editor = editor,
                     ),
                     enabled = !updateInProgress,
                     onChange = {
@@ -5053,7 +4745,13 @@ internal suspend fun handleSshKeyFileImport(
     onNeedsPassphrase: suspend (SshKeyImportResult.NeedsPassphrase, String?, ByteArray) -> Unit,
     onImportError: suspend (SshKeyImportError) -> Unit,
     onReadError: suspend () -> Unit,
+    onCertificate: suspend (String) -> Unit,
 ) = withKeyFileBytes(info, readBytes, onReadError) { content ->
+    if (isSshCertificateFile(content)) {
+        // A certificate is public, so its text needs no clearing.
+        onCertificate(content.decodeToString().trim())
+        return@withKeyFileBytes
+    }
     when (
         val result = importSshKey(
             SshKeyImportRequest(

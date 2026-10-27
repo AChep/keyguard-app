@@ -45,13 +45,14 @@ internal fun gpgResolverErrorLogger(
  * Persisted metadata is only an index and cannot prove current ownership. The
  * live resolver must parse the stored private material and attribute it to the
  * primary component before that certificate becomes a trust authority.
+ * Callers are responsible for checking item eligibility.
  */
 fun DSecret.toGpgCertificationAuthorityEntries(
     resolver: GpgKeyMetadataResolver,
     candidateRevocationKeys: List<GpgOpenPgpPublicKey> = emptyList(),
     onError: (Exception) -> Unit = {},
 ): List<GpgCertificationAuthorityEntry> = when {
-    !isGpgAgentSecretType() || deleted -> emptyList()
+    !isGpgAgentSecretType() -> emptyList()
     else -> {
         val privateKeyArmored = getGpgAgentPrivateKeyArmored()
             ?.takeIf(String::isNotBlank)

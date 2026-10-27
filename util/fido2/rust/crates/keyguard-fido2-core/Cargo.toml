@@ -15,7 +15,7 @@ authenticator = { workspace = true, features = ["crypto_rust"] }
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys = { workspace = true, features = ["Win32_Networking_WindowsWebServices", "Win32_UI_WindowsAndMessaging"] }
-base64.workspace = true
+base64 = { workspace = true, features = ["std"] }
 
 # Narrower than the workspace lints, which also require documentation.
 [lints.rust]

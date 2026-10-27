@@ -1,59 +1,89 @@
 ---
-title: KeePass (KDBX)
-description: Open, edit, and create KeePass databases in Keyguard — what maps to what, and what to watch out for.
-category: accounts
-order: 4
+title: KeePass databases
+description: "Open, create and edit KeePass (KDBX) databases in Keyguard, and how their entries map to items."
+section: accounts
+type: feature
+order: 30
+platforms: [android, wear-os, linux, macos, windows]
+stage: beta
+related: [multi-account, sync-and-conflicts, backups]
 ---
 
-Keyguard can work with **KeePass (KDBX)** databases:
-all your passwords live in a single, highly-encrypted file stored directly on
-your device. You have complete control over your data — keep the file on your
-computer or a USB drive, or sync it yourself with a service like Syncthing,
-Google Drive, or Dropbox.
+Keyguard opens, creates and edits KeePass (KDBX) databases. The database is a
+single encrypted file that you store and sync yourself, on this device, a WebDAV
+server or S3-compatible storage.
 
-> **Beta.** The KeePass implementation is in beta and is not yet fully
-> compatible with standard KeePass clients. Make sure you have a verified
-> backup of your database before using it.
+### Before you begin
 
-## Opening and creating databases
+- A verified backup of your database. Keyguard's KeePass support isn't yet
+  fully compatible with other KeePass clients.
 
-When adding an account, choose KeePass and either **open an existing
-database** or **create a new one**. Keyguard supports these file providers:
+## Open a database
 
-- file system;
-- WebDAV;
-- S3-compatible storage.
+1. In **Settings**, select **Add account**, then **KeePass**.
+2. Under **Database location**, select **Local file**, **WebDAV** or **S3**.
+   For WebDAV and S3, fill in the form from
+   [Storage locations](#storage-locations) and select **Save**.
+3. Select **Open a database**. For a local file, choose the `.kdbx` file.
+4. Enter the database password, select **Select a key file**, or do both, as
+   your database requires.
+5. Select **Sign in**. The database's items appear in the vault.
 
-New databases are created in the **KDBX 4.x** format.
+## Create a database
 
-To unlock a database, enter its **master password**, select its **key file**,
-or provide both depending on how the database was configured.
+1. In **Settings**, select **Add account**, then **KeePass**.
+2. Under **Database location**, select **Local file**, **WebDAV** or **S3**.
+   For WebDAV and S3, fill in the form from
+   [Storage locations](#storage-locations) and select **Save**.
+3. Select **Create a database**. For a local file, choose where to save it.
+4. Enter a password for the new database. Optionally, select a key file with
+   **Select a key file**.
+5. Select **Sign in**. Keyguard creates the file in the KDBX 4 format and opens
+   the empty database.
 
-## Editing
+## Edit a database
 
-KeePass support is read-write: you can add, edit, and delete items and
-folders, and Keyguard saves the changes back into the `.kdbx` file. Because
-changes are written directly to a local file without server mediation, let
-external sync tools finish before editing the database on another device,
-and keep [backups](/docs/backups/).
+Add, edit and delete items and folders as in any other account. Editing follows
+the [Premium](/docs/premium/) rules. Keyguard writes the changes back into the
+`.kdbx` file.
 
-## How KDBX maps to Keyguard
+If the file changed elsewhere, Keyguard merges both versions as described in
+[Sync and conflict resolution](/docs/sync-and-conflicts/).
 
-Keyguard presents KeePass data through the same model it uses for Bitwarden:
+:::caution
+Keyguard writes to the file directly, without a server in between. Let your
+sync tool finish before you edit the database on another device, and set up
+[Automatic backups](/docs/backups/).
+:::
 
-| KDBX                          | Keyguard                                   |
-| :---------------------------- | :----------------------------------------- |
-| Groups                        | Folders                                    |
-| Entries                       | Items (logins, and other types)            |
-| Tags                          | Item tags; a `Favorite` tag marks a favorite |
+## Storage locations
 
-## What does not apply
+| Location | What you enter |
+| --- | --- |
+| **Local file** | A file on this device. Sync it with your own tool, such as Syncthing. |
+| **WebDAV** | **WebDAV URL** of the `.kdbx` file to open or create, plus a username and password if the server needs them. |
+| **S3** | **Bucket**, **Object key** ending in `.kdbx`, **Access key ID** and **Secret access key**. Leave **Endpoint URL** empty for Amazon S3. Keep **Path-style URLs** on for most self-hosted servers. |
 
-Some of Keyguard's features are built on Bitwarden's server platform and have
-no KeePass equivalent:
+In the WebDAV and S3 forms, **Browse** picks the location on the server. The
+credentials are for the storage server. Don't enter your database password
+there.
 
-- **Organizations and collections** — KDBX has no concept of them;
-- **Sends** — a Bitwarden platform feature.
+Keyguard saves a WebDAV database to a temporary file, then moves it over the
+database. If the server can't move files, Keyguard uploads the database
+directly. If saving still fails, turn off **Prefer WebDAV transactions** in
+**Settings > Other**. Keyguard then always uploads directly.
 
-On **Wear OS**, the watch receives a one-time copy of the database — see
-[Keyguard on Wear OS](/docs/wear-os/#setup).
+## KDBX mapping
+
+| KDBX | Keyguard |
+| --- | --- |
+| Groups | Folders |
+| Entries | Items |
+| Tags | Item tags. A `Favorite` tag marks a favorite. |
+| No equivalent | Organizations, collections and sends. KeePass accounts don't have them. |
+
+## Limitations
+
+| Platform | Limitation |
+| --- | --- |
+| Wear OS | The watch can't open a database itself. See [Wear OS](/docs/wear-os/#limitations). |

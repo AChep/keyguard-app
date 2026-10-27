@@ -65,6 +65,16 @@ import com.artemchep.keyguard.apple.generator.GeneratorSession
 import com.artemchep.keyguard.apple.generator.GeneratorHistoryController
 import com.artemchep.keyguard.apple.generator.WordlistController
 import com.artemchep.keyguard.apple.generator.WordlistActionRequestSnapshot
+import com.artemchep.keyguard.apple.cli.CliAgentController
+import com.artemchep.keyguard.apple.cli.CliApprovalSnapshot
+import com.artemchep.keyguard.apple.cli.CliSession
+import com.artemchep.keyguard.apple.cli.observeCliApprovals
+import com.artemchep.keyguard.apple.cli.resolveCliRequest
+import com.artemchep.keyguard.apple.environments.EnvironmentsSession
+import com.artemchep.keyguard.apple.environments.EnvironmentApprovalSnapshot
+import com.artemchep.keyguard.apple.environments.observeEnvironmentApprovals
+import com.artemchep.keyguard.apple.environments.resolveEnvironmentRequest
+import com.artemchep.keyguard.common.service.environment.EnvironmentAccess
 import com.artemchep.keyguard.apple.gpgtools.GpgToolsSession
 import com.artemchep.keyguard.apple.lists.AutofillController
 import com.artemchep.keyguard.apple.lists.AutofillCredentialSnapshot
@@ -356,7 +366,13 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (SshAgentStatusSnapshot) -> Unit,
     ): KeyguardCancellable = sshAgentController.observeSshAgentStatus(onChange)
 
+    private val cliAgentController by lazy { CliAgentController(context) }
+
+    /** Starts and stops the agent of the CLI and the environments with their settings. Main app only. */
+    fun startCliAgentApplier() = cliAgentController.start()
+
     // GPG agent
+
     private val gpgAgentController by lazy { GpgAgentController(context) }
 
     /** Starts and stops the agent with its setting. Main app only: the AutoFill extension must never spawn it. */
@@ -705,6 +721,20 @@ class KeyguardCore(runtime: KeyguardRuntime) {
      */
     fun invokeAttachmentPreviewCopy() = dialogController.invokeAttachmentPreviewCopy()
 
+    fun attachmentPreviewBack() = dialogController.attachmentPreviewBack()
+    fun attachmentPreviewOpenBreadcrumb(index: Int) = dialogController.attachmentPreviewOpenBreadcrumb(index)
+    fun attachmentPreviewSave() = dialogController.attachmentPreviewSave()
+    fun attachmentPreviewOpenEntry(id: String, save: Boolean) = dialogController.attachmentPreviewOpenEntry(id, save)
+    fun attachmentPreviewPassword(password: String) = dialogController.attachmentPreviewPassword(password)
+    fun attachmentPreviewCancel() = dialogController.attachmentPreviewCancel()
+    fun prepareAttachmentPreviewExport(
+        onResult: (com.artemchep.keyguard.apple.dialog.AttachmentArchiveExportSnapshot?) -> Unit,
+    ) = dialogController.prepareAttachmentPreviewExport(onResult)
+    fun finishAttachmentPreviewExport(
+        id: String,
+        outcome: com.artemchep.keyguard.apple.dialog.AttachmentArchiveExportOutcomeSnapshot,
+    ) = dialogController.finishAttachmentPreviewExport(id, outcome)
+
     fun closeAttachmentPreview() = dialogController.closeAttachmentPreview()
 
     // Confirmation dialog
@@ -825,6 +855,22 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun closeCipherLinkPicker() = dialogController.closeCipherLinkPicker()
 
+    // The environment editor's drill-down picker of a field of another item.
+
+    fun observeCipherFieldPicker(
+        onChange: (com.artemchep.keyguard.apple.dialog.CipherFieldPickerSnapshot?) -> Unit,
+    ): KeyguardCancellable = dialogController.observeCipherFieldPicker(onChange)
+
+    fun setCipherFieldPickerQuery(text: String) = dialogController.setCipherFieldPickerQuery(text)
+
+    fun selectCipherFieldPickerItem(id: String) = dialogController.selectCipherFieldPickerItem(id)
+
+    fun selectCipherFieldPickerField(id: String) = dialogController.selectCipherFieldPickerField(id)
+
+    fun backCipherFieldPicker() = dialogController.backCipherFieldPicker()
+
+    fun closeCipherFieldPicker() = dialogController.closeCipherFieldPicker()
+
     // Account picker ("Save to", "Copy to…") and folder picker ("Move to folder")
 
     fun observeAccountPicker(
@@ -850,6 +896,27 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         sendDetailController.makeSession(itemId, accountId)
 
     fun makeGeneratorSession(): GeneratorSession = generatorController.makeSession()
+
+    fun makeEnvironmentsSession(): EnvironmentsSession = EnvironmentsSession(context).apply {
+        navigationInterceptorProvider = { navigationStackController.interceptor(it) }
+    }
+
+    fun observeEnvironmentApprovals(onChange: (List<EnvironmentApprovalSnapshot>) -> Unit): KeyguardCancellable =
+        context.observeEnvironmentApprovals(onChange)
+
+    fun provideEnvironmentDirectoryGrant(path: String, bookmark: String) =
+        context.koin.get<EnvironmentAccess>().provideDirectoryGrant(path, bookmark)
+
+    fun resolveEnvironmentRequest(id: String, approved: Boolean) =
+        context.resolveEnvironmentRequest(id, approved) { navigationStackController.interceptor(it) }
+
+    fun makeCliSession(): CliSession = CliSession(context)
+
+    fun observeCliApprovals(onChange: (List<CliApprovalSnapshot>) -> Unit): KeyguardCancellable =
+        context.observeCliApprovals(onChange)
+
+    fun resolveCliRequest(id: String, approved: Boolean) =
+        context.resolveCliRequest(id, approved) { navigationStackController.interceptor(it) }
 
     fun makeGpgToolsSession(): GpgToolsSession = GpgToolsSession(context).apply {
         navigationInterceptorProvider = { navigationStackController.interceptor(it) }

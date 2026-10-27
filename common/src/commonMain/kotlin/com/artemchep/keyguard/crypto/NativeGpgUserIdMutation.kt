@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpCertificateIndex
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyMaterial
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 internal fun <NativeResult, DomainResult> mutateSignedUserId(
@@ -14,7 +15,7 @@ internal fun <NativeResult, DomainResult> mutateSignedUserId(
     now: () -> Instant,
     waitForClock: (milliseconds: Long) -> Boolean,
     internalFailureError: () -> DomainResult,
-    isTimeConflict: (NativeResult) -> Boolean,
+    retryAt: (NativeResult) -> Long?,
     nativeMutation: (
         privateKey: ByteArray,
         publicKey: ByteArray,
@@ -40,7 +41,7 @@ internal fun <NativeResult, DomainResult> mutateSignedUserId(
                     retryNativeTimeConflicts(
                         now = now,
                         waitForClock = waitForClock,
-                        isTimeConflict = isTimeConflict,
+                        retryAt = retryAt,
                     ) { referenceTimeEpochSeconds ->
                         nativeMutation(
                             privateKey,
@@ -72,28 +73,27 @@ internal inline fun <T> withDecodedKeyMaterial(
         }
     }
 
+/** Retries explicit clock conflicts, with a bounded total wait and fresh policy time. */
 internal inline fun <T> retryNativeTimeConflicts(
     now: () -> Instant,
     waitForClock: (milliseconds: Long) -> Boolean,
-    isTimeConflict: (T) -> Boolean,
+    retryAt: (T) -> Long?,
     update: (referenceTimeEpochSeconds: Long) -> T,
 ): T {
-    var waitsRemaining = MAX_TIME_CONFLICT_WAITS
-    var result: T
-    var shouldRetry: Boolean
-    do {
-        val reference = now()
-        result = update(reference.epochSeconds)
-        shouldRetry = isTimeConflict(result) &&
-            waitsRemaining > 0 &&
-            waitForClock(reference.millisecondsUntilNextEpochSecond())
-        if (shouldRetry) waitsRemaining -= 1
-    } while (shouldRetry)
-    return result
+    var waitBudget = MAX_CLOCK_WAIT_MILLISECONDS
+    var retriesRemaining = MAX_CLOCK_RETRIES
+    while (true) {
+        val result = update(now().epochSeconds)
+        val retryTime = retryAt(result)
+        if (retryTime == null || retriesRemaining-- == 0) return result
+        val remaining = Instant.fromEpochSeconds(retryTime) - now()
+        val wholeMilliseconds = remaining.inWholeMilliseconds.coerceAtLeast(0)
+        // Round up so a sub-millisecond remainder cannot exhaust retries before the next second.
+        val delay = wholeMilliseconds + if (remaining > wholeMilliseconds.milliseconds) 1 else 0
+        if (delay > waitBudget || (delay > 0 && !waitForClock(delay))) return result
+        waitBudget -= delay
+    }
 }
 
-private fun Instant.millisecondsUntilNextEpochSecond(): Long =
-    MILLISECONDS_PER_SECOND - toEpochMilliseconds().mod(MILLISECONDS_PER_SECOND)
-
-private const val MAX_TIME_CONFLICT_WAITS = 5
-private const val MILLISECONDS_PER_SECOND = 1_000L
+private const val MAX_CLOCK_RETRIES = 5
+private const val MAX_CLOCK_WAIT_MILLISECONDS = 5_000L

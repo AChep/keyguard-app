@@ -136,7 +136,7 @@
 
 # The SSH and GPG helper processes share this desktop IPC transport. ProGuard
 # 7.8 changes its authentication/session behavior when optimizing the package.
-# This protects 135 shared transport classes instead of all 500 agent classes.
+# This protects 205 shared transport classes instead of all 545 agent classes.
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.common.service.agent.** { *; }
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.common.service.sshagent.SshAgentPacketSessionKt { *; }
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.common.service.sshagent.SshAgentPacketSessionKt$* { *; }
@@ -144,6 +144,11 @@
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.common.service.gpgagent.GpgAgentPacketSessionKt { *; }
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.common.service.gpgagent.GpgAgentPacketSessionKt$* { *; }
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.common.service.gpgagent.GpgAgentProtoCodec { *; }
+
+# The native channel under that transport. Its JNI library binds to
+# NativeAgentIpcJni by name, and its calls block, cancel and close across
+# threads. Keep its method bodies as written, as for the transport above.
+-keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.util.agentipc.** { *; }
 
 # OkHttp supports optional TLS providers and GraalVM native-image integrations
 # that are not part of the Desktop application runtime.

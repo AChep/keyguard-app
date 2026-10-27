@@ -190,6 +190,9 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.tags.TagsFieldModel
+import com.artemchep.keyguard.feature.tags.tagUsage
+import com.artemchep.keyguard.feature.tags.tagsFieldFlow
 import com.artemchep.keyguard.platform.LeSerializable
 import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
@@ -979,40 +982,35 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         },
     )
 
-    val tagsFactories = kotlin.run {
-        val plainTextFactory = AddStateItemTagTextFactory()
+    val tagsItem = AddStateItem.Tags<CreateRequest>(
+        id = "tag",
+        state = LocalStateItem(
+            flow = tagsFieldFlow(
+                key = "tag",
+                initial = args.initialValue?.tags.orEmpty(),
+                catalogFlow = getCiphers()
+                    .map(::tagUsage)
+                    .distinctUntilChanged()
+                    .flowOn(Dispatchers.Default),
+            )
+                .persistingStateIn(
+                    scope = screenScope,
+                    started = SharingStarted.WhileSubscribed(1000L),
+                    initialValue = TagsFieldModel.empty,
+                ),
+            populator = { field ->
+                copy(tags = field.value.toPersistentList())
+            },
+        ),
+    )
+    val tagsFlow = flowOf(
         listOf(
-            plainTextFactory,
-        )
-    }
-    val tagsFlow = foo3(
-        logRepository = logRepository,
-        scope = "tag",
-        initial = args.initialValue?.tags.orEmpty(),
-        initialType = { tag -> "tag.text" },
-        confirmationRouteFactory = confirmationRouteFactory,
-        factories = tagsFactories,
-        afterList = {
-            val header = AddStateItem.Section(
+            AddStateItem.Section(
                 id = "tag.section",
                 text = translate(Res.string.tags),
-            )
-            add(0, header)
-        },
-        extra = {
-            typeBasedAddItem(
-                translator = this@addCipherStateProducer,
-                scope = "tag",
-                typesFlow = flowOf(
-                    listOf(
-                        Foo2Type(
-                            type = "tag.text",
-                            name = translate(Res.string.tag),
-                        ),
-                    ),
-                ),
-            )
-        },
+            ),
+            tagsItem,
+        ),
     )
 
     val titleItem = AddStateItem.Title<CreateRequest>(
@@ -1711,79 +1709,6 @@ class AddStateItemPasskeyFactory(
                     copy(fido2Credentials = newFido2Credentials)
                 },
             ),
-        )
-    }
-}
-
-abstract class AddStateItemTagFactory : Foo2Factory<AddStateItem.Tag<*>, String> {
-    fun foo(
-        key: String,
-        flow: StateFlow<AddStateItem.Tag.State>,
-    ) = AddStateItem.Tag<CreateRequest>(
-        id = key,
-        state = LocalStateItem(
-            flow = flow,
-            populator = { state ->
-                val tag = when (state) {
-                    is AddStateItem.Tag.State.Text -> {
-                        state.text.text
-                    }
-                }
-                val newTags = tags.add(tag)
-                copy(tags = newTags)
-            },
-        ),
-    )
-}
-
-class AddStateItemTagTextFactory(
-) : AddStateItemTagFactory() {
-    override val type: String = "tag.text"
-
-    override fun RememberStateFlowScope.release(key: String) {
-        clearPersistedFlow("$key.text")
-    }
-
-    override fun RememberStateFlowScope.add(
-        key: String,
-        initial: String?,
-    ): AddStateItem.Tag<CreateRequest> {
-        val textHandle = textFieldHandle(
-            key = "$key.text",
-            initial = initial.orEmpty(),
-        )
-        val textHintFlow = ioEffect {
-            translate(Res.string.tag_value)
-        }.asFlow()
-        val textFlow = combine(
-            textHandle.sink,
-            textHintFlow,
-        ) { textCell, textHint ->
-            TextFieldModel(
-                text = textCell.text,
-                textRevision = textCell.revision,
-                hint = textHint,
-                onChange = textHandle::onChange,
-                onSetText = textHandle::setText,
-            )
-        }
-
-        val stateFlow = textFlow
-            .map { textField ->
-                AddStateItem.Tag.State.Text(
-                    text = textField,
-                )
-            }
-            .persistingStateIn(
-                scope = screenScope,
-                started = SharingStarted.WhileSubscribed(1000L),
-                initialValue = AddStateItem.Tag.State.Text(
-                    text = TextFieldModel.empty,
-                ),
-            )
-        return foo(
-            key = key,
-            flow = stateFlow,
         )
     }
 }

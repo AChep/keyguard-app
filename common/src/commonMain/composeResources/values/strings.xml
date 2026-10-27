@@ -166,6 +166,8 @@
     <string name="tag">Tag</string>
     <string name="tags">Tags</string>
     <string name="tags_empty_label">No tags</string>
+    <string name="tags_field_placeholder">Add tag</string>
+    <string name="tag_remove_content_description">Remove tag <xliff:g id="tag" example="work">%1$s</xliff:g></string>
     <string name="collection_none">No collection</string>
     <string name="collection">Collection</string>
     <string name="collections">Collections</string>

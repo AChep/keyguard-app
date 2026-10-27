@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import com.artemchep.keyguard.apple.core.toArgbLong
+import com.artemchep.keyguard.apple.model.TagsFieldSnapshot
 import com.artemchep.keyguard.common.model.BarcodeImageFormat
 import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.ui.format
@@ -146,6 +147,7 @@ enum class ConfirmationItemKind {
     STRING,
     CHOICE,
     FILE,
+    TAGS,
 }
 
 /**
@@ -181,6 +183,8 @@ data class ConfirmationItemSnapshot(
     // FILE
     val fileName: String? = null,
     val hasFile: Boolean = false,
+    // TAGS: the commands route through `setConfirmationItemString`.
+    val tags: TagsFieldSnapshot? = null,
 )
 
 /** One option of a [ConfirmationItemKind.CHOICE] row's dropdown. */

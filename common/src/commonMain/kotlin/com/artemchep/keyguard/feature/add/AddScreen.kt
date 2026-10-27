@@ -131,7 +131,6 @@ import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.PasswordPwnedBadge
 import com.artemchep.keyguard.ui.rememberFieldBuffer
 import com.artemchep.keyguard.ui.PasswordStrengthBadge
-import com.artemchep.keyguard.ui.TagFlatTextField
 import com.artemchep.keyguard.ui.UrlFlatTextField
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.focus.focusRequester2
@@ -148,6 +147,7 @@ import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
+import com.artemchep.keyguard.ui.tags.TagsField
 import com.artemchep.keyguard.ui.text.annotatedResource
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -215,7 +215,7 @@ fun getAnyFieldShapeState(
         is AddStateItem.Url<*> -> ::getAnyFieldShapeStateUrlPredicate
         is AddStateItem.Link<*> -> ::getAnyFieldShapeStateLinkPredicate
         is AddStateItem.Field<*> -> ::getAnyFieldShapeStateFieldPredicate
-        is AddStateItem.Tag<*> -> ::getAnyFieldShapeStateTagPredicate
+        is AddStateItem.Tags<*> -> ::getAnyFieldShapeStateTagPredicate
         else -> ::getAnyFieldShapeStateOtherPredicate
     }
     return getShapeState(
@@ -273,7 +273,7 @@ private fun getAnyFieldShapeStateFieldPredicate(
 private fun getAnyFieldShapeStateTagPredicate(
     item: AddStateItem,
     index: Int,
-) = item is AddStateItem.Tag<*>
+) = item is AddStateItem.Tags<*>
 
 private fun getAnyFieldShapeStateOtherPredicate(
     item: AddStateItem,
@@ -429,8 +429,8 @@ fun AnyField(
         )
     }
 
-    is AddStateItem.Tag<*> -> {
-        FieldTag(
+    is AddStateItem.Tags<*> -> {
+        FieldTags(
             modifier = modifier,
             item = item,
             shapeState = shapeState,
@@ -1346,52 +1346,17 @@ private fun TextTextField(
 
 context(addScope: AddScreenScope)
 @Composable
-private fun FieldTag(
+private fun FieldTags(
     modifier: Modifier = Modifier,
-    item: AddStateItem.Tag<*>,
-    shapeState: Int,
-) = Column(modifier = modifier) {
-    val state by item.state.flow.collectAsState()
-    val actions = remember(
-        state.options,
-        item.options,
-    ) {
-        buildContextItems(
-            state.options,
-            item.options,
-        ) {
-            // Do nothing.
-        }
-    }
-    when (val s = state) {
-        is AddStateItem.Tag.State.Text -> {
-            FieldTextTag(
-                state = s,
-                actions = actions,
-                shapeState = shapeState,
-            )
-        }
-    }
-}
-
-context(addScope: AddScreenScope)
-@Composable
-private fun FieldTextTag(
-    modifier: Modifier = Modifier,
-    state: AddStateItem.Tag.State.Text,
-    actions: ImmutableList<ContextItem>,
+    item: AddStateItem.Tags<*>,
     shapeState: Int,
 ) {
-    TagFlatTextField(
+    val state by item.state.flow.collectAsState()
+    TagsField(
         modifier = modifier
             .padding(horizontal = Dimens.fieldHorizontalPadding),
+        value = state,
         shapeState = shapeState,
-        value = state.text,
-        trailing = {
-            OptionsButton(
-                actions = actions,
-            )
-        },
     )
 }
 

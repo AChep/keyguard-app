@@ -65,7 +65,7 @@ struct FormFieldsPreview: View {
                 error: showError ? "Synthetic validation message that can appear while editing." : nil,
                 sensitive: false, monospace: monospace, password: false,
                 enumValue: "", options: [], docText: nil, docHasLink: false,
-                fileName: nil, hasFile: false
+                fileName: nil, hasFile: false, tags: nil
             ),
             onChange: { value.wrappedValue = $0 }
         )

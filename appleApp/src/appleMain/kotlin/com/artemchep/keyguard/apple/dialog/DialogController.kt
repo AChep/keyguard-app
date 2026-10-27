@@ -114,6 +114,7 @@ import com.artemchep.keyguard.util.io.toNSData
 import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.apple.core.onFilePickerResult
 import com.artemchep.keyguard.apple.core.toFilePickerRequest
+import com.artemchep.keyguard.apple.model.toTagsSnapshot
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.elevatedaccess_biometric_auth_confirm_title
@@ -425,8 +426,10 @@ internal class DialogController(
                 true
             }
 
-            tagsConfirmation != null -> {
-                ctx.scope.launch { presentTagsConfirmation(tagsConfirmation.first.args, tagsConfirmation.second) }
+            tagsConfirmation != null && sessionKoin != null -> {
+                ctx.scope.launch {
+                    presentTagsConfirmation(tagsConfirmation.first.args, tagsConfirmation.second, sessionKoin)
+                }
                 true
             }
 
@@ -926,41 +929,38 @@ internal class DialogController(
     private fun presentTagsConfirmation(
         args: TagsConfirmationRoute.Args,
         transmitter: RouteResultTransmitter<TagsConfirmationResult>,
+        sessionKoin: Scope,
     ) {
         confirmationDialog.present { publish ->
             val interceptor = confirmationDialog.closeOnPop()
             val leContext = ctx.koin.get<LeContext>()
             ctx.koin.newHeadlessStateFlowScope("tags_confirmation", this, interceptor)
-                .tagsConfirmationStateProducer(args, transmitter)
+                .tagsConfirmationStateProducer(
+                    args = args,
+                    transmitter = transmitter,
+                    getCiphers = sessionKoin.get(),
+                )
                 .collect { state ->
+                    val stringHandlers = LinkedHashMap<String, (String) -> Unit>()
+                    val tags = state.tags.toTagsSnapshot("tags", stringHandlers)
                     publish(
                         ConfirmationSnapshot(
                             title = textResource(Res.string.ciphers_action_change_tags_title, leContext),
                             subtitle = null,
-                            message = if (state.items.isEmpty()) textResource(Res.string.tag_none, leContext) else null,
-                            items = state.items.map { item ->
+                            message = null,
+                            items = listOf(
                                 ConfirmationItemSnapshot(
-                                    key = item.key,
-                                    kind = ConfirmationItemKind.STRING,
-                                    enabled = item.field.onChange != null,
+                                    key = "tags",
+                                    kind = ConfirmationItemKind.TAGS,
+                                    enabled = state.tags.onCommit != null,
                                     title = "",
-                                    stringValue = item.field.text,
-                                    stringRevision = item.field.textRevision,
-                                    hint = item.field.hint,
-                                    removable = item.onRemove != null,
-                                )
-                            },
+                                    tags = tags,
+                                ),
+                            ),
                             confirmEnabled = state.onConfirm != null,
-                            canAddItem = state.onAdd != null,
                         ),
                         ConfirmationHandlers(
-                            stringOnChange = state.items.mapNotNull { item ->
-                                item.field.onChange?.let { item.key to it }
-                            }.toMap(),
-                            onRemove = state.items.mapNotNull { item ->
-                                item.onRemove?.let { item.key to it }
-                            }.toMap(),
-                            onAdd = state.onAdd,
+                            stringOnChange = stringHandlers,
                             onConfirm = state.onConfirm,
                         ),
                     )

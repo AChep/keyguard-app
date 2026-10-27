@@ -3,20 +3,18 @@ package com.artemchep.keyguard.feature.confirmation.tags
 import androidx.compose.runtime.Composable
 import arrow.core.andThen
 import arrow.core.partially1
+import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
-import com.artemchep.keyguard.common.util.flow.combineToList
-import com.artemchep.keyguard.feature.auth.common.TextFieldModel
-import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.res.Res
-import kotlin.uuid.Uuid
+import com.artemchep.keyguard.feature.tags.tagUsage
+import com.artemchep.keyguard.feature.tags.tagsFieldFlow
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.koin.compose.currentKoinScope
 
@@ -29,6 +27,7 @@ fun tagsConfirmationState(
         args = args,
         transmitter = transmitter,
         windowCoroutineScope = get(),
+        getCiphers = get(),
     )
 }
 
@@ -37,105 +36,50 @@ fun tagsConfirmationState(
     args: TagsConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<TagsConfirmationResult>,
     windowCoroutineScope: WindowCoroutineScope,
+    getCiphers: GetCiphers,
 ): TagsConfirmationState = produceScreenState(
     key = "tags_confirmation",
     initial = TagsConfirmationState(),
     args = arrayOf(
         windowCoroutineScope,
+        getCiphers,
     ),
 ) {
-    tagsConfirmationStateProducer(args, transmitter)
+    tagsConfirmationStateProducer(
+        args = args,
+        transmitter = transmitter,
+        getCiphers = getCiphers,
+    )
 }
 
-suspend fun RememberStateFlowScope.tagsConfirmationStateProducer(
+fun RememberStateFlowScope.tagsConfirmationStateProducer(
     args: TagsConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<TagsConfirmationResult>,
-): Flow<TagsConfirmationState> {
-    val tagHint = translate(Res.string.tag_value)
-
-    val initialTagsById = args.initialTags
-        .associateBy { Uuid.random().toString() }
-    val itemIdsSink = mutablePersistedFlow("item_ids") {
-        // toSet() because a Map.keys view is not Serializable, so persisting it directly
-        // fails even though its declared type is a plain Set.
-        initialTagsById.keys.toSet()
-    }
-
-    fun itemKey(id: String) = "item.$id.text"
-
-    fun removeItem(id: String) {
-        itemIdsSink.value = itemIdsSink.value - id
-        clearPersistedFlow(itemKey(id))
-    }
-
-    fun createItemFlow(
-        id: String,
-    ) = kotlin.run {
-        val handle = textFieldHandle(
-            key = itemKey(id),
-            initial = initialTagsById[id].orEmpty(),
-        )
-        handle.sink.map { cell ->
-            TagsConfirmationState.Item(
-                key = id,
-                field = TextFieldModel(
-                    text = cell.text,
-                    textRevision = cell.revision,
-                    hint = tagHint,
-                    onChange = handle::onChange,
-                    onSetText = handle::setText,
+    getCiphers: GetCiphers,
+): Flow<TagsConfirmationState> = tagsFieldFlow(
+    key = "tags",
+    initial = args.initialTags,
+    catalogFlow = getCiphers()
+        .map(::tagUsage)
+        .distinctUntilChanged()
+        .flowOn(Dispatchers.Default),
+)
+    .map { tags ->
+        val onConfirm = transmitter
+            .partially1(
+                TagsConfirmationResult.Confirm(
+                    tags = tags.value,
                 ),
-                onRemove = ::removeItem
-                    .partially1(id),
             )
-        }
+            .andThen {
+                navigatePopSelf()
+            }
+        TagsConfirmationState(
+            tags = tags,
+            onDeny = {
+                transmitter(TagsConfirmationResult.Deny)
+                navigatePopSelf()
+            },
+            onConfirm = onConfirm,
+        )
     }
-
-    val itemsFlow = itemIdsSink
-        .flatMapLatest { ids ->
-            ids
-                .map(::createItemFlow)
-                .combineToList()
-        }
-
-    val tagsFlow = itemIdsSink
-        .flatMapLatest { ids ->
-            ids
-                .map { id ->
-                    // Re-attaches to the same persisted cell as the
-                    // field handle above (registry is keyed by the key).
-                    textFieldHandle(
-                        key = itemKey(id),
-                        initial = initialTagsById[id].orEmpty(),
-                    ).sink.map { it.text }
-                }
-                .combineToList()
-        }
-
-    return combine(
-        itemsFlow,
-        tagsFlow,
-    ) { items, tags ->
-            val onConfirm = transmitter
-                .partially1(
-                    TagsConfirmationResult.Confirm(
-                        tags = tags,
-                    ),
-                )
-                .andThen {
-                    navigatePopSelf()
-                }
-            TagsConfirmationState(
-                items = items,
-                onAdd = {
-                    val id = Uuid.random().toString()
-                    itemIdsSink.value = itemIdsSink.value + id
-                },
-                onDeny = {
-                    transmitter(TagsConfirmationResult.Deny)
-                    navigatePopSelf()
-                },
-                onConfirm = onConfirm,
-            )
-        }
-}

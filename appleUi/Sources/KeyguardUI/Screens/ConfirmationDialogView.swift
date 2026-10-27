@@ -85,6 +85,8 @@ struct ConfirmationDialogView: View {
             choiceRow(item)
         } else if item.kind == ConfirmationItemKind.file {
             fileRow(item)
+        } else if item.kind == ConfirmationItemKind.tags {
+            tagsRow(item)
         }
     }
 
@@ -106,6 +108,15 @@ struct ConfirmationDialogView: View {
             }
         }
         .disabled(!item.enabled)
+    }
+
+    @ViewBuilder
+    private func tagsRow(_ item: ConfirmationItemSnapshot) -> some View {
+        if let tags = item.tags {
+            TagTokenField(snapshot: tags) { id, text in
+                dialogsModel.setConfirmationItemString(key: id, text: text)
+            }
+        }
     }
 
     private func stringRow(_ item: ConfirmationItemSnapshot) -> some View {

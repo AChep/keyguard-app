@@ -56,7 +56,9 @@ import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.apple.core.onFilePickerResult
 import com.artemchep.keyguard.apple.core.toFilePickerRequest
 import com.artemchep.keyguard.apple.model.ActionKeyAllocator
+import com.artemchep.keyguard.apple.model.TagsFieldSnapshot
 import com.artemchep.keyguard.apple.model.toFieldSnapshot
+import com.artemchep.keyguard.apple.model.toTagsSnapshot
 import com.artemchep.keyguard.apple.throttleLatest
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.ui.ContextItem
@@ -577,6 +579,7 @@ internal class AddItemController(
             sshKey: AddSshKeySnapshot? = null,
             gpgKey: AddGpgKeySnapshot? = null,
             passkeyName: String? = null,
+            tags: TagsFieldSnapshot? = null,
             totpScanId: String? = null,
             options: List<AddActionSnapshot> = emptyList(),
             actions: List<AddActionSnapshot> = emptyList(),
@@ -596,6 +599,7 @@ internal class AddItemController(
             sshKey = sshKey,
             gpgKey = gpgKey,
             passkeyName = passkeyName,
+            tags = tags,
             totpScanId = totpScanId,
             options = options,
             actions = actions,
@@ -715,16 +719,11 @@ internal class AddItemController(
                     }
                 }
 
-                is AddStateItem.Tag<*> -> {
-                    when (val st = item.state.flow.value) {
-                        is AddStateItem.Tag.State.Text -> snapshot(
-                            item.id,
-                            AddItemKind.TAG,
-                            fields = listOf(textField(item.id, st.text, null, false, false)),
-                            actions = actionList("${item.id}:opt", item.options),
-                        )
-                    }
-                }
+                is AddStateItem.Tags<*> -> snapshot(
+                    item.id,
+                    AddItemKind.TAGS,
+                    tags = item.state.flow.value.toTagsSnapshot(item.id, fieldHandlers),
+                )
 
                 is AddStateItem.Passkey<*> -> {
                     val pk = item.state.flow.value.passkey

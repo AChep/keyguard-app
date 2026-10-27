@@ -345,4 +345,12 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> file to change</item>
         <item quantity="other"><xliff:g id="number" example="2">%1$d</xliff:g> files to change</item>
     </plurals>
+    <plurals name="tag_items_count_plural">
+        <item quantity="zero"><xliff:g id="number" example="0">%1$d</xliff:g> items</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item</item>
+        <item quantity="two"><xliff:g id="number" example="2">%1$d</xliff:g> items</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items</item>
+    </plurals>
 </resources>

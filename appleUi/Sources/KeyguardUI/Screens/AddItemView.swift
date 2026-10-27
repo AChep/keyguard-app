@@ -391,8 +391,8 @@ private struct AddItemRow: View {
             customSwitchRow
         } else if kind == AddItemKind.fieldLinkedId {
             linkedIdRow
-        } else if kind == AddItemKind.tag {
-            customFieldRow
+        } else if kind == AddItemKind.tags {
+            tagsRow
         } else if kind == AddItemKind.passkey {
             passkeyRow
         } else if kind == AddItemKind.attachment {
@@ -512,6 +512,15 @@ private struct AddItemRow: View {
                 }
             }
             overflowMenu(item.actions)
+        }
+    }
+
+    @ViewBuilder
+    private var tagsRow: some View {
+        if let tags = item.tags {
+            TagTokenField(snapshot: tags) { id, text in
+                addItemModel.setAddField(id: id, text: text)
+            }
         }
     }
 

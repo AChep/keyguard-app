@@ -5569,6 +5569,62 @@ public enum L10n {
     public static var keyType: String {
         String(localized: "key_type", bundle: AppLocalization.shared.bundle)
     }
+    /// keyboard_shortcuts_action_quick_search
+    public static var keyboardShortcutsActionQuickSearch: String {
+        String(localized: "keyboard_shortcuts_action_quick_search", bundle: AppLocalization.shared.bundle)
+    }
+    /// keyboard_shortcuts_binding_label
+    public static func keyboardShortcutsBindingLabel(_ a1: String) -> String {
+        String(format: String(localized: "keyboard_shortcuts_binding_label", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// keyboard_shortcuts_error_duplicate
+    public static func keyboardShortcutsErrorDuplicate(_ a1: String) -> String {
+        String(format: String(localized: "keyboard_shortcuts_error_duplicate", bundle: AppLocalization.shared.bundle), a1)
+    }
+    /// keyboard_shortcuts_error_invalid
+    public static var keyboardShortcutsErrorInvalid: String {
+        String(localized: "keyboard_shortcuts_error_invalid", bundle: AppLocalization.shared.bundle)
+    }
+    /// keyboard_shortcuts_error_persistence
+    public static var keyboardShortcutsErrorPersistence: String {
+        String(localized: "keyboard_shortcuts_error_persistence", bundle: AppLocalization.shared.bundle)
+    }
+    /// keyboard_shortcuts_error_persistence_restoration
+    public static var keyboardShortcutsErrorPersistenceRestoration: String {
+        String(localized: "keyboard_shortcuts_error_persistence_restoration", bundle: AppLocalization.shared.bundle)
+    }
+    /// keyboard_shortcuts_error_registration
+    public static var keyboardShortcutsErrorRegistration: String {
+        String(localized: "keyboard_shortcuts_error_registration", bundle: AppLocalization.shared.bundle)
+    }
+    /// keyboard_shortcuts_error_unavailable
+    public static var keyboardShortcutsErrorUnavailable: String {
+        String(localized: "keyboard_shortcuts_error_unavailable", bundle: AppLocalization.shared.bundle)
+    }
+    /// keyboard_shortcuts_error_unsupported_platform
+    public static var keyboardShortcutsErrorUnsupportedPlatform: String {
+        String(localized: "keyboard_shortcuts_error_unsupported_platform", bundle: AppLocalization.shared.bundle)
+    }
+    /// keyboard_shortcuts_error_unsupported_session
+    public static var keyboardShortcutsErrorUnsupportedSession: String {
+        String(localized: "keyboard_shortcuts_error_unsupported_session", bundle: AppLocalization.shared.bundle)
+    }
+    /// keyboard_shortcuts_recorder_hint
+    public static var keyboardShortcutsRecorderHint: String {
+        String(localized: "keyboard_shortcuts_recorder_hint", bundle: AppLocalization.shared.bundle)
+    }
+    /// keyboard_shortcuts_status_active
+    public static var keyboardShortcutsStatusActive: String {
+        String(localized: "keyboard_shortcuts_status_active", bundle: AppLocalization.shared.bundle)
+    }
+    /// keyboard_shortcuts_status_recording
+    public static var keyboardShortcutsStatusRecording: String {
+        String(localized: "keyboard_shortcuts_status_recording", bundle: AppLocalization.shared.bundle)
+    }
+    /// keyboard_shortcuts_title
+    public static var keyboardShortcutsTitle: String {
+        String(localized: "keyboard_shortcuts_title", bundle: AppLocalization.shared.bundle)
+    }
     /// keygrip
     public static var keygrip: String {
         String(localized: "keygrip", bundle: AppLocalization.shared.bundle)
@@ -7665,6 +7721,10 @@ public enum L10n {
     public static var prefItemPremiumMembershipBenefitSupportDevelopment: String {
         String(localized: "pref_item_premium_membership_benefit_support_development", bundle: AppLocalization.shared.bundle)
     }
+    /// pref_item_premium_membership_buy_license_title
+    public static var prefItemPremiumMembershipBuyLicenseTitle: String {
+        String(localized: "pref_item_premium_membership_buy_license_title", bundle: AppLocalization.shared.bundle)
+    }
     /// pref_item_premium_membership_direct_note
     public static var prefItemPremiumMembershipDirectNote: String {
         String(localized: "pref_item_premium_membership_direct_note", bundle: AppLocalization.shared.bundle)
@@ -7680,6 +7740,10 @@ public enum L10n {
     /// pref_item_premium_membership_footer
     public static var prefItemPremiumMembershipFooter: String {
         String(localized: "pref_item_premium_membership_footer", bundle: AppLocalization.shared.bundle)
+    }
+    /// pref_item_premium_membership_included_note
+    public static var prefItemPremiumMembershipIncludedNote: String {
+        String(localized: "pref_item_premium_membership_included_note", bundle: AppLocalization.shared.bundle)
     }
     /// pref_item_premium_membership_section_products_title
     public static var prefItemPremiumMembershipSectionProductsTitle: String {
@@ -9253,6 +9317,10 @@ public enum L10n {
     public static var tagNone: String {
         String(localized: "tag_none", bundle: AppLocalization.shared.bundle)
     }
+    /// tag_remove_content_description
+    public static func tagRemoveContentDescription(_ a1: String) -> String {
+        String(format: String(localized: "tag_remove_content_description", bundle: AppLocalization.shared.bundle), a1)
+    }
     /// tag_value
     public static var tagValue: String {
         String(localized: "tag_value", bundle: AppLocalization.shared.bundle)
@@ -9264,6 +9332,10 @@ public enum L10n {
     /// tags_empty_label
     public static var tagsEmptyLabel: String {
         String(localized: "tags_empty_label", bundle: AppLocalization.shared.bundle)
+    }
+    /// tags_field_placeholder
+    public static var tagsFieldPlaceholder: String {
+        String(localized: "tags_field_placeholder", bundle: AppLocalization.shared.bundle)
     }
     /// team_artem_whoami_text
     public static var teamArtemWhoamiText: String {
@@ -10657,6 +10729,14 @@ public enum L10n {
     public static func skippedUnsupportedCredentialsNote(_ count: Int) -> String {
         String(
             format: NSLocalizedString("skipped_unsupported_credentials_note", bundle: AppLocalization.shared.bundle, comment: ""),
+            locale: AppLocalization.shared.locale,
+            count
+        )
+    }
+    /// tag_items_count_plural (plural)
+    public static func tagItemsCountPlural(_ count: Int) -> String {
+        String(
+            format: NSLocalizedString("tag_items_count_plural", bundle: AppLocalization.shared.bundle, comment: ""),
             locale: AppLocalization.shared.locale,
             count
         )

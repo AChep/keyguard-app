@@ -79,6 +79,13 @@
     "notes": "Depending on where you live, you either have to select \"Submit a CPRA or VCDPA Data request\" or \"Submit an EEA Data Request\"."
   },
   {
+    "name": "Authier",
+    "domains": [],
+    "url": "https://www.authier.pm/guides/password-manager-import-export",
+    "difficulty": "easy",
+    "notes": "Open the Authier browser extension's full-page vault, select \"Import & Export\", then choose \"Export Login Credentials to CSV\" or \"Export TOTP to CSV\". The downloaded CSV files contain plaintext secrets, so protect or delete them after use."
+  },
+  {
     "name": "Badlion",
     "domains": [],
     "url": "https://www.badlion.net/settings?lang=en",
@@ -385,6 +392,13 @@
     "notes": "Requires Microsoft Excel or equivalent to open."
   },
   {
+    "name": "Karaoke Captions",
+    "domains": [],
+    "url": "https://karaokecaptions.com/account/#data",
+    "difficulty": "easy",
+    "notes": "Sign in and click \"Download my data\" under \"Your data\" to download a JSON file immediately. It includes account details, profile and email preferences, synced caption styles, Pro plan information and styles saved in this browser. Videos, audio and transcripts are processed on your device and are never uploaded, so they are not included in the account data export."
+  },
+  {
     "name": "Kwai",
     "domains": [],
     "url": "https://www.kwai.com/legal?type=1",
@@ -642,6 +656,13 @@
     "difficulty": "hard",
     "notes": "Email support@quickseo.ai to request your account data. They will send it to you by email.",
     "email": "support@quickseo.ai"
+  },
+  {
+    "name": "Qwen Studio",
+    "domains": [],
+    "url": "https://chat.qwen.ai/settings/chats",
+    "difficulty": "easy",
+    "notes": "Click your profile button, go to Settings > Chats, then click \"Export Chats\". Only chat exports are available; personalized memory cannot be exported."
   },
   {
     "name": "Reddit",

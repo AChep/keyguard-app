@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.feature.agent.help
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.icons.Icons
@@ -21,6 +23,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -30,7 +33,6 @@ import androidx.compose.ui.state.ToggleableState
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
-import com.artemchep.keyguard.feature.sshagent.help.SSH_AGENT_SETUP_VERIFY_CMD_LIST
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.agent_auto_setup_applied
 import com.artemchep.keyguard.res.agent_auto_setup_check_failed
@@ -72,7 +74,12 @@ import org.jetbrains.compose.resources.stringResource
 @Composable
 internal fun AgentWizardPage(state: AgentAutomaticSetupState, page: AgentSetupStep) {
     if (!state.data.available) {
-        FlatSimpleNote(type = SimpleNote.Type.INFO, text = stringResource(Res.string.agent_auto_setup_unavailable))
+        val error = state.data.unavailableError
+        if (error != null) {
+            AgentWizardError(error)
+        } else {
+            FlatSimpleNote(type = SimpleNote.Type.INFO, text = stringResource(Res.string.agent_auto_setup_unavailable))
+        }
         return
     }
     if (!state.data.setupAllowed && page != AgentSetupStep.RESULT) {
@@ -83,7 +90,11 @@ internal fun AgentWizardPage(state: AgentAutomaticSetupState, page: AgentSetupSt
     }
     when (page) {
         AgentSetupStep.SETTINGS -> AgentWizardSettings(state)
-        AgentSetupStep.REVIEW -> if (state.data.external) AgentWizardTermuxRun(state.data) else AgentWizardReview(state)
+        AgentSetupStep.REVIEW -> if (state.data.external) {
+            AgentWizardExternalRun(state.data)
+        } else {
+            AgentWizardReview(state)
+        }
         AgentSetupStep.RESULT -> AgentWizardResult(state)
     }
 }
@@ -91,7 +102,7 @@ internal fun AgentWizardPage(state: AgentAutomaticSetupState, page: AgentSetupSt
 @Composable
 private fun AgentWizardSettings(state: AgentAutomaticSetupState) {
     val data = state.data
-    if (data.agent == SetupAgent.SSH && !data.external) {
+    if (data.sshConfig) {
         Column(Modifier.selectableGroup()) {
             AgentHostChoice(Res.string.agent_auto_setup_hosts_all, !data.oneHost, ShapeState.START, data.editable) {
                 state.onHostScopeChange(false)
@@ -147,7 +158,9 @@ private fun AgentHostChoice(
 @Composable
 private fun AgentWizardReview(state: AgentAutomaticSetupState) {
     val data = state.data
-    if (data.operation == AgentSetupOperation.REVIEWING) KeyguardLoadingIndicator()
+    if (data.operation == AgentSetupOperation.REVIEWING) {
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { KeyguardLoadingIndicator() }
+    }
     data.error?.let { AgentWizardError(it) }
     data.plan?.let { plan ->
         AgentWizardSummary(data)
@@ -261,7 +274,11 @@ private fun AgentWizardDetails(
 }
 
 @Composable
-private fun AgentWizardTermuxRun(data: AgentSetupData) {
+private fun AgentWizardExternalRun(data: AgentSetupData) {
+    if (data.hostCli != null) {
+        AgentSetupCodeBlock(hostCliCommand(data, data.hostCli))
+        return
+    }
     if (data.mode == AgentSetupMode.CONFIGURE) {
         AgentSetupParagraph(stringResource(Res.string.agent_auto_setup_termux_run_note))
     }
@@ -277,31 +294,31 @@ private fun AgentWizardResult(state: AgentAutomaticSetupState) {
             text = stringResource(Res.string.agent_auto_setup_external_unverified_note),
         )
         if (data.mode == AgentSetupMode.CONFIGURE) {
-            val command = if (data.agent == SetupAgent.SSH) SSH_AGENT_SETUP_VERIFY_CMD_LIST else {
-                "gpg-connect-agent --no-autostart 'KEYINFO --list' /bye"
-            }
             AgentSetupParagraph(stringResource(Res.string.agent_auto_setup_external_check_text))
-            AgentSetupCodeBlock(command)
+            AgentSetupCodeBlock(externalCheckCommand(data.agent, data.hostCli?.endpoint))
         }
         return
     }
-    FlatSimpleNote(
-        type = SimpleNote.Type.OK,
-        text = stringResource(when {
-            data.mode == AgentSetupMode.UNDO -> Res.string.agent_auto_setup_undone
-            data.applied -> Res.string.agent_auto_setup_applied
-            else -> Res.string.agent_auto_setup_no_changes
-        }),
-    )
-    if (data.operation == AgentSetupOperation.VERIFYING) {
-        KeyguardLoadingIndicator()
-        AgentSetupParagraph(stringResource(Res.string.agent_auto_setup_checking_status))
-    }
-    if (data.verified == true) {
-        FlatSimpleNote(type = SimpleNote.Type.OK, text = stringResource(Res.string.agent_auto_setup_check_succeeded))
+    Column {
+        AgentSetupStatusRow(
+            status = AgentSetupStatus.OK,
+            text = stringResource(when {
+                data.mode == AgentSetupMode.UNDO -> Res.string.agent_auto_setup_undone
+                data.applied -> Res.string.agent_auto_setup_applied
+                else -> Res.string.agent_auto_setup_no_changes
+            }),
+        )
+        if (data.operation == AgentSetupOperation.VERIFYING) {
+            AgentSetupStatusRow(AgentSetupStatus.PENDING, stringResource(Res.string.agent_auto_setup_checking_status))
+        }
+        if (data.verified == true) {
+            AgentSetupStatusRow(AgentSetupStatus.OK, stringResource(Res.string.agent_auto_setup_check_succeeded))
+        }
+        if (data.verified == false) {
+            AgentSetupStatusRow(AgentSetupStatus.WARNING, stringResource(Res.string.agent_auto_setup_check_failed))
+        }
     }
     if (data.verified == false) {
-        FlatSimpleNote(type = SimpleNote.Type.WARNING, text = stringResource(Res.string.agent_auto_setup_check_failed))
         TextButton(
             modifier = Modifier.padding(horizontal = Dimens.fieldHorizontalPadding),
             onClick = { state.onRetry?.invoke() },

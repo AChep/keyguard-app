@@ -9,7 +9,11 @@ import com.artemchep.keyguard.common.service.gpgagent.ManagedGpgHome
 import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
 import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.FLATPAK_INFO_PATH
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.flatpakInfoValue
+import kotlinx.collections.immutable.ImmutableList
+import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
@@ -22,19 +26,93 @@ import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import org.koin.compose.koinInject
+import java.io.File
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.TimeUnit
 
 @Composable
-internal actual fun rememberAgentSetupClient(agent: SetupAgent): AgentSetupClient? {
+internal actual fun rememberAgentSetupRunner(agent: SetupAgent): AgentSetupRunner? {
     val directory = koinInject<DataDirectory>()
     val sshAgentManager = koinInject<SshAgentManager>()
     return remember(agent, directory, sshAgentManager) {
-        val flatpak = (CurrentPlatform as? Platform.Desktop.Linux)?.isFlatpak == true
         val binary = findAgentBinary("keyguard")
-        if (flatpak || binary == null) null else DesktopAgentSetupClient(agent, binary, directory, sshAgentManager)
+        val flatpak = (CurrentPlatform as? Platform.Desktop.Linux)?.isFlatpak == true
+        when {
+            binary == null -> null
+            !flatpak -> AgentSetupRunner.App(DesktopAgentSetupClient(agent, binary, directory, sshAgentManager))
+            // Flatpak can't reach host files, so the user runs the bundled CLI from a host terminal.
+            else -> AgentSetupRunner.HostCli {
+                withContext(Dispatchers.IO) {
+                    val loader = requireNotNull(flatpakLoader()) { "Unsupported architecture" }.toRealPath()
+                    val command = flatpakHostCommand(binary, loader, File(FLATPAK_INFO_PATH).readText())
+                    AgentSetupHostCli(
+                        command = requireNotNull(command) { "Flatpak app or runtime path is unavailable" },
+                        endpoint = agentSetupEndpoint(agent, directory, sshAgentManager),
+                    )
+                }
+            }
+        }
     }
+}
+
+/** The dynamic loader that Linux builds of the CLI name. */
+private fun flatpakLoader(): Path? = when (System.getProperty("os.arch")) {
+    "amd64", "x86_64" -> Path.of("/lib64/ld-linux-x86-64.so.2")
+    "aarch64" -> Path.of("/lib/ld-linux-aarch64.so.1")
+    else -> null
+}
+
+/**
+ * Runs [binary] with the runtime's loader and libraries, so hosts that can't
+ * run it directly, such as NixOS or musl distributions, run it too. Unlike
+ * LD_LIBRARY_PATH, the loader option doesn't reach the shells the CLI starts.
+ */
+internal fun flatpakHostCommand(binary: Path, loader: Path, info: String): ImmutableList<String>? {
+    val hostBinary = flatpakHostPath(binary, info)
+    val hostLoader = flatpakHostPath(loader, info)
+    if (hostBinary == null || hostLoader == null) return null
+    return persistentListOf(
+        hostLoader.toString(),
+        "--library-path",
+        hostLoader.parent.toString(),
+        hostBinary.toString(),
+    )
+}
+
+private val FLATPAK_MOUNTS = listOf(
+    Path.of("/app") to "app-path",
+    Path.of("/usr") to "runtime-path",
+)
+
+/**
+ * Flatpak mounts the app at /app and its runtime at /usr; `app-path` and
+ * `runtime-path` in /.flatpak-info are those directories on the host.
+ */
+internal fun flatpakHostPath(path: Path, info: String): Path? {
+    val (mount, key) = FLATPAK_MOUNTS.firstOrNull { (mount, _) -> path.startsWith(mount) } ?: return null
+    val host = flatpakInfoValue(info, "Instance", key)?.let(Path::of)?.takeIf { it.isAbsolute }
+    return host?.resolve(mount.relativize(path))
+}
+
+/** The SSH socket or the GnuPG home that the agent serves. */
+private fun agentSetupEndpoint(
+    agent: SetupAgent,
+    directory: DataDirectory,
+    sshAgentManager: SshAgentManager,
+): String = when (agent) {
+    SetupAgent.SSH -> {
+        val executable = requireNotNull(sshAgentManager.defaultBinaryPath) {
+            "SSH agent executable is unavailable"
+        }
+        val override = sshAgentManager.defaultAgentSocketPath
+        val command = listOf(executable.toString(), "--print-socket") +
+            (override?.let { listOf("--ssh-socket", it.toString()) } ?: emptyList())
+        runSetupCommand(command).trim()
+    }
+    SetupAgent.GPG -> requireNotNull(ManagedGpgHome.ofPlatformOrNull(CurrentPlatform, directory)) {
+        "GnuPG home is unavailable"
+    }.path.toString()
 }
 
 private class DesktopAgentSetupClient(
@@ -45,39 +123,18 @@ private class DesktopAgentSetupClient(
 ) : AgentSetupClient {
     private val gpgconf by lazy { GpgconfRunner() }
 
-    private val optionsMutex = Mutex()
-    private var cachedOptions: List<String>? = null
+    private val endpointMutex = Mutex()
+    private var cachedEndpoint: String? = null
 
     /** The endpoint is fixed for the app's lifetime, so resolve it once. */
-    private suspend fun options(): List<String> = optionsMutex.withLock {
-        cachedOptions ?: resolveOptions().also { cachedOptions = it }
+    private suspend fun endpoint(): String = endpointMutex.withLock {
+        cachedEndpoint ?: withContext(Dispatchers.IO) {
+            agentSetupEndpoint(agent, directory, sshAgentManager)
+        }.also { cachedEndpoint = it }
     }
 
-    private suspend fun resolveOptions(): List<String> = withContext(Dispatchers.IO) {
-        val endpoint = when (agent) {
-            SetupAgent.SSH -> {
-                val executable = requireNotNull(sshAgentManager.defaultBinaryPath) {
-                    "SSH agent executable is unavailable"
-                }
-                val override = sshAgentManager.defaultAgentSocketPath
-                val command = listOf(executable.toString(), "--print-socket") +
-                    (override?.let { listOf("--ssh-socket", it.toString()) } ?: emptyList())
-                listOf("--socket", runSetupCommand(command).trim())
-            }
-            SetupAgent.GPG -> {
-                val home = requireNotNull(ManagedGpgHome.ofPlatformOrNull(CurrentPlatform, directory))
-                listOf("--gpg-home", home.path.toString())
-            }
-        }
-        listOf("--agent", agent.argument) + endpoint
-    }
-
-    override suspend fun preview(shells: Set<SetupShell>, host: String): AgentSetupPlan {
-        val arguments = options() +
-            (if (shells.isEmpty()) emptyList() else listOf("--shells", shells.joinToString(",") { it.argument })) +
-            (if (agent == SetupAgent.SSH && host.isNotEmpty()) listOf("--host", host) else emptyList())
-        return plan(listOf("plan") + arguments)
-    }
+    override suspend fun preview(shells: Set<SetupShell>, host: String): AgentSetupPlan =
+        plan(listOf("plan") + agentSetupOptions(agent, endpoint(), shells, host))
 
     override suspend fun undo(): AgentSetupPlan = plan(listOf("undo", agent.argument))
 
@@ -89,7 +146,7 @@ private class DesktopAgentSetupClient(
         val executable = withContext(Dispatchers.IO) {
             if (agent == SetupAgent.SSH) "ssh-add" else gpgconf.agentClientExecutable.toString()
         }
-        return run(listOf("verify") + options() + listOf("--executable", executable))
+        return run(listOf("verify") + agentSetupOptions(agent, endpoint()) + listOf("--executable", executable))
     }
 
     private suspend fun plan(arguments: List<String>): AgentSetupPlan =

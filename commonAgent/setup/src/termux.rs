@@ -15,7 +15,7 @@ pub fn setup(agent: Agent, shells: Vec<Shell>) -> Result<()> {
             launcher: env.termux_launcher.clone(),
         },
     )?;
-    crate::review_and_apply(&env, &plan, &format!("{helper} --undo-setup"))
+    crate::review_and_apply(&env, &plan, &format!("To undo, run: {helper} --undo-setup"))
 }
 
 /// Reviews removal of the configuration created by [`setup`].

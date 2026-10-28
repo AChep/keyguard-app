@@ -1,11 +1,13 @@
 package com.artemchep.keyguard.feature.agent.help
 
 import androidx.compose.runtime.Composable
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.agent_auto_setup_host_error
 import kotlinx.collections.immutable.persistentSetOf
@@ -22,16 +24,21 @@ internal fun produceAgentAutomaticSetupState(
     agent: SetupAgent,
     mode: AgentSetupMode,
 ): AgentAutomaticSetupState? {
-    val client = rememberAgentSetupClient(agent)
+    val runner = rememberAgentSetupRunner(agent)
     val enabled = rememberAgentSetupEnabled(agent)
     return produceScreenState(
         key = "agent_setup:${agent.argument}:${mode.name}",
-        args = arrayOf(client, agent, mode, enabled),
+        args = arrayOf(runner, agent, mode, enabled),
         initial = null,
     ) {
-        val external = agentSetupExternal
+        val client = (runner as? AgentSetupRunner.App)?.client
+        val termux = runner is AgentSetupRunner.Termux
+        val hostCliResult = (runner as? AgentSetupRunner.HostCli)?.let { hostCli ->
+            runCatchingNonFatal { hostCli.resolve() }.onFailure(::recordException)
+        }
+        val hostCli = hostCliResult?.getOrNull()
         val shells = when {
-            external -> listOf(SetupShell.BASH, SetupShell.ZSH, SetupShell.FISH)
+            termux -> listOf(SetupShell.BASH, SetupShell.ZSH, SetupShell.FISH)
             CurrentPlatform is Platform.Desktop.Windows -> listOf(SetupShell.POWERSHELL, SetupShell.WINDOWS_POWERSHELL)
             else -> SetupShell.entries.filter { it != SetupShell.WINDOWS_POWERSHELL }
         }
@@ -39,10 +46,12 @@ internal fun produceAgentAutomaticSetupState(
             initial = AgentSetupData(
                 agent = agent,
                 mode = mode,
-                external = external,
-                available = external || client != null,
+                termux = termux,
+                hostCli = hostCli,
+                available = termux || client != null || hostCli != null,
+                unavailableError = hostCliResult?.exceptionOrNull()?.toAgentSetupError(),
                 shells = shells.toImmutableList(),
-                selectedShells = if (external) persistentSetOf(SetupShell.BASH) else persistentSetOf(),
+                selectedShells = if (termux) persistentSetOf(SetupShell.BASH) else persistentSetOf(),
                 step = if (mode == AgentSetupMode.UNDO) AgentSetupStep.REVIEW else AgentSetupStep.SETTINGS,
             ),
             client = client,

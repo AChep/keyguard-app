@@ -181,6 +181,7 @@ kotlin {
                 api(project(":util:zip"))
                 api(project(":util:kdbx"))
                 api(project(":util:crypto"))
+                api(project(":feature:agent-setup"))
                 api(project(":feature:cli"))
                 api(project(":feature:environments"))
                 api(project(":util:dns"))

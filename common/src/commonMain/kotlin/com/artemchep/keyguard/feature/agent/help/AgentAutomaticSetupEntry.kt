@@ -62,9 +62,6 @@ internal fun agentSetupEnableMessage(agent: SetupAgent): String = stringResource
 
 private const val AGENT_SETUP_CLI_COMMAND = "keyguard agents setup"
 
-/** Android configures Termux shells through the installed helper, outside the app. */
-internal val agentSetupExternal: Boolean get() = CurrentPlatform is Platform.Mobile.Android
-
 @Composable
 internal fun ColumnScope.AgentAutomaticSetup(agent: SetupAgent) {
     if (CurrentPlatform is Platform.Desktop) AgentSetupEntry(agent)
@@ -77,8 +74,7 @@ internal fun ColumnScope.AgentTermuxAutomaticSetup(agent: SetupAgent) {
 
 @Composable
 private fun AgentSetupEntry(agent: SetupAgent) {
-    val client = rememberAgentSetupClient(agent)
-    val available = agentSetupExternal || client != null
+    val available = rememberAgentSetupRunner(agent) != null
     val enabled by rememberAgentSetupEnabled(agent).collectAsState(initial = false)
     val navigation by rememberUpdatedState(LocalNavigationController.current)
     AgentSetupIntro(

@@ -75,7 +75,7 @@ internal class AgentAutomaticSetupEditor(
         sink.value = sink.value.copy(plan = null)
         perform(AgentSetupOperation.REVIEWING) { current ->
             val plan = if (current.mode == AgentSetupMode.UNDO) client.undo() else {
-                client.preview(current.selectedShells, current.host.trim().takeIf { current.oneHost }.orEmpty())
+                client.preview(current.selectedShells, current.selectedHost)
             }
             current.copy(plan = plan)
         }
@@ -131,10 +131,7 @@ internal class AgentAutomaticSetupEditor(
                         enabled = sink.value.enabled,
                         plan = null,
                         verified = if (operation == AgentSetupOperation.VERIFYING) false else current.verified,
-                        error = (error as? AgentSetupException)?.error ?: AgentSetupError(
-                            kind = AgentSetupError.Kind.FAILED,
-                            detail = error.message ?: error::class.simpleName,
-                        ),
+                        error = error.toAgentSetupError(),
                     )
                 }
             if (result.isSuccess) afterSuccess()

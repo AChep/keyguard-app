@@ -35,7 +35,7 @@ final class AgentSetupWizardStateTests: XCTestCase {
         XCTAssertEqual(undo.stepNumber, 1)
         XCTAssertEqual(undo.stepCount, 2)
         XCTAssertTrue(undo.canContinue)
-        XCTAssertEqual(undo.command(executable: "/app/keyguard"), "'/app/keyguard' agents undo gpg --review")
+        XCTAssertEqual(undo.command(executable: "/app/keyguard"), "env /app/keyguard agents undo gpg --review")
         undo.next()
         XCTAssertEqual(undo.stepNumber, 2)
     }
@@ -51,7 +51,7 @@ final class AgentSetupWizardStateTests: XCTestCase {
         state.setShell("fish", selected: true)
         XCTAssertEqual(
             state.command(executable: "/Applications/Keyguard App/keyguard"),
-            "'/Applications/Keyguard App/keyguard' agents setup --agent ssh --socket '/tmp/Alice'\"'\"'s socket' --host 'work-server' --shells bash,zsh"
+            "env '/Applications/Keyguard App/keyguard' agents setup --agent ssh --socket '/tmp/Alice'\\''s socket' --shells bash,zsh --host work-server"
         )
         state.next()
         XCTAssertEqual(state.step, .check)

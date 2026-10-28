@@ -22,6 +22,7 @@ import com.artemchep.keyguard.feature.agent.help.AgentSetupScaffold
 import com.artemchep.keyguard.feature.agent.help.AgentSetupSectionDivider
 import com.artemchep.keyguard.feature.agent.help.AgentSetupTermuxInstall
 import com.artemchep.keyguard.feature.agent.help.AgentTermuxAutomaticSetup
+import com.artemchep.keyguard.feature.agent.help.SSH_AGENT_SETUP_VERIFY_CMD_LIST
 import com.artemchep.keyguard.feature.agent.help.SetupAgent
 import com.artemchep.keyguard.feature.home.vault.component.LargeSection
 import com.artemchep.keyguard.feature.home.vault.component.Section
@@ -58,8 +59,6 @@ private const val SSH_AGENT_SETUP_WINDOWS_PIPE =
     "\\\\.\\pipe\\keyguard-ssh-agent"
 private const val SSH_AGENT_SETUP_OPTION_IDENTITYAGENT_FILE =
     "~/.ssh/config"
-internal const val SSH_AGENT_SETUP_VERIFY_CMD_LIST =
-    "ssh-add -L"
 private const val SSH_AGENT_SETUP_VERIFY_CMD_CONNECT =
     "ssh -T git@github.com"
 

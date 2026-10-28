@@ -33,6 +33,9 @@ to review the file changes, then select **Apply changes**. The wizard checks
 the agent connection after applying. Open a new terminal and test remote
 authentication with your chosen key.
 
+The Flatpak build can't edit host files, so the wizard shows a command instead.
+Run it in a host terminal. It shows the file changes and asks before applying them.
+
 Setup supports Bash, Zsh, Fish, PowerShell 7 and Windows PowerShell 5.1.
 It adds Keyguard's settings to the end of each file and leaves your lines unchanged.
 

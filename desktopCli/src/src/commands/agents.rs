@@ -142,11 +142,12 @@ fn execute(args: Args) -> Result<()> {
         }
         Action::Setup(options) => {
             let plan = keyguard_agent_setup::plan(&environment, options.request()?)?;
-            let undo_command = format!(
-                "keyguard agents undo {} --apply",
-                plan.request.agent.kind().id()
-            );
-            keyguard_agent_setup::review_and_apply(&environment, &plan, &undo_command)?;
+            // Flatpak and the macOS app run the bundled CLI, which isn't on the PATH.
+            keyguard_agent_setup::review_and_apply(
+                &environment,
+                &plan,
+                "To undo, select Undo configuration in Keyguard.",
+            )?;
         }
         Action::Undo {
             agent,

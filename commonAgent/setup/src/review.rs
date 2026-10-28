@@ -4,8 +4,8 @@ use anyhow::{Result, ensure};
 use std::io::{self, Write};
 
 /// Prints the plan and applies it only after the user confirms.
-/// `undo_command` is shown after a successful configuration.
-pub fn review_and_apply(env: &Environment, plan: &Plan, undo_command: &str) -> Result<()> {
+/// `undo_hint` is shown after a successful configuration.
+pub fn review_and_apply(env: &Environment, plan: &Plan, undo_hint: &str) -> Result<()> {
     for edit in &plan.edits {
         println!(
             "\n{}\nBefore:\n{}\nAfter:\n{}",
@@ -72,7 +72,7 @@ pub fn review_and_apply(env: &Environment, plan: &Plan, undo_command: &str) -> R
         if plan.undo {
             println!("Recorded configuration removed. Open a new terminal.");
         } else {
-            println!("Configured. Open a new terminal. To undo, run: {undo_command}");
+            println!("Configured. Open a new terminal. {undo_hint}");
         }
     }
     Ok(())

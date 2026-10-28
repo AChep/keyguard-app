@@ -111,8 +111,8 @@ class AgentAutomaticSetupScreenTest {
                     undo = true, edits = persistentListOf(),
                 )),
                 "undo-result" to result.copy(mode = AgentSetupMode.UNDO, verified = null),
-                "termux-run" to review.copy(external = true, selectedShells = persistentSetOf(SetupShell.BASH)),
-                "termux-result" to result.copy(external = true, applied = false, verified = null),
+                "termux-run" to review.copy(termux = true, selectedShells = persistentSetOf(SetupShell.BASH)),
+                "termux-result" to result.copy(termux = true, applied = false, verified = null),
                 "unavailable" to agentSetupPreviewData().copy(available = false),
                 "discard" to agentSetupPreviewData().copy(confirmingDiscard = true),
             )
@@ -120,6 +120,43 @@ class AgentAutomaticSetupScreenTest {
             listOf("review-conflict", "review-failed", "review-disabled").forEach { name ->
                 render(Variant(name, 1024, 800, dark = true), states.getValue(name), "$name-dark")
                 render(Variant(name, 390, 844, fontScale = 1.6f, rtl = true), states.getValue(name), "$name-large-rtl")
+            }
+        }
+    }
+
+    @Test
+    fun `sandboxed builds show the host command and an explicit check`() {
+        SwingUtilities.invokeAndWait {
+            val run = agentSetupPreviewData(AgentSetupStep.REVIEW)
+                .copy(hostCli = HOST_CLI, plan = null)
+            val result = agentSetupPreviewData(AgentSetupStep.RESULT)
+                .copy(hostCli = HOST_CLI, applied = false, verified = null)
+            val failed = agentSetupPreviewData().copy(
+                available = false,
+                unavailableError = AgentSetupError(
+                    AgentSetupError.Kind.FAILED,
+                    detail = "SSH agent executable is unavailable",
+                ),
+            )
+            mapOf(
+                "host-settings" to agentSetupPreviewData().copy(hostCli = HOST_CLI),
+                "host-run" to run,
+                "host-undo" to run.copy(mode = AgentSetupMode.UNDO),
+                "host-result" to result,
+                "unavailable-details" to failed,
+            ).forEach { (name, data) -> render(Variant(name, 390, 844), data, name) }
+            listOf(
+                failed to "Agent setup failed",
+                run to hostCliCommand(run, HOST_CLI),
+                result to externalCheckCommand(SetupAgent.SSH, HOST_CLI.endpoint),
+            ).forEach { (data, expected) ->
+                scene(Variant("host", 390, 844), data).use { scene ->
+                    scene.render(0).close()
+                    val nodes = nodes(scene)
+                    assertTrue(nodes.any { text(it).contains(expected) }, expected)
+                    assertTrue(nodes.none { text(it).contains("Termux") })
+                    assertTrue(nodes.none { text(it).contains("requires the bundled Keyguard CLI") })
+                }
             }
         }
     }
@@ -206,6 +243,19 @@ class AgentAutomaticSetupScreenTest {
         }
     }
 }
+
+private const val HOST_CLI_LIB =
+    "/var/lib/flatpak/runtime/org.freedesktop.Platform/x86_64/25.08/0f1e2d3c4b5a/files/lib/x86_64-linux-gnu"
+
+private val HOST_CLI = AgentSetupHostCli(
+    command = persistentListOf(
+        "$HOST_CLI_LIB/ld-linux-x86-64.so.2",
+        "--library-path",
+        HOST_CLI_LIB,
+        "/var/lib/flatpak/app/com.artemchep.keyguard/x86_64/stable/9a8b7c6d5e4f/files/lib/app/resources/keyguard",
+    ),
+    endpoint = "/run/user/1000/app/com.artemchep.keyguard/ssh-agent.sock",
+)
 
 private fun render(variant: Variant, data: AgentSetupData, name: String) {
     scene(variant, data).use { scene ->

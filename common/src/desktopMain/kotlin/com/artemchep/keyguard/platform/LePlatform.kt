@@ -10,7 +10,7 @@ import java.io.File
  */
 private val isFlatpak: Boolean
     get() = System.getenv("container") == "flatpak" ||
-        File("/.flatpak-info").exists()
+        File(FLATPAK_INFO_PATH).exists()
 
 /** The installed app ID, which differs for repackaged or branch builds. */
 internal fun flatpakId(): String =
@@ -19,6 +19,22 @@ internal fun flatpakId(): String =
         ?: FLATPAK_APP_ID_FALLBACK
 
 private const val FLATPAK_APP_ID_FALLBACK = "com.artemchep.keyguard"
+
+/** The sandbox metadata that Flatpak writes for the running instance. */
+internal const val FLATPAK_INFO_PATH = "/.flatpak-info"
+
+/** Reads [key] of [group] from the contents of [FLATPAK_INFO_PATH]. */
+internal fun flatpakInfoValue(info: String, group: String, key: String): String? {
+    var current: String? = null
+    info.lineSequence().map(String::trim).forEach { line ->
+        if (line.startsWith("[")) {
+            current = line
+        } else if (current == "[$group]" && line.substringBefore('=').trim() == key) {
+            return line.substringAfter('=').trim()
+        }
+    }
+    return null
+}
 
 actual val CurrentPlatform: Platform by lazy {
     when {

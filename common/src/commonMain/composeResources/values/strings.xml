@@ -2765,7 +2765,7 @@
     <string name="agent_auto_setup_step_undo_title">Review removal</string>
     <string name="agent_auto_setup_step_undo_detail">Remove the settings recorded by Keyguard. Review the files before continuing.</string>
     <string name="agent_auto_setup_step_run_title">Run setup</string>
-    <string name="agent_auto_setup_step_run_detail">Run the command in your terminal. The helper shows the changes and asks before applying them.</string>
+    <string name="agent_auto_setup_step_run_detail">Run the command in your terminal. It shows the changes and asks before applying them.</string>
     <string name="agent_auto_setup_step_check_title">Check connection</string>
     <string name="agent_auto_setup_step_check_detail">Open a new terminal to use the configuration. Signing and remote authentication still need a test with your chosen key.</string>
     <string name="agent_auto_setup_step_finish_title">Finish</string>
@@ -2809,7 +2809,7 @@
     <string name="agent_auto_setup_macos_gpg_prepare_title">Prepare the GnuPG home</string>
     <string name="agent_auto_setup_macos_gpg_prepare_detail">Run this command first while the GPG agent is enabled, then run the setup command below.</string>
     <string name="agent_auto_setup_external_unverified_note">Keyguard cannot check commands run in another terminal. Continuing does not confirm that configuration succeeded.</string>
-    <string name="agent_auto_setup_external_check_text">After the helper confirms setup, open a new terminal and run this command to check the connection.</string>
+    <string name="agent_auto_setup_external_check_text">After setup completes, open a new terminal and run this command to check the connection.</string>
     <string name="agent_auto_setup_applied">Configuration applied.</string>
     <string name="agent_auto_setup_undone">Recorded configuration removed. Open a new terminal.</string>
     <string name="agent_auto_setup_checking_status">Checking the agent connection…</string>

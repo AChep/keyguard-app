@@ -1,7 +1,9 @@
 #if os(macOS)
 import Foundation
+import KeyguardShared
 
 /// Native macOS uses an externally launched helper, so this state never reports an applied or verified result.
+/// The commands come from the shared code, which the Flatpak wizard uses too.
 struct AgentSetupWizardState {
     enum Agent {
         case ssh(socket: String)
@@ -11,6 +13,14 @@ struct AgentSetupWizardState {
             switch self {
             case .ssh: "ssh"
             case .gpg: "gpg"
+            }
+        }
+
+        /// The SSH socket or the GnuPG home.
+        var endpoint: String {
+            switch self {
+            case .ssh(let socket): socket
+            case .gpg(let home, _): home
             }
         }
 
@@ -51,14 +61,13 @@ struct AgentSetupWizardState {
     var stepCount: Int { mode == .undo ? 2 : 3 }
     var stepNumber: Int { step.rawValue - (mode == .undo ? 1 : 0) }
     var hostValid: Bool {
-        !oneHost || trimmedHost.range(of: "^[A-Za-z0-9._-]+$", options: .regularExpression) != nil
+        !oneHost || AgentSetupWizardCommandsKt.isAgentSetupWizardHostValid(host: host)
     }
     var canContinue: Bool {
         if step != .settings { return true }
         return agent.ready && hostValid && (agent.isSsh || !selectedShells.isEmpty)
     }
     var needsDiscardConfirmation: Bool { hasEdits && step != .check }
-    private var trimmedHost: String { host.trimmingCharacters(in: .whitespacesAndNewlines) }
 
     mutating func setShell(_ shell: String, selected: Bool) {
         guard step == .settings, Self.shells.contains(shell) else { return }
@@ -92,28 +101,21 @@ struct AgentSetupWizardState {
     }
 
     func command(executable: String) -> String {
-        if mode == .undo { return "\(Self.quote(executable)) agents undo \(agent.argument) --review" }
-        var parts = [Self.quote(executable), "agents setup --agent", agent.argument]
-        switch agent {
-        case .ssh(let socket):
-            parts += ["--socket", Self.quote(socket)]
-            if oneHost { parts += ["--host", Self.quote(trimmedHost)] }
-        case .gpg(let home, _): parts += ["--gpg-home", Self.quote(home)]
+        if mode == .undo {
+            return AgentSetupWizardCommandsKt.agentSetupWizardUndoCommand(
+                executable: executable, agent: agent.argument)
         }
-        let shells = Self.shells.filter { selectedShells.contains($0) }
-        if !shells.isEmpty { parts += ["--shells", shells.joined(separator: ",")] }
-        return parts.joined(separator: " ")
+        return AgentSetupWizardCommandsKt.agentSetupWizardCommand(
+            executable: executable,
+            agent: agent.argument,
+            endpoint: agent.endpoint,
+            shells: selectedShells,
+            host: oneHost ? host : ""
+        )
     }
 
     var checkCommand: String {
-        switch agent {
-        case .ssh(let socket): "SSH_AUTH_SOCK=\(Self.quote(socket)) ssh-add -L"
-        case .gpg(let home, _): "GNUPGHOME=\(Self.quote(home)) gpg-connect-agent --no-autostart 'KEYINFO --list' /bye"
-        }
-    }
-
-    private static func quote(_ value: String) -> String {
-        "'" + value.replacingOccurrences(of: "'", with: "'\"'\"'") + "'"
+        AgentSetupWizardCommandsKt.agentSetupWizardCheckCommand(agent: agent.argument, endpoint: agent.endpoint)
     }
 }
 #endif

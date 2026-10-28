@@ -57,7 +57,7 @@ class AgentAutomaticSetupEditorTest {
         assertNull(gpg.client.request)
         gpg.editor.toggleShell(SetupShell.BASH)
         assertTrue(gpg.editor.state.value.canContinue)
-        val termux = Fixture(this, defaults.copy(external = true, selectedShells = persistentSetOf(SetupShell.BASH)))
+        val termux = Fixture(this, defaults.copy(termux = true, selectedShells = persistentSetOf(SetupShell.BASH)))
         assertTrue(termux.editor.state.value.canContinue)
         termux.editor.next()
         assertEquals("keyguard-android-ssh-agent --setup-shells bash", termuxSetupCommand(termux.editor.state.value))
@@ -66,6 +66,42 @@ class AgentAutomaticSetupEditorTest {
         assertFalse(termux.editor.state.value.applied)
         assertNull(termux.editor.state.value.verified)
         assertNull(termux.client.request)
+    }
+
+    @Test
+    fun `host CLI continues without shells and shows the command instead of running the client`() = runTest {
+        val cli = AgentSetupHostCli(
+            command = persistentListOf("/rt/ld.so", "--library-path", "/rt", "/var/lib/flatpak/app/id/files/keyguard"),
+            endpoint = "/run/user/1000/app/id/ssh-agent.sock",
+        )
+        val host = Fixture(this, defaults.copy(hostCli = cli))
+        val editor = host.editor
+        assertTrue(editor.state.value.sshConfig)
+        assertTrue(editor.state.value.canContinue)
+        editor.setOneHost(true)
+        editor.setHost(" git.example.com ")
+        editor.toggleShell(SetupShell.ZSH)
+        editor.toggleShell(SetupShell.BASH)
+        editor.next()
+        advanceUntilIdle()
+        assertEquals(AgentSetupStep.REVIEW, editor.state.value.step)
+        assertEquals(
+            "env /rt/ld.so --library-path /rt /var/lib/flatpak/app/id/files/keyguard agents setup --agent ssh " +
+                "--socket /run/user/1000/app/id/ssh-agent.sock --shells bash,zsh --host git.example.com",
+            hostCliCommand(editor.state.value, cli),
+        )
+        editor.next()
+        assertEquals(AgentSetupStep.RESULT, editor.state.value.step)
+        assertNull(host.client.request)
+        assertTrue(host.client.applied.isEmpty())
+    }
+
+    @Test
+    fun `host CLI undo command needs no settings`() {
+        val cli = AgentSetupHostCli(persistentListOf("/app/keyguard"), "/home/gnupg")
+        val undo = defaults.copy(agent = SetupAgent.GPG, mode = AgentSetupMode.UNDO, hostCli = cli)
+        assertFalse(undo.sshConfig)
+        assertEquals("env /app/keyguard agents undo gpg --review", hostCliCommand(undo, cli))
     }
 
     @Test

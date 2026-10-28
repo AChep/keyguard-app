@@ -21,7 +21,7 @@ private fun flatpakDeviceAccessCommand(appId: String) =
 internal suspend fun requireSecurityKeyAccess(
     title: StringResource,
     platform: Platform = CurrentPlatform,
-    flatpakInfo: File = File("/.flatpak-info"),
+    flatpakInfo: File = File(FLATPAK_INFO_PATH),
     appId: String = flatpakId(),
 ) {
     // Only the sandbox can hide the device.
@@ -45,17 +45,8 @@ internal fun hasSecurityKeyAccess(flatpakInfo: File): Boolean {
  * Flatpak writes the final permissions, overrides included, to the `[Context]`
  * group of /.flatpak-info and leaves out revoked ones.
  */
-internal fun flatpakInfoGrantsAllDevices(info: String): Boolean {
-    var group: String? = null
-    info.lineSequence().map(String::trim).forEach { line ->
-        if (line.startsWith("[")) {
-            group = line
-        } else if (group == "[Context]" && line.substringBefore('=').trim() == "devices") {
-            return line.substringAfter('=').split(';').any { it.trim() == "all" }
-        }
-    }
-    return false
-}
+internal fun flatpakInfoGrantsAllDevices(info: String): Boolean =
+    flatpakInfoValue(info, "Context", "devices")?.split(';')?.any { it.trim() == "all" } == true
 
 private class SecurityKeyAccessException(
     title: StringResource,

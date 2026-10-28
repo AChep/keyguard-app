@@ -2,18 +2,24 @@ package com.artemchep.keyguard.feature.agent.help
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -45,12 +51,19 @@ import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.copy
+import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
+import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldColumn
+import com.artemchep.keyguard.ui.defaultAvatarColor
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.isDark
+import com.artemchep.keyguard.ui.theme.ok
+import com.artemchep.keyguard.ui.theme.okContainer
+import com.artemchep.keyguard.ui.theme.warning
+import com.artemchep.keyguard.ui.theme.warningContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import com.artemchep.keyguard.ui.util.HorizontalDivider
@@ -232,6 +245,76 @@ internal fun AgentSetupCodeBlock(
             Icon(
                 imageVector = Icons.Outlined.ContentCopy,
                 contentDescription = copyDescription,
+            )
+        }
+    }
+}
+
+internal enum class AgentSetupStatus {
+    OK,
+    PENDING,
+    WARNING,
+}
+
+@Composable
+internal fun AgentSetupStatusRow(
+    status: AgentSetupStatus,
+    text: String,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = Dimens.textHorizontalPadding,
+                vertical = 10.dp,
+            ),
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        verticalAlignment = Alignment.Top,
+    ) {
+        val color = when (status) {
+            AgentSetupStatus.OK -> MaterialTheme.colorScheme.okContainer
+                .combineAlpha(DisabledEmphasisAlpha)
+
+            AgentSetupStatus.PENDING -> defaultAvatarColor()
+            AgentSetupStatus.WARNING -> MaterialTheme.colorScheme.warningContainer
+                .combineAlpha(DisabledEmphasisAlpha)
+        }
+        Avatar(
+            color = color,
+        ) {
+            val iconModifier = Modifier
+                .size(20.dp)
+            when (status) {
+                AgentSetupStatus.OK -> Icon(
+                    modifier = iconModifier,
+                    imageVector = Icons.Outlined.Check,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.ok,
+                )
+
+                AgentSetupStatus.PENDING -> KeyguardLoadingIndicator(
+                    modifier = iconModifier,
+                )
+
+                AgentSetupStatus.WARNING -> Icon(
+                    modifier = iconModifier,
+                    imageVector = Icons.Outlined.Warning,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.warning,
+                )
+            }
+        }
+        // Single lines center on the badge, wrapped
+        // text starts at its top.
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .heightIn(min = 36.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
     }

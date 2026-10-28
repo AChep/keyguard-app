@@ -76,7 +76,7 @@ class AgentAutomaticSetupEnabledTest {
         assertFalse(editor.state.value.canContinue)
         val external = AgentAutomaticSetupEditor(
             AgentSetupData(
-                SetupAgent.GPG, enabled = true, external = true, selectedShells = persistentSetOf(SetupShell.BASH),
+                SetupAgent.GPG, enabled = true, termux = true, selectedShells = persistentSetOf(SetupShell.BASH),
             ),
             null, this,
         ) {}

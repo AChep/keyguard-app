@@ -11,18 +11,11 @@ import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.persistentSetOf
 import org.jetbrains.compose.resources.StringResource
 
-internal enum class SetupAgent(val argument: String, val protocol: StringResource) {
-    SSH("ssh", Res.string.protocol_ssh),
-    GPG("gpg", Res.string.protocol_gpg),
-}
-
-internal enum class SetupShell(val argument: String, val title: String) {
-    BASH("bash", "Bash"),
-    ZSH("zsh", "Zsh"),
-    FISH("fish", "Fish"),
-    POWERSHELL("powershell", "PowerShell 7"),
-    WINDOWS_POWERSHELL("windows-powershell", "Windows PowerShell 5.1"),
-}
+internal val SetupAgent.protocol: StringResource
+    get() = when (this) {
+        SetupAgent.SSH -> Res.string.protocol_ssh
+        SetupAgent.GPG -> Res.string.protocol_gpg
+    }
 
 internal data class AgentSetupEdit(
     val path: String,
@@ -80,6 +73,9 @@ internal data class AgentSetupError(
 
 internal class AgentSetupException(val error: AgentSetupError) : Exception(error.detail)
 
+internal fun Throwable.toAgentSetupError(): AgentSetupError = (this as? AgentSetupException)?.error
+    ?: AgentSetupError(AgentSetupError.Kind.FAILED, detail = message ?: this::class.simpleName)
+
 internal interface AgentSetupClient {
     suspend fun preview(shells: Set<SetupShell>, host: String): AgentSetupPlan
     suspend fun undo(): AgentSetupPlan
@@ -87,8 +83,32 @@ internal interface AgentSetupClient {
     suspend fun verify(): String
 }
 
+/**
+ * The bundled CLI as a host terminal sees it. A sandbox that can't edit host
+ * files shows a command that runs it instead.
+ */
+internal data class AgentSetupHostCli(
+    /** Starts the CLI; its arguments follow. */
+    val command: ImmutableList<String>,
+    /** The SSH socket or the GnuPG home. */
+    val endpoint: String,
+)
+
+/** Who applies the configuration. */
+internal sealed interface AgentSetupRunner {
+    /** The app reviews and applies the plan itself. */
+    class App(val client: AgentSetupClient) : AgentSetupRunner
+
+    /** The user runs the Termux helper. */
+    data object Termux : AgentSetupRunner
+
+    /** The user runs the bundled CLI in a host terminal; [resolve] may fail. */
+    class HostCli(val resolve: suspend () -> AgentSetupHostCli) : AgentSetupRunner
+}
+
+/** Returns null if this build can't configure the agent automatically. */
 @Composable
-internal expect fun rememberAgentSetupClient(agent: SetupAgent): AgentSetupClient?
+internal expect fun rememberAgentSetupRunner(agent: SetupAgent): AgentSetupRunner?
 
 internal enum class AgentSetupMode { CONFIGURE, UNDO }
 internal enum class AgentSetupStep { SETTINGS, REVIEW, RESULT }
@@ -99,13 +119,16 @@ internal enum class AgentSetupReviewStatus(val recovery: Boolean = false) {
     CONFLICTS(recovery = true), FAILED(recovery = true), REQUIRED(recovery = true),
 }
 
-private val HOST_REGEX = Regex("[A-Za-z0-9._-]+")
-
 internal data class AgentSetupData(
     val agent: SetupAgent,
     val mode: AgentSetupMode = AgentSetupMode.CONFIGURE,
-    val external: Boolean = false,
+    /** Set when the user runs the Termux helper instead of the app's client. */
+    val termux: Boolean = false,
+    /** Set when the user runs the bundled CLI in a host terminal instead of the app's client. */
+    val hostCli: AgentSetupHostCli? = null,
     val available: Boolean = true,
+    /** Why setup is unavailable although the build has a runner. */
+    val unavailableError: AgentSetupError? = null,
     val enabled: Boolean = false,
     val shells: ImmutableList<SetupShell> = persistentListOf(),
     val selectedShells: ImmutableSet<SetupShell> = persistentSetOf(),
@@ -121,13 +144,17 @@ internal data class AgentSetupData(
     val hasEdits: Boolean = false,
     val confirmingDiscard: Boolean = false,
 ) {
+    val external get() = termux || hostCli != null
     val busy get() = operation != AgentSetupOperation.IDLE
     val mutating get() = operation == AgentSetupOperation.APPLYING
     val setupAllowed get() = enabled || mode == AgentSetupMode.UNDO
     val editable get() = setupAllowed && !busy && !confirmingDiscard && step == AgentSetupStep.SETTINGS
-    val hostValid get() = !oneHost || host.trim().matches(HOST_REGEX)
-    val settingsValid get() = hostValid &&
-        ((agent == SetupAgent.SSH && !external) || selectedShells.isNotEmpty())
+    val hostValid get() = !oneHost || isAgentSetupHostValid(host)
+    /** The one host for SSH config, or empty for all hosts. */
+    val selectedHost get() = host.trim().takeIf { oneHost }.orEmpty()
+    /** The CLI writes SSH config, for all hosts or one; the Termux helper configures shells only. */
+    val sshConfig get() = agent == SetupAgent.SSH && !termux
+    val settingsValid get() = hostValid && (sshConfig || selectedShells.isNotEmpty())
     val canRefresh get() = available && setupAllowed && !busy && !confirmingDiscard &&
         !external && step == AgentSetupStep.REVIEW
     val canRetry get() = setupAllowed && !busy && verified == false
@@ -173,4 +200,16 @@ internal fun termuxSetupCommand(data: AgentSetupData): String {
     return if (data.mode == AgentSetupMode.UNDO) "$helper --undo-setup" else {
         "$helper --setup-shells ${data.selectedShells.joinToString(",") { it.argument }}"
     }
+}
+
+/** The command that [AgentSetupData.mode] needs from a host terminal. */
+internal fun hostCliCommand(data: AgentSetupData, cli: AgentSetupHostCli): String = when (data.mode) {
+    AgentSetupMode.UNDO -> hostCliUndoCommand(cli.command, data.agent)
+    AgentSetupMode.CONFIGURE -> hostCliSetupCommand(
+        cli = cli.command,
+        agent = data.agent,
+        endpoint = cli.endpoint,
+        shells = data.selectedShells,
+        host = data.selectedHost,
+    )
 }

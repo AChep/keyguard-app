@@ -37,6 +37,9 @@ shells, continue to review the files, then select **Apply changes**. The wizard
 checks the agent connection after applying. Open a new terminal afterward.
 Bash, Zsh, Fish, PowerShell 7 and Windows PowerShell 5.1 are supported.
 
+The Flatpak build can't edit host files, so the wizard shows a command instead.
+Run it in a host terminal. It shows the file changes and asks before applying them.
+
 Setup selects Keyguard's separate GnuPG home. It does not copy keyrings or
 trust settings, import private keys, or change Git signing. Import your public
 certificates using the steps below. The connection check lists the keys served

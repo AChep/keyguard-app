@@ -148,6 +148,8 @@ jobs:
               :common:checkBouncyCastleProductionDependencies
               :common:checkSshjDependencies
               :common:desktopTest
+              :feature:agent-setup:checkComposeFree
+              :feature:agent-setup:desktopTest
               :feature:android-ipc-presentation:checkComposeFree
               :feature:android-ipc-presentation:desktopTest
               :feature:cli:checkComposeFree

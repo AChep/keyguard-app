@@ -3396,6 +3396,17 @@
     "name": "Oracle Cloud Infrastructure"
   },
   {
+    "domain": "cloud.qdrant.io",
+    "additional-domains": [
+      "login.cloud.qdrant.io"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://qdrant.tech/documentation/cloud-user-profile/#security",
+    "name": "Qdrant Cloud"
+  },
+  {
     "domain": "cloud66.com",
     "tfa": [
       "totp",
@@ -6480,15 +6491,6 @@
     "name": "Google Fit"
   },
   {
-    "domain": "fitbit.com",
-    "url": "https://www.fitbit.com/",
-    "tfa": [
-      "sms"
-    ],
-    "documentation": "https://help.fitbit.com/articles/en_US/Help_article/2197",
-    "name": "Fitbit"
-  },
-  {
     "domain": "fiverr.com",
     "tfa": [
       "sms",
@@ -6767,6 +6769,14 @@
     "name": "California Franchise Tax Board"
   },
   {
+    "domain": "g2a.com",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://supporthub.g2a.com/marketplace/en/g2a-account/how-can-i-activate-an-additional-login-verification-on-my-g2a-account",
+    "name": "G2A"
+  },
+  {
     "domain": "gaijin.net",
     "tfa": [
       "sms",
@@ -6972,6 +6982,15 @@
     ],
     "documentation": "https://getscreen.me/en/docs/dashboard#account-authentication",
     "name": "Getscreen.me"
+  },
+  {
+    "domain": "gigaone.pl",
+    "url": "https://www.gigaone.pl/",
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://www.gigaone.pl/wsparcie-techniczne/2fa",
+    "name": "Gigaone"
   },
   {
     "domain": "gitguardian.com",
@@ -7521,6 +7540,25 @@
     ],
     "documentation": "https://help.headway.co/hc/articles/4428388155028#h_01J6CN885B50GFFC3QCXY51QT7",
     "name": "Headway"
+  },
+  {
+    "domain": "healthapp.google",
+    "additional-domains": [
+      "fitbit.com"
+    ],
+    "tfa": [
+      "sms",
+      "call",
+      "totp",
+      "custom-software",
+      "u2f"
+    ],
+    "custom-software": [
+      "Google Prompts",
+      "Google Smart Lock"
+    ],
+    "documentation": "https://safety.google/authentication/",
+    "name": "Google Health"
   },
   {
     "domain": "healthcare.gov",
@@ -8978,6 +9016,17 @@
     "name": "Kagi"
   },
   {
+    "domain": "kahoot.com",
+    "additional-domains": [
+      "kahoot.it"
+    ],
+    "tfa": [
+      "totp"
+    ],
+    "documentation": "https://support.kahoot.com/hc/articles/43448661146771",
+    "name": "Kahoot!"
+  },
+  {
     "domain": "kajabi.com",
     "tfa": [
       "totp"
@@ -9075,12 +9124,9 @@
     "domain": "kickstarter.com",
     "url": "https://www.kickstarter.com",
     "tfa": [
-      "sms",
-      "call",
       "totp"
     ],
     "documentation": "https://help.kickstarter.com/hc/en-us/articles/115005127094",
-    "notes": "Software 2FA requires setting up SMS 2FA as a fallback.",
     "name": "Kickstarter"
   },
   {
@@ -9388,6 +9434,23 @@
       "email"
     ],
     "name": "Leboncoin"
+  },
+  {
+    "domain": "leetcode.com",
+    "additional-domains": [
+      "leetcode.cn"
+    ],
+    "tfa": [
+      "email",
+      "sms",
+      "totp",
+      "u2f",
+      "custom-software"
+    ],
+    "custom-software": [
+      "LeetCode App"
+    ],
+    "name": "LeetCode"
   },
   {
     "domain": "lego.com",
@@ -12636,10 +12699,15 @@
       "paypal-search.com"
     ],
     "tfa": [
+      "sms",
       "totp",
-      "u2f"
+      "u2f",
+      "custom-software"
     ],
-    "notes": "2FA can only be setup on the website. A backup 2FA method is needed to setup security key.",
+    "custom-software": [
+      "PayPal App"
+    ],
+    "notes": "2FA can only be setup on the website. A backup 2FA method is needed to setup security key. SMS method cannot be disabled.",
     "documentation": "https://www.paypal.com/us/cshelp/article/help167",
     "name": "PayPal"
   },
@@ -12820,6 +12888,13 @@
       "email"
     ],
     "name": "Philips Hue"
+  },
+  {
+    "domain": "photon.codes",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Photon"
   },
   {
     "domain": "phrase.com",
@@ -13924,13 +13999,10 @@
   },
   {
     "domain": "recurly.com",
-    "url": "https://www.recurly.com/",
     "tfa": [
       "sms",
-      "custom-software"
-    ],
-    "custom-software": [
-      "Authy"
+      "email",
+      "totp"
     ],
     "documentation": "https://docs.recurly.com/docs/two-factor-authentication",
     "name": "Recurly"
@@ -14806,15 +14878,6 @@
     "name": "SelfWealth"
   },
   {
-    "domain": "sellix.io",
-    "tfa": [
-      "email",
-      "totp"
-    ],
-    "documentation": "https://help.sellix.io/en/articles/4502811",
-    "name": "Sellix"
-  },
-  {
     "domain": "semaphoreci.com",
     "tfa": [
       "totp"
@@ -14896,6 +14959,13 @@
     ],
     "documentation": "https://store.serif.com/help/two-step-verification/",
     "name": "Affinity"
+  },
+  {
+    "domain": "serpapi.com",
+    "tfa": [
+      "totp"
+    ],
+    "name": "SerpApi"
   },
   {
     "domain": "server.nitrado.net",
@@ -15849,6 +15919,13 @@
     "name": "Stash"
   },
   {
+    "domain": "statamic.com",
+    "tfa": [
+      "totp"
+    ],
+    "name": "Statamic"
+  },
+  {
     "domain": "statefarm.com",
     "tfa": [
       "sms",
@@ -15943,13 +16020,9 @@
     "tfa": [
       "sms",
       "totp",
-      "u2f",
-      "custom-hardware"
+      "u2f"
     ],
-    "custom-hardware": [
-      "Built-in Authenticator (Biometrics)"
-    ],
-    "documentation": "https://support.stripe.com/questions/how-do-i-enable-two-step-verification",
+    "documentation": "https://support.stripe.com/questions/enable-two-step-authentication",
     "name": "Stripe"
   },
   {
@@ -16743,6 +16816,15 @@
       "totp"
     ],
     "name": "TicketSource"
+  },
+  {
+    "domain": "ticktick.com",
+    "tfa": [
+      "email",
+      "totp"
+    ],
+    "documentation": "https://help.ticktick.com/articles/7307588296744370176",
+    "name": "TickTick"
   },
   {
     "domain": "tiktok.com",
@@ -18073,9 +18155,10 @@
     "domain": "usps.com",
     "tfa": [
       "sms",
-      "email"
+      "email",
+      "totp"
     ],
-    "documentation": "https://reg.usps.com/entreg/AccountRecoveryHelpAction_input",
+    "documentation": "https://faq.usps.com/s/article/Multifactor-Authentication-MFA",
     "name": "US Postal Service"
   },
   {
@@ -19029,12 +19112,14 @@
   },
   {
     "domain": "wikipedia.org",
+    "additional-domains": [
+      "wikimedia.org"
+    ],
     "tfa": [
       "totp",
       "u2f"
     ],
     "documentation": "https://meta.wikimedia.org/wiki/Help:Two-factor_authentication",
-    "notes": "Currently limited to administrators (and users with admin-like permissions like interface editors), bureaucrats, checkusers, oversighters, stewards, edit filter managers and the OATH-testers global group.",
     "name": "Wikipedia"
   },
   {

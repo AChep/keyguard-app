@@ -4,7 +4,8 @@ Release Changelog Summarizer using Google Gemini AI.
 
 Reads a text file containing commit messages, enriches them with the titles of
 the GitHub issues and pull requests they reference, generates full release
-notes, and derives a concise app-store summary from those notes in a second pass.
+notes, and derives a concise app-store summary from those notes in a second pass,
+both for all platforms and for each platform from the notes that apply to it.
 
 Dependencies:
     pip install google-genai
@@ -27,8 +28,53 @@ GITHUB_API_URL = "https://api.github.com"
 GITHUB_API_TIMEOUT_SECONDS = 10
 
 NO_CHANGES_SENTINEL = "No user-facing changes."
+# The app-store summary of a platform with no items of its own.
+FALLBACK_SUMMARY = "Bug fixes and stability improvements."
 SECTION_ORDER = ("New", "Improvements", "Security", "Fixes")
 DATA_UPDATES_SECTION = "Improvements"
+
+# Platforms that get their own app-store summary, mapped to their display names.
+PLATFORMS = {
+    "android": "Android",
+    "wearos": "Wear OS",
+    "windows": "Windows",
+    "macos": "macOS",
+    "linux": "Linux",
+}
+DESKTOP_PLATFORMS = frozenset({"windows", "macos", "linux"})
+ALL_PLATFORMS = frozenset(PLATFORMS)
+# The Wear OS app has only the shared core of the features.
+NON_WEAR_PLATFORMS = ALL_PLATFORMS - {"wearos"}
+# Bullet prefixes of the full release notes, mapped to the platforms they apply to.
+PREFIX_PLATFORMS = {
+    "Android": frozenset({"android"}),
+    "Wear OS": frozenset({"wearos"}),
+    "Windows": frozenset({"windows"}),
+    "macOS": frozenset({"macos"}),
+    "Linux": frozenset({"linux"}),
+    "Desktop": DESKTOP_PLATFORMS,
+    "iOS": frozenset(),
+    "Vault": ALL_PLATFORMS,
+    "Accounts": ALL_PLATFORMS,
+    "Unlock": ALL_PLATFORMS,
+    "Sync": ALL_PLATFORMS,
+    "Bitwarden": ALL_PLATFORMS,
+    "KDBX": ALL_PLATFORMS,
+    "Passkeys": ALL_PLATFORMS,
+    "Generator": ALL_PLATFORMS,
+    "Data": ALL_PLATFORMS,
+    "Autofill": frozenset({"android"}),
+    "Auto-type": DESKTOP_PLATFORMS,
+    "SSH agent": NON_WEAR_PLATFORMS,
+    "Watchtower": NON_WEAR_PLATFORMS,
+    "Send": ALL_PLATFORMS,
+    "Attachments": ALL_PLATFORMS,
+    "Backups": NON_WEAR_PLATFORMS,
+    "WebDAV": NON_WEAR_PLATFORMS,
+    "GPG": NON_WEAR_PLATFORMS,
+    "Export": NON_WEAR_PLATFORMS,
+    "UI": NON_WEAR_PLATFORMS,
+}
 # Names of the `[AUTO] Update <name>` commits, mapped to what users know them as.
 DATA_UPDATE_NAMES = {
     "localization library": "translations",
@@ -48,6 +94,7 @@ MERGE_PULL_REQUEST_REGEX = re.compile(r"^Merge pull request #(?P<number>\d+) fro
 DATA_UPDATE_REGEX = re.compile(r"^\[AUTO\] Update (?P<name>.+?)(?: \(#\d+\))?$")
 CLA_SIGNATURE_REGEX = re.compile(r" has signed the CLA in ")
 BULLET_REGEX = re.compile(r"^[*-]\s+")
+BULLET_PREFIX_REGEX = re.compile(r"^- (?P<prefix>[^:]+):")
 
 FULL_PROMPT_TEMPLATE = """
 You write the GitHub release notes for Keyguard from the commits of one release. The reader is a technical Keyguard user who wants to know what changed for them, not how it was implemented.
@@ -124,7 +171,7 @@ Rules for this shape:
 
 SUMMARY_PROMPT_TEMPLATE = """
 You are an expert app-store release-note editor for Keyguard. Compress the supplied full GitHub release notes into a concise app-store summary. The full notes are authoritative: preserve their facts and priorities, and do not introduce claims that are not present there.
-
+{target}
 **Prioritization:**
 1. Lead with the most important new user-facing capability.
 2. Prefer broad platform or integration improvements next.
@@ -143,6 +190,10 @@ You are an expert app-store release-note editor for Keyguard. Compress the suppl
 <full_notes>
 {full_notes}
 </full_notes>
+"""
+
+SUMMARY_TARGET_TEMPLATE = """
+**Target:** The summary appears in the store listing of Keyguard for {platform}. Every item in the notes applies to {platform}; do not name {platform} in the summary.
 """
 
 logging.basicConfig(level=logging.INFO, format=LOG_FORMAT, datefmt="%H:%M:%S")
@@ -232,11 +283,8 @@ def format_data_updates(names: list[str]) -> str | None:
     return f"- Data: Updated {listing}."
 
 
-def finalize_full_notes(text: str, data_updates: list[str]) -> str:
-    """Normalizes the bullets, puts the sections in the canonical order, and appends the data updates."""
-    if text.strip() == NO_CHANGES_SENTINEL:
-        text = ""
-
+def parse_sections(text: str) -> tuple[list[str], dict[str, list[str]]]:
+    """Splits release notes into the lines before the first heading and the lines of each section."""
     preamble = []
     sections: dict[str, list[str]] = {}
     current = preamble
@@ -245,6 +293,25 @@ def finalize_full_notes(text: str, data_updates: list[str]) -> str:
             current = sections.setdefault(line.removeprefix("### ").strip(), [])
         else:
             current.append(BULLET_REGEX.sub("- ", line))
+    return preamble, sections
+
+
+def format_sections(preamble: list[str], sections: dict[str, list[str]]) -> str:
+    unknown_headings = [heading for heading in sections if heading not in SECTION_ORDER]
+    blocks = ["\n".join(preamble).strip()]
+    for heading in [*SECTION_ORDER, *unknown_headings]:
+        lines = [line for line in sections.get(heading, []) if line.strip()]
+        if lines:
+            blocks.append("\n".join([f"### {heading}", *lines]))
+    return "\n\n".join(block for block in blocks if block)
+
+
+def finalize_full_notes(text: str, data_updates: list[str]) -> str:
+    """Normalizes the bullets, puts the sections in the canonical order, and appends the data updates."""
+    if text.strip() == NO_CHANGES_SENTINEL:
+        text = ""
+
+    preamble, sections = parse_sections(text)
 
     data_bullet = format_data_updates(data_updates)
     if data_bullet:
@@ -254,12 +321,40 @@ def finalize_full_notes(text: str, data_updates: list[str]) -> str:
     if unknown_headings:
         logger.warning(f"Unexpected release notes headings: {unknown_headings}")
 
-    blocks = ["\n".join(preamble).strip()]
-    for heading in [*SECTION_ORDER, *unknown_headings]:
-        lines = [line for line in sections.get(heading, []) if line.strip()]
-        if lines:
-            blocks.append("\n".join([f"### {heading}", *lines]))
-    return "\n\n".join(block for block in blocks if block) or NO_CHANGES_SENTINEL
+    return format_sections(preamble, sections) or NO_CHANGES_SENTINEL
+
+
+def bullet_platforms(line: str) -> frozenset[str]:
+    """Returns the platforms a bullet of the full release notes applies to, judged by its prefix."""
+    match = BULLET_PREFIX_REGEX.match(line)
+    if not match:
+        logger.warning(f"Release notes bullet without a prefix: {line}")
+        return NON_WEAR_PLATFORMS
+
+    platforms = set()
+    for prefix in match["prefix"].split(","):
+        prefix = prefix.strip()
+        if prefix not in PREFIX_PLATFORMS:
+            logger.warning(f"Unknown release notes prefix: {prefix}")
+        platforms |= PREFIX_PLATFORMS.get(prefix, NON_WEAR_PLATFORMS)
+    return frozenset(platforms)
+
+
+def filter_notes_for_platform(full_notes: str, platform: str) -> str:
+    """
+    Keeps only the bullets of the full release notes that apply to the platform.
+    Drops the lead sentence and the alert: they repeat bullets of any platform.
+    Returns an empty string when nothing applies.
+    """
+    if full_notes.strip() == NO_CHANGES_SENTINEL:
+        return ""
+
+    _, sections = parse_sections(full_notes)
+    sections = {
+        heading: [line for line in lines if line.strip() and platform in bullet_platforms(line)]
+        for heading, lines in sections.items()
+    }
+    return format_sections([], sections)
 
 
 def validate_changelog_summary(text: str) -> str:
@@ -308,8 +403,9 @@ class GeminiSummarizer:
         prompt = FULL_PROMPT_TEMPLATE.format(commit_text=commit_text)
         return self._generate(prompt, output_name="full release notes")
 
-    def summarize_full_notes(self, full_notes: str) -> str:
-        prompt = SUMMARY_PROMPT_TEMPLATE.format(full_notes=full_notes)
+    def summarize_full_notes(self, full_notes: str, platform: str | None = None) -> str:
+        target = SUMMARY_TARGET_TEMPLATE.format(platform=PLATFORMS[platform]) if platform else ""
+        prompt = SUMMARY_PROMPT_TEMPLATE.format(full_notes=full_notes, target=target)
         return self._generate(prompt, output_name="app-store summary")
 
 
@@ -335,6 +431,12 @@ def main():
         "--full-output",
         type=Path,
         help="Optional output file path for the full Markdown release notes",
+    )
+    parser.add_argument(
+        "--platform-output-dir",
+        type=Path,
+        help="Optional output directory for the app-store summary of each platform, written as <platform>.md: "
+             f"{', '.join(PLATFORMS)}",
     )
     parser.add_argument(
         "--print-prompt",
@@ -382,6 +484,20 @@ def main():
     if args.full_output:
         args.full_output.write_text(full + "\n", encoding="utf-8")
         logger.info(f"Full release notes saved to {args.full_output}")
+
+    if args.platform_output_dir:
+        args.platform_output_dir.mkdir(parents=True, exist_ok=True)
+        for platform in PLATFORMS:
+            platform_notes = filter_notes_for_platform(full, platform)
+            logger.info(f"Release notes for {platform}:\n{platform_notes}")
+            if platform_notes:
+                platform_summary = summarizer.summarize_full_notes(platform_notes, platform=platform)
+                platform_summary = validate_changelog_summary(platform_summary)
+            else:
+                platform_summary = FALLBACK_SUMMARY
+            path = args.platform_output_dir / f"{platform}.md"
+            path.write_text(platform_summary + "\n", encoding="utf-8")
+            logger.info(f"Summary for {platform} saved to {path}")
 
 
 if __name__ == "__main__":

@@ -23,6 +23,22 @@ def _read_text_file(path: str | None) -> str | None:
         return f.read()
 
 
+def _read_summaries_dir(path: str | None) -> dict[str, str]:
+    """Reads the summary of each platform from <platform>.md files, keyed by the platform."""
+    if not path or not os.path.isdir(path):
+        return {}
+
+    summaries = {}
+    for name in sorted(os.listdir(path)):
+        platform, extension = os.path.splitext(name)
+        if extension != ".md":
+            continue
+        text = _read_text_file(os.path.join(path, name))
+        if text and text.strip():
+            summaries[platform] = text.strip()
+    return summaries
+
+
 def _read_versions_json(path: str):
     if not os.path.exists(path):
         logger.error(f"JSON file '{path}' not found.")
@@ -89,6 +105,11 @@ def main():
         help="Path to the changelog summary file (optional)",
     )
     parser.add_argument(
+        "--changelog_summaries_dir",
+        default=None,
+        help="Path to the directory with the changelog summary of each platform as <platform>.md (optional)",
+    )
+    parser.add_argument(
         "--changelog_raw_file",
         default=None,
         help="Path to the changelog raw file (optional)",
@@ -113,8 +134,15 @@ def main():
     summary = _read_text_file(args.changelog_summary_file)
     summary = summary.strip() if summary else None
 
+    summaries = _read_summaries_dir(args.changelog_summaries_dir)
+
     raw_text = _read_text_file(args.changelog_raw_file)
     raw_text = raw_text.strip() if raw_text else None
+
+    changelog = {"summary": summary}
+    if summaries:
+        changelog["summaries"] = summaries
+    changelog["raw"] = raw_text
 
     new_item = {
         "date": args.date,
@@ -122,10 +150,7 @@ def main():
             "semantic": args.semantic_version,
             "tag": args.tag_version,
         },
-        "changelog": {
-            "summary": summary,
-            "raw": raw_text,
-        },
+        "changelog": changelog,
         "url": f"https://github.com/AChep/keyguard-app/releases/tag/{args.tag_version}",
     }
 

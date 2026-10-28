@@ -9,6 +9,7 @@ jobs:
   # Generates variations of the changelog
   #   - changelog-raw.md: all git commits
   #   - changelog-summary.md: short summary using LLM
+  #   - changelog-summaries/<platform>.md: short summary of the changes for one platform using LLM
   #   - changelog-full.md: full release notes using LLM + referenced issue titles
   generate-changelog:
     name: "Generate changelog"
@@ -44,10 +45,17 @@ jobs:
             changelog-raw.md \
             --token "${{ secrets.GEMINI_API_TOKEN }}" \
             --output changelog-summary.md \
-            --full-output changelog-full.md
+            --full-output changelog-full.md \
+            --platform-output-dir changelog-summaries
       - name: "Print summary"
         run: |
           cat changelog-summary.md
+      - name: "Print platform summaries"
+        run: |
+          for file in changelog-summaries/*.md; do
+            echo "== $file"
+            cat "$file"
+          done
       - name: "Print full release notes"
         run: |
           cat changelog-full.md
@@ -58,6 +66,7 @@ jobs:
           path: |
             changelog-raw.md
             changelog-summary.md
+            changelog-summaries/
             changelog-full.md
   # Generates versions.json with historical data taken from
   # AChep/keyguard-version and new data for the new release tag.
@@ -119,6 +128,7 @@ jobs:
             --semantic_version ${{ steps.producer.outputs.version_semantic }} \
             --tag_version ${{ steps.producer.outputs.version_tag }} \
             --changelog_summary_file artifacts-changelog/changelog-summary.md \
+            --changelog_summaries_dir artifacts-changelog/changelog-summaries \
             --changelog_raw_file artifacts-changelog/changelog-raw.md
       - name: "Produce MSIX version"
         id: msix
@@ -1124,20 +1134,21 @@ jobs:
       - name: "Prepare env"
         run: |
           echo ${{ secrets.SERVICE_ACCOUNT_B64 }} | base64 -d | zcat > service-account-google.json
-          mkdir whatsnew
-          mv artifacts-changelog/changelog-summary.md whatsnew/whatsnew-en-US
+          mkdir whatsnew-android whatsnew-wearos
+          mv artifacts-changelog/changelog-summaries/android.md whatsnew-android/whatsnew-en-US
+          mv artifacts-changelog/changelog-summaries/wearos.md whatsnew-wearos/whatsnew-en-US
       - name: "Distribute Android on Play Store"
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
         with:
           serviceAccountJson: service-account-google.json
-          whatsNewDirectory: whatsnew
+          whatsNewDirectory: whatsnew-android
           packageName: com.artemchep.keyguard
           releaseFiles: artifacts-android/**/*.aab
       - name: "Distribute WearOS on Play Store"
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
         with:
           serviceAccountJson: service-account-google.json
-          whatsNewDirectory: whatsnew
+          whatsNewDirectory: whatsnew-wearos
           packageName: com.artemchep.keyguard
           releaseFiles: artifacts-wearos/**/*.aab
           track: wear:production
@@ -1214,10 +1225,16 @@ jobs:
       group: microsoft-store-submission
       cancel-in-progress: false
     needs:
+      - generate-changelog
       - build-windows-app
       - dist
     if: needs.build-windows-app.outputs.msix-store == 'true'
     steps:
+      - name: "Download changelog"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: changelog
+          path: artifacts-changelog
       - name: "Download Windows app (MSIX Store x64)"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -1283,7 +1300,8 @@ jobs:
           --clientSecret "${{ secrets.MSSTORE_CLIENT_SECRET }}"
       # Upload as a draft (--noCommit) and verify the attached package before
       # submitting it for certification. The CLI may otherwise return success
-      # without attaching the package.
+      # without attaching the package. The release notes are set after the
+      # upload, because publishing recreates the draft.
       - name: "Create and verify draft submission"
         shell: pwsh
         env:
@@ -1293,6 +1311,29 @@ jobs:
           msstore publish "$env:STORE_UPLOAD_PATH" --appId "${{ secrets.MSSTORE_APP_ID }}" --noCommit
           if ($LASTEXITCODE -ne 0) {
             throw "msstore publish exited $LASTEXITCODE."
+          }
+
+          $releaseNotes = (Get-Content -Raw -LiteralPath "artifacts-changelog/changelog-summaries/windows.md").Trim()
+          $submissionJson = msstore submission get "${{ secrets.MSSTORE_APP_ID }}" | Out-String
+          if ($LASTEXITCODE -ne 0) {
+            throw "msstore submission get exited $LASTEXITCODE."
+          }
+          $submission = $submissionJson | ConvertFrom-Json -ErrorAction Stop
+          $baseListing = $submission.Listings.'en-us'.BaseListing
+          if ($null -eq $baseListing) {
+            Write-Warning "The Store draft has no en-us listing; the release notes are not set."
+          } else {
+            $baseListing | Add-Member -NotePropertyName ReleaseNotes -NotePropertyValue $releaseNotes -Force
+            $updatedJson = $submission | ConvertTo-Json -Depth 100 -Compress
+            # The JSON is passed as a command-line argument, which Windows limits to 32767 characters.
+            if ($updatedJson.Length -gt 30000) {
+              Write-Warning "The Store draft is too large to pass on the command line ($($updatedJson.Length) characters); the release notes are not set."
+            } else {
+              msstore submission update "${{ secrets.MSSTORE_APP_ID }}" $updatedJson
+              if ($LASTEXITCODE -ne 0) {
+                throw "msstore submission update exited $LASTEXITCODE."
+              }
+            }
           }
 
           $draftJson = msstore submission get "${{ secrets.MSSTORE_APP_ID }}" | Out-String

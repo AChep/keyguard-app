@@ -48,8 +48,9 @@ def convert_versions_to_xml(json_file: Path, output_file: Optional[Path] = None)
                 url_elem.set('type', 'details')
                 url_elem.text = url_text
             
-            # Add description if present
-            if summary_text := version_data['changelog'].get('summary'):
+            # Add description if present. Older releases have only the summary for all platforms.
+            changelog = version_data['changelog']
+            if summary_text := (changelog.get('summaries') or {}).get('linux') or changelog.get('summary'):
                 summary_elem = ET.SubElement(release, 'description')
                 p = ET.SubElement(summary_elem, 'p')
                 p.text = summary_text

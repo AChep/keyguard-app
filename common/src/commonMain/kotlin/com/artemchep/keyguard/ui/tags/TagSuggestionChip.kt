@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -86,6 +87,9 @@ internal fun TagSuggestionChip(
             .clip(shape)
             .background(containerColor)
             .border(Dp.Hairline, borderColor, shape)
+            // Desktop's clickable takes the focus on press; the
+            // input must keep it, or leaving it commits the draft.
+            .focusProperties { canFocus = false }
             .clickable(role = Role.Button) {
                 onClick(position[0])
             }

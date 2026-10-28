@@ -37,7 +37,12 @@ internal class TagsFieldController(
 
     val focusRequester = FocusRequester()
 
+    /** Whether the input has the focus. */
     var hasFocus by mutableStateOf(false)
+        private set
+
+    /** Whether the input or one of the chips has the focus. */
+    var fieldHasFocus by mutableStateOf(false)
         private set
 
     /** The last chip, armed for removal by a Backspace in the empty input. */
@@ -70,7 +75,7 @@ internal class TagsFieldController(
 
     val panelVisible: Boolean
         get() = editable &&
-            hasFocus &&
+            fieldHasFocus &&
             !dismissed &&
             value.suggestions.isNotEmpty()
 
@@ -126,6 +131,11 @@ internal class TagsFieldController(
 
     fun remove(tag: String) {
         value.onRemove?.invoke(tag)
+        // The focus may be on the chip that is
+        // going away; give it back to the input.
+        if (fieldHasFocus && !hasFocus) {
+            focusRequester.requestFocus()
+        }
     }
 
     /** Picks the highlighted suggestion, or adds the typed text. */
@@ -156,10 +166,16 @@ internal class TagsFieldController(
         if (hasFocus && !focused) {
             armed = false
             highlight = null
+        }
+        hasFocus = focused
+    }
+
+    fun onFieldFocusChanged(focused: Boolean) {
+        if (fieldHasFocus && !focused) {
             dismissed = false
             // Leaving the field keeps what was typed.
             commit(buffer.value.text, feedback = false)
         }
-        hasFocus = focused
+        fieldHasFocus = focused
     }
 }

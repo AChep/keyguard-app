@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -111,12 +112,18 @@ fun TagsField(
     FlatTextFieldSurface(
         modifier = modifier,
         isError = false,
-        isFocused = controller.hasFocus,
+        isFocused = controller.fieldHasFocus,
         shapeState = shapeState,
         expressive = expressive,
     ) {
         Column(
             modifier = Modifier
+                // The group stays focused while the focus
+                // moves between the input and the chips.
+                .onFocusChanged { state ->
+                    controller.onFieldFocusChanged(state.hasFocus)
+                }
+                .focusGroup()
                 .padding(
                     start = 16.dp,
                     end = 12.dp,

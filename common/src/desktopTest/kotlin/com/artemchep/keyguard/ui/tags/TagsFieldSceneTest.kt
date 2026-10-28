@@ -25,6 +25,11 @@ import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.SemanticsConfiguration
+import androidx.compose.ui.semantics.SemanticsProperties
+import androidx.compose.ui.semantics.getAllSemanticsNodes
+import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.use
@@ -153,9 +158,37 @@ class TagsFieldSceneTest {
             settle()
         }
 
-        fun press(key: Key) {
-            scene.sendKeyEvent(KeyEvent(key, KeyEventType.KeyDown))
-            scene.sendKeyEvent(KeyEvent(key, KeyEventType.KeyUp))
+        /** Clicks the button that has the [text]. */
+        fun clickText(text: String) = click { config ->
+            config.getOrNull(SemanticsProperties.Text)
+                ?.any { it.text == text } == true
+        }
+
+        /** Clicks the button whose description mentions the [text]. */
+        fun clickDescribed(text: String) = click { config ->
+            config.getOrNull(SemanticsProperties.ContentDescription)
+                ?.any { text in it } == true
+        }
+
+        private fun click(predicate: (SemanticsConfiguration) -> Boolean) {
+            val node = scene.semanticsOwners
+                .flatMap { it.getAllSemanticsNodes(mergingEnabled = true) }
+                .first { node ->
+                    node.config.getOrNull(SemanticsProperties.Role) == Role.Button &&
+                        predicate(node.config)
+                }
+            val position = node.boundsInRoot.center
+            scene.sendPointerEvent(PointerEventType.Press, position)
+            // Hold it, so whatever the press
+            // changes has the time to show.
+            settle()
+            scene.sendPointerEvent(PointerEventType.Release, position)
+            settle()
+        }
+
+        fun press(key: Key, shift: Boolean = false) {
+            scene.sendKeyEvent(KeyEvent(key, KeyEventType.KeyDown, isShiftPressed = shift))
+            scene.sendKeyEvent(KeyEvent(key, KeyEventType.KeyUp, isShiftPressed = shift))
             settle()
         }
     }
@@ -206,6 +239,39 @@ class TagsFieldSceneTest {
                 assertEquals(4, fake.tags.size)
                 snapshot("7-picked")
             }
+        }
+    }
+
+    @Test
+    fun `clicking a chip keeps the input focused`() {
+        withScene("focus") {
+            focus()
+
+            // A clicked suggestion is added instead of the typed text.
+            fake.typeDraft("fin")
+            settle()
+            clickText("finance")
+            assertEquals(listOf("work", "2fa", "finance"), fake.tags)
+            assertEquals("", fake.draft)
+
+            // Removing a chip keeps the typed text in the input.
+            fake.typeDraft("xy")
+            settle()
+            clickDescribed("2fa")
+            assertEquals(listOf("work", "finance"), fake.tags)
+            assertEquals("xy", fake.draft)
+            press(Key.Enter)
+            assertEquals(listOf("work", "finance", "xy"), fake.tags)
+
+            // So does removing it with the keyboard.
+            fake.typeDraft("yz")
+            settle()
+            press(Key.Tab, shift = true)
+            press(Key.Enter)
+            assertEquals(listOf("work", "finance"), fake.tags)
+            assertEquals("yz", fake.draft)
+            press(Key.Enter)
+            assertEquals(listOf("work", "finance", "yz"), fake.tags)
         }
     }
 

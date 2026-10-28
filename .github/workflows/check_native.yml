@@ -630,7 +630,6 @@ jobs:
           :appleApp:linkDebugTestIosArm64
           :appleApp:linkDebugTestIosSimulatorArm64
           :appleApp:assembleKeyguardSharedDebugXCFramework
-          :common:generateAppleStrings
           :util:crypto:linkDebugTestMacosArm64
       - name: "Generate Xcode projects"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'

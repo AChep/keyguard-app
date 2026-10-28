@@ -8,5 +8,7 @@ if ! command -v xcodegen >/dev/null 2>&1; then
     echo "error: XcodeGen is not installed. Install it with: brew install xcodegen" >&2
     exit 1
 fi
+# Both specs and the KeyguardUI package reference the generated string catalogs.
+xcode/scripts/generate-strings.sh
 xcodegen generate --quiet --spec iosApp/project.yml
 xcodegen generate --quiet --spec macosApp/project.yml

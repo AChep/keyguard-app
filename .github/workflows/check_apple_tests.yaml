@@ -96,12 +96,17 @@ jobs:
   check-apple-localizations:
     name: Check Compiled Apple Localizations
     runs-on: macos-15
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Compile and verify the committed Apple catalog
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: Generate Apple catalogs
+        run: xcode/scripts/generate-strings.sh
+      - name: Compile and verify the generated Apple catalog
         env:
           UNLOCALIZED_RESOURCES_FOLDER_PATH: apple-localizations
         run: |
@@ -111,7 +116,7 @@ jobs:
             --output-directory "$BUILT_PRODUCTS_DIR/$UNLOCALIZED_RESOURCES_FOLDER_PATH" \
             appleUi/Sources/KeyguardUI/Resources/Localizable.xcstrings
           python3 xcode/scripts/verify-apple-strings.py
-      - name: Compile the committed Info.plist catalog
+      - name: Compile the generated Info.plist catalog
         run: |
           mkdir -p "$RUNNER_TEMP/info-plist-localizations"
           xcrun xcstringstool compile \
@@ -141,7 +146,7 @@ jobs:
           ./gradlew --max-workers=1 :appleApp:macosArm64Test :appleApp:assembleKeyguardSharedDebugXCFramework
           -PsqlCipherXcframeworkDir="$PWD/build/sqlcipher-tests/SQLCipher.xcframework"
           :common:macosArm64SqlCipherTest
-          :common:generateAppleStrings :util:s3:macosArm64Test
+          :util:s3:macosArm64Test
       - name: Generate Xcode projects
         run: |
           brew install xcodegen

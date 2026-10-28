@@ -23,7 +23,8 @@ xcode/scripts/generate-projects.sh
 ```
 
 Run it again after you pull, or after you change either app's `project.yml` or the
-shared specifications in `xcode/`.
+shared specifications in `xcode/`. It also generates the localized strings from the
+shared Compose resources; `swift test --package-path appleUi` needs them too.
 
 Open `iosApp/iosApp.xcodeproj` or `macosApp/Keyguard.xcodeproj` in Xcode. Select the
 `Keyguard` scheme and your device or simulator, then build and run. The scheme's

@@ -56,9 +56,6 @@ def classify(paths, *, full=False, all_checks=False):
             continue
         if path.endswith((".md", ".txt")) and not path.startswith(".github/native-crypto-"):
             continue
-        # String catalogs hold only text; Check Apple Tests compiles them.
-        if path.endswith(".xcstrings"):
-            continue
         if (
             path in {"build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.properties", "gradlew", "gradlew.bat", "rust-toolchain.toml", ".cargo/config.toml"}
             or path.startswith(("gradle/", "buildPlugins/"))

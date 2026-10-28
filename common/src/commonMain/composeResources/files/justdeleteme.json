@@ -814,6 +814,15 @@
     "email": "support@airvpn.org"
   },
   {
+    "name": "AISkyla",
+    "domains": [
+      "aiskyla.com"
+    ],
+    "url": "https://aiskyla.com/privacy",
+    "difficulty": "hard",
+    "email": "support@aiskyla.com"
+  },
+  {
     "name": "Aiven",
     "domains": [
       "console.aiven.io",
@@ -1212,6 +1221,15 @@
     "email_body": "Dear AMSO Data Protection Team, I hope this message finds you well. I would like to formally request the closure of my account and the deletion of all associated personal data as per the GDPR guidelines. Below are my account details: Email Address: xxxxx, Account ID: xxxxxxx, Phone Number: xxxxxx I kindly ask that you process this request at your earliest convenience and confirm once the account has been closed and all data has been deleted. Thank you for your attention to this matter. Best regards, xxxxx"
   },
   {
+    "name": "Amundi \u00c9pargne Salariale",
+    "domains": [
+      "amundi-ee.com"
+    ],
+    "url": "https://epargnant.amundi-ee.com/#/help/mailbox",
+    "difficulty": "hard",
+    "notes": "In your mailbox, click on 'New Message', select the 'Account closure' category and 'Account closure' as subject. Send the message 'Please delete my account'"
+  },
+  {
     "name": "Anaconda Nucleus",
     "domains": [
       "anaconda.cloud"
@@ -1570,6 +1588,20 @@
     "notes": "Click on your profile picture on the top right, go to 'Profile', and click the 'Delete my account' button"
   },
   {
+    "name": "ARD",
+    "domains": [
+      "accounts.ard.de",
+      "ard.de",
+      "ardmediathek.de",
+      "tagesschau.de",
+      "sportschau.de",
+      "ardsounds.de",
+      "kika.de"
+    ],
+    "url": "https://accounts.ard.de/konto/loeschen",
+    "difficulty": "easy"
+  },
+  {
     "name": "Arduino",
     "domains": [
       "arduino.cc",
@@ -1725,6 +1757,16 @@
     ],
     "url": "https://www.assembla.com/user/edit/edit_account_settings",
     "difficulty": "easy"
+  },
+  {
+    "name": "Aster Mail",
+    "domains": [
+      "astermail.org",
+      "app.astermail.org"
+    ],
+    "url": "https://app.astermail.org/settings/security",
+    "difficulty": "easy",
+    "notes": "Go to Settings, then Security. Under Danger Zone, click 'Delete account', type 'delete my account', enter your password and confirm. All emails, contacts and encryption keys are deleted permanently."
   },
   {
     "name": "ASUS",
@@ -2351,11 +2393,10 @@
     "name": "Beatport",
     "domains": [
       "beatport.com",
-      "support.beatport.com"
+      "account.beatport.com"
     ],
-    "url": "https://support.beatport.com/hc/en-us/articles/4412533928596-How-can-I-close-my-account-",
-    "difficulty": "hard",
-    "email": "support@beatport.com"
+    "url": "https://account.beatport.com/settings/delete-account",
+    "difficulty": "easy"
   },
   {
     "name": "BeatSaver",
@@ -2638,6 +2679,16 @@
     "difficulty": "easy"
   },
   {
+    "name": "BitChute",
+    "domains": [
+      "bitchute.com",
+      "account.bitchute.com"
+    ],
+    "url": "https://www.bitchute.com/personalInfo",
+    "difficulty": "medium",
+    "notes": "Scroll down and click the link labeled \"here\" under \"Delete Account\". In the dialog, check all 4 checkboxes, enter a reason (minimum 1 character, can be any character), and submit. Your account will be scheduled for deletion in about a week."
+  },
+  {
     "name": "Bitdefender Central",
     "domains": [
       "account.bitdefender.com",
@@ -2717,6 +2768,15 @@
     "difficulty": "hard",
     "notes": "To delete an account, the user must write to the following email address: dpo@bkool.com",
     "email": "dpo@bkool.com"
+  },
+  {
+    "name": "Blabberize",
+    "domains": [
+      "blabberize.com"
+    ],
+    "url": "https://blabberize.com/mystuff?m=p",
+    "difficulty": "easy",
+    "notes": "Type \"DeleteMyAccount\" into the account deletion form and submit to receive a confirmation e-mail. Open the link in the e-mail message, and click \"Yes\"."
   },
   {
     "name": "BlaBlaCar",
@@ -3871,6 +3931,15 @@
     "difficulty": "impossible",
     "notes": "To request account cancellation & remove your personal information, please email them. Note: CEEOL will retain and use your information as necessary to comply with their legal obligations, resolve disputes, and enforce their agreements.",
     "email": "info@ceeol.com"
+  },
+  {
+    "name": "Ceki Time Factory",
+    "domains": [
+      "ceki.me"
+    ],
+    "url": "https://ceki.me/dashboard/settings",
+    "difficulty": "easy",
+    "notes": "Click on the red button labeled \"DELETE ACCOUNT\", at the bottom of the page. In the dialog that appears, mark the checkbox that says \"I understand that this action is irreversible\", and write the word \"DELETE\" in the confirmation textbox. Finally, click on the red button labeled \"Delete\". If everything went well, you'll receive an e-Mail stating that deletion will happen after 30 days."
   },
   {
     "name": "Celcoin",
@@ -5068,6 +5137,14 @@
     "difficulty": "easy"
   },
   {
+    "name": "Croma",
+    "domains": [
+      "croma.com"
+    ],
+    "url": "https://www.croma.com/helpAndSupport",
+    "difficulty": "impossible"
+  },
+  {
     "name": "Cronometer",
     "domains": [
       "cronometer.com"
@@ -5672,6 +5749,23 @@
     "url": "https://devitjobs.com/contact",
     "difficulty": "medium",
     "notes": "Click on the 'Log in here' button. After logging in, go to 'Account', then 'Delete Account'. You will be redirected to write to the support email. Account gets deleted within 48 hours."
+  },
+  {
+    "name": "Devographics (State of JS)",
+    "domains": [
+      "survey.devographics.com",
+      "devographics.com",
+      "stateofjs.com",
+      "stateofcss.com",
+      "stateofhtml.com",
+      "stateofreact.com",
+      "stateofai.com",
+      "stateofdevs.com"
+    ],
+    "url": "https://survey.devographics.com/en-US/account/profile",
+    "difficulty": "impossible",
+    "notes": "According to their help page, you need to send an e-mail to them to request the deletion. However, they seemingly never respond.",
+    "email": "hello@stateofjs.com"
   },
   {
     "name": "Devpost",
@@ -6658,6 +6752,15 @@
     "notes": "There are two ways to contact this website, such as calling a phone number that is based on where you reside, or use the live chat."
   },
   {
+    "name": "Ecosia",
+    "domains": [
+      "ecosia.org"
+    ],
+    "url": "https://www.ecosia.org/accounts/profile/settings/delete-account-verify",
+    "difficulty": "medium",
+    "notes": "To delete your account, click on your profile picture in the top right and then on Your Profile. After that, you click on the settings in the top right again and then at the click at the bottom on Delete Account. Now you have to sign in again to delete your account and your finished."
+  },
+  {
     "name": "Ecwid",
     "domains": [
       "ecwid.com"
@@ -7108,6 +7211,16 @@
     "url": "https://www.espn.com",
     "difficulty": "easy",
     "notes": "At the bottom of the account settings page there is a Remove Account button"
+  },
+  {
+    "name": "Esri",
+    "domains": [
+      "esri.com",
+      "arcgis.com"
+    ],
+    "url": "https://doc.arcgis.com/en/arcgis-online/reference/faq.htm#anchor35",
+    "difficulty": "hard",
+    "email": "accounts@esri.com"
   },
   {
     "name": "EteSync",
@@ -8170,7 +8283,7 @@
       "france-identite.gouv.fr",
       "idp.france-identite.gouv.fr"
     ],
-    "url": "https.//idp.france-identite.gouv.fr/usager",
+    "url": "https://idp.france-identite.gouv.fr/usager",
     "difficulty": "easy",
     "notes": "Enter your document number then a deletion code received by e-mail to delete your account."
   },
@@ -8835,7 +8948,8 @@
   {
     "name": "GeoGuessr",
     "domains": [
-      "geoguessr.com"
+      "geoguessr.com",
+      "seterra.com"
     ],
     "url": "https://www.geoguessr.com/me/settings",
     "difficulty": "easy",
@@ -9662,6 +9776,15 @@
     "email": "dataprotection@greenmangaming.com"
   },
   {
+    "name": "Greensurance",
+    "domains": [
+      "greensurance.de",
+      "greensurance.digitalerversicherungsmanager.de"
+    ],
+    "url": "https://greensurance.digitalerversicherungsmanager.de/mein-konto/loeschen",
+    "difficulty": "easy"
+  },
+  {
     "name": "Greip",
     "domains": [
       "greip.io",
@@ -10187,6 +10310,14 @@
     "notes": "You have to fill out a request form in order to get your account deleted."
   },
   {
+    "name": "Heraldicon",
+    "domains": [
+      "heraldicon.org"
+    ],
+    "url": "https://heraldicon.org/",
+    "difficulty": "impossible"
+  },
+  {
     "name": "Heroes and Generals",
     "domains": [
       "heroesandgenerals.com",
@@ -10404,7 +10535,7 @@
     "domains": [
       "hollandandbarrett.com"
     ],
-    "url": "hollandandbarrett.com/my-account/security-settings",
+    "url": "https://hollandandbarrett.com/my-account/security-settings",
     "difficulty": "easy",
     "notes": "Just click the 'Delete Account' button. Account is deleted instantly, account details are stored for 3 years then erased completely."
   },
@@ -10489,6 +10620,18 @@
     "url": "https://hoop.photo/",
     "difficulty": "impossible",
     "notes": "Navigate to 'Account' \u2b95 'gear icon' \u2b95 'delete account' \u2b95 'delete'. This will remove some of your account data, but not all. There is no way to remove all data, despite their privacy policy claiming it is."
+  },
+  {
+    "name": "host0",
+    "domains": [
+      "host0.ai",
+      "host0.app"
+    ],
+    "url": "https://host0.ai/docs/delete-account",
+    "difficulty": "hard",
+    "notes": "Email support from the address you sign in with. You can delete your apps and API keys yourself in the dashboard.",
+    "email": "support@host0.ai",
+    "email_body": "Please delete my host0 account. I sign in with XXXXXX."
   },
   {
     "name": "Hostelsclub",
@@ -11102,6 +11245,15 @@
     "difficulty": "hard",
     "email": "support@incogni.com",
     "email_body": "Hello,\n\nI am requesting the deletion of my Incogni account and information associated with this email. I would also like to withdraw the consent given in the Authorization Form.\n\nI understand that by terminating my account I will lose any remaining time on my current subscription and I wish to proceed anyway.\n\nThanks."
+  },
+  {
+    "name": "Indah Water Customer Portal",
+    "domains": [
+      "customerportal.iwk.com.my"
+    ],
+    "url": "https://customerportal.iwk.com.my/",
+    "difficulty": "easy",
+    "notes": "Log in, open the account dropdown menu, and select 'DELETE ACCOUNT'. Deletion is irreversible; you will need to register again to access the portal."
   },
   {
     "name": "Indeed",
@@ -11956,6 +12108,15 @@
     "notes": "Go to \"Account Settings\", then \"Edit Account\", and click \"Yes, I want to delete my account ( step 1 of 2 )\". Then fill out the form in which you have to give your email, type 'delete my account', confirm your password, and finally click \"Delete this account\""
   },
   {
+    "name": "Karaoke Captions",
+    "domains": [
+      "karaokecaptions.com"
+    ],
+    "url": "https://karaokecaptions.com/account/#delete",
+    "difficulty": "easy",
+    "notes": "Sign in, click \"Delete my account\u2026\", type \"DELETE\" and confirm. This immediately deletes the account, profile and synced caption styles, and cancels any active Pro subscription. Saved styles in this browser can optionally be removed in the confirmation dialog. Purchase records are retained as required by tax law."
+  },
+  {
     "name": "Kaspersky",
     "domains": [
       "kaspersky.com.au",
@@ -12262,6 +12423,15 @@
     "notes": "Visit the linked page and follow the instructions."
   },
   {
+    "name": "Klusek",
+    "domains": [
+      "klusek.app"
+    ],
+    "url": "https://klusek.app/delete-account",
+    "difficulty": "easy",
+    "notes": "Log in to the web or mobile app, go to Profile \u2b95 Settings, click 'Delete Account' and confirm with your password. All data is deleted immediately."
+  },
+  {
     "name": "Knetbooks",
     "domains": [
       "knetbooks.com"
@@ -12475,6 +12645,18 @@
     "notes": "Send a request on the GDPR form. Make sure you take open it from the website corresponding to your country. (Linked here, based on your browser language: International, Germany, Italia, Netherlands, Portugal, Russia, Spain, )"
   },
   {
+    "name": "The Lampo Group, LLC (Ramsey Solutions)",
+    "domains": [
+      "ramseysolutions.com",
+      "help.ramseysolutions.com",
+      "store.ramseysolutions.com",
+      "homeschool.ramseysolutions.com",
+      "ramseyclassroom.com"
+    ],
+    "url": "https://help.ramseysolutions.com/hc/en-us",
+    "difficulty": "hard"
+  },
+  {
     "name": "Lampyre",
     "domains": [
       "lampyre.io"
@@ -12549,6 +12731,15 @@
     ],
     "url": "https://help.launchpad.net/YourAccount/Closing",
     "difficulty": "easy"
+  },
+  {
+    "name": "Layerwise",
+    "domains": [
+      "layerwise.app"
+    ],
+    "url": "https://layerwise.app/docs/account/account-and-github#delete-your-account",
+    "difficulty": "easy",
+    "notes": "Account deletion is available in the Layerwise desktop app. Open the user menu \u2b95 Account \u2b95 Danger Zone \u2b95 Delete Account. Type the account email shown in the dialog and confirm. This also deletes teams you own and their projects, and cancels their paid plans. Transfer any teams you want to keep first. If 'Delete local folders' is shown, turn it off to keep the project code on your computer."
   },
   {
     "name": "Lazada",
@@ -12910,6 +13101,15 @@
     "url": "https://us.lgaccount.com",
     "difficulty": "easy",
     "notes": "Log in, open the account administration tab, and press 'Delete Account'. Note that you might need to repeat this process a couple times depending on the services you've got connected to LG Account. Once there's no more to delete, you should be logged out automatically (for good measure, verify you cannot login again). If you live in a country other than the US, you may also need to change the link URL to that of your country (e.g. Canadians should use ca.lgaccount.com instead)."
+  },
+  {
+    "name": "lib.reviews",
+    "domains": [
+      "lib.reviews"
+    ],
+    "url": "https://lib.reviews/",
+    "difficulty": "impossible",
+    "notes": "There is no button or email to delete your account."
   },
   {
     "name": "Liberland",
@@ -13305,6 +13505,16 @@
     "notes": "Profile deletion is a paid service, decided by the administration. The price to delete without deleting messages - 10 000 rubles, with all the comments and topics deletion - 20 000 rubles."
   },
   {
+    "name": "Longeva",
+    "domains": [
+      "longeva.bio",
+      "account.longeva.bio"
+    ],
+    "url": "https://longeva.bio/en/delete-account",
+    "difficulty": "easy",
+    "notes": "Click 'Continue to account deletion', log in, re-enter your password if prompted, then under 'Your data (GDPR)' click 'Delete account' and confirm with 'Delete permanently'."
+  },
+  {
     "name": "Lookout",
     "domains": [
       "lookout.com"
@@ -13339,6 +13549,15 @@
     "url": "https://rewards.lovemycreditunion.org/contact-us/",
     "difficulty": "hard",
     "notes": "Scroll all the way down on the website and find a little button with a picture of an envelope to contact customer support to have your account deleted."
+  },
+  {
+    "name": "LoversLab",
+    "domains": [
+      "loverslab.com"
+    ],
+    "url": "https://www.loverslab.com/settings/deletemyaccount",
+    "difficulty": "hard",
+    "notes": "Submit a request on the \u201cDelete My Account\u201d page. Account deletions are manual, so it can take more than a month to delete your account"
   },
   {
     "name": "LowEndTalk",
@@ -13657,6 +13876,16 @@
     ],
     "url": "https://my.mlh.io",
     "difficulty": "impossible"
+  },
+  {
+    "name": "Major Phones",
+    "domains": [
+      "majorphones.com",
+      "app.majorphones.com"
+    ],
+    "url": "https://app.majorphones.com/profile",
+    "difficulty": "easy",
+    "notes": "Sign in \u2b95 Profile \u2b95 Delete Account \u2b95 Confirm with your password (or Google sign-in). If two-factor authentication is enabled, disable it first."
   },
   {
     "name": "MakeMyTrip",
@@ -14045,6 +14274,14 @@
     "notes": "In the app, go to 'More', 'Profile', 'Delete account' and confirm."
   },
   {
+    "name": "McMaster-Carr",
+    "domains": [
+      "mcmaster.com"
+    ],
+    "url": "https://www.mcmaster.com/contact",
+    "difficulty": "hard"
+  },
+  {
     "name": "McVIP",
     "domains": [
       "mcvip.mcdonalds.de"
@@ -14082,6 +14319,17 @@
     "notes": "Scroll to the bottom of the page and click 'Delete my Account', make sure you're logged in and follow the steps."
   },
   {
+    "name": "MediaMarkt",
+    "domains": [
+      "mediamarkt.de"
+    ],
+    "url": "https://www.mediamarkt.de/de/myaccount/profile",
+    "difficulty": "hard",
+    "email": "datenschutz@mediamarkt.de",
+    "email_subject": "L\u00f6schen meiner pers\u00f6nlichen Daten",
+    "email_body": "Sehr geehrtes Team, hiermit beantrage ich die L\u00f6schung von jeglichen pers\u00f6nlichen Daten. Die hinterlegte E-Mail in meinem Konto ist: XXXXX. Ich bedanke mich im voraus. Mit freundlichen Gr\u00fc\u00dfen"
+  },
+  {
     "name": "Mediapart",
     "domains": [
       "mediapart.fr"
@@ -14091,6 +14339,14 @@
     "notes": "No information is clearly provided how to delete account. You have to send an email to explicitly ask for deletion of every information related to your account otherwise they will only disable it.",
     "email": "contact@mediapart.fr",
     "email_body": "Please delete all information and data associated with my account. My username is XXXXXX."
+  },
+  {
+    "name": "MediaWiki",
+    "domains": [
+      "mediawiki.org"
+    ],
+    "url": "https://www.mediawiki.org/",
+    "difficulty": "impossible"
   },
   {
     "name": "Medium",
@@ -14375,6 +14631,15 @@
     "notes": "You can request the deletion of your account via the assistance form."
   },
   {
+    "name": "Meshy.ai",
+    "domains": [
+      "meshy.ai"
+    ],
+    "url": "https://www.meshy.ai/settings/profile",
+    "difficulty": "easy",
+    "notes": "The delete button is at the bottom of the page, after clicking it you need to enter your email to confirm."
+  },
+  {
     "name": "Meta Account",
     "domains": [
       "meta.com",
@@ -14389,6 +14654,14 @@
     "url": "https://accountscenter.meta.com/manage/deletion_and_deactivation",
     "difficulty": "medium",
     "notes": "Select \"Delete account\" and tap Continue three times, enter your password and press \"Delete account\". Your account will be deleted in 30 days and the deletion process may take up to 90 days."
+  },
+  {
+    "name": "Meta-Wiki",
+    "domains": [
+      "meta.wikimedia.org"
+    ],
+    "url": "https://meta.wikimedia.org/",
+    "difficulty": "impossible"
   },
   {
     "name": "Metacritic",
@@ -14479,6 +14752,15 @@
     "url": "https://chat.mibbit.com/",
     "difficulty": "easy",
     "notes": "Sign in and use the 'Account' link at the top right. At the bottom of the page is a link to delete your account."
+  },
+  {
+    "name": "Michaels",
+    "domains": [
+      "michaels.com"
+    ],
+    "url": "https://privacy-central.securiti.ai/#/dsr/4932b4cb-659e-41b8-b560-526d6bddf75e",
+    "difficulty": "easy",
+    "notes": "Use the deletion link. Select 'Data Deletion' and enter your Account information."
   },
   {
     "name": "Microsoft Account",
@@ -15115,6 +15397,18 @@
     "notes": "On your account page, scroll to the bottom and click on the red button to delete it."
   },
   {
+    "name": "Mujirushi Ry\u014dhin (Muji) / Ryohin Keikaku Co., Ltd.",
+    "domains": [
+      "muji.com",
+      "muji.us",
+      "ryohin-keikaku.jp",
+      "contact.ryohin-keikaku.jp"
+    ],
+    "url": "https://www.muji.us/pages/contact-us",
+    "difficulty": "hard",
+    "email": "help@muji.com"
+  },
+  {
     "name": "Mullvad",
     "domains": [
       "mullvad.net",
@@ -15315,6 +15609,15 @@
     "url": "https://myanimelist.net/account_deletion",
     "difficulty": "medium",
     "notes": "Enter your email address in the \"Enter your registered email address\" field and click \"Confirmation\" to request the deletion of your account. After that, confirm your request by clicking on the confirmation link that will be sent to you by email.<br><br>If your account has been banned for any reason or you are an MAL Supporter, request the deletion of your account through [this](https://myanimelist.net/about.php?go=contact) contact form instead of using the method explained above."
+  },
+  {
+    "name": "MyBib",
+    "domains": [
+      "mybib.com"
+    ],
+    "url": "https://www.mybib.com/",
+    "difficulty": "easy",
+    "notes": "Select the account icon in the top left of the window, open Settings, select Account, then select Delete Account"
   },
   {
     "name": "MyCreds",
@@ -16787,6 +17090,15 @@
     "notes": "They recommend e-mailing to request for deletion, but the e-mail is never answered."
   },
   {
+    "name": "OpenCorporates",
+    "domains": [
+      "opencorporates.atlassian.net",
+      "opencorporates.com"
+    ],
+    "url": "https://opencorporates.atlassian.net/servicedesk/customer/portal/4/group/17/create/43",
+    "difficulty": "hard"
+  },
+  {
     "name": "Opendesktop",
     "domains": [
       "opendesktop.org"
@@ -17028,6 +17340,14 @@
     "url": "https://outlier.ai/legal/privacy-policy",
     "difficulty": "impossible",
     "email": "privacy@outlier.ai"
+  },
+  {
+    "name": "Outreach wiki",
+    "domains": [
+      "outreach.wikimedia.org"
+    ],
+    "url": "https://outreach.wikimedia.org/",
+    "difficulty": "impossible"
   },
   {
     "name": "Outsideinc",
@@ -18398,6 +18718,15 @@
     "notes": "Fill out form and submit. Non-USA form entries will receive an email to confirm the deletion request. If you are from the USA, use [this form](https://privacy.wizardingworld.com/delete-data-request/) instead."
   },
   {
+    "name": "Povver",
+    "domains": [
+      "povver.ai"
+    ],
+    "url": "https://povver.ai/privacy",
+    "difficulty": "easy",
+    "notes": "Delete the account in the iOS app: Profile, Security, Delete Account, then confirm. Workouts, conversations, photos and derived data are deleted straight away. Deleting the account does not cancel the subscription: cancel it in your Apple subscription settings first. Copies in the analytics warehouse and support inbox are deleted within 30 days if you email info@povver.ai, and encrypted backups are purged within 35 days."
+  },
+  {
     "name": "The Powder Toy",
     "domains": [
       "powdertoy.co.uk"
@@ -18869,6 +19198,15 @@
     "notes": "Go to the linked page and scroll down to the bottom. From there, click on 'Delete Account'."
   },
   {
+    "name": "Quackr",
+    "domains": [
+      "quackr.io"
+    ],
+    "url": "https://quackr.io/contact",
+    "difficulty": "hard",
+    "notes": "Send an account deletion request through the contact form, using the email address linked to your account."
+  },
+  {
     "name": "Quantic Foundry",
     "domains": [
       "quanticfoundry.com"
@@ -19027,6 +19365,16 @@
     "url": "https://www.raileurope.com/account/settings",
     "difficulty": "hard",
     "notes": "Go to account settings and click the 'Delete my account' button at the top right corner. This will open a ticket for them to delete your account and it will eventually be processed."
+  },
+  {
+    "name": "Railway",
+    "domains": [
+      "railway.com",
+      "railway.app"
+    ],
+    "url": "https://railway.com/account",
+    "difficulty": "easy",
+    "notes": "Log in to your account, scroll down and click 'Delete Account'. Enter your email to confirm."
   },
   {
     "name": "Raindrop.io",
@@ -19227,6 +19575,16 @@
     "notes": "You can't completely delete your account. On the account closure page, you are informed that after you closing your account, most of your data will be deleted from the system, however it's not specified which data will be kept and why. Closed accounts can also be reactivated at any time by the user."
   },
   {
+    "name": "Recordwell",
+    "domains": [
+      "recordwell.ai"
+    ],
+    "url": "https://recordwell.ai/privacy",
+    "difficulty": "hard",
+    "notes": "Specify that you want your user account deleted. Removing a people-search listing is a separate request. The privacy policy states that identity verification is required and that request records and correspondence are retained for 24 months.",
+    "email": "support@recordwell.ai"
+  },
+  {
     "name": "Recreation.gov",
     "domains": [
       "recreation.gov"
@@ -19338,6 +19696,17 @@
     "url": "https://redirect.pizza/profile",
     "difficulty": "easy",
     "notes": "In the bottom right corner of the linked page, click 'Delete my account'."
+  },
+  {
+    "name": "RedirHub",
+    "domains": [
+      "redirhub.com",
+      "account.redirhub.com",
+      "dash.redirhub.com"
+    ],
+    "url": "https://account.redirhub.com/user/profile#delete-account",
+    "difficulty": "medium",
+    "notes": "Open your profile and click 'Delete account'. Cancel any recurring subscription on your personal workspace first. If you own multiple workspaces, remove the additional ones before deleting your account. Confirm with your password if your account has one. Account deletion also deletes your owned workspaces and their resources. Billing records may be retained as required by law."
   },
   {
     "name": "RedPen.io",
@@ -19998,6 +20367,17 @@
     "difficulty": "easy"
   },
   {
+    "name": "Saturn",
+    "domains": [
+      "saturn.de"
+    ],
+    "url": "https://www.saturn.de/de/myaccount/profile",
+    "difficulty": "hard",
+    "email": "datenschutz@saturn.de",
+    "email_subject": "L\u00f6schen meiner pers\u00f6nlichen Daten",
+    "email_body": "Sehr geehrtes Team, hiermit beantrage ich die L\u00f6schung von jeglichen pers\u00f6nlichen Daten. Die hinterlegte E-Mail in meinem Konto ist: XXXXX. Ich bedanke mich im voraus. Mit freundlichen Gr\u00fc\u00dfen"
+  },
+  {
     "name": "SaxoInvestor/SaxoTrader",
     "domains": [
       "saxoinvestor.bem",
@@ -20030,6 +20410,15 @@
     "url": "https://scammer.info/",
     "difficulty": "easy",
     "notes": "Go into your account preferences and click \"Delete My Account\"."
+  },
+  {
+    "name": "ScanChess",
+    "domains": [
+      "scanchess.com"
+    ],
+    "url": "https://scanchess.com/delete-account",
+    "difficulty": "easy",
+    "notes": "Sign in, open the linked page, type your email address, confirm with your password or a fresh Google sign-in, then click 'Permanently delete my account'. An active App Store subscription must be cancelled with Apple first."
   },
   {
     "name": "Scavify",
@@ -21223,6 +21612,16 @@
     "notes": "Go to your profile, then to \"My Account Details\", scroll down and click \"Delete Account\", at the bottom of the page."
   },
   {
+    "name": "Soulframe",
+    "domains": [
+      "soulframe.com",
+      "support.soulframe.com"
+    ],
+    "url": "https://support.soulframe.com/hc/en-us/requests/new",
+    "difficulty": "hard",
+    "notes": "If you wish to delete your account and remove all your information permanently, you will need to contact Support (on website). After sending the request, you\u2019ll have to wait for their reply then, answer the security questions and send the code from the email. After that they will ask you to send 'Deletion acknowledged' as the final step of this process"
+  },
+  {
     "name": "Soulseek",
     "domains": [
       "slsknet.org"
@@ -21873,11 +22272,9 @@
     "domains": [
       "streamlabs.com"
     ],
-    "url": "https://getonstream.com/how-to-delete-a-streamlabs-account-easy-guide/",
-    "difficulty": "hard",
-    "notes": "Contact customer support via email, set subject line to \"REQUEST TO DELETE MY ACCOUNT\". You will soon receive an email informing you about need to appeal on Logitech's website in order to fully delete your account with a link provided. Here you will need to enter your name, email, choose \"Data privacy request\" for a topic and say that you want to delete your Streamlabs account in the textbox below",
-    "email": "support@streamlabs.com",
-    "email_subject": "REQUEST TO DELETE MY ACCOUNT"
+    "url": "https://streamlabs.com/dashboard#/settings/account-settings/emails",
+    "difficulty": "easy",
+    "notes": "Go to Settings \u2b95 Account Settings \u2b95 General and click the small \"here\" link in the text (\"If you would like to delete your account please click here\"). A \"Permanently Delete My Account\" button will appear at the bottom."
   },
   {
     "name": "StreamYard",
@@ -21887,6 +22284,15 @@
     "url": "https://streamyard.com/account/settings",
     "difficulty": "easy",
     "notes": "Click the delete account button, confirm and enter the 6-digit code sent to your e-mail to finalize"
+  },
+  {
+    "name": "Stremio",
+    "domains": [
+      "stremio.com"
+    ],
+    "url": "https://www.stremio.com/acc-settings",
+    "difficulty": "easy",
+    "notes": "Click the button to request account deletion, enter your password, and confirm."
   },
   {
     "name": "Stripe",
@@ -23501,6 +23907,15 @@
     "difficulty": "easy"
   },
   {
+    "name": "TranscribeText",
+    "domains": [
+      "transcribetext.com"
+    ],
+    "url": "https://transcribetext.com/account-settings",
+    "difficulty": "easy",
+    "notes": "Log in to your account, open Account Settings, scroll to Danger Zone, click 'Delete Account', and confirm."
+  },
+  {
     "name": "Transcript LOL",
     "domains": [
       "transcript.lol"
@@ -24340,6 +24755,15 @@
     "notes": "Go to the linked page, scroll down, click on \"LOG IN\" and confirm your deletion."
   },
   {
+    "name": "Valour.gg",
+    "domains": [
+      "valour.gg"
+    ],
+    "url": "https://app.valour.gg/",
+    "difficulty": "easy",
+    "notes": "Go to the General Settings page, select Account, scroll down to the Account section, click the \"Delete Account\" button to confirm deletion."
+  },
+  {
     "name": "Vans.com",
     "domains": [
       "vans.com"
@@ -24411,6 +24835,15 @@
     "url": "https://velov.grandlyon.com/",
     "difficulty": "impossible",
     "notes": "Nothing says how to do it and the support does seem to be able to do it."
+  },
+  {
+    "name": "Venice.ai",
+    "domains": [
+      "venice.ai"
+    ],
+    "url": "https://venice.ai/chat/classic#/security",
+    "difficulty": "easy",
+    "notes": "Open the Chat History drawer in the top left corner, select \"Preferences\" and go to the \"Profile\" tab. Click \"Manage account\", then \"Security\", scroll to the bottom and select \"Delete account\". Type \"Delete account\" to confirm the deletion. On mobile, tap the \u2261 menu on the Manage account page to find the \"Security\" tab. A deleted account cannot be recovered."
   },
   {
     "name": "Venmo",
@@ -25475,6 +25908,107 @@
     "notes": "Go to the linked page and follow the instructions."
   },
   {
+    "name": "Wikibooks",
+    "domains": [
+      "es.wikibooks.org",
+      "zh.wikibooks.org",
+      "fr.wikibooks.org",
+      "de.wikibooks.org",
+      "tl.wikibooks.org",
+      "it.wikibooks.org",
+      "ang.wikibooks.org",
+      "af.wikibooks.org",
+      "ast.wikibooks.org",
+      "az.wikibooks.org",
+      "id.wikibooks.org",
+      "ms.wikibooks.org",
+      "bs.wikibooks.org",
+      "ca.wikibooks.org",
+      "cs.wikibooks.org",
+      "cy.wikibooks.org",
+      "da.wikibooks.org",
+      "se.wikibooks.org",
+      "et.wikibooks.org",
+      "eo.wikibooks.org",
+      "eu.wikibooks.org",
+      "fy.wikibooks.org",
+      "gl.wikibooks.org",
+      "hr.wikibooks.org",
+      "ia.wikibooks.org",
+      "ie.wikibooks.org",
+      "is.wikibooks.org",
+      "ku.wikibooks.org",
+      "la.wikibooks.org",
+      "lv.wikibooks.org",
+      "lt.wikibooks.org",
+      "li.wikibooks.org",
+      "hu.wikibooks.org",
+      "mg.wikibooks.org",
+      "min.wikibooks.org",
+      "nl.wikibooks.org",
+      "no.wikibooks.org",
+      "oc.wikibooks.org",
+      "nds.wikibooks.org",
+      "pl.wikibooks.org",
+      "pt.wikibooks.org",
+      "aa.wikibooks.org",
+      "ro.wikibooks.org",
+      "sq.wikibooks.org",
+      "sk.wikibooks.org",
+      "sl.wikibooks.org",
+      "su.wikibooks.org",
+      "fi.wikibooks.org",
+      "sv.wikibooks.org",
+      "vi.wikibooks.org",
+      "tr.wikibooks.org",
+      "el.wikibooks.org",
+      "ba.wikibooks.org",
+      "be.wikibooks.org",
+      "bg.wikibooks.org",
+      "ky.wikibooks.org",
+      "kk.wikibooks.org",
+      "mk.wikibooks.org",
+      "ru.wikibooks.org",
+      "sr.wikibooks.org",
+      "tt.wikibooks.org",
+      "tg.wikibooks.org",
+      "uk.wikibooks.org",
+      "cv.wikibooks.org",
+      "ka.wikibooks.org",
+      "hy.wikibooks.org",
+      "he.wikibooks.org",
+      "ur.wikibooks.org",
+      "ar.wikibooks.org",
+      "fa.wikibooks.org",
+      "ne.wikibooks.org",
+      "mr.wikibooks.org",
+      "sa.wikibooks.org",
+      "hi.wikibooks.org",
+      "bn.wikibooks.org",
+      "pa.wikibooks.org",
+      "ta.wikibooks.org",
+      "te.wikibooks.org",
+      "ml.wikibooks.org",
+      "si.wikibooks.org",
+      "th.wikibooks.org",
+      "shn.wikibooks.org",
+      "km.wikibooks.org",
+      "ko.wikibooks.org",
+      "ja.wikibooks.org",
+      "wikibooks.org"
+    ],
+    "url": "https://www.wikibooks.org/",
+    "difficulty": "impossible"
+  },
+  {
+    "name": "Wikidata",
+    "domains": [
+      "wikidata.org"
+    ],
+    "url": "https://www.wikidata.org/",
+    "difficulty": "impossible"
+  },
+  {
     "name": "Wikidot",
     "domains": [
       "wikidot.com"
@@ -25482,6 +26016,14 @@
     "url": "https://www.wikidot.com/account/settings",
     "difficulty": "easy",
     "notes": "Click on 'Delete account'. Confirm account deletion through the link sent to user email address."
+  },
+  {
+    "name": "Wikifunctions",
+    "domains": [
+      "wikifunctions.org"
+    ],
+    "url": "https://www.wikifunctions.org/",
+    "difficulty": "impossible"
   },
   {
     "name": "wikiHow",
@@ -25493,6 +26035,14 @@
     "notes": "Requires emailing them to request for deletion."
   },
   {
+    "name": "Wikimania",
+    "domains": [
+      "wikimania.wikimedia.org"
+    ],
+    "url": "https://wikimania.wikimedia.org/",
+    "difficulty": "impossible"
+  },
+  {
     "name": "Wikimedia Commons",
     "domains": [
       "commons.wikimedia.org",
@@ -25501,6 +26051,14 @@
     "url": "https://commons.wikimedia.org/wiki/Commons:Username_policy#Deleting_your_account",
     "difficulty": "impossible",
     "notes": "An account cannot be deleted as all contibutions to Wikimedia Commons are licensed under licenses that require attribution. However, you can place the template {{SD|U1}} on your user and talk pages, and rename your account to something random [here](https://commons.wikimedia.org/wiki/Special:GlobalRenameRequest)"
+  },
+  {
+    "name": "Wikimedia Incubator",
+    "domains": [
+      "incubator.wikimedia.org"
+    ],
+    "url": "https://incubator.wikimedia.org/",
+    "difficulty": "impossible"
   },
   {
     "name": "Wikipedia",
@@ -25834,11 +26392,483 @@
       "zh-classical.wikipedia.org",
       "zh-min-nan.wikipedia.org",
       "zh-yue.wikipedia.org",
-      "zu.wikipedia.org"
+      "zu.wikipedia.org",
+      "test.wikipedia.org"
     ],
     "url": "https://en.wikipedia.org/wiki/Wikipedia:FAQ/Main#How_do_I_change_my_username%2Fdelete_my_account?",
     "difficulty": "impossible",
     "notes": "An account cannot be deleted because to all contributions to Wikipedia are licensed under licenses that require attribution. However, they do have some suggestions, such as [Courtesy Vanishing](https://en.wikipedia.org/wiki/Wikipedia:Courtesy_vanishing)"
+  },
+  {
+    "name": "Wikiquote",
+    "domains": [
+      "ig.wikiquote.org",
+      "es.wikiquote.org",
+      "zh.wikiquote.org",
+      "fr.wikiquote.org",
+      "de.wikiquote.org",
+      "tl.wikiquote.org",
+      "ang.wikiquote.org",
+      "af.wikiquote.org",
+      "ast.wikiquote.org",
+      "az.wikiquote.org",
+      "gor.wikiquote.org",
+      "id.wikiquote.org",
+      "ms.wikiquote.org",
+      "bm.wikiquote.org",
+      "bjn.wikiquote.org",
+      "bcl.wikiquote.org",
+      "bs.wikiquote.org",
+      "br.wikiquote.org",
+      "ca.wikiquote.org",
+      "cs.wikiquote.org",
+      "co.wikiquote.org",
+      "cy.wikiquote.org",
+      "da.wikiquote.org",
+      "et.wikiquote.org",
+      "eo.wikiquote.org",
+      "eu.wikiquote.org",
+      "ga.wikiquote.org",
+      "gl.wikiquote.org",
+      "guw.wikiquote.org",
+      "hr.wikiquote.org",
+      "ig.wikiquote.org",
+      "is.wikiquote.org",
+      "it.wikiquote.org",
+      "kr.wikiquote.org",
+      "kw.wikiquote.org",
+      "ku.wikiquote.org",
+      "la.wikiquote.org",
+      "lb.wikiquote.org",
+      "lt.wikiquote.org",
+      "li.wikiquote.org",
+      "hu.wikiquote.org",
+      "min.wikiquote.org",
+      "pcm.wikiquote.org",
+      "nl.wikiquote.org",
+      "no.wikiquote.org",
+      "nn.wikiquote.org",
+      "uz.wikiquote.org",
+      "nds.wikiquote.org",
+      "pl.wikiquote.org",
+      "pt.wikiquote.org",
+      "ro.wikiquote.org",
+      "qu.wikiquote.org",
+      "sq.wikiquote.org",
+      "sk.wikiquote.org",
+      "sl.wikiquote.org",
+      "su.wikiquote.org",
+      "fi.wikiquote.org",
+      "sv.wikiquote.org",
+      "tl.wikiquote.org",
+      "vi.wikiquote.org",
+      "tr.wikiquote.org",
+      "tk.wikiquote.org",
+      "vo.wikiquote.org",
+      "el.wikiquote.org",
+      "be.wikiquote.org",
+      "bg.wikiquote.org",
+      "ky.wikiquote.org",
+      "kk.wikiquote.org",
+      "ru.wikiquote.org",
+      "sah.wikiquote.org",
+      "sr.wikiquote.org",
+      "tt.wikiquote.org",
+      "uk.wikiquote.org",
+      "ka.wikiquote.org",
+      "hy.wikiquote.org",
+      "he.wikiquote.org",
+      "ug.wikiquote.org",
+      "ur.wikiquote.org",
+      "ar.wikiquote.org",
+      "fa.wikiquote.org",
+      "ks.wikiquote.org",
+      "am.wikiquote.org",
+      "mr.wikiquote.org",
+      "sa.wikiquote.org",
+      "hi.wikiquote.org",
+      "as.wikiquote.org",
+      "bn.wikiquote.org",
+      "gu.wikiquote.org",
+      "ta.wikiquote.org",
+      "te.wikiquote.org",
+      "kn.wikiquote.org",
+      "ml.wikiquote.org",
+      "th.wikiquote.org",
+      "ko.wikiquote.org",
+      "zh.wikiquote.org",
+      "ja.wikiquote.org",
+      "zh-min-nan.wikiquote.org",
+      "wikiquote.org"
+    ],
+    "url": "https://www.wikiquote.org/",
+    "difficulty": "impossible"
+  },
+  {
+    "name": "Wikisource",
+    "domains": [
+      "wikisource.org",
+      "az.wikisource.org",
+      "id.wikisource.org",
+      "ms.wikisource.org",
+      "ban.wikisource.org",
+      "bcl.wikisource.org",
+      "bs.wikisource.org",
+      "br.wikisource.org",
+      "ca.wikisource.org",
+      "cs.wikisource.org",
+      "cy.wikisource.org",
+      "da.wikisource.org",
+      "de.wikisource.org",
+      "et.wikisource.org",
+      "es.wikisource.org",
+      "eo.wikisource.org",
+      "eu.wikisource.org",
+      "fo.wikisource.org",
+      "fr.wikisource.org",
+      "gl.wikisource.org",
+      "hr.wikisource.org",
+      "is.wikisource.org",
+      "it.wikisource.org",
+      "jv.wikisource.org",
+      "la.wikisource.org",
+      "lt.wikisource.org",
+      "lij.wikisource.org",
+      "li.wikisource.org",
+      "mhr.wikisource.org",
+      "hu.wikisource.org",
+      "min.wikisource.org",
+      "nap.wikisource.org",
+      "nl.wikisource.org",
+      "no.wikisource.org",
+      "pms.wikisource.org",
+      "pl.wikisource.org",
+      "pt.wikisource.org",
+      "ro.wikisource.org",
+      "sk.wikisource.org",
+      "sl.wikisource.org",
+      "su.wikisource.org",
+      "fi.wikisource.org",
+      "sv.wikisource.org",
+      "tl.wikisource.org",
+      "vi.wikisource.org",
+      "tr.wikisource.org",
+      "vec.wikisource.org",
+      "wa.wikisource.org",
+      "el.wikisource.org",
+      "be.wikisource.org",
+      "bg.wikisource.org",
+      "mk.wikisource.org",
+      "ru.wikisource.org",
+      "sah.wikisource.org",
+      "sr.wikisource.org",
+      "uk.wikisource.org",
+      "ka.wikisource.org",
+      "hy.wikisource.org",
+      "yi.wikisource.org",
+      "he.wikisource.org",
+      "ur.wikisource.org",
+      "ar.wikisource.org",
+      "fa.wikisource.org",
+      "mr.wikisource.org",
+      "sa.wikisource.org",
+      "hi.wikisource.org",
+      "as.wikisource.org",
+      "bn.wikisource.org",
+      "pa.wikisource.org",
+      "gu.wikisource.org",
+      "or.wikisource.org",
+      "ta.wikisource.org",
+      "te.wikisource.org",
+      "kn.wikisource.org",
+      "tcy.wikisource.org",
+      "ml.wikisource.org",
+      "th.wikisource.org",
+      "my.wikisource.org",
+      "ko.wikisource.org",
+      "zh.wikisource.org",
+      "ja.wikisource.org",
+      "zh-min-nan.wikisource.org"
+    ],
+    "url": "https://wikisource.org/",
+    "difficulty": "impossible"
+  },
+  {
+    "name": "Wikispecies",
+    "domains": [
+      "species.wikimedia.org"
+    ],
+    "url": "https://species.wikimedia.org/",
+    "difficulty": "impossible"
+  },
+  {
+    "name": "Wikitech",
+    "domains": [
+      "wikitech.wikimedia.org"
+    ],
+    "url": "https://wikitech.wikimedia.org/",
+    "difficulty": "impossible"
+  },
+  {
+    "name": "Wikiversity",
+    "domains": [
+      "af.wikiversity.org",
+      "id.wikiversity.org",
+      "en.wikiversity.org",
+      "eo.wikiversity.org",
+      "ha.wikiversity.org",
+      "su.wikiversity.org",
+      "vi.wikiversity.org",
+      "tr.wikiversity.org",
+      "da.wikiversity.org",
+      "es.wikiversity.org",
+      "fr.wikiversity.org",
+      "hr.wikiversity.org",
+      "kea.wikiversity.org",
+      "csb.wikiversity.org",
+      "no.wikiversity.org",
+      "sms.wikiversity.org",
+      "uz.wikiversity.org",
+      "pt.wikiversity.org",
+      "ro.wikiversity.org",
+      "szl.wikiversity.org",
+      "ady.wikiversity.org",
+      "be.wikiversity.org",
+      "sia.wikiversity.org",
+      "ru.wikiversity.org",
+      "udm.wikiversity.org",
+      "uk.wikiversity.org",
+      "kk.wikiversity.org",
+      "he.wikiversity.org",
+      "ar.wikiversity.org",
+      "fa.wikiversity.org",
+      "bn.wikiversity.org",
+      "pa.wikiversity.org",
+      "zh.wikiversity.org",
+      "ja.wikiversity.org",
+      "syl.wikiversity.org",
+      "beta.wikiversity.org",
+      "wikiversity.org"
+    ],
+    "url": "https://www.wikiversity.org/",
+    "difficulty": "impossible"
+  },
+  {
+    "name": "Wikivoyage",
+    "domains": [
+      "wikivoyage.org",
+      "bn.wikivoyage.org",
+      "cs.wikivoyage.org",
+      "de.wikivoyage.org",
+      "el.wikivoyage.org",
+      "eo.wikivoyage.org",
+      "es.wikivoyage.org",
+      "fa.wikivoyage.org",
+      "fi.wikivoyage.org",
+      "fr.wikivoyage.org",
+      "he.wikivoyage.org",
+      "hi.wikivoyage.org",
+      "ja.wikivoyage.org",
+      "id.wikivoyage.org",
+      "it.wikivoyage.org",
+      "nl.wikivoyage.org",
+      "pl.wikivoyage.org",
+      "ps.wikivoyage.org",
+      "pt.wikivoyage.org",
+      "ro.wikivoyage.org",
+      "ru.wikivoyage.org",
+      "shn.wikivoyage.org",
+      "sv.wikivoyage.org",
+      "tr.wikivoyage.org",
+      "uk.wikivoyage.org",
+      "vi.wikivoyage.org",
+      "zh.wikivoyage.org"
+    ],
+    "url": "https://wikivoyage.org",
+    "difficulty": "impossible"
+  },
+  {
+    "name": "Wiktionary",
+    "domains": [
+      "wiktionary.org",
+      "de.wiktionary.org",
+      "el.wiktionary.org",
+      "en.wiktionary.org",
+      "fr.wiktionary.org",
+      "ku.wiktionary.org",
+      "mg.wiktionary.org",
+      "nl.wiktionary.org",
+      "th.wiktionary.org",
+      "tr.wiktionary.org",
+      "zh.wiktionary.org",
+      "ru.wiktionary.org",
+      "ar.wiktionary.org",
+      "bn.wiktionary.org",
+      "ca.wiktionary.org",
+      "cs.wiktionary.org",
+      "et.wiktionary.org",
+      "es.wiktionary.org",
+      "eo.wiktionary.org",
+      "fa.wiktionary.org",
+      "ko.wiktionary.org",
+      "hy.wiktionary.org",
+      "hi.wiktionary.org",
+      "io.wiktionary.org",
+      "id.wiktionary.org",
+      "is.wiktionary.org",
+      "it.wiktionary.org",
+      "kn.wiktionary.org",
+      "lt.wiktionary.org",
+      "li.wiktionary.org",
+      "hu.wiktionary.org",
+      "ml.wiktionary.org",
+      "mnm.wiktionary.org",
+      "my.wiktionary.org",
+      "ja.wiktionary.org",
+      "no.wiktionary.org",
+      "or.wiktionary.org",
+      "uz.wiktionary.org",
+      "pl.wiktionary.org",
+      "pt.wiktionary.org",
+      "ro.wiktionary.org",
+      "skr.wiktionary.org",
+      "sr.wiktionary.org",
+      "sh.wiktionary.org",
+      "fi.wiktionary.org",
+      "sv.wiktionary.org",
+      "sw.wiktionary.org",
+      "ta.wiktionary.org",
+      "te.wiktionary.org",
+      "vi.wiktionary.org",
+      "ady.wiktionary.org",
+      "af.wiktionary.org",
+      "sq.wiktionary.org",
+      "ast.wiktionary.org",
+      "az.wiktionary.org",
+      "gor.wiktionary.org",
+      "bg.wiktionary.org",
+      "zh-min-nan.wiktionary.org",
+      "br.wiktionary.org",
+      "cy.wiktionary.org",
+      "da.wiktionary.org",
+      "eu.wiktionary.org",
+      "fy.wiktionary.org",
+      "gl.wiktionary.org",
+      "hr.wiktionary.org",
+      "he.wiktionary.org",
+      "jv.wiktionary.org",
+      "ka.wiktionary.org",
+      "ky.wiktionary.org",
+      "lo.wiktionary.org",
+      "la.wiktionary.org",
+      "lv.wiktionary.org",
+      "lb.wiktionary.org",
+      "lmo.wiktionary.org",
+      "ms.wiktionary.org",
+      "min.wiktionary.org",
+      "fj.wiktionary.org",
+      "oc.wiktionary.org",
+      "om.wiktionary.org",
+      "pa.wiktionary.org",
+      "ps.wiktionary.org",
+      "nds.wiktionary.org",
+      "kk.wiktionary.org",
+      "sg.wiktionary.org",
+      "scn.wiktionary.org",
+      "si.wiktionary.org",
+      "simple.wiktionary.org",
+      "sk.wiktionary.org",
+      "sl.wiktionary.org",
+      "tl.wiktionary.org",
+      "shn.wiktionary.org",
+      "tg.wiktionary.org",
+      "uk.wiktionary.org",
+      "ur.wiktionary.org",
+      "vo.wiktionary.org",
+      "wa.wiktionary.org",
+      "ang.wiktionary.org",
+      "an.wiktionary.org",
+      "roa-rup.wiktionary.org",
+      "gn.wiktionary.org",
+      "bjn.wiktionary.org",
+      "be.wiktionary.org",
+      "bew.wiktionary.org",
+      "bcl.wiktionary.org",
+      "co.wiktionary.org",
+      "hif.wiktionary.org",
+      "fo.wiktionary.org",
+      "ga.wiktionary.org",
+      "gd.wiktionary.org",
+      "guw.wiktionary.org",
+      "ha.wiktionary.org",
+      "hsb.wiktionary.org",
+      "ia.wiktionary.org",
+      "ie.wiktionary.org",
+      "kl.wiktionary.org",
+      "csb.wiktionary.org",
+      "km.wiktionary.org",
+      "kok.wiktionary.org",
+      "ks.wiktionary.org",
+      "ckb.wiktionary.org",
+      "nia.wiktionary.org",
+      "jbo.wiktionary.org",
+      "mhn.wiktionary.org",
+      "mk.wiktionary.org",
+      "mt.wiktionary.org",
+      "mdf.wiktionary.org",
+      "mi.wiktionary.org",
+      "mr.wiktionary.org",
+      "mn.wiktionary.org",
+      "nah.wiktionary.org",
+      "pl.wiktionary.org",
+      "ppa.wiktionary.org",
+      "pnb.wiktionary.org",
+      "kaa.wiktionary.org",
+      "sm.wiktionary.org",
+      "sa.wiktionary.org",
+      "sat.wiktionary.org",
+      "st.wiktionary.org",
+      "sd.wiktionary.org",
+      "so.wiktionary.org",
+      "su.wiktionary.org",
+      "shi.wiktionary.org",
+      "shy.wiktionary.org",
+      "tt.wiktionary.org",
+      "tk.wiktionary.org",
+      "kcg.wiktionary.org",
+      "ug.wiktionary.org",
+      "vec.wiktionary.org",
+      "wo.wiktionary.org",
+      "zza.wiktionary.org",
+      "zu.wiktionary.org",
+      "yue.wiktionary.org",
+      "mni.wiktionary.org",
+      "am.wiktionary.org",
+      "ay.wiktionary.org",
+      "za.wiktionary.org",
+      "dv.wiktionary.org",
+      "gv.wiktionary.org",
+      "gu.wiktionary.org",
+      "ig.wiktionary.org",
+      "rw.wiktionary.org",
+      "iu.wiktionary.org",
+      "ik.wiktionary.org",
+      "kw.wiktionary.org",
+      "ln.wiktionary.org",
+      "na.wiktionary.org",
+      "qu.wiktionary.org",
+      "tn.wiktionary.org",
+      "ss.wiktionary.org",
+      "ti.wiktionary.org",
+      "tpi.wiktionary.org",
+      "chr.wiktionary.org",
+      "ts.wiktionary.org",
+      "yi.wiktionary.org",
+      "ne.wiktionary.org",
+      "tcy.wiktionary.org"
+    ],
+    "url": "https://en.wiktionary.org/",
+    "difficulty": "impossible"
   },
   {
     "name": "Wilds.io",
@@ -26438,6 +27468,15 @@
     "url": "https://www.yummly.com/settings",
     "difficulty": "easy",
     "notes": "Select \"To delete your account, click here\" at the bottom of the page."
+  },
+  {
+    "name": "YunoHost Forum",
+    "domains": [
+      "forum.yunohost.org"
+    ],
+    "url": "https://forum.yunohost.org/about",
+    "difficulty": "hard",
+    "email": "yunohost@yunohost.org"
   },
   {
     "name": "YUR",

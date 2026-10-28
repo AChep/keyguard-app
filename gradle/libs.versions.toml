@@ -13,7 +13,7 @@ androidNdk = "27.0.12077973"
 jdk = "21"
 # After changing appVersionName, run ./gradlew generateAppVersions and commit the output.
 # @keep
-appVersionName = "3.6.0"
+appVersionName = "3.6.1"
 # @keep
 appVersionCode = "7"
 # @keep

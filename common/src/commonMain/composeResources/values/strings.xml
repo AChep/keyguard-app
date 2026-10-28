@@ -1069,7 +1069,6 @@
     <string name="privilegedapps_community_apps">Community apps</string>
 
     <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
-    <string name="setup_free_text">By continuing you confirm that you have purchased Keyguard or have had an active license.</string>
     <string name="setup_field_app_password_label">App password</string>
     <string name="setup_checkbox_biometric_auth">Biometric authentication</string>
     <string name="setup_biometric_auth_confirm_title">Create a vault</string>

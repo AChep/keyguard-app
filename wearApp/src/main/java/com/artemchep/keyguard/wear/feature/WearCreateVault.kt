@@ -47,7 +47,6 @@ import com.artemchep.keyguard.feature.keyguard.setup.setupScreenState
 import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenTitlePadding
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.setup_button_create_vault
-import com.artemchep.keyguard.res.setup_free_text
 import com.artemchep.keyguard.res.setup_header_text
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FabState

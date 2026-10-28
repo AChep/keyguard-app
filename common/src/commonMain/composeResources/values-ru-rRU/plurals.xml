@@ -13,10 +13,10 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> случаев</item>
     </plurals>
     <plurals name="reused_password_items_count_plural">
-        <item quantity="one">Used by <xliff:g id="number" example="1">%1$d</xliff:g> item</item>
-        <item quantity="few">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="many">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="other">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="one">Используется в <xliff:g id="number" example="1">%1$d</xliff:g> элементе</item>
+        <item quantity="few">Используется в <xliff:g id="number">%1$d</xliff:g> элементах</item>
+        <item quantity="many">Используется в <xliff:g id="number">%1$d</xliff:g> элементах</item>
+        <item quantity="other">Используется в <xliff:g id="number">%1$d</xliff:g> элементах</item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> слово</item>
@@ -90,6 +90,12 @@
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH-ключей</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH-ключей</item>
     </plurals>
+    <plurals name="skipped_ssh_certificates_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH-сертификат</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH-сертификата</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH-сертификатов</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH-сертификата</item>
+    </plurals>
     <plurals name="skipped_gpg_keys_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG-ключ</item>
         <item quantity="few"><xliff:g id="number">%1$d</xliff:g> GPG-ключа</item>
@@ -108,11 +114,23 @@
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> паролей из истории</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> паролей из истории</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> окружение со ссылками на элементы, недоступными для переноса</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> окружения со ссылками на элементы, недоступными для переноса</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> окружений со ссылками на элементы, недоступными для переноса</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> окружения со ссылками на элементы, недоступными для переноса</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> элемент в архиве</item>
         <item quantity="few"><xliff:g id="number">%1$d</xliff:g> элемента в архиве</item>
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> элементов в архиве</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> элементов в архиве</item>
+    </plurals>
+    <plurals name="exportaccount_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> элемент</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> элемента</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> элементов</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> элемента</item>
     </plurals>
     <plurals name="skipped_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> элемент</item>
@@ -217,17 +235,17 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> лет</item>
     </plurals>
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
-        <item quantity="one">Verification e-mail requested for <xliff:g id="number" example="1">%1$s</xliff:g> address</item>
-        <item quantity="few">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="many">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+        <item quantity="one">Запрошена отправка письма с подтверждением на <xliff:g id="number" example="1">%1$s</xliff:g> адрес</item>
+        <item quantity="few">Запрошена отправка писем с подтверждением на <xliff:g id="number">%1$s</xliff:g> адреса</item>
+        <item quantity="many">Запрошена отправка писем с подтверждением на <xliff:g id="number">%1$s</xliff:g> адресов</item>
+        <item quantity="other">Запрошена отправка писем с подтверждением на <xliff:g id="number">%1$s</xliff:g> адреса</item>
     </plurals>
     <!-- Automatic backups -->
     <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
-        <item quantity="one">Keep %1$d snapshot</item>
-        <item quantity="few">Keep %1$d snapshots</item>
-        <item quantity="many">Keep %1$d snapshots</item>
-        <item quantity="other">Keep %1$d snapshots</item>
+        <item quantity="one">Хранить %1$d снимок</item>
+        <item quantity="few">Хранить %1$d снимка</item>
+        <item quantity="many">Хранить %1$d снимков</item>
+        <item quantity="other">Хранить %1$d снимка</item>
     </plurals>
     <plurals name="pref_item_hibp_api_token_error_plural">
         <item quantity="one">Введите шестнадцатеричный API-токен HIBP длиной в <xliff:g id="length" example="1">%1$d</xliff:g> символ</item>
@@ -246,5 +264,29 @@
         <item quantity="few">Запрос истечёт через <xliff:g id="seconds" example="30">%1$d</xliff:g> секунды</item>
         <item quantity="many">Запрос истечёт через <xliff:g id="seconds" example="30">%1$d</xliff:g> секунд</item>
         <item quantity="other">Запрос истечёт через <xliff:g id="seconds" example="30">%1$d</xliff:g> секунды</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> активный идентификатор пользователя</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> активных идентификатора пользователя</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> активных идентификаторов пользователя</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> активных идентификатора пользователя</item>
+    </plurals>
+    <plurals name="agent_auto_setup_files_to_change_plural">
+        <item quantity="one">Будет изменено: <xliff:g id="number" example="1">%1$d</xliff:g> файл</item>
+        <item quantity="few">Будет изменено: <xliff:g id="number" example="2">%1$d</xliff:g> файла</item>
+        <item quantity="many">Будет изменено: <xliff:g id="number" example="2">%1$d</xliff:g> файлов</item>
+        <item quantity="other">Будет изменено: <xliff:g id="number" example="2">%1$d</xliff:g> файла</item>
+    </plurals>
+    <plurals name="tag_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> элемент</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> элемента</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> элементов</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> элемента</item>
+    </plurals>
+    <plurals name="attachment_preview_gpg_skipped_certificates_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> certificate could not be read</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
     </plurals>
 </resources>

@@ -133,8 +133,8 @@
         "name": "Vietnamese"
       }
     ],
-    "translated": 103022,
-    "target": 112845,
+    "translated": 347433,
+    "target": 401645,
     "approved": 1050,
     "voted": 0,
     "positiveVotes": 90,
@@ -375,8 +375,8 @@
         "name": "Korean"
       }
     ],
-    "translated": 6706,
-    "target": 5801,
+    "translated": 9993,
+    "target": 8675,
     "approved": 0,
     "voted": 1,
     "positiveVotes": 0,
@@ -787,7 +787,7 @@
     "target": 10653,
     "approved": 0,
     "voted": 17,
-    "positiveVotes": 13,
+    "positiveVotes": 14,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1346,7 +1346,7 @@
     "approved": 0,
     "voted": 0,
     "positiveVotes": 10,
-    "negativeVotes": 0,
+    "negativeVotes": 1,
     "winning": 0
   },
   {
@@ -1905,6 +1905,28 @@
   },
   {
     "user": {
+      "id": "17286384",
+      "username": "Hakuin123",
+      "fullName": "\u767d\u9690Hakuin (Hakuin123)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17286384/medium/019a85995a579462f1d6846efe1753f5.jpg",
+      "joined": "2025-08-23 05:22:52"
+    },
+    "languages": [
+      {
+        "id": "zh-CN",
+        "name": "Chinese Simplified"
+      }
+    ],
+    "translated": 206,
+    "target": 375,
+    "approved": 0,
+    "voted": 1,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
       "id": "17299188",
       "username": "mkulik91",
       "fullName": "mkulik91",
@@ -2005,8 +2027,8 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 1376,
-    "target": 2076,
+    "translated": 4621,
+    "target": 7619,
     "approved": 0,
     "voted": 6,
     "positiveVotes": 0,
@@ -2049,8 +2071,8 @@
         "name": "French"
       }
     ],
-    "translated": 5202,
-    "target": 6315,
+    "translated": 5631,
+    "target": 6819,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -2073,6 +2095,50 @@
     ],
     "translated": 1070,
     "target": 1087,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "17939841",
+      "username": "kelsuita",
+      "fullName": "\u66dc\u6822 (kelsuita)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17939841/medium/c822504d3ad26e33d83168a9a3a40442.jpeg",
+      "joined": "2026-10-14 10:00:52"
+    },
+    "languages": [
+      {
+        "id": "zh-CN",
+        "name": "Chinese Simplified"
+      }
+    ],
+    "translated": 224,
+    "target": 386,
+    "approved": 0,
+    "voted": 0,
+    "positiveVotes": 0,
+    "negativeVotes": 0,
+    "winning": 0
+  },
+  {
+    "user": {
+      "id": "17951817",
+      "username": "chelpercarton",
+      "fullName": "PakiPack (chelpercarton)",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/17951817/medium/849acbfac10fcf9d08fc3b2be03f6802.png",
+      "joined": "2026-10-24 12:06:23"
+    },
+    "languages": [
+      {
+        "id": "ru",
+        "name": "Russian"
+      }
+    ],
+    "translated": 82,
+    "target": 81,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
@@ -2137,8 +2203,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 14094,
-    "target": 16119,
+    "translated": 14337,
+    "target": 16424,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

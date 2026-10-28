@@ -60,6 +60,10 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH key</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
     </plurals>
+    <plurals name="skipped_ssh_certificates_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH certificate</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH certificates</item>
+    </plurals>
     <plurals name="skipped_gpg_keys_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG key</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG keys</item>
@@ -72,9 +76,17 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> saved previous password</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> environment with item references that cannot be transferred</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> environments with item references that cannot be transferred</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> archived item</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> archived items</item>
+    </plurals>
+    <plurals name="exportaccount_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items</item>
     </plurals>
     <plurals name="skipped_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item</item>
@@ -164,5 +176,21 @@
     <plurals name="agent_approval_expires_in_seconds_plural">
         <item quantity="one">Expires in <xliff:g id="seconds" example="1">%1$d</xliff:g> second</item>
         <item quantity="other">Expires in <xliff:g id="seconds" example="30">%1$d</xliff:g> seconds</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> active User ID</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>
+    </plurals>
+    <plurals name="agent_auto_setup_files_to_change_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> file to change</item>
+        <item quantity="other"><xliff:g id="number" example="2">%1$d</xliff:g> files to change</item>
+    </plurals>
+    <plurals name="tag_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items</item>
+    </plurals>
+    <plurals name="attachment_preview_gpg_skipped_certificates_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> certificate could not be read</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
     </plurals>
 </resources>

@@ -7,7 +7,7 @@
         <item quantity="other">일치 항목 <xliff:g id="number">%1$s</xliff:g>개</item>
     </plurals>
     <plurals name="reused_password_items_count_plural">
-        <item quantity="other">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g>개 항목에서 사용 중</item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="other">단어 <xliff:g id="number">%1$s</xliff:g>개</item>
@@ -45,6 +45,9 @@
     <plurals name="skipped_ssh_keys_note">
         <item quantity="other">SSH 키 <xliff:g id="number">%1$d</xliff:g>개</item>
     </plurals>
+    <plurals name="skipped_ssh_certificates_note">
+        <item quantity="other">SSH 인증서 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
     <plurals name="skipped_gpg_keys_note">
         <item quantity="other">GPG 키 <xliff:g id="number">%1$d</xliff:g>개</item>
     </plurals>
@@ -54,8 +57,14 @@
     <plurals name="skipped_password_history_note">
         <item quantity="other">저장된 이전 비밀번호 <xliff:g id="number">%1$d</xliff:g>개</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="other">전송할 수 없는 항목 참조가 있는 환경 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="other">아카이브된 항목 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="exportaccount_items_count_plural">
+        <item quantity="other">항목 <xliff:g id="number">%1$d</xliff:g>개</item>
     </plurals>
     <plurals name="skipped_items_note">
         <item quantity="other">항목 <xliff:g id="number">%1$d</xliff:g>개</item>
@@ -109,11 +118,11 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g>년</item>
     </plurals>
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
-        <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g>개의 주소에 대한 인증 이메일을 요청했습니다</item>
     </plurals>
     <!-- Automatic backups -->
     <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
-        <item quantity="other">Keep %1$d snapshots</item>
+        <item quantity="other">스냅샷 %1$d개 보관</item>
     </plurals>
     <plurals name="pref_item_hibp_api_token_error_plural">
         <item quantity="other"><xliff:g id="length" example="32">%1$d</xliff:g>자리 16진수 HIBP API 토큰을 입력하세요</item>
@@ -123,5 +132,17 @@
     </plurals>
     <plurals name="agent_approval_expires_in_seconds_plural">
         <item quantity="other">만료까지 <xliff:g id="seconds" example="30">%1$d</xliff:g>초</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="other">활성 사용자 ID <xliff:g id="count" example="2">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="agent_auto_setup_files_to_change_plural">
+        <item quantity="other">변경할 파일 <xliff:g id="number" example="2">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="tag_items_count_plural">
+        <item quantity="other">항목 <xliff:g id="number">%1$d</xliff:g>개</item>
+    </plurals>
+    <plurals name="attachment_preview_gpg_skipped_certificates_plural">
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
     </plurals>
 </resources>

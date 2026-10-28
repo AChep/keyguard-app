@@ -17,12 +17,12 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> مرات</item>
     </plurals>
     <plurals name="reused_password_items_count_plural">
-        <item quantity="zero">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="one">Used by <xliff:g id="number" example="1">%1$d</xliff:g> item</item>
-        <item quantity="two">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="few">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="many">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="other">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="zero">عدد العناصر التي تستخدمها: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="one">عدد العناصر التي تستخدمها: <xliff:g id="number" example="1">%1$d</xliff:g></item>
+        <item quantity="two">عدد العناصر التي تستخدمها: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="few">عدد العناصر التي تستخدمها: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="many">عدد العناصر التي تستخدمها: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="other">عدد العناصر التي تستخدمها: <xliff:g id="number">%1$d</xliff:g></item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="zero"><xliff:g id="number">%1$s</xliff:g> كلمات</item>
@@ -120,6 +120,14 @@
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> مفتاح SSH</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> مفتاح SSH</item>
     </plurals>
+    <plurals name="skipped_ssh_certificates_note">
+        <item quantity="zero">عدد شهادات SSH: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="one">عدد شهادات SSH: <xliff:g id="number" example="1">%1$d</xliff:g></item>
+        <item quantity="two">عدد شهادات SSH: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="few">عدد شهادات SSH: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="many">عدد شهادات SSH: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="other">عدد شهادات SSH: <xliff:g id="number">%1$d</xliff:g></item>
+    </plurals>
     <plurals name="skipped_gpg_keys_note">
         <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> مفتاح GPG</item>
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> مفتاح GPG</item>
@@ -144,6 +152,14 @@
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> كلمة مرور سابقة محفوظة</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> كلمة مرور سابقة محفوظة</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="zero">عدد البيئات التي تحتوي على مراجع لعناصر يتعذّر نقلها: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="one">عدد البيئات التي تحتوي على مراجع لعناصر يتعذّر نقلها: <xliff:g id="number" example="1">%1$d</xliff:g></item>
+        <item quantity="two">عدد البيئات التي تحتوي على مراجع لعناصر يتعذّر نقلها: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="few">عدد البيئات التي تحتوي على مراجع لعناصر يتعذّر نقلها: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="many">عدد البيئات التي تحتوي على مراجع لعناصر يتعذّر نقلها: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="other">عدد البيئات التي تحتوي على مراجع لعناصر يتعذّر نقلها: <xliff:g id="number">%1$d</xliff:g></item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> عنصر مؤرشف</item>
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> عنصر مؤرشف</item>
@@ -151,6 +167,14 @@
         <item quantity="few"><xliff:g id="number">%1$d</xliff:g> عناصر مؤرشفة</item>
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> عنصرًا مؤرشفًا</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> عنصر مؤرشف</item>
+    </plurals>
+    <plurals name="exportaccount_items_count_plural">
+        <item quantity="zero">عدد العناصر: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="one">عدد العناصر: <xliff:g id="number" example="1">%1$d</xliff:g></item>
+        <item quantity="two">عدد العناصر: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="few">عدد العناصر: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="many">عدد العناصر: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="other">عدد العناصر: <xliff:g id="number">%1$d</xliff:g></item>
     </plurals>
     <plurals name="skipped_items_note">
         <item quantity="zero"><xliff:g id="number">%1$d</xliff:g> عنصر</item>
@@ -298,12 +322,12 @@
     </plurals>
     <!-- Automatic backups -->
     <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
-        <item quantity="zero">Keep %1$d snapshots</item>
-        <item quantity="one">احتفظ بلقطة %1$d</item>
-        <item quantity="two">Keep %1$d snapshots</item>
-        <item quantity="few">Keep %1$d snapshots</item>
-        <item quantity="many">Keep %1$d snapshots</item>
-        <item quantity="other">Keep %1$d snapshots</item>
+        <item quantity="zero">عدد اللقطات المحتفَظ بها: %1$d</item>
+        <item quantity="one">عدد اللقطات المحتفَظ بها: %1$d</item>
+        <item quantity="two">عدد اللقطات المحتفَظ بها: %1$d</item>
+        <item quantity="few">عدد اللقطات المحتفَظ بها: %1$d</item>
+        <item quantity="many">عدد اللقطات المحتفَظ بها: %1$d</item>
+        <item quantity="other">عدد اللقطات المحتفَظ بها: %1$d</item>
     </plurals>
     <plurals name="pref_item_hibp_api_token_error_plural">
         <item quantity="zero">أدخل رمز API لـ HIBP سداسيًا عشريًا بطول <xliff:g id="length" example="32">%1$d</xliff:g> حرف</item>
@@ -328,5 +352,37 @@
         <item quantity="few">تنتهي الموافقة خلال <xliff:g id="seconds" example="30">%1$d</xliff:g> ثوانٍ</item>
         <item quantity="many">تنتهي الموافقة خلال <xliff:g id="seconds" example="30">%1$d</xliff:g> ثانيةً</item>
         <item quantity="other">تنتهي الموافقة خلال <xliff:g id="seconds" example="30">%1$d</xliff:g> ثانية</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="zero">معرّفات المستخدم النشطة: <xliff:g id="count" example="2">%1$d</xliff:g></item>
+        <item quantity="one">معرّفات المستخدم النشطة: <xliff:g id="count" example="1">%1$d</xliff:g></item>
+        <item quantity="two">معرّفات المستخدم النشطة: <xliff:g id="count" example="2">%1$d</xliff:g></item>
+        <item quantity="few">معرّفات المستخدم النشطة: <xliff:g id="count" example="2">%1$d</xliff:g></item>
+        <item quantity="many">معرّفات المستخدم النشطة: <xliff:g id="count" example="2">%1$d</xliff:g></item>
+        <item quantity="other">معرّفات المستخدم النشطة: <xliff:g id="count" example="2">%1$d</xliff:g></item>
+    </plurals>
+    <plurals name="agent_auto_setup_files_to_change_plural">
+        <item quantity="zero">عدد الملفات التي ستُعدَّل: <xliff:g id="number" example="2">%1$d</xliff:g></item>
+        <item quantity="one">عدد الملفات التي ستُعدَّل: <xliff:g id="number" example="1">%1$d</xliff:g></item>
+        <item quantity="two">عدد الملفات التي ستُعدَّل: <xliff:g id="number" example="2">%1$d</xliff:g></item>
+        <item quantity="few">عدد الملفات التي ستُعدَّل: <xliff:g id="number" example="2">%1$d</xliff:g></item>
+        <item quantity="many">عدد الملفات التي ستُعدَّل: <xliff:g id="number" example="2">%1$d</xliff:g></item>
+        <item quantity="other">عدد الملفات التي ستُعدَّل: <xliff:g id="number" example="2">%1$d</xliff:g></item>
+    </plurals>
+    <plurals name="tag_items_count_plural">
+        <item quantity="zero">عدد العناصر: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="one">عدد العناصر: <xliff:g id="number" example="1">%1$d</xliff:g></item>
+        <item quantity="two">عدد العناصر: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="few">عدد العناصر: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="many">عدد العناصر: <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="other">عدد العناصر: <xliff:g id="number">%1$d</xliff:g></item>
+    </plurals>
+    <plurals name="attachment_preview_gpg_skipped_certificates_plural">
+        <item quantity="zero"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> certificate could not be read</item>
+        <item quantity="two"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
     </plurals>
 </resources>

@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_store_google_app_name">Keyguard</string>
-    <string name="listing_store_google_short_description">A password manager that focuses on the user experience.</string>
+    <string name="listing_store_google_short_description">En passordbehandler med fokus på brukeropplevelsen.</string>
     <!-- A name of the Yearly subscription plan -->
-    <string name="listing_store_google_subscription_yearly">Yearly plan</string>
+    <string name="listing_store_google_subscription_yearly">Årsabonnement</string>
     <!-- A name of the Quarterly subscription plan -->
-    <string name="listing_store_google_subscription_quarterly">Quarterly plan</string>
+    <string name="listing_store_google_subscription_quarterly">Kvartalsabonnement</string>
     <!-- A name of the One-time purchase plan -->
-    <string name="listing_store_google_product_lifetime">One-time purchase</string>
+    <string name="listing_store_google_product_lifetime">Engangskjøp</string>
 </resources>

@@ -2,6 +2,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">OK</string>
     <string name="close">Fermer</string>
+    <string name="done">Terminé</string>
     <string name="quit">Quitter</string>
     <string name="yes">Oui</string>
     <string name="no">Non</string>
@@ -59,6 +60,7 @@
     <string name="advanced_options">Avancé</string>
     <string name="file">Fichier</string>
     <string name="choose_file">Choisir un fichier</string>
+    <string name="choose_folder">Choisir un dossier</string>
     <string name="file_picker_selected_file_label">Fichier sélectionné</string>
     <string name="file_name_placeholder">Nom du fichier</string>
     <string name="file_status_pending_upload">Chargement en attente</string>
@@ -87,6 +89,8 @@
     <string name="status">Statut</string>
     <string name="status_running">En cours d'exécution</string>
     <string name="status_failed_to_start">Échec du démarrage</string>
+    <string name="status_starting">Démarrage en cours</string>
+    <string name="status_ready">Prêt</string>
     <string name="ready_status_beta">Bêta</string>
     <string name="ready_status_alpha">Alpha</string>
     <string name="learn_more">En savoir plus</string>
@@ -162,6 +166,8 @@
     <string name="tag">Tag</string>
     <string name="tags">Tags</string>
     <string name="tags_empty_label">Aucun tag</string>
+    <string name="tags_field_placeholder">Ajouter un tag</string>
+    <string name="tag_remove_content_description">Retirer le tag <xliff:g id="tag" example="work">%1$s</xliff:g></string>
     <string name="collection_none">Aucune collection</string>
     <string name="collection">Collection</string>
     <string name="collections">Collections</string>
@@ -320,6 +326,7 @@
     <string name="key_type">Type de clé</string>
     <string name="key_pair">Paire de clés</string>
     <string name="key_id">ID de clé</string>
+    <string name="keygrip">Keygrip</string>
     <string name="algorithm">Algorithme</string>
     <string name="created">Créé le</string>
     <string name="expires">Expiration</string>
@@ -353,9 +360,21 @@
     <string name="addaccount_method_phone_title">Se connecter sur le téléphone</string>
     <string name="addaccount_method_phone_text">Utilisez votre téléphone Android appairé</string>
     <string name="addaccount_method_phone_unavailable">Aucun téléphone Android appairé trouvé</string>
+    <string name="addaccount_method_phone_checking">Checking for a paired Android phone</string>
+    <string name="addaccount_method_phone_services_unavailable">Google Play services is unavailable. Reopen this screen to try again.</string>
     <string name="addaccount_method_phone_waiting">En attente du téléphone</string>
     <string name="addaccount_method_phone_importing">Importation de comptes</string>
     <string name="addaccount_method_phone_failed">Échec de la connexion au téléphone</string>
+    <string name="addaccount_method_phone_cancelled">Phone login cancelled on the phone</string>
+    <string name="addaccount_method_phone_error_unreachable">The phone is not reachable</string>
+    <string name="addaccount_method_phone_error_multiple_phones">More than one phone is reachable</string>
+    <string name="addaccount_method_phone_error_launch">Couldn't open Keyguard on the phone</string>
+    <string name="addaccount_method_phone_error_timeout">Phone login timed out</string>
+    <string name="addaccount_method_phone_error_too_large">Too much data to transfer to the watch</string>
+    <string name="addaccount_method_phone_error_version">Keyguard versions on the phone and the watch don't match. Update both.</string>
+    <string name="addaccount_method_phone_error_verification">Couldn't verify the response from the phone</string>
+    <string name="addaccount_method_phone_error_on_phone">Login failed on the phone. Check the phone for details.</string>
+    <string name="addaccount_method_phone_error_import">Couldn't add the account to the watch</string>
     <string name="addaccount_method_phone_pick">Choisir un téléphone</string>
     <string name="companionauth_header_title">Configuration de la montre</string>
     <string name="companionauth_header_text">Connectez-vous pour ajouter ce compte à votre montre</string>
@@ -408,6 +427,10 @@
     <string name="ciphers_action_edit_title">Modifier</string>
     <string name="ciphers_action_merge_title">Fusionner dans…</string>
     <string name="ciphers_action_copy_title">Copier vers…</string>
+    <string name="ciphers_copy_attachments_note">Les pièces jointes ne sont pas copiées.</string>
+    <string name="ciphers_copy_warning_links">Les copies ne conservent pas les liens vers d’autres éléments.</string>
+    <string name="ciphers_copy_warning_environment_references">Les variables qui font référence à d’autres éléments ne sont plus définies dans les copies.</string>
+    <string name="ciphers_copy_error_unsupported_environment">Certains environnements utilisent un format que cette version de Keyguard ne peut pas lire. Mettez à jour Keyguard pour les copier vers un autre compte.</string>
     <string name="ciphers_action_export_title">Exporter…</string>
     <string name="ciphers_action_change_folder_title">Déplacer vers le dossier</string>
     <string name="ciphers_action_change_name_title">Modifier le nom</string>
@@ -480,6 +503,7 @@
     <string name="attachment_preview_error_decryption">Impossible de déchiffrer l'aperçu de la pièce jointe.</string>
     <string name="attachment_preview_error_text_decode">Ce fichier texte ne peut pas être prévisualisé.</string>
     <string name="attachment_preview_error_image_decode">Cette image ne peut être prévisualisée.</string>
+    <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
     <string name="attachment_preview_action_copy_all">Tout copier</string>
     <string name="attachment_preview_action_wrap_lines">Retour à la ligne automatique</string>
     <string name="attachment_preview_action_source">Source</string>
@@ -560,6 +584,8 @@
     <string name="key_action_save_public_key_saved_downloads_success_title">Clé publique enregistrée dans Téléchargements</string>
     <string name="key_action_save_unencrypted_private_key_title">Enregistrer la clé privée non chiffrée</string>
     <string name="key_action_save_unencrypted_private_key_saved_downloads_success_title">Clé privée non chiffrée enregistrée dans Téléchargements</string>
+    <string name="key_action_save_certificate_title">Enregistrer le certificat</string>
+    <string name="key_action_save_certificate_saved_downloads_success_title">Certificat enregistré dans Téléchargements</string>
     <string name="ssh_key_action_add_key_title">Ajouter des clés</string>
     <string name="ssh_key_action_replace_key_title">Remplacer les clés</string>
     <string name="key_import_title">Importer une clé <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
@@ -614,38 +640,17 @@
     <string name="gpg_key_expiry_unresolved_revocation_message">Une révocation désignée ne peut pas être vérifiée car la clé publique du révocateur est indisponible. Importez-la et réessayez.</string>
     <string name="gpg_key_expiry_unsupported_signing_hash_message">Cette clé ne peut être recertifiée qu'avec un algorithme de hachage non sécurisé. Remplacez par une clé récente.</string>
     <string name="gpg_key_expiry_missing_self_signature_message">Cette clé ne peut pas être renouvelée parce que son auto-signature est manquante, invalide ou rejetée par la politique de sécurité.</string>
-    <string name="gpg_user_id_revocation_dialog_title">Révoquer l'identifiant utilisateur GPG</string>
-    <string name="gpg_user_id_revocation_dialog_message">Sélectionnez l'identifiant utilisateur à révoquer. La révocation ajoute une déclaration signée au certificat et n'efface ni l'identité ni son historique.</string>
     <string name="gpg_user_id_revocation_confirm">Révoquer</string>
     <string name="gpg_user_id_revocation_last_identity_message">Une clé GPG doit conserver au moins un identifiant utilisateur utilisable. Remplacez-le avant de le révoquer.</string>
-    <string name="gpg_user_id_revocation_no_identity_message">Cette clé n'a pas d'identifiant utilisateur actif révocable.</string>
-    <string name="gpg_user_id_replacement_dialog_title">Remplacer l'identifiant utilisateur GPG</string>
-    <string name="gpg_user_id_replacement_dialog_message">Sélectionnez l'ancien identifiant d'utilisateur. Keyguard le remplacera et le révoquera en une seule action.</string>
-    <string name="gpg_user_id_replacement_confirm_next">Suivant</string>
-    <string name="gpg_user_id_replacement_no_identity_message">Cette clé n'a pas d'identifiant utilisateur actif remplaçable.</string>
-    <string name="gpg_user_id_replacement_value_title">Nouvel identifiant utilisateur GPG</string>
-    <string name="gpg_user_id_replacement_value_message">Entrez le nouvel identifiant d'utilisateur OpenPGP tel quel. Keyguard ne le rognera pas ni le normalisera.</string>
     <string name="gpg_user_id_replacement_value_label">Identifiant utilisateur</string>
-    <string name="gpg_user_id_replacement_value_hint">Nommer &lt;email@example.com&gt;</string>
     <string name="gpg_user_id_replacement_value_confirm">Remplacer</string>
     <string name="gpg_user_id_replacement_invalid_message_with_limit">Saisissez un identifiant utilisateur non vide de <xliff:g id="byte_limit" example="1024">%1$d</xliff:g> octets UTF-8 maximum, sans caractères de contrôle.</string>
     <string name="gpg_user_id_replacement_same_identity_message">Entrez un identifiant utilisateur différent de l'identité sélectionnée.</string>
     <string name="gpg_user_id_replacement_duplicate_message">Cet identifiant utilisateur est déjà actif sur cette clé.</string>
     <string name="gpg_user_id_replacement_title">Remplacer l'identifiant utilisateur</string>
-    <string name="gpg_user_id_replacement_success_title">Identifiant utilisateur GPG remplacé</string>
-    <string name="gpg_user_id_replacement_success_message">Enregistrez cet élément, puis redistribuez ou téléversez sa clé publique pour publier le remplacement.</string>
-    <string name="gpg_user_id_replacement_already_done_message">Ce remplacement a déjà été appliqué. Aucune nouvelle signature n'a été créée.</string>
-    <string name="gpg_user_id_replacement_failed_title">Impossible de remplacer l'identifiant utilisateur GPG</string>
-    <string name="gpg_user_id_replacement_failed_message">L'ID de l'utilisateur n'a pas pu être remplacé. La clé d'origine n'a pas été modifiée.</string>
     <string name="gpg_user_id_replacement_retired_message">Cet identifiant d'utilisateur exact a été précédemment révoqué et ne peut pas être ajouté à nouveau.</string>
     <string name="gpg_user_id_replacement_target_missing">L'identifiant utilisateur sélectionné a changé ou n'est plus actif. Réouvrez la clé et réessayez.</string>
-    <string name="gpg_user_id_replacement_private_key_required">Importez la clé privée pour remplacer l'un de ses identifiants utilisateur.</string>
-    <string name="gpg_user_id_replacement_unavailable">Le remplacement de l'identifiant utilisateur GPG n'est pas pris en charge sur cette plateforme.</string>
     <string name="gpg_user_id_revocation_title">Révoquer l'identifiant utilisateur</string>
-    <string name="gpg_user_id_revocation_success_title">Identifiant utilisateur GPG révoqué</string>
-    <string name="gpg_user_id_revocation_success_message">Enregistrez cet élément, puis redistribuez ou téléversez sa clé publique pour publier la révocation.</string>
-    <string name="gpg_user_id_revocation_already_done_message">Cet identifiant utilisateur a déjà été révoqué. Aucune nouvelle signature n'a été créée.</string>
-    <string name="gpg_user_id_revocation_failed_title">Impossible de révoquer l'identifiant utilisateur GPG</string>
     <string name="gpg_user_id_revocation_failed_message">L'identifiant utilisateur n'a pas pu être révoqué. La clé d'origine est restée inchangée.</string>
     <string name="gpg_user_id_revocation_target_missing">L'identifiant utilisateur sélectionné a changé ou n'est plus éligible. Réouvrez la clé et réessayez.</string>
     <string name="gpg_user_id_revocation_private_key_required">Importez la clé privée pour révoquer l'un de ses identifiants utilisateur.</string>
@@ -657,6 +662,21 @@
     <string name="key_import_error_read">Impossible de lire le fichier sélectionné.</string>
     <string name="key_import_passphrase_title">Phrase de passe</string>
     <string name="ssh_key_import_passphrase_dialog_message">Cette clé <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> est chiffrée.</string>
+    <string name="ssh_certificate_import_success_title">Certificat SSH importé</string>
+    <!-- An OpenSSH certificate: a CA signature over an SSH public key -->
+    <string name="ssh_certificate">Certificat</string>
+    <string name="ssh_certificate_note">Le contenu du fichier <xliff:g id="suffix" example="-cert.pub">%1$s</xliff:g> de la clé, signé par votre autorité de certification.</string>
+    <string name="ssh_certificate_principals">Identités autorisées</string>
+    <!-- The serial number of an SSH certificate -->
+    <string name="ssh_certificate_serial">Numéro de série</string>
+    <string name="ssh_certificate_authority">Autorité de certification</string>
+    <string name="ssh_certificate_critical_options">Options critiques</string>
+    <string name="ssh_certificate_extensions">Extensions</string>
+    <string name="ssh_certificate_problem_malformed">Ceci n’est pas un certificat OpenSSH.</string>
+    <string name="ssh_certificate_problem_host_certificate">Il s’agit d’un certificat d’hôte. La connexion nécessite un certificat utilisateur.</string>
+    <string name="ssh_certificate_problem_key_mismatch">Ce certificat correspond à une autre clé.</string>
+    <string name="ssh_certificate_problem_not_yet_valid">Ce certificat sera valide à partir du <xliff:g id="date" example="Jan 1, 2027">%1$s</xliff:g>.</string>
+    <string name="ssh_certificate_problem_expired">Ce certificat a expiré le <xliff:g id="date" example="Jan 1, 2026">%1$s</xliff:g>.</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> sélectionnés</string>
     <string name="selection_clear_action">Effacer la sélection</string>
     <string name="selection_select_all_action">Tout sélectionner</string>
@@ -668,6 +688,7 @@
     <string name="copy_send">Copier le send</string>
     <string name="copy_package_name">Copier le nom du package</string>
     <string name="copy_bundle_id">Copier l'identifiant du lot</string>
+    <string name="copy_id">Copier l’identifiant</string>
     <string name="copy_password">Copier le mot de passe</string>
     <string name="copy_username">Copier le nom d'utilisateur</string>
     <string name="copy_email">Copier l'e-mail</string>
@@ -689,6 +710,7 @@
     <string name="copied_uri">URI copié</string>
     <string name="copied_tag">Copie d'un tag</string>
     <string name="copied_package_name">Nom du package copié</string>
+    <string name="copied_id">Identifiant copié</string>
     <string name="copied_key">La clé a été copiée</string>
     <string name="copied_fingerprint">L'empreinte a été copiée</string>
     <string name="copied_password">Mot de passe copié</string>
@@ -797,6 +819,7 @@
     <string name="error_otp_key_must_not_be_empty">La clé secrète du mot de passe à usage unique ne doit pas être vide</string>
     <string name="error_otp_key_is_invalid">La clé secrète du mot de passe à usage unique est invalide.</string>
     <string name="error_failed_file_already_exists">Échec de la création d'un fichier. Le remplacement d'un fichier existant n'est pas autorisé</string>
+    <string name="error_account_already_exists">Ce compte est déjà ajouté à Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Impossible de créer une clé : il n'y a pas assez de mémoire, veuillez vérifier les paramètres de votre serveur KDF.</string>
     <string name="error_failed_generate_otp_code">Impossible de générer le code de mot de passe à usage unique (OTP)</string>
     <string name="error_failed_create_passkey">Impossible de créer une clé d'accès</string>
@@ -814,6 +837,8 @@
     <string name="biometric_error_policy_not_installed_flatpak">Keyguard nécessite une règle d'autorisation système à usage unique pour utiliser l'authentification système. Exécutez cette commande dans un terminal sur l'hôte, puis réessayez : \n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Impossible de déchiffrer la clé biométrique</string>
     <string name="error_failed_agent_start">Échec du démarrage de l’agent <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
+    <string name="error_agent_ipc_unavailable">Un composant de Keyguard est manquant. Réinstallez Keyguard.</string>
+    <string name="error_agent_ipc_endpoint">Impossible de créer la connexion privée de l’agent</string>
     <string name="error_failed_power_lock_start">Impossible d'activer le verrouillage lorsque l'écran s'éteint ou que l'appareil se met en veille. Relancez Keyguard pour réessayer.</string>
     <string name="error_quick_search_autotype_permission">Accès Accessibilité requis</string>
     <string name="error_quick_search_autotype_unavailable">Impossible de sélectionner la destination</string>
@@ -822,6 +847,7 @@
     <string name="error_quick_search_autotype_busy">La saisie automatique est déjà en cours d'exécution</string>
     <string name="error_quick_search_autotype_keys_held">Relâchez toutes les touches et boutons de la souris, puis réessayez</string>
     <string name="error_credential_calling_app_not_privileged">L'application appelante ne figure pas sur la liste privilégiée et ne peut pas demander d'authentification au nom des autres applications.</string>
+    <string name="error_credential_not_stored">Cet élément ne peut pas stocker les identifiants.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
@@ -941,8 +967,8 @@
     <string name="emailrelay_empty_label">Aucun transfert d'adresse mail</string>
     <string name="emailrelay_base_env_server_url_label">URL du serveur</string>
     <string name="emailrelay_base_env_note">Spécifiez l'URL de base de votre installation autohébergée.</string>
-    <string name="emailrelay_addyio_recipient_id_label">Recipient ID (optional)</string>
-    <string name="emailrelay_addyio_recipient_id_note">ID of a verified addy.io recipient. Leave blank to use the default recipient.</string>
+    <string name="emailrelay_addyio_recipient_id_label">Identifiant du destinataire (facultatif)</string>
+    <string name="emailrelay_addyio_recipient_id_note">Identifiant d’un destinataire vérifié sur addy.io. Laissez ce champ vide pour utiliser le destinataire par défaut.</string>
     <string name="emailrelay_add_action">Ajouter un outil de redirection d'e-mails</string>
     <string name="emailrelay_edit_action">Modifier l'outil de redirection d'e-mails</string>
     <string name="emailrelay_documentation_title">Documentation</string>
@@ -1174,6 +1200,7 @@
     <string name="cipher_type_ssh_key">Clé SSH</string>
     <string name="cipher_type_gpg_key">Clé GPG</string>
     <string name="cipher_type_passkey">Clé d'accès</string>
+    <string name="cipher_type_environment">Environnement</string>
     <string name="field_type_text">Texte</string>
     <string name="field_type_text_concealed">Texte (caché)</string>
     <string name="field_type_boolean">Booléen</string>
@@ -1517,6 +1544,8 @@
     <string name="watchtower_item_reused_passwords_text">N'utilisez pas le même mot de passe sur plusieurs sites Web. Générez des mots de passe uniques pour améliorer la sécurité.</string>
     <string name="watchtower_item_weak_ssh_keys_title">Clés SSH faibles</string>
     <string name="watchtower_item_weak_ssh_keys_text">Éléments qui ne satisfont pas les recommandations du NIST.</string>
+    <string name="watchtower_item_unusable_ssh_certificates_title">Certificats SSH inutilisables</string>
+    <string name="watchtower_item_unusable_ssh_certificates_text">Éléments de type Clé SSH dont le certificat a expiré, n’est pas encore valide, est mal formé, est un certificat d’hôte ou correspond à une autre clé.</string>
     <string name="watchtower_item_unusable_gpg_keys_title">Clés GPG inutilisables</string>
     <string name="watchtower_item_unusable_gpg_keys_text">Éléments de clé GPG révoqués, expirés, malformés ou dépourvus de matériel de signature ou de déchiffrement utilisable.</string>
     <string name="watchtower_item_weak_gpg_keys_title">Clés GPG faibles</string>
@@ -1567,8 +1596,26 @@
     <string name="exportaccount_header_title">Exporter les éléments</string>
     <string name="exportaccount_password_label">Archiver le mot de passe</string>
     <string name="exportaccount_format_note">Exporter le coffre-fort sous la forme d'une archive ZIP chiffrée.</string>
+    <string name="exportaccount_format_title">Format</string>
+    <string name="exportaccount_format_zip">Archive ZIP</string>
+    <string name="exportaccount_format_kdbx">Base de données KeePass (KDBX)</string>
+    <string name="exportaccount_kdbx_password_label">Mot de passe de la base de données</string>
+    <string name="exportaccount_format_kdbx_note">Exporter le coffre-fort sous forme de base de données KeePass. Les dossiers deviennent des groupes. Les organisations et les collections ne sont pas exportées.</string>
+    <string name="exportaccount_kdbx_attachment_too_large">Une pièce jointe est trop volumineuse pour une base de données KeePass. Exportez les éléments dans une archive ZIP ou sans les pièces jointes.</string>
     <string name="exportaccount_attachments_note">Le coffre-fort restera déverrouillé pendant le processus d'exportation. Les pièces jointes sont référencées dans les données du coffre-fort. Les pièces jointes ne sont jamais stockées en clair au cours du processus.</string>
+    <string name="exportaccount_kdbx_attachments_note">Le coffre-fort restera déverrouillé pendant l’exportation. Les pièces jointes sont stockées dans la base de données. Elles ne sont jamais stockées en clair au cours du processus.</string>
     <string name="exportaccount_include_attachments_title">Exporter les pièces jointes</string>
+    <string name="exportaccount_confirm_password_label">Confirmer le mot de passe de l’archive</string>
+    <string name="exportaccount_kdbx_confirm_password_label">Confirmer le mot de passe de la base de données</string>
+    <string name="exportaccount_wizard_format_title">Choisir un format</string>
+    <string name="exportaccount_wizard_format_detail">Choisissez un type de fichier que l’application de destination peut importer.</string>
+    <string name="exportaccount_wizard_items_title">Choisir les éléments</string>
+    <string name="exportaccount_wizard_items_detail">Utilisez les filtres pour choisir les éléments à exporter.</string>
+    <string name="exportaccount_wizard_password_title">Protéger le fichier</string>
+    <string name="exportaccount_wizard_password_detail">Keyguard chiffre le fichier avec ce mot de passe. Vous en aurez besoin pour ouvrir le fichier.</string>
+    <string name="exportaccount_wizard_review_title">Vérifier l’exportation</string>
+    <string name="exportaccount_wizard_review_detail">Vérifiez vos choix, puis exportez le fichier.</string>
+    <string name="exportaccount_review_attachments_enabled">Activé, <xliff:g id="size" example="12 MB">%1$s</xliff:g></string>
     <string name="exportaccount_export_button">Exporter</string>
     <string name="exportaccount_export_started">L'exportation a commencé</string>
     <string name="exportaccount_export_success">Exportation terminée</string>
@@ -1810,7 +1857,6 @@
     <string name="pref_item_crowdin_title">Projet Crowdin</string>
     <string name="pref_item_crowdin_view_all_contributors_title">Tout afficher</string>
     <string name="pref_item_open_source_licenses_title">Licences Open Source</string>
-    <string name="pref_item_download_apk_title">Télécharger le fichier APK</string>
     <string name="pref_item_load_app_icons_title">Charger les icônes d'applications</string>
     <string name="pref_item_load_website_icons_title">Charger les icônes de sites web</string>
     <string name="pref_item_load_website_icons_text">L'icône du site web en attente peut révéler l'adresse du site Web au fournisseur d'accès à Internet</string>
@@ -1926,8 +1972,6 @@
     <string name="pref_item_ssh_agent_text">Authentifiez vos clients Git et SSH sans que ceux-ci ne puissent jamais lire votre clé privée</string>
     <string name="pref_item_agent_status_unsupported">Non pris en charge</string>
     <string name="pref_item_agent_status_stopped">Arrêté</string>
-    <string name="pref_item_agent_status_starting">Démarrage en cours</string>
-    <string name="pref_item_agent_status_ready">Prêt</string>
     <string name="pref_item_agent_status_failed">Échec</string>
     <string name="pref_item_agent_approval_window_title">Mémoriser les approbations de clés</string>
     <string name="pref_item_agent_local_storage_title">Stockage local</string>
@@ -1936,6 +1980,7 @@
     <string name="pref_item_agent_display_key_names_note">Une copie non chiffrée du titre de l’élément sera stockée localement</string>
     <string name="pref_item_agent_approval_window_always_ask">Demander à chaque fois</string>
     <string name="pref_item_agent_approval_window_until_lock">Jusqu’au verrouillage du coffre-fort</string>
+    <string name="pref_item_approval_window_title">Mémoriser les approbations</string>
     <string name="pref_item_ssh_agent_approval_remember_note">Une signature validée est mémorisée pendant cette durée pour chaque clé et chaque application, ce qui évite de devoir la demander à chaque fois.</string>
     <string name="pref_item_agent_filters_text">Choisissez les clés <xliff:g id="protocol" example="SSH">%1$s</xliff:g> auxquelles l’agent %1$s peut accéder</string>
     <string name="pref_item_agent_filters_summary_all">Toutes les clés sont accessibles</string>
@@ -2050,6 +2095,8 @@
     <string name="pref_item_premium_membership_benefit_support_development">Soutenez le développement indépendant</string>
     <string name="pref_item_premium_membership_footer">Un abonnement ou un achat unique déverrouille l'expérience complète. L'abonnement à vie correspond à un paiement unique.</string>
     <string name="pref_item_premium_membership_direct_note">Cette version inclut toutes les fonctionnalités premium.</string>
+    <string name="pref_item_premium_membership_included_note">Pour des raisons historiques, cette version inclut toutes les fonctionnalités premium.</string>
+    <string name="pref_item_premium_membership_buy_license_title">Acheter une licence</string>
     <string name="pref_item_premium_status_active">Actif</string>
     <string name="pref_item_premium_status_free_trial_n">Essai gratuit de <xliff:g id="period" example="1 month">%1$s</xliff:g></string>
     <string name="pref_item_premium_status_will_not_renew">Ne sera renouvelé</string>
@@ -2213,6 +2260,14 @@
     <string name="gpg_agent_setup_step_5_text">Utilisez le même GNUPGHOME lorsque Git signe des commits. Gardez la configuration locale à un seul dépôt, ou remplacez --local par --global.</string>
     <string name="gpg_agent_setup_windows_native_gnupg_note">Windows nécessite une installation native de GnuPG. Le GPG fourni avec Git pour Windows n'est pas compatible avec cette configuration.</string>
     <string name="gpg_agent_setup_macos_step_2_text">Exécutez ces commandes dans Terminal pendant que Keyguard est en cours d’exécution. Elles préparent <xliff:g id="path" example="~/.keyguard/gnupg">%1$s</xliff:g> et relient votre installation de GnuPG à Keyguard. Définissez ensuite GNUPGHOME dans le même shell avant d’importer des clés ou de signer.</string>
+    <string name="gpg_agent_setup_android_termux_text">Sur Android, Keyguard fournit l’agent GPG par l’intermédiaire d’un paquet auxiliaire dédié. Activez l’agent GPG dans Keyguard, installez et configurez le paquet, puis approuvez les demandes lorsque GnuPG se connecte.</string>
+    <string name="gpg_agent_setup_android_termux_step_3_title">Configurer GnuPG</string>
+    <string name="gpg_agent_setup_android_termux_step_3_shell_current">Démarrez le paquet et exportez GNUPGHOME dans votre shell actuel :</string>
+    <string name="gpg_agent_setup_android_termux_import_title">Importer la clé publique</string>
+    <string name="gpg_agent_setup_android_termux_import_text">Exportez la clé publique depuis l’élément de type Clé GPG dans Keyguard. Keyguard l’enregistre dans Téléchargements. Autorisez une fois Termux à accéder au stockage partagé, puis importez la clé. Seules les données de la clé publique sont ainsi exposées.</string>
+    <string name="gpg_agent_setup_android_termux_git_title">Signer les commits Git</string>
+    <string name="gpg_agent_setup_android_how_does_it_work_1">L’agent GPG reçoit les demandes de GnuPG, puis les transmet à l’application Keyguard au lieu d’effectuer lui-même l’opération sensible.</string>
+    <string name="gpg_agent_setup_android_how_does_it_work_2">La communication se fait en deux étapes : l’agent demande d’abord à l’application de démarrer une session, puis les deux parties se connectent via un canal TCP local et échangent des messages chiffrés. L’agent GPG sert de relais, tandis que l’application Keyguard effectue les opérations proprement dites.</string>
     <string name="gpg_keys_capability_sign">Signer</string>
     <string name="gpg_key_status">Statut de la clé GPG</string>
     <string name="gpg_key_status_revoked_text">Cette clé GPG a été révoquée et ne doit pas être utilisée.</string>
@@ -2305,6 +2360,11 @@
     <string name="gpg_keyserver_search_revoked_label">Révoquée</string>
     <string name="gpg_keyserver_search_index_label">Index</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">Clé publique GPG introuvable sur le serveur de clés</string>
+    <string name="gpg_keyserver_search_scan_no_fingerprint_title">Le code QR ne contient aucune empreinte de clé GPG</string>
+    <string name="gpg_keyserver_error_unexpected_fingerprint">Le serveur de clés a renvoyé une clé publique GPG dont l’empreinte est différente</string>
+    <string name="gpg_keyserver_error_v6_unsupported">Ce serveur de clés ne prend pas en charge les clés GPG V6</string>
+    <string name="gpg_keyserver_error_short_key_id_title">Les ID de clé courts ne sont pas pris en charge</string>
+    <string name="gpg_keyserver_error_short_key_id_text">Les ID de clé courts ne sont pas uniques. Effectuez une recherche par empreinte ou par ID de clé long.</string>
     <string name="gpg_keyserver_upload_success_title">Clé publique GPG téléversée</string>
     <string name="gpg_keyserver_upload_verify_already_published_text">Les adresses e-mail sélectionnées sont déjà vérifiées.</string>
     <string name="gpg_keyserver_refresh_success_title">Clé publique GPG actualisée</string>
@@ -2319,6 +2379,11 @@
     <string name="gpg_keyserver_status_title">Serveur de clés GPG</string>
     <string name="gpg_keyserver_status_not_checked">Non vérifié</string>
     <string name="gpg_keyserver_status_checked_at">Vérifié le <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="gpg_keyserver_status_verified">Vérifiée</string>
+    <string name="gpg_keyserver_status_found_unverified">Trouvée, aucune adresse e-mail vérifiée</string>
+    <string name="gpg_keyserver_status_not_found">Introuvable</string>
+    <string name="gpg_keyserver_last_checked">Dernière vérification</string>
+    <string name="gpg_keyserver_last_refreshed">Dernière actualisation</string>
     <string name="gpg_agent_history_request_sign_hash">Signer le hash</string>
     <string name="gpg_agent_history_request_decrypt">Déchiffrer</string>
     <string name="gpg_agent_history_response_unsupported">Non pris en charge</string>
@@ -2377,14 +2442,15 @@
     <string name="yubikey_error_no_device">Connectez une YubiKey avec son interface OTP activée et réessayez.</string>
     <string name="yubikey_error_multiple_devices">Connectez seulement la YubiKey que vous voulez utiliser, puis réessayez.</string>
     <string name="yubikey_error_busy">Une autre opération utilise la YubiKey. Attendez qu'elle se termine et réessayez.</string>
+    <string name="error_flatpak_device_access">Keyguard a besoin d’accéder aux périphériques pour utiliser les clés de sécurité. Exécutez cette commande dans un terminal du système hôte, puis redémarrez Keyguard :\n%1$s</string>
     <string name="fido2_unlock_title">Clé de sécurité (FIDO2)</string>
     <string name="fido2_unlock_description">Déverrouiller avec une clé de sécurité USB qui prend en charge PRF. Le mot de passe de votre application reste disponible pour la récupération.</string>
     <string name="fido2_touch_prompt">Connectez votre clé de sécurité et touchez-la quand elle clignote.</string>
     <string name="fido2_pin_prompt">Saisissez le code PIN de votre clé de sécurité.</string>
     <string name="fido2_pin_label">Code PIN de la clé de sécurité</string>
-    <string name="fido2_authenticate_action">Use security key</string>
-    <string name="fido2_browser_action">Use browser</string>
-    <string name="fido2_prompt_title">Security key</string>
+    <string name="fido2_authenticate_action">Utiliser la clé de sécurité</string>
+    <string name="fido2_browser_action">Utiliser le navigateur</string>
+    <string name="fido2_prompt_title">Clé de sécurité</string>
     <string name="fido2_error_title">Impossible d'utiliser la clé de sécurité</string>
     <string name="fido2_error_unsupported">Cette clé ou plateforme ne supporte pas FIDO2 PRF avec la vérification de l'utilisateur.</string>
     <string name="fido2_error_pin_not_set">Définissez un code PIN FIDO2 à l'aide de l'application du fabricant de la clé, puis réessayez.</string>
@@ -2392,8 +2458,242 @@
     <string name="fido2_error_invalid_pin">Code PIN incorrect. Vérifiez le code PIN avant de réessayer. Les échecs répétés peuvent bloquer la clé.</string>
     <string name="fido2_error_timeout">La clé de sécurité n'a pas répondu à temps. Reconnectez-la et réessayez.</string>
     <string name="fido2_error_retry">Réessayez d'utiliser votre clé de sécurité enregistrée ou déverrouillez votre compte à l'aide de votre mot de passe d'application.</string>
-    <string name="storage_error_title">Storage unavailable</string>
-    <string name="storage_missing_configuration">This build is missing its shared storage configuration. Install a correctly configured build to continue.</string>
-    <string name="storage_unavailable">Keyguard cannot access its storage container. Try again. If the problem persists, check the app’s signing and App Group configuration.</string>
-    <string name="storage_unwritable">Keyguard cannot write to its storage container. Check available space and storage access, then try again.</string>
+    <string name="storage_error_title">Stockage indisponible.</string>
+    <string name="storage_missing_configuration">Cette version ne dispose pas de la configuration du stockage partagé. Installez une version correctement configurée pour continuer.</string>
+    <string name="storage_unavailable">Keyguard ne peut pas accéder à son conteneur de stockage. Réessayez. Si le problème persiste, vérifiez la signature de l’application et sa configuration App Group.</string>
+    <string name="storage_unwritable">Keyguard ne peut pas écrire dans son conteneur de stockage. Vérifiez l’espace disponible et les autorisations d’accès au stockage, puis réessayez.</string>
+    <string name="sso_login">Se connecter avec SSO</string>
+    <string name="sso_unlock">Continuer</string>
+    <string name="sso_unlock_note">Entrez votre mot de passe principal Bitwarden pour déchiffrer votre compte.</string>
+    <string name="sso_browser_note">Complétez la connexion dans votre navigateur, puis revenez sur Keyguard.</string>
+    <string name="sso_browser_success">Vous pouvez fermer cette page et revenir sur Keyguard.</string>
+    <string name="sso_error_callback">La réponse SSO ne correspond pas à cette tentative de connexion. Réessayez.</string>
+    <string name="sso_error_authentication">La connexion SSO n'a pas pu être terminée. Réessayez.</string>
+    <string name="sso_error_unsupported">Ce compte a besoin d'une méthode de décryptage ou d'une configuration de compte que Keyguard ne prend pas en charge. Ouvrez le coffre-fort web pour continuer.</string>
+    <string name="sso_error_password">Mauvais mot de passe principal pour ce compte Bitwarden. Réessayez.</string>
+    <string name="sso_error_key_connector">Impossible de récupérer la clé de déchiffrement à partir du connecteur de clé. Veuillez réessayer.</string>
+    <string name="sso_error_account">SSO a renvoyé un compte différent. Connectez-vous avec l'adresse e-mail et le serveur sélectionné dans Keyguard.</string>
+    <string name="sso_error_ports">Les ports locaux de retour SSO sont occupés. Fermez les autres tentatives de connexion et réessayez.</string>
+    <string name="passkey_provider_consent">Votre système stockera les sites web et les noms de compte associés à vos clés d’authentification (passkeys) afin de pouvoir suggérer ces clés lorsque Keyguard est verrouillé. Les clés privées restent dans votre coffre-fort chiffré.</string>
+    <string name="passkey_provider_unsupported">Mettez à jour votre système d’exploitation pour utiliser Keyguard comme fournisseur de clés d’accès.</string>
+    <string name="passkey_provider_unpackaged">Installez Keyguard depuis le Microsoft Store ou à partir d’un package MSIX pour utiliser les clés d’accès.</string>
+    <string name="passkey_provider_unregistered">Déclarez Keyguard comme fournisseur pour enregistrer et utiliser des clés d’accès dans les applications et les navigateurs.</string>
+    <string name="passkey_provider_disabled">Keyguard est enregistré. Activez-le dans les paramètres des clés d’accès de votre système.</string>
+    <string name="passkey_provider_enabled">Keyguard peut enregistrer et utiliser des clés d’accès.</string>
+    <string name="passkey_provider_error">Impossible de compléter la demande de mot de passe</string>
+    <string name="passkey_provider_unavailable">Le fournisseur de clés d’accès est indisponible. Redémarrez Keyguard et réessayez.</string>
+    <string name="passkey_provider_cache_error">Les suggestions de clés d’accès n’ont pas pu être actualisées. Keyguard réessaiera tant que votre coffre-fort sera déverrouillé.</string>
+    <string name="passkey_provider_open_settings">Ouvrir les paramètres du mot de passe</string>
+    <string name="attachment_archive_empty">Ce dossier est vide.</string>
+    <string name="attachment_archive_encrypted">Chiffré</string>
+    <string name="attachment_archive_unavailable">Impossible d'ouvrir ou d'enregistrer cette entrée.</string>
+    <string name="attachment_archive_save">Enregistrer le fichier</string>
+    <string name="attachment_archive_back">Retour</string>
+    <string name="attachment_archive_password">Mot de passe de l'archive</string>
+    <string name="attachment_archive_error_password">Mot de passe incorrect ou fichier endommagé. Réessayez.</string>
+    <string name="attachment_archive_error_invalid">Cette archive ZIP est endommagée ou contient des entrées ambiguës.</string>
+    <string name="attachment_archive_error_unsupported">Ce format ZIP n'est pas pris en charge.</string>
+    <string name="attachment_archive_error_entries">Cette archive contient trop de fichiers ou de dossiers à prévisualiser.</string>
+    <string name="attachment_archive_error_export_size">Ce fichier dépasse la limite d'enregistrement de <xliff:g id="size_limit" example="128 MiB">%1$s</xliff:g>.</string>
+    <string name="attachment_archive_error_export">Impossible d'enregistrer ce fichier.</string>
+    <string name="attachment_archive_error_export_cleanup">Impossible de supprimer le fichier incomplet. Supprimez-le de la destination sélectionnée.</string>
+    <string name="gpg_user_ids_add">Ajouter un identifiant utilisateur</string>
+    <string name="gpg_user_ids_primary">Clé principale</string>
+    <string name="gpg_user_ids_make_primary">Définir comme principale</string>
+    <string name="gpg_user_ids_replace">Remplacer …</string>
+    <string name="gpg_user_ids_revoke">Révoquer …</string>
+    <string name="gpg_user_ids_history">Historique des identités</string>
+    <string name="gpg_user_ids_inactive">Inactif</string>
+    <string name="gpg_user_ids_exact">Identifiant utilisateur exact</string>
+    <string name="gpg_user_ids_structured">Nom et adresse e-mail</string>
+    <string name="gpg_user_ids_email_optional">Adresse e-mail (facultative)</string>
+    <string name="gpg_user_ids_draft_message">Les modifications s'appliquent lorsque vous enregistrez cet élément. Partagez la clé publique mise à jour pour les publier.</string>
+    <string name="gpg_user_ids_add_message">Ajouter un autre nom ou un autre email à cette clé. La clé principale actuelle reste la même.</string>
+    <string name="gpg_user_ids_replace_message">Le remplacement sera ajouté et l'identifiant utilisateur sélectionné sera révoqué. Son historique reste sur la clé.</string>
+    <string name="gpg_user_ids_revoke_message">Révoquer cet identifiant utilisateur ? Cela ajoute une révocation signée et conserve son historique. Après le partage de la clé publique mise à jour, la révocation ne peut pas être annulée.</string>
+    <string name="gpg_user_ids_private_required">Importez la clé privée pour gérer les identifiants utilisateurs.</string>
+    <string name="gpg_user_ids_read_only">Les identifiants utilisateurs peuvent être affichés, mais cette clé ne peut pas certifier les modifications.</string>
+    <string name="gpg_user_ids_unavailable">La gestion des identifiants utilisateurs n'est pas disponible sur cette plateforme.</string>
+    <string name="gpg_user_ids_invalid_form">Entrez un nom et, éventuellement, une adresse e-mail valide. Pour les autres formats, utilisez un identifiant d'utilisateur exact.</string>
+    <string name="gpg_user_ids_conflict">La clé a changé. Annulez cette action et réessayez.</string>
+    <string name="gpg_user_ids_failed">L'identifiant utilisateur n'a pas pu être mis à jour. La clé reste inchangée.</string>
+    <string name="gpg_user_ids_empty">Pas d'identifiants utilisateurs actifs</string>
+    <string name="gpg_user_ids_retry_at">Les temps de signature de la clé empêchent cette modification. Réessayez après %1$s. Vérifiez que les horloges de vos appareils sont correctes.</string>
+    <string name="gpg_user_ids_time_conflict">Les temps de signature de la clé empêchent cette modification. Vérifiez que les horloges de vos appareils sont correctes.</string>
+    <string name="cipher_field_picker_items_title">Choisir un élément</string>
+    <string name="cipher_field_picker_fields_title">Choisir un champ</string>
+    <string name="cipher_field_picker_items_empty">Aucun élément contenant un mot de passe ou des champs personnalisés</string>
+    <string name="cipher_field_picker_duplicate">Nom de champ en double</string>
+    <string name="environments_title">Environnements</string>
+    <string name="environments_description">Stockez des variables d’environnement et transmettez-les à des outils locaux.</string>
+    <string name="environments_create">Nouvel environnement</string>
+    <string name="environments_search">Rechercher des environnements</string>
+    <string name="environments_empty">Aucun environnement</string>
+    <string name="environments_locked">Déverrouillez Keyguard pour gérer les environnements.</string>
+    <string name="environments_name">Nom de l’environnement</string>
+    <string name="environments_variables">Variables</string>
+    <string name="environments_add_variable">Ajouter une variable</string>
+    <string name="environments_variable_name">Nom de la variable</string>
+    <string name="environments_variable_error_invalid_name">Utilisez uniquement des lettres latines, des chiffres et des traits de soulignement. Ne commencez pas par un chiffre.</string>
+    <string name="environments_variable_error_duplicate_name">Ce nom est déjà utilisé</string>
+    <string name="environments_variable_type">Type de variable</string>
+    <string name="environments_variable_type_value">Valeur</string>
+    <string name="environments_variable_type_reference">Référence à un élément</string>
+    <string name="environments_reference_unavailable">Élément indisponible</string>
+    <string name="environments_unset">Non définie</string>
+    <string name="environments_variable_unsupported">Valeur non prise en charge</string>
+    <string name="environments_read_only">Vous pouvez consulter cet environnement, mais pas le modifier.</string>
+    <string name="environments_error_unsupported_format">Cette version de Keyguard ne peut pas lire certaines données de cet environnement. Il est donc en lecture seule. Mettez à jour Keyguard ou modifiez cet environnement dans l’application qui l’a modifié en dernier.</string>
+    <string name="environments_error_limits_exceeded">Trop de variables, ou un nom est trop long. Supprimez des variables ou raccourcissez leurs noms.</string>
+    <string name="environments_import">Importer un fichier .env</string>
+    <string name="environments_import_drop_here">Déposez un fichier .env pour importer ses variables</string>
+    <string name="environments_import_note">L’importation remplace les variables de cet environnement. Keyguard ne supprime pas le fichier source.</string>
+    <string name="environments_import_text">Coller du contenu .env</string>
+    <string name="environments_import_file">Choisir un fichier .env</string>
+    <string name="environments_import_error_parse">Ce contenu .env n’est pas valide</string>
+    <string name="environments_import_preview">Aperçu de l’importation</string>
+    <string name="environments_import_preview_title">Variables à importer</string>
+    <string name="environments_import_apply">Remplacer les variables</string>
+    <string name="environments_mounts">Fichiers .env locaux</string>
+    <string name="environments_mounts_empty">Aucun fichier .env local</string>
+    <string name="environments_mount_note">Chaque fichier est un tube nommé : chaque lecture renvoie donc les valeurs actuelles. Un seul processus doit le lire à la fois. Les approbations restent valides pendant la durée définie pour MCP et prennent fin lorsque l’environnement est modifié.</string>
+    <string name="environments_mount_create">Créer un fichier .env local</string>
+    <string name="environments_mount_path">Chemin absolu du nouveau fichier .env</string>
+    <string name="environments_flatpak_note">Keyguard a besoin d’une autorisation Flatpak pour utiliser ce dossier. Exécutez cette commande sur le système hôte, puis redémarrez Keyguard. Le dossier doit être accessible en écriture.</string>
+    <string name="environments_mount_status_error">Indisponible. Vérifiez que ce chemin n’est pas déjà utilisé et que son dossier est accessible en écriture.</string>
+    <string name="environments_mount_disable">Désactiver le fichier .env local</string>
+    <string name="environments_mount_open_environment">Ouvrir l’environnement</string>
+    <string name="environments_mount_unsupported">Les fichiers .env locaux ne sont pas pris en charge sur cette plateforme.</string>
+    <string name="environments_mounts_error_unavailable">Les fichiers .env locaux ne sont pas disponibles. Redémarrez Keyguard et réessayez.</string>
+    <string name="environments_mcp_enable">Activer l’accès MCP</string>
+    <string name="environments_mcp_setup">Configuration du client MCP</string>
+    <string name="environments_mcp_note">Les clients MCP peuvent créer et modifier des environnements. Ils n’ont jamais accès aux valeurs des variables ni aux autres éléments du coffre-fort. Vous approuvez les actions autorisées pour chaque client.</string>
+    <string name="environments_approval_title">Demande d’accès aux environnements</string>
+    <string name="environments_approval_message_known_app"><xliff:g id="who" example="Claude Code">%1$s</xliff:g> souhaite accéder à vos environnements :</string>
+    <string name="environments_approval_message_unknown_app">Un processus local souhaite accéder à vos environnements :</string>
+    <string name="environments_local_process">Processus local</string>
+    <string name="environments_approval_client">Nom du client (non vérifié) : <xliff:g id="client" example="Claude Code">%1$s</xliff:g></string>
+    <string name="environments_capability_authenticate">Se connecter à Keyguard</string>
+    <string name="environments_capability_list">Lister les environnements</string>
+    <string name="environments_capability_create">Créer un environnement</string>
+    <string name="environments_capability_rename">Renommer un environnement</string>
+    <string name="environments_capability_variables">Lister les noms et les types des variables</string>
+    <string name="environments_capability_update">Ajouter ou mettre à jour des variables d’environnement</string>
+    <string name="environments_capability_create_mount">Créer un fichier .env local</string>
+    <string name="environments_capability_mounts">Lister les fichiers .env locaux</string>
+    <string name="environments_capability_read">Lire ce fichier .env local</string>
+    <string name="environments_grant_directory">Pour autoriser l’accès, choisissez le dossier contenant le fichier demandé.</string>
+    <string name="environments_grant_error_wrong_folder">Dossier incorrect. Choisissez le dossier indiqué dans cette demande.</string>
+    <string name="environments_approval_note">Keyguard mémorise cette approbation pendant la durée définie pour les approbations MCP, ou jusqu’au verrouillage du coffre-fort.</string>
+    <string name="environments_approval_local_file_note">Tant que l’approbation est valide, tout processus exécuté sous votre compte peut lire ce fichier.</string>
+    <string name="cli_title">Ligne de commande</string>
+    <string name="cli_enable">Activer l’accès en ligne de commande</string>
+    <string name="cli_note">Utilisez Keyguard depuis un terminal, par exemple pour exécuter une commande avec les variables d’un environnement. Keyguard vous demande d’abord votre approbation.</string>
+    <string name="cli_usage">Utilisation</string>
+    <string name="cli_path">Emplacement de l’outil en ligne de commande</string>
+    <string name="cli_capability_run">Exécuter une commande avec cet environnement</string>
+    <string name="cli_approval_working_directory">Dans <xliff:g id="directory" example="/home/user/project">%1$s</xliff:g></string>
+    <string name="cli_approval_run_note">Seuls cette commande et les processus qu’elle lance reçoivent les valeurs.</string>
+    <string name="cli_approval_run_terminal_note">Les commandes suivantes lancées depuis cet onglet de terminal s’exécutent sans nouvelle demande jusqu’à l’expiration de l’approbation ou au verrouillage du coffre-fort. Tout programme exécuté dans cet onglet peut utiliser cette approbation, y compris les agents de programmation.</string>
+    <string name="keyboard_shortcuts_title">Raccourcis clavier</string>
+    <string name="keyboard_shortcuts_action_quick_search">Recherche rapide</string>
+    <string name="keyboard_shortcuts_status_active">Actif</string>
+    <string name="keyboard_shortcuts_status_recording">En pause pendant la saisie</string>
+    <string name="keyboard_shortcuts_recorder_hint">Appuyez sur les touches du raccourci…</string>
+    <!-- Accessibility label of the button that shows an action's shortcut -->
+    <string name="keyboard_shortcuts_binding_label">Raccourci pour <xliff:g id="action" example="Quick search">%1$s</xliff:g></string>
+    <string name="keyboard_shortcuts_error_duplicate">Déjà utilisé par <xliff:g id="action" example="Lock vault">%1$s</xliff:g>. Choisissez un autre raccourci ou désactivez cette action.</string>
+    <string name="keyboard_shortcuts_error_invalid">Utilisez une touche prise en charge avec une touche de modification autre que Maj.</string>
+    <string name="keyboard_shortcuts_error_unsupported_platform">Les raccourcis globaux ne sont pas pris en charge sur cette plateforme.</string>
+    <string name="keyboard_shortcuts_error_unsupported_session">Les raccourcis globaux nécessitent une session X11.</string>
+    <string name="keyboard_shortcuts_error_unavailable">Ce raccourci est indisponible. Il est peut-être utilisé par une autre application.</string>
+    <string name="keyboard_shortcuts_error_registration">Impossible d’activer le raccourci. Réessayez.</string>
+    <string name="keyboard_shortcuts_error_persistence">Impossible d’enregistrer le raccourci. Réessayez.</string>
+    <string name="keyboard_shortcuts_error_persistence_restoration">Impossible d’enregistrer le raccourci ou d’annuler la modification. Redémarrez Keyguard, puis vérifiez vos raccourcis.</string>
+    <string name="agent_auto_setup_title">Configuration automatique</string>
+    <string name="agent_auto_setup_intro">Connectez vos terminaux à Keyguard. Choisissez vos paramètres, vérifiez les modifications, puis testez la connexion.</string>
+    <string name="agent_auto_setup_unavailable">La configuration automatique nécessite l’outil en ligne de commande fourni avec Keyguard. S’il est indisponible, suivez les instructions de configuration manuelle.</string>
+    <string name="agent_auto_setup_unavailable_flatpak">Flatpak ne peut pas modifier les paramètres du terminal ou de SSH sur le système hôte. Exécutez les commandes ci-dessous dans un terminal de l’hôte. L’outil en ligne de commande Keyguard, installé séparément, permet aussi de vérifier et d’appliquer la configuration avec <xliff:g id="command" example="keyguard agents setup">%1$s</xliff:g>.</string>
+    <string name="agent_auto_setup_enable_required">Activez l’agent <xliff:g id="protocol" example="SSH">%1$s</xliff:g> dans les paramètres avant de le configurer automatiquement.</string>
+    <string name="agent_auto_setup_configure_action">Configurer automatiquement</string>
+    <string name="agent_auto_setup_undo_action">Annuler la configuration</string>
+    <string name="agent_auto_setup_wizard_title">Configurer l’agent <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
+    <string name="agent_auto_setup_wizard_undo_title">Annuler la configuration <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
+    <string name="agent_auto_setup_discard_title">Abandonner la configuration ?</string>
+    <string name="agent_auto_setup_discard_message">Vos choix ne seront pas conservés.</string>
+    <string name="agent_auto_setup_discard_action">Abandonner</string>
+    <string name="agent_auto_setup_step_settings_title">Choisir les paramètres</string>
+    <string name="agent_auto_setup_step_settings_detail">Choisissez les connexions et les terminaux qui doivent utiliser Keyguard.</string>
+    <string name="agent_auto_setup_step_review_title">Vérifier les modifications</string>
+    <string name="agent_auto_setup_step_review_detail">Vérifiez les fichiers ci-dessous avant d’appliquer les modifications.</string>
+    <string name="agent_auto_setup_step_review_no_changes_detail">Aucun fichier n’a besoin d’être modifié. Vérifiez la connexion à l’agent pour continuer.</string>
+    <string name="agent_auto_setup_step_undo_title">Vérifier la suppression</string>
+    <string name="agent_auto_setup_step_undo_detail">Supprimez les paramètres enregistrés par Keyguard. Vérifiez les fichiers avant de continuer.</string>
+    <string name="agent_auto_setup_step_run_title">Exécuter la configuration</string>
+    <string name="agent_auto_setup_step_run_detail">Exécutez la commande dans votre terminal. L’outil auxiliaire affiche les modifications et vous demande confirmation avant de les appliquer.</string>
+    <string name="agent_auto_setup_step_check_title">Vérifier la connexion</string>
+    <string name="agent_auto_setup_step_check_detail">Ouvrez un nouveau terminal pour utiliser la configuration. La signature et l’authentification à distance doivent encore être testées avec la clé de votre choix.</string>
+    <string name="agent_auto_setup_step_finish_title">Terminer</string>
+    <string name="agent_auto_setup_hosts_all">Tous les hôtes SSH</string>
+    <string name="agent_auto_setup_hosts_one">Un seul hôte ou alias SSH</string>
+    <string name="agent_auto_setup_host_label">Hôte ou alias</string>
+    <string name="agent_auto_setup_host_error">Saisissez un hôte ou un alias composé de lettres, de chiffres, de points, de traits d’union ou de traits de soulignement.</string>
+    <string name="agent_auto_setup_ssh_config_only">Configuration SSH uniquement</string>
+    <string name="agent_auto_setup_reviewing_status">Analyse des modifications</string>
+    <string name="agent_auto_setup_applying_status">Application des modifications</string>
+    <string name="agent_auto_setup_review_required_note">Vérifiez la configuration actuelle avant de continuer.</string>
+    <string name="agent_auto_setup_apply_action">Appliquer les modifications</string>
+    <string name="agent_auto_setup_remove_action">Supprimer la configuration</string>
+    <string name="agent_auto_setup_check_action">Vérifier la connexion à l’agent</string>
+    <string name="agent_auto_setup_refresh_action">Actualiser l’aperçu</string>
+    <string name="agent_auto_setup_review_retry_action">Relancer l’analyse</string>
+    <!-- The pending change to a configuration file, shown under its path -->
+    <string name="agent_auto_setup_file_create_label">Créer le fichier</string>
+    <string name="agent_auto_setup_file_update_label">Mettre à jour le fichier</string>
+    <string name="agent_auto_setup_file_remove_label">Supprimer le fichier</string>
+    <string name="agent_auto_setup_ssh_note">La configuration SSH s’applique aux clients OpenSSH. Pour les autres clients et ssh-add, il peut aussi être nécessaire de sélectionner un shell à l’étape précédente.</string>
+    <string name="agent_auto_setup_gpg_note">Les terminaux sélectionnés utiliseront le répertoire GnuPG distinct de Keyguard. Les clés publiques et les paramètres de confiance existants ne sont pas copiés. Importez le certificat public de chaque clé que vous souhaitez utiliser.</string>
+    <string name="agent_auto_setup_overrides_title">Vérifiez ces lignes</string>
+    <string name="agent_auto_setup_overrides_note">Ces lignes définissent le même paramètre et peuvent prendre le pas sur celui de Keyguard. Assurez-vous qu’elles ne sélectionnent pas un autre agent. L’annulation de la configuration les laisse en place.</string>
+    <string name="agent_auto_setup_conflicts_title">Action requise</string>
+    <string name="agent_auto_setup_conflict_zdotdir"><xliff:g id="path" example="~/.zshenv">%1$s</xliff:g> définit ZDOTDIR. Zsh peut donc lire un autre fichier .zshrc. Configurez Zsh manuellement ou désélectionnez-le.</string>
+    <string name="agent_auto_setup_conflict_compiled_startup"><xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> possède une copie compilée datée dans le futur, que Zsh charge à sa place. Supprimez ou recompilez cette copie, ou désélectionnez Zsh.</string>
+    <string name="agent_auto_setup_conflict_changed_block">Les paramètres de Keyguard dans <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> ont été modifiés. Supprimez-les manuellement ou restaurez les paramètres enregistrés.</string>
+    <string name="agent_auto_setup_conflict_unrecorded_block">Aucune donnée d’annulation n’a été enregistrée pour les paramètres de Keyguard dans <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g>. Supprimez-les manuellement.</string>
+    <string name="agent_auto_setup_error_files_changed">Les fichiers ont changé depuis l’analyse. Actualisez l’aperçu.</string>
+    <string name="agent_auto_setup_error_busy">Une autre configuration d’agent est en cours. Réessayez lorsqu’elle sera terminée.</string>
+    <string name="agent_auto_setup_error_unsafe_file">Keyguard ne peut pas modifier <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> en toute sécurité. Consultez les détails, puis corrigez le fichier ou configurez-le manuellement.</string>
+    <string name="agent_auto_setup_error_managed_block">Les paramètres de Keyguard dans <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> ne correspondent pas aux données enregistrées. Corrigez-les ou supprimez-les manuellement, puis actualisez l’aperçu.</string>
+    <string name="agent_auto_setup_error_no_powershell">Aucun profil PowerShell n’a été trouvé. Installez PowerShell ou désélectionnez-le.</string>
+    <string name="agent_auto_setup_error_update_required">L’outil en ligne de commande Keyguard et l’application ont des versions différentes. Mettez à jour Keyguard, puis réessayez.</string>
+    <string name="agent_auto_setup_error_failed">La configuration de l’agent a échoué. Consultez les détails.</string>
+    <string name="agent_auto_setup_error_details_title">Détails</string>
+    <string name="agent_auto_setup_no_changes">Aucun fichier n’a besoin d’être modifié.</string>
+    <string name="agent_auto_setup_termux_run_note">Exécutez cette commande dans Termux après avoir installé l’outil auxiliaire. Elle analyse les modifications des shells sélectionnés et vous demande confirmation avant de les appliquer. Les nouveaux terminaux démarrent l’outil auxiliaire automatiquement.</string>
+    <string name="agent_auto_setup_macos_shell_note">Exécutez ces commandes dans un terminal Bash ou Zsh.</string>
+    <string name="agent_auto_setup_macos_gpg_prepare_title">Préparer le répertoire GnuPG</string>
+    <string name="agent_auto_setup_macos_gpg_prepare_detail">Exécutez d’abord cette commande avec l’agent GPG activé, puis lancez la commande de configuration ci-dessous.</string>
+    <string name="agent_auto_setup_external_unverified_note">Keyguard ne peut pas vérifier les commandes exécutées dans un autre terminal. Continuer ne confirme pas que la configuration a réussi.</string>
+    <string name="agent_auto_setup_external_check_text">Une fois que l’outil auxiliaire a confirmé la configuration, ouvrez un nouveau terminal et exécutez cette commande pour vérifier la connexion.</string>
+    <string name="agent_auto_setup_applied">Configuration appliquée.</string>
+    <string name="agent_auto_setup_undone">Configuration enregistrée supprimée. Ouvrez un nouveau terminal.</string>
+    <string name="agent_auto_setup_checking_status">Vérification de la connexion à l’agent…</string>
+    <string name="agent_auto_setup_check_succeeded">Connexion à l’agent vérifiée.</string>
+    <string name="agent_auto_setup_check_failed">La configuration est enregistrée, mais l’agent n’a pas répondu. Assurez-vous qu’il est activé et que Keyguard est déverrouillé, puis réessayez.</string>
+    <string name="agent_auto_setup_check_retry_action">Revérifier la connexion</string>
+    <string name="agent_auto_setup_diagnostics_title">Détails de la connexion</string>
+    <string name="text_diff_title">Modifications du fichier</string>
+    <string name="text_diff_copy">Copier le diff</string>
+    <string name="text_diff_loading">Préparation du diff…</string>
+    <string name="text_diff_no_changes">Aucune modification du texte.</string>
+    <string name="text_diff_create_empty_file">Créer un fichier vide.</string>
+    <string name="text_diff_remove_empty_file">Supprimer le fichier vide.</string>
+    <string name="text_diff_simplified">Les modifications sont affichées sous forme de remplacement de bloc.</string>
+    <string name="text_diff_line_endings">Les fins de ligne ont changé. Les mentions LF et CRLF indiquent leur type.</string>
+    <string name="text_diff_no_newline">Aucun saut de ligne en fin de fichier</string>
+    <!-- Screen reader labels for the lines of a diff -->
+    <string name="text_diff_added_line">Ligne ajoutée</string>
+    <string name="text_diff_removed_line">Ligne supprimée</string>
+    <string name="text_diff_original_line">Ligne d’origine <xliff:g id="number" example="12">%1$d</xliff:g></string>
+    <string name="text_diff_new_line">Nouvelle ligne <xliff:g id="number" example="12">%1$d</xliff:g></string>
 </resources>

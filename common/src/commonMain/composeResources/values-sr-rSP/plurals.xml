@@ -1,195 +1,210 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <plurals name="emailleak_breach_accounts_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> account</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> accounts</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> accounts</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> налог</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> налога</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> налога</item>
     </plurals>
     <plurals name="passwordleak_occurrences_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> occurrence</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> occurrences</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> појављивање</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> појављивања</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> појављивања</item>
     </plurals>
     <plurals name="reused_password_items_count_plural">
-        <item quantity="one">Used by <xliff:g id="number" example="1">%1$d</xliff:g> item</item>
-        <item quantity="few">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="other">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="one">Користи је <xliff:g id="number" example="1">%1$d</xliff:g> ставка</item>
+        <item quantity="few">Користе је <xliff:g id="number">%1$d</xliff:g> ставке</item>
+        <item quantity="other">Користи је <xliff:g id="number">%1$d</xliff:g> ставки</item>
     </plurals>
     <plurals name="word_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> word</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> words</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> words</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> реч</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> речи</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> речи</item>
     </plurals>
     <plurals name="character_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> character</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> characters</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> characters</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> знак</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> знака</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> знакова</item>
     </plurals>
     <plurals name="result_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> result</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> results</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> results</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> резултат</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> резултата</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> резултата</item>
     </plurals>
     <plurals name="seconds_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> second</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> seconds</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> seconds</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> секунда</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> секунде</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> секунди</item>
     </plurals>
     <plurals name="minutes_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> minute</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> minutes</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> minutes</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> минут</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> минута</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> минута</item>
     </plurals>
     <plurals name="hours_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> hour</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> hours</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> hours</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> сат</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> сата</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> сати</item>
     </plurals>
     <plurals name="days_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> day</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> days</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> days</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> дан</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> дана</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> дана</item>
     </plurals>
     <plurals name="weeks_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> week</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> weeks</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> weeks</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> недеља</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> недеље</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> недеља</item>
     </plurals>
     <plurals name="months_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> month</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> months</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> months</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> месец</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> месеца</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> месеци</item>
     </plurals>
     <plurals name="skipped_passkeys_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> passkey</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> приступни кључ</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> приступна кључа</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> приступних кључева</item>
     </plurals>
     <plurals name="skipped_otp_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> one-time password</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> једнократна лозинка</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> једнократне лозинке</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> једнократних лозинки</item>
     </plurals>
     <plurals name="skipped_ssh_keys_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH key</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH кључ</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH кључа</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH кључева</item>
+    </plurals>
+    <plurals name="skipped_ssh_certificates_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH сертификат</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH сертификата</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH сертификата</item>
     </plurals>
     <plurals name="skipped_gpg_keys_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG key</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> GPG keys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG keys</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG кључ</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> GPG кључа</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG кључева</item>
     </plurals>
     <plurals name="skipped_attachments_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> attachment</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> attachments</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> attachments</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> прилог</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> прилога</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> прилога</item>
     </plurals>
     <plurals name="skipped_password_history_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> saved previous password</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> сачувана претходна лозинка</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> сачуване претходне лозинке</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> сачуваних претходних лозинки</item>
+    </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> окружење са референцама на ставке које се не могу пренети</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> окружења са референцама на ставке које се не могу пренети</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> окружења са референцама на ставке које се не могу пренети</item>
     </plurals>
     <plurals name="skipped_archived_items_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> archived item</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> archived items</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> archived items</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> архивирана ставка</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> архивиране ставке</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> архивираних ставки</item>
+    </plurals>
+    <plurals name="exportaccount_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> ставка</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> ставке</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> ставки</item>
     </plurals>
     <plurals name="skipped_items_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> ставка</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> ставке</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> ставки</item>
     </plurals>
     <plurals name="skipped_accounts_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> account</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> accounts</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> accounts</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> налог</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> налога</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> налога</item>
     </plurals>
     <plurals name="credential_exchange_import_review_accounts_note">
-        <item quantity="one">The received data contains <xliff:g id="number" example="1">%1$d</xliff:g> account; all of its items are imported into this account.</item>
-        <item quantity="few">The received data contains <xliff:g id="number">%1$d</xliff:g> accounts; all of their items are imported into this account.</item>
-        <item quantity="other">The received data contains <xliff:g id="number">%1$d</xliff:g> accounts; all of their items are imported into this account.</item>
+        <item quantity="one">Примљени подаци садрже <xliff:g id="number" example="1">%1$d</xliff:g> налог; све ставке се увозе у овај налог.</item>
+        <item quantity="few">Примљени подаци садрже <xliff:g id="number">%1$d</xliff:g> налога; све ставке се увозе у овај налог.</item>
+        <item quantity="other">Примљени подаци садрже <xliff:g id="number">%1$d</xliff:g> налога; све ставке се увозе у овај налог.</item>
     </plurals>
     <plurals name="credential_exchange_import_review_folders_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> folder</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> folders</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> фасцикла</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> фасцикле</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> фасцикли</item>
     </plurals>
     <plurals name="credential_exchange_import_review_logins_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> login</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> logins</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> logins</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> пријава</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> пријаве</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> пријава</item>
     </plurals>
     <plurals name="credential_exchange_import_review_passkeys_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> passkey</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> приступни кључ</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> приступна кључа</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> приступних кључева</item>
     </plurals>
     <plurals name="credential_exchange_import_review_otp_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> one-time password</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> једнократна лозинка</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> једнократне лозинке</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> једнократних лозинки</item>
     </plurals>
     <plurals name="credential_exchange_import_review_cards_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> card</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> cards</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> cards</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> картица</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> картице</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> картица</item>
     </plurals>
     <plurals name="credential_exchange_import_review_identities_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> identity</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> identities</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> identities</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> идентитет</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> идентитета</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> идентитета</item>
     </plurals>
     <plurals name="credential_exchange_import_review_notes_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> note</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> notes</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> notes</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> белешка</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> белешке</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> бележака</item>
     </plurals>
     <plurals name="credential_exchange_import_review_ssh_keys_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH key</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH кључ</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH кључа</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH кључева</item>
     </plurals>
     <plurals name="skipped_unsupported_credentials_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> unsupported credential</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> unsupported credentials</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> unsupported credentials</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> неподржани акредитив</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> неподржана акредитива</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> неподржаних акредитива</item>
     </plurals>
     <plurals name="skipped_duplicate_credentials_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> duplicate credential</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> duplicate credentials</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> duplicate credentials</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> дуплирани акредитив</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> дуплирана акредитива</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> дуплираних акредитива</item>
     </plurals>
     <plurals name="skipped_folders_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> folder</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> folders</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> фасцикла</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> фасцикле</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> фасцикли</item>
     </plurals>
     <plurals name="skipped_and_more_note">
-        <item quantity="one">and <xliff:g id="number" example="1">%1$d</xliff:g> more</item>
-        <item quantity="few">and <xliff:g id="number">%1$d</xliff:g> more</item>
-        <item quantity="other">and <xliff:g id="number">%1$d</xliff:g> more</item>
+        <item quantity="one">и још <xliff:g id="number" example="1">%1$d</xliff:g></item>
+        <item quantity="few">и још <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="other">и још <xliff:g id="number">%1$d</xliff:g></item>
     </plurals>
     <plurals name="credential_exchange_import_success_text">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item has been added to the account.</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> items have been added to the account.</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items have been added to the account.</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> ставка је додата на налог.</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> ставке су додате на налог.</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> ставки је додато на налог.</item>
     </plurals>
     <plurals name="years_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> year</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> years</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> years</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> година</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> године</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> година</item>
     </plurals>
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
-        <item quantity="one">Verification e-mail requested for <xliff:g id="number" example="1">%1$s</xliff:g> address</item>
-        <item quantity="few">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+        <item quantity="one">Е-пошта за верификацију је затражена за <xliff:g id="number" example="1">%1$s</xliff:g> адресу</item>
+        <item quantity="few">Е-пошта за верификацију је затражена за <xliff:g id="number">%1$s</xliff:g> адресе</item>
+        <item quantity="other">Е-пошта за верификацију је затражена за <xliff:g id="number">%1$s</xliff:g> адреса</item>
     </plurals>
     <!-- Automatic backups -->
     <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
-        <item quantity="one">Keep %1$d snapshot</item>
-        <item quantity="few">Keep %1$d snapshots</item>
-        <item quantity="other">Keep %1$d snapshots</item>
+        <item quantity="one">Чувај %1$d снимак стања</item>
+        <item quantity="few">Чувај %1$d снимка стања</item>
+        <item quantity="other">Чувај %1$d снимака стања</item>
     </plurals>
     <plurals name="pref_item_hibp_api_token_error_plural">
         <item quantity="one">Унесите HIBP API токен који садржи <xliff:g id="length" example="1">%1$d</xliff:g> хексадецимални знак</item>
@@ -205,5 +220,25 @@
         <item quantity="one">Истиче за <xliff:g id="seconds" example="1">%1$d</xliff:g> секунду</item>
         <item quantity="few">Истиче за <xliff:g id="seconds" example="30">%1$d</xliff:g> секунде</item>
         <item quantity="other">Истиче за <xliff:g id="seconds" example="30">%1$d</xliff:g> секунди</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> активан кориснички ИД</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> активна корисничка ИД-а</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> активних корисничких ИД-ова</item>
+    </plurals>
+    <plurals name="agent_auto_setup_files_to_change_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> датотека за измену</item>
+        <item quantity="few"><xliff:g id="number" example="2">%1$d</xliff:g> датотеке за измену</item>
+        <item quantity="other"><xliff:g id="number" example="2">%1$d</xliff:g> датотека за измену</item>
+    </plurals>
+    <plurals name="tag_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> ставка</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> ставке</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> ставки</item>
+    </plurals>
+    <plurals name="attachment_preview_gpg_skipped_certificates_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> certificate could not be read</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
     </plurals>
 </resources>

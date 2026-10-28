@@ -2,6 +2,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">Tamam</string>
     <string name="close">Kapat</string>
+    <string name="done">Bitti</string>
     <string name="quit">Çıkış</string>
     <string name="yes">Evet</string>
     <string name="no">Hayır</string>
@@ -59,6 +60,7 @@
     <string name="advanced_options">Gelişmiş</string>
     <string name="file">Dosya</string>
     <string name="choose_file">Dosya seç</string>
+    <string name="choose_folder">Klasör seç</string>
     <string name="file_picker_selected_file_label">Seçilen dosya</string>
     <string name="file_name_placeholder">Dosya adı</string>
     <string name="file_status_pending_upload">Yükleme sırasında</string>
@@ -87,6 +89,8 @@
     <string name="status">Durum</string>
     <string name="status_running">Çalışıyor</string>
     <string name="status_failed_to_start">Başlatılamadı</string>
+    <string name="status_starting">Başlatılıyor</string>
+    <string name="status_ready">Hazır</string>
     <string name="ready_status_beta">Beta</string>
     <string name="ready_status_alpha">Alfa</string>
     <string name="learn_more">Daha fazla bilgi</string>
@@ -162,6 +166,8 @@
     <string name="tag">Etiket</string>
     <string name="tags">Etiketler</string>
     <string name="tags_empty_label">Etiket yok</string>
+    <string name="tags_field_placeholder">Etiket ekle</string>
+    <string name="tag_remove_content_description"><xliff:g id="tag" example="work">%1$s</xliff:g> etiketini kaldır</string>
     <string name="collection_none">Koleksiyon yok</string>
     <string name="collection">Koleksiyon</string>
     <string name="collections">Koleksiyonlar</string>
@@ -320,6 +326,7 @@
     <string name="key_type">Anahtar türü</string>
     <string name="key_pair">Anahtar çifti</string>
     <string name="key_id">Anahtar ID</string>
+    <string name="keygrip">Keygrip</string>
     <string name="algorithm">Algoritma</string>
     <string name="created">Oluşturuldu</string>
     <string name="expires">Bitiş tarihi</string>
@@ -353,9 +360,21 @@
     <string name="addaccount_method_phone_title">Telefondan giriş yap</string>
     <string name="addaccount_method_phone_text">Eşleştirilmiş Android telefonunuzu kullanın</string>
     <string name="addaccount_method_phone_unavailable">Eşleşmiş bir Android telefon bulunamadı</string>
+    <string name="addaccount_method_phone_checking">Checking for a paired Android phone</string>
+    <string name="addaccount_method_phone_services_unavailable">Google Play services is unavailable. Reopen this screen to try again.</string>
     <string name="addaccount_method_phone_waiting">Telefon bekleniyor</string>
     <string name="addaccount_method_phone_importing">Hesap içe aktarılıyor</string>
     <string name="addaccount_method_phone_failed">Telefondan giriş başarısız oldu</string>
+    <string name="addaccount_method_phone_cancelled">Phone login cancelled on the phone</string>
+    <string name="addaccount_method_phone_error_unreachable">The phone is not reachable</string>
+    <string name="addaccount_method_phone_error_multiple_phones">More than one phone is reachable</string>
+    <string name="addaccount_method_phone_error_launch">Couldn't open Keyguard on the phone</string>
+    <string name="addaccount_method_phone_error_timeout">Phone login timed out</string>
+    <string name="addaccount_method_phone_error_too_large">Too much data to transfer to the watch</string>
+    <string name="addaccount_method_phone_error_version">Keyguard versions on the phone and the watch don't match. Update both.</string>
+    <string name="addaccount_method_phone_error_verification">Couldn't verify the response from the phone</string>
+    <string name="addaccount_method_phone_error_on_phone">Login failed on the phone. Check the phone for details.</string>
+    <string name="addaccount_method_phone_error_import">Couldn't add the account to the watch</string>
     <string name="addaccount_method_phone_pick">Telefonu seçin</string>
     <string name="companionauth_header_title">Saat kurulumu</string>
     <string name="companionauth_header_text">Bu hesabı saatinize eklemek için giriş yapın</string>
@@ -408,6 +427,10 @@
     <string name="ciphers_action_edit_title">Düzenle</string>
     <string name="ciphers_action_merge_title">Şununla birleştir…</string>
     <string name="ciphers_action_copy_title">Şuraya kopyala…</string>
+    <string name="ciphers_copy_attachments_note">Ekler kopyalanmaz.</string>
+    <string name="ciphers_copy_warning_links">Kopyalarda diğer öğelere olan bağlantılar korunmaz.</string>
+    <string name="ciphers_copy_warning_environment_references">Diğer öğelere başvuran değişkenler kopyalarda tanımsız kalır.</string>
+    <string name="ciphers_copy_error_unsupported_environment">Bazı ortamlar, Keyguard'ın bu sürümünün okuyamadığı bir biçim kullanıyor. Bunları başka bir hesaba kopyalamak için Keyguard'ı güncelleyin.</string>
     <string name="ciphers_action_export_title">Dışa aktar…</string>
     <string name="ciphers_action_change_folder_title">Klasöre taşı</string>
     <string name="ciphers_action_change_name_title">Adı değiştir</string>
@@ -480,6 +503,7 @@
     <string name="attachment_preview_error_decryption">Ekin şifresi çözülemedi.</string>
     <string name="attachment_preview_error_text_decode">Metin dosyası önizlenemedi.</string>
     <string name="attachment_preview_error_image_decode">Görsel açılamadı.</string>
+    <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
     <string name="attachment_preview_action_copy_all">Tümünü kopyala</string>
     <string name="attachment_preview_action_wrap_lines">Satırları kaydır</string>
     <string name="attachment_preview_action_source">Kaynak</string>
@@ -560,6 +584,8 @@
     <string name="key_action_save_public_key_saved_downloads_success_title">Açık anahtar İndirilenler klasörüne kaydedildi</string>
     <string name="key_action_save_unencrypted_private_key_title">Şifrelenmemiş gizli anahtarı kaydet</string>
     <string name="key_action_save_unencrypted_private_key_saved_downloads_success_title">Şifrelenmemiş gizli anahtar İndirilenler klasörüne kaydedildi</string>
+    <string name="key_action_save_certificate_title">Sertifikayı kaydet</string>
+    <string name="key_action_save_certificate_saved_downloads_success_title">Sertifika İndirilenler'e kaydedildi</string>
     <string name="ssh_key_action_add_key_title">Anahtarları ekle</string>
     <string name="ssh_key_action_replace_key_title">Anahtarları değiştir</string>
     <string name="key_import_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> anahtarını içe aktar</string>
@@ -614,38 +640,17 @@
     <string name="gpg_key_expiry_unresolved_revocation_message">İptal edenin açık anahtarı bulunamadığı için atanan iptal işlemi doğrulanamıyor. Anahtarı içe aktarıp tekrar deneyin.</string>
     <string name="gpg_key_expiry_unsupported_signing_hash_message">Bu anahtar yalnızca güvenli olmayan bir özet algoritmasıyla yeniden onaylanabilir. Modern bir anahtara geçmeniz önerilir.</string>
     <string name="gpg_key_expiry_missing_self_signature_message">Öz-imzası eksik, geçersiz veya güvenlik ilkelerince reddedildiği için bu anahtar yenilenemiyor.</string>
-    <string name="gpg_user_id_revocation_dialog_title">GPG Kullanıcı Kimliğini İptal Et</string>
-    <string name="gpg_user_id_revocation_dialog_message">İptal edilecek kullanıcı kimliğini seçin. İptal işlemi sertifikaya imzalı bir beyan ekler; kimliği veya geçmişini tamamen silmez.</string>
     <string name="gpg_user_id_revocation_confirm">İptal et</string>
     <string name="gpg_user_id_revocation_last_identity_message">Bir GPG anahtarında en az bir geçerli kullanıcı kimliği bulunmalıdır. Bunu iptal etmeden önce yerine yenisini ekleyin.</string>
-    <string name="gpg_user_id_revocation_no_identity_message">Bu anahtarda iptal edilebilecek etkin bir kullanıcı kimliği yok.</string>
-    <string name="gpg_user_id_replacement_dialog_title">GPG Kullanıcı Kimliğini Değiştir</string>
-    <string name="gpg_user_id_replacement_dialog_message">Eski kullanıcı kimliğini seçin. Keyguard yeni kimliği ekleyecek ve eskisini tek işlemde iptal edecektir.</string>
-    <string name="gpg_user_id_replacement_confirm_next">İleri</string>
-    <string name="gpg_user_id_replacement_no_identity_message">Bu anahtarda değiştirilebilecek etkin bir kullanıcı kimliği yok.</string>
-    <string name="gpg_user_id_replacement_value_title">Yeni GPG Kullanıcı Kimliği</string>
-    <string name="gpg_user_id_replacement_value_message">Yeni OpenPGP kullanıcı kimliğini olduğu gibi girin. Keyguard boşlukları kırpmaz veya metni düzenlemez.</string>
     <string name="gpg_user_id_replacement_value_label">Kullanıcı kimliği</string>
-    <string name="gpg_user_id_replacement_value_hint">Ad Soyad &lt;eposta@ornek.com&gt;</string>
     <string name="gpg_user_id_replacement_value_confirm">Değiştir</string>
     <string name="gpg_user_id_replacement_invalid_message_with_limit">En fazla <xliff:g id="byte_limit" example="1024">%1$d</xliff:g> bayt uzunluğunda, kontrol karakteri içermeyen geçerli bir kullanıcı kimliği girin.</string>
     <string name="gpg_user_id_replacement_same_identity_message">Mevcut kimlikten farklı bir kullanıcı kimliği girin.</string>
     <string name="gpg_user_id_replacement_duplicate_message">Bu kullanıcı kimliği anahtarda zaten aktif.</string>
     <string name="gpg_user_id_replacement_title">Kullanıcı Kimliğini Değiştir</string>
-    <string name="gpg_user_id_replacement_success_title">GPG Kullanıcı Kimliği değiştirildi</string>
-    <string name="gpg_user_id_replacement_success_message">Değişikliği duyurmak için öğeyi kaydedin ve açık anahtarını sunucuya yükleyin.</string>
-    <string name="gpg_user_id_replacement_already_done_message">Bu değişiklik zaten uygulanmış. Yeni bir imza oluşturulmadı.</string>
-    <string name="gpg_user_id_replacement_failed_title">Kullanıcı kimliği değiştirilemedi</string>
-    <string name="gpg_user_id_replacement_failed_message">Kullanıcı kimliği değiştirilemedi. Orijinal anahtara dokunulmadı.</string>
     <string name="gpg_user_id_replacement_retired_message">Bu kullanıcı kimliği daha önce iptal edilmiş; tekrar eklenemez.</string>
     <string name="gpg_user_id_replacement_target_missing">Seçilen kullanıcı kimliği değişti veya artık geçerli değil. Anahtarı yeniden açıp tekrar deneyin.</string>
-    <string name="gpg_user_id_replacement_private_key_required">Kullanıcı kimliklerinden birini değiştirmek için gizli anahtarı içe aktarmalısınız.</string>
-    <string name="gpg_user_id_replacement_unavailable">GPG kullanıcı kimliği değiştirme bu platformda desteklenmiyor.</string>
     <string name="gpg_user_id_revocation_title">Kullanıcı Kimliğini İptal Et</string>
-    <string name="gpg_user_id_revocation_success_title">GPG Kullanıcı Kimliği iptal edildi</string>
-    <string name="gpg_user_id_revocation_success_message">İptali duyurmak için öğeyi kaydedin ve açık anahtarını sunucuya yükleyin.</string>
-    <string name="gpg_user_id_revocation_already_done_message">Bu kullanıcı kimliği zaten iptal edilmiş. Yeni bir imza oluşturulmadı.</string>
-    <string name="gpg_user_id_revocation_failed_title">Kullanıcı kimliği iptal edilemedi</string>
     <string name="gpg_user_id_revocation_failed_message">Kullanıcı kimliği iptal edilemedi. Orijinal anahtara dokunulmadı.</string>
     <string name="gpg_user_id_revocation_target_missing">Seçilen kimlik değişti veya artık iptal edilemez durumda. Anahtarı açıp tekrar deneyin.</string>
     <string name="gpg_user_id_revocation_private_key_required">Bir kullanıcı kimliğini iptal etmek için gizli anahtarı içe aktarmalısınız.</string>
@@ -657,6 +662,21 @@
     <string name="key_import_error_read">Seçilen dosya okunamadı.</string>
     <string name="key_import_passphrase_title">Anahtar Parolası</string>
     <string name="ssh_key_import_passphrase_dialog_message">Bu <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> anahtarı şifrelenmiş.</string>
+    <string name="ssh_certificate_import_success_title">SSH sertifikası içe aktarıldı</string>
+    <!-- An OpenSSH certificate: a CA signature over an SSH public key -->
+    <string name="ssh_certificate">Sertifika</string>
+    <string name="ssh_certificate_note">Anahtarın, sertifika yetkiliniz tarafından imzalanmış <xliff:g id="suffix" example="-cert.pub">%1$s</xliff:g> dosyasının içeriği.</string>
+    <string name="ssh_certificate_principals">İzin verilen kimlikler</string>
+    <!-- The serial number of an SSH certificate -->
+    <string name="ssh_certificate_serial">Seri numarası</string>
+    <string name="ssh_certificate_authority">Sertifika yetkilisi</string>
+    <string name="ssh_certificate_critical_options">Kritik seçenekler</string>
+    <string name="ssh_certificate_extensions">Uzantılar</string>
+    <string name="ssh_certificate_problem_malformed">Bu bir OpenSSH sertifikası değil.</string>
+    <string name="ssh_certificate_problem_host_certificate">Bu bir sunucu sertifikasıdır. Oturum açmak için kullanıcı sertifikası gerekir.</string>
+    <string name="ssh_certificate_problem_key_mismatch">Bu sertifika başka bir anahtara ait.</string>
+    <string name="ssh_certificate_problem_not_yet_valid">Bu sertifika <xliff:g id="date" example="Jan 1, 2027">%1$s</xliff:g> tarihinden itibaren geçerlidir.</string>
+    <string name="ssh_certificate_problem_expired">Bu sertifikanın süresi <xliff:g id="date" example="Jan 1, 2026">%1$s</xliff:g> tarihinde doldu.</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> seçildi</string>
     <string name="selection_clear_action">Seçimi kaldır</string>
     <string name="selection_select_all_action">Tümünü seç</string>
@@ -668,6 +688,7 @@
     <string name="copy_send">Paylaşım bağlantısını kopyala</string>
     <string name="copy_package_name">Paket adını kopyala</string>
     <string name="copy_bundle_id">Paket ID'sini kopyala</string>
+    <string name="copy_id">ID'yi kopyala</string>
     <string name="copy_password">Parolayı kopyala</string>
     <string name="copy_username">Kullanıcı adını kopyala</string>
     <string name="copy_email">E-postayı kopyala</string>
@@ -689,6 +710,7 @@
     <string name="copied_uri">URI kopyalandı</string>
     <string name="copied_tag">Etiket kopyalandı</string>
     <string name="copied_package_name">Paket adı kopyalandı</string>
+    <string name="copied_id">ID kopyalandı</string>
     <string name="copied_key">Anahtar kopyalandı</string>
     <string name="copied_fingerprint">Parmak izi kopyalandı</string>
     <string name="copied_password">Parola kopyalandı</string>
@@ -797,6 +819,7 @@
     <string name="error_otp_key_must_not_be_empty">Tek kullanımlık parolanın gizli anahtarı boş olamaz</string>
     <string name="error_otp_key_is_invalid">Tek kullanımlık parolanın gizli anahtarı geçersiz</string>
     <string name="error_failed_file_already_exists">Dosya oluşturulamadı. Mevcut dosyanın üzerine yazılamaz</string>
+    <string name="error_account_already_exists">Bu hesap Keyguard'a zaten eklenmiş</string>
     <string name="error_failed_generate_kdf_hash_oom">Yetersiz bellek nedeniyle anahtar üretilemedi. KDF sunucu ayarlarınızı kontrol edin.</string>
     <string name="error_failed_generate_otp_code">Kod üretilemedi</string>
     <string name="error_failed_create_passkey">Geçiş anahtarı oluşturulamadı</string>
@@ -814,6 +837,8 @@
     <string name="biometric_error_policy_not_installed_flatpak">Keyguard'ın sistem kimlik doğrulamasını kullanabilmesi için bir kerelik sistem izin kuralı gerekiyor. Ana makinede bir terminal açıp şu komutu çalıştırın, ardından tekrar deneyin:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Biyometrik anahtarın şifresi çözülemedi</string>
     <string name="error_failed_agent_start"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> istemcisi başlatılamadı</string>
+    <string name="error_agent_ipc_unavailable">Keyguard'ın bir bileşeni eksik. Keyguard'ı yeniden yükleyin.</string>
+    <string name="error_agent_ipc_endpoint">Aracının özel bağlantısı oluşturulamadı</string>
     <string name="error_failed_power_lock_start">Otomatik kasa kilitleme etkinleştirilemedi. Yeniden denemek için Keyguard'ı baştan başlatın.</string>
     <string name="error_quick_search_autotype_permission">Erişilebilirlik izni gerekiyor</string>
     <string name="error_quick_search_autotype_unavailable">Hedef alana odaklanılamadı</string>
@@ -822,6 +847,7 @@
     <string name="error_quick_search_autotype_busy">Otomatik yazma işlemi zaten devam ediyor</string>
     <string name="error_quick_search_autotype_keys_held">Klavyedeki tuşları ve fare düğmelerini serbest bırakıp tekrar deneyin</string>
     <string name="error_credential_calling_app_not_privileged">Çağıran uygulama ayrıcalıklı uygulamalar listesinde yok; diğer uygulamalar adına kimlik doğrulaması isteyemez.</string>
+    <string name="error_credential_not_stored">Bu öğe kimlik bilgisini saklayamaz.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
@@ -1174,6 +1200,7 @@
     <string name="cipher_type_ssh_key">SSH Anahtarı</string>
     <string name="cipher_type_gpg_key">GPG Anahtarı</string>
     <string name="cipher_type_passkey">Geçiş Anahtarı</string>
+    <string name="cipher_type_environment">Ortam</string>
     <string name="field_type_text">Metin</string>
     <string name="field_type_text_concealed">Gizli metin</string>
     <string name="field_type_boolean">Onay kutusu (Açık/Kapalı)</string>
@@ -1517,6 +1544,8 @@
     <string name="watchtower_item_reused_passwords_text">Aynı parolayı birden fazla sitede kullanmayın. Her hesap için benzersiz parolalar üretin.</string>
     <string name="watchtower_item_weak_ssh_keys_title">Zayıf SSH Anahtarları</string>
     <string name="watchtower_item_weak_ssh_keys_text">NIST güvenlik standartlarını karşılamayan anahtarlar.</string>
+    <string name="watchtower_item_unusable_ssh_certificates_title">Kullanılamayan SSH sertifikaları</string>
+    <string name="watchtower_item_unusable_ssh_certificates_text">Süresi dolmuş, henüz geçerli olmayan, bozuk veya başka bir anahtara ait sertifika ya da sunucu sertifikası içeren SSH anahtarı öğeleri.</string>
     <string name="watchtower_item_unusable_gpg_keys_title">Kullanılamaz GPG Anahtarları</string>
     <string name="watchtower_item_unusable_gpg_keys_text">İptal edilmiş, süresi geçmiş, bozuk veya imzalama/şifre çözme verisi eksik olan GPG kayıtları.</string>
     <string name="watchtower_item_weak_gpg_keys_title">Zayıf GPG Anahtarları</string>
@@ -1567,8 +1596,26 @@
     <string name="exportaccount_header_title">Öğeleri dışa aktar</string>
     <string name="exportaccount_password_label">Arşiv parolası</string>
     <string name="exportaccount_format_note">Kasanızı şifreli bir ZIP arşivi olarak dışa aktarın.</string>
+    <string name="exportaccount_format_title">Biçim</string>
+    <string name="exportaccount_format_zip">ZIP arşivi</string>
+    <string name="exportaccount_format_kdbx">KeePass veritabanı (KDBX)</string>
+    <string name="exportaccount_kdbx_password_label">Veritabanı parolası</string>
+    <string name="exportaccount_format_kdbx_note">Kasayı KeePass veritabanı olarak dışa aktarın. Klasörler gruplara dönüştürülür. Organizasyonlar ve koleksiyonlar dışa aktarılmaz.</string>
+    <string name="exportaccount_kdbx_attachment_too_large">Eklerden biri KeePass veritabanı için çok büyük. ZIP arşivi olarak veya ekler olmadan dışa aktarın.</string>
     <string name="exportaccount_attachments_note">Dışa aktarma sırasında kasa açık tutulur. Ekler kasa verilerinde referans olarak tutulur ve işlem boyunca asla şifresiz olarak diske kaydedilmez.</string>
+    <string name="exportaccount_kdbx_attachments_note">Dışa aktarma sırasında kasanın kilidi açık tutulur. Ekler veritabanında saklanır. İşlem boyunca ekler hiçbir zaman şifrelenmemiş olarak saklanmaz.</string>
     <string name="exportaccount_include_attachments_title">Ekleri de dahil et</string>
+    <string name="exportaccount_confirm_password_label">Arşiv parolasını doğrula</string>
+    <string name="exportaccount_kdbx_confirm_password_label">Veritabanı parolasını doğrula</string>
+    <string name="exportaccount_wizard_format_title">Biçim seç</string>
+    <string name="exportaccount_wizard_format_detail">Geçiş yapacağınız uygulamanın içe aktarabileceği bir dosya türü seçin.</string>
+    <string name="exportaccount_wizard_items_title">Öğeleri seç</string>
+    <string name="exportaccount_wizard_items_detail">Dışa aktarılacak öğeleri seçmek için filtreleri kullanın.</string>
+    <string name="exportaccount_wizard_password_title">Dosyayı koru</string>
+    <string name="exportaccount_wizard_password_detail">Keyguard dosyayı bu parolayla şifreler. Dosyayı açmak için bu parolaya ihtiyacınız olacak.</string>
+    <string name="exportaccount_wizard_review_title">Dışa aktarmayı gözden geçir</string>
+    <string name="exportaccount_wizard_review_detail">Seçimlerinizi kontrol edin, ardından dosyayı dışa aktarın.</string>
+    <string name="exportaccount_review_attachments_enabled">Açık, <xliff:g id="size" example="12 MB">%1$s</xliff:g></string>
     <string name="exportaccount_export_button">Dışa aktar</string>
     <string name="exportaccount_export_started">Dışa aktarma başlatıldı</string>
     <string name="exportaccount_export_success">Dışa aktarma tamamlandı</string>
@@ -1810,7 +1857,6 @@
     <string name="pref_item_crowdin_title">Crowdin projesi</string>
     <string name="pref_item_crowdin_view_all_contributors_title">Tümünü gör</string>
     <string name="pref_item_open_source_licenses_title">Açık kaynak lisansları</string>
-    <string name="pref_item_download_apk_title">APK dosyasını indir</string>
     <string name="pref_item_load_app_icons_title">Uygulama simgelerini yükle</string>
     <string name="pref_item_load_website_icons_title">Web sitesi simgelerini yükle</string>
     <string name="pref_item_load_website_icons_text">Web sitesi simgelerini indirmek, girdiğiniz adreslerin internet servis sağlayıcınız tarafından görülmesine neden olabilir</string>
@@ -1926,8 +1972,6 @@
     <string name="pref_item_ssh_agent_text">Gizli anahtarınızı asla istemcilere açmadan Git ve SSH işlemlerinizi güvenle doğrulayın</string>
     <string name="pref_item_agent_status_unsupported">Desteklenmiyor</string>
     <string name="pref_item_agent_status_stopped">Durduruldu</string>
-    <string name="pref_item_agent_status_starting">Başlatılıyor</string>
-    <string name="pref_item_agent_status_ready">Hazır</string>
     <string name="pref_item_agent_status_failed">Başarısız</string>
     <string name="pref_item_agent_approval_window_title">Anahtar onaylarını hatırla</string>
     <string name="pref_item_agent_local_storage_title">Yerel depolama</string>
@@ -1936,6 +1980,7 @@
     <string name="pref_item_agent_display_key_names_note">Öğe başlığının şifrelenmemiş bir kopyası yerel olarak saklanacaktır</string>
     <string name="pref_item_agent_approval_window_always_ask">Her zaman sor</string>
     <string name="pref_item_agent_approval_window_until_lock">Kasa kilitlenene kadar</string>
+    <string name="pref_item_approval_window_title">Onayları hatırla</string>
     <string name="pref_item_ssh_agent_approval_remember_note">Onaylanan bir imza isteği, her defasında tekrar sormak yerine her anahtar ve uygulama için bu süre boyunca hatırlanır.</string>
     <string name="pref_item_agent_filters_text">Hangi <xliff:g id="protocol" example="SSH">%1$s</xliff:g> anahtarlarının istemciye sunulacağını belirleyin</string>
     <string name="pref_item_agent_filters_summary_all">Tüm anahtarlar erişilebilir</string>
@@ -2050,6 +2095,8 @@
     <string name="pref_item_premium_membership_benefit_support_development">Bağımsız yazılım geliştirmeyi destekleyin</string>
     <string name="pref_item_premium_membership_footer">Abonelik veya tek seferlik ödeme ile tüm özelliklerin kilidini açın. Ömür boyu lisans tek bir ödemeden ibarettir.</string>
     <string name="pref_item_premium_membership_direct_note">Bu derleme tüm premium özellikleri içerir.</string>
+    <string name="pref_item_premium_membership_included_note">Geçmişten gelen nedenlerle bu derleme tüm Premium özelliklerini içerir.</string>
+    <string name="pref_item_premium_membership_buy_license_title">Lisans satın al</string>
     <string name="pref_item_premium_status_active">Aktif</string>
     <string name="pref_item_premium_status_free_trial_n"><xliff:g id="period" example="1 month">%1$s</xliff:g> ücretsiz deneme</string>
     <string name="pref_item_premium_status_will_not_renew">Yenilenmeyecek</string>
@@ -2213,6 +2260,14 @@
     <string name="gpg_agent_setup_step_5_text">Git commit'lerini imzalarken de aynı GNUPGHOME değerini kullanın. Ayarı ister tek bir depoyla sınırlı tutun, isterseniz --local yerine --global kullanın.</string>
     <string name="gpg_agent_setup_windows_native_gnupg_note">Windows doğrudan kendi yerel GnuPG kurulumunu gerektirir. Git for Windows ile gelen GPG bu yapılandırmayla uyumlu değildir.</string>
     <string name="gpg_agent_setup_macos_step_2_text">Keyguard çalışırken Terminal'de şu komutları yürütün. Bunlar <xliff:g id="path" example="~/.keyguard/gnupg">%1$s</xliff:g> yolunu hazırlar ve kurulu GnuPG'nizi Keyguard'a bağlar. Ardından anahtarları içe aktarmadan veya imzalamadan önce aynı oturumda GNUPGHOME değişkenini tanımlayın.</string>
+    <string name="gpg_agent_setup_android_termux_text">Android'de Keyguard, GPG aracısını özel bir yardımcı paket üzerinden sunar. Keyguard'da GPG aracısını etkinleştirin, paketi kurup yapılandırın ve GnuPG bağlandığında gelen istekleri onaylayın.</string>
+    <string name="gpg_agent_setup_android_termux_step_3_title">GnuPG'yi yapılandırın</string>
+    <string name="gpg_agent_setup_android_termux_step_3_shell_current">Paketi başlatın ve GNUPGHOME değişkenini mevcut kabuk oturumunuza aktarın:</string>
+    <string name="gpg_agent_setup_android_termux_import_title">Açık anahtarı içe aktarın</string>
+    <string name="gpg_agent_setup_android_termux_import_text">Açık anahtarı Keyguard'daki GPG Anahtarı öğesinden dışa aktarın. Keyguard, anahtarı İndirilenler klasörüne kaydeder. Termux'a bir kez paylaşılan depolamaya erişim izni verin, ardından anahtarı içe aktarın. Bu işlem yalnızca açık anahtar verisini paylaşır.</string>
+    <string name="gpg_agent_setup_android_termux_git_title">Git commit'lerini imzalayın</string>
+    <string name="gpg_agent_setup_android_how_does_it_work_1">GPG aracısı, GnuPG'den gelen istekleri alır ve hassas işlemi kendisi yapmak yerine Keyguard uygulamasına iletir.</string>
+    <string name="gpg_agent_setup_android_how_does_it_work_2">İletişim iki aşamada gerçekleşir: Önce aracı, oturum başlatması için uygulamaya sinyal gönderir. Ardından her iki taraf yerel bir TCP kanalı üzerinden bağlanıp şifreli mesaj alışverişi yapar. GPG aracısı istekleri iletirken asıl işlemleri Keyguard uygulaması gerçekleştirir.</string>
     <string name="gpg_keys_capability_sign">İmzalama</string>
     <string name="gpg_key_status">GPG anahtar durumu</string>
     <string name="gpg_key_status_revoked_text">Bu GPG anahtarı iptal edilmiştir ve artık kullanılmamalıdır.</string>
@@ -2305,6 +2360,11 @@
     <string name="gpg_keyserver_search_revoked_label">İptal edilmiş</string>
     <string name="gpg_keyserver_search_index_label">Dizin</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">GPG açık anahtarı sunucuda bulunamadı</string>
+    <string name="gpg_keyserver_search_scan_no_fingerprint_title">QR kodunda GPG anahtarı parmak izi yok</string>
+    <string name="gpg_keyserver_error_unexpected_fingerprint">Anahtar sunucusu farklı bir parmak izine sahip bir GPG açık anahtarı döndürdü</string>
+    <string name="gpg_keyserver_error_v6_unsupported">Bu anahtar sunucusu V6 GPG anahtarlarını desteklemiyor</string>
+    <string name="gpg_keyserver_error_short_key_id_title">Kısa anahtar kimlikleri desteklenmiyor</string>
+    <string name="gpg_keyserver_error_short_key_id_text">Kısa anahtar kimlikleri benzersiz değildir. Parmak izi veya uzun anahtar kimliği ile arayın.</string>
     <string name="gpg_keyserver_upload_success_title">GPG açık anahtarı yüklendi</string>
     <string name="gpg_keyserver_upload_verify_already_published_text">Seçilen e-posta adresleri zaten doğrulanmış durumda.</string>
     <string name="gpg_keyserver_refresh_success_title">GPG açık anahtarı yenilendi</string>
@@ -2319,6 +2379,11 @@
     <string name="gpg_keyserver_status_title">GPG anahtar sunucusu</string>
     <string name="gpg_keyserver_status_not_checked">Kontrol edilmedi</string>
     <string name="gpg_keyserver_status_checked_at">Son kontrol: <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="gpg_keyserver_status_verified">Doğrulandı</string>
+    <string name="gpg_keyserver_status_found_unverified">Bulundu, doğrulanmış e-posta yok</string>
+    <string name="gpg_keyserver_status_not_found">Bulunamadı</string>
+    <string name="gpg_keyserver_last_checked">Son kontrol</string>
+    <string name="gpg_keyserver_last_refreshed">Son yenileme</string>
     <string name="gpg_agent_history_request_sign_hash">Özet imzala</string>
     <string name="gpg_agent_history_request_decrypt">Şifre çöz</string>
     <string name="gpg_agent_history_response_unsupported">Desteklenmiyor</string>
@@ -2377,6 +2442,7 @@
     <string name="yubikey_error_no_device">OTP arayüzü açık bir YubiKey takıp tekrar deneyin.</string>
     <string name="yubikey_error_multiple_devices">Yalnızca kullanmak istediğiniz YubiKey'i takılı bırakın ve yeniden deneyin.</string>
     <string name="yubikey_error_busy">YubiKey başka bir işlem tarafından kullanılıyor. Bitmesini bekleyip tekrar deneyin.</string>
+    <string name="error_flatpak_device_access">Keyguard, güvenlik anahtarlarını kullanmak için cihaz erişimine ihtiyaç duyar. Ana sistemde bir terminalde bu komutu çalıştırın, ardından Keyguard'ı yeniden başlatın:\n%1$s</string>
     <string name="fido2_unlock_title">Güvenlik anahtarı (FIDO2)</string>
     <string name="fido2_unlock_description">PRF desteği olan bir USB güvenlik anahtarıyla kilidi açın. Kurtarma için uygulama parolanızı kullanmaya devam edebilirsiniz.</string>
     <string name="fido2_touch_prompt">Güvenlik anahtarınızı bağlayın ve ışığı yanıp söndüğünde üzerine dokunun.</string>
@@ -2396,4 +2462,238 @@
     <string name="storage_missing_configuration">Bu derlemede paylaşılan depolama yapılandırması eksik. Devam etmek için doğru yapılandırılmış bir sürüm yükleyin.</string>
     <string name="storage_unavailable">Keyguard depolama alanına erişemiyor. Yeniden deneyin. Sorun çözülmezse uygulamanın imza ve Uygulama Grubu (App Group) ayarlarını kontrol edin.</string>
     <string name="storage_unwritable">Keyguard depolama alanına yazamıyor. Boş alanı ve yazma izinlerini kontrol edip tekrar deneyin.</string>
+    <string name="sso_login">SSO ile giriş yap</string>
+    <string name="sso_unlock">Devam et</string>
+    <string name="sso_unlock_note">Hesabınızın şifresini çözmek için Bitwarden ana parolanızı girin.</string>
+    <string name="sso_browser_note">Tarayıcınızda giriş işlemini tamamlayın, ardından Keyguard'a dönün.</string>
+    <string name="sso_browser_success">Bu sayfayı kapatıp Keyguard'a dönebilirsiniz.</string>
+    <string name="sso_error_callback">SSO yanıtı bu giriş denemesiyle eşleşmiyor. Tekrar deneyin.</string>
+    <string name="sso_error_authentication">SSO ile giriş işlemi tamamlanamadı. Tekrar deneyin.</string>
+    <string name="sso_error_unsupported">Bu hesap, Keyguard'ın desteklemediği bir şifre çözme yöntemi veya hesap kurulumu gerektiriyor. Devam etmek için web kasasını açın.</string>
+    <string name="sso_error_password">Bu Bitwarden hesabının ana parolası yanlış. Tekrar deneyin.</string>
+    <string name="sso_error_key_connector">Key Connector'dan şifre çözme anahtarı alınamadı. Tekrar deneyin.</string>
+    <string name="sso_error_account">SSO farklı bir hesap döndürdü. Keyguard'da seçilen e-posta adresi ve sunucuyla giriş yapın.</string>
+    <string name="sso_error_ports">Yerel SSO geri çağırma bağlantı noktaları kullanımda. Diğer giriş denemelerini kapatıp tekrar deneyin.</string>
+    <string name="passkey_provider_consent">Sisteminiz, Keyguard kilitliyken geçiş anahtarlarınızı önerebilmek için bu anahtarların ait olduğu web sitelerini ve hesap adlarını saklayacak. Gizli anahtarlarınız şifreli kasanızda kalır.</string>
+    <string name="passkey_provider_unsupported">Keyguard'ı geçiş anahtarı sağlayıcısı olarak kullanmak için işletim sisteminizi güncelleyin.</string>
+    <string name="passkey_provider_unpackaged">Geçiş anahtarlarını kullanmak için Keyguard'ı Microsoft Store'dan veya bir MSIX paketinden yükleyin.</string>
+    <string name="passkey_provider_unregistered">Uygulamalarda ve tarayıcılarda geçiş anahtarlarını kaydetmek ve kullanmak için Keyguard'ı sisteme kaydedin.</string>
+    <string name="passkey_provider_disabled">Sisteme kaydedildi. Sisteminizin geçiş anahtarı ayarlarından Keyguard'ı etkinleştirin.</string>
+    <string name="passkey_provider_enabled">Keyguard geçiş anahtarlarını kaydedebilir ve kullanabilir.</string>
+    <string name="passkey_provider_error">Geçiş anahtarı isteği tamamlanamadı</string>
+    <string name="passkey_provider_unavailable">Geçiş anahtarı sağlayıcısı kullanılamıyor. Keyguard'ı yeniden başlatıp tekrar deneyin.</string>
+    <string name="passkey_provider_cache_error">Geçiş anahtarı önerileri güncellenemedi. Keyguard, kasanızın kilidi açıkken tekrar deneyecek.</string>
+    <string name="passkey_provider_open_settings">Geçiş anahtarı ayarlarını aç</string>
+    <string name="attachment_archive_empty">Bu klasör boş.</string>
+    <string name="attachment_archive_encrypted">Şifreli</string>
+    <string name="attachment_archive_unavailable">Bu öğe açılamıyor veya kaydedilemiyor.</string>
+    <string name="attachment_archive_save">Dosyayı kaydet</string>
+    <string name="attachment_archive_back">Geri</string>
+    <string name="attachment_archive_password">Arşiv parolası</string>
+    <string name="attachment_archive_error_password">Parola yanlış veya dosya bozuk. Tekrar deneyin.</string>
+    <string name="attachment_archive_error_invalid">Bu ZIP arşivi bozuk veya belirsiz kayıtlar içeriyor.</string>
+    <string name="attachment_archive_error_unsupported">Bu ZIP biçimi desteklenmiyor.</string>
+    <string name="attachment_archive_error_entries">Bu arşiv, önizlenemeyecek kadar çok dosya veya klasör içeriyor.</string>
+    <string name="attachment_archive_error_export_size">Bu dosya, <xliff:g id="size_limit" example="128 MiB">%1$s</xliff:g> olan kaydetme sınırını aşıyor.</string>
+    <string name="attachment_archive_error_export">Bu dosya kaydedilemedi.</string>
+    <string name="attachment_archive_error_export_cleanup">Tamamlanmamış dosya kaldırılamadı. Seçtiğiniz hedef konumdan silin.</string>
+    <string name="gpg_user_ids_add">Kullanıcı kimliği ekle</string>
+    <string name="gpg_user_ids_primary">Birincil</string>
+    <string name="gpg_user_ids_make_primary">Birincil yap</string>
+    <string name="gpg_user_ids_replace">Değiştir…</string>
+    <string name="gpg_user_ids_revoke">İptal et…</string>
+    <string name="gpg_user_ids_history">Kimlik geçmişi</string>
+    <string name="gpg_user_ids_inactive">Etkin değil</string>
+    <string name="gpg_user_ids_exact">Tam kullanıcı kimliği</string>
+    <string name="gpg_user_ids_structured">Ad ve e-posta</string>
+    <string name="gpg_user_ids_email_optional">E-posta (isteğe bağlı)</string>
+    <string name="gpg_user_ids_draft_message">Değişiklikler bu öğeyi kaydettiğinizde uygulanır. Yayımlamak için güncellenmiş açık anahtarı paylaşın.</string>
+    <string name="gpg_user_ids_add_message">Bu anahtara başka bir ad veya e-posta adresi ekleyin. Mevcut birincil kimlik aynı kalır.</string>
+    <string name="gpg_user_ids_replace_message">Yeni kullanıcı kimliği eklenir ve seçilen kullanıcı kimliği iptal edilir. Geçmişi anahtarda korunur.</string>
+    <string name="gpg_user_ids_revoke_message">Bu kullanıcı kimliği iptal edilsin mi? İmzalı bir iptal kaydı eklenir ve kimliğin geçmişi korunur. Güncellenmiş açık anahtar paylaşıldıktan sonra iptal işlemi geri alınamaz.</string>
+    <string name="gpg_user_ids_private_required">Kullanıcı kimliklerini yönetmek için gizli anahtarı içe aktarın.</string>
+    <string name="gpg_user_ids_read_only">Kullanıcı kimlikleri görüntülenebilir ancak bu anahtar şu anda değişiklikleri onaylayamıyor.</string>
+    <string name="gpg_user_ids_unavailable">Bu platformda kullanıcı kimlikleri yönetilemiyor.</string>
+    <string name="gpg_user_ids_invalid_form">Bir ad ve isteğe bağlı olarak geçerli bir e-posta adresi girin. Diğer biçimler için tam kullanıcı kimliğini kullanın.</string>
+    <string name="gpg_user_ids_conflict">Anahtar değişti. Bu işlemi iptal edip tekrar deneyin.</string>
+    <string name="gpg_user_ids_failed">Kullanıcı kimliği güncellenemedi. Anahtar değiştirilmedi.</string>
+    <string name="gpg_user_ids_empty">Etkin kullanıcı kimliği yok</string>
+    <string name="gpg_user_ids_retry_at">Anahtarın imza zamanları bu değişikliği engelliyor. %1$s sonrasında tekrar deneyin. Cihazlarınızın saatlerinin doğru olduğundan emin olun.</string>
+    <string name="gpg_user_ids_time_conflict">Anahtarın imza zamanları bu değişikliği engelliyor. Cihazlarınızın saatlerinin doğru olduğundan emin olun.</string>
+    <string name="cipher_field_picker_items_title">Bir öğe seçin</string>
+    <string name="cipher_field_picker_fields_title">Bir alan seçin</string>
+    <string name="cipher_field_picker_items_empty">Parolası veya özel alanları olan öğe yok</string>
+    <string name="cipher_field_picker_duplicate">Yinelenen alan adı</string>
+    <string name="environments_title">Ortamlar</string>
+    <string name="environments_description">Ortam değişkenlerini saklayın ve yerel araçlara aktarın.</string>
+    <string name="environments_create">Yeni ortam</string>
+    <string name="environments_search">Ortamlarda ara</string>
+    <string name="environments_empty">Ortam yok</string>
+    <string name="environments_locked">Ortamları yönetmek için Keyguard'ın kilidini açın.</string>
+    <string name="environments_name">Ortam adı</string>
+    <string name="environments_variables">Değişkenler</string>
+    <string name="environments_add_variable">Değişken ekle</string>
+    <string name="environments_variable_name">Değişken adı</string>
+    <string name="environments_variable_error_invalid_name">Yalnızca Latin harfleri, rakamlar ve alt çizgi kullanın. Rakamla başlamayın.</string>
+    <string name="environments_variable_error_duplicate_name">Bu ad zaten kullanılıyor</string>
+    <string name="environments_variable_type">Değişken türü</string>
+    <string name="environments_variable_type_value">Değer</string>
+    <string name="environments_variable_type_reference">Bir öğeye başvuru</string>
+    <string name="environments_reference_unavailable">Öğe kullanılamıyor</string>
+    <string name="environments_unset">Tanımsız</string>
+    <string name="environments_variable_unsupported">Desteklenmeyen değer</string>
+    <string name="environments_read_only">Bu ortamı görüntüleyebilirsiniz ancak düzenleyemezsiniz.</string>
+    <string name="environments_error_unsupported_format">Bu Keyguard sürümü bu ortamın bazı verilerini okuyamadığından ortam salt okunur durumdadır. Keyguard'ı güncelleyin veya ortamı en son değiştiren uygulamada düzenleyin.</string>
+    <string name="environments_error_limits_exceeded">Çok fazla değişken var veya bir ad çok uzun. Bazı değişkenleri kaldırın ya da adlarını kısaltın.</string>
+    <string name="environments_import">.env içe aktar</string>
+    <string name="environments_import_drop_here">Değişkenlerini içe aktarmak için bir .env dosyasını buraya bırakın</string>
+    <string name="environments_import_note">İçe aktarılan değişkenler bu ortamdaki değişkenlerin yerini alır. Keyguard kaynak dosyayı silmez.</string>
+    <string name="environments_import_text">.env içeriğini yapıştır</string>
+    <string name="environments_import_file">.env dosyası seç</string>
+    <string name="environments_import_error_parse">Bu .env içeriği geçerli değil</string>
+    <string name="environments_import_preview">İçe aktarmayı önizle</string>
+    <string name="environments_import_preview_title">İçe aktarılacak değişkenler</string>
+    <string name="environments_import_apply">Değişkenleri değiştir</string>
+    <string name="environments_mounts">Yerel .env dosyaları</string>
+    <string name="environments_mounts_empty">Yerel .env dosyası yok</string>
+    <string name="environments_mount_note">Her dosya bir adlandırılmış kanaldır; bu sayede her okuma güncel değerleri döndürür. Dosyayı aynı anda yalnızca bir işlemden okuyun. Onaylar MCP onay süresi boyunca geçerlidir ve ortam değiştiğinde sona erer.</string>
+    <string name="environments_mount_create">Yerel .env dosyası oluştur</string>
+    <string name="environments_mount_path">Yeni .env dosyasının mutlak yolu</string>
+    <string name="environments_flatpak_note">Keyguard'ın bu klasörü kullanabilmesi için Flatpak izni gerekiyor. Bu komutu ana sistemde çalıştırın, ardından Keyguard'ı yeniden başlatın. Klasör yazılabilir olmalıdır.</string>
+    <string name="environments_mount_status_error">Kullanılamıyor. Bu yolu başka bir şeyin kullanmadığından ve ilgili klasörün yazılabilir olduğundan emin olun.</string>
+    <string name="environments_mount_disable">Yerel .env dosyasını devre dışı bırak</string>
+    <string name="environments_mount_open_environment">Ortamı aç</string>
+    <string name="environments_mount_unsupported">Bu platformda yerel .env dosyaları desteklenmiyor.</string>
+    <string name="environments_mounts_error_unavailable">Yerel .env dosyaları kullanılamıyor. Keyguard'ı yeniden başlatıp tekrar deneyin.</string>
+    <string name="environments_mcp_enable">MCP erişimini etkinleştir</string>
+    <string name="environments_mcp_setup">MCP istemci yapılandırması</string>
+    <string name="environments_mcp_note">MCP istemcileri ortam oluşturabilir ve düzenleyebilir. Değişken değerlerini veya kasadaki diğer öğeleri göremezler. Her istemcinin neler yapabileceğini siz onaylarsınız.</string>
+    <string name="environments_approval_title">Ortam erişim isteği</string>
+    <string name="environments_approval_message_known_app"><xliff:g id="who" example="Claude Code">%1$s</xliff:g> ortamlarınıza erişmek istiyor:</string>
+    <string name="environments_approval_message_unknown_app">Yerel bir işlem ortamlarınıza erişmek istiyor:</string>
+    <string name="environments_local_process">Yerel işlem</string>
+    <string name="environments_approval_client">İstemci adı (doğrulanmamış): <xliff:g id="client" example="Claude Code">%1$s</xliff:g></string>
+    <string name="environments_capability_authenticate">Keyguard'a bağlan</string>
+    <string name="environments_capability_list">Ortamları listele</string>
+    <string name="environments_capability_create">Ortam oluştur</string>
+    <string name="environments_capability_rename">Ortamı yeniden adlandır</string>
+    <string name="environments_capability_variables">Değişken adlarını ve türlerini listele</string>
+    <string name="environments_capability_update">Ortam değişkenlerini ekle veya güncelle</string>
+    <string name="environments_capability_create_mount">Yerel .env dosyası oluştur</string>
+    <string name="environments_capability_mounts">Yerel .env dosyalarını listele</string>
+    <string name="environments_capability_read">Bu yerel .env dosyasını oku</string>
+    <string name="environments_grant_directory">Erişime izin vermek için istenen dosyanın bulunduğu klasörü seçin.</string>
+    <string name="environments_grant_error_wrong_folder">Yanlış klasör. Bu istekte gösterilen klasörü seçin.</string>
+    <string name="environments_approval_note">Keyguard bu onayı MCP onay süresi boyunca veya kasa kilitlenene kadar hatırlar.</string>
+    <string name="environments_approval_local_file_note">Onay geçerli olduğu sürece hesabınız altında çalışan herhangi bir işlem bu dosyayı okuyabilir.</string>
+    <string name="cli_title">Komut satırı</string>
+    <string name="cli_enable">Komut satırı erişimini etkinleştir</string>
+    <string name="cli_note">Keyguard'ı terminalden kullanın; örneğin bir ortamın değişkenleriyle komut çalıştırın. Keyguard önce onayınızı ister.</string>
+    <string name="cli_usage">Kullanım</string>
+    <string name="cli_path">Komut satırı aracının konumu</string>
+    <string name="cli_capability_run">Bu ortamla bir komut çalıştır</string>
+    <string name="cli_approval_working_directory"><xliff:g id="directory" example="/home/user/project">%1$s</xliff:g> dizininde</string>
+    <string name="cli_approval_run_note">Değerler yalnızca bu komuta ve başlattığı işlemlere iletilir.</string>
+    <string name="cli_approval_run_terminal_note">Onayın süresi dolana veya kasa kilitlenene kadar bu terminal sekmesindeki sonraki komutlar sorulmadan çalıştırılır. Kodlama aracıları dahil bu sekmede çalışan her şey onayı kullanabilir.</string>
+    <string name="keyboard_shortcuts_title">Klavye kısayolları</string>
+    <string name="keyboard_shortcuts_action_quick_search">Hızlı arama</string>
+    <string name="keyboard_shortcuts_status_active">Aktif</string>
+    <string name="keyboard_shortcuts_status_recording">Kısayol kaydedilirken duraklatıldı</string>
+    <string name="keyboard_shortcuts_recorder_hint">Bir kısayola basın…</string>
+    <!-- Accessibility label of the button that shows an action's shortcut -->
+    <string name="keyboard_shortcuts_binding_label"><xliff:g id="action" example="Quick search">%1$s</xliff:g> kısayolu</string>
+    <string name="keyboard_shortcuts_error_duplicate"><xliff:g id="action" example="Lock vault">%1$s</xliff:g> eylemi bu kısayolu zaten kullanıyor. Başka bir kısayol seçin veya bu eylemi kapatın.</string>
+    <string name="keyboard_shortcuts_error_invalid">Desteklenen bir tuşu Shift dışında bir değiştirici tuşla birlikte kullanın.</string>
+    <string name="keyboard_shortcuts_error_unsupported_platform">Bu platformda genel kısayollar desteklenmiyor.</string>
+    <string name="keyboard_shortcuts_error_unsupported_session">Genel kısayollar için X11 oturumu gerekir.</string>
+    <string name="keyboard_shortcuts_error_unavailable">Bu kısayol kullanılamıyor. Başka bir uygulama tarafından kullanılıyor olabilir.</string>
+    <string name="keyboard_shortcuts_error_registration">Kısayol sisteme tanıtılamadı. Tekrar deneyin.</string>
+    <string name="keyboard_shortcuts_error_persistence">Kısayol kaydedilemedi. Tekrar deneyin.</string>
+    <string name="keyboard_shortcuts_error_persistence_restoration">Kısayol kaydedilemedi ve değişiklik geri alınamadı. Keyguard'ı yeniden başlatın, ardından kısayollarınızı kontrol edin.</string>
+    <string name="agent_auto_setup_title">Otomatik yapılandırma</string>
+    <string name="agent_auto_setup_intro">Terminallerinizi Keyguard'a bağlayın. Ayarlarınızı seçin, değişiklikleri gözden geçirin, ardından bağlantıyı kontrol edin.</string>
+    <string name="agent_auto_setup_unavailable">Otomatik yapılandırma için Keyguard ile birlikte sunulan CLI gerekir. Kullanılamıyorsa manuel yapılandırma yönergelerini izleyin.</string>
+    <string name="agent_auto_setup_unavailable_flatpak">Flatpak, ana sistemdeki terminal veya SSH ayarlarını düzenleyemez. Aşağıdaki komutları ana sistemdeki bir terminalde çalıştırın. Ayrı olarak yüklenmiş bir Keyguard CLI ile de <xliff:g id="command" example="keyguard agents setup">%1$s</xliff:g> komutunu kullanarak yapılandırmayı gözden geçirip uygulayabilirsiniz.</string>
+    <string name="agent_auto_setup_enable_required"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> aracısını otomatik yapılandırmadan önce Ayarlar'da etkinleştirin.</string>
+    <string name="agent_auto_setup_configure_action">Otomatik yapılandır</string>
+    <string name="agent_auto_setup_undo_action">Yapılandırmayı geri al</string>
+    <string name="agent_auto_setup_wizard_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> aracısını yapılandır</string>
+    <string name="agent_auto_setup_wizard_undo_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> yapılandırmasını geri al</string>
+    <string name="agent_auto_setup_discard_title">Yapılandırmadan vazgeçilsin mi?</string>
+    <string name="agent_auto_setup_discard_message">Seçimleriniz iptal edilecek.</string>
+    <string name="agent_auto_setup_discard_action">Vazgeç</string>
+    <string name="agent_auto_setup_step_settings_title">Ayarları seç</string>
+    <string name="agent_auto_setup_step_settings_detail">Keyguard'ı kullanacak bağlantıları ve terminalleri seçin.</string>
+    <string name="agent_auto_setup_step_review_title">Değişiklikleri gözden geçir</string>
+    <string name="agent_auto_setup_step_review_detail">Uygulamadan önce aşağıdaki dosyaları kontrol edin.</string>
+    <string name="agent_auto_setup_step_review_no_changes_detail">Dosyalarda değişiklik yapılması gerekmiyor. Devam etmek için aracı bağlantısını kontrol edin.</string>
+    <string name="agent_auto_setup_step_undo_title">Kaldırmayı gözden geçir</string>
+    <string name="agent_auto_setup_step_undo_detail">Keyguard tarafından kaydedilen ayarları kaldırın. Devam etmeden önce dosyaları gözden geçirin.</string>
+    <string name="agent_auto_setup_step_run_title">Kurulumu çalıştır</string>
+    <string name="agent_auto_setup_step_run_detail">Komutu terminalinizde çalıştırın. Yardımcı program değişiklikleri gösterir ve uygulamadan önce onay ister.</string>
+    <string name="agent_auto_setup_step_check_title">Bağlantıyı kontrol et</string>
+    <string name="agent_auto_setup_step_check_detail">Yapılandırmayı kullanmak için yeni bir terminal açın. İmzalama ve uzaktan kimlik doğrulamanın seçtiğiniz anahtarla ayrıca test edilmesi gerekir.</string>
+    <string name="agent_auto_setup_step_finish_title">Bitir</string>
+    <string name="agent_auto_setup_hosts_all">Tüm SSH sunucuları</string>
+    <string name="agent_auto_setup_hosts_one">Tek bir SSH sunucusu veya takma ad</string>
+    <string name="agent_auto_setup_host_label">Sunucu veya takma ad</string>
+    <string name="agent_auto_setup_host_error">Harf, rakam, nokta, kısa çizgi veya alt çizgi kullanarak bir sunucu ya da takma ad girin.</string>
+    <string name="agent_auto_setup_ssh_config_only">Yalnızca SSH yapılandırması</string>
+    <string name="agent_auto_setup_reviewing_status">Değişiklikler gözden geçiriliyor</string>
+    <string name="agent_auto_setup_applying_status">Değişiklikler uygulanıyor</string>
+    <string name="agent_auto_setup_review_required_note">Devam etmeden önce mevcut yapılandırmayı gözden geçirin.</string>
+    <string name="agent_auto_setup_apply_action">Değişiklikleri uygula</string>
+    <string name="agent_auto_setup_remove_action">Yapılandırmayı kaldır</string>
+    <string name="agent_auto_setup_check_action">Aracı bağlantısını kontrol et</string>
+    <string name="agent_auto_setup_refresh_action">Gözden geçirmeyi yenile</string>
+    <string name="agent_auto_setup_review_retry_action">Gözden geçirmeyi yeniden dene</string>
+    <!-- The pending change to a configuration file, shown under its path -->
+    <string name="agent_auto_setup_file_create_label">Dosya oluştur</string>
+    <string name="agent_auto_setup_file_update_label">Dosyayı güncelle</string>
+    <string name="agent_auto_setup_file_remove_label">Dosyayı kaldır</string>
+    <string name="agent_auto_setup_ssh_note">SSH yapılandırması OpenSSH istemcileri için geçerlidir. Diğer istemciler ve ssh-add için önceki adımda bir kabuk seçmeniz de gerekebilir.</string>
+    <string name="agent_auto_setup_gpg_note">Seçilen terminaller Keyguard'ın ayrı GnuPG dizinini kullanır. Mevcut açık anahtarlar ve güven ayarları kopyalanmaz. Kullanmak istediğiniz her anahtarın açık sertifikasını içe aktarın.</string>
+    <string name="agent_auto_setup_overrides_title">Bu satırları kontrol edin</string>
+    <string name="agent_auto_setup_overrides_note">Bu satırlar aynı ayarı tanımlar ve Keyguard'ın ayarından öncelikli olabilir. Başka bir aracı seçmediklerinden emin olun. Geri alma işlemi bu satırları kaldırmaz.</string>
+    <string name="agent_auto_setup_conflicts_title">İşlem gerekiyor</string>
+    <string name="agent_auto_setup_conflict_zdotdir"><xliff:g id="path" example="~/.zshenv">%1$s</xliff:g> dosyası ZDOTDIR değerini belirlediği için Zsh başka bir .zshrc dosyasını okuyabilir. Zsh kabuğunu elle yapılandırın veya seçimini kaldırın.</string>
+    <string name="agent_auto_setup_conflict_compiled_startup"><xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> dosyasının ileri tarihli derlenmiş bir kopyası var; Zsh bunun yerine o kopyayı yükler. Kopyayı silin veya yeniden derleyin ya da Zsh seçimini kaldırın.</string>
+    <string name="agent_auto_setup_conflict_changed_block"><xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> dosyasındaki Keyguard ayarları değiştirilmiş. Bu ayarları elle kaldırın veya kaydedilen ayarları geri yükleyin.</string>
+    <string name="agent_auto_setup_conflict_unrecorded_block"><xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> dosyasındaki Keyguard ayarlarının geri alma kaydı yok. Bu ayarları elle kaldırın.</string>
+    <string name="agent_auto_setup_error_files_changed">Gözden geçirmeden sonra dosyalar değişti. Gözden geçirmeyi yenileyin.</string>
+    <string name="agent_auto_setup_error_busy">Başka bir aracı kurulumu sürüyor. Bittiğinde tekrar deneyin.</string>
+    <string name="agent_auto_setup_error_unsafe_file">Keyguard, <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> dosyasını güvenle düzenleyemiyor. Ayrıntıları kontrol edin, ardından dosyayı düzeltin veya elle yapılandırın.</string>
+    <string name="agent_auto_setup_error_managed_block"><xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> dosyasındaki Keyguard ayarları kayıtlarıyla eşleşmiyor. Bu ayarları elle düzeltin veya kaldırın, ardından gözden geçirmeyi yenileyin.</string>
+    <string name="agent_auto_setup_error_no_powershell">PowerShell profili bulunamadı. PowerShell yükleyin veya seçimini kaldırın.</string>
+    <string name="agent_auto_setup_error_update_required">Keyguard CLI ile uygulamanın sürümleri farklı. Keyguard'ı güncelleyin, ardından tekrar deneyin.</string>
+    <string name="agent_auto_setup_error_failed">Aracı kurulumu başarısız oldu. Ayrıntıları kontrol edin.</string>
+    <string name="agent_auto_setup_error_details_title">Ayrıntılar</string>
+    <string name="agent_auto_setup_no_changes">Dosyalarda değişiklik gerekmiyor.</string>
+    <string name="agent_auto_setup_termux_run_note">Yardımcı programı yükledikten sonra bu komutu Termux içinde çalıştırın. Seçtiğiniz kabuklardaki değişiklikleri gözden geçirir ve uygulamadan önce onayınızı ister. Yeni terminaller yardımcı programı otomatik olarak başlatır.</string>
+    <string name="agent_auto_setup_macos_shell_note">Bu komutları bir Bash veya Zsh terminalinde çalıştırın.</string>
+    <string name="agent_auto_setup_macos_gpg_prepare_title">GnuPG dizinini hazırlayın</string>
+    <string name="agent_auto_setup_macos_gpg_prepare_detail">Önce GPG aracısı etkinken bu komutu çalıştırın, ardından aşağıdaki kurulum komutunu çalıştırın.</string>
+    <string name="agent_auto_setup_external_unverified_note">Keyguard, başka bir terminalde çalıştırılan komutları kontrol edemez. Devam etmeniz, yapılandırmanın başarılı olduğunu doğrulamaz.</string>
+    <string name="agent_auto_setup_external_check_text">Yardımcı program kurulumu doğruladıktan sonra yeni bir terminal açın ve bağlantıyı kontrol etmek için bu komutu çalıştırın.</string>
+    <string name="agent_auto_setup_applied">Yapılandırma uygulandı.</string>
+    <string name="agent_auto_setup_undone">Kaydedilen yapılandırma kaldırıldı. Yeni bir terminal açın.</string>
+    <string name="agent_auto_setup_checking_status">Aracı bağlantısı kontrol ediliyor…</string>
+    <string name="agent_auto_setup_check_succeeded">Aracı bağlantısı doğrulandı.</string>
+    <string name="agent_auto_setup_check_failed">Yapılandırma kaydedildi ancak aracı yanıt vermedi. Aracının etkin ve Keyguard'ın kilidinin açık olduğundan emin olun, ardından tekrar deneyin.</string>
+    <string name="agent_auto_setup_check_retry_action">Bağlantı kontrolünü yeniden dene</string>
+    <string name="agent_auto_setup_diagnostics_title">Bağlantı ayrıntıları</string>
+    <string name="text_diff_title">Dosya değişiklikleri</string>
+    <string name="text_diff_copy">Farkları kopyala</string>
+    <string name="text_diff_loading">Farklar hazırlanıyor…</string>
+    <string name="text_diff_no_changes">Metinde değişiklik yok.</string>
+    <string name="text_diff_create_empty_file">Boş bir dosya oluşturun.</string>
+    <string name="text_diff_remove_empty_file">Boş dosyayı kaldırın.</string>
+    <string name="text_diff_simplified">Değişiklikler bir bloğun değiştirilmesi şeklinde gösteriliyor.</string>
+    <string name="text_diff_line_endings">Satır sonları değişti. LF ve CRLF etiketleri satır sonu türlerini belirtir.</string>
+    <string name="text_diff_no_newline">Dosyanın sonunda satır sonu yok</string>
+    <!-- Screen reader labels for the lines of a diff -->
+    <string name="text_diff_added_line">Eklenen satır</string>
+    <string name="text_diff_removed_line">Kaldırılan satır</string>
+    <string name="text_diff_original_line">Orijinal satır <xliff:g id="number" example="12">%1$d</xliff:g></string>
+    <string name="text_diff_new_line">Yeni satır <xliff:g id="number" example="12">%1$d</xliff:g></string>
 </resources>

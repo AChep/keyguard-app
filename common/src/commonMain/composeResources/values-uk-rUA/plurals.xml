@@ -90,6 +90,12 @@
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH-ключів</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH-ключів</item>
     </plurals>
+    <plurals name="skipped_ssh_certificates_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> сертифікат SSH</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> сертифікати SSH</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> сертифікатів SSH</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> сертифіката SSH</item>
+    </plurals>
     <plurals name="skipped_gpg_keys_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG-ключ</item>
         <item quantity="few"><xliff:g id="number">%1$d</xliff:g> GPG-ключі</item>
@@ -108,11 +114,23 @@
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> збережених попередніх паролів</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> збережених попередніх паролів</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> середовище з посиланнями на елементи, які неможливо перенести</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> середовища з посиланнями на елементи, які неможливо перенести</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> середовищ із посиланнями на елементи, які неможливо перенести</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> середовища з посиланнями на елементи, які неможливо перенести</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> архівований запис</item>
         <item quantity="few"><xliff:g id="number">%1$d</xliff:g> архівовані записи</item>
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> архівованих записів</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> архівованих записів</item>
+    </plurals>
+    <plurals name="exportaccount_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> елемент</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> елементи</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> елементів</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> елемента</item>
     </plurals>
     <plurals name="skipped_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> запис</item>
@@ -246,5 +264,29 @@
         <item quantity="few">Термін дії спливе за <xliff:g id="seconds" example="30">%1$d</xliff:g> секунди</item>
         <item quantity="many">Термін дії спливе за <xliff:g id="seconds" example="30">%1$d</xliff:g> секунд</item>
         <item quantity="other">Термін дії спливе за <xliff:g id="seconds" example="30">%1$d</xliff:g> секунди</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> активний ідентифікатор користувача</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> активні ідентифікатори користувача</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> активних ідентифікаторів користувача</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> активного ідентифікатора користувача</item>
+    </plurals>
+    <plurals name="agent_auto_setup_files_to_change_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> файл для зміни</item>
+        <item quantity="few"><xliff:g id="number" example="2">%1$d</xliff:g> файли для зміни</item>
+        <item quantity="many"><xliff:g id="number" example="2">%1$d</xliff:g> файлів для зміни</item>
+        <item quantity="other"><xliff:g id="number" example="2">%1$d</xliff:g> файлу для зміни</item>
+    </plurals>
+    <plurals name="tag_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> елемент</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> елементи</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> елементів</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> елемента</item>
+    </plurals>
+    <plurals name="attachment_preview_gpg_skipped_certificates_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> certificate could not be read</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
     </plurals>
 </resources>

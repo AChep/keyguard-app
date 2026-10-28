@@ -2,6 +2,7 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="ok">حسنًا</string>
     <string name="close">إغلاق</string>
+    <string name="done">تم</string>
     <string name="quit">خروج</string>
     <string name="yes">تأكيد</string>
     <string name="no">لا</string>
@@ -59,6 +60,7 @@
     <string name="advanced_options">متقدم</string>
     <string name="file">المِلَفّ</string>
     <string name="choose_file">اختر ملفًا</string>
+    <string name="choose_folder">اختر مجلدًا</string>
     <string name="file_picker_selected_file_label">الملَف المحدد</string>
     <string name="file_name_placeholder">اسم المِلَفّ</string>
     <string name="file_status_pending_upload">في انتظار الرفع</string>
@@ -87,6 +89,8 @@
     <string name="status">الحالة</string>
     <string name="status_running">جاري التنفيذ</string>
     <string name="status_failed_to_start">أخفق البَدْء</string>
+    <string name="status_starting">جارٍ بدء التشغيل</string>
+    <string name="status_ready">جاهز</string>
     <string name="ready_status_beta">بيتا</string>
     <string name="ready_status_alpha">ألفا</string>
     <string name="learn_more">يتعلم أكثر</string>
@@ -162,6 +166,8 @@
     <string name="tag">وسم</string>
     <string name="tags">وسوم</string>
     <string name="tags_empty_label">لا توجد وسوم</string>
+    <string name="tags_field_placeholder">إضافة وسم</string>
+    <string name="tag_remove_content_description">إزالة الوسم <xliff:g id="tag" example="work">%1$s</xliff:g></string>
     <string name="collection_none">لا يوجد جمع</string>
     <string name="collection">مجموعة</string>
     <string name="collections">المجموعات</string>
@@ -320,6 +326,7 @@
     <string name="key_type">نوع المفتاح</string>
     <string name="key_pair">زوج المفاتيح</string>
     <string name="key_id">معرّف المفتاح</string>
+    <string name="keygrip">Keygrip</string>
     <string name="algorithm">الخوارزمية</string>
     <string name="created">أُنشئ</string>
     <string name="expires">تنتهي الصلاحية</string>
@@ -353,9 +360,21 @@
     <string name="addaccount_method_phone_title">تسجيل الدخول على الهاتف</string>
     <string name="addaccount_method_phone_text">استخدم هاتف Android المقترن بك</string>
     <string name="addaccount_method_phone_unavailable">لم يتم العثور على هاتف Android مقترن</string>
+    <string name="addaccount_method_phone_checking">Checking for a paired Android phone</string>
+    <string name="addaccount_method_phone_services_unavailable">Google Play services is unavailable. Reopen this screen to try again.</string>
     <string name="addaccount_method_phone_waiting">في انتظار الهاتف</string>
     <string name="addaccount_method_phone_importing">جارٍ استيراد الحساب</string>
     <string name="addaccount_method_phone_failed">فشل تسجيل الدخول عبر الهاتف</string>
+    <string name="addaccount_method_phone_cancelled">Phone login cancelled on the phone</string>
+    <string name="addaccount_method_phone_error_unreachable">The phone is not reachable</string>
+    <string name="addaccount_method_phone_error_multiple_phones">More than one phone is reachable</string>
+    <string name="addaccount_method_phone_error_launch">Couldn't open Keyguard on the phone</string>
+    <string name="addaccount_method_phone_error_timeout">Phone login timed out</string>
+    <string name="addaccount_method_phone_error_too_large">Too much data to transfer to the watch</string>
+    <string name="addaccount_method_phone_error_version">Keyguard versions on the phone and the watch don't match. Update both.</string>
+    <string name="addaccount_method_phone_error_verification">Couldn't verify the response from the phone</string>
+    <string name="addaccount_method_phone_error_on_phone">Login failed on the phone. Check the phone for details.</string>
+    <string name="addaccount_method_phone_error_import">Couldn't add the account to the watch</string>
     <string name="addaccount_method_phone_pick">اختر هاتفًا</string>
     <string name="companionauth_header_title">إعداد الساعة</string>
     <string name="companionauth_header_text">سجّل الدخول لإضافة هذا الحساب إلى ساعتك</string>
@@ -408,6 +427,10 @@
     <string name="ciphers_action_edit_title">يحرر</string>
     <string name="ciphers_action_merge_title">دمج في…</string>
     <string name="ciphers_action_copy_title">نسخ إلى…</string>
+    <string name="ciphers_copy_attachments_note">لا تُنسخ المرفقات.</string>
+    <string name="ciphers_copy_warning_links">لا تحتفظ النسخ بالروابط إلى العناصر الأخرى.</string>
+    <string name="ciphers_copy_warning_environment_references">تصبح المتغيرات التي تشير إلى عناصر أخرى غير معيّنة في النسخ.</string>
+    <string name="ciphers_copy_error_unsupported_environment">تستخدم بعض البيئات تنسيقًا لا يستطيع هذا الإصدار من Keyguard قراءته. حدّث Keyguard لنسخها إلى حساب آخر.</string>
     <string name="ciphers_action_export_title">تصدير…</string>
     <string name="ciphers_action_change_folder_title">الانتقال إلى المجلد</string>
     <string name="ciphers_action_change_name_title">تغيير الاسم</string>
@@ -480,6 +503,7 @@
     <string name="attachment_preview_error_decryption">فشل فك تشفير معاينة المرفق.</string>
     <string name="attachment_preview_error_text_decode">لا يمكن معاينة هذا الملف النصي.</string>
     <string name="attachment_preview_error_image_decode">لا يمكن معاينة هذه الصورة.</string>
+    <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
     <string name="attachment_preview_action_copy_all">نسخ الكل</string>
     <string name="attachment_preview_action_wrap_lines">التفاف الأسطر</string>
     <string name="attachment_preview_action_source">المصدر</string>
@@ -560,6 +584,8 @@
     <string name="key_action_save_public_key_saved_downloads_success_title">تم حفظ المفتاح العام في مجلد التنزيلات</string>
     <string name="key_action_save_unencrypted_private_key_title">حفظ المفتاح الخاص غير المشفّر</string>
     <string name="key_action_save_unencrypted_private_key_saved_downloads_success_title">تم حفظ المفتاح الخاص غير المشفّر في مجلد التنزيلات</string>
+    <string name="key_action_save_certificate_title">حفظ الشهادة</string>
+    <string name="key_action_save_certificate_saved_downloads_success_title">تم حفظ الشهادة في مجلد التنزيلات</string>
     <string name="ssh_key_action_add_key_title">إضافة مفاتيح</string>
     <string name="ssh_key_action_replace_key_title">استبدال المفاتيح</string>
     <string name="key_import_title">استيراد مفتاح <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
@@ -614,38 +640,17 @@
     <string name="gpg_key_expiry_unresolved_revocation_message">لا يمكن التحقق من إبطال معيَّن لأن المفتاح العام للمُبطِل غير متوفر. استورده ثم حاول مرة أخرى.</string>
     <string name="gpg_key_expiry_unsupported_signing_hash_message">لا يمكن إعادة اعتماد هذا المفتاح إلا بخوارزمية تجزئة غير آمنة. انتقل إلى مفتاح حديث بدلاً من ذلك.</string>
     <string name="gpg_key_expiry_missing_self_signature_message">لا يمكن تجديد هذا المفتاح لأن توقيعه الذاتي مفقود أو غير صالح أو مرفوض من سياسة الأمان.</string>
-    <string name="gpg_user_id_revocation_dialog_title">إبطال معرّف مستخدم GPG</string>
-    <string name="gpg_user_id_revocation_dialog_message">حدّد معرّف المستخدم المراد إبطاله. يضيف الإبطال بيانًا موقّعًا إلى الشهادة ولا يمحو الهوية أو سجلها.</string>
     <string name="gpg_user_id_revocation_confirm">إبطال</string>
     <string name="gpg_user_id_revocation_last_identity_message">يجب أن يحتفظ مفتاح GPG بمعرّف مستخدم واحد قابل للاستخدام على الأقل. أضف بديلاً قبل إبطال هذا المعرّف.</string>
-    <string name="gpg_user_id_revocation_no_identity_message">لا يحتوي هذا المفتاح على معرّف مستخدم نشط يمكن إبطاله.</string>
-    <string name="gpg_user_id_replacement_dialog_title">استبدال معرّف مستخدم GPG</string>
-    <string name="gpg_user_id_replacement_dialog_message">حدّد معرّف المستخدم القديم. سيضيف Keyguard البديل ويبطل هذا المعرّف بالتحديد في تحديث واحد.</string>
-    <string name="gpg_user_id_replacement_confirm_next">التالي</string>
-    <string name="gpg_user_id_replacement_no_identity_message">لا يحتوي هذا المفتاح على معرّف مستخدم نشط يمكن استبداله.</string>
-    <string name="gpg_user_id_replacement_value_title">معرّف مستخدم GPG جديد</string>
-    <string name="gpg_user_id_replacement_value_message">أدخل معرّف مستخدم OpenPGP الجديد بدقة. لن يقوم Keyguard بإزالة الفراغات أو توحيده.</string>
     <string name="gpg_user_id_replacement_value_label">معرّف المستخدم</string>
-    <string name="gpg_user_id_replacement_value_hint">الاسم &lt;email@example.com&gt;</string>
     <string name="gpg_user_id_replacement_value_confirm">استبدال</string>
     <string name="gpg_user_id_replacement_invalid_message_with_limit">أدخل معرّف مستخدم غير فارغ لا يتجاوز <xliff:g id="byte_limit" example="1024">%1$d</xliff:g> بايت بترميز UTF-8، ومن دون أحرف تحكم.</string>
     <string name="gpg_user_id_replacement_same_identity_message">أدخل معرّف مستخدم مختلفًا عن الهوية المحددة.</string>
     <string name="gpg_user_id_replacement_duplicate_message">معرّف المستخدم هذا نشط بالفعل على هذا المفتاح.</string>
     <string name="gpg_user_id_replacement_title">استبدال معرّف المستخدم</string>
-    <string name="gpg_user_id_replacement_success_title">تم استبدال معرّف مستخدم GPG</string>
-    <string name="gpg_user_id_replacement_success_message">احفظ هذا العنصر، ثم أعد توزيع مفتاحه العام أو ارفعه لنشر الاستبدال.</string>
-    <string name="gpg_user_id_replacement_already_done_message">تم تطبيق هذا الاستبدال بالفعل. لم تُنشأ توقيعات جديدة.</string>
-    <string name="gpg_user_id_replacement_failed_title">فشل استبدال معرّف مستخدم GPG</string>
-    <string name="gpg_user_id_replacement_failed_message">تعذّر استبدال معرّف المستخدم. تُرك المفتاح الأصلي دون تغيير.</string>
     <string name="gpg_user_id_replacement_retired_message">تم إبطال معرّف المستخدم هذا بالتحديد سابقًا ولا يمكن إضافته مرة أخرى.</string>
     <string name="gpg_user_id_replacement_target_missing">تغيّر معرّف المستخدم المحدد أو لم يعد نشطًا. أعد فتح المفتاح وحاول مرة أخرى.</string>
-    <string name="gpg_user_id_replacement_private_key_required">استورد المفتاح الخاص لاستبدال أحد معرّفات المستخدم الخاصة به.</string>
-    <string name="gpg_user_id_replacement_unavailable">استبدال معرّف مستخدم GPG غير مدعوم على هذه المنصة.</string>
     <string name="gpg_user_id_revocation_title">إبطال معرّف المستخدم</string>
-    <string name="gpg_user_id_revocation_success_title">تم إبطال معرّف مستخدم GPG</string>
-    <string name="gpg_user_id_revocation_success_message">احفظ هذا العنصر، ثم أعد توزيع مفتاحه العام أو ارفعه لنشر الإبطال.</string>
-    <string name="gpg_user_id_revocation_already_done_message">تم إبطال معرّف المستخدم هذا بالفعل. لم يُنشأ توقيع جديد.</string>
-    <string name="gpg_user_id_revocation_failed_title">فشل إبطال معرّف مستخدم GPG</string>
     <string name="gpg_user_id_revocation_failed_message">تعذّر إبطال معرّف المستخدم. تُرك المفتاح الأصلي دون تغيير.</string>
     <string name="gpg_user_id_revocation_target_missing">تغيّر معرّف المستخدم المحدد أو لم يعد مؤهلاً. أعد فتح المفتاح وحاول مرة أخرى.</string>
     <string name="gpg_user_id_revocation_private_key_required">استورد المفتاح الخاص لإبطال أحد معرّفات المستخدم الخاصة به.</string>
@@ -657,6 +662,21 @@
     <string name="key_import_error_read">تعذّرت قراءة الملف المحدد.</string>
     <string name="key_import_passphrase_title">عبارة مرور</string>
     <string name="ssh_key_import_passphrase_dialog_message">هذا المفتاح <xliff:g id="format_label" example="OpenSSH">%1$s</xliff:g> مشفّر.</string>
+    <string name="ssh_certificate_import_success_title">تم استيراد شهادة SSH</string>
+    <!-- An OpenSSH certificate: a CA signature over an SSH public key -->
+    <string name="ssh_certificate">الشهادة</string>
+    <string name="ssh_certificate_note">محتويات ملف <xliff:g id="suffix" example="-cert.pub">%1$s</xliff:g> الخاص بالمفتاح، بتوقيع من جهة إصدار الشهادات لديك.</string>
+    <string name="ssh_certificate_principals">الهويات المصرّح لها</string>
+    <!-- The serial number of an SSH certificate -->
+    <string name="ssh_certificate_serial">الرقم التسلسلي</string>
+    <string name="ssh_certificate_authority">جهة إصدار الشهادات</string>
+    <string name="ssh_certificate_critical_options">الخيارات الحرجة</string>
+    <string name="ssh_certificate_extensions">الامتدادات</string>
+    <string name="ssh_certificate_problem_malformed">هذه ليست شهادة OpenSSH.</string>
+    <string name="ssh_certificate_problem_host_certificate">هذه شهادة مضيف. يتطلب تسجيل الدخول شهادة مستخدم.</string>
+    <string name="ssh_certificate_problem_key_mismatch">هذه الشهادة تخص مفتاحًا آخر.</string>
+    <string name="ssh_certificate_problem_not_yet_valid">تبدأ صلاحية هذه الشهادة في <xliff:g id="date" example="Jan 1, 2027">%1$s</xliff:g>.</string>
+    <string name="ssh_certificate_problem_expired">انتهت صلاحية هذه الشهادة في <xliff:g id="date" example="Jan 1, 2026">%1$s</xliff:g>.</string>
     <string name="selection_n_selected">تم تحديد <xliff:g id="size" example="15">%1$d</xliff:g></string>
     <string name="selection_clear_action">إزالة التحديد</string>
     <string name="selection_select_all_action">تحديد الكل</string>
@@ -668,6 +688,7 @@
     <string name="copy_send">نسخ إرسال</string>
     <string name="copy_package_name">انسخ اسم الحزمة</string>
     <string name="copy_bundle_id">نسخ معرّف الحزمة</string>
+    <string name="copy_id">نسخ المعرّف</string>
     <string name="copy_password">انسخ كلمة المرور</string>
     <string name="copy_username">انسخ اسم المستخدم</string>
     <string name="copy_email">نسخ البريد الإلكتروني</string>
@@ -689,6 +710,7 @@
     <string name="copied_uri">تم نسخ URI</string>
     <string name="copied_tag">تم نسخ الوسم</string>
     <string name="copied_package_name">تم نسخ اسم الحزمة</string>
+    <string name="copied_id">تم نسخ المعرّف</string>
     <string name="copied_key">تم نسخ مفتاح</string>
     <string name="copied_fingerprint">تم نسخ بصمة الإصبع</string>
     <string name="copied_password">تم نسخ كلمة المرور</string>
@@ -790,13 +812,14 @@
     <string name="error_s3_access_key_id_required">رَقَم تعريف مفتاح الوصول مطلوب</string>
     <string name="error_s3_access_key_id_invalid">أدخل معرف مفتاح وصول صالح</string>
     <string name="error_s3_secret_access_key_required">مطلوب التقييم</string>
-    <string name="error_s3_conditional_writes_unsupported">The S3 server ignores conditional writes</string>
+    <string name="error_s3_conditional_writes_unsupported">يتجاهل خادم S3 عمليات الكتابة المشروطة</string>
     <string name="error_incorrect_password">كلمة مرور غير صحيحة</string>
     <string name="error_not_found">غير موجود</string>
     <string name="error_file_must_be_n_or_smaller">يجب ألا يتجاوز حجم الملف <xliff:g id="size" example="500MB">%1$s</xliff:g></string>
     <string name="error_otp_key_must_not_be_empty">يجب ألا يكون المفتاح السري لكلمة المرور لمرة واحدة فارغًا</string>
     <string name="error_otp_key_is_invalid">المفتاح السري لكلمة المرور لمرة واحدة غير صالح</string>
     <string name="error_failed_file_already_exists">فشل إنشاء ملف. استبدال ملف موجود غير مسموح به</string>
+    <string name="error_account_already_exists">هذا الحساب مضاف بالفعل إلى Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">فشل في إنشاء مفتاح، لا توجد ذاكرة كافية. يرجى التحقق من إعدادات خادم KDF الخاص بك.</string>
     <string name="error_failed_generate_otp_code">فشل في إنشاء رمز OTP</string>
     <string name="error_failed_create_passkey">فشل في إنشاء مفتاح مرور</string>
@@ -814,6 +837,8 @@
     <string name="biometric_error_policy_not_installed_flatpak">Keyguard يحتاج إلى إذن النظام لمرة واحدة لاستخدام مصادقة النظام. قم بتشغيل هذا الأمر في محطة طرفية على المضيف، ثم حاول مرة أخرى:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">فشل فك تشفير المفتاح البيومتري</string>
     <string name="error_failed_agent_start">تعذّر بدء وكيل <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
+    <string name="error_agent_ipc_unavailable">أحد مكوّنات Keyguard مفقود. أعد تثبيت Keyguard.</string>
+    <string name="error_agent_ipc_endpoint">تعذّر إنشاء الاتصال الخاص بالوكيل</string>
     <string name="error_failed_power_lock_start">تعذّر تفعيل القفل التلقائي للخزنة. أعد تشغيل Keyguard للمحاولة مجددًا.</string>
     <string name="error_quick_search_autotype_permission">يلزم إذن تسهيلات الاستخدام</string>
     <string name="error_quick_search_autotype_unavailable">تعذّر نقل التركيز إلى الوجهة</string>
@@ -822,6 +847,7 @@
     <string name="error_quick_search_autotype_busy">الإدخال التلقائي قيد التشغيل بالفعل</string>
     <string name="error_quick_search_autotype_keys_held">حرّر جميع المفاتيح وأزرار الماوس، ثم حاول مجددًا</string>
     <string name="error_credential_calling_app_not_privileged">التطبيق المتصل ليس في قائمة التطبيقات ذات الامتيازات ولا يمكنه طلب المصادقة نيابة عن التطبيقات الأخرى.</string>
+    <string name="error_credential_not_stored">لا يمكن لهذا العنصر تخزين بيانات الاعتماد.</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
@@ -941,8 +967,8 @@
     <string name="emailrelay_empty_label">لا يوجد وكلاء البريد الإلكتروني</string>
     <string name="emailrelay_base_env_server_url_label">عنوان URL للخادم</string>
     <string name="emailrelay_base_env_note">حدد عنوان URL الأساسي للتثبيت المستضاف ذاتيًا.</string>
-    <string name="emailrelay_addyio_recipient_id_label">Recipient ID (optional)</string>
-    <string name="emailrelay_addyio_recipient_id_note">ID of a verified addy.io recipient. Leave blank to use the default recipient.</string>
+    <string name="emailrelay_addyio_recipient_id_label">معرّف المستلم (اختياري)</string>
+    <string name="emailrelay_addyio_recipient_id_note">معرّف مستلم مُتحقَّق منه في addy.io. اتركه فارغًا لاستخدام المستلم الافتراضي.</string>
     <string name="emailrelay_add_action">إضافة  البريد الإلكتروني</string>
     <string name="emailrelay_edit_action">تعديل البريد الإلكتروني</string>
     <string name="emailrelay_documentation_title">إرشادات الاستخدام</string>
@@ -1087,11 +1113,11 @@
     <string name="addaccount_custom_env_notifications_url_label">عنوان خادم الإشعارات</string>
     <!-- Looks up the server published in the DNS records of the email domain and fills it in. -->
     <string name="addaccount_server_discovery_button">اكتشاف خادم تلقائي</string>
-    <string name="addaccount_server_discovery_found">Server set to <xliff:g id="address" example="vault.example.com">%1$s</xliff:g></string>
+    <string name="addaccount_server_discovery_found">تم ضبط الخادم على <xliff:g id="address" example="vault.example.com">%1$s</xliff:g></string>
     <!-- Warns that the discovered server is not part of the email domain. -->
-    <string name="addaccount_server_discovery_other_domain_warning">The server is not part of <xliff:g id="domain" example="example.com">%1$s</xliff:g>. Check the address before you sign in.</string>
-    <string name="addaccount_server_discovery_not_found">No server found for <xliff:g id="domain" example="example.com">%1$s</xliff:g></string>
-    <string name="addaccount_server_discovery_failed">Failed to look up the server of <xliff:g id="domain" example="example.com">%1$s</xliff:g></string>
+    <string name="addaccount_server_discovery_other_domain_warning">الخادم لا ينتمي إلى النطاق <xliff:g id="domain" example="example.com">%1$s</xliff:g>. تحقّق من العنوان قبل تسجيل الدخول.</string>
+    <string name="addaccount_server_discovery_not_found">لم يُعثر على خادم للنطاق <xliff:g id="domain" example="example.com">%1$s</xliff:g></string>
+    <string name="addaccount_server_discovery_failed">تعذّر البحث عن خادم النطاق <xliff:g id="domain" example="example.com">%1$s</xliff:g></string>
     <string name="addaccount_mutual_tls_section">TLS المتبادل</string>
     <string name="addaccount_mutual_tls_file_label">شهادة العميل</string>
     <string name="addaccount_mutual_tls_note">شهادة تُستخدم لمصادقة العميل.</string>
@@ -1135,13 +1161,13 @@
     <string name="yubikey_unlock_error_unsupported_text">جهاز YubiKey هذا أو نوع الاتصال لا يدعم فتح القفل بأسلوب التحدي والاستجابة.</string>
     <string name="yubikey_unlock_error_failed_title">فشل استخدام YubiKey</string>
     <string name="yubikey_unlock_error_failed_text">حاول استخدام YubiKey مرة أخرى أو افتح القبو باستخدام كلمة المرور الخاصة بك.</string>
-    <string name="yubikey_slot_picker_title">Which YubiKey slot do you want to use?</string>
+    <string name="yubikey_slot_picker_title">أي خانة في YubiKey تريد استخدامها؟</string>
     <string name="yubikey_slot_label">الخانة <xliff:g id="slot" example="2">%1$d</xliff:g></string>
     <string name="yubikey_slot_picker_note">تستخدم معظم المفاتيح الخانة <xliff:g id="slot" example="2">%1$d</xliff:g> للاستجابة للتحدي. وستُهيَّأ لك خانة فارغة.</string>
     <string name="yubikey_slot_configured_warning">خانة %1$d لديها فعلًا تكوين</string>
     <string name="yubikey_slot_use_existing_action">استخدام التكوين الحالي</string>
     <string name="yubikey_slot_overwrite_action">الكتابة فوق الخانة</string>
-    <string name="yubikey_slot_overwrite_warning">Use the slot's current challenge-response secret, or overwrite it with a new one. Overwriting permanently erases whatever the slot held (e.g. an existing OTP credential).</string>
+    <string name="yubikey_slot_overwrite_warning">استخدم سر التحدي والاستجابة الحالي للخانة، أو استبدله بسر جديد. يؤدي الاستبدال إلى محو محتويات الخانة نهائيًا (مثل بيانات اعتماد OTP موجودة).</string>
     <string name="fido2webauthn_bitwarden_web_vault_version_warning_note">يتطلب استخدام FIDO2 WebAuthn إصدار قبو الويب Bitwarden <xliff:g id="version" example="2023.7.1 ">%1$s</xliff:g> أو أعلى. في الإصدارات القديمة، سيتم توجيه نتيجة المصادقة بشكل غير صحيح إلى تطبيق Bitwarden الرسمي.</string>
     <string name="elevatedaccess_header_title">تأكيد الوصول</string>
     <string name="elevatedaccess_header_text">هذه البيانات محمية، للمتابعة، يرجى إدخال كلمة مرور التطبيق الخاص بك.</string>
@@ -1174,6 +1200,7 @@
     <string name="cipher_type_ssh_key">مفتاح SSH</string>
     <string name="cipher_type_gpg_key">مفتاح GPG</string>
     <string name="cipher_type_passkey">مفتاح المرور</string>
+    <string name="cipher_type_environment">بيئة</string>
     <string name="field_type_text">نص</string>
     <string name="field_type_text_concealed">نص (مخفي)</string>
     <string name="field_type_boolean">منطقية</string>
@@ -1223,10 +1250,10 @@
     <string name="agent_history_clear_history_title">مسح السجل</string>
     <string name="agent_history_clear_history_confirmation_title">هل تريد مسح سجل وكيل <xliff:g id="protocol" example="SSH">%1$s</xliff:g>؟</string>
     <string name="agent_history_clear_history_confirmation_text">سيؤدي ذلك إلى إزالة سجل استخدام وكيل <xliff:g id="protocol" example="SSH">%1$s</xliff:g> بالكامل.</string>
-    <string name="ssh_agent_history_empty_text">Keys served and signatures requested by ssh/git appear here.</string>
+    <string name="ssh_agent_history_empty_text">تظهر هنا المفاتيح المقدَّمة وطلبات التوقيع الواردة من ssh/git.</string>
     <string name="agent_setup_title">إعداد عميل <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="ssh_agent_setup_intro">قم بإعداد عميل SSH للاتصال بوكيل SSH الخاص بـ Keyguard للسماح له بإجراء المصادقة أو التوقيع باستخدام مفاتيحك المعتمدة دون كشف بيانات المفتاح الخاص.</string>
-    <string name="ssh_agent_setup_intro_text">Authenticate your Git and SSH clients with the SSH keys stored in your vault.</string>
+    <string name="ssh_agent_setup_intro_text">استخدم مفاتيح SSH المخزّنة في خزنتك لمصادقة عملاء Git وSSH.</string>
     <string name="ssh_agent_setup_step_1_title">1. تفعيل وكيل SSH في Keyguard</string>
     <string name="ssh_agent_setup_step_1_text">افتح إعدادات الأمان وفعل وكيل SSH.</string>
     <string name="ssh_agent_setup_step_2_title">2. تكوين عميل SSH الخاص بك</string>
@@ -1471,8 +1498,8 @@
     <string name="generator_gpg_key_modern_note">ينشئ مفتاح OpenPGP بمفاتيح توقيع/اعتماد Ed25519 ومفتاح فرعي للتشفير X25519.</string>
     <string name="generator_gpg_key_rsa_note">ينشئ مفتاح OpenPGP بمفتاح اعتماد RSA ومفاتيح فرعية منفصلة للتوقيع والتشفير بخوارزمية RSA.</string>
     <string name="gpg_key_version_title">إصدار الشهادة</string>
-    <string name="gpg_key_version_v4_note">Compatible with GnuPG and older OpenPGP clients.</string>
-    <string name="gpg_key_version_v6_note">Uses RFC 9580. Requires a client that supports v6 certificates.</string>
+    <string name="gpg_key_version_v4_note">متوافق مع GnuPG وعملاء OpenPGP الأقدم.</string>
+    <string name="gpg_key_version_v6_note">يستخدم RFC 9580. يتطلب عميلاً يدعم شهادات v6.</string>
     <string name="generator_gpg_key_modern_text">بنية مفتاح OpenPGP الحديثة</string>
     <string name="generator_key_length_title">الطول</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-أجزاء</string>
@@ -1517,6 +1544,8 @@
     <string name="watchtower_item_reused_passwords_text">لا تستخدم نفس كلمة المرور على مواقع ويب متعددة. قم بإنشاء كلمات مرور فريدة لتحسين الأمان.</string>
     <string name="watchtower_item_weak_ssh_keys_title">مفاتيح SSH ضعيفة</string>
     <string name="watchtower_item_weak_ssh_keys_text">العناصر التي لا تستوفي توصيات NIST.</string>
+    <string name="watchtower_item_unusable_ssh_certificates_title">شهادات SSH غير قابلة للاستخدام</string>
+    <string name="watchtower_item_unusable_ssh_certificates_text">عناصر مفاتيح SSH ذات الشهادات المنتهية الصلاحية أو غير السارية بعد أو غير السليمة البنية أو الخاصة بمضيف أو بمفتاح آخر.</string>
     <string name="watchtower_item_unusable_gpg_keys_title">مفاتيح GPG غير قابلة للاستخدام</string>
     <string name="watchtower_item_unusable_gpg_keys_text">عناصر مفاتيح GPG المُبطَلة أو منتهية الصلاحية أو المشوّهة أو التي تفتقد مادة توقيع أو فك تشفير صالحة.</string>
     <string name="watchtower_item_weak_gpg_keys_title">مفاتيح GPG ضعيفة</string>
@@ -1567,8 +1596,26 @@
     <string name="exportaccount_header_title">تصدير العناصر</string>
     <string name="exportaccount_password_label">كلمة مرور الأرشيف</string>
     <string name="exportaccount_format_note">تصدير القبو كأرشيف ZIP مشفر.</string>
+    <string name="exportaccount_format_title">الصيغة</string>
+    <string name="exportaccount_format_zip">أرشيف ZIP</string>
+    <string name="exportaccount_format_kdbx">قاعدة بيانات KeePass ‏(KDBX)</string>
+    <string name="exportaccount_kdbx_password_label">كلمة مرور قاعدة البيانات</string>
+    <string name="exportaccount_format_kdbx_note">تصدير الخزنة كقاعدة بيانات KeePass. تتحول المجلدات إلى مجموعات. لا تُصدَّر المنظمات والمجموعات المشتركة.</string>
+    <string name="exportaccount_kdbx_attachment_too_large">أحد المرفقات كبير جدًا بالنسبة لقاعدة بيانات KeePass. صدِّر بصيغة أرشيف ZIP أو دون مرفقات.</string>
     <string name="exportaccount_attachments_note">سيتم إبقاء Vault مفتوحًا أثناء عملية التصدير. تتم الإشارة إلى المرفقات في بيانات المخزن. لا يتم تخزين المرفقات أبدًا في شكل غير مشفر أثناء هذه العملية.</string>
+    <string name="exportaccount_kdbx_attachments_note">ستبقى الخزنة مفتوحة أثناء عملية التصدير. تُخزَّن المرفقات في قاعدة البيانات، ولا تُخزَّن مطلقًا بصيغة غير مشفرة أثناء هذه العملية.</string>
     <string name="exportaccount_include_attachments_title">تصدير المرفقات</string>
+    <string name="exportaccount_confirm_password_label">تأكيد كلمة مرور الأرشيف</string>
+    <string name="exportaccount_kdbx_confirm_password_label">تأكيد كلمة مرور قاعدة البيانات</string>
+    <string name="exportaccount_wizard_format_title">اختر صيغة</string>
+    <string name="exportaccount_wizard_format_detail">اختر نوع ملف يستطيع التطبيق الذي تنتقل إليه استيراده.</string>
+    <string name="exportaccount_wizard_items_title">اختر العناصر</string>
+    <string name="exportaccount_wizard_items_detail">استخدم عوامل التصفية لاختيار العناصر التي تريد تصديرها.</string>
+    <string name="exportaccount_wizard_password_title">احمِ الملف</string>
+    <string name="exportaccount_wizard_password_detail">يشفّر Keyguard الملف بكلمة المرور هذه. ستحتاج إليها لفتح الملف.</string>
+    <string name="exportaccount_wizard_review_title">راجع التصدير</string>
+    <string name="exportaccount_wizard_review_detail">تحقق من اختياراتك، ثم صدِّر الملف.</string>
+    <string name="exportaccount_review_attachments_enabled">مفعّل، <xliff:g id="size" example="12 MB">%1$s</xliff:g></string>
     <string name="exportaccount_export_button">يصدّر</string>
     <string name="exportaccount_export_started">بدأ التصدير</string>
     <string name="exportaccount_export_success">اكتمل التصدير</string>
@@ -1627,23 +1674,23 @@
     <string name="settingssearch_header_title">يبحث</string>
     <string name="settingssearch_header_subtitle">إعدادات</string>
     <string name="settingssearch_startup_keywords">بَدْء التشغيل تلقائياً بدء تسجيل الدخول</string>
-    <string name="settingssearch_biometric_keywords">biometrics fingerprint face recognition Touch ID Face ID</string>
-    <string name="settingssearch_lock_keywords">timeout automatic lock inactivity</string>
-    <string name="settingssearch_clipboard_keywords">copy paste clipboard clear erase</string>
+    <string name="settingssearch_biometric_keywords">القياسات الحيوية; المصادقة البيومترية; بصمة الإصبع; التعرف على الوجه; Touch ID; Face ID</string>
+    <string name="settingssearch_lock_keywords">المهلة; مهلة الانتظار; القفل التلقائي; عدم النشاط; الخمول</string>
+    <string name="settingssearch_clipboard_keywords">نسخ; لصق; الحافظة; مسح; محو; حذف</string>
     <string name="settingssearch_language_keywords">لغة التَّرْجَمَة المحلية</string>
-    <string name="settingssearch_theme_keywords">theme appearance light dark system</string>
-    <string name="settingssearch_navigation_keywords">tabs sidebar navigation order visibility</string>
-    <string name="settingssearch_autofill_keywords">autofill passwords passkeys fill</string>
-    <string name="settingssearch_backup_keywords">backup restore destination folder WebDAV S3 bucket encryption password attachments retention snapshots</string>
-    <string name="settingssearch_breach_keywords">breach leaked compromised passwords</string>
+    <string name="settingssearch_theme_keywords">السمة; المظهر; فاتح; داكن; الوضع الليلي; النظام</string>
+    <string name="settingssearch_navigation_keywords">علامات التبويب; الشريط الجانبي; التنقل; الترتيب; الظهور; الإظهار; الإخفاء</string>
+    <string name="settingssearch_autofill_keywords">الملء التلقائي; التعبئة التلقائية; كلمات المرور; مفاتيح المرور; ملء; تعبئة</string>
+    <string name="settingssearch_backup_keywords">النسخ الاحتياطي; نسخة احتياطية; استعادة; استرجاع; الوجهة; مجلد; WebDAV; S3; حاوية; تشفير; كلمة المرور; المرفقات; الاحتفاظ; لقطات</string>
+    <string name="settingssearch_breach_keywords">خرق; اختراق; تسريب; تسريبات; كلمات مرور مسرّبة; كلمات مرور مخترقة</string>
     <string name="settingssearch_autofill_index_status_title">حالة التعبئة التلقائية للاقتراحات</string>
-    <string name="settingssearch_ssh_socket_title">SSH socket</string>
-    <string name="settingssearch_ssh_socket_keywords">SSH_AUTH_SOCK socket path environment client</string>
+    <string name="settingssearch_ssh_socket_title">مقبس SSH</string>
+    <string name="settingssearch_ssh_socket_keywords">SSH_AUTH_SOCK; مقبس; مسار; البيئة; متغيرات البيئة; العميل</string>
     <string name="settingssearch_membership_status_title">الحالة المميزة</string>
     <string name="settingssearch_membership_inactive_text">لا توجد عضوية نشطة</string>
-    <string name="settingssearch_backup_location_keywords">destination folder server WebDAV S3 bucket</string>
+    <string name="settingssearch_backup_location_keywords">الوجهة; مكان الحفظ; مجلد; خادم; WebDAV; S3; حاوية</string>
     <string name="settingssearch_backup_password_keywords">تم تكوين كلمة مرور مشفرة</string>
-    <string name="settingssearch_build_ref_keywords">revision commit source build reference</string>
+    <string name="settingssearch_build_ref_keywords">مراجعة; إصدار; إيداع; commit; المصدر; الشفرة المصدرية; بناء; مرجع</string>
     <string name="settingssearch_license_keywords">الرمز المميز لاستحقاق ترخيص الترخيص</string>
     <string name="settingssearch_search_placeholder">إعدادات البحث</string>
     <string name="settings_appearance_header_title">مظهر</string>
@@ -1674,14 +1721,14 @@
     <string name="settings_experience_header_title">الخبرة</string>
     <string name="settings_team_header_title">فريق</string>
     <string name="settings_localization_header_title">التعريب</string>
-    <string name="licenses_empty_label">No open-source licenses</string>
+    <string name="licenses_empty_label">لا توجد تراخيص مفتوحة المصدر</string>
     <string name="menu_bar_status_unlocked">مفتوح</string>
     <string name="menu_bar_status_locked">مُقفل</string>
     <string name="menu_bar_status_set_up">إعداد</string>
-    <string name="menu_bar_unlock_vault_hint">Open Keyguard to unlock your vault.</string>
-    <string name="menu_bar_search_hint">Type to find a login, then copy its password.</string>
+    <string name="menu_bar_unlock_vault_hint">افتح Keyguard لفتح خزنتك.</string>
+    <string name="menu_bar_search_hint">اكتب للعثور على بيانات تسجيل دخول، ثم انسخ كلمة مرورها.</string>
     <string name="menu_bar_search_no_matches_text">لا شيء يطابق "%s".</string>
-    <string name="menu_bar_generate_password_hint">Generate a strong password and copy it</string>
+    <string name="menu_bar_generate_password_hint">أنشئ كلمة مرور قوية وانسخها</string>
     <string name="menu_bar_lock_action">قفْل</string>
     <string name="menu_bar_lock_vault_hint">قفْل المخزن الآن</string>
     <string name="menu_bar_open_main_window_action">فتح النافذة الرئيسة</string>
@@ -1705,11 +1752,11 @@
     <string name="pref_item_notifications_text">التنبيهات</string>
     <string name="pref_item_appearance_title">مظهر</string>
     <string name="pref_item_appearance_text">اللغة والموضوع والرسوم المتحركة</string>
-    <string name="pref_item_appearance_restart_note">Takes effect after Keyguard is restarted.</string>
+    <string name="pref_item_appearance_restart_note">يسري التغيير بعد إعادة تشغيل Keyguard.</string>
     <string name="pref_item_dev_title">تطوير</string>
     <string name="pref_item_dev_text">إعدادات الاختبار للتطوير</string>
-    <string name="pref_item_debug_premium_title">Force premium status</string>
-    <string name="pref_item_debug_premium_text">Enables premium features in test builds.</string>
+    <string name="pref_item_debug_premium_title">فرض حالة العضوية المميّزة</string>
+    <string name="pref_item_debug_premium_text">يُفعّل الميزات المميّزة في إصدارات الاختبار.</string>
     <string name="pref_item_other_title">آخر</string>
     <string name="pref_item_other_text">مواقع المجتمع، معلومات التطبيق</string>
     <string name="pref_section_automatic_backups_setup_title">الإعداد</string>
@@ -1785,7 +1832,7 @@
     <string name="pref_item_automatic_backups_retention_value">%1$d لقطة</string>
     <string name="pref_item_automatic_backups_retention_keep_all">احتفظ بجميع اللقطات</string>
     <string name="pref_item_automatic_backups_retention_label">سياسة الاحتفاظ بالبيانات</string>
-    <string name="pref_item_automatic_backups_retention_prune_note">Older snapshots beyond this count are pruned. Zero keeps everything.</string>
+    <string name="pref_item_automatic_backups_retention_prune_note">تُحذف اللقطات الأقدم التي تتجاوز هذا العدد. اختر صفرًا للاحتفاظ بكل اللقطات.</string>
     <string name="pref_item_automatic_backups_disable_title">إيقاف النسخ الاحتياطي التلقائي</string>
     <string name="pref_item_automatic_backups_disable_message">يؤدي هذا فقط إلى إيقاف النسخ الاحتياطي التلقائي المستقبلي. يمسح المجلد المحلي وكلمة المرور وخيار المرفقات من Keyguard. لا يُحذف مستودع النسخ الاحتياطي الحالي والملفات الموجودة في ذلك المجلد.</string>
     <string name="pref_item_automatic_backups_disable_action">تعطيل...</string>
@@ -1810,7 +1857,6 @@
     <string name="pref_item_crowdin_title">مشروع كراودين</string>
     <string name="pref_item_crowdin_view_all_contributors_title">عرض الكل</string>
     <string name="pref_item_open_source_licenses_title">تراخيص مفتوحة المصدر</string>
-    <string name="pref_item_download_apk_title">تنزيل ملف APK</string>
     <string name="pref_item_load_app_icons_title">تحميل أيقونات التطبيقات</string>
     <string name="pref_item_load_website_icons_title">تحميل أيقونات الموقع</string>
     <string name="pref_item_load_website_icons_text">قد يؤدي رمز موقع قائمة الانتظار إلى تسريب عنوان موقع الويب إلى مزود خدمة الإنترنت</string>
@@ -1839,9 +1885,9 @@
     <string name="pref_item_hibp_api_token_status_verified">تم التحقق</string>
     <string name="pref_item_hibp_api_token_status_rejected">مرفوض</string>
     <string name="pref_item_hibp_api_token_status_failed">تعذّر التحقق</string>
-    <string name="pref_item_hibp_api_token_note">Use your own API key for higher rate limits.</string>
-    <string name="pref_item_hibp_api_token_check_failed">Check failed</string>
-    <string name="pref_item_hibp_api_token_input_note">Paste a personal API key to raise the breach-check rate limit. Leave empty to remove it.</string>
+    <string name="pref_item_hibp_api_token_note">استخدم مفتاح API الخاص بك لزيادة الحد الأقصى لمعدل الطلبات.</string>
+    <string name="pref_item_hibp_api_token_check_failed">فشل الفحص</string>
+    <string name="pref_item_hibp_api_token_input_note">الصق مفتاح API الشخصي الخاص بك لزيادة الحد الأقصى لمعدل فحص الاختراقات. اترك الحقل فارغًا لإزالة المفتاح.</string>
     <string name="pref_item_check_inactive_2fa_title">تحقق من المصادقة الثنائية غير النشطة</string>
     <string name="pref_item_check_inactive_passkeys_title">التحقق من وجود مفاتيح مرور غير نشطة</string>
     <string name="pref_item_conceal_fields_title">إخفاء الحقول</string>
@@ -1896,7 +1942,7 @@
     <string name="pref_item_permissions_title">الأذونات</string>
     <string name="pref_item_features_overview_title">نظرة عامة على الميزات</string>
     <string name="pref_item_url_override_title">تجاوزات URL</string>
-    <string name="pref_item_webdav_transactions_title">Prefer WebDAV transactions</string>
+    <string name="pref_item_webdav_transactions_title">تفضيل معاملات WebDAV</string>
     <string name="pref_item_autotype_speed_title">سرعة الإدخال التلقائي</string>
     <string name="pref_item_autotype_speed_fast">سريع</string>
     <string name="pref_item_autotype_speed_normal">عادي</string>
@@ -1926,8 +1972,6 @@
     <string name="pref_item_ssh_agent_text">قم بمصادقة عملاء Git و SSH الخاصين بك دون تمكين هؤلاء العملاء من قراءة مفتاحك الخاص</string>
     <string name="pref_item_agent_status_unsupported">غير مدعوم</string>
     <string name="pref_item_agent_status_stopped">متوقف</string>
-    <string name="pref_item_agent_status_starting">جارٍ التشغيل</string>
-    <string name="pref_item_agent_status_ready">جاهز</string>
     <string name="pref_item_agent_status_failed">فشل التشغيل</string>
     <string name="pref_item_agent_approval_window_title">تذكّر الموافقات على استخدام المفاتيح</string>
     <string name="pref_item_agent_local_storage_title">التخزين المحلي</string>
@@ -1936,13 +1980,14 @@
     <string name="pref_item_agent_display_key_names_note">ستُخزَّن نسخة غير مشفّرة من عنوان العنصر محليًا</string>
     <string name="pref_item_agent_approval_window_always_ask">اسأل في كل مرة</string>
     <string name="pref_item_agent_approval_window_until_lock">حتى تُقفل الخزنة</string>
-    <string name="pref_item_ssh_agent_approval_remember_note">An approved signature is remembered for this long per key and application, instead of asking every time.</string>
+    <string name="pref_item_approval_window_title">تذكّر الموافقات</string>
+    <string name="pref_item_ssh_agent_approval_remember_note">تُحفظ الموافقة على التوقيع طوال هذه المدة لكل مفتاح وتطبيق، بدلاً من طلبها في كل مرة.</string>
     <string name="pref_item_agent_filters_text">اختر مفاتيح <xliff:g id="protocol" example="SSH">%1$s</xliff:g> التي يمكن لوكيل %1$s الوصول إليها</string>
     <string name="pref_item_agent_filters_summary_all">كل المفاتيح متاحة</string>
     <string name="pref_item_agent_filters_summary_active">عوامل التصفية مفعّلة</string>
     <string name="pref_item_agent_history_title">سجل الطلبات</string>
-    <string name="pref_item_ssh_agent_enable_title">Enable SSH agent</string>
-    <string name="pref_item_ssh_agent_description">Keyguard serves your vault's SSH keys to ssh/git. Each signature requires your approval.</string>
+    <string name="pref_item_ssh_agent_enable_title">تفعيل وكيل SSH</string>
+    <string name="pref_item_ssh_agent_description">يوفّر Keyguard مفاتيح SSH من خزنتك لـ ssh/git. يتطلب كل توقيع موافقتك.</string>
     <string name="pref_item_license_key_title">ربط رمز استحقاق موجود</string>
     <string name="pref_item_license_key_field_label">رمز الاستحقاق</string>
     <string name="pref_item_license_key_message_redeemed">تم ربط رمز الاستحقاق بنجاح</string>
@@ -1952,19 +1997,19 @@
     <string name="pref_item_license_key_status_revoked">مُبطَل</string>
     <string name="pref_item_license_key_status_expired">منتهي الصلاحية</string>
     <string name="pref_item_license_key_status_available">متاح</string>
-    <string name="pref_item_license_key_removed_text">The linked entitlement token was removed.</string>
-    <string name="pref_item_license_key_refreshed_text">The entitlement token status was refreshed.</string>
-    <string name="pref_item_license_key_unlock_note">Unlock your vault to link or copy an entitlement token.</string>
-    <string name="pref_item_license_key_link_action">Link entitlement token</string>
-    <string name="pref_item_license_key_remove_action">Remove linked token</string>
-    <string name="pref_item_license_key_refresh_action">Refresh token status</string>
-    <string name="pref_item_license_key_show_token_action">Show token</string>
-    <string name="pref_item_license_key_hide_token_action">Hide token</string>
-    <string name="pref_item_license_key_copy_token_action">Copy token</string>
-    <string name="pref_item_license_key_linked_token_title">Linked entitlement token</string>
-    <string name="pref_item_license_key_purchase_token_title">Purchase entitlement token</string>
-    <string name="pref_item_license_key_token_status_text">Status: %1$s</string>
-    <string name="pref_item_license_key_status_grace">Grace period</string>
+    <string name="pref_item_license_key_removed_text">تمت إزالة رمز الاستحقاق المرتبط.</string>
+    <string name="pref_item_license_key_refreshed_text">تم تحديث حالة رمز الاستحقاق.</string>
+    <string name="pref_item_license_key_unlock_note">افتح خزنتك لربط رمز استحقاق أو نسخه.</string>
+    <string name="pref_item_license_key_link_action">ربط رمز استحقاق</string>
+    <string name="pref_item_license_key_remove_action">إزالة الرمز المرتبط</string>
+    <string name="pref_item_license_key_refresh_action">تحديث حالة الرمز</string>
+    <string name="pref_item_license_key_show_token_action">إظهار الرمز</string>
+    <string name="pref_item_license_key_hide_token_action">إخفاء الرمز</string>
+    <string name="pref_item_license_key_copy_token_action">نسخ الرمز</string>
+    <string name="pref_item_license_key_linked_token_title">رمز الاستحقاق المرتبط</string>
+    <string name="pref_item_license_key_purchase_token_title">رمز استحقاق الشراء</string>
+    <string name="pref_item_license_key_token_status_text">الحالة: %1$s</string>
+    <string name="pref_item_license_key_status_grace">فترة السماح</string>
     <string name="pref_item_license_key_status_pending">في انتظار المُراجعة</string>
     <string name="pref_item_license_key_status_refunded">تم الاسترداد</string>
     <string name="pref_item_license_sync_title">الحصول على رمز الاستحقاق</string>
@@ -1986,13 +2031,13 @@
     <string name="pref_item_yubikey_unlock_confirm_title">هل تريد تكوين فتحة YubiKey؟</string>
     <string name="pref_item_yubikey_unlock_confirm_message_empty">هل تريد تكوين الفتحة <xliff:g id="slot_number" example="1">%1$s</xliff:g> لفتح القبو؟ الإعداد يتطلب اتصال USB.</string>
     <string name="pref_item_yubikey_unlock_confirm_message_configured">الفتحة <xliff:g id="slot_number" example="1">%1$s</xliff:g> مكونة مسبقًا. إعادة التكوين تتطلب اتصال USB وستحل محل تكوين الفتحة الحالية.</string>
-    <string name="pref_item_yubikey_unlock_note">Unlock the vault by touching a YubiKey configured for HMAC-SHA1 challenge-response. Keyguard can configure an empty slot for you, or use one you set up with YubiKey Manager.</string>
+    <string name="pref_item_yubikey_unlock_note">افتح الخزنة بلمس YubiKey مُعدّ لأسلوب التحدي والاستجابة HMAC-SHA1. يمكن لـ Keyguard إعداد خانة فارغة لك، أو استخدام خانة أعددتها عبر YubiKey Manager.</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
         be able to use it to unlock the vault. -->
     <string name="pref_item_biometric_unlock_confirm_title">فتح البيومترية</string>
     <string name="pref_item_biometric_unlock_timeout_title">يتطلب كلمة مرور رئيسية بعد</string>
-    <string name="pref_item_biometric_unlock_description">Unlock the vault with biometrics instead of typing the master password. Turning this on requires biometric authentication.</string>
+    <string name="pref_item_biometric_unlock_description">افتح الخزنة بالمصادقة البيومترية بدلاً من كتابة كلمة المرور الرئيسية. يتطلب تفعيل هذا الخيار المصادقة البيومترية.</string>
     <string name="pref_item_keep_screen_on_title">إبقاء الشاشة قيد التشغيل أثناء عرض العناصر</string>
     <string name="pref_item_autofill_service_title">خدمة الملء التلقائي</string>
     <string name="pref_item_autofill_service_text">استخدم Android Autofill Framework للمساعدة في ملء معلومات تسجيل الدخول في التطبيقات الأخرى على الجهاز</string>
@@ -2002,13 +2047,13 @@
     <string name="pref_item_autofill_service_browser_autofill_settings_error">فشل فتح إعدادات التعبئة التلقائية للمتصفح</string>
     <string name="pref_item_autofill_service_enable_action">تمكين التعبئة التلقائية</string>
     <string name="pref_item_autofill_service_enabled_text">Keyguard مفعل للملء التلقائي.</string>
-    <string name="pref_item_autofill_service_disabled_text">Enable Keyguard to fill passwords, passkeys and verification codes in other apps.</string>
-    <string name="pref_item_autofill_service_updating_text">Updating AutoFill suggestions…</string>
-    <string name="pref_item_autofill_service_current_text">AutoFill suggestions are up to date.</string>
-    <string name="pref_item_autofill_service_index_failed_text">Could not update AutoFill suggestions. Unlock Keyguard and try again.</string>
-    <string name="pref_item_autofill_service_locked_text">Unlock Keyguard to update AutoFill suggestions.</string>
+    <string name="pref_item_autofill_service_disabled_text">فعّل Keyguard لملء كلمات المرور ومفاتيح المرور ورموز التحقق في التطبيقات الأخرى.</string>
+    <string name="pref_item_autofill_service_updating_text">جارٍ تحديث اقتراحات الملء التلقائي…</string>
+    <string name="pref_item_autofill_service_current_text">اقتراحات الملء التلقائي محدّثة.</string>
+    <string name="pref_item_autofill_service_index_failed_text">تعذّر تحديث اقتراحات الملء التلقائي. افتح قفل Keyguard وحاول مرة أخرى.</string>
+    <string name="pref_item_autofill_service_locked_text">افتح قفل Keyguard لتحديث اقتراحات الملء التلقائي.</string>
     <string name="pref_item_autofill_service_refresh_action">تحديث الاقتراحات</string>
-    <string name="pref_item_autofill_service_open_settings_action">Open AutoFill settings</string>
+    <string name="pref_item_autofill_service_open_settings_action">فتح إعدادات الملء التلقائي</string>
     <string name="pref_item_autofill_auto_copy_otp_title">النسخ التلقائي لكلمات المرور لمرة واحدة</string>
     <string name="pref_item_autofill_auto_copy_otp_text">عند ملء معلومات تسجيل الدخول، قم تلقائيًا بنسخ كلمات المرور لمرة واحدة</string>
     <string name="pref_item_autofill_default_match_detection_title">الكشف الافتراضي عن المطابقة</string>
@@ -2044,20 +2089,22 @@
     <string name="pref_item_premium_membership_section_products_title">منتجات</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">فشل تحميل قائمة الاشتراكات</string>
     <string name="pref_item_premium_membership_failed_to_load_products">فشل في تحميل قائمة المنتجات</string>
-    <string name="pref_item_premium_membership_active_title">You have Keyguard Premium</string>
-    <string name="pref_item_premium_membership_benefit_create_edit_items">Create and edit your vault items</string>
+    <string name="pref_item_premium_membership_active_title">لديك Keyguard Premium</string>
+    <string name="pref_item_premium_membership_benefit_create_edit_items">إنشاء عناصر خزنتك وتعديلها</string>
     <string name="pref_item_premium_membership_benefit_multiple_accounts">استخدام حسابات متعددة</string>
     <string name="pref_item_premium_membership_benefit_support_development">دعم التطوير المستقل</string>
-    <string name="pref_item_premium_membership_footer">A subscription or a one-time purchase unlocks the full experience. Lifetime is a single payment.</string>
-    <string name="pref_item_premium_membership_direct_note">This build includes all premium features.</string>
+    <string name="pref_item_premium_membership_footer">يتيح لك الاشتراك أو الشراء لمرة واحدة جميع الميزات. خيار مدى الحياة يتطلب دفعة واحدة.</string>
+    <string name="pref_item_premium_membership_direct_note">تتضمن هذه النسخة جميع الميزات المميزة.</string>
+    <string name="pref_item_premium_membership_included_note">لأسباب تاريخية، يتضمن هذا الإصدار جميع ميزات Premium.</string>
+    <string name="pref_item_premium_membership_buy_license_title">شراء ترخيص</string>
     <string name="pref_item_premium_status_active">نشيط</string>
     <string name="pref_item_premium_status_free_trial_n">تجربة مجانية <xliff:g id="period" example="1 month">%1$s</xliff:g></string>
     <string name="pref_item_premium_status_will_not_renew">لن تجدد</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">الإدارة على متجر Play</string>
-    <string name="premium_purchase_one_time_title">One-time purchase</string>
-    <string name="premium_purchase_restore_action">Restore purchases</string>
-    <string name="premium_purchase_manage_subscription_action">Manage subscription</string>
-    <string name="premium_purchase_restore_note">Already purchased on another device? Restore brings your purchases here.</string>
+    <string name="premium_purchase_one_time_title">شراء لمرة واحدة</string>
+    <string name="premium_purchase_restore_action">استعادة المشتريات</string>
+    <string name="premium_purchase_manage_subscription_action">إدارة الاشتراك</string>
+    <string name="premium_purchase_restore_note">هل سبق لك الشراء على جهاز آخر؟ استعد مشترياتك لتصبح متاحة هنا.</string>
     <string name="premium_purchase_product_unavailable_text">بعض المشتريات غير متوفرة، حاول مرة أخرى لاحقاً.</string>
     <string name="premium_purchase_unverified_text">تعذر التحقق من الشراء، حاول استعادة المشتريات.</string>
     <string name="premium_purchase_failed_text">تعذر إكمال هذا الإجراء، الرجاء المحاولة مرة أخرى.</string>
@@ -2066,7 +2113,7 @@
     <string name="premium_purchase_restore_empty_text">لم يتم العثور على مشتريات نشطة لحساب Apple هذا.</string>
     <string name="premium_purchase_restore_success_text">تمت استعادة مشترياتك.</string>
     <string name="premium_purchase_manage_failed_text">لا يمكن فتح إدارة الاشتراك، حاول مرة أخرى لاحقاً.</string>
-    <string name="premium_purchase_storekit_renewal_note">Subscriptions renew automatically unless cancelled in your Apple Account settings. If eligible, your free trial converts to the displayed subscription price when it ends.</string>
+    <string name="premium_purchase_storekit_renewal_note">تتجدد الاشتراكات تلقائيًا ما لم تُلغَ في إعدادات حساب Apple. إذا كنت مؤهلاً للتجربة المجانية، فسيبدأ احتساب سعر الاشتراك المعروض عند انتهائها.</string>
     <string name="premium_purchase_price_period">%1$s / %2$s</string>
     <string name="premium_purchase_terms_title">شروط الاستخدام</string>
     <string name="pref_item_permission_post_notifications_title">نشر الإخطارات</string>
@@ -2080,7 +2127,7 @@
     <string name="pref_item_permission_local_network_text">يُستخدم للاتصال بخوادم Bitwarden وWebDAV وSFTP المستضافة ذاتيًا على شبكتك المحلية</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">السماح بتخطيط لوحتين في الوضع الأفقي</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">السماح بتخطيط لوحتين في الوضع الرأسي</string>
-    <string name="pref_item_gpg_agent_approvals_note">Approvals are remembered for the selected duration and scope. Signing and decryption require separate approvals. Locking the vault clears remembered approvals.</string>
+    <string name="pref_item_gpg_agent_approvals_note">تُحفظ الموافقات للمدة والنطاق المحددين. يتطلب التوقيع وفك التشفير موافقات منفصلة. يؤدي قفل الخزنة إلى مسح الموافقات المحفوظة.</string>
     <string name="pref_item_gpg_keyserver_search_title">البحث في خادم مفاتيح GPG</string>
     <string name="pref_item_gpg_keyserver_search_text">ابحث عن مفاتيح GPG العامة بالبريد الإلكتروني أو البصمة أو معرّف المفتاح أو الاسم</string>
     <string name="pref_item_gpg_keyserver_url_title">خادم المفاتيح</string>
@@ -2142,13 +2189,13 @@
     <string name="datasafety_local_downloads_section">التنزيلات</string>
     <string name="datasafety_local_settings_section">إعدادات المستخدم</string>
     <string name="datasafety_local_settings_note">يتم تشفير إعدادات المستخدم باستخدام مفتاح خاص بالجهاز.</string>
-    <string name="datasafety_local_settings_no_app_encryption_note">User settings are stored locally without app-level encryption.</string>
+    <string name="datasafety_local_settings_no_app_encryption_note">تُخزَّن إعدادات المستخدم محليًا دون تشفير على مستوى التطبيق.</string>
     <string name="datasafety_local_vault_section">قبو</string>
     <string name="datasafety_local_encryption_algorithm_intro">يتم تشفير Vault باستخدام مفتاح مشتق من كلمة مرور التطبيق باتباع الخطوات التالية:</string>
     <string name="datasafety_local_encryption_algorithm_outro">يتم بعد ذلك تخزين الملح والتجزئة محليًا على الجهاز، ليتم لاحقًا إنشاء مفتاح رئيسي لفتح القبو.</string>
     <string name="datasafety_local_unlocking_vault">يعني فتح Vault تخزين المفتاح الصحيح في ذاكرة الوصول العشوائي (RAM) الخاصة بالجهاز، واكتساب القدرة على قراءة Vault المشفر وتعديله.</string>
-    <string name="datasafety_local_stored_on_device_text">Local data includes downloads, user settings, and the vault stored on this device.</string>
-    <string name="datasafety_local_kdf_versions_note">Key derivation (KDF) uses Argon2id for version 1 and PBKDF2 for legacy version 0.</string>
+    <string name="datasafety_local_stored_on_device_text">تشمل البيانات المحلية التنزيلات وإعدادات المستخدم والخزنة المخزّنة على هذا الجهاز.</string>
+    <string name="datasafety_local_kdf_versions_note">يستخدم اشتقاق المفاتيح (KDF) خوارزمية Argon2id للإصدار 1 وخوارزمية PBKDF2 للإصدار القديم 0.</string>
     <string name="datasafety_remote_section">البيانات عن بعد</string>
     <string name="datasafety_remote_text">يتم تخزين البيانات عن بعد على خوادم Bitwarden بتشفير المعرفة الصفرية.</string>
     <string name="webdav_settings_header_title">إعداد خادم WebDAV</string>
@@ -2169,21 +2216,21 @@
     <string name="webdav_picker_filename_invalid">لا يمكن أن يحتوي اسم قاعدة البيانات على فواصل مسارات.</string>
     <string name="webdav_picker_filename_extension">يجب أن ينتهي اسم قاعدة البيانات بـ %1$s.</string>
     <string name="webdav_picker_filename_exists">يوجد ملف بهذا الاسم بالفعل.</string>
-    <string name="s3_settings_header_title">S3 storage configuration</string>
-    <string name="s3_settings_endpoint_title">Endpoint URL</string>
-    <string name="s3_settings_endpoint_note">Leave empty to use Amazon S3.</string>
-    <string name="s3_settings_region_title">Region</string>
-    <string name="s3_settings_bucket_title">Bucket</string>
-    <string name="s3_settings_prefix_title">Folder prefix</string>
-    <string name="s3_settings_keepass_requirements">Bucket, object key, access key ID, and secret access key are required. The object key must end in .kdbx.</string>
-    <string name="s3_settings_key_title">Object key</string>
-    <string name="s3_settings_access_key_id_title">Access key ID</string>
-    <string name="s3_settings_secret_access_key_title">Secret access key</string>
-    <string name="s3_settings_auth_note">Enter an access key for this bucket.</string>
-    <string name="s3_settings_path_style_title">Path-style URLs</string>
-    <string name="s3_settings_path_style_text">Puts the bucket in the URL path instead of the host name. Most self-hosted servers need this.</string>
-    <string name="s3_picker_header_title">Browse S3 bucket</string>
-    <string name="s3_location_summary">%1$s at %2$s</string>
+    <string name="s3_settings_header_title">إعداد تخزين S3</string>
+    <string name="s3_settings_endpoint_title">عنوان URL لنقطة النهاية</string>
+    <string name="s3_settings_endpoint_note">اتركه فارغًا لاستخدام Amazon S3.</string>
+    <string name="s3_settings_region_title">المنطقة</string>
+    <string name="s3_settings_bucket_title">الحاوية</string>
+    <string name="s3_settings_prefix_title">بادئة المجلد</string>
+    <string name="s3_settings_keepass_requirements">الحاوية ومفتاح الكائن ومعرّف مفتاح الوصول ومفتاح الوصول السري مطلوبة. يجب أن ينتهي مفتاح الكائن بالامتداد .kdbx.</string>
+    <string name="s3_settings_key_title">مفتاح الكائن</string>
+    <string name="s3_settings_access_key_id_title">معرّف مفتاح الوصول</string>
+    <string name="s3_settings_secret_access_key_title">مفتاح الوصول السري</string>
+    <string name="s3_settings_auth_note">أدخل مفتاح وصول لهذه الحاوية.</string>
+    <string name="s3_settings_path_style_title">عناوين URL بنمط المسار</string>
+    <string name="s3_settings_path_style_text">يضع اسم الحاوية في مسار عنوان URL بدلًا من اسم المضيف. تحتاج معظم الخوادم المستضافة ذاتيًا إلى هذا الخيار.</string>
+    <string name="s3_picker_header_title">تصفّح حاوية S3</string>
+    <string name="s3_location_summary">%1$s على %2$s</string>
     <!-- Title of the 'Localization contributors' screen -->
     <string name="localization_contributors_title">المساهمون في التوطين</string>
     <string name="localization_contributors_search_placeholder">البحث عن المساهمين</string>
@@ -2194,7 +2241,7 @@
     <string name="logs_export_button">يصدّر</string>
     <string name="logs_export_success">اكتمل التصدير</string>
     <string name="logs_empty_title">لا توجد سجلات</string>
-    <string name="logs_empty_note">In-memory logging may be disabled.</string>
+    <string name="logs_empty_note">قد يكون التسجيل في الذاكرة معطّلًا.</string>
     <string name="gpg_client_request">طلب عميل GPG</string>
     <string name="gpg_agent_request_approval_decrypt_title">طلب فك تشفير GPG</string>
     <string name="gpg_agent_request_approval_decrypt_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> يريد استخدام مفتاح GPG التالي لفك تشفير البيانات:</string>
@@ -2213,6 +2260,14 @@
     <string name="gpg_agent_setup_step_5_text">استخدم نفس GNUPGHOME عندما يوقّع Git الالتزامات. أبقِ الإعداد محليًا لمستودع واحد، أو غيّر --local إلى --global.</string>
     <string name="gpg_agent_setup_windows_native_gnupg_note">يتطلب Windows تثبيتًا أصليًا لـ GnuPG. إن GPG المضمّن مع Git for Windows غير متوافق مع هذا الإعداد.</string>
     <string name="gpg_agent_setup_macos_step_2_text">شغّل هذه الأوامر في Terminal أثناء تشغيل Keyguard. وهي تجهّز <xliff:g id="path" example="~/.keyguard/gnupg">%1$s</xliff:g> وتربط GnuPG المثبّت بـ Keyguard. ثم عيّن GNUPGHOME في جلسة shell نفسها قبل استيراد المفاتيح أو التوقيع.</string>
+    <string name="gpg_agent_setup_android_termux_text">على Android، يوفّر Keyguard وكيل GPG عبر حزمة مساعدة مخصّصة. فعّل وكيل GPG في Keyguard، وثبّت الحزمة وأعدّها، ووافق على الطلبات عند اتصال GnuPG.</string>
+    <string name="gpg_agent_setup_android_termux_step_3_title">إعداد GnuPG</string>
+    <string name="gpg_agent_setup_android_termux_step_3_shell_current">شغّل الحزمة وصدّر GNUPGHOME إلى صدفتك الحالية:</string>
+    <string name="gpg_agent_setup_android_termux_import_title">استيراد المفتاح العام</string>
+    <string name="gpg_agent_setup_android_termux_import_text">صدّر المفتاح العام من عنصر مفتاح GPG في Keyguard. يحفظه Keyguard في التنزيلات. امنح Termux صلاحية الوصول إلى التخزين المشترك مرة واحدة، ثم استورد المفتاح. لا يكشف هذا سوى بيانات المفتاح العام.</string>
+    <string name="gpg_agent_setup_android_termux_git_title">توقيع التزامات Git</string>
+    <string name="gpg_agent_setup_android_how_does_it_work_1">يتلقى وكيل GPG الطلبات من GnuPG، ثم يمرّرها إلى تطبيق Keyguard بدلاً من تنفيذ العملية الحساسة بنفسه.</string>
+    <string name="gpg_agent_setup_android_how_does_it_work_2">يتم الاتصال على خطوتين: أولاً يرسل الوكيل إشارة إلى التطبيق لبدء جلسة، ثم يتصل الطرفان عبر قناة TCP محلية ويتبادلان رسائل مشفّرة. يعمل وكيل GPG كوسيط، بينما ينفّذ تطبيق Keyguard العمليات الفعلية.</string>
     <string name="gpg_keys_capability_sign">توقيع</string>
     <string name="gpg_key_status">حالة مفتاح GPG</string>
     <string name="gpg_key_status_revoked_text">تم إبطال مفتاح GPG هذا ولا ينبغي استخدامه.</string>
@@ -2231,16 +2286,16 @@
     <string name="gpg_tools_public_key_invalid">الصق شهادات عامة مُدرَّعة صالحة. لا يمكن إضافة إدخال غير مدعوم أو غير مكتمل.</string>
     <string name="gpg_tools_public_key_private">الصق الشهادات العامة فقط. لا يمكن إضافة المفاتيح الخاصة هنا.</string>
     <string name="gpg_tools_public_key_not_encryptable">يجب أن يمتلك كل مستلم مفتاح تشفير صالحًا حاليًا.</string>
-    <string name="gpg_tools_export_failed">Could not save the result. Try another location.</string>
-    <string name="gpg_tools_importing">Importing file…</string>
-    <string name="gpg_tools_exporting">Saving file…</string>
-    <string name="gpg_tools_saved">File saved</string>
-    <string name="gpg_tools_check_public_key">Check public key</string>
-    <string name="gpg_tools_additional_public_keys">Additional public keys</string>
-    <string name="gpg_tools_ready_to_save">Ready to save</string>
+    <string name="gpg_tools_export_failed">تعذّر حفظ النتيجة. جرّب موقعًا آخر.</string>
+    <string name="gpg_tools_importing">جارٍ استيراد الملف…</string>
+    <string name="gpg_tools_exporting">جارٍ حفظ الملف…</string>
+    <string name="gpg_tools_saved">تم حفظ الملف</string>
+    <string name="gpg_tools_check_public_key">فحص المفتاح العام</string>
+    <string name="gpg_tools_additional_public_keys">مفاتيح عامة إضافية</string>
+    <string name="gpg_tools_ready_to_save">جاهز للحفظ</string>
     <string name="gpg_tools_header_title">أدوات GPG</string>
-    <string name="gpg_tools_message_label">Message</string>
-    <string name="gpg_tools_signature_required">Enter a signature to verify</string>
+    <string name="gpg_tools_message_label">الرسالة</string>
+    <string name="gpg_tools_signature_required">أدخل توقيعًا للتحقق منه</string>
     <string name="gpg_tools_sign_with">تسجيل الدخول باستخدام</string>
     <string name="gpg_tools_choose_recipients">اختيار المستلمين</string>
     <string name="gpg_tools_add_recipients">إضافة مستلمين…</string>
@@ -2305,6 +2360,11 @@
     <string name="gpg_keyserver_search_revoked_label">مُبطَل</string>
     <string name="gpg_keyserver_search_index_label">الفهرس</string>
     <string name="gpg_keyserver_search_public_key_not_found_title">لم يتم العثور على المفتاح العام لـ GPG في خادم المفاتيح</string>
+    <string name="gpg_keyserver_search_scan_no_fingerprint_title">لا يحتوي رمز QR على بصمة مفتاح GPG</string>
+    <string name="gpg_keyserver_error_unexpected_fingerprint">أعاد خادم المفاتيح مفتاح GPG عامًا ببصمة مختلفة</string>
+    <string name="gpg_keyserver_error_v6_unsupported">لا يدعم خادم المفاتيح هذا مفاتيح GPG من الإصدار V6</string>
+    <string name="gpg_keyserver_error_short_key_id_title">معرّفات المفاتيح القصيرة غير مدعومة</string>
+    <string name="gpg_keyserver_error_short_key_id_text">معرّفات المفاتيح القصيرة ليست فريدة. ابحث بالبصمة أو بمعرّف المفتاح الطويل.</string>
     <string name="gpg_keyserver_upload_success_title">تم رفع المفتاح العام لـ GPG</string>
     <string name="gpg_keyserver_upload_verify_already_published_text">عناوين البريد الإلكتروني المحددة مُتحقَّق منها بالفعل.</string>
     <string name="gpg_keyserver_refresh_success_title">تم تحديث المفتاح العام لـ GPG</string>
@@ -2319,6 +2379,11 @@
     <string name="gpg_keyserver_status_title">خادم مفاتيح GPG</string>
     <string name="gpg_keyserver_status_not_checked">لم يتم الفحص</string>
     <string name="gpg_keyserver_status_checked_at">تم الفحص في <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
+    <string name="gpg_keyserver_status_verified">تم التحقق</string>
+    <string name="gpg_keyserver_status_found_unverified">تم العثور عليه دون بريد إلكتروني مُتحقَّق منه</string>
+    <string name="gpg_keyserver_status_not_found">لم يُعثر عليه</string>
+    <string name="gpg_keyserver_last_checked">آخر فحص</string>
+    <string name="gpg_keyserver_last_refreshed">آخر تحديث</string>
     <string name="gpg_agent_history_request_sign_hash">توقيع التجزئة</string>
     <string name="gpg_agent_history_request_decrypt">فك التشفير</string>
     <string name="gpg_agent_history_response_unsupported">غير مدعوم</string>
@@ -2327,73 +2392,308 @@
     <string name="cipher_link_unavailable_title">العنصر غير متاح</string>
     <string name="cipher_link_picker_title">اختر العنصر المرتبط</string>
     <string name="cipher_link_picker_action">الربط بعنصر</string>
-    <string name="pref_item_automatic_backups_initialization_error">Automatic backups could not start. Retry to reload the backup settings.</string>
-    <string name="pref_item_automatic_backups_folder_access_help">If folder access is lost, choose the folder again to restore permission.</string>
-    <string name="pref_item_automatic_backups_webdav_keep_password">Leave the password empty to keep the saved password.</string>
-    <string name="pref_item_automatic_backups_s3_keep_secret">Leave the secret access key empty to keep the saved key.</string>
-    <string name="pref_item_launch_at_login_title">Launch Keyguard at login</string>
-    <string name="pref_item_launch_at_login_approval_note">Approval needed in System Settings ▸ Login Items.</string>
-    <string name="pref_item_launch_at_login_unavailable_text">Launch at login is unavailable in this build.</string>
-    <string name="pref_item_menu_bar_only_title">Show only in the menu bar</string>
-    <string name="pref_item_menu_bar_only_text">Hides the Dock icon and the main window; Keyguard stays available from the menu-bar icon.</string>
-    <string name="pref_item_vault_lock_timeout_never_title">Keep the vault unlocked</string>
-    <string name="pref_item_vault_lock_timeout_title">Auto-lock after</string>
-    <string name="pref_item_render_markdown_title">Render Markdown</string>
-    <string name="pref_item_automatic_backups_unavailable_title">Backups unavailable</string>
+    <string name="pref_item_automatic_backups_initialization_error">تعذّر بدء النسخ الاحتياطي التلقائي. أعد المحاولة لإعادة تحميل إعدادات النسخ الاحتياطي.</string>
+    <string name="pref_item_automatic_backups_folder_access_help">إذا فُقد الوصول إلى المجلد، فاختره مجددًا لاستعادة الإذن.</string>
+    <string name="pref_item_automatic_backups_webdav_keep_password">اترك حقل كلمة المرور فارغًا للاحتفاظ بكلمة المرور المحفوظة.</string>
+    <string name="pref_item_automatic_backups_s3_keep_secret">اترك حقل مفتاح الوصول السري فارغًا للاحتفاظ بالمفتاح المحفوظ.</string>
+    <string name="pref_item_launch_at_login_title">تشغيل Keyguard عند تسجيل الدخول</string>
+    <string name="pref_item_launch_at_login_approval_note">تلزم الموافقة من إعدادات النظام ▸ عناصر الدخول.</string>
+    <string name="pref_item_launch_at_login_unavailable_text">التشغيل عند تسجيل الدخول غير متاح في هذا الإصدار.</string>
+    <string name="pref_item_menu_bar_only_title">إظهار التطبيق في شريط القوائم فقط</string>
+    <string name="pref_item_menu_bar_only_text">يُخفي أيقونة Dock والنافذة الرئيسية؛ ويبقى Keyguard متاحًا من أيقونة شريط القوائم.</string>
+    <string name="pref_item_vault_lock_timeout_never_title">إبقاء الخزنة مفتوحة</string>
+    <string name="pref_item_vault_lock_timeout_title">القفل التلقائي بعد</string>
+    <string name="pref_item_render_markdown_title">عرض تنسيق Markdown</string>
+    <string name="pref_item_automatic_backups_unavailable_title">النسخ الاحتياطي غير متاح</string>
     <string name="pref_item_automatic_backups_enabled_title">النسخ الاحتياطي التلقائي مفعل</string>
     <string name="pref_item_automatic_backups_pending_changes_text">هناك تغييرات منذ آخر نسخة احتياطية.</string>
     <string name="pref_item_automatic_backups_change_configuration_action">تغيير الإعدادات</string>
-    <string name="pref_item_automatic_backups_local_folder_title">Local folder</string>
-    <string name="pref_item_automatic_backups_webdav_server_title">WebDAV server</string>
-    <string name="pref_item_automatic_backups_s3_title">S3-compatible storage</string>
-    <string name="pref_item_automatic_backups_not_configured">Not configured</string>
-    <string name="pref_item_automatic_backups_choose_folder_action">Choose folder…</string>
-    <string name="pref_item_automatic_backups_save_verify_action">Save and verify</string>
-    <string name="pref_item_automatic_backups_wizard_title">Set up backups</string>
-    <string name="pref_item_automatic_backups_wizard_destination_title">Choose a destination</string>
-    <string name="pref_item_automatic_backups_wizard_destination_detail">Save backups to a folder, a WebDAV server, or S3-compatible storage.</string>
-    <string name="pref_item_automatic_backups_wizard_protection_title">Protect your backups</string>
-    <string name="pref_item_automatic_backups_wizard_protection_detail">Add a password to encrypt your backup files. Keep it somewhere safe; you will need it to restore them.</string>
-    <string name="pref_item_automatic_backups_wizard_contents_title">Choose what to keep</string>
-    <string name="pref_item_automatic_backups_wizard_contents_detail">Include attachments and choose how many snapshots to retain.</string>
-    <string name="pref_item_automatic_backups_wizard_review_title">Review your setup</string>
-    <string name="pref_item_automatic_backups_wizard_review_detail">Keyguard will check that the destination can read and write files before saving this configuration.</string>
-    <string name="pref_item_automatic_backups_wizard_step_label">Step %1$d of %2$d</string>
-    <string name="pref_item_automatic_backups_wizard_folder_detail">Choose a folder on this device or a connected storage provider.</string>
-    <string name="pref_item_automatic_backups_wizard_webdav_detail">Save backups to your own WebDAV server.</string>
-    <string name="pref_item_automatic_backups_wizard_s3_detail">Save backups to Amazon S3, MinIO, or another S3-compatible service.</string>
-    <string name="pref_item_automatic_backups_wizard_invalid_s3_error">Check the S3 endpoint, bucket, prefix, and access key.</string>
-    <string name="pref_item_automatic_backups_wizard_invalid_url_error">Enter a full HTTP or HTTPS URL without embedded credentials or a fragment.</string>
-    <string name="pref_item_automatic_backups_wizard_replace_password_action">Change the backup password</string>
-    <string name="pref_item_automatic_backups_wizard_confirm_password_label">Confirm backup password</string>
-    <string name="pref_item_automatic_backups_wizard_password_mismatch_error">The passwords do not match.</string>
-    <string name="pref_item_automatic_backups_wizard_verifying_status">Verifying destination…</string>
-    <string name="pref_item_automatic_backups_wizard_discard_title">Discard backup setup?</string>
-    <string name="pref_item_automatic_backups_wizard_discard_message">Your changes will not be saved. The current backup configuration will stay unchanged.</string>
-    <string name="pref_item_automatic_backups_wizard_discard_action">Discard changes</string>
-    <string name="pref_item_automatic_backups_wizard_ready_title">Keep a backup of your vault</string>
-    <string name="pref_item_automatic_backups_wizard_ready_detail">Choose where to save your snapshots, protect them with a password, and decide what to keep.</string>
-    <string name="yubikey_error_title">Failed to use YubiKey</string>
-    <string name="yubikey_error_no_device">Connect a YubiKey with its OTP interface enabled and try again.</string>
-    <string name="yubikey_error_multiple_devices">Connect only the YubiKey you want to use, then try again.</string>
-    <string name="yubikey_error_busy">Another operation is using the YubiKey. Wait for it to finish and try again.</string>
-    <string name="fido2_unlock_title">Security key (FIDO2)</string>
-    <string name="fido2_unlock_description">Unlock with a USB security key that supports PRF. Your app password remains available for recovery.</string>
-    <string name="fido2_touch_prompt">Connect your security key and touch it when it flashes.</string>
-    <string name="fido2_pin_prompt">Enter the PIN for your security key.</string>
-    <string name="fido2_pin_label">Security key PIN</string>
-    <string name="fido2_authenticate_action">Use security key</string>
-    <string name="fido2_browser_action">Use browser</string>
-    <string name="fido2_prompt_title">Security key</string>
-    <string name="fido2_error_title">Could not use the security key</string>
-    <string name="fido2_error_unsupported">This key or platform does not support FIDO2 PRF with user verification.</string>
-    <string name="fido2_error_pin_not_set">Set a FIDO2 PIN using the key manufacturer’s app, then try again.</string>
-    <string name="fido2_error_pin_blocked">The key blocked PIN verification. Reconnect it and use its management app to check its status. You can still unlock Keyguard with your app password.</string>
-    <string name="fido2_error_invalid_pin">Incorrect PIN. Check the PIN before trying again; repeated failures can block the key.</string>
-    <string name="fido2_error_timeout">The security key did not respond in time. Reconnect it and try again.</string>
-    <string name="fido2_error_retry">Try your enrolled security key again, or unlock with your app password.</string>
-    <string name="storage_error_title">Storage unavailable</string>
-    <string name="storage_missing_configuration">This build is missing its shared storage configuration. Install a correctly configured build to continue.</string>
-    <string name="storage_unavailable">Keyguard cannot access its storage container. Try again. If the problem persists, check the app’s signing and App Group configuration.</string>
-    <string name="storage_unwritable">Keyguard cannot write to its storage container. Check available space and storage access, then try again.</string>
+    <string name="pref_item_automatic_backups_local_folder_title">مجلد محلي</string>
+    <string name="pref_item_automatic_backups_webdav_server_title">خادم WebDAV</string>
+    <string name="pref_item_automatic_backups_s3_title">تخزين متوافق مع S3</string>
+    <string name="pref_item_automatic_backups_not_configured">لم يتم الإعداد</string>
+    <string name="pref_item_automatic_backups_choose_folder_action">اختيار مجلد…</string>
+    <string name="pref_item_automatic_backups_save_verify_action">حفظ والتحقق</string>
+    <string name="pref_item_automatic_backups_wizard_title">إعداد النسخ الاحتياطي</string>
+    <string name="pref_item_automatic_backups_wizard_destination_title">اختر وجهة</string>
+    <string name="pref_item_automatic_backups_wizard_destination_detail">احفظ النسخ الاحتياطية في مجلد أو خادم WebDAV أو وحدة تخزين متوافقة مع S3.</string>
+    <string name="pref_item_automatic_backups_wizard_protection_title">احمِ نسخك الاحتياطية</string>
+    <string name="pref_item_automatic_backups_wizard_protection_detail">أضف كلمة مرور لتشفير ملفات النسخ الاحتياطي. احتفظ بكلمة المرور في مكان آمن؛ ستحتاج إليها لاستعادة النسخ الاحتياطية.</string>
+    <string name="pref_item_automatic_backups_wizard_contents_title">اختر ما تريد الاحتفاظ به</string>
+    <string name="pref_item_automatic_backups_wizard_contents_detail">ضمّن المرفقات واختر عدد اللقطات التي تريد الاحتفاظ بها.</string>
+    <string name="pref_item_automatic_backups_wizard_review_title">راجع إعداداتك</string>
+    <string name="pref_item_automatic_backups_wizard_review_detail">سيتحقق Keyguard من إمكانية قراءة الملفات وكتابتها في الوجهة قبل حفظ هذه الإعدادات.</string>
+    <string name="pref_item_automatic_backups_wizard_step_label">الخطوة %1$d من %2$d</string>
+    <string name="pref_item_automatic_backups_wizard_folder_detail">اختر مجلدًا على هذا الجهاز أو لدى موفر تخزين متصل.</string>
+    <string name="pref_item_automatic_backups_wizard_webdav_detail">احفظ النسخ الاحتياطية على خادم WebDAV الخاص بك.</string>
+    <string name="pref_item_automatic_backups_wizard_s3_detail">احفظ النسخ الاحتياطية في Amazon S3 أو MinIO أو خدمة أخرى متوافقة مع S3.</string>
+    <string name="pref_item_automatic_backups_wizard_invalid_s3_error">تحقّق من نقطة نهاية S3 والحاوية والبادئة ومفتاح الوصول.</string>
+    <string name="pref_item_automatic_backups_wizard_invalid_url_error">أدخل عنوان URL كاملًا يستخدم HTTP أو HTTPS دون بيانات اعتماد مضمّنة أو معرّف جزء.</string>
+    <string name="pref_item_automatic_backups_wizard_replace_password_action">تغيير كلمة مرور النسخ الاحتياطي</string>
+    <string name="pref_item_automatic_backups_wizard_confirm_password_label">تأكيد كلمة مرور النسخ الاحتياطي</string>
+    <string name="pref_item_automatic_backups_wizard_password_mismatch_error">كلمتا المرور غير متطابقتين.</string>
+    <string name="pref_item_automatic_backups_wizard_verifying_status">جارٍ التحقق من الوجهة…</string>
+    <string name="pref_item_automatic_backups_wizard_discard_title">هل تريد إلغاء إعداد النسخ الاحتياطي؟</string>
+    <string name="pref_item_automatic_backups_wizard_discard_message">لن تُحفظ تغييراتك. ستبقى إعدادات النسخ الاحتياطي الحالية دون تغيير.</string>
+    <string name="pref_item_automatic_backups_wizard_discard_action">تجاهل التغييرات</string>
+    <string name="pref_item_automatic_backups_wizard_ready_title">احتفظ بنسخة احتياطية من خزنتك</string>
+    <string name="pref_item_automatic_backups_wizard_ready_detail">اختر مكان حفظ لقطاتك، واحمها بكلمة مرور، وحدد ما تريد الاحتفاظ به.</string>
+    <string name="yubikey_error_title">فشل استخدام YubiKey</string>
+    <string name="yubikey_error_no_device">وصّل مفتاح YubiKey مع تفعيل واجهة OTP فيه، ثم حاول مرة أخرى.</string>
+    <string name="yubikey_error_multiple_devices">وصّل مفتاح YubiKey الذي تريد استخدامه فقط، ثم حاول مرة أخرى.</string>
+    <string name="yubikey_error_busy">تستخدم عملية أخرى مفتاح YubiKey. انتظر حتى تنتهي ثم حاول مرة أخرى.</string>
+    <string name="error_flatpak_device_access">يحتاج Keyguard إلى الوصول إلى الأجهزة لاستخدام مفاتيح الأمان. شغّل هذا الأمر في طرفية على النظام المضيف، ثم أعد تشغيل Keyguard:\n%1$s</string>
+    <string name="fido2_unlock_title">مفتاح الأمان (FIDO2)</string>
+    <string name="fido2_unlock_description">افتح القفل باستخدام مفتاح أمان USB يدعم PRF. تظل كلمة مرور التطبيق متاحة لاستعادة الوصول.</string>
+    <string name="fido2_touch_prompt">وصّل مفتاح الأمان والمسه عندما يومض.</string>
+    <string name="fido2_pin_prompt">أدخل رمز PIN لمفتاح الأمان.</string>
+    <string name="fido2_pin_label">رمز PIN لمفتاح الأمان</string>
+    <string name="fido2_authenticate_action">استخدام مفتاح أمان</string>
+    <string name="fido2_browser_action">استخدام المتصفح</string>
+    <string name="fido2_prompt_title">مفتاح الأمان</string>
+    <string name="fido2_error_title">تعذّر استخدام مفتاح الأمان</string>
+    <string name="fido2_error_unsupported">لا يدعم هذا المفتاح أو هذه المنصة FIDO2 PRF مع التحقق من المستخدم.</string>
+    <string name="fido2_error_pin_not_set">عيّن رمز PIN لـ FIDO2 باستخدام تطبيق الشركة المصنّعة للمفتاح، ثم حاول مجددًا.</string>
+    <string name="fido2_error_pin_blocked">حظر المفتاح التحقق من رمز PIN. أعد توصيله واستخدم تطبيق إدارته للتحقق من حالته. لا يزال بإمكانك فتح Keyguard بكلمة مرور التطبيق.</string>
+    <string name="fido2_error_invalid_pin">رمز PIN غير صحيح. تحقّق منه قبل المحاولة مجددًا؛ فقد تؤدي المحاولات الفاشلة المتكررة إلى حظر المفتاح.</string>
+    <string name="fido2_error_timeout">لم يستجب مفتاح الأمان في الوقت المحدد. أعد توصيله وحاول مجددًا.</string>
+    <string name="fido2_error_retry">حاول استخدام مفتاح الأمان المسجّل مجددًا، أو افتح التطبيق بكلمة مروره.</string>
+    <string name="storage_error_title">التخزين غير متاح</string>
+    <string name="storage_missing_configuration">تفتقر هذه النسخة إلى إعدادات التخزين المشترك. ثبّت نسخة بإعدادات صحيحة للمتابعة.</string>
+    <string name="storage_unavailable">يتعذّر على Keyguard الوصول إلى حاوية التخزين الخاصة به. حاول مجددًا. إذا استمرت المشكلة، فتحقّق من توقيع التطبيق وإعدادات App Group.</string>
+    <string name="storage_unwritable">يتعذّر على Keyguard الكتابة في حاوية التخزين الخاصة به. تحقّق من المساحة المتاحة وإمكانية الوصول إلى التخزين، ثم حاول مجددًا.</string>
+    <string name="sso_login">تسجيل الدخول باستخدام SSO</string>
+    <string name="sso_unlock">متابعة</string>
+    <string name="sso_unlock_note">أدخل كلمة المرور الرئيسية لحسابك في Bitwarden لفك تشفيره.</string>
+    <string name="sso_browser_note">أكمل تسجيل الدخول في متصفحك، ثم عُد إلى Keyguard.</string>
+    <string name="sso_browser_success">يمكنك إغلاق هذه الصفحة والعودة إلى Keyguard.</string>
+    <string name="sso_error_callback">لا تتطابق استجابة SSO مع محاولة تسجيل الدخول هذه. حاول مرة أخرى.</string>
+    <string name="sso_error_authentication">تعذّر إكمال تسجيل الدخول عبر SSO. حاول مرة أخرى.</string>
+    <string name="sso_error_unsupported">يتطلب هذا الحساب طريقة لفك التشفير أو إعدادًا للحساب لا يدعمه Keyguard. افتح خزنة الويب للمتابعة.</string>
+    <string name="sso_error_password">كلمة المرور الرئيسية لحساب Bitwarden هذا غير صحيحة. حاول مرة أخرى.</string>
+    <string name="sso_error_key_connector">تعذّر الحصول على مفتاح فك التشفير من Key Connector. حاول مرة أخرى.</string>
+    <string name="sso_error_account">أعاد SSO حسابًا مختلفًا. سجّل الدخول باستخدام البريد الإلكتروني والخادم المحددين في Keyguard.</string>
+    <string name="sso_error_ports">منافذ رد الاتصال المحلية لنظام SSO مشغولة. أغلق محاولات تسجيل الدخول الأخرى وحاول مرة أخرى.</string>
+    <string name="passkey_provider_consent">سيحفظ نظامك المواقع الإلكترونية وأسماء الحسابات المرتبطة بمفاتيح المرور ليتمكن من اقتراحها أثناء قفل Keyguard. تبقى المفاتيح الخاصة في خزنتك المشفّرة.</string>
+    <string name="passkey_provider_unsupported">حدّث نظام التشغيل لاستخدام Keyguard كمزوّد لمفاتيح المرور.</string>
+    <string name="passkey_provider_unpackaged">ثبّت Keyguard من Microsoft Store أو من حزمة MSIX لاستخدام مفاتيح المرور.</string>
+    <string name="passkey_provider_unregistered">سجّل Keyguard لحفظ مفاتيح المرور واستخدامها في التطبيقات والمتصفحات.</string>
+    <string name="passkey_provider_disabled">تم التسجيل. فعّل Keyguard في إعدادات مفاتيح المرور في نظامك.</string>
+    <string name="passkey_provider_enabled">يمكن لـ Keyguard حفظ مفاتيح المرور واستخدامها.</string>
+    <string name="passkey_provider_error">تعذّر إكمال طلب مفتاح المرور</string>
+    <string name="passkey_provider_unavailable">مزوّد مفاتيح المرور غير متاح. أعد تشغيل Keyguard وحاول مرة أخرى.</string>
+    <string name="passkey_provider_cache_error">تعذّر تحديث اقتراحات مفاتيح المرور. سيحاول Keyguard مجددًا ما دامت خزنتك مفتوحة.</string>
+    <string name="passkey_provider_open_settings">فتح إعدادات مفاتيح المرور</string>
+    <string name="attachment_archive_empty">هذا المجلد فارغ.</string>
+    <string name="attachment_archive_encrypted">مشفّر</string>
+    <string name="attachment_archive_unavailable">لا يمكن فتح هذا الإدخال أو حفظه.</string>
+    <string name="attachment_archive_save">حفظ الملف</string>
+    <string name="attachment_archive_back">رجوع</string>
+    <string name="attachment_archive_password">كلمة مرور الأرشيف</string>
+    <string name="attachment_archive_error_password">كلمة المرور غير صحيحة أو الملف تالف. حاول مرة أخرى.</string>
+    <string name="attachment_archive_error_invalid">أرشيف ZIP هذا تالف أو يحتوي على إدخالات ملتبسة.</string>
+    <string name="attachment_archive_error_unsupported">تنسيق ZIP هذا غير مدعوم.</string>
+    <string name="attachment_archive_error_entries">يحتوي هذا الأرشيف على عدد من الملفات أو المجلدات يفوق حد المعاينة.</string>
+    <string name="attachment_archive_error_export_size">يتجاوز حجم هذا الملف الحد المسموح به للحفظ، وهو <xliff:g id="size_limit" example="128 MiB">%1$s</xliff:g>.</string>
+    <string name="attachment_archive_error_export">تعذّر حفظ هذا الملف.</string>
+    <string name="attachment_archive_error_export_cleanup">تعذّرت إزالة الملف غير المكتمل. احذفه من الوجهة المحددة.</string>
+    <string name="gpg_user_ids_add">إضافة معرّف مستخدم</string>
+    <string name="gpg_user_ids_primary">أساسي</string>
+    <string name="gpg_user_ids_make_primary">تعيين كأساسي</string>
+    <string name="gpg_user_ids_replace">استبدال…</string>
+    <string name="gpg_user_ids_revoke">إبطال…</string>
+    <string name="gpg_user_ids_history">سجل الهوية</string>
+    <string name="gpg_user_ids_inactive">غير نشط</string>
+    <string name="gpg_user_ids_exact">معرّف المستخدم الحرفي</string>
+    <string name="gpg_user_ids_structured">الاسم والبريد الإلكتروني</string>
+    <string name="gpg_user_ids_email_optional">البريد الإلكتروني (اختياري)</string>
+    <string name="gpg_user_ids_draft_message">تُطبّق التغييرات عند حفظ هذا العنصر. شارك المفتاح العام المحدّث لنشرها.</string>
+    <string name="gpg_user_ids_add_message">أضف اسمًا أو بريدًا إلكترونيًا آخر إلى هذا المفتاح. يبقى المعرّف الأساسي الحالي كما هو.</string>
+    <string name="gpg_user_ids_replace_message">سيُضاف المعرّف البديل ويُبطَل معرّف المستخدم المحدد. يبقى سجله على المفتاح.</string>
+    <string name="gpg_user_ids_revoke_message">هل تريد إبطال معرّف المستخدم هذا؟ يضيف هذا إبطالًا موقّعًا مع الاحتفاظ بسجله. بعد مشاركة المفتاح العام المحدّث، لا يمكن التراجع عن الإبطال.</string>
+    <string name="gpg_user_ids_private_required">استورد المفتاح الخاص لإدارة معرّفات المستخدم.</string>
+    <string name="gpg_user_ids_read_only">يمكن عرض معرّفات المستخدم، لكن لا يمكن لهذا المفتاح حاليًا التصديق على التغييرات.</string>
+    <string name="gpg_user_ids_unavailable">إدارة معرّفات المستخدم غير متاحة على هذه المنصة.</string>
+    <string name="gpg_user_ids_invalid_form">أدخل اسمًا، ويمكنك إضافة بريد إلكتروني صالح اختياريًا. للتنسيقات الأخرى، استخدم معرّف المستخدم الحرفي.</string>
+    <string name="gpg_user_ids_conflict">تغيّر المفتاح. ألغِ هذا الإجراء وحاول مرة أخرى.</string>
+    <string name="gpg_user_ids_failed">تعذّر تحديث معرّف المستخدم. تُرك المفتاح دون تغيير.</string>
+    <string name="gpg_user_ids_empty">لا توجد معرّفات مستخدم نشطة</string>
+    <string name="gpg_user_ids_retry_at">تمنع أوقات توقيعات المفتاح إجراء هذا التغيير. حاول مرة أخرى بعد %1$s. تأكد من صحة ساعات أجهزتك.</string>
+    <string name="gpg_user_ids_time_conflict">تمنع أوقات توقيعات المفتاح إجراء هذا التغيير. تأكد من صحة ساعات أجهزتك.</string>
+    <string name="cipher_field_picker_items_title">اختيار عنصر</string>
+    <string name="cipher_field_picker_fields_title">اختيار حقل</string>
+    <string name="cipher_field_picker_items_empty">لا توجد عناصر تحتوي على كلمة مرور أو حقول مخصصة</string>
+    <string name="cipher_field_picker_duplicate">اسم الحقل مكرر</string>
+    <string name="environments_title">البيئات</string>
+    <string name="environments_description">خزّن متغيرات البيئة ومرّرها إلى الأدوات المحلية.</string>
+    <string name="environments_create">بيئة جديدة</string>
+    <string name="environments_search">البحث في البيئات</string>
+    <string name="environments_empty">لا توجد بيئات</string>
+    <string name="environments_locked">افتح قفل Keyguard لإدارة البيئات.</string>
+    <string name="environments_name">اسم البيئة</string>
+    <string name="environments_variables">المتغيرات</string>
+    <string name="environments_add_variable">إضافة متغير</string>
+    <string name="environments_variable_name">اسم المتغير</string>
+    <string name="environments_variable_error_invalid_name">استخدم الأحرف اللاتينية والأرقام والشرطات السفلية فقط. لا تبدأ برقم.</string>
+    <string name="environments_variable_error_duplicate_name">هذا الاسم مستخدم بالفعل</string>
+    <string name="environments_variable_type">نوع المتغير</string>
+    <string name="environments_variable_type_value">قيمة</string>
+    <string name="environments_variable_type_reference">مرجع إلى عنصر</string>
+    <string name="environments_reference_unavailable">العنصر غير متاح</string>
+    <string name="environments_unset">غير معيّن</string>
+    <string name="environments_variable_unsupported">قيمة غير مدعومة</string>
+    <string name="environments_read_only">يمكنك عرض هذه البيئة، لكن لا يمكنك تعديلها.</string>
+    <string name="environments_error_unsupported_format">لا يمكن لهذا الإصدار من Keyguard قراءة بعض بيانات هذه البيئة، لذا فهي للقراءة فقط. حدّث Keyguard، أو عدّل البيئة في التطبيق الذي أجرى آخر تعديل عليها.</string>
+    <string name="environments_error_limits_exceeded">عدد المتغيرات كبير جدًا، أو أحد الأسماء طويل جدًا. احذف بعض المتغيرات أو اختصر أسماءها.</string>
+    <string name="environments_import">استيراد .env</string>
+    <string name="environments_import_drop_here">أفلت ملف .env لاستيراد متغيراته</string>
+    <string name="environments_import_note">يؤدي الاستيراد إلى استبدال متغيرات هذه البيئة. لا يحذف Keyguard الملف المصدر.</string>
+    <string name="environments_import_text">لصق محتوى .env</string>
+    <string name="environments_import_file">اختيار ملف .env</string>
+    <string name="environments_import_error_parse">هذا المحتوى غير صالح بصيغة .env</string>
+    <string name="environments_import_preview">معاينة الاستيراد</string>
+    <string name="environments_import_preview_title">المتغيرات المطلوب استيرادها</string>
+    <string name="environments_import_apply">استبدال المتغيرات</string>
+    <string name="environments_mounts">ملفات .env المحلية</string>
+    <string name="environments_mounts_empty">لا توجد ملفات .env محلية</string>
+    <string name="environments_mount_note">كل ملف هو أنبوب مُسمّى، لذا تُرجع كل قراءة القيم الحالية. اقرأه من عملية واحدة في كل مرة. تظل الموافقات سارية طوال المدة المحددة لموافقة MCP، وتنتهي عند تغيّر البيئة.</string>
+    <string name="environments_mount_create">إنشاء ملف .env محلي</string>
+    <string name="environments_mount_path">المسار المطلق لملف .env الجديد</string>
+    <string name="environments_flatpak_note">يحتاج Keyguard إلى إذن من Flatpak لاستخدام هذا المجلد. نفّذ هذا الأمر على النظام المضيف، ثم أعد تشغيل Keyguard. يجب أن يكون المجلد قابلًا للكتابة.</string>
+    <string name="environments_mount_status_error">غير متاح. تأكد من أن لا شيء آخر يستخدم هذا المسار، وأن المجلد الذي يحتويه قابل للكتابة.</string>
+    <string name="environments_mount_disable">تعطيل ملف .env المحلي</string>
+    <string name="environments_mount_open_environment">فتح البيئة</string>
+    <string name="environments_mount_unsupported">ملفات .env المحلية غير مدعومة على هذه المنصة.</string>
+    <string name="environments_mounts_error_unavailable">ملفات .env المحلية غير متاحة. أعد تشغيل Keyguard وحاول مجددًا.</string>
+    <string name="environments_mcp_enable">تفعيل الوصول عبر MCP</string>
+    <string name="environments_mcp_setup">إعداد عميل MCP</string>
+    <string name="environments_mcp_note">يمكن لعملاء MCP إنشاء البيئات وتعديلها. لا يمكنهم الاطلاع على قيم المتغيرات أو عناصر الخزنة الأخرى. أنت توافق على ما يمكن لكل عميل فعله.</string>
+    <string name="environments_approval_title">طلب الوصول إلى البيئات</string>
+    <string name="environments_approval_message_known_app">يريد <xliff:g id="who" example="Claude Code">%1$s</xliff:g> الوصول إلى بيئاتك:</string>
+    <string name="environments_approval_message_unknown_app">تريد عملية محلية الوصول إلى بيئاتك:</string>
+    <string name="environments_local_process">عملية محلية</string>
+    <string name="environments_approval_client">اسم العميل (لم يتم التحقق منه): <xliff:g id="client" example="Claude Code">%1$s</xliff:g></string>
+    <string name="environments_capability_authenticate">الاتصال بـ Keyguard</string>
+    <string name="environments_capability_list">عرض قائمة البيئات</string>
+    <string name="environments_capability_create">إنشاء بيئة</string>
+    <string name="environments_capability_rename">إعادة تسمية بيئة</string>
+    <string name="environments_capability_variables">عرض أسماء المتغيرات وأنواعها</string>
+    <string name="environments_capability_update">إضافة متغيرات البيئة أو تحديثها</string>
+    <string name="environments_capability_create_mount">إنشاء ملف .env محلي</string>
+    <string name="environments_capability_mounts">عرض قائمة ملفات .env المحلية</string>
+    <string name="environments_capability_read">قراءة ملف .env المحلي هذا</string>
+    <string name="environments_grant_directory">للسماح بالوصول، اختر المجلد الذي يحتوي على الملف المطلوب.</string>
+    <string name="environments_grant_error_wrong_folder">المجلد غير صحيح. اختر المجلد الموضّح في هذا الطلب.</string>
+    <string name="environments_approval_note">يحتفظ Keyguard بهذه الموافقة طوال المدة المحددة لموافقة MCP، أو حتى تُقفل الخزنة.</string>
+    <string name="environments_approval_local_file_note">ما دامت الموافقة سارية، يمكن لأي عملية تعمل ضمن حسابك قراءة هذا الملف.</string>
+    <string name="cli_title">سطر الأوامر</string>
+    <string name="cli_enable">تفعيل الوصول عبر سطر الأوامر</string>
+    <string name="cli_note">استخدم Keyguard من الطرفية، مثلًا لتشغيل أمر باستخدام متغيرات بيئة ما. يطلب Keyguard موافقتك أولًا.</string>
+    <string name="cli_usage">الاستخدام</string>
+    <string name="cli_path">موقع أداة سطر الأوامر</string>
+    <string name="cli_capability_run">تشغيل أمر باستخدام هذه البيئة</string>
+    <string name="cli_approval_working_directory">في <xliff:g id="directory" example="/home/user/project">%1$s</xliff:g></string>
+    <string name="cli_approval_run_note">لا يتلقى هذه القيم سوى هذا الأمر والعمليات التي يبدأها.</string>
+    <string name="cli_approval_run_terminal_note">ستُشغَّل الأوامر اللاحقة من علامة تبويب الطرفية هذه دون طلب الموافقة حتى تنتهي صلاحية الموافقة أو تُقفل الخزنة. ويمكن لأي برنامج يعمل في علامة التبويب هذه استخدام الموافقة، بما في ذلك وكلاء البرمجة.</string>
+    <string name="keyboard_shortcuts_title">اختصارات لوحة المفاتيح</string>
+    <string name="keyboard_shortcuts_action_quick_search">البحث السريع</string>
+    <string name="keyboard_shortcuts_status_active">نشط</string>
+    <string name="keyboard_shortcuts_status_recording">متوقف مؤقتًا أثناء تسجيل الاختصار</string>
+    <string name="keyboard_shortcuts_recorder_hint">اضغط مفاتيح الاختصار…</string>
+    <!-- Accessibility label of the button that shows an action's shortcut -->
+    <string name="keyboard_shortcuts_binding_label">اختصار <xliff:g id="action" example="Quick search">%1$s</xliff:g></string>
+    <string name="keyboard_shortcuts_error_duplicate">مستخدم بالفعل لإجراء <xliff:g id="action" example="Lock vault">%1$s</xliff:g>. اختر اختصارًا آخر أو عطّل ذلك الإجراء.</string>
+    <string name="keyboard_shortcuts_error_invalid">استخدم مفتاحًا مدعومًا مع مفتاح تعديل غير Shift.</string>
+    <string name="keyboard_shortcuts_error_unsupported_platform">اختصارات لوحة المفاتيح على مستوى النظام غير مدعومة على هذه المنصة.</string>
+    <string name="keyboard_shortcuts_error_unsupported_session">تتطلب اختصارات لوحة المفاتيح على مستوى النظام جلسة X11.</string>
+    <string name="keyboard_shortcuts_error_unavailable">هذا الاختصار غير متاح. قد يكون تطبيق آخر يستخدمه.</string>
+    <string name="keyboard_shortcuts_error_registration">تعذّر تسجيل الاختصار. حاول مجددًا.</string>
+    <string name="keyboard_shortcuts_error_persistence">تعذّر حفظ الاختصار. حاول مجددًا.</string>
+    <string name="keyboard_shortcuts_error_persistence_restoration">تعذّر حفظ الاختصار أو التراجع عن التغيير. أعد تشغيل Keyguard، ثم تحقق من اختصاراتك.</string>
+    <string name="agent_auto_setup_title">الإعداد التلقائي</string>
+    <string name="agent_auto_setup_intro">اربط طرفياتك بـ Keyguard. اختر إعداداتك، وراجع التغييرات، ثم تحقق من الاتصال.</string>
+    <string name="agent_auto_setup_unavailable">يتطلب الإعداد التلقائي واجهة سطر الأوامر المضمّنة مع Keyguard. استخدم تعليمات الإعداد اليدوي إذا لم تكن متاحة.</string>
+    <string name="agent_auto_setup_unavailable_flatpak">لا يستطيع Flatpak تعديل إعدادات الطرفية أو SSH على النظام المضيف. شغّل الأوامر أدناه في طرفية على النظام المضيف. ويمكن أيضًا استخدام واجهة سطر الأوامر الخاصة بـ Keyguard المثبّتة بشكل منفصل لمراجعة الإعدادات وتطبيقها باستخدام <xliff:g id="command" example="keyguard agents setup">%1$s</xliff:g>.</string>
+    <string name="agent_auto_setup_enable_required">فعّل وكيل <xliff:g id="protocol" example="SSH">%1$s</xliff:g> في الإعدادات قبل إعداده تلقائيًا.</string>
+    <string name="agent_auto_setup_configure_action">إعداد تلقائي</string>
+    <string name="agent_auto_setup_undo_action">التراجع عن الإعداد</string>
+    <string name="agent_auto_setup_wizard_title">إعداد وكيل <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
+    <string name="agent_auto_setup_wizard_undo_title">التراجع عن إعداد <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
+    <string name="agent_auto_setup_discard_title">تجاهل الإعداد؟</string>
+    <string name="agent_auto_setup_discard_message">سيتم تجاهل اختياراتك.</string>
+    <string name="agent_auto_setup_discard_action">تجاهل</string>
+    <string name="agent_auto_setup_step_settings_title">اختيار الإعدادات</string>
+    <string name="agent_auto_setup_step_settings_detail">اختر الاتصالات والطرفيات التي ستستخدم Keyguard.</string>
+    <string name="agent_auto_setup_step_review_title">مراجعة التغييرات</string>
+    <string name="agent_auto_setup_step_review_detail">راجع الملفات أدناه قبل تطبيق التغييرات.</string>
+    <string name="agent_auto_setup_step_review_no_changes_detail">لا حاجة إلى تعديل أي ملفات. تحقّق من اتصال الوكيل للمتابعة.</string>
+    <string name="agent_auto_setup_step_undo_title">مراجعة الإزالة</string>
+    <string name="agent_auto_setup_step_undo_detail">أزل الإعدادات التي سجّلها Keyguard. راجع الملفات قبل المتابعة.</string>
+    <string name="agent_auto_setup_step_run_title">تشغيل الإعداد</string>
+    <string name="agent_auto_setup_step_run_detail">شغّل الأمر في طرفيتك. تعرض الأداة المساعدة التغييرات وتطلب موافقتك قبل تطبيقها.</string>
+    <string name="agent_auto_setup_step_check_title">التحقّق من الاتصال</string>
+    <string name="agent_auto_setup_step_check_detail">افتح طرفية جديدة لاستخدام الإعداد. لا يزال التوقيع والمصادقة عن بُعد بحاجة إلى اختبار بالمفتاح الذي اخترته.</string>
+    <string name="agent_auto_setup_step_finish_title">إنهاء</string>
+    <string name="agent_auto_setup_hosts_all">جميع مضيفي SSH</string>
+    <string name="agent_auto_setup_hosts_one">مضيف SSH واحد أو اسم مستعار</string>
+    <string name="agent_auto_setup_host_label">المضيف أو الاسم المستعار</string>
+    <string name="agent_auto_setup_host_error">أدخل مضيفًا أو اسمًا مستعارًا باستخدام الأحرف اللاتينية والأرقام والنقاط والشرطات والشرطات السفلية.</string>
+    <string name="agent_auto_setup_ssh_config_only">إعداد SSH فقط</string>
+    <string name="agent_auto_setup_reviewing_status">تجري مراجعة التغييرات</string>
+    <string name="agent_auto_setup_applying_status">جارٍ تطبيق التغييرات</string>
+    <string name="agent_auto_setup_review_required_note">راجع الإعداد الحالي قبل المتابعة.</string>
+    <string name="agent_auto_setup_apply_action">تطبيق التغييرات</string>
+    <string name="agent_auto_setup_remove_action">إزالة الإعداد</string>
+    <string name="agent_auto_setup_check_action">التحقّق من اتصال الوكيل</string>
+    <string name="agent_auto_setup_refresh_action">تحديث المراجعة</string>
+    <string name="agent_auto_setup_review_retry_action">إعادة محاولة المراجعة</string>
+    <!-- The pending change to a configuration file, shown under its path -->
+    <string name="agent_auto_setup_file_create_label">إنشاء ملف</string>
+    <string name="agent_auto_setup_file_update_label">تحديث ملف</string>
+    <string name="agent_auto_setup_file_remove_label">حذف ملف</string>
+    <string name="agent_auto_setup_ssh_note">ينطبق إعداد SSH على عملاء OpenSSH. قد يحتاج العملاء الآخرون وssh-add أيضًا إلى اختيار صدفة في الخطوة السابقة.</string>
+    <string name="agent_auto_setup_gpg_note">ستستخدم الطرفيات المحددة مجلد GnuPG المنفصل الخاص بـ Keyguard. لن تُنسخ المفاتيح العامة وإعدادات الثقة الحالية. استورد الشهادة العامة لكل مفتاح تريد استخدامه.</string>
+    <string name="agent_auto_setup_overrides_title">تحقق من هذه الأسطر</string>
+    <string name="agent_auto_setup_overrides_note">تذكر هذه الأسطر اسم الإعداد نفسه، وقد تكون لها أولوية على إعداد Keyguard. تأكد من أنها لا تحدد وكيلًا آخر. لا يزيلها التراجع عن الإعداد.</string>
+    <string name="agent_auto_setup_conflicts_title">يلزم اتخاذ إجراء</string>
+    <string name="agent_auto_setup_conflict_zdotdir">يعيّن <xliff:g id="path" example="~/.zshenv">%1$s</xliff:g> المتغير ZDOTDIR، لذا قد يقرأ Zsh ملف .zshrc آخر. أعدّ Zsh يدويًا، أو ألغِ تحديده.</string>
+    <string name="agent_auto_setup_conflict_compiled_startup">للملف <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> نسخة مُجمَّعة مؤرخة بتاريخ مستقبلي، يحمّلها Zsh بدلًا منه. احذفها أو أعد تجميعها، أو ألغِ تحديد Zsh.</string>
+    <string name="agent_auto_setup_conflict_changed_block">عُدّلت إعدادات Keyguard في <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g>. أزلها يدويًا، أو استعد الإعدادات المسجّلة.</string>
+    <string name="agent_auto_setup_conflict_unrecorded_block">لا يوجد سجل للتراجع عن إعدادات Keyguard في <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g>. أزلها يدويًا.</string>
+    <string name="agent_auto_setup_error_files_changed">تغيّرت الملفات بعد المراجعة. حدّث المراجعة.</string>
+    <string name="agent_auto_setup_error_busy">هناك عملية أخرى لإعداد الوكيل قيد التشغيل. حاول مجددًا عند انتهائها.</string>
+    <string name="agent_auto_setup_error_unsafe_file">لا يستطيع Keyguard تعديل <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> بأمان. راجع التفاصيل، ثم أصلح الملف أو أعدّه يدويًا.</string>
+    <string name="agent_auto_setup_error_managed_block">إعدادات Keyguard في <xliff:g id="path" example="~/.zshrc">%1$s</xliff:g> لا تطابق سجلاته. أصلحها أو أزلها يدويًا، ثم حدّث المراجعة.</string>
+    <string name="agent_auto_setup_error_no_powershell">تعذّر العثور على ملف تعريف PowerShell. ثبّت PowerShell، أو ألغِ تحديده.</string>
+    <string name="agent_auto_setup_error_update_required">إصدار واجهة سطر أوامر Keyguard يختلف عن إصدار التطبيق. حدّث Keyguard، ثم حاول مجددًا.</string>
+    <string name="agent_auto_setup_error_failed">فشل إعداد الوكيل. راجع التفاصيل.</string>
+    <string name="agent_auto_setup_error_details_title">التفاصيل</string>
+    <string name="agent_auto_setup_no_changes">لا حاجة إلى تغيير الملفات.</string>
+    <string name="agent_auto_setup_termux_run_note">شغّل هذا الأمر في Termux بعد تثبيت البرنامج المساعد. يراجع التغييرات على الصدفات التي اخترتها ويطلب موافقتك قبل تطبيقها. تبدأ الطرفيات الجديدة تشغيل البرنامج المساعد تلقائيًا.</string>
+    <string name="agent_auto_setup_macos_shell_note">شغّل هذه الأوامر في طرفية تستخدم Bash أو Zsh.</string>
+    <string name="agent_auto_setup_macos_gpg_prepare_title">تجهيز مجلد GnuPG</string>
+    <string name="agent_auto_setup_macos_gpg_prepare_detail">شغّل هذا الأمر أولًا مع إبقاء وكيل GPG مفعّلًا، ثم شغّل أمر الإعداد أدناه.</string>
+    <string name="agent_auto_setup_external_unverified_note">لا يستطيع Keyguard التحقق من الأوامر التي تُشغَّل في طرفية أخرى. المتابعة لا تؤكد نجاح الإعداد.</string>
+    <string name="agent_auto_setup_external_check_text">بعد أن يؤكد البرنامج المساعد اكتمال الإعداد، افتح طرفية جديدة وشغّل هذا الأمر للتحقق من الاتصال.</string>
+    <string name="agent_auto_setup_applied">طُبّق الإعداد.</string>
+    <string name="agent_auto_setup_undone">أُزيل الإعداد المسجّل. افتح طرفية جديدة.</string>
+    <string name="agent_auto_setup_checking_status">جارٍ التحقق من اتصال الوكيل…</string>
+    <string name="agent_auto_setup_check_succeeded">تم التحقق من اتصال الوكيل.</string>
+    <string name="agent_auto_setup_check_failed">حُفظ الإعداد، لكن الوكيل لم يستجب. تأكد من تفعيله ومن فتح قفل Keyguard، ثم حاول مجددًا.</string>
+    <string name="agent_auto_setup_check_retry_action">إعادة التحقق من الاتصال</string>
+    <string name="agent_auto_setup_diagnostics_title">تفاصيل الاتصال</string>
+    <string name="text_diff_title">فروق الملفات</string>
+    <string name="text_diff_copy">نسخ الفروق</string>
+    <string name="text_diff_loading">جارٍ تحضير الفروق…</string>
+    <string name="text_diff_no_changes">لا توجد تغييرات نصية.</string>
+    <string name="text_diff_create_empty_file">إنشاء ملف فارغ.</string>
+    <string name="text_diff_remove_empty_file">حذف الملف الفارغ.</string>
+    <string name="text_diff_simplified">تُعرض التغييرات على هيئة استبدال كتلة نصية.</string>
+    <string name="text_diff_line_endings">تغيّرت نهايات الأسطر. توضّح تسميتا LF وCRLF نوع نهاية السطر.</string>
+    <string name="text_diff_no_newline">لا يوجد محرف سطر جديد في نهاية الملف</string>
+    <!-- Screen reader labels for the lines of a diff -->
+    <string name="text_diff_added_line">سطر مضاف</string>
+    <string name="text_diff_removed_line">سطر محذوف</string>
+    <string name="text_diff_original_line">السطر الأصلي <xliff:g id="number" example="12">%1$d</xliff:g></string>
+    <string name="text_diff_new_line">السطر الجديد <xliff:g id="number" example="12">%1$d</xliff:g></string>
 </resources>

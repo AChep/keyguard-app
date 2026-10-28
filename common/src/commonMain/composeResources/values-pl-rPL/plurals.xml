@@ -13,10 +13,10 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> wystąpienia</item>
     </plurals>
     <plurals name="reused_password_items_count_plural">
-        <item quantity="one">Used by <xliff:g id="number" example="1">%1$d</xliff:g> item</item>
-        <item quantity="few">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="many">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="other">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="one">Używane w <xliff:g id="number" example="1">%1$d</xliff:g> elemencie</item>
+        <item quantity="few">Używane w <xliff:g id="number">%1$d</xliff:g> elementach</item>
+        <item quantity="many">Używane w <xliff:g id="number">%1$d</xliff:g> elementach</item>
+        <item quantity="other">Używane w <xliff:g id="number">%1$d</xliff:g> elementach</item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> słowo</item>
@@ -25,10 +25,10 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> słowa</item>
     </plurals>
     <plurals name="character_count_plural">
-        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> character</item>
-        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> characters</item>
-        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> characters</item>
-        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> characters</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> znak</item>
+        <item quantity="few"><xliff:g id="number">%1$s</xliff:g> znaki</item>
+        <item quantity="many"><xliff:g id="number">%1$s</xliff:g> znaków</item>
+        <item quantity="other"><xliff:g id="number">%1$s</xliff:g> znaku</item>
     </plurals>
     <plurals name="result_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> wynik</item>
@@ -73,142 +73,160 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> miesiąca</item>
     </plurals>
     <plurals name="skipped_passkeys_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> passkey</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> klucz dostępu</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> klucze dostępu</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> kluczy dostępu</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> klucza dostępu</item>
     </plurals>
     <plurals name="skipped_otp_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> one-time password</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> hasło jednorazowe</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> hasła jednorazowe</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> haseł jednorazowych</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> hasła jednorazowego</item>
     </plurals>
     <plurals name="skipped_ssh_keys_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH key</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> klucz SSH</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> klucze SSH</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> kluczy SSH</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> klucza SSH</item>
+    </plurals>
+    <plurals name="skipped_ssh_certificates_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> certyfikat SSH</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> certyfikaty SSH</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> certyfikatów SSH</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> certyfikatu SSH</item>
     </plurals>
     <plurals name="skipped_gpg_keys_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG key</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> GPG keys</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> GPG keys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG keys</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> klucz GPG</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> klucze GPG</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> kluczy GPG</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> klucza GPG</item>
     </plurals>
     <plurals name="skipped_attachments_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> attachment</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> attachments</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> attachments</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> attachments</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> załącznik</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> załączniki</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> załączników</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> załącznika</item>
     </plurals>
     <plurals name="skipped_password_history_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> saved previous password</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> saved previous passwords</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> zapisane poprzednie hasło</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> zapisane poprzednie hasła</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> zapisanych poprzednich haseł</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> zapisanego poprzedniego hasła</item>
+    </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> środowisko z niemożliwymi do przeniesienia odwołaniami do elementów</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> środowiska z niemożliwymi do przeniesienia odwołaniami do elementów</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> środowisk z niemożliwymi do przeniesienia odwołaniami do elementów</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> środowiska z niemożliwymi do przeniesienia odwołaniami do elementów</item>
     </plurals>
     <plurals name="skipped_archived_items_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> archived item</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> archived items</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> archived items</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> archived items</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> zarchiwizowany element</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> zarchiwizowane elementy</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> zarchiwizowanych elementów</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> zarchiwizowanego elementu</item>
+    </plurals>
+    <plurals name="exportaccount_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> element</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> elementy</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> elementów</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> elementu</item>
     </plurals>
     <plurals name="skipped_items_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> element</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> elementy</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> elementów</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> elementu</item>
     </plurals>
     <plurals name="skipped_accounts_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> account</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> accounts</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> accounts</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> accounts</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> konto</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> konta</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> kont</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> konta</item>
     </plurals>
     <plurals name="credential_exchange_import_review_accounts_note">
-        <item quantity="one">The received data contains <xliff:g id="number" example="1">%1$d</xliff:g> account; all of its items are imported into this account.</item>
-        <item quantity="few">The received data contains <xliff:g id="number">%1$d</xliff:g> accounts; all of their items are imported into this account.</item>
-        <item quantity="many">The received data contains <xliff:g id="number">%1$d</xliff:g> accounts; all of their items are imported into this account.</item>
-        <item quantity="other">The received data contains <xliff:g id="number">%1$d</xliff:g> accounts; all of their items are imported into this account.</item>
+        <item quantity="one">Otrzymane dane zawierają <xliff:g id="number" example="1">%1$d</xliff:g> konto; wszystkie elementy zostaną zaimportowane na to konto.</item>
+        <item quantity="few">Otrzymane dane zawierają <xliff:g id="number">%1$d</xliff:g> konta; wszystkie elementy zostaną zaimportowane na to konto.</item>
+        <item quantity="many">Otrzymane dane zawierają <xliff:g id="number">%1$d</xliff:g> kont; wszystkie elementy zostaną zaimportowane na to konto.</item>
+        <item quantity="other">Otrzymane dane zawierają <xliff:g id="number">%1$d</xliff:g> konta; wszystkie elementy zostaną zaimportowane na to konto.</item>
     </plurals>
     <plurals name="credential_exchange_import_review_folders_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> folder</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> folders</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> foldery</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> folderów</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> folderu</item>
     </plurals>
     <plurals name="credential_exchange_import_review_logins_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> login</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> logins</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> logins</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> logins</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> zestaw danych logowania</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> zestawy danych logowania</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> zestawów danych logowania</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> zestawu danych logowania</item>
     </plurals>
     <plurals name="credential_exchange_import_review_passkeys_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> passkey</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> klucz dostępu</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> klucze dostępu</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> kluczy dostępu</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> klucza dostępu</item>
     </plurals>
     <plurals name="credential_exchange_import_review_otp_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> one-time password</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> hasło jednorazowe</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> hasła jednorazowe</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> haseł jednorazowych</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> hasła jednorazowego</item>
     </plurals>
     <plurals name="credential_exchange_import_review_cards_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> card</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> cards</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> cards</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> cards</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> karta</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> karty</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> kart</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> karty</item>
     </plurals>
     <plurals name="credential_exchange_import_review_identities_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> identity</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> identities</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> identities</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> identities</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> tożsamość</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> tożsamości</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> tożsamości</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> tożsamości</item>
     </plurals>
     <plurals name="credential_exchange_import_review_notes_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> note</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> notes</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> notes</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> notes</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> notatka</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> notatki</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> notatek</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> notatki</item>
     </plurals>
     <plurals name="credential_exchange_import_review_ssh_keys_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH key</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> klucz SSH</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> klucze SSH</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> kluczy SSH</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> klucza SSH</item>
     </plurals>
     <plurals name="skipped_unsupported_credentials_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> unsupported credential</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> unsupported credentials</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> unsupported credentials</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> unsupported credentials</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> nieobsługiwane poświadczenie</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> nieobsługiwane poświadczenia</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> nieobsługiwanych poświadczeń</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> nieobsługiwanego poświadczenia</item>
     </plurals>
     <plurals name="skipped_duplicate_credentials_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> duplicate credential</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> duplicate credentials</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> duplicate credentials</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> duplicate credentials</item>
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> zduplikowane poświadczenie</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> zduplikowane poświadczenia</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> zduplikowanych poświadczeń</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> zduplikowanego poświadczenia</item>
     </plurals>
     <plurals name="skipped_folders_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> folder</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> folders</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> folders</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> foldery</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> folderów</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> folderu</item>
     </plurals>
     <plurals name="skipped_and_more_note">
-        <item quantity="one">and <xliff:g id="number" example="1">%1$d</xliff:g> more</item>
-        <item quantity="few">and <xliff:g id="number">%1$d</xliff:g> more</item>
-        <item quantity="many">and <xliff:g id="number">%1$d</xliff:g> more</item>
-        <item quantity="other">and <xliff:g id="number">%1$d</xliff:g> more</item>
+        <item quantity="one">i jeszcze <xliff:g id="number" example="1">%1$d</xliff:g></item>
+        <item quantity="few">i jeszcze <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="many">i jeszcze <xliff:g id="number">%1$d</xliff:g></item>
+        <item quantity="other">i jeszcze <xliff:g id="number">%1$d</xliff:g></item>
     </plurals>
     <plurals name="credential_exchange_import_success_text">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item has been added to the account.</item>
-        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> items have been added to the account.</item>
-        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> items have been added to the account.</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items have been added to the account.</item>
+        <item quantity="one">Dodano <xliff:g id="number" example="1">%1$d</xliff:g> element do konta.</item>
+        <item quantity="few">Dodano <xliff:g id="number">%1$d</xliff:g> elementy do konta.</item>
+        <item quantity="many">Dodano <xliff:g id="number">%1$d</xliff:g> elementów do konta.</item>
+        <item quantity="other">Dodano <xliff:g id="number">%1$d</xliff:g> elementu do konta.</item>
     </plurals>
     <plurals name="years_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> rok</item>
@@ -217,17 +235,17 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> roku</item>
     </plurals>
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
-        <item quantity="one">Verification e-mail requested for <xliff:g id="number" example="1">%1$s</xliff:g> address</item>
-        <item quantity="few">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="many">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+        <item quantity="one">Poproszono o wysłanie wiadomości weryfikacyjnej na <xliff:g id="number" example="1">%1$s</xliff:g> adres</item>
+        <item quantity="few">Poproszono o wysłanie wiadomości weryfikacyjnej na <xliff:g id="number">%1$s</xliff:g> adresy</item>
+        <item quantity="many">Poproszono o wysłanie wiadomości weryfikacyjnej na <xliff:g id="number">%1$s</xliff:g> adresów</item>
+        <item quantity="other">Poproszono o wysłanie wiadomości weryfikacyjnej na <xliff:g id="number">%1$s</xliff:g> adresu</item>
     </plurals>
     <!-- Automatic backups -->
     <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
-        <item quantity="one">Keep %1$d snapshot</item>
-        <item quantity="few">Keep %1$d snapshots</item>
-        <item quantity="many">Keep %1$d snapshots</item>
-        <item quantity="other">Keep %1$d snapshots</item>
+        <item quantity="one">Zachowaj %1$d migawkę</item>
+        <item quantity="few">Zachowaj %1$d migawki</item>
+        <item quantity="many">Zachowaj %1$d migawek</item>
+        <item quantity="other">Zachowaj %1$d migawki</item>
     </plurals>
     <plurals name="pref_item_hibp_api_token_error_plural">
         <item quantity="one">Wpisz token API HIBP zawierający <xliff:g id="length" example="1">%1$d</xliff:g> znak szesnastkowy</item>
@@ -246,5 +264,29 @@
         <item quantity="few">Wygasa za <xliff:g id="seconds" example="30">%1$d</xliff:g> sekundy</item>
         <item quantity="many">Wygasa za <xliff:g id="seconds" example="30">%1$d</xliff:g> sekund</item>
         <item quantity="other">Wygasa za <xliff:g id="seconds" example="30">%1$d</xliff:g> sekundy</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> aktywny identyfikator użytkownika</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> aktywne identyfikatory użytkownika</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> aktywnych identyfikatorów użytkownika</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> aktywnego identyfikatora użytkownika</item>
+    </plurals>
+    <plurals name="agent_auto_setup_files_to_change_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> plik do zmiany</item>
+        <item quantity="few"><xliff:g id="number" example="2">%1$d</xliff:g> pliki do zmiany</item>
+        <item quantity="many"><xliff:g id="number" example="2">%1$d</xliff:g> plików do zmiany</item>
+        <item quantity="other"><xliff:g id="number" example="2">%1$d</xliff:g> pliku do zmiany</item>
+    </plurals>
+    <plurals name="tag_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> element</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> elementy</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> elementów</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> elementu</item>
+    </plurals>
+    <plurals name="attachment_preview_gpg_skipped_certificates_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> certificate could not be read</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
     </plurals>
 </resources>

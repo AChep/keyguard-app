@@ -60,6 +60,10 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH anahtarı</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH anahtarı</item>
     </plurals>
+    <plurals name="skipped_ssh_certificates_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH sertifikası</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH sertifikası</item>
+    </plurals>
     <plurals name="skipped_gpg_keys_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG anahtarı</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG anahtarı</item>
@@ -72,9 +76,17 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> eski parola kaydı</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> eski parola kaydı</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="one">Aktarılamayan öğe başvuruları içeren <xliff:g id="number" example="1">%1$d</xliff:g> ortam</item>
+        <item quantity="other">Aktarılamayan öğe başvuruları içeren <xliff:g id="number">%1$d</xliff:g> ortam</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> arşivlenmiş öge</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> arşivlenmiş öge</item>
+    </plurals>
+    <plurals name="exportaccount_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> öğe</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> öğe</item>
     </plurals>
     <plurals name="skipped_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> öge</item>
@@ -164,5 +176,21 @@
     <plurals name="agent_approval_expires_in_seconds_plural">
         <item quantity="one"><xliff:g id="seconds" example="1">%1$d</xliff:g> saniye içinde geçerliliğini yitirecek</item>
         <item quantity="other"><xliff:g id="seconds" example="30">%1$d</xliff:g> saniye içinde geçerliliğini yitirecek</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> etkin kullanıcı kimliği</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> etkin kullanıcı kimliği</item>
+    </plurals>
+    <plurals name="agent_auto_setup_files_to_change_plural">
+        <item quantity="one">Değiştirilecek <xliff:g id="number" example="1">%1$d</xliff:g> dosya</item>
+        <item quantity="other">Değiştirilecek <xliff:g id="number" example="2">%1$d</xliff:g> dosya</item>
+    </plurals>
+    <plurals name="tag_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> öğe</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> öğe</item>
+    </plurals>
+    <plurals name="attachment_preview_gpg_skipped_certificates_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> certificate could not be read</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
     </plurals>
 </resources>

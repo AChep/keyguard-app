@@ -7,7 +7,7 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 事件</item>
     </plurals>
     <plurals name="reused_password_items_count_plural">
-        <item quantity="other">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="other">有 <xliff:g id="number">%1$d</xliff:g> 個條目使用此密碼</item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 單詞</item>
@@ -45,6 +45,9 @@
     <plurals name="skipped_ssh_keys_note">
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 個 SSH 金鑰</item>
     </plurals>
+    <plurals name="skipped_ssh_certificates_note">
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 個 SSH 憑證</item>
+    </plurals>
     <plurals name="skipped_gpg_keys_note">
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 個 GPG 金鑰</item>
     </plurals>
@@ -54,8 +57,14 @@
     <plurals name="skipped_password_history_note">
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 個已儲存的舊密碼</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 個環境因含有條目參照而無法移轉</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 個已封存的條目</item>
+    </plurals>
+    <plurals name="exportaccount_items_count_plural">
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 個條目</item>
     </plurals>
     <plurals name="skipped_items_note">
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 個條目</item>
@@ -109,11 +118,11 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> 年</item>
     </plurals>
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
-        <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+        <item quantity="other">已要求向 <xliff:g id="number">%1$s</xliff:g> 個地址傳送驗證電子郵件</item>
     </plurals>
     <!-- Automatic backups -->
     <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
-        <item quantity="other">Keep %1$d snapshots</item>
+        <item quantity="other">保留 %1$d 個快照</item>
     </plurals>
     <plurals name="pref_item_hibp_api_token_error_plural">
         <item quantity="other">請輸入 <xliff:g id="length" example="32">%1$d</xliff:g> 個字元的十六進位 HIBP API 權杖</item>
@@ -123,5 +132,17 @@
     </plurals>
     <plurals name="agent_approval_expires_in_seconds_plural">
         <item quantity="other"><xliff:g id="seconds" example="30">%1$d</xliff:g> 秒後到期</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> 個有效的使用者 ID</item>
+    </plurals>
+    <plurals name="agent_auto_setup_files_to_change_plural">
+        <item quantity="other"><xliff:g id="number" example="2">%1$d</xliff:g> 個待變更的檔案</item>
+    </plurals>
+    <plurals name="tag_items_count_plural">
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> 個條目</item>
+    </plurals>
+    <plurals name="attachment_preview_gpg_skipped_certificates_plural">
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
     </plurals>
 </resources>

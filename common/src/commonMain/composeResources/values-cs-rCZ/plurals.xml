@@ -13,10 +13,10 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> výskytů</item>
     </plurals>
     <plurals name="reused_password_items_count_plural">
-        <item quantity="one">Used by <xliff:g id="number" example="1">%1$d</xliff:g> item</item>
-        <item quantity="few">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="many">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
-        <item quantity="other">Used by <xliff:g id="number">%1$d</xliff:g> items</item>
+        <item quantity="one">Používá ho <xliff:g id="number" example="1">%1$d</xliff:g> položka</item>
+        <item quantity="few">Používají ho <xliff:g id="number">%1$d</xliff:g> položky</item>
+        <item quantity="many">Používá ho <xliff:g id="number">%1$d</xliff:g> položky</item>
+        <item quantity="other">Používá ho <xliff:g id="number">%1$d</xliff:g> položek</item>
     </plurals>
     <plurals name="word_count_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> slovo</item>
@@ -90,6 +90,12 @@
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> SSH klíčů</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH klíčů</item>
     </plurals>
+    <plurals name="skipped_ssh_certificates_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> certifikát SSH</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> certifikáty SSH</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> certifikátu SSH</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> certifikátů SSH</item>
+    </plurals>
     <plurals name="skipped_gpg_keys_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG klíč</item>
         <item quantity="few"><xliff:g id="number">%1$d</xliff:g> GPG klíče</item>
@@ -108,11 +114,23 @@
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> uložených předchozích hesel</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> uložených předchozích hesel</item>
     </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> prostředí s nepřenositelnými odkazy na položky</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> prostředí s nepřenositelnými odkazy na položky</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> prostředí s nepřenositelnými odkazy na položky</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> prostředí s nepřenositelnými odkazy na položky</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> archivovaná položka</item>
         <item quantity="few"><xliff:g id="number">%1$d</xliff:g> archivované položky</item>
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> archivovaných položek</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> archivovaných položek</item>
+    </plurals>
+    <plurals name="exportaccount_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> položka</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> položky</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> položky</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> položek</item>
     </plurals>
     <plurals name="skipped_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> položka</item>
@@ -217,17 +235,17 @@
         <item quantity="other"><xliff:g id="number">%1$s</xliff:g> let</item>
     </plurals>
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
-        <item quantity="one">Verification e-mail requested for <xliff:g id="number" example="1">%1$s</xliff:g> address</item>
-        <item quantity="few">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="many">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
-        <item quantity="other">Verification e-mail requested for <xliff:g id="number">%1$s</xliff:g> addresses</item>
+        <item quantity="one">Vyžádán ověřovací e-mail pro <xliff:g id="number" example="1">%1$s</xliff:g> adresu</item>
+        <item quantity="few">Vyžádán ověřovací e-mail pro <xliff:g id="number">%1$s</xliff:g> adresy</item>
+        <item quantity="many">Vyžádán ověřovací e-mail pro <xliff:g id="number">%1$s</xliff:g> adresy</item>
+        <item quantity="other">Vyžádán ověřovací e-mail pro <xliff:g id="number">%1$s</xliff:g> adres</item>
     </plurals>
     <!-- Automatic backups -->
     <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
-        <item quantity="one">Keep %1$d snapshot</item>
-        <item quantity="few">Keep %1$d snapshots</item>
-        <item quantity="many">Keep %1$d snapshots</item>
-        <item quantity="other">Keep %1$d snapshots</item>
+        <item quantity="one">Uchovat %1$d snímek</item>
+        <item quantity="few">Uchovat %1$d snímky</item>
+        <item quantity="many">Uchovat %1$d snímku</item>
+        <item quantity="other">Uchovat %1$d snímků</item>
     </plurals>
     <plurals name="pref_item_hibp_api_token_error_plural">
         <item quantity="one">Zadejte hexadecimální token API HIBP o délce <xliff:g id="length" example="1">%1$d</xliff:g> znaku</item>
@@ -246,5 +264,29 @@
         <item quantity="few">Vyprší za <xliff:g id="seconds" example="30">%1$d</xliff:g> sekundy</item>
         <item quantity="many">Vyprší za <xliff:g id="seconds" example="30">%1$d</xliff:g> sekundy</item>
         <item quantity="other">Vyprší za <xliff:g id="seconds" example="30">%1$d</xliff:g> sekund</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> aktivní ID uživatele</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> aktivní ID uživatele</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> aktivního ID uživatele</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> aktivních ID uživatele</item>
+    </plurals>
+    <plurals name="agent_auto_setup_files_to_change_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> soubor ke změně</item>
+        <item quantity="few"><xliff:g id="number" example="2">%1$d</xliff:g> soubory ke změně</item>
+        <item quantity="many"><xliff:g id="number" example="2">%1$d</xliff:g> souboru ke změně</item>
+        <item quantity="other"><xliff:g id="number" example="2">%1$d</xliff:g> souborů ke změně</item>
+    </plurals>
+    <plurals name="tag_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> položka</item>
+        <item quantity="few"><xliff:g id="number">%1$d</xliff:g> položky</item>
+        <item quantity="many"><xliff:g id="number">%1$d</xliff:g> položky</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> položek</item>
+    </plurals>
+    <plurals name="attachment_preview_gpg_skipped_certificates_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> certificate could not be read</item>
+        <item quantity="few"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="many"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
     </plurals>
 </resources>

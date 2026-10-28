@@ -37,6 +37,9 @@ import androidx.wear.compose.material3.LocalContentColor
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
+import androidx.wear.compose.foundation.lazy.TransformingLazyColumnScope
+import androidx.wear.compose.foundation.lazy.items
+import androidx.wear.compose.material3.lazy.TransformationSpec
 import androidx.wear.compose.material3.lazy.transformedHeight
 import coil3.compose.LocalPlatformContext
 import coil3.compose.SubcomposeAsyncImage
@@ -48,6 +51,7 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewKind
 import com.artemchep.keyguard.common.model.attachmentPreviewKindByFileName
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.feature.attachmentpreview.AttachmentArchiveItem
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentArchivePassword
 import com.artemchep.keyguard.feature.attachmentpreview.summary
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.wear.ui.WearListAction
@@ -74,6 +78,7 @@ import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import com.artemchep.keyguard.wear.feature.vault.component.WearVaultViewItem
 import com.artemchep.keyguard.wear.ui.WearListCard
 import com.artemchep.keyguard.wear.ui.WearListLabel
 import com.artemchep.keyguard.wear.ui.WearScaffoldLoader
@@ -127,61 +132,13 @@ private fun WearAttachmentPreviewScaffold(
             },
             ifOk = { state ->
                 if (passwordPrompt != null) {
-                    item("password.title") {
-                        WearListLabel(
-                            modifier = Modifier
-                                .transformedHeight(this, transformationSpec),
-                            text = stringResource(Res.string.attachment_archive_password),
-                            transformation = SurfaceTransformation(transformationSpec),
-                        )
-                    }
-                    item("password.field") {
-                        PasswordFlatTextField(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .transformedHeight(this, transformationSpec)
-                                .surfaceTransformation(SurfaceTransformation(transformationSpec)),
-                            value = TextFieldModel(
-                                text = password,
-                                error = stringResource(Res.string.attachment_archive_error_password)
-                                    .takeIf { passwordPrompt.incorrect },
-                                onChange = { password = it },
-                            ),
-                            keyboardOptions = KeyboardOptions(
-                                imeAction = ImeAction.Go,
-                            ),
-                            keyboardActions = KeyboardActions(
-                                onGo = {
-                                    if (password.isNotEmpty()) passwordPrompt.onSubmit(password)
-                                },
-                            ),
-                        )
-                    }
-                    item("password.confirm") {
-                        Button(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .transformedHeight(this, transformationSpec),
-                            onClick = {
-                                passwordPrompt.onSubmit(password)
-                            },
-                            enabled = password.isNotEmpty(),
-                            transformation = SurfaceTransformation(transformationSpec),
-                        ) {
-                            Text(text = stringResource(Res.string.confirm))
-                        }
-                    }
-                    item("password.cancel") {
-                        FilledTonalButton(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .transformedHeight(this, transformationSpec),
-                            onClick = passwordPrompt.onCancel,
-                            transformation = SurfaceTransformation(transformationSpec),
-                        ) {
-                            Text(text = stringResource(Res.string.cancel))
-                        }
-                    }
+                    wearAttachmentPreviewPassword(
+                        prompt = passwordPrompt,
+                        // Read inside the items, so typing recomposes only them.
+                        password = { password },
+                        onPasswordChange = { password = it },
+                        transformationSpec = transformationSpec,
+                    )
                 } else when (val content = state.content) {
                     is AttachmentPreviewContent.Archive -> {
                         content.breadcrumbs.lastOrNull()?.let { folder ->
@@ -279,6 +236,20 @@ private fun WearAttachmentPreviewScaffold(
                         }
                     }
 
+                    is AttachmentPreviewContent.GpgKey -> {
+                        items(
+                            items = content.items,
+                            key = { model -> model.id },
+                        ) { model ->
+                            WearVaultViewItem(
+                                modifier = Modifier
+                                    .transformedHeight(this, transformationSpec),
+                                item = model,
+                                transformation = SurfaceTransformation(transformationSpec),
+                            )
+                        }
+                    }
+
                     is AttachmentPreviewContent.Error -> {
                         item("error") {
                             WearListLabel(
@@ -293,6 +264,70 @@ private fun WearAttachmentPreviewScaffold(
                 }
             },
         )
+    }
+}
+
+private fun TransformingLazyColumnScope.wearAttachmentPreviewPassword(
+    prompt: AttachmentArchivePassword,
+    password: () -> String,
+    onPasswordChange: (String) -> Unit,
+    transformationSpec: TransformationSpec,
+) {
+    item("password.title") {
+        WearListLabel(
+            modifier = Modifier
+                .transformedHeight(this, transformationSpec),
+            text = stringResource(Res.string.attachment_archive_password),
+            transformation = SurfaceTransformation(transformationSpec),
+        )
+    }
+    item("password.field") {
+        PasswordFlatTextField(
+            modifier = Modifier
+                .fillMaxWidth()
+                .transformedHeight(this, transformationSpec)
+                .surfaceTransformation(SurfaceTransformation(transformationSpec)),
+            value = TextFieldModel(
+                text = password(),
+                error = stringResource(Res.string.attachment_archive_error_password)
+                    .takeIf { prompt.incorrect },
+                onChange = onPasswordChange,
+            ),
+            keyboardOptions = KeyboardOptions(
+                imeAction = ImeAction.Go,
+            ),
+            keyboardActions = KeyboardActions(
+                onGo = {
+                    val value = password()
+                    if (value.isNotEmpty()) prompt.onSubmit(value)
+                },
+            ),
+        )
+    }
+    item("password.confirm") {
+        Button(
+            modifier = Modifier
+                .fillMaxWidth()
+                .transformedHeight(this, transformationSpec),
+            onClick = {
+                prompt.onSubmit(password())
+            },
+            enabled = password().isNotEmpty(),
+            transformation = SurfaceTransformation(transformationSpec),
+        ) {
+            Text(text = stringResource(Res.string.confirm))
+        }
+    }
+    item("password.cancel") {
+        FilledTonalButton(
+            modifier = Modifier
+                .fillMaxWidth()
+                .transformedHeight(this, transformationSpec),
+            onClick = prompt.onCancel,
+            transformation = SurfaceTransformation(transformationSpec),
+        ) {
+            Text(text = stringResource(Res.string.cancel))
+        }
     }
 }
 

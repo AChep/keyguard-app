@@ -6,6 +6,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import com.artemchep.keyguard.apple.core.toArgbLong
 import com.artemchep.keyguard.apple.model.TagsFieldSnapshot
+import com.artemchep.keyguard.apple.model.VaultItemSnapshot
 import com.artemchep.keyguard.common.model.BarcodeImageFormat
 import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.ui.format
@@ -84,6 +85,7 @@ enum class AttachmentPreviewKindSnapshot {
     TEXT,
     MARKDOWN,
     TABLE,
+    GPG_KEY,
     ERROR,
 }
 
@@ -121,6 +123,8 @@ data class AttachmentPreviewSnapshot(
     val tableRows: List<List<String>> = emptyList(),
     /** The longest cell per column, in characters. */
     val tableColumnLengths: List<Int> = emptyList(),
+    /** The parsed key details of a GPG_KEY; [text] is its armored source, if any. */
+    val items: List<VaultItemSnapshot> = emptyList(),
     val canGoBack: Boolean = false,
     val canSave: Boolean = false,
     val busy: Boolean = false,

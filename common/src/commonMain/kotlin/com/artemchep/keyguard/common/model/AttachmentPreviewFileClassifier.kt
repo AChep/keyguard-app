@@ -7,6 +7,9 @@ fun attachmentPreviewKindByFileName(
     if (extension in ATTACHMENT_PREVIEW_ARCHIVE_EXTENSIONS) {
         return AttachmentPreviewKind.Archive
     }
+    if (extension in ATTACHMENT_PREVIEW_GPG_KEY_EXTENSIONS) {
+        return AttachmentPreviewKind.GpgKey
+    }
     if (extension in ATTACHMENT_PREVIEW_IMAGE_EXTENSIONS) {
         return AttachmentPreviewKind.Image
     }
@@ -60,6 +63,12 @@ private val ATTACHMENT_PREVIEW_ARCHIVE_EXTENSIONS = setOf(
     "cbz",
 )
 
+private val ATTACHMENT_PREVIEW_GPG_KEY_EXTENSIONS = setOf(
+    "asc",
+    "gpg",
+    "pgp",
+)
+
 private val ATTACHMENT_PREVIEW_IMAGE_EXTENSIONS = setOf(
     "png",
     "jpg",
@@ -94,7 +103,6 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "ads",
     "applescript",
     "as",
-    "asc",
     "ascx",
     "asm",
     "asmx",

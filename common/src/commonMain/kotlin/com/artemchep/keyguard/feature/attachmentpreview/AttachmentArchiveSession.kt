@@ -61,6 +61,7 @@ internal class AttachmentArchiveSession(
     private val fileName: String,
     private val archive: ZipArchive,
     private val copyText: CopyText,
+    private val gpgKeyDecoder: AttachmentPreviewGpgKeyDecoder,
     private val onError: suspend (AttachmentPreviewError) -> Unit,
     temporaryDirProvider: PrivateTemporaryDirProvider = PrivateTemporaryDirProvider.Default,
     private val storageFactory: () -> PrivateTemporaryStorage = {
@@ -186,11 +187,16 @@ internal class AttachmentArchiveSession(
                     source.copyTo(buffer, checkCancellation = context::ensureActive)
                     buffer.readByteArray()
                 }
-            if (attachmentPreviewKindByFileName(entry.path) == AttachmentPreviewKind.Image) {
+            val kind = attachmentPreviewKindByFileName(entry.path)
+            if (kind == AttachmentPreviewKind.Image) {
                 AttachmentPreviewContent.Image(bytes)
             } else {
                 try {
-                    decodeTextPreview(entry.path, bytes, copyText)
+                    if (kind == AttachmentPreviewKind.GpgKey) {
+                        gpgKeyDecoder.decode(entry.path, bytes, copyText)
+                    } else {
+                        decodeTextPreview(entry.path, bytes, copyText)
+                    }
                 } finally {
                     bytes.fill(0)
                 }

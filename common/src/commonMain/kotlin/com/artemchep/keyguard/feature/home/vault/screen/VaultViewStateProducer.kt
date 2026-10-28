@@ -107,14 +107,11 @@ import com.artemchep.keyguard.feature.environments.mounts.titleH
 import com.artemchep.keyguard.feature.environments.EnvironmentValueSource
 import com.artemchep.keyguard.feature.environments.editableDefinition
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
-import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParserUnsupported
-import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
 import com.artemchep.keyguard.common.service.crypto.SshCertificate
 import com.artemchep.keyguard.common.service.crypto.SshCertificateParser
-import com.artemchep.keyguard.common.service.crypto.hasAuthenticatedMetadata
 import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
 import com.artemchep.keyguard.common.service.crypto.problemAt
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
@@ -123,7 +120,6 @@ import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractorRegistry
 import com.artemchep.keyguard.common.service.extract.LinkInfoRegistry
-import com.artemchep.keyguard.common.service.gpgagent.GpgRenewalAuthorization
 import com.artemchep.keyguard.common.service.gpgagent.chunkedGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.getGpgAgentPrivateKeyArmored
@@ -220,7 +216,13 @@ import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.feature.favicon.FaviconUrl
 import com.artemchep.keyguard.feature.generator.gpgkey.GpgKeyActions
 import com.artemchep.keyguard.feature.generator.sshkey.SshKeyActions
-import com.artemchep.keyguard.feature.gpgkey.translateGpgWeakSelfSignature
+import com.artemchep.keyguard.feature.gpgkey.createGpgKeyCapabilitiesRow
+import com.artemchep.keyguard.feature.gpgkey.createGpgKeyDateRows
+import com.artemchep.keyguard.feature.gpgkey.createGpgKeyStatusInfoItem
+import com.artemchep.keyguard.feature.gpgkey.createGpgSubKeyItems
+import com.artemchep.keyguard.feature.gpgkey.displayUserIds
+import com.artemchep.keyguard.feature.gpgkey.formatGpgAlgorithm
+import com.artemchep.keyguard.feature.gpgkey.primaryUserId
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
@@ -4768,64 +4770,21 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
 
     val items = mutableListOf<VaultViewItem>()
 
-    val gpgRevoked = parsedGpgKey?.revoked == true
-    val gpgExpired = parsedGpgKey?.expiresAt?.let { it <= now } == true
-    // The vault view has no live policy evaluation, so both self-signature
-    // states are read off the parse result. `authenticated == false` alone does
-    // not say which one it is: a weak-hash key that a renewal repairs and a key
-    // whose self-signature is missing, invalid or policy-rejected are both
-    // unauthenticated. The renewal tier is what separates them, so the
-    // remediation advice matches.
-    val gpgWeakSelfSignature =
-        parsedGpgKey?.renewal == GpgRenewalAuthorization.TEMPLATE_ONLY
-    val gpgUnauthenticatedSelfSignature = parsedGpgKey != null &&
-            !parsedGpgKey.hasAuthenticatedMetadata
-    when {
-        gpgRevoked -> {
-            items += VaultViewItem.Info(
-                id = "info.gpg.revoked",
-                name = translate(Res.string.revoked),
-                message = translate(Res.string.gpg_key_status_revoked_text),
+    parsedGpgKey
+        ?.let { key ->
+            createGpgKeyStatusInfoItem(
+                key = key,
+                now = now,
+                idPrefix = "info.gpg",
             )
         }
-
-        gpgExpired -> {
-            items += VaultViewItem.Info(
-                id = "info.gpg.expired",
-                name = translate(Res.string.expired),
-                message = translate(Res.string.gpg_key_status_expired_text),
-            )
-        }
-
-        gpgWeakSelfSignature -> {
-            items += VaultViewItem.Info(
-                id = "info.gpg.weakSelfSignature",
-                name = translate(Res.string.gpg_key_status_weak_self_signature_title),
-                message = translateGpgWeakSelfSignature(parsedGpgKey?.weakSelfSignatureAlgorithms.orEmpty()),
-            )
-        }
-
-        gpgUnauthenticatedSelfSignature -> {
-            items += VaultViewItem.Info(
-                id = "info.gpg.unauthenticatedSelfSignature",
-                name = translate(Res.string.gpg_key_status_unauthenticated_self_signature_title),
-                message = translate(Res.string.gpg_key_status_unauthenticated_self_signature_text),
-            )
-        }
-    }
+        ?.let { items += it }
 
     val gpgUserIds = parsedGpgKey
-        ?.userIds
+        ?.displayUserIds()
         .orEmpty()
-        .ifEmpty { parsedGpgKey?.emails.orEmpty() }
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
-        .distinct()
     val gpgPrimaryUserId = parsedGpgKey
-        ?.userIdDetails
-        ?.firstOrNull { it.primary }
-        ?.userId
-        ?.trim()
+        ?.primaryUserId()
 
     val effectiveGpgFingerprint = gpgFingerprint
         ?: parsedGpgKey
@@ -4964,18 +4923,6 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
         )
     }
 
-    val signCapability = translate(Res.string.gpg_keys_capability_sign)
-    val encryptDecryptCapability = translate(Res.string.gpg_key_capability_encrypt_decrypt)
-    // Persisted agent operations describe algorithm support, not present
-    // policy authorization, so only the parser's verdict counts here.
-    val gpgCapabilities = buildList {
-        if (parsedGpgKey?.canSign == true) {
-            this += signCapability
-        }
-        if (parsedGpgKey?.canEncrypt == true) {
-            this += encryptDecryptCapability
-        }
-    }
     val gpgAlgorithms = buildList {
         parsedGpgKey
             ?.formatGpgAlgorithm()
@@ -4993,33 +4940,18 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
             value = gpgAlgorithms.joinToString(separator = "\n"),
         )
     }
-    parsedGpgKey?.createdAt?.let { createdAt ->
-        gpgDetailRows += VaultViewItem.Table.Row(
-            title = translate(Res.string.created),
-            value = dateFormatter.formatDate(createdAt),
-        )
-    }
     if (parsedGpgKey != null) {
-        val expiresAt = parsedGpgKey.expiresAt
-        gpgDetailRows += VaultViewItem.Table.Row(
-            title = translate(Res.string.expires),
-            value = expiresAt
-                ?.let(dateFormatter::formatDate)
-                ?: translate(
-                    if (parsedGpgKey.hasAuthenticatedMetadata) {
-                        Res.string.gpg_key_does_not_expire
-                    } else {
-                        Res.string.gpg_key_expiry_unknown
-                    },
-                ),
+        gpgDetailRows += createGpgKeyDateRows(
+            key = parsedGpgKey,
+            dateFormatter = dateFormatter,
         )
     }
-    if (gpgCapabilities.isNotEmpty()) {
-        gpgDetailRows += VaultViewItem.Table.Row(
-            title = translate(Res.string.capabilities),
-            value = gpgCapabilities.joinToString(),
-        )
-    }
+    // Persisted agent operations describe algorithm support, not present
+    // policy authorization, so only the parser's verdict counts here.
+    createGpgKeyCapabilitiesRow(
+        canSign = parsedGpgKey?.canSign == true,
+        canEncrypt = parsedGpgKey?.canEncrypt == true,
+    )?.let { gpgDetailRows += it }
     val gpgKeyMaterialText = when {
         gpgPrivateKeyArmored != null && gpgPublicKeyArmored != null -> "sec/pub"
         gpgPrivateKeyArmored != null -> "sec"
@@ -5040,98 +4972,14 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
         )
     }
 
-    val gpgSubKeyItems = parsedGpgKey
-        ?.subKeys
-        .orEmpty()
-        .mapIndexedNotNull { index, subKey ->
-            val subKeyCapabilities = buildList {
-                if (subKey.canSign) {
-                    this += signCapability
-                }
-                if (subKey.canEncrypt) {
-                    this += encryptDecryptCapability
-                }
-            }.distinct()
-            val subKeyFingerprint = subKey.fingerprint
-                .normalizeGpgFingerprint()
-                .takeIf { it.isNotEmpty() }
-            val subKeyKeyId = subKey.keyId
-                .normalizeGpgFingerprint()
-                .takeIf { it.isNotEmpty() }
-            val rows = mutableListOf<VaultViewItem.Table.Row>()
-            if (subKeyFingerprint != null) {
-                rows += VaultViewItem.Table.Row(
-                    title = translate(Res.string.fingerprint),
-                    value = subKeyFingerprint.chunkedGpgFingerprint(),
-                )
-            }
-            if (subKeyKeyId != null && subKeyKeyId != subKeyFingerprint) {
-                rows += VaultViewItem.Table.Row(
-                    title = translate(Res.string.key_id),
-                    value = subKeyKeyId.chunkedGpgFingerprint(),
-                )
-            }
-            subKey.keygrip
-                ?.normalizeGpgKeygrip()
-                ?.takeIf { it.isNotEmpty() }
-                ?.let { keygrip ->
-                    rows += VaultViewItem.Table.Row(
-                        title = translate(Res.string.keygrip),
-                        value = keygrip,
-                    )
-                }
-            subKey.formatGpgAlgorithm()?.let { algorithm ->
-                rows += VaultViewItem.Table.Row(
-                    title = translate(Res.string.algorithm),
-                    value = algorithm,
-                )
-            }
-            subKey.createdAt?.let { createdAt ->
-                rows += VaultViewItem.Table.Row(
-                    title = translate(Res.string.created),
-                    value = dateFormatter.formatDate(createdAt),
-                )
-            }
-            subKey.expiresAt?.let { expiresAt ->
-                rows += VaultViewItem.Table.Row(
-                    title = translate(Res.string.expires),
-                    value = dateFormatter.formatDate(expiresAt),
-                )
-            }
-            if (subKeyCapabilities.isNotEmpty()) {
-                rows += VaultViewItem.Table.Row(
-                    title = translate(Res.string.capabilities),
-                    value = subKeyCapabilities.joinToString(),
-                )
-            }
-            val subKeyStatus = when {
-                subKey.revoked -> Res.string.revoked
-                subKey.expiresAt?.let { it <= now } == true -> Res.string.expired
-                else -> null
-            }
-            if (subKeyStatus != null) {
-                rows += VaultViewItem.Table.Row(
-                    title = translate(Res.string.gpg_key_status),
-                    value = translate(subKeyStatus),
-                )
-            }
-            if (rows.isEmpty()) {
-                return@mapIndexedNotNull null
-            }
-            VaultViewItem.Table(
-                id = "gpg.subKey.$index",
-                elevation = 1.dp,
-                title = translate(Res.string.gpg_key_subkey_n, index + 1),
-                rows = rows,
-            )
-        }
-    if (gpgSubKeyItems.isNotEmpty()) {
-        items += VaultViewItem.Section(
-            id = "gpg.subKeys.section",
-            text = translate(Res.string.subkeys),
-        )
-        items += gpgSubKeyItems
-    }
+    items += createGpgSubKeyItems(
+        subKeys = parsedGpgKey
+            ?.subKeys
+            .orEmpty(),
+        now = now,
+        dateFormatter = dateFormatter,
+        idPrefix = "gpg",
+    )
 
     if (gpgUserIds.isNotEmpty()) {
         items += VaultViewItem.Section(
@@ -5235,26 +5083,6 @@ private suspend fun RememberStateFlowScope.createGpgKeyItems(
     }
 
     return items
-}
-
-private fun GpgPublicKeyInfo.formatGpgAlgorithm(): String? {
-    val values = listOfNotNull(
-        algorithm.takeIf { it.isNotBlank() },
-        bitStrength?.let { "$it-bit" },
-    )
-    return values
-        .joinToString(separator = " ")
-        .takeIf { it.isNotBlank() }
-}
-
-private fun GpgPublicSubKeyInfo.formatGpgAlgorithm(): String? {
-    val values = listOfNotNull(
-        algorithm.takeIf { it.isNotBlank() },
-        bitStrength?.let { "$it-bit" },
-    )
-    return values
-        .joinToString(separator = " ")
-        .takeIf { it.isNotBlank() }
 }
 
 internal data class VaultViewPrimaryCopy(

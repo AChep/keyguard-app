@@ -32,6 +32,7 @@ fun attachmentPreviewSyntaxLanguageByFileName(
         AttachmentPreviewKind.Text -> SyntaxLanguage.DEFAULT
 
         AttachmentPreviewKind.Archive,
+        AttachmentPreviewKind.GpgKey,
         AttachmentPreviewKind.Image,
         null -> null
     }

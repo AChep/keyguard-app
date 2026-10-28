@@ -82,6 +82,16 @@ class AttachmentPreviewTypesTest {
     }
 
     @Test
+    fun `gpg key extensions are previewable case insensitively`() {
+        assertEquals(AttachmentPreviewKind.GpgKey, attachmentPreviewKindByFileName("public.asc"))
+        assertEquals(AttachmentPreviewKind.GpgKey, attachmentPreviewKindByFileName("KEY.GPG"))
+        assertEquals(AttachmentPreviewKind.GpgKey, attachmentPreviewKindByFileName("dir/secret.pgp"))
+        assertEquals(AttachmentPreviewKind.Text, attachmentPreviewKindByFileName("private.key"))
+        assertEquals(AttachmentPreviewKind.Text, attachmentPreviewKindByFileName("cert.pem"))
+        assertNull(attachmentPreviewSyntaxLanguageByFileName("public.asc"))
+    }
+
+    @Test
     fun `zip extensions are previewable case insensitively`() {
         assertEquals(AttachmentPreviewKind.Archive, attachmentPreviewKindByFileName("archive.ZIP"))
         assertEquals(AttachmentPreviewKind.Archive, attachmentPreviewKindByFileName("archive.zip"))

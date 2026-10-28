@@ -47,7 +47,7 @@ object NativeGpgPublicKeyParser : GpgPublicKeyParser {
     }
 
     /** Parses borrowed binary or armored bytes without changing the caller's buffer. */
-    internal fun parse(
+    override fun parse(
         keyData: ByteArray,
     ): GpgPublicKeyParseResult =
         try {

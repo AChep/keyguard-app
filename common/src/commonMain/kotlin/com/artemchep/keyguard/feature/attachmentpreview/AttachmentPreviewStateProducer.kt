@@ -18,11 +18,13 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.attachmentPreviewKindByFileName
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.CopyText
+import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
 import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
@@ -60,6 +62,8 @@ fun produceAttachmentPreviewState(
         getAttachmentPreview = get(),
         downloadManager = get(),
         temporaryDirProvider = get(),
+        gpgPublicKeyParser = get(),
+        dateFormatter = get(),
     )
 }
 
@@ -70,6 +74,8 @@ fun produceAttachmentPreviewState(
     getAttachmentPreview: GetAttachmentPreview,
     downloadManager: DownloadManager,
     temporaryDirProvider: PrivateTemporaryDirProvider,
+    gpgPublicKeyParser: GpgPublicKeyParser,
+    dateFormatter: DateFormatter,
 ): Loadable<AttachmentPreviewState> = produceScreenState(
     key = "attachment_preview:${args.localCipherId}:${args.attachmentId}",
     initial = Loadable.Loading,
@@ -79,6 +85,8 @@ fun produceAttachmentPreviewState(
         getAttachmentPreview,
         downloadManager,
         temporaryDirProvider,
+        gpgPublicKeyParser,
+        dateFormatter,
     ),
 ) {
     attachmentPreviewStateProducer(
@@ -87,6 +95,8 @@ fun produceAttachmentPreviewState(
         getAttachmentPreview = getAttachmentPreview,
         downloadManager = downloadManager,
         temporaryDirProvider = temporaryDirProvider,
+        gpgPublicKeyParser = gpgPublicKeyParser,
+        dateFormatter = dateFormatter,
     )
 }
 
@@ -97,9 +107,16 @@ suspend fun RememberStateFlowScope.attachmentPreviewStateProducer(
     getAttachmentPreview: GetAttachmentPreview,
     downloadManager: DownloadManager,
     temporaryDirProvider: PrivateTemporaryDirProvider,
+    gpgPublicKeyParser: GpgPublicKeyParser,
+    dateFormatter: DateFormatter,
 ): Flow<Loadable<AttachmentPreviewState>> {
     val producerScope = this
     val copyText = copier()
+    val gpgKeyDecoder = AttachmentPreviewGpgKeyDecoder(
+        parser = gpgPublicKeyParser,
+        dateFormatter = dateFormatter,
+        translator = producerScope,
+    )
     return flow {
         val state = createAttachmentPreviewState(
             args = args,
@@ -107,6 +124,7 @@ suspend fun RememberStateFlowScope.attachmentPreviewStateProducer(
             getAttachmentPreview = getAttachmentPreview,
             downloadManager = downloadManager,
             copyText = copyText,
+            gpgKeyDecoder = gpgKeyDecoder,
         )
         val isDark = snapshotFlow { producerScope.colorScheme.isDark }
         val archive = state.content as? AttachmentPreviewContent.Archive
@@ -120,6 +138,7 @@ suspend fun RememberStateFlowScope.attachmentPreviewStateProducer(
                             fileName = state.fileName,
                             archive = archive.source,
                             copyText = copyText,
+                            gpgKeyDecoder = gpgKeyDecoder,
                             onError = producerScope::showArchiveError,
                             temporaryDirProvider = temporaryDirProvider,
                             tree = tree,
@@ -185,6 +204,7 @@ internal suspend fun createAttachmentPreviewState(
     getAttachmentPreview: GetAttachmentPreview,
     downloadManager: DownloadManager,
     copyText: CopyText,
+    gpgKeyDecoder: AttachmentPreviewGpgKeyDecoder,
 ): AttachmentPreviewState {
     canPreviewAttachment(
         fileName = args.fileName,
@@ -222,7 +242,12 @@ internal suspend fun createAttachmentPreviewState(
         ifRight = { payload ->
             fileName = payload.fileName
             try {
-                withContext(Dispatchers.Default) { payload.toPreviewContent(copyText = copyText) }
+                withContext(Dispatchers.Default) {
+                    payload.toPreviewContent(
+                        copyText = copyText,
+                        gpgKeyDecoder = gpgKeyDecoder,
+                    )
+                }
             } catch (e: Throwable) {
                 e.throwIfFatalOrCancellation()
                 AttachmentPreviewContent.Error(e.toPreviewError())
@@ -275,12 +300,18 @@ internal fun AttachmentPreviewPolicy.toPreviewErrorOrNull(): AttachmentPreviewEr
     AttachmentPreviewPolicy.UnsupportedPlatform -> AttachmentPreviewError.UnsupportedPlatform
 }
 
-private fun AttachmentPreviewPayload.toPreviewContent(
+private suspend fun AttachmentPreviewPayload.toPreviewContent(
     copyText: CopyText,
+    gpgKeyDecoder: AttachmentPreviewGpgKeyDecoder,
 ): AttachmentPreviewContent {
     return when (attachmentPreviewKindByFileName(fileName)) {
         AttachmentPreviewKind.Archive -> AttachmentPreviewContent.Archive(
             ZipArchive(bytes, maxEntries = AttachmentPreviewLimits.MAX_ARCHIVE_ENTRIES),
+        )
+        AttachmentPreviewKind.GpgKey -> gpgKeyDecoder.decode(
+            fileName = fileName,
+            bytes = bytes,
+            copyText = copyText,
         )
         AttachmentPreviewKind.Image -> AttachmentPreviewContent.Image(bytes = bytes)
         AttachmentPreviewKind.Markdown,
@@ -295,6 +326,11 @@ private fun AttachmentPreviewPayload.toPreviewContent(
     }
 }
 
+private val UTF8_BOM = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
+
+internal fun ByteArray.hasUtf8Bom(): Boolean =
+    size >= UTF8_BOM.size && UTF8_BOM.indices.all { this[it] == UTF8_BOM[it] }
+
 internal fun decodeTextPreview(
     fileName: String,
     bytes: ByteArray,
@@ -307,16 +343,7 @@ internal fun decodeTextPreview(
         }
     }
 
-    val offset = if (
-        bytes.size >= 3 &&
-        bytes[0] == 0xEF.toByte() &&
-        bytes[1] == 0xBB.toByte() &&
-        bytes[2] == 0xBF.toByte()
-    ) {
-        3
-    } else {
-        0
-    }
+    val offset = if (bytes.hasUtf8Bom()) UTF8_BOM.size else 0
     val text = bytes
         .decodeToString(
             startIndex = offset,
@@ -370,6 +397,7 @@ private fun AttachmentPreviewState.withCode(
         is AttachmentPreviewContent.Markdown -> content.copy(code = code)
         is AttachmentPreviewContent.Table -> content.copy(code = code)
         is AttachmentPreviewContent.Archive,
+        is AttachmentPreviewContent.GpgKey,
         is AttachmentPreviewContent.Image,
         is AttachmentPreviewContent.Error -> content
     },

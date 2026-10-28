@@ -519,6 +519,7 @@
     <string name="attachment_preview_error_decryption">Failed to decrypt the attachment preview.</string>
     <string name="attachment_preview_error_text_decode">This text file cannot be previewed.</string>
     <string name="attachment_preview_error_image_decode">This image cannot be previewed.</string>
+    <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
     <string name="attachment_preview_action_copy_all">Copy all</string>
     <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
     <string name="attachment_preview_action_source">Source</string>

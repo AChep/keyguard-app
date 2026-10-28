@@ -15,7 +15,18 @@ interface GpgPublicKeyParser {
     fun parse(
         armored: String,
     ): GpgPublicKeyParseResult
+
+    /** Parses binary or ASCII-armored [keyData] without modifying it. */
+    fun parse(
+        keyData: ByteArray,
+    ): GpgPublicKeyParseResult = GpgPublicKeyParseResult.Error(GpgPublicKeyParseError.Unsupported)
 }
+
+/** Returns `true` if the text contains an ASCII-armored OpenPGP secret key block. */
+fun String.containsGpgPrivateKeyArmor(): Boolean =
+    GPG_PRIVATE_KEY_ARMOR_LABELS.any { contains(it, ignoreCase = true) }
+
+private val GPG_PRIVATE_KEY_ARMOR_LABELS = listOf("-----BEGIN PGP PRIVATE KEY", "-----BEGIN PGP SECRET KEY")
 
 /**
  * Parses [armored] and returns the key whose fingerprint matches [fingerprint]

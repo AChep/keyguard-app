@@ -31,7 +31,10 @@ class AttachmentArchiveSessionTest {
     @Test
     fun foldersSortFirstAndBackRestoresTheFolderWithoutReloading() = runTest {
         val archive = zip(listOf("z.txt", "folder/b.txt", "folder/a.txt", "inner.zip"))
-        val session = AttachmentArchiveSession(backgroundScope, "test.zip", archive, testCopyText(), onError = {})
+        val session = AttachmentArchiveSession(
+            backgroundScope, "test.zip", archive, testCopyText(), testGpgKeyDecoder(),
+            onError = {},
+        )
         try {
             val root = assertIs<AttachmentPreviewContent.Archive>(session.state.value.content)
             assertEquals(listOf("folder", "inner.zip", "z.txt"), root.items.map { it.name })
@@ -58,7 +61,10 @@ class AttachmentArchiveSessionTest {
     @Test
     fun breadcrumbsOpenTheirFolders() = runTest {
         val archive = zip(listOf("one/two/file.txt"))
-        val session = AttachmentArchiveSession(backgroundScope, "test.zip", archive, testCopyText(), onError = {})
+        val session = AttachmentArchiveSession(
+            backgroundScope, "test.zip", archive, testCopyText(), testGpgKeyDecoder(),
+            onError = {},
+        )
         try {
             val root = assertIs<AttachmentPreviewContent.Archive>(session.state.value.content)
             root.items.single().onOpen!!()
@@ -80,6 +86,7 @@ class AttachmentArchiveSessionTest {
             "test.zip",
             zip(listOf("secret.txt"), "secret"),
             testCopyText(),
+            testGpgKeyDecoder(),
             onError = {},
         )
         try {
@@ -121,7 +128,7 @@ class AttachmentArchiveSessionTest {
         val storage = TestExportStorage()
         var stages = 0
         val session = AttachmentArchiveSession(
-            backgroundScope, "test.zip", zip(listOf("file.txt")), testCopyText(), onError = {},
+            backgroundScope, "test.zip", zip(listOf("file.txt")), testCopyText(), testGpgKeyDecoder(), onError = {},
             storageFactory = { stages++; storage },
         )
         val content = assertIs<AttachmentPreviewContent.Archive>(session.state.value.content)
@@ -146,7 +153,8 @@ class AttachmentArchiveSessionTest {
     fun closingReleasesPendingExportsAndIgnoresLateCallbacksEvenWhenCleanupFails() = runTest {
         val storage = TestExportStorage(failOnClose = true)
         val session = AttachmentArchiveSession(
-            backgroundScope, "test.zip", zip(listOf("secret.txt"), "secret"), testCopyText(), onError = {},
+            backgroundScope, "test.zip", zip(listOf("secret.txt"), "secret"), testCopyText(), testGpgKeyDecoder(),
+            onError = {},
             storageFactory = { storage },
         )
         val content = assertIs<AttachmentPreviewContent.Archive>(session.state.value.content)
@@ -167,9 +175,24 @@ class AttachmentArchiveSessionTest {
     }
 
     @Test
+    fun gpgKeyEntriesPreviewAsKeys() = runTest {
+        val session = AttachmentArchiveSession(
+            backgroundScope, "test.zip", zip(listOf("key.asc")), testCopyText(), testGpgKeyDecoderWithKey(),
+            onError = {},
+        )
+        try {
+            val root = assertIs<AttachmentPreviewContent.Archive>(session.state.value.content)
+            root.items.single().onOpen!!()
+            val preview = session.state.first { !it.busy && it.content is AttachmentPreviewContent.GpgKey }
+            assertEquals("key.asc", preview.fileName)
+            assertEquals("key.asc", assertIs<AttachmentPreviewContent.GpgKey>(preview.content).source?.text)
+        } finally { session.close() }
+    }
+
+    @Test
     fun closingBeforeAnEntryStartsCancelsWorkAndIgnoresItsCallbacks() = runTest {
         val session = AttachmentArchiveSession(
-            backgroundScope, "test.zip", zip(listOf("file.txt")), testCopyText(), onError = {},
+            backgroundScope, "test.zip", zip(listOf("file.txt")), testCopyText(), testGpgKeyDecoder(), onError = {},
         )
         val root = assertIs<AttachmentPreviewContent.Archive>(session.state.value.content)
         root.items.single().onOpen!!()
@@ -189,6 +212,7 @@ class AttachmentArchiveSessionTest {
             "test.zip",
             zip(listOf("file.txt"), content = "a".repeat(32_768)),
             testCopyText(),
+            testGpgKeyDecoder(),
             onError = { errors += it },
             storageFactory = { storage },
         )
@@ -211,6 +235,7 @@ class AttachmentArchiveSessionTest {
         val errors = mutableListOf<AttachmentPreviewError>()
         val session = AttachmentArchiveSession(
             backgroundScope, "test.zip", zip(listOf("file.txt")), testCopyText(),
+            testGpgKeyDecoder(),
             onError = { errors += it }, storageFactory = { storage },
         )
         try {
@@ -230,6 +255,7 @@ class AttachmentArchiveSessionTest {
         val error = CompletableDeferred<AttachmentPreviewError>()
         val session = AttachmentArchiveSession(
             backgroundScope, "test.zip", zip(listOf("file.txt")), testCopyText(),
+            testGpgKeyDecoder(),
             onError = { error.complete(it) },
             storageFactory = { storage },
         )

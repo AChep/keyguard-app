@@ -88,6 +88,7 @@ import com.artemchep.keyguard.feature.attachmentpreview.minimap.AttachmentPrevie
 import com.artemchep.keyguard.feature.attachmentpreview.minimap.attachmentPreviewMinimapPanelHeightPx
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountBin
+import com.artemchep.keyguard.feature.home.vault.component.VaultViewItem
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
@@ -193,13 +194,13 @@ private fun AttachmentPreviewScaffold(
                                     )
                                 }
                             }
-                            val content = state.content as? AttachmentPreviewContent.TextLike
-                            if (content != null) {
+                            val onCopy = state.content.onCopy
+                            if (onCopy != null) {
                                 val copyAllText = stringResource(
                                     Res.string.attachment_preview_action_copy_all,
                                 )
                                 IconButton(
-                                    onClick = content.onCopy,
+                                    onClick = onCopy,
                                 ) {
                                     Icon(
                                         imageVector = Icons.Outlined.ContentCopy,
@@ -273,6 +274,16 @@ private fun AttachmentPreviewScaffold(
                         )
 
                         is AttachmentPreviewContent.Table -> AttachmentPreviewTableContent(
+                            content = content,
+                            textMode = textMode,
+                            onTextModeChange = {
+                                textModeKey = it.key
+                            },
+                            wrapLines = wrapLines,
+                            contentPadding = contentPadding,
+                        )
+
+                        is AttachmentPreviewContent.GpgKey -> AttachmentPreviewGpgKeyContent(
                             content = content,
                             textMode = textMode,
                             onTextModeChange = {
@@ -619,6 +630,55 @@ private fun AttachmentPreviewTableContent(
                 table = content.table,
                 wrapLines = wrapLines,
             )
+        }
+    }
+}
+
+@Composable
+private fun AttachmentPreviewGpgKeyContent(
+    content: AttachmentPreviewContent.GpgKey,
+    textMode: AttachmentPreviewTextMode,
+    onTextModeChange: (AttachmentPreviewTextMode) -> Unit,
+    wrapLines: Boolean,
+    contentPadding: PaddingValues,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding),
+    ) {
+        val source = content.source
+        if (source != null) {
+            AttachmentPreviewTextModeTabs(
+                textMode = textMode,
+                onTextModeChange = onTextModeChange,
+            )
+        }
+
+        if (source != null && textMode == AttachmentPreviewTextMode.Source) {
+            AttachmentPreviewCodeViewer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                code = source,
+                wrapLines = wrapLines,
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                contentPadding = PaddingValues(vertical = 8.dp),
+            ) {
+                items(
+                    items = content.items,
+                    key = { item -> item.id },
+                ) { item ->
+                    VaultViewItem(
+                        item = item,
+                    )
+                }
+            }
         }
     }
 }
@@ -996,6 +1056,7 @@ private class AttachmentPreviewErrorText(
     vararg val args: Any,
 )
 
+@Suppress("CyclomaticComplexMethod") // One branch per error.
 private fun AttachmentPreviewError.text(): AttachmentPreviewErrorText = when (this) {
     AttachmentPreviewError.UnsupportedFileType ->
         AttachmentPreviewErrorText(Res.string.attachment_preview_error_unsupported_file)
@@ -1017,6 +1078,9 @@ private fun AttachmentPreviewError.text(): AttachmentPreviewErrorText = when (th
 
     AttachmentPreviewError.TextDecode ->
         AttachmentPreviewErrorText(Res.string.attachment_preview_error_text_decode)
+
+    AttachmentPreviewError.GpgKey ->
+        AttachmentPreviewErrorText(Res.string.attachment_preview_error_gpg_key)
 
     AttachmentPreviewError.ArchiveInvalid ->
         AttachmentPreviewErrorText(Res.string.attachment_archive_error_invalid)

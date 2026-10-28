@@ -114,6 +114,7 @@ import com.artemchep.keyguard.util.io.toNSData
 import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.apple.core.onFilePickerResult
 import com.artemchep.keyguard.apple.core.toFilePickerRequest
+import com.artemchep.keyguard.apple.model.buildVaultItemSnapshots
 import com.artemchep.keyguard.apple.model.toTagsSnapshot
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
@@ -775,6 +776,8 @@ internal class DialogController(
                     getAttachmentPreview = sessionKoin.get(),
                     downloadManager = sessionKoin.get(),
                     temporaryDirProvider = sessionKoin.get(),
+                    gpgPublicKeyParser = sessionKoin.get(),
+                    dateFormatter = sessionKoin.get(),
                 )
                 .collect { loadable ->
                     val state = loadable.getOrNull() ?: return@collect
@@ -790,7 +793,7 @@ internal class DialogController(
     }
 
     fun invokeAttachmentPreviewCopy() {
-        (attachmentPreviewDialog.handlers?.content as? AttachmentPreviewContent.TextLike)?.onCopy?.invoke()
+        attachmentPreviewDialog.handlers?.content?.onCopy?.invoke()
     }
 
     /** Cancels a running archive operation, otherwise goes up a folder. */
@@ -1985,6 +1988,21 @@ internal class DialogController(
             canCopy = true,
             tableRows = content.table.rows,
             tableColumnLengths = content.table.columnLengths,
+        )
+
+        is AttachmentPreviewContent.GpgKey -> AttachmentPreviewSnapshot(
+            fileName = state.fileName,
+            kind = AttachmentPreviewKindSnapshot.GPG_KEY,
+            text = content.source?.text,
+            spans = content.source?.annotatedString?.toAttachmentPreviewSpans().orEmpty(),
+            canCopy = content.onCopy != null,
+            items = buildVaultItemSnapshots(
+                items = content.items,
+                notesText = null,
+                leContext = leContext,
+                // The items have no actions.
+                actionHandlers = mutableMapOf(),
+            ),
         )
 
         is AttachmentPreviewContent.Error -> AttachmentPreviewSnapshot(

@@ -205,6 +205,7 @@ class AttachmentPreviewStateProducerTest {
                 getAttachmentPreview = getAttachmentPreview,
                 downloadManager = downloadManager,
                 copyText = testCopyText(),
+                gpgKeyDecoder = testGpgKeyDecoder(),
             )
 
             val error = assertIs<AttachmentPreviewContent.Error>(state.content)
@@ -225,6 +226,7 @@ class AttachmentPreviewStateProducerTest {
             getAttachmentPreview = getAttachmentPreview,
             downloadManager = downloadManager,
             copyText = testCopyText(),
+            gpgKeyDecoder = testGpgKeyDecoder(),
         )
 
         val text = assertIs<AttachmentPreviewContent.Text>(state.content)

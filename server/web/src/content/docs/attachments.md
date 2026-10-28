@@ -1,6 +1,6 @@
 ---
 title: Attachments
-description: "Attach files to vault items, download them, and preview images, text and ZIP archives without saving them to disk."
+description: "Attach files to vault items, download them, and preview images, text, GPG keys and ZIP archives without saving them to disk."
 section: vault
 type: feature
 order: 90
@@ -50,12 +50,18 @@ Markdown and table previews have **Copy all** and **Wrap lines** buttons.
 :::details[Preview file types]
 | Kind | Files |
 | --- | --- |
+| GPG keys | `.asc`, `.gpg` and `.pgp` |
 | Images | PNG, JPEG (including `.jfif` and `.jpe`), GIF, BMP, WebP, HEIC and HEIF |
 | Markdown | `.md`, `.markdown`, `.mdown`, `.mdwn`, `.mkd`, `.mkdn` and `.mkdown` |
 | Tables | `.csv` and `.tsv` |
 | Text | Plain text, code, configuration and data files, such as `.txt`, `.json`, `.yaml`, `.env`, `.pem` and `.ovpn`, contacts (`.vcf`, `.vcard`), calendars (`.ics`, `.ifb`), and files named `Dockerfile`, `Makefile`, `README` or `LICENSE` |
 | ZIP archives | `.zip`, `.jar`, `.apk`, `.epub` and `.cbz` |
 :::
+
+A GPG key preview lists each key's fingerprint, algorithm, expiry, subkeys and
+user IDs. Secret keys open without their passphrase. Armored keys also have
+**Source** and **Preview** tabs. An `.asc` file that is not a key, such as a
+signature, opens as text.
 
 ### Browse a ZIP archive
 

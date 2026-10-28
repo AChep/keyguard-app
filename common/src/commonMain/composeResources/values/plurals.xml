@@ -353,4 +353,8 @@
         <item quantity="many"><xliff:g id="number">%1$d</xliff:g> items</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items</item>
     </plurals>
+    <plurals name="attachment_preview_gpg_skipped_certificates_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> certificate could not be read</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+    </plurals>
 </resources>

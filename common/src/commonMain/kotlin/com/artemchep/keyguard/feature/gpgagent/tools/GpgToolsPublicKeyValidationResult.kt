@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.containsGpgPrivateKeyArmor
 import com.artemchep.keyguard.common.service.crypto.isActiveAt
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.crypto.eraseAll
@@ -24,7 +25,6 @@ sealed interface GpgToolsPublicKeyValidationResult {
 
 private const val PUBLIC_KEY_ARMOR_BEGIN = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
 private const val PUBLIC_KEY_ARMOR_END = "-----END PGP PUBLIC KEY BLOCK-----"
-private val PRIVATE_KEY_ARMOR_LABELS = listOf("-----BEGIN PGP PRIVATE KEY", "-----BEGIN PGP SECRET KEY")
 
 /** Validates temporary public certificates without retaining the pasted packet text. */
 @Suppress("ReturnCount")
@@ -34,7 +34,7 @@ fun validateGpgToolsPublicKeys(
     forEncryption: Boolean,
 ): GpgToolsPublicKeyValidationResult {
     fun invalid() = GpgToolsPublicKeyValidationResult.Error(Res.string.gpg_tools_public_key_invalid)
-    if (PRIVATE_KEY_ARMOR_LABELS.any { text.contains(it, ignoreCase = true) }) {
+    if (text.containsGpgPrivateKeyArmor()) {
         return GpgToolsPublicKeyValidationResult.Error(Res.string.gpg_tools_public_key_private)
     }
     val parsed = runCatchingNonFatal { parser.parse(text) }.getOrNull()

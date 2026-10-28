@@ -11,7 +11,7 @@ struct AttachmentPreviewView: View {
     @Environment(DialogsModel.self) private var dialogsModel
     @Environment(\.dismiss) private var dismiss
 
-    /// `0` renders the markdown or table, `1` shows the raw source.
+    /// `0` renders the markdown, table or GPG key, `1` shows the raw source.
     @State private var textMode = 0
     @State private var archivePassword = ""
     @FocusState private var archivePasswordFocused: Bool
@@ -107,6 +107,7 @@ struct AttachmentPreviewView: View {
         VStack(alignment: .leading, spacing: 16) {
             if snapshot.kind == AttachmentPreviewKindSnapshot.markdown
                 || snapshot.kind == AttachmentPreviewKindSnapshot.table
+                || (snapshot.kind == AttachmentPreviewKindSnapshot.gpgKey && snapshot.text != nil)
             {
                 Picker("", selection: $textMode) {
                     Text(L10n.fileActionPreviewTitle).tag(0)
@@ -140,6 +141,8 @@ struct AttachmentPreviewView: View {
                     markdownPane(snapshot)
                 } else if snapshot.kind == AttachmentPreviewKindSnapshot.table {
                     tablePane(snapshot)
+                } else if snapshot.kind == AttachmentPreviewKindSnapshot.gpgKey {
+                    gpgKeyPane(snapshot)
                 } else {
                     errorPane(snapshot.errorMessage)
                 }
@@ -233,6 +236,17 @@ struct AttachmentPreviewView: View {
                 columnLengths: snapshot.tableColumnLengths
             )
             .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+        } else {
+            textPane(snapshot)
+        }
+    }
+
+    @ViewBuilder
+    private func gpgKeyPane(_ snapshot: AttachmentPreviewSnapshot) -> some View {
+        // A binary key has no source to show.
+        if textMode == 0 || snapshot.text == nil {
+            // The key details have no actions.
+            DetailForm(items: snapshot.items, invoke: { _ in })
         } else {
             textPane(snapshot)
         }

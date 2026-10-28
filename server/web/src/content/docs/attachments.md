@@ -50,15 +50,15 @@ previews have **Copy all** and **Wrap lines** buttons.
 :::details[Preview file types]
 | Kind | Files |
 | --- | --- |
-| Images | PNG, JPEG, GIF, BMP, WebP, HEIC and HEIF |
-| Markdown | `.md` and `.markdown` |
-| Text | Plain text, code, configuration and data files, such as `.txt`, `.json`, `.yaml`, `.env` and `.pem`, and files named `Dockerfile`, `Makefile`, `README` or `LICENSE` |
-| ZIP archives | `.zip` |
+| Images | PNG, JPEG (including `.jfif` and `.jpe`), GIF, BMP, WebP, HEIC and HEIF |
+| Markdown | `.md`, `.markdown`, `.mdown`, `.mdwn`, `.mkd`, `.mkdn` and `.mkdown` |
+| Text | Plain text, code, configuration and data files, such as `.txt`, `.json`, `.yaml`, `.env`, `.pem` and `.ovpn`, contacts (`.vcf`, `.vcard`), calendars (`.ics`, `.ifb`), and files named `Dockerfile`, `Makefile`, `README` or `LICENSE` |
+| ZIP archives | `.zip`, `.jar`, `.apk`, `.epub` and `.cbz` |
 :::
 
 ### Browse a ZIP archive
 
-1. On a `.zip` attachment, select **Preview**. Keyguard lists the archive's
+1. On a ZIP archive attachment, select **Preview**. Keyguard lists the archive's
    files and folders.
 2. Select a folder to open it, or a file to preview it.
 3. To save a file, select **Save file** next to it, and choose where to save
@@ -67,3 +67,6 @@ previews have **Copy all** and **Wrap lines** buttons.
 A file marked **Encrypted** asks for the **Archive password** first. Browsing
 and previews stay in memory. Saving passes the file through temporary storage,
 which Keyguard cleans up afterward.
+
+JAR, APK, EPUB and CBZ files open as archives. Select their files to preview
+supported images and text.

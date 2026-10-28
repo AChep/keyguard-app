@@ -4,7 +4,9 @@ fun attachmentPreviewKindByFileName(
     fileName: String,
 ): AttachmentPreviewKind? {
     val extension = fileName.attachmentPreviewFileExtension()
-    if (extension == "zip") return AttachmentPreviewKind.Archive
+    if (extension in ATTACHMENT_PREVIEW_ARCHIVE_EXTENSIONS) {
+        return AttachmentPreviewKind.Archive
+    }
     if (extension in ATTACHMENT_PREVIEW_IMAGE_EXTENSIONS) {
         return AttachmentPreviewKind.Image
     }
@@ -47,10 +49,20 @@ internal fun String.attachmentPreviewFileExtension(): String? {
     }
 }
 
+private val ATTACHMENT_PREVIEW_ARCHIVE_EXTENSIONS = setOf(
+    "zip",
+    "jar",
+    "apk",
+    "epub",
+    "cbz",
+)
+
 private val ATTACHMENT_PREVIEW_IMAGE_EXTENSIONS = setOf(
     "png",
     "jpg",
     "jpeg",
+    "jfif",
+    "jpe",
     "gif",
     "bmp",
     "webp",
@@ -61,6 +73,11 @@ private val ATTACHMENT_PREVIEW_IMAGE_EXTENSIONS = setOf(
 private val ATTACHMENT_PREVIEW_MARKDOWN_EXTENSIONS = setOf(
     "md",
     "markdown",
+    "mdown",
+    "mdwn",
+    "mkd",
+    "mkdn",
+    "mkdown",
 )
 
 private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
@@ -184,6 +201,8 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "htpasswd",
     "hxx",
     "iced",
+    "ics",
+    "ifb",
     "inc",
     "ini",
     "ino",
@@ -223,17 +242,12 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "makefile",
     "map",
     "master",
-    "mdown",
-    "mdwn",
     "mdx",
     "metadata",
     "mht",
     "mhtml",
     "mjs",
     "mk",
-    "mkd",
-    "mkdn",
-    "mkdown",
     "ml",
     "mli",
     "mm",
@@ -247,6 +261,7 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "npmrc",
     "nvmrc",
     "ops",
+    "ovpn",
     "pas",
     "pasm",
     "patch",
@@ -346,6 +361,8 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "v",
     "vb",
     "vbs",
+    "vcard",
+    "vcf",
     "vh",
     "vhd",
     "vhdl",

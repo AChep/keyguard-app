@@ -44,14 +44,15 @@ downloaded file stays until you select **Delete local file**.
 **Preview** appears once the attachment is uploaded, for files up to 8 MB of
 the types below.
 
-A Markdown file opens with **Source** and **Preview** tabs. Text and Markdown
-previews have **Copy all** and **Wrap lines** buttons.
+Markdown, CSV and TSV files open with **Source** and **Preview** tabs. Text,
+Markdown and table previews have **Copy all** and **Wrap lines** buttons.
 
 :::details[Preview file types]
 | Kind | Files |
 | --- | --- |
 | Images | PNG, JPEG (including `.jfif` and `.jpe`), GIF, BMP, WebP, HEIC and HEIF |
 | Markdown | `.md`, `.markdown`, `.mdown`, `.mdwn`, `.mkd`, `.mkdn` and `.mkdown` |
+| Tables | `.csv` and `.tsv` |
 | Text | Plain text, code, configuration and data files, such as `.txt`, `.json`, `.yaml`, `.env`, `.pem` and `.ovpn`, contacts (`.vcf`, `.vcard`), calendars (`.ics`, `.ifb`), and files named `Dockerfile`, `Makefile`, `README` or `LICENSE` |
 | ZIP archives | `.zip`, `.jar`, `.apk`, `.epub` and `.cbz` |
 :::

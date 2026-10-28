@@ -83,6 +83,7 @@ enum class AttachmentPreviewKindSnapshot {
     IMAGE,
     TEXT,
     MARKDOWN,
+    TABLE,
     ERROR,
 }
 
@@ -116,6 +117,10 @@ data class AttachmentPreviewSnapshot(
     /** The breadcrumb names; every one but the last opens its folder. */
     val archiveBreadcrumbs: List<String> = emptyList(),
     val archiveEntries: List<AttachmentArchiveEntrySnapshot> = emptyList(),
+    /** The first row is the header. A row may have fewer cells than [tableColumnLengths]. */
+    val tableRows: List<List<String>> = emptyList(),
+    /** The longest cell per column, in characters. */
+    val tableColumnLengths: List<Int> = emptyList(),
     val canGoBack: Boolean = false,
     val canSave: Boolean = false,
     val busy: Boolean = false,

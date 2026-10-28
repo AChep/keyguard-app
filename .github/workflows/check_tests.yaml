@@ -176,6 +176,8 @@ jobs:
               :util:agent-ipc:checkComposeFree
               :util:agent-ipc:desktopTest
               :util:crypto:desktopTest
+              :util:csv:checkComposeFree
+              :util:csv:desktopTest
               :util:dns:checkComposeFree
               :util:dns:desktopTest
               :util:ffi:checkComposeFree
@@ -208,6 +210,7 @@ jobs:
             max_workers: 2
             tasks: >-
               :util:crypto:testAndroidHostTest
+              :util:csv:testAndroidHostTest
               :util:dns:testAndroidHostTest
               :util:ffi:testAndroidHostTest
               :util:io:testAndroidHostTest

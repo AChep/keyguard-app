@@ -1977,6 +1977,16 @@ internal class DialogController(
             canCopy = true,
         )
 
+        is AttachmentPreviewContent.Table -> AttachmentPreviewSnapshot(
+            fileName = state.fileName,
+            kind = AttachmentPreviewKindSnapshot.TABLE,
+            text = content.code.text,
+            spans = content.code.annotatedString.toAttachmentPreviewSpans(),
+            canCopy = true,
+            tableRows = content.table.rows,
+            tableColumnLengths = content.table.columnLengths,
+        )
+
         is AttachmentPreviewContent.Error -> AttachmentPreviewSnapshot(
             fileName = state.fileName,
             kind = AttachmentPreviewKindSnapshot.ERROR,

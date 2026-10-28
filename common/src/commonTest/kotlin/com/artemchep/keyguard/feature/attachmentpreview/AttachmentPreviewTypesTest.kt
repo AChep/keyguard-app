@@ -73,6 +73,15 @@ class AttachmentPreviewTypesTest {
     }
 
     @Test
+    fun `csv and tsv extensions are previewable as tables`() {
+        assertEquals(AttachmentPreviewKind.Table, attachmentPreviewKindByFileName("data.csv"))
+        assertEquals(AttachmentPreviewKind.Table, attachmentPreviewKindByFileName("DATA.TSV"))
+        assertEquals(AttachmentPreviewKind.Table, attachmentPreviewKindByFileName("dir/x.csv"))
+        assertEquals(true, isAttachmentPreviewSupported("data.csv"))
+        assertEquals(SyntaxLanguage.DEFAULT, attachmentPreviewSyntaxLanguageByFileName("data.csv"))
+    }
+
+    @Test
     fun `zip extensions are previewable case insensitively`() {
         assertEquals(AttachmentPreviewKind.Archive, attachmentPreviewKindByFileName("archive.ZIP"))
         assertEquals(AttachmentPreviewKind.Archive, attachmentPreviewKindByFileName("archive.zip"))

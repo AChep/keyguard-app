@@ -66,6 +66,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -103,6 +105,7 @@ import com.artemchep.keyguard.ui.tabs.TabItem
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
+import com.artemchep.keyguard.ui.util.HorizontalDivider
 import dev.chrisbanes.haze.HazeInput
 import dev.chrisbanes.haze.blur.HazeBlurStyle
 import dev.chrisbanes.haze.blur.hazeBlur
@@ -133,12 +136,12 @@ private fun AttachmentPreviewScaffold(
     var wrapLines by rememberSaveable(fileName) {
         mutableStateOf(false)
     }
-    var markdownModeKey by rememberSaveable(fileName) {
+    var textModeKey by rememberSaveable(fileName) {
         mutableStateOf(AttachmentPreviewTextMode.Rendered.key)
     }
-    val markdownMode = remember(markdownModeKey) {
+    val textMode = remember(textModeKey) {
         AttachmentPreviewTextMode.entries
-            .firstOrNull { it.key == markdownModeKey }
+            .firstOrNull { it.key == textModeKey }
             ?: AttachmentPreviewTextMode.Source
     }
 
@@ -261,9 +264,19 @@ private fun AttachmentPreviewScaffold(
 
                         is AttachmentPreviewContent.Markdown -> AttachmentPreviewMarkdown(
                             content = content,
-                            markdownMode = markdownMode,
-                            onMarkdownModeChange = {
-                                markdownModeKey = it.key
+                            textMode = textMode,
+                            onTextModeChange = {
+                                textModeKey = it.key
+                            },
+                            wrapLines = wrapLines,
+                            contentPadding = contentPadding,
+                        )
+
+                        is AttachmentPreviewContent.Table -> AttachmentPreviewTableContent(
+                            content = content,
+                            textMode = textMode,
+                            onTextModeChange = {
+                                textModeKey = it.key
                             },
                             wrapLines = wrapLines,
                             contentPadding = contentPadding,
@@ -495,10 +508,30 @@ private fun AttachmentPreviewText(
 }
 
 @Composable
+private fun AttachmentPreviewTextModeTabs(
+    textMode: AttachmentPreviewTextMode,
+    onTextModeChange: (AttachmentPreviewTextMode) -> Unit,
+) {
+    val textModeState = rememberUpdatedState(textMode)
+    SegmentedButtonGroup(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = Dimens.contentPadding,
+                vertical = 8.dp,
+            ),
+        tabState = textModeState,
+        tabs = AttachmentPreviewTextMode.entriesList,
+        onClick = onTextModeChange,
+        weight = 1f,
+    )
+}
+
+@Composable
 private fun AttachmentPreviewMarkdown(
     content: AttachmentPreviewContent.Markdown,
-    markdownMode: AttachmentPreviewTextMode,
-    onMarkdownModeChange: (AttachmentPreviewTextMode) -> Unit,
+    textMode: AttachmentPreviewTextMode,
+    onTextModeChange: (AttachmentPreviewTextMode) -> Unit,
     wrapLines: Boolean,
     contentPadding: PaddingValues,
 ) {
@@ -507,21 +540,12 @@ private fun AttachmentPreviewMarkdown(
             .fillMaxSize()
             .padding(contentPadding),
     ) {
-        val markdownModeState = rememberUpdatedState(markdownMode)
-        SegmentedButtonGroup(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = Dimens.contentPadding,
-                    vertical = 8.dp,
-                ),
-            tabState = markdownModeState,
-            tabs = AttachmentPreviewTextMode.entriesList,
-            onClick = onMarkdownModeChange,
-            weight = 1f,
+        AttachmentPreviewTextModeTabs(
+            textMode = textMode,
+            onTextModeChange = onTextModeChange,
         )
 
-        when (markdownMode) {
+        when (textMode) {
             AttachmentPreviewTextMode.Source -> AttachmentPreviewCodeViewer(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -562,6 +586,217 @@ private fun AttachmentPreviewMarkdownText(
 }
 
 @Composable
+private fun AttachmentPreviewTableContent(
+    content: AttachmentPreviewContent.Table,
+    textMode: AttachmentPreviewTextMode,
+    onTextModeChange: (AttachmentPreviewTextMode) -> Unit,
+    wrapLines: Boolean,
+    contentPadding: PaddingValues,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding),
+    ) {
+        AttachmentPreviewTextModeTabs(
+            textMode = textMode,
+            onTextModeChange = onTextModeChange,
+        )
+
+        when (textMode) {
+            AttachmentPreviewTextMode.Source -> AttachmentPreviewCodeViewer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                code = content.code,
+                wrapLines = wrapLines,
+            )
+
+            AttachmentPreviewTextMode.Rendered -> AttachmentPreviewTableViewer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                table = content.table,
+                wrapLines = wrapLines,
+            )
+        }
+    }
+}
+
+@Composable
+private fun AttachmentPreviewTableViewer(
+    table: AttachmentPreviewTable,
+    wrapLines: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    val horizontalScrollState = rememberScrollState()
+    val rowCount = table.rows.size - 1
+    val gutterWidth = remember(rowCount) {
+        attachmentPreviewGutterWidth(rowCount)
+    }
+    val cellStyle = MaterialTheme.typography.bodyMedium.copy(
+        fontFamily = FontFamily.Monospace,
+    )
+    val headerStyle = cellStyle.copy(
+        fontWeight = FontWeight.Bold,
+    )
+    val columnWidths = rememberAttachmentPreviewTableColumnWidths(
+        columnLengths = table.columnLengths,
+        style = headerStyle,
+    )
+
+    SelectionContainer {
+        LazyColumn(
+            modifier = modifier
+                .fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 16.dp),
+        ) {
+            stickyHeader(
+                key = "header",
+            ) {
+                AttachmentPreviewTableHeader {
+                    AttachmentPreviewTableRow(
+                        rowNumber = null,
+                        cells = table.rows.first(),
+                        columnWidths = columnWidths,
+                        gutterWidth = gutterWidth,
+                        horizontalScrollState = horizontalScrollState,
+                        wrapLines = wrapLines,
+                        style = headerStyle,
+                    )
+                }
+            }
+            items(
+                count = rowCount,
+                key = { it },
+            ) { index ->
+                if (index > 0) {
+                    HorizontalDivider()
+                }
+                AttachmentPreviewTableRow(
+                    rowNumber = index + 1,
+                    cells = table.rows[index + 1],
+                    columnWidths = columnWidths,
+                    gutterWidth = gutterWidth,
+                    horizontalScrollState = horizontalScrollState,
+                    wrapLines = wrapLines,
+                    style = cellStyle,
+                )
+            }
+        }
+    }
+}
+
+/** The sticky header is opaque, so rows scroll under it. */
+@Composable
+private fun AttachmentPreviewTableHeader(
+    content: @Composable () -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .background(LocalSurfaceColor.current),
+    ) {
+        content()
+        HorizontalDivider()
+    }
+}
+
+/**
+ * Sizes each column to its longest cell, within the min and max widths. Pass
+ * the bold header style: it has the widest glyphs.
+ */
+@Composable
+private fun rememberAttachmentPreviewTableColumnWidths(
+    columnLengths: List<Int>,
+    style: TextStyle,
+): List<Dp> {
+    val textMeasurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    return remember(columnLengths, style, textMeasurer, density) {
+        // Monospace glyphs share one width, so one measurement sizes every column.
+        val sample = "0".repeat(TABLE_COLUMN_MAX_CHARS)
+        val charWidthPx = textMeasurer.measure(sample, style).size.width.toFloat() / sample.length
+        columnLengths.map { length ->
+            val chars = length.coerceIn(TABLE_COLUMN_MIN_CHARS, TABLE_COLUMN_MAX_CHARS)
+            with(density) { (charWidthPx * chars).toDp() } + AttachmentPreviewTableCellPadding * 2
+        }
+    }
+}
+
+@Composable
+private fun AttachmentPreviewTableRow(
+    rowNumber: Int?,
+    cells: List<String>,
+    columnWidths: List<Dp>,
+    gutterWidth: Dp,
+    horizontalScrollState: ScrollState,
+    wrapLines: Boolean,
+    style: TextStyle,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth(),
+    ) {
+        DisableSelection {
+            Text(
+                modifier = Modifier
+                    .width(gutterWidth)
+                    .padding(
+                        horizontal = 8.dp,
+                        vertical = AttachmentPreviewTableCellVerticalPadding,
+                    ),
+                text = rowNumber?.toString().orEmpty(),
+                textAlign = TextAlign.End,
+                color = LocalContentColor.current
+                    .combineAlpha(MediumEmphasisAlpha),
+                style = style,
+            )
+        }
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .horizontalScroll(horizontalScrollState)
+                .padding(end = 16.dp),
+        ) {
+            columnWidths.forEachIndexed { index, width ->
+                Text(
+                    modifier = Modifier
+                        .width(width)
+                        .padding(
+                            horizontal = AttachmentPreviewTableCellPadding,
+                            vertical = AttachmentPreviewTableCellVerticalPadding,
+                        ),
+                    text = cells.getOrElse(index) { "" },
+                    softWrap = wrapLines,
+                    maxLines = if (wrapLines) Int.MAX_VALUE else 1,
+                    overflow = TextOverflow.Ellipsis,
+                    style = style,
+                )
+            }
+        }
+    }
+}
+
+private val AttachmentPreviewTableCellPadding = 8.dp
+
+private val AttachmentPreviewTableCellVerticalPadding = 6.dp
+
+private const val TABLE_COLUMN_MIN_CHARS = 3
+
+private const val TABLE_COLUMN_MAX_CHARS = 40
+
+private val AttachmentPreviewGutterDigitWidth = 10.dp
+
+private val AttachmentPreviewGutterPadding = 24.dp
+
+private fun attachmentPreviewGutterWidth(
+    count: Int,
+): Dp {
+    val digits = count.toString().length
+    return AttachmentPreviewGutterDigitWidth * digits + AttachmentPreviewGutterPadding
+}
+
+@Composable
 private fun AttachmentPreviewCodeViewer(
     code: AttachmentPreviewCode,
     wrapLines: Boolean,
@@ -571,8 +806,7 @@ private fun AttachmentPreviewCodeViewer(
     val verticalScrollState = rememberLazyListState()
     val lineIndex = code.lineIndex
     val gutterWidth = remember(lineIndex.size) {
-        val digits = lineIndex.size.toString().length
-        (digits * 10 + 24).dp
+        attachmentPreviewGutterWidth(lineIndex.size)
     }
     val codeStyle = MaterialTheme.typography.bodyMedium.copy(
         fontFamily = FontFamily.Monospace,

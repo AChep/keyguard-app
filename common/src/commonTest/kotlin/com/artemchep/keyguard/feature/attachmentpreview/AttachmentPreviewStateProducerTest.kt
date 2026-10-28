@@ -83,6 +83,61 @@ class AttachmentPreviewStateProducerTest {
     }
 
     @Test
+    fun `csv files decode as table content`() {
+        val source = "name,url\nGitHub,https://github.com"
+        val content = decodeTextPreview(
+            fileName = "logins.csv",
+            bytes = source.encodeToByteArray(),
+            copyText = testCopyText(),
+        )
+
+        val table = assertIs<AttachmentPreviewContent.Table>(content)
+        assertEquals(source, table.text)
+        assertEquals(
+            listOf(
+                listOf("name", "url"),
+                listOf("GitHub", "https://github.com"),
+            ),
+            table.table.rows,
+        )
+    }
+
+    @Test
+    fun `csv files detect the semicolon delimiter`() {
+        val content = decodeTextPreview(
+            fileName = "prices.csv",
+            bytes = "item;price\ntea;1,50".encodeToByteArray(),
+            copyText = testCopyText(),
+        )
+
+        val table = assertIs<AttachmentPreviewContent.Table>(content)
+        assertEquals(listOf("tea", "1,50"), table.table.rows[1])
+    }
+
+    @Test
+    fun `tsv files split on tabs`() {
+        val content = decodeTextPreview(
+            fileName = "data.tsv",
+            bytes = "a,b\tc\n1\t2".encodeToByteArray(),
+            copyText = testCopyText(),
+        )
+
+        val table = assertIs<AttachmentPreviewContent.Table>(content)
+        assertEquals(listOf("a,b", "c"), table.table.rows[0])
+    }
+
+    @Test
+    fun `malformed csv files fall back to text content`() {
+        val content = decodeTextPreview(
+            fileName = "broken.csv",
+            bytes = "name,notes\nGitHub,\"unterminated".encodeToByteArray(),
+            copyText = testCopyText(),
+        )
+
+        assertIs<AttachmentPreviewContent.Text>(content)
+    }
+
+    @Test
     fun `text decode rejects nul bytes`() {
         val content = decodeTextPreview(
             fileName = "notes.txt",

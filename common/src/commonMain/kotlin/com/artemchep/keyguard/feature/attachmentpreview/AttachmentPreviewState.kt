@@ -62,6 +62,12 @@ sealed interface AttachmentPreviewContent {
         override val onCopy: () -> Unit,
     ) : TextLike
 
+    data class Table(
+        override val code: AttachmentPreviewCode,
+        val table: AttachmentPreviewTable,
+        override val onCopy: () -> Unit,
+    ) : TextLike
+
     data class Error(
         val type: AttachmentPreviewError,
     ) : AttachmentPreviewContent

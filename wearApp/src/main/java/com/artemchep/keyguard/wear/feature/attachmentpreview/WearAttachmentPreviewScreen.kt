@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.wear.feature.attachmentpreview
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.wear.compose.material3.Button
 import androidx.wear.compose.material3.CircularProgressIndicator
 import androidx.wear.compose.material3.FilledTonalButton
+import androidx.wear.compose.material3.LocalContentColor
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.wear.compose.material3.SurfaceTransformation
 import androidx.wear.compose.material3.Text
@@ -67,8 +70,11 @@ import com.artemchep.keyguard.res.attachment_preview_error_text_decode
 import com.artemchep.keyguard.res.attachment_preview_error_unsupported_file
 import com.artemchep.keyguard.res.attachment_preview_error_unsupported_platform
 import com.artemchep.keyguard.res.error_failed_unknown
+import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.markdown.MarkdownText
+import com.artemchep.keyguard.ui.theme.combineAlpha
+import com.artemchep.keyguard.wear.ui.WearListCard
 import com.artemchep.keyguard.wear.ui.WearListLabel
 import com.artemchep.keyguard.wear.ui.WearScaffoldLoader
 import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
@@ -245,6 +251,34 @@ private fun WearAttachmentPreviewScaffold(
                         }
                     }
 
+                    is AttachmentPreviewContent.Table -> {
+                        val rows = content.table.rows
+                        if (rows.size > 1) {
+                            val header = rows.first()
+                            items(
+                                count = rows.size - 1,
+                                key = { "row.$it" },
+                            ) { index ->
+                                WearAttachmentPreviewTableRow(
+                                    modifier = Modifier
+                                        .transformedHeight(this, transformationSpec),
+                                    header = header,
+                                    cells = rows[index + 1],
+                                    transformation = SurfaceTransformation(transformationSpec),
+                                )
+                            }
+                        } else {
+                            item("text") {
+                                WearAttachmentPreviewText(
+                                    modifier = Modifier
+                                        .transformedHeight(this, transformationSpec),
+                                    text = content.text,
+                                    transformation = SurfaceTransformation(transformationSpec),
+                                )
+                            }
+                        }
+                    }
+
                     is AttachmentPreviewContent.Error -> {
                         item("error") {
                             WearListLabel(
@@ -348,6 +382,45 @@ private fun WearAttachmentPreviewMarkdown(
             )
         }
     }
+}
+
+@Composable
+private fun WearAttachmentPreviewTableRow(
+    modifier: Modifier,
+    header: List<String>,
+    cells: List<String>,
+    transformation: SurfaceTransformation?,
+) {
+    WearListCard(
+        modifier = modifier,
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                cells.forEachIndexed { index, cell ->
+                    if (cell.isEmpty()) {
+                        return@forEachIndexed
+                    }
+
+                    val label = header.getOrNull(index)
+                        ?.takeIf { it.isNotBlank() }
+                        ?: (index + 1).toString()
+                    Column {
+                        Text(
+                            text = label,
+                            color = LocalContentColor.current
+                                .combineAlpha(MediumEmphasisAlpha),
+                            style = MaterialTheme.typography.labelSmall,
+                        )
+                        Text(
+                            text = cell,
+                        )
+                    }
+                }
+            }
+        },
+        transformation = transformation,
+    )
 }
 
 @Composable

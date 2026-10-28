@@ -170,6 +170,7 @@ jobs:
           :standard:presentation:iosSimulatorArm64Test
           :appleApp:iosSimulatorArm64Test
           :util:crypto:iosSimulatorArm64Test
+          :util:csv:iosSimulatorArm64Test
           :util:dns:iosSimulatorArm64Test
           :util:ffi:iosSimulatorArm64Test
           :util:io:iosSimulatorArm64Test

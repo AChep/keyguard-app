@@ -13,6 +13,9 @@ fun attachmentPreviewKindByFileName(
     if (extension in ATTACHMENT_PREVIEW_MARKDOWN_EXTENSIONS) {
         return AttachmentPreviewKind.Markdown
     }
+    if (extension in ATTACHMENT_PREVIEW_TABLE_EXTENSIONS) {
+        return AttachmentPreviewKind.Table
+    }
 
     val name = fileName.attachmentPreviewFileName().lowercase()
     if (name.isKnownTextAttachmentPreviewFileName() || extension in ATTACHMENT_PREVIEW_TEXT_EXTENSIONS) {
@@ -80,6 +83,11 @@ private val ATTACHMENT_PREVIEW_MARKDOWN_EXTENSIONS = setOf(
     "mkdown",
 )
 
+private val ATTACHMENT_PREVIEW_TABLE_EXTENSIONS = setOf(
+    "csv",
+    "tsv",
+)
+
 private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "ada",
     "adb",
@@ -133,7 +141,6 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "csr",
     "css",
     "csslintrc",
-    "csv",
     "ctl",
     "cts",
     "curlrc",
@@ -352,7 +359,6 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "toml",
     "tpl",
     "ts",
-    "tsv",
     "tsx",
     "tt",
     "tt2",

@@ -18,7 +18,6 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.attachmentPreviewKindByFileName
-import com.artemchep.keyguard.common.model.isMarkdownAttachmentPreview
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadProgress
@@ -284,11 +283,8 @@ private fun AttachmentPreviewPayload.toPreviewContent(
             ZipArchive(bytes, maxEntries = AttachmentPreviewLimits.MAX_ARCHIVE_ENTRIES),
         )
         AttachmentPreviewKind.Image -> AttachmentPreviewContent.Image(bytes = bytes)
-        AttachmentPreviewKind.Markdown -> decodeTextPreview(
-            fileName = fileName,
-            bytes = bytes,
-            copyText = copyText,
-        )
+        AttachmentPreviewKind.Markdown,
+        AttachmentPreviewKind.Table,
         AttachmentPreviewKind.Text -> decodeTextPreview(
             fileName = fileName,
             bytes = bytes,
@@ -340,13 +336,26 @@ internal fun decodeTextPreview(
             type = CopyText.Type.VALUE,
         )
     }
-    return if (isMarkdownAttachmentPreview(fileName)) {
-        AttachmentPreviewContent.Markdown(
+    val kind = attachmentPreviewKindByFileName(fileName)
+    val table = if (kind == AttachmentPreviewKind.Table) {
+        val delimiter = attachmentPreviewTableDelimiter(fileName, text)
+        parseAttachmentPreviewTable(text, delimiter)
+    } else {
+        null
+    }
+    return when {
+        kind == AttachmentPreviewKind.Markdown -> AttachmentPreviewContent.Markdown(
             code = code,
             onCopy = onCopy,
         )
-    } else {
-        AttachmentPreviewContent.Text(
+
+        table != null -> AttachmentPreviewContent.Table(
+            code = code,
+            table = table,
+            onCopy = onCopy,
+        )
+
+        else -> AttachmentPreviewContent.Text(
             code = code,
             onCopy = onCopy,
         )
@@ -359,6 +368,7 @@ private fun AttachmentPreviewState.withCode(
     content = when (val content = content) {
         is AttachmentPreviewContent.Text -> content.copy(code = code)
         is AttachmentPreviewContent.Markdown -> content.copy(code = code)
+        is AttachmentPreviewContent.Table -> content.copy(code = code)
         is AttachmentPreviewContent.Archive,
         is AttachmentPreviewContent.Image,
         is AttachmentPreviewContent.Error -> content

@@ -4,5 +4,6 @@ enum class AttachmentPreviewKind {
     Archive,
     Image,
     Markdown,
+    Table,
     Text,
 }

@@ -8,7 +8,7 @@
     <ID>ComplexCondition:AttachmentPreviewStateProducer.kt:bytes.size &gt;= 3 &amp;&amp; bytes[0] == 0xEF.toByte() &amp;&amp; bytes[1] == 0xBB.toByte() &amp;&amp; bytes[2] == 0xBF.toByte()</ID>
     <ID>ComplexCondition:BitwardenLoginStateProducer.kt:args.env.baseUrl.isNotBlank() || args.env.webVaultUrl.isNotBlank() || args.env.apiUrl.isNotBlank() || args.env.identityUrl.isNotBlank() || args.env.iconsUrl.isNotBlank() || args.env.notificationsUrl.isNotBlank() || args.env.headers.isNotEmpty()</ID>
     <ID>ComplexCondition:CipherLink.kt:CipherLink.Companion$remoteCipherId.isEmpty() || remoteCipherId.any { it == '/' || it == '?' || it == '#' }</ID>
-    <ID>ComplexCondition:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$session.role == CompanionAuthPendingSession.Role.Receiver &amp;&amp; session.provider == provider &amp;&amp; session.protocolVersion == CompanionAuthProtocol.VERSION &amp;&amp; !session.remotePublicKeyBase64.isNullOrEmpty()</ID>
+    <ID>ComplexCondition:CompanionAuthReceiverAndroid.kt:CompanionAuthReceiverAndroid$session.role == CompanionAuthPendingSession.Role.Receiver &amp;&amp; session.provider == provider &amp;&amp; session.protocolVersion == CompanionAuthProtocol.VERSION &amp;&amp; !session.remotePublicKeyBase64.isNullOrEmpty()</ID>
     <ID>ComplexCondition:CompanionAuthSecurityAndroid.kt:x.signum() &lt; 0 || x &gt;= p || y.signum() &lt; 0 || y &gt;= p</ID>
     <ID>ComplexCondition:DownloadInfoRepositoryController.kt:DownloadInfoRepositoryController$existing.url == url &amp;&amp; existing.urlIsOneTime == urlIsOneTime &amp;&amp; existing.name == name &amp;&amp; existing.encryptionKeyBase64 == encryptionKeyBase64 &amp;&amp; existing.error == error</ID>
     <ID>ComplexCondition:DuplicatesListStateProducer.kt:canDelete &amp;&amp; selectedCiphers .all { it.deletedDate != null || it.service.remote == null || it.hasError }</ID>
@@ -87,7 +87,7 @@
     <ID>CyclomaticComplexMethod:CipherUrlCheck.kt:CipherUrlCheckImpl$private fun String.equalsTrimmedWithoutTrailingSlash: Boolean</ID>
     <ID>CyclomaticComplexMethod:CollectionsStateProducer.kt:suspend fun RememberStateFlowScope.collectionsScreenStateProducer: Flow&lt;CollectionsState&gt;</ID>
     <ID>CyclomaticComplexMethod:ColumnScrollbar.kt:@Composable fun InternalColumnScrollbar</ID>
-    <ID>CyclomaticComplexMethod:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$suspend fun onWatchResponseReceived</ID>
+    <ID>CyclomaticComplexMethod:CompanionAuthInitiatorAndroid.kt:CompanionAuthInitiatorAndroid$suspend fun onWatchResponseReceived</ID>
     <ID>CyclomaticComplexMethod:CompanionAuthRequestState.kt:fun reduceCompanionAuthRequestState: CompanionAuthRequestState?</ID>
     <ID>CyclomaticComplexMethod:CopyCipherAttachments.kt:CopyCipherAttachments$suspend fun copy: List&lt;BitwardenCipher.Attachment&gt;</ID>
     <ID>CyclomaticComplexMethod:DFilter.kt:DFilter.Companion$private fun &lt;T&gt; _findOne: Either&lt;Unit, T?&gt;</ID>
@@ -324,7 +324,6 @@
     <ID>LargeClass:BackupRunnerTest.kt:BackupRunnerTest</ID>
     <ID>LargeClass:BitwardenCipherMergeRulesTest.kt:BitwardenCipherMergeRulesTest</ID>
     <ID>LargeClass:CipherSyncOps.kt:CipherSyncOps : EntitySyncOpsBulkRemoteOps</ID>
-    <ID>LargeClass:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid</ID>
     <ID>LargeClass:DefaultVaultSearchIndex.kt:DefaultVaultSearchIndex : SurfaceAwareVaultSearchIndex</ID>
     <ID>LargeClass:EntitySyncExecutor.kt:EntitySyncExecutor&lt;Local : BitwardenService.Has&lt;Local&gt;, Server : Any&gt;</ID>
     <ID>LargeClass:EntitySyncExecutorV2Test.kt:EntitySyncExecutorV2Test</ID>
@@ -478,9 +477,9 @@
     <ID>LongMethod:CollectionsScreen.kt:@Composable fun CollectionsScreenContent</ID>
     <ID>LongMethod:CollectionsStateProducer.kt:suspend fun RememberStateFlowScope.collectionsScreenStateProducer: Flow&lt;CollectionsState&gt;</ID>
     <ID>LongMethod:ColumnScrollbar.kt:@Composable fun InternalColumnScrollbar</ID>
-    <ID>LongMethod:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$suspend fun onChannelOpened</ID>
-    <ID>LongMethod:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$suspend fun onWatchResponseReceived</ID>
-    <ID>LongMethod:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$suspend fun startOnPhone: String?</ID>
+    <ID>LongMethod:CompanionAuthInitiatorAndroid.kt:CompanionAuthInitiatorAndroid$suspend fun onChannelOpened</ID>
+    <ID>LongMethod:CompanionAuthInitiatorAndroid.kt:CompanionAuthInitiatorAndroid$suspend fun onWatchResponseReceived</ID>
+    <ID>LongMethod:CompanionAuthInitiatorAndroid.kt:CompanionAuthInitiatorAndroid$suspend fun startOnPhone: String?</ID>
     <ID>LongMethod:CompanionAuthRequestState.kt:fun reduceCompanionAuthRequestState: CompanionAuthRequestState?</ID>
     <ID>LongMethod:ConfirmationScreen.kt:@Composable fun ConfirmationScreen</ID>
     <ID>LongMethod:ConfirmationScreen.kt:@Composable private fun ConfirmationStringItem</ID>
@@ -945,7 +944,7 @@
     <ID>MagicNumber:CollectionsScreen.kt:3</ID>
     <ID>MagicNumber:ColumnScrollbar.kt:0xFF2A59B6</ID>
     <ID>MagicNumber:ColumnScrollbar.kt:0xFF5281CA</ID>
-    <ID>MagicNumber:CompanionAuthCoordinatorAndroid.kt:4</ID>
+    <ID>MagicNumber:CompanionAuthInitiatorAndroid.kt:4</ID>
     <ID>MagicNumber:CreditCardType.kt:CreditCardType$16</ID>
     <ID>MagicNumber:CreditCardType.kt:CreditCardType$3</ID>
     <ID>MagicNumber:CustomToolbar.kt:0.01f</ID>
@@ -1447,7 +1446,7 @@
     <ID>MaxLineLength:CipherMappingTest.kt:CipherMappingTest$val fingerprint = "00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF:00:11:22:33:44:55:66:77:88:99:AA:BB:CC:DD:EE:FF"</ID>
     <ID>MaxLineLength:CipherUrlCheckBenchmarkFixtures.kt:CipherUrlCheckBenchmarkFixtures$operation("http://127.0.0.1:8080/app", "http://127.0.0.1:8080/app/login", StartsWith, true, noEquivalentDomains)</ID>
     <ID>MaxLineLength:CipherUrlCheckBenchmarkFixtures.kt:CipherUrlCheckBenchmarkFixtures$operation("https://portal\\.acme\\.com/login\\?next=.*", "https://portal.acme.co.uk/login?next=home", Regex, true)</ID>
-    <ID>MaxLineLength:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$"Companion auth sendResponse status=${response.status} provider=${response.provider} requestId=${response.requestId}"</ID>
+    <ID>MaxLineLength:CompanionAuthReceiverAndroid.kt:CompanionAuthReceiverAndroid$"Companion auth sendResponse status=${response.status} provider=${response.provider} requestId=${response.requestId}"</ID>
     <ID>MaxLineLength:CreditCardType.kt:eagerPattern = "^(4(0(0861|1757|3024|6136|6996|7(197|395)|9201)|1(2565|0621|0685|7633|9593)|2(0132|1141|281(7|8|9)|689700|8(331|67(1|2|3)))|3(1361|2328|4107|9954)|4(0(533|647|795)|5564|6(393|404|672))|5(5(036|708)|7865|7997|8456)|6(2220|854(0|1|2|3))|7(4491)|8(301(0|1|2)|4783|609(4|5|6)|931(7|8|9))|93428)|5(0(4300|6968|8160)|13213|2(0058|1076|4(130|514)|9(415|741))|3(0(060|906)|1(095|196)|2013|5(825|989)|6023|7767|9931)|4(3(085|357)|9760)|5(4180|7606|8563|8848)|8(5265|8(8(4(5|6|7|8|9)|5(0|1))|98(2|3))|9(005|206)))|6(0(4906|5141)|36120)|9682(0(1|2|3|4|5|6|7|8|9)|1(0|1)))".toRegex()</ID>
     <ID>MaxLineLength:CreditCardType.kt:pattern = "^(4(0(0861|1757|3024|6136|6996|7(197|395)|9201)|1(2565|0621|0685|7633|9593)|2(0132|1141|281(7|8|9)|689700|8(331|67(1|2|3)))|3(1361|2328|4107|9954)|4(0(533|647|795)|5564|6(393|404|672))|5(5(036|708)|7865|7997|8456)|6(2220|854(0|1|2|3))|7(4491)|8(301(0|1|2)|4783|609(4|5|6)|931(7|8|9))|93428)|5(0(4300|6968|8160)|13213|2(0058|1076|4(130|514)|9(415|741))|3(0(060|906)|1(095|196)|2013|5(825|989)|6023|7767|9931)|4(3(085|357)|9760)|5(4180|7606|8563|8848)|8(5265|8(8(4(5|6|7|8|9)|5(0|1))|98(2|3))|9(005|206)))|6(0(4906|5141)|36120)|9682(0(1|2|3|4|5|6|7|8|9)|1(0|1)))\\d{10}\$".toRegex()</ID>
     <ID>MaxLineLength:DatabaseSyncer.kt:DatabaseSyncer.SimpleMutex$*</ID>
@@ -1709,16 +1708,16 @@
     <ID>ReturnCount:CompanionAuthActivity.kt:internal fun parseCompanionAuthRequest: CompanionAuthActivity.Request?</ID>
     <ID>ReturnCount:CompanionAuthActivity.kt:internal suspend fun resolveCompanionAuthLaunchRequest: CompanionAuthActivity.Request?</ID>
     <ID>ReturnCount:CompanionAuthBridgeAndroid.kt:CompanionAuthBridgeAndroid$suspend fun onMessageReceived</ID>
-    <ID>ReturnCount:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$private suspend fun maybeImportKeePass</ID>
-    <ID>ReturnCount:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$private suspend fun validateReceiverSession: CompanionAuthPendingSession?</ID>
-    <ID>ReturnCount:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$suspend fun getLaunchRequest: CompanionAuthActivity.Request?</ID>
-    <ID>ReturnCount:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$suspend fun onChannelOpened</ID>
-    <ID>ReturnCount:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$suspend fun onPeerRequestReceived</ID>
-    <ID>ReturnCount:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$suspend fun onWatchResponseReceived</ID>
-    <ID>ReturnCount:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid$suspend fun startOnPhone: String?</ID>
-    <ID>ReturnCount:CompanionAuthCoordinatorAndroid.kt:PendingKeePassTransfer$fun canStartImport: Boolean</ID>
-    <ID>ReturnCount:CompanionAuthCoordinatorAndroid.kt:internal fun parseCompanionAuthIncomingChannelPath: CompanionAuthIncomingChannel?</ID>
-    <ID>ReturnCount:CompanionAuthCoordinatorAndroid.kt:internal fun resolveCompanionPhoneNodeId: CompanionAuthPhoneNodeResolution</ID>
+    <ID>ReturnCount:CompanionAuthInitiatorAndroid.kt:CompanionAuthInitiatorAndroid$private suspend fun maybeImportKeePass</ID>
+    <ID>ReturnCount:CompanionAuthInitiatorAndroid.kt:CompanionAuthInitiatorAndroid$suspend fun onChannelOpened</ID>
+    <ID>ReturnCount:CompanionAuthInitiatorAndroid.kt:CompanionAuthInitiatorAndroid$suspend fun onWatchResponseReceived</ID>
+    <ID>ReturnCount:CompanionAuthInitiatorAndroid.kt:CompanionAuthInitiatorAndroid$suspend fun startOnPhone: String?</ID>
+    <ID>ReturnCount:CompanionAuthInitiatorAndroid.kt:PendingKeePassTransfer$fun canStartImport: Boolean</ID>
+    <ID>ReturnCount:CompanionAuthInitiatorAndroid.kt:internal fun parseCompanionAuthIncomingChannelPath: CompanionAuthIncomingChannel?</ID>
+    <ID>ReturnCount:CompanionAuthInitiatorAndroid.kt:internal fun resolveCompanionPhoneNodeId: CompanionAuthPhoneNodeResolution</ID>
+    <ID>ReturnCount:CompanionAuthReceiverAndroid.kt:CompanionAuthReceiverAndroid$private suspend fun validateReceiverSession: CompanionAuthPendingSession?</ID>
+    <ID>ReturnCount:CompanionAuthReceiverAndroid.kt:CompanionAuthReceiverAndroid$suspend fun getLaunchRequest: CompanionAuthActivity.Request?</ID>
+    <ID>ReturnCount:CompanionAuthReceiverAndroid.kt:CompanionAuthReceiverAndroid$suspend fun onPeerRequestReceived</ID>
     <ID>ReturnCount:CompanionAuthSecurityAndroid.kt:CompanionAuthSecurityAndroid$fun isValidRemotePublicKey: Boolean</ID>
     <ID>ReturnCount:CompanionAuthSecurityAndroid.kt:private fun ECPoint.isValidPoint: Boolean</ID>
     <ID>ReturnCount:ConnectivityServiceAndroid.kt:ConnectivityServiceAndroid$override fun isInternetAvailable: Boolean</ID>
@@ -2003,7 +2002,8 @@
     <ID>TooManyFunctions:CloudflareEmailRelayTest.kt:CloudflareEmailRelayTest$FakeCryptoGenerator : CryptoGenerator</ID>
     <ID>TooManyFunctions:CollectionSyncOps.kt:CollectionSyncOps : EntitySyncOps</ID>
     <ID>TooManyFunctions:CompanionAuthBridgeAndroid.kt:CompanionAuthBridgeAndroid</ID>
-    <ID>TooManyFunctions:CompanionAuthCoordinatorAndroid.kt:CompanionAuthCoordinatorAndroid</ID>
+    <ID>TooManyFunctions:CompanionAuthInitiatorAndroid.kt:CompanionAuthInitiatorAndroid</ID>
+    <ID>TooManyFunctions:CompanionAuthReceiverAndroid.kt:CompanionAuthReceiverAndroid</ID>
     <ID>TooManyFunctions:CompanionAuthSecurityAndroid.kt:CompanionAuthSecurityAndroid</ID>
     <ID>TooManyFunctions:CompanionAuthTransportAndroid.kt:CompanionAuthTransportAndroid</ID>
     <ID>TooManyFunctions:CryptoGenerator.kt:CryptoGenerator</ID>

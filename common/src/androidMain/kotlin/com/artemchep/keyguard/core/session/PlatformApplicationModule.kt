@@ -95,7 +95,8 @@ import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileAndro
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.GlobalModuleJvm
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
-import com.artemchep.keyguard.feature.auth.companion.CompanionAuthCoordinatorAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthInitiatorAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthReceiverAndroid
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthSecurityAndroid
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthTransportAndroid
 import com.artemchep.keyguard.feature.navigation.NavigationModule
@@ -254,8 +255,8 @@ class PlatformApplicationModule {
                 base64Service = get(),
             )
         }
-        single<CompanionAuthCoordinatorAndroid> {
-            CompanionAuthCoordinatorAndroid(
+        single<CompanionAuthInitiatorAndroid> {
+            CompanionAuthInitiatorAndroid(
                 application = get(),
                 json = get(),
                 transport = get(),
@@ -263,10 +264,19 @@ class PlatformApplicationModule {
                 getVaultSession = get(),
             )
         }
+        single<CompanionAuthReceiverAndroid> {
+            CompanionAuthReceiverAndroid(
+                json = get(),
+                transport = get(),
+                security = get(),
+            )
+        }
         single<CompanionAuthBridgeAndroid> {
             CompanionAuthBridgeAndroid(
                 json = get(),
-                coordinator = get(),
+                initiator = get(),
+                receiver = get(),
+                security = get(),
             )
         }
         single<ConnectivityService> {

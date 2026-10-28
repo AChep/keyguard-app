@@ -7,6 +7,7 @@ import com.artemchep.keyguard.android.util.await
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.util.io.readByteArrayAndClose
 import com.artemchep.keyguard.util.io.toInputStream
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.Node
@@ -17,6 +18,7 @@ import java.util.concurrent.Executors
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
@@ -36,14 +38,31 @@ internal fun companionAuthReachablePhoneNodesFlow(
     emitAll(source.observeReachablePhoneNodes())
 }
 
-internal fun companionAuthPhoneAvailabilityFlow(
+/**
+ * Emits [CompanionAuthPhoneDiscovery.Loading] before it touches Google Play
+ * services, so a screen can offer its other options right away.
+ */
+internal fun companionAuthPhoneDiscoveryFlow(
     source: CompanionAuthPhoneCapabilitySource,
-): Flow<Boolean> = flow {
+): Flow<CompanionAuthPhoneDiscovery> = flow {
+    emit(CompanionAuthPhoneDiscovery.Loading)
     emitAll(
         companionAuthReachablePhoneNodesFlow(source).map { nodes ->
-            nodes.isNotEmpty()
+            CompanionAuthPhoneDiscovery.Ready(
+                devices = nodes.map { node ->
+                    CompanionAuthPhoneDevice(
+                        id = node.id,
+                        displayName = node.displayName,
+                    )
+                },
+            )
         },
     )
+}.catch { error ->
+    if (error !is ApiException) {
+        throw error
+    }
+    emit(CompanionAuthPhoneDiscovery.Unavailable)
 }.distinctUntilChanged()
 
 private class GooglePlayCompanionAuthPhoneCapabilitySource(
@@ -103,11 +122,8 @@ internal class CompanionAuthTransportAndroid(
         )
     }
 
-    fun phoneAvailabilityFlow(): Flow<Boolean> =
-        companionAuthPhoneAvailabilityFlow(phoneCapabilitySource)
-
-    fun reachablePhoneNodesFlow(): Flow<List<Node>> =
-        companionAuthReachablePhoneNodesFlow(phoneCapabilitySource)
+    fun phoneDiscoveryFlow(): Flow<CompanionAuthPhoneDiscovery> =
+        companionAuthPhoneDiscoveryFlow(phoneCapabilitySource)
 
     suspend fun getReachablePhoneNodes(): List<Node> =
         phoneCapabilitySource.getReachablePhoneNodes()

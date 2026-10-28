@@ -47,6 +47,7 @@ dependencies {
     debugImplementation(libs.jetbrains.compose.ui.tooling)
     testImplementation(kotlin("test"))
     testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(project(":util:crypto"))
     androidTestImplementation(libs.androidx.test.runner)

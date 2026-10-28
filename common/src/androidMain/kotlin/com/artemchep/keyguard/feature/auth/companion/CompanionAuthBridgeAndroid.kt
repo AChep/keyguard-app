@@ -4,57 +4,49 @@ import com.artemchep.keyguard.platform.recordException
 import com.google.android.gms.wearable.ChannelClient
 import com.google.android.gms.wearable.MessageEvent
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 class CompanionAuthBridgeAndroid internal constructor(
     private val json: Json,
-    private val coordinator: CompanionAuthCoordinatorAndroid,
+    private val initiator: CompanionAuthInitiatorAndroid,
+    private val receiver: CompanionAuthReceiverAndroid,
+    private val security: CompanionAuthSecurityAndroid,
 ) {
 
-    fun phoneAvailabilityFlow(): Flow<Boolean> =
-        coordinator.phoneAvailabilityFlow()
-
-    fun reachablePhoneDevicesFlow(): Flow<List<CompanionAuthPhoneDevice>> =
-        coordinator.reachablePhoneDevicesFlow()
-
-    suspend fun isPhoneCompanionAvailable(): Boolean =
-        phoneAvailabilityFlow().first()
-
-    suspend fun getReachablePhoneDevices(): List<CompanionAuthPhoneDevice> =
-        coordinator.getReachablePhoneDevices()
+    fun phoneDiscoveryFlow(): Flow<CompanionAuthPhoneDiscovery> =
+        initiator.phoneDiscoveryFlow()
 
     suspend fun startOnPhone(
         provider: CompanionAuthProvider,
         nodeId: String? = null,
-    ): String? = coordinator.startOnPhone(
+    ): String? = initiator.startOnPhone(
         provider = provider,
         nodeId = nodeId,
     )
 
     suspend fun sweepExpiredArtifacts(
         now: Long = System.currentTimeMillis(),
-    ) = coordinator.sweepExpiredArtifacts(now = now)
+    ) = security.sweepExpiredArtifacts(now = now)
 
     suspend fun getLaunchRequest(
         requestId: String,
         provider: CompanionAuthProvider,
-    ) = coordinator.getLaunchRequest(
+    ) = receiver.getLaunchRequest(
         requestId = requestId,
         provider = provider,
     )
 
     fun getRequestStateFlow(
         requestId: String,
-    ): Flow<CompanionAuthRequestState?> = coordinator.getRequestStateFlow(requestId)
+    ): Flow<CompanionAuthRequestState?> = initiator.getRequestStateFlow(requestId)
 
     fun notifyCancelledFromPhone(
         requestId: String,
         provider: CompanionAuthProvider,
         message: String? = null,
     ) {
-        coordinator.notifyCancelledFromPhone(
+        receiver.notifyCancelledFromPhone(
             requestId = requestId,
             provider = provider,
             message = message,
@@ -67,7 +59,7 @@ class CompanionAuthBridgeAndroid internal constructor(
         error: CompanionAuthError,
         message: String? = null,
     ) {
-        coordinator.notifyErrorFromPhone(
+        receiver.notifyErrorFromPhone(
             requestId = requestId,
             provider = provider,
             error = error,
@@ -79,7 +71,7 @@ class CompanionAuthBridgeAndroid internal constructor(
         requestId: String,
         payload: CompanionBitwardenPayload,
     ) {
-        coordinator.completeBitwardenOnPhone(
+        receiver.completeBitwardenOnPhone(
             requestId = requestId,
             payload = payload,
         )
@@ -91,7 +83,7 @@ class CompanionAuthBridgeAndroid internal constructor(
         databaseUri: String,
         keyUri: String?,
     ) {
-        coordinator.completeKeePassOnPhone(
+        receiver.completeKeePassOnPhone(
             requestId = requestId,
             payload = payload,
             databaseUri = databaseUri,
@@ -105,7 +97,7 @@ class CompanionAuthBridgeAndroid internal constructor(
         when (messageEvent.path) {
             CompanionAuthProtocol.REQUEST_PATH -> {
                 val request = decode<CompanionAuthRequest>(messageEvent.data) ?: return
-                coordinator.onPeerRequestReceived(
+                receiver.onPeerRequestReceived(
                     nodeId = messageEvent.sourceNodeId,
                     request = request,
                 )
@@ -121,7 +113,7 @@ class CompanionAuthBridgeAndroid internal constructor(
                     return
                 }
                 val response = decode<CompanionAuthResponse>(messageEvent.data) ?: return
-                coordinator.onWatchResponseReceived(
+                initiator.onWatchResponseReceived(
                     nodeId = messageEvent.sourceNodeId,
                     response = response,
                 )
@@ -132,7 +124,7 @@ class CompanionAuthBridgeAndroid internal constructor(
     suspend fun onChannelOpened(
         channel: ChannelClient.Channel,
     ) {
-        coordinator.onChannelOpened(channel)
+        initiator.onChannelOpened(channel)
     }
 
     private inline fun <reified T> decode(

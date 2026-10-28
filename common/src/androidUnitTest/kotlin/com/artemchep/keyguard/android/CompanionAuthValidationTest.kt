@@ -5,10 +5,12 @@ import com.artemchep.keyguard.feature.auth.companion.CompanionAuthError
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthPhoneNodeResolution
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthProvider
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthProtocol
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthRequest
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthEncryptedPayload
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthResponse
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthStatus
 import com.artemchep.keyguard.feature.auth.companion.canAcceptIncomingChannel
+import com.artemchep.keyguard.feature.auth.companion.canReuseReceiverSession
 import com.artemchep.keyguard.feature.auth.companion.isCompanionAuthResponsePayloadWithinLimits
 import com.artemchep.keyguard.feature.auth.companion.isValidWatchResponseSession
 import com.artemchep.keyguard.feature.auth.companion.parseCompanionAuthIncomingChannelPath
@@ -19,7 +21,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
-class CompanionAuthCoordinatorSecurityTest {
+class CompanionAuthValidationTest {
     @Test
     fun `watch response session validation requires expected node and initiator role`() {
         val response = CompanionAuthResponse(
@@ -203,6 +205,48 @@ class CompanionAuthCoordinatorSecurityTest {
 
         assertTrue(isCompanionAuthResponsePayloadWithinLimits(withinLimit))
         assertFalse(isCompanionAuthResponsePayloadWithinLimits(oversized))
+    }
+
+    @Test
+    fun `receiver session is reused only for the same watch request`() {
+        val session = receiverSession()
+        val request = CompanionAuthRequest(
+            requestId = session.requestId,
+            provider = session.provider,
+            protocolVersion = session.protocolVersion,
+            watchPublicKey = "watch-public-key",
+        )
+
+        assertTrue(canReuseReceiverSession(session, nodeId = "watch-node", request = request))
+        assertFalse(canReuseReceiverSession(session, nodeId = "rogue-node", request = request))
+        assertFalse(
+            canReuseReceiverSession(
+                session = session,
+                nodeId = "watch-node",
+                request = request.copy(watchPublicKey = "rogue-public-key"),
+            ),
+        )
+        assertFalse(
+            canReuseReceiverSession(
+                session = session,
+                nodeId = "watch-node",
+                request = request.copy(provider = CompanionAuthProvider.KEEPASS),
+            ),
+        )
+        assertFalse(
+            canReuseReceiverSession(
+                session = session.copy(role = CompanionAuthPendingSession.Role.Initiator),
+                nodeId = "watch-node",
+                request = request,
+            ),
+        )
+        assertFalse(
+            canReuseReceiverSession(
+                session = session.copy(createdAtEpochMillis = 0L),
+                nodeId = "watch-node",
+                request = request,
+            ),
+        )
     }
 }
 

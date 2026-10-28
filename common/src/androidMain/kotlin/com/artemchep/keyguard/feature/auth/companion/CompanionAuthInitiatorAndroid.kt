@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.core.net.toUri
 import com.artemchep.keyguard.android.CompanionAuthActivity
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.di.resolveOrCancel
@@ -12,6 +13,7 @@ import com.artemchep.keyguard.platform.recordLog
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountUseCase
+import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.wearable.ChannelClient
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
@@ -28,10 +30,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
-internal class CompanionAuthCoordinatorAndroid(
+/**
+ * The watch side of companion auth: asks a paired phone to log in, then
+ * imports the account the phone sends back.
+ */
+internal class CompanionAuthInitiatorAndroid(
     private val application: Application,
     private val json: Json,
     private val transport: CompanionAuthTransportAndroid,
@@ -42,72 +47,13 @@ internal class CompanionAuthCoordinatorAndroid(
     private val requestStore = CompanionAuthRequestStore()
     private val pendingKeePassTransfers = mutableMapOf<String, PendingKeePassTransfer>()
     private val pendingKeePassTransfersMutex = Mutex()
-    private val receiverSessionMutex = Mutex()
 
-    fun phoneAvailabilityFlow(): Flow<Boolean> =
-        transport.phoneAvailabilityFlow()
-
-    fun reachablePhoneDevicesFlow(): Flow<List<CompanionAuthPhoneDevice>> =
-        transport
-            .reachablePhoneNodesFlow()
-            .map { nodes ->
-                nodes.map { node ->
-                    CompanionAuthPhoneDevice(
-                        id = node.id,
-                        displayName = node.displayName,
-                    )
-                }
-            }
-
-    suspend fun sweepExpiredArtifacts(
-        now: Long = System.currentTimeMillis(),
-    ) {
-        security.sweepExpiredArtifacts(now = now)
-    }
+    fun phoneDiscoveryFlow(): Flow<CompanionAuthPhoneDiscovery> =
+        transport.phoneDiscoveryFlow()
 
     fun getRequestStateFlow(
         requestId: String,
     ): Flow<CompanionAuthRequestState?> = requestStore.getRequestStateFlow(requestId)
-
-    suspend fun getReachablePhoneDevices(): List<CompanionAuthPhoneDevice> =
-        transport
-            .getReachablePhoneNodes()
-            .map { node ->
-                CompanionAuthPhoneDevice(
-                    id = node.id,
-                    displayName = node.displayName,
-                )
-            }
-
-    suspend fun getLaunchRequest(
-        requestId: String,
-        provider: CompanionAuthProvider,
-    ): CompanionAuthActivity.Request? {
-        val normalizedRequestId = canonicalCompanionAuthRequestIdOrNull(requestId)
-            ?: return null
-        val session = security.getPendingSession(requestId)
-            ?: return null
-        if (session.role != CompanionAuthPendingSession.Role.Receiver) {
-            return null
-        }
-        if (session.isLaunchExpired()) {
-            deleteRequestArtifacts(normalizedRequestId)
-            return null
-        }
-        if (session.provider != provider || session.isExpired() || session.launchConsumed) {
-            return null
-        }
-        security.putPendingSession(
-            session.copy(
-                requestId = normalizedRequestId,
-                launchConsumed = true,
-            ),
-        )
-        return CompanionAuthActivity.Request(
-            requestId = normalizedRequestId,
-            provider = session.provider,
-        )
-    }
 
     suspend fun startOnPhone(
         provider: CompanionAuthProvider,
@@ -122,42 +68,42 @@ internal class CompanionAuthCoordinatorAndroid(
             is CompanionAuthPhoneSelection.Failed -> return requestId
             CompanionAuthPhoneSelection.NoneAvailable -> return null
         }
-        val localNodeId = transport.getLocalNodeId()
-        val keyPair = security.createEphemeralKeyPair()
-        val request = CompanionAuthRequest(
-            requestId = requestId,
-            provider = provider,
-            protocolVersion = CompanionAuthProtocol.VERSION,
-            watchPublicKey = keyPair.publicKeyBase64,
-        )
-        val session = CompanionAuthPendingSession(
-            requestId = requestId,
-            provider = provider,
-            role = CompanionAuthPendingSession.Role.Initiator,
-            localNodeId = localNodeId,
-            expectedNodeId = phoneNode.id,
-            protocolVersion = CompanionAuthProtocol.VERSION,
-            createdAtEpochMillis = System.currentTimeMillis(),
-            localPrivateKeyBase64 = keyPair.privateKeyBase64,
-            localPublicKeyBase64 = keyPair.publicKeyBase64,
-        )
 
         requestStore.dispatch(
-            requestId = request.requestId,
+            requestId = requestId,
             event = CompanionAuthRequestEvent.RequestStarted,
         )
-        runCatching {
+        runCatchingNonFatal {
+            val localNodeId = transport.getLocalNodeId()
+            val keyPair = security.createEphemeralKeyPair()
+            val request = CompanionAuthRequest(
+                requestId = requestId,
+                provider = provider,
+                protocolVersion = CompanionAuthProtocol.VERSION,
+                watchPublicKey = keyPair.publicKeyBase64,
+            )
+            val session = CompanionAuthPendingSession(
+                requestId = requestId,
+                provider = provider,
+                role = CompanionAuthPendingSession.Role.Initiator,
+                localNodeId = localNodeId,
+                expectedNodeId = phoneNode.id,
+                protocolVersion = CompanionAuthProtocol.VERSION,
+                createdAtEpochMillis = System.currentTimeMillis(),
+                localPrivateKeyBase64 = keyPair.privateKeyBase64,
+                localPublicKeyBase64 = keyPair.publicKeyBase64,
+            )
             security.putPendingSession(session)
             transport.sendMessage(
                 nodeId = phoneNode.id,
                 path = CompanionAuthProtocol.REQUEST_PATH,
-                payload = encode(request),
+                payload = json.encodeToString(request).encodeToByteArray(),
             )
 
             val intent = CompanionAuthActivity.getIntent(
                 context = application,
-                requestId = request.requestId,
-                provider = request.provider,
+                requestId = requestId,
+                provider = provider,
             )
             transport.startRemoteActivity(
                 intent = intent,
@@ -165,9 +111,9 @@ internal class CompanionAuthCoordinatorAndroid(
             )
         }.onFailure { error ->
             recordException(error)
-            deleteRequestArtifacts(request.requestId)
+            deleteRequestArtifacts(requestId)
             requestStore.dispatch(
-                requestId = request.requestId,
+                requestId = requestId,
                 event = CompanionAuthRequestEvent.RemoteLaunchFailed(
                     message = error.message,
                 ),
@@ -188,7 +134,7 @@ internal class CompanionAuthCoordinatorAndroid(
                 ),
             )
         }
-        return request.requestId
+        return requestId
     }
 
     private suspend fun selectPhoneNodeForRequest(
@@ -213,7 +159,15 @@ internal class CompanionAuthCoordinatorAndroid(
     private suspend fun selectPhoneNode(
         nodeId: String? = null,
     ): CompanionAuthPhoneSelection {
-        val reachableNodes = transport.getReachablePhoneNodes()
+        val reachableNodes = try {
+            transport.getReachablePhoneNodes()
+        } catch (e: ApiException) {
+            // Google Play services went away after the screen found the phone.
+            return CompanionAuthPhoneSelection.Failed(
+                error = CompanionAuthError.PHONE_UNAVAILABLE,
+                message = "Wearable API is unavailable: ${e.message}",
+            )
+        }
         return when (val resolution = resolveCompanionPhoneNodeId(
             reachableNodeIds = reachableNodes.map { it.id },
             selectedNodeId = nodeId,
@@ -226,204 +180,6 @@ internal class CompanionAuthCoordinatorAndroid(
                 error = resolution.error,
                 message = resolution.message,
             )
-        }
-    }
-
-    fun notifyCancelledFromPhone(
-        requestId: String,
-        provider: CompanionAuthProvider,
-        message: String? = null,
-    ) {
-        scope.launch {
-            runCatching {
-                val session = validateReceiverSession(
-                    requestId = requestId,
-                    provider = provider,
-                ) ?: return@runCatching
-                sendEncryptedResponse(
-                    session = session,
-                    status = CompanionAuthStatus.CANCELLED,
-                    payload = CompanionAuthCancelledPayload(message = message),
-                )
-                deleteRequestArtifacts(requestId)
-            }.onFailure(::recordException)
-        }
-    }
-
-    fun notifyErrorFromPhone(
-        requestId: String,
-        provider: CompanionAuthProvider,
-        error: CompanionAuthError,
-        message: String? = null,
-    ) {
-        scope.launch {
-            runCatching {
-                val session = validateReceiverSession(
-                    requestId = requestId,
-                    provider = provider,
-                ) ?: return@runCatching
-                sendEncryptedResponse(
-                    session = session,
-                    status = CompanionAuthStatus.ERROR,
-                    payload = CompanionAuthErroredPayload(
-                        error = error,
-                        message = message,
-                    ),
-                )
-                deleteRequestArtifacts(requestId)
-            }.onFailure(::recordException)
-        }
-    }
-
-    suspend fun completeBitwardenOnPhone(
-        requestId: String,
-        payload: CompanionBitwardenPayload,
-    ) {
-        val session = requireReceiverSession(
-            requestId = requestId,
-            provider = CompanionAuthProvider.BITWARDEN,
-        )
-        sendEncryptedResponse(
-            session = session,
-            status = CompanionAuthStatus.SUCCESS,
-            payload = payload,
-        )
-        deleteRequestArtifacts(requestId)
-    }
-
-    suspend fun completeKeePassOnPhone(
-        requestId: String,
-        payload: CompanionKeePassPayload,
-        databaseUri: String,
-        keyUri: String?,
-    ) {
-        val session = requireReceiverSession(
-            requestId = requestId,
-            provider = CompanionAuthProvider.KEEPASS,
-        )
-        transport.openOutgoingChannelAndCopy(
-            nodeId = session.expectedNodeId,
-            path = CompanionAuthProtocol.keepassDatabaseChannelPath(requestId),
-            sourceUri = databaseUri,
-        )
-        keyUri?.let { uri ->
-            val keyBlob = security.encryptBlob(
-                session = session,
-                data = transport.readFromFile(uri),
-            )
-            transport.openOutgoingChannelAndWrite(
-                nodeId = session.expectedNodeId,
-                path = CompanionAuthProtocol.keepassKeyFileChannelPath(requestId),
-                payload = json.encodeToString(keyBlob).encodeToByteArray(),
-            )
-        }
-        sendEncryptedResponse(
-            session = session,
-            status = CompanionAuthStatus.SUCCESS,
-            payload = payload,
-        )
-        deleteRequestArtifacts(requestId)
-    }
-
-    suspend fun onPeerRequestReceived(
-        nodeId: String,
-        request: CompanionAuthRequest,
-    ) {
-        val normalizedRequestId = canonicalCompanionAuthRequestIdOrNull(request.requestId)
-        if (normalizedRequestId == null) {
-            sendPlainError(
-                nodeId = nodeId,
-                requestId = request.requestId,
-                provider = request.provider,
-                error = CompanionAuthError.MALFORMED_REQUEST_ID,
-                message = "Companion auth request id is malformed.",
-            )
-            return
-        }
-        if (request.protocolVersion != CompanionAuthProtocol.VERSION) {
-            sendPlainError(
-                nodeId = nodeId,
-                requestId = normalizedRequestId,
-                provider = request.provider,
-                error = CompanionAuthError.UNSUPPORTED_PROTOCOL,
-                message = "Companion auth protocol mismatch.",
-            )
-            return
-        }
-        if (!security.isValidRemotePublicKey(request.watchPublicKey)) {
-            sendPlainError(
-                nodeId = nodeId,
-                requestId = normalizedRequestId,
-                provider = request.provider,
-                error = CompanionAuthError.SECURITY_VALIDATION_FAILED,
-                message = "Companion auth request key validation failed.",
-            )
-            return
-        }
-
-        val session = getOrCreateReceiverSession(
-            normalizedRequestId = normalizedRequestId,
-            nodeId = nodeId,
-            request = request,
-        )
-        if (session == null) {
-            sendPlainError(
-                nodeId = nodeId,
-                requestId = normalizedRequestId,
-                provider = request.provider,
-                error = CompanionAuthError.SECURITY_VALIDATION_FAILED,
-                message = "Companion auth request validation failed.",
-            )
-            deleteRequestArtifacts(normalizedRequestId)
-            return
-        }
-
-        sendPlainResponse(
-            nodeId = nodeId,
-            response = CompanionAuthResponse(
-                requestId = normalizedRequestId,
-                provider = request.provider,
-                protocolVersion = CompanionAuthProtocol.VERSION,
-                status = CompanionAuthStatus.STARTED,
-                phonePublicKey = session.localPublicKeyBase64,
-            ),
-        )
-    }
-
-    private suspend fun getOrCreateReceiverSession(
-        normalizedRequestId: String,
-        nodeId: String,
-        request: CompanionAuthRequest,
-    ): CompanionAuthPendingSession? = receiverSessionMutex.withLock {
-        val existingSession = security.getPendingSession(normalizedRequestId)
-        when {
-            existingSession == null -> {
-                val localNodeId = transport.getLocalNodeId()
-                val keyPair = security.createEphemeralKeyPair()
-                CompanionAuthPendingSession(
-                    requestId = normalizedRequestId,
-                    provider = request.provider,
-                    role = CompanionAuthPendingSession.Role.Receiver,
-                    localNodeId = localNodeId,
-                    expectedNodeId = nodeId,
-                    protocolVersion = request.protocolVersion,
-                    createdAtEpochMillis = System.currentTimeMillis(),
-                    localPrivateKeyBase64 = keyPair.privateKeyBase64,
-                    localPublicKeyBase64 = keyPair.publicKeyBase64,
-                    remotePublicKeyBase64 = request.watchPublicKey,
-                ).also { pendingSession ->
-                    security.putPendingSession(pendingSession)
-                }
-            }
-
-            existingSession.role != CompanionAuthPendingSession.Role.Receiver ||
-                existingSession.isLaunchExpired() ||
-                existingSession.provider != request.provider ||
-                existingSession.expectedNodeId != nodeId ||
-                existingSession.remotePublicKeyBase64 != request.watchPublicKey ||
-                existingSession.protocolVersion != request.protocolVersion -> null
-
-            else -> existingSession
         }
     }
 
@@ -577,7 +333,7 @@ internal class CompanionAuthCoordinatorAndroid(
             requestId = incomingChannel.requestId,
             kind = incomingChannel.kind,
         )
-        runCatching {
+        runCatchingNonFatal {
             when (incomingChannel.kind) {
                 CompanionAuthIncomingChannel.Kind.Database -> {
                     transport.receiveIncomingChannel(
@@ -592,7 +348,7 @@ internal class CompanionAuthCoordinatorAndroid(
                         channel = channel,
                         maxBytes = CompanionAuthProtocol.MAX_KEEPASS_KEY_FILE_BYTES,
                     ) { bytes ->
-                        val blob = runCatching {
+                        val blob = runCatchingNonFatal {
                             json.decodeFromString<CompanionAuthEncryptedBlob>(bytes.decodeToString())
                         }.getOrElse { error ->
                             recordException(error)
@@ -655,7 +411,7 @@ internal class CompanionAuthCoordinatorAndroid(
             requestId = requestId,
             event = CompanionAuthRequestEvent.ImportStarted,
         )
-        runCatching {
+        runCatchingNonFatal {
             val importCompanionBitwardenAccount =
                 resolveSessionImportUseCase<ImportCompanionBitwardenAccount>()
             importCompanionBitwardenAccount(payload).bind()
@@ -704,7 +460,7 @@ internal class CompanionAuthCoordinatorAndroid(
             event = CompanionAuthRequestEvent.ImportStarted,
         )
 
-        runCatching {
+        runCatchingNonFatal {
             val managedDatabaseFile = withContext(Dispatchers.IO) {
                 stageManagedCompanionKeePassDatabase(
                     filesDir = application.filesDir,
@@ -759,7 +515,7 @@ internal class CompanionAuthCoordinatorAndroid(
     private suspend fun decryptSecurePayloadOrNull(
         session: CompanionAuthPendingSession,
         encryptedPayload: CompanionAuthEncryptedPayload?,
-    ): CompanionAuthSecurePayload? = runCatching {
+    ): CompanionAuthSecurePayload? = runCatchingNonFatal {
         encryptedPayload
             ?: return null
         security.decryptSecurePayload(
@@ -769,88 +525,6 @@ internal class CompanionAuthCoordinatorAndroid(
     }.getOrElse { error ->
         recordException(error)
         null
-    }
-
-    private suspend fun validateReceiverSession(
-        requestId: String,
-        provider: CompanionAuthProvider,
-    ): CompanionAuthPendingSession? {
-        val normalizedRequestId = canonicalCompanionAuthRequestIdOrNull(requestId)
-            ?: return null
-        val session = security.getPendingSession(normalizedRequestId)
-            ?: return null
-        return if (
-            session.role == CompanionAuthPendingSession.Role.Receiver &&
-            session.provider == provider &&
-            session.protocolVersion == CompanionAuthProtocol.VERSION &&
-            !session.remotePublicKeyBase64.isNullOrEmpty()
-        ) {
-            session
-        } else {
-            null
-        }
-    }
-
-    private suspend fun requireReceiverSession(
-        requestId: String,
-        provider: CompanionAuthProvider,
-    ): CompanionAuthPendingSession = validateReceiverSession(
-        requestId = requestId,
-        provider = provider,
-    ) ?: throw CompanionAuthSessionUnavailableException()
-
-    private suspend fun sendEncryptedResponse(
-        session: CompanionAuthPendingSession,
-        status: CompanionAuthStatus,
-        payload: CompanionAuthSecurePayload,
-    ) {
-        sendPlainResponse(
-            nodeId = session.expectedNodeId,
-            response = CompanionAuthResponse(
-                requestId = session.requestId,
-                provider = session.provider,
-                protocolVersion = CompanionAuthProtocol.VERSION,
-                status = status,
-                encryptedPayload = security.encryptSecurePayload(
-                    session = session,
-                    payload = payload,
-                ),
-            ),
-        )
-    }
-
-    private suspend fun sendPlainError(
-        nodeId: String,
-        requestId: String,
-        provider: CompanionAuthProvider,
-        error: CompanionAuthError,
-        message: String,
-    ) {
-        sendPlainResponse(
-            nodeId = nodeId,
-            response = CompanionAuthResponse(
-                requestId = requestId,
-                provider = provider,
-                protocolVersion = CompanionAuthProtocol.VERSION,
-                status = CompanionAuthStatus.ERROR,
-                error = error,
-                message = message,
-            ),
-        )
-    }
-
-    private suspend fun sendPlainResponse(
-        nodeId: String,
-        response: CompanionAuthResponse,
-    ) {
-        recordLog(
-            "Companion auth sendResponse status=${response.status} provider=${response.provider} requestId=${response.requestId}",
-        )
-        transport.sendMessage(
-            nodeId = nodeId,
-            path = CompanionAuthProtocol.RESPONSE_PATH,
-            payload = encode(response),
-        )
     }
 
     private fun createIncomingFile(
@@ -875,13 +549,7 @@ internal class CompanionAuthCoordinatorAndroid(
         pendingKeePassTransfersMutex.withLock {
             pendingKeePassTransfers.remove(normalizedRequestId ?: requestId)
         }
-        if (normalizedRequestId == null) {
-            return
-        }
-        withContext(Dispatchers.IO) {
-            security.incomingDir(normalizedRequestId).deleteRecursively()
-            security.deletePendingSession(normalizedRequestId)
-        }
+        security.deleteRequestArtifacts(requestId)
     }
 
     private fun isResponsePayloadWithinLimits(
@@ -894,14 +562,6 @@ internal class CompanionAuthCoordinatorAndroid(
             ?: error("A vault session is required to import a companion account.")
         return keySession.session.resolveOrCancel { get() }
     }
-
-    private fun encode(
-        value: Any,
-    ): ByteArray = when (value) {
-        is CompanionAuthRequest -> json.encodeToString(value)
-        is CompanionAuthResponse -> json.encodeToString(value)
-        else -> error("Unsupported companion payload: ${value::class.qualifiedName}")
-    }.encodeToByteArray()
 }
 
 internal class CompanionAuthRequestStore {
@@ -917,6 +577,9 @@ internal class CompanionAuthRequestStore {
         requestId: String,
         event: CompanionAuthRequestEvent,
     ): CompanionAuthRequestState? {
+        // The screen shows a localized text per error, so the event's
+        // message only survives as a diagnostic.
+        recordLog("Companion auth requestId=$requestId event=$event")
         var nextState: CompanionAuthRequestState? = null
         states.update { currentStates ->
             val reducedState = reduceCompanionAuthRequestState(

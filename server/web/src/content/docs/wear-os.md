@@ -15,7 +15,7 @@ password, so you can read items and one-time passwords without your phone.
 
 - A watch with Wear OS 3 or later.
 - To add an account from your phone: Keyguard installed on the paired Android
-  phone.
+  phone and compatible Google Play services on the watch.
 
 ## Set up Keyguard on the watch
 
@@ -78,3 +78,7 @@ needs Wear OS 5 (Android 14) or later.
 The watch can't reach a phone with Keyguard installed. Install Keyguard on the
 paired phone, check that the watch is connected to it, then select
 **Login on phone** again.
+
+If Google Play services is unavailable, reopen **Add account** to try again.
+For Bitwarden, **Manual login** works without the phone connection. KeePass
+requires **Login on phone**.

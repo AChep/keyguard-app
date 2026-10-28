@@ -2,13 +2,14 @@ package com.artemchep.keyguard.wear.feature.auth
 
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthPhoneDiscovery
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import org.koin.compose.currentKoinScope
 
@@ -37,10 +38,6 @@ internal fun wearLoginMethodScreenState(
         companionAuthBridge,
     ),
 ) {
-    val phoneAvailabilityFlow = companionAuthBridge
-        .phoneAvailabilityFlow()
-        .distinctUntilChanged()
-
     val onPhoneLoginClick = onClick {
         val route = registerRouteResultReceiver(
             route = WearPhoneLoginRoute(accountType = accountType),
@@ -60,9 +57,23 @@ internal fun wearLoginMethodScreenState(
         navigate(NavigationIntent.NavigateToRoute(route))
     }
 
-    phoneAvailabilityFlow.map { isPhoneAvailable ->
+    wearLoginMethodStateFlow(
+        accountType = accountType,
+        phoneDiscoveryFlow = companionAuthBridge.phoneDiscoveryFlow(),
+        onPhoneLoginClick = onPhoneLoginClick,
+        onManualLoginClick = onManualLoginClick,
+    )
+}
+
+internal fun wearLoginMethodStateFlow(
+    accountType: AccountType,
+    phoneDiscoveryFlow: Flow<CompanionAuthPhoneDiscovery>,
+    onPhoneLoginClick: () -> Unit,
+    onManualLoginClick: () -> Unit,
+): Flow<WearLoginMethodState> = phoneDiscoveryFlow
+    .map { phoneDiscovery ->
         val isPhoneLoginEnabled = shouldEnablePhoneLogin(
-            isPhoneAvailable = isPhoneAvailable,
+            isPhoneAvailable = phoneDiscovery.devices.isNotEmpty(),
         )
         val isManualLoginVisible = shouldShowManualLogin(
             accountType = accountType,
@@ -72,7 +83,7 @@ internal fun wearLoginMethodScreenState(
                 accountType = accountType,
             ),
             phoneStatusText = phoneStatusTextOf(
-                isPhoneAvailable = isPhoneAvailable,
+                phoneDiscovery = phoneDiscovery,
                 requestState = null,
             ),
             isPhoneLoginEnabled = isPhoneLoginEnabled,
@@ -89,4 +100,3 @@ internal fun wearLoginMethodScreenState(
             },
         )
     }
-}

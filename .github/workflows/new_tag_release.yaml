@@ -7,12 +7,16 @@ on:
 
 jobs:
   # Generates variations of the changelog
+  #   - changelog-commits.json: structured commits and resolved comparison refs
   #   - changelog-raw.md: all git commits
   #   - changelog-summary.md: short summary using LLM
   #   - changelog-summaries/<platform>.md: short summary of the changes for one platform using LLM
   #   - changelog-full.md: full release notes using LLM + referenced issue titles
+  #
+  # To rewrite the notes of a published release, run regenerate_release_notes.yaml.
   generate-changelog:
     name: "Generate changelog"
+    if: startsWith(github.ref, 'refs/tags/r')
     runs-on: ubuntu-slim
     permissions:
       contents: read
@@ -23,27 +27,26 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: recursive
+          fetch-depth: 0
+      - uses: ./.github/actions/setup_python
       - name: "Generate changelog"
-        id: changelog
-        uses: metcalfc/changelog-generator@0440d0932f9a0dd1cc9ecd8412830761351323bd
-        with:
-          myToken: ${{ secrets.GITHUB_TOKEN }}
-      - name: "Print changelog"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cat << "EOF"
-          ${{ steps.changelog.outputs.changelog }}
-          EOF
+          python .github/get_release_commits.py \
+            --output changelog-commits.json \
+            --markdown-output changelog-raw.md
+      - name: "Print changelog"
+        run: cat changelog-raw.md
       - run: pip install -r .github/get_release_changelog_summary.requirements.txt
       - name: "Generate release notes"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_TOKEN: ${{ secrets.GEMINI_API_TOKEN }}
         run: |
-          cat << "EOF" > changelog-raw.md
-          ${{ steps.changelog.outputs.changelog }}
-          EOF
           python .github/get_release_changelog_summary.py \
-            changelog-raw.md \
-            --token "${{ secrets.GEMINI_API_TOKEN }}" \
+            changelog-commits.json \
+            --token "$GEMINI_API_TOKEN" \
             --output changelog-summary.md \
             --full-output changelog-full.md \
             --platform-output-dir changelog-summaries
@@ -64,6 +67,7 @@ jobs:
         with:
           name: changelog
           path: |
+            changelog-commits.json
             changelog-raw.md
             changelog-summary.md
             changelog-summaries/
@@ -144,6 +148,7 @@ jobs:
           path: keyguard-version/versions.json
   generate-versions-code-google-play-store:
     name: "Generate versions code for Google Play Store"
+    if: startsWith(github.ref, 'refs/tags/r')
     runs-on: ubuntu-slim
     outputs:
       wear-version-code: ${{ steps.producer.outputs.wear_version_code }}
@@ -165,6 +170,7 @@ jobs:
           echo "wear_version_code=$WEAR_VERSION_CODE" >> "$GITHUB_OUTPUT"
           echo "android_version_code=$ANDROID_VERSION_CODE" >> "$GITHUB_OUTPUT"
   build-macos-app:
+    if: startsWith(github.ref, 'refs/tags/r')
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -894,6 +900,7 @@ jobs:
             androidApp/build/outputs/bundle/**/*.aab
           retention-days: 1
   build-android-termux-agents:
+    if: startsWith(github.ref, 'refs/tags/r')
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

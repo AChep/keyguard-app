@@ -2,13 +2,18 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from get_flathub_listing_releases import convert_versions_to_xml
 from get_release_changelog_summary import (
     ALL_PLATFORMS,
+    FALLBACK_SUMMARY,
     NO_CHANGES_SENTINEL,
     bullet_platforms,
     filter_notes_for_platform,
+    main,
+    prepare_commits,
+    read_commit_subjects,
 )
 
 FULL_NOTES = """This release adds SSH certificates.
@@ -27,6 +32,109 @@ FULL_NOTES = """This release adds SSH certificates.
 ### Fixes
 - macOS, Windows: Fixed auto-type from the Quick search window.
 - Watchtower: Fixed the report of reused passwords."""
+
+
+class PrepareCommitsTest(unittest.TestCase):
+    def test_enriches_trailing_references_and_preserves_literal_backticks(self):
+        with patch("get_release_changelog_summary.describe_reference", return_value="Issue metadata") as lookup:
+            text, updates = prepare_commits([
+                "fix: Preserve `code` (#12) #13 (#12)",
+                "fix: Read entry #1 twice",
+            ], "AChep/keyguard-app", "token")
+        self.assertEqual([call.args[2] for call in lookup.call_args_list], [12, 13])
+        self.assertIn("- fix: Preserve `code` (#12) #13 (#12)\n  - Issue metadata", text)
+        self.assertIn("- fix: Read entry #1 twice", text)
+        self.assertEqual(updates, [])
+
+    def test_filters_own_merges_cla_and_collects_data_updates(self):
+        with patch("get_release_changelog_summary.describe_reference") as lookup:
+            text, updates = prepare_commits([
+                "[AUTO] Update localization library",
+                "[AUTO] Update localization library (#12)",
+                "[AUTO] Update passkeys library",
+                "Merge pull request #13 from achep/feature",
+                "Contributor has signed the CLA in #14",
+            ], "AChep/keyguard-app", None)
+        self.assertEqual(text, "")
+        self.assertEqual(updates, ["localization library", "passkeys library"])
+        lookup.assert_not_called()
+
+    def test_external_merge_is_enriched(self):
+        description = "#42 pull request by @contributor: Fix startup"
+        subject = "Merge pull request #42 from contributor/fix"
+        with patch("get_release_changelog_summary.describe_reference", return_value=description) as lookup:
+            text, _ = prepare_commits([subject], "AChep/keyguard-app", None)
+        lookup.assert_called_once_with("AChep/keyguard-app", None, 42)
+        self.assertEqual(text, f"- {subject}\n  - {description}")
+
+
+class CommitInputTest(unittest.TestCase):
+    def setUp(self):
+        directory = tempfile.TemporaryDirectory()
+        self.addCleanup(directory.cleanup)
+        self.directory = Path(directory.name)
+        self.path = self.directory / "commits.json"
+
+    def write(self, commits, repo="AChep/keyguard-app"):
+        self.path.write_text(json.dumps({"repository": repo, "commits": commits}), encoding="utf-8")
+
+    def test_reads_subjects_without_markdown_parsing(self):
+        self.write([{"sha": "a" * 40, "subject": "fix: [link](url) and `code` (#12)"}])
+        self.assertEqual(read_commit_subjects(self.path, "AChep/keyguard-app"), ["fix: [link](url) and `code` (#12)"])
+
+    def test_rejects_other_repository(self):
+        self.write([], repo="someone/else")
+        with self.assertRaisesRegex(ValueError, "must belong"):
+            read_commit_subjects(self.path, "AChep/keyguard-app")
+
+    def test_accepts_the_repository_in_any_case(self):
+        self.write([{"sha": "a" * 40, "subject": "fix: Case"}], repo="achep/KEYGUARD-app")
+        self.assertEqual(read_commit_subjects(self.path, "AChep/keyguard-app"), ["fix: Case"])
+
+    def test_rejects_malformed_commits(self):
+        for commits in (None, {}, [None], [{}], [{"subject": 123}]):
+            with self.subTest(commits=commits):
+                self.write(commits)
+                with self.assertRaisesRegex(ValueError, "commits array"):
+                    read_commit_subjects(self.path, "AChep/keyguard-app")
+
+    def test_cli_rejects_missing_empty_and_non_json_input(self):
+        for content in (None, "", "No Changes."):
+            with self.subTest(content=content):
+                if content is not None:
+                    self.path.write_text(content)
+                with patch("sys.argv", ["summarize", str(self.path), "--repo", "AChep/keyguard-app", "--print-prompt"]):
+                    with self.assertRaises(SystemExit) as error:
+                        main()
+                self.assertEqual(error.exception.code, 1)
+
+    def test_empty_commit_list_writes_all_outputs_without_calling_gemini(self):
+        self.write([])
+        self.assertEqual(self.run_main_without_gemini(), NO_CHANGES_SENTINEL)
+
+    def test_data_only_release_writes_all_outputs_without_calling_gemini(self):
+        self.write([
+            {"sha": "a" * 40, "subject": "[AUTO] Update localization library (#12)"},
+            {"sha": "b" * 40, "subject": "Merge pull request #13 from AChep/feature"},
+        ])
+        self.assertEqual(self.run_main_without_gemini(), "### Improvements\n- Data: Updated translations.")
+
+    def run_main_without_gemini(self) -> str:
+        """Runs the CLI on the written commits, checks the fallback summaries, and returns the full notes."""
+        output = self.directory / "summary.md"
+        full = self.directory / "full.md"
+        platforms = self.directory / "platforms"
+        with patch("sys.argv", [
+            "summarize", str(self.path), "--repo", "AChep/keyguard-app", "--token", "unused",
+            "--output", str(output), "--full-output", str(full), "--platform-output-dir", str(platforms),
+        ]), patch("get_release_changelog_summary.GeminiSummarizer") as gemini:
+            main()
+        gemini.assert_not_called()
+        self.assertEqual(output.read_text().strip(), FALLBACK_SUMMARY)
+        self.assertEqual({path.stem for path in platforms.iterdir()}, ALL_PLATFORMS)
+        for path in platforms.iterdir():
+            self.assertEqual(path.read_text().strip(), FALLBACK_SUMMARY)
+        return full.read_text().strip()
 
 
 class BulletPlatformsTest(unittest.TestCase):

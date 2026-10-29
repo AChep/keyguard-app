@@ -1,0 +1,110 @@
+name: "📝 Regenerate release notes"
+
+# Rewrites the notes of a published release without rebuilding it: the body
+# of the GitHub release and the changelog of its entry in AChep/keyguard-version.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag (e.g. r20251230.1)"
+        required: true
+        type: string
+      base-ref:
+        description: "Base tag or SHA; defaults to the newest published release that precedes the tag"
+        required: false
+        type: string
+
+jobs:
+  regenerate-release-notes:
+    name: "Regenerate release notes"
+    runs-on: ubuntu-slim
+    permissions:
+      contents: read
+      issues: read
+      pull-requests: read
+    env:
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+      - name: "Checkout AChep/keyguard-version"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          path: keyguard-version
+          repository: AChep/keyguard-version
+          token: ${{ secrets.PERSONAL_TOKEN }}
+      - uses: ./.github/actions/setup_python
+      - name: "Generate changelog"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CHANGELOG_BASE_REF: ${{ inputs.base-ref }}
+        run: |
+          args=()
+          if [[ -n "$CHANGELOG_BASE_REF" ]]; then
+            args+=(--base-ref "$CHANGELOG_BASE_REF")
+          fi
+          python .github/get_release_commits.py \
+            "${args[@]}" \
+            --head-ref "refs/tags/$RELEASE_TAG" \
+            --output changelog-commits.json \
+            --markdown-output changelog-raw.md
+      - name: "Print changelog"
+        run: cat changelog-raw.md
+      - run: pip install -r .github/get_release_changelog_summary.requirements.txt
+      - name: "Generate release notes"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_TOKEN: ${{ secrets.GEMINI_API_TOKEN }}
+        run: |
+          python .github/get_release_changelog_summary.py \
+            changelog-commits.json \
+            --token "$GEMINI_API_TOKEN" \
+            --output changelog-summary.md \
+            --full-output changelog-full.md \
+            --platform-output-dir changelog-summaries
+      - name: "Print release notes"
+        run: |
+          cat changelog-summary.md
+          for file in changelog-summaries/*.md; do
+            echo "== $file"
+            cat "$file"
+          done
+          cat changelog-full.md
+      - name: "Upload"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: changelog
+          path: |
+            changelog-commits.json
+            changelog-raw.md
+            changelog-summary.md
+            changelog-summaries/
+            changelog-full.md
+      - name: "Update release body"
+        env:
+          GH_TOKEN: ${{ secrets.PERSONAL_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: gh release edit "$RELEASE_TAG" --notes-file changelog-full.md
+      - name: "Update versions.json"
+        run: |
+          python .github/update_versions_json.py keyguard-version/versions.json \
+            --replace_changelog \
+            --tag_version "$RELEASE_TAG" \
+            --changelog_summary_file changelog-summary.md \
+            --changelog_summaries_dir changelog-summaries \
+            --changelog_raw_file changelog-raw.md
+      - name: "Commit versions.json"
+        working-directory: ./keyguard-version
+        run: |
+          if [[ -z "$(git status --porcelain)" ]]; then
+            echo "versions.json is unchanged."
+            exit 0
+          fi
+          git config --global user.name "keyguard-bot"
+          git config --global user.email "keyguard-bot@artemchep.com"
+          git add versions.json
+          git commit -m "[AUTO] Update release notes of $RELEASE_TAG"
+          git push

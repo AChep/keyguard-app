@@ -2,7 +2,7 @@
 """
 Release Changelog Summarizer using Google Gemini AI.
 
-Reads a text file containing commit messages, enriches them with the titles of
+Reads the JSON produced by get_release_commits.py, enriches commits with the titles of
 the GitHub issues and pull requests they reference, generates full release
 notes, and derives a concise app-store summary from those notes in a second pass,
 both for all platforms and for each platform from the notes that apply to it.
@@ -17,15 +17,14 @@ import json
 import logging
 import os
 import re
-import urllib.request
 from pathlib import Path
+
+from get_release_commits import github_api_get
 
 # --- Configuration Constants ---
 MODEL_NAME = "gemini-3.8-flash"
 LOG_FORMAT = "%(asctime)s - %(levelname)s - %(message)s"
 CHANGELOG_SUMMARY_LENGTH_LIMIT = 480
-GITHUB_API_URL = "https://api.github.com"
-GITHUB_API_TIMEOUT_SECONDS = 10
 
 NO_CHANGES_SENTINEL = "No user-facing changes."
 # The app-store summary of a platform with no items of its own.
@@ -86,8 +85,6 @@ DATA_UPDATE_NAMES = {
     "justgetmydata library": "data access request links",
 }
 
-# A line of the metcalfc/changelog-generator output: `- [hash](url) - subject`.
-COMMIT_LINE_REGEX = re.compile(r"^- \[[0-9a-f]+\]\([^)]*\) - (?P<subject>.*)$")
 # Only trailing references count, so "read entry #1 twice" is not an issue reference.
 TRAILING_REFERENCES_REGEX = re.compile(r"(?:\s+\(?#\d+\)?)+\s*$")
 MERGE_PULL_REQUEST_REGEX = re.compile(r"^Merge pull request #(?P<number>\d+) from (?P<owner>[^/\s]+)/")
@@ -203,13 +200,8 @@ logger = logging.getLogger(__name__)
 @functools.cache
 def describe_reference(repo: str, token: str | None, number: int) -> str | None:
     """Returns a one-line description of a GitHub issue or pull request, or None if it can't be fetched."""
-    headers = {"Accept": "application/vnd.github+json"}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
-    request = urllib.request.Request(f"{GITHUB_API_URL}/repos/{repo}/issues/{number}", headers=headers)
     try:
-        with urllib.request.urlopen(request, timeout=GITHUB_API_TIMEOUT_SECONDS) as response:
-            issue = json.load(response)
+        issue = github_api_get(f"/repos/{repo}/issues/{number}", token)
     except Exception as e:
         logger.warning(f"Failed to fetch #{number}: {e}")
         return None
@@ -226,23 +218,33 @@ def describe_reference(repo: str, token: str | None, number: int) -> str | None:
     return f"#{number} {kind}{labels_text}{author_text}: {issue['title'].strip()}"
 
 
-def prepare_commits(raw: str, repo: str, token: str | None) -> tuple[str, list[str]]:
+def read_commit_subjects(path: Path, repo: str) -> list[str]:
+    """Read structured subjects without parsing the human-readable Markdown."""
+    changelog = json.loads(path.read_text(encoding="utf-8"))
+    repository = changelog.get("repository") if isinstance(changelog, dict) else None
+    # GitHub repository names are case-insensitive.
+    if not isinstance(repository, str) or repository.lower() != repo.lower():
+        raise ValueError(f"Commit input must belong to {repo}.")
+    commits = changelog.get("commits")
+    if not isinstance(commits, list) or any(
+        not isinstance(commit, dict) or not isinstance(commit.get("subject"), str)
+        for commit in commits
+    ):
+        raise ValueError("Commit input must contain a commits array with string subjects.")
+    return [commit["subject"] for commit in commits]
+
+
+def prepare_commits(subjects: list[str], repo: str, token: str | None) -> tuple[str, list[str]]:
     """
-    Converts the raw changelog into the LLM input: drops the noise and appends
+    Converts commit subjects into the LLM input: drops the noise and appends
     the titles of referenced issues and pull requests. Returns the input and the
     names of the automatic data updates, which are listed by the script itself.
     """
     owner = repo.split("/")[0].lower()
     lines = []
     data_updates = []
-    for raw_line in raw.splitlines():
-        match = COMMIT_LINE_REGEX.match(raw_line)
-        if not match:
-            if raw_line.strip():
-                lines.append(raw_line)
-            continue
-
-        subject = match["subject"].strip()
+    for subject in subjects:
+        subject = subject.strip()
         data_update = DATA_UPDATE_REGEX.match(subject)
         if data_update:
             data_updates.append(data_update["name"])
@@ -413,7 +415,7 @@ def main():
     parser = argparse.ArgumentParser(
         description="Generate compressed and full release notes from commit messages using Gemini AI."
     )
-    parser.add_argument("commit_file", type=Path, help="Path to the text file with commit messages")
+    parser.add_argument("commit_file", type=Path, help="JSON output of get_release_commits.py")
     parser.add_argument("--token", type=str, help="Gemini API Token")
     parser.add_argument(
         "--repo",
@@ -449,17 +451,13 @@ def main():
     if not args.token and not args.print_prompt:
         parser.error("--token is required")
 
-    if not args.commit_file.exists():
-        logger.error(f"File not found: {args.commit_file}")
-        return
-
-    commit_text = args.commit_file.read_text(encoding="utf-8")
-    if not commit_text.strip():
-        logger.error("Commit messages file is empty.")
-        return
+    try:
+        subjects = read_commit_subjects(args.commit_file, args.repo)
+    except (ValueError, OSError) as error:
+        parser.exit(1, f"Could not read release commits: {error}\n")
 
     commit_text, data_updates = prepare_commits(
-        commit_text,
+        subjects,
         repo=args.repo,
         token=os.environ.get("GITHUB_TOKEN"),
     )
@@ -469,10 +467,11 @@ def main():
         print(FULL_PROMPT_TEMPLATE.format(commit_text=commit_text))
         return
 
-    summarizer = GeminiSummarizer(api_token=args.token)
-    full = summarizer.generate_full_notes(commit_text)
+    # The data updates are listed by the script itself, so only the other commits need the model.
+    summarizer = GeminiSummarizer(api_token=args.token) if commit_text else None
+    full = summarizer.generate_full_notes(commit_text) if summarizer else NO_CHANGES_SENTINEL
     full = finalize_full_notes(full, data_updates)
-    summary = summarizer.summarize_full_notes(full)
+    summary = summarizer.summarize_full_notes(full) if summarizer else FALLBACK_SUMMARY
     summary = validate_changelog_summary(summary)
 
     if args.output:
@@ -490,7 +489,7 @@ def main():
         for platform in PLATFORMS:
             platform_notes = filter_notes_for_platform(full, platform)
             logger.info(f"Release notes for {platform}:\n{platform_notes}")
-            if platform_notes:
+            if platform_notes and summarizer:
                 platform_summary = summarizer.summarize_full_notes(platform_notes, platform=platform)
                 platform_summary = validate_changelog_summary(platform_summary)
             else:

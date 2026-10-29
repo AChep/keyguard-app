@@ -1082,6 +1082,15 @@ private fun AttachmentPreviewError.text(): AttachmentPreviewErrorText = when (th
     AttachmentPreviewError.GpgKey ->
         AttachmentPreviewErrorText(Res.string.attachment_preview_error_gpg_key)
 
+    AttachmentPreviewError.GzipInvalid ->
+        AttachmentPreviewErrorText(Res.string.attachment_preview_error_gzip_invalid)
+
+    AttachmentPreviewError.GzipTooLarge ->
+        AttachmentPreviewErrorText(
+            Res.string.attachment_preview_error_gzip_size_limit,
+            humanReadableByteCountBin(AttachmentPreviewLimits.MAX_ENTRY_PREVIEW_BYTES),
+        )
+
     AttachmentPreviewError.ArchiveInvalid ->
         AttachmentPreviewErrorText(Res.string.attachment_archive_error_invalid)
 

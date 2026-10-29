@@ -183,6 +183,7 @@ kotlin {
                 api(project(":util:crypto"))
                 api(project(":feature:agent-setup"))
                 implementation(project(":util:csv"))
+                implementation(project(":util:gzip"))
                 api(project(":feature:cli"))
                 api(project(":feature:environments"))
                 api(project(":util:dns"))

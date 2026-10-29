@@ -15,10 +15,13 @@ import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
 import com.artemchep.keyguard.common.usecase.impl.CanPreviewAttachmentImpl
 import com.artemchep.keyguard.test.testCopyText
+import com.artemchep.keyguard.util.gzip.gzip
+import dev.snipme.highlights.model.SyntaxLanguage
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
@@ -235,6 +238,90 @@ class AttachmentPreviewStateProducerTest {
         assertEquals(1, getAttachmentPreview.calls)
         assertEquals(123L, getAttachmentPreview.lastRequest?.encryptedSize)
     }
+
+    @Test
+    fun `gzip files decode as the file they wrap`() = runTest {
+        val state = createGzipPreviewState(
+            fileName = "Main.kt.gz",
+            bytes = "fun main() = Unit".encodeToByteArray().gzip(),
+        )
+
+        val text = assertIs<AttachmentPreviewContent.Text>(state.content)
+        assertEquals("fun main() = Unit", text.text)
+        assertEquals(SyntaxLanguage.KOTLIN, text.syntaxLanguage)
+        assertEquals("Main.kt.gz", state.fileName)
+    }
+
+    @Test
+    fun `gzip tsv files split on tabs`() = runTest {
+        val state = createGzipPreviewState(
+            fileName = "data.tsv.gz",
+            bytes = "a,b\tc\n1\t2".encodeToByteArray().gzip(),
+        )
+
+        val table = assertIs<AttachmentPreviewContent.Table>(state.content)
+        assertEquals(listOf("a,b", "c"), table.table.rows[0])
+    }
+
+    @Test
+    fun `damaged gzip files return gzip error`() = runTest {
+        val state = createGzipPreviewState(
+            fileName = "app.log.gz",
+            bytes = "not gzip".encodeToByteArray(),
+        )
+
+        val error = assertIs<AttachmentPreviewContent.Error>(state.content)
+        assertEquals(AttachmentPreviewError.GzipInvalid, error.type)
+    }
+
+    @Test
+    fun `gzip files over the decompressed limit return gzip too large error`() = runTest {
+        val size = AttachmentPreviewLimits.MAX_ENTRY_PREVIEW_BYTES.toInt() + 1
+        val state = createGzipPreviewState(
+            fileName = "app.log.gz",
+            bytes = ByteArray(size) { 'a'.code.toByte() }.gzip(),
+        )
+
+        val error = assertIs<AttachmentPreviewContent.Error>(state.content)
+        assertEquals(AttachmentPreviewError.GzipTooLarge, error.type)
+    }
+
+    @Test
+    fun `gzip files of an unsupported type are not inflated`() = runTest {
+        val state = createGzipPreviewState(
+            fileName = "backup.tar.gz",
+            bytes = "not gzip".encodeToByteArray(),
+            canPreviewAttachment = StaticCanPreviewAttachment(AttachmentPreviewPolicy.Previewable),
+        )
+
+        val error = assertIs<AttachmentPreviewContent.Error>(state.content)
+        assertEquals(AttachmentPreviewError.UnsupportedFileType, error.type)
+    }
+
+    @Test
+    fun `gzip files leave the payload bytes as they are`() = runTest {
+        val bytes = "hello".encodeToByteArray().gzip()
+        val original = bytes.copyOf()
+        createGzipPreviewState(
+            fileName = "app.log.gz",
+            bytes = bytes,
+        )
+
+        assertContentEquals(original, bytes)
+    }
+
+    private suspend fun createGzipPreviewState(
+        fileName: String,
+        bytes: ByteArray,
+        canPreviewAttachment: CanPreviewAttachment = CanPreviewAttachmentImpl(),
+    ) = createAttachmentPreviewState(
+        args = args.copy(fileName = fileName),
+        canPreviewAttachment = canPreviewAttachment,
+        getAttachmentPreview = CountingGetAttachmentPreview(bytes),
+        downloadManager = FakeDownloadManager(status = DownloadProgress.None),
+        copyText = testCopyText(),
+        gpgKeyDecoder = testGpgKeyDecoder(),
+    )
 }
 
 private class StaticCanPreviewAttachment(
@@ -280,7 +367,9 @@ private class FakeDownloadManager(
     ) = error("Unexpected remove.")
 }
 
-private class CountingGetAttachmentPreview : GetAttachmentPreview {
+private class CountingGetAttachmentPreview(
+    private val bytes: ByteArray = "ok".encodeToByteArray(),
+) : GetAttachmentPreview {
     var calls = 0
         private set
     var lastRequest: AttachmentPreviewRequest? = null
@@ -294,7 +383,7 @@ private class CountingGetAttachmentPreview : GetAttachmentPreview {
         AttachmentPreviewPayload(
             fileName = request.fileName,
             encryptedSize = request.encryptedSize ?: 1L,
-            bytes = "ok".encodeToByteArray(),
+            bytes = bytes,
         )
     }
 }

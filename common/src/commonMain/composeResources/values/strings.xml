@@ -520,6 +520,8 @@
     <string name="attachment_preview_error_text_decode">This text file cannot be previewed.</string>
     <string name="attachment_preview_error_image_decode">This image cannot be previewed.</string>
     <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
+    <string name="attachment_preview_error_gzip_invalid">This Gzip file is damaged.</string>
+    <string name="attachment_preview_error_gzip_size_limit">The decompressed file is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
     <string name="attachment_preview_action_copy_all">Copy all</string>
     <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
     <string name="attachment_preview_action_source">Source</string>

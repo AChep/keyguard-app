@@ -10,7 +10,7 @@ import app.keemobile.kotpass.database.header.DatabaseHeader
 import app.keemobile.kotpass.database.modifiers.binaries
 import app.keemobile.kotpass.errors.CryptoError
 import app.keemobile.kotpass.errors.FormatError
-import app.keemobile.kotpass.io.gzip
+import com.artemchep.keyguard.util.gzip.gzip
 import kotlinx.io.RawSource
 import kotlinx.io.buffered
 import okio.Buffer

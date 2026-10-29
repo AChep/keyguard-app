@@ -180,13 +180,15 @@ internal class AttachmentArchiveSession(
 
     private suspend fun preview(entry: ZipArchiveEntry, suppliedPassword: String?): AttachmentPreviewContent =
         withContext(Dispatchers.Default) {
-            val bytes = archive.openEntry(entry.id, suppliedPassword, AttachmentPreviewLimits.MAX_ENTRY_PREVIEW_BYTES)
+            val entryBytes = archive
+                .openEntry(entry.id, suppliedPassword, AttachmentPreviewLimits.MAX_ENTRY_PREVIEW_BYTES)
                 .use { source ->
                     val context = currentCoroutineContext()
                     val buffer = Buffer()
                     source.copyTo(buffer, checkCancellation = context::ensureActive)
                     buffer.readByteArray()
                 }
+            val bytes = unwrapGzipAttachmentPreview(entry.path, entryBytes, clearBytes = true)
             val kind = attachmentPreviewKindByFileName(entry.path)
             if (kind == AttachmentPreviewKind.Image) {
                 AttachmentPreviewContent.Image(bytes)

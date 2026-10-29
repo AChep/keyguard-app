@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.attachmentPreviewKindByFileName
+import com.artemchep.keyguard.common.model.isAttachmentPreviewGzip
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.service.download.DownloadManager
@@ -44,9 +45,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import com.artemchep.keyguard.util.gzip.GzipError
+import com.artemchep.keyguard.util.gzip.GzipException
+import com.artemchep.keyguard.util.gzip.gunzip
 import com.artemchep.keyguard.util.zip.ZipArchive
 import com.artemchep.keyguard.util.zip.ZipArchiveException
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -287,10 +293,16 @@ internal suspend fun cachedAttachmentPreviewLocalUrl(
 
 internal fun Throwable.toPreviewError(): AttachmentPreviewError = when (this) {
     is ZipArchiveException -> reason.toPreviewError()
+    is GzipException -> reason.toPreviewError()
     is AttachmentPreviewException.TooLarge -> AttachmentPreviewError.TooLarge
     is AttachmentPreviewException.NetworkFailed -> AttachmentPreviewError.Network
     is AttachmentPreviewException.DecryptionFailed -> AttachmentPreviewError.Decryption
     else -> AttachmentPreviewError.Unknown
+}
+
+private fun GzipError.toPreviewError(): AttachmentPreviewError = when (this) {
+    GzipError.Invalid -> AttachmentPreviewError.GzipInvalid
+    GzipError.TooLarge -> AttachmentPreviewError.GzipTooLarge
 }
 
 internal fun AttachmentPreviewPolicy.toPreviewErrorOrNull(): AttachmentPreviewError? = when (this) {
@@ -304,25 +316,53 @@ private suspend fun AttachmentPreviewPayload.toPreviewContent(
     copyText: CopyText,
     gpgKeyDecoder: AttachmentPreviewGpgKeyDecoder,
 ): AttachmentPreviewContent {
-    return when (attachmentPreviewKindByFileName(fileName)) {
+    // Check the kind first, so that an unsupported Gzip file is not inflated.
+    val kind = attachmentPreviewKindByFileName(fileName)
+        ?: return AttachmentPreviewContent.Error(AttachmentPreviewError.UnsupportedFileType)
+    // The payload may share its bytes with the attachment source.
+    val previewBytes = unwrapGzipAttachmentPreview(fileName, bytes, clearBytes = false)
+    return when (kind) {
         AttachmentPreviewKind.Archive -> AttachmentPreviewContent.Archive(
-            ZipArchive(bytes, maxEntries = AttachmentPreviewLimits.MAX_ARCHIVE_ENTRIES),
+            ZipArchive(previewBytes, maxEntries = AttachmentPreviewLimits.MAX_ARCHIVE_ENTRIES),
         )
         AttachmentPreviewKind.GpgKey -> gpgKeyDecoder.decode(
             fileName = fileName,
-            bytes = bytes,
+            bytes = previewBytes,
             copyText = copyText,
         )
-        AttachmentPreviewKind.Image -> AttachmentPreviewContent.Image(bytes = bytes)
+        AttachmentPreviewKind.Image -> AttachmentPreviewContent.Image(bytes = previewBytes)
         AttachmentPreviewKind.Markdown,
         AttachmentPreviewKind.Table,
         AttachmentPreviewKind.Text -> decodeTextPreview(
             fileName = fileName,
-            bytes = bytes,
+            bytes = previewBytes,
             copyText = copyText,
         )
+    }
+}
 
-        null -> AttachmentPreviewContent.Error(AttachmentPreviewError.UnsupportedFileType)
+/**
+ * Returns the content to preview. A Gzip file is previewed as the
+ * file it wraps: [bytes] are inflated, refusing to produce more than
+ * [AttachmentPreviewLimits.MAX_ENTRY_PREVIEW_BYTES]. Only the owner
+ * of [bytes] may pass [clearBytes] to clear them once they are inflated.
+ */
+internal suspend fun unwrapGzipAttachmentPreview(
+    fileName: String,
+    bytes: ByteArray,
+    clearBytes: Boolean,
+): ByteArray {
+    if (!fileName.isAttachmentPreviewGzip()) {
+        return bytes
+    }
+    val context = currentCoroutineContext()
+    return try {
+        bytes.gunzip(
+            maxSize = AttachmentPreviewLimits.MAX_ENTRY_PREVIEW_BYTES,
+            checkCancellation = context::ensureActive,
+        )
+    } finally {
+        if (clearBytes) bytes.fill(0)
     }
 }
 

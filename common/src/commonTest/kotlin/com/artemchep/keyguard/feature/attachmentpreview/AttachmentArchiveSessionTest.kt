@@ -3,6 +3,7 @@
 package com.artemchep.keyguard.feature.attachmentpreview
 
 import com.artemchep.keyguard.test.testCopyText
+import com.artemchep.keyguard.util.gzip.gzip
 import com.artemchep.keyguard.util.zip.ZipArchive
 import com.artemchep.keyguard.util.zip.ZipConfig
 import com.artemchep.keyguard.util.zip.ZipEntry
@@ -55,6 +56,42 @@ class AttachmentArchiveSessionTest {
             assertEquals("folder", assertIs<AttachmentPreviewContent.Archive>(session.state.value.content).path)
             session.state.value.onBack!!()
             assertEquals("", assertIs<AttachmentPreviewContent.Archive>(session.state.value.content).path)
+        } finally { session.close() }
+    }
+
+    @Test
+    fun gzipEntriesPreviewAsTheFileTheyWrap() = runTest {
+        val archive = zip(
+            "app.log.gz" to "hello".encodeToByteArray().gzip(),
+            "backup.tar.gz" to byteArrayOf(),
+        )
+        val session = AttachmentArchiveSession(
+            backgroundScope, "test.zip", archive, testCopyText(), testGpgKeyDecoder(),
+            onError = {},
+        )
+        try {
+            val root = assertIs<AttachmentPreviewContent.Archive>(session.state.value.content)
+            assertEquals(listOf("app.log.gz", "backup.tar.gz"), root.items.map { it.name })
+            assertNull(root.items[1].onOpen)
+            root.items[0].onOpen!!()
+            val preview = session.state.first { !it.busy && it.content is AttachmentPreviewContent.Text }
+            assertEquals("app.log.gz", preview.fileName)
+            assertEquals("hello", assertIs<AttachmentPreviewContent.Text>(preview.content).text)
+        } finally { session.close() }
+    }
+
+    @Test
+    fun damagedGzipEntriesReportTheGzipError() = runTest {
+        val error = CompletableDeferred<AttachmentPreviewError>()
+        val session = AttachmentArchiveSession(
+            backgroundScope, "test.zip", zip("app.log.gz" to "not gzip".encodeToByteArray()),
+            testCopyText(), testGpgKeyDecoder(),
+            onError = { error.complete(it) },
+        )
+        try {
+            val root = assertIs<AttachmentPreviewContent.Archive>(session.state.value.content)
+            root.items.single().onOpen!!()
+            assertEquals(AttachmentPreviewError.GzipInvalid, error.await())
         } finally { session.close() }
     }
 
@@ -270,10 +307,13 @@ class AttachmentArchiveSessionTest {
         } finally { session.close() }
     }
 
-    private suspend fun zip(names: List<String>, password: String? = null, content: String? = null): ZipArchive {
+    private suspend fun zip(names: List<String>, password: String? = null, content: String? = null): ZipArchive =
+        zip(*names.map { it to (content ?: it).encodeToByteArray() }.toTypedArray(), password = password)
+
+    private suspend fun zip(vararg entries: Pair<String, ByteArray>, password: String? = null): ZipArchive {
         val output = Buffer()
-        createZipService().zip(output, ZipConfig(password?.let(ZipConfig::Encryption)), names.map { name ->
-            ZipEntry(name, ZipEntry.Data.In { Buffer().apply { write((content ?: name).encodeToByteArray()) } })
+        createZipService().zip(output, ZipConfig(password?.let(ZipConfig::Encryption)), entries.map { (name, bytes) ->
+            ZipEntry(name, ZipEntry.Data.In { Buffer().apply { write(bytes) } })
         })
         return ZipArchive(output.readByteArray())
     }

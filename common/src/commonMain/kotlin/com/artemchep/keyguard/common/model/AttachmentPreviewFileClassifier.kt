@@ -36,24 +36,50 @@ fun isMarkdownAttachmentPreview(
     fileName: String,
 ): Boolean = fileName.attachmentPreviewFileExtension() in ATTACHMENT_PREVIEW_MARKDOWN_EXTENSIONS
 
+/**
+ * Returns the name of the file to preview, for example `app.log`
+ * for both `logs/app.log` and `logs/app.log.gz`.
+ */
 internal fun String.attachmentPreviewFileName(): String {
-    val separatorIndex = indexOfLast { it == '/' || it == '\\' }
-    return if (separatorIndex != -1 && separatorIndex < length - 1) {
-        substring(separatorIndex + 1)
+    val path = attachmentPreviewPath()
+    val separatorIndex = path.indexOfLast { it == '/' || it == '\\' }
+    return if (separatorIndex != -1 && separatorIndex < path.length - 1) {
+        path.substring(separatorIndex + 1)
     } else {
-        this
+        path
     }
 }
 
+/**
+ * Returns the extension of the file to preview, for example `log`
+ * for both `app.log` and `app.log.gz`.
+ */
 internal fun String.attachmentPreviewFileExtension(): String? {
-    val separatorIndex = indexOfLast { it == '/' || it == '\\' }
-    val extensionIndex = indexOfLast { it == '.' }
-    return if (extensionIndex != -1 && extensionIndex > separatorIndex && extensionIndex < length - 1) {
-        substring(extensionIndex + 1).lowercase()
+    val path = attachmentPreviewPath()
+    val separatorIndex = path.indexOfLast { it == '/' || it == '\\' }
+    val extensionIndex = path.indexOfLast { it == '.' }
+    return if (extensionIndex != -1 && extensionIndex > separatorIndex && extensionIndex < path.length - 1) {
+        path.substring(extensionIndex + 1).lowercase()
     } else {
         null
     }
 }
+
+/**
+ * Returns `true` if this is a Gzip file. A Gzip file is
+ * previewed as the file it wraps.
+ */
+internal fun String.isAttachmentPreviewGzip(): Boolean =
+    endsWith(ATTACHMENT_PREVIEW_GZIP_SUFFIX, ignoreCase = true)
+
+private fun String.attachmentPreviewPath(): String =
+    if (isAttachmentPreviewGzip()) {
+        dropLast(ATTACHMENT_PREVIEW_GZIP_SUFFIX.length)
+    } else {
+        this
+    }
+
+private const val ATTACHMENT_PREVIEW_GZIP_SUFFIX = ".gz"
 
 private val ATTACHMENT_PREVIEW_ARCHIVE_EXTENSIONS = setOf(
     "zip",

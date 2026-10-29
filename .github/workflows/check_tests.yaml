@@ -192,6 +192,8 @@ jobs:
               :util:yubikey:desktopTest
               :util:foundation:desktopTest
               :util:foundation:checkBouncyCastleProductionDependencies
+              :util:gzip:checkComposeFree
+              :util:gzip:desktopTest
               :util:kdbx:desktopTest
               :util:kdbx:checkBouncyCastleProductionDependencies
               :util:messagepack:desktopTest
@@ -217,6 +219,7 @@ jobs:
               :util:yubikey:testAndroidHostTest
               :util:fido2:testAndroidHostTest
               :util:foundation:testAndroidHostTest
+              :util:gzip:testAndroidHostTest
               :util:kdbx:testAndroidHostTest
               :util:messagepack:testAndroidHostTest
               :util:planeta:testAndroidHostTest

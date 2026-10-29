@@ -5,9 +5,9 @@ package app.keemobile.kotpass.models
 import app.keemobile.kotpass.errors.FormatError
 import app.keemobile.kotpass.io.KotlinxSourceAdapter
 import app.keemobile.kotpass.io.STREAM_BUFFER_SIZE
-import app.keemobile.kotpass.io.gunzip
-import app.keemobile.kotpass.io.gzip
+import app.keemobile.kotpass.io.gunzipWithinLimit
 import com.artemchep.keyguard.util.foundation.crypto.createSha256
+import com.artemchep.keyguard.util.gzip.gzip
 import kotlinx.io.Buffer
 import kotlinx.io.RawSink
 import kotlinx.io.Sink
@@ -48,7 +48,7 @@ sealed class BinaryData(val hash: ByteString) {
         override val rawContent: ByteArray
     ) : BinaryData(binaryHash(compressed = true, memoryProtection, rawContent)) {
         override fun getContent(): ByteArray = try {
-            rawContent.gunzip()
+            rawContent.gunzipWithinLimit()
         } catch (error: FormatError) {
             // Preserve specific format errors,
             // instead of masking them behind the generic message below.

@@ -105,6 +105,29 @@ class AttachmentPreviewTypesTest {
     }
 
     @Test
+    fun `gzip files are previewable as the file they wrap`() {
+        assertEquals(AttachmentPreviewKind.Text, attachmentPreviewKindByFileName("app.log.gz"))
+        assertEquals(AttachmentPreviewKind.Text, attachmentPreviewKindByFileName("logs/data.json.GZ"))
+        assertEquals(AttachmentPreviewKind.Text, attachmentPreviewKindByFileName("README.gz"))
+        assertEquals(AttachmentPreviewKind.Table, attachmentPreviewKindByFileName("data.TSV.gz"))
+        assertEquals(AttachmentPreviewKind.Markdown, attachmentPreviewKindByFileName("notes.md.gz"))
+        assertEquals(AttachmentPreviewKind.Image, attachmentPreviewKindByFileName("photo.png.gz"))
+        assertEquals(AttachmentPreviewKind.Archive, attachmentPreviewKindByFileName("archive.zip.gz"))
+        assertEquals(true, isAttachmentPreviewSupported("app.log.gz"))
+        assertEquals(true, isMarkdownAttachmentPreview("notes.md.gz"))
+        assertEquals(SyntaxLanguage.KOTLIN, attachmentPreviewSyntaxLanguageByFileName("src/Main.kt.gz"))
+    }
+
+    @Test
+    fun `gzip files are not previewable when the file they wrap is not`() {
+        assertNull(attachmentPreviewKindByFileName("backup.tar.gz"))
+        assertNull(attachmentPreviewKindByFileName("backup.tgz"))
+        assertNull(attachmentPreviewKindByFileName("unknown.gz"))
+        assertNull(attachmentPreviewKindByFileName("app.log.gz.gz"))
+        assertNull(attachmentPreviewKindByFileName(".gz"))
+    }
+
+    @Test
     fun `syntax language is inferred from source extensions`() {
         assertEquals(SyntaxLanguage.KOTLIN, attachmentPreviewSyntaxLanguageByFileName("Main.kt"))
         assertEquals(SyntaxLanguage.JAVA, attachmentPreviewSyntaxLanguageByFileName("Main.java"))
@@ -325,9 +348,23 @@ class AttachmentPreviewTypesTest {
             ),
         )
         assertEquals(
+            AttachmentPreviewPolicy.Previewable,
+            desktopPolicy(
+                fileName = "app.log.gz",
+                encryptedSize = 1L,
+            ),
+        )
+        assertEquals(
             AttachmentPreviewPolicy.UnsupportedType,
             desktopPolicy(
                 fileName = "archive.7z",
+                encryptedSize = 1L,
+            ),
+        )
+        assertEquals(
+            AttachmentPreviewPolicy.UnsupportedType,
+            desktopPolicy(
+                fileName = "backup.tar.gz",
                 encryptedSize = 1L,
             ),
         )

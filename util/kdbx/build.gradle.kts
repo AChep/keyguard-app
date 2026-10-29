@@ -25,6 +25,7 @@ kotlin {
                 implementation(libs.xmlutil.core)
                 implementation(project(":util:crypto"))
                 implementation(project(":util:foundation"))
+                implementation(project(":util:gzip"))
             }
         }
 

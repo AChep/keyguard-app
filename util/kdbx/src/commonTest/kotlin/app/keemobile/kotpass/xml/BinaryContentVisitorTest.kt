@@ -4,7 +4,7 @@ import app.keemobile.kotpass.constants.CrsAlgorithm
 import app.keemobile.kotpass.cryptography.EncryptionSaltGenerator
 import app.keemobile.kotpass.errors.FormatError
 import app.keemobile.kotpass.io.encodeBase64
-import app.keemobile.kotpass.io.gzip
+import com.artemchep.keyguard.util.gzip.gzip
 import okio.Buffer
 import okio.ByteString.Companion.toByteString
 import kotlin.test.Test

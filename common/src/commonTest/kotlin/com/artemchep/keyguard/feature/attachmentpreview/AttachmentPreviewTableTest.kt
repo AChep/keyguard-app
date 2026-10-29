@@ -59,6 +59,7 @@ class AttachmentPreviewTableTest {
     @Test
     fun `tsv files use the tab delimiter`() {
         assertEquals('\t', attachmentPreviewTableDelimiter("data.TSV", "a,b,c\td"))
-        assertEquals(',', attachmentPreviewTableDelimiter("data.csv", "a,b,c\td"))
+        assertEquals('\t', attachmentPreviewTableDelimiter("data.tsv.gz", "a,b,c\td"))
+        assertEquals(',',attachmentPreviewTableDelimiter("data.csv", "a,b,c\td"))
     }
 }

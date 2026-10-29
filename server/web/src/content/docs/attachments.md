@@ -51,6 +51,7 @@ Markdown and table previews have **Copy all** and **Wrap lines** buttons.
 | Kind | Files |
 | --- | --- |
 | GPG keys | `.asc`, `.gpg` and `.pgp` |
+| Gzip | Any of these files compressed with Gzip, such as `.log.gz` or `.json.gz`, up to 8 MB uncompressed |
 | Images | PNG, JPEG (including `.jfif` and `.jpe`), GIF, BMP, WebP, HEIC and HEIF |
 | Markdown | `.md`, `.markdown`, `.mdown`, `.mdwn`, `.mkd`, `.mkdn` and `.mkdown` |
 | Tables | `.csv` and `.tsv` |

@@ -175,6 +175,7 @@ jobs:
           :util:ffi:iosSimulatorArm64Test
           :util:io:iosSimulatorArm64Test
           :util:foundation:iosSimulatorArm64Test
+          :util:gzip:iosSimulatorArm64Test
           :util:kdbx:iosSimulatorArm64Test
           :util:messagepack:iosSimulatorArm64Test
           :util:planeta:iosSimulatorArm64Test

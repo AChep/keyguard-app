@@ -96,6 +96,8 @@ enum class AttachmentPreviewError {
     Decryption,
     TextDecode,
     GpgKey,
+    GzipInvalid,
+    GzipTooLarge,
     ArchiveInvalid,
     ArchiveUnsupported,
     ArchivePassword,

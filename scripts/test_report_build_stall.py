@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
 import os
 from pathlib import Path
 import tempfile
@@ -29,6 +30,7 @@ from scripts.report_build_stall import (
     parse_top,
     parse_vm_stat_compressed,
     peers_by_pid,
+    stop_time,
 )
 
 
@@ -96,6 +98,13 @@ HEAP_PARALLEL_FULL = """78819:
 HEAP_PARALLEL_GROWING = """23537:
  PSYoungGen      total 2183168K, used 1214164K [0x0000007155d80000, 0x00000071ffd00000, 0x0000007200800000)
  ParOldGen       total 3714048K, used 3700000K [0x0000007000800000, 0x00000070e3300000, 0x0000007155d80000)
+"""
+# The end of the log of daemon 25395 of 2026-10-29, which ran out of heap and never exited.
+STOPPED_LOG = """\
+2026-10-29T14:47:02.749+0200 [DEBUG] [org.gradle.launcher.daemon.server.DaemonStateCoordinator] daemon has stopped.
+2026-10-29T14:47:02.750+0200 [INFO] [org.gradle.launcher.daemon.server.Daemon] Stop requested. Daemon is removing its presence from the registry...
+2026-10-29T14:47:03.693+0200 [INFO] [org.gradle.launcher.daemon.server.Daemon] Stop requested. Daemon is removing its presence from the registry...
+2026-10-29T14:47:03.695+0200 [DEBUG] [org.gradle.cache.internal.locklistener.DefaultFileLockContentionHandler] File lock listener thread completed.
 """
 HEAP_G1 = """34356:
  garbage-first heap   total 4194304K, used 2449708K [0x0000007000800000, 0x0000007100800000)
@@ -204,6 +213,18 @@ class ParserTest(unittest.TestCase):
             path.write_text("")
             self.assertEqual(last_line(path), "")
 
+    def test_stop_time_is_when_the_daemon_last_left_the_registry(self):
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory, "daemon-25395.out.log")
+            path.write_text(STOPPED_LOG)
+            stopped = datetime(2026, 10, 29, 12, 47, 3, 693000, tzinfo=timezone.utc)
+            self.assertEqual(stop_time(path), stopped.timestamp())
+            path.write_text(
+                "2026-10-29T16:20:20.473+0200 [DEBUG] [org.gradle.launcher.daemon.server.Daemon]"
+                " Finished periodic daemon health check.\n"
+            )
+            self.assertIsNone(stop_time(path))
+
 
 class FakeMachine(Machine):
     """A machine state built from fixtures, so the report runs no commands."""
@@ -270,6 +291,35 @@ class FindingsTest(unittest.TestCase):
         self.assertIn("Connected: Gradle client 28333, Kotlin daemon 78819", lines)
         self.assertIn("Clients: Gradle daemons 17178, 34356", lines)
         self.assertIn("ParOldGen 6.7 GB of 6.7 GB (100%)  FULL", lines)
+
+    def test_a_daemon_that_never_exited_after_stopping_is_stuck(self):
+        with tempfile.TemporaryDirectory() as directory:
+            logs = Path(directory, "daemon", "9.7.1")
+            logs.mkdir(parents=True)
+            now = datetime.now(timezone.utc)
+            files = {}
+            for pid, minutes in [(25395, 90), (25396, 1)]:
+                stopped = (now - timedelta(minutes=minutes)).strftime("%Y-%m-%dT%H:%M:%S.%f%z")
+                log = Path(logs, f"daemon-{pid}.out.log")
+                log.write_text(
+                    f"{stopped} [INFO] [org.gradle.launcher.daemon.server.Daemon] Stop requested."
+                    " Daemon is removing its presence from the registry...\n"
+                )
+                files[pid] = [str(log)]
+            processes = parse_ps(
+                f"25395 1 02:00:00 0.0 1024 {GRADLE_DAEMON}\n"
+                f"25396 1 02:00:00 0.0 1024 {GRADLE_DAEMON}\n"
+            )
+            report = Report(FakeMachine(processes, peers={}, files=files, heaps={}))
+            with mock.patch.dict(os.environ, {"GRADLE_USER_HOME": directory}):
+                report.jvms()
+        warnings, lines = "\n".join(report.warnings), "\n".join(report.lines)
+        self.assertIn("1 stuck Gradle daemon holds", warnings)
+        self.assertIn("killing it is safe: kill 25395", warnings)
+        # Still within the seconds a daemon takes to exit, so not stuck yet.
+        self.assertIn("1 idle Gradle daemon holds", warnings)
+        self.assertIn("cpu 0%  1 MB  stuck", lines)
+        self.assertIn("Stopped 90 min ago and left the registry, but never exited", lines)
 
 
 if __name__ == "__main__":

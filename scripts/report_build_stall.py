@@ -10,6 +10,7 @@ import argparse
 from collections.abc import Iterable, Sequence
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
+from datetime import datetime
 import os
 from pathlib import Path
 import re
@@ -24,6 +25,10 @@ COMMAND_TIMEOUT_SECONDS = 30
 JCMD_TIMEOUT_SECONDS = 15
 TOP_PROCESS_COUNT = 10
 SILENT_LOG_MINUTES = 10
+# A daemon exits within seconds of leaving the registry. One that ran out of heap may hang
+# there for good: no build can reach it, yet it keeps its heap and the locks of its last build.
+STOPPED_GRACE_MINUTES = 5
+GRADLE_DAEMON_STOPPING = "Daemon is removing its presence from the registry"
 
 GRADLE_DAEMON_MAIN = "org.gradle.launcher.daemon.bootstrap.GradleDaemon"
 GRADLE_WORKER_MAIN = "worker.org.gradle.process.internal.worker.GradleWorkerMain"
@@ -327,12 +332,26 @@ def find_log(files: Iterable[str], pattern: re.Pattern[str]) -> Path | None:
     return next((Path(name) for name in files if pattern.search(name)), None)
 
 
-def last_line(path: Path, limit: int = 8192) -> str:
+def tail_lines(path: Path, limit: int) -> list[str]:
     with path.open("rb") as file:
         file.seek(0, os.SEEK_END)
         file.seek(max(0, file.tell() - limit))
-        lines = file.read().decode("utf-8", "replace").splitlines()
-    return next((line.strip() for line in reversed(lines) if line.strip()), "")
+        return file.read().decode("utf-8", "replace").splitlines()
+
+
+def last_line(path: Path, limit: int = 8192) -> str:
+    return next((line.strip() for line in reversed(tail_lines(path, limit)) if line.strip()), "")
+
+
+def stop_time(path: Path, limit: int = 256 * 1024) -> float | None:
+    """When a Gradle daemon left the registry to stop, as a Unix time, or `None` if it has not."""
+    for line in reversed(tail_lines(path, limit)):
+        if GRADLE_DAEMON_STOPPING in line:
+            try:
+                return datetime.strptime(line.split(" ", 1)[0], "%Y-%m-%dT%H:%M:%S.%f%z").timestamp()
+            except ValueError:
+                return path.stat().st_mtime
+    return None
 
 
 def clip(text: str, limit: int = 160) -> str:
@@ -487,10 +506,16 @@ class Report:
         self.section(f"Gradle daemons ({len(daemons)})")
         registry_root = Path(os.environ.get("GRADLE_USER_HOME", Path.home() / ".gradle"), "daemon")
         idle = []
+        stuck = []
         heaps_by_version: dict[str, set[str]] = {}
         for daemon in daemons:
             peers = sorted(machine.peers.get(daemon.pid, ()))
-            if machine.peers_error:
+            log = find_log(files.get(daemon.pid, []), GRADLE_DAEMON_LOG)
+            stopped_minutes = self.stopped_minutes(log)
+            if stopped_minutes is not None and stopped_minutes >= STOPPED_GRACE_MINUTES:
+                state = "stuck"
+                stuck.append(daemon)
+            elif machine.peers_error:
                 state = "unknown"
             elif peers:
                 state = "busy"
@@ -503,8 +528,9 @@ class Report:
                 f"{daemon.pid:>7}  Gradle {version}  -Xmx{max_heap or '?'}  up {daemon.elapsed}"
                 f"  cpu {daemon.cpu:.0f}%  {human(machine.memory(daemon))}  {state}"
             )
+            if state == "stuck":
+                self.add(f"Stopped {stopped_minutes:.0f} min ago and left the registry, but never exited", indent=11)
             self.add(f"JDK: {shorten(java_home(daemon.args) or '?')}", indent=11)
-            log = find_log(files.get(daemon.pid, []), GRADLE_DAEMON_LOG)
             if log:
                 registry = log.parent.parent
                 self.add(f"Registry: {shorten(str(registry))}", indent=11)
@@ -521,6 +547,13 @@ class Report:
             held = sum(machine.memory(daemon) for daemon in idle)
             self.warnings.append(
                 f"{plural(len(idle), 'idle Gradle daemon holds', 'idle Gradle daemons hold')} {human(held)}."
+            )
+        if stuck:
+            held = sum(machine.memory(daemon) for daemon in stuck)
+            self.warnings.append(
+                f"{plural(len(stuck), 'stuck Gradle daemon holds', 'stuck Gradle daemons hold')} {human(held)}."
+                " A stuck daemon has left the registry, so no build can use it and killing it is safe:"
+                f" kill {' '.join(str(daemon.pid) for daemon in stuck)}"
             )
         for version, max_heaps in heaps_by_version.items():
             if len(max_heaps) > 1:
@@ -589,6 +622,17 @@ class Report:
                 f"{kind} {process.pid} has a full heap at {process.cpu:.0f}% CPU;"
                 " it is likely stuck in garbage collection."
             )
+
+    @staticmethod
+    def stopped_minutes(path: Path | None) -> float | None:
+        """The minutes since a Gradle daemon left the registry, or `None` if it has not."""
+        if path is None:
+            return None
+        try:
+            stopped = stop_time(path)
+        except OSError:
+            return None
+        return None if stopped is None else (time.time() - stopped) / 60
 
     def log_line(self, path: Path | None) -> float | None:
         """Print the log's last line; returns the minutes since the log last changed."""

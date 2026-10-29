@@ -62,7 +62,7 @@ Several builds often run on the same machine at once, so keep every build small 
 
 - **Scope.** Run the narrowest task that proves the change, e.g. `./gradlew :common:desktopTest --tests '...'`. Avoid root-level `build`, `check` and `assemble`.
 - **Settings.** Don't override memory or daemon settings: no `-Dorg.gradle.jvmargs`, `kotlin.daemon.jvmargs`, `kotlin.compiler.execution.strategy` or `org.gradle.daemon.registry.base`. Each override starts a daemon other builds can't reuse.
-- **Daemons.** Avoid stopping or killing Gradle or Kotlin daemons (`--stop`, `pkill java`). Other builds might run on them.
+- **Daemons.** Avoid stopping or killing Gradle or Kotlin daemons (`--stop`, `pkill java`). Other builds might run on them. The exception is a daemon the stall report lists as stuck: no build can use it, so kill it by PID. `--stop` does not reach it.
 - **Stalls.** Run long builds in the background. If one makes no progress for 10 minutes, run `python3 scripts/report_build_stall.py` and report its output instead of retrying.
 
 ### Lint checks

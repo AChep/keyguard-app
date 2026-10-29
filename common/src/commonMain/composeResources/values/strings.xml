@@ -2459,6 +2459,10 @@
     <string name="gpg_tools_operation_decrypt_text">Decrypt text or files with stored private keys</string>
     <string name="gpg_tools_operation_sign_text">Sign text or files with a stored private key</string>
     <string name="gpg_tools_operation_verify_text">Verify inline or detached signatures</string>
+    <string name="gpg_tools_drop_file_to_encrypt">Drop a file to encrypt it</string>
+    <string name="gpg_tools_drop_file_to_decrypt">Drop a file to decrypt it</string>
+    <string name="gpg_tools_drop_file_to_sign">Drop a file to sign it</string>
+    <string name="gpg_tools_drop_file_to_verify">Drop a file to verify it</string>
     <string name="gpg_tools_mode_cleartext">Cleartext</string>
     <string name="gpg_tools_mode_inline">Inline</string>
     <string name="gpg_tools_mode_detached">Detached</string>

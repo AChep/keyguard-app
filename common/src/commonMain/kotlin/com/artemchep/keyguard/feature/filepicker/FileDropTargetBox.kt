@@ -37,6 +37,7 @@ internal expect fun Modifier.fileDragMonitor(
 internal fun FileDropTargetBox(
     modifier: Modifier = Modifier,
     enabled: Boolean,
+    propagateMinConstraints: Boolean = false,
     onFileDrop: (FilePickerResult) -> Unit,
     content: @Composable BoxScope.() -> Unit = {},
     overlay: @Composable BoxScope.() -> Unit,
@@ -53,6 +54,7 @@ internal fun FileDropTargetBox(
                 },
                 onFileDrop = onFileDrop,
             ),
+        propagateMinConstraints = propagateMinConstraints,
         content = {
             content()
             if (enabled && dragActive) {

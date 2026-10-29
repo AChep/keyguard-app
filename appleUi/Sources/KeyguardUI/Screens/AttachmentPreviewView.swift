@@ -11,7 +11,7 @@ struct AttachmentPreviewView: View {
     @Environment(DialogsModel.self) private var dialogsModel
     @Environment(\.dismiss) private var dismiss
 
-    /// `0` renders the markdown, table or GPG key, `1` shows the raw source.
+    /// `0` renders the preview or JSON tree, `1` shows the raw source.
     @State private var textMode = 0
     @State private var archivePassword = ""
     @FocusState private var archivePasswordFocused: Bool
@@ -63,6 +63,9 @@ struct AttachmentPreviewView: View {
         .onChange(of: dialogsModel.attachmentPreview?.needsPassword) { _, needsPassword in
             if needsPassword != true { archivePassword = "" }
         }
+        .onChange(of: dialogsModel.attachmentPreview?.jsonDocumentId) { _, document in
+            if document != nil { textMode = 0 }
+        }
         #if os(iOS)
         .fileExporter(
             isPresented: Binding(get: { export != nil }, set: { _ in }),
@@ -105,7 +108,15 @@ struct AttachmentPreviewView: View {
     @ViewBuilder
     private func previewPane(_ snapshot: AttachmentPreviewSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            if snapshot.kind == AttachmentPreviewKindSnapshot.markdown
+            if snapshot.kind == AttachmentPreviewKindSnapshot.json, snapshot.jsonTree != nil {
+                Picker("", selection: $textMode) {
+                    Text(L10n.attachmentPreviewActionSource).tag(1)
+                    Text(L10n.attachmentPreviewActionTree).tag(0)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .accessibilityLabel("\(L10n.attachmentPreviewActionSource) / \(L10n.attachmentPreviewActionTree)")
+            } else if snapshot.kind == AttachmentPreviewKindSnapshot.markdown
                 || snapshot.kind == AttachmentPreviewKindSnapshot.table
                 || (snapshot.kind == AttachmentPreviewKindSnapshot.gpgKey && snapshot.text != nil)
             {
@@ -137,6 +148,15 @@ struct AttachmentPreviewView: View {
                     imagePane(snapshot)
                 } else if snapshot.kind == AttachmentPreviewKindSnapshot.text {
                     textPane(snapshot)
+                } else if snapshot.kind == AttachmentPreviewKindSnapshot.json {
+                    AttachmentPreviewJsonView(
+                        tree: snapshot.jsonTree,
+                        errorMessage: snapshot.jsonErrorMessage,
+                        showTree: textMode == 0
+                    ) {
+                        textPane(snapshot)
+                    }
+                    .id(snapshot.jsonDocumentId)
                 } else if snapshot.kind == AttachmentPreviewKindSnapshot.markdown {
                     markdownPane(snapshot)
                 } else if snapshot.kind == AttachmentPreviewKindSnapshot.table {

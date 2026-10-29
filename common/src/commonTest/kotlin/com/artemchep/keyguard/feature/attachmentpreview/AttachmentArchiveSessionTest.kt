@@ -96,6 +96,28 @@ class AttachmentArchiveSessionTest {
     }
 
     @Test
+    fun jsonAndGzipJsonEntriesUseTheSharedTreeDecoder() = runTest {
+        val source = "{\"enabled\":true}"
+        val session = AttachmentArchiveSession(
+            backgroundScope, "test.zip", zip(
+                "config.json" to source.encodeToByteArray(),
+                "config.jsonld.gz" to source.encodeToByteArray().gzip(),
+            ), testCopyText(), testGpgKeyDecoder(), onError = {},
+        )
+        try {
+            for (index in 0..1) {
+                val root = assertIs<AttachmentPreviewContent.Archive>(session.state.value.content)
+                root.items[index].onOpen!!()
+                val preview = session.state.first { !it.busy && it.content is AttachmentPreviewContent.Json }
+                val content = assertIs<AttachmentPreviewContent.Json>(preview.content)
+                assertEquals(source, content.text)
+                assertNotNull(content.preview.tree)
+                preview.onBack!!()
+            }
+        } finally { session.close() }
+    }
+
+    @Test
     fun breadcrumbsOpenTheirFolders() = runTest {
         val archive = zip(listOf("one/two/file.txt"))
         val session = AttachmentArchiveSession(

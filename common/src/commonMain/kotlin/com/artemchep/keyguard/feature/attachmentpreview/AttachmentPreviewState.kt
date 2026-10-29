@@ -73,6 +73,12 @@ sealed interface AttachmentPreviewContent {
         override val onCopy: () -> Unit,
     ) : TextLike
 
+    data class Json(
+        override val code: AttachmentPreviewCode,
+        val preview: AttachmentPreviewJsonPreview,
+        override val onCopy: () -> Unit,
+    ) : TextLike
+
     /**
      * Parsed OpenPGP certificates. A binary key has
      * no [source] to show or copy.

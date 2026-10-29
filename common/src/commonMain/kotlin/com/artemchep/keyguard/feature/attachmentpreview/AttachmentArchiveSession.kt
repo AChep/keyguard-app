@@ -197,7 +197,7 @@ internal class AttachmentArchiveSession(
                     if (kind == AttachmentPreviewKind.GpgKey) {
                         gpgKeyDecoder.decode(entry.path, bytes, copyText)
                     } else {
-                        decodeTextPreview(entry.path, bytes, copyText)
+                        decodeTextPreview(entry.path, bytes, copyText, currentCoroutineContext()::ensureActive)
                     }
                 } finally {
                     bytes.fill(0)

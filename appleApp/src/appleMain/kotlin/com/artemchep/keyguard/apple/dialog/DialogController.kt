@@ -782,7 +782,8 @@ internal class DialogController(
                 .collect { loadable ->
                     val state = loadable.getOrNull() ?: return@collect
                     val content = cache?.takeIf { it.first === state.content }?.second
-                        ?: buildAttachmentPreviewSnapshot(state, leContext)
+                        ?: buildAttachmentPreviewSnapshot(state, leContext, cache?.second?.jsonTree)
+                            .withJsonDocumentIdentity(state.content, cache?.first, cache?.second)
                             .also { cache = state.content to it }
                     publish(
                         content.withAttachmentPreviewState(state),
@@ -1940,6 +1941,7 @@ internal class DialogController(
     private suspend fun buildAttachmentPreviewSnapshot(
         state: AttachmentPreviewState,
         leContext: LeContext,
+        previousJsonTree: AttachmentPreviewJsonTreeSnapshot?,
     ): AttachmentPreviewSnapshot = when (val content = state.content) {
         is AttachmentPreviewContent.Archive -> AttachmentPreviewSnapshot(
             fileName = state.fileName,
@@ -1964,30 +1966,24 @@ internal class DialogController(
             ),
         )
 
-        is AttachmentPreviewContent.Text -> AttachmentPreviewSnapshot(
+        is AttachmentPreviewContent.Text -> content.toAttachmentPreviewTextSnapshot(
             fileName = state.fileName,
             kind = AttachmentPreviewKindSnapshot.TEXT,
-            text = content.code.text,
-            spans = content.code.annotatedString.toAttachmentPreviewSpans(),
-            canCopy = true,
         )
 
-        is AttachmentPreviewContent.Markdown -> AttachmentPreviewSnapshot(
+        is AttachmentPreviewContent.Markdown -> content.toAttachmentPreviewTextSnapshot(
             fileName = state.fileName,
             kind = AttachmentPreviewKindSnapshot.MARKDOWN,
-            text = content.code.text,
-            spans = content.code.annotatedString.toAttachmentPreviewSpans(),
-            canCopy = true,
         )
 
-        is AttachmentPreviewContent.Table -> AttachmentPreviewSnapshot(
+        is AttachmentPreviewContent.Json -> content.toAttachmentPreviewJsonSnapshot(
             fileName = state.fileName,
-            kind = AttachmentPreviewKindSnapshot.TABLE,
-            text = content.code.text,
-            spans = content.code.annotatedString.toAttachmentPreviewSpans(),
-            canCopy = true,
-            tableRows = content.table.rows,
-            tableColumnLengths = content.table.columnLengths,
+            leContext = leContext,
+            previousJsonTree = previousJsonTree,
+        )
+
+        is AttachmentPreviewContent.Table -> content.toAttachmentPreviewTableSnapshot(
+            fileName = state.fileName,
         )
 
         is AttachmentPreviewContent.GpgKey -> AttachmentPreviewSnapshot(

@@ -526,6 +526,21 @@
     <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
     <string name="attachment_preview_action_source">Source</string>
     <string name="attachment_preview_action_rendered_preview">Preview</string>
+    <string name="attachment_preview_action_tree">Tree</string>
+    <string name="attachment_preview_json_tree_view">Tree view</string>
+    <string name="attachment_preview_json_object">Object</string>
+    <string name="attachment_preview_json_array">Array</string>
+    <string name="attachment_preview_json_string">String</string>
+    <string name="attachment_preview_json_number">Number</string>
+    <string name="attachment_preview_json_boolean">Boolean</string>
+    <string name="attachment_preview_json_null">Null</string>
+    <string name="attachment_preview_json_expanded">Expanded</string>
+    <string name="attachment_preview_json_collapsed">Collapsed</string>
+    <string name="attachment_preview_json_error_invalid">This file is not valid JSON. Showing source.</string>
+    <string name="attachment_preview_json_error_too_large">This file is too large for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_deep">This JSON has too many nested levels for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_many_nodes">This JSON has too many values for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_duplicate_keys">This JSON has duplicate property names. Showing source to preserve every value.</string>
 
     <string name="vault_action_always_show_keyboard_title">Always show keyboard</string>
     <string name="vault_action_remember_sorting_title">Remember sorting method</string>

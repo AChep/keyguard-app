@@ -9,6 +9,7 @@ import com.artemchep.keyguard.apple.model.TagsFieldSnapshot
 import com.artemchep.keyguard.apple.model.VaultItemSnapshot
 import com.artemchep.keyguard.common.model.BarcodeImageFormat
 import com.artemchep.keyguard.apple.KeyguardCore
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewContent
 import com.artemchep.keyguard.ui.format
 import platform.Foundation.NSData
 
@@ -83,6 +84,7 @@ enum class AttachmentPreviewKindSnapshot {
     LOADING,
     IMAGE,
     TEXT,
+    JSON,
     MARKDOWN,
     TABLE,
     GPG_KEY,
@@ -103,7 +105,8 @@ data class AttachmentPreviewSpanSnapshot(
 /**
  * The attachment preview sheet. Which content field is set depends on [kind]: [imageData] for IMAGE (raw
  * decrypted bytes, as NSData so Swift can decode them without per-byte ObjC calls), [text] + [spans] for
- * TEXT / MARKDOWN, [errorMessage] for ERROR. [canCopy] enables [KeyguardCore.invokeAttachmentPreviewCopy].
+ * TEXT / MARKDOWN / TABLE / JSON, [jsonTree] for JSON's parsed tree, [errorMessage] for ERROR.
+ * [canCopy] enables [KeyguardCore.invokeAttachmentPreviewCopy].
  * `null` from [KeyguardCore.observeAttachmentPreview] means the dialog is hidden.
  */
 data class AttachmentPreviewSnapshot(
@@ -112,6 +115,9 @@ data class AttachmentPreviewSnapshot(
     val imageData: NSData? = null,
     val text: String? = null,
     val spans: List<AttachmentPreviewSpanSnapshot> = emptyList(),
+    val jsonDocumentId: String? = null,
+    val jsonTree: AttachmentPreviewJsonTreeSnapshot? = null,
+    val jsonErrorMessage: String? = null,
     val errorMessage: String? = null,
     val imageDecodeErrorMessage: String? = null,
     val canCopy: Boolean = false,
@@ -131,6 +137,24 @@ data class AttachmentPreviewSnapshot(
     val needsPassword: Boolean = false,
     val passwordIncorrect: Boolean = false,
     val exportId: String? = null,
+)
+
+internal fun AttachmentPreviewContent.TextLike.toAttachmentPreviewTextSnapshot(
+    fileName: String,
+    kind: AttachmentPreviewKindSnapshot,
+): AttachmentPreviewSnapshot = AttachmentPreviewSnapshot(
+    fileName = fileName,
+    kind = kind,
+    text = code.text,
+    spans = code.annotatedString.toAttachmentPreviewSpans(),
+    canCopy = true,
+)
+
+internal fun AttachmentPreviewContent.Table.toAttachmentPreviewTableSnapshot(
+    fileName: String,
+): AttachmentPreviewSnapshot = toAttachmentPreviewTextSnapshot(fileName, AttachmentPreviewKindSnapshot.TABLE).copy(
+    tableRows = table.rows,
+    tableColumnLengths = table.columnLengths,
 )
 
 /**

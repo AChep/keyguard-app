@@ -322,6 +322,16 @@ class AttachmentPreviewStateProducerTest {
         copyText = testCopyText(),
         gpgKeyDecoder = testGpgKeyDecoder(),
     )
+
+    @Test
+    fun `gzip JSON produces a tree while preserving source`() = runTest {
+        val source = "{\"enabled\":true}"
+        val state = createGzipPreviewState("config.json.gz", source.encodeToByteArray().gzip())
+        val content = assertIs<AttachmentPreviewContent.Json>(state.content)
+        assertEquals(source, content.text)
+        assertEquals(null, content.preview.error)
+        assertEquals(SyntaxLanguage.DEFAULT, content.syntaxLanguage)
+    }
 }
 
 private class StaticCanPreviewAttachment(

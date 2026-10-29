@@ -47,15 +47,22 @@ the types below.
 Markdown, CSV and TSV files open with **Source** and **Preview** tabs. Text,
 Markdown and table previews have **Copy all** and **Wrap lines** buttons.
 
+JSON (`.json`, `.jsonld`) opens as a collapsible **Tree**. Select an object or
+array to expand it, or switch to **Source** to read the complete file. On Wear
+OS, use the **Tree view** switch. **Copy all** copies the original source.
+Invalid JSON, duplicate property names, or files exceeding the tree limits
+(1 MiB, 64 nested levels, or 10,000 values) open as source.
+
 :::details[Preview file types]
 | Kind | Files |
 | --- | --- |
 | GPG keys | `.asc`, `.gpg` and `.pgp` |
 | Gzip | Any of these files compressed with Gzip, such as `.log.gz` or `.json.gz`, up to 8 MB uncompressed |
 | Images | PNG, JPEG (including `.jfif` and `.jpe`), GIF, BMP, WebP, HEIC and HEIF |
+| JSON | `.json` and `.jsonld`, with expandable objects and arrays |
 | Markdown | `.md`, `.markdown`, `.mdown`, `.mdwn`, `.mkd`, `.mkdn` and `.mkdown` |
 | Tables | `.csv` and `.tsv` |
-| Text | Plain text, code, configuration and data files, such as `.txt`, `.json`, `.yaml`, `.env`, `.pem` and `.ovpn`, contacts (`.vcf`, `.vcard`), calendars (`.ics`, `.ifb`), and files named `Dockerfile`, `Makefile`, `README` or `LICENSE` |
+| Text | Plain text, code, configuration and data files, such as `.txt`, `.yaml`, `.env`, `.pem` and `.ovpn`, contacts (`.vcf`, `.vcard`), calendars (`.ics`, `.ifb`), and files named `Dockerfile`, `Makefile`, `README` or `LICENSE` |
 | ZIP archives | `.zip`, `.jar`, `.apk`, `.epub` and `.cbz` |
 :::
 

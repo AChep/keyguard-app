@@ -149,6 +149,8 @@ private fun AttachmentPreviewScaffold(
     // Archive paths and navigation state belong only to this in-memory preview.
     val archiveScroll = remember { mutableMapOf<String, LazyListState>() }
     val ready = (loadableState as? Loadable.Ok)?.value
+    val jsonPreview = (ready?.content as? AttachmentPreviewContent.Json)?.preview
+    val jsonState = rememberAttachmentPreviewJsonViewState(jsonPreview)
     if (ready != null) AttachmentArchiveEffects(ready)
     Scaffold(
         topBar = {
@@ -179,57 +181,14 @@ private fun AttachmentPreviewScaffold(
                     }
                 },
                 actions = {
-                    loadableState.fold(
-                        ifLoading = {
-                        },
-                        ifOk = { state ->
-                            state.onSave?.let { onSave ->
-                                IconButton(
-                                    onClick = onSave,
-                                    enabled = !state.busy,
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.SaveAlt,
-                                        contentDescription = stringResource(Res.string.attachment_archive_save),
-                                    )
-                                }
-                            }
-                            val onCopy = state.content.onCopy
-                            if (onCopy != null) {
-                                val copyAllText = stringResource(
-                                    Res.string.attachment_preview_action_copy_all,
-                                )
-                                IconButton(
-                                    onClick = onCopy,
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Outlined.ContentCopy,
-                                        contentDescription = copyAllText,
-                                    )
-                                }
-
-                                val wrapLinesText = stringResource(
-                                    Res.string.attachment_preview_action_wrap_lines,
-                                )
-                                IconToggleButton(
-                                    checked = wrapLines,
-                                    onCheckedChange = {
-                                        wrapLines = it
-                                    },
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Outlined.WrapText,
-                                        contentDescription = wrapLinesText,
-                                        tint = if (wrapLines) {
-                                            MaterialTheme.colorScheme.primary
-                                        } else {
-                                            LocalContentColor.current
-                                        },
-                                    )
-                                }
-                            }
-                        },
-                    )
+                    if (ready != null) {
+                        AttachmentPreviewToolbarActions(
+                            state = ready,
+                            jsonState = jsonState,
+                            wrapLines = wrapLines,
+                            onWrapLinesChange = { wrapLines = it },
+                        )
+                    }
                 },
             )
         },
@@ -259,6 +218,13 @@ private fun AttachmentPreviewScaffold(
 
                         is AttachmentPreviewContent.Text -> AttachmentPreviewText(
                             content = content,
+                            wrapLines = wrapLines,
+                            contentPadding = contentPadding,
+                        )
+
+                        is AttachmentPreviewContent.Json -> AttachmentPreviewJsonContent(
+                            content = content,
+                            state = requireNotNull(jsonState),
                             wrapLines = wrapLines,
                             contentPadding = contentPadding,
                         )
@@ -312,6 +278,58 @@ private fun AttachmentPreviewScaffold(
             )
         }
     }
+}
+
+@Composable
+private fun AttachmentPreviewToolbarActions(
+    state: AttachmentPreviewState,
+    jsonState: AttachmentPreviewJsonViewState?,
+    wrapLines: Boolean,
+    onWrapLinesChange: (Boolean) -> Unit,
+) {
+    state.onSave?.let { onSave ->
+        IconButton(onClick = onSave, enabled = !state.busy) {
+            Icon(
+                imageVector = Icons.Outlined.SaveAlt,
+                contentDescription = stringResource(Res.string.attachment_archive_save),
+            )
+        }
+    }
+    state.content.onCopy?.let { onCopy ->
+        IconButton(onClick = onCopy) {
+            Icon(
+                imageVector = Icons.Outlined.ContentCopy,
+                contentDescription = stringResource(Res.string.attachment_preview_action_copy_all),
+            )
+        }
+        val showWrapLines = state.content !is AttachmentPreviewContent.Json ||
+            jsonState?.mode == AttachmentPreviewJsonMode.Source
+        if (showWrapLines) {
+            IconToggleButton(checked = wrapLines, onCheckedChange = onWrapLinesChange) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Outlined.WrapText,
+                    contentDescription = stringResource(Res.string.attachment_preview_action_wrap_lines),
+                    tint = if (wrapLines) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+internal fun AttachmentPreviewJsonSource(
+    code: AttachmentPreviewCode,
+    state: AttachmentPreviewJsonViewState,
+    wrapLines: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    AttachmentPreviewCodeViewer(
+        modifier = modifier,
+        code = code,
+        wrapLines = wrapLines,
+        verticalScrollState = state.sourceScrollState,
+        horizontalScrollState = state.sourceHorizontalScrollState,
+    )
 }
 
 @Composable
@@ -861,9 +879,9 @@ private fun AttachmentPreviewCodeViewer(
     code: AttachmentPreviewCode,
     wrapLines: Boolean,
     modifier: Modifier = Modifier,
+    horizontalScrollState: ScrollState = rememberScrollState(),
+    verticalScrollState: LazyListState = rememberLazyListState(),
 ) {
-    val horizontalScrollState = rememberScrollState()
-    val verticalScrollState = rememberLazyListState()
     val lineIndex = code.lineIndex
     val gutterWidth = remember(lineIndex.size) {
         attachmentPreviewGutterWidth(lineIndex.size)

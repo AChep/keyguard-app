@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.attachmentPreviewKindByFileName
+import com.artemchep.keyguard.common.model.attachmentPreviewFileExtension
 import com.artemchep.keyguard.common.model.isAttachmentPreviewGzip
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
@@ -337,6 +338,7 @@ private suspend fun AttachmentPreviewPayload.toPreviewContent(
             fileName = fileName,
             bytes = previewBytes,
             copyText = copyText,
+            checkCancellation = currentCoroutineContext()::ensureActive,
         )
     }
 }
@@ -375,6 +377,7 @@ internal fun decodeTextPreview(
     fileName: String,
     bytes: ByteArray,
     copyText: CopyText,
+    checkCancellation: () -> Unit = {},
 ): AttachmentPreviewContent {
     val sampleSize = minOf(bytes.size, 4096)
     for (i in 0 until sampleSize) {
@@ -390,6 +393,7 @@ internal fun decodeTextPreview(
             endIndex = bytes.size,
             throwOnInvalidSequence = false,
         )
+    val isJson = fileName.attachmentPreviewFileExtension() in setOf("json", "jsonld")
     val code = AttachmentPreviewCode(
         text = text,
         lineIndex = AttachmentPreviewLineIndex.of(text),
@@ -411,6 +415,12 @@ internal fun decodeTextPreview(
         null
     }
     return when {
+        isJson -> AttachmentPreviewContent.Json(
+            code = code,
+            preview = parseAttachmentPreviewJsonBytes(text, bytes, offset, checkCancellation),
+            onCopy = onCopy,
+        )
+
         kind == AttachmentPreviewKind.Markdown -> AttachmentPreviewContent.Markdown(
             code = code,
             onCopy = onCopy,
@@ -436,6 +446,7 @@ private fun AttachmentPreviewState.withCode(
         is AttachmentPreviewContent.Text -> content.copy(code = code)
         is AttachmentPreviewContent.Markdown -> content.copy(code = code)
         is AttachmentPreviewContent.Table -> content.copy(code = code)
+        is AttachmentPreviewContent.Json -> content.copy(code = code)
         is AttachmentPreviewContent.Archive,
         is AttachmentPreviewContent.GpgKey,
         is AttachmentPreviewContent.Image,

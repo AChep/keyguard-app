@@ -14,6 +14,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.LocalSaveableStateRegistry
@@ -98,8 +99,28 @@ fun WearAttachmentPreviewScreen(
         val holder = rememberSaveableStateHolder()
         val content = (loadableState as? Loadable.Ok)?.value?.content as? AttachmentPreviewContent.Archive
         holder.SaveableStateProvider(content?.let { "archive:${it.path}" } ?: "preview") {
-            WearAttachmentPreviewScaffold(fileName = args.fileName, loadableState = loadableState)
+            WearAttachmentPreviewContent(fileName = args.fileName, loadableState = loadableState)
         }
+    }
+}
+
+@Composable
+private fun WearAttachmentPreviewContent(
+    fileName: String,
+    loadableState: Loadable<AttachmentPreviewState>,
+) {
+    val ready = (loadableState as? Loadable.Ok)?.value
+    val json = ready?.content as? AttachmentPreviewContent.Json
+    if (ready != null && json != null && ready.password == null) {
+        key(fileName, json.preview) {
+            WearAttachmentPreviewJson(
+                fileName = ready.fileName,
+                content = json,
+                busy = ready.busy,
+            )
+        }
+    } else {
+        WearAttachmentPreviewScaffold(fileName = fileName, loadableState = loadableState)
     }
 }
 
@@ -140,39 +161,11 @@ private fun WearAttachmentPreviewScaffold(
                         transformationSpec = transformationSpec,
                     )
                 } else when (val content = state.content) {
-                    is AttachmentPreviewContent.Archive -> {
-                        content.breadcrumbs.lastOrNull()?.let { folder ->
-                            item("folder") {
-                                WearListLabel(
-                                    modifier = Modifier
-                                        .transformedHeight(this, transformationSpec),
-                                    text = folder.name,
-                                    transformation = SurfaceTransformation(transformationSpec),
-                                )
-                            }
-                        }
-                        if (content.items.isEmpty()) {
-                            item("empty") {
-                                WearListLabel(
-                                    modifier = Modifier
-                                        .transformedHeight(this, transformationSpec),
-                                    text = stringResource(Res.string.attachment_archive_empty),
-                                    transformation = SurfaceTransformation(transformationSpec),
-                                )
-                            }
-                        }
-                        content.items.forEach { entry ->
-                            item(entry.id) {
-                                WearArchiveEntry(
-                                    modifier = Modifier
-                                        .transformedHeight(this, transformationSpec),
-                                    entry = entry,
-                                    busy = state.busy,
-                                    transformation = SurfaceTransformation(transformationSpec),
-                                )
-                            }
-                        }
-                    }
+                    is AttachmentPreviewContent.Archive -> wearAttachmentPreviewArchive(
+                        content = content,
+                        busy = state.busy,
+                        transformationSpec = transformationSpec,
+                    )
 
                     is AttachmentPreviewContent.Image -> {
                         item("image") {
@@ -196,6 +189,8 @@ private fun WearAttachmentPreviewScaffold(
                             )
                         }
                     }
+
+                    is AttachmentPreviewContent.Json -> Unit
 
                     is AttachmentPreviewContent.Markdown -> {
                         item("markdown") {
@@ -264,6 +259,44 @@ private fun WearAttachmentPreviewScaffold(
                 }
             },
         )
+    }
+}
+
+private fun TransformingLazyColumnScope.wearAttachmentPreviewArchive(
+    content: AttachmentPreviewContent.Archive,
+    busy: Boolean,
+    transformationSpec: TransformationSpec,
+) {
+    content.breadcrumbs.lastOrNull()?.let { folder ->
+        item("folder") {
+            WearListLabel(
+                modifier = Modifier
+                    .transformedHeight(this, transformationSpec),
+                text = folder.name,
+                transformation = SurfaceTransformation(transformationSpec),
+            )
+        }
+    }
+    if (content.items.isEmpty()) {
+        item("empty") {
+            WearListLabel(
+                modifier = Modifier
+                    .transformedHeight(this, transformationSpec),
+                text = stringResource(Res.string.attachment_archive_empty),
+                transformation = SurfaceTransformation(transformationSpec),
+            )
+        }
+    }
+    content.items.forEach { entry ->
+        item(entry.id) {
+            WearArchiveEntry(
+                modifier = Modifier
+                    .transformedHeight(this, transformationSpec),
+                entry = entry,
+                busy = busy,
+                transformation = SurfaceTransformation(transformationSpec),
+            )
+        }
     }
 }
 
@@ -379,7 +412,7 @@ private fun WearAttachmentPreviewImage(
 }
 
 @Composable
-private fun WearAttachmentPreviewText(
+internal fun WearAttachmentPreviewText(
     modifier: Modifier,
     text: String,
     transformation: SurfaceTransformation?,

@@ -15,6 +15,7 @@ import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
 import com.artemchep.keyguard.feature.environments.EnvironmentFormat
 import com.artemchep.keyguard.feature.environments.EnvironmentPayload
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenEnvironmentFieldCodec
+import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenPasskeyFieldCodec
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenSshCertificateFieldCodec
 
 suspend fun BitwardenCipher.toDomain(
@@ -122,6 +123,35 @@ fun DSecret.SshKey.toCertificateTransportFields(): List<DSecret.Field> =
         ?.let(BitwardenSshCertificateFieldCodec::encode)
         ?.map(BitwardenCipher.Field::toDomain)
         .orEmpty()
+
+/**
+ * The fields the passkey data is synced as, for exports in the Bitwarden format.
+ * The secrets of a document among the item's [fields] are kept, as the sync keeps them.
+ */
+fun DSecret.Login.toPasskeyTransportFields(
+    fields: List<DSecret.Field>,
+): List<DSecret.Field> {
+    val passkeys = fido2Credentials.map { credential ->
+        BitwardenPasskeyFieldCodec.Secrets(
+            credentialId = credential.credentialId,
+            prfSecret = credential.prfSecret,
+            prfSecretWithoutUv = credential.prfSecretWithoutUv,
+        )
+    }
+    val transportFields = fields
+        .filter { BitwardenPasskeyFieldCodec.isTransportField(it.name) }
+        .map { field ->
+            val type = when (field.type) {
+                DSecret.Field.Type.Text -> BitwardenCipher.Field.Type.Text
+                DSecret.Field.Type.Hidden -> BitwardenCipher.Field.Type.Hidden
+                DSecret.Field.Type.Boolean -> BitwardenCipher.Field.Type.Boolean
+                DSecret.Field.Type.Linked -> BitwardenCipher.Field.Type.Linked
+            }
+            BitwardenCipher.Field(name = field.name, value = field.value, type = type)
+        }
+    return BitwardenPasskeyFieldCodec.encode(passkeys, transportFields)
+        .map(BitwardenCipher.Field::toDomain)
+}
 
 fun BitwardenCipher.Login.Uri.toDomain() = DSecret.Uri(
     uri = uri.orEmpty(),
@@ -274,6 +304,8 @@ fun BitwardenCipher.Login.Fido2Credentials.toDomain() = kotlin.run {
         userDisplayName = userDisplayName,
         discoverable = discoverable,
         creationDate = creationDate,
+        prfSecret = prfSecret,
+        prfSecretWithoutUv = prfSecretWithoutUv,
     )
 }
 

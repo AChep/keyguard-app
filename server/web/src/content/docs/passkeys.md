@@ -40,12 +40,14 @@ public key.
 ## What Keyguard stores
 
 For each passkey, Keyguard stores the private key, credential ID, RP ID, user
-handle, username, display name, creation date and signature counter. The site
-keeps only the public key and the credential ID.
+handle, username, display name, creation date and signature counter. Every new
+passkey created by Keyguard also has a PRF secret. The site keeps only
+the public key and the credential ID.
 
 A passkey is part of a login item. It's encrypted with the rest of your vault
 and syncs with that item's account. Bitwarden accounts store it in Bitwarden's
-passkey format, and KeePass databases in the fields that KeePassXC uses.
+passkey format, and the PRF secret in a hidden custom field. KeePass databases
+store it in the fields that KeePassXC uses.
 
 ## How Keyguard handles passkeys
 
@@ -61,11 +63,17 @@ passkey format, and KeePass databases in the fields that KeePassXC uses.
   one counter in step.
 - **Backup eligibility.** Keyguard marks its passkeys as backup eligible, which
   tells the site that a passkey can sync between devices.
+- **PRF.** Keyguard supports the
+  [PRF extension](https://www.w3.org/TR/webauthn-3/#prf-extension), which lets a
+  site derive encryption keys from a passkey. Every new passkey created by
+  Keyguard supports PRF and returns PRF responses only when requested, including
+  after registration. On Windows, sites receive PRF results only on recent
+  Windows 11 updates.
 - **Use in apps and browsers.** Keyguard can answer passkey requests from the
   system. See [Use Keyguard as a passkey provider](/docs/passkey-provider/).
 - **Transfer.** [Export your vault](/docs/export/) and
-  [Credential Exchange](/docs/credential-exchange/) both carry passkeys with
-  their items.
+  [Credential Exchange](/docs/credential-exchange/) both carry passkeys and
+  their PRF secrets with their items.
 - **Watchtower.** The **Available Passkeys** check in
   [Watchtower](/docs/watchtower/) lists logins for sites that support passkeys
   but have none.

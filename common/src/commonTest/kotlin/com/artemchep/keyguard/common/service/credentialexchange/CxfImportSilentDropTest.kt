@@ -427,6 +427,29 @@ class CxfImportSilentDropTest {
     }
 
     @Test
+    fun `PRF seeds of an unknown algorithm are dropped and the passkey kept`() {
+        // CXF v1.0 §3.3.12.3: "Importing providers that encounter an unknown
+        // algorithm SHOULD ignore this entry."
+        val passkey = cxfPasskeyCredentialJson()
+            .removeSuffix("}")
+            .plus(
+                """
+                , "fido2Extensions": {"hmacCredentials": {
+                  "algorithm": "hmac-sha512",
+                  "credWithUV": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+                  "credWithoutUV": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
+                }}}
+                """.trimIndent(),
+            )
+        val request = singleRequest(
+            documentWithItems("""{"id": "aXRlbTAx", "title": "Passkey", "credentials": [$passkey]}"""),
+        )
+        val credential = request.fido2Credentials.single()
+        assertNull(credential.prfSecret)
+        assertNull(credential.prfSecretWithoutUv)
+    }
+
+    @Test
     fun `blank tags pass through unfiltered`() {
         // Every other member is blank-checked; tags are not. Pinned as the odd
         // one out so a future clean-up is a deliberate change.

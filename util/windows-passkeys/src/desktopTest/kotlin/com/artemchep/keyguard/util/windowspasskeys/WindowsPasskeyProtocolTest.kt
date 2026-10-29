@@ -27,10 +27,12 @@ class WindowsPasskeyProtocolTest {
             userHandle = byteArrayOf(4),
         )
         val attestation = WindowsPasskeyResponse(authenticatorData = ByteArray(3) { 0xaa.toByte() })
+        val prfResults = WindowsPasskeyPrfValues(first = ByteArray(32) { 5 }, second = ByteArray(32) { 6 })
         val commands = with(WindowsPasskeyCommands) {
             linkedMapOf(
                 "status" to status,
                 "register" to register,
+                "refresh_registration" to refreshRegistration,
                 "unregister" to unregister,
                 "clear" to clear,
                 "start" to start,
@@ -46,6 +48,12 @@ class WindowsPasskeyProtocolTest {
                 "complete_not_found" to complete(1, null, WindowsPasskeyFailure.NOT_FOUND),
                 "complete_assertion" to complete(2, assertion, null),
                 "complete_registration" to complete(3, attestation, null),
+                "complete_assertion_prf" to complete(2, assertion.copy(prfResults = prfResults), null),
+                "complete_registration_prf" to complete(
+                    3,
+                    attestation.copy(prfEnabled = true, prfResults = WindowsPasskeyPrfValues(ByteArray(32) { 5 })),
+                    null,
+                ),
                 "verify" to verify(1, window = -2, username = "alice", hint = "example.com", unlocked = false),
                 "verify_unlocked" to verify(1, window = -2, username = "alice", hint = "example.com", unlocked = true),
                 "sync" to sync(listOf(identity)),
@@ -110,13 +118,35 @@ class WindowsPasskeyProtocolTest {
             "event_closed" to WindowsPasskeyEvent(request = null, activeId = null, closed = true),
             "event_sign_in" to WindowsPasskeyEvent(request = signIn, activeId = 1, watching = true),
             "event_registration" to WindowsPasskeyEvent(request = registration, activeId = 2),
-        )
+        ) + prfEvents(signIn, registration)
         val fixtures = fixtures("replies.pbhex")
         assertEquals(fixtures.keys.toList(), replies.keys.toList(), "The same messages, in order")
         for ((name, value) in replies) {
             assertEquals(value, decode(fixtures.getValue(name)), name)
         }
     }
+
+    /** The events of requests that ask for the PRF extension. */
+    private fun prfEvents(signIn: WindowsPasskeyRequest, registration: WindowsPasskeyRequest) = linkedMapOf(
+        "event_sign_in_prf" to WindowsPasskeyEvent(
+            request = signIn.copy(
+                prf = WindowsPasskeyPrf(
+                    eval = WindowsPasskeyPrfValues(first = ByteArray(32) { 1 }, second = ByteArray(32) { 2 }),
+                    evalByCredential = listOf(
+                        WindowsPasskeyPrfCredentialValues(
+                            credentialId = ByteArray(16) { 0x11 },
+                            values = WindowsPasskeyPrfValues(first = ByteArray(32) { 3 }),
+                        ),
+                    ),
+                ),
+            ),
+            activeId = 1,
+        ),
+        "event_registration_prf" to WindowsPasskeyEvent(
+            request = registration.copy(prf = WindowsPasskeyPrf()),
+            activeId = 2,
+        ),
+    )
 
     /** A reply that ends a command with an error [code]. */
     private data class Failure(val code: Int)

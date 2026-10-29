@@ -97,6 +97,8 @@ A passkey is skipped when:
   zero. See [How Keyguard handles passkeys](/docs/passkeys/#how-keyguard-handles-passkeys).
 - Its credential ID, private key or relying party ID is missing or can't be
   decoded.
+- Its PRF secret is larger than 64 KiB or can't be decoded. This applies in
+  both directions.
 
 ### SSH keys
 

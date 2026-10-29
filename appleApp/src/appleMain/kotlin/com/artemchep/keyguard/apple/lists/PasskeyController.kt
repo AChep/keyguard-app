@@ -17,6 +17,8 @@ import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
 import com.artemchep.keyguard.util.webauthn.WebAuthnAllowedCredentialDescriptors
 import com.artemchep.keyguard.util.webauthn.WebAuthnAssertionHashRequest
 import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticator
+import com.artemchep.keyguard.util.webauthn.WebAuthnPrfRegistrationInput
+import com.artemchep.keyguard.util.webauthn.WebAuthnPrfValues
 import com.artemchep.keyguard.util.webauthn.WebAuthnRegistrationRequest
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeySignatureAlgorithm
 import com.artemchep.keyguard.util.webauthn.entity.CreatePasskeyPubKeyCredParams
@@ -67,6 +69,8 @@ internal class PasskeyController(
         allowedCredentialIds: List<ByteArray>,
         userVerification: String?,
         userVerified: Boolean,
+        prfFirst: ByteArray?,
+        prfSecond: ByteArray?,
     ): PasskeyAssertionSnapshot? {
         val parts = recordId.split('|', limit = 3)
         if (parts.size != PASSKEY_RECORD_PARTS) return null
@@ -94,6 +98,7 @@ internal class PasskeyController(
                 clientDataHash = clientDataHash,
                 userVerification = userVerification,
                 allowedCredentials = WebAuthnAllowedCredentialDescriptors.fromCredentialIds(allowedCredentialIds),
+                prf = prfFirst?.let { WebAuthnPrfValues(first = it, second = prfSecond) },
             ),
             credential = fido2.toWebAuthnCredential(),
             userVerified = userVerified,
@@ -104,6 +109,8 @@ internal class PasskeyController(
             signature = result.signature,
             userHandle = result.userHandle ?: ByteArray(0),
             rpId = fido2.rpId,
+            prfFirst = result.prfResults?.first,
+            prfSecond = result.prfResults?.second,
         )
     }
 
@@ -116,6 +123,9 @@ internal class PasskeyController(
         userHandle: ByteArray,
         userVerification: String?,
         userVerified: Boolean,
+        prfRequested: Boolean,
+        prfFirst: ByteArray?,
+        prfSecond: ByteArray?,
     ): PasskeyRegistrationSnapshot? {
         val parts = cipherRecordId.split('|', limit = 2)
         if (parts.size != 2) return null
@@ -140,6 +150,13 @@ internal class PasskeyController(
                 pubKeyCredParams = listOf(
                     CreatePasskeyPubKeyCredParams(PasskeySignatureAlgorithm.ES256.coseValue.toDouble(), "public-key"),
                 ),
+                prf = if (prfRequested) {
+                    WebAuthnPrfRegistrationInput(
+                        eval = prfFirst?.let { WebAuthnPrfValues(first = it, second = prfSecond) },
+                    )
+                } else {
+                    null
+                },
             ),
             userVerified = userVerified,
         )
@@ -163,6 +180,9 @@ internal class PasskeyController(
                 credentialId = result.credentialId,
                 userHandle = userHandle,
             ),
+            prfEnabled = result.prfEnabled,
+            prfFirst = result.prfResults?.first,
+            prfSecond = result.prfResults?.second,
         )
     }
 }

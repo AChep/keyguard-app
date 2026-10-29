@@ -334,6 +334,10 @@ data class BitwardenCipher(
             val userDisplayName: String? = null,
             val discoverable: String,
             val creationDate: Instant,
+            /** The base64url secret of the WebAuthn PRF extension. */
+            val prfSecret: String? = null,
+            /** See [DSecret.Login.Fido2Credentials.prfSecretWithoutUv]. */
+            val prfSecretWithoutUv: String? = null,
         )
     }
 

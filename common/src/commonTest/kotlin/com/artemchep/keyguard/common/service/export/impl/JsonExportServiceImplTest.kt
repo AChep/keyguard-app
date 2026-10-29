@@ -12,6 +12,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Instant
 
 class JsonExportServiceImplTest {
     private val json = Json
@@ -224,6 +225,50 @@ class JsonExportServiceImplTest {
     }
 
     @Test
+    fun `exports the PRF secrets of a field that was never decoded with the new ones`() {
+        val cipher = createSecret(
+            id = "cipher",
+            fields = listOf(
+                DSecret.Field(
+                    name = "keyguard.passkeys",
+                    value = """{"version":1,"credentials":[{"credentialId":"cred-1","prfSecret":"b2xk"}]}""",
+                    type = DSecret.Field.Type.Hidden,
+                ),
+                DSecret.Field(
+                    name = "Note",
+                    value = "hello",
+                    type = DSecret.Field.Type.Text,
+                ),
+            ),
+            login = DSecret.Login(
+                fido2Credentials = listOf(
+                    passkey("cred-1", prfSecret = null),
+                    passkey("cred-2", prfSecret = "bmV3"),
+                ),
+            ),
+        )
+
+        assertEquals(
+            listOf(
+                ExportedField(
+                    type = 0,
+                    name = "Note",
+                    value = "hello",
+                ),
+                ExportedField(
+                    type = 1,
+                    name = "keyguard.passkeys",
+                    value = "{\"version\":1,\"credentials\":[{\"credentialId\":\"cred-1\",\"prfSecret\":\"b2xk\"}," +
+                        "{\"credentialId\":\"cred-2\",\"prfSecret\":\"bmV3\"}]}",
+                ),
+            ),
+            exportedFields(cipher)
+                .jsonArray
+                .map { it.jsonObject.toExportedField() },
+        )
+    }
+
+    @Test
     fun `exports null fields when there are no user fields or links`() {
         assertEquals(
             JsonNull,
@@ -246,6 +291,26 @@ class JsonExportServiceImplTest {
         .single()
         .jsonObject
         .getValue("fields")
+
+    private fun passkey(
+        credentialId: String,
+        prfSecret: String?,
+    ) = DSecret.Login.Fido2Credentials(
+        credentialId = credentialId,
+        keyType = "public-key",
+        keyAlgorithm = "ECDSA",
+        keyCurve = "P-256",
+        keyValue = "AQID",
+        rpId = "example.com",
+        rpName = null,
+        counter = 0,
+        userHandle = null,
+        userName = null,
+        userDisplayName = null,
+        discoverable = true,
+        creationDate = Instant.fromEpochSeconds(0),
+        prfSecret = prfSecret,
+    )
 
     private fun JsonObject.toExportedField() = ExportedField(
         type = getValue("type").jsonPrimitive.content.toInt(),

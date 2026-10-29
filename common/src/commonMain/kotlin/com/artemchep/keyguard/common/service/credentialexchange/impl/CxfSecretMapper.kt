@@ -313,7 +313,8 @@ internal class CxfSecretMapper(
     /**
      * Maps a single FIDO2 credential to a passkey, or returns `null` (a counted
      * skip) when the credential id, key, rp id or user handle is missing, blank
-     * or undecodable, or when the passkey uses a non-zero signature counter.
+     * or undecodable, when its PRF secrets cannot travel, or when the passkey
+     * uses a non-zero signature counter.
      */
     fun mapPasskey(
         credential: DSecret.Login.Fido2Credentials,
@@ -334,7 +335,9 @@ internal class CxfSecretMapper(
     private fun mapDecodedPasskey(
         credential: DSecret.Login.Fido2Credentials,
     ): CxfCredential.Passkey? {
+        val prf = mapPasskeyExtensions(credential)
         val decoded = decodePasskeyMembers(credential, passkeyCrypto)
+            ?.takeUnless { prf == CxfPasskeyPrf.Unusable }
             ?: return null
         return CxfCredential.Passkey(
             credentialId = decoded.credentialId,
@@ -343,6 +346,7 @@ internal class CxfSecretMapper(
             userDisplayName = pickNonBlank(credential.userDisplayName, credential.userName),
             userHandle = decoded.userHandle,
             key = decoded.key,
+            fido2Extensions = prf.valueOrNull(),
         )
     }
 

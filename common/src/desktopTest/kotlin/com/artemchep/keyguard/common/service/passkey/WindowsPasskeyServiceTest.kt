@@ -14,6 +14,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration
@@ -27,6 +28,7 @@ import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@Suppress("TooManyFunctions") // Lifecycle scenarios share the same service fixture.
 class WindowsPasskeyServiceTest {
     private val authenticator = testAuthenticator()
 
@@ -45,6 +47,119 @@ class WindowsPasskeyServiceTest {
             bridge = bridge,
             scope = scope,
         )
+    }
+
+    @Test
+    fun `startup refreshes enabled and disabled providers once while locked`() = runTest {
+        for (state in listOf(WindowsPasskeyStatus.ENABLED, WindowsPasskeyStatus.DISABLED)) {
+            val fixture = Fixture(backgroundScope, MasterSession.Empty())
+            fixture.bridge.status = state
+            fixture.service.start()
+            runCurrent()
+            assertEquals(1, fixture.bridge.refreshes)
+            assertEquals(state, fixture.service.status.value)
+            assertEquals(state, fixture.bridge.status)
+            assertEquals(0, fixture.bridge.registrations)
+            assertEquals(0, fixture.bridge.unregistrations)
+
+            fixture.bridge.status = if (state == WindowsPasskeyStatus.ENABLED) {
+                WindowsPasskeyStatus.DISABLED
+            } else {
+                WindowsPasskeyStatus.ENABLED
+            }
+            fixture.bridge.events.send(WindowsPasskeyEvent(request = null, activeId = null))
+            fixture.sessions.state.value = testMasterSessionKey(Persisted)
+            runCurrent()
+            advanceTimeBy(10.minutes)
+            runCurrent()
+            assertEquals(1, fixture.bridge.refreshes)
+        }
+    }
+
+    @Test
+    fun `startup refresh waits for an existing registration`() = runTest {
+        for (state in WindowsPasskeyStatus.entries.filterNot { it.isRegistered }) {
+            val fixture = Fixture(backgroundScope, MasterSession.Empty())
+            fixture.bridge.status = state
+            fixture.service.start()
+            runCurrent()
+            advanceTimeBy(10.minutes)
+            runCurrent()
+            assertEquals(0, fixture.bridge.refreshes)
+            assertEquals(0, fixture.bridge.registrations)
+
+            if (state == WindowsPasskeyStatus.UNAVAILABLE) {
+                fixture.bridge.status = WindowsPasskeyStatus.ENABLED
+                fixture.bridge.events.send(WindowsPasskeyEvent(request = null, activeId = null))
+                runCurrent()
+                assertEquals(1, fixture.bridge.refreshes)
+            }
+        }
+    }
+
+    @Test
+    fun `a failed registration refresh retries and stops after success`() = runTest {
+        val fixture = Fixture(backgroundScope, MasterSession.Empty())
+        fixture.bridge.failingRefreshes = 1
+        fixture.service.start()
+        runCurrent()
+        assertEquals(1, fixture.bridge.refreshes)
+
+        advanceTimeBy(6.seconds)
+        runCurrent()
+        assertEquals(2, fixture.bridge.refreshes)
+        advanceTimeBy(10.minutes)
+        runCurrent()
+        assertEquals(2, fixture.bridge.refreshes)
+    }
+
+    @Test
+    fun `removing a provider during refresh backoff stops retries without registering it`() = runTest {
+        val fixture = Fixture(backgroundScope, MasterSession.Empty())
+        fixture.bridge.failingRefreshes = 2
+        fixture.service.start()
+        runCurrent()
+        assertEquals(1, fixture.bridge.refreshes)
+
+        fixture.service.setRegistered(false)()
+        runCurrent()
+        advanceTimeBy(10.minutes)
+        runCurrent()
+        assertEquals(1, fixture.bridge.refreshes)
+        assertEquals(0, fixture.bridge.registrations)
+        assertEquals(1, fixture.bridge.unregistrations)
+        assertEquals(WindowsPasskeyStatus.UNREGISTERED, fixture.service.status.value)
+    }
+
+    @Test
+    fun `a pending registration refresh does not block sign in`() = runTest {
+        val passkey = SigningPasskey(authenticator)
+        val fixture = Fixture(backgroundScope, testMasterSessionKey(Persisted), testCipher(passkey.credential))
+        fixture.bridge.refresh = CompletableDeferred()
+        fixture.service.start()
+        runCurrent()
+        assertEquals(1, fixture.bridge.refreshes)
+
+        fixture.bridge.events.send(WindowsPasskeyEvent(request = testSignInRequest(), activeId = 1))
+        runCurrent()
+        assertNotNull(fixture.bridge.answer(1))
+        assertFalse(fixture.bridge.refresh.isCompleted)
+        assertEquals(1, fixture.bridge.verifications.size)
+    }
+
+    @Test
+    fun `closing the bridge cancels registration refresh retries`() = runTest {
+        val fixture = Fixture(backgroundScope, MasterSession.Empty())
+        fixture.bridge.failingRefreshes = 2
+        fixture.service.start()
+        runCurrent()
+        assertEquals(1, fixture.bridge.refreshes)
+
+        fixture.bridge.events.send(WindowsPasskeyEvent(request = null, activeId = null, closed = true))
+        runCurrent()
+        advanceTimeBy(10.minutes)
+        runCurrent()
+        assertEquals(1, fixture.bridge.refreshes)
     }
 
     @Test

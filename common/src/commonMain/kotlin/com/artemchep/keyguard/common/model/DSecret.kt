@@ -376,6 +376,13 @@ data class DSecret(
             val userDisplayName: String?,
             val discoverable: Boolean,
             val creationDate: Instant,
+            /** The base64url secret of the WebAuthn PRF extension. */
+            val prfSecret: String? = null,
+            /**
+             * The base64url `credWithoutUV` of an imported passkey, kept for Credential
+             * Exchange only: the WebAuthn PRF extension always uses [prfSecret].
+             */
+            val prfSecretWithoutUv: String? = null,
         )
     }
 

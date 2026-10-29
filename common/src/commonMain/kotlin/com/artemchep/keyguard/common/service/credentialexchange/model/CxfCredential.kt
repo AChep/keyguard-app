@@ -30,6 +30,7 @@ sealed interface CxfCredential {
         val userDisplayName: String,
         val userHandle: String,
         val key: String,
+        val fido2Extensions: CxfFido2Extensions? = null,
     ) : CxfCredential
 
     /**

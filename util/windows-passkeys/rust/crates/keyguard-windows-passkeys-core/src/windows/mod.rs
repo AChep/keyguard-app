@@ -295,6 +295,7 @@ pub fn dispatch(command: Command, canceled: &AtomicBool) -> Result<Outcome, Erro
         }
         Command::Start(_) => start()?,
         Command::Register(_) => provider.register()?,
+        Command::RefreshRegistration(_) => provider.refresh_registration()?,
         Command::Unregister(_) => {
             let _lock = provider.clear_index()?;
             // SAFETY: Same registered CLSID; removing it also invalidates its keys.
@@ -553,10 +554,9 @@ impl Provider {
         }
     }
 
-    fn register(&self) -> Result<(), Error> {
-        let _lock = self.metadata();
-        let info = authenticator_info()?;
-        let options = AddOptions {
+    /// Both registration and refresh send the complete current metadata.
+    fn registration_options(&self, info: &[u8]) -> Result<AddOptions, Error> {
+        Ok(AddOptions {
             name: w!("Keyguard"),
             clsid: &raw const self.clsid,
             rp: w!("keyguard.dev"),
@@ -566,7 +566,31 @@ impl Provider {
             info: info.as_ptr(),
             rp_count: 0,
             rps: ptr::null(),
+        })
+    }
+
+    /// The caller holds the metadata lock.
+    fn update_registration(&self, info: &[u8]) -> Result<HRESULT, Error> {
+        let options = self.registration_options(info)?;
+        let options = UpdateOptions {
+            name: options.name,
+            clsid: options.clsid,
+            new_clsid: options.clsid,
+            light_logo: options.light_logo,
+            dark_logo: options.dark_logo,
+            info_len: options.info_len,
+            info: options.info,
+            rp_count: options.rp_count,
+            rps: options.rps,
         };
+        // SAFETY: Same borrowed storage as AddOptions, live until this synchronous call returns.
+        Ok(unsafe { (self.api.update)(&raw const options) })
+    }
+
+    fn register(&self) -> Result<(), Error> {
+        let _lock = self.metadata();
+        let info = authenticator_info()?;
+        let options = self.registration_options(&info)?;
         let mut response = ptr::null_mut();
         // SAFETY: All borrowed fields live until the synchronous call returns.
         let result = unsafe { (self.api.add)(&raw const options, &raw mut response) };
@@ -575,22 +599,24 @@ impl Provider {
             free: self.api.free_add,
         };
         if result == NTE_EXISTS {
-            let options = UpdateOptions {
-                name: options.name,
-                clsid: options.clsid,
-                new_clsid: options.clsid,
-                light_logo: options.light_logo,
-                dark_logo: options.dark_logo,
-                info_len: options.info_len,
-                info: options.info,
-                rp_count: 0,
-                rps: ptr::null(),
-            };
-            // SAFETY: Same borrowed storage as AddOptions; update preserves enablement.
-            unsafe { (self.api.update)(&raw const options) }.ok()?;
+            self.update_registration(&info)?.ok()?;
         } else {
             result.ok()?;
         }
+        Ok(())
+    }
+
+    /// Updates in place without adding a provider or changing its enabled/disabled state.
+    fn refresh_registration(&self) -> Result<(), Error> {
+        let _lock = self.metadata();
+        let info = authenticator_info()?;
+        let result = self.update_registration(&info)?;
+        // Removal can race the host's status read, including removal outside this process.
+        // Never fall back to Add: only explicit registration may recreate the provider.
+        if result == NTE_NOT_FOUND || result == HRESULT::from_win32(ERROR_NOT_FOUND.0) {
+            return Ok(());
+        }
+        result.ok()?;
         Ok(())
     }
 

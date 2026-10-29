@@ -12,9 +12,12 @@ import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PasskeyTarget
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.canEdit
 import com.artemchep.keyguard.util.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
 import com.artemchep.keyguard.util.webauthn.WebAuthnAssertionHashRequest
 import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticator
 import com.artemchep.keyguard.util.webauthn.WebAuthnInvalidStateException
+import com.artemchep.keyguard.util.webauthn.WebAuthnPrfRegistrationInput
+import com.artemchep.keyguard.util.webauthn.WebAuthnPrfValues
 import com.artemchep.keyguard.util.webauthn.WebAuthnRegistrationRequest
 import com.artemchep.keyguard.util.webauthn.canAnswer
 import com.artemchep.keyguard.util.webauthn.entity.CreatePasskeyPubKeyCredParams
@@ -22,6 +25,8 @@ import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyBridge
 import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyException
 import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyFailure
 import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyLimits
+import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyPrf
+import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyPrfValues
 import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyRequest
 import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyResponse
 import kotlin.time.Clock
@@ -173,6 +178,11 @@ internal class WindowsPasskeyCeremony(
                 excludedCredentialIds = request.allowed().descriptors
                     .filter { it.type == "public-key" }
                     .mapTo(mutableSetOf()) { it.credentialId },
+                // Windows asks for the PRF with every registration, as it does not
+                // tell whether the site did.
+                prf = request.prf?.let { prf ->
+                    WebAuthnPrfRegistrationInput(eval = prf.eval?.toWebAuthn(), salted = true)
+                },
             ),
             userVerified = true,
             credentials = ciphers.storedPasskeyCredentials().map { it.toWebAuthnCredential() },
@@ -183,7 +193,11 @@ internal class WindowsPasskeyCeremony(
         val addition = AddCredentialCipherRequest(cipher.id, result.credential.toAddCredentialCipherRequest())
         vault.addCredential(addition).bind()
         return PreparedResponse(
-            response = WindowsPasskeyResponse(result.authenticatorData),
+            response = WindowsPasskeyResponse(
+                authenticatorData = result.authenticatorData,
+                prfEnabled = result.prfEnabled,
+                prfResults = result.prfResults?.toWindows(),
+            ),
         )
     }
 
@@ -214,6 +228,11 @@ internal class WindowsPasskeyCeremony(
         require(!cipher.reprompt || selection.reprompt)
         val credential = requireNotNull(selection.credential(cipher))
         requireSession(session)
+        val prf = request.prf?.let { inputs ->
+            PasskeyCredentialId.encodeOrNull(credential.credentialId)
+                ?.let(inputs::valuesFor)
+                ?.toWebAuthn()
+        }
         // Enforces the RP ID, the allow list, and a signable key.
         val result = authenticator.getAssertion(
             request = WebAuthnAssertionHashRequest(
@@ -221,6 +240,8 @@ internal class WindowsPasskeyCeremony(
                 request.clientDataHash,
                 request.userVerification,
                 allowed,
+                prf = prf,
+                prfSalted = true,
             ),
             credential = credential.toWebAuthnCredential(),
             userVerified = true,
@@ -233,6 +254,7 @@ internal class WindowsPasskeyCeremony(
                     // The result's own buffer is wiped below.
                     signature = result.signature.copyOf(),
                     userHandle = result.userHandle,
+                    prfResults = result.prfResults?.toWindows(),
                 ),
                 usage = AddCipherUsedPasskeyHistoryRequest(cipher.accountId, cipher.id, credential.credentialId),
             )
@@ -297,6 +319,14 @@ internal class WindowsPasskeyCeremony(
 
     private class NoPasskeyException : IllegalStateException("The vault holds none of the requested passkeys")
 }
+
+private fun WindowsPasskeyPrfValues.toWebAuthn() = WebAuthnPrfValues(first = first, second = second)
+
+private fun WebAuthnPrfValues.toWindows() = WindowsPasskeyPrfValues(first = first, second = second)
+
+/** The salts for the [credentialId], which take precedence over the [WindowsPasskeyPrf.eval] ones. */
+private fun WindowsPasskeyPrf.valuesFor(credentialId: ByteArray): WindowsPasskeyPrfValues? =
+    evalByCredential.firstOrNull { it.credentialId.contentEquals(credentialId) }?.values ?: eval
 
 // Integration failures are isolated; cancellation still propagates to request/session cleanup.
 internal inline fun <T> attempt(block: () -> T): T? = runCatchingNonFatal(block).getOrNull()

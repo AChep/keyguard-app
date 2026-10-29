@@ -355,6 +355,7 @@ class WebAuthnAuthenticatorTest {
                 hashedClientData = it.copyOf()
                 ByteArray(32) { 0x44 }
             },
+            randomBytes = { length -> ByteArray(length) { 0x5a } },
         )
 
         fun create(options: CreatePasskey) =

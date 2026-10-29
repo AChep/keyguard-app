@@ -89,8 +89,16 @@ fun parseWebAuthnAllowedCredentialDescriptors(
     requestJson: String,
     json: Json,
     decodeCredentialId: (String) -> ByteArray = PasskeyBase64::decode,
+): WebAuthnAllowedCredentialDescriptors = parseWebAuthnAllowedCredentialDescriptors(
+    body = json.parseToJsonElement(requestJson) as? JsonObject,
+    decodeCredentialId = decodeCredentialId,
+)
+
+/** Parses the `allowCredentials` of already parsed WebAuthn request options. */
+fun parseWebAuthnAllowedCredentialDescriptors(
+    body: JsonObject?,
+    decodeCredentialId: (String) -> ByteArray = PasskeyBase64::decode,
 ): WebAuthnAllowedCredentialDescriptors {
-    val body = json.parseToJsonElement(requestJson) as? JsonObject
     val allowCredentials = (body?.get("allowCredentials") as? JsonArray).orEmpty()
     if (allowCredentials.isEmpty()) {
         return WebAuthnAllowedCredentialDescriptors(

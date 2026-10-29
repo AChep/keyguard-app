@@ -118,9 +118,62 @@ fn registration_response_matches_windows_encoder() {
         true,
         Response {
             authenticator_data: auth_data.to_vec(),
-            credential_id: None,
-            signature: None,
-            user_handle: None,
+            ..Response::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(actual, expected);
+}
+
+/// The PRF output in the unsigned extension outputs, as `PluginReencodeResponse` reads it.
+fn prf_output(enabled: bool) -> Vec<u8> {
+    let mut prf = Vec::new();
+    if enabled {
+        prf.push((text("enabled"), Cbor::Bool(true)));
+    }
+    prf.push((
+        text("results"),
+        Cbor::Map(vec![(text("first"), Cbor::Bytes(vec![5; 32]))]),
+    ));
+    cbor(&Cbor::Map(vec![(text("prf"), Cbor::Map(prf))])).unwrap()
+}
+
+#[test]
+#[ignore = "requires Windows passkey plugin exports"]
+fn registration_prf_output_matches_windows_encoder() {
+    let address = export(c"WebAuthNEncodeMakeCredentialResponse");
+    // SAFETY: This is the documented export signature from webauthnplugin.h.
+    let encode_make =
+        unsafe { std::mem::transmute::<unsafe extern "system" fn() -> isize, EncodeMake>(address) };
+    let mut auth_data = [1; 37];
+    let mut outputs = prf_output(true);
+    let attestation = AttestationV8 {
+        v6: WEBAUTHN_CREDENTIAL_ATTESTATION {
+            dwVersion: 8,
+            pwszFormatType: w!("none"),
+            cbAuthenticatorData: u32::try_from(auth_data.len()).unwrap(),
+            pbAuthenticatorData: auth_data.as_mut_ptr(),
+            cbUnsignedExtensionOutputs: len_u32(outputs.len()).unwrap(),
+            pbUnsignedExtensionOutputs: outputs.as_mut_ptr(),
+            ..Default::default()
+        },
+        ..Default::default()
+    };
+    let mut length = 0;
+    let mut pointer = ptr::null_mut();
+    // SAFETY: The complete version-8 structure and its buffers outlive this synchronous call.
+    let result = unsafe { encode_make(&raw const attestation, &raw mut length, &raw mut pointer) };
+    let expected = encoded(result, length, pointer);
+    let actual = protocol::response(
+        true,
+        Response {
+            authenticator_data: auth_data.to_vec(),
+            prf_enabled: true,
+            prf_results: Some(protocol::PrfValues {
+                first: vec![5; 32],
+                second: None,
+            }),
+            ..Response::default()
         },
     )
     .unwrap();
@@ -188,12 +241,70 @@ fn assertion_response_matches_windows_encoder() {
                 credential_id: Some(credential_id.to_vec()),
                 signature: Some(signature.to_vec()),
                 user_handle: handle.map(<[u8]>::to_vec),
+                ..Response::default()
             },
         )
         .unwrap();
         assert_eq!(actual, expected, "user handle {handle:?}");
     }
 }
+
+#[test]
+#[ignore = "requires Windows passkey plugin exports"]
+fn assertion_prf_output_matches_windows_encoder() {
+    let address = export(c"WebAuthNEncodeGetAssertionResponse");
+    // SAFETY: This is the documented export signature from webauthnplugin.h.
+    let encode_get =
+        unsafe { std::mem::transmute::<unsafe extern "system" fn() -> isize, EncodeGet>(address) };
+    let mut auth_data = [1; 37];
+    let mut credential_id = [2; 16];
+    let mut signature = [3; 70];
+    let mut outputs = prf_output(false);
+    let response = GetAssertionResponse {
+        assertion: AssertionV6 {
+            v5: WEBAUTHN_ASSERTION {
+                dwVersion: 6,
+                cbAuthenticatorData: len_u32(auth_data.len()).unwrap(),
+                pbAuthenticatorData: auth_data.as_mut_ptr(),
+                cbSignature: len_u32(signature.len()).unwrap(),
+                pbSignature: signature.as_mut_ptr(),
+                Credential: WEBAUTHN_CREDENTIAL {
+                    dwVersion: 1,
+                    cbId: len_u32(credential_id.len()).unwrap(),
+                    pbId: credential_id.as_mut_ptr(),
+                    pwszCredentialType: w!("public-key"),
+                },
+                ..Default::default()
+            },
+            ..Default::default()
+        },
+        number_of_credentials: 1,
+        unsigned_extension_outputs_len: len_u32(outputs.len()).unwrap(),
+        unsigned_extension_outputs: outputs.as_mut_ptr(),
+        ..Default::default()
+    };
+    let mut length = 0;
+    let mut pointer = ptr::null_mut();
+    // SAFETY: The structure and every buffer it borrows outlive this synchronous call.
+    let result = unsafe { encode_get(&raw const response, &raw mut length, &raw mut pointer) };
+    let expected = encoded(result, length, pointer);
+    let actual = protocol::response(
+        false,
+        Response {
+            authenticator_data: auth_data.to_vec(),
+            credential_id: Some(credential_id.to_vec()),
+            signature: Some(signature.to_vec()),
+            prf_results: Some(protocol::PrfValues {
+                first: vec![5; 32],
+                second: None,
+            }),
+            ..Response::default()
+        },
+    )
+    .unwrap();
+    assert_eq!(actual, expected);
+}
+
 #[test]
 #[ignore = "requires Windows passkey plugin exports"]
 fn windows_decoder_preserves_raw_rp_hash_and_credential_ids() {

@@ -14,6 +14,8 @@ data class WebAuthnCredential(
     val userHandle: String? = null,
     val userName: String? = null,
     val userDisplayName: String? = null,
+    /** The base64url secret of the PRF extension, if the credential supports it. */
+    val prfSecret: String? = null,
 ) {
     override fun toString(): String = "WebAuthnCredential(credentialId=$credentialId, rpId=$rpId, keyValue=<redacted>)"
 }

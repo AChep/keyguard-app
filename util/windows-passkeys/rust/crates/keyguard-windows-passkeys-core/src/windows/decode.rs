@@ -8,8 +8,8 @@ use super::{
 use crate::{
     error::Error,
     protocol::{
-        Descriptor, ES256, MAX_ALGORITHMS, MAX_CREDENTIAL_ID, MAX_DESCRIPTORS, MAX_USER_ID,
-        Request, User, UserVerification,
+        Descriptor, ES256, MAX_ALGORITHMS, MAX_CREDENTIAL_ID, MAX_DESCRIPTORS, MAX_REQUEST,
+        MAX_USER_ID, Request, User, UserVerification, prf,
     },
 };
 use std::{ptr, slice};
@@ -149,6 +149,7 @@ struct Shared<'a> {
     rp: &'a [u8],
     hash: &'a [u8],
     credentials: Vec<Descriptor>,
+    extensions: &'a [u8],
     options: Option<&'a Options>,
 }
 
@@ -163,6 +164,10 @@ macro_rules! shared {
             hash: unsafe { read_slice(data, data.hash, data.hash_len, CLIENT_DATA_HASH) }?,
             // SAFETY: The decoded request owns its credential list and descriptors.
             credentials: unsafe { descriptors(&data.credentials) }?,
+            // SAFETY: The decoded request owns `extensions_len` CBOR extension-map bytes.
+            extensions: unsafe {
+                read_slice(data, data.extensions, data.extensions_len, MAX_REQUEST)
+            }?,
             // SAFETY: The decoded request owns its optional options.
             options: unsafe { read_optional(data, data.options) }?,
         }
@@ -185,6 +190,7 @@ impl Shared<'_> {
             user_verification: user_verification.into(),
             credentials: self.credentials,
             discoverable,
+            prf: prf(self.extensions),
             ..Request::default()
         })
     }

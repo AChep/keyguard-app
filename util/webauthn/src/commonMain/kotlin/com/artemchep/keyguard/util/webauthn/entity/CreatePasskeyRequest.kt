@@ -2,6 +2,7 @@ package com.artemchep.keyguard.util.webauthn.entity
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonElement
 
 @Serializable
 data class AuthenticatorAssertionClientData(
@@ -93,6 +94,17 @@ data class CreatePasskeyAuthenticatorSelection(
     val userVerification: String? = null,
 )
 
+// https://www.w3.org/TR/webauthn-3/#dictdef-authenticationextensionsclientinputs
+@Serializable
+data class CreatePasskeyExtensions(
+    /**
+     * The `AuthenticationExtensionsPRFInputs`, parsed by hand so that a
+     * malformed one fails as a WebAuthn error, see
+     * [com.artemchep.keyguard.util.webauthn.requireWebAuthnPrfRegistrationInputs].
+     */
+    val prf: JsonElement? = null,
+)
+
 /*
  * {
  * "attestation":"none",
@@ -152,4 +164,5 @@ data class CreatePasskey(
      * to a prompt for registration before an error is returned.
      */
     val timeout: Double? = null,
+    val extensions: CreatePasskeyExtensions? = null,
 )

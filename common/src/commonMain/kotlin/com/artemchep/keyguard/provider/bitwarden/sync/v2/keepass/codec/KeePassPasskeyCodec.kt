@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.text.decodeOrNull
 import com.artemchep.keyguard.common.service.text.url
 import com.artemchep.keyguard.util.webauthn.PasskeyBase64
+import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.core.store.bitwarden.CipherSourceCanonicalPaths
 import com.artemchep.keyguard.core.store.bitwarden.CipherSourceData
@@ -26,25 +27,33 @@ import kotlin.time.Instant
  * |-------------------------------------|-----------|------------------------------------|
  * | `KPEX_PASSKEY_USERNAME`             | both      | User name; falls back from KPXC key. |
  * | `KPXC_PASSKEY_USERNAME`             | decode    | Legacy username fallback.          |
- * | `KPEX_PASSKEY_CREDENTIAL_ID`        | both      | Base64url credential id.           |
+ * | `KPEX_PASSKEY_CREDENTIAL_ID`        | both      | Base64url of the credential ID bytes. |
  * | `KPEX_PASSKEY_GENERATED_USER_ID`    | decode    | Legacy credential-id fallback.     |
  * | `KPEX_PASSKEY_PRIVATE_KEY_PEM`      | both      | PKCS#8 PEM private key, concealed. |
  * | `KPEX_PASSKEY_RELYING_PARTY`        | both      | Relying-party id.                  |
  * | `KPEX_PASSKEY_USER_HANDLE`          | both      | Base64url user handle, concealed.  |
  * | `KPEX_PASSKEY_FLAG_BE`              | both      | Backup-eligible boolean.           |
  * | `KPEX_PASSKEY_FLAG_BS`              | both      | Backup-state boolean.              |
+ * | `KPEX_PASSKEY_PRF`                  | both      | Base64url PRF secret, concealed.   |
  * | `Passkey` field and `Passkey` tag   | decode    | Display markers consumed if seen.  |
  *
  * Decode requires username, credential id, private key, relying party, and user
- * handle to be valid. Because KPEX lacks full Bitwarden metadata, decode
- * reconstructs a public-key ES256/P-256 discoverable credential with counter
- * `0`, display name equal to username, and the supplied creation date. Backup
- * flags are stored in binding parameters.
+ * handle to be valid; the PRF secret is optional. Because KPEX lacks full
+ * Bitwarden metadata, decode reconstructs a public-key ES256/P-256 discoverable
+ * credential with counter `0`, display name equal to username, and the supplied
+ * creation date. Backup flags are stored in binding parameters.
+ *
+ * KeePassXC uses the credential ID field as is, so it holds the base64url of
+ * the ID's bytes. Keyguard stores a 16-byte ID in the UUID form, so decode
+ * reads the field back into that form; it also reads the UUID form, which
+ * older versions wrote to the field as is.
  *
  * Encode writes KPEX only for a public-key ES256/P-256 discoverable credential
- * with valid base64url id/user handle, non-blank relying party, and a private
- * key convertible to PKCS#8 PEM. Other credentials are left to the parent
- * codec's concealed `FIDO2 Credentials Blob #<index>` fallback.
+ * with valid base64url id/user handle, non-blank relying party, a private key
+ * convertible to PKCS#8 PEM, and a decodable PRF secret if it has one. KPEX has
+ * no field for a PRF secret without user verification, so a credential with one
+ * is not representable either. Other credentials are left to the parent codec's
+ * concealed `FIDO2 Credentials Blob #<index>` fallback.
  */
 internal class KeePassPasskeyCodec(
     private val base64Service: Base64Service,
@@ -137,14 +146,8 @@ internal class KeePassPasskeyCodec(
             representationId = KeePassPasskeyRepresentationIds.TEXT,
             validate = { it.isNotBlank() },
         ) ?: return null
-        val credentialId = selectField(
-            remote = remote,
-            canonicalKey = CREDENTIAL_ID_FIELD_KEY,
-            fallbackKey = GENERATED_USER_ID_FIELD_KEY,
-            role = SOURCE_ROLE_CREDENTIAL_ID,
-            representationId = KeePassPasskeyRepresentationIds.BASE64URL,
-            validate = ::isValidBase64Url,
-        ) ?: return null
+        val (credentialId, storedCredentialId) = decodeCredentialId(remote)
+            ?: return null
         val privateKey = remote.fields[PRIVATE_KEY_FIELD_KEY]
             ?.takeIf { value -> isValidPrivateKeyPem(value.content) }
             ?.let { value ->
@@ -179,16 +182,44 @@ internal class KeePassPasskeyCodec(
             ?.let { value -> parsePasskeyBool(value.content)?.let { value to it } }
         val backupState = remote.fields[BACKUP_STATE_FIELD_KEY]
             ?.let { value -> parsePasskeyBool(value.content)?.let { value to it } }
+        val prfSecret = remote.fields[PRF_FIELD_KEY]
+            ?.takeIf { value -> isValidBase64Url(value.content) }
+            ?.let { value ->
+                DecodedPasskeySourceField(
+                    key = PRF_FIELD_KEY,
+                    value = value,
+                    role = SOURCE_ROLE_PRF,
+                    representationId = KeePassPasskeyRepresentationIds.BASE64URL,
+                )
+            }
 
         return DecodedPasskeySource(
             username = username,
             credentialId = credentialId,
+            storedCredentialId = storedCredentialId,
             privateKey = privateKey,
             relyingParty = relyingParty,
             userHandle = userHandle,
             backupEligible = backupEligible,
             backupState = backupState,
+            prfSecret = prfSecret,
         )
+    }
+
+    /** The credential ID field and the form Keyguard stores the ID in. */
+    private fun decodeCredentialId(
+        remote: Entry,
+    ): Pair<DecodedPasskeySourceField, String>? {
+        val field = selectField(
+            remote = remote,
+            canonicalKey = CREDENTIAL_ID_FIELD_KEY,
+            fallbackKey = GENERATED_USER_ID_FIELD_KEY,
+            role = SOURCE_ROLE_CREDENTIAL_ID,
+            representationId = KeePassPasskeyRepresentationIds.BASE64URL,
+            validate = ::isValidBase64Url,
+        ) ?: return null
+        return base64UrlToCredentialId(field.value.content)
+            ?.let { storedCredentialId -> field to storedCredentialId }
     }
 
     private fun selectField(
@@ -223,7 +254,7 @@ internal class KeePassPasskeyCodec(
     private fun DecodedPasskeySource.toCredential(
         creationDate: Instant,
     ): BitwardenCipher.Login.Fido2Credentials = BitwardenCipher.Login.Fido2Credentials(
-        credentialId = credentialId.value.content,
+        credentialId = storedCredentialId,
         keyType = PUBLIC_KEY_CREDENTIAL_TYPE,
         keyAlgorithm = KEY_ALGORITHM_ECDSA,
         keyCurve = KEY_CURVE_P256,
@@ -236,6 +267,7 @@ internal class KeePassPasskeyCodec(
         userDisplayName = username.value.content,
         discoverable = DEFAULT_DISCOVERABLE,
         creationDate = creationDate,
+        prfSecret = prfSecret?.value?.content,
     )
 
     private fun DecodedPasskeySource.toBinding(
@@ -252,7 +284,7 @@ internal class KeePassPasskeyCodec(
             )
         },
         projectionId = KeePassPasskeyProjectionIds.KPEX_PASSKEY,
-        selector = mapOf(SELECTOR_CREDENTIAL_ID to credentialId.value.content),
+        selector = mapOf(SELECTOR_CREDENTIAL_ID to storedCredentialId),
         parameters = buildMap {
             backupEligible?.let { put(PARAM_BACKUP_ELIGIBLE, it.second.toString()) }
             backupState?.let { put(PARAM_BACKUP_STATE, it.second.toString()) }
@@ -261,20 +293,22 @@ internal class KeePassPasskeyCodec(
 
     // A credential round-trips losslessly through the KPEX field set only if it
     // matches the values decode hardcodes (toCredential): a public-key ES256/
-    // P-256 key that is discoverable. Otherwise it must take the lossless blob
-    // path so counter / key algorithm/curve / discoverable are not dropped.
+    // P-256 key that is discoverable, with no PRF secret without UV. Otherwise
+    // it must take the lossless blob path so counter / key algorithm/curve /
+    // discoverable / PRF secret without UV are not dropped.
     private fun BitwardenCipher.Login.Fido2Credentials.isKpexRepresentable(): Boolean =
         keyType == PUBLIC_KEY_CREDENTIAL_TYPE &&
                 keyAlgorithm == KEY_ALGORITHM_ECDSA &&
                 keyCurve == KEY_CURVE_P256 &&
-                discoverable == DEFAULT_DISCOVERABLE
+                discoverable == DEFAULT_DISCOVERABLE &&
+                prfSecretWithoutUv == null
 
     private fun encodeCredential(
         credential: BitwardenCipher.Login.Fido2Credentials,
         binding: SourceBinding?,
     ): EncodedBindingPasskey? {
-        val credentialId = credential.credentialId?.takeIf(::isValidBase64Url)
-            ?: return null
+        val storedCredentialId = credential.credentialId ?: return null
+        val credentialId = credentialIdToBase64Url(storedCredentialId) ?: return null
         // The KDBX passkey field set has no way to say "no user handle", so a
         // credential without one is not projectable.
         val userHandle = credential.userHandle?.takeIf(::isValidBase64Url)
@@ -298,8 +332,11 @@ internal class KeePassPasskeyCodec(
             ?.get(PARAM_BACKUP_STATE)
             ?.toBooleanStrictOrNull()
             ?: DEFAULT_BACKUP_STATE
+        // A PRF secret that does not decode is left for the lossless blob path.
+        val prfSecret = credential.prfSecret
+            ?.let { prfSecretToBase64Url(it) ?: return null }
 
-        val writes = listOf(
+        val writes = listOfNotNull(
             keepassFieldWrite(USERNAME_FIELD_KEY, username, concealed = false),
             keepassFieldWrite(CREDENTIAL_ID_FIELD_KEY, credentialId, concealed = true),
             keepassFieldWrite(PRIVATE_KEY_FIELD_KEY, privateKeyPem, concealed = true),
@@ -307,6 +344,7 @@ internal class KeePassPasskeyCodec(
             keepassFieldWrite(USER_HANDLE_FIELD_KEY, userHandle, concealed = true),
             keepassFieldWrite(BACKUP_ELIGIBLE_FIELD_KEY, backupEligible.toKeePassBool(), concealed = false),
             keepassFieldWrite(BACKUP_STATE_FIELD_KEY, backupState.toKeePassBool(), concealed = false),
+            prfSecret?.let { keepassFieldWrite(PRF_FIELD_KEY, it, concealed = true) },
         )
         val binding2 = sourceBinding(
             canonicalPaths = listOf(CipherSourceCanonicalPaths.LOGIN_FIDO2_CREDENTIALS),
@@ -320,7 +358,7 @@ internal class KeePassPasskeyCodec(
                 )
             },
             projectionId = KeePassPasskeyProjectionIds.KPEX_PASSKEY,
-            selector = mapOf(SELECTOR_CREDENTIAL_ID to credentialId),
+            selector = mapOf(SELECTOR_CREDENTIAL_ID to storedCredentialId),
             parameters = mapOf(
                 PARAM_BACKUP_ELIGIBLE to backupEligible.toString(),
                 PARAM_BACKUP_STATE to backupState.toString(),
@@ -331,6 +369,26 @@ internal class KeePassPasskeyCodec(
             binding = binding2,
         )
     }
+
+    // KeePassXC uses the credential ID as is, so it must be the
+    // base64url of the ID's bytes, not a UUID as Keyguard stores it.
+    private fun credentialIdToBase64Url(
+        value: String,
+    ): String? = PasskeyCredentialId.encodeOrNull(value)
+        ?.let(PasskeyBase64::encodeToString)
+
+    // Keyguard stores a 16-byte ID as a UUID. Older versions
+    // wrote that UUID to the field as is, so it is read too.
+    private fun base64UrlToCredentialId(
+        value: String,
+    ): String? = PasskeyCredentialId.encodeOrNull(value)
+        ?.let(PasskeyCredentialId::decode)
+
+    // KeePassXC keeps the PRF secret as unpadded base64url.
+    private fun prfSecretToBase64Url(
+        value: String,
+    ): String? = PasskeyBase64.decodePrfSecretOrNull(value)
+        ?.let(PasskeyBase64::encodeToString)
 
     private fun privateKeyPemToBase64Der(
         value: String,
@@ -415,6 +473,7 @@ internal class KeePassPasskeyCodec(
                 ),
             )
         }
+        prfSecret?.let(::add)
     }
 
     private fun roleForKey(key: String): SourceRole? = when (key) {
@@ -425,12 +484,13 @@ internal class KeePassPasskeyCodec(
         USER_HANDLE_FIELD_KEY -> SOURCE_ROLE_USER_HANDLE
         BACKUP_ELIGIBLE_FIELD_KEY -> SOURCE_ROLE_BACKUP_ELIGIBLE
         BACKUP_STATE_FIELD_KEY -> SOURCE_ROLE_BACKUP_STATE
+        PRF_FIELD_KEY -> SOURCE_ROLE_PRF
         else -> null
     }
 
     private fun representationForKey(key: String): SourceRepresentation? = when (key) {
         USERNAME_FIELD_KEY, RELYING_PARTY_FIELD_KEY -> KeePassPasskeyRepresentationIds.TEXT
-        CREDENTIAL_ID_FIELD_KEY, USER_HANDLE_FIELD_KEY -> KeePassPasskeyRepresentationIds.BASE64URL
+        CREDENTIAL_ID_FIELD_KEY, USER_HANDLE_FIELD_KEY, PRF_FIELD_KEY -> KeePassPasskeyRepresentationIds.BASE64URL
         PRIVATE_KEY_FIELD_KEY -> KeePassPasskeyRepresentationIds.PKCS8_PEM
         BACKUP_ELIGIBLE_FIELD_KEY, BACKUP_STATE_FIELD_KEY -> KeePassPasskeyRepresentationIds.BOOL
         else -> null
@@ -450,11 +510,14 @@ internal class KeePassPasskeyCodec(
     private data class DecodedPasskeySource(
         val username: DecodedPasskeySourceField,
         val credentialId: DecodedPasskeySourceField,
+        /** The form Keyguard stores the [credentialId] in. */
+        val storedCredentialId: String,
         val privateKey: DecodedPasskeySourceField,
         val relyingParty: DecodedPasskeySourceField,
         val userHandle: DecodedPasskeySourceField,
         val backupEligible: Pair<EntryValue, Boolean>?,
         val backupState: Pair<EntryValue, Boolean>?,
+        val prfSecret: DecodedPasskeySourceField?,
     )
 
     private data class DecodedPasskeySourceField(
@@ -479,6 +542,7 @@ internal class KeePassPasskeyCodec(
         const val USER_HANDLE_FIELD_KEY = "KPEX_PASSKEY_USER_HANDLE"
         const val BACKUP_ELIGIBLE_FIELD_KEY = "KPEX_PASSKEY_FLAG_BE"
         const val BACKUP_STATE_FIELD_KEY = "KPEX_PASSKEY_FLAG_BS"
+        const val PRF_FIELD_KEY = "KPEX_PASSKEY_PRF"
         const val PASSKEY_DISPLAY_FIELD_KEY = "Passkey"
         const val PASSKEY_TAG = "Passkey"
 
@@ -489,6 +553,7 @@ internal class KeePassPasskeyCodec(
         val SOURCE_ROLE_USER_HANDLE = SourceRole("userHandle")
         val SOURCE_ROLE_BACKUP_ELIGIBLE = SourceRole("backupEligible")
         val SOURCE_ROLE_BACKUP_STATE = SourceRole("backupState")
+        val SOURCE_ROLE_PRF = SourceRole("prfSecret")
 
         const val SELECTOR_CREDENTIAL_ID = "credentialId"
         const val PARAM_BACKUP_ELIGIBLE = "backupEligible"

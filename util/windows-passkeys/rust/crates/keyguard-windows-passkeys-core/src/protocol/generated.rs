@@ -9,7 +9,7 @@ pub struct Empty {}
 pub struct Command {
     #[prost(
         oneof = "command::Command",
-        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13"
+        tags = "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14"
     )]
     pub command: ::core::option::Option<command::Command>,
 }
@@ -48,6 +48,9 @@ pub mod command {
         /// this command starts serving, and it can start again after a failure or a stop.
         #[prost(message, tag = "13")]
         Start(super::Empty),
+        /// Updates existing provider metadata without adding a registration or changing enablement.
+        #[prost(message, tag = "14")]
+        RefreshRegistration(super::Empty),
     }
 }
 /// Long-polls for the next event.
@@ -166,6 +169,33 @@ pub struct Request {
     /// The time left before Windows stops waiting, as of the delivery.
     #[prost(uint64, tag = "12")]
     pub expires_in_ms: u64,
+    /// The PRF extension. Windows asks for it with every registration, and with a sign-in only
+    /// when the site sends inputs.
+    #[prost(message, optional, tag = "13")]
+    pub prf: ::core::option::Option<Prf>,
+}
+/// PRF inputs as Windows sends them: salts it derived as SHA-256("WebAuthn PRF" || 0x00 || input).
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct Prf {
+    #[prost(message, optional, tag = "1")]
+    pub eval: ::core::option::Option<PrfValues>,
+    /// Sign-in only: the salts for the allowed credentials, which take precedence over eval.
+    #[prost(message, repeated, tag = "2")]
+    pub eval_by_credential: ::prost::alloc::vec::Vec<PrfCredentialValues>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct PrfValues {
+    #[prost(bytes = "vec", tag = "1")]
+    pub first: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", optional, tag = "2")]
+    pub second: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct PrfCredentialValues {
+    #[prost(bytes = "vec", tag = "1")]
+    pub credential_id: ::prost::alloc::vec::Vec<u8>,
+    #[prost(message, optional, tag = "2")]
+    pub values: ::core::option::Option<PrfValues>,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct Descriptor {
@@ -194,6 +224,12 @@ pub struct Response {
     pub signature: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
     #[prost(bytes = "vec", optional, tag = "4")]
     pub user_handle: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
+    /// Registration only: the passkey supports the PRF extension.
+    #[prost(bool, tag = "5")]
+    pub prf_enabled: bool,
+    /// The PRF outputs, a secret derived from the passkey.
+    #[prost(message, optional, tag = "6")]
+    pub prf_results: ::core::option::Option<PrfValues>,
 }
 /// Windows retains these while the vault is locked.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]

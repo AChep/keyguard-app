@@ -57,6 +57,11 @@ internal class FakeWindowsPasskeyBridge : WindowsPasskeyBridge {
     data class Completion(val id: Long, val response: WindowsPasskeyResponse?, val failure: WindowsPasskeyFailure?)
 
     var status = WindowsPasskeyStatus.ENABLED
+    var registrations = 0
+    var unregistrations = 0
+    var refreshes = 0
+    var failingRefreshes = 0
+    var refresh = CompletableDeferred(Unit)
 
     /** Delivered by [next], in order. */
     val events = Channel<WindowsPasskeyEvent>(Channel.UNLIMITED)
@@ -100,10 +105,21 @@ internal class FakeWindowsPasskeyBridge : WindowsPasskeyBridge {
     override suspend fun readStatus() = status
 
     override suspend fun register() {
+        registrations += 1
         status = WindowsPasskeyStatus.DISABLED
     }
 
+    override suspend fun refreshRegistration() {
+        refreshes += 1
+        refresh.await()
+        if (failingRefreshes > 0) {
+            failingRefreshes -= 1
+            error("Windows rejected the provider metadata")
+        }
+    }
+
     override suspend fun unregister() {
+        unregistrations += 1
         status = WindowsPasskeyStatus.UNREGISTERED
     }
 

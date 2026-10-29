@@ -62,6 +62,7 @@ class AddCredentialCipherImplTest {
         assertEquals(AddCredentialCipher.Result.Stored, addCredential(passkey(LOGIN_ID)).bind())
         val stored = database.cipherQueries.getByCipherId(LOGIN_ID).executeAsOne().data_
         assertEquals(listOf(CREDENTIAL_ID), stored.login?.fido2Credentials?.map { it.credentialId })
+        assertEquals(listOf(PRF_SECRET), stored.login?.fido2Credentials?.map { it.prfSecret })
     }
 
     @Test
@@ -133,6 +134,7 @@ class AddCredentialCipherImplTest {
             userName = "alice",
             userDisplayName = "Alice",
             discoverable = true,
+            prfSecret = PRF_SECRET,
         ),
     )
 
@@ -153,6 +155,7 @@ class AddCredentialCipherImplTest {
         const val LOGIN_ID = "login"
         const val NOTE_ID = "note"
         const val CREDENTIAL_ID = "123e4567-e89b-12d3-a456-426614174000"
+        const val PRF_SECRET = "Q34GXnI6mLLwjznYuvfFPss8NjxeUQS9qvXVyi4CgVQ"
         val CREATED_AT: Instant = Instant.parse("2024-01-01T00:00:00Z")
     }
 }

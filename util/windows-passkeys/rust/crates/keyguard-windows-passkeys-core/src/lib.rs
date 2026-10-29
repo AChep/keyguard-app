@@ -218,6 +218,10 @@ mod tests {
     #[test]
     fn the_largest_event_fits_a_reply() {
         let text = "\u{800}".repeat(MAX_TEXT);
+        let salts = protocol::PrfValues {
+            first: vec![0xff; 32],
+            second: Some(vec![0xff; 32]),
+        };
         let request = protocol::Request {
             id: u64::MAX,
             create: true,
@@ -241,6 +245,16 @@ mod tests {
             algorithms: vec![i32::MIN; MAX_ALGORITHMS],
             discoverable: true,
             expires_in_ms: u64::MAX,
+            prf: Some(protocol::Prf {
+                eval: Some(salts.clone()),
+                eval_by_credential: vec![
+                    protocol::PrfCredentialValues {
+                        credential_id: vec![0xff; protocol::MAX_CREDENTIAL_ID],
+                        values: Some(salts),
+                    };
+                    MAX_DESCRIPTORS
+                ],
+            }),
         };
         let event = Reply {
             outcome: Some(Outcome::Event(Event {

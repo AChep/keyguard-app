@@ -17,6 +17,8 @@ fun BitwardenCipher.transform(
         mode = itemCrypto.mode,
     ).encodeSshCertificateCustomFields(
         mode = itemCrypto.mode,
+    ).encodePasskeyCustomFields(
+        mode = itemCrypto.mode,
     ).encodeCipherLinkCustomFields(
         mode = itemCrypto.mode,
     )
@@ -53,7 +55,11 @@ fun BitwardenCipher.transform(
         },
     ).let { transformedCipher ->
         if (globalCrypto.mode == BitwardenCrCta.Mode.DECRYPT) {
-            return@let decodeEntity(transformedCipher.decodeSshCertificateCustomFields())
+            return@let decodeEntity(
+                transformedCipher
+                    .decodeSshCertificateCustomFields()
+                    .decodePasskeyCustomFields(),
+            )
         }
 
         transformedCipher
@@ -147,6 +153,40 @@ private fun BitwardenCipher.encodeSshCertificateCustomFields(
     )
 }
 
+private fun BitwardenCipher.encodePasskeyCustomFields(
+    mode: BitwardenCrCta.Mode,
+): BitwardenCipher {
+    val login = login
+        ?.takeIf { mode == BitwardenCrCta.Mode.ENCRYPT && BitwardenPasskeyFieldCodec.appliesTo(type) }
+        ?: return this
+    val passkeyFields = login.fido2Credentials
+        .map { credential ->
+            BitwardenPasskeyFieldCodec.Secrets(
+                credentialId = credential.credentialId,
+                prfSecret = credential.prfSecret,
+                prfSecretWithoutUv = credential.prfSecretWithoutUv,
+            )
+        }
+        .let { passkeys -> BitwardenPasskeyFieldCodec.encode(passkeys, fields) }
+    return if (passkeyFields.isEmpty()) {
+        this
+    } else {
+        copy(
+            // The passkey data is auxiliary data, append it after the user's own custom fields.
+            fields = fields.filterNot { BitwardenPasskeyFieldCodec.isTransportField(it.name) } + passkeyFields,
+            // The Bitwarden passkey has no PRF secret fields.
+            login = login.copy(
+                fido2Credentials = login.fido2Credentials.map {
+                    it.copy(
+                        prfSecret = null,
+                        prfSecretWithoutUv = null,
+                    )
+                },
+            ),
+        )
+    }
+}
+
 private fun BitwardenCipher.encodeCipherLinkCustomFields(
     mode: BitwardenCrCta.Mode,
 ): BitwardenCipher {
@@ -227,6 +267,21 @@ private fun BitwardenCipher.decodeSshCertificateCustomFields(): BitwardenCipher 
         fields = decoded.remainingFields,
         sshKey = (sshKey ?: BitwardenCipher.SshKey()).copy(certificate = decoded.certificate),
     )
+}
+
+/** Moves the passkey data of a login from its custom fields into the passkeys. */
+private fun BitwardenCipher.decodePasskeyCustomFields(): BitwardenCipher {
+    val login = login
+        ?.takeIf { BitwardenPasskeyFieldCodec.appliesTo(type) }
+        ?: return this
+    return BitwardenPasskeyFieldCodec.decode(fields, login.fido2Credentials)
+        ?.let { decoded ->
+            copy(
+                fields = decoded.remainingFields,
+                login = login.copy(fido2Credentials = decoded.credentials),
+            )
+        }
+        ?: this
 }
 
 /**
@@ -414,6 +469,8 @@ fun BitwardenCipher.Login.Fido2Credentials.transform(
     userName = crypto.transformString(userName),
     userDisplayName = crypto.transformString(userDisplayName),
     discoverable = crypto.transformString(discoverable),
+    prfSecret = crypto.transformString(prfSecret),
+    prfSecretWithoutUv = crypto.transformString(prfSecretWithoutUv),
 )
 
 fun BitwardenCipher.SecureNote.transform(

@@ -3,8 +3,8 @@
 //! encodes back to the fixture.
 use super::{
     Command, CompleteCommand, Descriptor, Empty, Event, Failure, Identity, Limits, NextCommand,
-    Reply, Request, Response, SetLockedCommand, Status, SyncCommand, User, UserVerification,
-    VerifyCommand, command::Command as C, reply::Outcome as O,
+    Prf, PrfCredentialValues, PrfValues, Reply, Request, Response, SetLockedCommand, Status,
+    SyncCommand, User, UserVerification, VerifyCommand, command::Command as C, reply::Outcome as O,
 };
 use crate::error::Error;
 use prost::Message;
@@ -76,6 +76,13 @@ fn registration() -> Request {
     }
 }
 
+fn prf_values(first: u8, second: Option<u8>) -> PrfValues {
+    PrfValues {
+        first: vec![first; 32],
+        second: second.map(|it| vec![it; 32]),
+    }
+}
+
 fn complete(id: u64, response: Option<Response>, failure: Failure) -> C {
     C::Complete(CompleteCommand {
         id,
@@ -91,16 +98,16 @@ fn commands() -> Vec<(&'static str, Command)> {
         credential_id: Some(vec![1, 2]),
         signature: Some(vec![3]),
         user_handle: Some(vec![4]),
+        ..Response::default()
     };
     let attestation = Response {
         authenticator_data: vec![0xaa; 3],
-        credential_id: None,
-        signature: None,
-        user_handle: None,
+        ..Response::default()
     };
     vec![
         command("status", C::Status(Empty {})),
         command("register", C::Register(Empty {})),
+        command("refresh_registration", C::RefreshRegistration(Empty {})),
         command("unregister", C::Unregister(Empty {})),
         command("clear", C::Clear(Empty {})),
         command("start", C::Start(Empty {})),
@@ -126,11 +133,34 @@ fn commands() -> Vec<(&'static str, Command)> {
         command("complete_not_found", complete(1, None, Failure::NotFound)),
         command(
             "complete_assertion",
-            complete(2, Some(assertion), Failure::Unspecified),
+            complete(2, Some(assertion.clone()), Failure::Unspecified),
         ),
         command(
             "complete_registration",
-            complete(3, Some(attestation), Failure::Unspecified),
+            complete(3, Some(attestation.clone()), Failure::Unspecified),
+        ),
+        command(
+            "complete_assertion_prf",
+            complete(
+                2,
+                Some(Response {
+                    prf_results: Some(prf_values(5, Some(6))),
+                    ..assertion
+                }),
+                Failure::Unspecified,
+            ),
+        ),
+        command(
+            "complete_registration_prf",
+            complete(
+                3,
+                Some(Response {
+                    prf_enabled: true,
+                    prf_results: Some(prf_values(5, None)),
+                    ..attestation
+                }),
+                Failure::Unspecified,
+            ),
         ),
         command(
             "verify",
@@ -218,6 +248,34 @@ fn replies() -> Vec<(&'static str, Reply)> {
             "event_registration",
             Event {
                 request: Some(registration()),
+                active_id: Some(2),
+                ..Event::default()
+            },
+        ),
+        event(
+            "event_sign_in_prf",
+            Event {
+                request: Some(Request {
+                    prf: Some(Prf {
+                        eval: Some(prf_values(1, Some(2))),
+                        eval_by_credential: vec![PrfCredentialValues {
+                            credential_id: vec![0x11; 16],
+                            values: Some(prf_values(3, None)),
+                        }],
+                    }),
+                    ..sign_in()
+                }),
+                active_id: Some(1),
+                ..Event::default()
+            },
+        ),
+        event(
+            "event_registration_prf",
+            Event {
+                request: Some(Request {
+                    prf: Some(Prf::default()),
+                    ..registration()
+                }),
                 active_id: Some(2),
                 ..Event::default()
             },

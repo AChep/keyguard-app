@@ -1,15 +1,22 @@
 package com.artemchep.keyguard.common.service.passkey
 
 import com.artemchep.keyguard.AppMode
+import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasskeyData
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.MasterSession.Key.Persisted
 import com.artemchep.keyguard.common.service.passkey.FakeWindowsPasskeyBridge.Verification
 import com.artemchep.keyguard.common.service.session.testMasterSessionKey
+import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyException
 import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyFailure
+import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyPrf
+import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyPrfCredentialValues
+import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyPrfValues
 import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeyRequest
+import javax.crypto.Mac
+import javax.crypto.spec.SecretKeySpec
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -439,6 +446,44 @@ class WindowsPasskeyCeremonyTest {
     }
 
     @Test
+    fun `a registration stores a PRF secret and evaluates the salts Windows sends`() = runTest {
+        val cipher = testCipher()
+        val fixture = Fixture(backgroundScope, testMasterSessionKey(Persisted), cipher)
+        val salt = ByteArray(32) { 9 }
+        fixture.serve(testRegistrationRequest().copy(prf = WindowsPasskeyPrf(eval = WindowsPasskeyPrfValues(salt))))
+        runCurrent()
+        assertIs<AppMode.SavePasskey>(fixture.ceremony.ui.value?.mode).onComplete(cipher)
+        runCurrent()
+        val data = assertIs<AddCredentialCipherRequestPasskeyData>(fixture.vault.added.single().data)
+        val secret = PasskeyBase64.decode(assertNotNull(data.prfSecret))
+        val answer = assertNotNull(fixture.bridge.answer(1))
+        assertTrue(answer.prfEnabled)
+        // Windows already derived the salt from the site's input: the output is its HMAC.
+        assertContentEquals(hmacSha256(secret, salt), answer.prfResults?.first)
+    }
+
+    @Test
+    fun `a sign-in evaluates the salts Windows sends for the passkey`() = runTest {
+        val secret = ByteArray(32) { 4 }
+        val credential = passkey.credential.copy(prfSecret = PasskeyBase64.encodeToString(secret))
+        val fixture = Fixture(backgroundScope, testMasterSessionKey(Persisted), testCipher(credential))
+        val own = ByteArray(32) { 2 }
+        val prf = WindowsPasskeyPrf(
+            eval = WindowsPasskeyPrfValues(ByteArray(32) { 1 }),
+            evalByCredential = listOf(
+                WindowsPasskeyPrfCredentialValues(credential.descriptor().id, WindowsPasskeyPrfValues(own)),
+            ),
+        )
+        fixture.serve(testSignInRequest().copy(prf = prf))
+        runCurrent()
+        val answer = assertNotNull(fixture.bridge.answer(1))
+        assertTrue(passkey.signed(answer))
+        assertFalse(answer.prfEnabled)
+        assertContentEquals(hmacSha256(secret, own), answer.prfResults?.first)
+        assertNull(answer.prfResults?.second)
+    }
+
+    @Test
     fun `a passkey the vault does not store is never returned`() = runTest {
         val cipher = testCipher()
         val fixture = Fixture(backgroundScope, testMasterSessionKey(Persisted), cipher)
@@ -526,5 +571,10 @@ class WindowsPasskeyCeremonyTest {
         runCurrent()
         assertEquals(1, fixture.vault.used.size)
         assertEquals(listOf(false, true, false), busy)
+    }
+
+    private fun hmacSha256(key: ByteArray, data: ByteArray): ByteArray = Mac.getInstance("HmacSHA256").run {
+        init(SecretKeySpec(key, "HmacSHA256"))
+        doFinal(data)
     }
 }

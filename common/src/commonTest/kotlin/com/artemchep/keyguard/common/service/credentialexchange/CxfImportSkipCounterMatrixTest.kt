@@ -592,6 +592,20 @@ private val passkeyCases = listOf(
         itemsJson = itemWith(passkey(userHandle = "AAECAwQFBg=="), basicAuth()),
         expected = cxfImportSkips(),
     ),
+    SkipCase(
+        name = "an undecodable PRF seed",
+        itemsJson = itemWith(passkey(hmacCredentials = hmacCredentials(credWithUv = "###")), basicAuth()),
+        expected = cxfImportSkips(CxfImportSkipReason.Passkey to 1),
+    ),
+    SkipCase(
+        // 87,383 characters decode to 65,537 bytes, one over the cap.
+        name = "a PRF seed over the size cap",
+        itemsJson = itemWith(
+            passkey(hmacCredentials = hmacCredentials(credWithoutUv = "A".repeat(87_383))),
+            basicAuth(),
+        ),
+        expected = cxfImportSkips(CxfImportSkipReason.Passkey to 1),
+    ),
 )
 
 private val otpCases = listOf(
@@ -859,17 +873,28 @@ private fun passkey(
     rpId: String = "example.com",
     userHandle: String = "AAECAwQFBg",
     key: String = CXF_TEST_PASSKEY_KEY_URL,
-): String = """
-    {
-      "type": "passkey",
-      "credentialId": "$credentialId",
-      "rpId": "$rpId",
-      "username": "alice",
-      "userDisplayName": "Alice",
-      "userHandle": "$userHandle",
-      "key": "$key"
-    }
-""".trimIndent()
+    hmacCredentials: String? = null,
+): String {
+    val extensions = hmacCredentials
+        ?.let { ", \"fido2Extensions\": {\"hmacCredentials\": $it}" }
+        .orEmpty()
+    return """
+        {
+          "type": "passkey",
+          "credentialId": "$credentialId",
+          "rpId": "$rpId",
+          "username": "alice",
+          "userDisplayName": "Alice",
+          "userHandle": "$userHandle",
+          "key": "$key"$extensions
+        }
+    """.trimIndent()
+}
+
+private fun hmacCredentials(
+    credWithUv: String = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+    credWithoutUv: String = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+): String = """{"algorithm": "hmac-sha256", "credWithUV": "$credWithUv", "credWithoutUV": "$credWithoutUv"}"""
 
 private fun totp(
     secret: String = "JBSWY3DPEHPK3PXP",

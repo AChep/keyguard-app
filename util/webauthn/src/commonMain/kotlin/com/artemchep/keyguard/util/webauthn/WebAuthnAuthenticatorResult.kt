@@ -8,6 +8,10 @@ data class WebAuthnCredentialCreationResult(
     val attestationObject: ByteArray,
     val publicKeyAlgorithm: Int,
     val publicKey: ByteArray,
+    /** Whether the credential supports the PRF extension, only if it was requested. */
+    val prfEnabled: Boolean = false,
+    /** The PRF outputs, owned by the caller. */
+    val prfResults: WebAuthnPrfValues? = null,
 )
 
 /**
@@ -19,4 +23,6 @@ data class WebAuthnAssertionResult(
     val authenticatorData: ByteArray,
     val signature: ByteArray,
     val userHandle: ByteArray?,
+    /** The PRF outputs, owned by the caller. */
+    val prfResults: WebAuthnPrfValues? = null,
 )

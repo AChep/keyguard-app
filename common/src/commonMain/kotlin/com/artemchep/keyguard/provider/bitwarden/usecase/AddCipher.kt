@@ -910,6 +910,8 @@ internal suspend fun BitwardenCipher.Login.Companion.of(
                 userDisplayName = it.userDisplayName,
                 discoverable = it.discoverable.toString(),
                 creationDate = it.creationDate,
+                prfSecret = it.prfSecret,
+                prfSecretWithoutUv = it.prfSecretWithoutUv,
             )
         }
 

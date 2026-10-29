@@ -127,7 +127,7 @@ private fun mapDecodedImportUserHandle(
  * Maps an imported passkey into Keyguard's stored form, or returns `null` (a
  * counted skip) when the credential id, the private key or the rp id is
  * missing, oversized or undecodable — the three members without which no
- * assertion can ever be produced.
+ * assertion can ever be produced — or when its PRF seeds cannot be stored.
  *
  * The `userHandle` member is the exception: an empty one is read as *absent* and
  * the passkey is kept. See [CxfImportUserHandle].
@@ -141,15 +141,19 @@ internal fun mapImportPasskey(
     passkey: CxfCredential.Passkey,
     creationDate: Instant,
     passkeyCrypto: PasskeyCrypto,
-): DSecret.Login.Fido2Credentials? =
-    when (val handle = mapImportUserHandle(passkey.userHandle)) {
+): DSecret.Login.Fido2Credentials? {
+    val prf = mapImportPasskeyPrfSecrets(passkey.fido2Extensions)
+        .takeUnless { it == CxfPasskeyPrf.Unusable }
+        ?: return null
+    return when (val handle = mapImportUserHandle(passkey.userHandle)) {
         CxfImportUserHandle.Undecodable -> null
         CxfImportUserHandle.Absent ->
-            mapDecodedImportPasskey(passkey, null, creationDate, passkeyCrypto)
+            mapDecodedImportPasskey(passkey, null, creationDate, passkeyCrypto, prf.valueOrNull())
 
         is CxfImportUserHandle.Present ->
-            mapDecodedImportPasskey(passkey, handle.value, creationDate, passkeyCrypto)
+            mapDecodedImportPasskey(passkey, handle.value, creationDate, passkeyCrypto, prf.valueOrNull())
     }
+}
 
 /**
  * Assembles the stored credential. `discoverable` is derived from the user
@@ -165,6 +169,7 @@ private fun mapDecodedImportPasskey(
     userHandle: String?,
     creationDate: Instant,
     passkeyCrypto: PasskeyCrypto,
+    prfSecrets: CxfImportedPrfSecrets?,
 ): DSecret.Login.Fido2Credentials? {
     val credentialId = mapImportCredentialId(passkey.credentialId)
     val key = mapImportKey(passkey.key, passkeyCrypto)
@@ -186,5 +191,7 @@ private fun mapDecodedImportPasskey(
         userDisplayName = passkey.userDisplayName.takeIf { it.isNotBlank() },
         discoverable = userHandle != null,
         creationDate = creationDate,
+        prfSecret = prfSecrets?.prfSecret,
+        prfSecretWithoutUv = prfSecrets?.prfSecretWithoutUv,
     )
 }

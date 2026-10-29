@@ -43,6 +43,26 @@ internal object BitwardenChunkedFields {
             encode(baseName, value, type)
         }
 
+    /**
+     * Reads a value that [encodeSingleOrChunked] wrote into the [fields], each of which
+     * must be the [baseName] field, or a part or the hash of it. Returns `null` if the
+     * group is malformed or carries both forms.
+     */
+    fun decodeSingleOrChunked(
+        baseName: String,
+        fields: List<BitwardenCipher.Field>,
+        type: BitwardenCipher.Field.Type,
+    ): String? {
+        val (single, chunks) = fields.partition { it.name == baseName }
+        return when {
+            single.isNotEmpty() && chunks.isNotEmpty() -> null
+            chunks.isNotEmpty() -> decode(baseName, chunks, type)
+            else -> single.singleOrNull()
+                ?.takeIf { it.type == type && it.linkedId == null }
+                ?.value
+        }
+    }
+
     fun encode(
         baseName: String,
         value: String,

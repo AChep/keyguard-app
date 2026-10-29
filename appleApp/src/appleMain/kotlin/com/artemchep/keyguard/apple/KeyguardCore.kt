@@ -471,7 +471,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     /**
      * [recordId] is a [PasskeyIdentitySnapshot.recordId]; the system supplies [clientDataHash]. Null while locked, or
      * when the credential is gone or does not match [expectedRpId] / [expectedCredentialId]. Invalid requests and
-     * signing errors throw.
+     * signing errors throw. [prfFirst] and [prfSecond] are the PRF inputs for this passkey, if the request has any.
      */
     @Throws(Exception::class)
     suspend fun assertPasskey(
@@ -482,6 +482,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         allowedCredentialIds: List<ByteArray>,
         userVerification: String?,
         userVerified: Boolean,
+        prfFirst: ByteArray?,
+        prfSecond: ByteArray?,
     ): PasskeyAssertionSnapshot? =
         passkeyController.assertPasskey(
             recordId = recordId,
@@ -491,11 +493,14 @@ class KeyguardCore(runtime: KeyguardRuntime) {
             allowedCredentialIds = allowedCredentialIds,
             userVerification = userVerification,
             userVerified = userVerified,
+            prfFirst = prfFirst,
+            prfSecond = prfSecond,
         )
 
     /**
      * Attaches a new passkey ("none" attestation) to the login [cipherRecordId] (`accountId|cipherId`). Null when
-     * the login is gone or read-only, or saving fails; crypto errors throw.
+     * the login is gone or read-only, or saving fails; crypto errors throw. [prfRequested] creates a passkey that
+     * supports the PRF, and [prfFirst] and [prfSecond] are the PRF inputs, if the request has any.
      */
     @Throws(Exception::class)
     suspend fun createPasskey(
@@ -507,6 +512,9 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         userHandle: ByteArray,
         userVerification: String?,
         userVerified: Boolean,
+        prfRequested: Boolean,
+        prfFirst: ByteArray?,
+        prfSecond: ByteArray?,
     ): PasskeyRegistrationSnapshot? =
         passkeyController.createPasskey(
             cipherRecordId = cipherRecordId,
@@ -517,6 +525,9 @@ class KeyguardCore(runtime: KeyguardRuntime) {
             userHandle = userHandle,
             userVerification = userVerification,
             userVerified = userVerified,
+            prfRequested = prfRequested,
+            prfFirst = prfFirst,
+            prfSecond = prfSecond,
         )
 
     private val fido2PromptHost by lazy { com.artemchep.keyguard.apple.auth.Fido2PromptController(context) }

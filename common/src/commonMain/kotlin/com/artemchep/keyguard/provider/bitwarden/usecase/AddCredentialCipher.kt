@@ -92,6 +92,7 @@ class AddCredentialCipherImpl(
                 userDisplayName = data.userDisplayName,
                 discoverable = data.discoverable.toString(),
                 creationDate = createdAt,
+                prfSecret = data.prfSecret,
             )
             listOf(passkey)
         }

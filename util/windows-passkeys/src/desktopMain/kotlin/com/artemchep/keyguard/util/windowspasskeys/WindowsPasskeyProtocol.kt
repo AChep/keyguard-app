@@ -82,6 +82,10 @@ internal sealed interface CommandVariantProto {
     @Serializable
     @SerialName("start")
     data class Start(@ProtoNumber(13) val value: EmptyProto) : CommandVariantProto
+
+    @Serializable
+    @SerialName("refresh_registration")
+    data class RefreshRegistration(@ProtoNumber(14) val value: EmptyProto) : CommandVariantProto
 }
 
 @Serializable
@@ -258,6 +262,32 @@ internal class RequestProto(
     val discoverable: Boolean = false,
     @ProtoNumber(12)
     val expiresInMs: Long = 0,
+    @ProtoNumber(13)
+    val prf: PrfProto? = null,
+)
+
+@Serializable
+internal class PrfProto(
+    @ProtoNumber(1)
+    val eval: PrfValuesProto? = null,
+    @ProtoNumber(2)
+    val evalByCredential: List<PrfCredentialValuesProto> = emptyList(),
+)
+
+@Serializable
+internal class PrfValuesProto(
+    @ProtoNumber(1)
+    val first: ByteArray = byteArrayOf(),
+    @ProtoNumber(2)
+    val second: ByteArray? = null,
+)
+
+@Serializable
+internal class PrfCredentialValuesProto(
+    @ProtoNumber(1)
+    val credentialId: ByteArray = byteArrayOf(),
+    @ProtoNumber(2)
+    val values: PrfValuesProto? = null,
 )
 
 @Serializable
@@ -288,6 +318,10 @@ internal class ResponseProto(
     val signature: ByteArray? = null,
     @ProtoNumber(4)
     val userHandle: ByteArray? = null,
+    @ProtoNumber(5)
+    val prfEnabled: Boolean = false,
+    @ProtoNumber(6)
+    val prfResults: PrfValuesProto? = null,
 )
 
 @Serializable
@@ -320,6 +354,7 @@ internal data class LimitsProto(
 internal object WindowsPasskeyCommands {
     val status = command(CommandVariantProto.Status(EmptyProto))
     val register = command(CommandVariantProto.Register(EmptyProto))
+    val refreshRegistration = command(CommandVariantProto.RefreshRegistration(EmptyProto))
     val unregister = command(CommandVariantProto.Unregister(EmptyProto))
     val clear = command(CommandVariantProto.Clear(EmptyProto))
     val start = command(CommandVariantProto.Start(EmptyProto))
@@ -421,6 +456,19 @@ private fun RequestProto.toModel() = WindowsPasskeyRequest(
     algorithms = algorithms,
     discoverable = discoverable,
     expiresInMs = expiresInMs,
+    prf = prf?.let { prf ->
+        WindowsPasskeyPrf(
+            eval = prf.eval?.let { WindowsPasskeyPrfValues(first = it.first, second = it.second) },
+            evalByCredential = prf.evalByCredential.mapNotNull { credential ->
+                credential.values?.let {
+                    WindowsPasskeyPrfCredentialValues(
+                        credentialId = credential.credentialId,
+                        values = WindowsPasskeyPrfValues(first = it.first, second = it.second),
+                    )
+                }
+            },
+        )
+    },
 )
 
 private fun WindowsPasskeyResponse.toProto() = ResponseProto(
@@ -428,6 +476,8 @@ private fun WindowsPasskeyResponse.toProto() = ResponseProto(
     credentialId = credentialId,
     signature = signature,
     userHandle = userHandle,
+    prfEnabled = prfEnabled,
+    prfResults = prfResults?.let { PrfValuesProto(first = it.first, second = it.second) },
 )
 
 private fun WindowsPasskeyFailure?.toProto() = when (this) {

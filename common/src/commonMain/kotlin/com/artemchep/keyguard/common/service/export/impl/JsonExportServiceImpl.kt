@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.common.service.export.impl
 
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenEnvironmentFieldCodec
+import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenPasskeyFieldCodec
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenSshCertificateFieldCodec
 import com.artemchep.keyguard.provider.bitwarden.mapper.toCertificateTransportFields
+import com.artemchep.keyguard.provider.bitwarden.mapper.toPasskeyTransportFields
 import com.artemchep.keyguard.provider.bitwarden.mapper.toTransportFields
 import arrow.core.getOrElse
 import arrow.core.getOrNone
@@ -205,6 +207,12 @@ class JsonExportServiceImpl(
                     ?.takeIf { type == DSecret.Type.SshKey }
                     ?.toCertificateTransportFields()
                     .orEmpty()
+                // The Bitwarden passkey has no PRF secret, so it is
+                // written out as a custom field, as Keyguard syncs it.
+                val passkeyFields = login
+                    ?.takeIf { type == DSecret.Type.Login }
+                    ?.toPasskeyTransportFields(fields)
+                    .orEmpty()
                 val userFields = fields
                     .filterNot { field ->
                         val gpgField = gpgFields.isNotEmpty() && field.name in GPG_FIELD_NAMES
@@ -212,9 +220,11 @@ class JsonExportServiceImpl(
                                 BitwardenEnvironmentFieldCodec.isTransportField(field.name)
                         val certificateField = certificateFields.isNotEmpty() &&
                                 BitwardenSshCertificateFieldCodec.isTransportField(field.name)
-                        gpgField || environmentField || certificateField
+                        val passkeyField = passkeyFields.isNotEmpty() &&
+                                BitwardenPasskeyFieldCodec.isTransportField(field.name)
+                        gpgField || environmentField || certificateField || passkeyField
                     }
-                (environmentFields + userFields + certificateFields)
+                (environmentFields + userFields + certificateFields + passkeyFields)
                     .forEach { field ->
                         val type = FieldTypeEntity.of(field.type)
                         val linkedId = field.linkedId?.let(LinkedIdTypeEntity::of)

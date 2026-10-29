@@ -1622,6 +1622,8 @@ class AddStateItemPasskeyFactory(
         val userDisplayName: String? = null,
         val discoverable: Boolean,
         val creationDate: Instant,
+        val prfSecret: String? = null,
+        val prfSecretWithoutUv: String? = null,
     )
 
     private fun PasskeyData.toDomainOrNull(): DSecret.Login.Fido2Credentials? {
@@ -1639,6 +1641,8 @@ class AddStateItemPasskeyFactory(
             userDisplayName = userDisplayName,
             discoverable = discoverable,
             creationDate = creationDate,
+            prfSecret = prfSecret,
+            prfSecretWithoutUv = prfSecretWithoutUv,
         )
     }
 
@@ -1677,6 +1681,8 @@ class AddStateItemPasskeyFactory(
                     userDisplayName = it.userDisplayName,
                     discoverable = it.discoverable,
                     creationDate = it.creationDate,
+                    prfSecret = it.prfSecret,
+                    prfSecretWithoutUv = it.prfSecretWithoutUv,
                 )
             }
             PasskeyHolder(data = data)

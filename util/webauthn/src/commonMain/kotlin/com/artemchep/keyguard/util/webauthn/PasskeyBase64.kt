@@ -34,6 +34,15 @@ object PasskeyBase64 {
         .takeIf { it.length <= MAX_ENCODED_USER_HANDLE_CHARS }
         ?.let(::decodeStoredKeyOrNull)
         ?.takeIf { it.size in 1..MAX_USER_HANDLE_BYTES }
+
+    /**
+     * A stored PRF secret in either Base64 alphabet, with or without padding. `null` if it
+     * is unreadable, empty, or longer than [MAX_WEBAUTHN_PRF_SECRET_BYTES].
+     */
+    fun decodePrfSecretOrNull(data: String): ByteArray? = data
+        .takeIf { it.length <= MAX_ENCODED_PRF_SECRET_CHARS }
+        ?.let(::decodeStoredKeyOrNull)
+        ?.takeIf { it.size in 1..MAX_WEBAUTHN_PRF_SECRET_BYTES }
 }
 
 /** https://www.w3.org/TR/webauthn-3/#dom-publickeycredentialuserentity-id */
@@ -41,3 +50,6 @@ private const val MAX_USER_HANDLE_BYTES = 64
 
 /** Padded Base64 of [MAX_USER_HANDLE_BYTES]. */
 private const val MAX_ENCODED_USER_HANDLE_CHARS = 88
+
+/** Padded Base64 of [MAX_WEBAUTHN_PRF_SECRET_BYTES]. */
+private const val MAX_ENCODED_PRF_SECRET_CHARS = (MAX_WEBAUTHN_PRF_SECRET_BYTES + 2) / 3 * 4

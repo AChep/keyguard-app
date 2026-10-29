@@ -36,6 +36,7 @@ fun DSecret.Login.Fido2Credentials.toWebAuthnCredential() = WebAuthnCredential(
     userName = userName,
     userDisplayName = userDisplayName,
     discoverable = discoverable,
+    prfSecret = prfSecret,
 )
 
 fun WebAuthnCredential.toAddCredentialCipherRequest() = AddCredentialCipherRequestPasskeyData(
@@ -51,6 +52,7 @@ fun WebAuthnCredential.toAddCredentialCipherRequest() = AddCredentialCipherReque
     userName = userName,
     userDisplayName = userDisplayName,
     discoverable = discoverable,
+    prfSecret = prfSecret,
 )
 
 /** The passkeys of items that are neither archived nor in the trash, each with its item. */

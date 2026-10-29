@@ -28,6 +28,7 @@ import com.artemchep.keyguard.util.webauthn.WebAuthnException
 import com.artemchep.keyguard.util.webauthn.WebAuthnInvalidStateException
 import com.artemchep.keyguard.util.webauthn.WebAuthnNotSupportedException
 import com.artemchep.keyguard.util.webauthn.entity.CreatePasskey
+import com.artemchep.keyguard.util.webauthn.requireWebAuthnPrfRegistrationInputs
 import kotlinx.serialization.json.Json
 import com.artemchep.keyguard.util.webauthn.decodeExcludedCredentialIds as decodeWebAuthnExcludedCredentialIds
 
@@ -63,6 +64,9 @@ class PasskeyCreateRequest(
             is CreatePublicKeyCredentialRequest -> {
                 val data = json.decodeFromString<CreatePasskey>(callingRequest.requestJson)
                 decodeExcludedCredentialIds(data)
+                mapCreateWebAuthnExceptions {
+                    data.requireWebAuthnPrfRegistrationInputs()
+                }
                 val origin = passkeyUtils.callingAppOrigin(
                     appInfo = request.callingAppInfo,
                     privilegedApps = privilegedApps,

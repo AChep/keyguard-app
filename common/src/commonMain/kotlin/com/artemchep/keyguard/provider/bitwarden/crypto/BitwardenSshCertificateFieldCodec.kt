@@ -38,15 +38,7 @@ internal object BitwardenSshCertificateFieldCodec {
     /** Returns `null` if the [fields] carry no intact certificate. */
     fun decode(fields: List<BitwardenCipher.Field>): Decoded? {
         val (transport, remaining) = fields.partition { isTransportField(it.name) }
-        val (single, chunks) = transport.partition { it.name == FIELD_NAME }
-        val certificate = when {
-            single.isNotEmpty() && chunks.isNotEmpty() -> null
-            chunks.isNotEmpty() -> BitwardenChunkedFields.decode(FIELD_NAME, chunks, FIELD_TYPE)
-            else -> single.singleOrNull()
-                ?.takeIf { it.type == FIELD_TYPE && it.linkedId == null }
-                ?.value
-        }
-        return certificate
+        return BitwardenChunkedFields.decodeSingleOrChunked(FIELD_NAME, transport, FIELD_TYPE)
             ?.takeIf { it.isNotBlank() }
             ?.let { Decoded(it, remaining) }
     }

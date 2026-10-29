@@ -201,6 +201,16 @@ class CxfExportSkipAccountingTest {
             expected = cxfExportSkips(CxfExportSkipReason.Passkey to 1),
         ),
         SkipCase(
+            name = "a passkey whose PRF secret cannot travel is counted",
+            secret = cxfLoginSecret(
+                login = DSecret.Login(
+                    password = "s3cr3t",
+                    fido2Credentials = listOf(cxfFido2Credential().copy(prfSecret = "not base64!")),
+                ),
+            ),
+            expected = cxfExportSkips(CxfExportSkipReason.Passkey to 1),
+        ),
+        SkipCase(
             name = "an item lost to its only unconvertible ssh key is not counted twice",
             secret = cxfSecret(
                 type = DSecret.Type.SshKey,

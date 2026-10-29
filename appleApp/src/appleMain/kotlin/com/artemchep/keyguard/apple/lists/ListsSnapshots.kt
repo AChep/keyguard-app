@@ -52,6 +52,9 @@ data class PasskeyAssertionSnapshot(
     val signature: ByteArray,
     val userHandle: ByteArray,
     val rpId: String,
+    /** The PRF outputs, if the request had inputs for this passkey and it supports the PRF. */
+    val prfFirst: ByteArray? = null,
+    val prfSecond: ByteArray? = null,
 )
 
 /** A computed WebAuthn registration (the appex returns these as `ASPasskeyRegistrationCredential`). */
@@ -60,6 +63,11 @@ data class PasskeyRegistrationSnapshot(
     val attestationObject: ByteArray,
     val rpId: String,
     val identity: PasskeyIdentitySnapshot,
+    /** Whether the passkey supports the PRF, only if the request asked for it. */
+    val prfEnabled: Boolean = false,
+    /** The PRF outputs, if the request had inputs. */
+    val prfFirst: ByteArray? = null,
+    val prfSecond: ByteArray? = null,
 )
 
 enum class SshAgentHistoryItemKind {

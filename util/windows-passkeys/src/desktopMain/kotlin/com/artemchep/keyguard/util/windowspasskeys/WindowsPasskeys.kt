@@ -58,6 +58,34 @@ data class WindowsPasskeyUser(val id: ByteArray, val name: String, val displayNa
     override fun hashCode() = listOf(id.contentHashCode(), name, displayName).hashCode()
 }
 
+/** The two values of the PRF extension: its salts or its outputs. */
+data class WindowsPasskeyPrfValues(val first: ByteArray, val second: ByteArray? = null) {
+    override fun equals(other: Any?) = other is WindowsPasskeyPrfValues &&
+        first.contentEquals(other.first) &&
+        second.contentEquals(other.second)
+
+    override fun hashCode() = 31 * first.contentHashCode() + second.contentHashCode()
+}
+
+data class WindowsPasskeyPrfCredentialValues(val credentialId: ByteArray, val values: WindowsPasskeyPrfValues) {
+    override fun equals(other: Any?) = other is WindowsPasskeyPrfCredentialValues &&
+        credentialId.contentEquals(other.credentialId) &&
+        values == other.values
+
+    override fun hashCode() = 31 * credentialId.contentHashCode() + values.hashCode()
+}
+
+/**
+ * The PRF extension of a request. Windows sends the salts that it derived from the site's
+ * inputs, as SHA-256("WebAuthn PRF" || 0x00 || input), and asks for the extension with every
+ * registration.
+ */
+data class WindowsPasskeyPrf(
+    val eval: WindowsPasskeyPrfValues? = null,
+    /** Sign-in only: the salts for the allowed credentials, which take precedence over [eval]. */
+    val evalByCredential: List<WindowsPasskeyPrfCredentialValues> = emptyList(),
+)
+
 data class WindowsPasskeyRequest(
     val id: Long,
     val create: Boolean,
@@ -72,6 +100,7 @@ data class WindowsPasskeyRequest(
     val discoverable: Boolean,
     /** The time left before Windows stops waiting, as of this request's delivery. */
     val expiresInMs: Long,
+    val prf: WindowsPasskeyPrf? = null,
 ) {
     override fun equals(other: Any?) = other is WindowsPasskeyRequest &&
         id == other.id &&
@@ -85,11 +114,12 @@ data class WindowsPasskeyRequest(
         rpName == other.rpName &&
         algorithms == other.algorithms &&
         discoverable == other.discoverable &&
-        expiresInMs == other.expiresInMs
+        expiresInMs == other.expiresInMs &&
+        prf == other.prf
 
     override fun hashCode() = listOf(
         id, create, window, rpId, clientDataHash.contentHashCode(), userVerification,
-        credentials, user, rpName, algorithms, discoverable, expiresInMs,
+        credentials, user, rpName, algorithms, discoverable, expiresInMs, prf,
     ).hashCode()
 }
 
@@ -98,18 +128,26 @@ data class WindowsPasskeyResponse(
     val credentialId: ByteArray? = null,
     val signature: ByteArray? = null,
     val userHandle: ByteArray? = null,
+    /** Registration only: the passkey supports the PRF extension. */
+    val prfEnabled: Boolean = false,
+    /** The PRF outputs, a secret derived from the passkey. */
+    val prfResults: WindowsPasskeyPrfValues? = null,
 ) {
     override fun equals(other: Any?) = other is WindowsPasskeyResponse &&
         authenticatorData.contentEquals(other.authenticatorData) &&
         credentialId.contentEquals(other.credentialId) &&
         signature.contentEquals(other.signature) &&
-        userHandle.contentEquals(other.userHandle)
+        userHandle.contentEquals(other.userHandle) &&
+        prfEnabled == other.prfEnabled &&
+        prfResults == other.prfResults
 
     override fun hashCode() = listOf(
         authenticatorData.contentHashCode(),
         credentialId.contentHashCode(),
         signature.contentHashCode(),
         userHandle.contentHashCode(),
+        prfEnabled,
+        prfResults,
     ).hashCode()
 }
 
@@ -163,10 +201,14 @@ data class WindowsPasskeyEvent(
  * The provider calls of a running process. [WindowsPasskeys] is the native implementation.
  * Cancelling a caller cancels its native call, which then discards its outcome.
  */
+@Suppress("TooManyFunctions") // Mirrors the native provider operations.
 interface WindowsPasskeyBridge {
     suspend fun readStatus(): WindowsPasskeyStatus
 
     suspend fun register()
+
+    /** Updates an existing provider's metadata, preserving enablement; a missing one stays absent. */
+    suspend fun refreshRegistration()
 
     suspend fun unregister()
 
@@ -237,6 +279,8 @@ object WindowsPasskeys : WindowsPasskeyBridge {
     }
 
     override suspend fun register() = command(WindowsPasskeyCommands.register)
+
+    override suspend fun refreshRegistration() = command(WindowsPasskeyCommands.refreshRegistration)
 
     override suspend fun unregister() = command(WindowsPasskeyCommands.unregister)
 

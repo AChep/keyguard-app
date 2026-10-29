@@ -7,6 +7,7 @@ use crate::{
 use windows::Win32::Foundation::{E_FAIL, S_OK};
 
 mod fake;
+mod registration;
 pub(super) use fake::provider;
 
 #[test]
@@ -230,9 +231,7 @@ fn a_reported_failure_reaches_windows() {
 fn authenticator_data_only() -> Response {
     Response {
         authenticator_data: vec![0; 37],
-        credential_id: None,
-        signature: None,
-        user_handle: None,
+        ..Response::default()
     }
 }
 

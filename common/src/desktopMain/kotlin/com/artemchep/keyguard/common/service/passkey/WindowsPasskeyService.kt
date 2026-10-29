@@ -69,6 +69,7 @@ data class WindowsPasskeyVault(
 }
 
 /** Keeps Windows integration alive when every application window is hidden. */
+@Suppress("TooManyFunctions") // Keeps the provider lifecycle and its metadata jobs together.
 class WindowsPasskeyService(
     private val getVaultSession: GetVaultSession,
     private val vaultAccess: WindowsPasskeyVaultAccess,
@@ -79,9 +80,9 @@ class WindowsPasskeyService(
     private val scope: CoroutineScope,
 ) : ClearDataHook {
     private companion object {
-        /** A failing index update retries after this, doubling up to [CACHE_RETRY_MAX_MS]. */
-        const val CACHE_RETRY_MS = 5000L
-        const val CACHE_RETRY_MAX_MS = 5 * 60_000L
+        /** A failing metadata update retries after this, doubling up to [METADATA_RETRY_MAX_MS]. */
+        const val METADATA_RETRY_MS = 5000L
+        const val METADATA_RETRY_MAX_MS = 5 * 60_000L
 
         /** Also refreshes the status when Windows does not report its changes. */
         val EVENT_TIMEOUT = 30.seconds
@@ -118,7 +119,12 @@ class WindowsPasskeyService(
                 return@launch
             }
             metadataLock.withLock { launchMetadataSync() }
-            handleEvents()
+            val refresh = launch { refreshRegistration() }
+            try {
+                handleEvents()
+            } finally {
+                refresh.cancelAndJoin()
+            }
         }
     }
 
@@ -174,6 +180,17 @@ class WindowsPasskeyService(
 
     private suspend fun readStatus() = attempt { bridge.readStatus() } ?: WindowsPasskeyStatus.UNAVAILABLE
 
+    /** Refreshes public capabilities once per process, even while the vault stays locked. */
+    private suspend fun refreshRegistration() {
+        val retry = ReconnectBackoff(baseDelayMs = METADATA_RETRY_MS, maxDelayMs = METADATA_RETRY_MAX_MS)
+        do {
+            status.first { it.isRegistered }
+            if (attempt { bridge.refreshRegistration() } != null) return
+            // Keep ceremonies running, and wait for registration again if the user removes it.
+            delay(retry.nextDelayMs())
+        } while (true)
+    }
+
     /** Callers hold [metadataLock]. */
     private fun launchMetadataSync() {
         metadataJob = scope.launch { syncMetadata() }
@@ -192,7 +209,7 @@ class WindowsPasskeyService(
                 attempt { bridge.setLocked(session !is MasterSession.Key) }
                 if (session !is MasterSession.Key) return@collectLatest
                 // A persistent OS or vault failure retries less often; any successful sync resets it.
-                val retry = ReconnectBackoff(baseDelayMs = CACHE_RETRY_MS, maxDelayMs = CACHE_RETRY_MAX_MS)
+                val retry = ReconnectBackoff(baseDelayMs = METADATA_RETRY_MS, maxDelayMs = METADATA_RETRY_MAX_MS)
                 while (session.session.active.value) {
                     attempt {
                         vaultAccess.get(session).getVisibleCiphers()

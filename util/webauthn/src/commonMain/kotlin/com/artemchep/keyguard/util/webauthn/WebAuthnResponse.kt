@@ -26,13 +26,14 @@ internal fun clientDataJsonBytes(
 internal fun credentialResponseJson(
     credentialId: ByteArray,
     response: JsonObject,
+    clientExtensionResults: JsonObject = JsonObject(emptyMap()),
 ): JsonObject = buildJsonObject {
     put("id", credentialId)
     put("rawId", credentialId)
     put("type", "public-key")
     put("authenticatorAttachment", "cross-platform")
     put("response", response)
-    put("clientExtensionResults", buildJsonObject { })
+    put("clientExtensionResults", clientExtensionResults)
 }
 
 internal fun registrationResponseJson(

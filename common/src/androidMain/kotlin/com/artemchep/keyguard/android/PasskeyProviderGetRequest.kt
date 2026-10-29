@@ -8,6 +8,8 @@ import androidx.credentials.GetPublicKeyCredentialOption
 import androidx.credentials.PublicKeyCredential
 import androidx.credentials.exceptions.domerrors.EncodingError
 import androidx.credentials.exceptions.domerrors.NotAllowedError
+import androidx.credentials.exceptions.domerrors.NotSupportedError
+import androidx.credentials.exceptions.domerrors.SyntaxError
 import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentialDomException
 import androidx.credentials.provider.ProviderGetCredentialRequest
 import androidx.credentials.webauthn.PublicKeyCredentialRequestOptions
@@ -18,8 +20,12 @@ import com.artemchep.keyguard.util.webauthn.WebAuthnAssertionRequest
 import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticator
 import com.artemchep.keyguard.util.webauthn.WebAuthnCallerContext
 import com.artemchep.keyguard.util.webauthn.WebAuthnEncodingException
+import com.artemchep.keyguard.util.webauthn.WebAuthnException
 import com.artemchep.keyguard.util.webauthn.WebAuthnNotAllowedException
+import com.artemchep.keyguard.util.webauthn.WebAuthnNotSupportedException
+import com.artemchep.keyguard.util.webauthn.WebAuthnSyntaxException
 import com.artemchep.keyguard.util.webauthn.parseWebAuthnAllowedCredentialDescriptors
+import com.artemchep.keyguard.util.webauthn.parseWebAuthnPrfAssertionInputs
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -41,6 +47,7 @@ class PasskeyProviderGetRequest(
     ): GetCredentialResponse {
         val opt = request.credentialOptions.first() as GetPublicKeyCredentialOption
         val js = PublicKeyCredentialRequestOptions(opt.requestJson)
+        val body = json.parseToJsonElement(opt.requestJson) as? JsonObject
 
         val origin = passkeyUtils.callingAppOrigin(
             appInfo = request.callingAppInfo,
@@ -48,16 +55,18 @@ class PasskeyProviderGetRequest(
         )
         val packageName = request.callingAppInfo.packageName
         val rpId = passkeyUtils.resolveAndValidateRpId(
-            rpId = requestRpIdOrNull(opt.requestJson),
+            rpId = requestRpIdOrNull(body),
             origin = origin,
             packageName = packageName,
         )
         val responseJson = mapGetWebAuthnExceptions {
+            val allowedCredentials = parseWebAuthnAllowedCredentialDescriptors(body)
             authenticator.getAssertion(
                 request = WebAuthnAssertionRequest(
                     challenge = js.challenge,
                     userVerification = js.userVerification,
-                    allowedCredentials = parseWebAuthnAllowedCredentialDescriptors(opt.requestJson, json),
+                    allowedCredentials = allowedCredentials,
+                    prf = parseWebAuthnPrfAssertionInputs(body, allowedCredentials),
                 ),
                 context = WebAuthnCallerContext(origin, rpId, packageName),
                 credential = credential.toWebAuthnCredential(),
@@ -69,11 +78,9 @@ class PasskeyProviderGetRequest(
     }
 
     private fun requestRpIdOrNull(
-        requestJson: String,
+        body: JsonObject?,
     ): String? {
-        val body = json.parseToJsonElement(requestJson) as? JsonObject
-            ?: return null
-        if (!body.containsKey("rpId")) {
+        if (body == null || !body.containsKey("rpId")) {
             return null
         }
 
@@ -87,16 +94,16 @@ internal inline fun <T> mapGetWebAuthnExceptions(
 ): T {
     try {
         return block()
-    } catch (e: WebAuthnEncodingException) {
-        throw GetPublicKeyCredentialDomException(
-            domError = EncodingError(),
-            errorMessage = e.message.orEmpty(),
-        ).apply {
-            initCause(e)
+    } catch (e: WebAuthnException) {
+        val domError = when (e) {
+            is WebAuthnEncodingException -> EncodingError()
+            is WebAuthnNotAllowedException -> NotAllowedError()
+            is WebAuthnNotSupportedException -> NotSupportedError()
+            is WebAuthnSyntaxException -> SyntaxError()
+            else -> throw e
         }
-    } catch (e: WebAuthnNotAllowedException) {
         throw GetPublicKeyCredentialDomException(
-            domError = NotAllowedError(),
+            domError = domError,
             errorMessage = e.message.orEmpty(),
         ).apply {
             initCause(e)

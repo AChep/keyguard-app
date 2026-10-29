@@ -18,8 +18,9 @@ one live request with a 120-second deadline. Cancellation, vault lock,
 and shutdown invalidate it; delayed Windows Hello results cannot revive it.
 
 Kotlin owns credential selection, authenticated unlock, vault access, and the
-shared WebAuthn authenticator. Private keys never cross this bridge. JNI carries
-bounded requests, public metadata, authenticator data, and assertion signatures.
+shared WebAuthn authenticator. Private keys and PRF secrets never cross this
+bridge. JNI carries bounded requests, public metadata, authenticator data,
+assertion signatures, and PRF salts and outputs.
 Only Windows-signed requests can initiate a ceremony. The RP ID and client-data
 hash are preserved exactly as supplied by Windows, which validates the caller.
 
@@ -27,6 +28,31 @@ Every response tells the site that the user was verified, so the bridge sends
 one only for a verified request: Rust checks the Windows Hello signature, or
 Kotlin reports that the user unlocked the vault during the request. Otherwise
 the request ends. Kotlin also asks for the password of items that require it.
+
+## PRF extension
+
+Microsoft documents no PRF contract for providers. `webauthn.dll` 26100.9549
+behaves as follows, read from its public symbols:
+
+- Windows forwards PRF salts only to a provider whose `authenticatorGetInfo`
+  lists `prf`. They are already derived as
+  `SHA-256("WebAuthn PRF" || 0x00 || input)`, so Keyguard computes
+  `HMAC-SHA-256(secret, salt)`.
+- With `prf` listed, every registration carries the extension: Windows doesn't
+  say whether the site asked. Every passkey created on Windows gets a PRF secret.
+- The outputs go in the CTAP unsigned extension outputs: key 6 of a
+  registration (`prf.enabled`, `prf.results`), key 8 of a sign-in
+  (`prf.results`).
+- Windows passes the results to the site only from `webauthn.dll` 26100.8521,
+  and only while its feature 61936779 is enabled, a staged rollout. Otherwise
+  sign-in works without them. `prf.enabled` doesn't depend on it.
+- Windows stores the provider info at registration. On startup, Keyguard refreshes
+  existing registrations in place, preserving enablement and retrying failures.
+  This advertises `prf` after upgrades without unregistering the provider.
+- A PRF value Keyguard doesn't expect never fails the request. Extensions that
+  don't parse count as no PRF. A `prf` entry with inputs that don't parse counts
+  as PRF support without inputs: a new passkey still gets its secret, and a
+  sign-in returns no results.
 
 ## Wire protocol
 

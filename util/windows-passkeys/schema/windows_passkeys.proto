@@ -34,6 +34,8 @@ message Command {
     // Serves Windows' requests until stop or retire; serving already is no change. Only
     // this command starts serving, and it can start again after a failure or a stop.
     Empty start = 13;
+    // Updates existing provider metadata without adding a registration or changing enablement.
+    Empty refresh_registration = 14;
   }
 }
 
@@ -139,6 +141,26 @@ message Request {
   bool discoverable = 11;
   // The time left before Windows stops waiting, as of the delivery.
   uint64 expires_in_ms = 12;
+  // The PRF extension. Windows asks for it with every registration, and with a sign-in only
+  // when the site sends inputs.
+  optional Prf prf = 13;
+}
+
+// PRF inputs as Windows sends them: salts it derived as SHA-256("WebAuthn PRF" || 0x00 || input).
+message Prf {
+  optional PrfValues eval = 1;
+  // Sign-in only: the salts for the allowed credentials, which take precedence over eval.
+  repeated PrfCredentialValues eval_by_credential = 2;
+}
+
+message PrfValues {
+  bytes first = 1;
+  optional bytes second = 2;
+}
+
+message PrfCredentialValues {
+  bytes credential_id = 1;
+  PrfValues values = 2;
 }
 
 message Descriptor {
@@ -158,6 +180,10 @@ message Response {
   optional bytes credential_id = 2;
   optional bytes signature = 3;
   optional bytes user_handle = 4;
+  // Registration only: the passkey supports the PRF extension.
+  bool prf_enabled = 5;
+  // The PRF outputs, a secret derived from the passkey.
+  optional PrfValues prf_results = 6;
 }
 
 // Windows retains these while the vault is locked.

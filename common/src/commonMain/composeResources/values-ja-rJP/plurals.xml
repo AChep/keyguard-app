@@ -133,6 +133,9 @@
     <plurals name="agent_approval_expires_in_seconds_plural">
         <item quantity="other"><xliff:g id="seconds" example="30">%1$d</xliff:g> 秒後に期限切れ</item>
     </plurals>
+    <plurals name="agent_approval_expires_in_minutes_plural">
+        <item quantity="other">Expires in <xliff:g id="minutes" example="5">%1$d</xliff:g> minutes</item>
+    </plurals>
     <plurals name="gpg_user_ids_count_plural">
         <item quantity="other">有効なユーザー ID：<xliff:g id="count" example="2">%1$d</xliff:g> 件</item>
     </plurals>
@@ -144,5 +147,11 @@
     </plurals>
     <plurals name="attachment_preview_gpg_skipped_certificates_plural">
         <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+    </plurals>
+    <plurals name="attachment_preview_json_properties">
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> properties</item>
+    </plurals>
+    <plurals name="attachment_preview_json_items">
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> items</item>
     </plurals>
 </resources>

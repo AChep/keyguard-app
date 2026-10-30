@@ -15,10 +15,10 @@
     <string name="more_actions">更多操作</string>
     <string name="hide">隐藏</string>
     <string name="actions">操作</string>
-    <string name="open_in_keyguard_action">在Keyguard中打开</string>
+    <string name="open_in_keyguard_action">在 Keyguard 中打开</string>
     <string name="more">更多</string>
     <string name="server">服务器</string>
-    <string name="confirm">确认绑定</string>
+    <string name="confirm">确认</string>
     <string name="change">更改</string>
     <string name="website">网站</string>
     <string name="phone">电话</string>
@@ -27,12 +27,12 @@
     <string name="attachment">附件</string>
     <string name="warning">警告</string>
     <string name="instance_service_error_title">Keyguard 实例服务失败</string>
-    <string name="instance_service_error_text">Keyguard无法启动或联系它的实例服务。如果此现象在重启Keyguard后持续，请在错误报告中附上下面的详细信息。</string>
+    <string name="instance_service_error_text">Keyguard 无法启动或联系它的实例服务。如果此现象在重启 Keyguard 后持续，请在错误报告中附上下面的详细信息。</string>
     <string name="instance_service_permission_text">Keyguard 无法安全地访问其实例文件。检查其数据和运行时目录及其父目录的所有权和权限。</string>
-    <string name="instance_service_timeout_text">另一个Keyguard进程没有及时响应。关闭该进程后再试一次。</string>
-    <string name="instance_service_unavailable_text">本机实例服务不可用。若重启后重新安装Keyguard将不会有帮助。</string>
+    <string name="instance_service_timeout_text">另一个 Keyguard 进程没有及时响应。关闭该进程后再试一次。</string>
+    <string name="instance_service_unavailable_text">本机实例服务不可用。如果重启 Keyguard 后仍无法解决，请重新安装。</string>
     <string name="instance_service_configuration_text">实例服务的配置或协议无效，请在错误报告中附上以下详情。</string>
-    <string name="instance_service_stopped_text">实例服务已停止且无法恢复，请完成所有编辑后退出并重新打开 Keyguard。在重启之前，后续启动无法激活此窗口。</string>
+    <string name="instance_service_stopped_text">实例服务已停止且无法恢复。请先完成所有编辑，再退出并重新打开 Keyguard。在重启之前，再次启动也无法激活此窗口。</string>
     <!-- A name of a thing, such as an account -->
     <string name="generic_name">名称</string>
     <string name="description">描述</string>
@@ -168,11 +168,11 @@
     <string name="tags_empty_label">无标签</string>
     <string name="tags_field_placeholder">添加标签</string>
     <string name="tag_remove_content_description">移除标签 <xliff:g id="tag" example="work">%1$s</xliff:g></string>
-    <string name="collection_none">暂无收藏</string>
-    <string name="collection">收藏</string>
-    <string name="collections">收藏</string>
-    <string name="collections_empty_label">暂无收藏</string>
-    <string name="collections_empty_text">与此账户共享的收藏会显示在此处。</string>
+    <string name="collection_none">暂无集合</string>
+    <string name="collection">集合</string>
+    <string name="collections">集合</string>
+    <string name="collections_empty_label">暂无集合</string>
+    <string name="collections_empty_text">与此账户共享的集合会显示在此处。</string>
     <string name="organization_none">我的密码库</string>
     <string name="grouping_view_items_action">查看条目</string>
     <string name="organization">组织</string>
@@ -197,10 +197,10 @@
     <string name="account_none">暂无账户</string>
     <string name="type">类型</string>
     <string name="options">选项</string>
-    <string name="send">发送</string>
+    <string name="send">Send</string>
     <string name="reset">重置</string>
     <string name="length">长度</string>
-    <string name="security">安全性</string>
+    <string name="security">安全</string>
     <string name="contact_info">联系人信息</string>
     <string name="identity_title">标题</string>
     <string name="identity_first_name">名</string>
@@ -262,7 +262,7 @@
     <string name="remove">移除</string>
     <string name="remove_from_history">从历史记录中移除</string>
     <string name="pkcs12_password">PKCS#12 密码</string>
-    <string name="pkcs12_password_title">输入PKCS#12 密码</string>
+    <string name="pkcs12_password_title">输入 PKCS#12 密码</string>
     <string name="pkcs12_password_note">该 PKCS#12 包已加密。</string>
     <string name="reused_password">重复使用的密码</string>
     <string name="reused_passwords">重复使用的密码</string>
@@ -277,7 +277,7 @@
     <string name="twofa_available">双因素认证可用</string>
     <string name="custom">自定义</string>
     <string name="grant_permission">授权</string>
-    <string name="create_account">创建帐号</string>
+    <string name="create_account">创建账户</string>
     <string name="follow_system_settings">跟随系统设置</string>
     <!-- A feature is coming soon! -->
     <string name="coming_soon">即将上线</string>
@@ -306,7 +306,7 @@
     <string name="encryption_key">密钥</string>
     <string name="encryption_hash">哈希值</string>
     <string name="encryption_salt">盐</string>
-    <string name="encryption_algorithm_256bit_aes">256位 AES</string>
+    <string name="encryption_algorithm_256bit_aes">256 位 AES</string>
     <string name="encryption_random_bits_data">随机的 <xliff:g id="length" example="64">%1$d</xliff:g> 位数据</string>
     <string name="none">无</string>
     <string name="text">文本</string>
@@ -336,7 +336,7 @@
     <string name="key_gpg_value_placeholder">这里看起来空空如也。生成一个 GPG 密钥以开始！</string>
     <string name="fingerprint_phrase">指纹短语</string>
     <string name="fingerprint_phrase_help_title">什么是指纹？</string>
-    <string name="filter_auth_reprompt_items">身份验证重新提示</string>
+    <string name="filter_auth_reprompt_items">认证重新提示</string>
     <string name="filter_pending_items">等待中</string>
     <string name="filter_failed_items">失败</string>
     <string name="bitwarden_premium">Bitwarden 高级版</string>
@@ -360,27 +360,27 @@
     <string name="addaccount_method_phone_title">手机登录</string>
     <string name="addaccount_method_phone_text">使用已配对的安卓手机</string>
     <string name="addaccount_method_phone_unavailable">未找到已配对的安卓手机</string>
-    <string name="addaccount_method_phone_checking">Checking for a paired Android phone</string>
-    <string name="addaccount_method_phone_services_unavailable">Google Play services is unavailable. Reopen this screen to try again.</string>
+    <string name="addaccount_method_phone_checking">正在检查已配对的 Android 手机</string>
+    <string name="addaccount_method_phone_services_unavailable">Google Play 服务不可用。请重新打开此界面后再试。</string>
     <string name="addaccount_method_phone_waiting">正在等待手机</string>
     <string name="addaccount_method_phone_importing">导入账户中</string>
     <string name="addaccount_method_phone_failed">手机登录失败</string>
-    <string name="addaccount_method_phone_cancelled">Phone login cancelled on the phone</string>
-    <string name="addaccount_method_phone_error_unreachable">The phone is not reachable</string>
-    <string name="addaccount_method_phone_error_multiple_phones">More than one phone is reachable</string>
-    <string name="addaccount_method_phone_error_launch">Couldn't open Keyguard on the phone</string>
-    <string name="addaccount_method_phone_error_timeout">Phone login timed out</string>
-    <string name="addaccount_method_phone_error_too_large">Too much data to transfer to the watch</string>
-    <string name="addaccount_method_phone_error_version">Keyguard versions on the phone and the watch don't match. Update both.</string>
-    <string name="addaccount_method_phone_error_verification">Couldn't verify the response from the phone</string>
-    <string name="addaccount_method_phone_error_on_phone">Login failed on the phone. Check the phone for details.</string>
-    <string name="addaccount_method_phone_error_import">Couldn't add the account to the watch</string>
+    <string name="addaccount_method_phone_cancelled">已在手机上取消登录</string>
+    <string name="addaccount_method_phone_error_unreachable">无法连接到手机</string>
+    <string name="addaccount_method_phone_error_multiple_phones">检测到多部可连接的手机</string>
+    <string name="addaccount_method_phone_error_launch">无法在手机上打开 Keyguard</string>
+    <string name="addaccount_method_phone_error_timeout">手机登录超时</string>
+    <string name="addaccount_method_phone_error_too_large">传输到手表的数据过多</string>
+    <string name="addaccount_method_phone_error_version">手机和手表上的 Keyguard 版本不一致，请将两者都更新。</string>
+    <string name="addaccount_method_phone_error_verification">无法验证来自手机的响应</string>
+    <string name="addaccount_method_phone_error_on_phone">手机上的登录失败，请查看手机了解详情。</string>
+    <string name="addaccount_method_phone_error_import">无法将账户添加到手表</string>
     <string name="addaccount_method_phone_pick">选择手机</string>
     <string name="companionauth_header_title">手表设置</string>
     <string name="companionauth_header_text">登录即可将此帐户添加到您的手表</string>
     <string name="qr_wifi_description_text">使用另一台设备扫描此二维码即可加入此 WiFi 网络。</string>
     <string name="qr_generate_button">生成二维码</string>
-    <string name="pro_tip">专业提示: <xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
+    <string name="pro_tip">专业提示：<xliff:g id="tip" example="Wake up early and work a lot!">%1$s</xliff:g></string>
     <string name="pro_tip_generate_email_relay_title">生成独特的电子邮件地址以更好地保护隐私。</string>
     <string name="account_last_synced_at">上次同步于 <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
     <string name="account_action_change_name_title">修改名称</string>
@@ -399,7 +399,7 @@
     <string name="account_action_premium_purchase_instructions_title">将您的账户升级至高级会员，解锁一些强大的附加功能。</string>
     <string name="account_action_tfa_title">双因素认证</string>
     <string name="account_action_tfa_text">需要使用另一个设备进行登录验证，如安全密钥、身份验证器应用、短信或电子邮件</string>
-    <string name="account_action_tfa_active_status">启用</string>
+    <string name="account_action_tfa_active_status">已启用</string>
     <string name="account_action_items_title">条目</string>
     <string name="account_action_log_out_title">登出</string>
     <string name="account_log_out_confirmation_title">确认登出？</string>
@@ -444,7 +444,7 @@
     <string name="ciphers_action_view_ssh_agent_history_title">查看 SSH 代理历史记录</string>
     <string name="ciphers_action_upload_gpg_public_key_title">上传 GPG 公钥</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">上传公钥到密钥服务器？</string>
-    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard 将把此条目的 ASCII 封装的 GPG 公钥发送到您配置的密钥服务器。公钥可能包含指纹、用户 ID（如姓名和电子邮件地址）、子钥、日期和吊销状态。密钥服务器可能会存储并重新分发这些公开数据。此次上传不会请求验证邮件。</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard 将把此条目的 ASCII 封装的 GPG 公钥发送到您配置的密钥服务器。公钥可能包含指纹、用户 ID（如姓名和电子邮件地址）、子钥、日期和吊销状态。密钥服务器可能会存储并重新分发这些公开数据。</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">选择应接收密钥服务器验证邮件的电子邮件地址。在地址通过验证之前，无法通过该地址找到此密钥。</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">刷新 GPG 公钥</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">从密钥服务器刷新公钥？</string>
@@ -480,7 +480,7 @@
     <string name="sends_action_hide_email_title">隐藏邮箱</string>
     <string name="sends_action_show_email_title">显示邮箱</string>
     <string name="sends_action_enable_title">激活</string>
-    <string name="sends_action_enable_text">激活的 Send 可以通过公网访问</string>
+    <string name="sends_action_enable_text">有效的 Send 可通过公网访问</string>
     <string name="sends_action_enable_confirmation_title">确认激活？</string>
     <string name="sends_action_disable_title">停用</string>
     <string name="sends_action_disable_text">停用的 Send 无法通过公网访问</string>
@@ -494,7 +494,7 @@
     <string name="file_action_open_in_file_manager_title">通过文件管理器打开</string>
     <string name="file_action_delete_local_title">删除本地文件</string>
     <string name="file_action_delete_local_many_title">删除本地文件</string>
-    <string name="file_action_view_cipher_title">查看父项目</string>
+    <string name="file_action_view_cipher_title">查看父条目</string>
     <string name="file_action_reveal_title">显示</string>
     <string name="attachment_preview_error_unsupported_file">无法预览此文件类型。</string>
     <string name="attachment_preview_error_unsupported_platform">此平台不支持附件预览。</string>
@@ -503,11 +503,28 @@
     <string name="attachment_preview_error_decryption">无法解密附件预览。</string>
     <string name="attachment_preview_error_text_decode">无法预览此文本文件。</string>
     <string name="attachment_preview_error_image_decode">无法预览此图像。</string>
-    <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
+    <string name="attachment_preview_error_gpg_key">此文件不是 OpenPGP 密钥。</string>
+    <string name="attachment_preview_error_gzip_invalid">This Gzip file is damaged.</string>
+    <string name="attachment_preview_error_gzip_size_limit">The decompressed file is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
     <string name="attachment_preview_action_copy_all">复制全部</string>
     <string name="attachment_preview_action_wrap_lines">换行</string>
     <string name="attachment_preview_action_source">来源</string>
     <string name="attachment_preview_action_rendered_preview">预览</string>
+    <string name="attachment_preview_action_tree">Tree</string>
+    <string name="attachment_preview_json_tree_view">Tree view</string>
+    <string name="attachment_preview_json_object">Object</string>
+    <string name="attachment_preview_json_array">Array</string>
+    <string name="attachment_preview_json_string">String</string>
+    <string name="attachment_preview_json_number">Number</string>
+    <string name="attachment_preview_json_boolean">Boolean</string>
+    <string name="attachment_preview_json_null">Null</string>
+    <string name="attachment_preview_json_expanded">Expanded</string>
+    <string name="attachment_preview_json_collapsed">Collapsed</string>
+    <string name="attachment_preview_json_error_invalid">This file is not valid JSON. Showing source.</string>
+    <string name="attachment_preview_json_error_too_large">This file is too large for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_deep">This JSON has too many nested levels for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_many_nodes">This JSON has too many values for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_duplicate_keys">This JSON has duplicate property names. Showing source to preserve every value.</string>
     <string name="vault_action_always_show_keyboard_title">总是显示键盘</string>
     <string name="vault_action_remember_sorting_title">记住排序方法</string>
     <string name="vault_action_sync_vault_title">同步密码库</string>
@@ -538,9 +555,9 @@
     <string name="uri_match_detection_domain_title">主域名</string>
     <string name="uri_match_detection_domain_note">按顶级和次级域匹配资源。</string>
     <string name="uri_match_detection_host_title">域</string>
-    <string name="uri_match_detection_host_note">通过主机名和端口 (如果指定) 匹配资源。</string>
+    <string name="uri_match_detection_host_note">通过主机名和端口（如果指定）匹配资源。</string>
     <string name="uri_match_detection_startswith_title">匹配开头</string>
-    <string name="uri_match_detection_startswith_note">当检测到的资源以URI开头时，匹配资源。</string>
+    <string name="uri_match_detection_startswith_note">当检测到的资源以 URI 开头时，匹配资源。</string>
     <string name="uri_match_detection_exact_title">完全匹配</string>
     <string name="uri_match_detection_exact_note">当检测到的资源与 URI 完全匹配时匹配资源。</string>
     <string name="uri_match_detection_regex_title">正则表达式</string>
@@ -646,7 +663,7 @@
     <string name="gpg_user_id_replacement_value_confirm">替换</string>
     <string name="gpg_user_id_replacement_invalid_message_with_limit">请输入非空且不含控制字符的用户 ID，UTF-8 编码长度不得超过 <xliff:g id="byte_limit" example="1024">%1$d</xliff:g> 字节。</string>
     <string name="gpg_user_id_replacement_same_identity_message">请输入与所选身份不同的用户 ID。</string>
-    <string name="gpg_user_id_replacement_duplicate_message">该用户 ID 已在此密钥上处于活动状态。</string>
+    <string name="gpg_user_id_replacement_duplicate_message">该用户 ID 已在此密钥上启用。</string>
     <string name="gpg_user_id_replacement_title">替换用户 ID</string>
     <string name="gpg_user_id_replacement_retired_message">该用户 ID 此前已被吊销，无法再次添加。</string>
     <string name="gpg_user_id_replacement_target_missing">所选用户 ID 已更改或不再处于活动状态，请重新打开该密钥并重试。</string>
@@ -688,7 +705,7 @@
     <string name="copy_send">复制 Send</string>
     <string name="copy_package_name">复制包名</string>
     <string name="copy_bundle_id">复制捆绑 ID</string>
-    <string name="copy_id">复制ID</string>
+    <string name="copy_id">复制 ID</string>
     <string name="copy_password">复制密码</string>
     <string name="copy_username">复制用户名</string>
     <string name="copy_email">复制电子邮件</string>
@@ -776,7 +793,7 @@
     <string name="expiry_tips_item_line1">该条目于 <xliff:g id="date" example="15 May 2024">%1$s</xliff:g> 过期。</string>
     <string name="expiry_tips_card_line1">此卡于 <xliff:g id="date" example="15 May 2024">%1$s</xliff:g> 过期。您可以做几件事情来确保平稳过渡：</string>
     <string name="expiry_tips_card_line2">1. 获取新卡：您的卡片发卡方可能已经向您寄送了一张具有新到期日期的替换卡。如果没有，请联系您的卡发卡公司，了解他们是否计划向您发送一张新卡，并预计何时可以收到。</string>
-    <string name="expiry_tips_card_line3">2. 更新自动付款：如果您用您的卡设置了任何自动付款，例如健身房会员月费或Netflix订阅，请确保使用新的卡号和到期日期更新信息。</string>
+    <string name="expiry_tips_card_line3">2. 更新自动付款：如果您用您的卡设置了任何自动付款，例如健身房会员月费或 Netflix 订阅，请确保使用新的卡号和到期日期更新信息。</string>
     <string name="expiry_tips_card_line4">3. 销毁旧卡：一旦您收到新卡并更新了任何必要信息，请确保安全销毁旧卡，以防止身份资料被盗。</string>
     <!--
         Empty string is a string that contains zero symbols in it,
@@ -796,16 +813,16 @@
     <string name="error_must_have_exactly_n_symbols">长度必须为 <xliff:g id="length" example="15">%1$d</xliff:g> 位字符</string>
     <string name="error_invalid_domain">无效域名</string>
     <string name="error_invalid_email">电子邮件无效</string>
-    <string name="error_invalid_url">URL无效</string>
+    <string name="error_invalid_url">无效的 URL</string>
     <string name="error_invalid_uri">URI 无效</string>
     <string name="error_invalid_key">无效的密钥</string>
     <string name="error_invalid_card_number">卡号无效</string>
     <string name="error_webdav_url_required">需要填写 WebDAV 地址</string>
     <string name="error_webdav_file_url_required">输入文件资源的完整 WebDAV URL</string>
     <string name="error_s3_endpoint_invalid">输入一个完整的HTTP或HTTPS URL，且不带凭据、查询或片段。</string>
-    <string name="error_s3_bucket_required">S3存储桶必填</string>
-    <string name="error_s3_bucket_invalid">输入一个有效的桶名称</string>
-    <string name="error_s3_prefix_invalid">前缀不能包含空字段、"." 或 ".."的部分</string>
+    <string name="error_s3_bucket_required">存储桶必填</string>
+    <string name="error_s3_bucket_invalid">输入一个有效的存储桶名称</string>
+    <string name="error_s3_prefix_invalid">前缀的每一段都不能为空，也不能是 "." 或 ".."</string>
     <string name="error_s3_key_required">输入数据库文件的对象键</string>
     <string name="error_s3_key_invalid">对象键不能包含空段、“.”或“..”段</string>
     <string name="error_s3_key_extension">对象键必须以 <xliff:g id="extension" example=".kdbx">%1$s</xliff:g> 结尾</string>
@@ -887,7 +904,7 @@
     <!-- Cannot be fully deleted without contacting customer services -->
     <string name="justdeleteme_difficulty_hard_label">困难</string>
     <!-- Account can only be deleted if you live in a location with privacy rights -->
-    <string name="justdeleteme_difficulty_limited_availability_label">可用性限制</string>
+    <string name="justdeleteme_difficulty_limited_availability_label">可用性有限</string>
     <!-- Cannot be deleted -->
     <string name="justdeleteme_difficulty_impossible_label">不可用</string>
     <string name="justdeleteme_send_email_title">发送电子邮件</string>
@@ -921,8 +938,8 @@
     <string name="emailleak_note">被泄露的账户数据可让恶意行为者获取敏感的个人和财务信息，从而可能导致身份盗用、财务欺诈和其他形式的网络犯罪。</string>
     <string name="emailleak_breach_not_found_title">未发现数据泄露</string>
     <string name="emailleak_breach_found_title">发现被泄露的账户</string>
-    <string name="emailleak_breach_section">泄露</string>
-    <string name="emailleak_breach_occurred_at">泄露于 <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
+    <string name="emailleak_breach_section">泄露事件</string>
+    <string name="emailleak_breach_occurred_at">发生于 <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">报告于 <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">无法检查数据泄露情况。您目前可能处于离线状态。</string>
     <string name="emailleak_failed_no_api_found_text">数据泄露检测失败，接口不可用</string>
@@ -939,7 +956,7 @@
     <string name="passwordleak_occurrences_found_title">密码已泄露</string>
     <string name="passwordleak_occurrences_found_text">密码存在于已知的数据泄露中，请立即更改以保护你的网络安全</string>
     <string name="passwordleak_occurrences_not_found_title">未发现数据泄露</string>
-    <string name="passwordleak_failed_to_load_status_text">无法检查数据泄露情况，互联网连接可能有误</string>
+    <string name="passwordleak_failed_to_load_status_text">无法检查数据泄露情况。您可能处于离线状态</string>
     <string name="password_memory_test_note">凭记忆输入此密码，Keyguard 会将其与此设备上保存的密码进行比对。</string>
     <string name="password_memory_test_success">密码匹配</string>
     <!-- Title of the 'Show in Large Type' dialog -->
@@ -953,7 +970,7 @@
     <string name="apppicker_system_app_label">系统应用</string>
     <string name="apppicker_empty_label">无应用</string>
     <string name="folderpicker_header_title">选择文件夹</string>
-    <string name="folderpicker_create_new_folder">创建新文件夹</string>
+    <string name="folderpicker_create_new_folder">创建新文件夹：</string>
     <!--
         When you copy an item to a new destination and choose to copy it into
         an organization, this text shows up to warn you about ownership. -->
@@ -1014,7 +1031,6 @@
     <string name="privilegedapps_user_apps">用户应用</string>
     <string name="privilegedapps_community_apps">社区应用</string>
     <string name="setup_header_text">创建加密密码库以存储本地数据。</string>
-    <string name="setup_free_text">继续使用此应用意味着您确认您已购买 Keyguard 或有一个可用的 Keyguard 授权。</string>
     <string name="setup_field_app_password_label">应用专用密码</string>
     <string name="setup_checkbox_biometric_auth">生物识别认证</string>
     <string name="setup_biometric_auth_confirm_title">创建一个密码库</string>
@@ -1059,17 +1075,17 @@
     <string name="additem_markdown_note_italic">斜体</string>
     <string name="additem_markdown_note_bold">粗体</string>
     <string name="additem_markdown_render_preview">渲染预览</string>
-    <string name="additem_auth_reprompt_title">身份验证二次确认</string>
+    <string name="additem_auth_reprompt_title">认证二次确认</string>
     <string name="additem_auth_reprompt_text">当您查看或自动填充密码时要求再次验证</string>
     <string name="additem_type_secure_note_title">安全笔记</string>
-    <string name="additem_login_totp_label">一次性密码 (TOTP)</string>
-    <string name="additem_login_uri_label">网站 (URI)</string>
+    <string name="additem_login_totp_label">一次性密码（TOTP）</string>
+    <string name="additem_login_uri_label">网站（URI）</string>
     <string name="additem_key_replace_title">替换密钥</string>
     <string name="additem_key_generate_title">生成 <xliff:g id="protocol" example="SSH">%1$s</xliff:g> 密钥……</string>
     <string name="additem_key_use_title">使用密钥</string>
     <string name="additem_key_generator_back_title">返回</string>
     <string name="additem_key_import_title">导入密钥</string>
-    <string name="addsend_header_new_title">新建Send</string>
+    <string name="addsend_header_new_title">新建 Send</string>
     <string name="addsend_header_edit_title">编辑 Send</string>
     <string name="addsend_text_hide_by_default_title">访问条目时，将默认隐藏文本</string>
     <string name="addsend_hide_text_by_default_title">访问条目时，将默认隐藏文本</string>
@@ -1088,7 +1104,7 @@
     <!--
         A note on top of the Client secret field, that explains why (and how)
         we need a user to get and type his client secret in a field below -->
-    <string name="addaccount_captcha_need_client_secret_note">要通过非官方 Bitwarden 客户端上的验证码验证，您必须指定客户端密钥。 请访问 网页密码库 / 设置 / 安全 / API 密钥以找到它。</string>
+    <string name="addaccount_captcha_need_client_secret_note">要通过非官方 Bitwarden 客户端上的验证码验证，您必须指定客户端密钥。请访问 网页密码库 / 设置 / 安全 / API 密钥以找到它。</string>
     <!-- A label on top of the Client secret field -->
     <string name="addaccount_captcha_need_client_secret_label">客户端密钥</string>
     <string name="addaccount_create_an_account_title">创建账户</string>
@@ -1104,9 +1120,9 @@
     <string name="addaccount_http_header_value_label">值</string>
     <string name="addaccount_http_header_add_more_button">添加更多</string>
     <string name="addaccount_base_env_server_url_label">服务器 URL</string>
-    <string name="addaccount_base_env_note">指定自托管 Bitwarden 实例的基础URL。</string>
+    <string name="addaccount_base_env_note">指定自托管 Bitwarden 实例的基础 URL。</string>
     <string name="addaccount_custom_env_section">自定义环境</string>
-    <string name="addaccount_custom_env_note">您可以单独指定每个服务的基础URL。</string>
+    <string name="addaccount_custom_env_note">您可以单独指定每个服务的基础 URL。</string>
     <string name="addaccount_custom_env_web_vault_url_label">网页密码库的服务器 URL</string>
     <string name="addaccount_custom_env_api_url_label">API 服务器 URL</string>
     <string name="addaccount_custom_env_icons_url_label">图标服务器 URL</string>
@@ -1123,7 +1139,7 @@
     <string name="addaccount_mutual_tls_file_label">客户端证书</string>
     <string name="addaccount_mutual_tls_note">用于客户端身份验证的证书。</string>
     <string name="addaccount_mutual_tls_password_label">PKCS#12 密码</string>
-    <string name="addaccount_mutual_tls_password_dialog_title">输入PKCS#12 密码</string>
+    <string name="addaccount_mutual_tls_password_dialog_title">输入 PKCS#12 密码</string>
     <string name="addaccount_mutual_tls_password_dialog_message">该 PKCS#12 包已加密。</string>
     <!-- Explains that the text next to it is the Display name of the certificate -->
     <string name="addaccount_mutual_tls_display_name_label">显示名称</string>
@@ -1144,7 +1160,7 @@
     <string name="addaccount2fa_yubikey_otp_note">插入您的 YubiKey 并触摸它，或在下方粘贴其一次性密码。</string>
     <string name="addaccount2fa_method_unsupported_platform_text">此平台暂不支持 <xliff:g id="method" example="Duo">%1$s</xliff:g>。</string>
     <string name="addaccount2fa_method_other_title">此方式</string>
-    <string name="addaccount2fa_method_web_vault_note">打开网页密码库以使用此双重认证方式完成登录，然后返回应用。</string>
+    <string name="addaccount2fa_method_web_vault_note">打开网页密码库以使用此双因素认证方式完成登录，然后返回应用。</string>
     <string name="addkeepass_header_title">添加 KeePass 帐户</string>
     <string name="addkeepass_header_body">将所有密码保存在一个高度加密的 KDBX 文件中，该文件直接存储在您的设备上。您可以完全掌控自己的数据。您可以将数据存储在电脑、U 盘上，或使用 Google Drive 或 Dropbox 等云服务自行同步。</string>
     <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass 的实现目前处于测试阶段，尚未与标准 KeePass 客户端完全兼容。使用风险自负。请务必在操作前备份您的数据库。</string>
@@ -1154,8 +1170,8 @@
     <string name="provider_2fa_email">电子邮件</string>
     <string name="yubikey_usb_title">通过 USB 连接 YubiKey</string>
     <string name="yubikey_usb_text">需要 USB OTG 支持。</string>
-    <string name="yubikey_usb_touch_the_gold_sensor_note">现在请触摸您YubiKey上的金色传感器。</string>
-    <string name="yubikey_nfc_title">将您的 YubiKey 平放在设备背部的 NFC识别区域</string>
+    <string name="yubikey_usb_touch_the_gold_sensor_note">现在请触摸您 YubiKey 上的金色传感器。</string>
+    <string name="yubikey_nfc_title">将您的 YubiKey 平放在设备背部的 NFC 识别区域</string>
     <string name="yubikey_nfc_text">需要 NFC 支持。</string>
     <string name="yubikey_error_failed_to_read">读取 YubiKey 失败</string>
     <string name="yubikey_unlock_error_unsupported_title">不支持 YubiKey 解锁</string>
@@ -1228,13 +1244,13 @@
     <string name="customfilters_edit_filter_title">编辑自定义筛选器</string>
     <string name="customfilters_add_filter_title">添加自定义筛选器</string>
     <string name="customfilters_empty_hint">将一组筛选条件保存为自定义筛选，即可一键重新应用。</string>
-    <string name="filter_header_title">筛选条件</string>
+    <string name="filter_header_title">筛选</string>
     <string name="filter_empty_label">没有可用的筛选条件</string>
     <string name="filter_clear_action">清除筛选条件</string>
     <string name="filter_list_title">筛选条件</string>
     <string name="filter_expand_named_action">展开 %1$s</string>
     <string name="filter_collapse_named_action">折叠 %1$s</string>
-    <string name="agent_filters_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> 代理过滤器</string>
+    <string name="agent_filters_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> 代理筛选</string>
     <string name="agent_filters_note_save_to_apply">更改将在点击“保存”后生效。</string>
     <string name="ssh_agent_filters_locked_text">解锁密码库以选择代理提供哪些 SSH 密钥。</string>
     <string name="agent_history_header_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> 代理历史记录</string>
@@ -1251,9 +1267,9 @@
     <string name="agent_history_clear_history_title">清除历史记录</string>
     <string name="agent_history_clear_history_confirmation_title">清除 <xliff:g id="protocol" example="SSH">%1$s</xliff:g> 代理历史记录？</string>
     <string name="agent_history_clear_history_confirmation_text">这将删除所有 <xliff:g id="protocol" example="SSH">%1$s</xliff:g> 代理使用记录。</string>
-    <string name="ssh_agent_history_empty_text">由 SSH/Git 提供和请求签名的密钥会显示在此处。</string>
+    <string name="ssh_agent_history_empty_text">由 Ssh/Git 提供密钥、请求签名的记录会显示在此处。</string>
     <string name="agent_setup_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> 客户端设置</string>
-    <string name="ssh_agent_setup_intro">配置 SSH 客户端以连接至 Keyguard 的 SSH 代理，使其能使用您授权的密钥进行身份验证或签名操作，且不会暴露私钥材料。</string>
+    <string name="ssh_agent_setup_intro">配置 SSH 客户端以连接至 Keyguard 的 SSH 代理，使其能使用您已批准的密钥进行身份验证或签名操作，且不会暴露私钥材料。</string>
     <string name="ssh_agent_setup_intro_text">使用存储在密码库中的 SSH 密钥对您的 Git 和 SSH 客户端进行认证。</string>
     <string name="ssh_agent_setup_step_1_title">1. 在 Keyguard 中启用 SSH 代理</string>
     <string name="ssh_agent_setup_step_1_text">打开安全设置并启用 SSH 代理。</string>
@@ -1266,7 +1282,7 @@
     <string name="ssh_agent_setup_option_identityagent_label">在您的 SSH 配置文件中设置 IdentityAgent。</string>
     <string name="ssh_agent_setup_step_3_title">3. 验证</string>
     <string name="ssh_agent_setup_step_3_text">在配置了代理的同一 Shell 会话中运行这些命令。</string>
-    <string name="ssh_agent_setup_windows_text">当前的 Keyguard 桌面 SSH 代理运行时暂不支持 Windows，因此此处的设置说明仅供参考。</string>
+    <string name="ssh_agent_setup_windows_text">Keyguard 在 Windows 命名管道上监听，请把 Windows OpenSSH 指向这个管道。</string>
     <string name="ssh_agent_setup_android_termux_text">在 Android 上，Keyguard 通过专用辅助软件包提供 SSH 代理。请在 Keyguard 中启用 SSH 代理，安装并配置该软件包，并在 SSH 客户端连接时批准请求。</string>
     <string name="ssh_agent_setup_android_termux_step_1_title">安装 Termux</string>
     <string name="ssh_agent_setup_android_termux_step_1_text">Termux 是一款 Android 终端应用及 Linux 环境。</string>
@@ -1318,7 +1334,7 @@
     <string name="ipc_approval_auth_reason">批准外部加密请求</string>
     <string name="ipc_approval_unavailable">此批准请求已过期或不再可用。</string>
     <string name="ipc_approval_message"><xliff:g id="app" example="Termux">%1$s</xliff:g> 请求使用 <xliff:g id="protocol" example="GPG agent">%2$s</xliff:g> 来<xliff:g id="operation" example="encrypt a message">%3$s</xliff:g>。</string>
-    <string name="ipc_approval_registration_note">这是该应用的首次请求。授权后，Keyguard 会登记此应用。</string>
+    <string name="ipc_approval_registration_note">这是该应用的首次请求。批准后，Keyguard 会登记此应用。</string>
     <string name="ipc_approval_no_keys">没有找到可用的密钥。</string>
     <string name="ipc_approval_no_keys_continue">没有符合条件的可用密钥。您可以继续检查签名者是否缺失。</string>
     <string name="ipc_approval_deny">拒绝</string>
@@ -1352,7 +1368,7 @@
     <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_ssh_get_public_key">读取公钥</string>
     <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
-    <string name="ipc_operation_ssh_get_ssh_public_key">以OpenSSH格式读取公钥</string>
+    <string name="ipc_operation_ssh_get_ssh_public_key">以 OpenSSH 格式读取公钥</string>
     <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_ssh_sign">签署身份验证请求</string>
     <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
@@ -1443,11 +1459,11 @@
     <string name="send_main_search_placeholder">搜索 Sends</string>
     <string name="send_main_new_item_button">新条目</string>
     <string name="send_main_drop_file_to_create">拖放文件即可创建 Send</string>
-    <string name="send_main_empty_title">没有 Send</string>
+    <string name="send_main_empty_title">暂无 Send</string>
     <string name="send_main_empty_add_account_text">添加 Bitwarden 账户以安全地分享加密文本和文件。</string>
     <string name="send_email_is_required_to_access_label">通过电子邮件验证的收件人可访问此分享</string>
     <string name="send_password_is_required_to_access_label">需要密码以访问此共享</string>
-    <string name="send_view_no_selection_title">未选择 Send</string>
+    <string name="send_view_no_selection_title">未选择任何 Send</string>
     <string name="send_view_no_selection_text">选择 Send 以查看其详情。</string>
     <string name="send_view_not_found_title">未找到 Send</string>
     <string name="send_action_copy_link_title">复制链接</string>
@@ -1470,9 +1486,9 @@
     <string name="generator_username_type">用户名</string>
     <string name="generator_username_delimiter_title">分隔符</string>
     <string name="generator_username_custom_word_title">自定义助记词</string>
-    <string name="generator_username_capitalize_title">大写</string>
+    <string name="generator_username_capitalize_title">首字母大写</string>
     <string name="generator_username_number_title">数字</string>
-    <string name="generator_username_wordlist_title">单词列表</string>
+    <string name="generator_username_wordlist_title">词表</string>
     <string name="generator_password_type">随机符号</string>
     <string name="generator_password_note">安全的密码长度至少为 <xliff:g id="length" example="15">%1$d</xliff:g> 字符（包含大写、小写字母、数字和符号）</string>
     <string name="generator_password_numbers_title">位数</string>
@@ -1504,7 +1520,7 @@
     <string name="generator_gpg_key_modern_text">现代 OpenPGP 密钥配置</string>
     <string name="generator_key_length_title">长度</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-位</string>
-    <string name="generator_key_rsa_note">所有 SSH 客户端都支持这种算法。对于 RSA，推荐至少使用 2048 位的密钥大小；4096 位则更好。在可预见的未来，RSA算法变得实际上可以破解是相当可能的。</string>
+    <string name="generator_key_rsa_note">所有 SSH 客户端都支持这种算法。对于 RSA，推荐至少使用 2048 位的密钥大小；4096 位则更好。在可预见的未来，RSA 算法变得实际上可以破解是相当可能的。</string>
     <string name="generator_key_rsa_text">兼容所有 SSH 服务器</string>
     <string name="generator_key_ed25519_note">这是最快也是最现代的标准。在 SSH 客户端的支持尚未普及。</string>
     <string name="generator_key_ed25519_text">快速和最现代的标准</string>
@@ -1535,7 +1551,7 @@
     <string name="block_autofill_header_title">阻止自动填充</string>
     <string name="watchtower_header_title">概况</string>
     <string name="watchtower_section_password_strength_label">密码强度</string>
-    <string name="watchtower_section_security_label">安全性</string>
+    <string name="watchtower_section_security_label">安全</string>
     <string name="watchtower_section_maintenance_label">维护</string>
     <string name="watchtower_item_new_alerts_title">查看新提醒</string>
     <string name="watchtower_item_weak_passwords_title">弱密码</string>
@@ -1557,8 +1573,8 @@
     <string name="watchtower_item_vulnerable_accounts_text">自您上次修改密码以来受数据泄露影响的站点，更改您的密码以保证账户安全。</string>
     <string name="watchtower_item_unsecure_websites_title">不安全的网站</string>
     <string name="watchtower_item_unsecure_websites_text">更改 HTTP 为 HTTPS 协议，因为后者更为安全</string>
-    <string name="watchtower_item_inactive_2fa_title">未启用双因素身份认证</string>
-    <string name="watchtower_item_inactive_2fa_text">站点可用 2FA，但您没有启用它</string>
+    <string name="watchtower_item_inactive_2fa_title">未启用双因素认证</string>
+    <string name="watchtower_item_inactive_2fa_text">支持双因素认证但您尚未启用的站点。</string>
     <string name="watchtower_item_inactive_passkey_title">可用通行密钥</string>
     <string name="watchtower_item_inactive_passkey_text">有可用通行密钥但并未设置的站点，它比密码更简单、更安全。</string>
     <string name="watchtower_item_incomplete_items_title">不完整的条目</string>
@@ -1585,7 +1601,7 @@
     <string name="watchtower_alerts_unread_label">未读</string>
     <string name="watchtower_mark_all_as_read_title">全部标记为已读</string>
     <string name="notification_vault_backup_title">正在备份密码库</string>
-    <string name="changepassword_header_title">修改应用专用密码</string>
+    <string name="changepassword_header_title">更改应用专用密码</string>
     <string name="changepassword_change_password_button">修改密码</string>
     <string name="changepassword_biometric_auth_checkbox">生物识别认证</string>
     <!-- A title of the system popup that asks a user to use his biometric to change app password. -->
@@ -1601,7 +1617,7 @@
     <string name="exportaccount_format_zip">ZIP 归档</string>
     <string name="exportaccount_format_kdbx">KeePass 数据库（KDBX）</string>
     <string name="exportaccount_kdbx_password_label">数据库密码</string>
-    <string name="exportaccount_format_kdbx_note">将密码库导出为 KeePass 数据库。文件夹会转换为群组。组织和收藏不会导出。</string>
+    <string name="exportaccount_format_kdbx_note">将密码库导出为 KeePass 数据库。文件夹会转换为群组。组织和集合不会导出。</string>
     <string name="exportaccount_kdbx_attachment_too_large">某个附件超出 KeePass 数据库的大小限制。请导出为 ZIP 归档，或在导出时排除附件。</string>
     <string name="exportaccount_attachments_note">密码库将在导出过程中保持解锁。
 附件将会在导出的密码库数据中被引用。
@@ -1740,7 +1756,7 @@
     <string name="pref_item_accounts_title">账户</string>
     <string name="pref_item_accounts_text">添加和查看账户</string>
     <string name="pref_item_autofill_title">自动填充</string>
-    <string name="pref_item_autofill_text">Android 自动填充服务</string>
+    <string name="pref_item_autofill_text">Android 自动填充与凭据服务</string>
     <string name="pref_item_security_title">安全</string>
     <string name="pref_item_security_text">生物识别、修改密码、密码库超时时间</string>
     <string name="pref_item_developer_title">开发者</string>
@@ -1778,7 +1794,7 @@
     <string name="backup_progress_bytes"><xliff:g id="current" example="3 MB">%1$s</xliff:g> / <xliff:g id="total" example="10 MB">%2$s</xliff:g></string>
     <string name="backup_progress_items"><xliff:g id="current" example="3">%1$d</xliff:g> / <xliff:g id="total" example="10">%2$d</xliff:g></string>
     <string name="pref_item_automatic_backups_status_success_title">上次备份已完成</string>
-    <string name="pref_item_automatic_backups_status_success_text">%1$s完成。已导出 %2$d 个条目、%3$d个附件、%4$d 个新数据块、%5$d 个复用数据块。</string>
+    <string name="pref_item_automatic_backups_status_success_text">%1$s 完成。已导出 %2$d 个条目、%3$d 个附件、%4$d 个新数据块、%5$d 个复用数据块。</string>
     <string name="pref_item_automatic_backups_status_finished_text">%1$s 完成。</string>
     <string name="pref_item_automatic_backups_status_error_title">上次备份失败</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
@@ -1811,11 +1827,11 @@
     <string name="pref_item_automatic_backups_setup_intro">备份功能将密码库快照保存至您指定的位置。Keyguard 在密码库发生变更时自动创建快照，您也可随时手动触发。</string>
     <string name="pref_item_automatic_backups_details_321_title">3-2-1 备份规则</string>
     <string name="pref_item_automatic_backups_details_321_text">请至少保留三份密码库数据副本：一份活跃密码库和两份备份。将这些副本存储在至少两个独立的位置或存储介质中，并在本设备以外或异地保留一份副本。同步文件夹虽然实用，但不应作为唯一备份，因为删除操作、数据损坏和意外变更同样会被同步。</string>
-    <string name="pref_item_automatic_backups_details_321_three">活跃密码库+两份备份</string>
+    <string name="pref_item_automatic_backups_details_321_three">在用密码库和两份备份</string>
     <string name="pref_item_automatic_backups_details_321_two">两个独立位置或存储类型</string>
     <string name="pref_item_automatic_backups_details_321_one">一份副本存于设备外或异地</string>
     <string name="pref_item_automatic_backups_details_repository_structure_title">仓库结构</string>
-    <string name="pref_item_automatic_backups_details_repository_structure_text">加密仓库采用 ZIP AES-256 格式。使用备份密码打开 repo.zip 及 indexes/.zip 中最新的可读索引；索引指向各 snapshots/.zip 和 blobs/**/*.zip 压缩包，并以 encryption.keyBase64 字段存储其 ZIP 密码。若未设置备份密码，这些文件为普通 ZIP 压缩包。</string>
+    <string name="pref_item_automatic_backups_details_repository_structure_text">加密仓库采用 ZIP AES-256 格式。使用备份密码打开 repo.zip 及 indexes/*.zip 中最新的可读索引；索引指向各 snapshots/*.zip 和 blobs/**/*.zip 压缩包，并以 encryption.keyBase64 字段存储其 ZIP 密码。若未设置备份密码，这些文件为普通 ZIP 压缩包。</string>
     <string name="pref_item_automatic_backups_details_retention_title">快照保留策略</string>
     <string name="pref_item_automatic_backups_details_retention_text">保留策略采用分桶机制，因此历史记录并非简单地按顺序保留最新快照。Keyguard 保留最新快照，同时优先保留过去一周的每日检查点和过去一个月的每周检查点；剩余槽位则分配给最新的可用快照。</string>
     <string name="pref_item_automatic_backups_details_sync_title">云同步</string>
@@ -1844,11 +1860,11 @@
     <string name="pref_item_nav_label_short_title">显示导航标签</string>
     <string name="navigation_items_add_item_title">添加条目</string>
     <string name="navigation_items_reset_confirmation_title">重置导航项？</string>
-    <string name="navigation_items_reset_confirmation_text">这将恢复默认的导航顺序和可见性。自定义过滤器不会被删除，但它们的导航项将被移除。</string>
+    <string name="navigation_items_reset_confirmation_text">这将恢复默认的导航顺序和可见性。自定义筛选器不会被删除，但它们的导航项将被移除。</string>
     <string name="navigation_items_built_in_text">内置目标</string>
-    <string name="navigation_items_custom_filter_text">自定义过滤器</string>
-    <string name="navigation_items_missing_filter_title">自定义过滤器</string>
-    <string name="navigation_items_missing_filter_text">未找到过滤器</string>
+    <string name="navigation_items_custom_filter_text">自定义筛选</string>
+    <string name="navigation_items_missing_filter_title">自定义筛选</string>
+    <string name="navigation_items_missing_filter_text">未找到筛选</string>
     <string name="navigation_items_predefined_route_text">预定义路由</string>
     <string name="pref_item_app_version_title">应用版本</string>
     <string name="pref_item_app_build_date_title">应用构建日期</string>
@@ -1884,14 +1900,14 @@
     <string name="pref_item_hibp_api_token_title">Have I Been Pwned API 令牌</string>
     <string name="pref_item_hibp_api_token_text">直接使用 HIBP 而非 Bitwarden 的付费代理，适用于纯本地密码库。</string>
     <string name="pref_item_hibp_api_token_field_label">API 令牌</string>
-    <string name="pref_item_hibp_api_token_status_checking">检查中……</string>
+    <string name="pref_item_hibp_api_token_status_checking">检查中…</string>
     <string name="pref_item_hibp_api_token_status_verified">已验证</string>
     <string name="pref_item_hibp_api_token_status_rejected">已拒绝</string>
     <string name="pref_item_hibp_api_token_status_failed">无法验证</string>
     <string name="pref_item_hibp_api_token_note">使用您自己的 API 密钥以获得更高的请求频率限制。</string>
     <string name="pref_item_hibp_api_token_check_failed">检查失败</string>
     <string name="pref_item_hibp_api_token_input_note">粘贴个人 API 密钥以提高泄露检查的速率限制。留空可将其移除。</string>
-    <string name="pref_item_check_inactive_2fa_title">查看未启用双因素身份认证的项目</string>
+    <string name="pref_item_check_inactive_2fa_title">查看未启用双因素认证的项目</string>
     <string name="pref_item_check_inactive_passkeys_title">查看未启用通行密钥的项目</string>
     <string name="pref_item_conceal_fields_title">隐藏字段</string>
     <string name="pref_item_conceal_fields_text">隐藏敏感信息，例如密码和信用卡号码</string>
@@ -1950,7 +1966,7 @@
     <string name="pref_item_autotype_speed_fast">快速</string>
     <string name="pref_item_autotype_speed_normal">正常</string>
     <string name="pref_item_autotype_speed_slow">慢速</string>
-    <string name="pref_item_agent_approval_scope_title">授权范围</string>
+    <string name="pref_item_agent_approval_scope_title">批准范围</string>
     <string name="pref_item_agent_approval_scope_connection">每个连接</string>
     <string name="pref_item_agent_approval_scope_process">每个进程</string>
     <string name="pref_item_agent_approval_scope_application">每个应用程序</string>
@@ -1970,24 +1986,26 @@
     <string name="pref_item_agent_approval_scope_table_not_shared">未共享</string>
     <string name="pref_item_agent_approval_scope_windows_process_reuse">检测到的同一进程实例</string>
     <string name="pref_item_agent_approval_scope_windows_application_reuse">检测到的同一正在运行的应用</string>
-    <string name="pref_item_agent_approval_scope_windows_process_note">在 Windows 上，Keyguard 会尽可能识别进程，但无法可靠地区分在您的账户下运行的恶意应用。检测失败时，授权仅限当前连接。如需更严格的隔离，请选择“每个连接”。</string>
-    <string name="pref_item_agent_approval_scope_windows_application_note">在 Windows 上，Keyguard 会尽可能识别应用，但无法可靠地区分在您的账户下运行的恶意应用。授权仅在检测到的应用仍在运行时有效，且可能在该应用的多个标签页间共享。检测失败时会改用更窄的授权范围。如需更严格的隔离，请选择“每个连接”。</string>
+    <string name="pref_item_agent_approval_scope_windows_process_note">在 Windows 上，Keyguard 会尽可能识别进程，但无法可靠地区分在您的账户下运行的恶意应用。检测失败时，批准仅限当前连接。如需更严格的隔离，请选择“每个连接”。</string>
+    <string name="pref_item_agent_approval_scope_windows_application_note">在 Windows 上，Keyguard 会尽可能识别应用，但无法可靠地区分在您的账户下运行的恶意应用。批准仅在检测到的应用仍在运行时有效，且可能在该应用的多个标签页间共享。检测失败时会改用更窄的批准范围。如需更严格的隔离，请选择“每个连接”。</string>
     <string name="pref_item_ssh_agent_text">对您的 Git 和 SSH 客户端进行身份验证，且确保这些客户端永远无法读取您的私钥</string>
     <string name="pref_item_agent_status_unsupported">不支持</string>
     <string name="pref_item_agent_status_stopped">已停止</string>
     <string name="pref_item_agent_status_failed">失败</string>
-    <string name="pref_item_agent_approval_window_title">记住密钥授权</string>
+    <string name="pref_item_agent_approval_window_title">记住密钥批准</string>
     <string name="pref_item_agent_local_storage_title">本地存储</string>
     <string name="pref_item_agent_local_storage_text">开启 <xliff:g id="protocol" example="SSH">%1$s</xliff:g> 代理后，Keyguard 会在磁盘上保存一份未加密的公钥副本，以便客户端在密码库锁定时仍可列出密钥。私钥不会被暴露；只有启用相应选项后才会存储密钥名称。</string>
     <string name="pref_item_agent_display_key_names_title">在密码库解锁前显示密钥名称</string>
     <string name="pref_item_agent_display_key_names_note">条目标题的未加密副本将存储在本地</string>
     <string name="pref_item_agent_approval_window_always_ask">每次都询问</string>
     <string name="pref_item_agent_approval_window_until_lock">直至密码库锁定</string>
+    <string name="pref_item_agent_approval_window_never_ask">Never ask</string>
     <string name="pref_item_approval_window_title">记住批准</string>
+    <string name="pref_item_agent_approval_timeout_title">Approval timeout</string>
     <string name="pref_item_ssh_agent_approval_remember_note">已批准的签名会按密钥和应用在此时间段内记住，而无需每次询问。</string>
     <string name="pref_item_agent_filters_text">选择可供 <xliff:g id="protocol" example="SSH">%1$s</xliff:g> 代理访问的 %1$s 密钥</string>
     <string name="pref_item_agent_filters_summary_all">所有密钥均可访问</string>
-    <string name="pref_item_agent_filters_summary_active">过滤器已启用</string>
+    <string name="pref_item_agent_filters_summary_active">筛选已启用</string>
     <string name="pref_item_agent_history_title">请求日志</string>
     <string name="pref_item_ssh_agent_enable_title">启用 SSH 代理</string>
     <string name="pref_item_ssh_agent_description">Keyguard 将密码库中的 SSH 密钥提供给 SSH/Git，每次签名都需要您批准。</string>
@@ -1995,7 +2013,7 @@
     <string name="pref_item_license_key_field_label">授权令牌</string>
     <string name="pref_item_license_key_message_redeemed">授权令牌关联成功</string>
     <string name="pref_item_license_key_message_invalid">无效或过期的密钥</string>
-    <string name="pref_item_license_key_status_active">活动</string>
+    <string name="pref_item_license_key_status_active">有效</string>
     <string name="pref_item_license_key_status_invalid">无效</string>
     <string name="pref_item_license_key_status_revoked">已吊销</string>
     <string name="pref_item_license_key_status_expired">已过期</string>
@@ -2033,7 +2051,7 @@
     <string name="pref_item_yubikey_unlock_disable_title">禁用</string>
     <string name="pref_item_yubikey_unlock_confirm_title">配置 YubiKey 插槽？</string>
     <string name="pref_item_yubikey_unlock_confirm_message_empty">为密码库解锁配置插槽 <xliff:g id="slot_number" example="1">%1$s</xliff:g>？</string>
-    <string name="pref_item_yubikey_unlock_confirm_message_configured">插槽 <xliff:g id="slot_number" example="1">%1$s</xliff:g> 已配置。重新配置需要使用 USB 连接，且会覆盖当前的插槽配置。</string>
+    <string name="pref_item_yubikey_unlock_confirm_message_configured">插槽 <xliff:g id="slot_number" example="1">%1$s</xliff:g> 已配置，重新配置会覆盖当前的插槽配置。</string>
     <string name="pref_item_yubikey_unlock_note">触摸已配置为 HMAC-SHA1 质询-响应的 YubiKey 即可解锁密码库。Keyguard 可以为您配置一个空插槽，也可以使用您通过 YubiKey Manager 设置好的插槽。</string>
     <!--
         A title of the system popup that asks a user to use his biometric to later
@@ -2044,7 +2062,7 @@
     <string name="pref_item_keep_screen_on_title">查看条目时保持屏幕开启</string>
     <string name="pref_item_autofill_service_title">自动填充服务</string>
     <string name="pref_item_autofill_service_text">使用 Android 自动填充框架帮助将登录信息填写到设备上的其他应用</string>
-    <string name="pref_item_autofill_service_xiaomi_permission_note">一些 Xiaomi 设备要求您手动允许“在后台运行时显示弹出窗口”权限。 请打开设置并确认它已被授予。</string>
+    <string name="pref_item_autofill_service_xiaomi_permission_note">一些 Xiaomi 设备要求您手动允许“在后台运行时显示弹出窗口”权限。请打开设置并确认它已被授予。</string>
     <string name="pref_item_autofill_service_browser_autofill_v2_title">浏览器第三方自动填充服务</string>
     <string name="pref_item_autofill_service_browser_autofill_v2_text">在列出的每个浏览器中启用第三方自动填充，以允许 Keyguard 在其中填充登录信息。</string>
     <string name="pref_item_autofill_service_browser_autofill_settings_error">无法打开浏览器自动填充设置</string>
@@ -2088,7 +2106,7 @@
     <string name="pref_item_premium_membership_title">关于 Keyguard 高级会员</string>
     <string name="pref_item_premium_membership_text">高级版可解锁额外功能并支持应用程序的开发。感谢您的支持！❤️</string>
     <string name="pref_item_premium_membership_section_subscriptions_title">订阅</string>
-    <string name="pref_item_premium_membership_section_subscriptions_note">您的订阅将在到期前 24 小时续订，届时您的 Google Play 账户将自动扣款。 您可以打开或关闭自动续订功能，也可以随时在 Google Play 上取消订阅。 如果你从未订阅过，你可能有资格获得免费试用。 如果您在免费试用期结束前取消，将不会向您收取费用。</string>
+    <string name="pref_item_premium_membership_section_subscriptions_note">您的订阅将在到期前 24 小时续订，届时您的 Google Play 账户将自动扣款。您可以打开或关闭自动续订功能，也可以随时在 Google Play 上取消订阅。如果你从未订阅过，你可能有资格获得免费试用。如果您在免费试用期结束前取消，将不会向您收取费用。</string>
     <string name="pref_item_premium_membership_section_products_title">产品</string>
     <string name="pref_item_premium_membership_failed_to_load_subscriptions">无法加载订阅列表</string>
     <string name="pref_item_premium_membership_failed_to_load_products">无法加载产品列表</string>
@@ -2100,7 +2118,7 @@
     <string name="pref_item_premium_membership_direct_note">此版本包含所有高级版功能。</string>
     <string name="pref_item_premium_membership_included_note">由于历史原因，此版本包含所有高级版功能。</string>
     <string name="pref_item_premium_membership_buy_license_title">购买许可证</string>
-    <string name="pref_item_premium_status_active">已激活</string>
+    <string name="pref_item_premium_status_active">有效</string>
     <string name="pref_item_premium_status_free_trial_n">免费 <xliff:g id="period" example="1 month">%1$s</xliff:g> 试用版</string>
     <string name="pref_item_premium_status_will_not_renew">将不续订</string>
     <string name="pref_item_premium_manage_subscription_on_play_store_title">在 Play 商店管理</string>
@@ -2127,7 +2145,7 @@
     <string name="pref_item_permission_camera_title">摄像头</string>
     <string name="pref_item_permission_camera_text">用于扫描 QR 码</string>
     <string name="pref_item_permission_local_network_title">本地网络</string>
-    <string name="pref_item_permission_local_network_text">用于连接到您本地网络上自建的 Bitwarden、WebDAV、S3 和 SFTP 服务器</string>
+    <string name="pref_item_permission_local_network_text">用于连接到您本地网络上自托管的 Bitwarden、WebDAV、S3 和 SFTP 服务器</string>
     <string name="pref_item_allow_two_panel_layout_in_landscape_title">横屏下启用双面板布局</string>
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">竖屏下启用双面板布局</string>
     <string name="pref_item_gpg_agent_approvals_note">批准会在所选时长和范围内被记住，签名和解密需要分别批准，锁定密码库会清除已记住的批准。</string>
@@ -2156,7 +2174,7 @@
     <string name="feat_section_search_title">搜索</string>
     <string name="feat_item_search_by_anything_title">全局搜索</string>
     <string name="feat_item_search_by_anything_text">姓名、电子邮件、密码、电话号码等。</string>
-    <string name="feat_item_filter_title">过滤器</string>
+    <string name="feat_item_filter_title">筛选</string>
     <string name="feat_item_filter_text">按文件夹、组织、类型等筛选</string>
     <string name="feat_item_multiple_keywords_title">多关键词</string>
     <string name="feat_item_multiple_keywords_text">搜索 “bitw test” 以找到 “Bitwarden Test Account” 条目。</string>
@@ -2179,11 +2197,11 @@
     <string name="feat_item_duplicate_items_text">查找并合并重复条目。</string>
     <string name="feat_section_misc_title">杂项</string>
     <string name="feat_item_multi_selection_title">多选</string>
-    <string name="feat_item_multi_selection_text">快速合并和重置密码</string>
-    <string name="feat_item_show_barcode_title">显示为二维码</string>
-    <string name="feat_item_show_barcode_text">将文本编码为不同的二维码</string>
+    <string name="feat_item_multi_selection_text">合并条目，用批量操作加快重构。</string>
+    <string name="feat_item_show_barcode_title">显示为条形码</string>
+    <string name="feat_item_show_barcode_text">将文本编码为不同的条形码。</string>
     <string name="feat_item_generator_title">生成器</string>
-    <string name="feat_item_generator_text">生成密码或用户名</string>
+    <string name="feat_item_generator_text">生成密码、用户名、电子邮件和密钥。</string>
     <string name="feat_item_export_title">导出</string>
     <string name="feat_item_export_text">导出密码库数据，包括附件。</string>
     <string name="datasafety_header_title">数据安全</string>
@@ -2193,7 +2211,7 @@
     <string name="datasafety_local_settings_section">用户设置</string>
     <string name="datasafety_local_settings_note">用户设置使用设备密钥加密。</string>
     <string name="datasafety_local_settings_no_app_encryption_note">用户设置存储在本地，未进行应用级加密。</string>
-    <string name="datasafety_local_vault_section">用户设置</string>
+    <string name="datasafety_local_vault_section">密码库</string>
     <string name="datasafety_local_encryption_algorithm_intro">密码库使用密钥加密，密钥来自应用专用密码，使用步骤如下：</string>
     <string name="datasafety_local_encryption_algorithm_outro">然后将盐和哈希值保存在本地设备上，以便日后生成主密钥来解锁密码库。</string>
     <string name="datasafety_local_unlocking_vault">解锁密码库意味着在设备的内存中存储正确的密钥，从而获得读取和修改加密密码库的能力。</string>
@@ -2210,7 +2228,7 @@
     <string name="remote_connection_test_success"><xliff:g id="protocol" example="WebDAV">%1$s</xliff:g> 连接已验证。</string>
     <string name="webdav_settings_password_requires_username_error">设置 WebDAV 密码前请先输入用户名。</string>
     <string name="webdav_settings_browse_title">浏览</string>
-    <string name="webdav_picker_header_title">浏览WebDAV</string>
+    <string name="webdav_picker_header_title">浏览 WebDAV</string>
     <string name="webdav_picker_choose_folder">选择此文件夹</string>
     <string name="webdav_picker_refresh">刷新文件夹</string>
     <string name="webdav_picker_empty">此文件夹为空。</string>
@@ -2221,8 +2239,8 @@
     <string name="webdav_picker_filename_exists">该名称的文件已存在。</string>
     <string name="s3_settings_header_title">S3 存储配置</string>
     <string name="s3_settings_endpoint_title">端点 URL</string>
-    <string name="s3_settings_endpoint_note">留空则使用Amazon S3。</string>
-    <string name="s3_settings_region_title">地区</string>
+    <string name="s3_settings_endpoint_note">留空则使用 Amazon S3。</string>
+    <string name="s3_settings_region_title">区域</string>
     <string name="s3_settings_bucket_title">存储桶</string>
     <string name="s3_settings_prefix_title">文件夹前缀</string>
     <string name="s3_settings_keepass_requirements">需要存储桶、对象键、访问密钥 ID 和私有访问密钥，对象键必须以 .kdbx 结尾。</string>
@@ -2250,7 +2268,7 @@
     <string name="gpg_agent_request_approval_decrypt_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> 想要使用以下 GPG 密钥解密数据：</string>
     <string name="gpg_agent_request_approval_decrypt_message_unknown_app">某个应用程序想要使用以下 GPG 密钥解密数据：</string>
     <string name="gpg_agent_setup_intro">配置 GnuPG 以使用 Keyguard 的 GPG 代理进行签名和解密，而无需泄露私钥材料。</string>
-    <string name="gpg_agent_setup_unsupported_text">GPG 代理仅在 Keyguard 桌面版中可用。</string>
+    <string name="gpg_agent_setup_unsupported_text">GPG 代理在此设备上不可用。</string>
     <string name="gpg_agent_setup_step_1_title">1. 在 Keyguard 中启用 GPG 代理</string>
     <string name="gpg_agent_setup_step_1_text">打开 GPG 设置，启用 GPG 代理，并确保密码库中包含代理允许使用的 GPG 密钥。</string>
     <string name="gpg_agent_setup_step_2_title">2. 配置 GNUPGHOME</string>
@@ -2313,6 +2331,10 @@
     <string name="gpg_tools_operation_decrypt_text">使用存储的私钥解密文本或文件</string>
     <string name="gpg_tools_operation_sign_text">使用存储的私钥签名文本或文件</string>
     <string name="gpg_tools_operation_verify_text">验证内联签名或分离签名</string>
+    <string name="gpg_tools_drop_file_to_encrypt">Drop a file to encrypt it</string>
+    <string name="gpg_tools_drop_file_to_decrypt">Drop a file to decrypt it</string>
+    <string name="gpg_tools_drop_file_to_sign">Drop a file to sign it</string>
+    <string name="gpg_tools_drop_file_to_verify">Drop a file to verify it</string>
     <string name="gpg_tools_mode_cleartext">明文</string>
     <string name="gpg_tools_mode_inline">内联</string>
     <string name="gpg_tools_mode_detached">分离</string>
@@ -2429,7 +2451,7 @@
     <string name="pref_item_automatic_backups_wizard_step_label">第 %1$d 步，共 %2$d 步</string>
     <string name="pref_item_automatic_backups_wizard_folder_detail">选择此设备或已连接存储提供商上的文件夹。</string>
     <string name="pref_item_automatic_backups_wizard_webdav_detail">将备份保存到您自己的 WebDAV 服务器。</string>
-    <string name="pref_item_automatic_backups_wizard_s3_detail">保存备份到 Amazon S3, MinIO 或另一个 S3 兼容服务。</string>
+    <string name="pref_item_automatic_backups_wizard_s3_detail">将备份保存到 Amazon S3、MinIO 或其他 S3 兼容服务。</string>
     <string name="pref_item_automatic_backups_wizard_invalid_s3_error">请检查 S3 端点、存储桶、前缀和访问密钥。</string>
     <string name="pref_item_automatic_backups_wizard_invalid_url_error">请输入完整的 HTTP 或 HTTPS URL，且不包含内嵌凭据或片段。</string>
     <string name="pref_item_automatic_backups_wizard_replace_password_action">更改备份密码</string>
@@ -2440,7 +2462,7 @@
     <string name="pref_item_automatic_backups_wizard_discard_message">您的更改将不会保存，当前的备份配置将保持不变。</string>
     <string name="pref_item_automatic_backups_wizard_discard_action">放弃更改</string>
     <string name="pref_item_automatic_backups_wizard_ready_title">保存您的密码库的备份</string>
-    <string name="pref_item_automatic_backups_wizard_ready_detail">选择保存快照的位置，用密码保护他们，并决定保留什么。</string>
+    <string name="pref_item_automatic_backups_wizard_ready_detail">选择保存快照的位置，用密码保护它们，并决定保留什么。</string>
     <string name="yubikey_error_title">使用 YubiKey 失败</string>
     <string name="yubikey_error_no_device">连接已启用 OTP 接口的 YubiKey 后重试。</string>
     <string name="yubikey_error_multiple_devices">仅连接您要使用的 YubiKey 后重试。</string>
@@ -2492,7 +2514,7 @@
     <string name="attachment_archive_unavailable">无法打开或保存此条目。</string>
     <string name="attachment_archive_save">保存文件</string>
     <string name="attachment_archive_back">返回</string>
-    <string name="attachment_archive_password">压缩包密码</string>
+    <string name="attachment_archive_password">归档密码</string>
     <string name="attachment_archive_error_password">密码不正确或文件已损坏，请重试。</string>
     <string name="attachment_archive_error_invalid">此 ZIP 压缩包已损坏或包含不明确的条目。</string>
     <string name="attachment_archive_error_unsupported">不支持此 ZIP 格式。</string>
@@ -2600,7 +2622,7 @@
     <string name="cli_approval_run_terminal_note">此终端标签页中后续运行的命令无需再次询问，直至批准过期或密码库锁定。在此标签页中运行的任何程序都可以使用此次批准，包括编程代理。</string>
     <string name="keyboard_shortcuts_title">键盘快捷键</string>
     <string name="keyboard_shortcuts_action_quick_search">快速搜索</string>
-    <string name="keyboard_shortcuts_status_active">已生效</string>
+    <string name="keyboard_shortcuts_status_active">已启用</string>
     <string name="keyboard_shortcuts_status_recording">录入快捷键时暂停响应</string>
     <string name="keyboard_shortcuts_recorder_hint">按下快捷键……</string>
     <!-- Accessibility label of the button that shows an action's shortcut -->
@@ -2632,7 +2654,7 @@
     <string name="agent_auto_setup_step_review_no_changes_detail">无需更改任何文件。请检查代理连接以继续。</string>
     <string name="agent_auto_setup_step_undo_title">检查移除操作</string>
     <string name="agent_auto_setup_step_undo_detail">移除 Keyguard 记录的设置。继续前，请先检查相关文件。</string>
-    <string name="agent_auto_setup_step_run_title">运行向导</string>
+    <string name="agent_auto_setup_step_run_title">运行安装</string>
     <string name="agent_auto_setup_step_run_detail">在您的终端中执行此命令。辅助软件会显示修改内容，并在应用之前询问。</string>
     <string name="agent_auto_setup_step_check_title">检查连接</string>
     <string name="agent_auto_setup_step_check_detail">打开新终端以使用此配置。签名和远程身份验证仍需使用您选择的密钥进行测试。</string>

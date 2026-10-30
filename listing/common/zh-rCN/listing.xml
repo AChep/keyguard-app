@@ -7,7 +7,7 @@
     <string name="listing_description_highlights">突出显示：</string>
     <string name="listing_description_highlight_design">美观的界面：丰富、响应迅速的 Material Design UI，带有浅色/深色主题。</string>
     <string name="listing_description_highlight_search">高级搜索：强大而快速的搜索功能。</string>
-    <string name="listing_description_highlight_watchtower">Watchtower：检测泄露的密码、易受攻击的账号、重复使用的密码、失效的双因素身份验证、不安全的网站、重复或过期的条目等等。</string>
+    <string name="listing_description_highlight_watchtower">Watchtower：检测泄露的密码、易受攻击的账户、重复使用的密码、未启用的双因素认证、不安全的网站、重复或过期的条目等等。</string>
     <string name="listing_description_highlight_multiple_accounts">多账户支持：可同时登录多个账户。</string>
     <string name="listing_description_highlight_offline">离线管理：离线添加条目和发送、修改和查看您的密码库。</string>
     <string name="listing_description_highlight_export">数据导出：导出个人或组织条目，包括附件。</string>

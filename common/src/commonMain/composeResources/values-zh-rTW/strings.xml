@@ -504,10 +504,27 @@
     <string name="attachment_preview_error_text_decode">無法預覽此文字檔。</string>
     <string name="attachment_preview_error_image_decode">無法預覽此圖片。</string>
     <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
+    <string name="attachment_preview_error_gzip_invalid">This Gzip file is damaged.</string>
+    <string name="attachment_preview_error_gzip_size_limit">The decompressed file is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
     <string name="attachment_preview_action_copy_all">全部複製</string>
     <string name="attachment_preview_action_wrap_lines">自動換行</string>
     <string name="attachment_preview_action_source">原始碼</string>
     <string name="attachment_preview_action_rendered_preview">預覽</string>
+    <string name="attachment_preview_action_tree">Tree</string>
+    <string name="attachment_preview_json_tree_view">Tree view</string>
+    <string name="attachment_preview_json_object">Object</string>
+    <string name="attachment_preview_json_array">Array</string>
+    <string name="attachment_preview_json_string">String</string>
+    <string name="attachment_preview_json_number">Number</string>
+    <string name="attachment_preview_json_boolean">Boolean</string>
+    <string name="attachment_preview_json_null">Null</string>
+    <string name="attachment_preview_json_expanded">Expanded</string>
+    <string name="attachment_preview_json_collapsed">Collapsed</string>
+    <string name="attachment_preview_json_error_invalid">This file is not valid JSON. Showing source.</string>
+    <string name="attachment_preview_json_error_too_large">This file is too large for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_deep">This JSON has too many nested levels for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_many_nodes">This JSON has too many values for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_duplicate_keys">This JSON has duplicate property names. Showing source to preserve every value.</string>
     <string name="vault_action_always_show_keyboard_title">總是顯示鍵盤</string>
     <string name="vault_action_remember_sorting_title">記住排序方法</string>
     <string name="vault_action_sync_vault_title">同步密碼庫</string>
@@ -1013,7 +1030,6 @@
     <string name="privilegedapps_user_apps">使用者應用程式</string>
     <string name="privilegedapps_community_apps">社群應用程式</string>
     <string name="setup_header_text">建立加密密碼庫以儲存本地資料。</string>
-    <string name="setup_free_text">繼續使用此應用意味著您確認您已購買 Keyguard 或有一個可用的 Keyguard 授權。</string>
     <string name="setup_field_app_password_label">應用專用密碼</string>
     <string name="setup_checkbox_biometric_auth">生物識別認證</string>
     <string name="setup_biometric_auth_confirm_title">建立一個密碼庫</string>
@@ -1982,7 +1998,9 @@
     <string name="pref_item_agent_display_key_names_note">金鑰項目的標題副本會以未加密形式儲存在本機</string>
     <string name="pref_item_agent_approval_window_always_ask">每次都詢問</string>
     <string name="pref_item_agent_approval_window_until_lock">直到密碼庫鎖定</string>
+    <string name="pref_item_agent_approval_window_never_ask">Never ask</string>
     <string name="pref_item_approval_window_title">記住核准</string>
+    <string name="pref_item_agent_approval_timeout_title">Approval timeout</string>
     <string name="pref_item_ssh_agent_approval_remember_note">每個金鑰與應用程式組合的簽署核准會保留這段時間，無須每次都詢問。</string>
     <string name="pref_item_agent_filters_text">選擇哪些 <xliff:g id="protocol" example="SSH">%1$s</xliff:g> 金鑰可供 %1$s 代理程式存取</string>
     <string name="pref_item_agent_filters_summary_all">所有金鑰皆可存取</string>
@@ -2312,6 +2330,10 @@
     <string name="gpg_tools_operation_decrypt_text">使用已儲存的私鑰解密文字或檔案</string>
     <string name="gpg_tools_operation_sign_text">使用已儲存的私鑰簽署文字或檔案</string>
     <string name="gpg_tools_operation_verify_text">驗證內嵌式或分離式簽章</string>
+    <string name="gpg_tools_drop_file_to_encrypt">Drop a file to encrypt it</string>
+    <string name="gpg_tools_drop_file_to_decrypt">Drop a file to decrypt it</string>
+    <string name="gpg_tools_drop_file_to_sign">Drop a file to sign it</string>
+    <string name="gpg_tools_drop_file_to_verify">Drop a file to verify it</string>
     <string name="gpg_tools_mode_cleartext">明文</string>
     <string name="gpg_tools_mode_inline">內嵌式</string>
     <string name="gpg_tools_mode_detached">分離式</string>

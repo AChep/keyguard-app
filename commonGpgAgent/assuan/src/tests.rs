@@ -42,6 +42,29 @@ async fn gnupg_version_is_independent_of_build_version_and_survives_reset() {
     assert!(response.contains(&format!("D {}\nOK\n", crate::version::KEYGUARD_VERSION)));
 }
 
+#[tokio::test]
+async fn getinfo_s2k_count_reports_decimal_work_factor() {
+    let response = version_transcript(AgentInfo::for_test(), "GETINFO s2k_count\nBYE\n").await;
+    assert_eq!(
+        response,
+        "OK Keyguard GPG agent ready\nD 65011712\nOK\nOK closing connection\n",
+    );
+}
+
+#[tokio::test]
+async fn startup_tty_is_accepted_and_smartcard_commands_are_not_supported() {
+    // gpg-connect-agent sends the command as typed, usually in lowercase.
+    let response = version_transcript(
+        AgentInfo::for_test(),
+        "updatestartuptty\nSCD GETINFO version\nSCD SERIALNO\nBYE\n",
+    )
+    .await;
+    assert_eq!(
+        response,
+        "OK Keyguard GPG agent ready\nOK\nERR 60 not supported\nERR 60 not supported\nOK closing connection\n",
+    );
+}
+
 #[cfg(target_os = "macos")]
 #[tokio::test]
 async fn exited_macos_peer_cannot_reach_sign_or_decrypt_ipc_on_repeated_requests() {

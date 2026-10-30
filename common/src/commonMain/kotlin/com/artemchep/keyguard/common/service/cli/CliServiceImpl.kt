@@ -119,10 +119,11 @@ class CliServiceImpl(
     /**
      * Confirms an operation of the CLI, prompting the user unless the
      * terminal tab of the [context] has a remembered approval of an equal
-     * [grant]. With a verified terminal session, approving also covers
-     * later equal grants of that tab, until the approval is unused for
-     * [GRANT_IDLE], [GRANT_LIMIT] passes, or the grants are revoked. Marks
-     * the [context] as [approved][CliCallContext.approved] once it returns.
+     * [grant], or the approval window is "Never ask". With a verified
+     * terminal session, approving also covers later equal grants of that
+     * tab, until the approval is unused for [GRANT_IDLE], [GRANT_LIMIT]
+     * passes, or the grants are revoked. Marks the [context] as
+     * [approved][CliCallContext.approved] once it returns.
      *
      * @param grant What the approval allows; a command includes everything
      *   whose change must revoke it.
@@ -146,10 +147,10 @@ class CliServiceImpl(
         val key = currentKey()
         val identity = key.session.id
         val epoch = generation.value
-        val access = context.terminalSession?.let { terminal ->
-            grants.getOrGenerateSession(key).access { CliGrant(grant, terminal) }
+        val access = grants.getOrGenerateSession(key).access {
+            context.terminalSession?.let { terminal -> CliGrant(grant, terminal) }
         }
-        if (access?.isRemembered == true && !elevationPending) {
+        if (access.isRemembered && !elevationPending) {
             context.approved = true
             return
         }
@@ -183,7 +184,7 @@ class CliServiceImpl(
             throw CliServiceException("approval_revoked")
         }
         check()
-        access?.remember()
+        access.remember()
         context.approved = true
     }
 }

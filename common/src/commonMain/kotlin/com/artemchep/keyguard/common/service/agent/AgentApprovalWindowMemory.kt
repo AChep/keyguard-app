@@ -28,6 +28,9 @@ import kotlin.time.TimeSource
  *
  * With an [idleTimeout], an approval also expires once it has not been
  * looked up for that long; the approval window stays its hard limit.
+ *
+ * With the [AGENT_APPROVAL_WINDOW_NEVER_ASK] window, every request of the
+ * unlocked vault session counts as remembered, even one without a key.
  */
 class AgentApprovalWindowMemory<K : Any, P : Any>(
     private val approvalCacheConfig: AgentApprovalCacheConfigProvider<P>,
@@ -134,7 +137,7 @@ class AgentApprovalWindowMemory<K : Any, P : Any>(
                 configRevision = config.revision,
                 approvalWindow = approvalWindow,
                 key = key,
-                isRemembered = false,
+                isRemembered = isActiveSession && approvalWindow == AGENT_APPROVAL_WINDOW_NEVER_ASK,
             )
         }
 
@@ -171,8 +174,7 @@ class AgentApprovalWindowMemory<K : Any, P : Any>(
             val config = approvalCacheConfig.peek() ?: return false
             if (
                 config.revision != access.configRevision ||
-                config.approvalWindow != access.approvalWindow ||
-                config.approvalWindow <= Duration.ZERO
+                config.approvalWindow != access.approvalWindow
             ) {
                 return false
             }
@@ -182,6 +184,8 @@ class AgentApprovalWindowMemory<K : Any, P : Any>(
             ) {
                 return false
             }
+            if (config.approvalWindow == AGENT_APPROVAL_WINDOW_NEVER_ASK) return true
+            if (config.approvalWindow <= Duration.ZERO) return false
 
             val key = access.key ?: return false
             val entry = cache[CacheKey(access.sessionGeneration, key)] ?: return false
@@ -255,7 +259,10 @@ class AgentApprovalWindowMemory<K : Any, P : Any>(
         internal val configRevision: Long,
         internal val approvalWindow: Duration,
         internal val key: K?,
-        /** The original lookup result; use [canReuseNow] after suspending. */
+        /**
+         * The original lookup result, also true when the window is "Never
+         * ask"; use [canReuseNow] after suspending.
+         */
         val isRemembered: Boolean,
     ) {
         /**

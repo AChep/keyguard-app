@@ -30,10 +30,13 @@ approval for an agent. The command line and MCP each have a
 
 | Requester | Setting in | Options | Default | Platforms |
 | --- | --- | --- | --- | --- |
-| SSH agent | **Settings > Developer > SSH agent** | **Ask every time**, 1, 5 or 15 minutes, 1 or 4 hours, **Until vault locks** | 5 minutes | Android, Linux, macOS, Windows |
-| GPG agent | **Settings > Developer > GPG agent** | **Ask every time**, 1, 5 or 15 minutes, **Until vault locks** | 5 minutes | Android, Linux, macOS, Windows |
-| Command line | **Settings > Developer > Command line** | **Ask every time**, 5 or 15 minutes, 1 or 4 hours, **Until vault locks** | **Until vault locks** | Linux, macOS, Windows |
+| SSH agent | **Settings > Developer > SSH agent** | **Ask every time**, 1, 5 or 15 minutes, 1 or 4 hours, **Until vault locks**, **Never ask** | 5 minutes | Android, Linux, macOS, Windows |
+| GPG agent | **Settings > Developer > GPG agent** | **Ask every time**, 1, 5 or 15 minutes, **Until vault locks**, **Never ask** | 5 minutes | Android, Linux, macOS, Windows |
+| Command line | **Settings > Developer > Command line** | **Ask every time**, 5 or 15 minutes, 1 or 4 hours, **Until vault locks**, **Never ask** | **Until vault locks** | Linux, macOS, Windows |
 | MCP and local .env files | **Settings > Developer > Environments > MCP** | Same as the command line | **Until vault locks** | Linux, macOS, Windows |
+
+**Never ask** skips the prompt while the vault is unlocked. Items with
+**Auth re-prompt** still ask you to confirm your identity.
 
 A remembered approval covers one key and the callers that the scope allows.
 For the GPG agent, signing and decryption need separate approvals. Locking the
@@ -72,8 +75,9 @@ hours at most. Locking or unlocking the vault ends it, as does turning
 command-line access, MCP or a local .env file on or off. Changing the
 environment or an item it references also ends it.
 
-Keyguard asks for every run on Windows, outside a terminal, such as in an IDE
-task, and on Linux kernels older than 6.5. These can't identify a terminal tab.
+Unless the window is **Never ask**, Keyguard asks for every run on Windows,
+outside a terminal, such as in an IDE task, and on Linux kernels older than
+6.5. These can't identify a terminal tab.
 
 ## MCP and local .env file approvals
 

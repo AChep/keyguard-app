@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Timer
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_WINDOW_NEVER_ASK
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.home.settings.KgPicker
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
@@ -13,6 +14,7 @@ import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.pref_item_agent_approval_window_always_ask
+import com.artemchep.keyguard.res.pref_item_agent_approval_window_never_ask
 import com.artemchep.keyguard.res.pref_item_agent_approval_window_title
 import com.artemchep.keyguard.res.pref_item_agent_approval_window_until_lock
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -36,6 +38,11 @@ suspend fun agentApprovalWindowTitle(
 
     Duration.INFINITE -> textResource(
         Res.string.pref_item_agent_approval_window_until_lock,
+        context,
+    )
+
+    AGENT_APPROVAL_WINDOW_NEVER_ASK -> textResource(
+        Res.string.pref_item_agent_approval_window_never_ask,
         context,
     )
 

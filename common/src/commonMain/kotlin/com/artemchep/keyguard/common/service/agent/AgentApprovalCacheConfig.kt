@@ -16,6 +16,13 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Duration
 
+/**
+ * The approval window that approves every request of an unlocked vault
+ * without asking. It is negative, so any check that treats a window up to
+ * zero as "Always ask", including that of an older version, fails closed.
+ */
+val AGENT_APPROVAL_WINDOW_NEVER_ASK: Duration = -Duration.INFINITE
+
 data class AgentApprovalCacheConfig<P : Any>(
     val approvalWindow: Duration,
     val cachePolicy: P,
@@ -52,7 +59,7 @@ fun <P : Any> fixedAgentApprovalCacheConfig(
 /**
  * The same configuration with its approval window capped at [maxWindow],
  * for approvals that must expire even when the user remembers them until
- * the vault locks. "Always ask" stays zero.
+ * the vault locks. "Always ask" and "Never ask" stay as they are.
  */
 fun <P : Any> AgentApprovalCacheConfigProvider<P>.limitedTo(
     maxWindow: Duration,

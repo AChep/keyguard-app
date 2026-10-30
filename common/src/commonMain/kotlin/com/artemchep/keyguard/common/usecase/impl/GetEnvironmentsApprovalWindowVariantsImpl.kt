@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_WINDOW_NEVER_ASK
 import com.artemchep.keyguard.common.usecase.GetEnvironmentsApprovalWindowVariants
 import kotlinx.coroutines.flow.flowOf
 import kotlin.time.Duration
@@ -15,6 +16,7 @@ class GetEnvironmentsApprovalWindowVariantsImpl : GetEnvironmentsApprovalWindowV
             1.hours,
             4.hours,
             Duration.INFINITE,
+            AGENT_APPROVAL_WINDOW_NEVER_ASK,
         ),
     )
 

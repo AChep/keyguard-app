@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.environment
 
 import com.artemchep.keyguard.test.environmentPayload
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_WINDOW_NEVER_ASK
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
@@ -173,6 +174,27 @@ class EnvironmentRunCliCommandTest {
             assertIs<CliAgentMessages.Response.Kind.Cli>(response)
             assertEquals(1, fixture.approvedCapabilities.value.size - before)
         }
+    }
+
+    @Test
+    fun `a CLI approval window of never ask runs without a prompt, even outside a terminal tab`() = runTest {
+        val fixture = EnvironmentFixture(backgroundScope, cliApprovalWindow = AGENT_APPROVAL_WINDOW_NEVER_ASK)
+        fixture.readyCli()
+        val handler = fixture.agent()
+        assertEquals(SECRET, handler.handle(run(authorization = terminal('a'))).token())
+        assertEquals(SECRET, handler.handle(run(authorization = null)).token())
+        assertTrue(fixture.approvedCapabilities.value.isEmpty())
+    }
+
+    @Test
+    fun `a CLI approval window of never ask never skips a pending identity confirmation`() = runTest {
+        val fixture = EnvironmentFixture(backgroundScope, cliApprovalWindow = AGENT_APPROVAL_WINDOW_NEVER_ASK)
+        fixture.ciphers.value = listOf(fixture.secret.copy(reprompt = true))
+        fixture.readyCli()
+        fixture.autoApprove(backgroundScope)
+        val handler = fixture.agent()
+        assertEquals("reauthentication_required", handler.handle(run(authorization = null)).error())
+        assertEquals(1, fixture.approvedCapabilities.value.size)
     }
 
     @Test

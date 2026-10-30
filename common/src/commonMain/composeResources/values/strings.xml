@@ -2118,6 +2118,7 @@
     <string name="pref_item_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
     <string name="pref_item_agent_approval_window_always_ask">Ask every time</string>
     <string name="pref_item_agent_approval_window_until_lock">Until vault locks</string>
+    <string name="pref_item_agent_approval_window_never_ask">Never ask</string>
     <string name="pref_item_approval_window_title">Remember approvals</string>
     <string name="pref_item_ssh_agent_approval_remember_note">An approved signature is remembered for this long per key and application, instead of asking every time.</string>
     <string name="pref_item_agent_filters_text">Choose which <xliff:g id="protocol" example="SSH">%1$s</xliff:g> keys are accessible to the %1$s agent</string>

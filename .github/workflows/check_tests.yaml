@@ -112,7 +112,7 @@ jobs:
       - name: "Run build plugin tests"
         run: ./gradlew -p buildPlugins test
       - name: "Upload build plugin test reports"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: build-plugin-test-reports
@@ -246,7 +246,7 @@ jobs:
           ./gradlew --continue --max-workers=${{ matrix.max_workers }}
           ${{ matrix.tasks }}
       - name: "Upload test reports"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: kmp-host-test-reports-${{ matrix.id }}
@@ -291,7 +291,7 @@ jobs:
           :androidLibAutofill:testDebugUnitTest
           :integration:wearCredentialProviderApp:testDebugUnitTest
       - name: "Upload test reports"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: android-unit-test-reports
@@ -356,7 +356,7 @@ jobs:
             adb pull /storage/emulated/0/Movies/ artifactsScreenRecording/ || true;
             exit "$RESULT"
       - name: "Upload screen recordings"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: android-${{ matrix.api-level }}-${{ matrix.variant }}-screen-recordings
@@ -364,7 +364,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
       - name: "Upload test reports"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: android-${{ matrix.api-level }}-${{ matrix.variant }}-test-reports

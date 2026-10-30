@@ -57,7 +57,8 @@ command and its arguments.
 - On Windows, names that differ only in case are rejected. A variable,
   including its name, holds at most 32,767 characters.
 - While Keyguard asks for approval, `keyguard` prints "waiting for approval in
-  Keyguard…". It gives up after 90 seconds. Ctrl+C cancels the request.
+  Keyguard…". It waits until the prompt is answered or times out. Ctrl+C
+  cancels the request.
 
 ## MCP server
 

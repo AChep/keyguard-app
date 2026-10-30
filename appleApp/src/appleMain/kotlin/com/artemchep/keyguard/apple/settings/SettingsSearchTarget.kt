@@ -268,6 +268,12 @@ enum class SettingsSearchTarget(
         section = Res.string.agent_title,
         protocol = Res.string.protocol_ssh,
     ),
+    SSH_APPROVAL_TIMEOUT(
+        SettingsDestination.DEVELOPER.id,
+        Res.string.pref_item_agent_approval_timeout_title,
+        section = Res.string.agent_title,
+        protocol = Res.string.protocol_ssh,
+    ),
     SSH_NAMES(
         SettingsDestination.DEVELOPER.id,
         Res.string.pref_item_agent_display_key_names_title,
@@ -308,6 +314,12 @@ enum class SettingsSearchTarget(
     GPG_APPROVAL(
         SettingsDestination.DEVELOPER.id,
         Res.string.pref_item_agent_approval_window_title,
+        section = Res.string.agent_title,
+        protocol = Res.string.protocol_gpg,
+    ),
+    GPG_APPROVAL_TIMEOUT(
+        SettingsDestination.DEVELOPER.id,
+        Res.string.pref_item_agent_approval_timeout_title,
         section = Res.string.agent_title,
         protocol = Res.string.protocol_gpg,
     ),

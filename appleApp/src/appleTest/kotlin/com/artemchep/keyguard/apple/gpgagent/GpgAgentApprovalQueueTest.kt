@@ -40,7 +40,7 @@ class GpgAgentApprovalQueueTest {
 
     @Test
     fun expiryDeniesAndRemovesThePrompt() = runTest {
-        val queue = gpgAgentApprovalQueue(timeout = 1.seconds)
+        val queue = gpgAgentApprovalQueue(timeout = { 1.seconds })
         val result = async { queue.await(prompt(GpgAgentOperation.SIGN)) }
         runCurrent()
         assertEquals(1, queue.requests.value.size)

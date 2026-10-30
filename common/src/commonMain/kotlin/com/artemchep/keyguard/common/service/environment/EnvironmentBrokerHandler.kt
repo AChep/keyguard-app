@@ -27,7 +27,7 @@ class EnvironmentBrokerHandler(
     private val mounts: EnvironmentMountBrokerHandler,
 ) {
     // The approval broker bounds the time spent waiting on the user, and
-    // the agent's own transport timeout bounds the request as a whole.
+    // a client that leaves cancels its request.
     suspend fun handle(request: Request.Kind): Response.Kind = try {
         when (request) {
             is Request.Kind.Manage -> mcp.manage(request.value)
@@ -141,7 +141,7 @@ class EnvironmentMcpBrokerHandler(
         val callerIdentity = caller.toEnvironmentCaller(request.clientName)
         val tool = request.tool
         // Every prompt of this request shares one deadline, so the request
-        // ends before the agent's transport gives up on it.
+        // as a whole ends within one approval timeout.
         val deadline = access.approvalDeadline()
         access.approve(callerId, callerIdentity, EnvironmentCapability.Authenticate, deadline = deadline)
         val identity = vault.sessionIdentity()

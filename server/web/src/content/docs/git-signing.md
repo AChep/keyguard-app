@@ -132,8 +132,8 @@ git config --local gpg.ssh.program "$sshKeygen"
 
 Keyguard remembers an approval for a while, so the next commits don't ask
 again. [Agent approvals](/docs/agent-approvals/) covers how long an approval
-lasts and which programs can reuse it. A prompt that you don't answer within
-60 seconds counts as denied, and Git doesn't create the commit.
+lasts and which programs can reuse it. A prompt that you don't answer before
+it times out counts as denied, and Git doesn't create the commit.
 
 ## Verify
 

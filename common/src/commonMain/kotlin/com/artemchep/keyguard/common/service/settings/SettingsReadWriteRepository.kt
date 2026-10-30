@@ -181,6 +181,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         duration: Duration,
     ): IO<Unit>
 
+    fun setSshAgentApprovalTimeout(
+        duration: Duration,
+    ): IO<Unit>
+
     fun setSshAgentApprovalCachePolicy(
         policy: AgentApprovalCachePolicy,
     ): IO<Unit>
@@ -201,6 +205,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         duration: Duration,
     ): IO<Unit>
 
+    fun setGpgAgentApprovalTimeout(
+        duration: Duration,
+    ): IO<Unit>
+
     fun setGpgAgentApprovalCachePolicy(
         policy: AgentApprovalCachePolicy,
     ): IO<Unit>
@@ -209,7 +217,15 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         duration: Duration,
     ): IO<Unit>
 
+    fun setEnvironmentsMcpApprovalTimeout(
+        duration: Duration,
+    ): IO<Unit>
+
     fun setCliApprovalWindow(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setCliApprovalTimeout(
         duration: Duration,
     ): IO<Unit>
 

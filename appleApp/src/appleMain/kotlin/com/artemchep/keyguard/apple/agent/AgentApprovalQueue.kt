@@ -19,13 +19,13 @@ import kotlin.time.Instant
  * The approval prompts of one agent, as snapshots for its native panel.
  *
  * @param toSnapshot Builds the snapshot of a prompt with its id, timeout and deadline.
- * @param timeout How long a prompt waits for the user; the broker's default.
+ * @param timeout How long a prompt waits for the user; read for each prompt.
  */
 internal class AgentApprovalQueue<P, S : Any>(
     private val idPrefix: String,
     idOf: (S) -> String,
     private val toSnapshot: P.(id: String, timeoutMs: Long, expiresAtEpochMs: Long) -> S,
-    timeout: Duration = AGENT_APPROVAL_PROMPT_TIMEOUT,
+    private val timeout: suspend () -> Duration = { AGENT_APPROVAL_PROMPT_TIMEOUT },
     private val nowEpochMs: () -> Long = { Clock.System.now().toEpochMilliseconds() },
 ) {
     private val counter = MutableStateFlow(0L)
@@ -34,19 +34,24 @@ internal class AgentApprovalQueue<P, S : Any>(
         clock = object : Clock {
             override fun now(): Instant = Instant.fromEpochMilliseconds(nowEpochMs())
         },
-        promptTimeout = timeout,
     )
 
     val requests: StateFlow<List<S>> = broker.pending
 
-    /** Waits for the user's decision, until [deadline]. */
+    /**
+     * Waits for the user's decision, until [deadline]; by default, one
+     * timeout from now. An infinite timeout never expires.
+     */
     suspend fun await(
         prompt: P,
-        deadline: Instant = broker.deadline(),
+        deadline: Instant? = null,
     ): Boolean {
         val id = "$idPrefix-${counter.updateAndGet { it + 1 }}"
-        val result = broker.request(deadline = deadline) { expiresAt ->
-            prompt.toSnapshot(id, broker.promptTimeout.inWholeMilliseconds, expiresAt.toEpochMilliseconds())
+        val timeout = timeout()
+        val expiresAt = deadline
+            ?: (Instant.fromEpochMilliseconds(nowEpochMs()) + timeout)
+        val result = broker.request(deadline = expiresAt) {
+            prompt.toSnapshot(id, timeout.inWholeMilliseconds, it.toEpochMilliseconds())
         }
         return result == AgentApprovalBroker.Result.Approved
     }

@@ -116,6 +116,9 @@ interface SettingsReadRepository {
 
     fun getSshAgentApprovalWindow(): Flow<Duration>
 
+    /** How long an SSH agent approval prompt waits for the user; infinite never expires. */
+    fun getSshAgentApprovalTimeout(): Flow<Duration>
+
     fun getSshAgentApprovalCachePolicy(): Flow<AgentApprovalCachePolicy>
 
     fun getSshAgentApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy>
@@ -128,6 +131,9 @@ interface SettingsReadRepository {
 
     fun getGpgAgentApprovalWindow(): Flow<Duration>
 
+    /** How long a GPG agent approval prompt waits for the user; infinite never expires. */
+    fun getGpgAgentApprovalTimeout(): Flow<Duration>
+
     fun getGpgAgentApprovalCachePolicy(): Flow<AgentApprovalCachePolicy>
 
     fun getGpgAgentApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy>
@@ -135,10 +141,16 @@ interface SettingsReadRepository {
     /** How long an MCP client, or a reader of a local `.env` file, keeps an approval. */
     fun getEnvironmentsMcpApprovalWindow(): Flow<Duration>
 
+    /** How long an MCP or local `.env` file approval prompt waits for the user; infinite never expires. */
+    fun getEnvironmentsMcpApprovalTimeout(): Flow<Duration>
+
     fun getEnvironmentsMcpApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy>
 
     /** How long a terminal tab keeps a `keyguard` CLI approval. */
     fun getCliApprovalWindow(): Flow<Duration>
+
+    /** How long a `keyguard` CLI approval prompt waits for the user; infinite never expires. */
+    fun getCliApprovalTimeout(): Flow<Duration>
 
     fun getCliApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy>
 

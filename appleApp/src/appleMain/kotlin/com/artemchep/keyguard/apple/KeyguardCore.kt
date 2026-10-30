@@ -398,6 +398,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun setGpgAgentApprovalWindow(optionId: String) = gpgAgentController.setGpgAgentApprovalWindow(optionId)
 
+    fun setGpgAgentApprovalTimeout(optionId: String) = gpgAgentController.setGpgAgentApprovalTimeout(optionId)
+
     fun setGpgAgentApprovalCachePolicy(optionId: String) = gpgAgentController.setGpgAgentApprovalCachePolicy(optionId)
 
     fun setGpgAgentDisplayKeyNames(value: Boolean) = gpgAgentController.setGpgAgentDisplayKeyNames(value)
@@ -1340,6 +1342,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     ): KeyguardCancellable = sshAgentController.observeSshAgentSettings(onChange)
 
     fun setSshAgentApprovalWindow(optionId: String) = sshAgentController.setSshAgentApprovalWindow(optionId)
+
+    fun setSshAgentApprovalTimeout(optionId: String) = sshAgentController.setSshAgentApprovalTimeout(optionId)
 
     fun setSshAgentDisplayKeyNames(value: Boolean) = sshAgentController.setSshAgentDisplayKeyNames(value)
 

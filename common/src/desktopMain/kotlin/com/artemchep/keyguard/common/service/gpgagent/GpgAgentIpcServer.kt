@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_PROMPT_TIMEOUT
 import com.artemchep.keyguard.common.service.agent.AgentIpcAuthenticator
 import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
 import com.artemchep.keyguard.common.service.agent.AgentIpcServerHost
@@ -20,6 +21,7 @@ import com.artemchep.keyguard.crypto.NativeGpgAgentCrypto
 import com.artemchep.keyguard.util.agentipc.AgentIpcExpectedPeer
 import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
 import kotlinx.coroutines.CoroutineScope
+import kotlin.time.Duration
 
 class GpgAgentIpcServer(
     private val logRepository: LogRepository,
@@ -53,6 +55,7 @@ class GpgAgentIpcServer(
         sessionId: String = "",
         maxConcurrentConnections: Int = 8,
         onApprovalRequest: suspend (GpgAgentApprovalPrompt) -> Boolean = { true },
+        approvalTimeout: suspend () -> Duration = { AGENT_APPROVAL_PROMPT_TIMEOUT },
         pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
         gpgPublicKeyRepository: GpgPublicKeyRepository = GpgPublicKeyRepositoryEmpty,
     ) : this(
@@ -71,6 +74,7 @@ class GpgAgentIpcServer(
             pendingUsageHistoryQueue = pendingUsageHistoryQueue,
             sessionId = sessionId,
             onApprovalRequest = onApprovalRequest,
+            approvalTimeout = approvalTimeout,
         ),
         maxConcurrentConnections = maxConcurrentConnections,
     )

@@ -1,6 +1,6 @@
 //! `keyguard mcp`: the official MCP SDK transport with a closed,
 //! management-only tool surface.
-use crate::{Connection, errors};
+use crate::{Connection, client, errors};
 use anyhow::{Result, ensure};
 use keyguard_cli_protocol::{
     errors::{UNSUPPORTED_COMMAND, error_code},
@@ -11,7 +11,7 @@ use keyguard_cli_protocol::{
     },
     public::PublicFrameRef,
     socket::client_socket,
-    transport::{self, BoxStream},
+    transport::BoxStream,
 };
 use rmcp::{
     ErrorData, RoleServer, ServerHandler, ServiceExt,
@@ -23,16 +23,17 @@ use rmcp::{
     service::RequestContext,
 };
 use serde_json::{Value, json};
-use std::{path::PathBuf, sync::Arc, time::Duration};
+use std::{path::PathBuf, sync::Arc};
 use tokio::sync::Mutex;
 use zeroize::Zeroizing;
 
 const INSTRUCTIONS: &str = "Manage Keyguard environments without receiving stored secret values.\n\n\
 Call authenticate first. Tell the user they may need to unlock Keyguard and approve access in the \
 Keyguard app. Other tools may require additional approvals.\n\n\
-Tool calls wait for the user's decision. Approval prompts expire after 60 seconds. While a call is \
-pending, wait for its result; do not cancel it or issue duplicate requests. A pending call does not \
-indicate whether the vault is locked or an approval is waiting.\n\n\
+Tool calls wait for the user's decision. Approval prompts expire after the timeout set in \
+Keyguard. While a call is pending, wait for its result; do not cancel it or issue duplicate \
+requests. A pending call does not indicate whether the vault is locked or an approval is \
+waiting.\n\n\
 Handle errors as follows:\n\
 - vault_locked: ask the user to unlock Keyguard before retrying.\n\
 - user_denied: stop; retry only if the user explicitly requests it.\n\
@@ -78,7 +79,7 @@ impl Bridge {
         // leaving a half-read frame for the next request. The app revokes its grant.
         let mut stream = match slot.take() {
             Some(stream) => stream,
-            None => transport::connect(&self.socket, None).await?,
+            None => client::connect(&self.socket).await?,
         };
         let bytes = Zeroizing::new(serde_json::to_vec(&PublicFrameRef::Manage(request))?);
         write_frame(&mut *stream, &bytes).await?;
@@ -158,24 +159,24 @@ impl ServerHandler for Bridge {
             }
             Err(error) => return Ok(tool_error(&error.to_string(), error.message())),
         }
+        // Keyguard bounds the wait for an approval, and the client may cancel it.
         let response = tokio::select! {
             _ = context.ct.cancelled() => return Ok(CallToolResult::error(vec![ContentBlock::text("Request cancelled.")]).into()),
-            response = tokio::time::timeout(Duration::from_secs(75), self.request(&request)) => response,
+            response = self.request(&request) => response,
         };
         match response {
-            Ok(Ok(mut response)) if response.get("ok") == Some(&Value::Bool(true)) => {
+            Ok(mut response) if response.get("ok") == Some(&Value::Bool(true)) => {
                 let result = response
                     .get_mut("result")
                     .map(Value::take)
                     .unwrap_or_else(|| json!({}));
                 Ok(CallToolResult::structured(result).into())
             }
-            Ok(Ok(response)) => {
+            Ok(response) => {
                 let code = error_code(&response);
                 Ok(tool_error(code, message(code)))
             }
-            Ok(Err(_)) => Ok(tool_error("unavailable", message("unavailable"))),
-            Err(_) => Ok(tool_error("request_timeout", message("request_timeout"))),
+            Err(_) => Ok(tool_error("unavailable", message("unavailable"))),
         }
     }
 }

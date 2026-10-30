@@ -9,10 +9,10 @@ use keyguard_agent_ipc::{
 };
 use keyguard_cli_protocol::{
     frame::{read_frame, write_frame},
-    transport,
+    transport::{self, BoxStream},
 };
 use prost::Message;
-use std::{path::PathBuf, time::Duration};
+use std::path::PathBuf;
 use zeroize::Zeroizing;
 
 #[derive(Clone)]
@@ -25,6 +25,10 @@ pub(crate) struct AppClient {
 impl AppClient {
     /// Sends one request over a connection of its own. The answer can hold
     /// values, which are wiped once it is dropped.
+    ///
+    /// Only connecting and authenticating are timed. The app bounds its
+    /// answer, including the wait for an approval, and dropping the returned
+    /// future closes the connection, which cancels the request.
     pub(crate) async fn request(
         &self,
         request: request::Request,
@@ -32,24 +36,28 @@ impl AppClient {
         let request = Private(Request {
             request: Some(request),
         });
-        tokio::time::timeout(Duration::from_secs(70), async {
-            let mut stream = transport::connect(&self.socket, Some(self.pid)).await?;
-            let auth = Private(Request {
-                request: Some(request::Request::Authenticate(authenticate_request(
-                    &self.token,
-                ))),
-            });
-            write_frame(&mut *stream, &Zeroizing::new(auth.0.encode_to_vec())).await?;
-            let response = read_response(&mut *stream).await?;
-            let response::Response::Authenticate(auth) = &response.0 else {
-                bail!("authentication_failed");
-            };
-            check_authenticate_response(auth).context("authentication_failed")?;
-            write_frame(&mut *stream, &Zeroizing::new(request.0.encode_to_vec())).await?;
-            read_response(&mut *stream).await
-        })
-        .await
-        .context("request_timeout")?
+        let mut stream = tokio::time::timeout(transport::CONNECT_TIMEOUT, self.connect())
+            .await
+            .context("connect_timeout")??;
+        write_frame(&mut *stream, &Zeroizing::new(request.0.encode_to_vec())).await?;
+        read_response(&mut *stream).await
+    }
+
+    /// Connects to the app and authenticates with the launch token.
+    async fn connect(&self) -> Result<BoxStream> {
+        let mut stream = transport::connect(&self.socket, Some(self.pid)).await?;
+        let auth = Private(Request {
+            request: Some(request::Request::Authenticate(authenticate_request(
+                &self.token,
+            ))),
+        });
+        write_frame(&mut *stream, &Zeroizing::new(auth.0.encode_to_vec())).await?;
+        let response = read_response(&mut *stream).await?;
+        let response::Response::Authenticate(auth) = &response.0 else {
+            bail!("authentication_failed");
+        };
+        check_authenticate_response(auth).context("authentication_failed")?;
+        Ok(stream)
     }
 
     /// Reports a mount status to the app.

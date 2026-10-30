@@ -145,7 +145,7 @@ struct AgentApprovalPrompt<Content: View>: View {
             let expiresAt = Double(expiresAtEpochMs) / 1000
             let remaining = max(0, expiresAt - context.date.timeIntervalSince1970)
             let total = timeoutMs.map { Double($0) / 1000 } ?? expiresAt - shownAt.timeIntervalSince1970
-            let countdown = L10n.agentApprovalExpiresInSecondsPlural(Int(remaining.rounded(.up)))
+            let countdown = Self.countdown(remaining: remaining)
             VStack(spacing: 16) {
                 HStack {
                     Spacer()
@@ -160,15 +160,27 @@ struct AgentApprovalPrompt<Content: View>: View {
                         .disabled(remaining <= 0 || authModel.status != .unlocked)
                 }
                 .disabled(decision.isResolving)
-                ProgressView(value: min(remaining, total), total: max(1, total)) {
-                    Text(countdown).font(.caption).foregroundStyle(.secondary)
+                if expires {
+                    ProgressView(value: min(remaining, total), total: max(1, total)) {
+                        Text(countdown).font(.caption).foregroundStyle(.secondary)
+                    }
+                    .progressViewStyle(.linear)
+                    .animation(reduceMotion ? nil : .linear(duration: 1), value: remaining)
+                    .accessibilityLabel(L10n.agentApprovalTimeLeftLabel)
+                    .accessibilityValue(countdown)
                 }
-                .progressViewStyle(.linear)
-                .animation(reduceMotion ? nil : .linear(duration: 1), value: remaining)
-                .accessibilityLabel(L10n.agentApprovalTimeLeftLabel)
-                .accessibilityValue(countdown)
             }
         }
+    }
+
+    /// A prompt without a timeout expires at the largest instant there is.
+    private var expires: Bool { expiresAtEpochMs != Int64.max }
+
+    /// Seconds under a minute, then whole minutes rounded up.
+    private static func countdown(remaining: TimeInterval) -> String {
+        let seconds = Int(remaining.rounded(.up))
+        guard seconds > 60 else { return L10n.agentApprovalExpiresInSecondsPlural(seconds) }
+        return L10n.agentApprovalExpiresInMinutesPlural((seconds + 59) / 60)
     }
 
     private func begin(approved: Bool) {

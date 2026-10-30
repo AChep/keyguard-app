@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.cli
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.Files
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_PROMPT_TIMEOUT
 import com.artemchep.keyguard.common.service.agent.AgentApprovalBroker
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigProvider
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheIdentity
@@ -36,12 +37,17 @@ class CliServiceImpl(
     /** How long a terminal tab keeps an approval. */
     approvalCacheConfig: AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
         fixedAgentApprovalCacheConfig(Duration.INFINITE, AgentApprovalCachePolicy.Default),
+    /** How long a prompt waits for the user. */
+    approvalTimeout: suspend () -> Duration = { AGENT_APPROVAL_PROMPT_TIMEOUT },
 ) : CliRuntimeHost {
     private val store = storeFactory.get(Files.SETTINGS)
     private val enabledPreference = store.getBoolean("cli.enabled", false)
     private val mutableState = MutableStateFlow(CliServiceState())
     override val state = mutableState.asStateFlow()
-    private val approvalBroker = AgentApprovalBroker<CliApprovalRequest>(idOf = { it.id })
+    private val approvalBroker = AgentApprovalBroker<CliApprovalRequest>(
+        idOf = { it.id },
+        promptTimeout = approvalTimeout,
+    )
     override val approvals = approvalBroker.pending
 
     /**

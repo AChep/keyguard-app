@@ -67,6 +67,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingFeedbackApp
 import com.artemchep.keyguard.feature.home.settings.component.settingFontProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGitHubProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentApprovalCachePolicyProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentApprovalTimeoutProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentApprovalWindowProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentDisplayKeyNamesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentFiltersProvider
@@ -83,9 +84,11 @@ import com.artemchep.keyguard.feature.home.settings.component.settingEnvironment
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsListProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpSetupProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpApprovalTimeoutProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpApprovalWindowProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMountsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCliApprovalTimeoutProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCliApprovalWindowProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCliProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCliSettingsProvider
@@ -125,6 +128,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingScreenshots
 import com.artemchep.keyguard.feature.home.settings.component.settingSectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocaleProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalCachePolicyProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalTimeoutProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalWindowProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentDisplayKeyNamesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFiltersProvider
@@ -245,6 +249,7 @@ object Setting {
     const val SSH_SETTINGS = "ssh_settings"
     const val SSH_AGENT = "ssh_agent"
     const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
+    const val SSH_AGENT_APPROVAL_TIMEOUT = "ssh_agent_approval_timeout"
     const val SSH_AGENT_APPROVAL_CACHE_POLICY = "ssh_agent_approval_cache_policy"
     const val SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent_display_key_names"
     const val SSH_AGENT_LOCAL_STORAGE_INFO = "ssh_agent_local_storage_info"
@@ -254,10 +259,12 @@ object Setting {
     const val CLI_SETTINGS = "cli_settings"
     const val CLI = "cli"
     const val CLI_APPROVAL_WINDOW = "cli_approval_window"
+    const val CLI_APPROVAL_TIMEOUT = "cli_approval_timeout"
     const val CLI_SETUP = "cli_setup"
     const val ENVIRONMENTS = "environments"
     const val ENVIRONMENTS_MCP_SETTINGS = "environments_mcp_settings"
     const val ENVIRONMENTS_MCP_APPROVAL_WINDOW = "environments_mcp_approval_window"
+    const val ENVIRONMENTS_MCP_APPROVAL_TIMEOUT = "environments_mcp_approval_timeout"
     const val ENVIRONMENTS_MCP = "environments_mcp"
     const val ENVIRONMENTS_MCP_SETUP = "environments_mcp_setup"
     const val ENVIRONMENTS_LIST = "environments_list"
@@ -266,6 +273,7 @@ object Setting {
     const val GPG_SETTINGS = "gpg_settings"
     const val GPG_AGENT = "gpg_agent"
     const val GPG_AGENT_APPROVAL_WINDOW = "gpg_agent_approval_window"
+    const val GPG_AGENT_APPROVAL_TIMEOUT = "gpg_agent_approval_timeout"
     const val GPG_AGENT_APPROVAL_CACHE_POLICY = "gpg_agent_approval_cache_policy"
     const val GPG_AGENT_DISPLAY_KEY_NAMES = "gpg_agent_display_key_names"
     const val GPG_AGENT_LOCAL_STORAGE_INFO = "gpg_agent_local_storage_info"
@@ -391,6 +399,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.SSH_SETTINGS to ::settingSshSettingsProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,
     Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,
+    Setting.SSH_AGENT_APPROVAL_TIMEOUT to ::settingSshAgentApprovalTimeoutProvider,
     Setting.SSH_AGENT_APPROVAL_CACHE_POLICY to ::settingSshAgentApprovalCachePolicyProvider,
     Setting.SSH_AGENT_DISPLAY_KEY_NAMES to ::settingSshAgentDisplayKeyNamesProvider,
     Setting.SSH_AGENT_LOCAL_STORAGE_INFO to ::settingSshAgentLocalStorageInfoProvider,
@@ -400,10 +409,12 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.CLI_SETTINGS to ::settingCliSettingsProvider,
     Setting.CLI to ::settingCliProvider,
     Setting.CLI_APPROVAL_WINDOW to ::settingCliApprovalWindowProvider,
+    Setting.CLI_APPROVAL_TIMEOUT to ::settingCliApprovalTimeoutProvider,
     Setting.CLI_SETUP to ::settingCliSetupProvider,
     Setting.ENVIRONMENTS to ::settingEnvironmentsProvider,
     Setting.ENVIRONMENTS_MCP_SETTINGS to ::settingEnvironmentsMcpSettingsProvider,
     Setting.ENVIRONMENTS_MCP_APPROVAL_WINDOW to ::settingEnvironmentsMcpApprovalWindowProvider,
+    Setting.ENVIRONMENTS_MCP_APPROVAL_TIMEOUT to ::settingEnvironmentsMcpApprovalTimeoutProvider,
     Setting.ENVIRONMENTS_MCP to ::settingEnvironmentsMcpProvider,
     Setting.ENVIRONMENTS_MCP_SETUP to ::settingEnvironmentsMcpSetupProvider,
     Setting.ENVIRONMENTS_LIST to ::settingEnvironmentsListProvider,
@@ -412,6 +423,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.GPG_SETTINGS to ::settingGpgSettingsProvider,
     Setting.GPG_AGENT to ::settingGpgAgentProvider,
     Setting.GPG_AGENT_APPROVAL_WINDOW to ::settingGpgAgentApprovalWindowProvider,
+    Setting.GPG_AGENT_APPROVAL_TIMEOUT to ::settingGpgAgentApprovalTimeoutProvider,
     Setting.GPG_AGENT_APPROVAL_CACHE_POLICY to ::settingGpgAgentApprovalCachePolicyProvider,
     Setting.GPG_AGENT_DISPLAY_KEY_NAMES to ::settingGpgAgentDisplayKeyNamesProvider,
     Setting.GPG_AGENT_LOCAL_STORAGE_INFO to ::settingGpgAgentLocalStorageInfoProvider,

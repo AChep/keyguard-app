@@ -13,7 +13,7 @@ internal typealias GpgAgentApprovalQueue = AgentApprovalQueue<GpgAgentApprovalPr
 
 /** Approval state shared by the process-wide native panel. */
 internal fun gpgAgentApprovalQueue(
-    timeout: Duration = AGENT_APPROVAL_PROMPT_TIMEOUT,
+    timeout: suspend () -> Duration = { AGENT_APPROVAL_PROMPT_TIMEOUT },
     nowEpochMs: () -> Long = { Clock.System.now().toEpochMilliseconds() },
 ): GpgAgentApprovalQueue = AgentApprovalQueue(
     idPrefix = "gpg",

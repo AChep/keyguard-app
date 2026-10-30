@@ -78,8 +78,10 @@ internal class MacosCliAgentRuntime(
     }
 }
 
-// The CLI client gives each connection 70 seconds.
-private const val IO_TIMEOUT_MS = 70_000L
+// The CLI client gives connecting 30 seconds (`CONNECT_TIMEOUT` in
+// `commonAgent/ipc/src/stream.rs`). A request has no bound, as its approval
+// prompt owns the deadline.
+private const val IO_TIMEOUT_MS = 30_000L
 
 private const val MAX_CONNECTIONS = 32
 

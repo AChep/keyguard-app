@@ -14,6 +14,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlin.test.Test
@@ -23,16 +24,17 @@ import kotlin.test.assertTrue
 
 /**
  * The desktop CLI agent's connections are bounded by the client's own budget:
- * a connection that stalls past it is closed. The tests use 200 ms for the 70 s
- * of production.
+ * a connection whose read or write stalls past it is closed. A request is not:
+ * its approval prompt owns the deadline. The tests use 200 ms for the 30 s of
+ * production.
  */
 class CliAgentIpcServerTest {
     private val authToken = ByteArray(AgentIpcAuthenticator.TOKEN_SIZE) { it.toByte() }
 
     @Test
     fun `the budget is the CLI agent's own`() {
-        // desktopCliAgent/src/src/app_client.rs gives up on a request after 70 s.
-        assertEquals(70_000L, CliAgentIpcServer.IO_TIMEOUT_MS)
+        // CONNECT_TIMEOUT in commonAgent/ipc/src/stream.rs.
+        assertEquals(30_000L, CliAgentIpcServer.IO_TIMEOUT_MS)
     }
 
     @Test
@@ -55,15 +57,17 @@ class CliAgentIpcServerTest {
     }
 
     @Test
-    fun `a request that outlasts the budget is cancelled and closed`() = withStalledCliServer { server, log, run ->
+    fun `a request outlasts the budget until the client leaves`() = withStalledCliServer { server, log, run ->
         AgentIpcTestClient.connect(server.endpoint).use { client ->
             assertTrue(client.authenticateCli(authToken))
             client.writeFrame(cliRunRequestPayload())
             withTimeout(5_000L) { run.started.await() }
-            // The client keeps its side open: only the budget ends the request.
-            withTimeout(5_000L) { run.cancelled.await() }
-            assertEquals(0, client.readToEnd(), "A cancelled request must not be answered")
+            // The client keeps its side open: the budget does not end the request.
+            delay(1_000L)
+            assertFalse(run.cancelled.isCompleted, "A request must outlast the budget")
         }
+        // The client left, so the request is cancelled.
+        withTimeout(5_000L) { run.cancelled.await() }
         server.stop()
         assertFalse(server.isServing)
         assertEquals(emptyList(), log.errors)

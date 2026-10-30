@@ -27,8 +27,9 @@ const ASSUAN_MAX_LINE_CONTENT_LEN: usize = ASSUAN_LINE_LEN - 2;
 
 // Keep authenticated clients from occupying a connection indefinitely without
 // sending a command, completing a line, or reading the response. Operation
-// deadlines deliberately remain in the IPC layer: cancelling an IPC exchange
-// between its write and read would desynchronize the shared framed stream.
+// deadlines deliberately remain in the app and the IPC layer: cancelling an IPC
+// exchange between its write and read would desynchronize the shared framed
+// stream.
 const CONNECTION_IDLE_TIMEOUT: Duration = Duration::from_secs(5 * 60);
 const LINE_COMPLETION_TIMEOUT: Duration = Duration::from_secs(30);
 const RESPONSE_WRITE_TIMEOUT: Duration = Duration::from_secs(30);

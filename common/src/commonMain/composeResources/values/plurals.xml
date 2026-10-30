@@ -337,6 +337,10 @@
         <item quantity="one">Expires in <xliff:g id="seconds" example="1">%1$d</xliff:g> second</item>
         <item quantity="other">Expires in <xliff:g id="seconds" example="30">%1$d</xliff:g> seconds</item>
     </plurals>
+    <plurals name="agent_approval_expires_in_minutes_plural">
+        <item quantity="one">Expires in <xliff:g id="minutes" example="1">%1$d</xliff:g> minute</item>
+        <item quantity="other">Expires in <xliff:g id="minutes" example="5">%1$d</xliff:g> minutes</item>
+    </plurals>
     <plurals name="gpg_user_ids_count_plural">
         <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> active User ID</item>
         <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> active User IDs</item>

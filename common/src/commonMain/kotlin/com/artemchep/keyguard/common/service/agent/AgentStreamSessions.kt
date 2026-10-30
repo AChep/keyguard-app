@@ -36,8 +36,9 @@ suspend fun AgentPacketSession<*, *>.serveFramed(
  * Serves one connection of the CLI agent: authentication, then exactly one
  * request. Input or the end of the stream while that request is processed
  * cancels the processing, and the connection ends quietly. With an
- * [ioTimeoutMs], each read, processing and write gives up after that long and
- * ends the connection. Every packet and reply is zeroed; transport failures
+ * [ioTimeoutMs], each read and write gives up after that long and ends the
+ * connection; processing the request has no time limit, as an approval prompt
+ * owns its deadline. Every packet and reply is zeroed; transport failures
  * propagate as they are.
  *
  * The caller owns the session behind [process] and closes it.
@@ -95,7 +96,7 @@ private suspend fun FramedAgentPacketChannel.respondWhileConnected(
                 operation.cancel()
             }
             try {
-                val response = awaitResponse(operation, ioTimeoutMs)
+                val response = awaitResponse(operation)
                 if (response != null) {
                     writeReply(response, ioTimeoutMs)
                 }
@@ -110,12 +111,11 @@ private suspend fun FramedAgentPacketChannel.respondWhileConnected(
     }
 }
 
-/** The response of [operation], or null when the watch cancelled it or the time ran out. */
+/** The response of [operation], or null when the watch cancelled it. */
 private suspend fun awaitResponse(
     operation: Deferred<AgentPacketReply>,
-    ioTimeoutMs: Long?,
 ): AgentPacketReply? = try {
-    withIoTimeout(ioTimeoutMs) { operation.await() }
+    operation.await()
 } catch (e: CancellationException) {
     // A cancelled caller is not a cancelled operation.
     currentCoroutineContext().ensureActive()

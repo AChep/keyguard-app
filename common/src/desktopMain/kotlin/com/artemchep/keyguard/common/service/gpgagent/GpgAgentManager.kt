@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.session.GpgAgentSessionAccess
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalTimeout
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetGpgAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -17,6 +18,7 @@ import com.artemchep.keyguard.util.agentipc.AgentIpcExpectedPeer
 import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
 import java.nio.file.Path
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 /**
@@ -35,6 +37,7 @@ class GpgAgentManager(
     private val sessionAccess: GpgAgentSessionAccess,
     private val getGpgAgentApprovalWindow: GetGpgAgentApprovalWindow,
     private val getGpgAgentApprovalCachePolicy: GetGpgAgentApprovalCachePolicy,
+    private val getGpgAgentApprovalTimeout: GetGpgAgentApprovalTimeout,
     private val getGpgAgentFilter: GetGpgAgentFilter,
     private val gpgPublicKeyRepository: GpgPublicKeyRepository,
     private val pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
@@ -56,7 +59,12 @@ class GpgAgentManager(
      * approval dialog for each and responds to it; a request that is not
      * answered before it expires is denied.
      */
-    val approvals = AgentApprovalBroker<GpgAgentApprovalRequest>(idOf = { it.id })
+    val approvals = AgentApprovalBroker<GpgAgentApprovalRequest>(
+        idOf = { it.id },
+        promptTimeout = ::approvalTimeout,
+    )
+
+    private suspend fun approvalTimeout() = getGpgAgentApprovalTimeout().first()
 
     private val socketResolver = GpgAgentSocketResolver(
         logRepository = logRepository,
@@ -94,6 +102,7 @@ class GpgAgentManager(
                 }
                 result == AgentApprovalBroker.Result.Approved
             },
+            approvalTimeout = ::approvalTimeout,
         )
         return object : IpcServerRunner {
             override fun bind(location: AgentIpcLocation) = ipcServer.bind(location)

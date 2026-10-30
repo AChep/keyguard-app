@@ -62,7 +62,7 @@ class AgentApprovalCenter(
             gpgPrompts.map(AgentPrompt::Gpg) +
             environmentPrompts.map(AgentPrompt::Environment) +
             cliPrompts.map(AgentPrompt::Cli)
-        // A prompt expires a fixed time after it is shown, so its deadline orders it.
+        // The prompt that expires first is shown first.
         prompts.sortedBy { it.expiresAt }
     }.stateIn(scope, SharingStarted.Eagerly, emptyList())
 

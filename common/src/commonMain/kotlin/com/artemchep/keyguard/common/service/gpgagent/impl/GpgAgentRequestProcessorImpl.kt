@@ -56,6 +56,7 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.serialization.json.Json
 import kotlin.time.Clock
+import kotlin.time.Duration
 
 class GpgAgentRequestProcessorImpl(
     private val logRepository: LogRepository,
@@ -79,6 +80,8 @@ class GpgAgentRequestProcessorImpl(
     private val sessionId: String = "",
     private val json: Json = Json,
     private val onApprovalRequest: suspend (GpgAgentApprovalPrompt) -> Boolean = { true },
+    /** How long a request's approval prompts wait for the user. */
+    private val approvalTimeout: suspend () -> Duration = { AGENT_APPROVAL_PROMPT_TIMEOUT },
 ) : GpgAgentRequestProcessor {
     companion object {
         private const val TAG = "GpgAgentRequestProcessor"
@@ -181,7 +184,7 @@ class GpgAgentRequestProcessorImpl(
         val normalizedKeygrip = keygrip.normalizeGpgKeygrip()
         // A locked vault can need a second prompt after it unlocks; both
         // share this deadline, which the Termux helper's timeout covers.
-        val approvalExpiresAt = Clock.System.now() + AGENT_APPROVAL_PROMPT_TIMEOUT
+        val approvalExpiresAt = Clock.System.now() + approvalTimeout()
         var session = getVaultSession.valueOrNull as? MasterSession.Key
         val wasVaultLocked = session == null
         if (wasVaultLocked) {

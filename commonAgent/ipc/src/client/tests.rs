@@ -4,7 +4,7 @@
 use super::*;
 use common_ssh_agent_rust::messages::{
     AuthenticateResponse, ErrorCode, IpcRequest, IpcResponse, ListKeysRequest, ListKeysResponse,
-    SignDataRequest, SshKey, ipc_request, ipc_response,
+    SignDataRequest, SignDataResponse, SshKey, ipc_request, ipc_response,
 };
 use keyguard_agent_identity::IPC_PROTOCOL_REVISION;
 use std::collections::VecDeque;
@@ -57,6 +57,16 @@ impl<P: Protocol> Client<P> {
 /// A ListKeys request without a caller.
 fn list_keys() -> ipc_request::Request {
     ipc_request::Request::ListKeys(ListKeysRequest { caller: None })
+}
+
+/// A SignData request, which may prompt the user.
+fn sign_data() -> ipc_request::Request {
+    ipc_request::Request::SignData(SignDataRequest {
+        public_key: "ssh-ed25519 AAAA...".to_string(),
+        data: vec![1, 2, 3],
+        flags: 0,
+        caller: None,
+    })
 }
 
 /// The name of the first key that `reply` lists.
@@ -659,7 +669,7 @@ async fn authentication_timeout_invalidates_the_stream() {
         Some(ipc_request::Request::Authenticate(_))
     ));
 
-    tokio::time::advance(AUTHENTICATION_TIMEOUT).await;
+    tokio::time::advance(CONNECT_TIMEOUT).await;
     let error = authenticate_task.await.unwrap().unwrap_err().to_string();
     assert!(error.contains("authentication timed out"), "{error}");
     assert!(
@@ -714,7 +724,7 @@ async fn request_timeout_includes_waiting_for_the_shared_stream() {
 }
 
 #[tokio::test(start_paused = true)]
-async fn request_timeout_invalidates_without_retry_and_next_request_reconnects() {
+async fn retry_safe_request_timeout_invalidates_without_retry_and_next_request_reconnects() {
     let token = vec![0xA7; 32];
     let (client_stream1, server_stream1) = tokio::io::duplex(64 * 1024);
     let (client_stream2, server_stream2) = tokio::io::duplex(64 * 1024);
@@ -745,7 +755,7 @@ async fn request_timeout_invalidates_without_retry_and_next_request_reconnects()
         let timed_request = connection.read_request().await.unwrap();
         assert!(matches!(
             timed_request.request,
-            Some(ipc_request::Request::SignData(_))
+            Some(ipc_request::Request::ListKeys(_))
         ));
         timed_request_seen_tx.send(()).unwrap();
 
@@ -770,7 +780,7 @@ async fn request_timeout_invalidates_without_retry_and_next_request_reconnects()
             .unwrap();
 
         // The next request after reconnect must be the caller's new
-        // ListKeys operation, never a replay of the ambiguous SignData.
+        // operation, never a replay of the timed-out one.
         let next_request = connection.read_request().await.unwrap();
         assert!(matches!(
             next_request.request,
@@ -793,16 +803,7 @@ async fn request_timeout_invalidates_without_retry_and_next_request_reconnects()
     client.authenticate(&test_auth_token(&token)).await.unwrap();
 
     let timed_client = client.clone();
-    let timed_request_task = tokio::spawn(async move {
-        timed_client
-            .request(ipc_request::Request::SignData(SignDataRequest {
-                public_key: "ssh-ed25519 AAAA...".to_string(),
-                data: vec![1, 2, 3],
-                flags: 0,
-                caller: None,
-            }))
-            .await
-    });
+    let timed_request_task = tokio::spawn(async move { timed_client.request(list_keys()).await });
     timed_request_seen_rx.await.unwrap();
     tokio::time::advance(REQUEST_TIMEOUT).await;
 
@@ -820,6 +821,52 @@ async fn request_timeout_invalidates_without_retry_and_next_request_reconnects()
     let _ = release_first_connection_tx.send(());
     first_server_task.await.unwrap();
     second_server_task.await.unwrap();
+}
+
+#[tokio::test(start_paused = true)]
+async fn a_request_that_may_prompt_outlives_the_request_timeout() {
+    let (client, mut server) = make_test_client().await;
+    let stream_guard = client.inner.stream.lock().await;
+
+    let request_client = client.clone();
+    let mut request_task = tokio::spawn(async move { request_client.request(sign_data()).await });
+    // The paused clock jumps to the next timer, which the client must not
+    // have set: neither while it waits for the shared connection...
+    assert!(
+        tokio::time::timeout(2 * REQUEST_TIMEOUT, &mut request_task)
+            .await
+            .is_err(),
+        "the request must wait for the shared connection"
+    );
+    drop(stream_guard);
+
+    let request = server.read_request().await.unwrap();
+    assert!(matches!(
+        request.request,
+        Some(ipc_request::Request::SignData(_))
+    ));
+    // ...nor while the app waits for the user to approve it.
+    assert!(
+        tokio::time::timeout(2 * REQUEST_TIMEOUT, &mut request_task)
+            .await
+            .is_err(),
+        "the request must wait for the app's answer"
+    );
+
+    server
+        .write_response(&IpcResponse {
+            id: request.id,
+            response: Some(ipc_response::Response::SignData(SignDataResponse {
+                signature: vec![4, 5, 6],
+                algorithm: "ssh-ed25519".to_string(),
+            })),
+        })
+        .await
+        .unwrap();
+    match request_task.await.unwrap().unwrap() {
+        ipc_response::Response::SignData(signed) => assert_eq!(signed.signature, [4, 5, 6]),
+        reply => panic!("expected a signature, got {reply:?}"),
+    }
 }
 
 /// The tags of the tokens that [`ProbeIpc`] wiped. A tag is the first byte
@@ -957,7 +1004,7 @@ async fn a_timed_out_authentication_wipes_its_token() {
         Some(ipc_request::Request::Authenticate(_))
     ));
 
-    tokio::time::advance(AUTHENTICATION_TIMEOUT).await;
+    tokio::time::advance(CONNECT_TIMEOUT).await;
     let error = authenticate_task.await.unwrap().unwrap_err().to_string();
     assert!(error.contains("authentication timed out"), "{error}");
     assert_eq!(wipes(0xC2), 1);
@@ -982,4 +1029,22 @@ async fn an_aborted_reconnect_wipes_its_token() {
     assert!(request_task.await.unwrap_err().is_cancelled());
     // The task drops its future before it reports the cancellation.
     assert_eq!(wipes(0xC4), 1);
+}
+
+#[tokio::test(start_paused = true)]
+async fn restoring_the_connection_of_a_request_that_may_prompt_is_timed() {
+    let (client, authentication_seen) = client_with_stalled_reconnect(0xC5);
+    // An earlier request left the slot empty.
+    client.inner.stream.lock().await.take();
+
+    let error = client.request(sign_data()).await.unwrap_err().to_string();
+    assert!(
+        error.contains(&format!(
+            "recovery timed out after {} seconds",
+            CONNECT_TIMEOUT.as_secs()
+        )),
+        "{error}"
+    );
+    assert!(error.contains("operation was not sent"), "{error}");
+    authentication_seen.await.unwrap();
 }

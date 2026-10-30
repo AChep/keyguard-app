@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.Files
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_PROMPT_TIMEOUT
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigProvider
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigState
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
@@ -101,15 +102,19 @@ class SettingsRepositoryImpl(
         private const val KEY_SSH_AGENT = "ssh_agent"
         private const val KEY_SSH_AGENT_APPROVAL_WINDOW = "ssh_agent.approval_window"
         private const val KEY_SSH_AGENT_APPROVAL_CACHE_POLICY = "ssh_agent.approval_cache_policy"
+        private const val KEY_SSH_AGENT_APPROVAL_TIMEOUT = "ssh_agent.approval_timeout"
         private const val KEY_SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent.display_key_names"
         private const val KEY_SSH_AGENT_FILTER = "ssh_agent.filters"
         private const val KEY_GPG_AGENT = "gpg_agent"
         private const val KEY_GPG_AGENT_APPROVAL_WINDOW = "gpg_agent.approval_window"
         private const val KEY_GPG_AGENT_APPROVAL_CACHE_POLICY = "gpg_agent.approval_cache_policy"
+        private const val KEY_GPG_AGENT_APPROVAL_TIMEOUT = "gpg_agent.approval_timeout"
         private const val KEY_ENVIRONMENTS_MCP_APPROVAL_WINDOW = "environments.mcp.approval_window"
         private const val KEY_ENVIRONMENTS_MCP_APPROVAL_CACHE_POLICY = "environments.mcp.approval_cache_policy"
+        private const val KEY_ENVIRONMENTS_MCP_APPROVAL_TIMEOUT = "environments.mcp.approval_timeout"
         private const val KEY_CLI_APPROVAL_WINDOW = "cli.approval_window"
         private const val KEY_CLI_APPROVAL_CACHE_POLICY = "cli.approval_cache_policy"
+        private const val KEY_CLI_APPROVAL_TIMEOUT = "cli.approval_timeout"
         private const val KEY_GPG_AGENT_DISPLAY_KEY_NAMES = "gpg_agent.display_key_names"
         private const val KEY_GPG_AGENT_FILTER = "gpg_agent.filters"
         private const val KEY_GPG_KEYSERVER_CONFIG = "gpg_agent.keyserver"
@@ -316,6 +321,20 @@ class SettingsRepositoryImpl(
         cachePolicyKey = KEY_CLI_APPROVAL_CACHE_POLICY,
         defaultWindow = Duration.INFINITE,
     )
+
+    // An infinite timeout is stored as Long.MAX_VALUE, which
+    // reads back as infinite.
+    private val sshAgentApprovalTimeoutPref =
+        store.getLong(KEY_SSH_AGENT_APPROVAL_TIMEOUT, AGENT_APPROVAL_PROMPT_TIMEOUT.inWholeMilliseconds)
+
+    private val gpgAgentApprovalTimeoutPref =
+        store.getLong(KEY_GPG_AGENT_APPROVAL_TIMEOUT, AGENT_APPROVAL_PROMPT_TIMEOUT.inWholeMilliseconds)
+
+    private val environmentsMcpApprovalTimeoutPref =
+        store.getLong(KEY_ENVIRONMENTS_MCP_APPROVAL_TIMEOUT, AGENT_APPROVAL_PROMPT_TIMEOUT.inWholeMilliseconds)
+
+    private val cliApprovalTimeoutPref =
+        store.getLong(KEY_CLI_APPROVAL_TIMEOUT, AGENT_APPROVAL_PROMPT_TIMEOUT.inWholeMilliseconds)
 
     private val gpgAgentDisplayKeyNamesPref =
         store.getBoolean(KEY_GPG_AGENT_DISPLAY_KEY_NAMES, false)
@@ -541,11 +560,13 @@ class SettingsRepositoryImpl(
             sshAgentPref,
             sshAgentApproval.windowPref,
             sshAgentApproval.cachePolicyPref,
+            sshAgentApprovalTimeoutPref,
             sshAgentDisplayKeyNamesPref,
             sshAgentFilterPref,
             gpgAgentPref,
             gpgAgentApproval.windowPref,
             gpgAgentApproval.cachePolicyPref,
+            gpgAgentApprovalTimeoutPref,
             gpgAgentDisplayKeyNamesPref,
             gpgAgentFilterPref,
             gpgKeyserverConfigPref,
@@ -816,6 +837,12 @@ class SettingsRepositoryImpl(
     override fun getSshAgentApprovalWindow() = sshAgentApproval.config
         .approvalWindow()
 
+    override fun setSshAgentApprovalTimeout(duration: Duration) = sshAgentApprovalTimeoutPref
+        .setAndCommit(duration)
+
+    override fun getSshAgentApprovalTimeout() = sshAgentApprovalTimeoutPref
+        .asApprovalTimeout()
+
     override fun setSshAgentApprovalCachePolicy(policy: AgentApprovalCachePolicy) =
         sshAgentApproval.cachePolicyPref.setAndCommit(policy)
 
@@ -846,6 +873,12 @@ class SettingsRepositoryImpl(
     override fun getGpgAgentApprovalWindow() = gpgAgentApproval.config
         .approvalWindow()
 
+    override fun setGpgAgentApprovalTimeout(duration: Duration) = gpgAgentApprovalTimeoutPref
+        .setAndCommit(duration)
+
+    override fun getGpgAgentApprovalTimeout() = gpgAgentApprovalTimeoutPref
+        .asApprovalTimeout()
+
     override fun setGpgAgentApprovalCachePolicy(policy: AgentApprovalCachePolicy) =
         gpgAgentApproval.cachePolicyPref.setAndCommit(policy)
 
@@ -861,6 +894,12 @@ class SettingsRepositoryImpl(
     override fun getEnvironmentsMcpApprovalWindow() = environmentsMcpApproval.config
         .approvalWindow()
 
+    override fun setEnvironmentsMcpApprovalTimeout(duration: Duration) = environmentsMcpApprovalTimeoutPref
+        .setAndCommit(duration)
+
+    override fun getEnvironmentsMcpApprovalTimeout() = environmentsMcpApprovalTimeoutPref
+        .asApprovalTimeout()
+
     override fun getEnvironmentsMcpApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
         environmentsMcpApproval.config
 
@@ -869,6 +908,12 @@ class SettingsRepositoryImpl(
 
     override fun getCliApprovalWindow() = cliApproval.config
         .approvalWindow()
+
+    override fun setCliApprovalTimeout(duration: Duration) = cliApprovalTimeoutPref
+        .setAndCommit(duration)
+
+    override fun getCliApprovalTimeout() = cliApprovalTimeoutPref
+        .asApprovalTimeout()
 
     override fun getCliApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
         cliApproval.config
@@ -1035,6 +1080,13 @@ class SettingsRepositoryImpl(
 
     override fun getExposedContentPublicKey() = exposedContentPublicKeyPref
 }
+
+private fun KeyValuePreference<Long>.asApprovalTimeout() = this
+    .map { millis ->
+        with(Duration) {
+            millis.milliseconds
+        }
+    }
 
 /**
  * The approval window and cache policy of one agent. Both are persisted and

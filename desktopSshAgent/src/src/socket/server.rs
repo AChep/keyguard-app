@@ -262,8 +262,9 @@ where
             drop(frame);
             // Do not wrap the handler in an outer timeout. Keyguard uses a
             // shared request/response IPC stream; cancelling between its
-            // write and read would desynchronize that stream. Handler
-            // deadlines therefore live in the IPC layer and force reconnect.
+            // write and read would desynchronize that stream. Deadlines
+            // therefore live below the handler: the app bounds an approval
+            // prompt, and the IPC layer times out a listing and reconnects.
             handle_request(&mut session, request).await
         } else {
             debug!(message_id, "Refusing unsupported SSH agent request");

@@ -9,12 +9,14 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.session.SshAgentSessionAccess
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalTimeout
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.util.agentipc.AgentIpcExpectedPeer
 import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
 
 /**
  * Manages the lifecycle of the keyguard-ssh-agent Rust binary.
@@ -30,6 +32,7 @@ class SshAgentManager(
     private val sessionAccess: SshAgentSessionAccess,
     private val getSshAgentApprovalWindow: GetSshAgentApprovalWindow,
     private val getSshAgentApprovalCachePolicy: GetSshAgentApprovalCachePolicy,
+    private val getSshAgentApprovalTimeout: GetSshAgentApprovalTimeout,
     private val getSshAgentFilter: GetSshAgentFilter,
     private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository,
     private val pendingUsageHistoryQueue: PendingUsageHistoryQueue? = null,
@@ -51,7 +54,10 @@ class SshAgentManager(
      * approval dialog for each and responds to it; a request that is not
      * answered before it expires is denied.
      */
-    val approvals = AgentApprovalBroker<SshAgentApprovalRequest>(idOf = { it.id })
+    val approvals = AgentApprovalBroker<SshAgentApprovalRequest>(
+        idOf = { it.id },
+        promptTimeout = { getSshAgentApprovalTimeout().first() },
+    )
 
     override fun createIpcServer(
         authToken: ByteArray,

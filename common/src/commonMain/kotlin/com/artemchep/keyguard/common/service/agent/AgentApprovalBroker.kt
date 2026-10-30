@@ -12,7 +12,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
-/** How long an approval prompt waits for the user before it is denied. */
+/** How long an approval prompt waits for the user before it is denied, by default. */
 val AGENT_APPROVAL_PROMPT_TIMEOUT: Duration = 60.seconds
 
 /**
@@ -24,14 +24,16 @@ val AGENT_APPROVAL_PROMPT_TIMEOUT: Duration = 60.seconds
  * leaves a stale prompt on screen.
  *
  * The broker owns the deadlines: a prompt expires [promptTimeout] after it
- * is shown, unless its request names an earlier [deadline].
+ * is shown, unless its request names an earlier [deadline]. An infinite timeout
+ * never expires.
  *
  * @param idOf A unique identifier of a prompt, used to [respond] to it.
+ * @param promptTimeout How long a prompt waits for the user; read for each request.
  */
 class AgentApprovalBroker<P : Any>(
     private val idOf: (P) -> String,
     private val clock: Clock = Clock.System,
-    val promptTimeout: Duration = AGENT_APPROVAL_PROMPT_TIMEOUT,
+    private val promptTimeout: suspend () -> Duration = { AGENT_APPROVAL_PROMPT_TIMEOUT },
 ) {
     enum class Result {
         Approved,
@@ -48,7 +50,7 @@ class AgentApprovalBroker<P : Any>(
      * The deadline of a prompt shown now. The prompts of one request share
      * one deadline, so the request as a whole ends within [promptTimeout].
      */
-    fun deadline(): Instant = clock.now() + promptTimeout
+    suspend fun deadline(): Instant = clock.now() + promptTimeout()
 
     /**
      * Shows the prompt that [build] creates and waits for the user's
@@ -56,9 +58,10 @@ class AgentApprovalBroker<P : Any>(
      * must show it as its expiry.
      */
     suspend fun request(
-        deadline: Instant = deadline(),
+        deadline: Instant? = null,
         build: (expiresAt: Instant) -> P,
     ): Result {
+        val deadline = deadline ?: deadline()
         val prompt = build(deadline)
         val id = idOf(prompt)
         val response = CompletableDeferred<Boolean>()

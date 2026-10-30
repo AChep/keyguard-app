@@ -13,7 +13,10 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 
@@ -27,11 +30,14 @@ class AgentApprovalBrokerTest {
 
     private fun TestScope.now() = Instant.fromEpochMilliseconds(currentTime)
 
-    private fun TestScope.broker() = AgentApprovalBroker<Prompt>(
+    private fun TestScope.broker(
+        timeout: () -> Duration = { AGENT_APPROVAL_PROMPT_TIMEOUT },
+    ) = AgentApprovalBroker<Prompt>(
         idOf = { it.id },
         clock = object : Clock {
             override fun now(): Instant = this@broker.now()
         },
+        promptTimeout = { timeout() },
     )
 
     @Test
@@ -58,13 +64,47 @@ class AgentApprovalBrokerTest {
         val shownAt = now()
         val result = async { broker.request { Prompt("a", it) } }
         runCurrent()
-        assertEquals(shownAt + broker.promptTimeout, broker.pending.value.single().expiresAt)
-        advanceTimeBy(broker.promptTimeout - 1.milliseconds)
+        assertEquals(shownAt + AGENT_APPROVAL_PROMPT_TIMEOUT, broker.pending.value.single().expiresAt)
+        advanceTimeBy(AGENT_APPROVAL_PROMPT_TIMEOUT - 1.milliseconds)
         assertEquals(1, broker.pending.value.size)
         advanceTimeBy(1.milliseconds)
         runCurrent()
         assertEquals(AgentApprovalBroker.Result.Expired, result.await())
         assertTrue(broker.pending.value.isEmpty())
+    }
+
+    @Test
+    fun `the timeout is read for each prompt`() = runTest {
+        var timeout = 30.seconds
+        val broker = broker(timeout = { timeout })
+        val first = async { broker.request { Prompt("a", it) } }
+        runCurrent()
+        timeout = 5.minutes
+        val second = async { broker.request { Prompt("b", it) } }
+        runCurrent()
+        assertEquals(
+            listOf(now() + 30.seconds, now() + 5.minutes),
+            broker.pending.value.map { it.expiresAt },
+        )
+
+        advanceTimeBy(30.seconds)
+        runCurrent()
+        assertEquals(AgentApprovalBroker.Result.Expired, first.await())
+        assertEquals(listOf("b"), broker.pending.value.map { it.id })
+        broker.respond("b", true)
+        assertEquals(AgentApprovalBroker.Result.Approved, second.await())
+    }
+
+    @Test
+    fun `a prompt with an infinite timeout never expires`() = runTest {
+        val broker = broker(timeout = { Duration.INFINITE })
+        val result = async { broker.request { Prompt("a", it) } }
+        runCurrent()
+        advanceTimeBy(365.days)
+        runCurrent()
+        assertEquals(listOf("a"), broker.pending.value.map { it.id })
+        broker.respond("a", true)
+        assertEquals(AgentApprovalBroker.Result.Approved, result.await())
     }
 
     @Test

@@ -5,6 +5,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.currentTime
 import kotlinx.coroutines.test.runCurrent
@@ -174,17 +175,23 @@ class CliAgentConnectionTest {
     }
 
     @Test
-    fun processingEndsAfterTheTimeout() = runTest {
+    fun processingOutlivesTheTimeout() = runTest {
         val connection = FakeAgentConnection().apply {
             sendPacket("auth")
             sendPacket("request")
         }
-        val agent = Agent(respond = { awaitCancellation() })
+        // An approval prompt owns its deadline, so a request may wait
+        // for the user much longer than a read or a write may take.
+        val agent = Agent(
+            respond = {
+                delay(TIMEOUT_MS * 10)
+                "response"
+            },
+        )
         serveCliAgentConnection(connection.stream, MAX, agent::process, TIMEOUT_MS)
-        assertEquals(TIMEOUT_MS, currentTime)
-        assertTrue(agent.cancelled)
-        assertEquals(listOf("ok"), connection.writtenPackets())
-        assertEquals("observe cancelled", connection.events.last())
+        assertEquals(TIMEOUT_MS * 10, currentTime)
+        assertFalse(agent.cancelled)
+        assertEquals(listOf("ok", "response"), connection.writtenPackets())
     }
 
     @Test

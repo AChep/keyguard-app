@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.environment
 
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_PROMPT_TIMEOUT
 import com.artemchep.keyguard.common.service.agent.AgentApprovalBroker
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigProvider
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
@@ -60,8 +61,13 @@ class EnvironmentAccessImpl(
     /** How long an MCP client, or a reader of a local `.env` file, keeps an approval. */
     mcpApprovalCacheConfig: AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
         fixedAgentApprovalCacheConfig(Duration.INFINITE, AgentApprovalCachePolicy.Default),
+    /** How long a prompt waits for the user. */
+    approvalTimeout: suspend () -> Duration = { AGENT_APPROVAL_PROMPT_TIMEOUT },
 ) : EnvironmentAccess {
-    private val approvalBroker = AgentApprovalBroker<EnvironmentApprovalRequest>(idOf = { it.id })
+    private val approvalBroker = AgentApprovalBroker<EnvironmentApprovalRequest>(
+        idOf = { it.id },
+        promptTimeout = approvalTimeout,
+    )
     override val approvals = approvalBroker.pending
 
     /**
@@ -177,11 +183,12 @@ class EnvironmentAccessImpl(
         approvalBroker.respond(id, approved)
 
     /** The deadline of a prompt shown now; the prompts of one request share it. */
-    internal fun approvalDeadline(): Instant = approvalBroker.deadline()
+    internal suspend fun approvalDeadline(): Instant = approvalBroker.deadline()
 
     /**
      * Confirms that the caller may use [capability], prompting the user
-     * unless the approval is remembered. A prompt is denied at [deadline].
+     * unless the approval is remembered. A prompt is denied at [deadline];
+     * by default, one approval timeout after it is shown.
      *
      * @param accountId The account of a new environment.
      */
@@ -191,7 +198,7 @@ class EnvironmentAccessImpl(
         capability: EnvironmentCapability,
         environmentId: String? = null,
         path: String? = null,
-        deadline: Instant = approvalDeadline(),
+        deadline: Instant? = null,
         accountId: String? = null,
     ) {
         val key = (getVaultSession.valueOrNull as? MasterSession.Key)
@@ -212,7 +219,7 @@ class EnvironmentAccessImpl(
         } else {
             null
         }
-        requestApproval(deadline, identity, epoch) { expiresAt ->
+        requestApproval(deadline ?: approvalDeadline(), identity, epoch) { expiresAt ->
             EnvironmentApprovalRequest(
                 cryptoGenerator.uuid(), caller, environmentName, capability, path, expiresAt,
                 environmentId = environmentId, elevationChallenge = challenge, accountId = accountId,

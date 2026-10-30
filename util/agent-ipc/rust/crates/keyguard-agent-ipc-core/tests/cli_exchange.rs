@@ -1,8 +1,9 @@
 //! Replays the CLI agent's app client (`desktopCliAgent/src/src/app_client.rs`)
-//! against this listener (plan D13): the helper's own connect and 1 MiB frames
-//! inside the client's 70 s budget, with the fixture encodings of both sides. The
-//! server observes the connection while it writes the response, as the app's
-//! CLI session does, and then sees the client leave.
+//! against this listener (plan D13): the helper's own connect and 1 MiB frames,
+//! with the fixture encodings of both sides. Connecting and authenticating stay
+//! inside the client's `CONNECT_TIMEOUT`; the app bounds the answer. The server
+//! observes the connection while it writes the response, as the app's CLI
+//! session does, and then sees the client leave.
 
 mod support;
 
@@ -86,7 +87,7 @@ async fn the_cli_agent_app_client_exchange() {
         let listener = Arc::clone(&listener);
         thread::spawn(move || serve(&listener))
     };
-    tokio::time::timeout(Duration::from_secs(70), async {
+    let mut stream = tokio::time::timeout(stream::CONNECT_TIMEOUT, async {
         let mut stream = stream::connect(&endpoint, Some(std::process::id()))
             .await
             .unwrap();
@@ -94,15 +95,17 @@ async fn the_cli_agent_app_client_exchange() {
         write_frame(&mut *stream, &auth, MAX_FRAME).await.unwrap();
         let response = read_frame(&mut *stream, MAX_FRAME).await.unwrap();
         assert_eq!(*response, fixture(RESPONSES, "authenticate"));
-        let request = Zeroizing::new(fixture(REQUESTS, "cli_run"));
-        write_frame(&mut *stream, &request, MAX_FRAME)
-            .await
-            .unwrap();
-        let response = read_frame(&mut *stream, MAX_FRAME).await.unwrap();
-        assert_eq!(*response, fixture(RESPONSES, "cli_run"));
-        // The stream drops here, as the agent's does after one request.
+        stream
     })
     .await
-    .expect("request_timeout");
+    .expect("connect_timeout");
+    let request = Zeroizing::new(fixture(REQUESTS, "cli_run"));
+    write_frame(&mut *stream, &request, MAX_FRAME)
+        .await
+        .unwrap();
+    let response = read_frame(&mut *stream, MAX_FRAME).await.unwrap();
+    assert_eq!(*response, fixture(RESPONSES, "cli_run"));
+    // The agent drops its stream after one request.
+    drop(stream);
     assert_eq!(support::join(server).await, Readiness::Eof);
 }

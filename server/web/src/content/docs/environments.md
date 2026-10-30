@@ -217,6 +217,6 @@ referenced item exists, is out of the trash, and still has the field.
 
 ### A tool reads an empty .env file
 
-Keyguard refused the read: you denied it, the prompt expired after 60 seconds,
-or a variable can't be resolved. Read the file again and approve the request.
+Keyguard refused the read: you denied it, the prompt timed out, or a variable
+can't be resolved. Read the file again and approve the request.
 If it stays empty, check the variables as in the previous entry.

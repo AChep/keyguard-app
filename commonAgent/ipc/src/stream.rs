@@ -2,10 +2,16 @@
 //! the app through it, and the `keyguard` CLI to its agent.
 use anyhow::{Context, Result};
 use std::path::Path;
+use std::time::Duration;
 use tokio::io::{AsyncRead, AsyncWrite};
 
 #[cfg(all(test, windows))]
 mod windows_tests;
+
+/// How long connecting to the server, or authenticating to it, may take.
+/// Every client of the transport bounds these steps with it; the server
+/// bounds the answer.
+pub const CONNECT_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// A connected stream of the transport.
 pub trait Stream: AsyncRead + AsyncWrite + Unpin + Send {}
@@ -18,7 +24,7 @@ pub type BoxStream = Box<dyn Stream>;
 /// verifies that it runs as this user and, if given, as `expected_pid`.
 ///
 /// On Windows it waits while every instance of the pipe is busy; callers
-/// bound the wait.
+/// bound the wait with [`CONNECT_TIMEOUT`].
 ///
 /// # Errors
 ///

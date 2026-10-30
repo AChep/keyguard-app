@@ -23,6 +23,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import org.koin.core.scope.Scope
 import org.koin.dsl.binds
 import org.koin.dsl.module
@@ -51,10 +52,12 @@ class ApplicationEnvironmentsModule {
         }
         single { EnvironmentVault(getVaultSession = get(), sessionAccess = get()) }
         single {
+            val settings = get<SettingsReadRepository>()
             EnvironmentAccessImpl(
                 vault = get(), getVaultSession = get(), cryptoGenerator = get(),
                 scope = get<EnvironmentApplicationScope>().scope,
-                mcpApprovalCacheConfig = get<SettingsReadRepository>().getEnvironmentsMcpApprovalCacheConfig(),
+                mcpApprovalCacheConfig = settings.getEnvironmentsMcpApprovalCacheConfig(),
+                approvalTimeout = { settings.getEnvironmentsMcpApprovalTimeout().first() },
             )
         } binds arrayOf(EnvironmentAccess::class)
         single {

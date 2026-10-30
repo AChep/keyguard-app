@@ -6,7 +6,7 @@ use crate::error::IpcError;
 use crate::frame::{MAX_AGENT_FRAME, check_size, read_frame, write_frame};
 use crate::handshake::{authenticate_request, check_authenticate_response};
 use crate::launch::AuthToken;
-use crate::stream::{self, BoxStream};
+use crate::stream::{self, BoxStream, CONNECT_TIMEOUT};
 use anyhow::{Context, Result, anyhow, bail};
 use keyguard_agent_proto::{AuthenticateRequest, AuthenticateResponse, ErrorResponse};
 use prost::Message;
@@ -26,11 +26,12 @@ const RECONNECT_INITIAL_DELAY_MS: u64 = 100;
 const RECONNECT_MAX_DELAY_MS: u64 = 3_000;
 const RECONNECT_MAX_JITTER_MS: u64 = 250;
 
-/// How long one request may take, including the wait for the shared connection.
+/// How long one request that is safe to retry may take, including the wait
+/// for the shared connection. Such a request prompts no one. Any other request
+/// may wait on an approval prompt, whose deadline the app owns: it is not
+/// timed, and ends once the app answers or the connection breaks. Restoring
+/// its connection is bounded by [`CONNECT_TIMEOUT`].
 pub const REQUEST_TIMEOUT: Duration = Duration::from_secs(5 * 60);
-
-/// How long connecting to the app or authenticating to it may take.
-pub const AUTHENTICATION_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// A boxed, sendable future.
 pub type BoxFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
@@ -180,7 +181,7 @@ impl Connect for AppEndpoint {
         Box::pin(async move {
             // Bounds the wait for a busy Windows pipe.
             tokio::time::timeout(
-                AUTHENTICATION_TIMEOUT,
+                CONNECT_TIMEOUT,
                 stream::connect(&self.path, Some(self.parent_pid)),
             )
             .await
@@ -311,14 +312,14 @@ impl<P: Protocol> Client<P> {
         token: &AuthToken,
     ) -> Result<()> {
         tokio::time::timeout(
-            AUTHENTICATION_TIMEOUT,
+            CONNECT_TIMEOUT,
             Self::authenticate_stream(stream, next_id, token),
         )
         .await
         .map_err(|_| {
             anyhow!(
                 "IPC authentication timed out after {} seconds",
-                AUTHENTICATION_TIMEOUT.as_secs()
+                CONNECT_TIMEOUT.as_secs()
             )
         })?
     }
@@ -390,14 +391,49 @@ impl<P: Protocol> Client<P> {
         ))
     }
 
+    /// Restores the connection with backoff, before the request's
+    /// `deadline` or, without one, within [`CONNECT_TIMEOUT`]. A timeout
+    /// leaves the slot empty, and its error says the operation was `outcome`.
+    async fn restore_connection_locked(
+        &self,
+        stream: &mut Option<BoxStream>,
+        reconnect_attempts: &mut u32,
+        last_error: anyhow::Error,
+        deadline: Option<tokio::time::Instant>,
+        outcome: &str,
+    ) -> Result<()> {
+        let recovery_deadline =
+            deadline.unwrap_or_else(|| tokio::time::Instant::now() + CONNECT_TIMEOUT);
+        let result = tokio::time::timeout_at(
+            recovery_deadline,
+            self.reconnect_with_backoff_locked(stream, reconnect_attempts, last_error),
+        )
+        .await;
+        result.unwrap_or_else(|_| {
+            let timeout_message = match deadline {
+                Some(_) => format!(
+                    "IPC request timed out after {} seconds while restoring the connection; operation was {outcome}",
+                    REQUEST_TIMEOUT.as_secs()
+                ),
+                None => format!(
+                    "IPC connection recovery timed out after {} seconds; operation was {outcome}",
+                    CONNECT_TIMEOUT.as_secs()
+                ),
+            };
+            Err(Self::request_timeout_error_locked(stream, timeout_message))
+        })
+    }
+
     async fn repair_connection_locked(
         &self,
         stream: &mut Option<BoxStream>,
-        request_deadline: tokio::time::Instant,
+        request_deadline: Option<tokio::time::Instant>,
     ) -> Result<()> {
         stream.take();
-        let recovery_deadline =
-            request_deadline.min(tokio::time::Instant::now() + AUTHENTICATION_TIMEOUT);
+        let authentication_deadline = tokio::time::Instant::now() + CONNECT_TIMEOUT;
+        let recovery_deadline = request_deadline.map_or(authentication_deadline, |deadline| {
+            deadline.min(authentication_deadline)
+        });
         tokio::time::timeout_at(recovery_deadline, self.reconnect_locked(stream))
             .await
             .map_err(|_| anyhow!("IPC connection recovery did not complete before its deadline"))?
@@ -417,53 +453,45 @@ impl<P: Protocol> Client<P> {
     /// Sends `payload` and waits for the matching answer. An error that the
     /// app answers with is an [`IpcError`]; any other answer is returned.
     ///
+    /// A request that is safe to retry must end within [`REQUEST_TIMEOUT`].
+    /// Any other request waits, for the shared connection and for its answer,
+    /// until the app answers or the connection breaks.
+    ///
     /// # Errors
     ///
     /// Fails on an error answer, a broken or timed-out connection, or an
     /// answer to another request.
     pub async fn request(&self, payload: P::Payload) -> Result<P::Reply> {
-        let deadline = tokio::time::Instant::now() + REQUEST_TIMEOUT;
-        let mut stream = tokio::time::timeout_at(deadline, self.inner.stream.lock())
+        // Only read-only requests are safe to replay after an ordinary
+        // transport failure. A failed signature or decryption is ambiguous:
+        // the server may have completed it before the channel broke.
+        let is_retry_safe = P::is_retry_safe(&payload);
+        // A request that is not safe to retry may wait on an approval prompt,
+        // so the app, which owns the deadline of the prompt, bounds it.
+        let deadline = is_retry_safe.then(|| tokio::time::Instant::now() + REQUEST_TIMEOUT);
+        let mut stream = until(deadline, self.inner.stream.lock())
             .await
-            .map_err(|_| {
+            .ok_or_else(|| {
                 anyhow!(
                     "IPC request timed out after {} seconds while waiting for the shared connection; operation was not sent",
                     REQUEST_TIMEOUT.as_secs()
                 )
             })?;
         let mut reconnect_attempts = 0;
-        // Only read-only requests are safe to replay after an ordinary
-        // transport failure. A failed signature or decryption is ambiguous:
-        // the server may have completed it before the channel broke.
-        let is_retry_safe = P::is_retry_safe(&payload);
 
         loop {
             if stream.is_none() {
                 if self.inner.reconnect.is_none() {
                     bail!("IPC connection is unavailable");
                 }
-                match tokio::time::timeout_at(
+                self.restore_connection_locked(
+                    &mut stream,
+                    &mut reconnect_attempts,
+                    anyhow!("IPC connection is unavailable"),
                     deadline,
-                    self.reconnect_with_backoff_locked(
-                        &mut stream,
-                        &mut reconnect_attempts,
-                        anyhow!("IPC connection is unavailable"),
-                    ),
+                    "not sent",
                 )
-                .await
-                {
-                    Ok(result) => result?,
-                    Err(_) => {
-                        let timeout_message = format!(
-                            "IPC request timed out after {} seconds while restoring the connection; operation was not sent",
-                            REQUEST_TIMEOUT.as_secs()
-                        );
-                        return Err(Self::request_timeout_error_locked(
-                            &mut stream,
-                            timeout_message,
-                        ));
-                    }
-                }
+                .await?;
             }
 
             let id = self.inner.next_id.fetch_add(1, Ordering::Relaxed);
@@ -480,13 +508,8 @@ impl<P: Protocol> Client<P> {
             let mut active_stream = stream
                 .take()
                 .context("IPC connection unexpectedly unavailable")?;
-            match tokio::time::timeout_at(
-                deadline,
-                Self::request_once(&mut active_stream, &request),
-            )
-            .await
-            {
-                Ok(Ok(response)) => {
+            match until(deadline, Self::request_once(&mut active_stream, &request)).await {
+                Some(Ok(response)) => {
                     let (response_id, reply) = P::response(response);
                     if response_id != id {
                         drop(active_stream);
@@ -509,7 +532,7 @@ impl<P: Protocol> Client<P> {
                     *stream = Some(active_stream);
                     return Self::reply(reply);
                 }
-                Ok(Err(err)) => {
+                Some(Err(err)) => {
                     // A transport error can leave framing state ambiguous.
                     // Invalidate it before attempting the existing bounded
                     // reconnect-and-retry behavior.
@@ -530,30 +553,16 @@ impl<P: Protocol> Client<P> {
                         };
                     }
 
-                    match tokio::time::timeout_at(
+                    self.restore_connection_locked(
+                        &mut stream,
+                        &mut reconnect_attempts,
+                        err,
                         deadline,
-                        self.reconnect_with_backoff_locked(
-                            &mut stream,
-                            &mut reconnect_attempts,
-                            err,
-                        ),
+                        "not retried",
                     )
-                    .await
-                    {
-                        Ok(result) => result?,
-                        Err(_) => {
-                            let timeout_message = format!(
-                                "IPC request timed out after {} seconds while restoring the connection; operation was not retried",
-                                REQUEST_TIMEOUT.as_secs()
-                            );
-                            return Err(Self::request_timeout_error_locked(
-                                &mut stream,
-                                timeout_message,
-                            ));
-                        }
-                    }
+                    .await?;
                 }
-                Err(_) => {
+                None => {
                     // Cancellation may interrupt a prefix, body, or response
                     // read. Drop the stream before reconnecting; retrying this
                     // request could duplicate an operation whose result was
@@ -574,13 +583,13 @@ impl<P: Protocol> Client<P> {
 
     /// Authenticates with the IPC server using the shared token.
     async fn authenticate(&self, token: &AuthToken) -> Result<()> {
-        let deadline = tokio::time::Instant::now() + AUTHENTICATION_TIMEOUT;
+        let deadline = tokio::time::Instant::now() + CONNECT_TIMEOUT;
         let mut stream = tokio::time::timeout_at(deadline, self.inner.stream.lock())
             .await
             .map_err(|_| {
                 anyhow!(
                     "IPC authentication timed out after {} seconds while waiting for the shared connection",
-                    AUTHENTICATION_TIMEOUT.as_secs()
+                    CONNECT_TIMEOUT.as_secs()
                 )
             })?;
         let mut candidate = stream.take().context("IPC connection is unavailable")?;
@@ -592,7 +601,7 @@ impl<P: Protocol> Client<P> {
         .map_err(|_| {
             anyhow!(
                 "IPC authentication timed out after {} seconds",
-                AUTHENTICATION_TIMEOUT.as_secs()
+                CONNECT_TIMEOUT.as_secs()
             )
         })?;
 
@@ -600,6 +609,18 @@ impl<P: Protocol> Client<P> {
             *stream = Some(candidate);
         }
         result
+    }
+}
+
+/// Runs `future` to its end, or until `deadline` if there is one: `None` once
+/// the deadline passes first.
+async fn until<T>(
+    deadline: Option<tokio::time::Instant>,
+    future: impl Future<Output = T>,
+) -> Option<T> {
+    match deadline {
+        Some(deadline) => tokio::time::timeout_at(deadline, future).await.ok(),
+        None => Some(future.await),
     }
 }
 

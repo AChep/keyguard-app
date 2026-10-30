@@ -19,8 +19,9 @@ request for an environment shows **Environment access request**, the caller,
 and what it asks for. For MCP, the client's name is marked as unverified,
 because the client reports it itself.
 
-A prompt that you don't answer within 60 seconds counts as denied. Locking the
-vault denies open environment requests.
+An unanswered prompt counts as denied after the requester's **Approval
+timeout**, 60 seconds by default and on Android. Locking the vault denies open
+environment requests.
 
 ## Approval window
 
@@ -55,8 +56,8 @@ approval. The default is **Per application, isolated by terminal session**.
 | **Per application** | Same verified application | Shared | Shared |
 | **Per application, isolated by terminal session** | Same verified terminal session; verified application outside terminals | Shared | Not shared |
 
-A new command usually opens a new process and a new connection, so the first
-two scopes ask again, even in the same terminal tab.
+A new command usually opens a new process and connection, so the first two
+scopes ask again, even in the same tab.
 
 The terminal columns apply to Linux and macOS. If Keyguard can't verify the
 caller, an approval covers only the current connection, for both agents. In
@@ -105,8 +106,8 @@ a referenced item changes.
 | Android, Termux helper | No **Approval scope** setting. An approval covers the verified app, or the current connection if Keyguard can't verify the app. | Same as the SSH agent |
 | Android, other apps | Approval windows and scopes don't apply | Approval windows and scopes don't apply |
 
-The native macOS app has no **Remember approvals** settings for the command
-line and MCP. Both use the default, **Until vault locks**.
+The native macOS app lacks the command-line and MCP **Remember approvals** and
+**Approval timeout** settings. They use the defaults.
 
 :::caution
 On Windows, process and application detection is best effort. Another program

@@ -30,6 +30,7 @@ fun rememberSettingsCliItems(
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.CLI),
                     SettingPaneItem.Item(Setting.CLI_APPROVAL_WINDOW),
+                    SettingPaneItem.Item(Setting.CLI_APPROVAL_TIMEOUT),
                 ),
             ),
             SettingPaneItem.Group(

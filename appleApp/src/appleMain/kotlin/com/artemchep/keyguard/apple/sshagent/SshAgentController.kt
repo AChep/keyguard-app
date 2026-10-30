@@ -12,7 +12,9 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalPrompt
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorImpl
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
+import com.artemchep.keyguard.common.usecase.GetAgentApprovalTimeoutVariants
 import com.artemchep.keyguard.common.usecase.GetSshAgent
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalTimeout
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowVariants
 import com.artemchep.keyguard.common.usecase.GetSshAgentDisplayKeyNames
@@ -20,6 +22,7 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutSshAgent
+import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalTimeout
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.PutSshAgentDisplayKeyNames
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -40,6 +43,7 @@ import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.completeOnPop
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
+import com.artemchep.keyguard.feature.home.settings.component.agentApprovalTimeoutTitle
 import com.artemchep.keyguard.feature.home.settings.component.agentApprovalWindowTitle
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
@@ -53,6 +57,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.core.scope.Scope
@@ -72,6 +77,9 @@ internal class SshAgentController(
         ctx.koin.get()
     }
     private val putSshAgentApprovalWindow: PutSshAgentApprovalWindow by lazy { ctx.koin.get() }
+    private val getSshAgentApprovalTimeout: GetSshAgentApprovalTimeout by lazy { ctx.koin.get() }
+    private val getAgentApprovalTimeoutVariants: GetAgentApprovalTimeoutVariants by lazy { ctx.koin.get() }
+    private val putSshAgentApprovalTimeout: PutSshAgentApprovalTimeout by lazy { ctx.koin.get() }
     private val getSshAgentDisplayKeyNames: GetSshAgentDisplayKeyNames by lazy { ctx.koin.get() }
     private val putSshAgentDisplayKeyNames: PutSshAgentDisplayKeyNames by lazy { ctx.koin.get() }
     private val getSshAgentFilter: GetSshAgentFilter by lazy { ctx.koin.get() }
@@ -89,9 +97,11 @@ internal class SshAgentController(
         idPrefix = "ssh",
         idOf = SshAgentRequestSnapshot::id,
         toSnapshot = SshAgentApprovalPrompt::toSnapshot,
+        timeout = { getSshAgentApprovalTimeout().first() },
     )
 
     private var latestSshApprovalWindowVariants: List<Duration> = emptyList()
+    private var latestSshApprovalTimeoutVariants: List<Duration> = emptyList()
 
     fun startSshAgentApplier() {
         if (sshAgentApplierJob != null) return
@@ -227,14 +237,20 @@ internal class SshAgentController(
             getSshAgentApprovalWindow(),
             getSshAgentApprovalWindowVariants(),
         ) { current, variants -> current to variants }
+        val approvalTimeoutFlow = combine(
+            getSshAgentApprovalTimeout(),
+            getAgentApprovalTimeoutVariants(),
+        ) { current, variants -> current to variants }
         val job = ctx.scope.launch {
             combine(
                 getSshAgent(),
                 approvalWindowFlow,
+                approvalTimeoutFlow,
                 getSshAgentDisplayKeyNames(),
                 getSshAgentFilter(),
-            ) { enabled, approvalWindow, displayKeyNames, filter ->
+            ) { enabled, approvalWindow, approvalTimeout, displayKeyNames, filter ->
                 latestSshApprovalWindowVariants = approvalWindow.second
+                latestSshApprovalTimeoutVariants = approvalTimeout.second
                 SshAgentSettingsSnapshot(
                     loaded = true,
                     enabled = enabled,
@@ -244,6 +260,14 @@ internal class SshAgentController(
                             id = duration.inWholeMilliseconds.toString(),
                             title = agentApprovalWindowTitle(duration, leContext),
                             selected = duration == approvalWindow.first,
+                        )
+                    },
+                    approvalTimeoutTitle = agentApprovalTimeoutTitle(approvalTimeout.first, leContext),
+                    approvalTimeoutOptions = approvalTimeout.second.map { duration ->
+                        SettingOptionSnapshot(
+                            id = duration.inWholeMilliseconds.toString(),
+                            title = agentApprovalTimeoutTitle(duration, leContext),
+                            selected = duration == approvalTimeout.first,
                         )
                     },
                     displayKeyNames = displayKeyNames,
@@ -259,6 +283,13 @@ internal class SshAgentController(
             .firstOrNull { it.inWholeMilliseconds.toString() == optionId }
             ?: return
         putSshAgentApprovalWindow(duration).launchIn(ctx.scope)
+    }
+
+    fun setSshAgentApprovalTimeout(optionId: String) {
+        val duration = latestSshApprovalTimeoutVariants
+            .firstOrNull { it.inWholeMilliseconds.toString() == optionId }
+            ?: return
+        putSshAgentApprovalTimeout(duration).launchIn(ctx.scope)
     }
 
     fun setSshAgentDisplayKeyNames(value: Boolean) {

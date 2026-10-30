@@ -555,6 +555,13 @@ struct DeveloperSettingsView: View {
                 set: { sshAgentModel.setSshAgentApprovalWindow(optionId: $0) }
             )
             .settingsSearchTarget(.sshApproval)
+            durationPicker(
+                L10n.prefItemAgentApprovalTimeoutTitle,
+                options: s.approvalTimeoutOptions,
+                currentTitle: s.approvalTimeoutTitle,
+                set: { sshAgentModel.setSshAgentApprovalTimeout(optionId: $0) }
+            )
+            .settingsSearchTarget(.sshApprovalTimeout)
         } header: {
             Text(L10n.agentApprovalsHeaderTitle)
         } footer: {

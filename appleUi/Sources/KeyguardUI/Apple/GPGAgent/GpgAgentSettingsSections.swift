@@ -63,6 +63,13 @@ struct GpgAgentSettingsSections: View {
                 )
                 .settingsSearchTarget(.gpgApproval)
                 optionPicker(
+                    L10n.prefItemAgentApprovalTimeoutTitle,
+                    options: settings.approvalTimeoutOptions,
+                    currentTitle: settings.approvalTimeoutTitle,
+                    set: { model.setGpgAgentApprovalTimeout(optionId: $0) }
+                )
+                .settingsSearchTarget(.gpgApprovalTimeout)
+                optionPicker(
                     L10n.prefItemAgentApprovalScopeTitle,
                     options: settings.approvalCachePolicyOptions,
                     currentTitle: settings.approvalCachePolicyTitle,

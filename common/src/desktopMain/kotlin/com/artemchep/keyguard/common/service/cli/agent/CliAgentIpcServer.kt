@@ -19,7 +19,10 @@ class CliAgentIpcServer(
     authToken: ByteArray,
     private val handler: CliAgentRequestHandler,
     maxConcurrentConnections: Int = MAX_CONCURRENT_CONNECTIONS,
-    /** Bounds each read, write and request of a connection; past it, the connection is closed. */
+    /**
+     * Bounds each read and write of a connection; past it, the connection is
+     * closed. A request has no bound, as its approval prompt owns the deadline.
+     */
     private val ioTimeoutMs: Long = IO_TIMEOUT_MS,
 ) {
     companion object {
@@ -29,11 +32,11 @@ class CliAgentIpcServer(
         private const val MAX_CONCURRENT_CONNECTIONS = 32
 
         /**
-         * The CLI agent gives up on a request after 70 s
-         * (`desktopCliAgent/src/src/app_client.rs`), so a connection that
-         * takes longer has no one waiting for it.
+         * The CLI agent gives up on connecting after 30 s
+         * (`CONNECT_TIMEOUT` in `commonAgent/ipc/src/stream.rs`), so a read or
+         * write that takes longer has no one waiting for it.
          */
-        internal const val IO_TIMEOUT_MS = 70_000L
+        internal const val IO_TIMEOUT_MS = 30_000L
     }
 
     private val host = AgentIpcServerHost(

@@ -240,7 +240,7 @@ jobs:
               util/crypto/rust/about.hbs
           done
       - name: "Upload Cargo notices and SPDX SBOM"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: native-crypto-supply-chain
           path: util/crypto/build/reports/supply-chain/
@@ -332,7 +332,7 @@ jobs:
           --save-baseline release-candidate
       - name: "Upload Criterion measurements"
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: native-crypto-fixed-host-performance
           path: util/crypto/rust/target/criterion/
@@ -754,7 +754,7 @@ jobs:
 
       - name: "Upload native regression reports"
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: native-desktop-reports-${{ matrix.platform }}-${{ matrix.arch }}
           path: |
@@ -843,7 +843,7 @@ jobs:
           python3 scripts/verify_native_bundle.py android "${android_apks[@]}" "${wear_apks[@]}"
       - name: "Upload Android native reports"
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: native-android-reports-${{ matrix.api }}
           path: |
@@ -894,7 +894,7 @@ jobs:
             -Pandroid.testInstrumentationRunnerArguments.class=com.artemchep.keyguard.wear.nativebundle.NativeBundleSmokeTest
       - name: "Upload Wear native reports"
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: native-wear-reports
           path: |

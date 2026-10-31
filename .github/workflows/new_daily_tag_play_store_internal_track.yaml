@@ -73,7 +73,7 @@ jobs:
           python scripts/verify_native_bundle.py android
           androidApp/build/outputs/bundle/playStoreRelease/androidApp-playStore-release.aab
       - name: 'Upload Android .aab'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: app-android-aab
           path: |
@@ -122,7 +122,7 @@ jobs:
           python scripts/verify_native_bundle.py android
           wearApp/build/outputs/bundle/playStoreRelease/wearApp-playStore-release.aab
       - name: 'Upload WearOS .aab'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: app-wearos-aab
           path: |

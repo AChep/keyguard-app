@@ -63,7 +63,7 @@ jobs:
         run: |
           cat changelog-full.md
       - name: "Upload"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: changelog
           path: |
@@ -142,7 +142,7 @@ jobs:
             --tag_version ${{ steps.producer.outputs.version_tag }})
           echo "version_msix=$VERSION_MSIX" >> "$GITHUB_OUTPUT"
       - name: "Upload versions.json"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: versions
           path: keyguard-version/versions.json
@@ -260,14 +260,14 @@ jobs:
           python3 scripts/verify_native_bundle.py desktop "$mount_point" \
             --platform macos --arch "${{ matrix.native-arch }}"
       - name: "Upload logs"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: logs-mac-${{ matrix.arch }}-build-${{ github.run_attempt }}
           path: desktopApp/build/compose/logs/**/*.txt
           retention-days: 30
       - name: "Upload binaries"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: binaries-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/binaries/main-release/**
@@ -278,7 +278,7 @@ jobs:
           cd desktopApp/build/compose/binaries/main-release/dmg
           for f in * ; do mv -- "$f" "$(echo "$f" | sed -nE 's/^(.*)(\..*)$/\1-${{ matrix.arch }}\2/p')" ; done
       - name: "Upload DMG for notarization"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: notarization-input-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
@@ -315,13 +315,13 @@ jobs:
         run: bash .github/notarize_macos_dmg.sh artifacts notarization-logs
       - name: "Upload notarization logs"
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: logs-mac-${{ matrix.arch }}-notarization-${{ github.run_attempt }}
           path: notarization-logs/
           retention-days: 30
       - name: "Upload notarized DMG"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: app-mac-${{ matrix.arch }}
           path: artifacts/*.dmg
@@ -402,7 +402,7 @@ jobs:
           desktopApp/flatpak/app-${{ matrix.arch }}
           --platform linux --arch ${{ matrix.arch }}
       - name: 'Upload .tar'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: app-linux-${{ matrix.arch }}
           path: |
@@ -415,7 +415,7 @@ jobs:
           arch: ${{ matrix.arch }}
           version: ${{ needs.generate-versions.outputs.version-semantic }}
       - name: "Upload .AppImage and .zsync"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: app-linux-appimage-${{ matrix.arch }}
           path: |
@@ -430,7 +430,7 @@ jobs:
           arch: ${{ matrix.arch }}
           version: ${{ needs.generate-versions.outputs.version-semantic }}
       - name: 'Upload .flatpak'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: app-linux-flatpak-${{ matrix.arch }}
           path: ${{ steps.flatpak.outputs.path }}
@@ -658,21 +658,21 @@ jobs:
             throw "MSIX signature status is $($signature.Status)."
           }
       - name: 'Upload .msi'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: ${{ matrix.msi_artifact }}
           path: desktopApp/build/compose/binaries/main-release/msi/*.msi
           if-no-files-found: error
           retention-days: 1
       - name: 'Upload .msix (store)'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: steps.msix-identity.outputs.store == 'true'
         with:
           name: app-windows-msix-store-${{ matrix.msix_arch }}
           path: desktopApp/build/compose/binaries/main-release/msix/*-store.msix
           retention-days: 1
       - name: 'Upload .msix (sideload)'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: app-windows-msix-${{ matrix.msix_arch }}
           path: |
@@ -725,7 +725,7 @@ jobs:
           -LogDirectory msi-install-logs
       - name: "Upload installer logs"
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: windows-msi-install-logs
           path: |
@@ -798,7 +798,7 @@ jobs:
           fi
           python scripts/verify_native_bundle.py android "$artifact"
       - name: 'Upload .apk'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: matrix.config.build-type == 'assemble'
         with:
           name: app-wearos-apk
@@ -807,7 +807,7 @@ jobs:
             wearApp/build/outputs/mapping/**/mapping.txt
           retention-days: 1
       - name: 'Upload .aab'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: matrix.config.build-type == 'bundle'
         with:
           name: app-wearos-aab
@@ -883,7 +883,7 @@ jobs:
           fi
           python scripts/verify_native_bundle.py android "$artifact"
       - name: 'Upload .apk'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: matrix.config.build-type == 'assemble'
         with:
           name: app-android-apk
@@ -892,7 +892,7 @@ jobs:
             androidApp/build/outputs/mapping/**/mapping.txt
           retention-days: 1
       - name: 'Upload .aab'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: matrix.config.build-type == 'bundle'
         with:
           name: app-android-aab
@@ -940,7 +940,7 @@ jobs:
             build/termux-debs/
           ls -l build/termux-debs
       - name: "Upload .deb"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: app-termux
           path: build/termux-debs/*.deb

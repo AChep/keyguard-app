@@ -21,11 +21,16 @@ use std::{
     time::Duration,
 };
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 struct Identity {
     path: PathBuf,
     device: u64,
     inode: u64,
+    /// Keep the inode allocated while this identity is live, without opening
+    /// either FIFO endpoint. Records alone cannot pin an inode across a crash.
+    #[cfg(target_os = "linux")]
+    #[serde(skip)]
+    _pin: Option<File>,
 }
 
 impl Identity {
@@ -38,15 +43,45 @@ impl Identity {
         );
         let metadata = fs::symlink_metadata(&path)?;
         validate_fifo(&metadata)?;
-        Ok(Self::of(path, &metadata))
+        Self::of(parent, name, path, &metadata)
     }
 
-    fn of(path: PathBuf, metadata: &fs::Metadata) -> Self {
-        Self {
+    fn of(parent: &File, name: &CString, path: PathBuf, metadata: &fs::Metadata) -> Result<Self> {
+        let mut identity = Self {
             path,
             device: metadata.dev(),
             inode: metadata.ino(),
+            #[cfg(target_os = "linux")]
+            _pin: None,
+        };
+        identity.pin(parent, name)?;
+        Ok(identity)
+    }
+
+    fn pin(&mut self, parent: &File, name: &CString) -> Result<()> {
+        #[cfg(target_os = "linux")]
+        {
+            // SAFETY: parent is pinned and name is a single NUL-terminated filename.
+            let fd = unsafe {
+                libc::openat(
+                    parent.as_raw_fd(),
+                    name.as_ptr(),
+                    libc::O_PATH | libc::O_NOFOLLOW | libc::O_CLOEXEC,
+                )
+            };
+            if fd < 0 {
+                return Err(std::io::Error::last_os_error().into());
+            }
+            // SAFETY: successful openat transferred this descriptor exclusively.
+            let pin = unsafe { File::from_raw_fd(fd) };
+            let metadata = pin.metadata()?;
+            validate_fifo(&metadata)?;
+            ensure!(self.matches(&metadata), "path_changed");
+            self._pin = Some(pin);
         }
+        #[cfg(not(target_os = "linux"))]
+        let _ = (parent, name);
+        Ok(())
     }
 
     fn matches(&self, metadata: &fs::Metadata) -> bool {
@@ -332,7 +367,7 @@ impl Fifo {
                     "path_exists"
                 );
                 validate_fifo(&metadata)?;
-                Identity::of(path.clone(), &metadata)
+                Identity::of(&parent, &name, path.clone(), &metadata)?
             }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
                 Identity::make(&parent, &name, path.clone())?
@@ -480,19 +515,15 @@ impl Fifo {
         exchange(&self.parent, &self.name, &name)?;
         // Both identities were synced before the exchange, so a restart can
         // recognize the published inode even before the final state write.
-        let previous = state.identities.current.clone();
-        state.identities.current.device = pending.device;
-        state.identities.current.inode = pending.inode;
-        let pending = state
-            .identities
-            .pending
-            .as_mut()
-            .context("invalid_mount_state")?;
-        pending.device = previous.device;
-        pending.inode = previous.inode;
-        self.revalidate_identity(&state.identities.current)?;
-        remove_pending(&self.parent, &self.path, &state.identities.current, pending)?;
-        state.identities.pending = None;
+        let identities = &mut state.identities;
+        let pending = identities.pending.as_mut().context("invalid_mount_state")?;
+        // The identities, including their pins, follow the exchanged inodes;
+        // the published and temporary pathnames stay in their original slots.
+        std::mem::swap(&mut identities.current, pending);
+        std::mem::swap(&mut identities.current.path, &mut pending.path);
+        self.revalidate_identity(&identities.current)?;
+        remove_pending(&self.parent, &self.path, &identities.current, pending)?;
+        identities.pending = None;
         // The synced record names both inodes, so a restart recovers without
         // this one: it need not wait on the disk.
         state.save(false)
@@ -872,6 +903,12 @@ mod tests {
             .unwrap()
     }
 
+    fn make_fifo(path: &Path) {
+        let name = CString::new(path.as_os_str().as_bytes()).unwrap();
+        // SAFETY: name is a valid C path and permissions are a valid mode.
+        assert_eq!(unsafe { libc::mkfifo(name.as_ptr(), 0o600) }, 0);
+    }
+
     fn simulate_crash(mut fifo: Fifo) {
         // Release process resources while skipping normal pathname cleanup.
         fifo.requested_parent.push("missing-after-crash");
@@ -1046,17 +1083,32 @@ mod tests {
         let path = temp.path().join(".env");
         let fifo = Fifo::create("id", &path, &temp.path().join("state"), None).unwrap();
         assert!(fifo.probe().unwrap().is_none());
-        fs::remove_file(&path).unwrap();
-        let name = CString::new(path.as_os_str().as_bytes()).unwrap();
-        // SAFETY: name is a valid C path and permissions are a valid mode.
-        assert_eq!(unsafe { libc::mkfifo(name.as_ptr(), 0o600) }, 0);
+        let original = fs::symlink_metadata(&path).unwrap();
+        let replacement = temp.path().join("replacement");
+        // Allocate the replacement while the original still exists, so this
+        // tests a distinct inode on every filesystem, including without a pin.
+        make_fifo(&replacement);
+        fs::rename(&replacement, &path).unwrap();
+        let replacement = fs::symlink_metadata(&path).unwrap();
+        assert_ne!(
+            (original.dev(), original.ino()),
+            (replacement.dev(), replacement.ino())
+        );
         // A reader blocked in open returns only once a writer opens.
         let foreign_reader = std::thread::spawn({
             let path = path.clone();
             move || fs::read(path)
         });
         std::thread::sleep(Duration::from_millis(200));
-        assert!(fifo.probe().is_err());
+        let probed = fifo.probe();
+        assert!(probed.is_err(), "replacement probe returned {probed:?}");
+        assert!(fifo.open_writer().is_err());
+        drop(fifo);
+        let remaining = fs::symlink_metadata(&path).unwrap();
+        assert_eq!(
+            (remaining.dev(), remaining.ino()),
+            (replacement.dev(), replacement.ino())
+        );
         std::thread::sleep(Duration::from_millis(100));
         assert!(!foreign_reader.is_finished());
         drop(
@@ -1067,6 +1119,91 @@ mod tests {
                 .unwrap(),
         );
         assert_eq!(foreign_reader.join().unwrap().unwrap(), b"");
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn live_fifo_identities_keep_unlinked_inodes_pinned() {
+        for (rotate, recover) in [(false, false), (true, false), (false, true), (true, true)] {
+            let temp = tempfile::tempdir().unwrap();
+            fs::set_permissions(temp.path(), fs::Permissions::from_mode(0o700)).unwrap();
+            let path = temp.path().join(".env");
+            let state_dir = temp.path().join("state");
+            let mut fifo = Fifo::create("id", &path, &state_dir, None).unwrap();
+            if rotate {
+                let reader = reader(&path);
+                drop(fifo.accept_reader().unwrap().unwrap());
+                drop(reader);
+            }
+            if recover {
+                simulate_crash(fifo);
+                fifo = Fifo::create("id", &path, &state_dir, None).unwrap();
+            }
+            assert!(fifo.probe().unwrap().is_none());
+            let original = fs::symlink_metadata(&path).unwrap();
+            fs::remove_file(&path).unwrap();
+            {
+                // Only the production pin holds the current inode: a test-owned
+                // descriptor would hide a missing pin or a rotation error.
+                let state = fifo.state.lock().unwrap();
+                let identity = &state.identities.current;
+                let pinned = identity._pin.as_ref().unwrap().metadata().unwrap();
+                assert!(identity.matches(&pinned));
+                assert_eq!(
+                    (pinned.dev(), pinned.ino()),
+                    (original.dev(), original.ino())
+                );
+                assert_eq!(pinned.nlink(), 0);
+            }
+            make_fifo(&path);
+            let replacement = fs::symlink_metadata(&path).unwrap();
+            assert_ne!(
+                (original.dev(), original.ino()),
+                (replacement.dev(), replacement.ino())
+            );
+            assert!(fifo.probe().is_err());
+            assert!(fifo.open_writer().is_err());
+            drop(fifo);
+            let remaining = fs::symlink_metadata(&path).unwrap();
+            assert_eq!(
+                (remaining.dev(), remaining.ino()),
+                (replacement.dev(), replacement.ino())
+            );
+        }
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn a_pending_fifo_stays_pinned_after_an_exchange_error() {
+        let temp = tempfile::tempdir().unwrap();
+        fs::set_permissions(temp.path(), fs::Permissions::from_mode(0o700)).unwrap();
+        let path = temp.path().join(".env");
+        let fifo = Fifo::create("id", &path, &temp.path().join("state"), None).unwrap();
+        let pending_path;
+        {
+            let mut state = fifo.state.lock().unwrap();
+            fifo.prepare_rotation(&mut state).unwrap();
+            let missing = CString::new("missing-fifo").unwrap();
+            assert!(exchange(&fifo.parent, &fifo.name, &missing).is_err());
+            let pending = state.identities.pending.as_ref().unwrap();
+            pending_path = pending.path.clone();
+            fs::remove_file(&pending_path).unwrap();
+            let pinned = pending._pin.as_ref().unwrap().metadata().unwrap();
+            assert!(pending.matches(&pinned));
+            assert_eq!(pinned.nlink(), 0);
+            make_fifo(&pending_path);
+            assert!(!pending.matches(&fs::symlink_metadata(&pending_path).unwrap()));
+        }
+        let replacement = fs::symlink_metadata(&pending_path).unwrap();
+        fifo.revalidate().unwrap();
+        drop(fifo);
+        let remaining = fs::symlink_metadata(&pending_path).unwrap();
+        assert_eq!(
+            (remaining.dev(), remaining.ino()),
+            (replacement.dev(), replacement.ino())
+        );
+        // Failed pending cleanup also leaves the published FIFO and its record.
+        assert!(fs::symlink_metadata(&path).unwrap().file_type().is_fifo());
     }
 
     #[test]
@@ -1238,7 +1375,14 @@ mod tests {
         fs::set_permissions(temp.path(), fs::Permissions::from_mode(0o700)).unwrap();
         let path = temp.path().join(".env");
         let fifo = Fifo::create("id", &path, &temp.path().join("state"), None).unwrap();
+        assert!(fifo.probe().unwrap().is_none());
         assert!(fifo.open_writer().unwrap().is_none());
+        let mut reader = reader(&path);
+        let writer = fifo.open_writer().unwrap().unwrap();
+        drop(writer);
+        assert_eq!(reader.read(&mut [0]).unwrap(), 0);
+        drop(reader);
+        assert!(fifo.probe().unwrap().is_none());
         drop(fifo);
         assert!(!path.exists());
     }

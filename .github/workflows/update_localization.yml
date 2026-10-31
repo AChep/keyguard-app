@@ -24,7 +24,7 @@ jobs:
         with:
           persist-credentials: false
       - run: pip install -r .github/update_localization_contributors.requirements.txt
-      - uses: crowdin/github-action@9c23991700c0ec5256fd41089b9d9d7d540e424e
+      - uses: crowdin/github-action@959dc74ac104447731cba99a016f85d0ae719788
         with:
           upload_sources: true
           # We only want to upload the sources, nothing else is

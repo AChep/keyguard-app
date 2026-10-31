@@ -177,6 +177,10 @@
         <item quantity="one">Caduca d'aquí a <xliff:g id="seconds" example="1">%1$d</xliff:g> segon</item>
         <item quantity="other">Caduca d'aquí a <xliff:g id="seconds" example="30">%1$d</xliff:g> segons</item>
     </plurals>
+    <plurals name="agent_approval_expires_in_minutes_plural">
+        <item quantity="one">Expires in <xliff:g id="minutes" example="1">%1$d</xliff:g> minute</item>
+        <item quantity="other">Expires in <xliff:g id="minutes" example="5">%1$d</xliff:g> minutes</item>
+    </plurals>
     <plurals name="gpg_user_ids_count_plural">
         <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> identificador d'usuari actiu</item>
         <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> identificadors d'usuari actius</item>
@@ -192,5 +196,13 @@
     <plurals name="attachment_preview_gpg_skipped_certificates_plural">
         <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> certificate could not be read</item>
         <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+    </plurals>
+    <plurals name="attachment_preview_json_properties">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> property</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> properties</item>
+    </plurals>
+    <plurals name="attachment_preview_json_items">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> item</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> items</item>
     </plurals>
 </resources>

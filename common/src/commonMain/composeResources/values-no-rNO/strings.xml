@@ -504,10 +504,27 @@
     <string name="attachment_preview_error_text_decode">Denne tekstfilen kan ikke forhåndsvises.</string>
     <string name="attachment_preview_error_image_decode">Dette bildet kan ikke forhåndsvises.</string>
     <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
+    <string name="attachment_preview_error_gzip_invalid">This Gzip file is damaged.</string>
+    <string name="attachment_preview_error_gzip_size_limit">The decompressed file is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
     <string name="attachment_preview_action_copy_all">Kopier alt</string>
     <string name="attachment_preview_action_wrap_lines">Bryt tekst</string>
     <string name="attachment_preview_action_source">Kildetekst</string>
     <string name="attachment_preview_action_rendered_preview">Forhåndsvisning</string>
+    <string name="attachment_preview_action_tree">Tree</string>
+    <string name="attachment_preview_json_tree_view">Tree view</string>
+    <string name="attachment_preview_json_object">Object</string>
+    <string name="attachment_preview_json_array">Array</string>
+    <string name="attachment_preview_json_string">String</string>
+    <string name="attachment_preview_json_number">Number</string>
+    <string name="attachment_preview_json_boolean">Boolean</string>
+    <string name="attachment_preview_json_null">Null</string>
+    <string name="attachment_preview_json_expanded">Expanded</string>
+    <string name="attachment_preview_json_collapsed">Collapsed</string>
+    <string name="attachment_preview_json_error_invalid">This file is not valid JSON. Showing source.</string>
+    <string name="attachment_preview_json_error_too_large">This file is too large for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_deep">This JSON has too many nested levels for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_many_nodes">This JSON has too many values for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_duplicate_keys">This JSON has duplicate property names. Showing source to preserve every value.</string>
     <string name="vault_action_always_show_keyboard_title">Vis alltid tastaturet</string>
     <string name="vault_action_remember_sorting_title">Husk sorteringsmetode</string>
     <string name="vault_action_sync_vault_title">Synkroniser hvelvet</string>
@@ -1013,7 +1030,6 @@
     <string name="privilegedapps_user_apps">Apper lagt til av deg</string>
     <string name="privilegedapps_community_apps">Apper lagt til av fellesskapet</string>
     <string name="setup_header_text">Opprett et kryptert hvelv der lokale data skal lagres.</string>
-    <string name="setup_free_text">Ved å fortsette bekrefter du at du har kjøpt Keyguard eller har hatt en aktiv lisens.</string>
     <string name="setup_field_app_password_label">App-passord</string>
     <string name="setup_checkbox_biometric_auth">Biometrisk autentisering</string>
     <string name="setup_biometric_auth_confirm_title">Opprett et hvelv</string>
@@ -1980,7 +1996,9 @@
     <string name="pref_item_agent_display_key_names_note">En ukryptert kopi av elementtittelen lagres lokalt</string>
     <string name="pref_item_agent_approval_window_always_ask">Spør hver gang</string>
     <string name="pref_item_agent_approval_window_until_lock">Til hvelvet låses</string>
+    <string name="pref_item_agent_approval_window_never_ask">Never ask</string>
     <string name="pref_item_approval_window_title">Husk godkjenninger</string>
+    <string name="pref_item_agent_approval_timeout_title">Approval timeout</string>
     <string name="pref_item_ssh_agent_approval_remember_note">En godkjenning av signering huskes så lenge for hver nøkkel og app, slik at du slipper å bli spurt hver gang.</string>
     <string name="pref_item_agent_filters_text">Velg hvilke <xliff:g id="protocol" example="SSH">%1$s</xliff:g>-nøkler %1$s-agenten får tilgang til</string>
     <string name="pref_item_agent_filters_summary_all">Tilgang til alle nøkler</string>
@@ -2310,6 +2328,10 @@
     <string name="gpg_tools_operation_decrypt_text">Dekrypter tekst eller filer med lagrede private nøkler</string>
     <string name="gpg_tools_operation_sign_text">Signer tekst eller filer med en lagret privat nøkkel</string>
     <string name="gpg_tools_operation_verify_text">Verifiser innebygde eller frittstående signaturer</string>
+    <string name="gpg_tools_drop_file_to_encrypt">Drop a file to encrypt it</string>
+    <string name="gpg_tools_drop_file_to_decrypt">Drop a file to decrypt it</string>
+    <string name="gpg_tools_drop_file_to_sign">Drop a file to sign it</string>
+    <string name="gpg_tools_drop_file_to_verify">Drop a file to verify it</string>
     <string name="gpg_tools_mode_cleartext">Klartekst</string>
     <string name="gpg_tools_mode_inline">Innebygd</string>
     <string name="gpg_tools_mode_detached">Frittstående</string>

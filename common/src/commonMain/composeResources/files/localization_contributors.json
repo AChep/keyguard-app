@@ -555,8 +555,8 @@
     "target": 5469,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 22,
-    "negativeVotes": 3,
+    "positiveVotes": 24,
+    "negativeVotes": 6,
     "winning": 0
   },
   {
@@ -783,11 +783,11 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 6376,
-    "target": 10653,
+    "translated": 7187,
+    "target": 12008,
     "approved": 0,
-    "voted": 17,
-    "positiveVotes": 14,
+    "voted": 32,
+    "positiveVotes": 13,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -963,8 +963,8 @@
     "target": 1320,
     "approved": 0,
     "voted": 4,
-    "positiveVotes": 7,
-    "negativeVotes": 0,
+    "positiveVotes": 8,
+    "negativeVotes": 1,
     "winning": 0
   },
   {
@@ -2032,7 +2032,7 @@
     "approved": 0,
     "voted": 6,
     "positiveVotes": 0,
-    "negativeVotes": 0,
+    "negativeVotes": 8,
     "winning": 0
   },
   {
@@ -2120,7 +2120,7 @@
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
-    "negativeVotes": 0,
+    "negativeVotes": 1,
     "winning": 0
   },
   {

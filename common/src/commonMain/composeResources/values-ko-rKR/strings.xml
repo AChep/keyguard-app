@@ -504,10 +504,27 @@
     <string name="attachment_preview_error_text_decode">이 텍스트 파일은 미리 볼 수 없습니다.</string>
     <string name="attachment_preview_error_image_decode">이 이미지는 미리 볼 수 없습니다.</string>
     <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
+    <string name="attachment_preview_error_gzip_invalid">This Gzip file is damaged.</string>
+    <string name="attachment_preview_error_gzip_size_limit">The decompressed file is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
     <string name="attachment_preview_action_copy_all">모두 복사</string>
     <string name="attachment_preview_action_wrap_lines">줄바꿈</string>
     <string name="attachment_preview_action_source">소스</string>
     <string name="attachment_preview_action_rendered_preview">미리 보기</string>
+    <string name="attachment_preview_action_tree">Tree</string>
+    <string name="attachment_preview_json_tree_view">Tree view</string>
+    <string name="attachment_preview_json_object">Object</string>
+    <string name="attachment_preview_json_array">Array</string>
+    <string name="attachment_preview_json_string">String</string>
+    <string name="attachment_preview_json_number">Number</string>
+    <string name="attachment_preview_json_boolean">Boolean</string>
+    <string name="attachment_preview_json_null">Null</string>
+    <string name="attachment_preview_json_expanded">Expanded</string>
+    <string name="attachment_preview_json_collapsed">Collapsed</string>
+    <string name="attachment_preview_json_error_invalid">This file is not valid JSON. Showing source.</string>
+    <string name="attachment_preview_json_error_too_large">This file is too large for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_deep">This JSON has too many nested levels for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_many_nodes">This JSON has too many values for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_duplicate_keys">This JSON has duplicate property names. Showing source to preserve every value.</string>
     <string name="vault_action_always_show_keyboard_title">키보드 항상 보이기</string>
     <string name="vault_action_remember_sorting_title">정렬 방식 기억</string>
     <string name="vault_action_sync_vault_title">보관함 동기화</string>
@@ -1013,7 +1030,6 @@
     <string name="privilegedapps_user_apps">사용자 앱</string>
     <string name="privilegedapps_community_apps">커뮤니티 앱</string>
     <string name="setup_header_text">로컬 데이터를 저장할 암호화된 보관함을 만듭니다.</string>
-    <string name="setup_free_text">계속 진행하면 사용 가능한 라이선스가 있거나 Keyguard를 구매했음을 의미합니다.</string>
     <string name="setup_field_app_password_label">앱 비밀번호</string>
     <string name="setup_checkbox_biometric_auth">생체 정보 인증</string>
     <string name="setup_biometric_auth_confirm_title">보관함 만들기</string>
@@ -1980,7 +1996,9 @@
     <string name="pref_item_agent_display_key_names_note">항목 제목의 암호화되지 않은 사본이 기기에 저장됩니다</string>
     <string name="pref_item_agent_approval_window_always_ask">매번 확인</string>
     <string name="pref_item_agent_approval_window_until_lock">보관함이 잠길 때까지</string>
+    <string name="pref_item_agent_approval_window_never_ask">Never ask</string>
     <string name="pref_item_approval_window_title">승인 기억</string>
+    <string name="pref_item_agent_approval_timeout_title">Approval timeout</string>
     <string name="pref_item_ssh_agent_approval_remember_note">매번 묻는 대신 키와 앱별로 지정한 시간 동안 승인된 서명을 기억합니다.</string>
     <string name="pref_item_agent_filters_text"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> 에이전트에서 사용할 %1$s 키를 선택하세요</string>
     <string name="pref_item_agent_filters_summary_all">모든 키 사용 가능</string>
@@ -2310,6 +2328,10 @@
     <string name="gpg_tools_operation_decrypt_text">저장된 개인 키로 텍스트나 파일을 복호화합니다</string>
     <string name="gpg_tools_operation_sign_text">저장된 개인 키로 텍스트나 파일에 서명합니다</string>
     <string name="gpg_tools_operation_verify_text">인라인 또는 분리형 서명을 검증합니다</string>
+    <string name="gpg_tools_drop_file_to_encrypt">Drop a file to encrypt it</string>
+    <string name="gpg_tools_drop_file_to_decrypt">Drop a file to decrypt it</string>
+    <string name="gpg_tools_drop_file_to_sign">Drop a file to sign it</string>
+    <string name="gpg_tools_drop_file_to_verify">Drop a file to verify it</string>
     <string name="gpg_tools_mode_cleartext">평문</string>
     <string name="gpg_tools_mode_inline">인라인</string>
     <string name="gpg_tools_mode_detached">분리형</string>

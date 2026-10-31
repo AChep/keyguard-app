@@ -504,10 +504,27 @@
     <string name="attachment_preview_error_text_decode">No se puede mostrar una vista previa de este archivo de texto.</string>
     <string name="attachment_preview_error_image_decode">No se puede mostrar una vista previa de esta imagen.</string>
     <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
+    <string name="attachment_preview_error_gzip_invalid">This Gzip file is damaged.</string>
+    <string name="attachment_preview_error_gzip_size_limit">The decompressed file is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
     <string name="attachment_preview_action_copy_all">Copiar todo</string>
     <string name="attachment_preview_action_wrap_lines">Ajustar líneas</string>
     <string name="attachment_preview_action_source">Fuente</string>
     <string name="attachment_preview_action_rendered_preview">Vista previa</string>
+    <string name="attachment_preview_action_tree">Tree</string>
+    <string name="attachment_preview_json_tree_view">Tree view</string>
+    <string name="attachment_preview_json_object">Object</string>
+    <string name="attachment_preview_json_array">Array</string>
+    <string name="attachment_preview_json_string">String</string>
+    <string name="attachment_preview_json_number">Number</string>
+    <string name="attachment_preview_json_boolean">Boolean</string>
+    <string name="attachment_preview_json_null">Null</string>
+    <string name="attachment_preview_json_expanded">Expanded</string>
+    <string name="attachment_preview_json_collapsed">Collapsed</string>
+    <string name="attachment_preview_json_error_invalid">This file is not valid JSON. Showing source.</string>
+    <string name="attachment_preview_json_error_too_large">This file is too large for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_deep">This JSON has too many nested levels for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_many_nodes">This JSON has too many values for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_duplicate_keys">This JSON has duplicate property names. Showing source to preserve every value.</string>
     <string name="vault_action_always_show_keyboard_title">Mostrar siempre el teclado</string>
     <string name="vault_action_remember_sorting_title">Recordar método de ordenación</string>
     <string name="vault_action_sync_vault_title">Sincronizar caja fuerte</string>
@@ -1013,7 +1030,6 @@
     <string name="privilegedapps_user_apps">Aplicaciones del usuario</string>
     <string name="privilegedapps_community_apps">Aplicaciones de la comunidad</string>
     <string name="setup_header_text">Crear una bóveda cifrada donde se almacenarán los datos locales.</string>
-    <string name="setup_free_text">Al continuar confirma que ha comprado Keyguard o que ha tenido una licencia activa.</string>
     <string name="setup_field_app_password_label">Contraseña de la app</string>
     <string name="setup_checkbox_biometric_auth">Autenticación biométrica</string>
     <string name="setup_biometric_auth_confirm_title">Crear caja fuerte</string>
@@ -1980,7 +1996,9 @@
     <string name="pref_item_agent_display_key_names_note">Se guardará localmente una copia sin cifrar del título del elemento</string>
     <string name="pref_item_agent_approval_window_always_ask">Preguntar cada vez</string>
     <string name="pref_item_agent_approval_window_until_lock">Hasta que se bloquee la caja fuerte</string>
+    <string name="pref_item_agent_approval_window_never_ask">Never ask</string>
     <string name="pref_item_approval_window_title">Recordar aprobaciones</string>
+    <string name="pref_item_agent_approval_timeout_title">Approval timeout</string>
     <string name="pref_item_ssh_agent_approval_remember_note">La aprobación de una firma se recuerda durante este tiempo para cada clave y aplicación, en lugar de solicitarla cada vez.</string>
     <string name="pref_item_agent_filters_text">Elige qué claves <xliff:g id="protocol" example="SSH">%1$s</xliff:g> están disponibles para el agente %1$s</string>
     <string name="pref_item_agent_filters_summary_all">Todas las claves disponibles</string>
@@ -2310,6 +2328,10 @@
     <string name="gpg_tools_operation_decrypt_text">Descifrar texto o archivos con las claves privadas almacenadas</string>
     <string name="gpg_tools_operation_sign_text">Firmar texto o archivos con una clave privada almacenada</string>
     <string name="gpg_tools_operation_verify_text">Verificar firmas en línea o separadas</string>
+    <string name="gpg_tools_drop_file_to_encrypt">Drop a file to encrypt it</string>
+    <string name="gpg_tools_drop_file_to_decrypt">Drop a file to decrypt it</string>
+    <string name="gpg_tools_drop_file_to_sign">Drop a file to sign it</string>
+    <string name="gpg_tools_drop_file_to_verify">Drop a file to verify it</string>
     <string name="gpg_tools_mode_cleartext">Texto claro</string>
     <string name="gpg_tools_mode_inline">En línea</string>
     <string name="gpg_tools_mode_detached">Separada</string>

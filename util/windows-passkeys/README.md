@@ -115,6 +115,12 @@ ordinary runs. On a Windows client with the provider API, run them from the root
 ./util/windows-passkeys/abi/test-integration.ps1 -Target x86_64-pc-windows-msvc
 ```
 
+The registration encoder may omit unsigned extension outputs. Its PRF check
+always validates Keyguard's output and the base response, and compares PRF with
+Windows when the encoder includes it. The runner reports an omission; it does
+not establish whether browsers receive PRF results. Verify that through the
+installed-package check in the MSIX documentation.
+
 Build that target first with the `cargo test` command above, adding `--target`
 with the same target triple. Use `aarch64-pc-windows-msvc` for native ARM64.
 The runner fails if the suite is empty or a required export is missing; it logs

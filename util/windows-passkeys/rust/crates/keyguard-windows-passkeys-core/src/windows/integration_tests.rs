@@ -140,7 +140,7 @@ fn prf_output(enabled: bool) -> Vec<u8> {
 
 #[test]
 #[ignore = "requires Windows passkey plugin exports"]
-fn registration_prf_output_matches_windows_encoder() {
+fn registration_prf_output_is_valid_with_or_without_encoder_support() {
     let address = export(c"WebAuthNEncodeMakeCredentialResponse");
     // SAFETY: This is the documented export signature from webauthnplugin.h.
     let encode_make =
@@ -153,6 +153,7 @@ fn registration_prf_output_matches_windows_encoder() {
             pwszFormatType: w!("none"),
             cbAuthenticatorData: u32::try_from(auth_data.len()).unwrap(),
             pbAuthenticatorData: auth_data.as_mut_ptr(),
+            bPrfEnabled: BOOL(1),
             cbUnsignedExtensionOutputs: len_u32(outputs.len()).unwrap(),
             pbUnsignedExtensionOutputs: outputs.as_mut_ptr(),
             ..Default::default()
@@ -177,7 +178,35 @@ fn registration_prf_output_matches_windows_encoder() {
         },
     )
     .unwrap();
-    assert_eq!(actual, expected);
+    // Check our PRF output even when Windows' registration encoder omits it.
+    // This helper's behavior does not establish browser/provider PRF support.
+    let mut actual_reader = actual.as_slice();
+    let Cbor::Map(mut actual_fields) =
+        ciborium::from_reader::<Cbor, _>(&mut actual_reader).unwrap()
+    else {
+        panic!("registration response is not a map")
+    };
+    assert!(
+        actual_reader.is_empty(),
+        "trailing registration response bytes"
+    );
+    let expected_prf = ciborium::from_reader::<Cbor, _>(outputs.as_slice()).unwrap();
+    assert_eq!(actual_fields.pop(), Some((number(6), expected_prf)));
+
+    let Cbor::Map(expected_fields) = ciborium::from_reader::<Cbor, _>(expected.as_slice()).unwrap()
+    else {
+        panic!("Windows registration response is not a map")
+    };
+    if expected_fields.iter().any(|(key, _)| key == &number(6)) {
+        assert_eq!(actual, expected);
+    } else {
+        assert_eq!(cbor(&Cbor::Map(actual_fields)).unwrap(), expected);
+        eprintln!(
+            "WebAuthNEncodeMakeCredentialResponse omits registration unsigned extension outputs; \
+             Keyguard's PRF output and the base response were checked independently. \
+             Browser/provider PRF support still requires an installed-package ceremony."
+        );
+    }
 }
 
 #[test]

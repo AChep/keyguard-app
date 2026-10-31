@@ -732,13 +732,19 @@ async fn a_second_agent_exits_before_touching_mounts() {
 #[tokio::test]
 async fn a_failed_readiness_report_removes_the_fifos() {
     let app = App::new().await;
-    // The app stopped reading before the agent became ready.
-    let (reader, writer) = std::io::pipe().unwrap();
-    drop(reader);
+    // Closing a pipe reader can race with another test's spawn on macOS.
+    // Shut down writes and keep the peer alive to cover inherited readers.
+    let (reader, writer) = std::os::unix::net::UnixStream::pair().unwrap();
+    writer.shutdown(std::net::Shutdown::Write).unwrap();
+    let output = std::os::fd::OwnedFd::from(writer);
     let mut child = app
-        .spawn(&app.public, &app.state_dir(), writer.into())
+        .spawn(&app.public, &app.state_dir(), output.into())
         .await;
-    assert!(!timeout(child.wait()).await.unwrap().success());
+    // `wait` otherwise closes stdin and requests a normal shutdown.
+    let input = child.stdin.take().unwrap();
+    assert_eq!(timeout(child.wait()).await.unwrap().code(), Some(1));
+    drop(input);
+    drop(reader);
     assert_eq!(
         app.statuses.lock().unwrap().first(),
         Some(&protocol::MountStatusRequest {

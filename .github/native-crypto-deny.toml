@@ -92,9 +92,9 @@ reason = "Keep the reviewed SSH cipher fork on the import-only cipher matrix"
 
 [[bans.features]]
 crate = "ssh-key"
-allow = ["alloc", "keyguard-decryption", "std"]
+allow = ["alloc", "ecdsa", "keyguard-decryption", "std"]
 exact = true
-reason = "Use only the reviewed Keyguard decryption path; upstream crypto and RSA features stay disabled"
+reason = "Use reviewed decryption and ECDSA certificate-key decoding; upstream crypto and RSA features stay disabled"
 
 [[bans.features]]
 crate = "ssh-encoding"

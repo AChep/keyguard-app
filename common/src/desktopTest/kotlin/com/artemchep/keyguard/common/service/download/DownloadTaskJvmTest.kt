@@ -30,6 +30,7 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlinx.io.Buffer
 import kotlinx.io.RawSink
 import kotlinx.io.Sink
@@ -58,6 +59,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 import okio.Buffer as OkioBuffer
 
 private const val TEST_BYTE_PATTERN_MODULUS = 251
@@ -494,38 +496,56 @@ class DownloadTaskJvmFailureAndEdgeCaseTest {
             write(original)
         }
         val responseBody = CancellableResponseBody(prefix)
-        val task = downloadTask(responseBody = responseBody, fileEncryptionCodec = codec)
-        val completed = AtomicBoolean(false)
+        downloadHttpClient(responseBody).use { httpClient ->
+            val task = DownloadTaskImpl(httpClient = httpClient, fileEncryptionCodec = codec)
+            val completed = AtomicBoolean(false)
 
-        val collection = launch(
-            context = Dispatchers.Default,
-            start = CoroutineStart.UNDISPATCHED,
-        ) {
-            task
-                .fileLoader(
-                    url = "https://example.com/payload.bin",
-                    key = key,
-                    writer = DownloadWriter.SinkWriter(sink),
-                )
-                .collect { progress ->
-                    if (progress is DownloadProgress.Complete) {
-                        completed.set(true)
+            val collection = launch(
+                context = Dispatchers.Default,
+                start = CoroutineStart.UNDISPATCHED,
+            ) {
+                task
+                    .fileLoader(
+                        url = "https://example.com/payload.bin",
+                        key = key,
+                        writer = DownloadWriter.SinkWriter(sink),
+                    )
+                    .collect { progress ->
+                        if (progress is DownloadProgress.Complete) {
+                            completed.set(true)
+                        }
                     }
+            }
+
+            try {
+                assertTrue(
+                    responseBody.readStarted.await(
+                        CALL_CANCELLATION_TIMEOUT_SECONDS,
+                        TimeUnit.SECONDS,
+                    ),
+                    "Response body read did not start",
+                )
+                withTimeout(CALL_CANCELLATION_TIMEOUT_SECONDS.seconds) {
+                    collection.cancelAndJoin()
                 }
+
+                assertTrue(responseBody.call.isCanceled())
+                // Ktor can finish collecting before its engine closes the response body.
+                assertTrue(
+                    responseBody.closed.await(
+                        CALL_CANCELLATION_TIMEOUT_SECONDS,
+                        TimeUnit.SECONDS,
+                    ),
+                    "Response body did not close after call cancellation",
+                )
+                assertFalse(completed.get())
+                assertContentEquals(original, sink.readByteArray())
+            } finally {
+                withTimeout(CALL_CANCELLATION_TIMEOUT_SECONDS.seconds) {
+                    collection.cancelAndJoin()
+                }
+            }
         }
-
-        assertTrue(
-            responseBody.readStarted.await(
-                CALL_CANCELLATION_TIMEOUT_SECONDS,
-                TimeUnit.SECONDS,
-            ),
-        )
-        collection.cancelAndJoin()
-
-        assertTrue(responseBody.call.isCanceled())
-        assertTrue(responseBody.closed.get())
-        assertFalse(completed.get())
-        assertContentEquals(original, sink.readByteArray())
     }
 }
 
@@ -544,16 +564,21 @@ private fun downloadTask(
     responseStatus: HttpStatusCode = HttpStatusCode.OK,
     fileEncryptionCodec: FileEncryptionCodec = CopyingFileEncryptionCodec(),
 ) = DownloadTaskImpl(
-    httpClient = HttpClient(OkHttp) {
-        engine {
-            preconfigured = okHttpClient(
-                responseBody = responseBody,
-                responseStatus = responseStatus,
-            )
-        }
-    },
+    httpClient = downloadHttpClient(responseBody, responseStatus),
     fileEncryptionCodec = fileEncryptionCodec,
 )
+
+private fun downloadHttpClient(
+    responseBody: ResponseBody,
+    responseStatus: HttpStatusCode = HttpStatusCode.OK,
+) = HttpClient(OkHttp) {
+    engine {
+        preconfigured = okHttpClient(
+            responseBody = responseBody,
+            responseStatus = responseStatus,
+        )
+    }
+}
 
 private fun okHttpClient(
     responseBody: ResponseBody,
@@ -613,7 +638,7 @@ private class CancellableResponseBody(prefix: ByteArray = byteArrayOf()) : Respo
     private val initialBytes = OkioBuffer().write(prefix)
     lateinit var call: Call
     val readStarted = CountDownLatch(1)
-    val closed = AtomicBoolean(false)
+    val closed = CountDownLatch(1)
 
     private val responseSource = object : okio.Source {
         override fun read(
@@ -631,7 +656,7 @@ private class CancellableResponseBody(prefix: ByteArray = byteArrayOf()) : Respo
         override fun timeout(): Timeout = Timeout.NONE
 
         override fun close() {
-            closed.set(true)
+            closed.countDown()
         }
     }.buffer()
 

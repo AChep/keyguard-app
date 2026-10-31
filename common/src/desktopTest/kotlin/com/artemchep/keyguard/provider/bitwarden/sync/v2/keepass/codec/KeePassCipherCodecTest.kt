@@ -1,7 +1,9 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec
 
+import app.keemobile.kotpass.constants.BasicField
 import app.keemobile.kotpass.models.BinaryData
 import app.keemobile.kotpass.models.BinaryReference
+import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.XmlExtension
 import app.keemobile.kotpass.models.XmlExtensionContent
@@ -269,6 +271,180 @@ class KeePassCipherCodecTest {
         )
 
         assertEquals(cipherId, encoded.entry.uuid.toString())
+    }
+
+    @Test
+    fun `decode keeps an empty KeePass note`() = runTest {
+        val decoded = decode(
+            remote = buildEntry(
+                notes = "remember the gate code",
+            ),
+        )
+
+        assertEquals(BitwardenCipher.Type.SecureNote, decoded.type)
+        assertNull(decoded.login)
+        assertStandardCredentialsAreNotCustomFields(decoded)
+    }
+
+    @Test
+    fun `decode promotes a stored KeePass note once standard credentials appear`() = runTest {
+        val decoded = decode(
+            remote = buildEntry(
+                notes = "remember the gate code",
+                username = "alice",
+                password = "secret",
+                extraFields = noteTypeMarker(),
+            ),
+            local = testBitwardenCipher(cipherId = "cipher"),
+        )
+
+        assertEquals(BitwardenCipher.Type.Login, decoded.type)
+        assertEquals("alice", decoded.login?.username)
+        assertEquals("secret", decoded.login?.password)
+        assertNull(decoded.secureNote)
+        assertStandardCredentialsAreNotCustomFields(decoded)
+    }
+
+    @Test
+    fun `decode promotes a KeePass note when one standard credential is set`() = runTest {
+        val storedNote = testBitwardenCipher(cipherId = "cipher")
+        val usernameOnly = decode(
+            remote = buildEntry(
+                notes = "remember the gate code",
+                username = "alice",
+                extraFields = noteTypeMarker(),
+            ),
+            local = storedNote,
+        )
+        val passwordOnly = decode(
+            remote = buildEntry(
+                notes = "remember the gate code",
+                password = "secret",
+                extraFields = noteTypeMarker(),
+            ),
+            local = storedNote,
+        )
+        val unmarkedLocal = decode(
+            remote = buildEntry(
+                notes = "remember the gate code",
+                username = "alice",
+                extraFields = noteTypeMarker(),
+            ),
+        )
+
+        assertEquals(BitwardenCipher.Type.Login, usernameOnly.type)
+        assertEquals("alice", usernameOnly.login?.username)
+        assertNull(usernameOnly.login?.password)
+        assertNull(usernameOnly.secureNote)
+        assertStandardCredentialsAreNotCustomFields(usernameOnly)
+
+        assertEquals(BitwardenCipher.Type.Login, passwordOnly.type)
+        assertNull(passwordOnly.login?.username)
+        assertEquals("secret", passwordOnly.login?.password)
+        assertNull(passwordOnly.secureNote)
+        assertStandardCredentialsAreNotCustomFields(passwordOnly)
+
+        assertEquals(BitwardenCipher.Type.Login, unmarkedLocal.type)
+        assertEquals("alice", unmarkedLocal.login?.username)
+        assertNull(unmarkedLocal.secureNote)
+        assertStandardCredentialsAreNotCustomFields(unmarkedLocal)
+    }
+
+    @Test
+    fun `decode keeps an explicit KeePass type when a username is present`() = runTest {
+        listOf(
+            BitwardenCipher.Type.Card,
+            BitwardenCipher.Type.Identity,
+            BitwardenCipher.Type.SshKey,
+            BitwardenCipher.Type.GpgKey,
+        ).forEach { type ->
+            val decoded = decode(
+                remote = buildEntry(
+                    username = "alice",
+                    extraFields = entryTypeMarker(type),
+                ),
+            )
+
+            assertEquals(type, decoded.type)
+        }
+    }
+
+    @Test
+    fun `decode keeps an explicit or stored KeePass login without credentials`() = runTest {
+        val explicitLogin = decode(
+            remote = buildEntry(
+                notes = "remember the gate code",
+                extraFields = entryTypeMarker(BitwardenCipher.Type.Login),
+            ),
+        )
+        val storedLogin = decode(
+            remote = buildEntry(
+                notes = "remember the gate code",
+            ),
+            local = testBitwardenCipher(cipherId = "cipher").copy(
+                type = BitwardenCipher.Type.Login,
+                secureNote = null,
+                login = BitwardenCipher.Login(
+                    uris = emptyList(),
+                ),
+            ),
+        )
+
+        assertEquals(BitwardenCipher.Type.Login, explicitLogin.type)
+        assertEquals(BitwardenCipher.Type.Login, storedLogin.type)
+    }
+
+    @Test
+    fun `decode keeps a marked note and a stored note that only carries a GPG payload`() = runTest {
+        val markedNote = decode(
+            remote = buildEntry(
+                notes = "remember the gate code",
+                url = "https://example.com",
+                extraFields = noteTypeMarker(),
+            ),
+        )
+        val storedNote = decode(
+            remote = buildEntry(
+                username = "alice",
+                extraFields = noteTypeMarker() + mapOf(
+                    KeePassFieldKey.GPG_FINGERPRINT to EntryValue.Plain("fingerprint"),
+                ),
+            ),
+            local = testBitwardenCipher(cipherId = "cipher"),
+        )
+
+        assertEquals(BitwardenCipher.Type.SecureNote, markedNote.type)
+        assertNull(markedNote.login)
+        assertEquals(BitwardenCipher.Type.SecureNote, storedNote.type)
+        assertNull(storedNote.login)
+    }
+
+    private suspend fun decode(
+        remote: Entry,
+        local: BitwardenCipher? = null,
+    ) = codec.decode(
+        accountId = "account",
+        folderId = null,
+        cipherId = "cipher",
+        remote = remote,
+        local = local,
+        revisionDate = REVISION_DATE,
+        binaries = emptyMap(),
+    )
+
+    private fun noteTypeMarker() = entryTypeMarker(BitwardenCipher.Type.SecureNote)
+
+    private fun entryTypeMarker(type: BitwardenCipher.Type) = mapOf(
+        "Keyguard: Entry Type" to EntryValue.Plain(type.verboseKey),
+    )
+
+    private fun assertStandardCredentialsAreNotCustomFields(decoded: BitwardenCipher) {
+        assertEquals(
+            emptyList(),
+            decoded.fields.filter { field ->
+                field.name == BasicField.UserName() || field.name == BasicField.Password()
+            },
+        )
     }
 
 }

@@ -36,7 +36,7 @@ class CsvReaderTest {
     }
 
     @Test
-    fun `quoted fields carry delimiters, line breaks and escaped quotes`() {
+    fun `quoted fields carry delimiters and line breaks and escaped quotes`() {
         assertEquals(
             listOf(
                 listOf("a,b", "line 1\nline 2", "say \"hi\"", ""),

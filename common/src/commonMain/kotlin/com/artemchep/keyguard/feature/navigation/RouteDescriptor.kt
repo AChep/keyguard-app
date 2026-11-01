@@ -135,6 +135,14 @@ sealed interface RouteDescriptor {
         val filter: DFilter? = null,
     ) : RouteDescriptor
 
+    /** Imports items from another password manager into the account. */
+    @Serializable
+    @SerialName("vault.import")
+    data class Import(
+        val accountId: String,
+        val configuredBackup: Boolean = false,
+    ) : RouteDescriptor
+
     @Serializable
     @SerialName("vault.cipher_filter.view")
     data class CipherFilterView(

@@ -3,10 +3,11 @@ package com.artemchep.keyguard.common.service.environment
 import com.artemchep.keyguard.test.environmentPayload
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.credentialexchange.CxfExportSkipReason
-import com.artemchep.keyguard.common.service.credentialexchange.FakeSshKeyImportService
+import com.artemchep.keyguard.test.FakeSshKeyImportService
 import com.artemchep.keyguard.common.service.credentialexchange.FakeSshKeyPkcs8Exporter
 import com.artemchep.keyguard.common.service.credentialexchange.cxfExportSkips
 import com.artemchep.keyguard.common.service.credentialexchange.cxfProfile
+import com.artemchep.keyguard.common.service.credentialexchange.mapItem
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportSecretMapper
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfSecretMapper
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
@@ -35,6 +36,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 private const val REFERENCE_TARGET_ID = "00000000-0000-0000-0000-000000000001"
@@ -213,13 +215,12 @@ class EnvironmentExportTest {
         val imported = CxfImportSecretMapper(FakeSshKeyImportService())
             .mapItem(assertNotNull(exported.item), now)
         assertEquals(0, imported.skips.totalCount)
+        // The transport fields decode only as hidden fields, so the environment
+        // coming back also proves that they stayed protected on the wire.
         val request = imported.requests.single()
-        assertEquals(DSecret.Type.SecureNote, request.type)
-        val fields = request.fields.map { field ->
-            assertEquals(DSecret.Field.Type.Hidden, field.type)
-            BitwardenCipher.Field(field.name, field.value, type = BitwardenCipher.Field.Type.Hidden)
-        }
-        assertEquals(environment.environment, BitwardenEnvironmentFieldCodec.decode(fields)?.environment?.toDomain())
+        assertEquals(DSecret.Type.Environment, request.type)
+        assertEquals(environment.environment, request.environment)
+        assertTrue(request.fields.isEmpty())
     }
 
     private fun environment(sources: List<EnvironmentValueSource>): DSecret =

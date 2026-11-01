@@ -26,7 +26,7 @@ class EnvironmentRepositoryLimitsTest {
         assertEquals("invalid_environment", error.code)
         assertTrue(fixture.saved.isEmpty())
         fixture.repository.appendVariables("environment", listOf("V0" to "updated"))
-        assertEquals(EnvironmentLimits.MAX_VARIABLES, fixture.saved.single().environment!!.variables.size)
+        assertEquals(EnvironmentLimits.MAX_VARIABLES, fixture.saved.single().environment!!.definition.variables.size)
 
         val oversized = definition.copy(
             variables = definition.variables + EnvironmentVariable("NEW", EnvironmentValueSource.Unset),

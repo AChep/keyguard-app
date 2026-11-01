@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.ops
 
+import app.keemobile.kotpass.database.modifiers.binaries
 import app.keemobile.kotpass.models.Group
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.crypto.NativeGpgCertificateMaterialReconciler
@@ -56,6 +57,45 @@ class KeePassSyncOpsTimestampTest {
         assertEquals(CANONICAL_REVISION, publishedLocal.revisionDate)
         assertEquals(CANONICAL_REVISION, publishedLocal.service.remote?.revisionDate)
         assertEquals(true, publishedLocal.favorite)
+    }
+
+    @Test
+    fun `cipher created archived and trashed is written archived and trashed`() = runTest {
+        val mutator = KeePassDbMutator(createTestKeePassDatabase())
+        val codec = createTestCipherCodec()
+        val ops = KeePassCipherSyncOps(
+            accountId = ACCOUNT_ID,
+            buffer = KeePassWriteBackBuffer(createTestDatabase()),
+            cryptoGenerator = testCryptoGenerator,
+            cipherCodec = codec,
+            mutator = mutator,
+            remoteToLocalFolders = emptyMap(),
+            localToRemoteFolders = emptyMap(),
+            gpgCertificateMaterialReconciler = NativeGpgCertificateMaterialReconciler,
+            gpgKeyMetadataResolver = NativeGpgKeyMetadataResolver,
+        )
+        val local = testBitwardenCipher(cipherId = ITEM_ID).copy(
+            revisionDate = CANONICAL_REVISION,
+            archivedDate = CANONICAL_REVISION,
+            deletedDate = CANONICAL_REVISION,
+        )
+
+        assertIs<RemoteWriteOutcome.Upsert<*>>(
+            ops.pushToServer(local = local, server = null, force = false),
+        )
+        val entry = mutator.database.content.group.entries.single()
+        val decoded = codec.decode(
+            accountId = ACCOUNT_ID,
+            folderId = null,
+            cipherId = ITEM_ID,
+            remote = entry,
+            local = null,
+            revisionDate = CANONICAL_REVISION,
+            binaries = mutator.database.binaries,
+        )
+
+        assertEquals(CANONICAL_REVISION, decoded.archivedDate)
+        assertEquals(CANONICAL_REVISION, decoded.deletedDate)
     }
 
     @Test

@@ -66,6 +66,9 @@ private fun RouteDescriptor.canPersist(): Boolean = when (this) {
     // Drafts of an environment live only in memory,
     // so there is nothing to restore an editor to.
     is RouteDescriptor.EnvironmentEdit -> false
+    // The picked file and the review live only in memory, so a restored
+    // import could only start over; leave it closed instead.
+    is RouteDescriptor.Import -> false
     is RouteDescriptor.VaultList -> filter.canPersist()
     is RouteDescriptor.Folders -> filter.canPersist()
     is RouteDescriptor.Duplicates -> filter.canPersist()

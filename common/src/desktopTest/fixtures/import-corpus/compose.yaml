@@ -1,0 +1,57 @@
+# Test-only: regenerates the Bitwarden and KeePassXC files of the import
+# corpus with the real exporters. See
+# common/src/desktopTest/resources/import-corpus/README.md.
+name: keyguard-import-corpus
+
+x-generator: &generator
+  build: .
+  working_dir: /desktopTest/fixtures/import-corpus
+  entrypoint: ["python3", "generate.py"]
+
+services:
+  # The Bitwarden CLI talks to HTTPS servers only: a throwaway CA and a
+  # certificate for the `vaultwarden` host, made once per volume.
+  certs:
+    <<: *generator
+    command: ["certs"]
+    environment:
+      CERTS_DIR: "/certs"
+    volumes:
+      - ../..:/desktopTest
+      - certs:/certs
+
+  vaultwarden:
+    # Keep in sync with VAULTWARDEN_VERSION below.
+    image: vaultwarden/server:1.37.4
+    depends_on:
+      certs:
+        condition: service_completed_successfully
+    environment:
+      SIGNUPS_ALLOWED: "true"
+      DOMAIN: "https://vaultwarden"
+      ROCKET_PORT: "443"
+      ROCKET_TLS: '{certs="/certs/cert.pem",key="/certs/key.pem"}'
+    volumes:
+      - certs:/certs:ro
+    # A fresh, throwaway vault on every start.
+    tmpfs:
+      - /data
+
+  generator:
+    <<: *generator
+    depends_on:
+      - vaultwarden
+    command: ["all"]
+    environment:
+      VAULTWARDEN_URL: "https://vaultwarden"
+      VAULTWARDEN_VERSION: "1.37.4"
+      CERTS_DIR: "/certs"
+      NODE_EXTRA_CA_CERTS: "/certs/ca.pem"
+    volumes:
+      # The desktopTest directory, so the script finds the corpus at the
+      # same relative path as on the host.
+      - ../..:/desktopTest
+      - certs:/certs:ro
+
+volumes:
+  certs: {}

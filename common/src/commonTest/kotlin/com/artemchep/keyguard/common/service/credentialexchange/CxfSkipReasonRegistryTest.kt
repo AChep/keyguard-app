@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.common.service.credentialexchange
 
+import com.artemchep.keyguard.common.service.imports.FILE_IMPORT_ONLY_SKIP_REASONS
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.test.FakeSshKeyImportService
 import com.artemchep.keyguard.test.environmentPayload
 import com.artemchep.keyguard.common.model.DFolder
 import com.artemchep.keyguard.common.model.DProfile
@@ -8,14 +11,19 @@ import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfAccountM
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfExportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
 import com.artemchep.keyguard.feature.environments.EnvironmentFieldReference
+import com.artemchep.keyguard.feature.environments.EnvironmentFormat
 import com.artemchep.keyguard.feature.environments.EnvironmentValueSource
 import com.artemchep.keyguard.feature.environments.EnvironmentVariable
+import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenEnvironmentFieldCodec
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Instant
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 /**
  * The anti-dead-reason guard: a skip reason may not exist before the code that
@@ -39,25 +47,35 @@ class CxfSkipReasonRegistryTest {
      * One CXF document per import reason, chosen to be the smallest input that
      * raises it.
      */
-    private val importFixtures: Map<CxfImportSkipReason, String> = mapOf(
-        CxfImportSkipReason.Passkey to
+    private val importFixtures: Map<ImportSkipReason, String> = mapOf(
+        ImportSkipReason.Passkey to
             documentWithItems(
                 registryItem(cxfPasskeyCredentialJson(credentialId = "###"), REGISTRY_BASIC_AUTH),
             ),
-        CxfImportSkipReason.Otp to
+        ImportSkipReason.Otp to
             documentWithItems(registryItem(cxfTotpCredentialJson(digits = 10), REGISTRY_BASIC_AUTH)),
-        CxfImportSkipReason.SshKey to
+        ImportSkipReason.SshKey to
             documentWithItems(registryItem(cxfSshKeyCredentialJson(privateKey = "not base64url!"))),
-        CxfImportSkipReason.UnknownCredential to
+        ImportSkipReason.Environment to
+            documentWithItems(registryItem(registryEnvironmentFields("""{"version": 2, "variables": []}"""))),
+        ImportSkipReason.UnknownCredential to
             documentWithItems(registryItem(REGISTRY_WIFI, REGISTRY_BASIC_AUTH)),
-        CxfImportSkipReason.DuplicateCredential to
+        ImportSkipReason.DuplicateCredential to
             documentWithItems(registryItem(REGISTRY_BASIC_AUTH, REGISTRY_BASIC_AUTH)),
-        CxfImportSkipReason.Item to documentWithItems(""""not-an-item""""),
-        CxfImportSkipReason.Collection to documentWithAccount(
+        ImportSkipReason.EnvironmentReference to
+            documentWithItems(
+                registryItem(
+                    registryEnvironmentFields(
+                        EnvironmentFormat.encode(EnvironmentDefinition(listOf(REGISTRY_REFERENCE_VARIABLE))),
+                    ),
+                ),
+            ),
+        ImportSkipReason.Item to documentWithItems(""""not-an-item""""),
+        ImportSkipReason.Collection to documentWithAccount(
             collectionsJson = """[{"id": "YmFk", "title": 42, "items": []}]""",
             itemsJson = "[]",
         ),
-        CxfImportSkipReason.Account to documentWithAccount(
+        ImportSkipReason.Account to documentWithAccount(
             collectionsJson = "[]",
             itemsJson = "null",
         ),
@@ -134,12 +152,7 @@ class CxfSkipReasonRegistryTest {
         },
         CxfExportSkipReason.EnvironmentReference to {
             exportOf(cxfSecret(type = DSecret.Type.Environment).copy(
-                environment = environmentPayload(EnvironmentDefinition(listOf(
-                    EnvironmentVariable("PASSWORD", EnvironmentValueSource.Reference(
-                        cipherId = "00000000-0000-0000-0000-000000000001",
-                        field = EnvironmentFieldReference.Password,
-                    )),
-                ))),
+                environment = environmentPayload(EnvironmentDefinition(listOf(REGISTRY_REFERENCE_VARIABLE))),
             ))
         },
         CxfExportSkipReason.Archived to {
@@ -167,7 +180,7 @@ class CxfSkipReasonRegistryTest {
     @Test
     fun `every import skip reason is produced by a fixture`() {
         assertEquals(
-            CxfImportSkipReason.entries.toSet(),
+            ImportSkipReason.entries.toSet() - FILE_IMPORT_ONLY_SKIP_REASONS,
             importFixtures.keys,
             "every import reason needs a fixture that proves something raises it",
         )
@@ -220,16 +233,13 @@ class CxfSkipReasonRegistryTest {
         // incoming document cannot carry either; a `file` credential is the one
         // incoming shape that corresponds to an attachment, and the import side
         // already counts it as `UnknownCredential` along with every other kind it
-        // does not model, so it is owed no row of its own.
+        // does not model, so it is owed no row of its own. `Attachment` and
+        // `PasswordHistory` are import reasons too, but only a file import
+        // raises them (`FILE_IMPORT_ONLY_SKIP_REASONS`), never a CXF document.
         //
         // `SshCertificate` is a member of an exported SSH key rather than a
         // credential of its own: CXF spells no certificate, so an incoming
         // ssh-key credential can never carry one for import to lose.
-        //
-        // Environment references use provider ids in a Keyguard-specific
-        // payload. Export withholds the environment until it can remap them;
-        // this is not the standard CXF item-reference credential, which import
-        // already reports as UnknownCredential.
         //
         // Anything added here needs the same argument written down, not just a
         // new entry.
@@ -239,12 +249,11 @@ class CxfSkipReasonRegistryTest {
             CxfExportSkipReason.GpgKey.name,
             CxfExportSkipReason.Attachment.name,
             CxfExportSkipReason.PasswordHistory.name,
-            CxfExportSkipReason.EnvironmentReference.name,
         )
         assertTrue(
             CxfExportSkipReason.entries.all {
                 it.name in exportOnly ||
-                    it.name in CxfImportSkipReason.entries.map(Enum<*>::name)
+                    it.name in ImportSkipReason.entries.map(Enum<*>::name)
             },
         )
     }
@@ -255,6 +264,27 @@ private const val REGISTRY_BASIC_AUTH =
 
 private const val REGISTRY_WIFI =
     """{"type": "wifi", "ssid": {"fieldType": "string", "value": "g"}}"""
+
+private val REGISTRY_REFERENCE_VARIABLE = EnvironmentVariable(
+    name = "PASSWORD",
+    source = EnvironmentValueSource.Reference(
+        cipherId = "00000000-0000-0000-0000-000000000001",
+        field = EnvironmentFieldReference.Password,
+    ),
+)
+
+/** A custom-fields credential carrying the [document], as Keyguard exports an environment. */
+private fun registryEnvironmentFields(
+    document: String,
+): String = BitwardenEnvironmentFieldCodec
+    .encode(BitwardenCipher.Environment(document = document))
+    .joinToString(prefix = """{"type": "custom-fields", "fields": [""", postfix = "]}") { field ->
+        buildJsonObject {
+            put("fieldType", "concealed-string")
+            put("label", field.name)
+            put("value", field.value)
+        }.toString()
+    }
 
 private fun registryItem(
     vararg credentialsJson: String,

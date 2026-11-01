@@ -1,0 +1,8 @@
+"Group","Title","Username","Password","URL","Notes","TOTP","Icon","Last Modified","Created"
+"Import corpus","Top level","top-user","top-password","https://top.example.org","","","0","2024-01-02T00:00:00Z","2024-01-01T00:00:00Z"
+"Import corpus","","untitled-user","untitled-password","https://untitled.example.org/login","","","0","2024-01-02T00:00:00Z","2024-01-01T00:00:00Z"
+"Import corpus","With extras","extras-user","new-password","","","","0","2024-01-03T00:00:00Z","2024-01-01T00:00:00Z"
+"Import corpus/Banking/Cards","Bank","bank-user","bank-password","https://bank.example.com","Line one
+Line two","otpauth://totp/Bank:bank-user?secret=JBSWY3DPEHPK3PXP&period=30&digits=6&issuer=Bank","0","2024-01-04T00:00:00Z","2024-01-01T00:00:00Z"
+"Import corpus/Email","Mail, ""quoted""","alice@exämple.com"," spaced ""and"" quoted, ","https://mail.example.com","Ünïcödé — 日本語","","0","2024-01-05T00:00:00Z","2024-01-01T00:00:00Z"
+"Import corpus/Recycle Bin","Deleted entry","deleted-user","deleted-password","","","","0","2024-01-06T00:00:00Z","2024-01-01T00:00:00Z"

@@ -139,7 +139,7 @@ struct DetailHeaderBar<Leading: View, Trailing: View>: View {
         HStack(spacing: 12) {
             leading()
             VStack(alignment: .leading, spacing: 2) {
-                Text(title.isEmpty ? L10n.credentialExchangeImportUntitled : title)
+                Text(title.isEmpty ? L10n.untitled : title)
                     .font(.title2.weight(.semibold))
                     .textSelection(.enabled)
                 if let subtitle, !subtitle.isEmpty {

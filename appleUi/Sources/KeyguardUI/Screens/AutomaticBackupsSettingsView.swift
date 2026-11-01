@@ -148,6 +148,7 @@ struct AutomaticBackupsSettingsView: View {
             .settingsSearchTarget(.backupRetention)
             Button(L10n.prefItemAutomaticBackupsChangeConfigurationAction, action: configure)
                 .settingsSearchTarget(.backupConfig)
+            Button(L10n.prefItemAutomaticBackupsImportTitle) { backupsModel.importFromBackup() }
             Button(L10n.prefItemAutomaticBackupsDisableAction, role: .destructive) { confirmingDisable = true }
                 .settingsSearchTarget(.backupDisable)
         }

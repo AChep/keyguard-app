@@ -2,8 +2,8 @@ package com.artemchep.keyguard.feature.credentialexchange.export
 
 import com.artemchep.keyguard.common.service.credentialexchange.CxfExportSkipReason
 import com.artemchep.keyguard.common.service.credentialexchange.CxfExportSkips
-import com.artemchep.keyguard.feature.credentialexchange.CredentialExchangeSkippedNote
-import com.artemchep.keyguard.feature.credentialexchange.toSkippedNotes
+import com.artemchep.keyguard.feature.transfer.TransferSkippedNote
+import com.artemchep.keyguard.feature.transfer.toSkippedNotes
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import org.jetbrains.compose.resources.PluralStringResource
@@ -16,7 +16,7 @@ import org.jetbrains.compose.resources.PluralStringResource
 internal fun CxfExportSkips.toNotes(
     expandedIds: Set<String> = emptySet(),
     onToggle: (String) -> Unit = {},
-): List<CredentialExchangeSkippedNote> = toSkippedNotes(
+): List<TransferSkippedNote> = toSkippedNotes(
     expandedIds = expandedIds,
     onToggle = onToggle,
     labelRes = CxfExportSkipReason::labelRes,

@@ -17,6 +17,10 @@ import com.artemchep.keyguard.common.service.dragout.PreparedContentStore
 import com.artemchep.keyguard.common.service.download.DownloadTaskImpl
 import com.artemchep.keyguard.common.service.export.JsonExportService
 import com.artemchep.keyguard.common.service.export.impl.JsonExportServiceImpl
+import com.artemchep.keyguard.common.service.imports.BackupImportService
+import com.artemchep.keyguard.common.service.imports.ImportService
+import com.artemchep.keyguard.common.service.imports.impl.ImportServiceImpl
+import com.artemchep.keyguard.common.service.imports.impl.keyguardbackup.BackupImportServiceImpl
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.s3.KtorS3ClientFactory
 import com.artemchep.keyguard.common.service.s3.S3ClientFactory
@@ -89,6 +93,10 @@ internal class ApplicationTransfersModule {
         single<RemoveAttachmentImpl>() bind RemoveAttachment::class
 
         single<PendingUploadCoordinatorImpl>() bind PendingUploadCoordinator::class
+
+        single<ImportServiceImpl>() bind ImportService::class
+
+        single<BackupImportServiceImpl>() bind BackupImportService::class
 
         single<JsonExportServiceImpl>() bind JsonExportService::class
 

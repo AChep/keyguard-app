@@ -6,6 +6,8 @@ import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
 import kotlin.time.Instant
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 import kotlinx.io.Source
 
 class PendingUploadCoordinatorImpl(
@@ -76,7 +78,10 @@ class PendingUploadCoordinatorImpl(
             deleteBestEffort(removedPendingUploads)
         }
     } catch (e: Throwable) {
-        deleteBestEffort(createdPendingUploads)
+        // Also when cancelled: the block failed, so nothing saved points at the files.
+        withContext(NonCancellable) {
+            deleteBestEffort(createdPendingUploads)
+        }
         throw e
     }
 }

@@ -1,13 +1,13 @@
 package com.artemchep.keyguard.feature.credentialexchange
 
 import com.artemchep.keyguard.common.service.credentialexchange.CxfExportSkipReason
-import com.artemchep.keyguard.common.service.credentialexchange.CxfImportSkipReason
 import com.artemchep.keyguard.common.service.credentialexchange.cxfExportSkips
-import com.artemchep.keyguard.common.service.credentialexchange.cxfImportSkips
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.common.service.imports.importSkips
 import com.artemchep.keyguard.feature.credentialexchange.export.labelRes
 import com.artemchep.keyguard.feature.credentialexchange.export.toNotes
-import com.artemchep.keyguard.feature.credentialexchange.imports.labelRes
-import com.artemchep.keyguard.feature.credentialexchange.imports.toNotes
+import com.artemchep.keyguard.feature.imports.labelRes
+import com.artemchep.keyguard.feature.imports.toNotes
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlin.test.Test
@@ -25,16 +25,16 @@ import kotlin.test.assertTrue
 class CxfSkipNoteMappingTest {
     @Test
     fun `the import side turns every counted reason into exactly one row`() {
-        val skips = cxfImportSkips(
-            CxfImportSkipReason.Account to 4,
-            CxfImportSkipReason.Otp to 2,
-            CxfImportSkipReason.Item to 0,
-            CxfImportSkipReason.Passkey to 1,
+        val skips = importSkips(
+            ImportSkipReason.Account to 4,
+            ImportSkipReason.Otp to 2,
+            ImportSkipReason.Item to 0,
+            ImportSkipReason.Passkey to 1,
         )
         val notes = skips.toNotes()
         assertEquals(3, notes.size)
         assertEquals(listOf(1, 2, 4), notes.map { it.count })
-        assertTrue(cxfImportSkips().toNotes().isEmpty())
+        assertTrue(importSkips().toNotes().isEmpty())
     }
 
     @Test
@@ -68,7 +68,7 @@ class CxfSkipNoteMappingTest {
     fun `a reason that attributed nothing offers no toggle`() {
         // Renders exactly as it did before notes could expand — no chevron on a
         // row that would open onto nothing.
-        val note = cxfImportSkips(CxfImportSkipReason.Account to 2).toNotes().single()
+        val note = importSkips(ImportSkipReason.Account to 2).toNotes().single()
         assertTrue(note.titles.isEmpty())
         assertNull(note.onToggle)
         assertFalse(note.expanded)
@@ -78,8 +78,8 @@ class CxfSkipNoteMappingTest {
     fun `titles that fall short of the count leave a remainder`() {
         // Two items lost an item-level skip; only one of them had a readable
         // name. The row must not let one title imply it is the whole story.
-        val skips = cxfImportSkips(CxfImportSkipReason.Item to 1).titled("Netflix") +
-                cxfImportSkips(CxfImportSkipReason.Item to 2)
+        val skips = importSkips(ImportSkipReason.Item to 1).titled("Netflix") +
+                importSkips(ImportSkipReason.Item to 2)
         val note = skips.toNotes().single()
         assertEquals(3, note.count)
         assertEquals(listOf("Netflix"), note.titles.map { it.text })
@@ -88,13 +88,13 @@ class CxfSkipNoteMappingTest {
 
     @Test
     fun `only the opened note reports itself expanded`() {
-        val skips = cxfImportSkips(
-            CxfImportSkipReason.Passkey to 1,
-            CxfImportSkipReason.Otp to 1,
+        val skips = importSkips(
+            ImportSkipReason.Passkey to 1,
+            ImportSkipReason.Otp to 1,
         ).titled("Netflix")
         val toggled = mutableListOf<String>()
         val notes = skips.toNotes(
-            expandedIds = setOf(CxfImportSkipReason.Otp.name),
+            expandedIds = setOf(ImportSkipReason.Otp.name),
             onToggle = toggled::add,
         )
         assertEquals(
@@ -103,7 +103,7 @@ class CxfSkipNoteMappingTest {
             "expansion follows the id, not the position",
         )
         notes.first().onToggle?.invoke()
-        assertEquals(listOf(CxfImportSkipReason.Passkey.name), toggled)
+        assertEquals(listOf(ImportSkipReason.Passkey.name), toggled)
     }
 
     @Test
@@ -113,13 +113,19 @@ class CxfSkipNoteMappingTest {
                 Res.plurals.skipped_passkeys_note,
                 Res.plurals.skipped_otp_note,
                 Res.plurals.skipped_ssh_keys_note,
+                Res.plurals.skipped_unsupported_environments_note,
                 Res.plurals.skipped_unsupported_credentials_note,
                 Res.plurals.skipped_duplicate_credentials_note,
+                Res.plurals.skipped_attachments_note,
+                Res.plurals.skipped_password_history_note,
+                Res.plurals.skipped_environment_variable_references_note,
                 Res.plurals.skipped_items_note,
                 Res.plurals.skipped_folders_note,
                 Res.plurals.skipped_accounts_note,
+                Res.plurals.skipped_import_files_note,
+                Res.plurals.skipped_malformed_csv_records_note,
             ),
-            CxfImportSkipReason.entries.map { it.labelRes() },
+            ImportSkipReason.entries.map { it.labelRes() },
         )
         assertEquals(
             listOf(

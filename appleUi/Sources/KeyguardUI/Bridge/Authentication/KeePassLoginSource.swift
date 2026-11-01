@@ -17,22 +17,16 @@ protocol KeePassLoginSource: AnyObject {
     func clearKeePassKeyFile()
     func setKeePassPassword(text: String)
     func submitKeePassLogin()
-    func setWebDavField(sessionId: String, id: String, text: String)
-    func submitWebDavSettings(sessionId: String)
-    func testWebDavConnection(sessionId: String)
-    func cancelWebDavSettings()
-    func setS3Field(sessionId: String, id: String, text: String)
-    func blurS3Field(sessionId: String, id: String)
-    func setS3PathStyle(sessionId: String, value: Bool)
-    func submitS3Settings(sessionId: String)
-    func testS3Connection(sessionId: String)
-    func cancelS3Settings()
+    /// The WebDAV and S3 settings sheets of a remote database.
+    var remoteSettings: any RemoteSettingsSource { get }
     func setKeePassFilePickerRequestHandler(handler: ((KeePassFilePickerRequest) -> Void)?)
     func resolveKeePassFilePicker(requestId: String, uri: String, name: String?, size: Int64, accessToken: String?)
     func cancelKeePassFilePicker(requestId: String)
 }
 
 extension KeePassLoginSession: KeePassLoginSource {
+    var remoteSettings: any RemoteSettingsSource { settingsSheets }
+
     func subscribe(
         onChange: @escaping (KeePassLoginSnapshot) -> Void,
         onClose: @escaping () -> Void,

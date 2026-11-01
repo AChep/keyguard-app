@@ -24,7 +24,8 @@ in both directions, over the transfer that Android provides.
 
 1. On the screen of the account the items go to, select
    **Import from another app**.
-2. Select **Start import**. Android shows the apps that can share credentials.
+2. Under **Another app on this device**, select **Credential Exchange**.
+   Android shows the apps that can share credentials.
 3. Select the app to import from, and approve the transfer in that app.
 4. Back in Keyguard, review the items. All items are selected; clear the ones
    you don't want.

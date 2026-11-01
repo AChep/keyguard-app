@@ -74,7 +74,6 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
-import com.artemchep.keyguard.feature.credentialexchange.imports.CredentialExchangeImportRoute
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsRoute
 import com.artemchep.keyguard.feature.export.ExportRoute
@@ -92,6 +91,7 @@ import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRoute
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRouteFactory
 import com.artemchep.keyguard.feature.home.vault.util.emitWithSection
+import com.artemchep.keyguard.feature.imports.ImportRoute
 import com.artemchep.keyguard.feature.largetype.LargeTypeRoute
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -775,7 +775,7 @@ private fun buildItemsFlow(
                 }
             }
             section {
-                this += CredentialExchangeImportRoute.actionOrNull(
+                this += ImportRoute.actionOrNull(
                     translator = scope,
                     accountId = accountId,
                     navigate = scope::navigate,

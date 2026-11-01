@@ -30,8 +30,6 @@ internal val CXF_TOTP_DIGITS_RANGE = TOTP_DIGITS_MIN..TOTP_DIGITS_MAX
 internal val CXF_TOTP_PERIOD_RANGE_LONG =
     CXF_TOTP_PERIOD_RANGE.first.toLong()..CXF_TOTP_PERIOD_RANGE.last.toLong()
 
-private val BASE32_SECRET_PATTERN = Regex("^[A-Za-z2-7]+=*$")
-
 /**
  * The single source of truth for what a CXF TOTP credential's `algorithm` may
  * contain (CXF v1.0 §3.3.16). Both directions consult it, so "representable"
@@ -87,25 +85,3 @@ internal sealed interface CxfTotpAlgorithm {
             }
     }
 }
-
-/**
- * Canonicalizes a TOTP secret into unpadded upper-case base32, or returns `null`
- * when the value is not base32 at all. §3.3.16 requires the secret to be a
- * Base32 string; the single canonical spelling is this app's own choice.
- * Consulted by **both** directions, so export and import agree on which secrets
- * are representable.
- *
- * Only the alphabet refuses. Separators (whitespace and `-`) are stripped
- * rather than refused because both base32 backends already ignore them, so
- * `JBSW-Y3DP-EHPK 3PXP` stays a working secret. A length whose remainder mod 8
- * is 1 decodes to a different byte count on JVM/Android than on iOS; it is
- * admitted anyway, since that divergence is app-wide and independent of CXF.
- */
-internal fun canonicalTotpSecretOrNull(
-    secret: String,
-): String? = secret
-    .filterNot { it.isWhitespace() || it == '-' }
-    .takeIf { it.matches(BASE32_SECRET_PATTERN) }
-    ?.trimEnd('=')
-    ?.uppercase()
-    ?.takeIf { it.isNotEmpty() }

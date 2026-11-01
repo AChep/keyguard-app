@@ -124,6 +124,14 @@ struct NavStackContainer<Content: View>: View {
     @ViewBuilder
     private func screenView(for id: Int64) -> some View {
         if let entry = entries.first(where: { $0.instanceId == id }) {
+            entryView(for: id)
+                .remoteSettingsSheets(for: entry)
+        }
+    }
+
+    @ViewBuilder
+    private func entryView(for id: Int64) -> some View {
+        if let entry = entries.first(where: { $0.instanceId == id }) {
             if entry.kind == ScreenEntryKind.environments {
                 EnvironmentsScreen(environmentId: entry.environmentId, create: entry.createEnvironment)
                     .id(entry.instanceId)
@@ -193,6 +201,9 @@ struct NavStackContainer<Content: View>: View {
                 CipherFilterDetailView(entry: entry)
             } else if entry.kind == ScreenEntryKind.export_ {
                 ExportView(entry: entry)
+            } else if entry.kind == ScreenEntryKind.import {
+                ImportView(entry: entry)
+                    .id(entry.instanceId)
             } else if entry.kind == ScreenEntryKind.feedback {
                 FeedbackView(entry: entry)
             } else if entry.kind == ScreenEntryKind.subscriptions {

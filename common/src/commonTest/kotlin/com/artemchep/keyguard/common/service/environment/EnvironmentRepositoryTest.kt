@@ -25,7 +25,7 @@ class EnvironmentRepositoryTest {
         val fixture = EnvironmentFixture(backgroundScope)
         fixture.ready()
         fixture.repository.appendVariables("environment", listOf("TOKEN" to null, "MISSING" to null))
-        val definition = fixture.saved.single().environment!!
+        val definition = fixture.saved.single().environment!!.definition
         assertEquals(listOf(
             EnvironmentVariable("TOKEN", EnvironmentValueSource.Literal(SECRET)),
             EnvironmentVariable("MISSING", EnvironmentValueSource.Unset),

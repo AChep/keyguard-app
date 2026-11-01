@@ -6,6 +6,12 @@ import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.FolderHierarchyMode
 import com.artemchep.keyguard.common.model.TotpToken
+import com.artemchep.keyguard.common.model.create.CreateRequest
+import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportSecretMapper
+import com.artemchep.keyguard.common.service.credentialexchange.model.CxfItem
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.ImportSkips
+import com.artemchep.keyguard.common.service.imports.impl.ImportPlanBuilder
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.ui.icons.generateAccentColors
 import kotlin.time.Instant
@@ -327,3 +333,22 @@ fun cxfFolder(
     parentId = parentId,
     hierarchyMode = hierarchyMode,
 )
+
+/** The requests one CXF item maps into, and the skips it counted. */
+internal data class CxfMappedItem(
+    val requests: List<CreateRequest>,
+    val skips: ImportSkips,
+)
+
+/** Maps one CXF item into a plan of its own. */
+internal fun CxfImportSecretMapper.mapItem(
+    item: CxfItem,
+    now: Instant,
+): CxfMappedItem {
+    val plan = ImportPlanBuilder(ImportPlan.Source())
+    val requests = mapItem(item = item, now = now, plan = plan)
+    return CxfMappedItem(
+        requests = requests,
+        skips = plan.build().skips,
+    )
+}

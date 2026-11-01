@@ -3,6 +3,10 @@ package com.artemchep.keyguard.common.service.credentialexchange
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.common.service.imports.importSkips
+import com.artemchep.keyguard.test.FakeSshKeyImportService
+import com.artemchep.keyguard.test.sshKeyImportFailure
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -107,7 +111,7 @@ class CxfImportAssemblyMatrixTest {
         val plan = failing.parseSuccessPlan(documentWithItems(item(SSH_KEY, NOTE)), now)
         val request = plan.items.single().request
         assertEquals(DSecret.Type.SecureNote, request.type)
-        assertEquals(cxfImportSkips(CxfImportSkipReason.SshKey to 1), plan.skips)
+        assertEquals(importSkips(ImportSkipReason.SshKey to 1), plan.skips)
     }
 
     @Test
@@ -118,7 +122,7 @@ class CxfImportAssemblyMatrixTest {
         )
         val request = plan.items.single().request
         assertEquals(DSecret.Type.SecureNote, request.type)
-        assertEquals(cxfImportSkips(CxfImportSkipReason.Passkey to 1), plan.skips)
+        assertEquals(importSkips(ImportSkipReason.Passkey to 1), plan.skips)
     }
 
     @Test
@@ -135,7 +139,7 @@ class CxfImportAssemblyMatrixTest {
         val request = plan.items.single().request
         assertEquals(DSecret.Type.Login, request.type)
         assertEquals(1, request.fido2Credentials.size)
-        assertEquals(cxfImportSkips(CxfImportSkipReason.Passkey to 1), plan.skips)
+        assertEquals(importSkips(ImportSkipReason.Passkey to 1), plan.skips)
     }
 
     @Test
@@ -148,7 +152,7 @@ class CxfImportAssemblyMatrixTest {
         assertEquals(DSecret.Type.Login, request.type)
         assertEquals("alice", request.login.username)
         assertTrue(request.fido2Credentials.isEmpty())
-        assertEquals(cxfImportSkips(CxfImportSkipReason.Passkey to 1), plan.skips)
+        assertEquals(importSkips(ImportSkipReason.Passkey to 1), plan.skips)
     }
 
     // endregion
@@ -278,7 +282,7 @@ class CxfImportAssemblyMatrixTest {
             now,
         )
         assertEquals(" ", plan.items.single().request.login.password)
-        assertEquals(cxfImportSkips(), plan.skips)
+        assertEquals(importSkips(), plan.skips)
     }
 
     @Test
@@ -293,7 +297,7 @@ class CxfImportAssemblyMatrixTest {
         assertEquals(DSecret.Type.Login, request.type)
         assertNull(request.login.username)
         assertTrue(request.uris.isEmpty())
-        assertEquals(cxfImportSkips(CxfImportSkipReason.Passkey to 1), plan.skips)
+        assertEquals(importSkips(ImportSkipReason.Passkey to 1), plan.skips)
     }
 
     @Test
@@ -312,7 +316,7 @@ class CxfImportAssemblyMatrixTest {
             now,
         )
         assertTrue(plan.items.isEmpty())
-        assertEquals(cxfImportSkips(CxfImportSkipReason.Passkey to 1), plan.skips)
+        assertEquals(importSkips(ImportSkipReason.Passkey to 1), plan.skips)
     }
 
     @Test

@@ -49,6 +49,7 @@ fun RouteDescriptor.toDeepLink(): String? {
         is RouteDescriptor.Folders,
         is RouteDescriptor.Duplicates,
         is RouteDescriptor.Export,
+        is RouteDescriptor.Import,
         is RouteDescriptor.Unmapped,
         -> null
     }

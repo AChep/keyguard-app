@@ -27,6 +27,7 @@ import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
+import com.artemchep.keyguard.feature.environments.EnvironmentFormat
 import com.artemchep.keyguard.feature.environments.EnvironmentPayload
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenEnvironmentFieldCodec
 import com.artemchep.keyguard.provider.bitwarden.mapper.of
@@ -56,6 +57,7 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.withContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -114,6 +116,28 @@ class EnvironmentProviderAuthorizationTest {
         Fixture(Boundary.NONE).use { fixture ->
             withContext(EnvironmentOperationGuard(currentCoroutineContext()) {}) { fixture.save() }
             assertEquals("Environment", assertNotNull(fixture.row()).data_.name)
+        }
+    }
+
+    @Test
+    fun `an environment is written as its document`() = runTest {
+        Fixture(Boundary.NONE).use { fixture ->
+            // Keys this version does not read stay in the document.
+            val document = """{"future":true,"version":1,"variables":[""" +
+                """{"name":"TOKEN","source":{"kind":"literal","value":"a"}}]}"""
+            fixture.save(assertNotNull(EnvironmentFormat.decode(document)))
+            assertEquals(document, assertNotNull(fixture.row()).data_.environment?.document)
+        }
+    }
+
+    @Test
+    fun `an environment whose document is not its definition is refused`() = runTest {
+        Fixture(Boundary.NONE).use { fixture ->
+            val payload = environmentPayload(EnvironmentDefinition(listOf(
+                EnvironmentVariable("TOKEN", EnvironmentValueSource.Literal("a")),
+            )))
+            assertFails { fixture.save(payload.copy(definition = EnvironmentDefinition())) }
+            assertNull(fixture.row())
         }
     }
 
@@ -226,9 +250,12 @@ class EnvironmentProviderAuthorizationTest {
             pendingUploadCoordinator = uploads,
         )
 
-        suspend fun save() = useCase(mapOf(null to CreateRequest(
+        suspend fun save(
+            environment: EnvironmentPayload.Decoded = environmentPayload(EnvironmentDefinition()),
+        ) = useCase(mapOf(null to CreateRequest(
             ownership2 = CreateRequest.Ownership2("account", FolderInfo.None, null, emptySet()),
-            title = "Environment", type = DSecret.Type.Environment, environment = EnvironmentDefinition(),
+            title = "Environment", type = DSecret.Type.Environment,
+            environment = environment,
             favorite = false, reprompt = false,
             now = Clock.System.now(),
         ))).bind()

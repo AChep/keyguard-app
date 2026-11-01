@@ -1,13 +1,9 @@
 package com.artemchep.keyguard.common.service.credentialexchange.impl
 
 import com.artemchep.keyguard.common.io.runCatchingUntrustedInput
-import com.artemchep.keyguard.common.service.credentialexchange.CxfImportError
-import com.artemchep.keyguard.common.service.credentialexchange.CxfImportPlan
-import com.artemchep.keyguard.common.service.credentialexchange.CxfImportResult
+import com.artemchep.keyguard.common.service.imports.ImportError
+import com.artemchep.keyguard.common.service.imports.ImportResult
 import com.artemchep.keyguard.common.service.credentialexchange.CxfImportService
-import com.artemchep.keyguard.common.service.credentialexchange.CxfImportSkipReason
-import com.artemchep.keyguard.common.service.credentialexchange.CxfImportSkips
-import com.artemchep.keyguard.common.service.credentialexchange.cxfImportSkips
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfAndroidAppId
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCollection
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
@@ -16,6 +12,10 @@ import com.artemchep.keyguard.common.service.credentialexchange.model.CxfEditabl
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfItem
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfLinkedItem
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfVersion
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.common.service.imports.impl.ImportJsonParser
+import com.artemchep.keyguard.common.service.imports.impl.ImportPlanBuilder
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
@@ -78,16 +78,21 @@ class CxfImportServiceImpl internal constructor(
         ignoreUnknownKeys = true
     }
 
+    private val parser = ImportJsonParser(
+        json = json,
+        maxDepth = CXF_MAX_JSON_DEPTH,
+    )
+
     override fun parse(
         payload: String,
         now: Instant,
-    ): CxfImportResult {
-        val root = runCatchingUntrustedInput { json.parseToJsonElement(payload) }
+    ): ImportResult {
+        val root = runCatchingUntrustedInput { parser.parseToJsonElement(payload) }
             .getOrNull() as? JsonObject
-            ?: return CxfImportResult.Failure(CxfImportError.Parse)
+            ?: return ImportResult.Failure(ImportError.Parse)
         val error = documentError(root)
         return if (error != null) {
-            CxfImportResult.Failure(error)
+            ImportResult.Failure(error)
         } else {
             // Planning walks attacker-supplied structure and reaches out to the
             // native crypto seam, neither of which is guaranteed total. The
@@ -97,15 +102,15 @@ class CxfImportServiceImpl internal constructor(
             // the document, not of the process. See `runCatchingUntrustedInput`.
             runCatchingUntrustedInput { buildPlan(root, now) }
                 .fold(
-                    onSuccess = CxfImportResult::Success,
-                    onFailure = { CxfImportResult.Failure(CxfImportError.Parse) },
+                    onSuccess = ImportResult::Success,
+                    onFailure = { ImportResult.Failure(ImportError.Parse) },
                 )
         }
     }
 
     private fun documentError(
         root: JsonObject,
-    ): CxfImportError? {
+    ): ImportError? {
         val version = root["version"]
             ?.let { element ->
                 runCatchingUntrustedInput { json.decodeFromJsonElement<CxfVersion>(element) }.getOrNull()
@@ -116,55 +121,47 @@ class CxfImportServiceImpl internal constructor(
                     (version.major == VERSION_MAJOR_LEGACY && version.minor == 0)
                 )
         return when {
-            version == null || root["accounts"] !is JsonArray -> CxfImportError.Parse
+            version == null || root["accounts"] !is JsonArray -> ImportError.Parse
             versionSupported -> null
-            else -> CxfImportError.UnsupportedVersion(
-                major = version.major,
-                minor = version.minor,
-            )
+            else -> ImportError.UnsupportedVersion
         }
     }
 
     private fun buildPlan(
         root: JsonObject,
         now: Instant,
-    ): CxfImportPlan {
-        val folders = mutableListOf<CxfImportPlan.Folder>()
-        val items = mutableListOf<CxfImportPlan.Item>()
-        var skips = cxfImportSkips()
+    ): ImportPlan {
+        val plan = ImportPlanBuilder(
+            source = ImportPlan.Source(
+                displayName = root.stringMember("exporterDisplayName")
+                    ?.takeIf { it.isNotBlank() },
+                identifier = root.stringMember("exporterRpId")
+                    ?.takeIf { it.isNotBlank() },
+            ),
+        )
         val accountElements = (root["accounts"] as? JsonArray).orEmpty()
         val accounts = accountElements.mapNotNull { it as? JsonObject }
         // An entry that is not an object takes a whole account's worth of items
         // with it, so it has to be counted — reporting "nothing skipped" while
         // silently dropping an account is the one thing the review screen must
         // never do.
-        skips = skips.plus(CxfImportSkipReason.Account, accountElements.size - accounts.size)
-        accounts.forEachIndexed { accountIndex, account ->
-            skips += parseAccount(
+        plan.skip(ImportSkipReason.Account, count = accountElements.size - accounts.size)
+        plan.sourceAccountCount = accounts.size
+        accounts.forEach { account ->
+            parseAccount(
                 account = account,
-                keyPrefix = "account-$accountIndex",
                 now = now,
-                folders = folders,
-                items = items,
+                plan = plan,
             )
         }
-        return CxfImportPlan(
-            exporterRpId = root.stringMember("exporterRpId").orEmpty(),
-            exporterDisplayName = root.stringMember("exporterDisplayName").orEmpty(),
-            sourceAccountCount = accounts.size,
-            folders = folders,
-            items = items,
-            skips = skips,
-        )
+        return plan.build()
     }
 
     private fun parseAccount(
         account: JsonObject,
-        keyPrefix: String,
         now: Instant,
-        folders: MutableList<CxfImportPlan.Folder>,
-        items: MutableList<CxfImportPlan.Item>,
-    ): CxfImportSkips {
+        plan: ImportPlanBuilder,
+    ) {
         // CXF v1.0 §2.1.2 makes `collections` a required array that is present
         // even when empty, so `[]` is the only conforming way to say "no
         // folders". Absent, null and non-array are one violation with one
@@ -175,16 +172,12 @@ class CxfImportServiceImpl internal constructor(
         )
         // Collections are non-critical adornment: an unreadable one degrades to
         // a folder-less import instead of failing it, and costs only its own
-        // node, counted as `CxfImportSkipReason.Collection`.
-        val folderPlan = buildImportFolderPlan(
+        // node, counted as `ImportSkipReason.Collection`.
+        val folderKeyByItemId = plan.cxfCollectionFolders(
             collections = decodedCollections.collections,
             accountId = account.stringMember("id"),
-            keyPrefix = keyPrefix,
         )
-        folders += folderPlan.folders
-        val skips = cxfImportSkips(
-            CxfImportSkipReason.Collection to decodedCollections.skippedCount,
-        )
+        plan.skip(ImportSkipReason.Collection, count = decodedCollections.skippedCount)
         // Absent, null, or any non-array value: the account decoded, yet an
         // unknown number of its items is unreachable. Count the account as
         // unread rather than importing it as if it were empty — §2.1.2 makes
@@ -192,66 +185,63 @@ class CxfImportServiceImpl internal constructor(
         // `items` is a broken producer, not an empty one. The folders above are
         // kept: they read fine, and their links may name items of another account.
         val itemElements = account["items"] as? JsonArray
-            ?: return skips + CxfImportSkipReason.Account
-        return skips + parseItems(
+        if (itemElements == null) {
+            plan.skip(ImportSkipReason.Account)
+            return
+        }
+        parseItems(
             itemElements = itemElements,
-            folderPlan = folderPlan,
+            folderKeyByItemId = folderKeyByItemId,
             now = now,
-            items = items,
+            plan = plan,
         )
     }
 
     private fun parseItems(
         itemElements: JsonArray,
-        folderPlan: CxfImportFolderPlan,
+        folderKeyByItemId: Map<String, String>,
         now: Instant,
-        items: MutableList<CxfImportPlan.Item>,
-    ): CxfImportSkips {
-        var skips = cxfImportSkips()
+        plan: ImportPlanBuilder,
+    ) {
         itemElements.forEach { element ->
             val decoded = (element as? JsonObject)?.let(::decodeItem)
             if (decoded == null) {
-                skips += CxfImportSkipReason.Item
+                plan.skip(ImportSkipReason.Item)
                 return@forEach
             }
-            val result = mapper.mapItem(
-                item = decoded.item,
-                now = now,
-            )
-            // An item can disappear for two very different reasons: a credential
-            // it held was already counted — by the decoder, or by the mapper — or
-            // nothing in it maps to a vault item at all. Only the second case is
-            // unaccounted for; counting both would report one loss twice in the
-            // review screen's single "N skipped" total.
-            //
-            // A duplicate is the one reason that explains nothing: it was
-            // discarded precisely *because* a sibling of the same kind was kept,
-            // so letting it suppress the count would mean adding a second copy
-            // of a credential silences the warning a single copy raises.
-            val explainedByCredential = decoded.skippedCredentialCount > 0 ||
-                result.skips.totalCount -
-                result.skips[CxfImportSkipReason.DuplicateCredential] > 0
-            // Built as this item's own tally and titled before being folded in.
-            // `titled` attributes every reason it can see, so calling it on the
-            // running accumulator would relabel every earlier item as this one.
-            // `result.skips` arrives already attributed by the mapper.
-            var itemSkips = cxfImportSkips(
-                CxfImportSkipReason.UnknownCredential to decoded.skippedCredentialCount,
-            ).titled(decoded.item.title) + result.skips
-            if (result.requests.isEmpty() && !explainedByCredential) {
-                itemSkips += cxfImportSkips(CxfImportSkipReason.Item to 1)
-                    .titled(decoded.item.title)
-            }
-            skips += itemSkips
-            val folderKey = folderPlan.folderKeyByItemId[decoded.item.id]
-            result.requests.forEach { request ->
-                items += CxfImportPlan.Item(
-                    request = request,
-                    folderKey = folderKey,
+            val item = decoded.item
+            plan.record(item.title) {
+                plan.skip(ImportSkipReason.UnknownCredential, item.title, count = decoded.skippedCredentialCount)
+                val requests = mapper.mapItem(
+                    item = item,
+                    now = now,
+                    plan = plan,
                 )
+                // An item can disappear for two very different reasons: a credential
+                // it held was already counted — by the decoder, or by the mapper — or
+                // nothing in it maps to a vault item at all. Only the second case is
+                // unaccounted for; counting both would report one loss twice in the
+                // review screen's single "N skipped" total.
+                //
+                // A duplicate is the one reason that explains nothing: it was
+                // discarded precisely *because* a sibling of the same kind was kept,
+                // so letting it suppress the count would mean adding a second copy
+                // of a credential silences the warning a single copy raises.
+                val itemSkips = plan.recordSkips
+                val explainedByCredential = itemSkips.totalCount -
+                    itemSkips[ImportSkipReason.DuplicateCredential] > 0
+                if (requests.isEmpty() && !explainedByCredential) {
+                    plan.skip(ImportSkipReason.Item, item.title)
+                }
+                val folderKey = folderKeyByItemId[item.id]
+                requests.forEach { request ->
+                    plan.item(
+                        request = request,
+                        folderKey = folderKey,
+                    )
+                }
             }
         }
-        return skips
     }
 
     private data class DecodedCollections(
@@ -281,19 +271,10 @@ class CxfImportServiceImpl internal constructor(
      * so absent is a loss there; a node's `subCollections` is optional and MUST
      * NOT be present when empty, so absent is how "no children" is spelled.
      *
-     * Deliberately **unbounded**: the placement walk in [buildImportFolderPlan]
-     * owns the depth policy, and truncating here would hide subtrees from it.
-     * That is safe because this recursion is strictly shallower per nesting
-     * level than the JSON parse that already ran on the same document, so any
-     * tree `parseToJsonElement` managed to build is a tree this can walk.
-     *
-     * Measured, because it is the kind of claim that reads like a guess: on the
-     * desktop JVM a `{"subCollections":[…]}` chain parses and plans identically
-     * up to depth 2200 and both stages fail together at 2600, i.e.
-     * `parseToJsonElement` is always the binding constraint and this walk never
-     * is. The failure is a `StackOverflowError` inside the reader, absorbed by
-     * [parse]'s guard as an ordinary malformed payload — so the ceiling costs
-     * the document, never the process.
+     * Not truncated here: the placement walk in [cxfCollectionFolders] owns the
+     * depth policy, and truncating here would hide subtrees from it. The
+     * recursion is bounded by [CXF_MAX_JSON_DEPTH], which [parse] checks on the
+     * text before anything is built.
      */
     private fun decodeCollections(
         element: JsonElement?,
@@ -430,7 +411,7 @@ class CxfImportServiceImpl internal constructor(
      *
      * So the retry drops every adornment, then re-admits them one at a time
      * and keeps the ones that decode. A dropped member is a field-level
-     * fidelity loss inside a surviving item, which `CxfImportSkipReason`'s
+     * fidelity loss inside a surviving item, which `ImportSkipReason`'s
      * contract deliberately does not count; the register of those silences is
      * `CxfImportSilentDropTest`.
      */
@@ -529,7 +510,7 @@ private val ITEM_ADORNMENT_MEMBERS = listOf(
  * `decodeItem` reads `credentials`, `decodeCollections` reads the collection
  * tree, `decodeCollection` reads a node's `items`, [decodeScope] reads its two
  * arrays, and a bag's `fields` are read here. A dropped member is a field-level
- * fidelity loss inside a surviving credential, which [CxfImportSkipReason]'s
+ * fidelity loss inside a surviving credential, which [ImportSkipReason]'s
  * contract deliberately does not count — the register of those silences is
  * `CxfImportSilentDropTest`.
  */
@@ -667,7 +648,7 @@ private fun JsonElement.toLinkedItemOrNull(): CxfLinkedItem? = (this as? JsonObj
  * Hence the member is read here rather than through the model, element by
  * element like the collection walk: one unreadable url or app costs only
  * itself. Those are field-level fidelity losses inside a surviving item, which
- * `CxfImportSkipReason` deliberately does not count; they are pinned in
+ * `ImportSkipReason` deliberately does not count; they are pinned in
  * `CxfImportSilentDropTest`.
  */
 private fun Json.decodeScope(

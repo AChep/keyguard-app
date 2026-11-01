@@ -4,7 +4,9 @@ import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -51,6 +53,50 @@ class EnvironmentDefinitionTest {
         )
         assertTrue(issues.none { "secret" in it.toString() })
         assertTrue("secret" !in definition.toString())
+    }
+
+    @Test
+    fun `only a valid document within the write limit is writable`() {
+        fun payload(document: String) = assertNotNull(EnvironmentFormat.decode(document))
+        fun token(value: String) = """{"name":"TOKEN","source":{"kind":"literal","value":"$value"}}"""
+        val valid = """{"version":1,"variables":[${token("a")}]}"""
+        assertTrue(payload(valid).isWritable())
+        // Keys this version does not read are written back as they are.
+        assertTrue(payload(valid.replaceFirst("{", """{"future":true,""")).isWritable())
+        assertFalse(payload("""{"version":1,"variables":[${token("a")},${token("b")}]}""").isWritable())
+        // Readable, as a newer version may write more, but larger than Keyguard writes.
+        val large = """{"version":1,"variables":[${token("a".repeat(EnvironmentFormat.MAX_PAYLOAD_BYTES))}]}"""
+        assertFalse(payload(large).isWritable())
+        // The write limit counts bytes, up to the last one.
+        val padding = "a".repeat(
+            EnvironmentFormat.MAX_PAYLOAD_BYTES - """{"version":1,"variables":[${token("")}]}""".length,
+        )
+        assertTrue(payload("""{"version":1,"variables":[${token(padding)}]}""").isWritable())
+        assertFalse(payload("""{"version":1,"variables":[${token(padding + "a")}]}""").isWritable())
+    }
+
+    @Test
+    fun `a valid definition over the limits is not writable`() {
+        fun variable(name: String) = """{"name":"$name","source":{"kind":"literal","value":"a"}}"""
+        val long = "A".repeat(EnvironmentLimits.MAX_VARIABLE_NAME_LENGTH + 1)
+        val longName = assertNotNull(EnvironmentFormat.decode("""{"version":1,"variables":[${variable(long)}]}"""))
+        assertTrue(EnvironmentResolver.validate(longName.definition).isEmpty())
+        assertFalse(longName.isWritable())
+        val many = (0..EnvironmentLimits.MAX_VARIABLES).joinToString(",") { variable("V$it") }
+        val manyVariables = assertNotNull(EnvironmentFormat.decode("""{"version":1,"variables":[$many]}"""))
+        assertTrue(EnvironmentResolver.validate(manyVariables.definition).isEmpty())
+        assertFalse(manyVariables.isWritable())
+    }
+
+    @Test
+    fun `a document that does not read back as the definition is not writable`() {
+        val definition = EnvironmentDefinition(listOf(
+            EnvironmentVariable("TOKEN", EnvironmentValueSource.Literal("a")),
+        ))
+        val payload = assertNotNull(EnvironmentFormat.decode(EnvironmentFormat.encode(definition)))
+        assertTrue(payload.isWritable())
+        assertFalse(payload.copy(definition = EnvironmentDefinition()).isWritable())
+        assertFalse(payload.copy(document = "{}").isWritable())
     }
 
     @Test

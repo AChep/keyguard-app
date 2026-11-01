@@ -6,6 +6,12 @@ import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfExportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.ImportResult
+import com.artemchep.keyguard.common.service.imports.ImportSkips
+import com.artemchep.keyguard.common.service.imports.importSkips
+import com.artemchep.keyguard.test.FakeSshKeyImportService
+import com.artemchep.keyguard.test.fakeSshKeyPair
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.time.Instant
@@ -71,7 +77,7 @@ class CxfRoundTripHarness(
         val payload = exportService.encode(document)
         val result = importService.parse(payload = payload, now = now)
         return CxfRoundTripResult(
-            plan = assertIs<CxfImportResult.Success>(result).plan,
+            plan = assertIs<ImportResult.Success>(result).plan,
             exportSkips = exported.skips,
         )
     }
@@ -103,14 +109,14 @@ class CxfRoundTripHarness(
 }
 
 data class CxfRoundTripResult(
-    val plan: CxfImportPlan,
+    val plan: ImportPlan,
     val exportSkips: CxfExportSkips,
 )
 
 data class CxfRoundTripViews(
     val expected: CxfRoundTripView,
     val actual: CxfRoundTripView,
-    val importSkips: CxfImportSkips,
+    val importSkips: ImportSkips,
     val exportSkips: CxfExportSkips,
 )
 
@@ -124,7 +130,7 @@ data class CxfRoundTripViews(
 fun CxfRoundTripHarness.assertRoundTrips(
     secret: DSecret,
     folders: List<DFolder> = emptyList(),
-    expectedImportSkips: CxfImportSkips = cxfImportSkips(),
+    expectedImportSkips: ImportSkips = importSkips(),
     expectedExportSkips: CxfExportSkips = cxfExportSkips(),
 ) {
     val views = views(secret = secret, folders = folders)

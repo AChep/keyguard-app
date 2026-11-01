@@ -99,7 +99,7 @@ class EnvironmentMcpAccountScopeTest {
             assertEquals(id, fixture.savedIds.last())
             assertEquals(account, fixture.saved.last().ownership!!.accountId)
             assertEquals(listOf(if (account == "account") "TOKEN" else "SECOND", "ADDED"),
-                fixture.saved.last().environment!!.variables.map { it.name })
+                fixture.saved.last().environment!!.definition.variables.map { it.name })
             assertEquals(id, fixture.approvedEnvironmentIds.last())
         }
         assertEquals(listOf<String?>("environment", "environment", "environment-2", "environment-2"), fixture.savedIds)

@@ -533,6 +533,20 @@ registerJvmBenchmark(
     flightRecorder(layout.buildDirectory.file("reports/cipher-url-check/cipher-url-check-profile.jfr"))
 }
 
+// Not a benchmark: the same isolated JVM task writes the Keyguard export
+// of the import corpus, see src/desktopTest/resources/import-corpus/README.md.
+registerJvmBenchmark(
+    "importCorpusKeyguard",
+    "Writes the Keyguard export of the import corpus into the desktopTest resources.",
+    "com.artemchep.keyguard.common.service.imports.corpus.*",
+) {
+    systemProperty(
+        "keyguard.import-corpus.output",
+        layout.projectDirectory.dir("src/desktopTest/resources/import-corpus").asFile.absolutePath,
+    )
+    systemProperty("keyguard.import-corpus.version", libs.versions.appVersionName.get())
+}
+
 // See:
 // https://kotlinlang.org/docs/ksp-multiplatform.html#compilation-and-processing
 dependencies {

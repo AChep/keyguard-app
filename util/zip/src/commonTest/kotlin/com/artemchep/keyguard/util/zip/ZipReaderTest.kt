@@ -8,8 +8,8 @@ import kotlinx.io.readString
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
-import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -72,9 +72,7 @@ class ZipReaderTest {
     fun rejectsAWrongPassword() = runTest {
         val archive = encryptedArchive()
 
-        // zip4j and the native reader fail with different types at different
-        // moments; only the outcome matters.
-        assertFails {
+        assertFailsWith<ZipPasswordException> {
             ZipReader(archive.source(), "wrong password").use { reader ->
                 reader.nextEntry()?.source?.readByteArray()
             }
@@ -85,7 +83,7 @@ class ZipReaderTest {
     fun rejectsAnEncryptedArchiveOpenedWithoutAPassword() = runTest {
         val archive = encryptedArchive()
 
-        assertFails {
+        assertFailsWith<ZipPasswordException> {
             ZipReader(archive.source()).use { reader ->
                 reader.nextEntry()?.source?.readByteArray()
             }
@@ -190,6 +188,50 @@ class ZipReaderTest {
 
         val leaked = spooledArchiveNames() - before
         assertTrue(leaked.isEmpty(), "the reader left $leaked behind")
+    }
+
+    @Test
+    fun refusesEntriesPastTheLimit() = runTest {
+        val archive = archive(
+            password = null,
+            entries = listOf(
+                textEntry("a.txt", "a"),
+                textEntry("b.txt", "b"),
+                textEntry("c.txt", "c"),
+            ),
+        )
+
+        ZipReader(archive.source(), null, maxEntries = 3).use { reader ->
+            repeat(3) { assertNotNull(reader.nextEntry()) }
+            assertNull(reader.nextEntry())
+        }
+        ZipReader(archive.source(), null, maxEntries = 2).use { reader ->
+            repeat(2) { assertNotNull(reader.nextEntry()) }
+            val e = assertFailsWith<ZipArchiveException> { reader.nextEntry() }
+            assertEquals(ZipArchiveError.TooManyEntries, e.reason)
+        }
+    }
+
+    @Test
+    fun refusesToReadAnEntryPastTheLimit() = runTest {
+        val blob = largePayload(LARGE_ENTRY_SIZE)
+        val archive = archive(
+            password = null,
+            entries = listOf(
+                bytesEntry("large.bin", blob),
+                textEntry("exact.txt", "exact"),
+                textEntry("over.txt", "over!!"),
+            ),
+        )
+
+        ZipReader(archive.source(), null, maxEntries = 3, maxEntryBytes = 5).use { reader ->
+            // Skipping an entry does not read it.
+            assertEquals("large.bin", reader.nextEntry()?.name)
+            assertEquals("exact", reader.nextEntry()?.source?.readString())
+            val over = assertNotNull(reader.nextEntry())
+            val e = assertFailsWith<ZipArchiveException> { over.source.readByteArray() }
+            assertEquals(ZipArchiveError.TooLarge, e.reason)
+        }
     }
 }
 

@@ -1761,6 +1761,8 @@
     <string name="credential_exchange_export_credential_note">Note</string>
     <string name="credential_exchange_export_credential_fields">Custom fields</string>
     <string name="credential_exchange_export_credential_ssh_key">SSH key</string>
+    <string name="credential_exchange_export_credential_gpg_key">GPG key</string>
+    <string name="credential_exchange_export_credential_environment">Environment</string>
     <string name="credential_exchange_export_export_button">Transfer</string>
     <string name="credential_exchange_export_error_unknown">Something went wrong while preparing the items.</string>
     <string name="credential_exchange_import_review_all_items_section">All items</string>
@@ -1768,18 +1770,10 @@
     <string name="skipped_items_text">Some items were skipped.</string>
 
     <string name="account_action_import_credentials_title">Import from another app</string>
-    <string name="credential_exchange_import_header_title">Import credentials</string>
+    <string name="import_header_title">Import credentials</string>
     <string name="credential_exchange_import_header_text">Move credentials directly from another password manager installed on this device.</string>
-    <string name="credential_exchange_import_step_1_title">Start the transfer</string>
-    <string name="credential_exchange_import_step_1_text">Tap Start import. Android will show the apps that can share credentials with Keyguard.</string>
-    <string name="credential_exchange_import_step_2_title">Choose a source app</string>
-    <string name="credential_exchange_import_step_2_text">Select the password manager you want to import from, then follow its prompts to approve the transfer.</string>
-    <string name="credential_exchange_import_step_3_title">Review and import</string>
-    <string name="credential_exchange_import_step_3_text">Back in Keyguard, review what was received. Nothing is saved to this account until you tap Import.</string>
-    <string name="credential_exchange_import_learn_more">Learn about credential exchange</string>
-    <string name="credential_exchange_import_start_button">Start import</string>
-    <string name="credential_exchange_import_retry_button">Retry import</string>
-    <string name="credential_exchange_import_import_button">Import</string>
+    <string name="import_retry_button">Retry import</string>
+    <string name="import_confirm_button">Import</string>
     <string name="credential_exchange_import_review_source_label">Received from</string>
     <string name="credential_exchange_import_review_items_section">Items to import</string>
     <string name="credential_exchange_import_empty_label">The selected app didn't send any importable items.</string>
@@ -1787,9 +1781,32 @@
     <string name="credential_exchange_import_error_no_providers">None of the installed apps can share credentials this way.</string>
     <string name="credential_exchange_import_error_parse">The received data couldn't be read.</string>
     <string name="credential_exchange_import_error_unknown">Something went wrong while importing the items.</string>
-    <string name="credential_exchange_import_error_save">Failed to import the credentials.</string>
-    <string name="credential_exchange_import_success_title">Import complete</string>
-    <string name="credential_exchange_import_untitled">Untitled</string>
+    <string name="import_error_save">Failed to import the credentials.</string>
+    <string name="import_success_title">Import complete</string>
+    <string name="untitled">Untitled</string>
+    <string name="import_header_text">Move items from another password manager. Nothing is saved until you review the items and confirm the import.</string>
+    <string name="import_source_device_section">Another app on this device</string>
+    <string name="import_source_credential_exchange_title">Credential Exchange</string>
+    <string name="import_source_file_section">Export file</string>
+    <string name="import_learn_more">How to export from another app</string>
+    <string name="import_empty_file_label">The file has no items that can be imported.</string>
+    <string name="import_error_parse">The file isn't a <xliff:g id="format" example="Chrome">%1$s</xliff:g> export.</string>
+    <string name="import_error_too_large">The file is too large to import.</string>
+    <string name="import_error_attachment_too_large">An attachment is too large to import.</string>
+    <string name="import_error_unreadable">The file couldn't be read.</string>
+    <string name="import_error_premium">Importing items requires Keyguard Premium.</string>
+    <string name="import_error_wrong_password">Wrong password</string>
+    <string name="import_error_unsupported_encryption">Keyguard does not support this file's encryption. Export it again without encryption or in a supported password-protected format.</string>
+    <string name="import_password_text">The <xliff:g id="format" example="Bitwarden">%1$s</xliff:g> export is protected with a password. Enter the password you set when exporting it.</string>
+    <string name="import_source_backup_section">Keyguard backup</string>
+    <string name="import_backup_password_text">The backup is encrypted. Enter the backup password.</string>
+    <string name="import_backup_snapshots_text">Choose the snapshot to import.</string>
+    <string name="import_backup_empty_label">The snapshot has no items that can be imported.</string>
+    <string name="import_backup_error_not_found">This location has no Keyguard backup.</string>
+    <string name="import_backup_error_access_denied">The location rejected the credentials or denied access.</string>
+    <string name="import_backup_error_unreachable">The location couldn't be reached.</string>
+    <string name="import_backup_error_unreadable">The backup couldn't be read. It may be damaged, or made by a newer version of Keyguard.</string>
+    <string name="import_backup_error_empty">The backup has no snapshots.</string>
 
     <string name="contactus_header_title">Contact us</string>
     <string name="contactus_message_label">Your message</string>
@@ -1939,6 +1956,9 @@
     <string name="pref_item_automatic_backups_panel_last_change_label">Last vault change</string>
     <string name="pref_item_automatic_backups_panel_pending_changes_label">Pending changes</string>
     <string name="pref_item_automatic_backups_run_now_title">Run backup now</string>
+    <string name="pref_item_automatic_backups_import_title">Import from backup</string>
+    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
+    <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">Unsupported platform</string>
     <string name="pref_item_automatic_backups_unsupported_text">Automatic backups are available on Android, desktop, macOS, and iOS.</string>
     <string name="pref_item_automatic_backups_enable_button">Enable backups</string>

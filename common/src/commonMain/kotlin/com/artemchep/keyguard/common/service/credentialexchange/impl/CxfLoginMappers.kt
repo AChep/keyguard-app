@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.service.credentialexchange.model.CxfAndroid
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialScope
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfEditableField
+import com.artemchep.keyguard.common.service.imports.mapping.canonicalTotpSecretOrNull
 import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.common.util.hexToByteArray
@@ -66,8 +67,9 @@ internal fun mapBasicAuth(
  * Maps a TOTP token to a CXF totp credential, or `null` when the token is not
  * representable — a counted export skip at the caller ([CxfSecretMapper]).
  *
- * Admissibility is the shared contract in `CxfTotp.kt`, so nothing here can
- * drift from what [mapImportTotpUri] accepts.
+ * Admissibility is the shared contract in `CxfTotp.kt` and
+ * `canonicalTotpSecretOrNull`, so nothing here can drift from what
+ * [mapImportTotpUri] accepts.
  *
  * CXF v1.0 §3.3.16 strongly recommends `username` and `issuer`: both come from
  * the otpauth URI when present, and the username also falls back to
@@ -122,8 +124,10 @@ private fun mapSteamAuth(
     steam: TotpToken.SteamAuth,
     fallbackUsername: String?,
 ): CxfCredential.Totp? {
+    // The exchange Steam marker implies SHA-1 and cannot carry the alternate
+    // hash algorithms supported by KeePassXC's Steam encoder.
     val secret = canonicalTotpSecretOrNull(steam.keyBase32)
-        ?: return null
+    if (secret == null || steam.algorithm != CryptoHashAlgorithm.SHA_1) return null
     return CxfCredential.Totp(
         secret = secret,
         period = TotpToken.SteamAuth.PERIOD.toInt(),

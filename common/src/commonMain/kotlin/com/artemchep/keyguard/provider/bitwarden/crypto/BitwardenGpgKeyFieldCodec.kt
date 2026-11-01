@@ -25,15 +25,34 @@ internal object BitwardenGpgKeyFieldCodec {
         type == BitwardenCipher.Type.SecureNote ||
                 type == BitwardenCipher.Type.GpgKey
 
+    /**
+     * [chunked] `false` is the form the JSON export has always written: each
+     * value in one field, however long, and the user fields with the same
+     * names replaced only when there is a value to write.
+     */
     fun encode(
         gpgKey: BitwardenCipher.GpgKey,
         fields: List<BitwardenCipher.Field>,
-    ): List<BitwardenCipher.Field> {
-        if (gpgKey.takeUnlessEmpty() == null) return fields
-        val remainingFields = fields.filterNot { field ->
-            field.name.isGpgTransportFieldName()
+        chunked: Boolean = true,
+    ): List<BitwardenCipher.Field> = when {
+        !chunked -> encodeSingleFields(gpgKey, fields)
+        gpgKey.takeUnlessEmpty() == null -> fields
+        else -> {
+            val remainingFields = fields.filterNot { field ->
+                field.name.isGpgTransportFieldName()
+            }
+            gpgKey.toFields(chunked = true) + remainingFields
         }
-        return gpgKey.toFields() + remainingFields
+    }
+
+    private fun encodeSingleFields(
+        gpgKey: BitwardenCipher.GpgKey,
+        fields: List<BitwardenCipher.Field>,
+    ): List<BitwardenCipher.Field> {
+        val gpgFields = gpgKey.toFields(chunked = false)
+            .takeIf { it.isNotEmpty() }
+            ?: return fields
+        return gpgFields + fields.filterNot { it.name in FIELD_NAMES }
     }
 
     @Suppress("ReturnCount")
@@ -73,16 +92,20 @@ internal object BitwardenGpgKeyFieldCodec {
         )
     }
 
-    private fun BitwardenCipher.GpgKey.toFields(): List<BitwardenCipher.Field> = buildList {
+    private fun BitwardenCipher.GpgKey.toFields(
+        chunked: Boolean,
+    ): List<BitwardenCipher.Field> = buildList {
         addGpgContentFields(
             name = GpgAgentFields.PRIVATE_KEY_ARMORED,
             value = privateKeyArmored,
             type = BitwardenCipher.Field.Type.Hidden,
+            chunked = chunked,
         )
         addGpgContentFields(
             name = GpgAgentFields.PUBLIC_KEY_ARMORED,
             value = publicKeyArmored,
             type = BitwardenCipher.Field.Type.Text,
+            chunked = chunked,
         )
         fingerprint
             ?.takeIf { it.isNotBlank() }
@@ -99,10 +122,15 @@ internal object BitwardenGpgKeyFieldCodec {
         name: String,
         value: String?,
         type: BitwardenCipher.Field.Type,
+        chunked: Boolean,
     ) {
         val content = value?.takeIf { it.isNotBlank() }
             ?: return
-        addAll(BitwardenChunkedFields.encodeSingleOrChunked(name, content, type))
+        if (chunked) {
+            addAll(BitwardenChunkedFields.encodeSingleOrChunked(name, content, type))
+        } else {
+            addGpgField(name, content, type)
+        }
     }
 
     private fun MutableList<BitwardenCipher.Field>.addGpgField(

@@ -3,7 +3,7 @@ import KeyguardShared
 
 struct S3SettingsSheet: View {
     let sessionId: String
-    @Environment(KeePassLoginModel.self) private var keepassModel
+    @Environment(RemoteSettingsModel.self) private var model
 
     @State private var endpoint: String = ""
     @State private var region: String = ""
@@ -15,7 +15,14 @@ struct S3SettingsSheet: View {
     @FocusState private var focusedField: String?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    private var s3: S3SettingsSnapshot? { keepassModel.keepassS3.flatMap { $0.id == sessionId ? $0 : nil } }
+    private var s3: S3SettingsSnapshot? { model.s3.flatMap { $0.id == sessionId ? $0 : nil } }
+
+    /// The object key of a KeePass database, rather than the folder prefix of a backup.
+    private var isKeePassDatabase: Bool { s3?.purpose == "KeePassDatabase" }
+
+    private var keyPrompt: String {
+        isKeePassDatabase ? KeyguardUrls.shared.PLACEHOLDER_S3_KEEPASS_KEY : KeyguardUrls.shared.PLACEHOLDER_S3_PREFIX
+    }
 
     var body: some View {
         ModalSheet(
@@ -41,11 +48,11 @@ struct S3SettingsSheet: View {
                         field(
                             L10n.s3SettingsBucketTitle, text: $bucket, id: "bucket",
                             prompt: KeyguardUrls.shared.PLACEHOLDER_S3_BUCKET)
-                        field(
-                            L10n.s3SettingsKeyTitle, text: $key, id: "key",
-                            prompt: KeyguardUrls.shared.PLACEHOLDER_S3_KEEPASS_KEY)
+                        field(fieldTitle("key"), text: $key, id: "key", prompt: keyPrompt)
                     } footer: {
-                        Text(L10n.s3SettingsKeepassRequirements)
+                        if isKeePassDatabase {
+                            Text(L10n.s3SettingsKeepassRequirements)
+                        }
                     }
                     Section {
                         field(L10n.s3SettingsAccessKeyIdTitle, text: $accessKeyId, id: "accessKeyId")
@@ -61,7 +68,7 @@ struct S3SettingsSheet: View {
                                 .focused($focusedField, equals: "secretAccessKey")
                                 .accessibilityHint(errorMessage(for: "secretAccessKey") ?? "")
                                 .onChange(of: secretAccessKey) { _, text in
-                                    keepassModel.setS3Field(sessionId: sessionId, id: "secretAccessKey", text: text)
+                                    model.setS3Field(sessionId: sessionId, id: "secretAccessKey", text: text)
                                 }
                         }
                     } footer: {
@@ -73,7 +80,7 @@ struct S3SettingsSheet: View {
                             Text(L10n.s3SettingsPathStyleText)
                         }
                         .onChange(of: pathStyle) { _, value in
-                            keepassModel.setS3PathStyle(sessionId: sessionId, value: value)
+                            model.setS3PathStyle(sessionId: sessionId, value: value)
                         }
                     }
                     #if os(iOS)
@@ -86,7 +93,7 @@ struct S3SettingsSheet: View {
                 .onChange(of: focusedField) { previous, _ in
                     if let previous {
                         updateFields()
-                        keepassModel.blurS3Field(sessionId: sessionId, id: previous)
+                        model.blurS3Field(sessionId: sessionId, id: previous)
                     }
                 }
                 .onChange(of: s3?.validationRequest) { _, _ in
@@ -107,7 +114,7 @@ struct S3SettingsSheet: View {
 
             Button(L10n.save) {
                 updateFields()
-                keepassModel.submitS3Settings(sessionId: sessionId)
+                model.submitS3Settings(sessionId: sessionId)
             }
             .keyboardShortcut(.defaultAction)
             .disabled(s3?.isTestingConnection == true)
@@ -145,7 +152,7 @@ struct S3SettingsSheet: View {
                 .focused($focusedField, equals: id)
                 .accessibilityHint(errorMessage(for: id) ?? "")
                 .onChange(of: text.wrappedValue) { _, value in
-                    keepassModel.setS3Field(sessionId: sessionId, id: id, text: value)
+                    model.setS3Field(sessionId: sessionId, id: id, text: value)
                 }
         }
     }
@@ -173,7 +180,7 @@ struct S3SettingsSheet: View {
         switch id {
         case "endpoint": L10n.s3SettingsEndpointTitle
         case "bucket": L10n.s3SettingsBucketTitle
-        case "key": L10n.s3SettingsKeyTitle
+        case "key": isKeePassDatabase ? L10n.s3SettingsKeyTitle : L10n.s3SettingsPrefixTitle
         case "accessKeyId": L10n.s3SettingsAccessKeyIdTitle
         case "secretAccessKey": L10n.s3SettingsSecretAccessKeyTitle
         default: ""
@@ -183,18 +190,18 @@ struct S3SettingsSheet: View {
     private var testConnectionButton: some View {
         ConnectionTestButton(isTesting: s3?.isTestingConnection == true) {
             updateFields()
-            keepassModel.testS3Connection(sessionId: sessionId)
+            model.testS3Connection(sessionId: sessionId)
         }
     }
 
     private func updateFields() {
         // Return/click can arrive before the last text-field onChange callback.
-        keepassModel.setS3Field(sessionId: sessionId, id: "endpoint", text: endpoint)
-        keepassModel.setS3Field(sessionId: sessionId, id: "region", text: region)
-        keepassModel.setS3Field(sessionId: sessionId, id: "bucket", text: bucket)
-        keepassModel.setS3Field(sessionId: sessionId, id: "key", text: key)
-        keepassModel.setS3Field(sessionId: sessionId, id: "accessKeyId", text: accessKeyId)
-        keepassModel.setS3Field(sessionId: sessionId, id: "secretAccessKey", text: secretAccessKey)
-        keepassModel.setS3PathStyle(sessionId: sessionId, value: pathStyle)
+        model.setS3Field(sessionId: sessionId, id: "endpoint", text: endpoint)
+        model.setS3Field(sessionId: sessionId, id: "region", text: region)
+        model.setS3Field(sessionId: sessionId, id: "bucket", text: bucket)
+        model.setS3Field(sessionId: sessionId, id: "key", text: key)
+        model.setS3Field(sessionId: sessionId, id: "accessKeyId", text: accessKeyId)
+        model.setS3Field(sessionId: sessionId, id: "secretAccessKey", text: secretAccessKey)
+        model.setS3PathStyle(sessionId: sessionId, value: pathStyle)
     }
 }

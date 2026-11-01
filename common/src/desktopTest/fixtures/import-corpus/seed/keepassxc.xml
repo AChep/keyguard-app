@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<!--
+  Seed of the KeePassXC export in the import corpus: synthetic entries only.
+  generate.py imports it with keepassxc-cli and exports the database as CSV.
+  Fixed UUIDs and times keep the CSV stable from one run to the next.
+-->
+<KeePassFile>
+  <Meta>
+    <Generator>KeePassXC</Generator>
+    <DatabaseName>Import corpus</DatabaseName>
+    <RecycleBinEnabled>True</RecycleBinEnabled>
+    <RecycleBinUUID>AAAAAAAAAAAAAAAAAAAA/w==</RecycleBinUUID>
+  </Meta>
+  <Root>
+    <Group>
+      <UUID>AAAAAAAAAAAAAAAAAAAAAA==</UUID>
+      <Name>Import corpus</Name>
+      <Times>
+        <CreationTime>2024-01-01T00:00:00Z</CreationTime>
+        <LastModificationTime>2024-01-01T00:00:00Z</LastModificationTime>
+      </Times>
+      <Entry>
+        <UUID>AAAAAAAAAAAAAAAAAAABAQ==</UUID>
+        <Times>
+          <CreationTime>2024-01-01T00:00:00Z</CreationTime>
+          <LastModificationTime>2024-01-02T00:00:00Z</LastModificationTime>
+        </Times>
+        <String><Key>Title</Key><Value>Top level</Value></String>
+        <String><Key>UserName</Key><Value>top-user</Value></String>
+        <String><Key>Password</Key><Value ProtectInMemory="True">top-password</Value></String>
+        <String><Key>URL</Key><Value>https://top.example.org</Value></String>
+        <String><Key>Notes</Key><Value></Value></String>
+      </Entry>
+      <Entry>
+        <UUID>AAAAAAAAAAAAAAAAAAABAg==</UUID>
+        <Times>
+          <CreationTime>2024-01-01T00:00:00Z</CreationTime>
+          <LastModificationTime>2024-01-02T00:00:00Z</LastModificationTime>
+        </Times>
+        <String><Key>Title</Key><Value></Value></String>
+        <String><Key>UserName</Key><Value>untitled-user</Value></String>
+        <String><Key>Password</Key><Value ProtectInMemory="True">untitled-password</Value></String>
+        <String><Key>URL</Key><Value>https://untitled.example.org/login</Value></String>
+      </Entry>
+      <Entry>
+        <UUID>AAAAAAAAAAAAAAAAAAABAw==</UUID>
+        <Times>
+          <CreationTime>2024-01-01T00:00:00Z</CreationTime>
+          <LastModificationTime>2024-01-03T00:00:00Z</LastModificationTime>
+        </Times>
+        <String><Key>Title</Key><Value>With extras</Value></String>
+        <String><Key>UserName</Key><Value>extras-user</Value></String>
+        <String><Key>Password</Key><Value ProtectInMemory="True">new-password</Value></String>
+        <String><Key>PIN</Key><Value ProtectInMemory="True">1234</Value></String>
+        <History>
+          <Entry>
+            <UUID>AAAAAAAAAAAAAAAAAAABAw==</UUID>
+            <Times>
+              <CreationTime>2024-01-01T00:00:00Z</CreationTime>
+              <LastModificationTime>2024-01-02T00:00:00Z</LastModificationTime>
+            </Times>
+            <String><Key>Title</Key><Value>With extras</Value></String>
+            <String><Key>UserName</Key><Value>extras-user</Value></String>
+            <String><Key>Password</Key><Value ProtectInMemory="True">old-password</Value></String>
+          </Entry>
+        </History>
+      </Entry>
+      <Group>
+        <UUID>AAAAAAAAAAAAAAAAAAAAAQ==</UUID>
+        <Name>Banking</Name>
+        <Times>
+          <CreationTime>2024-01-01T00:00:00Z</CreationTime>
+          <LastModificationTime>2024-01-01T00:00:00Z</LastModificationTime>
+        </Times>
+        <Group>
+          <UUID>AAAAAAAAAAAAAAAAAAAAAg==</UUID>
+          <Name>Cards</Name>
+          <Times>
+            <CreationTime>2024-01-01T00:00:00Z</CreationTime>
+            <LastModificationTime>2024-01-01T00:00:00Z</LastModificationTime>
+          </Times>
+          <Entry>
+            <UUID>AAAAAAAAAAAAAAAAAAACAQ==</UUID>
+            <Times>
+              <CreationTime>2024-01-01T00:00:00Z</CreationTime>
+              <LastModificationTime>2024-01-04T00:00:00Z</LastModificationTime>
+            </Times>
+            <String><Key>Title</Key><Value>Bank</Value></String>
+            <String><Key>UserName</Key><Value>bank-user</Value></String>
+            <String><Key>Password</Key><Value ProtectInMemory="True">bank-password</Value></String>
+            <String><Key>URL</Key><Value>https://bank.example.com</Value></String>
+            <String><Key>Notes</Key><Value>Line one
+Line two</Value></String>
+            <String><Key>otp</Key><Value ProtectInMemory="True">otpauth://totp/Bank:bank-user?secret=JBSWY3DPEHPK3PXP&amp;period=30&amp;digits=6&amp;issuer=Bank</Value></String>
+          </Entry>
+        </Group>
+      </Group>
+      <Group>
+        <UUID>AAAAAAAAAAAAAAAAAAAAAw==</UUID>
+        <Name>Email</Name>
+        <Times>
+          <CreationTime>2024-01-01T00:00:00Z</CreationTime>
+          <LastModificationTime>2024-01-01T00:00:00Z</LastModificationTime>
+        </Times>
+        <Entry>
+          <UUID>AAAAAAAAAAAAAAAAAAADAQ==</UUID>
+          <Times>
+            <CreationTime>2024-01-01T00:00:00Z</CreationTime>
+            <LastModificationTime>2024-01-05T00:00:00Z</LastModificationTime>
+          </Times>
+          <String><Key>Title</Key><Value>Mail, "quoted"</Value></String>
+          <String><Key>UserName</Key><Value>alice@exämple.com</Value></String>
+          <String><Key>Password</Key><Value ProtectInMemory="True"> spaced "and" quoted, </Value></String>
+          <String><Key>URL</Key><Value>https://mail.example.com</Value></String>
+          <String><Key>Notes</Key><Value>Ünïcödé — 日本語</Value></String>
+        </Entry>
+      </Group>
+      <Group>
+        <UUID>AAAAAAAAAAAAAAAAAAAA/w==</UUID>
+        <Name>Recycle Bin</Name>
+        <IconID>43</IconID>
+        <Times>
+          <CreationTime>2024-01-01T00:00:00Z</CreationTime>
+          <LastModificationTime>2024-01-01T00:00:00Z</LastModificationTime>
+        </Times>
+        <Entry>
+          <UUID>AAAAAAAAAAAAAAAAAAD/AQ==</UUID>
+          <Times>
+            <CreationTime>2024-01-01T00:00:00Z</CreationTime>
+            <LastModificationTime>2024-01-06T00:00:00Z</LastModificationTime>
+          </Times>
+          <String><Key>Title</Key><Value>Deleted entry</Value></String>
+          <String><Key>UserName</Key><Value>deleted-user</Value></String>
+          <String><Key>Password</Key><Value ProtectInMemory="True">deleted-password</Value></String>
+        </Entry>
+      </Group>
+    </Group>
+  </Root>
+</KeePassFile>

@@ -6,6 +6,10 @@ import com.artemchep.keyguard.common.service.credentialexchange.impl.CXF_MAX_COL
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfExportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.ImportResult
+import com.artemchep.keyguard.test.FakeSshKeyImportService
+import com.artemchep.keyguard.test.fakeSshKeyPair
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -37,7 +41,7 @@ class CxfRoundTripTest {
     private fun roundTrip(
         ciphers: List<DSecret>,
         folders: List<com.artemchep.keyguard.common.model.DFolder> = emptyList(),
-    ): CxfImportPlan {
+    ): ImportPlan {
         val document = exportService.buildDocument(
             accounts = listOfNotNull(
                 exportService.buildAccount(
@@ -56,7 +60,7 @@ class CxfRoundTripTest {
             payload = payload,
             now = now,
         )
-        return assertIs<CxfImportResult.Success>(result).plan
+        return assertIs<ImportResult.Success>(result).plan
     }
 
     @Test

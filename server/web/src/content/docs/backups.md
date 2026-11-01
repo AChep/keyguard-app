@@ -39,9 +39,25 @@ snapshot right away.
 
 ## Recover data from a backup
 
-Keyguard can't restore a backup, so you read its files with a ZIP tool that
-supports AES-256 encryption. Without a backup password, skip the passwords:
-every file is a regular ZIP archive.
+Keyguard imports a snapshot of a backup into one account.
+
+1. Start the import:
+   - For the backup set up on this device, in **Settings > Backups**, select
+     **Import from backup**. With several accounts, select the account.
+   - For any other backup, on the screen of the account the items go to,
+     select **Import from another app**. Under **Keyguard backup**, select
+     where the backup is, then select its folder or enter its server.
+2. If the backup has a password, enter it.
+3. Select the snapshot. The newest one is selected.
+4. Review the items, then select **Import**.
+
+A snapshot holds every account, and all its items go to the one account.
+Items in the trash return to the trash. An environment's references to other
+items are unset; set them again after the import.
+
+To read the files by hand instead, use a ZIP tool that supports AES-256
+encryption. Without a backup password, skip the passwords: every file is a
+regular ZIP archive.
 
 1. In `indexes/`, open the archive with the highest number, using the backup
    password. It holds `index.json`.
@@ -153,8 +169,3 @@ An attachment is stored once as a blob and shared by every snapshot that
 references it. With a backup password, the metadata and indexes use the
 backup password, and each snapshot and blob has its own password, kept in the
 encrypted index.
-
-## Limitations
-
-Keyguard can't restore a backup. Read the files by hand, as in
-[Recover data from a backup](#recover-data-from-a-backup).

@@ -1,0 +1,8 @@
+resource	exporter	exporter_version	server	generated
+bitwarden/vault-account-encrypted.json	@bitwarden/cli	2026.10.0	vaultwarden 1.37.4	2026-10-26
+bitwarden/vault-protected-argon2id.json	@bitwarden/cli	2026.10.0	vaultwarden 1.37.4	2026-10-26
+bitwarden/vault-protected-pbkdf2.json	@bitwarden/cli	2026.10.0	vaultwarden 1.37.4	2026-10-26
+bitwarden/vault.csv	@bitwarden/cli	2026.10.0	vaultwarden 1.37.4	2026-10-26
+bitwarden/vault.json	@bitwarden/cli	2026.10.0	vaultwarden 1.37.4	2026-10-26
+keepassxc/database.csv	keepassxc-cli	2.7.10	-	2026-10-26
+keyguard/export.zip	keyguard	3.5.0	-	2026-10-26

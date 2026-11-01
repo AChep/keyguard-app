@@ -89,7 +89,7 @@ struct WatchtowerAlertsView: View {
                 // Decorative severity glyph; the alert text carries the meaning.
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 2) {
-                Text(item.title.isEmpty ? L10n.credentialExchangeImportUntitled : item.title)
+                Text(item.title.isEmpty ? L10n.untitled : item.title)
                     .font(.body)
                     .lineLimit(1)
                     .truncationMode(.middle)

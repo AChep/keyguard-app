@@ -7,6 +7,10 @@ import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfSecretMa
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfFido2HmacCredentials
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.common.service.imports.importSkips
+import com.artemchep.keyguard.test.FakeSshKeyImportService
 import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
@@ -177,7 +181,7 @@ class CxfPasskeyPrfTest {
         ).forEach { hmacCredentials ->
             val plan = importPlan(hmacCredentials)
 
-            assertEquals(cxfImportSkips(CxfImportSkipReason.Passkey to 1), plan.skips, hmacCredentials)
+            assertEquals(importSkips(ImportSkipReason.Passkey to 1), plan.skips, hmacCredentials)
             assertTrue(plan.items.isEmpty(), hmacCredentials)
         }
     }
@@ -225,13 +229,13 @@ class CxfPasskeyPrfTest {
         hmacCredentials: String,
     ): DSecret.Login.Fido2Credentials {
         val plan = importPlan(hmacCredentials)
-        assertEquals(cxfImportSkips(), plan.skips)
+        assertEquals(importSkips(), plan.skips)
         return plan.items.single().request.fido2Credentials.single()
     }
 
     private fun importPlan(
         hmacCredentials: String,
-    ): CxfImportPlan {
+    ): ImportPlan {
         val credential = cxfPasskeyCredentialJson()
             .removeSuffix("}")
             .plus(""", "fido2Extensions": {"hmacCredentials": $hmacCredentials}}""")

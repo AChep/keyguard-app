@@ -421,10 +421,63 @@ class AddCipherPendingUploadPreparationTest {
         assertEquals(2, coordinator.stageFileKeyRefs.size)
         coordinator.stageFileKeyRefs.forEach(::assertKeyCleared)
     }
+
+    @Test
+    fun `an attachment the caller staged is kept as is and counted as created`() = runTest {
+        val pendingUpload = pendingUploadFile("/tmp/attachment-1.bin")
+        val requestAttachment = CreateRequest.Attachment.Staged(
+            id = "attachment-1",
+            name = "report.pdf",
+            keyBase64 = "attachment-key",
+            file = pendingUpload,
+        )
+
+        // What the save maps the request attachment to.
+        val cipherAttachment = requestAttachment.toBitwardenLocalAttachment()
+
+        val coordinator = StagingPendingUploadCoordinator()
+        val prepared = prepareCipherPendingUploads(
+            request = createRequest(requestAttachment),
+            old = null,
+            cipher = cipher(attachments = listOf(cipherAttachment)),
+            base64Service = IdentityBase64Service,
+            pendingUploadCoordinator = coordinator,
+        )
+
+        assertEquals(emptyList(), coordinator.stageCalls)
+        // Deleted by the save if it fails, like a file staged by the save itself.
+        assertEquals(listOf(pendingUpload), prepared.createdPendingUploads)
+        assertEquals(emptyList(), prepared.removedPendingUploads)
+        assertEquals(listOf<BitwardenCipher.Attachment>(cipherAttachment), prepared.cipher.attachments)
+    }
+
+    @Test
+    fun `an attachment the caller staged is not counted as created when the saved cipher points at it`() = runTest {
+        val pendingUpload = pendingUploadFile("/tmp/attachment-1.bin")
+        val requestAttachment = CreateRequest.Attachment.Staged(
+            id = "attachment-1",
+            name = "report.pdf",
+            keyBase64 = "attachment-key",
+            file = pendingUpload,
+        )
+        val cipherAttachment = requestAttachment.toBitwardenLocalAttachment()
+
+        val prepared = prepareCipherPendingUploads(
+            request = createRequest(requestAttachment),
+            old = cipher(attachments = listOf(cipherAttachment)),
+            cipher = cipher(attachments = listOf(cipherAttachment)),
+            base64Service = IdentityBase64Service,
+            pendingUploadCoordinator = StagingPendingUploadCoordinator(),
+        )
+
+        // A failed save must not delete the file the saved cipher points at.
+        assertEquals(emptyList(), prepared.createdPendingUploads)
+        assertEquals(emptyList(), prepared.removedPendingUploads)
+    }
 }
 
 private fun createRequest(
-    vararg attachment: CreateRequest.Attachment.Local,
+    vararg attachment: CreateRequest.Attachment,
 ) = CreateRequest(
     attachments = kotlinx.collections.immutable.persistentListOf(*attachment),
     now = TEST_INSTANT,

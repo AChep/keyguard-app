@@ -38,6 +38,7 @@ import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.KeyguardScenePhase
 import com.artemchep.keyguard.apple.core.KeyguardVaultStatus
 import com.artemchep.keyguard.apple.core.NavigationStackController
+import com.artemchep.keyguard.apple.core.RemoteSettingsSheets
 import com.artemchep.keyguard.apple.core.ScreenEntrySnapshot
 import com.artemchep.keyguard.apple.core.ListNavigationOrigin
 import com.artemchep.keyguard.apple.dialog.AccountPickerSnapshot
@@ -138,6 +139,7 @@ import com.artemchep.keyguard.apple.vault.CollectionsController
 import com.artemchep.keyguard.apple.vault.DownloadsController
 import com.artemchep.keyguard.apple.vault.EquivalentDomainsController
 import com.artemchep.keyguard.apple.vault.ExportController
+import com.artemchep.keyguard.apple.vault.ImportController
 import com.artemchep.keyguard.apple.vault.FoldersController
 import com.artemchep.keyguard.apple.vault.QuickCopyController
 import com.artemchep.keyguard.apple.vault.OrganizationsController
@@ -1006,6 +1008,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     private val foldersController by lazy { FoldersController(context) }
     private val equivalentDomainsController by lazy { EquivalentDomainsController(context) }
     private val exportController by lazy { ExportController(context) }
+    private val importController by lazy { ImportController(context) }
     private val cipherFiltersController by lazy { CipherFiltersController(context) }
     private val downloadsController by lazy { DownloadsController(context) }
     private val feedbackController by lazy { FeedbackController(context) }
@@ -1024,6 +1027,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
             foldersController,
             equivalentDomainsController,
             exportController,
+            importController,
             cipherFiltersController,
             downloadsController,
             feedbackController,
@@ -1111,6 +1115,30 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun setExportConfirmationPassword(instanceId: Long, text: String) =
         navigationStackController.setExportConfirmationPassword(instanceId, text)
+
+    fun setImportPassword(instanceId: Long, text: String) =
+        navigationStackController.setImportPassword(instanceId, text)
+
+    /** [index] is [com.artemchep.keyguard.apple.vault.ImportItemSnapshot.index]. */
+    fun setImportItemSelected(instanceId: Long, index: Int, selected: Boolean) =
+        navigationStackController.setImportItemSelected(instanceId, index, selected)
+
+    /** Answers the entry's pending [com.artemchep.keyguard.apple.vault.ImportSnapshot.filePickerRequest]. */
+    fun resolveImportFilePicker(
+        instanceId: Long,
+        requestId: String,
+        uri: String,
+        name: String?,
+        size: Long,
+        accessToken: String?,
+    ) = navigationStackController.resolveImportFilePicker(instanceId, requestId, uri, name, size, accessToken)
+
+    fun cancelImportFilePicker(instanceId: Long, requestId: String) =
+        navigationStackController.cancelImportFilePicker(instanceId, requestId)
+
+    /** The WebDAV and S3 settings sheets of a stack entry; see [ScreenEntrySnapshot.webDavSettings]. */
+    fun remoteSettingsSheets(instanceId: Long): RemoteSettingsSheets? =
+        navigationStackController.remoteSettingsSheets(instanceId)
 
     fun pushCollectionsList(accountId: String, organizationId: String?, title: String) =
         navigationStackController.pushCollectionsList(accountId, organizationId, title)
@@ -1439,7 +1467,12 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     // Automatic backups
 
-    private val backupsController by lazy { BackupsController(context) }
+    private val backupsController by lazy {
+        BackupsController(
+            ctx = context,
+            navigationInterceptor = navigationStackController::interceptor,
+        )
+    }
 
     fun observeBackupSettings(
         onChange: (BackupSettingsSnapshot) -> Unit,
@@ -1455,4 +1488,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun setBackupRetention(maxSnapshots: Int) = backupsController.setBackupRetention(maxSnapshots)
 
     fun disableBackup() = backupsController.disableBackup()
+
+    /** Imports a snapshot of the configured backup, asking for the account if there are several. */
+    fun importFromBackup() = backupsController.importFromBackup()
 }

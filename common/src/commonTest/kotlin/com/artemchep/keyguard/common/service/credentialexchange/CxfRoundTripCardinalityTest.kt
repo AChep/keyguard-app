@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.credentialexchange
 
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.create.CreateRequest
+import com.artemchep.keyguard.common.service.imports.importSkips
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -96,7 +97,7 @@ class CxfRoundTripCardinalityTest {
                 ),
             ),
         )
-        assertEquals(cxfImportSkips(), result.plan.skips)
+        assertEquals(importSkips(), result.plan.skips)
         val request = result.plan.items.single().request
         assertEquals("Acme", request.identity.company)
         assertEquals(listOf("Extra"), request.fields.map { it.name })
@@ -119,7 +120,7 @@ class CxfRoundTripCardinalityTest {
                 cxfFolder(id = "child", name = "Work/Personal"),
             ),
         )
-        assertEquals(cxfImportSkips(), result.plan.skips)
+        assertEquals(importSkips(), result.plan.skips)
         assertEquals(listOf("Work", "Personal"), result.plan.folders.map { it.title })
         assertTrue(result.plan.items.single().folderKey != null)
     }

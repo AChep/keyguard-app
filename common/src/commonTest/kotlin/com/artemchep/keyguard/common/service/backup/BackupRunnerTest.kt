@@ -44,6 +44,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.io.Buffer
 import kotlinx.io.Sink
+import kotlinx.io.Source
 import kotlinx.io.readByteArray
 
 class BackupRunnerTest {
@@ -1176,7 +1177,7 @@ private class StaticExportVaultDataService(
     ): String = "{}"
 }
 
-private object FakeDownloadAttachmentMetadata : DownloadAttachmentMetadata {
+internal object FakeDownloadAttachmentMetadata : DownloadAttachmentMetadata {
     override fun invoke(
         request: DownloadAttachmentRequest,
     ): IO<DownloadAttachmentRequestData> = {
@@ -1193,7 +1194,7 @@ private object FakeDownloadAttachmentMetadata : DownloadAttachmentMetadata {
     }
 }
 
-private class CountingDownloadTask(
+internal class CountingDownloadTask(
     private val loadingEvents: List<DownloadProgress.Loading> = emptyList(),
     private val failure: Throwable? = null,
     private val failureOnCall: Int = 1,
@@ -1307,6 +1308,11 @@ private class MemoryBackupRepository : BackupRepository {
         )
     }
 
+    override suspend fun readMetadata(
+        store: BackupObjectStore,
+        password: Password?,
+    ): BackupRepositoryMetadata? = error("The runner never only reads the metadata.")
+
     override suspend fun readIndexes(
         store: BackupObjectStore,
         password: Password?,
@@ -1392,6 +1398,20 @@ private class MemoryBackupRepository : BackupRepository {
     ): BackupSnapshotManifest? = snapshots[snapshotId]
         ?.takeIf { snapshotId !in unreadableSnapshotIds }
 
+    override suspend fun <T> readSnapshot(
+        store: BackupObjectStore,
+        objectPassword: Password?,
+        snapshotPath: String,
+        readVault: suspend (BackupSnapshotManifest, Source) -> T,
+    ): T? = error("The runner never reads a snapshot's vault.")
+
+    override suspend fun <T> readBlob(
+        store: BackupObjectStore,
+        objectPassword: Password?,
+        blobPath: String,
+        read: suspend (Source) -> T,
+    ): T? = error("The runner never reads a blob.")
+
     override suspend fun deleteSnapshot(
         store: BackupObjectStore,
         snapshotId: String,
@@ -1411,7 +1431,7 @@ private class MemoryBackupRepository : BackupRepository {
     }
 }
 
-private object FixedDateFormatter : DateFormatter {
+internal object FixedDateFormatter : DateFormatter {
     override fun formatDateTimeMachine(
         instant: Instant,
     ): String = "20260101T000000"
@@ -1441,7 +1461,7 @@ private object FixedDateFormatter : DateFormatter {
     ): String = time.toString()
 }
 
-private fun testCipher(
+internal fun testCipher(
     id: String = "local-cipher-1",
     remoteCipherId: String = "remote-cipher-1",
     attachmentId: String = "attachment-1",

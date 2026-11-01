@@ -104,6 +104,7 @@ internal object AutomaticBackupsPreviewData {
         onSetupClick = {},
         onRetentionChange = {},
         onRunNow = {},
+        onImport = {},
         onDisableClick = {},
     )
 

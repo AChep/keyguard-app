@@ -807,9 +807,11 @@ private class TransientReadBackupObjectStore(
     }
 }
 
-private class MidstreamTransientBackupObjectStore(
+internal class MidstreamTransientBackupObjectStore(
     private val delegate: BackupObjectStore,
     private val transientKey: BackupObjectKey,
+    /** How many bytes the first read of [transientKey] hands out before it fails. */
+    private val failAfterBytes: Long = 32L,
 ) : BackupObjectStore by delegate {
     var reads = 0
 
@@ -826,15 +828,16 @@ private class MidstreamTransientBackupObjectStore(
             return source
         }
         return object : RawSource {
-            private var emittedPrefix = false
+            private var emitted = 0L
 
             override fun readAtMostTo(
                 sink: Buffer,
                 byteCount: Long,
             ): Long {
-                if (!emittedPrefix) {
-                    emittedPrefix = true
-                    return source.readAtMostTo(sink, minOf(byteCount, 32L))
+                if (emitted < failAfterBytes) {
+                    val read = source.readAtMostTo(sink, minOf(byteCount, failAfterBytes - emitted))
+                    emitted += maxOf(read, 0L)
+                    return read
                 }
                 throw BackupObjectStoreException.Transient(
                     operation = BackupObjectStoreOperation.Read,

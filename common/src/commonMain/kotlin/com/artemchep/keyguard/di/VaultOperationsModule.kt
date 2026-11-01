@@ -34,6 +34,7 @@ import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherFieldSwitchToggle
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
+import com.artemchep.keyguard.common.usecase.CommitImportPlan
 import com.artemchep.keyguard.common.usecase.CipherMerge
 import com.artemchep.keyguard.common.usecase.CipherSshKeyWeakCheck
 import com.artemchep.keyguard.common.usecase.CipherToolbox
@@ -139,6 +140,7 @@ import com.artemchep.keyguard.feature.home.vault.search.query.parser.DefaultVaul
 import com.artemchep.keyguard.feature.home.vault.search.query.parser.VaultSearchParser
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddCipherImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.CommitImportPlanImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddCredentialCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddFolderImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddPrivilegedAppImpl
@@ -532,6 +534,8 @@ internal class VaultOperationsModule {
             scoped<TrashCipherByIdImpl>() bind TrashCipherById::class
 
             scoped<ArchiveCipherByIdImpl>() bind ArchiveCipherById::class
+
+            scoped<CommitImportPlanImpl>() bind CommitImportPlan::class
 
             scoped<TrashCipherByFolderIdImpl>() bind TrashCipherByFolderId::class
 

@@ -38,9 +38,9 @@
     <ID>CyclomaticComplexMethod:AccountListViewModel.kt:suspend fun RememberStateFlowScope.accountListScreenStateProducer: Flow&lt;AccountListStateWrapper&gt;</ID>
     <ID>CyclomaticComplexMethod:AccountViewStateProducer.kt:@OptIn(ExperimentalMaterial3Api::class) private fun buildItemsFlow: Flow&lt;VaultViewItem&gt;</ID>
     <ID>CyclomaticComplexMethod:AccountViewStateProducer.kt:suspend fun RememberStateFlowScope.accountStateProducer: Flow&lt;AccountViewState&gt;</ID>
-    <ID>CyclomaticComplexMethod:AddCipher.kt:AddCipherImpl$override fun invoke: IO&lt;List&lt;String&gt;&gt;</ID>
+    <ID>CyclomaticComplexMethod:AddCipher.kt:AddCipherImpl$private fun save: IO&lt;List&lt;String&gt;&gt;</ID>
     <ID>CyclomaticComplexMethod:AddCipher.kt:internal suspend fun BitwardenCipher.Login.Companion.of: BitwardenCipher.Login</ID>
-    <ID>CyclomaticComplexMethod:AddCipher.kt:private fun BitwardenCipher.Field.LinkedId.Companion.of</ID>
+    <ID>CyclomaticComplexMethod:CipherMapping.kt:internal fun BitwardenCipher.Field.LinkedId.Companion.of</ID>
     <ID>CyclomaticComplexMethod:AddCipher.kt:private suspend fun BitwardenCipher.Companion.of: BitwardenCipher</ID>
     <ID>CyclomaticComplexMethod:AddScreen.kt:context(addScope: AddScreenScope) @Composable fun AnyField</ID>
     <ID>CyclomaticComplexMethod:AddSend.kt:private suspend fun BitwardenSend.Companion.of: BitwardenSend</ID>
@@ -361,7 +361,7 @@
     <ID>LongMethod:AccountViewStateProducer.kt:private suspend fun FlowCollector&lt;VaultViewItem&gt;.emitName</ID>
     <ID>LongMethod:AccountViewStateProducer.kt:suspend fun RememberStateFlowScope.accountStateProducer: Flow&lt;AccountViewState&gt;</ID>
     <ID>LongMethod:AddAccount.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun AddAccountView</ID>
-    <ID>LongMethod:AddCipher.kt:AddCipherImpl$override fun invoke: IO&lt;List&lt;String&gt;&gt;</ID>
+    <ID>LongMethod:AddCipher.kt:AddCipherImpl$private fun save: IO&lt;List&lt;String&gt;&gt;</ID>
     <ID>LongMethod:AddCipher.kt:internal suspend fun BitwardenCipher.Login.Companion.of: BitwardenCipher.Login</ID>
     <ID>LongMethod:AddCipher.kt:internal suspend fun prepareCipherPendingUploads: PreparedCipher</ID>
     <ID>LongMethod:AddCipher.kt:private suspend fun BitwardenCipher.Companion.of: BitwardenCipher</ID>

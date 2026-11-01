@@ -22,6 +22,7 @@ import com.artemchep.keyguard.feature.sshagent.history.SshAgentHistoryRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.settings.subscriptions.SubscriptionsSettingsRoute
 import com.artemchep.keyguard.feature.home.vault.search.sort.Sort
+import com.artemchep.keyguard.feature.imports.ImportRoute
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServicesRoute
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataServicesRoute
 import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServicesRoute
@@ -90,6 +91,14 @@ fun RouteDescriptor.toRoute(): Route? = when (this) {
 
     is RouteDescriptor.Export ->
         ExportRoute(ExportRoute.Args(title = title, filter = filter))
+
+    is RouteDescriptor.Import ->
+        ImportRoute(
+            ImportRoute.Args(
+                accountId = AccountId(accountId),
+                configuredBackup = configuredBackup,
+            ),
+        )
 
     is RouteDescriptor.SendList -> {
         val args = SendRoute.Args(

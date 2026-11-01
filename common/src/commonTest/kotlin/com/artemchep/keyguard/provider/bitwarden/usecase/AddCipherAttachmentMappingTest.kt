@@ -11,6 +11,7 @@ import com.artemchep.keyguard.test.TestCryptoGenerator
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import kotlin.test.assertTrue
 
 class AddCipherAttachmentMappingTest {
     @Test
@@ -64,6 +65,31 @@ class AddCipherAttachmentMappingTest {
 
         assertEquals("generated-attachment-key", attachment.keyBase64)
         assertNull(attachment.pendingUpload)
+    }
+
+    @Test
+    fun `staged attachment points at its staged file`() {
+        val file = PendingUploadFile(
+            path = "/tmp/attachment-3.bin",
+            plainSize = 123L,
+            encryptedSize = 321L,
+        )
+        val requestAttachment = CreateRequest.Attachment.Staged(
+            id = "attachment-3",
+            name = "report.pdf",
+            keyBase64 = "attachment-key",
+            file = file,
+        )
+
+        val attachment = requestAttachment.toBitwardenLocalAttachment()
+
+        assertEquals("attachment-3", attachment.id)
+        assertEquals("report.pdf", attachment.fileName)
+        assertEquals(123L, attachment.size)
+        assertEquals("attachment-key", attachment.keyBase64)
+        assertEquals(file, attachment.pendingUpload)
+        // Never read, but the edit screen parses it.
+        assertTrue(attachment.url.startsWith("file:"), attachment.url)
     }
 }
 

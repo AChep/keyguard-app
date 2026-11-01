@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportSe
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportUserHandle
 import com.artemchep.keyguard.common.service.credentialexchange.impl.MAX_ENCODED_PASSKEY_CREDENTIAL_ID_CHARS
 import com.artemchep.keyguard.common.service.credentialexchange.impl.groupCxfCredentials
+import com.artemchep.keyguard.common.service.credentialexchange.impl.isEmpty
 import com.artemchep.keyguard.common.service.credentialexchange.impl.mapImportCredentialId
 import com.artemchep.keyguard.common.service.credentialexchange.impl.mapImportCreditCard
 import com.artemchep.keyguard.common.service.credentialexchange.impl.mapImportIdentity
@@ -20,6 +21,18 @@ import com.artemchep.keyguard.common.service.credentialexchange.impl.mapImportUs
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfEditableField
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfItem
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
+import com.artemchep.keyguard.feature.environments.EnvironmentFieldReference
+import com.artemchep.keyguard.feature.environments.EnvironmentFormat
+import com.artemchep.keyguard.feature.environments.EnvironmentValueSource
+import com.artemchep.keyguard.feature.environments.EnvironmentVariable
+import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenEnvironmentFieldCodec
+import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenGpgKeyFieldCodec
+import com.artemchep.keyguard.test.FakeSshKeyImportService
+import com.artemchep.keyguard.test.fakeSshKeyPair
+import com.artemchep.keyguard.test.sshKeyImportFailure
 import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
 import kotlin.test.Test
@@ -75,7 +88,7 @@ class CxfImportMapperTest {
             now = now,
         )
         assertTrue(result.requests.isEmpty())
-        assertEquals(1, result.skips[CxfImportSkipReason.Passkey])
+        assertEquals(1, result.skips[ImportSkipReason.Passkey])
     }
 
     @Test
@@ -623,7 +636,7 @@ class CxfImportMapperTest {
             now = now,
         )
         assertTrue(result.requests.isEmpty())
-        assertEquals(1, result.skips[CxfImportSkipReason.Passkey])
+        assertEquals(1, result.skips[ImportSkipReason.Passkey])
     }
 
     @Test
@@ -667,7 +680,117 @@ class CxfImportMapperTest {
         assertTrue(result.requests.isEmpty())
         assertTrue(result.skips.isEmpty)
     }
+
+    @Test
+    fun `a note carrying a Keyguard GPG key imports as a GPG key`() {
+        val gpgKey = BitwardenCipher.GpgKey(
+            privateKeyArmored = "-----BEGIN PGP PRIVATE KEY BLOCK-----\nkey\n-----END PGP PRIVATE KEY BLOCK-----",
+            publicKeyArmored = "-----BEGIN PGP PUBLIC KEY BLOCK-----\nkey\n-----END PGP PUBLIC KEY BLOCK-----",
+            fingerprint = "0123456789ABCDEF0123456789ABCDEF01234567",
+        )
+        val mapper = CxfImportSecretMapper(FakeSshKeyImportService())
+        val result = mapper.mapItem(
+            item = cxfImportItem(
+                credentials = listOf(
+                    CxfCredential.Note(content = plain("A note")),
+                    keyguardTransportFields(BitwardenGpgKeyFieldCodec.encode(gpgKey, emptyList())),
+                ),
+            ),
+            now = now,
+        )
+
+        assertTrue(result.skips.isEmpty)
+        val request = result.requests.single()
+        assertEquals(DSecret.Type.GpgKey, request.type)
+        assertEquals(gpgKey.privateKeyArmored, request.gpgKey.privateKeyArmored)
+        assertEquals(gpgKey.publicKeyArmored, request.gpgKey.publicKeyArmored)
+        assertEquals(gpgKey.fingerprint, request.gpgKey.fingerprint)
+        assertEquals("A note", request.note)
+        assertTrue(request.fields.isEmpty())
+    }
+
+    @Test
+    fun `an imported environment unsets its item references and counts them`() {
+        val definition = EnvironmentDefinition(
+            listOf(
+                EnvironmentVariable("TOKEN", EnvironmentValueSource.Literal("secret")),
+                EnvironmentVariable("PASSWORD", cxfImportEnvironmentReference()),
+            ),
+        )
+        val environment = BitwardenCipher.Environment(document = EnvironmentFormat.encode(definition))
+        val mapper = CxfImportSecretMapper(FakeSshKeyImportService())
+        val result = mapper.mapItem(
+            item = cxfImportItem(
+                credentials = listOf(
+                    keyguardTransportFields(BitwardenEnvironmentFieldCodec.encode(environment)),
+                ),
+            ),
+            now = now,
+        )
+
+        val request = result.requests.single()
+        assertEquals(DSecret.Type.Environment, request.type)
+        assertEquals(
+            listOf(
+                EnvironmentVariable("TOKEN", EnvironmentValueSource.Literal("secret")),
+                EnvironmentVariable("PASSWORD", EnvironmentValueSource.Unset),
+            ),
+            request.environment?.definition?.variables,
+        )
+        // The item itself imports, so the loss is counted once, as a reference.
+        assertEquals(1, result.skips[ImportSkipReason.EnvironmentReference])
+        assertEquals(1, result.skips.totalCount)
+    }
+
+    @Test
+    fun `an environment larger than Keyguard writes is counted instead of failing the import`() {
+        val definition = EnvironmentDefinition(
+            listOf(
+                EnvironmentVariable("TOKEN", EnvironmentValueSource.Literal("PADDING")),
+                EnvironmentVariable("PASSWORD", cxfImportEnvironmentReference()),
+            ),
+        )
+        // Readable, as a newer version may write more, but larger than Keyguard writes.
+        // Clearing its reference would encode it again, which throws at that size.
+        val document = EnvironmentFormat.encode(definition)
+            .replace("PADDING", "a".repeat(EnvironmentFormat.MAX_PAYLOAD_BYTES))
+        val environment = BitwardenCipher.Environment(document = document)
+        val mapper = CxfImportSecretMapper(FakeSshKeyImportService())
+        val result = mapper.mapItem(
+            item = cxfImportItem(
+                credentials = listOf(
+                    keyguardTransportFields(BitwardenEnvironmentFieldCodec.encode(environment)),
+                ),
+            ),
+            now = now,
+        )
+
+        assertTrue(result.requests.isEmpty())
+        assertEquals(1, result.skips[ImportSkipReason.Environment])
+        assertEquals(1, result.skips.totalCount)
+    }
 }
+
+private fun cxfImportEnvironmentReference() = EnvironmentValueSource.Reference(
+    cipherId = "00000000-0000-0000-0000-000000000001",
+    field = EnvironmentFieldReference.Password,
+)
+
+/** The custom fields Keyguard carries one of its own types in, as a CXF document holds them. */
+private fun keyguardTransportFields(
+    fields: List<BitwardenCipher.Field>,
+) = CxfCredential.CustomFields(
+    fields = fields.map { field ->
+        CxfEditableField(
+            fieldType = when (field.type) {
+                BitwardenCipher.Field.Type.Hidden -> CxfEditableField.FIELD_TYPE_CONCEALED_STRING
+                else -> CxfEditableField.FIELD_TYPE_STRING
+            },
+            value = field.value.orEmpty(),
+            label = field.name,
+        )
+    },
+)
 
 private fun plain(value: String) = CxfEditableField(
     fieldType = CxfEditableField.FIELD_TYPE_STRING,

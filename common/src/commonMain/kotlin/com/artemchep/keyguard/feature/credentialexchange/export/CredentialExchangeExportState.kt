@@ -1,8 +1,8 @@
 package com.artemchep.keyguard.feature.credentialexchange.export
 
 import androidx.compose.runtime.Immutable
-import com.artemchep.keyguard.feature.credentialexchange.CredentialExchangeItem
-import com.artemchep.keyguard.feature.credentialexchange.CredentialExchangeSkippedNote
+import com.artemchep.keyguard.feature.transfer.TransferItem
+import com.artemchep.keyguard.feature.transfer.TransferSkippedNote
 
 /**
  * The immutable UI model of the credential-exchange review screen.
@@ -81,12 +81,12 @@ data class CredentialExchangeExportState(
              * the picked entry addresses, and the activity's own consent subtitle
              * already names it.
              */
-            val items: List<CredentialExchangeItem>,
+            val items: List<TransferItem>,
             /**
              * The warning rows explaining what will not be transferred, already
              * ordered and already worded; empty when nothing is lost.
              */
-            val skipped: List<CredentialExchangeSkippedNote>,
+            val skipped: List<TransferSkippedNote>,
             /**
              * `true` once the user has confirmed and the host is building the
              * response; the confirm action stays disabled while it is set.

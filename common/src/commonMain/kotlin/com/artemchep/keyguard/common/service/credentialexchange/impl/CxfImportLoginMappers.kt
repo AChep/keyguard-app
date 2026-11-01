@@ -1,14 +1,13 @@
 package com.artemchep.keyguard.common.service.credentialexchange.impl
 
-import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfAndroidAppCertificateFingerprint
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialScope
+import com.artemchep.keyguard.common.service.imports.mapping.canonicalTotpSecretOrNull
+import com.artemchep.keyguard.common.service.imports.mapping.importedCertificateSignatureOrNull
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
-import com.artemchep.keyguard.common.util.normalizeSha256FingerprintOrNull
-import com.artemchep.keyguard.common.util.toHex
 import io.ktor.http.encodeURLParameter
 
 private const val TOTP_DEFAULT_PERIOD = 30
@@ -19,7 +18,8 @@ private const val STEAM_URI_PREFIX = "steam://"
 /**
  * Rebuilds an otpauth (or Steam) URI from an imported TOTP credential, or
  * returns `null` (a counted skip at [CxfImportSecretMapper]) when the
- * credential is not one the shared contract in `CxfTotp.kt` admits.
+ * credential is not one the shared contract in `CxfTotp.kt` and
+ * `canonicalTotpSecretOrNull` admits.
  * Default parameters (period 30, 6 digits, SHA-1) are omitted from the URI,
  * matching how other providers emit them.
  */
@@ -175,17 +175,9 @@ internal fun mapImportUris(
  */
 internal fun mapImportCertificateFingerprint(
     certificate: CxfAndroidAppCertificateFingerprint,
-): DSecret.Uri.Signature? {
-    val hex = certificate
-        .takeIf { it.hashAlg == CxfAndroidAppCertificateFingerprint.HASH_ALG_SHA256 }
-        ?.let { runCatchingNonFatal { cxfUrlSafeBase64.decode(it.fingerprint) }.getOrNull() }
-        ?.toHex()
-        ?.normalizeSha256FingerprintOrNull()
-        ?: return null
-    return DSecret.Uri.Signature(
-        certFingerprintSha256 = hex,
-    )
-}
+): DSecret.Uri.Signature? = certificate
+    .takeIf { it.hashAlg == CxfAndroidAppCertificateFingerprint.HASH_ALG_SHA256 }
+    ?.let { importedCertificateSignatureOrNull(it.fingerprint) }
 
 /**
  * When an item carries no scope at all, a login's uris are derived from the

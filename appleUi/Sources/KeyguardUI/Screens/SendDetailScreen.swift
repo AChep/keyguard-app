@@ -25,7 +25,7 @@ struct SendDetailScreen: View {
             #if os(macOS)
             if showsNavigationTitle {
                 detailContent(detail, perform: perform)
-                    .navigationTitle(detail.title.isEmpty ? L10n.credentialExchangeImportUntitled : detail.title)
+                    .navigationTitle(detail.title.isEmpty ? L10n.untitled : detail.title)
             } else {
                 detailContent(detail, perform: perform)
             }

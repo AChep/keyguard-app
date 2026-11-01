@@ -246,6 +246,12 @@ data class BackupObjectEncryption(
     }
 }
 
+/** The password of an object archive, `null` for an unencrypted one. */
+internal fun BackupObjectEncryption.toPassword(): Password? = when (method) {
+    BackupObjectEncryptionMethod.None -> null
+    BackupObjectEncryptionMethod.ZipAes256 -> Password(requireNotNull(keyBase64))
+}
+
 @Serializable
 enum class BackupObjectEncryptionMethod {
     @SerialName("none")

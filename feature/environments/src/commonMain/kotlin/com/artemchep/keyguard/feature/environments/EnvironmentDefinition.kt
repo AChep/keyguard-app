@@ -182,6 +182,17 @@ fun EnvironmentPayload?.editableDefinition(): EnvironmentDefinition? =
     (this as? EnvironmentPayload.Decoded)?.takeIf { it.lossless }.runnableDefinition()
 
 /**
+ * `true` if the vault may write this environment as it is: the document is no larger than
+ * the documents Keyguard writes and reads back as the definition, which is valid and within
+ * the limits. The vault writes the document, so a definition alone proves nothing.
+ */
+fun EnvironmentPayload.Decoded.isWritable(): Boolean =
+    document.encodeToByteArray().size <= EnvironmentFormat.MAX_PAYLOAD_BYTES &&
+        EnvironmentFormat.decode(document)?.definition == definition &&
+        EnvironmentResolver.fitsLimits(definition) &&
+        EnvironmentResolver.validate(definition).isEmpty()
+
+/**
  * The environment for a copy in another account, where references mean nothing, so they
  * become unset. The document is kept as it is if it has no references. Returns `null` if this
  * version can not tell the references apart, or would have to rewrite a document it does not fully read.

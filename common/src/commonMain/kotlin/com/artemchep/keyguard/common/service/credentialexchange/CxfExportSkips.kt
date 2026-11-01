@@ -1,16 +1,19 @@
 package com.artemchep.keyguard.common.service.credentialexchange
 
-typealias CxfExportSkips = CxfSkips<CxfExportSkipReason>
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.common.util.SkipTally
+
+typealias CxfExportSkips = SkipTally<CxfExportSkipReason>
 
 /**
  * Builds an export tally; zero and negative pairs are dropped.
  */
 fun cxfExportSkips(vararg entries: Pair<CxfExportSkipReason, Int>): CxfExportSkips =
-    CxfSkips.of(CxfExportSkipReason::class, entries)
+    SkipTally.of(CxfExportSkipReason::class, entries)
 
 /**
  * Everything in the vault that could not be turned into CXF data. The mirror
- * image of [CxfImportSkipReason] and under the same contract — see its KDoc;
+ * image of [ImportSkipReason] and under the same contract — see its KDoc;
  * the difference between the two reason sets is pinned by
  * `CxfSkipReasonRegistryTest`.
  *
@@ -83,7 +86,7 @@ enum class CxfExportSkipReason {
      * A previous password the item retained. CXF v1.0 §3.3 has no member for a
      * password an item no longer uses, and a basic-auth of its own would arrive
      * in the receiving app as a credential to sign in with — the same "dropped,
-     * never downgraded" rule [CxfImportSkipReason] states, applied outwards.
+     * never downgraded" rule [ImportSkipReason] states, applied outwards.
      *
      * Counted per retained password rather than per item.
      */

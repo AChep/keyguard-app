@@ -8,6 +8,12 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Instant
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.io.Source
 
@@ -102,6 +108,25 @@ class PendingUploadCoordinatorTest {
         }
 
         assertEquals("boom", error.message)
+        assertEquals(listOf(createdPendingUpload), encryptedService.deletedUploads)
+    }
+
+    @Test
+    fun `persist rolls back newly created staged files when persistence is cancelled`() = runTest {
+        val encryptedService = FakeEncryptedFilePendingUploadService()
+        val coordinator = PendingUploadCoordinatorImpl(encryptedService)
+        val createdPendingUpload = pendingUploadFile("/tmp/new-upload.bin")
+
+        val job = launch {
+            coordinator.persist(
+                createdPendingUploads = listOf(createdPendingUpload),
+            ) {
+                awaitCancellation()
+            }
+        }
+        runCurrent()
+        job.cancelAndJoin()
+
         assertEquals(listOf(createdPendingUpload), encryptedService.deletedUploads)
     }
 
@@ -244,6 +269,8 @@ private class FakeEncryptedFilePendingUploadService(
     override suspend fun delete(
         pendingUpload: PendingUploadFile,
     ) {
+        // Like the real service, which switches to the IO dispatcher first.
+        currentCoroutineContext().ensureActive()
         deletedUploads += pendingUpload
         uploadedPaths -= pendingUpload.path
         if (pendingUpload.path in deleteFailures) {

@@ -5,10 +5,19 @@ import kotlin.test.assertFailsWith
 
 class PreLoginTest {
     @Test
-    fun `pbkdf2 rejects weak iterations`() {
+    fun `pbkdf2 login rejects weak iterations`() {
+        assertFailsWith<IllegalArgumentException> {
+            PreLogin.Hash.Pbkdf2.login(
+                iterationsCount = 599999,
+            )
+        }
+    }
+
+    @Test
+    fun `pbkdf2 rejects iterations below the floor`() {
         assertFailsWith<IllegalArgumentException> {
             PreLogin.Hash.Pbkdf2(
-                iterationsCount = 599999,
+                iterationsCount = PreLogin.Hash.Pbkdf2.ITERATIONS_FLOOR - 1,
             )
         }
     }

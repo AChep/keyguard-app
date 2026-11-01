@@ -1,0 +1,11 @@
+folder,favorite,type,name,notes,fields,reprompt,archivedDate,login_uri,login_username,login_password,login_totp
+Work/Email,1,login,Mail,"First line
+Second line","PIN: 1234
+Recovery: abcd-efgh
+Remember me: true
+Login: undefined",1,,"https://mail.example.com,androidapp://com.example.mail",alice@example.com,correct horse battery staple,otpauth://totp/Example:alice@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Example
+,,note,Manual,Has an attachment.,,0,,,,,
+,,login,Old forum,,,0,2026-10-26T11:16:12.314Z,https://forum.example.org,bob,older password,
+,,note,Old note,Kept for later.,,0,2026-10-26T11:16:21.132Z,,,,
+,,login,Untitled site,Ünïcödé — 日本語,,0,,https://plain.example.org,plain-user," spaced ""and"" quoted, ",
+Work,,note,Wi-Fi,"The password is ""42"", with a comma.",,0,,,,,

@@ -70,6 +70,9 @@ import com.artemchep.keyguard.apple.vault.ExportController
 import com.artemchep.keyguard.apple.vault.ExportSnapshot
 import com.artemchep.keyguard.apple.vault.FoldersController
 import com.artemchep.keyguard.apple.vault.FoldersSnapshot
+import com.artemchep.keyguard.apple.vault.ImportController
+import com.artemchep.keyguard.apple.vault.ImportInput
+import com.artemchep.keyguard.apple.vault.ImportSnapshot
 import com.artemchep.keyguard.apple.vault.OrganizationsController
 import com.artemchep.keyguard.apple.vault.OrganizationsSnapshot
 import com.artemchep.keyguard.apple.vault.VaultDetailSnapshot
@@ -251,6 +254,16 @@ internal sealed interface ScreenKind {
         override val defaultTitle get() = title.orEmpty()
     }
 
+    /** The title comes with the first snapshot. */
+    data class Import(
+        val accountId: String,
+        /** Opens the configured backup instead of listing the sources. */
+        val configuredBackup: Boolean = false,
+    ) : ScreenKind {
+        override val entryKind get() = ScreenEntryKind.IMPORT
+        override val defaultTitle get() = ""
+    }
+
     /** The Swift view sets the localized title. */
     data object CipherFiltersList : ScreenKind {
         override val entryKind get() = ScreenEntryKind.CIPHER_FILTERS_LIST
@@ -305,6 +318,7 @@ enum class ScreenEntryKind {
     EQUIVALENT_DOMAINS,
     DUPLICATES,
     EXPORT,
+    IMPORT,
     CIPHER_FILTERS_LIST,
     CIPHER_FILTER_DETAIL,
     DOWNLOADS,
@@ -343,6 +357,7 @@ data class ScreenEntrySnapshot(
     val equivalentDomains: EquivalentDomainsSnapshot?,
     val duplicatesSession: DuplicatesSession?,
     val export: ExportSnapshot?,
+    val imports: ImportSnapshot?,
     val cipherFilters: CipherFiltersListSnapshot?,
     val cipherFilterDetail: CipherFilterDetailSnapshot?,
     val downloads: DownloadsSnapshot?,
@@ -352,6 +367,10 @@ data class ScreenEntrySnapshot(
     val fromList: Boolean,
     val environmentId: String? = null,
     val createEnvironment: Boolean = false,
+    /** The WebDAV settings sheet the screen opened; answered through its [RemoteSettingsSheets]. */
+    val webDavSettings: WebDavSettingsSnapshot? = null,
+    /** The S3 settings sheet the screen opened; answered through its [RemoteSettingsSheets]. */
+    val s3Settings: S3SettingsSnapshot? = null,
 )
 
 /**
@@ -373,6 +392,7 @@ internal class NavigationStackController(
     private val foldersController: FoldersController,
     private val equivalentDomainsController: EquivalentDomainsController,
     private val exportController: ExportController,
+    private val importController: ImportController,
     private val cipherFiltersController: CipherFiltersController,
     private val downloadsController: DownloadsController,
     private val feedbackController: FeedbackController,
@@ -414,6 +434,8 @@ internal class NavigationStackController(
         var duplicatesSession: DuplicatesSession? = null
         var export: ExportSnapshot? = null
         var exportState: ExportState? = null
+        var imports: ImportSnapshot? = null
+        var importInput: ImportInput? = null
         var cipherFilters: CipherFiltersListSnapshot? = null
         var cipherFilterDetail: CipherFilterDetailSnapshot? = null
         var downloads: DownloadsSnapshot? = null
@@ -421,6 +443,9 @@ internal class NavigationStackController(
         var feedbackState: FeedbackState? = null
         var actionHandlers: Map<String, () -> Unit> = emptyMap()
         var favourite: (() -> Unit)? = null
+        val settingsSheets = RemoteSettingsSheets(ctx)
+        var webDavSettings: WebDavSettingsSnapshot? = null
+        var s3Settings: S3SettingsSnapshot? = null
 
         /** Stops replaceable producers; independent vault/duplicates sessions remain alive. */
         fun stop() {
@@ -443,6 +468,7 @@ internal class NavigationStackController(
             emailRelayList = null
             wordlistList = null
             wordlistDetail = null
+            settingsSheets.cancel()
         }
 
         /** Full teardown for a removed entry (popped, scope cleared, locked); closes the owned sessions. Idempotent. */
@@ -479,6 +505,7 @@ internal class NavigationStackController(
             equivalentDomains = equivalentDomains,
             duplicatesSession = duplicatesSession,
             export = export,
+            imports = imports,
             cipherFilters = cipherFilters,
             cipherFilterDetail = cipherFilterDetail,
             downloads = downloads,
@@ -488,6 +515,8 @@ internal class NavigationStackController(
             fromList = fromList,
             environmentId = (kind as? ScreenKind.Environments)?.environmentId,
             createEnvironment = (kind as? ScreenKind.Environments)?.create == true,
+            webDavSettings = webDavSettings,
+            s3Settings = s3Settings,
         )
     }
 
@@ -838,6 +867,33 @@ internal class NavigationStackController(
         entry(instanceId)?.exportState?.confirmationPasswordFlow?.value?.model?.onChange?.invoke(text)
     }
 
+    fun setImportPassword(instanceId: Long, text: String) = onMain {
+        entry(instanceId)?.importInput?.setPassword(text)
+    }
+
+    fun setImportItemSelected(instanceId: Long, index: Int, selected: Boolean) = onMain {
+        entry(instanceId)?.importInput?.setItemSelected(index, selected)
+    }
+
+    fun resolveImportFilePicker(
+        instanceId: Long,
+        requestId: String,
+        uri: String,
+        name: String?,
+        size: Long,
+        accessToken: String?,
+    ) = onMain {
+        entry(instanceId)?.importInput?.resolve(requestId, uri, name, size, accessToken)
+    }
+
+    fun cancelImportFilePicker(instanceId: Long, requestId: String) = onMain {
+        entry(instanceId)?.importInput?.cancel(requestId)
+    }
+
+    /** The WebDAV and S3 settings sheets of the entry, which its screen may open. */
+    fun remoteSettingsSheets(instanceId: Long): RemoteSettingsSheets? =
+        entry(instanceId)?.settingsSheets
+
     fun popScreen(scope: String) = onMain {
         val entry = stacks[scope]?.removeLastOrNull() ?: return@onMain
         entry.release()
@@ -1006,6 +1062,31 @@ internal class NavigationStackController(
             }
         }
         return ::dispatch
+    }
+
+    /**
+     * [interceptor] for the screen of [entry], which also opens the WebDAV and S3 settings
+     * screens as the entry's native sheets.
+     */
+    private fun entryInterceptor(sessionKoin: Scope, entry: ScreenEntry): (NavigationIntent) -> Boolean {
+        val next = interceptor(sessionKoin)
+        return { intent ->
+            val scope = sessionScope
+            val claimed = scope != null && entry.settingsSheets.intercept(
+                intent = intent,
+                scope = scope,
+                sessionKoin = sessionKoin,
+                onWebDavChange = { snapshot ->
+                    entry.webDavSettings = snapshot
+                    emitFor(entry)
+                },
+                onS3Change = { snapshot ->
+                    entry.s3Settings = snapshot
+                    emitFor(entry)
+                },
+            )
+            claimed || next(intent)
+        }
     }
 
     /** Hands an intent that leaves the app to its native handler; `false` for any other intent. */
@@ -1213,6 +1294,12 @@ internal class NavigationStackController(
         is RouteDescriptor.Export ->
             ScreenKind.Export(title = descriptor.title, filter = descriptor.filter)
 
+        is RouteDescriptor.Import ->
+            ScreenKind.Import(
+                accountId = descriptor.accountId,
+                configuredBackup = descriptor.configuredBackup,
+            )
+
         is RouteDescriptor.CipherFilterView ->
             // The detail loads the DCipherFilter from the repo (no fallback model), so the
             // model never has to cross the bridge as serialized data.
@@ -1265,7 +1352,7 @@ internal class NavigationStackController(
                         sessionKoin = di,
                         itemId = kind.itemId,
                         accountId = kind.accountId,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                         publishTotp = { totp -> setEntryTotp(entry.instanceId, totp) },
                     ) { snapshot, handlers, favourite ->
                         entry.title = snapshot.title
@@ -1283,7 +1370,7 @@ internal class NavigationStackController(
                         ctx = ctx,
                         args = kind.args,
                         persistenceScope = stackedVaultListScope(kind),
-                        navigationInterceptorProvider = { sessionKoin -> interceptor(sessionKoin) },
+                        navigationInterceptorProvider = { sessionKoin -> entryInterceptor(sessionKoin, entry) },
                         openListCipher = ::openListCipher,
                     )
                 }
@@ -1292,7 +1379,7 @@ internal class NavigationStackController(
             // main thread), so they hold a KeyguardCancellable rather than a session-scope job.
             is ScreenKind.Watchtower -> {
                 val controller = WatchtowerController(ctx, kind.args, "watchtower.${entry.instanceId}")
-                controller.navigationInterceptorProvider = { sessionKoin -> interceptor(sessionKoin) }
+                controller.navigationInterceptorProvider = { sessionKoin -> entryInterceptor(sessionKoin, entry) }
                 val session = controller.makeSession()
                 entry.watchtowerSession = session
                 entry.cancellable = session.observe { snapshot ->
@@ -1303,7 +1390,7 @@ internal class NavigationStackController(
 
             is ScreenKind.WatchtowerAlerts -> {
                 val controller = WatchtowerController(ctx, persistenceScope = "watchtower.${entry.instanceId}")
-                controller.navigationInterceptorProvider = { sessionKoin -> interceptor(sessionKoin) }
+                controller.navigationInterceptorProvider = { sessionKoin -> entryInterceptor(sessionKoin, entry) }
                 entry.scopedWatchtowerController = controller
                 entry.cancellable = controller.observeWatchtowerNewAlerts(kind.args) { snapshot ->
                     entry.watchtowerAlerts = snapshot
@@ -1353,7 +1440,7 @@ internal class NavigationStackController(
                         scope = this,
                         sessionKoin = di,
                         accountId = kind.accountId,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers ->
                         entry.organizations = snapshot
                         entry.actionHandlers = handlers
@@ -1368,7 +1455,7 @@ internal class NavigationStackController(
                         sessionKoin = di,
                         accountId = kind.accountId,
                         organizationId = kind.organizationId,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers ->
                         entry.collections = snapshot
                         entry.actionHandlers = handlers
@@ -1383,7 +1470,7 @@ internal class NavigationStackController(
                         sessionKoin = di,
                         accountId = kind.accountId,
                         empty = kind.empty,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers ->
                         entry.folders = snapshot
                         entry.actionHandlers = handlers
@@ -1409,7 +1496,7 @@ internal class NavigationStackController(
                     entry.duplicatesSession = DuplicatesSession(
                         ctx = ctx,
                         filter = kind.filter,
-                        navigationInterceptorProvider = { sessionKoin -> interceptor(sessionKoin) },
+                        navigationInterceptorProvider = { sessionKoin -> entryInterceptor(sessionKoin, entry) },
                     )
                 }
 
@@ -1420,11 +1507,28 @@ internal class NavigationStackController(
                         sessionKoin = di,
                         title = kind.title,
                         filter = kind.filter,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers, state ->
                         entry.export = snapshot
                         entry.actionHandlers = handlers
                         entry.exportState = state
+                        emitFor(entry)
+                    }
+                }
+
+            is ScreenKind.Import ->
+                entry.job = scope.launch {
+                    importController.produceImportInto(
+                        scope = this,
+                        sessionKoin = di,
+                        accountId = kind.accountId,
+                        configuredBackup = kind.configuredBackup,
+                        interceptor = entryInterceptor(di, entry),
+                    ) { snapshot, handlers, input ->
+                        entry.title = snapshot.title
+                        entry.imports = snapshot
+                        entry.actionHandlers = handlers
+                        entry.importInput = input
                         emitFor(entry)
                     }
                 }
@@ -1434,7 +1538,7 @@ internal class NavigationStackController(
                     cipherFiltersController.produceFiltersInto(
                         scope = this,
                         sessionKoin = di,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot ->
                         entry.cipherFilters = snapshot
                         emitFor(entry)
@@ -1448,7 +1552,7 @@ internal class NavigationStackController(
                         sessionKoin = di,
                         filterId = kind.filterId,
                         fallbackModel = kind.model,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers ->
                         if (entry.title.isEmpty()) entry.title = snapshot.title
                         entry.cipherFilterDetail = snapshot
@@ -1462,7 +1566,7 @@ internal class NavigationStackController(
                     downloadsController.produceDownloadsInto(
                         scope = this,
                         sessionKoin = di,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers ->
                         entry.downloads = snapshot
                         entry.actionHandlers = handlers
@@ -1474,7 +1578,7 @@ internal class NavigationStackController(
                 entry.job = scope.launch {
                     feedbackController.produceFeedbackInto(
                         scope = this,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, state ->
                         entry.feedback = snapshot
                         entry.feedbackState = state

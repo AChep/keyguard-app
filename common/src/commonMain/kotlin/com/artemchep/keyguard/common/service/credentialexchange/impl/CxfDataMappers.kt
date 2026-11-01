@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfEditableField
+import com.artemchep.keyguard.common.service.imports.mapping.importedExpiryOrNull
 
 /**
  * The separator the three street-address lines are packed into one `string`
@@ -25,10 +26,6 @@ private const val ADDRESS_LINE_SEPARATOR = "\n"
 
 private const val YEAR_PAD = 4
 private const val MONTH_PAD = 2
-private const val MONTH_MIN = 1
-private const val MONTH_MAX = 12
-private const val TWO_DIGIT_YEAR_MAX = 99
-private const val TWO_DIGIT_YEAR_BASE = 2000
 
 /**
  * Maps a Keyguard card into a credit-card credential, or `null` when there is
@@ -58,20 +55,19 @@ internal fun yearMonthOrNull(
     month: String?,
     year: String?,
 ): CxfEditableField? {
-    val monthValue = month?.trim()?.toIntOrNull()
-        ?.takeIf { it in MONTH_MIN..MONTH_MAX }
-    val yearValue = year?.trim()?.toIntOrNull()
-        ?.takeIf { it >= 0 }
-        ?.let { value ->
-            if (value <= TWO_DIGIT_YEAR_MAX) value + TWO_DIGIT_YEAR_BASE else value
-        }
-    if (monthValue == null || yearValue == null) {
+    val expiry = importedExpiryOrNull(
+        month = month?.trim()?.toIntOrNull(),
+        year = year?.trim()?.toIntOrNull()?.takeIf { it >= 0 },
+    )
+    val yearValue = expiry?.year
+    val monthValue = expiry?.month
+    if (yearValue == null || monthValue == null) {
         return null
     }
     val value = buildString {
-        append(yearValue.toString().padStart(YEAR_PAD, '0'))
+        append(yearValue.padStart(YEAR_PAD, '0'))
         append('-')
-        append(monthValue.toString().padStart(MONTH_PAD, '0'))
+        append(monthValue.padStart(MONTH_PAD, '0'))
     }
     return CxfEditableField(
         fieldType = CxfEditableField.FIELD_TYPE_YEAR_MONTH,

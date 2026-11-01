@@ -79,8 +79,8 @@ class EnvironmentRepositoryImpl(
         if (!EnvironmentResolver.fitsLimits(definition) || EnvironmentResolver.validate(definition).isNotEmpty()) {
             throw EnvironmentServiceException("invalid_environment")
         }
-        try {
-            EnvironmentFormat.encode(definition)
+        val payload = try {
+            EnvironmentPayload.Decoded(definition, EnvironmentFormat.encode(definition), lossless = true)
         } catch (_: IllegalArgumentException) {
             // The checks above cover everything but the serialized-size bound.
             throw EnvironmentServiceException("environment_too_large")
@@ -97,7 +97,7 @@ class EnvironmentRepositoryImpl(
                 checkEditableEnvironment(old, accountId, ownership)
             }
             val target = ownership ?: old?.environmentOwnership() ?: EnvironmentOwnership()
-            val request = createEnvironmentRequest(old, accountId, name, definition, description, target)
+            val request = createEnvironmentRequest(old, accountId, name, payload, description, target)
             checkEnvironmentOperation()
             dependencies.addCipher(mapOf(id to request)).bind().single()
         }
@@ -171,7 +171,7 @@ private fun DSecret.environmentOwnership() = EnvironmentOwnership(
 )
 
 private fun createEnvironmentRequest(
-    old: DSecret?, accountId: String, name: String, definition: EnvironmentDefinition, description: String,
+    old: DSecret?, accountId: String, name: String, environment: EnvironmentPayload.Decoded, description: String,
     ownership: EnvironmentOwnership,
 ): CreateRequest = CreateRequest(
     ownership = CreateRequest.Ownership(
@@ -193,5 +193,5 @@ private fun createEnvironmentRequest(
             )
         }
     }.toPersistentList(),
-    type = DSecret.Type.Environment, environment = definition, now = Clock.System.now(),
+    type = DSecret.Type.Environment, environment = environment, now = Clock.System.now(),
 )

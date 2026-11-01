@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.staging.StagingSpoolEvent
 import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.common.service.staging.StagingSpoolObserver
 import com.artemchep.keyguard.common.service.staging.StagingSpoolOutcome
+import com.artemchep.keyguard.crypto.EncryptedChunkedSpillStorage
 import com.artemchep.keyguard.crypto.EncryptedTemporarySpillStorage
 import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.crypto.PrivateTemporaryStorage
@@ -75,6 +76,13 @@ internal class DefaultStagingSpoolFactory private constructor(
         StagingPurpose.BackupObjectUpload,
         -> ByteStoreFactory {
             EncryptedTemporarySpillStorage.create(
+                storage = scratchStorageFactory(),
+                checkCancellation = checkCancellation,
+            )
+        }
+
+        StagingPurpose.PreparedContentPlaintext -> ByteStoreFactory {
+            EncryptedChunkedSpillStorage.create(
                 storage = scratchStorageFactory(),
                 checkCancellation = checkCancellation,
             )

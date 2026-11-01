@@ -7,9 +7,13 @@ import com.artemchep.keyguard.util.io.bridge.NativeChunkedRawSink
 import com.artemchep.keyguard.util.io.bridge.NativeIo
 import com.artemchep.keyguard.util.io.bridge.completeNativeIoOperation
 import com.artemchep.keyguard.util.io.bridge.invalidNativeIoResult
+import com.artemchep.keyguard.util.io.spool.ByteSnapshotReader
+import com.artemchep.keyguard.util.io.spool.requireSnapshotReadRange
 import kotlinx.io.Buffer
+import kotlinx.io.EOFException
 import kotlinx.io.RawSink
 import kotlinx.io.RawSource
+import kotlinx.io.buffered
 
 /**
  * Pathless private scratch storage with a write → seal → read-many
@@ -35,6 +39,41 @@ interface PrivateTemporaryStorage : AutoCloseable {
 
     /** Returns a new source positioned at byte zero. */
     fun source(): RawSource
+
+    /**
+     * Fills `data[startIndex, endIndex)` from the sealed bytes at [position],
+     * stopping only at end-of-file, as [ByteSnapshotReader.readAt] does. Returns
+     * the byte count; zero means an empty range or a position at or beyond the
+     * end. Storage must be sealed and open even for an empty range.
+     * Safe to call from several threads at once.
+     *
+     * The default replays [source]; it is a reference for test doubles.
+     * Native storage reads the requested range directly.
+     */
+    fun readAt(
+        position: Long,
+        data: ByteArray,
+        startIndex: Int = 0,
+        endIndex: Int = data.size,
+    ): Int {
+        requireSnapshotReadRange(position, data, startIndex, endIndex)
+        var cursor = startIndex
+        source().buffered().use { source ->
+            if (startIndex == endIndex) return 0
+            val reached = try {
+                source.skip(position)
+                true
+            } catch (_: EOFException) {
+                false
+            }
+            while (reached && cursor < endIndex) {
+                val read = source.readAtMostTo(data, cursor, endIndex)
+                if (read == -1) break
+                cursor += read
+            }
+        }
+        return cursor - startIndex
+    }
 }
 
 /**
@@ -139,6 +178,41 @@ internal class NativePrivateTemporaryStorage(
             "Private temporary storage must be sealed before reading"
         }
         return NativeScratchRawSource()
+    }
+
+    override fun readAt(
+        position: Long,
+        data: ByteArray,
+        startIndex: Int,
+        endIndex: Int,
+    ): Int {
+        check(state === State.Sealed) {
+            "Private temporary storage is no longer readable"
+        }
+        requireSnapshotReadRange(position, data, startIndex, endIndex)
+        // Such a range lies beyond any file, and native positional reads reject its overflow.
+        if (position > Long.MAX_VALUE - (endIndex - startIndex)) return 0
+        var cursor = startIndex
+        while (cursor < endIndex) {
+            val step = minOf(endIndex - cursor, NATIVE_IO_CHUNK_SIZE)
+            val result = completeNativeIoOperation(
+                packedResult = calls.scratchReadAt(
+                    handle = handle,
+                    position = position + (cursor - startIndex),
+                    output = data,
+                    offset = cursor,
+                    length = step,
+                ),
+                subject = "scratchReadAt",
+            )
+            // The native ABI reports end-of-file as -1.
+            if (result == -1L) break
+            if (result <= 0L || result > step.toLong()) {
+                throw invalidNativeIoResult(subject = "scratchReadAt")
+            }
+            cursor += result.toInt()
+        }
+        return cursor - startIndex
     }
 
     override fun close() {

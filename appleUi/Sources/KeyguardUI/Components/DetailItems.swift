@@ -465,13 +465,17 @@ struct DetailRow: View {
                         systemImage: "doc",
                         title: item.title ?? "",
                         subtitle: item.text,
-                        disclosure: item.clickActionId == nil ? nil : "eye"
+                        disclosure: item.clickActionId == nil ? nil : "eye",
+                        attachmentDrag: item.attachment?.drag
                     )
                     attachmentStatus(item.attachment)
                         .padding(.leading, 32)
                 }
             }
             .modifier(DetailAttachmentAccessibility(item: item, invoke: invoke))
+            #if os(macOS)
+            .modifier(DetailAttachmentDrag(drag: item.attachment?.drag))
+            #endif
         } accessories: {
             #if os(iOS)
             if let action = item.actions.first(where: { $0.id == "\(item.id):attachment.openWith" }) {

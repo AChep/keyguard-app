@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.service.app.parser.AppStoreListingInfo
+import com.artemchep.keyguard.feature.dragout.compose.dragOutArea
+import com.artemchep.keyguard.feature.dragout.compose.dragOutHandle
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.error_failed_unknown
@@ -75,49 +77,65 @@ fun VaultViewUriItem(
         modifier = modifier,
         shapeState = item.shapeState,
         leading = {
-            item.icon()
+            Box(
+                modifier = Modifier
+                    .dragOutHandle(
+                        source = item.drag,
+                        // A tap on the icon still opens the row's actions.
+                        exclusiveTouch = false,
+                    ),
+            ) {
+                item.icon()
+            }
         },
         content = {
-            FlatItemTextContent(
-                title = {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
+            Column(
+                modifier = Modifier
+                    .dragOutArea(
+                        source = item.drag,
+                    ),
+            ) {
+                FlatItemTextContent(
+                    title = {
+                        Row(
                             modifier = Modifier
-                                .weight(1f),
-                            text = item.title,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 5,
-                        )
-                        ExpandedIfNotEmptyForRow(
-                            item.matchTypeTitle,
-                        ) { matchTypeTitle ->
-                            VaultViewOutlinedBadge(
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
                                 modifier = Modifier
-                                    .padding(
-                                        start = 8.dp,
-                                    ),
-                                text = matchTypeTitle,
+                                    .weight(1f),
+                                text = item.title,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 5,
+                            )
+                            ExpandedIfNotEmptyForRow(
+                                item.matchTypeTitle,
+                            ) { matchTypeTitle ->
+                                VaultViewOutlinedBadge(
+                                    modifier = Modifier
+                                        .padding(
+                                            start = 8.dp,
+                                        ),
+                                    text = matchTypeTitle,
+                                )
+                            }
+                        }
+                    },
+                    text = if (item.text != null) {
+                        // composable
+                        {
+                            Text(
+                                text = item.text,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 5,
                             )
                         }
-                    }
-                },
-                text = if (item.text != null) {
-                    // composable
-                    {
-                        Text(
-                            text = item.text,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 5,
-                        )
-                    }
-                } else {
-                    null
-                },
-            )
+                    } else {
+                        null
+                    },
+                )
+            }
             ExpandedIfNotEmpty(
                 item.warningTitle,
             ) { warningTitle ->

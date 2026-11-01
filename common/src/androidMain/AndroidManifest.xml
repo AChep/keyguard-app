@@ -385,6 +385,12 @@
         </service>
 
         <provider
+            android:name="com.artemchep.keyguard.feature.dragout.DragOutContentProvider"
+            android:authorities="${applicationId}.dragout"
+            android:exported="false"
+            android:grantUriPermissions="true" />
+
+        <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileProvider"
             android:exported="false"

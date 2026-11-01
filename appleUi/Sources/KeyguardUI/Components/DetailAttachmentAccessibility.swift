@@ -17,6 +17,7 @@ struct DetailAttachmentAccessibility: ViewModifier {
                     Text([item.title, item.text].compactMap { $0 }.joined(separator: ", "))
                 }
                 .accessibilityValue(statusText)
+                .accessibilityHint(item.attachment?.drag == nil ? "" : L10n.attachmentDragHint)
             }
         } else {
             content

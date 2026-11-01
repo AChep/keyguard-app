@@ -292,6 +292,7 @@ internal suspend fun buildVaultItemSnapshots(
                 actions = item.dropdown.toActionSnapshots(item.id),
                 shapeState = item.shapeState,
                 uriIcon = item.iconSource.toUriIconSnapshot(uriAppIcons),
+                dragUrl = item.drag?.url,
             )
 
             is VaultViewItem.Note -> {
@@ -768,7 +769,7 @@ internal suspend fun buildVaultItemSnapshots(
                     actions = att.actionsState.value.toActionSnapshots(item.id),
                     shapeState = item.shapeState,
                     clickActionId = clickActionId,
-                    attachment = attachmentSnap,
+                    attachment = attachmentSnap.copy(drag = item.drag?.let(::AttachmentDragSnapshot)),
                 )
             }
 
@@ -940,6 +941,7 @@ data class AttachmentFieldSnapshot(
     val progress: Float,
     val downloadedText: String?,
     val autoResume: Boolean,
+    val drag: AttachmentDragSnapshot? = null,
 )
 
 /**
@@ -1045,6 +1047,8 @@ data class VaultItemSnapshot(
     val clickActionId: String? = null,
     val badges: List<VaultBadgeSnapshot> = emptyList(),
     val attachment: AttachmentFieldSnapshot? = null,
+    /** URI only: the link the row offers by drag; null when it offers none. */
+    val dragUrl: String? = null,
     /** SPACER height in points. */
     val spacerHeight: Float = 0f,
     /**

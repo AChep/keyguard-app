@@ -1531,10 +1531,14 @@ name = "keyguard-lib"
 version = "3.6.1"
 dependencies = [
  "cc",
+ "jni",
+ "keyguard-ffi",
  "libc",
  "serde",
  "subtle",
+ "tempfile",
  "windows",
+ "windows-core",
  "windows-future",
  "zbus",
  "zeroize",

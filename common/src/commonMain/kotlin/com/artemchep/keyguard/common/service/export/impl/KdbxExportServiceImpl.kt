@@ -29,6 +29,7 @@ import com.artemchep.keyguard.common.service.staging.SpoolLimits
 import com.artemchep.keyguard.common.service.staging.StagingPurpose
 import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.common.usecase.GetFolderTreeById
+import com.artemchep.keyguard.common.util.claimNumberedName
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.feature.fileupload.isKeePassUploadFileSizeAllowed
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenCipherRepository
@@ -188,9 +189,11 @@ class KdbxExportServiceImpl internal constructor(
                     writer = writer,
                     loadAttachment = loadAttachment,
                 )
+                // KeePass finds the attachments of an entry by name, so
+                // a repeated name gets a number: `scan.pdf`, `scan (1).pdf`.
                 BinaryReference(
                     hash = hash,
-                    name = names.addUnique(attachment.fileName()),
+                    name = names.claimNumberedName(attachment.fileName(), firstNumber = 1),
                 )
             }
         } else {
@@ -298,23 +301,4 @@ private fun KeePassDatabase.withTrashedEntries(
             copy(entries = entries + trashedEntries)
         }
     }
-}
-
-/**
- * KeePass finds the attachments of an entry by name, so
- * a repeated name gets a number: `scan.pdf`, `scan (1).pdf`.
- */
-private fun MutableSet<String>.addUnique(fileName: String): String {
-    if (add(fileName)) {
-        return fileName
-    }
-
-    val extensionIndex = fileName.lastIndexOf('.')
-        .takeIf { it > 0 }
-        ?: fileName.length
-    val name = fileName.substring(0, extensionIndex)
-    val extension = fileName.substring(extensionIndex)
-    return generateSequence(1) { it + 1 }
-        .map { n -> "$name ($n)$extension" }
-        .first { add(it) }
 }

@@ -2867,4 +2867,8 @@
     <string name="text_diff_removed_line">Removed line</string>
     <string name="text_diff_original_line">Original line <xliff:g id="number" example="12">%1$d</xliff:g></string>
     <string name="text_diff_new_line">New line <xliff:g id="number" example="12">%1$d</xliff:g></string>
+    <string name="attachment_drag_preparing">Preparing file. Keep holding to drag.</string>
+    <string name="attachment_drag_hint">Drag attachment to another app</string>
+    <string name="attachment_drag_error">Could not prepare the attachment for dragging</string>
+    <string name="drag_out_error">Could not start dragging</string>
 </resources>

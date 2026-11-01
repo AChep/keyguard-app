@@ -21,3 +21,10 @@ xcrun clang -fobjc-arc \
   -o "$test_dir/autotype-target-test"
 
 "$test_dir/autotype-target-test"
+
+xcrun clang -fobjc-arc \
+  "$objc_root/tests/file_promise_test.m" \
+  -framework AppKit -framework UniformTypeIdentifiers \
+  -o "$test_dir/file-promise-test"
+
+"$test_dir/file-promise-test"

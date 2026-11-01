@@ -150,6 +150,13 @@
 # threads. Keep its method bodies as written, as for the transport above.
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.util.agentipc.** { *; }
 
+# The native drag bridges call these back by JNI name and signature, so no
+# bytecode calls them. Keep each method and its exact signature.
+-keepclassmembers class * implements com.artemchep.desktop.NativeDragCallbacks { <methods>; }
+-keepclassmembers class * implements com.artemchep.desktop.MacFilePromiseReader { <methods>; }
+-keepclassmembers class * implements com.artemchep.desktop.WindowsVirtualFileReader { <methods>; }
+-keepclassmembers class com.artemchep.desktop.WindowsVirtualFileEntry { <methods>; }
+
 # OkHttp supports optional TLS providers and GraalVM native-image integrations
 # that are not part of the Desktop application runtime.
 -dontwarn org.graalvm.nativeimage.**

@@ -25,6 +25,8 @@ import com.artemchep.keyguard.common.usecase.DownloadAttachment
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.common.usecase.ExportLogs
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
+import com.artemchep.keyguard.common.usecase.PrepareAttachmentContent
+import com.artemchep.keyguard.common.usecase.impl.PrepareAttachmentContentImpl
 import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.UploadGpgPublicKey
 import com.artemchep.keyguard.common.usecase.impl.BackupSettingsImpl
@@ -112,6 +114,8 @@ internal class VaultTransfersModule {
             scoped<DownloadAttachmentImpl2>() bind DownloadAttachment::class
 
             scoped<DownloadAttachmentMetadataImpl2>() bind DownloadAttachmentMetadata::class
+
+            scoped<PrepareAttachmentContentImpl>() bind PrepareAttachmentContent::class
 
             scoped<GetAttachmentPreviewImpl>() bind GetAttachmentPreview::class
 

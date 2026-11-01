@@ -70,12 +70,15 @@ fun DownloadWriter.writeBytes(data: ByteArray) {
             sink.write(data)
             sink.flush()
         }
+
+        is DownloadSnapshotWriter -> capture { sink, _ -> sink.write(data) }
     }
 }
 
 fun DownloadWriter.locationUri(): String? = when (this) {
     is DownloadWriter.LocalPathWriter -> path.toFileUriString()
     is DownloadWriter.SinkWriter -> null
+    is DownloadSnapshotWriter -> null
 }
 
 /**
@@ -90,10 +93,10 @@ internal fun DownloadWriter.writeVerifiedSource(
 ) {
     // The copy loop already checks for cancellation before every read, so the
     // destination sink does not need its own cancellation-checking wrapper.
-    fun copyVerifiedTo(output: Sink) {
+    fun copyVerifiedTo(output: Sink, check: () -> Unit = checkCancellation) {
         source.copyTo(
             output = output,
-            checkCancellation = checkCancellation,
+            checkCancellation = check,
             onProgress = onProgress,
         )
         output.flush()
@@ -108,6 +111,10 @@ internal fun DownloadWriter.writeVerifiedSource(
 
         is DownloadWriter.SinkWriter -> {
             copyVerifiedTo(sink)
+        }
+
+        is DownloadSnapshotWriter -> capture(checkCancellation) { output, check ->
+            copyVerifiedTo(output, check)
         }
     }
 }
@@ -149,6 +156,15 @@ internal fun DownloadWriter.writeSource(
                             }
                     }
             }
+        }
+
+        is DownloadSnapshotWriter -> capture(checkCancellation) { output, check ->
+            source.writePlaintextTo(
+                output = output,
+                key = key,
+                fileEncryptionCodec = fileEncryptionCodec,
+                checkCancellation = check,
+            )
         }
     }
 }

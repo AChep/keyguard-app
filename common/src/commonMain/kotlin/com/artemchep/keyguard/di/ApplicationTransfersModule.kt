@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLo
 import com.artemchep.keyguard.common.service.download.DownloadService
 import com.artemchep.keyguard.common.service.download.DownloadServiceImpl
 import com.artemchep.keyguard.common.service.download.DownloadTask
+import com.artemchep.keyguard.common.service.dragout.PreparedContentStore
 import com.artemchep.keyguard.common.service.download.DownloadTaskImpl
 import com.artemchep.keyguard.common.service.export.JsonExportService
 import com.artemchep.keyguard.common.service.export.impl.JsonExportServiceImpl
@@ -31,6 +32,7 @@ import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.usecase.ListS3Directory
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
+import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.impl.CheckS3ConnectionImpl
 import com.artemchep.keyguard.common.usecase.impl.GpgKeyExportImpl
 import com.artemchep.keyguard.common.usecase.impl.GpgKeyPrivateExportImpl
@@ -46,10 +48,18 @@ import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadCoordinatorImpl
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 import org.koin.plugin.module.dsl.single
 
 internal class ApplicationTransfersModule {
     val module = module {
+        single<PreparedContentStore> {
+            PreparedContentStore(
+                scope = getKoin().get<WindowCoroutineScope>(),
+                logRepository = get(),
+            )
+        } onClose { it?.close() }
+
         single<DownloadTask> {
             DownloadTaskImpl(
                 httpClient = get(),

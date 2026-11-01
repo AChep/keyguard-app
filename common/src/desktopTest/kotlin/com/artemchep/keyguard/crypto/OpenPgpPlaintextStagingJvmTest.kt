@@ -145,11 +145,3 @@ private fun stagingFactory(
         )
     }
 }
-
-private fun ByteArray.containsSubsequence(candidate: ByteArray): Boolean {
-    if (candidate.isEmpty()) return true
-    if (candidate.size > size) return false
-    return (0..size - candidate.size).any { offset ->
-        candidate.indices.all { index -> this[offset + index] == candidate[index] }
-    }
-}

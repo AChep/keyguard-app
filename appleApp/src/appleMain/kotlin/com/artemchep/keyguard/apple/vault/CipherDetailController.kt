@@ -13,6 +13,7 @@ import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.feature.home.vault.model.resolveWebsiteIconUrl
 import com.artemchep.keyguard.feature.home.vault.model.short
+import com.artemchep.keyguard.feature.attachments.model.AttachmentDragPreparer
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewState
 import com.artemchep.keyguard.feature.home.vault.screen.vaultViewScreenStateProducer
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -183,6 +184,7 @@ internal class CipherDetailController(
                 favouriteCipherById = get(),
                 downloadManager = get(),
                 downloadAttachment = get(),
+                prepareAttachmentDrag = AttachmentDragPreparer(get()),
                 removeAttachment = get(),
                 canPreviewAttachment = get(),
                 attachmentPreviewRouteFactory = get(),

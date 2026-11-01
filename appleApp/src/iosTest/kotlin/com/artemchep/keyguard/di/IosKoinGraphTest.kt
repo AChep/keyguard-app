@@ -43,6 +43,8 @@ import kotlin.test.assertNotSame
 import kotlin.test.assertNull
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
+import com.artemchep.keyguard.common.usecase.PrepareAttachmentContent
+import com.artemchep.keyguard.common.service.dragout.PreparedContentStore
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.test.runTest
@@ -51,6 +53,22 @@ import org.koin.core.error.NoDefinitionFoundException
 import org.koin.core.qualifier.named
 
 class IosKoinGraphTest {
+    @Test
+    fun `attachment export resolves inside the native vault scope`() = runTest {
+        withTestAppleStorage { directories ->
+            directories.withKoin { koin ->
+                val key = MasterKey(MasterKdfVersion.LATEST, ByteArray(32))
+                koin.withVaultSession(key) { session ->
+                    assertNotNull(session.resolve { get<PrepareAttachmentContent>() })
+                    assertSame(
+                        koin.get<PreparedContentStore>(),
+                        session.resolve { get<PreparedContentStore>() },
+                    )
+                }
+            }
+        }
+    }
+
     @Test
     fun `User ID management resolves the native mutation service`() {
         val application = createIosKoinApplication()

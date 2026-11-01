@@ -27,6 +27,10 @@ You can also drop a file onto the edit screen to add it.
 1. Open the item and select the attachment.
 2. Select **Download**.
 
+You can also drag a synced attachment from Item details into another app.
+Keyguard sends the file to the receiving app without a decrypted temporary copy.
+The receiving app or the operating system may keep its own copy.
+
 The **Downloads** screen, in the vault's menu, lists your downloads. A
 downloaded file stays until you select **Delete local file**.
 

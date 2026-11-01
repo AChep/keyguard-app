@@ -325,7 +325,9 @@ class KdbxExportServiceImplTest {
 
     @Test
     fun `export gives repeated attachment names a number`() = runTest {
-        val fileNames = listOf("scan.pdf", "scan.pdf", "notes", "notes")
+        val fileNames = listOf(
+            "scan.pdf", "scan.pdf", "scan (1).pdf", "Scan.pdf", "notes", "notes", ".env", ".env", "scan.pdf",
+        )
         val note = noteWithAttachment(size = 5L).let { cipher ->
             cipher.copy(
                 attachments = fileNames.mapIndexed { index, fileName ->
@@ -348,7 +350,10 @@ class KdbxExportServiceImplTest {
 
         val references = database.content.group.entries.single().binaries
         assertEquals(
-            listOf("scan.pdf", "scan (1).pdf", "notes", "notes (1)"),
+            listOf(
+                "scan.pdf", "scan (1).pdf", "scan (1) (1).pdf", "Scan.pdf",
+                "notes", "notes (1)", ".env", ".env (1)", "scan (2).pdf",
+            ),
             references.map { it.name },
         )
         val contents = references.map { reference ->

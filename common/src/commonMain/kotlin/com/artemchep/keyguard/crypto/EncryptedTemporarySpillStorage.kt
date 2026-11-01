@@ -6,13 +6,10 @@ import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
 import com.artemchep.keyguard.nativecrypto.NativeCryptoSession
 import com.artemchep.keyguard.util.foundation.constantTimeEquals
 import com.artemchep.keyguard.util.io.spool.ByteSnapshot
-import com.artemchep.keyguard.util.io.spool.ByteStoreWriter
 import com.artemchep.keyguard.util.io.consumeWithErasedBuffer
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
-import kotlinx.io.RawSink
 import kotlinx.io.RawSource
-import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlinx.io.readByteArray
@@ -22,12 +19,11 @@ import kotlinx.io.readByteArray
  * into private temporary storage.
  */
 internal class EncryptedTemporarySpillStorage private constructor(
-    private val storage: PrivateTemporaryStorage,
+    storage: PrivateTemporaryStorage,
     private val keys: FileEncryptionFormat.EncryptionKeys,
     private val iv: ByteArray,
-    private val checkCancellation: () -> Unit,
-) : ByteStoreWriter {
-    private val ciphertextSink = storage.sink().buffered()
+    checkCancellation: () -> Unit,
+) : EncryptingSpillWriter<ByteSnapshot>(storage, checkCancellation) {
     private var encryptor: NativeAesCbcPkcs7HmacSha256EncryptSession? =
         NativeCryptoPrimitives.createAesCbcPkcs7HmacSha256Encryptor(
             encryptionKey = keys.encKey,
@@ -36,150 +32,14 @@ internal class EncryptedTemporarySpillStorage private constructor(
         )
     private var plaintextBytes = 0L
     private var ciphertextBytes = 0L
-    private var sinkClaimed = false
-    private var inputClosed = false
-    private var sealed = false
-    private var ownershipTransferred = false
-    private var discarding = false
-    private var closed = false
 
-    private val plaintextRawSink = object : RawSink {
-        override fun write(source: Buffer, byteCount: Long) {
-            if (discarding) {
-                source.skip(byteCount)
-                return
-            }
-            checkWritable()
-            require(byteCount >= 0L && byteCount <= source.size) {
-                "Invalid encrypted spill write size"
-            }
-
-            val transfer = ByteArray(minOf(byteCount, STAGING_BUFFER_BYTES.toLong()).toInt())
-            try {
-                var remaining = byteCount
-                while (remaining > 0L) {
-                    checkCancellation()
-                    val requested = minOf(remaining, transfer.size.toLong()).toInt()
-                    val read = source.readAtMostTo(
-                        transfer,
-                        startIndex = 0,
-                        endIndex = requested,
-                    )
-                    check(read > 0) { "Encrypted spill source ended early" }
-                    try {
-                        encrypt(transfer, length = read)
-                    } finally {
-                        transfer.fill(0, fromIndex = 0, toIndex = read)
-                    }
-                    remaining -= read
-                }
-            } finally {
-                transfer.fill(0)
-            }
-        }
-
-        override fun flush() {
-            if (discarding) return
-            ciphertextSink.flush()
-        }
-
-        override fun close() {
-            inputClosed = true
-        }
-    }
-    private val plaintextSink = plaintextRawSink.buffered()
-
-    override fun sink(): Sink {
-        check(!closed) { "Encrypted spill storage is closed" }
-        check(!sealed) { "Encrypted spill storage is sealed" }
-        check(!sinkClaimed) { "Encrypted spill storage sink has already been acquired" }
-        sinkClaimed = true
-        return plaintextSink
-    }
-
-    override fun seal(): ByteSnapshot {
-        check(!closed) { "Encrypted spill storage is closed" }
-        check(!sealed) { "Encrypted spill storage is already sealed" }
-        val session = checkNotNull(encryptor)
-        val expectedMac = try {
-            session.use {
-                plaintextSink.close()
-                checkCancellation()
-                val result = session.finish()
-                try {
-                    checkCancellation()
-                    ciphertextSink.write(result.ciphertext)
-                    ciphertextBytes += result.ciphertext.size
-                    ciphertextSink.close()
-                    storage.sealForReading()
-                    result.mac.copyOf()
-                } finally {
-                    result.ciphertext.fill(0)
-                    result.mac.fill(0)
-                }
-            }
-        } finally {
-            encryptor = null
-        }
-        sealed = true
-        ownershipTransferred = true
-        return EncryptedTemporaryByteSnapshot(
-            storage = storage,
-            keys = keys,
-            iv = iv,
-            expectedMac = expectedMac,
-            ciphertextBytes = ciphertextBytes,
-            size = plaintextBytes,
-            checkCancellation = checkCancellation,
-        )
-    }
-
-    override fun close() {
-        if (closed) return
-        // Plaintext still buffered in the sink is discarded, not flushed: the
-        // abandon path must not fail on it, and its ciphertext could only
-        // reach a file which is about to be deleted.
-        discarding = true
-        closed = true
-        var failure: Throwable? = null
-        try {
-            plaintextSink.close()
-        } catch (e: Throwable) {
-            failure = e
-        }
-        try {
-            encryptor?.close()
-        } catch (e: Throwable) {
-            failure?.addSuppressed(e) ?: run { failure = e }
-        }
-        try {
-            ciphertextSink.close()
-        } catch (e: Throwable) {
-            failure?.addSuppressed(e) ?: run { failure = e }
-        }
-        if (!ownershipTransferred) {
-            try {
-                storage.close()
-            } catch (e: Throwable) {
-                failure?.addSuppressed(e) ?: run { failure = e }
-            } finally {
-                with(NativeFileCrypto) { keys.clear() }
-                iv.fill(0)
-            }
-        }
-        failure?.let { throw it }
-    }
-
-    private fun encrypt(
-        source: ByteArray,
-        length: Int,
-    ) {
+    override fun absorb(bytes: ByteArray, length: Int) {
         val session = checkNotNull(encryptor)
         var offset = 0
         while (offset < length) {
             checkCancellation()
             val chunkLength = minOf(NATIVE_CRYPTO_STREAM_CHUNK_BYTES, length - offset)
-            val ciphertext = session.update(source, offset, chunkLength)
+            val ciphertext = session.update(bytes, offset, chunkLength)
             try {
                 checkCancellation()
                 ciphertextSink.write(ciphertext)
@@ -192,11 +52,41 @@ internal class EncryptedTemporarySpillStorage private constructor(
         }
     }
 
-    private fun checkWritable() {
-        check(!closed) { "Encrypted spill storage is closed" }
-        check(!sealed) { "Encrypted spill storage is sealed" }
-        check(!inputClosed) { "Encrypted spill storage input is closed" }
-        checkCancellation()
+    override fun finishSeal(): ByteSnapshot {
+        val session = checkNotNull(encryptor)
+        encryptor = null
+        val expectedMac = session.use {
+            val result = session.finish()
+            try {
+                checkCancellation()
+                ciphertextSink.write(result.ciphertext)
+                ciphertextBytes += result.ciphertext.size
+                ciphertextSink.close()
+                storage.sealForReading()
+                result.mac.copyOf()
+            } finally {
+                result.ciphertext.fill(0)
+                result.mac.fill(0)
+            }
+        }
+        return EncryptedTemporaryByteSnapshot(
+            storage = storage,
+            keys = keys,
+            iv = iv,
+            expectedMac = expectedMac,
+            ciphertextBytes = ciphertextBytes,
+            size = plaintextBytes,
+            checkCancellation = checkCancellation,
+        )
+    }
+
+    override fun closeEncryptor() {
+        encryptor?.close()
+    }
+
+    override fun releaseSecrets() {
+        with(NativeFileCrypto) { keys.clear() }
+        iv.fill(0)
     }
 
     companion object {
@@ -214,38 +104,22 @@ internal class EncryptedTemporarySpillStorage private constructor(
             storage: PrivateTemporaryStorage,
             checkCancellation: () -> Unit = {},
             randomBytes: (Int) -> ByteArray,
-        ): EncryptedTemporarySpillStorage {
-            var keys: FileEncryptionFormat.EncryptionKeys? = null
-            var iv: ByteArray? = null
-            try {
-                checkCancellation()
-                val keyMaterial = randomBytes(STAGING_KEY_BYTES)
-                val createdKeys = try {
-                    FileEncryptionFormat.requireAesCbc256HmacSha256Keys(keyMaterial)
-                } finally {
-                    keyMaterial.fill(0)
-                }
-                keys = createdKeys
-
-                val createdIv = randomBytes(FileEncryptionFormat.IV_LENGTH)
-                iv = createdIv
-
-                return EncryptedTemporarySpillStorage(
-                    storage = storage,
-                    keys = createdKeys,
-                    iv = createdIv,
-                    checkCancellation = checkCancellation,
-                )
-            } catch (failure: Throwable) {
-                keys?.let { value ->
-                    with(NativeFileCrypto) { value.clear() }
-                }
-                iv?.fill(0)
-                runCatching { storage.close() }
-                    .exceptionOrNull()
-                    ?.let(failure::addSuppressed)
-                throw failure
+        ): EncryptedTemporarySpillStorage = createOwning(storage, checkCancellation) { wipeOnFailure ->
+            val keyMaterial = randomBytes(STAGING_KEY_BYTES)
+            val keys = try {
+                FileEncryptionFormat.requireAesCbc256HmacSha256Keys(keyMaterial)
+            } finally {
+                keyMaterial.fill(0)
             }
+            wipeOnFailure += { with(NativeFileCrypto) { keys.clear() } }
+            val iv = randomBytes(FileEncryptionFormat.IV_LENGTH)
+            wipeOnFailure += { iv.fill(0) }
+            EncryptedTemporarySpillStorage(
+                storage = storage,
+                keys = keys,
+                iv = iv,
+                checkCancellation = checkCancellation,
+            )
         }
 
         const val STAGING_KEY_BYTES = 64

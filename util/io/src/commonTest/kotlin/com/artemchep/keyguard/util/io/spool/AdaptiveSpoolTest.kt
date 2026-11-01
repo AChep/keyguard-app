@@ -12,6 +12,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertTrue
 
 class AdaptiveSpoolTest {
@@ -53,6 +54,44 @@ class AdaptiveSpoolTest {
         snapshot.use {
             assertContentEquals(payload, snapshot.readBytes())
             assertContentEquals(payload, snapshot.readBytes())
+        }
+    }
+
+    @Test
+    fun memorySnapshotReadsArbitraryOffsetsAcrossUnevenChunks() {
+        val payload = ByteArray(200_000) { index -> (index % 251).toByte() }
+        val snapshot = AdaptiveSpool(
+            memoryLimitBytes = payload.size.toLong(),
+            maximumBytes = payload.size.toLong(),
+            spillFactory = ::FakeByteStoreWriter,
+        ).use { spool ->
+            spool.sink().use { sink ->
+                // Flushing between uneven writes stores chunks of different sizes.
+                var offset = 0
+                var step = 7
+                while (offset < payload.size) {
+                    val end = minOf(payload.size, offset + step)
+                    sink.write(payload, offset, end)
+                    sink.flush()
+                    offset = end
+                    step = step * 5 + 3
+                }
+            }
+            spool.seal()
+        }
+
+        snapshot.use {
+            val random = assertIs<RandomAccessByteSnapshot>(snapshot)
+            random.openReader().use { reader ->
+                listOf(0, 1, 6, 7, 65_535, 65_536, 131_071, 199_990).forEach { position ->
+                    val output = ByteArray(70_000)
+                    val expected = minOf(output.size, payload.size - position)
+                    assertEquals(expected, reader.readAt(position.toLong(), output))
+                    assertContentEquals(payload.copyOfRange(position, position + expected), output.copyOf(expected))
+                }
+                assertEquals(0, reader.readAt(payload.size.toLong(), ByteArray(1)))
+                assertFailsWith<IllegalArgumentException> { reader.readAt(-1, ByteArray(1)) }
+            }
         }
     }
 

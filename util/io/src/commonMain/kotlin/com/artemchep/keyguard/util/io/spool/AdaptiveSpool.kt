@@ -275,8 +275,24 @@ class AdaptiveSpool(
 private class MemoryByteSnapshot(
     private val chunks: List<ByteArray>,
     override val size: Long,
-) : ByteSnapshot {
+) : RandomAccessByteSnapshot {
     private var closed = false
+
+    /** Logical start of every chunk; writes produce chunks of varying sizes. */
+    private val chunkStarts = LongArray(chunks.size).also { starts ->
+        var start = 0L
+        chunks.forEachIndexed { index, chunk ->
+            starts[index] = start
+            start += chunk.size
+        }
+    }
+
+    /** The last chunk starting at or before [position]; chunks are never empty. */
+    private fun chunkContaining(position: Long): Int {
+        val index = chunkStarts.asList().binarySearch(position)
+        // A miss returns -(insertion point) - 1; the chunk before the insertion point holds it.
+        return if (index >= 0) index else -index - 2
+    }
 
     override fun openSource(): Source {
         check(!closed) { "Memory byte snapshot is closed" }
@@ -284,6 +300,36 @@ private class MemoryByteSnapshot(
             chunks = chunks,
             checkOpen = { check(!closed) { "Memory byte snapshot is closed" } },
         ).buffered()
+    }
+
+    override fun openReader(): ByteSnapshotReader {
+        check(!closed) { "Memory byte snapshot is closed" }
+        return object : ByteSnapshotReader {
+            private var readerClosed = false
+
+            override fun readAt(position: Long, data: ByteArray, startIndex: Int, endIndex: Int): Int {
+                check(!readerClosed) { "Memory byte snapshot reader is closed" }
+                check(!closed) { "Memory byte snapshot is closed" }
+                requireSnapshotReadRange(position, data, startIndex, endIndex)
+                if (startIndex == endIndex || position >= size) return 0
+                var chunkIndex = chunkContaining(position)
+                var chunkOffset = (position - chunkStarts[chunkIndex]).toInt()
+                var cursor = startIndex
+                while (cursor < endIndex && chunkIndex < chunks.size) {
+                    val chunk = chunks[chunkIndex]
+                    val length = minOf(endIndex - cursor, chunk.size - chunkOffset)
+                    chunk.copyInto(data, cursor, chunkOffset, chunkOffset + length)
+                    cursor += length
+                    chunkIndex += 1
+                    chunkOffset = 0
+                }
+                return cursor - startIndex
+            }
+
+            override fun close() {
+                readerClosed = true
+            }
+        }
     }
 
     override fun close() {

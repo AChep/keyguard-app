@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.staging.StagingSpoolEvent
 import com.artemchep.keyguard.common.service.staging.StagingSpoolObserver
 import com.artemchep.keyguard.common.service.staging.StagingSpoolOutcome
 import com.artemchep.keyguard.crypto.TestPrivateTemporaryStorage
+import com.artemchep.keyguard.crypto.containsSubsequence
 import com.artemchep.keyguard.crypto.readBytes
 import com.artemchep.keyguard.util.io.InternalKeyguardIoApi
 import kotlinx.io.IOException
@@ -195,14 +196,3 @@ class DefaultStagingSpoolFactoryTest {
 private fun testLimitExceeded(
     maximumBytes: Long,
 ) = IOException("Test staging limit exceeded: $maximumBytes")
-
-private fun ByteArray.containsSubsequence(candidate: ByteArray): Boolean =
-    when {
-        candidate.isEmpty() -> true
-
-        candidate.size > size -> false
-
-        else -> (0..size - candidate.size).any { offset ->
-            candidate.indices.all { index -> this[offset + index] == candidate[index] }
-        }
-    }

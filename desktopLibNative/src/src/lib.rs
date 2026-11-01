@@ -3,11 +3,17 @@
 mod accent;
 mod autotype;
 mod biometrics;
+mod drag;
+#[cfg(any(target_os = "macos", windows))]
+mod drag_jni;
 mod ffi;
+#[cfg(target_os = "macos")]
+mod file_promise;
 mod hotkey;
 mod keychain;
 mod notification;
 mod power;
+mod virtual_file;
 
 use ffi::{
     AutoTypeActiveCallback, BiometricsResultCallback, BiometricsVerifyCallback,

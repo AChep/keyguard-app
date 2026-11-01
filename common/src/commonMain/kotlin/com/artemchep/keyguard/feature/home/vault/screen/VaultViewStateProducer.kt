@@ -37,6 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -116,6 +119,7 @@ import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
 import com.artemchep.keyguard.common.service.crypto.problemAt
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.service.download.DownloadManager
+import com.artemchep.keyguard.common.service.dragout.dragOutFileName
 import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractor
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractorRegistry
@@ -151,6 +155,7 @@ import com.artemchep.keyguard.common.usecase.CopyCipherById
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.DownloadAttachment
+import com.artemchep.keyguard.common.usecase.PrepareAttachmentContent
 import com.artemchep.keyguard.common.usecase.FavouriteCipherById
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetAppIcons
@@ -203,6 +208,10 @@ import com.artemchep.keyguard.core.store.bitwarden.canRetry
 import com.artemchep.keyguard.core.store.bitwarden.expired
 import com.artemchep.keyguard.core.store.bitwarden.message
 import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRouteFactory
+import com.artemchep.keyguard.feature.attachments.model.AttachmentDragPreparer
+import com.artemchep.keyguard.feature.dragout.model.DragOutSource
+import com.artemchep.keyguard.feature.dragout.model.draggableUrl
+import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
 import com.artemchep.keyguard.feature.attachments.util.createAttachmentItem
 import com.artemchep.keyguard.feature.attachments.util.createPendingAttachmentItem
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
@@ -412,6 +421,7 @@ fun vaultViewScreenState(
         favouriteCipherById = get(),
         downloadManager = get(),
         downloadAttachment = get(),
+        prepareAttachmentDrag = AttachmentDragPreparer(get()),
         removeAttachment = get(),
         canPreviewAttachment = get(),
         attachmentPreviewRouteFactory = get(),
@@ -529,6 +539,7 @@ fun vaultViewScreenState(
     favouriteCipherById: FavouriteCipherById,
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
+    prepareAttachmentDrag: AttachmentDragPreparer,
     removeAttachment: RemoveAttachment,
     canPreviewAttachment: CanPreviewAttachment,
     attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
@@ -640,6 +651,7 @@ fun vaultViewScreenState(
         favouriteCipherById = favouriteCipherById,
         downloadManager = downloadManager,
         downloadAttachment = downloadAttachment,
+        prepareAttachmentDrag = prepareAttachmentDrag,
         removeAttachment = removeAttachment,
         canPreviewAttachment = canPreviewAttachment,
         attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
@@ -730,6 +742,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
     favouriteCipherById: FavouriteCipherById,
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
+    prepareAttachmentDrag: AttachmentDragPreparer,
     removeAttachment: RemoveAttachment,
     canPreviewAttachment: CanPreviewAttachment,
     attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
@@ -1682,6 +1695,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                         hasCanNotSeePassword = hasCanNotSeePassword,
                         downloadManager = downloadManager,
                         downloadAttachment = downloadAttachment,
+                        prepareAttachmentDrag = prepareAttachmentDrag,
                         removeAttachment = removeAttachment,
                         canPreviewAttachment = canPreviewAttachment,
                         attachmentPreviewRouteFactory = attachmentPreviewRouteFactory,
@@ -1761,6 +1775,7 @@ private fun RememberStateFlowScope.oh(
     hasCanNotSeePassword: Boolean,
     downloadManager: DownloadManager,
     downloadAttachment: DownloadAttachment,
+    prepareAttachmentDrag: AttachmentDragPreparer,
     removeAttachment: RemoveAttachment,
     canPreviewAttachment: CanPreviewAttachment,
     attachmentPreviewRouteFactory: AttachmentPreviewRouteFactory,
@@ -2907,6 +2922,7 @@ private fun RememberStateFlowScope.oh(
             .mapIndexed { index, holder ->
                 val id = "link.app.$index"
                 val item = createUriItem(
+                    sharingScope = sharingScope,
                     canEdit = canEdit,
                     contentColor = contentColor,
                     disabledContentColor = disabledContentColor,
@@ -2955,6 +2971,7 @@ private fun RememberStateFlowScope.oh(
             .mapIndexed { index, holder ->
                 val id = "link.website.$index"
                 val item = createUriItem(
+                    sharingScope = sharingScope,
                     canEdit = canEdit,
                     contentColor = contentColor,
                     disabledContentColor = disabledContentColor,
@@ -3174,9 +3191,45 @@ private fun RememberStateFlowScope.oh(
                         removeIo = removeIo,
                         verify = verify,
                     )
+                    val dragFileName = dragOutFileName(actualItem.name)
                     val wrapperItem = VaultViewItem.Attachment(
                         id = actualItem.key,
                         item = actualItem,
+                        drag = if (prepareAttachmentDrag.canPrepare(attachment.size)) DragOutSource(
+                            scope = sharingScope,
+                            label = dragFileName,
+                            // A re-prompt dialog cannot appear while a native drag is in flight.
+                            promisedFileName = dragFileName.takeIf { verify == null },
+                            errorTitle = TextHolder.Res(Res.string.attachment_drag_error),
+                            registerCancellation = { cancel ->
+                                interceptKeyEvent(flowOf { event ->
+                                    if (event.key == Key.Escape && event.type == KeyEventType.KeyDown) {
+                                        cancel()
+                                        true
+                                    } else false
+                                })
+                            },
+                            prepare = { onProgress ->
+                                // Native drags cannot wait through an authentication dialog.
+                                // Remember authorization, then let the user start a fresh gesture.
+                                var authorized = verify == null
+                                verify?.invoke { authorized = true }
+                                if (authorized) {
+                                    val status = actualItem.statusState.value
+                                    prepareAttachmentDrag(
+                                        PrepareAttachmentContent.Request(
+                                            attachment = DownloadAttachmentRequest.ByLocalCipherAttachment(
+                                                cipher, attachment,
+                                            ),
+                                            name = actualItem.name,
+                                            localUri = (status as? AttachmentItem.Status.Downloaded)?.localUrl,
+                                        ),
+                                        onProgress,
+                                    )
+                                } else null
+                            },
+                            onError = ::message,
+                        ) else null,
                     )
                     emit(wrapperItem)
                 }
@@ -3710,6 +3763,7 @@ private fun RememberStateFlowScope.cipherRelationItems(
 }
 
 private suspend fun RememberStateFlowScope.createUriItem(
+    sharingScope: CoroutineScope,
     canEdit: Boolean,
     contentColor: Color,
     disabledContentColor: Color,
@@ -3939,6 +3993,8 @@ private suspend fun RememberStateFlowScope.createUriItem(
                 matchTypeTitle = matchTypeTitle,
                 dropdown = dropdown,
                 overrides = overrides,
+                drag = draggableUrl(platformMarker.url, holder.uri.match)
+                    ?.let { DragOutSource.url(sharingScope, it, onError = ::message) },
             )
         }
 

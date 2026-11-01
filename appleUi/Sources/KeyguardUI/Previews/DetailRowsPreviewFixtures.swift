@@ -13,7 +13,7 @@ enum DetailRowsPreviewFixtures {
         actions: [VaultActionSnapshot] = [], click: String? = nil, concealed: Bool = false,
         visible: Bool = false, locked: Bool = false, reveal: String? = nil,
         totp: TotpFieldSnapshot? = nil, attachment: AttachmentFieldSnapshot? = nil,
-        url: String? = nil, markdown: Bool = false, monospace: Bool = false,
+        dragUrl: String? = nil, url: String? = nil, markdown: Bool = false, monospace: Bool = false,
         severity: VaultAlertSeverity? = nil, colorize: Bool = false, uriIcon: UriIconSnapshot? = nil,
         reference: VaultReferenceSnapshot? = nil, label: String? = nil
     ) -> VaultItemSnapshot {
@@ -22,7 +22,7 @@ enum DetailRowsPreviewFixtures {
             totp: totp, launchUrl: url, switchValue: true, actions: actions, markdown: markdown,
             avatarUrl: nil, shapeState: -1, clickActionId: click,
             badges: kind == .quickBadges ? [VaultBadgeSnapshot(title: "Personal", text: "Synced")] : [],
-            attachment: attachment, spacerHeight: 16, cardBrand: kind == .card ? "Visa" : nil,
+            attachment: attachment, dragUrl: dragUrl, spacerHeight: 16, cardBrand: kind == .card ? "Visa" : nil,
             cardNumberFormatted: kind == .card && visible ? "4111 1111 1111 1111" : nil,
             cardNumberObscured: kind == .card ? "•••• •••• •••• 1111" : nil,
             isVisible: visible, revealActionId: reveal, revealLocked: locked, alertSeverity: severity,
@@ -40,7 +40,7 @@ enum DetailRowsPreviewFixtures {
             item("uris", .section, title: "Linked URIs / apps"),
             item(
                 "web", .uri, title: "https://example.com", actions: actions,
-                uriIcon: UriIconSnapshot(kind: .website, url: nil)),
+                dragUrl: "https://example.com", uriIcon: UriIconSnapshot(kind: .website, url: nil)),
             item(
                 "ios", .uri, title: "com.example.ios", actions: [action("copy-ios", "Copy bundle ID", copy: true)],
                 uriIcon: UriIconSnapshot(kind: .app, url: nil)),
@@ -240,15 +240,16 @@ enum DetailRowsPreviewFixtures {
                 "file-\(index)", .attachment, title: "Attachment \(index + 1).txt", text: "2 MB",
                 actions: [action("file-action-\(index)", "File action")], click: "file-preview-\(index)",
                 attachment: AttachmentFieldSnapshot(
-                    status: state, progress: 0.5, downloadedText: "1 MB", autoResume: false))
+                    status: state, progress: 0.5, downloadedText: "1 MB", autoResume: false, drag: nil))
         } + [
             item(
                 "indeterminate", .attachment, title: "Starting download.txt",
                 attachment: AttachmentFieldSnapshot(
-                    status: .loading, progress: -1, downloadedText: nil, autoResume: false)),
+                    status: .loading, progress: -1, downloadedText: nil, autoResume: false, drag: nil)),
             item(
                 "auto-resume", .attachment, title: "Will resume.txt",
-                attachment: AttachmentFieldSnapshot(status: .failed, progress: 0, downloadedText: nil, autoResume: true)
+                attachment: AttachmentFieldSnapshot(
+                    status: .failed, progress: 0, downloadedText: nil, autoResume: true, drag: nil)
             ),
             item("otp-loading", .totp, title: "Loading code", totp: TotpFieldSnapshot.companion.loading),
             item("otp-error", .totp, title: "Invalid code", totp: TotpFieldSnapshot.companion.error),

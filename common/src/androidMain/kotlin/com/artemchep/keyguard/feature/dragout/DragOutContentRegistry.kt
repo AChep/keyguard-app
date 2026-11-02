@@ -10,7 +10,6 @@ import com.artemchep.keyguard.common.service.dragout.PreparedContentReader
 import java.io.FileNotFoundException
 import java.util.Locale
 import java.util.UUID
-import java.util.concurrent.Executors
 
 /**
  * Process-owned map from capability URIs to prepared content. Provider startup never opens
@@ -20,11 +19,6 @@ import java.util.concurrent.Executors
 internal object DragOutContentRegistry {
     private val lock = Any()
     private val entries = mutableMapOf<String, Entry>()
-    private val cleanupExecutor by lazy {
-        Executors.newSingleThreadExecutor { runnable ->
-            Thread(runnable, "drag-out-cleanup").apply { isDaemon = true }
-        }
-    }
 
     /** Takes ownership, including when registration fails. */
     @Suppress("TooGenericExceptionCaught")
@@ -101,18 +95,6 @@ internal object DragOutContentRegistry {
                 closed = true
             }
             reader.close()
-        }
-    }
-
-    /** Rare dead-looper rollback still closes prepared readers off Binder/main. */
-    @Suppress("TooGenericExceptionCaught")
-    fun releaseOffThread(action: () -> Unit) {
-        try {
-            cleanupExecutor.execute(action)
-        } catch (failure: Throwable) {
-            failure.throwIfDragOutFatal()
-            // The outstanding lease keeps its reader quota, bounding failed cleanup resources.
-            Log.w("DragOutContent", "Could not schedule content reader release")
         }
     }
 

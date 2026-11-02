@@ -55,7 +55,7 @@ class DragOutContentProvider : ContentProvider() {
 
     override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor = openFile(uri, mode, null)
 
-    // The descriptor callback owns its admitted lease and thread, including every failed opening path.
+    // The descriptor callback owns its admitted lease, including every failed opening path.
     @Suppress("TooGenericExceptionCaught", "ThrowsCount")
     override fun openFile(uri: Uri, mode: String, signal: CancellationSignal?): ParcelFileDescriptor {
         val appContext = authorizedContext(uri)
@@ -65,11 +65,10 @@ class DragOutContentProvider : ContentProvider() {
         var callback: ReaderCallback? = null
         var descriptor: ParcelFileDescriptor? = null
         try {
-            val worker = HandlerThread("drag-out-content-reader").apply { start() }
-            callback = ReaderCallback(lease, worker)
+            callback = ReaderCallback(lease)
             val storage = appContext.getSystemService(StorageManager::class.java) ?: throw unavailable()
             descriptor = storage.openProxyFileDescriptor(
-                ParcelFileDescriptor.MODE_READ_ONLY, callback, Handler(worker.looper),
+                ParcelFileDescriptor.MODE_READ_ONLY, callback, callback.handler,
             )
             signal?.throwIfCanceled()
             return descriptor
@@ -81,7 +80,12 @@ class DragOutContentProvider : ContentProvider() {
                     cleanupFailure.throwIfDragOutFatal()
                 }
             } finally {
-                if (callback == null) lease.close() else callback.release()
+                when {
+                    callback == null -> lease.close()
+                    // Without a descriptor, the framework never calls the callback's onRelease.
+                    descriptor == null -> callback.unbind()
+                    else -> callback.release()
+                }
             }
             if (failure is android.os.OperationCanceledException) throw failure
             failure.throwIfDragOutFatal()
@@ -112,17 +116,17 @@ class DragOutContentProvider : ContentProvider() {
 
     /**
      * The recipient alone decides when to close its descriptor. A descriptor left idle
-     * loses its reader, so it no longer holds the content, its reader slot, or its storage;
-     * only the parked worker remains until [onRelease].
+     * loses its reader, so it no longer holds the content, its reader slot, or its storage,
+     * and its thread may serve another reader; only this callback remains until [onRelease].
      */
     private class ReaderCallback(
         private val lease: DragOutContentRegistry.DescriptorLease,
-        private val worker: HandlerThread,
     ) : ProxyFileDescriptorCallback() {
         private val released = AtomicBoolean()
-        private val handler = Handler(worker.looper)
+        private val binding = ReaderThreads.bind()
+        val handler = binding.handler
         private val idleCheck = Runnable(::checkIdle)
-        // Confined to the worker, like every callback below.
+        // Confined to the reader thread, like every callback below.
         private var failed = false
         private var lastActivity = SystemClock.elapsedRealtime()
 
@@ -149,6 +153,7 @@ class DragOutContentProvider : ContentProvider() {
             } catch (failure: Throwable) {
                 data.fill(0, 0, size)
                 failed = true
+                binding.stopReading()
                 try {
                     lease.reader.close()
                 } catch (cleanupFailure: Throwable) {
@@ -159,7 +164,7 @@ class DragOutContentProvider : ContentProvider() {
             }
         }
 
-        override fun onRelease() = release()
+        override fun onRelease() = unbind()
 
         @Suppress("TooGenericExceptionCaught")
         private fun checkIdle() {
@@ -170,6 +175,7 @@ class DragOutContentProvider : ContentProvider() {
                 return
             }
             failed = true
+            binding.stopReading()
             try {
                 lease.close()
             } catch (failure: Throwable) {
@@ -180,28 +186,82 @@ class DragOutContentProvider : ContentProvider() {
 
         fun release() {
             if (!released.compareAndSet(false, true)) return
-            if (Looper.myLooper() == worker.looper) {
-                closeLease()
-            } else if (!handler.post(::closeLease)) {
-                // The looper is already dead. Roll back admission rather than retaining quota forever.
-                DragOutContentRegistry.releaseOffThread(::closeLease)
-            }
+            if (Looper.myLooper() == handler.looper) closeLease() else handler.post(::closeLease)
+        }
+
+        /** Ends the callback once the framework will never call it again. */
+        fun unbind() {
+            release()
+            binding.unbind()
         }
 
         @Suppress("TooGenericExceptionCaught")
         private fun closeLease() {
+            handler.removeCallbacks(idleCheck)
+            binding.stopReading()
             try {
                 lease.close()
             } catch (failure: Throwable) {
                 failure.throwIfDragOutFatal()
                 Log.w("DragOutContent", "Could not release content reader")
-            } finally {
-                worker.quitSafely()
             }
         }
     }
 
     private fun unavailable() = FileNotFoundException("Content is unavailable")
+}
+
+/**
+ * Gives each open reader a thread of its own, so a slow read never delays another
+ * descriptor. A descriptor stays bound to its thread until the framework releases it,
+ * since [ProxyFileDescriptorCallback.onRelease] arrives there; a thread quits once no
+ * descriptor is bound to it. The pool only grows while every thread has a reader, so
+ * the content store's reader quota bounds it.
+ */
+private object ReaderThreads {
+    private val lock = Any()
+    private val threads = mutableListOf<ReaderThread>()
+
+    class ReaderThread(val handler: Handler) {
+        var reading = false
+        var bindings = 0
+    }
+
+    /** One descriptor's hold on a thread: exclusive while it reads, shared until it unbinds. */
+    class Binding(private val thread: ReaderThread) {
+        val handler get() = thread.handler
+        private var reading = true
+        private var bound = true
+
+        /** Without a reader every callback fails fast, so the thread may serve another reader. */
+        fun stopReading() = synchronized(lock) {
+            if (reading) {
+                reading = false
+                thread.reading = false
+            }
+        }
+
+        /** Due messages, such as a posted release, still run before the thread quits. */
+        fun unbind() {
+            synchronized(lock) {
+                if (!bound) return
+                bound = false
+                thread.bindings -= 1
+                if (thread.bindings > 0) return
+                threads.remove(thread)
+            }
+            thread.handler.looper.quitSafely()
+        }
+    }
+
+    fun bind(): Binding = synchronized(lock) {
+        val thread = threads.firstOrNull { !it.reading }
+            ?: ReaderThread(Handler(HandlerThread("drag-out-content-reader").apply { start() }.looper))
+                .also(threads::add)
+        thread.reading = true
+        thread.bindings += 1
+        Binding(thread)
+    }
 }
 
 /** Matches the Windows transport: a reader untouched this long is severed. */

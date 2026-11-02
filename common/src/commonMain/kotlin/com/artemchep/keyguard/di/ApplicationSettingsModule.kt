@@ -105,6 +105,7 @@ import com.artemchep.keyguard.common.usecase.GetThemeExpressive
 import com.artemchep.keyguard.common.usecase.GetThemeUseAmoledDark
 import com.artemchep.keyguard.common.usecase.GetThemeVariants
 import com.artemchep.keyguard.common.usecase.GetTwoFa
+import com.artemchep.keyguard.common.usecase.GetUiScale
 import com.artemchep.keyguard.common.usecase.GetUseExternalBrowser
 import com.artemchep.keyguard.common.usecase.GetVersionLog
 import com.artemchep.keyguard.common.usecase.GetWebDavTransactions
@@ -161,6 +162,7 @@ import com.artemchep.keyguard.common.usecase.PutSshAgentFilter
 import com.artemchep.keyguard.common.usecase.PutTheme
 import com.artemchep.keyguard.common.usecase.PutThemeExpressive
 import com.artemchep.keyguard.common.usecase.PutThemeUseAmoledDark
+import com.artemchep.keyguard.common.usecase.PutUiScale
 import com.artemchep.keyguard.common.usecase.PutUseExternalBrowser
 import com.artemchep.keyguard.common.usecase.PutWebDavTransactions
 import com.artemchep.keyguard.common.usecase.PutWebsiteIcons
@@ -246,6 +248,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetThemeImpl
 import com.artemchep.keyguard.common.usecase.impl.GetThemeUseAmoledDarkImpl
 import com.artemchep.keyguard.common.usecase.impl.GetThemeVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetTwoFaImpl
+import com.artemchep.keyguard.common.usecase.impl.GetUiScaleImpl
 import com.artemchep.keyguard.common.usecase.impl.GetUseExternalBrowserImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVersionLogImpl
 import com.artemchep.keyguard.common.usecase.impl.GetWebDavTransactionsImpl
@@ -303,6 +306,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.PutThemeExpressiveImpl
 import com.artemchep.keyguard.common.usecase.impl.PutThemeImpl
 import com.artemchep.keyguard.common.usecase.impl.PutThemeUseAmoledDarkImpl
+import com.artemchep.keyguard.common.usecase.impl.PutUiScaleImpl
 import com.artemchep.keyguard.common.usecase.impl.PutUserExternalBrowserImpl
 import com.artemchep.keyguard.common.usecase.impl.PutWebDavTransactionsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutWebsiteIconsImpl
@@ -469,6 +473,10 @@ internal class ApplicationSettingsModule {
         single<GetMinimizeOnCopyImpl>() bind GetMinimizeOnCopy::class
 
         single<PutMinimizeOnCopyImpl>() bind PutMinimizeOnCopy::class
+
+        single<GetUiScaleImpl>() bind GetUiScale::class
+
+        single<PutUiScaleImpl>() bind PutUiScale::class
 
         single<PutAllowTwoPanelLayoutInLandscapeImpl>() bind PutAllowTwoPanelLayoutInLandscape::class
 

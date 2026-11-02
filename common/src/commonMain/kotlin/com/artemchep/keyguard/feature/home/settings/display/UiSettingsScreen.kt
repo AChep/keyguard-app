@@ -72,6 +72,7 @@ fun rememberSettingsUiItems(
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.TWO_PANEL_LAYOUT_PORTRAIT),
                     SettingPaneItem.Item(Setting.TWO_PANEL_LAYOUT_LANDSCAPE),
+                    SettingPaneItem.Item(Setting.UI_SCALE),
                 ),
             ),
         )

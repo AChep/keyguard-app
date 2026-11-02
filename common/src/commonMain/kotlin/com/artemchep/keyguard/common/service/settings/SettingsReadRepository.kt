@@ -196,6 +196,8 @@ interface SettingsReadRepository {
 
     fun getMinimizeOnCopy(): Flow<Boolean>
 
+    fun getUiScale(): Flow<Float>
+
     fun getColors(): Flow<AppColors?>
 
     fun getLocale(): Flow<String?>

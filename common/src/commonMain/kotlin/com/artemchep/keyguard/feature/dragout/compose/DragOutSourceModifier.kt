@@ -159,22 +159,25 @@ private class DragOutNode(
             if (!startPromisedTransfer()) preparation = drag.start { payload ->
                 if (payload != null) {
                     if (!pressed || !isAttached) payload.close()
-                    else platformPreparation = coroutineScope.launch {
+                    else {
                         // A previous drag may still hold `prepared`, so track this payload's owner here.
                         var owned = false
-                        try {
-                            val transfer = prepareDragOut(payload)
-                            if (pressed && isAttached && transfer != null) {
-                                owned = true
-                                prepared = transfer
-                                startPreparedTransfer(transfer)
-                            } else {
-                                transfer?.close?.invoke()
+                        platformPreparation = coroutineScope.launch {
+                            try {
+                                val transfer = prepareDragOut(payload)
+                                if (pressed && isAttached && transfer != null) {
+                                    owned = true
+                                    prepared = transfer
+                                    startPreparedTransfer(transfer)
+                                } else {
+                                    transfer?.close?.invoke()
+                                }
+                            } catch (e: Throwable) {
+                                fail(e)
                             }
-                        } catch (e: Throwable) {
-                            fail(e)
-                        } finally {
-                            if (!owned) payload.close()
+                        }.apply {
+                            // Cancellation before startup skips the body, but never this handler.
+                            invokeOnCompletion { if (!owned) payload.close() }
                         }
                     }
                 }

@@ -144,6 +144,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingThemeExpres
 import com.artemchep.keyguard.feature.home.settings.component.settingThemeUseAmoledDarkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutLandscapeProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutPortraitProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingUiScaleProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingUnreadWatchtowerAlerts
 import com.artemchep.keyguard.feature.home.settings.component.settingKeyboardShortcutsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingUrlOverrideProvider
@@ -295,6 +296,7 @@ object Setting {
     const val USE_EXTERNAL_BROWSER = "use_external_browser"
     const val CLOSE_TO_TRAY = "close_to_tray"
     const val MINIMIZE_ON_COPY = "minimize_on_copy"
+    const val UI_SCALE = "ui_scale"
     const val APP_ICONS = "app_icons"
     const val WEBSITE_ICONS = "website_icons"
     const val CHECK_PWNED_PASSWORDS = "check_pwned_passwords"
@@ -446,6 +448,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.USE_EXTERNAL_BROWSER to ::settingUseExternalBrowserProvider,
     Setting.CLOSE_TO_TRAY to ::settingCloseToTrayProvider,
     Setting.MINIMIZE_ON_COPY to ::settingMinimizeOnCopyProvider,
+    Setting.UI_SCALE to ::settingUiScaleProvider,
     Setting.APP_ICONS to ::settingAppIconsProvider,
     Setting.WEBSITE_ICONS to ::settingWebsiteIconsProvider,
     Setting.CHECK_PWNED_PASSWORDS to ::settingCheckPwnedPasswordsProvider,

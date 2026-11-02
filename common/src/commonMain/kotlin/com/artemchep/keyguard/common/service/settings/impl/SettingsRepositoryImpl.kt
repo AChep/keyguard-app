@@ -131,6 +131,7 @@ class SettingsRepositoryImpl(
         private const val KEY_GLOBAL_SHORTCUTS = "keyboard.global_shortcuts"
         private const val KEY_CLOSE_TO_TRAY = "close_to_tray"
         private const val KEY_MINIMIZE_ON_COPY = "minimize_on_copy"
+        private const val KEY_UI_SCALE = "ui_scale"
         private const val KEY_FONT = "font"
         private const val KEY_THEME = "theme"
         private const val KEY_THEME_USE_AMOLED_DARK = "theme_use_amoled_dark"
@@ -443,6 +444,9 @@ class SettingsRepositoryImpl(
     private val minimizeOnCopyPref =
         store.getBoolean(KEY_MINIMIZE_ON_COPY, false)
 
+    private val uiScalePref =
+        store.getFloat(KEY_UI_SCALE, 1f)
+
     private val navAnimationPref =
         store.getEnumNullable(KEY_NAV_ANIMATION, lens = NavAnimation::key)
 
@@ -585,6 +589,7 @@ class SettingsRepositoryImpl(
             globalShortcutsPref,
             closeToTrayPref,
             minimizeOnCopyPref,
+            uiScalePref,
             navAnimationPref,
             fontPref,
             themePref,
@@ -1054,6 +1059,13 @@ class SettingsRepositoryImpl(
         .setAndCommit(minimizeOnCopy)
 
     override fun getMinimizeOnCopy() = minimizeOnCopyPref
+
+    override fun setUiScale(
+        uiScale: Float,
+    ) = uiScalePref
+        .setAndCommit(uiScale)
+
+    override fun getUiScale() = uiScalePref
 
     override fun setColors(colors: AppColors?) = colorsPref
         .setAndCommit(colors)

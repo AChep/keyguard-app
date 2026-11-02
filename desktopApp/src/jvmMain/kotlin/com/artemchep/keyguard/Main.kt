@@ -86,6 +86,7 @@ import com.artemchep.keyguard.common.usecase.GetGpgAgent
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetMinimizeOnCopy
 import com.artemchep.keyguard.common.usecase.GetSshAgent
+import com.artemchep.keyguard.common.usecase.GetUiScale
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.ShowMessage
@@ -792,11 +793,29 @@ private fun KeyguardWindowEssentialsProvider(
             ?.toFloatOrNull()
             ?.let { Density(it) }
     }
+    // The user-selected interface scale multiplies the base density,
+    // so 1x always matches the system (or the JVM property override).
+    val getUiScale = koinInject<GetUiScale>()
+    val uiScale by remember(getUiScale) {
+        getUiScale()
+    }.collectAsState(1f)
+    val baseDensity = densityOverride ?: LocalDensity.current
+    val density = remember(baseDensity, uiScale) {
+        val scale = uiScale.coerceIn(0.5f, 2f)
+        if (scale != 1f) {
+            Density(
+                density = baseDensity.density * scale,
+                fontScale = baseDensity.fontScale,
+            )
+        } else {
+            densityOverride
+        }
+    }
     val providers = buildList {
         add(LocalComposeWindow provides window)
         add(LocalWindowId provides windowId)
-        if (densityOverride != null) {
-            add(LocalDensity provides densityOverride)
+        if (density != null) {
+            add(LocalDensity provides density)
         }
     }.toTypedArray()
     CompositionLocalProvider(*providers) {

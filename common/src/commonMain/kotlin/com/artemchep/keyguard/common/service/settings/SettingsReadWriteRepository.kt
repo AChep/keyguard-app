@@ -317,6 +317,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         minimizeOnCopy: Boolean,
     ): IO<Unit>
 
+    fun setUiScale(
+        uiScale: Float,
+    ): IO<Unit>
+
     fun setColors(
         colors: AppColors?,
     ): IO<Unit>

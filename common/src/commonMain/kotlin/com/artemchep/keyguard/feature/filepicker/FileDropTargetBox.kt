@@ -18,14 +18,76 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.usecase.ShowMessage
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.file_drop_single_file_only
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.koinInject
 
+/**
+ * Accepts dropped files. If [multiple] is `false`, a drop of more
+ * than one file is rejected and [onTooManyFiles] is called instead.
+ * [onFilesDrop] never gets an empty list.
+ */
 @Composable
-internal expect fun Modifier.fileDropTarget(
+internal expect fun Modifier.platformFileDropTarget(
+    enabled: Boolean,
+    multiple: Boolean,
+    onDragActiveChange: (Boolean) -> Unit,
+    onTooManyFiles: () -> Unit,
+    onFilesDrop: (List<FilePickerResult>) -> Unit,
+): Modifier
+
+/**
+ * Accepts a single dropped file; a drop of several files is
+ * rejected with a message.
+ */
+@Composable
+internal fun Modifier.fileDropTarget(
     enabled: Boolean,
     onDragActiveChange: (Boolean) -> Unit,
     onFileDrop: (FilePickerResult) -> Unit,
-): Modifier
+): Modifier = platformFileDropTarget(
+    enabled = enabled,
+    multiple = false,
+    onDragActiveChange = onDragActiveChange,
+    onTooManyFiles = rememberTooManyFilesHandler(),
+    onFilesDrop = { files ->
+        onFileDrop(files.single())
+    },
+)
+
+@Composable
+internal fun Modifier.filesDropTarget(
+    enabled: Boolean,
+    onDragActiveChange: (Boolean) -> Unit,
+    onFilesDrop: (List<FilePickerResult>) -> Unit,
+): Modifier = platformFileDropTarget(
+    enabled = enabled,
+    multiple = true,
+    onDragActiveChange = onDragActiveChange,
+    onTooManyFiles = {
+        // Do nothing
+    },
+    onFilesDrop = onFilesDrop,
+)
+
+@Composable
+private fun rememberTooManyFilesHandler(): () -> Unit {
+    val showMessage = koinInject<ShowMessage>()
+    val title = stringResource(Res.string.file_drop_single_file_only)
+    return remember(showMessage, title) {
+        {
+            val msg = ToastMessage(
+                type = ToastMessage.Type.ERROR,
+                title = title,
+            )
+            showMessage.copy(msg)
+        }
+    }
+}
 
 @Composable
 internal expect fun Modifier.fileDragMonitor(

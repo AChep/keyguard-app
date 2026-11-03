@@ -1726,9 +1726,7 @@
     <ID>ReturnCount:EncryptedTemporarySpillStorage.kt:DecryptingRawSource$override fun readAtMostTo: Long</ID>
     <ID>ReturnCount:EntitySyncExecutor.kt:EntitySyncExecutor$private suspend fun checkConcurrency: ConcurrencyCheckResult&lt;Local&gt;</ID>
     <ID>ReturnCount:ExportWorker.kt:ExportWorker$@OptIn(ExperimentalCoroutinesApi::class) private suspend fun internalDoWork: Result</ID>
-    <ID>ReturnCount:FileDropTarget.kt:AndroidFileDropTarget$fun shouldStartDragAndDrop: Boolean</ID>
     <ID>ReturnCount:FileDropTarget.kt:AndroidFileDropTarget$override fun onDrop: Boolean</ID>
-    <ID>ReturnCount:FileDropTarget.kt:private fun DragAndDropEvent.firstUriOrNull: Uri?</ID>
     <ID>ReturnCount:FileServiceApple.kt:FileServiceApple$@OptIn(ExperimentalForeignApi::class) private fun &lt;T&gt; withSecurityScopedUrl: T</ID>
     <ID>ReturnCount:FileServiceApple.kt:FileServiceApple$@OptIn(ExperimentalForeignApi::class) private fun appleFileMetadata: FileMetadata?</ID>
     <ID>ReturnCount:FileWatcherServiceAndroid.kt:internal fun File.isAcceptedFileWatchEvent: Boolean</ID>

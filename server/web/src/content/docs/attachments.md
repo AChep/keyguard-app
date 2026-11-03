@@ -20,7 +20,7 @@ file types in memory, without saving them to disk.
 4. Select **Save**. The attachment shows **Pending upload** until the next
    sync saves it to the account.
 
-You can also drop a file onto the edit screen to add it.
+You can also drop files onto the edit screen to add them.
 
 ## Download an attachment
 

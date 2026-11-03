@@ -8,33 +8,39 @@ import kotlin.io.path.writeText
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 @OptIn(ExperimentalComposeUiApi::class)
 class FileDropTargetTest {
     @Test
-    fun `returns first regular file from dropped files list`() {
+    fun `returns all regular files from dropped files list in order`() {
         val directory = createTempDirectory()
         val firstFile = createTempFile(directory = directory, suffix = ".txt").also {
             it.writeText("first")
         }
-        createTempFile(directory = directory, suffix = ".txt").also {
+        val secondFile = createTempFile(directory = directory, suffix = ".txt").also {
             it.writeText("second")
         }
 
-        val result = droppedFileResult(
+        val result = droppedFileResults(
             dragData = FakeFilesList(
                 files = listOf(
+                    secondFile.toUri().toString(),
                     directory.toUri().toString(),
                     firstFile.toUri().toString(),
                 ),
             ),
         )
 
-        assertEquals(firstFile.toUri().toString(), result?.uri?.toString())
-        assertEquals(firstFile.fileName.toString(), result?.name)
-        assertEquals(5L, result?.size)
+        assertEquals(
+            listOf(secondFile.toUri().toString(), firstFile.toUri().toString()),
+            result.map { it.uri.toString() },
+        )
+        assertEquals(
+            listOf(secondFile.fileName.toString(), firstFile.fileName.toString()),
+            result.map { it.name },
+        )
+        assertEquals(listOf(6L, 5L), result.map { it.size })
     }
 
     @Test
@@ -61,7 +67,7 @@ class FileDropTargetTest {
             it.writeText("file")
         }
 
-        val result = droppedFileResult(
+        val result = droppedFileResults(
             fileUris = listOf(
                 "not a uri",
                 "https://example.com/file.txt",
@@ -70,33 +76,52 @@ class FileDropTargetTest {
             ),
         )
 
-        assertEquals(file.toUri().toString(), result?.uri?.toString())
+        assertEquals(listOf(file.toUri().toString()), result.map { it.uri.toString() })
+    }
+
+    @Test
+    fun `stops after limit regular files`() {
+        val directory = createTempDirectory()
+        val files = List(3) {
+            createTempFile(directory = directory, suffix = ".txt")
+        }
+
+        val result = droppedFileResults(
+            fileUris = listOf(directory.toUri().toString()) +
+                files.map { it.toUri().toString() },
+            limit = 2,
+        )
+
+        assertEquals(
+            files.take(2).map { it.toUri().toString() },
+            result.map { it.uri.toString() },
+        )
     }
 
     @Test
     fun `ignores missing file uri`() {
         val directory = createTempDirectory()
-        val result = droppedFileResult(
+        val result = droppedFileResults(
             fileUris = listOf(
                 directory.resolve("missing.txt").toUri().toString(),
             ),
         )
 
-        assertNull(result)
+        assertTrue(result.isEmpty())
     }
 
     @Test
     fun `ignores unsupported dropped data`() {
-        val result = droppedFileResult(
+        val result = droppedFileResults(
             dragData = object : DragData {},
         )
 
-        assertNull(result)
+        assertTrue(result.isEmpty())
     }
 
     @Test
     fun `ignores unreadable dropped file list`() {
-        val result = droppedFileResult(
+        val result = droppedFileResults(
             dragData = object : DragData.FilesList {
                 override fun readFiles(): List<String> {
                     error("boom")
@@ -104,7 +129,7 @@ class FileDropTargetTest {
             },
         )
 
-        assertNull(result)
+        assertTrue(result.isEmpty())
     }
 }
 

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.filepicker
 
 import android.app.Activity
+import android.content.ClipDescription
 import android.content.ContentResolver
 import android.content.Context
 import android.content.Intent
@@ -23,14 +24,17 @@ import com.artemchep.keyguard.platform.LeUriImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-internal actual fun Modifier.fileDropTarget(
+internal actual fun Modifier.platformFileDropTarget(
     enabled: Boolean,
+    multiple: Boolean,
     onDragActiveChange: (Boolean) -> Unit,
-    onFileDrop: (FilePickerResult) -> Unit,
+    onTooManyFiles: () -> Unit,
+    onFilesDrop: (List<FilePickerResult>) -> Unit,
 ): Modifier {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -45,8 +49,10 @@ internal actual fun Modifier.fileDropTarget(
         target.activity = context.closestActivityOrNull
         target.context = context.applicationContext
         target.scope = scope
+        target.multiple = multiple
         target.onDragActiveChange = onDragActiveChange
-        target.onFileDrop = onFileDrop
+        target.onTooManyFiles = onTooManyFiles
+        target.onFilesDrop = onFilesDrop
         if (!enabled) {
             target.reset()
         }
@@ -97,39 +103,22 @@ private class AndroidFileDropTarget : DragAndDropTarget {
     var activity: Activity? = null
     var context: Context? = null
     var scope: CoroutineScope? = null
+    var multiple: Boolean = false
     var onDragActiveChange: ((Boolean) -> Unit)? = null
-    var onFileDrop: ((FilePickerResult) -> Unit)? = null
+    var onTooManyFiles: (() -> Unit)? = null
+    var onFilesDrop: ((List<FilePickerResult>) -> Unit)? = null
 
-    private var permissions: DragAndDropPermissions? = null
     private var dropJob: Job? = null
 
     fun reset() {
         onDragActiveChange?.invoke(false)
         dropJob?.cancel()
         dropJob = null
-        permissions?.release()
-        permissions = null
     }
 
     fun shouldStartDragAndDrop(
         event: DragAndDropEvent,
-    ): Boolean {
-        val uri = event.firstUriOrNull()
-            ?: return false
-        permissions?.release()
-        permissions = null
-
-        if (uri.scheme == ContentResolver.SCHEME_CONTENT) {
-            val activity = activity
-                ?: return false
-            permissions = requestPermissions(
-                activity = activity,
-                event = event,
-            ) ?: return false
-        }
-
-        return true
-    }
+    ): Boolean = event.mayContainFiles()
 
     override fun onEntered(event: DragAndDropEvent) {
         onDragActiveChange?.invoke(true)
@@ -141,10 +130,6 @@ private class AndroidFileDropTarget : DragAndDropTarget {
 
     override fun onEnded(event: DragAndDropEvent) {
         onDragActiveChange?.invoke(false)
-        if (dropJob?.isActive != true) {
-            permissions?.release()
-            permissions = null
-        }
     }
 
     override fun onDrop(event: DragAndDropEvent): Boolean {
@@ -152,26 +137,48 @@ private class AndroidFileDropTarget : DragAndDropTarget {
             ?: return false
         val scope = scope
             ?: return false
-        val uri = event.firstUriOrNull()
-            ?: return false
-        val currentPermissions = permissions
-        permissions = null
+        val uris = event.uris()
+        if (uris.isEmpty()) {
+            return false
+        }
 
         onDragActiveChange?.invoke(false)
+        if (!multiple && uris.size > 1) {
+            onTooManyFiles?.invoke()
+            return false
+        }
+
+        // The permissions are only attached to
+        // the drop event.
+        val permissions = if (uris.any { it.scheme == ContentResolver.SCHEME_CONTENT }) {
+            val activity = activity
+                ?: return false
+            requestPermissions(
+                activity = activity,
+                event = event,
+            ) ?: return false
+        } else {
+            null
+        }
+
         dropJob?.cancel()
         val job = scope.launch {
-            try {
-                val file = runCatching {
+            val files = uris.mapNotNull { uri ->
+                runCatching {
                     context.toDroppedFilePickerResult(uri)
                 }.getOrNull()
-                    ?: return@launch
-                onFileDrop?.invoke(file)
-            } finally {
-                currentPermissions?.release()
             }
+            // The reads above swallow the cancellation.
+            ensureActive()
+            if (files.isEmpty()) {
+                return@launch
+            }
+            onFilesDrop?.invoke(files)
         }
         dropJob = job
+        // Also runs if the job is cancelled before it starts.
         job.invokeOnCompletion {
+            permissions?.release()
             if (dropJob === job) {
                 dropJob = null
             }
@@ -189,7 +196,7 @@ private class AndroidFileDragMonitor : DragAndDropTarget {
 
     fun shouldStartDragAndDrop(
         event: DragAndDropEvent,
-    ): Boolean = event.firstUriOrNull() != null
+    ): Boolean = event.mayContainFiles()
 
     override fun onEntered(event: DragAndDropEvent) {
         onDragActiveChange?.invoke(true)
@@ -209,16 +216,28 @@ private class AndroidFileDragMonitor : DragAndDropTarget {
     }
 }
 
-private fun DragAndDropEvent.firstUriOrNull(): Uri? {
-    val clipData = toAndroidDragEvent().clipData
-        ?: return null
-    for (index in 0 until clipData.itemCount) {
-        val uri = clipData.getItemAt(index).uri
-        if (uri != null) {
-            return uri
+/**
+ * The clip data is only available on drop, so at the start of
+ * a drag we can only guess by its description. A URI item
+ * advertises the MIME type of its file, so text types must stay
+ * eligible; the URIs are validated on drop.
+ */
+private fun DragAndDropEvent.mayContainFiles(): Boolean {
+    val description = toAndroidDragEvent().clipDescription
+        ?: return false
+    return (0 until description.mimeTypeCount)
+        .any { index ->
+            description.getMimeType(index) != ClipDescription.MIMETYPE_TEXT_INTENT
         }
-    }
-    return null
+}
+
+private fun DragAndDropEvent.uris(): List<Uri> {
+    val clipData = toAndroidDragEvent().clipData
+        ?: return emptyList()
+    return (0 until clipData.itemCount)
+        .mapNotNull { index ->
+            clipData.getItemAt(index).uri
+        }
 }
 
 private fun requestPermissions(

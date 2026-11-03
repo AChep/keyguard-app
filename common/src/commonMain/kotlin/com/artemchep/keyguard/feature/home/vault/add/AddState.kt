@@ -42,7 +42,7 @@ data class AddState(
     data class FileDrag(
         val anchorItemId: String,
         val text: String,
-        val onFileDrop: (FilePickerResult) -> Unit,
+        val onFilesDrop: (List<FilePickerResult>) -> Unit,
     )
 
     @Immutable

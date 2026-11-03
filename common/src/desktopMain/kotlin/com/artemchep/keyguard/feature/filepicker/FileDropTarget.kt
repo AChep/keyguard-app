@@ -19,18 +19,22 @@ import kotlin.io.path.name
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-internal actual fun Modifier.fileDropTarget(
+internal actual fun Modifier.platformFileDropTarget(
     enabled: Boolean,
+    multiple: Boolean,
     onDragActiveChange: (Boolean) -> Unit,
-    onFileDrop: (FilePickerResult) -> Unit,
+    onTooManyFiles: () -> Unit,
+    onFilesDrop: (List<FilePickerResult>) -> Unit,
 ): Modifier {
     val target = remember {
         DesktopFileDropTarget()
     }
 
     SideEffect {
+        target.multiple = multiple
         target.onDragActiveChange = onDragActiveChange
-        target.onFileDrop = onFileDrop
+        target.onTooManyFiles = onTooManyFiles
+        target.onFilesDrop = onFilesDrop
         if (!enabled) {
             target.reset()
         }
@@ -74,14 +78,17 @@ internal actual fun Modifier.fileDragMonitor(
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
-internal fun droppedFileResult(
+internal fun droppedFileResults(
     dragData: DragData,
-): FilePickerResult? = when (dragData) {
+    limit: Int = Int.MAX_VALUE,
+): List<FilePickerResult> = when (dragData) {
     is DragData.FilesList -> runCatching {
         dragData.readFiles()
-    }.getOrNull()?.let(::droppedFileResult)
+    }.getOrNull()
+        ?.let { droppedFileResults(it, limit) }
+        .orEmpty()
 
-    else -> null
+    else -> emptyList()
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -89,9 +96,18 @@ internal fun isFileDragData(
     dragData: DragData,
 ): Boolean = dragData is DragData.FilesList
 
-internal fun droppedFileResult(
+/**
+ * Each file is checked on disk, so pass a [limit] to stop
+ * early if only that many files matter.
+ */
+internal fun droppedFileResults(
     fileUris: List<String>,
-): FilePickerResult? = fileUris.firstNotNullOfOrNull(::droppedFileResult)
+    limit: Int = Int.MAX_VALUE,
+): List<FilePickerResult> = fileUris
+    .asSequence()
+    .mapNotNull(::droppedFileResult)
+    .take(limit)
+    .toList()
 
 private fun droppedFileResult(
     fileUri: String,
@@ -111,8 +127,10 @@ private fun droppedFileResult(
 
 @OptIn(ExperimentalComposeUiApi::class)
 private class DesktopFileDropTarget : DragAndDropTarget {
+    var multiple: Boolean = false
     var onDragActiveChange: ((Boolean) -> Unit)? = null
-    var onFileDrop: ((FilePickerResult) -> Unit)? = null
+    var onTooManyFiles: (() -> Unit)? = null
+    var onFilesDrop: ((List<FilePickerResult>) -> Unit)? = null
 
     fun reset() {
         onDragActiveChange?.invoke(false)
@@ -139,12 +157,21 @@ private class DesktopFileDropTarget : DragAndDropTarget {
     }
 
     override fun onDrop(event: DragAndDropEvent): Boolean {
-        val file = droppedFileResult(event.dragData())
-            ?: return false
+        // Two files are enough to reject a single file drop.
+        val limit = if (multiple) Int.MAX_VALUE else 2
+        val files = droppedFileResults(event.dragData(), limit)
+        if (files.isEmpty()) {
+            return false
+        }
 
         onDragActiveChange?.invoke(false)
-        onFileDrop?.invoke(file)
-        return true
+        val accepted = multiple || files.size == 1
+        if (accepted) {
+            onFilesDrop?.invoke(files)
+        } else {
+            onTooManyFiles?.invoke()
+        }
+        return accepted
     }
 
     private fun updateDragActive(

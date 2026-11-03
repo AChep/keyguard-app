@@ -726,9 +726,11 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                 attachmentsFileDragFlow.value = AddState.FileDrag(
                     anchorItemId = "attachment.add",
                     text = translate(Res.string.additem_attachments_drop_here),
-                    onFileDrop = { info ->
+                    onFilesDrop = { infos ->
                         screenScope.launch {
-                            addAttachmentFile(info, accountType)
+                            infos.forEach { info ->
+                                addAttachmentFile(info, accountType)
+                            }
                         }
                     },
                 )

@@ -224,7 +224,8 @@
     <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">Select a type</string>
     <string name="select_file">Select a file</string>
-    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="additem_attachments_drop_here">Drop files here to add them as attachments</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Autofill</string>
     <string name="autofill_and_save_uri">Autofill and save app or website info</string>

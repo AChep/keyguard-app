@@ -41,6 +41,7 @@ fun rememberSettingsUiItems(
                     SettingPaneItem.Item(Setting.FONT),
                     SettingPaneItem.Item(Setting.MARKDOWN),
                     SettingPaneItem.Item(Setting.NAV_ANIMATION),
+                    SettingPaneItem.Item(Setting.UI_SCALE),
                 ),
             ),
             SettingPaneItem.Group(
@@ -72,7 +73,6 @@ fun rememberSettingsUiItems(
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.TWO_PANEL_LAYOUT_PORTRAIT),
                     SettingPaneItem.Item(Setting.TWO_PANEL_LAYOUT_LANDSCAPE),
-                    SettingPaneItem.Item(Setting.UI_SCALE),
                 ),
             ),
         )

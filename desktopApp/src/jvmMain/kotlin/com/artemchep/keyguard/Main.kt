@@ -55,6 +55,8 @@ import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsService
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.GlobalShortcutAction
 import com.artemchep.keyguard.common.model.LockReason
+import com.artemchep.keyguard.common.model.UI_SCALE_MAX
+import com.artemchep.keyguard.common.model.UI_SCALE_MIN
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
 import com.artemchep.keyguard.common.service.shortcut.GlobalShortcutController
 import com.artemchep.keyguard.common.service.shortcut.DesktopGlobalShortcutController
@@ -779,7 +781,7 @@ private fun KeyguardWindowEssentialsProvider(
     }.collectAsState(1f)
     val baseDensity = densityOverride ?: LocalDensity.current
     val density = remember(baseDensity, uiScale) {
-        val scale = uiScale.coerceIn(0.5f, 2f)
+        val scale = uiScale.coerceIn(UI_SCALE_MIN, UI_SCALE_MAX)
         if (scale != 1f) {
             Density(
                 density = baseDensity.density * scale,

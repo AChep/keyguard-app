@@ -45,6 +45,7 @@ fun rememberSettingsSshItems(
                     SettingPaneItem.Item(Setting.SSH_AGENT_APPROVAL_TIMEOUT),
                     SettingPaneItem.Item(Setting.SSH_AGENT_APPROVAL_CACHE_POLICY),
                     SettingPaneItem.Item(Setting.SSH_AGENT_DISPLAY_KEY_NAMES),
+                    SettingPaneItem.Item(Setting.SSH_AGENT_BOOKMARKS_CONFIG),
                     SettingPaneItem.Item(Setting.SSH_AGENT_FILTERS),
                 ),
             ),

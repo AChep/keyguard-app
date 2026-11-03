@@ -38,6 +38,7 @@ Run it in a host terminal. It shows the file changes and asks before applying th
 
 Setup supports Bash, Zsh, Fish, PowerShell 7 and Windows PowerShell 5.1.
 It adds Keyguard's settings to the end of each file and leaves your lines unchanged.
+For [Pin hosts to keys](#pin-hosts-to-keys), it also adds an `Include` line to the top of `~/.ssh/config`.
 
 **Check these lines** lists lines that can take precedence over Keyguard's settings.
 These are `SSH_AUTH_SOCK` lines that run later, and `IdentityAgent` lines earlier in `~/.ssh/config`.
@@ -147,6 +148,45 @@ renews often, keep it on disk and point `CertificateFile` at it:
 Host <HOST>
   CertificateFile ~/.ssh/<KEY_NAME>-cert.pub
 ```
+
+## Pin hosts to keys
+
+The agent offers every key to every host. A server that allows few attempts
+can stop with "Too many authentication failures" before it gets the right key.
+A pinned host gets only its own keys.
+
+1. Edit the **SSH Key** item and add a host, such as `git@github.com`, under
+   **SSH bookmarks**. [Custom field conventions](/docs/item-extras/#ssh-bookmarks)
+   lists the format.
+2. In **Settings > Developer > SSH agent**, turn on **Generate SSH config for bookmarked hosts**.
+   If `~/.ssh/config` doesn't include the generated config, the setting stays
+   off. Select **Run SSH client setup**, or add the line below yourself. Then
+   turn the setting on again.
+
+The Flatpak build can't read `~/.ssh/config`, so the setting turns on without
+this check. Then follow [Set up the agent on desktop](#set-up-the-agent-on-desktop) again.
+
+For manual setup, add this line to the top of `~/.ssh/config`, with your
+platform's directory:
+
+```sshconfig
+Include "<DIRECTORY>/config"
+```
+
+| Platform | Directory |
+| --- | --- |
+| Linux, macOS, Windows | `~/.ssh/keyguard` |
+| Linux, Flatpak | `~/.var/app/com.artemchep.keyguard/data/ssh-bookmarks` |
+
+Keyguard keeps a `Match host` block for each bookmarked host in that file, plus
+the public keys and certificates it names. It updates them while the vault is
+unlocked, and deletes them when you turn the setting off. The host names and
+public keys are not encrypted.
+
+`ssh` matches only the user and host on its command line. A bookmark for
+`git@github.com` doesn't apply to `ssh github.com` with `User git` set later in
+`~/.ssh/config`. A pinned host doesn't get the default keys from `~/.ssh`, so
+its key login fails while Keyguard isn't running.
 
 ## Review request history
 

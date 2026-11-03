@@ -323,6 +323,43 @@ class BitwardenJsonImporterTest {
     }
 
     @Test
+    fun `ssh bookmarks and certificate survive export and import`() = runTest {
+        val bookmarks = listOf(
+            DSecret.SshKey.Bookmark(name = "GitHub", url = "ssh://git@github.com"),
+            DSecret.SshKey.Bookmark(name = null, url = "ssh://example.com"),
+        )
+        val certificate = "ssh-ed25519-cert-v01@openssh.com AAAA"
+        val userField = DSecret.Field(name = "Host", value = "example.com", type = DSecret.Field.Type.Text)
+        val exported = JsonExportServiceImpl(Json).export(
+            organizations = emptyList(),
+            collections = emptyList(),
+            folders = emptyList(),
+            ciphers = listOf(
+                createSecret(
+                    id = "ssh",
+                    type = DSecret.Type.SshKey,
+                    fields = listOf(userField),
+                ).copy(
+                    sshKey = DSecret.SshKey(
+                        privateKey = "private",
+                        publicKey = "ssh-ed25519 AAAA",
+                        certificate = certificate,
+                        bookmarks = bookmarks,
+                    ),
+                ),
+            ),
+        )
+        val plan = parseImportPlan(ImportFormatId.Bitwarden, exported)
+        plan.assertVaultStorable()
+        val request = plan.items.single().request
+        assertEquals(DSecret.Type.SshKey, request.type)
+        // The importer gives unnamed custom fields its default label.
+        assertEquals(bookmarks.map { it.copy(name = it.name ?: "Field") }, request.sshKey.bookmarks)
+        assertEquals(certificate, request.sshKey.certificate)
+        assertEquals(listOf(userField), request.fields)
+    }
+
+    @Test
     fun `ssh keys are copied as they are, never converted`() = runTest {
         // The source is a vault whose items are already SSH keys: keep them as
         // they were, even a key this version cannot read.

@@ -21,6 +21,9 @@ pub use review::review_and_apply;
 
 const PLAN_VERSION: u32 = 4;
 
+/// The block at the top of `~/.ssh/config` that includes the bookmarks config.
+pub(crate) const SSH_BOOKMARKS: &str = "ssh-bookmarks";
+
 /// A shell whose interactive startup files we know how to edit.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
@@ -56,6 +59,14 @@ impl AgentKind {
             Self::Gpg => "gpg",
         }
     }
+
+    /// The ids of every block this agent manages, its own [`Self::id`] first.
+    pub fn blocks(self) -> &'static [&'static str] {
+        match self {
+            Self::Ssh => &["ssh", SSH_BOOKMARKS],
+            Self::Gpg => &["gpg"],
+        }
+    }
 }
 
 /// The selected agent. Endpoints always come from the running app.
@@ -65,6 +76,9 @@ pub enum Agent {
     Ssh {
         socket: String,
         host: Option<String>,
+        /// Keyguard's generated SSH config for bookmarked hosts, included before other settings.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        include: Option<PathBuf>,
     },
     Gpg {
         home: PathBuf,

@@ -125,6 +125,8 @@ interface SettingsReadRepository {
 
     fun getSshAgentDisplayKeyNames(): Flow<Boolean>
 
+    fun getSshAgentBookmarksConfig(): Flow<Boolean>
+
     fun getSshAgentFilter(): Flow<SshAgentFilter>
 
     fun getGpgAgent(): Flow<Boolean>

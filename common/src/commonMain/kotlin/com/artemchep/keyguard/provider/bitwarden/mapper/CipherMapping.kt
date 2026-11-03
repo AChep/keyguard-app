@@ -124,6 +124,9 @@ internal fun DSecret.toTransportPayload() = BitwardenTransportFields.Payload(
     customIcon = customIcon,
     environment = environment?.let(BitwardenCipher.Environment::of),
     gpgKey = gpgKey?.let(BitwardenCipher.GpgKey::of),
+    bookmarks = sshKey?.bookmarks.orEmpty().map { bookmark ->
+        BitwardenCipher.SshKey.Bookmark(name = bookmark.name, url = bookmark.url)
+    },
     certificate = sshKey?.certificate,
     passkeys = login?.fido2Credentials
         .orEmpty()
@@ -407,6 +410,13 @@ fun BitwardenCipher.SshKey.toDomain() = DSecret.SshKey(
     publicKey = publicKey.oh(),
     fingerprint = fingerprint.oh(),
     certificate = certificate.oh(),
+    bookmarks = bookmarks
+        .map { bookmark ->
+            DSecret.SshKey.Bookmark(
+                name = bookmark.name,
+                url = bookmark.url,
+            )
+        },
 )
 
 fun BitwardenCipher.GpgKey.toDomain() = DSecret.GpgKey(

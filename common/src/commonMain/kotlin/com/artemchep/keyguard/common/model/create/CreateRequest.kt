@@ -176,6 +176,7 @@ data class CreateRequest(
         val publicKey: String? = null,
         val fingerprint: String? = null,
         val certificate: String? = null,
+        val bookmarks: PersistentList<DSecret.SshKey.Bookmark> = persistentListOf(),
     ) {
         companion object;
     }

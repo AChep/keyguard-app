@@ -4,21 +4,17 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.SshAgentFilter
-import com.artemchep.keyguard.common.model.testCipherFilterContext
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRow
 import com.artemchep.keyguard.common.service.sshagent.TEST_ED25519_USER_CERTIFICATE
-import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.service.sshagent.buildOpenSshPublicKey
+import com.artemchep.keyguard.common.service.sshagent.testGetSshAgentCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentDisplayKeyNames
-import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.copy.Base64ServiceJvm
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.test.createSecret
-import java.io.ByteArrayOutputStream
-import java.io.DataOutputStream
-import java.util.Base64
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -28,7 +24,8 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.TestScope
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -59,7 +56,7 @@ class SshAgentPublicKeySyncerImplTest {
         )
         val job = syncer.launch(this)
         try {
-            advanceUntilIdle()
+            runCurrent()
             assertEquals(listOf("signer"), repository.keys.map { it.cipherId })
         } finally {
             job.cancel()
@@ -132,7 +129,7 @@ class SshAgentPublicKeySyncerImplTest {
 
         val job = syncer.launch(this)
         try {
-            advanceUntilIdle()
+            runCurrent()
 
             val key = repository.keys.single()
             assertEquals("Included", key.name)
@@ -168,16 +165,16 @@ class SshAgentPublicKeySyncerImplTest {
 
         val job = syncer.launch(this)
         try {
-            advanceUntilIdle()
+            runCurrent()
             val originalKeys = repository.keys
             assertEquals(listOf(key.id), originalKeys.map { it.cipherId })
 
             ciphers.value = listOf(key.copy(archivedDate = Instant.parse("2024-02-01T00:00:00Z")))
-            advanceUntilIdle()
+            runCurrent()
             assertEquals(emptyList(), repository.keys)
 
             ciphers.value = listOf(key)
-            advanceUntilIdle()
+            runCurrent()
             assertEquals(originalKeys, repository.keys)
         } finally {
             job.cancel()
@@ -211,7 +208,7 @@ class SshAgentPublicKeySyncerImplTest {
 
         val job = syncer.launch(this)
         try {
-            advanceUntilIdle()
+            runCurrent()
 
             assertEquals(emptyList(), repository.keys)
         } finally {
@@ -242,7 +239,7 @@ class SshAgentPublicKeySyncerImplTest {
 
         val job = syncer.launch(this)
         try {
-            advanceUntilIdle()
+            runCurrent()
 
             assertNull(repository.keys.single().name)
         } finally {
@@ -282,7 +279,7 @@ class SshAgentPublicKeySyncerImplTest {
 
         val job = syncer.launch(this)
         try {
-            advanceUntilIdle()
+            runCurrent()
 
             val certificates = repository.keys.associate { it.cipherId to it.certificate }
             assertEquals(
@@ -297,7 +294,7 @@ class SshAgentPublicKeySyncerImplTest {
         }
     }
 
-    private fun createSyncer(
+    private fun TestScope.createSyncer(
         repository: SshAgentPublicKeyRepository,
         ciphers: Flow<List<DSecret>>,
         sshAgentEnabled: Flow<Boolean>,
@@ -305,15 +302,13 @@ class SshAgentPublicKeySyncerImplTest {
         filter: Flow<SshAgentFilter>,
         defaultDispatcher: CoroutineDispatcher,
     ) = SshAgentPublicKeySyncerImpl(
-        filterContext = testCipherFilterContext(),
-        getCiphers = object : GetCiphers {
-            override fun invoke(): Flow<List<DSecret>> = ciphers
-        },
+        getSshAgentCiphers = testGetSshAgentCiphers(
+            ciphers = ciphers,
+            filter = filter,
+            dispatcher = defaultDispatcher,
+        ),
         getSshAgent = object : GetSshAgent {
             override fun invoke(): Flow<Boolean> = sshAgentEnabled
-        },
-        getSshAgentFilter = object : GetSshAgentFilter {
-            override fun invoke(): Flow<SshAgentFilter> = filter
         },
         getSshAgentDisplayKeyNames = object : GetSshAgentDisplayKeyNames {
             override fun invoke(): Flow<Boolean> = displayKeyNames
@@ -405,34 +400,4 @@ class SshAgentPublicKeySyncerImplTest {
         deletedDate = deletedDate,
         sshKey = sshKey,
     )
-
-    private companion object {
-        fun buildOpenSshPublicKey(
-            keyType: String,
-            seed: Int,
-        ): String {
-            val blob = buildOpenSshPublicKeyBlob(
-                keyType = keyType,
-                seed = seed,
-            )
-            return "$keyType ${Base64.getEncoder().encodeToString(blob)}"
-        }
-
-        fun buildOpenSshPublicKeyBlob(
-            keyType: String,
-            seed: Int,
-        ): ByteArray = ByteArrayOutputStream().use { output ->
-            DataOutputStream(output).use { dataOutput ->
-                val keyTypeBytes = keyType.toByteArray(Charsets.US_ASCII)
-                dataOutput.writeInt(keyTypeBytes.size)
-                dataOutput.write(keyTypeBytes)
-
-                val keyBytes = ByteArray(32) { (seed + it).toByte() }
-                dataOutput.writeInt(keyBytes.size)
-                dataOutput.write(keyBytes)
-                dataOutput.flush()
-            }
-            output.toByteArray()
-        }
-    }
 }

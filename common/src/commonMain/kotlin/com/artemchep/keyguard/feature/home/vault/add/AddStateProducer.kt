@@ -10,6 +10,7 @@ import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material.icons.outlined.Visibility
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Checkbox
@@ -45,6 +46,7 @@ import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.model.create.address1
 import com.artemchep.keyguard.common.model.create.address2
 import com.artemchep.keyguard.common.model.create.address3
+import com.artemchep.keyguard.common.model.create.bookmarks
 import com.artemchep.keyguard.common.model.create.brand
 import com.artemchep.keyguard.common.model.create.card
 import com.artemchep.keyguard.common.model.create.cardholderName
@@ -116,6 +118,9 @@ import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
 import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.gpgagent.isCanonical
 import com.artemchep.keyguard.common.service.logging.LogRepository
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.SSH_BOOKMARK_FIELD_NAME
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.normalizeSshBookmarkValue
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.parseSshBookmark
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.readFromFileAsBytes
 import com.artemchep.keyguard.common.usecase.AddCipher
@@ -603,6 +608,40 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         },
     )
 
+    // The bookmarks of an SSH key get a section
+    // of their own, like the URIs of a login.
+    val sshBookmarksFlow = foo3(
+        logRepository = logRepository,
+        scope = "ssh_bookmark",
+        initial = args.initialValue?.sshKey?.bookmarks.orEmpty(),
+        initialType = { "ssh_bookmark" },
+        confirmationRouteFactory = confirmationRouteFactory,
+        factories = listOf(
+            AddStateItemSshBookmarkFactory(),
+        ),
+        afterList = {
+            val header = AddStateItem.Section(
+                id = "ssh_bookmark.section",
+                text = translate(Res.string.ssh_bookmarks),
+            )
+            add(0, header)
+        },
+        extra = {
+            typeBasedAddItem(
+                translator = this@addCipherStateProducer,
+                scope = "ssh_bookmark",
+                typesFlow = flowOf(
+                    listOf(
+                        Foo2Type(
+                            type = "ssh_bookmark",
+                            name = translate(Res.string.ssh_bookmark),
+                        ),
+                    ),
+                ),
+            )
+        },
+    )
+
     val attachmentsFileDragFlow = MutableStateFlow<AddState.FileDrag?>(null)
     val attachmentsFactories = kotlin.run {
         val attachmentFactory = SkeletonAttachmentItemFactory()
@@ -734,7 +773,10 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
 
                 DSecret.Type.GpgKey -> flowOf(noteHolder.items + gpgKeyHolder.items)
 
-                DSecret.Type.SshKey -> flowOf(sshKeyHolder.items)
+                DSecret.Type.SshKey -> sshBookmarksFlow
+                    .map { sshBookmarks ->
+                        sshKeyHolder.items + sshBookmarks
+                    }
                 DSecret.Type.None, DSecret.Type.Environment -> flowOf(emptyList())
             }
         }
@@ -1473,6 +1515,110 @@ class AddStateItemUriFactory(
             ),
         )
     }
+}
+
+/**
+ * A bookmark of an SSH key, edited like a URI. Keeps the name
+ * of its field; a new one gets [SSH_BOOKMARK_FIELD_NAME].
+ */
+class AddStateItemSshBookmarkFactory : Foo2Factory<AddStateItem.Url<*>, DSecret.SshKey.Bookmark> {
+    override val type: String = "ssh_bookmark"
+
+    override fun RememberStateFlowScope.release(key: String) {
+        clearPersistedFlow("$key.value")
+    }
+
+    override fun RememberStateFlowScope.add(
+        key: String,
+        initial: DSecret.SshKey.Bookmark?,
+    ): AddStateItem.Url<CreateRequest> {
+        val valueHandle = textFieldHandle(
+            key = "$key.value",
+            initial = initial?.url.orEmpty(),
+        )
+        val labelFlow = ioEffect {
+            translate(Res.string.ssh_bookmark)
+        }.asFlow()
+        val placeholderFlow = ioEffect {
+            translate(Res.string.ssh_bookmark_placeholder)
+        }.asFlow()
+        val stateFlow = combine(
+            valueHandle.sink,
+            labelFlow,
+            placeholderFlow,
+        ) { cell, label, placeholder ->
+            val text = TextFieldModel(
+                text = cell.text,
+                textRevision = cell.revision,
+                vl = createSshBookmarkWarning(cell.text),
+                onChange = valueHandle::onChange,
+                onSetText = valueHandle::setText,
+            )
+            AddStateItem.Url.State(
+                text = text,
+                label = label,
+                placeholder = placeholder,
+            )
+        }
+            .persistingStateIn(
+                scope = screenScope,
+                started = SharingStarted.WhileSubscribed(),
+                initialValue = AddStateItem.Url.State(
+                    text = TextFieldModel.empty,
+                ),
+            )
+        return AddStateItem.Url<CreateRequest>(
+            id = key,
+            leading = {
+                IconBox(
+                    main = Icons.Outlined.Terminal,
+                )
+            },
+            state = LocalStateItem(
+                flow = stateFlow,
+                populator = { state ->
+                    val bookmark = createSshBookmark(
+                        text = state.text.text,
+                        initial = initial,
+                    ) ?: return@LocalStateItem this
+                    CreateRequest.sshKey.bookmarks.modify(this) { bookmarks ->
+                        bookmarks.add(bookmark)
+                    }
+                },
+            ),
+        )
+    }
+}
+
+/** A warning if the [text] is not a bookmark that the SSH configuration can hold. */
+private suspend fun TranslatorScope.createSshBookmarkWarning(
+    text: String,
+): TextFieldModel.Vl? {
+    val value = normalizeSshBookmarkValue(text)
+    if (value.isEmpty() || parseSshBookmark(value) != null) {
+        return null
+    }
+    return TextFieldModel.Vl(
+        type = TextFieldModel.Vl.Type.WARNING,
+        text = translate(Res.string.ssh_bookmark_invalid),
+    )
+}
+
+/** The bookmark, or `null` if the [text] is blank. */
+private fun createSshBookmark(
+    text: String,
+    initial: DSecret.SshKey.Bookmark?,
+): DSecret.SshKey.Bookmark? {
+    val url = normalizeSshBookmarkValue(text)
+    if (url.isEmpty()) {
+        return null
+    }
+    return DSecret.SshKey.Bookmark(
+        name = initial?.name
+            ?.takeIf { it.isNotBlank() }
+            ?: SSH_BOOKMARK_FIELD_NAME,
+        url = url,
+    )
 }
 
 internal fun createUriWithPreservedSignatures(

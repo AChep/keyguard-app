@@ -425,4 +425,12 @@
         <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> item</item>
         <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> items</item>
     </plurals>
+    <plurals name="pref_item_ssh_agent_bookmarks_config_hosts_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> host pinned</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> hosts pinned</item>
+    </plurals>
+    <plurals name="pref_item_ssh_agent_bookmarks_config_skipped_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> bookmark skipped: its URL is invalid, or the agent doesn't offer its key</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> bookmarks skipped: their URLs are invalid, or the agent doesn't offer their keys</item>
+    </plurals>
 </resources>

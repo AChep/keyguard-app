@@ -24,12 +24,17 @@ private val HOST_REGEX = Regex("[A-Za-z0-9._-]+")
 /** Whether [host] names one SSH host: no patterns, spaces or line breaks. */
 fun isAgentSetupHostValid(host: String): Boolean = host.trim().matches(HOST_REGEX)
 
-/** The options that the CLI's `agents plan`, `setup` and `verify` share. */
+/**
+ * The options that the CLI's `agents plan`, `setup` and `verify` share.
+ * [include] is the generated SSH configuration of bookmarked hosts, which
+ * setup includes at the top of `~/.ssh/config`.
+ */
 fun agentSetupOptions(
     agent: SetupAgent,
     endpoint: String,
     shells: Collection<SetupShell> = emptyList(),
     host: String = "",
+    include: String? = null,
 ): List<String> {
     val option = when (agent) {
         SetupAgent.SSH -> "--socket"
@@ -37,7 +42,8 @@ fun agentSetupOptions(
     }
     return listOf("--agent", agent.argument, option, endpoint) +
         (if (shells.isEmpty()) emptyList() else listOf("--shells", shells.sorted().joinToString(",") { it.argument })) +
-        (if (agent == SetupAgent.SSH && host.isNotEmpty()) listOf("--host", host) else emptyList())
+        (if (agent == SetupAgent.SSH && host.isNotEmpty()) listOf("--host", host) else emptyList()) +
+        (if (agent == SetupAgent.SSH && include != null) listOf("--include", include) else emptyList())
 }
 
 /**
@@ -50,7 +56,11 @@ fun hostCliSetupCommand(
     endpoint: String,
     shells: Collection<SetupShell>,
     host: String,
-): String = hostCliCommandLine(cli, listOf("agents", "setup") + agentSetupOptions(agent, endpoint, shells, host))
+    include: String? = null,
+): String = hostCliCommandLine(
+    cli,
+    listOf("agents", "setup") + agentSetupOptions(agent, endpoint, shells, host, include),
+)
 
 /** Reviews the removal of what [hostCliSetupCommand] configured. */
 fun hostCliUndoCommand(cli: List<String>, agent: SetupAgent): String =

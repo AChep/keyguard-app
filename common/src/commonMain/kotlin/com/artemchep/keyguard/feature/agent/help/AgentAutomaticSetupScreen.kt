@@ -47,8 +47,12 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
-internal fun AgentAutomaticSetupScreen(agent: SetupAgent, mode: AgentSetupMode) {
-    AgentAutomaticSetupContent(agent, mode, produceAgentAutomaticSetupState(agent, mode))
+internal fun AgentAutomaticSetupScreen(
+    agent: SetupAgent,
+    mode: AgentSetupMode,
+    includeSshBookmarks: Boolean,
+) {
+    AgentAutomaticSetupContent(agent, mode, produceAgentAutomaticSetupState(agent, mode, includeSshBookmarks))
 }
 
 @Composable

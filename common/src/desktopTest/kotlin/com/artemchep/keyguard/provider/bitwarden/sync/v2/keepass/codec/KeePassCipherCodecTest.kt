@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec
 
 import app.keemobile.kotpass.models.BinaryData
 import app.keemobile.kotpass.models.BinaryReference
+import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.XmlExtension
 import app.keemobile.kotpass.models.XmlExtensionContent
@@ -503,6 +504,82 @@ class KeePassCipherCodecLinkTest {
         assertEquals(emptyList(), decoded.fields)
     }
 
+    @Test
+    fun `SSH bookmarks round-trip as plain fields after the user fields`() = runTest {
+        val userField = BitwardenCipher.Field(
+            name = "Host",
+            value = "example.com",
+            type = BitwardenCipher.Field.Type.Text,
+        )
+        val local = testBitwardenCipher(cipherId = TARGET_REMOTE_ID).copy(
+            revisionDate = REVISION_DATE,
+            type = BitwardenCipher.Type.SshKey,
+            secureNote = null,
+            fields = listOf(userField),
+            sshKey = BitwardenCipher.SshKey(
+                publicKey = "ssh-ed25519 AAAA",
+                bookmarks = listOf(
+                    BitwardenCipher.SshKey.Bookmark(name = "GitHub", url = "ssh://git@github.com"),
+                    BitwardenCipher.SshKey.Bookmark(name = null, url = "ssh://one.example.com"),
+                    BitwardenCipher.SshKey.Bookmark(name = null, url = "ssh://two.example.com"),
+                ),
+            ),
+        )
+
+        val encoded = codec.encode(
+            local = local,
+            remote = null,
+            existingBinaries = emptyMap(),
+        )
+        val decoded = codec.decode(
+            accountId = local.accountId,
+            folderId = null,
+            cipherId = local.cipherId,
+            remote = encoded.entry,
+            local = null,
+            revisionDate = REVISION_DATE,
+            binaries = encoded.binaryAdditions,
+        )
+
+        // KeePass has no field without a key, nor two with one key.
+        assertEquals(
+            listOf(
+                BitwardenCipher.SshKey.Bookmark(name = "GitHub", url = "ssh://git@github.com"),
+                BitwardenCipher.SshKey.Bookmark(name = "SSH bookmark", url = "ssh://one.example.com"),
+                BitwardenCipher.SshKey.Bookmark(name = "SSH bookmark #1", url = "ssh://two.example.com"),
+            ),
+            decoded.sshKey?.bookmarks,
+        )
+        assertEquals(listOf(userField), decoded.fields)
+    }
+
+    @Test
+    fun `decode takes the plain ssh fields of an SSH key that nothing else reads`() = runTest {
+        val remote = buildEntry(
+            title = "ssh://title.example.com",
+            url = "ssh://deploy@example.com",
+            extraFields = linkedMapOf(
+                "Secret host" to EntryValue.Encrypted(EncryptedValue.fromString("ssh://secret.example.com")),
+            ),
+        )
+
+        val decoded = codec.decode(
+            accountId = "account",
+            folderId = null,
+            cipherId = "cipher",
+            remote = remote,
+            local = testBitwardenCipher(cipherId = "cipher").copy(type = BitwardenCipher.Type.SshKey),
+            revisionDate = REVISION_DATE,
+            binaries = emptyMap(),
+        )
+
+        assertEquals("ssh://title.example.com", decoded.name)
+        assertEquals(
+            listOf(BitwardenCipher.SshKey.Bookmark(name = "URL", url = "ssh://deploy@example.com")),
+            decoded.sshKey?.bookmarks,
+        )
+        assertEquals(listOf("Secret host"), decoded.fields.map { it.name })
+    }
 }
 
 private fun createCodec(

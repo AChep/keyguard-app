@@ -2,6 +2,7 @@ package com.artemchep.keyguard.platform
 
 import org.apache.commons.lang3.SystemUtils
 import java.io.File
+import java.nio.file.Path
 
 /**
  * Mirrors the detection in the native `linux_shared.rs` and the
@@ -19,6 +20,19 @@ internal fun flatpakId(): String =
         ?: FLATPAK_APP_ID_FALLBACK
 
 private const val FLATPAK_APP_ID_FALLBACK = "com.artemchep.keyguard"
+
+/** The app's data directory, which has the same path inside and outside the sandbox. */
+internal fun flatpakDataDirectory(
+    userHome: Path = Path.of(System.getProperty("user.home")),
+): Path = System.getenv("XDG_DATA_HOME")
+    ?.takeIf { it.isNotBlank() }
+    ?.let { Path.of(it) }
+    ?.takeIf { it.isAbsolute }
+    ?: userHome
+        .resolve(".var")
+        .resolve("app")
+        .resolve(flatpakId())
+        .resolve("data")
 
 /** The sandbox metadata that Flatpak writes for the running instance. */
 internal const val FLATPAK_INFO_PATH = "/.flatpak-info"

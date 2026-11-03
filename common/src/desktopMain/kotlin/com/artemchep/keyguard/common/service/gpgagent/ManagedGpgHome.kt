@@ -4,7 +4,7 @@ import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.service.agent.macosDevAgentSocketPath
 import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.platform.Platform
-import com.artemchep.keyguard.platform.flatpakId
+import com.artemchep.keyguard.platform.flatpakDataDirectory
 import com.sun.security.auth.module.UnixSystem
 import java.nio.file.Files
 import java.nio.file.Path
@@ -104,14 +104,8 @@ private fun linuxManagedGpgHome(platform: Platform.Desktop.Linux): ManagedGpgHom
 }
 
 private fun flatpakManagedGpgHomePath(): Path =
-    gpgEnvPath("XDG_DATA_HOME")
-        ?.resolve("gnupg")
-        ?: Path.of(System.getProperty("user.home"))
-            .resolve(".var")
-            .resolve("app")
-            .resolve(flatpakId())
-            .resolve("data")
-            .resolve("gnupg")
+    flatpakDataDirectory()
+        .resolve("gnupg")
 
 internal fun linuxManagedGpgHome(
     userHome: Path,

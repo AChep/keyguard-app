@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.imports.impl.bitwarden
 
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.KEEPASS_FILE_UPLOAD_MAX_BYTES
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.model.create.CreateRequest
@@ -309,7 +310,12 @@ internal class BitwardenJsonImporter(
                 card = item.card?.toCreateRequest() ?: CreateRequest.Card(),
                 identity = item.identity?.toCreateRequest() ?: CreateRequest.Identity(),
                 sshKey = (item.sshKey?.toCreateRequest() ?: CreateRequest.SshKey())
-                    .copy(certificate = transport.certificate),
+                    .copy(
+                        certificate = transport.certificate,
+                        bookmarks = transport.bookmarks.map { bookmark ->
+                            DSecret.SshKey.Bookmark(name = bookmark.name, url = bookmark.url)
+                        }.toPersistentList(),
+                    ),
                 gpgKey = keyguard.gpgKey,
                 environment = keyguard.environment,
             )

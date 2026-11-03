@@ -21,6 +21,22 @@ pub fn environment(home: &Path, powershell_profile: &str) -> Environment {
     }
 }
 
+/// A temporary home and its [`environment`]; the home is removed with the directory.
+pub fn fixture() -> (tempfile::TempDir, Environment) {
+    let dir = tempfile::tempdir().unwrap();
+    let env = environment(dir.path(), "Documents/PowerShell/profile.ps1");
+    (dir, env)
+}
+
+/// The agent's socket, or its named pipe on Windows.
+pub fn socket() -> &'static str {
+    if cfg!(windows) {
+        r"\\.\pipe\keyguard-agent.sock"
+    } else {
+        "/tmp/keyguard test/agent.sock"
+    }
+}
+
 /// Writes `text` to `relative` under the home, creating parent directories.
 pub fn put(env: &Environment, relative: &str, text: &str) {
     let path = env.home.join(relative);

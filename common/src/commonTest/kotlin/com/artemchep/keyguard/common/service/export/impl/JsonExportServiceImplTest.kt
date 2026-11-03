@@ -194,6 +194,9 @@ class JsonExportServiceImplTest {
             sshKey = DSecret.SshKey(
                 publicKey = "ssh-ed25519 AAAA",
                 certificate = CERTIFICATE,
+                bookmarks = listOf(
+                    DSecret.SshKey.Bookmark(name = "GitHub", url = "ssh://git@github.com"),
+                ),
             ),
             links = listOf(
                 DSecret.Link(TARGET_REMOTE_ID),
@@ -206,6 +209,11 @@ class JsonExportServiceImplTest {
                     type = 0,
                     name = "Note",
                     value = "hello",
+                ),
+                ExportedField(
+                    type = 0,
+                    name = "GitHub",
+                    value = "ssh://git@github.com",
                 ),
                 ExportedField(
                     type = 0,

@@ -1073,10 +1073,11 @@ private fun UrlTextField(
     UrlFlatTextField(
         modifier = modifier
             .padding(horizontal = Dimens.fieldHorizontalPadding),
-        label = stringResource(Res.string.uri),
+        label = state.label ?: stringResource(Res.string.uri),
+        placeholder = state.placeholder,
         shapeState = shapeState,
         value = field,
-        leading = {
+        leading = item.leading ?: {
             IconBox(
                 main = Icons.Outlined.KeyguardWebsite,
             )

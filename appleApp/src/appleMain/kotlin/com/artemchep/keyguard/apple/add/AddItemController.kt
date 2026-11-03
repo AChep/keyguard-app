@@ -676,7 +676,7 @@ internal class AddItemController(
                     snapshot(
                         item.id,
                         AddItemKind.URL,
-                        fields = listOf(textField(item.id, st.text, null, false, false)),
+                        fields = listOf(textField(item.id, st.text, st.label, false, false)),
                         enumValue = st.matchTypeTitle,
                         options = actionList("${item.id}:match", st.options),
                         actions = actionList("${item.id}:opt", item.options),

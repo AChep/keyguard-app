@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.icon.AccountIconServers
 import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlushRunner
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksSource
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -88,6 +89,10 @@ class SshAgentSessionDependencies(
     val addSshUsageHistory: AddSshUsageHistory?,
     val filterContext: CipherFilterContext,
 )
+
+fun interface SshBookmarksSessionAccess {
+    operator fun invoke(session: MasterSession.Key): SshBookmarksSource?
+}
 
 fun interface GpgAgentSessionAccess {
     operator fun invoke(session: MasterSession.Key): GpgAgentSessionDependencies?

@@ -718,6 +718,12 @@
     <string name="ssh_certificate_problem_key_mismatch">This certificate is for another key.</string>
     <string name="ssh_certificate_problem_not_yet_valid">This certificate is valid from <xliff:g id="date" example="Jan 1, 2027">%1$s</xliff:g>.</string>
     <string name="ssh_certificate_problem_expired">This certificate expired on <xliff:g id="date" example="Jan 1, 2026">%1$s</xliff:g>.</string>
+    <string name="ssh_bookmark">SSH bookmark</string>
+    <string name="ssh_bookmarks">SSH bookmarks</string>
+    <string name="ssh_bookmark_invalid">Not a valid SSH bookmark</string>
+    <string name="ssh_bookmark_placeholder">ssh://user@host:port</string>
+    <string name="ssh_bookmark_copy_command">Copy SSH command</string>
+    <string name="ssh_bookmark_connect">Connect</string>
 
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selected</string>
     <string name="selection_clear_action">Clear selection</string>
@@ -2137,6 +2143,13 @@
     <string name="pref_item_agent_local_storage_text">When the <xliff:g id="protocol" example="SSH">%1$s</xliff:g> agent is on, Keyguard keeps an unencrypted copy of the public keys on disk so clients can list keys while the vault is locked. Private keys are never exposed; key names are stored only if you enable the corresponding option.</string>
     <string name="pref_item_agent_display_key_names_title">Display key names before vault is unlocked</string>
     <string name="pref_item_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_title">Generate SSH config for bookmarked hosts</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_text">Pins each host from an ssh:// field of an SSH key item to that key, so ssh offers only that key. To use it, run SSH client setup again, or add this line to the top of ~/.ssh/config:</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_note">Host names and public keys are stored unencrypted on disk.</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_title">Include the config in ~/.ssh/config</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_text">ssh ignores the bookmarks until ~/.ssh/config includes the generated config. Run SSH client setup, or add this line to the top of the file:</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_retry">Then turn the setting on again.</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_setup_action">Run SSH client setup</string>
     <string name="pref_item_agent_approval_window_always_ask">Ask every time</string>
     <string name="pref_item_agent_approval_window_until_lock">Until vault locks</string>
     <string name="pref_item_agent_approval_window_never_ask">Never ask</string>

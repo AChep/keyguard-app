@@ -5,12 +5,16 @@ import com.artemchep.keyguard.common.service.exposedaccount.impl.ExposedAccountS
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySyncer
 import com.artemchep.keyguard.common.service.gpgagent.impl.GpgPublicKeySyncerImpl
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksSource
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.impl.SshBookmarksSourceImpl
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentPublicKeySyncerImpl
+import com.artemchep.keyguard.common.usecase.GetSshAgentCiphers
 import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.SyncAll
 import com.artemchep.keyguard.common.usecase.SyncById
 import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.common.usecase.WatchdogImpl
+import com.artemchep.keyguard.common.usecase.impl.GetSshAgentCiphersImpl
 import com.artemchep.keyguard.core.store.DatabaseSyncer
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.SyncByBitwardenTokenV2Impl
 import com.artemchep.keyguard.provider.bitwarden.usecase.SyncAllImpl
@@ -35,12 +39,19 @@ internal class VaultSyncModule {
                 )
             } bind ExposedAccountSyncer::class
 
-            scoped<SshAgentPublicKeySyncerImpl> {
-                SshAgentPublicKeySyncerImpl(
+            scoped<GetSshAgentCiphersImpl> {
+                GetSshAgentCiphersImpl(
                     filterContext = get(),
                     getCiphers = get(),
-                    getSshAgent = get(),
                     getSshAgentFilter = get(),
+                    windowCoroutineScope = get(),
+                )
+            } bind GetSshAgentCiphers::class
+
+            scoped<SshAgentPublicKeySyncerImpl> {
+                SshAgentPublicKeySyncerImpl(
+                    getSshAgentCiphers = get(),
+                    getSshAgent = get(),
                     getSshAgentDisplayKeyNames = get(),
                     sshAgentPublicKeyRepository = get(),
                     cryptoGenerator = get(),
@@ -48,6 +59,16 @@ internal class VaultSyncModule {
                     logRepository = get(),
                 )
             } bind SshAgentPublicKeySyncer::class
+
+            scoped<SshBookmarksSourceImpl> {
+                SshBookmarksSourceImpl(
+                    getCiphers = get(),
+                    getSshAgentCiphers = get(),
+                    sshCertificateParser = get(),
+                    cryptoGenerator = get(),
+                    base64Service = get(),
+                )
+            } bind SshBookmarksSource::class
 
             scoped<GpgPublicKeySyncer> {
                 GpgPublicKeySyncerImpl(

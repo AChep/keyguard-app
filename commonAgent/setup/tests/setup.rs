@@ -1,28 +1,18 @@
 use keyguard_agent_setup::{
-    Agent, AgentKind, Conflict, Environment, Request, Shell, apply, plan, review_and_apply, undo,
+    Agent, AgentKind, Conflict, Request, Shell, apply, plan, review_and_apply, undo,
 };
 use std::fs;
-use support::put;
+use support::{fixture, put, socket};
 
 mod support;
-
-fn fixture() -> (tempfile::TempDir, Environment) {
-    let dir = tempfile::tempdir().unwrap();
-    let env = support::environment(dir.path(), "Documents/PowerShell/profile.ps1");
-    (dir, env)
-}
 
 fn ssh(shells: Vec<Shell>) -> Request {
     Request {
         launcher: None,
         agent: Agent::Ssh {
-            socket: if cfg!(windows) {
-                r"\\.\pipe\keyguard-agent.sock"
-            } else {
-                "/tmp/keyguard test/agent.sock"
-            }
-            .into(),
+            socket: socket().into(),
             host: None,
+            include: None,
         },
         shells,
     }
@@ -197,6 +187,7 @@ fn rejects_ssh_configuration_injection() {
             agent: Agent::Ssh {
                 socket: socket.into(),
                 host: None,
+                include: None,
             },
             shells: vec![],
         };
@@ -226,6 +217,7 @@ fn windows_pipe_uses_forward_slashes_in_ssh_configuration() {
         agent: Agent::Ssh {
             socket: r"\\.\pipe\keyguard-ssh-agent".into(),
             host: Some("github.com".into()),
+            include: None,
         },
         shells: vec![],
     };
@@ -305,6 +297,7 @@ fn bash_keeps_forwarded_socket_and_quotes_values() {
     request.agent = Agent::Ssh {
         socket: "/tmp/keyguard's agent.sock".into(),
         host: None,
+        include: None,
     };
     apply(&env, &plan(&env, request).unwrap()).unwrap();
     let probe = |forwarded: bool| {

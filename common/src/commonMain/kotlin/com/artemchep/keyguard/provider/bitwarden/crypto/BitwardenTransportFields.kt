@@ -6,8 +6,9 @@ import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
 
 /**
  * Keyguard's own data that a Bitwarden item has no member for, carried in its
- * custom fields: an environment, a GPG key, the certificate of an SSH key, the
- * PRF secrets of passkeys, tags, the KeePass icon and the links to other items.
+ * custom fields: an environment, a GPG key, the bookmarks and certificate of
+ * an SSH key, the PRF secrets of passkeys, tags, the KeePass icon and the links
+ * to other items.
  *
  * The sync, the JSON export and the import all read and write that data here.
  * Each part is read and written only on the types that may carry it, so user
@@ -21,6 +22,7 @@ internal object BitwardenTransportFields {
         val customIcon: KeePassIcon? = null,
         val environment: BitwardenCipher.Environment? = null,
         val gpgKey: BitwardenCipher.GpgKey? = null,
+        val bookmarks: List<BitwardenCipher.SshKey.Bookmark> = emptyList(),
         val certificate: String? = null,
         val passkeys: List<BitwardenPasskeyFieldCodec.Secrets> = emptyList(),
         /** The remote ids of the linked items. */
@@ -29,6 +31,8 @@ internal object BitwardenTransportFields {
 
     data class Encoded(
         val fields: List<BitwardenCipher.Field>,
+        /** The bookmarks are in the [fields], so the SSH key must not carry them. */
+        val bookmarks: Boolean,
         /** The certificate is in the [fields], so the SSH key must not carry it. */
         val certificate: Boolean,
         /** The PRF secrets are in the [fields], so the passkeys must not carry them. */
@@ -42,6 +46,7 @@ internal object BitwardenTransportFields {
         val fields: List<BitwardenCipher.Field>,
         val environment: BitwardenCipher.Environment? = null,
         val gpgKey: BitwardenCipher.GpgKey? = null,
+        val bookmarks: List<BitwardenCipher.SshKey.Bookmark> = emptyList(),
         val certificate: String? = null,
         /** The passkeys with their PRF secrets, or `null` if no passkey document decoded. */
         val credentials: List<BitwardenCipher.Login.Fido2Credentials>? = null,
@@ -62,7 +67,7 @@ internal object BitwardenTransportFields {
     /**
      * Writes the [payload] into the [fields] of an item of [type], in a fixed
      * order: the GPG key, the icon, the environment, the user's fields, the
-     * certificate, the PRF secrets and the links.
+     * bookmarks, the certificate, the PRF secrets and the links.
      *
      * [chunkedGpgKey] `false` writes the GPG key as the JSON export always
      * has, see [BitwardenGpgKeyFieldCodec.encode].
@@ -88,6 +93,10 @@ internal object BitwardenTransportFields {
         if (gpgKey != null) {
             result = BitwardenGpgKeyFieldCodec.encode(gpgKey, result, chunked = chunkedGpgKey)
         }
+        val bookmarks = payload.bookmarks
+            .takeIf { appliesTo(BitwardenSshBookmarkFieldCodec::appliesTo) }
+            .orEmpty()
+        result = result + BitwardenSshBookmarkFieldCodec.encode(bookmarks)
         // The certificate, the PRF secrets and the links are auxiliary
         // data, append them after the user's own custom fields.
         val certificate = payload.certificate
@@ -107,6 +116,7 @@ internal object BitwardenTransportFields {
         result = result + payload.links.toLinkFields()
         return Encoded(
             fields = result,
+            bookmarks = bookmarks.isNotEmpty(),
             certificate = certificate != null,
             passkeys = passkeyFields.isNotEmpty(),
         )
@@ -141,8 +151,14 @@ internal object BitwardenTransportFields {
         val links = scope.consumeAllDecoded { it.decodeCipherLinkFieldOrNull() }
             .let(CipherLinkFields::decode)
             .map { it.remoteCipherId }
+        val bookmarks = if (BitwardenSshBookmarkFieldCodec.appliesTo(type)) {
+            scope.consumeAllDecoded(BitwardenSshBookmarkFieldCodec::decode)
+        } else {
+            emptyList()
+        }
         return decoded.copy(
             fields = scope.remainingFields,
+            bookmarks = bookmarks,
             certificate = certificate?.certificate,
             credentials = passkeys?.credentials,
             tags = tags,

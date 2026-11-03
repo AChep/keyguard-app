@@ -43,15 +43,21 @@ fn record_observation(plan: &mut Plan, observation: crate::ObservedFile) -> Resu
 
 /// What Keyguard owns in each file. Undo removes only these blocks, so edits
 /// made outside them survive, unlike restoring a snapshot of the whole file.
+///
+/// Each of [`AgentKind::blocks`] has a journal file of its own, so a version
+/// of Keyguard that knows fewer blocks reads and rewrites only its own ones.
 #[derive(Debug, Serialize, Deserialize)]
 struct Journal {
     request: crate::Request,
     files: Vec<OwnedBlock>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct OwnedBlock {
     path: PathBuf,
+    /// One of [`AgentKind::blocks`], from the name of the journal file.
+    #[serde(skip)]
+    id: &'static str,
     /// Keyguard created the file, so Undo deletes it once nothing else is left.
     created: bool,
     /// The exact block, markers included, as last written.
@@ -64,6 +70,10 @@ struct OwnedBlock {
 impl OwnedBlock {
     fn matches(&self, block: &str) -> bool {
         self.block == block || self.previous.as_deref() == Some(block)
+    }
+
+    fn is(&self, path: &Path, id: &str) -> bool {
+        self.path == path && self.id == id
     }
 }
 
@@ -316,17 +326,33 @@ fn journal_path(env: &Environment, id: &str) -> PathBuf {
     env.state_dir().join(format!("{id}.json"))
 }
 
-/// The journal with its exact text, which undo records as a read dependency.
-fn journal(env: &Environment, id: &str) -> Result<Option<(String, Journal)>> {
-    let path = journal_path(env, id);
-    read(env, &path)?
-        .map(|text| {
-            let journal = serde_json::from_str(&text)
-                .context("invalid setup journal; preserve it for recovery")
-                .context(SetupError::ManagedBlock { path })?;
-            Ok((text, journal))
-        })
-        .transpose()
+/// The journals of the agent's blocks as one, with an observation of each
+/// journal file, which undo records as a read dependency.
+fn journal(
+    env: &Environment,
+    kind: AgentKind,
+) -> Result<(Vec<crate::ObservedFile>, Option<Journal>)> {
+    let mut observed = Vec::new();
+    let mut merged: Option<Journal> = None;
+    for &block_id in kind.blocks() {
+        let path = journal_path(env, block_id);
+        let text = read(env, &path)?;
+        observed.push(observation(&path, text.as_deref()));
+        let Some(text) = text else {
+            continue;
+        };
+        let mut journal: Journal = serde_json::from_str(&text)
+            .context("invalid setup journal; preserve it for recovery")
+            .context(SetupError::ManagedBlock { path })?;
+        for file in &mut journal.files {
+            file.id = block_id;
+        }
+        match &mut merged {
+            Some(merged) => merged.files.append(&mut journal.files),
+            None => merged = Some(journal),
+        }
+    }
+    Ok((observed, merged))
 }
 
 /// Writes each edit only while its file still has the reviewed contents.
@@ -341,30 +367,36 @@ fn write_edits(env: &Environment, edits: &[Edit]) -> Result<()> {
 /// Removes this agent's blocks from files no longer selected, and reports
 /// blocks that Undo could not find, such as ones in copied dotfiles.
 pub(crate) fn reconcile(env: &Environment, plan: &mut Plan) -> Result<()> {
-    let id = plan.request.agent.id();
-    let mut recorded = Vec::new();
-    if let Some((text, journal)) = journal(env, id)? {
-        recorded.extend(journal.files.iter().map(|file| file.path.clone()));
-        let undo = undo_journal(env, id, &text, journal)?;
+    let kind = plan.request.agent.kind();
+    let (observed, journal) = journal(env, kind)?;
+    if let Some(journal) = &journal {
+        let undo = undo_journal(env, observed, journal)?;
         for entry in undo.observed_files {
             record_observation(plan, entry)?;
         }
         plan.conflicts.extend(undo.conflicts);
+        // The plan's own edit of a file already sets or removes each of
+        // this agent's blocks in it.
         for edit in undo.edits {
             if !plan.edits.iter().any(|current| current.path == edit.path) {
                 plan.edits.push(edit);
             }
         }
     } else {
-        record_observation(plan, observation(&journal_path(env, id), None))?;
+        for entry in observed {
+            record_observation(plan, entry)?;
+        }
     }
+    let recorded = journal.as_ref().map_or(&[][..], |journal| &journal.files);
     for edit in &plan.edits {
-        if !recorded.contains(&edit.path)
-            && owned(edit.before.as_deref(), id, &edit.path)?.is_some()
-        {
-            plan.conflicts.push(Conflict::UnrecordedBlock {
-                path: edit.path.clone(),
-            });
+        for &block in kind.blocks() {
+            let known = recorded.iter().any(|file| file.is(&edit.path, block));
+            if !known && owned(edit.before.as_deref(), block, &edit.path)?.is_some() {
+                plan.conflicts.push(Conflict::UnrecordedBlock {
+                    path: edit.path.clone(),
+                });
+                break;
+            }
         }
     }
     Ok(())
@@ -393,75 +425,106 @@ pub fn apply(env: &Environment, plan: &Plan) -> Result<()> {
     if !changes {
         return Ok(());
     }
-    let id = plan.request.agent.id();
+    let kind = plan.request.agent.kind();
     if plan.undo {
         write_edits(env, &plan.edits)?;
-        return write(env, &journal_path(env, id), None);
+        for &block_id in kind.blocks() {
+            write(env, &journal_path(env, block_id), None)?;
+        }
+        return Ok(());
     }
-    let mut journal = journal(env, id)?
-        .map(|(_, journal)| journal)
-        .unwrap_or(Journal {
-            request: plan.request.clone(),
-            files: Vec::new(),
-        });
+    let mut journal = journal(env, kind)?.1.unwrap_or(Journal {
+        request: plan.request.clone(),
+        files: Vec::new(),
+    });
     journal.request = plan.request.clone();
     let mut retired = Vec::new();
     for edit in &plan.edits {
         let path = &edit.path;
         let managed = || SetupError::ManagedBlock { path: path.clone() };
-        let index = journal.files.iter().position(|file| &file.path == path);
-        let current = owned(edit.before.as_deref(), id, path)?;
-        // A recorded block may be missing: the user removed it, or an
-        // interrupted apply never wrote it. Writing it again is safe.
-        match (index, &current) {
-            (Some(index), Some(current)) if !journal.files[index].matches(current) => {
-                return Err(
-                    anyhow!("Keyguard's configuration was edited manually").context(managed())
-                );
+        for &block_id in kind.blocks() {
+            let index = journal
+                .files
+                .iter()
+                .position(|file| file.is(path, block_id));
+            let current = owned(edit.before.as_deref(), block_id, path)?;
+            // A recorded block may be missing: the user removed it, or an
+            // interrupted apply never wrote it. Writing it again is safe.
+            match (index, &current) {
+                (Some(index), Some(current)) if !journal.files[index].matches(current) => {
+                    return Err(
+                        anyhow!("Keyguard's configuration was edited manually").context(managed())
+                    );
+                }
+                (None, Some(_)) => {
+                    return Err(
+                        anyhow!("found a Keyguard block without an undo record").context(managed())
+                    );
+                }
+                _ => (),
             }
-            (None, Some(_)) => {
-                return Err(
-                    anyhow!("found a Keyguard block without an undo record").context(managed())
-                );
+            // Until its file is written, the journal keeps the block it replaces.
+            match (index, owned(edit.after.as_deref(), block_id, path)?) {
+                (Some(index), Some(block)) => {
+                    let file = &mut journal.files[index];
+                    file.previous = current.filter(|current| current != &block);
+                    file.block = block;
+                }
+                (Some(_), None) => retired.push((path, block_id)),
+                (None, Some(block)) => journal.files.push(OwnedBlock {
+                    path: path.clone(),
+                    id: block_id,
+                    created: edit.before.is_none(),
+                    block,
+                    previous: None,
+                }),
+                (None, None) => (),
             }
-            _ => (),
-        }
-        // Until its file is written, the journal keeps the block it replaces.
-        match (index, owned(edit.after.as_deref(), id, path)?) {
-            (Some(index), Some(block)) => {
-                let file = &mut journal.files[index];
-                file.previous = current.filter(|current| current != &block);
-                file.block = block;
-            }
-            (Some(_), None) => retired.push(path),
-            (None, Some(block)) => journal.files.push(OwnedBlock {
-                path: path.clone(),
-                created: edit.before.is_none(),
-                block,
-                previous: None,
-            }),
-            (None, None) => (),
         }
     }
-    save(env, id, &journal)?;
+    save(env, kind, &journal)?;
     write_edits(env, &plan.edits)
         .context("some files may already be changed; use Undo to recover")?;
-    journal.files.retain(|file| !retired.contains(&&file.path));
+    journal.files.retain(|file| {
+        !retired
+            .iter()
+            .any(|(path, block_id)| file.is(path, block_id))
+    });
     for file in &mut journal.files {
         if plan.edits.iter().any(|edit| edit.path == file.path) {
             file.previous = None;
         }
     }
-    save(env, id, &journal)
+    save(env, kind, &journal)
 }
 
-fn save(env: &Environment, id: &str, journal: &Journal) -> Result<()> {
-    let record = serde_json::to_string_pretty(journal)?;
-    ensure!(
-        record.len() as u64 <= MAX_FILE_SIZE,
-        "configuration exceeds the undo record size limit; configure these files manually"
-    );
-    write(env, &journal_path(env, id), Some(&record))
+/// Writes the journal file of each block; the agent's own one even without
+/// blocks, and no other file without blocks.
+fn save(env: &Environment, kind: AgentKind, journal: &Journal) -> Result<()> {
+    let id = kind.id();
+    for &block_id in kind.blocks() {
+        let files: Vec<_> = journal
+            .files
+            .iter()
+            .filter(|file| file.id == block_id)
+            .cloned()
+            .collect();
+        let path = journal_path(env, block_id);
+        if files.is_empty() && block_id != id {
+            write(env, &path, None)?;
+            continue;
+        }
+        let record = serde_json::to_string_pretty(&Journal {
+            request: journal.request.clone(),
+            files,
+        })?;
+        ensure!(
+            record.len() as u64 <= MAX_FILE_SIZE,
+            "configuration exceeds the undo record size limit; configure these files manually"
+        );
+        write(env, &path, Some(&record))?;
+    }
+    Ok(())
 }
 
 fn owned(text: Option<&str>, id: &str, path: &Path) -> Result<Option<String>> {
@@ -473,40 +536,63 @@ fn owned(text: Option<&str>, id: &str, path: &Path) -> Result<Option<String>> {
 /// user edits survive; edits inside a managed block require manual resolution.
 pub fn undo(env: &Environment, kind: AgentKind) -> Result<Plan> {
     let id = kind.id();
-    let (text, journal) =
-        journal(env, id)?.ok_or_else(|| anyhow::anyhow!("no recorded {id} setup to undo"))?;
-    undo_journal(env, id, &text, journal)
+    let (observed, journal) = journal(env, kind)?;
+    let journal = journal.ok_or_else(|| anyhow::anyhow!("no recorded {id} setup to undo"))?;
+    undo_journal(env, observed, &journal)
 }
 
-fn undo_journal(env: &Environment, id: &str, text: &str, journal: Journal) -> Result<Plan> {
+fn undo_journal(
+    env: &Environment,
+    observed: Vec<crate::ObservedFile>,
+    journal: &Journal,
+) -> Result<Plan> {
     let mut plan = Plan {
         version: crate::PLAN_VERSION,
         undo: true,
-        request: journal.request,
+        request: journal.request.clone(),
         edits: Vec::new(),
         conflicts: Vec::new(),
         overrides: Vec::new(),
-        observed_files: vec![observation(&journal_path(env, id), Some(text))],
+        observed_files: observed,
     };
-    for file in journal.files {
-        let current = observe(env, &mut plan, &file.path)?;
-        // An interrupted apply may not have reached this file, or the user
-        // already removed the block.
-        let Some(block) = owned(current.as_deref(), id, &file.path)? else {
-            continue;
-        };
-        if !file.matches(&block) {
+    // The blocks of each file, in the order of the journal.
+    let mut files: Vec<(&PathBuf, Vec<&OwnedBlock>)> = Vec::new();
+    for file in &journal.files {
+        match files.iter_mut().find(|(path, _)| *path == &file.path) {
+            Some((_, blocks)) => blocks.push(file),
+            None => files.push((&file.path, vec![file])),
+        }
+    }
+    for (path, blocks) in files {
+        let current = observe(env, &mut plan, path)?;
+        let mut rest = current.clone().unwrap_or_default();
+        let (mut found, mut changed) = (false, false);
+        for file in &blocks {
+            let block_id = file.id;
+            // An interrupted apply may not have reached this file, or the user
+            // already removed the block.
+            let Some(block) = owned(current.as_deref(), block_id, path)? else {
+                continue;
+            };
+            found = true;
+            changed |= !file.matches(&block);
+            rest = planner::remove_block(&rest, block_id)?;
+        }
+        if changed {
             plan.conflicts
-                .push(Conflict::ChangedBlock { path: file.path });
+                .push(Conflict::ChangedBlock { path: path.clone() });
             continue;
         }
-        let rest = planner::remove_block(current.as_deref().unwrap_or_default(), id)?;
+        if !found {
+            continue;
+        }
         // Windows PowerShell profiles may keep the BOM that setup added.
         let empty = rest.trim_start_matches('\u{feff}').is_empty();
         // Zsh loads a compiled copy of a missing startup file, so keep it empty.
-        let delete = file.created && empty && !crate::shell::compiled(&file.path).exists();
+        let created = blocks.iter().any(|file| file.created);
+        let delete = created && empty && !crate::shell::compiled(path).exists();
         plan.edits.push(Edit {
-            path: file.path,
+            path: path.clone(),
             before: current,
             after: if delete { None } else { Some(rest) },
         });

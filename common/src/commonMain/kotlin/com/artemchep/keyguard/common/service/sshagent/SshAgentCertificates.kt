@@ -53,8 +53,21 @@ internal fun sshCertificateMatches(
     val text = certificate
         ?.takeIf { sshPublicKeysMatch(it, credential) }
         ?: return false
-    val description = parser.parse(
+    return isSshUserCertificateOf(
         certificate = text,
+        publicKey = publicKey,
+        parser = parser,
+    )
+}
+
+/** Whether the [certificate] is a user certificate of the key that has the [publicKey]. */
+internal fun isSshUserCertificateOf(
+    certificate: String,
+    publicKey: String?,
+    parser: SshCertificateParser,
+): Boolean {
+    val description = parser.parse(
+        certificate = certificate,
         publicKey = publicKey,
     )
     return description != null &&

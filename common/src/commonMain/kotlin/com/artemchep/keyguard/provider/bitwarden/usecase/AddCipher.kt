@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.canDelete
 import com.artemchep.keyguard.common.model.canEdit
 import com.artemchep.keyguard.common.model.create.CreateRequest
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.withSshBookmarkFields
 import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
@@ -397,6 +398,7 @@ private suspend fun BitwardenCipher.Companion.of(
     now: Instant,
     old: BitwardenCipher? = null,
 ): BitwardenCipher {
+    val request = request.withSshBookmarkFields()
     val accountId = request.ownership?.accountId
     val folderId = request.ownership?.folderId
     val organizationId = request.ownership?.organizationId
@@ -951,6 +953,13 @@ private suspend fun BitwardenCipher.SshKey.Companion.of(
     publicKey = request.sshKey.publicKey,
     fingerprint = request.sshKey.fingerprint,
     certificate = request.sshKey.certificate,
+    bookmarks = request.sshKey.bookmarks
+        .map { bookmark ->
+            BitwardenCipher.SshKey.Bookmark(
+                name = bookmark.name,
+                url = bookmark.url,
+            )
+        },
 )
 
 private suspend fun BitwardenCipher.GpgKey.Companion.of(

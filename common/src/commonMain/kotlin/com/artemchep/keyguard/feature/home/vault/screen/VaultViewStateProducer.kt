@@ -138,6 +138,11 @@ import com.artemchep.keyguard.common.service.placeholder.PlaceholderFactoryRegis
 import com.artemchep.keyguard.common.service.placeholder.PlaceholderScope
 import com.artemchep.keyguard.common.service.placeholder.create
 import com.artemchep.keyguard.common.service.placeholder.placeholderFormat
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmark
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.displayHostRange
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.parseSshBookmark
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.toDisplayString
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.toSshCommand
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.usecase.AddCipherOpenedHistory
 import com.artemchep.keyguard.common.usecase.ArchiveCipherById
@@ -349,6 +354,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.currentKoinScope
 
@@ -473,6 +479,8 @@ private class Holder(
 private class CipherSauce(
     val cipher: DSecret,
     val cipherUrisIo: IO<List<Holder>>,
+    /** The SSH bookmarks that an app can open. */
+    val sshBookmarkConnectableUrlsIo: IO<Set<String>>,
     val canEdit: Boolean,
     val canDelete: Boolean,
 )
@@ -947,6 +955,22 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
             }
     }
 
+    // Android tells if no app opens the URL; other
+    // platforms leave it to the system.
+    fun getSshBookmarkConnectableUrlsIo(
+        cipher: DSecret,
+    ) = ioEffect {
+        val extractors = LinkInfoRegistry(linkInfoExtractors)
+        cipher.sshKey?.bookmarks.orEmpty()
+            .map { it.url.trim() }
+            .filter { url ->
+                parseSshBookmark(url) != null && extractors
+                    .process(DSecret.Uri(uri = url))
+                    .none { it is LinkInfoLaunch.Deny }
+            }
+            .toSet()
+    }
+
     val cipherExtraFlow = combine(
         secretFlow,
         collectionsFlow,
@@ -975,10 +999,14 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
             cipher = cipher,
             urlOverrides = urlOverrides,
         ).shared(tag = "Cipher URIs")
+        val sshBookmarkConnectableUrlsIo = getSshBookmarkConnectableUrlsIo(
+            cipher = cipher,
+        ).shared(tag = "Cipher SSH bookmarks")
 
         CipherSauce(
             cipher = cipher,
             cipherUrisIo = cipherUrisIo,
+            sshBookmarkConnectableUrlsIo = sshBookmarkConnectableUrlsIo,
             canEdit = canEdit,
             canDelete = canDelete,
         )
@@ -1727,7 +1755,7 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                         getGravatarUrl = getGravatarUrl,
                         copy = copy,
                         dateFormatter = dateFormatter,
-                        linkInfoExtractors = linkInfoExtractors,
+                        sshBookmarkConnectableUrlsIo = secretSauceOrNull.sshBookmarkConnectableUrlsIo,
                         visibilityGlobalConfig = visibilityGlobalConfig,
                         visibilityGlobalUserTransform = visibilityGlobalUserTransform,
                         account = accountOrNull,
@@ -1807,7 +1835,7 @@ private fun RememberStateFlowScope.oh(
     getGravatarUrl: GetGravatarUrl,
     copy: CopyText,
     dateFormatter: DateFormatter,
-    linkInfoExtractors: List<LinkInfoExtractor<LinkInfo, LinkInfo>>,
+    sshBookmarkConnectableUrlsIo: IO<Set<String>>,
     visibilityGlobalConfig: Visibility.Global,
     visibilityGlobalUserTransform: (Boolean, (Boolean) -> Unit) -> Unit,
     account: DAccount,
@@ -2998,128 +3026,23 @@ private fun RememberStateFlowScope.oh(
                 emit(item)
             }
     }
-    if (cipher.fields.isNotEmpty()) {
-        val sectionText = if (cipher.fields.size > 1) {
-            translate(Res.string.custom_fields)
-        } else translate(Res.string.custom_field)
-        val section = VaultViewItem.Section(
-            id = "custom",
-            text = sectionText,
-        )
-        emit(section)
-        // items
-        cipher.fields.forEachIndexed { index, field ->
-            if (field.type == DSecret.Field.Type.Boolean) {
-                fun createAction(
-                    value: Boolean,
-                ) = FlatItemAction(
-                    id = "cipher.field.$index.toggleBoolean",
-                    title = TextHolder.Res(Res.string.custom_field_toggle_boolean_value),
-                    trailing = {
-                        SwitchExpressive(
-                            checked = !value,
-                            onCheckedChange = null,
-                            enabled = canEdit,
-                        )
-                    },
-                    onClick = if (canEdit) {
-                        // lambda
-                        {
-                            val request = mapOf(
-                                cipher.id to listOf(
-                                    CipherFieldSwitchToggleRequest(
-                                        fieldIndex = index,
-                                        fieldName = field.name,
-                                        value = value,
-                                    ),
-                                ),
-                            )
-                            cipherFieldSwitchToggle(request)
-                                .launchIn(appScope)
-                        }
-                    } else {
-                        null
-                    },
-                )
-
-                val value = field.value?.toBooleanStrictOrNull() ?: false
-                val actions = listOf(
-                    createAction(!value),
-                )
-                val m = VaultViewItem.Switch(
-                    id = "custom.$index",
-                    title = field.name.orEmpty(),
-                    value = value,
-                    dropdown = actions,
-                )
-                emit(m)
-                return@forEachIndexed
-            }
-            if (field.type == DSecret.Field.Type.Linked) {
-                val t = annotate(
-                    when (field.linkedId) {
-                        DSecret.Field.LinkedId.Login_Username -> Res.string.field_linked_to_username
-                        DSecret.Field.LinkedId.Login_Password -> Res.string.field_linked_to_password
-                        DSecret.Field.LinkedId.Card_CardholderName -> Res.string.field_linked_to_card_cardholdername
-                        DSecret.Field.LinkedId.Card_ExpMonth -> Res.string.field_linked_to_card_expmonth
-                        DSecret.Field.LinkedId.Card_ExpYear -> Res.string.field_linked_to_card_expyear
-                        DSecret.Field.LinkedId.Card_Code -> Res.string.field_linked_to_card_code
-                        DSecret.Field.LinkedId.Card_Brand -> Res.string.field_linked_to_card_brand
-                        DSecret.Field.LinkedId.Card_Number -> Res.string.field_linked_to_card_number
-                        DSecret.Field.LinkedId.Identity_Title -> Res.string.field_linked_to_identity_title
-                        DSecret.Field.LinkedId.Identity_MiddleName -> Res.string.field_linked_to_identity_middlename
-                        DSecret.Field.LinkedId.Identity_Address1 -> Res.string.field_linked_to_identity_address1
-                        DSecret.Field.LinkedId.Identity_Address2 -> Res.string.field_linked_to_identity_address2
-                        DSecret.Field.LinkedId.Identity_Address3 -> Res.string.field_linked_to_identity_address3
-                        DSecret.Field.LinkedId.Identity_City -> Res.string.field_linked_to_identity_city
-                        DSecret.Field.LinkedId.Identity_State -> Res.string.field_linked_to_identity_state
-                        DSecret.Field.LinkedId.Identity_PostalCode -> Res.string.field_linked_to_identity_postalcode
-                        DSecret.Field.LinkedId.Identity_Country -> Res.string.field_linked_to_identity_country
-                        DSecret.Field.LinkedId.Identity_Company -> Res.string.field_linked_to_identity_company
-                        DSecret.Field.LinkedId.Identity_Email -> Res.string.field_linked_to_identity_email
-                        DSecret.Field.LinkedId.Identity_Phone -> Res.string.field_linked_to_identity_phone
-                        DSecret.Field.LinkedId.Identity_Ssn -> Res.string.field_linked_to_identity_ssn
-                        DSecret.Field.LinkedId.Identity_Username -> Res.string.field_linked_to_identity_username
-                        DSecret.Field.LinkedId.Identity_PassportNumber -> Res.string.field_linked_to_identity_passportnumber
-                        DSecret.Field.LinkedId.Identity_LicenseNumber -> Res.string.field_linked_to_identity_licensenumber
-                        DSecret.Field.LinkedId.Identity_FirstName -> Res.string.field_linked_to_identity_firstname
-                        DSecret.Field.LinkedId.Identity_LastName -> Res.string.field_linked_to_identity_lastname
-                        DSecret.Field.LinkedId.Identity_FullName -> Res.string.field_linked_to_identity_fullname
-                        null -> Res.string.field_linked_to_unknown_field
-                    },
-                    field.name.orEmpty() to SpanStyle(
-                        fontFamily = FontFamily.Monospace,
-                        color = contentColor,
-                    ),
-                )
-                val m = VaultViewItem.Label(
-                    id = "custom.$index",
-                    text = t,
-                )
-                emit(m)
-                return@forEachIndexed
-            }
-
-            val hidden = field.type == DSecret.Field.Type.Hidden
-            val concealed = hidden && concealFields
-            val m = create(
-                copy = copy,
-                cryptoGenerator = cryptoGenerator,
-                cipherLocalId = cipher.id,
-                id = "custom.$index",
-                accountId = account.id,
-                title = field.name.orEmpty(),
-                value = field.value.orEmpty(),
-                verify = verify.takeIf { concealed },
-                visibility = Visibility(
-                    concealed = concealed,
-                    transformUserEvent = visibilityGlobalUserTransform,
-                    globalConfig = visibilityGlobalConfig,
-                ),
-            )
-            emit(m)
-        }
-    }
+    emitAll(
+        cipherFieldItems(
+            canEdit = canEdit,
+            contentColor = contentColor,
+            disabledContentColor = disabledContentColor,
+            cryptoGenerator = cryptoGenerator,
+            cipherFieldSwitchToggle = cipherFieldSwitchToggle,
+            concealFields = concealFields,
+            copy = copy,
+            sshBookmarkConnectableUrlsIo = sshBookmarkConnectableUrlsIo,
+            visibilityGlobalConfig = visibilityGlobalConfig,
+            visibilityGlobalUserTransform = visibilityGlobalUserTransform,
+            account = account,
+            cipher = cipher,
+            verify = verify,
+        ),
+    )
     emitAll(
         cipherRelationItems(
             cipherRelations = cipherRelations,
@@ -3698,6 +3621,222 @@ private suspend fun RememberStateFlowScope.createEnvironmentReference(
             null
         },
     )
+}
+
+/** The SSH bookmarks of an SSH key, then the custom fields. */
+private fun RememberStateFlowScope.cipherFieldItems(
+    canEdit: Boolean,
+    contentColor: Color,
+    disabledContentColor: Color,
+    cryptoGenerator: CryptoGenerator,
+    cipherFieldSwitchToggle: CipherFieldSwitchToggle,
+    concealFields: Boolean,
+    copy: CopyText,
+    sshBookmarkConnectableUrlsIo: IO<Set<String>>,
+    visibilityGlobalConfig: Visibility.Global,
+    visibilityGlobalUserTransform: (Boolean, (Boolean) -> Unit) -> Unit,
+    account: DAccount,
+    cipher: DSecret,
+    verify: ((() -> Unit) -> Unit)?,
+) = flow<VaultViewItem> {
+    val bookmarks = cipher.sshKey?.bookmarks.orEmpty()
+    if (bookmarks.isNotEmpty()) {
+        val sectionText = if (bookmarks.size > 1) {
+            translate(Res.string.ssh_bookmarks)
+        } else translate(Res.string.ssh_bookmark)
+        val section = VaultViewItem.Section(
+            id = "ssh.bookmark",
+            text = sectionText,
+        )
+        emit(section)
+        // items
+        val connectableUrls = sshBookmarkConnectableUrlsIo
+            .attempt().bind().getOrNull().orEmpty()
+        bookmarks.forEachIndexed { index, bookmark ->
+            val item = createSshBookmarkItem(
+                id = "ssh.bookmark.$index",
+                value = bookmark.url,
+                disabledContentColor = disabledContentColor,
+                connectableUrls = connectableUrls,
+                copy = copy,
+            )
+            emit(item)
+        }
+    }
+    val customFields = cipher.fields
+    if (customFields.isNotEmpty()) {
+        val sectionText = if (customFields.size > 1) {
+            translate(Res.string.custom_fields)
+        } else translate(Res.string.custom_field)
+        val section = VaultViewItem.Section(
+            id = "custom",
+            text = sectionText,
+        )
+        emit(section)
+        // items
+        customFields.forEachIndexed { index, field ->
+            val item = createCustomFieldItem(
+                canEdit = canEdit,
+                contentColor = contentColor,
+                cryptoGenerator = cryptoGenerator,
+                cipherFieldSwitchToggle = cipherFieldSwitchToggle,
+                concealFields = concealFields,
+                copy = copy,
+                visibilityGlobalConfig = visibilityGlobalConfig,
+                visibilityGlobalUserTransform = visibilityGlobalUserTransform,
+                account = account,
+                cipher = cipher,
+                verify = verify,
+                index = index,
+                field = field,
+            )
+            emit(item)
+        }
+    }
+}
+
+private suspend fun RememberStateFlowScope.createCustomFieldItem(
+    canEdit: Boolean,
+    contentColor: Color,
+    cryptoGenerator: CryptoGenerator,
+    cipherFieldSwitchToggle: CipherFieldSwitchToggle,
+    concealFields: Boolean,
+    copy: CopyText,
+    visibilityGlobalConfig: Visibility.Global,
+    visibilityGlobalUserTransform: (Boolean, (Boolean) -> Unit) -> Unit,
+    account: DAccount,
+    cipher: DSecret,
+    verify: ((() -> Unit) -> Unit)?,
+    index: Int,
+    field: DSecret.Field,
+): VaultViewItem {
+    val id = "custom.$index"
+    return when (field.type) {
+        DSecret.Field.Type.Boolean -> createBooleanFieldItem(
+            canEdit = canEdit,
+            cipherFieldSwitchToggle = cipherFieldSwitchToggle,
+            cipher = cipher,
+            id = id,
+            index = index,
+            field = field,
+        )
+
+        DSecret.Field.Type.Linked -> VaultViewItem.Label(
+            id = id,
+            text = annotate(
+                field.linkedId.linkedFieldTitle(),
+                field.name.orEmpty() to SpanStyle(
+                    fontFamily = FontFamily.Monospace,
+                    color = contentColor,
+                ),
+            ),
+        )
+
+        DSecret.Field.Type.Text,
+        DSecret.Field.Type.Hidden,
+        -> {
+            val concealed = field.type == DSecret.Field.Type.Hidden && concealFields
+            create(
+                copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
+                id = id,
+                accountId = account.id,
+                title = field.name.orEmpty(),
+                value = field.value.orEmpty(),
+                verify = verify.takeIf { concealed },
+                visibility = Visibility(
+                    concealed = concealed,
+                    transformUserEvent = visibilityGlobalUserTransform,
+                    globalConfig = visibilityGlobalConfig,
+                ),
+            )
+        }
+    }
+}
+
+private fun RememberStateFlowScope.createBooleanFieldItem(
+    canEdit: Boolean,
+    cipherFieldSwitchToggle: CipherFieldSwitchToggle,
+    cipher: DSecret,
+    id: String,
+    index: Int,
+    field: DSecret.Field,
+): VaultViewItem.Switch {
+    fun createAction(
+        value: Boolean,
+    ) = FlatItemAction(
+        id = "cipher.field.$index.toggleBoolean",
+        title = TextHolder.Res(Res.string.custom_field_toggle_boolean_value),
+        trailing = {
+            SwitchExpressive(
+                checked = !value,
+                onCheckedChange = null,
+                enabled = canEdit,
+            )
+        },
+        onClick = if (canEdit) {
+            // lambda
+            {
+                val request = mapOf(
+                    cipher.id to listOf(
+                        CipherFieldSwitchToggleRequest(
+                            fieldIndex = index,
+                            fieldName = field.name,
+                            value = value,
+                        ),
+                    ),
+                )
+                cipherFieldSwitchToggle(request)
+                    .launchIn(appScope)
+            }
+        } else {
+            null
+        },
+    )
+
+    val value = field.value?.toBooleanStrictOrNull() ?: false
+    val actions = listOf(
+        createAction(!value),
+    )
+    return VaultViewItem.Switch(
+        id = id,
+        title = field.name.orEmpty(),
+        value = value,
+        dropdown = actions,
+    )
+}
+
+@Suppress("CyclomaticComplexMethod") // One branch per linked field.
+private fun DSecret.Field.LinkedId?.linkedFieldTitle(): StringResource = when (this) {
+    DSecret.Field.LinkedId.Login_Username -> Res.string.field_linked_to_username
+    DSecret.Field.LinkedId.Login_Password -> Res.string.field_linked_to_password
+    DSecret.Field.LinkedId.Card_CardholderName -> Res.string.field_linked_to_card_cardholdername
+    DSecret.Field.LinkedId.Card_ExpMonth -> Res.string.field_linked_to_card_expmonth
+    DSecret.Field.LinkedId.Card_ExpYear -> Res.string.field_linked_to_card_expyear
+    DSecret.Field.LinkedId.Card_Code -> Res.string.field_linked_to_card_code
+    DSecret.Field.LinkedId.Card_Brand -> Res.string.field_linked_to_card_brand
+    DSecret.Field.LinkedId.Card_Number -> Res.string.field_linked_to_card_number
+    DSecret.Field.LinkedId.Identity_Title -> Res.string.field_linked_to_identity_title
+    DSecret.Field.LinkedId.Identity_MiddleName -> Res.string.field_linked_to_identity_middlename
+    DSecret.Field.LinkedId.Identity_Address1 -> Res.string.field_linked_to_identity_address1
+    DSecret.Field.LinkedId.Identity_Address2 -> Res.string.field_linked_to_identity_address2
+    DSecret.Field.LinkedId.Identity_Address3 -> Res.string.field_linked_to_identity_address3
+    DSecret.Field.LinkedId.Identity_City -> Res.string.field_linked_to_identity_city
+    DSecret.Field.LinkedId.Identity_State -> Res.string.field_linked_to_identity_state
+    DSecret.Field.LinkedId.Identity_PostalCode -> Res.string.field_linked_to_identity_postalcode
+    DSecret.Field.LinkedId.Identity_Country -> Res.string.field_linked_to_identity_country
+    DSecret.Field.LinkedId.Identity_Company -> Res.string.field_linked_to_identity_company
+    DSecret.Field.LinkedId.Identity_Email -> Res.string.field_linked_to_identity_email
+    DSecret.Field.LinkedId.Identity_Phone -> Res.string.field_linked_to_identity_phone
+    DSecret.Field.LinkedId.Identity_Ssn -> Res.string.field_linked_to_identity_ssn
+    DSecret.Field.LinkedId.Identity_Username -> Res.string.field_linked_to_identity_username
+    DSecret.Field.LinkedId.Identity_PassportNumber -> Res.string.field_linked_to_identity_passportnumber
+    DSecret.Field.LinkedId.Identity_LicenseNumber -> Res.string.field_linked_to_identity_licensenumber
+    DSecret.Field.LinkedId.Identity_FirstName -> Res.string.field_linked_to_identity_firstname
+    DSecret.Field.LinkedId.Identity_LastName -> Res.string.field_linked_to_identity_lastname
+    DSecret.Field.LinkedId.Identity_FullName -> Res.string.field_linked_to_identity_fullname
+    null -> Res.string.field_linked_to_unknown_field
 }
 
 private fun RememberStateFlowScope.cipherRelationItems(
@@ -4411,34 +4550,133 @@ private suspend fun RememberStateFlowScope.createUriItemContextItems(
                     }
                 }
                 section {
-                    this += LargeTypeRoute.showInLargeTypeActionOrNull(
-                        translator = this@createUriItemContextItems,
-                        text = uri,
-                        colorize = true,
-                        navigate = ::navigate,
-                    )
-                    this += LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
-                        translator = this@createUriItemContextItems,
-                        text = uri,
-                        colorize = true,
-                        navigate = ::navigate,
-                    )
-                    this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
-                        translator = this@createUriItemContextItems,
-                        data = uri,
-                        disallowFormatSelection = true,
-                        navigate = ::navigate,
-                    )
-                    this += createShareAction(
-                        translator = this@createUriItemContextItems,
-                        text = uri,
-                        navigate = ::navigate,
-                    )
+                    this += createTextShareActions(uri)
                 }
             }
             return dropdown
         }
     }
+}
+
+/**
+ * An `ssh://` field of an SSH key. It looks like a link, but is
+ * not a website: no favicon, browser or breach check.
+ */
+private suspend fun RememberStateFlowScope.createSshBookmarkItem(
+    id: String,
+    value: String,
+    disabledContentColor: Color,
+    /** The bookmarks that an app can open. */
+    connectableUrls: Set<String>,
+    copy: CopyText,
+): VaultViewItem.Uri {
+    val url = value.trim()
+    val bookmark = parseSshBookmark(url)
+    val title = if (bookmark != null) {
+        val dimmed = SpanStyle(
+            color = disabledContentColor,
+        )
+        val text = bookmark.toDisplayString()
+        val host = bookmark.displayHostRange()
+        buildAnnotatedString {
+            append(text)
+            addStyle(dimmed, 0, host.first)
+            addStyle(dimmed, host.last + 1, text.length)
+        }
+    } else {
+        AnnotatedString(url)
+    }
+    val canConnect = url in connectableUrls
+    return VaultViewItem.Uri(
+        id = id,
+        icon = {
+            Icon(
+                imageVector = Icons.Outlined.Terminal,
+                contentDescription = null,
+            )
+        },
+        title = title,
+        warningTitle = translate(Res.string.ssh_bookmark_invalid)
+            .takeIf { bookmark == null },
+        dropdown = createSshBookmarkActions(
+            id = id,
+            url = url,
+            bookmark = bookmark,
+            canConnect = canConnect,
+            copy = copy,
+        ),
+    )
+}
+
+private suspend fun RememberStateFlowScope.createSshBookmarkActions(
+    id: String,
+    url: String,
+    bookmark: SshBookmark?,
+    canConnect: Boolean,
+    copy: CopyText,
+): List<ContextItem> = buildContextItems {
+    section {
+        this += copy.FlatItemAction(
+            id = "$id.copy",
+            title = Res.string.copy.wrap(),
+            value = url,
+        )
+        if (bookmark != null) {
+            this += copy.FlatItemAction(
+                id = "$id.copy.command",
+                title = Res.string.ssh_bookmark_copy_command.wrap(),
+                value = bookmark.toSshCommand(),
+            )
+        }
+    }
+    section {
+        if (canConnect) {
+            this += FlatItemAction(
+                id = "$id.connect",
+                icon = Icons.Outlined.Terminal,
+                title = Res.string.ssh_bookmark_connect.wrap(),
+                trailing = {
+                    ChevronIcon()
+                },
+                onClick = {
+                    val intent = NavigationIntent.NavigateToBrowser(url)
+                    navigate(intent)
+                },
+            )
+        }
+    }
+    section {
+        this += createTextShareActions(url)
+    }
+}
+
+/** Shows the [text] in large type or as a QR code, or shares it. */
+private suspend fun RememberStateFlowScope.createTextShareActions(
+    text: String,
+): List<ContextItem> = buildContextItems {
+    this += LargeTypeRoute.showInLargeTypeActionOrNull(
+        translator = this@createTextShareActions,
+        text = text,
+        colorize = true,
+        navigate = ::navigate,
+    )
+    this += LargeTypeRoute.showInLargeTypeActionAndLockOrNull(
+        translator = this@createTextShareActions,
+        text = text,
+        colorize = true,
+        navigate = ::navigate,
+    )
+    this += BarcodeTypeRoute.showInBarcodeTypeActionOrNull(
+        translator = this@createTextShareActions,
+        data = text,
+        disallowFormatSelection = true,
+        navigate = ::navigate,
+    )
+    this += createShareAction(
+        translator = this@createTextShareActions,
+        text = text,
+        navigate = ::navigate,
+    )
 }
 
 private fun RememberStateFlowScope.createUriContextAppStoreListingAndroid(

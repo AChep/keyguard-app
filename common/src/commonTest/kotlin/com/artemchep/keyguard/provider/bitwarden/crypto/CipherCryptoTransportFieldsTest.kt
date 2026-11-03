@@ -197,7 +197,7 @@ private val EXPECTED_ENCRYPTED = listOf(
     "  Text|keyguard.ssh.certificate.v1.part.1|Cx3500|null",
     "  Text|keyguard.ssh.certificate.v1.part.2|Cx1500|null",
     "  Text|keyguard.ssh.certificate.v1.sha256|0786f809f430e419f278cc0329e3f4ca155586d5effa584b3feaabb4b323f419|null",
-    "  sshKey=SshKey(privateKey=PRIVATE, publicKey=ssh-ed25519 AAAA, fingerprint=null, certificate=null)",
+    "  sshKey=SshKey(privateKey=PRIVATE, publicKey=ssh-ed25519 AAAA, fingerprint=null, certificate=null, bookmarks=[])",
     "  login=null",
     "  gpgKey=null environment=null links=[] customIcon=TerminalEncrypted",
     "login: Login",

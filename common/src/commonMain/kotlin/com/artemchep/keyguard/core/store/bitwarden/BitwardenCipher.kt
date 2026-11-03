@@ -398,8 +398,16 @@ data class BitwardenCipher(
         val fingerprint: String? = null,
         /** An OpenSSH certificate line that certifies the [publicKey]. */
         val certificate: String? = null,
+        /** The `ssh://` text fields of the item. */
+        val bookmarks: List<Bookmark> = emptyList(),
     ) {
-        companion object
+        companion object;
+
+        @Serializable
+        data class Bookmark(
+            val name: String? = null,
+            val url: String,
+        )
     }
 
     @Serializable

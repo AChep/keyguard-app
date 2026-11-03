@@ -72,7 +72,9 @@ import com.artemchep.keyguard.common.service.session.VaultPowerLockService
 import com.artemchep.keyguard.common.service.shortcut.DesktopLibGlobalHotKeyRegistrar
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.session.VaultSessionPersister
+import com.artemchep.keyguard.common.service.sshagent.DesktopSshAgentSocketPathProvider
 import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
+import com.artemchep.keyguard.common.service.sshagent.SshAgentSocketPathProvider
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.agent.superviseAgent
 import com.artemchep.keyguard.desktop.ui.showAgentFailure
@@ -240,6 +242,7 @@ private class DesktopApplicationModule {
         single<NotificationRepository> { NotificationRepositoryNative(get()) }
         // The agents and their approval prompts outlive any window.
         single<SshAgentManager>()
+        single<DesktopSshAgentSocketPathProvider>() bind SshAgentSocketPathProvider::class
         single<GpgAgentManager>()
         single { CliAgentManager(get(), get(), get<CliAgentHost>()) }
         single {

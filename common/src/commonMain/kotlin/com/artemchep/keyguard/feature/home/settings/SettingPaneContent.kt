@@ -130,6 +130,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocal
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalCachePolicyProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalTimeoutProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentBookmarksConfigProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentDisplayKeyNamesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFiltersProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentHistoryProvider
@@ -253,6 +254,7 @@ object Setting {
     const val SSH_AGENT_APPROVAL_TIMEOUT = "ssh_agent_approval_timeout"
     const val SSH_AGENT_APPROVAL_CACHE_POLICY = "ssh_agent_approval_cache_policy"
     const val SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent_display_key_names"
+    const val SSH_AGENT_BOOKMARKS_CONFIG = "ssh_agent_bookmarks_config"
     const val SSH_AGENT_LOCAL_STORAGE_INFO = "ssh_agent_local_storage_info"
     const val SSH_AGENT_SETUP = "ssh_agent_setup"
     const val SSH_AGENT_FILTERS = "ssh_agent_filters"
@@ -404,6 +406,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.SSH_AGENT_APPROVAL_TIMEOUT to ::settingSshAgentApprovalTimeoutProvider,
     Setting.SSH_AGENT_APPROVAL_CACHE_POLICY to ::settingSshAgentApprovalCachePolicyProvider,
     Setting.SSH_AGENT_DISPLAY_KEY_NAMES to ::settingSshAgentDisplayKeyNamesProvider,
+    Setting.SSH_AGENT_BOOKMARKS_CONFIG to ::settingSshAgentBookmarksConfigProvider,
     Setting.SSH_AGENT_LOCAL_STORAGE_INFO to ::settingSshAgentLocalStorageInfoProvider,
     Setting.SSH_AGENT_SETUP to ::settingSshAgentSetupProvider,
     Setting.SSH_AGENT_FILTERS to ::settingSshAgentFiltersProvider,

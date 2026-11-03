@@ -49,6 +49,24 @@ the same names.
 Numbers start at 1, without gaps. Keyguard hides these fields from the item's
 custom fields. A field with an invalid value stays a regular custom field.
 
+## SSH bookmarks
+
+A text field of an **SSH Key** item is a bookmark when its value starts with
+`ssh://`. Its name doesn't matter. Keyguard shows bookmarks under
+**SSH bookmarks** instead of the custom fields, and saves a new one in a field
+named `SSH bookmark`. A value without `ssh://` gets it on save.
+[Pin hosts to keys](/docs/ssh-agent/#pin-hosts-to-keys) uses bookmarks to offer
+each host only its own keys.
+
+| Value | Example |
+| --- | --- |
+| `ssh://<HOST>` | `ssh://my-alias` |
+| `ssh://<USER>@<HOST>:<PORT>` | `ssh://deploy@build.example.com:2222` |
+
+The host is a host name, an alias from `~/.ssh/config` or an IP address, with
+IPv6 in brackets. The user and the port are optional; the port isn't used for
+pinning. Keyguard skips values with a path or a pattern, such as `*`.
+
 ## SSH certificates
 
 On a Bitwarden server, the certificate of an **SSH Key** item is stored in a

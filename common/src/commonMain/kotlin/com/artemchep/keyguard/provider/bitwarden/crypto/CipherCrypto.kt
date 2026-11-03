@@ -62,6 +62,7 @@ private fun BitwardenCipher.encodeTransportFields(
             customIcon = customIcon,
             environment = environment,
             gpgKey = gpgKey,
+            bookmarks = sshKey?.bookmarks.orEmpty(),
             certificate = sshKey?.certificate,
             passkeys = login?.fido2Credentials
                 .orEmpty()
@@ -77,8 +78,11 @@ private fun BitwardenCipher.encodeTransportFields(
     )
     return copy(
         fields = encoded.fields,
-        // The Bitwarden SSH key has no certificate field.
-        sshKey = if (encoded.certificate) sshKey?.copy(certificate = null) else sshKey,
+        // The Bitwarden SSH key has no bookmarks or certificate fields.
+        sshKey = sshKey?.copy(
+            bookmarks = if (encoded.bookmarks) emptyList() else sshKey.bookmarks,
+            certificate = if (encoded.certificate) null else sshKey.certificate,
+        ),
         // The Bitwarden passkey has no PRF secret fields.
         login = if (encoded.passkeys) {
             login?.copy(
@@ -110,9 +114,14 @@ private fun BitwardenCipher.decodeTransportFields(): BitwardenCipher {
         customIcon = if (decoded.icon != null) decoded.customIcon else customIcon,
         environment = decoded.environment ?: environment,
         gpgKey = decoded.gpgKey ?: gpgKey,
-        sshKey = decoded.certificate
-            ?.let { certificate -> (sshKey ?: BitwardenCipher.SshKey()).copy(certificate = certificate) }
-            ?: sshKey,
+        sshKey = if (decoded.certificate != null || decoded.bookmarks.isNotEmpty()) {
+            (sshKey ?: BitwardenCipher.SshKey()).copy(
+                certificate = decoded.certificate ?: sshKey?.certificate,
+                bookmarks = decoded.bookmarks.ifEmpty { sshKey?.bookmarks.orEmpty() },
+            )
+        } else {
+            sshKey
+        },
         login = decoded.credentials
             ?.let { credentials -> login?.copy(fido2Credentials = credentials) }
             ?: login,

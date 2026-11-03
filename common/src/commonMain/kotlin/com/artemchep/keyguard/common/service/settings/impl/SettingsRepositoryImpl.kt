@@ -104,6 +104,7 @@ class SettingsRepositoryImpl(
         private const val KEY_SSH_AGENT_APPROVAL_CACHE_POLICY = "ssh_agent.approval_cache_policy"
         private const val KEY_SSH_AGENT_APPROVAL_TIMEOUT = "ssh_agent.approval_timeout"
         private const val KEY_SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent.display_key_names"
+        private const val KEY_SSH_AGENT_BOOKMARKS_CONFIG = "ssh_agent.bookmarks_config"
         private const val KEY_SSH_AGENT_FILTER = "ssh_agent.filters"
         private const val KEY_GPG_AGENT = "gpg_agent"
         private const val KEY_GPG_AGENT_APPROVAL_WINDOW = "gpg_agent.approval_window"
@@ -287,6 +288,9 @@ class SettingsRepositoryImpl(
 
     private val sshAgentDisplayKeyNamesPref =
         store.getBoolean(KEY_SSH_AGENT_DISPLAY_KEY_NAMES, false)
+
+    private val sshAgentBookmarksConfigPref =
+        store.getBoolean(KEY_SSH_AGENT_BOOKMARKS_CONFIG, false)
 
     private val sshAgentFilterPref =
         store.getSerializable(
@@ -566,6 +570,7 @@ class SettingsRepositoryImpl(
             sshAgentApproval.cachePolicyPref,
             sshAgentApprovalTimeoutPref,
             sshAgentDisplayKeyNamesPref,
+            sshAgentBookmarksConfigPref,
             sshAgentFilterPref,
             gpgAgentPref,
             gpgAgentApproval.windowPref,
@@ -861,6 +866,11 @@ class SettingsRepositoryImpl(
         .setAndCommit(displayKeyNames)
 
     override fun getSshAgentDisplayKeyNames() = sshAgentDisplayKeyNamesPref
+
+    override fun setSshAgentBookmarksConfig(enabled: Boolean) = sshAgentBookmarksConfigPref
+        .setAndCommit(enabled)
+
+    override fun getSshAgentBookmarksConfig() = sshAgentBookmarksConfigPref
 
     override fun setSshAgentFilter(filter: SshAgentFilter) = sshAgentFilterPref
         .setAndCommit(filter)

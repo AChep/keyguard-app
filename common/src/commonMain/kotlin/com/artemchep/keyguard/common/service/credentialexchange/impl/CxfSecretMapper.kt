@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.credentialexchange.impl
 
 import com.artemchep.keyguard.common.service.environment.environmentReferencedCipherIds
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.toField
 import com.artemchep.keyguard.feature.environments.EnvironmentPayload
 import com.artemchep.keyguard.provider.bitwarden.mapper.toTransportFields
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
@@ -254,7 +255,9 @@ internal class CxfSecretMapper(
         }
         if (isAllowed(allowedTypes, CxfCredentialType.CustomFields)) {
             val environmentFields = secret.environment?.toTransportFields().orEmpty()
-            mapCustomFields(environmentFields + secret.fields)?.let(credentials::add)
+            // CXF has no bookmarks, so they go out as the text fields they sync as.
+            val bookmarkFields = secret.sshKey?.bookmarks.orEmpty().map { it.toField() }
+            mapCustomFields(environmentFields + secret.fields + bookmarkFields)?.let(credentials::add)
         }
         val sshKey = secret.sshKey
         if (sshKey != null && isAllowed(allowedTypes, CxfCredentialType.SshKey)) {

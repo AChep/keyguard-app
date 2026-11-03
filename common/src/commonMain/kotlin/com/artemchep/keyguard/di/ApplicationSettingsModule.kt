@@ -96,6 +96,7 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalTimeout
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowVariants
+import com.artemchep.keyguard.common.usecase.GetSshAgentBookmarksConfig
 import com.artemchep.keyguard.common.usecase.GetSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
@@ -157,6 +158,7 @@ import com.artemchep.keyguard.common.usecase.PutSshAgent
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalTimeout
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.PutSshAgentBookmarksConfig
 import com.artemchep.keyguard.common.usecase.PutSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.PutSshAgentFilter
 import com.artemchep.keyguard.common.usecase.PutTheme
@@ -238,6 +240,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalCachePolicy
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalWindowVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetSshAgentBookmarksConfigImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentImpl
@@ -300,6 +303,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutScreenStateImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalCachePolicyImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.PutSshAgentBookmarksConfigImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentImpl
@@ -386,6 +390,8 @@ internal class ApplicationSettingsModule {
 
         single<PutSshAgentDisplayKeyNamesImpl>() bind PutSshAgentDisplayKeyNames::class
 
+        single<PutSshAgentBookmarksConfigImpl>() bind PutSshAgentBookmarksConfig::class
+
         single<PutSshAgentFilterImpl>() bind PutSshAgentFilter::class
 
         single<GetSshAgentImpl>() bind GetSshAgent::class
@@ -399,6 +405,8 @@ internal class ApplicationSettingsModule {
         single<GetSshAgentApprovalWindowVariantsImpl>() bind GetSshAgentApprovalWindowVariants::class
 
         single<GetSshAgentDisplayKeyNamesImpl>() bind GetSshAgentDisplayKeyNames::class
+
+        single<GetSshAgentBookmarksConfigImpl>() bind GetSshAgentBookmarksConfig::class
 
         single<GetSshAgentFilterImpl>() bind GetSshAgentFilter::class
 

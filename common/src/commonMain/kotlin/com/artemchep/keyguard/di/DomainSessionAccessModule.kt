@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.session.GpgAgentSessionDependencies
 import com.artemchep.keyguard.common.service.session.PendingUsageHistorySessionAccess
 import com.artemchep.keyguard.common.service.session.SshAgentSessionAccess
 import com.artemchep.keyguard.common.service.session.SshAgentSessionDependencies
+import com.artemchep.keyguard.common.service.session.SshBookmarksSessionAccess
 import com.artemchep.keyguard.common.service.session.VaultLicenseSessionAccess
 import com.artemchep.keyguard.common.service.session.WatchtowerSessionAccess
 import com.artemchep.keyguard.common.service.session.WatchtowerSessionWorkers
@@ -87,6 +88,9 @@ class DomainSessionAccessModule {
                     )
                 }
             }
+        }
+        single<SshBookmarksSessionAccess> {
+            SshBookmarksSessionAccess { key -> key.session.resolve { get() } }
         }
         single<GpgAgentSessionAccess> {
             GpgAgentSessionAccess { key ->

@@ -434,8 +434,17 @@ data class DSecret(
         val fingerprint: String? = null,
         /** An OpenSSH certificate line that certifies the [publicKey]. */
         val certificate: String? = null,
+        /** The hosts that the key is for, synced as `ssh://` text fields. */
+        val bookmarks: List<Bookmark> = emptyList(),
     ) {
-        companion object
+        companion object;
+
+        data class Bookmark(
+            /** The name of the field, kept so that other apps show it as before. */
+            val name: String?,
+            /** An `ssh://[user@]host[:port]` URL, as the user wrote it. */
+            val url: String,
+        )
     }
 
     @optics

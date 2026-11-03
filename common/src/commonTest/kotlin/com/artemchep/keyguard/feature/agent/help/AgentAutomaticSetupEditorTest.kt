@@ -97,6 +97,20 @@ class AgentAutomaticSetupEditorTest {
     }
 
     @Test
+    fun `host CLI includes the SSH bookmarks config while it is on`() {
+        val cli = AgentSetupHostCli(
+            command = persistentListOf("/app/keyguard"),
+            endpoint = "/run/user/1000/app/id/ssh-agent.sock",
+            include = "/home/me/.var/app/id/data/ssh-bookmarks/config",
+        )
+        assertEquals(
+            "env /app/keyguard agents setup --agent ssh --socket /run/user/1000/app/id/ssh-agent.sock " +
+                "--include /home/me/.var/app/id/data/ssh-bookmarks/config",
+            hostCliCommand(defaults.copy(hostCli = cli), cli),
+        )
+    }
+
+    @Test
     fun `host CLI undo command needs no settings`() {
         val cli = AgentSetupHostCli(persistentListOf("/app/keyguard"), "/home/gnupg")
         val undo = defaults.copy(agent = SetupAgent.GPG, mode = AgentSetupMode.UNDO, hostCli = cli)

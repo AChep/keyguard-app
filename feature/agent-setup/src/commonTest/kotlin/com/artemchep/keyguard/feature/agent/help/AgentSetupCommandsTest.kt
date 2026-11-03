@@ -43,6 +43,31 @@ class AgentSetupCommandsTest {
     }
 
     @Test
+    fun `setup includes the SSH bookmarks config only for SSH`() {
+        val include = "/home/me/.var/app/com.artemchep.keyguard/data/ssh bookmarks/config"
+        assertEquals(
+            "env /app/keyguard agents setup --agent ssh --socket /run/ssh.sock " +
+                "--include '$include'",
+            hostCliSetupCommand(
+                cli = listOf("/app/keyguard"),
+                agent = SetupAgent.SSH,
+                endpoint = "/run/ssh.sock",
+                shells = emptySet(),
+                host = "",
+                include = include,
+            ),
+        )
+        assertEquals(
+            listOf("--agent", "ssh", "--socket", "/run/ssh.sock"),
+            agentSetupOptions(SetupAgent.SSH, "/run/ssh.sock"),
+        )
+        assertEquals(
+            listOf("--agent", "gpg", "--gpg-home", "/home/gnupg"),
+            agentSetupOptions(SetupAgent.GPG, "/home/gnupg", include = include),
+        )
+    }
+
+    @Test
     fun `check names the endpoint only when given`() {
         assertEquals("ssh-add -L", externalCheckCommand(SetupAgent.SSH, null))
         assertEquals(

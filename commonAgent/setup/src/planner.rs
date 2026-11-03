@@ -1,8 +1,12 @@
 use crate::{
-    Agent, Edit, Environment, Override, Plan, Request, SetupError, files, shell, validate_value,
+    Agent, Edit, Environment, Override, Plan, Request, SSH_BOOKMARKS, SetupError, files, shell,
+    validate_value,
 };
 use anyhow::{Context, Result, anyhow, ensure};
-use std::{ops::Range, path::Path};
+use std::{
+    ops::Range,
+    path::{Component, Path},
+};
 
 pub fn plan(environment: &Environment, request: Request) -> Result<Plan> {
     let mut plan = Plan {
@@ -39,18 +43,19 @@ pub fn plan(environment: &Environment, request: Request) -> Result<Plan> {
     }
     let agent = plan.request.agent.clone();
     match &agent {
-        Agent::Ssh { socket, host } => {
+        Agent::Ssh {
+            socket,
+            host,
+            include,
+        } => {
             validate_value(socket)?;
             ensure!(
                 Path::new(socket).is_absolute() || socket.starts_with(r"\\.\pipe\"),
                 "SSH socket must be absolute"
             );
             // OpenSSH expands percent tokens and environment variables in paths.
-            ensure!(
-                !socket.contains(['%', '$', '"', '\n'])
-                    && (!socket.contains('\\') || environment.windows),
-                "SSH socket contains unsupported configuration metacharacters"
-            );
+            let socket =
+                ssh_config_path(environment, socket, &['%', '$', '"', '\n'], "SSH socket")?;
             if let Some(host) = host {
                 ensure!(
                     !host.is_empty()
@@ -60,6 +65,10 @@ pub fn plan(environment: &Environment, request: Request) -> Result<Plan> {
                     "enter one host name or alias, without wildcards or SSH options"
                 );
             }
+            let include = include
+                .as_deref()
+                .map(|include| include_body(environment, include))
+                .transpose()?;
             let path = environment.home.join(".ssh/config");
             let before = files::observe(environment, &mut plan, &path)?;
             let text = before.as_deref().unwrap_or_default();
@@ -69,20 +78,46 @@ pub fn plan(environment: &Environment, request: Request) -> Result<Plan> {
                 )
                 .context(SetupError::UnsafeFile { path }));
             }
+            let agent = block_in(text, "ssh", &path)?;
+            let bookmarks = block_in(text, SSH_BOOKMARKS, &path)?;
+            if let (Some(agent), Some(bookmarks)) = (agent, bookmarks)
+                && agent.0 < bookmarks.1
+                && bookmarks.0 < agent.1
+            {
+                return Err(anyhow!("Keyguard's SSH setup blocks overlap")
+                    .context(SetupError::ManagedBlock { path }));
+            }
             // OpenSSH uses the first IdentityAgent that applies to a host, so
             // only lines before Keyguard's block can take precedence over it.
-            let end = block_in(text, "ssh", &path)?.map_or(text.len(), |(start, _)| start);
-            add_overrides(&mut plan, &path, text, 0..end, "IdentityAgent", true);
-            let socket = if environment.windows {
-                socket.replace('\\', "/")
-            } else {
-                socket.clone()
+            // The include block before it is Keyguard's own.
+            let end = agent.map_or(text.len(), |(start, _)| start);
+            let ranges = match bookmarks {
+                Some((start, stop)) if stop <= end => [0..start, stop..end],
+                _ => [0..end, end..end],
             };
+            for range in ranges {
+                add_overrides(&mut plan, &path, text, range, "IdentityAgent", true);
+            }
             let body = format!(
                 "Host {}\n  IdentityAgent \"{socket}\"",
                 host.as_deref().unwrap_or("*")
             );
-            add_edit(&mut plan, path, before, &body)?;
+            // An Include inside a Host or Match block inherits its condition,
+            // and the first value wins, so the bookmarks are read before
+            // anything else. A block that ended up after one moves back.
+            let after = set_block(text, "ssh", Some(&body), false)?;
+            let after = match bookmarks {
+                Some((start, _)) if is_conditional(&text[..start]) => {
+                    remove_block(&after, SSH_BOOKMARKS)?
+                }
+                _ => after,
+            };
+            let after = set_block(&after, SSH_BOOKMARKS, include.as_deref(), true)?;
+            plan.edits.push(Edit {
+                path,
+                before,
+                after: Some(after),
+            });
         }
         Agent::Gpg { home } => {
             validate_value(&home.to_string_lossy())?;
@@ -92,9 +127,7 @@ pub fn plan(environment: &Environment, request: Request) -> Result<Plan> {
                 "refusing to configure the default GnuPG home"
             );
             ensure!(
-                !home
-                    .components()
-                    .any(|c| matches!(c, std::path::Component::ParentDir)),
+                !has_parent_dir(home),
                 "GnuPG home must not contain parent directory components"
             );
             if environment.windows
@@ -171,11 +204,35 @@ pub(crate) fn block_in(text: &str, id: &str, path: &Path) -> Result<Option<(usiz
 }
 
 pub(crate) fn remove_block(text: &str, id: &str) -> Result<String> {
-    let mut result = text.to_owned();
-    if let Some((start, end)) = block(text, id)? {
-        result.replace_range(start..end, "");
+    set_block(text, id, None, false)
+}
+
+/// Replaces the block `id` in place, or adds it at the start or the end of
+/// `text`; `None` removes it. Removing an added block restores `text`, except
+/// for the line break added to a last line that had none.
+pub(crate) fn set_block(
+    text: &str,
+    id: &str,
+    body: Option<&str>,
+    at_start: bool,
+) -> Result<String> {
+    let newline = if text.contains("\r\n") { "\r\n" } else { "\n" };
+    let replacement = body.map_or_else(String::new, |body| {
+        format!("{}\n{body}\n{}\n", marker(id, false), marker(id, true)).replace('\n', newline)
+    });
+    let mut after = text.to_owned();
+    match block(text, id)? {
+        Some((start, end)) => after.replace_range(start..end, &replacement),
+        None if body.is_none() => (),
+        None if at_start => after.insert_str(0, &replacement),
+        None => {
+            if !after.is_empty() && !after.ends_with('\n') {
+                after.push_str(newline);
+            }
+            after.push_str(&replacement);
+        }
     }
-    Ok(result)
+    Ok(after)
 }
 
 /// Reports the lines in `range` that name `setting`, skipping blank lines and
@@ -213,23 +270,87 @@ pub(crate) fn add_edit(
     body: &str,
 ) -> Result<()> {
     let text = before.as_deref().unwrap_or_default();
-    let newline = if text.contains("\r\n") { "\r\n" } else { "\n" };
-    let id = plan.request.agent.id();
-    let replacement =
-        format!("{}\n{body}\n{}\n", marker(id, false), marker(id, true)).replace('\n', newline);
-    let mut after = text.to_owned();
-    if let Some((start, end)) = block(text, id)? {
-        after.replace_range(start..end, &replacement);
-    } else {
-        if !after.is_empty() && !after.ends_with('\n') {
-            after.push_str(newline);
-        }
-        after.push_str(&replacement);
-    }
+    let after = set_block(text, plan.request.agent.id(), Some(body), false)?;
     plan.edits.push(Edit {
         path,
         before,
         after: Some(after),
     });
     Ok(())
+}
+
+/// The `value` with the `/` separators that OpenSSH accepts on Windows, or
+/// an error if it holds one of the `forbidden` characters, which OpenSSH
+/// would expand, or a `\` outside of Windows.
+fn ssh_config_path(
+    environment: &Environment,
+    value: &str,
+    forbidden: &[char],
+    what: &str,
+) -> Result<String> {
+    ensure!(
+        !value.contains(forbidden) && (!value.contains('\\') || environment.windows),
+        "{what} contains unsupported configuration metacharacters"
+    );
+    Ok(if environment.windows {
+        value.replace('\\', "/")
+    } else {
+        value.to_owned()
+    })
+}
+
+fn has_parent_dir(path: &Path) -> bool {
+    path.components().any(|c| matches!(c, Component::ParentDir))
+}
+
+/// The `Include` line for Keyguard's SSH bookmarks configuration at `path`.
+fn include_body(environment: &Environment, path: &Path) -> Result<String> {
+    let text = path.to_string_lossy();
+    validate_value(&text)?;
+    ensure!(
+        path.is_absolute(),
+        "SSH bookmarks configuration path must be absolute"
+    );
+    ensure!(
+        !has_parent_dir(path),
+        "SSH bookmarks configuration path must not contain parent directory components"
+    );
+    // OpenSSH expands a leading ~/, which keeps synced dotfiles portable.
+    let rendered = match path.strip_prefix(&environment.home) {
+        Ok(relative) => {
+            let parts: Vec<_> = relative
+                .components()
+                .map(|c| c.as_os_str().to_string_lossy())
+                .collect();
+            format!("~/{}", parts.join("/"))
+        }
+        Err(_) => text.into_owned(),
+    };
+    // OpenSSH expands globs, percent tokens and environment variables in
+    // Include. The ~/ stands for the home, so its name may contain them.
+    let rendered = ssh_config_path(
+        environment,
+        &rendered,
+        &['%', '$', '"', '*', '?', '[', ']'],
+        "SSH bookmarks configuration path",
+    )?;
+    // macOS and Windows file systems ignore case by default.
+    ensure!(
+        !rendered.eq_ignore_ascii_case("~/.ssh/config"),
+        "SSH bookmarks configuration must not be ~/.ssh/config itself"
+    );
+    Ok(format!("Include \"{rendered}\""))
+}
+
+/// Whether `text` has a `Host` or `Match` line, which makes the lines
+/// after it conditional.
+fn is_conditional(text: &str) -> bool {
+    text.lines().any(|line| {
+        let keyword = line
+            .trim_start()
+            .split(|c: char| c.is_whitespace() || c == '=')
+            .next()
+            .unwrap_or_default();
+        keyword.eq_ignore_ascii_case("host") || keyword.eq_ignore_ascii_case("match")
+    })
 }

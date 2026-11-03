@@ -71,6 +71,9 @@ struct Options {
     /// Restrict SSH configuration to one host name or alias.
     #[arg(long)]
     host: Option<String>,
+    /// Keyguard's generated SSH config for bookmarked hosts; included at the top of ~/.ssh/config.
+    #[arg(long)]
+    include: Option<PathBuf>,
     /// Configure these interactive shells: bash, zsh, fish, powershell,
     /// windows-powershell. Omit for SSH config only.
     #[arg(long, value_delimiter = ',')]
@@ -81,10 +84,13 @@ impl Options {
     fn request(&self) -> Result<Request> {
         match self.agent {
             Kind::Ssh => ensure!(self.gpg_home.is_none(), "--gpg-home is only used for GPG"),
-            Kind::Gpg => ensure!(
-                self.socket.is_none() && self.host.is_none(),
-                "--socket and --host are only used for SSH"
-            ),
+            Kind::Gpg => {
+                ensure!(
+                    self.socket.is_none() && self.host.is_none(),
+                    "--socket and --host are only used for SSH"
+                );
+                ensure!(self.include.is_none(), "--include is only used for SSH");
+            }
         }
         let agent = match self.agent {
             Kind::Ssh => Agent::Ssh {
@@ -93,6 +99,7 @@ impl Options {
                     .clone()
                     .context("--socket is required for SSH")?,
                 host: self.host.clone(),
+                include: self.include.clone(),
             },
             Kind::Gpg => Agent::Gpg {
                 home: self
@@ -178,4 +185,37 @@ fn execute(args: Args) -> Result<()> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn options(agent: Kind) -> Options {
+        Options {
+            agent,
+            socket: None,
+            gpg_home: None,
+            host: None,
+            include: Some("/home/user/.ssh/keyguard/config".into()),
+            shells: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn include_is_only_used_for_ssh() {
+        let mut gpg = options(Kind::Gpg);
+        gpg.gpg_home = Some("/home/user/.keyguard/gnupg".into());
+        assert_eq!(
+            gpg.request().unwrap_err().to_string(),
+            "--include is only used for SSH"
+        );
+
+        let mut ssh = options(Kind::Ssh);
+        ssh.socket = Some("/tmp/agent.sock".into());
+        let Agent::Ssh { include, .. } = ssh.request().unwrap().agent else {
+            panic!("expected an SSH request");
+        };
+        assert_eq!(include, ssh.include);
+    }
 }

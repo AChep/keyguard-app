@@ -175,6 +175,7 @@ fn ssh_shell_settings_are_reported_but_not_adopted() {
     request.agent = Agent::Ssh {
         socket: env.home.join("agent.sock").to_string_lossy().into_owned(),
         host: None,
+        include: None,
     };
     put(&env, ".zlogin", "export SSH_AUTH_SOCK=/other\n");
     let reviewed = plan(&env, request).unwrap();

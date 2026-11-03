@@ -87,6 +87,7 @@ fn termux_setup_agent() -> Result<keyguard_agent_setup::Agent> {
             .to_string_lossy()
             .into_owned(),
         host: None,
+        include: None,
     })
 }
 

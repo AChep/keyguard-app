@@ -261,6 +261,10 @@ class KeePassCipherCodec(
                 }
             }
         }
+        // The bookmarks are the user's fields, so they come after the other ones.
+        local.sshKey?.bookmarks
+            ?.let(sshKeyCodec::encodeBookmarks)
+            ?.forEach { scope.setValue(it.key, it.value) }
 
         // Local entity ids are UUIDs. Reusing that id for a new KeePass entry
         // makes the write idempotent if the KDBX file is saved but the
@@ -457,6 +461,14 @@ class KeePassCipherCodec(
             if (enabled) {
                 BitwardenCipher.RepromptType.Password
             } else BitwardenCipher.RepromptType.None
+        }
+
+        // Last, so that a bookmark never takes a field that another part reads.
+        if (type == BitwardenCipher.Type.SshKey) {
+            val bookmarks = sshKeyCodec.decodeBookmarks(scope)
+            if (bookmarks.isNotEmpty()) {
+                sshKey = (sshKey ?: BitwardenCipher.SshKey()).copy(bookmarks = bookmarks)
+            }
         }
 
         val customFields = scope.getAvailableFields()

@@ -23,8 +23,9 @@ import kotlinx.coroutines.plus
 internal fun produceAgentAutomaticSetupState(
     agent: SetupAgent,
     mode: AgentSetupMode,
+    includeSshBookmarks: Boolean,
 ): AgentAutomaticSetupState? {
-    val runner = rememberAgentSetupRunner(agent)
+    val runner = rememberAgentSetupRunner(agent, includeSshBookmarks)
     val enabled = rememberAgentSetupEnabled(agent)
     return produceScreenState(
         key = "agent_setup:${agent.argument}:${mode.name}",

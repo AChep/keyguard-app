@@ -4,9 +4,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.service.agent.findAgentBinary
+import com.artemchep.keyguard.common.service.agent.runAgentCommand
 import com.artemchep.keyguard.common.service.gpgagent.GpgconfRunner
 import com.artemchep.keyguard.common.service.gpgagent.ManagedGpgHome
-import com.artemchep.keyguard.common.service.sshagent.SshAgentManager
+import com.artemchep.keyguard.common.service.sshagent.DesktopSshAgentSocketPathProvider
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksConfigStore
+import com.artemchep.keyguard.common.usecase.GetSshAgentBookmarksConfig
 import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.FLATPAK_INFO_PATH
@@ -16,8 +19,7 @@ import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -28,19 +30,40 @@ import kotlinx.serialization.json.jsonPrimitive
 import org.koin.compose.koinInject
 import java.io.File
 import java.nio.file.Path
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.TimeUnit
 
 @Composable
-internal actual fun rememberAgentSetupRunner(agent: SetupAgent): AgentSetupRunner? {
+internal actual fun rememberAgentSetupRunner(
+    agent: SetupAgent,
+    includeSshBookmarks: Boolean,
+): AgentSetupRunner? {
     val directory = koinInject<DataDirectory>()
-    val sshAgentManager = koinInject<SshAgentManager>()
-    return remember(agent, directory, sshAgentManager) {
+    val socketPathProvider = koinInject<DesktopSshAgentSocketPathProvider>()
+    val getSshAgentBookmarksConfig = koinInject<GetSshAgentBookmarksConfig>()
+    val sshBookmarksConfigStore = koinInject<SshBookmarksConfigStore>()
+    return remember(
+        agent,
+        includeSshBookmarks,
+        directory,
+        socketPathProvider,
+        getSshAgentBookmarksConfig,
+        sshBookmarksConfigStore,
+    ) {
         val binary = findAgentBinary("keyguard")
         val flatpak = (CurrentPlatform as? Platform.Desktop.Linux)?.isFlatpak == true
+        // The generated configuration of bookmarked hosts, while it is
+        // on or the setting asks for it before it can turn on.
+        val include: suspend () -> String? = {
+            sshBookmarksConfigStore.includePath
+                .takeIf {
+                    agent == SetupAgent.SSH &&
+                        (includeSshBookmarks || getSshAgentBookmarksConfig().first())
+                }
+        }
         when {
             binary == null -> null
-            !flatpak -> AgentSetupRunner.App(DesktopAgentSetupClient(agent, binary, directory, sshAgentManager))
+            !flatpak -> AgentSetupRunner.App(
+                DesktopAgentSetupClient(agent, binary, directory, socketPathProvider, include),
+            )
             // Flatpak can't reach host files, so the user runs the bundled CLI from a host terminal.
             else -> AgentSetupRunner.HostCli {
                 withContext(Dispatchers.IO) {
@@ -48,7 +71,8 @@ internal actual fun rememberAgentSetupRunner(agent: SetupAgent): AgentSetupRunne
                     val command = flatpakHostCommand(binary, loader, File(FLATPAK_INFO_PATH).readText())
                     AgentSetupHostCli(
                         command = requireNotNull(command) { "Flatpak app or runtime path is unavailable" },
-                        endpoint = agentSetupEndpoint(agent, directory, sshAgentManager),
+                        endpoint = agentSetupEndpoint(agent, directory, socketPathProvider),
+                        include = include(),
                     )
                 }
             }
@@ -96,20 +120,12 @@ internal fun flatpakHostPath(path: Path, info: String): Path? {
 }
 
 /** The SSH socket or the GnuPG home that the agent serves. */
-private fun agentSetupEndpoint(
+private suspend fun agentSetupEndpoint(
     agent: SetupAgent,
     directory: DataDirectory,
-    sshAgentManager: SshAgentManager,
+    socketPathProvider: DesktopSshAgentSocketPathProvider,
 ): String = when (agent) {
-    SetupAgent.SSH -> {
-        val executable = requireNotNull(sshAgentManager.defaultBinaryPath) {
-            "SSH agent executable is unavailable"
-        }
-        val override = sshAgentManager.defaultAgentSocketPath
-        val command = listOf(executable.toString(), "--print-socket") +
-            (override?.let { listOf("--ssh-socket", it.toString()) } ?: emptyList())
-        runSetupCommand(command).trim()
-    }
+    SetupAgent.SSH -> socketPathProvider.require()
     SetupAgent.GPG -> requireNotNull(ManagedGpgHome.ofPlatformOrNull(CurrentPlatform, directory)) {
         "GnuPG home is unavailable"
     }.path.toString()
@@ -119,22 +135,17 @@ private class DesktopAgentSetupClient(
     private val agent: SetupAgent,
     private val binary: Path,
     private val directory: DataDirectory,
-    private val sshAgentManager: SshAgentManager,
+    private val socketPathProvider: DesktopSshAgentSocketPathProvider,
+    private val include: suspend () -> String?,
 ) : AgentSetupClient {
     private val gpgconf by lazy { GpgconfRunner() }
 
-    private val endpointMutex = Mutex()
-    private var cachedEndpoint: String? = null
-
-    /** The endpoint is fixed for the app's lifetime, so resolve it once. */
-    private suspend fun endpoint(): String = endpointMutex.withLock {
-        cachedEndpoint ?: withContext(Dispatchers.IO) {
-            agentSetupEndpoint(agent, directory, sshAgentManager)
-        }.also { cachedEndpoint = it }
+    private suspend fun endpoint(): String = withContext(Dispatchers.IO) {
+        agentSetupEndpoint(agent, directory, socketPathProvider)
     }
 
     override suspend fun preview(shells: Set<SetupShell>, host: String): AgentSetupPlan =
-        plan(listOf("plan") + agentSetupOptions(agent, endpoint(), shells, host))
+        plan(listOf("plan") + agentSetupOptions(agent, endpoint(), shells, host, include()))
 
     override suspend fun undo(): AgentSetupPlan = plan(listOf("undo", agent.argument))
 
@@ -247,7 +258,6 @@ internal fun parseAgentSetupError(raw: String): AgentSetupError {
 }
 
 private const val SETUP_PLAN_VERSION = 4
-private const val MAX_SETUP_OUTPUT = 4 * 1024 * 1024
 /**
  * Twice the helper's own worst case: planning and applying each run up to two
  * 15-second PowerShell probes. The app must not kill an apply that is writing.
@@ -255,20 +265,7 @@ private const val MAX_SETUP_OUTPUT = 4 * 1024 * 1024
 private const val SETUP_TIMEOUT_SECONDS = 60L
 
 private fun runSetupCommand(command: List<String>, input: String? = null): String {
-    val process = ProcessBuilder(command).redirectErrorStream(true).start()
-    val output = CompletableFuture.supplyAsync {
-        process.inputStream.readNBytes(MAX_SETUP_OUTPUT + 1)
-    }
-    try {
-        process.outputStream.use { stream -> input?.let { stream.write(it.encodeToByteArray()) } }
-        check(process.waitFor(SETUP_TIMEOUT_SECONDS, TimeUnit.SECONDS)) { "Agent setup timed out" }
-        val bytes = output.get(SETUP_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-        check(bytes.size <= MAX_SETUP_OUTPUT) { "Agent setup output exceeds the size limit" }
-        val text = bytes.decodeToString()
-        if (process.exitValue() != 0) throw AgentSetupException(parseAgentSetupError(text))
-        return text
-    } finally {
-        if (process.isAlive) process.destroyForcibly()
-        output.cancel(true)
-    }
+    val result = runAgentCommand(command, SETUP_TIMEOUT_SECONDS, input)
+    if (result.exitCode != 0) throw AgentSetupException(parseAgentSetupError(result.output))
+    return result.output
 }

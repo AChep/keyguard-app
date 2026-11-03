@@ -92,6 +92,8 @@ internal data class AgentSetupHostCli(
     val command: ImmutableList<String>,
     /** The SSH socket or the GnuPG home. */
     val endpoint: String,
+    /** The generated SSH configuration of bookmarked hosts, if it is on. */
+    val include: String? = null,
 )
 
 /** Who applies the configuration. */
@@ -106,9 +108,16 @@ internal sealed interface AgentSetupRunner {
     class HostCli(val resolve: suspend () -> AgentSetupHostCli) : AgentSetupRunner
 }
 
-/** Returns null if this build can't configure the agent automatically. */
+/**
+ * Returns null if this build can't configure the agent automatically.
+ * [includeSshBookmarks] includes the generated SSH configuration of
+ * bookmarked hosts even while it is off.
+ */
 @Composable
-internal expect fun rememberAgentSetupRunner(agent: SetupAgent): AgentSetupRunner?
+internal expect fun rememberAgentSetupRunner(
+    agent: SetupAgent,
+    includeSshBookmarks: Boolean = false,
+): AgentSetupRunner?
 
 internal enum class AgentSetupMode { CONFIGURE, UNDO }
 internal enum class AgentSetupStep { SETTINGS, REVIEW, RESULT }
@@ -211,5 +220,6 @@ internal fun hostCliCommand(data: AgentSetupData, cli: AgentSetupHostCli): Strin
         endpoint = cli.endpoint,
         shells = data.selectedShells,
         host = data.selectedHost,
+        include = cli.include,
     )
 }

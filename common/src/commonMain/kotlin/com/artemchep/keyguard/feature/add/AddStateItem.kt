@@ -158,6 +158,8 @@ sealed interface AddStateItem {
 
     data class Url<Request>(
         override val id: String,
+        /** The icon, or `null` for the one of a website. */
+        val leading: (@Composable RowScope.() -> Unit)? = null,
         override val options: ImmutableList<ContextItem> = persistentListOf(),
         override val state: LocalStateItem<State, Request>,
     ) : AddStateItem, HasOptions<Url<*>>, HasState<Url.State, Request> {
@@ -170,6 +172,9 @@ sealed interface AddStateItem {
         data class State(
             override val options: ImmutableList<ContextItem> = persistentListOf(),
             val text: TextFieldModel,
+            /** The label, or `null` for the one of a URI. */
+            val label: String? = null,
+            val placeholder: String? = null,
             val matchType: DSecret.Uri.MatchType? = null,
             val matchTypeTitle: String? = null,
         ) : HasOptions<State> {

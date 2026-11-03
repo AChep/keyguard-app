@@ -38,6 +38,9 @@ import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreF
 import com.artemchep.keyguard.common.service.backup.S3BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksConfigSyncer
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksConfigStore
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.impl.SshBookmarksConfigStoreImpl
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
@@ -128,7 +131,9 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import org.koin.core.qualifier.named
+import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.single
 
 class BiometricStatusUseCaseImpl(
     private val promptHost: BiometricPromptHost,
@@ -260,15 +265,27 @@ class PlatformApplicationModule {
         includes(WindowsPasskeyModule().module)
         single { PlatformLinkInfoExtractorRegistry(emptyList()) }
         single { PlatformLogSinkRegistry(listOf(get<LogRepositoryKotlin>())) }
-        single { WorkerRegistry(listOf(get<BackupSchedulerWorker>(), get<WatchtowerSyncer>())) }
+        single {
+            WorkerRegistry(
+                listOf(
+                    get<BackupSchedulerWorker>(),
+                    get<WatchtowerSyncer>(),
+                    get<SshBookmarksConfigSyncer>(),
+                ),
+            )
+        }
+        single<SshBookmarksConfigSyncer>()
         single {
             ClearDataHookRegistry(
                 when (CurrentPlatform) {
                     is Platform.Desktop.Windows -> listOf(get<WindowsPasskeyService>())
                     else -> emptyList()
-                },
+                } + get<SshBookmarksConfigStoreImpl>(),
             )
         }
+        single<SshBookmarksConfigStoreImpl> {
+            SshBookmarksConfigStoreImpl.ofPlatform(CurrentPlatform)
+        } bind SshBookmarksConfigStore::class
         single {
             val dataDirectory: DataDirectory = get()
             PlatformTemporaryArtifactRootRegistry(

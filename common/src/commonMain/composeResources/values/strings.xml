@@ -2052,7 +2052,7 @@
     <string name="pref_item_ui_scale_increase">Increase interface scale</string>
     <string name="pref_item_ui_scale_preview_default">Default</string>
     <string name="pref_item_ui_scale_preview_selected">Selected</string>
-    <string name="pref_item_ui_scale_preview_text">Keyguard keeps your passwords, passkeys and notes in an encrypted vault.</string>
+    <string name="pref_item_ui_scale_preview_text" translatable="false">Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.</string>
     <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>
     <string name="pref_item_check_pwned_services_title">Check for data breaches</string>
     <string name="pref_item_hibp_api_token_title">Have I Been Pwned API token</string>
@@ -2157,10 +2157,10 @@
     <string name="pref_item_agent_display_key_names_title">Display key names before vault is unlocked</string>
     <string name="pref_item_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
     <string name="pref_item_ssh_agent_bookmarks_config_title">Generate SSH config for bookmarked hosts</string>
-    <string name="pref_item_ssh_agent_bookmarks_config_text">Pins each host from an ssh:// field of an SSH key item to that key, so ssh offers only that key. To use it, run SSH client setup again, or add this line to the top of ~/.ssh/config:</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_text">Pins each host from an ssh:// field of an SSH key item to that key, so ssh offers only that key</string>
     <string name="pref_item_ssh_agent_bookmarks_config_note">Host names and public keys are stored unencrypted on disk.</string>
     <string name="pref_item_ssh_agent_bookmarks_config_include_title">Include the config in ~/.ssh/config</string>
-    <string name="pref_item_ssh_agent_bookmarks_config_include_text">ssh ignores the bookmarks until ~/.ssh/config includes the generated config. Run SSH client setup, or add this line to the top of the file:</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_text">SSH ignores the bookmarks until ~/.ssh/config includes the generated config. Run SSH client setup, or add this line to the top of the file:</string>
     <string name="pref_item_ssh_agent_bookmarks_config_include_retry">Then turn the setting on again.</string>
     <string name="pref_item_ssh_agent_bookmarks_config_include_setup_action">Run SSH client setup</string>
     <string name="pref_item_agent_approval_window_always_ask">Ask every time</string>

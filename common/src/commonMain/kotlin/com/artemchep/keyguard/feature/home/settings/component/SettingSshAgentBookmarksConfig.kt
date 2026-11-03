@@ -163,16 +163,6 @@ private fun SettingSshAgentBookmarksConfig(
                 Text(
                     text = stringResource(Res.string.pref_item_ssh_agent_bookmarks_config_text),
                 )
-                Spacer(
-                    modifier = Modifier
-                        .height(4.dp),
-                )
-                SelectionContainer {
-                    Text(
-                        text = include,
-                        fontFamily = FontFamily.Monospace,
-                    )
-                }
                 if (summary != null) {
                     Spacer(
                         modifier = Modifier

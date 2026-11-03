@@ -25,6 +25,7 @@ class CliAgentHost(
     val mounts: EnvironmentMountsHost,
     private val commands: CliCommandDispatcher,
     private val environments: (EnvironmentDirectoryAccess) -> EnvironmentBrokerHandler,
+    private val recorder: CliAgentUsageRecorder,
 ) {
     private val mutableStatus = MutableStateFlow<AgentStatus>(AgentStatus.Stopped)
 
@@ -45,6 +46,7 @@ class CliAgentHost(
     ) = CliAgentRequestHandler(
         cli = commands,
         environments = environments(directoryAccess),
+        recorder = recorder,
     )
 
     /** Tells the features that the agent serves about its [status]. */

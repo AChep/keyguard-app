@@ -43,6 +43,7 @@ internal object VaultActionSymbols {
         "cipher.edit" to "pencil",
         "cipher.viewPasswordHistory" to "clock.arrow.circlepath",
         "cipher.viewSshAgentHistory" to "terminal",
+        "cipher.viewCliAgentHistory" to "list.bullet.rectangle",
         "cipher.changeName" to "character.cursor.ibeam",
         "cipher.changeTags" to "tag",
         "cipher.changePassword" to "key",

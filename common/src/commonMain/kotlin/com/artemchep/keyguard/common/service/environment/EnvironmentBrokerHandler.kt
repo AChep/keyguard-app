@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages.ManageResponse
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages.Request
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages.Response
+import com.artemchep.keyguard.common.service.cli.agent.CliAgentUsageRecord
 import com.artemchep.keyguard.common.service.cli.agent.cliAgentError
 import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
@@ -28,13 +29,16 @@ class EnvironmentBrokerHandler(
 ) {
     // The approval broker bounds the time spent waiting on the user, and
     // a client that leaves cancels its request.
-    suspend fun handle(request: Request.Kind): Response.Kind = try {
+    suspend fun handle(
+        request: Request.Kind,
+        usage: CliAgentUsageRecord? = null,
+    ): Response.Kind = try {
         when (request) {
-            is Request.Kind.Manage -> mcp.manage(request.value)
+            is Request.Kind.Manage -> mcp.manage(request.value, usage)
             is Request.Kind.Mounts -> mounts.mounts()
             is Request.Kind.WatchMounts -> mounts.watchMounts(request.value.revision)
             is Request.Kind.MountStatus -> mounts.mountStatus(request.value)
-            is Request.Kind.ResolveMount -> mounts.resolveMount(request.value)
+            is Request.Kind.ResolveMount -> mounts.resolveMount(request.value, usage)
             is Request.Kind.Authenticate,
             is Request.Kind.Cli,
             -> cliAgentError("invalid_request")
@@ -83,10 +87,15 @@ class EnvironmentMountBrokerHandler(
     }
 
     @Suppress("ThrowsCount") // Each delivery rejection has a stable, non-sensitive error code.
-    internal suspend fun resolveMount(request: CliAgentMessages.ResolveMountRequest): Response.Kind {
+    internal suspend fun resolveMount(
+        request: CliAgentMessages.ResolveMountRequest,
+        usage: CliAgentUsageRecord?,
+    ): Response.Kind {
         val generation = request.generation
         val mount = mounts.state.value.mounts.firstOrNull { it.id == request.mountId && it.enabled }
             ?: throw EnvironmentServiceException("not_found")
+        usage?.cipherId = mount.environmentId
+        usage?.path = mount.path
         if (access.deliveryGeneration(mount.environmentId) != generation) {
             throw EnvironmentServiceException("vault_locked")
         }
@@ -132,7 +141,10 @@ class EnvironmentMcpBrokerHandler(
     private val mcp: EnvironmentMcpImpl,
 ) {
     @Suppress("ThrowsCount") // Validate broker identity and session authorization before dispatch.
-    internal suspend fun manage(request: CliAgentMessages.ManageRequest): Response.Kind {
+    internal suspend fun manage(
+        request: CliAgentMessages.ManageRequest,
+        usage: CliAgentUsageRecord?,
+    ): Response.Kind {
         if (!mcp.state.value.enabled) throw EnvironmentServiceException("integration_disabled")
         val caller = request.caller ?: throw EnvironmentServiceException("invalid_request")
         // The trusted, kernel-verified child generates this identity for each connection.
@@ -162,7 +174,7 @@ class EnvironmentMcpBrokerHandler(
         }
         val result = withContext(guard) {
             guard.check()
-            EnvironmentManagementOperation(repository, mounts, request, ::approve).execute(tool)
+            EnvironmentManagementOperation(repository, mounts, request, usage, ::approve).execute(tool)
         }
         vault.checkSession(identity)
         return Response.Kind.Manage(ManageResponse(result))
@@ -178,6 +190,7 @@ private class EnvironmentManagementOperation(
     private val repository: EnvironmentRepositoryImpl,
     private val mounts: EnvironmentMountsImpl,
     private val request: CliAgentMessages.ManageRequest,
+    private val usage: CliAgentUsageRecord?,
     /** Confirms an environment, a path, a capability, and the account of a new environment. */
     private val approve: suspend (String?, String?, EnvironmentCapability, String?) -> Unit,
 ) {
@@ -195,6 +208,7 @@ private class EnvironmentManagementOperation(
             val accountId = state.accountId(argument("account_id"))
             approve(null, null, EnvironmentCapability.CreateEnvironment, accountId)
             val id = repository.save(null, accountId, argument("name"), EnvironmentDefinition())
+            usage?.cipherId = id
             environmentMetadata(id, accountId)
         }
         "rename_environment" -> {
@@ -211,6 +225,7 @@ private class EnvironmentManagementOperation(
             // Approve the path in the form it is stored.
             val path = normalizeEnvironmentMountPath(argument("path"))
                 ?: throw EnvironmentServiceException("invalid_path")
+            usage?.path = path
             approve(id, path, EnvironmentCapability.CreateLocalEnvFile, null)
             ManageResponse.Result.LocalEnvFile(mountMetadata(mounts.create(id, path)))
         }
@@ -226,6 +241,7 @@ private class EnvironmentManagementOperation(
         val state = repository.state.value
         val accountId = request.arguments["account_id"]?.let { state.accountId(it) }
         val id = state.environmentId(environment, accountId)
+        usage?.cipherId = id
         return state.environments.first { it.id == id }
     }
 
@@ -296,6 +312,7 @@ private class EnvironmentManagementOperation(
         val state = repository.state.value
         val accountId = request.arguments["account_id"]?.let { state.accountId(it) }
         val id = request.arguments["environment_id"]?.let { state.environmentId(it, accountId) }
+        usage?.cipherId = id
         approve(id, null, EnvironmentCapability.ListLocalEnvFiles, null)
         val current = repository.state.value
         val accountEnvironments = accountId?.let { account ->

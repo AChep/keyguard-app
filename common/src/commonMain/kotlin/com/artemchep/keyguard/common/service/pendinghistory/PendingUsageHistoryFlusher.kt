@@ -4,8 +4,12 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import com.artemchep.keyguard.common.model.AddCliAgentUsageHistoryRequest
 import com.artemchep.keyguard.common.model.AddGpgUsageHistoryRequest
 import com.artemchep.keyguard.common.model.AddSshUsageHistoryRequest
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
@@ -15,6 +19,7 @@ import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.settings.SettingsReadWriteRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
+import com.artemchep.keyguard.common.usecase.AddCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
@@ -39,6 +44,7 @@ class PendingUsageHistoryFlusher(
     private val queue: PendingUsageHistoryQueue,
     private val addGpgUsageHistory: AddGpgUsageHistory,
     private val addSshUsageHistory: AddSshUsageHistory,
+    private val addCliAgentUsageHistory: AddCliAgentUsageHistory,
     private val vaultSettingsStore: VaultSettingsKeyValueStore,
     private val settingsRepository: SettingsReadWriteRepository,
     private val base64Service: Base64Service,
@@ -230,6 +236,15 @@ class PendingUsageHistoryFlusher(
                     ),
                 ).bind()
             }
+
+            PendingUsageHistory.Protocol.CLI_AGENT -> {
+                addCliAgentUsageHistory(
+                    payload.toAddCliAgentUsageHistoryRequest(
+                        instant = instant,
+                        eventId = row.id,
+                    ),
+                ).bind()
+            }
         }
         true
     } catch (e: Exception) {
@@ -244,6 +259,33 @@ data class PendingUsageHistoryFlushResult(
     val isComplete: Boolean
         get() = deferredRows == 0
 }
+
+private fun PendingUsageHistoryPayload.toAddCliAgentUsageHistoryRequest(
+    instant: Instant,
+    eventId: String,
+) = AddCliAgentUsageHistoryRequest(
+    cipherId = cipherId,
+    sessionId = sessionId,
+    client = enumValueOrUnknown(
+        cliAgent?.client.orEmpty(),
+        CliAgentUsageHistoryClient.UNKNOWN,
+    ),
+    caller = caller,
+    clientName = cliAgent?.clientName,
+    request = enumValueOrUnknown(
+        requestType,
+        CliAgentUsageHistoryRequestType.UNKNOWN,
+    ),
+    response = enumValueOrUnknown(
+        responseType,
+        CliAgentUsageHistoryResponseType.UNKNOWN,
+    ),
+    errorCode = cliAgent?.errorCode,
+    command = cliAgent?.command,
+    path = cliAgent?.path,
+    instant = instant,
+    eventId = eventId,
+)
 
 private inline fun <reified T : Enum<T>> enumValueOrUnknown(
     value: String,

@@ -17,4 +17,15 @@ data class PendingUsageHistoryPayload(
     val cipherId: String? = null,
     val fingerprint: String? = null,
     val keygrip: String? = null,
+    val cliAgent: PendingCliAgentUsageHistory? = null,
+)
+
+/** The fields of a CLI agent event that the other protocols do not have. */
+@Serializable
+data class PendingCliAgentUsageHistory(
+    val client: String,
+    val clientName: String? = null,
+    val errorCode: String? = null,
+    val command: String? = null,
+    val path: String? = null,
 )

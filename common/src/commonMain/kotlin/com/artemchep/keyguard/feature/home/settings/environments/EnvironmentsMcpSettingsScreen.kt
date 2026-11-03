@@ -39,6 +39,12 @@ fun rememberSettingsEnvironmentsMcpItems(
                     SettingPaneItem.Item(Setting.ENVIRONMENTS_MCP_SETUP),
                 ),
             ),
+            SettingPaneItem.Group(
+                key = "environments_mcp.history",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.ENVIRONMENTS_MCP_HISTORY),
+                ),
+            ),
         )
     }
 }

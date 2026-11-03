@@ -171,6 +171,13 @@ struct NavStackContainer<Content: View>: View {
                 )
                 .id(entry.instanceId)
                 .navigationTitle(L10n.agentHistoryHeaderTitle(L10n.protocolSsh))
+            } else if entry.kind == ScreenEntryKind.cliAgentHistory {
+                CliAgentHistoryScreen(
+                    client: entry.cliAgentHistoryClient, cipherId: entry.cliAgentHistoryCipherId,
+                    makeSession: sessions.makeCliAgentHistorySession, clear: sessions.clearCliAgentHistory
+                )
+                .id(entry.instanceId)
+                .navigationTitle(L10n.prefItemAgentHistoryTitle)
             } else if entry.kind == ScreenEntryKind.sendDetail {
                 SendDetailScreen(
                     target: ItemDetailTarget(itemId: entry.sendId ?? "", accountId: entry.sendAccountId ?? ""),

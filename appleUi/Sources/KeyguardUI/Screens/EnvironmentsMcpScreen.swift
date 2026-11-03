@@ -32,6 +32,10 @@ private struct EnvironmentsMcpView: View {
                         Button(L10n.copy) { model.session.doCopyMcpConfiguration() }
                     }
                 }
+                #if os(macOS)
+                // iOS runs no CLI agent to serve MCP.
+                CliAgentHistorySection(client: CliAgentHistoryTarget.mcp, searchTarget: .mcpHistory)
+                #endif
             } else {
                 ProgressView()
             }

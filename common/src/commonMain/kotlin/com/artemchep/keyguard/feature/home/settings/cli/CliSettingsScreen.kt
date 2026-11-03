@@ -39,6 +39,12 @@ fun rememberSettingsCliItems(
                     SettingPaneItem.Item(Setting.CLI_SETUP),
                 ),
             ),
+            SettingPaneItem.Group(
+                key = "cli.history",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.CLI_HISTORY),
+                ),
+            ),
         )
     }
 }

@@ -82,6 +82,7 @@ import com.artemchep.keyguard.apple.environments.resolveEnvironmentRequest
 import com.artemchep.keyguard.common.service.environment.EnvironmentAccess
 import com.artemchep.keyguard.apple.gpgtools.GpgToolsSession
 import com.artemchep.keyguard.apple.lists.AutofillController
+import com.artemchep.keyguard.apple.lists.CliAgentHistorySession
 import com.artemchep.keyguard.apple.lists.AutofillCredentialSnapshot
 import com.artemchep.keyguard.apple.lists.AutofillSuggestionSnapshot
 import com.artemchep.keyguard.apple.lists.PasskeyAssertionSnapshot
@@ -1204,6 +1205,16 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     /** History of the cipher [cipherId], or of every cipher when `null`. */
     fun makeSshAgentHistorySession(cipherId: String?): SshAgentHistorySession =
         readOnlyListsController.makeSshAgentHistorySession(cipherId)
+
+    /**
+     * Request log of the CLI agent: the [client] (`CLI`, `MCP` or `ENV`) log, or
+     * the log of the environment [cipherId] across all clients.
+     */
+    fun makeCliAgentHistorySession(client: String?, cipherId: String?): CliAgentHistorySession =
+        readOnlyListsController.makeCliAgentHistorySession(client, cipherId)
+
+    /** Clears the [client] log without asking; confirm with the user first. */
+    fun clearCliAgentHistory(client: String) = readOnlyListsController.clearCliAgentHistory(client)
 
     fun makePasswordHistorySession(itemId: String): ListSession<PasswordHistorySnapshot> =
         readOnlyListsController.makePasswordHistorySession(itemId)

@@ -237,6 +237,7 @@ import com.artemchep.keyguard.feature.gpgkey.createGpgSubKeyItems
 import com.artemchep.keyguard.feature.gpgkey.displayUserIds
 import com.artemchep.keyguard.feature.gpgkey.formatGpgAlgorithm
 import com.artemchep.keyguard.feature.gpgkey.primaryUserId
+import com.artemchep.keyguard.feature.home.settings.component.cliPlatformClasses
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.add.AddRoute
 import com.artemchep.keyguard.feature.home.vault.add.LeAddRoute
@@ -271,6 +272,7 @@ import com.artemchep.keyguard.feature.home.vault.util.cipherUploadGpgPublicKeyAc
 import com.artemchep.keyguard.feature.home.vault.util.cipherVerifyGpgPublicKeyAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewPasswordHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherCreateEnvironmentMountAction
+import com.artemchep.keyguard.feature.home.vault.util.cipherViewCliAgentHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherViewSshAgentHistoryAction
 import com.artemchep.keyguard.feature.home.vault.util.cipherWatchtowerAlerts
 import com.artemchep.keyguard.feature.home.vault.util.formatSshCertificateProblem
@@ -1569,6 +1571,14 @@ suspend fun RememberStateFlowScope.vaultViewScreenStateProducer(
                             cipher = secretOrNull,
                         )
                             .takeIf { secretOrNull.type == DSecret.Type.SshKey }
+                            ?.verify(verify),
+                        cipherViewCliAgentHistoryAction(
+                            cipher = secretOrNull,
+                        )
+                            .takeIf {
+                                secretOrNull.type == DSecret.Type.Environment &&
+                                    cliPlatformClasses.any { it.isInstance(CurrentPlatform) }
+                            }
                             ?.verify(verify),
                         cipherCreateEnvironmentMountAction(
                             cipher = secretOrNull,

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.cli
 
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheIdentity
+import com.artemchep.keyguard.common.service.cli.agent.CliAgentUsageRecord
 import kotlinx.serialization.KSerializer
 
 /** The verified context of one request of the CLI. */
@@ -8,6 +9,8 @@ class CliCallContext(
     val caller: CliCaller,
     /** The verified terminal tab of the caller, `null` if the agent could not establish one. */
     val terminalSession: AgentApprovalCacheIdentity?,
+    /** The entry of this request in the request log, filled in by the handler. */
+    val usage: CliAgentUsageRecord? = null,
 ) {
     /** Whether the user approved this request, or its terminal tab reused an approval. */
     var approved: Boolean = false

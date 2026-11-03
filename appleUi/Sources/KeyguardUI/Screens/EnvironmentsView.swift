@@ -43,6 +43,8 @@ struct EnvironmentsView: View {
                     Section {
                         NavigationLink(L10n.protocolMcp) { EnvironmentsMcpScreen() }
                     }
+                    // Reads of local .env files; iOS serves none.
+                    CliAgentHistorySection(client: CliAgentHistoryTarget.env, searchTarget: .envHistory)
                     #endif
                 }
                 if snapshot.failed || fileError {

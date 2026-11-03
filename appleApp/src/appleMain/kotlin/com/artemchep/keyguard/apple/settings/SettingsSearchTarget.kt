@@ -348,6 +348,26 @@ enum class SettingsSearchTarget(
         section = Res.string.agent_title,
         protocol = Res.string.protocol_gpg,
     ),
+    CLI_HISTORY(
+        SettingsDestination.DEVELOPER.id,
+        Res.string.pref_item_agent_history_title,
+        section = Res.string.cli_title,
+        availability = Availability.MACOS,
+    ),
+    ENV_HISTORY(
+        SettingsDestination.DEVELOPER.id,
+        Res.string.pref_item_agent_history_title,
+        section = Res.string.environments_title,
+        // This log lists the reads of local .env files.
+        keywords = listOf(Res.string.environments_mounts),
+        availability = Availability.MACOS,
+    ),
+    MCP_HISTORY(
+        SettingsDestination.DEVELOPER.id,
+        Res.string.pref_item_agent_history_title,
+        section = Res.string.protocol_mcp,
+        availability = Availability.MACOS,
+    ),
     PWNED_PASSWORDS(
         SettingsDestination.WATCHTOWER.id,
         Res.string.pref_item_check_pwned_passwords_title,

@@ -95,6 +95,21 @@ stopped. Open Keyguard and check the MCP configuration."
 - `append_variables` can't create or overwrite a reference.
 - There are no tools to delete, export or run commands.
 
+## Request log
+
+Keyguard logs each request with its caller, environment and result, such as
+**Success**, **Denied** or **Vault locked**.
+
+| Requests | Log |
+| --- | --- |
+| `keyguard run`, with the command and its folder | **Settings > Developer > Command line > Request log** |
+| MCP tools, with the client's name | **Settings > Developer > Environments > MCP > Request log** |
+| Reads of local .env files, with the path | **Settings > Developer > Environments > Request log** |
+
+- To see the requests for one environment, open it and select
+  **View request log**.
+- Requests made while the vault is locked appear after you unlock.
+
 ## Environment variables
 
 | Variable | Description |

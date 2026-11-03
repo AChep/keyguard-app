@@ -12,6 +12,9 @@ import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.PasswordStrength
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
@@ -48,6 +51,7 @@ import com.artemchep.keyguard.data.GeneratorHistory
 import com.artemchep.keyguard.data.GeneratorWordlist
 import com.artemchep.keyguard.data.GeneratorWordlistWord
 import com.artemchep.keyguard.data.PrivilegedApp
+import com.artemchep.keyguard.data.CliAgentUsageHistory
 import com.artemchep.keyguard.data.SshUsageHistory
 import com.artemchep.keyguard.data.GpgKeyserverState
 import com.artemchep.keyguard.data.GpgUsageHistory
@@ -1193,6 +1197,13 @@ internal fun createUploadTestDatabase(
     )
 }
 
+private val cliAgentUsageHistoryTestAdapter = CliAgentUsageHistory.Adapter(
+    clientAdapter = EnumCodeToLongAdapter(CliAgentUsageHistoryClient::of) { it.code },
+    requestAdapter = EnumCodeToLongAdapter(CliAgentUsageHistoryRequestType::of) { it.code },
+    responseAdapter = EnumCodeToLongAdapter(CliAgentUsageHistoryResponseType::of) { it.code },
+    createdAtAdapter = InstantToLongAdapter,
+)
+
 internal fun createUploadTestDatabase(
     driver: JdbcSqliteDriver,
     cipherDataAdapter: ColumnAdapter<BitwardenCipher, String>? = null,
@@ -1212,6 +1223,7 @@ internal fun createUploadTestDatabase(
             responseAdapter = EnumCodeToLongAdapter(GpgUsageHistoryResponseType::of) { it.code },
             createdAtAdapter = InstantToLongAdapter,
         ),
+        cliAgentUsageHistoryAdapter = cliAgentUsageHistoryTestAdapter,
         gpgKeyserverStateAdapter = GpgKeyserverState.Adapter(
             verificationStatusAdapter = EnumCodeToLongAdapter(GpgKeyserverVerificationStatus::of) { it.code },
             publicationStatusAdapter = EnumCodeToLongAdapter(GpgKeyserverVerificationStatus::of) { it.code },

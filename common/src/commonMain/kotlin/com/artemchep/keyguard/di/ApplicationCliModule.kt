@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.service.cli.CliRuntimeHost
 import com.artemchep.keyguard.common.service.cli.CliService
 import com.artemchep.keyguard.common.service.cli.CliServiceImpl
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentHost
+import com.artemchep.keyguard.common.service.cli.agent.CliAgentUsageRecorder
 import com.artemchep.keyguard.common.service.environment.EnvironmentRunCliCommand
 import com.artemchep.keyguard.common.service.settings.SettingsReadRepository
 import kotlinx.coroutines.CoroutineScope
@@ -43,9 +44,15 @@ class ApplicationCliModule {
             )
         }
         single {
+            CliAgentUsageRecorder(
+                getVaultSession = get(), sessionAccess = get(), queue = get(), json = get(), logRepository = get(),
+            )
+        }
+        single {
             CliAgentHost(
                 cli = get(), mcp = get(), mounts = get(), commands = get(),
                 environments = { directoryAccess -> environmentBrokerHandler(directoryAccess) },
+                recorder = get(),
             )
         }
     }

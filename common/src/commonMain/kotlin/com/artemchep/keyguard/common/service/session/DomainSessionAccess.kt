@@ -16,6 +16,7 @@ import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlushRunner
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksSource
+import com.artemchep.keyguard.common.usecase.AddCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -108,4 +109,8 @@ class GpgAgentSessionDependencies(
 internal fun interface BitwardenAttachmentSessionAccess {
     operator fun invoke(session: com.artemchep.keyguard.common.model.MasterSession.Key):
         BitwardenAttachmentSourceLoader?
+}
+
+fun interface CliAgentSessionAccess {
+    operator fun invoke(session: MasterSession.Key): AddCliAgentUsageHistory?
 }

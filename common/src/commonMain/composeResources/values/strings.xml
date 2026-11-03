@@ -455,6 +455,7 @@
     <string name="ciphers_action_change_passwords_title">Change passwords</string>
     <string name="ciphers_action_view_password_history_title">View password history</string>
     <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
+    <string name="ciphers_action_view_request_log_title">View request log</string>
     <string name="ciphers_action_upload_gpg_public_key_title">Upload GPG public key</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Upload public key to keyserver?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard will send this item's armored GPG public key to your configured keyserver. The public key may include fingerprints, user IDs such as names and e-mail addresses, subkeys, dates, and revocation status. The keyserver may store and redistribute this public data.</string>
@@ -1351,6 +1352,9 @@
     <string name="agent_history_response_key_not_found">Key not found</string>
     <string name="agent_history_response_failure">Failed</string>
     <string name="agent_history_response_vault_locked">Vault locked</string>
+    <string name="agent_history_response_timed_out">Timed out</string>
+    <!-- The client left before Keyguard answered its request -->
+    <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Unknown caller</string>
     <string name="agent_history_unknown_key">Unknown key</string>
     <string name="ssh_agent_history_all_accessible_keys">All accessible keys</string>
@@ -1358,6 +1362,10 @@
     <string name="agent_history_clear_history_confirmation_title">Clear <xliff:g id="protocol" example="SSH">%1$s</xliff:g> agent history?</string>
     <string name="agent_history_clear_history_confirmation_text">This will remove all <xliff:g id="protocol" example="SSH">%1$s</xliff:g> agent usage history.</string>
     <string name="ssh_agent_history_empty_text">Keys served and signatures requested by ssh/git appear here.</string>
+    <string name="cli_agent_history_request_run">Run a command</string>
+    <string name="cli_agent_history_request_read_local_env_file">Read a local .env file</string>
+    <string name="cli_agent_history_clear_history_confirmation_title">Clear request log?</string>
+    <string name="cli_agent_history_clear_history_confirmation_text">This will remove all requests in this log.</string>
 
     <string name="agent_setup_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> client setup</string>
     <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>

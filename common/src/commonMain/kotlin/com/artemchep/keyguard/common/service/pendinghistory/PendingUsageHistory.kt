@@ -17,6 +17,8 @@ data class PendingUsageHistory(
     val cipherId: String?,
     val fingerprint: String?,
     val keygrip: String?,
+    /** The details of a [Protocol.CLI_AGENT] event. */
+    val cliAgent: PendingCliAgentUsageHistory? = null,
     val timestampEpochMilliseconds: Long,
     /**
      * Events sharing a non-null key overwrite each other in the queue
@@ -30,6 +32,9 @@ data class PendingUsageHistory(
     enum class Protocol {
         OPENPGP,
         SSH,
+
+        /** The CLI, MCP and local `.env` file requests of the CLI agent. */
+        CLI_AGENT,
     }
 }
 

@@ -93,6 +93,9 @@ import com.artemchep.keyguard.feature.home.settings.component.settingCliApproval
 import com.artemchep.keyguard.feature.home.settings.component.settingCliProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCliSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCliSetupProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCliHistoryProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsHistoryProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGravatarProvider
@@ -264,15 +267,18 @@ object Setting {
     const val CLI_APPROVAL_WINDOW = "cli_approval_window"
     const val CLI_APPROVAL_TIMEOUT = "cli_approval_timeout"
     const val CLI_SETUP = "cli_setup"
+    const val CLI_HISTORY = "cli_history"
     const val ENVIRONMENTS = "environments"
     const val ENVIRONMENTS_MCP_SETTINGS = "environments_mcp_settings"
     const val ENVIRONMENTS_MCP_APPROVAL_WINDOW = "environments_mcp_approval_window"
     const val ENVIRONMENTS_MCP_APPROVAL_TIMEOUT = "environments_mcp_approval_timeout"
     const val ENVIRONMENTS_MCP = "environments_mcp"
     const val ENVIRONMENTS_MCP_SETUP = "environments_mcp_setup"
+    const val ENVIRONMENTS_MCP_HISTORY = "environments_mcp_history"
     const val ENVIRONMENTS_LIST = "environments_list"
     const val ENVIRONMENTS_CREATE = "environments_create"
     const val ENVIRONMENTS_MOUNTS = "environments_mounts"
+    const val ENVIRONMENTS_HISTORY = "environments_history"
     const val GPG_SETTINGS = "gpg_settings"
     const val GPG_AGENT = "gpg_agent"
     const val GPG_AGENT_APPROVAL_WINDOW = "gpg_agent_approval_window"
@@ -416,15 +422,18 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.CLI_APPROVAL_WINDOW to ::settingCliApprovalWindowProvider,
     Setting.CLI_APPROVAL_TIMEOUT to ::settingCliApprovalTimeoutProvider,
     Setting.CLI_SETUP to ::settingCliSetupProvider,
+    Setting.CLI_HISTORY to ::settingCliHistoryProvider,
     Setting.ENVIRONMENTS to ::settingEnvironmentsProvider,
     Setting.ENVIRONMENTS_MCP_SETTINGS to ::settingEnvironmentsMcpSettingsProvider,
     Setting.ENVIRONMENTS_MCP_APPROVAL_WINDOW to ::settingEnvironmentsMcpApprovalWindowProvider,
     Setting.ENVIRONMENTS_MCP_APPROVAL_TIMEOUT to ::settingEnvironmentsMcpApprovalTimeoutProvider,
     Setting.ENVIRONMENTS_MCP to ::settingEnvironmentsMcpProvider,
     Setting.ENVIRONMENTS_MCP_SETUP to ::settingEnvironmentsMcpSetupProvider,
+    Setting.ENVIRONMENTS_MCP_HISTORY to ::settingEnvironmentsMcpHistoryProvider,
     Setting.ENVIRONMENTS_LIST to ::settingEnvironmentsListProvider,
     Setting.ENVIRONMENTS_CREATE to ::settingEnvironmentsCreateProvider,
     Setting.ENVIRONMENTS_MOUNTS to ::settingEnvironmentsMountsProvider,
+    Setting.ENVIRONMENTS_HISTORY to ::settingEnvironmentsHistoryProvider,
     Setting.GPG_SETTINGS to ::settingGpgSettingsProvider,
     Setting.GPG_AGENT to ::settingGpgAgentProvider,
     Setting.GPG_AGENT_APPROVAL_WINDOW to ::settingGpgAgentApprovalWindowProvider,

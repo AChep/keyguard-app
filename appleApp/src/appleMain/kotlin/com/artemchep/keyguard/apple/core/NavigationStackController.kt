@@ -187,6 +187,15 @@ internal sealed interface ScreenKind {
         override val defaultTitle get() = ""
     }
 
+    /** The Swift view sets the localized title. [client] is a `CliAgentUsageHistoryClient` name. */
+    data class CliAgentHistory(
+        val client: String?,
+        val cipherId: String?,
+    ) : ScreenKind {
+        override val entryKind get() = ScreenEntryKind.CLI_AGENT_HISTORY
+        override val defaultTitle get() = ""
+    }
+
     data class SendDetail(
         val sendId: String,
         val accountId: String,
@@ -315,6 +324,7 @@ enum class ScreenEntryKind {
     WORDLIST_DETAIL,
     PASSWORD_HISTORY,
     SSH_AGENT_HISTORY,
+    CLI_AGENT_HISTORY,
     SEND_DETAIL,
     ORGANIZATIONS_LIST,
     COLLECTIONS_LIST,
@@ -354,6 +364,8 @@ data class ScreenEntrySnapshot(
     val wordlistDetail: WordlistDetailSnapshot?,
     val passwordHistoryItemId: String?,
     val sshAgentHistoryCipherId: String?,
+    val cliAgentHistoryClient: String?,
+    val cliAgentHistoryCipherId: String?,
     val sendId: String?,
     val sendAccountId: String?,
     val organizations: OrganizationsSnapshot?,
@@ -502,6 +514,8 @@ internal class NavigationStackController(
             wordlistDetail = wordlistDetail,
             passwordHistoryItemId = (kind as? ScreenKind.PasswordHistory)?.itemId,
             sshAgentHistoryCipherId = (kind as? ScreenKind.SshAgentHistory)?.cipherId,
+            cliAgentHistoryClient = (kind as? ScreenKind.CliAgentHistory)?.client,
+            cliAgentHistoryCipherId = (kind as? ScreenKind.CliAgentHistory)?.cipherId,
             sendId = (kind as? ScreenKind.SendDetail)?.sendId,
             sendAccountId = (kind as? ScreenKind.SendDetail)?.accountId,
             organizations = organizations,
@@ -1240,6 +1254,9 @@ internal class NavigationStackController(
         is RouteDescriptor.SshAgentHistory ->
             ScreenKind.SshAgentHistory(cipherId = descriptor.cipherId)
 
+        is RouteDescriptor.CliAgentHistory ->
+            ScreenKind.CliAgentHistory(client = descriptor.client?.name, cipherId = descriptor.cipherId)
+
         is RouteDescriptor.WordlistView ->
             ScreenKind.WordlistDetail(wordlistId = descriptor.wordlistId, title = "")
 
@@ -1664,6 +1681,7 @@ internal class NavigationStackController(
             ScreenKind.Subscriptions,
             is ScreenKind.PasswordHistory,
             is ScreenKind.SshAgentHistory,
+            is ScreenKind.CliAgentHistory,
             is ScreenKind.SendDetail,
             is ScreenKind.AccountClientCertificate,
             is ScreenKind.AccountDetail,

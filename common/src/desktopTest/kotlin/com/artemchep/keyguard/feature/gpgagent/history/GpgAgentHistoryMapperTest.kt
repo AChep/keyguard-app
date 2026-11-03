@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.gpgagent.history
 
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
+import com.artemchep.keyguard.feature.agent.decodeAgentUsageHistoryCallerInfo
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
@@ -18,7 +19,7 @@ class GpgAgentHistoryMapperTest {
                 appBundlePath = "com.example.client",
             )
 
-        val info = buildGpgUsageHistoryCallerInfo(Json.encodeToString(caller), Json)
+        val info = decodeAgentUsageHistoryCallerInfo(Json.encodeToString(caller), Json)
 
         assertEquals("Example Client", info?.primaryLabel)
         assertEquals("com.example.client", info?.secondaryLabel)
@@ -37,11 +38,11 @@ class GpgAgentHistoryMapperTest {
 
         assertEquals(
             "com.example.client",
-            buildGpgUsageHistoryCallerInfo(Json.encodeToString(packageCaller), Json)?.primaryLabel,
+            decodeAgentUsageHistoryCallerInfo(Json.encodeToString(packageCaller), Json)?.primaryLabel,
         )
         assertEquals(
             "gpg",
-            buildGpgUsageHistoryCallerInfo(Json.encodeToString(processCaller), Json)?.primaryLabel,
+            decodeAgentUsageHistoryCallerInfo(Json.encodeToString(processCaller), Json)?.primaryLabel,
         )
     }
 
@@ -54,7 +55,7 @@ class GpgAgentHistoryMapperTest {
                 processName = "g".repeat(300),
             )
 
-        val info = buildGpgUsageHistoryCallerInfo(Json.encodeToString(caller), Json)
+        val info = decodeAgentUsageHistoryCallerInfo(Json.encodeToString(caller), Json)
 
         assertEquals("Example\\u202e Client 😀", info?.primaryLabel)
         assertEquals(
@@ -65,6 +66,6 @@ class GpgAgentHistoryMapperTest {
 
     @Test
     fun `build caller info returns null for malformed json`() {
-        assertNull(buildGpgUsageHistoryCallerInfo("{not-json", Json))
+        assertNull(decodeAgentUsageHistoryCallerInfo("{not-json", Json))
     }
 }

@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.service.session.BitwardenAttachmentSessionA
 import com.artemchep.keyguard.common.service.session.AttachmentSessionAccess
 import com.artemchep.keyguard.common.service.session.BackupConfigSessionAccess
 import com.artemchep.keyguard.common.service.session.BackupRunnerSessionAccess
+import com.artemchep.keyguard.common.service.session.CliAgentSessionAccess
 import com.artemchep.keyguard.common.service.session.GpgAgentSessionAccess
 import com.artemchep.keyguard.common.service.session.GpgAgentSessionDependencies
 import com.artemchep.keyguard.common.service.session.PendingUsageHistorySessionAccess
@@ -103,6 +104,9 @@ class DomainSessionAccessModule {
                     )
                 }
             }
+        }
+        single<CliAgentSessionAccess> {
+            CliAgentSessionAccess { key -> key.session.resolve { get() } }
         }
         single<WatchtowerSessionAccess> {
             WatchtowerSessionAccess { key ->

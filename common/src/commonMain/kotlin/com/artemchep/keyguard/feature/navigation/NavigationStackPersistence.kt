@@ -81,6 +81,7 @@ private fun RouteDescriptor.canPersist(): Boolean = when (this) {
     is RouteDescriptor.SendView,
     is RouteDescriptor.PasswordHistory,
     is RouteDescriptor.SshAgentHistory,
+    is RouteDescriptor.CliAgentHistory,
     RouteDescriptor.PasswordMemory,
     is RouteDescriptor.Generator,
     is RouteDescriptor.WordlistView,

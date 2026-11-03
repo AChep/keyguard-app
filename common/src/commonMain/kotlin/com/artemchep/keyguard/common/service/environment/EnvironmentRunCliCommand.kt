@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.cli.CliCommandHandler
 import com.artemchep.keyguard.common.service.cli.CliOperation
 import com.artemchep.keyguard.common.service.cli.CliServiceException
 import com.artemchep.keyguard.common.service.cli.CliServiceImpl
+import com.artemchep.keyguard.feature.cli.cliCommandLine
 import com.artemchep.keyguard.feature.environments.EnvironmentFormat
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
@@ -42,6 +43,9 @@ class EnvironmentRunCliCommand(
         context: CliCallContext,
         request: EnvironmentRunCliRequest,
     ): EnvironmentRunCliResult {
+        val usage = context.usage
+        usage?.command = cliCommandLine(request.command)
+        usage?.path = request.workingDirectory
         val state = repository.state.value
         if (!state.unlocked) throw EnvironmentServiceException("vault_locked")
         val command = request.command
@@ -50,6 +54,7 @@ class EnvironmentRunCliCommand(
         val workingDirectory = request.workingDirectory
         val accountId = request.account?.let { state.accountId(it) }
         val environmentId = state.environmentId(request.environment, accountId)
+        usage?.cipherId = environmentId
         val identity = vault.sessionIdentity()
         val epoch = access.generation.value
         val delivery = access.deliveryGeneration(environmentId)

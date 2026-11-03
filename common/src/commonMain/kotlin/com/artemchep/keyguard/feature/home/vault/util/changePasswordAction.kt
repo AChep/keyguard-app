@@ -66,6 +66,7 @@ import com.artemchep.keyguard.common.usecase.UnarchiveCipherById
 import com.artemchep.keyguard.common.usecase.UploadGpgPublicKey
 import com.artemchep.keyguard.common.usecase.VerifyGpgPublicKey
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
+import com.artemchep.keyguard.feature.cliagent.history.CliAgentHistoryRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
@@ -1219,6 +1220,28 @@ fun RememberStateFlowScope.cipherViewSshAgentHistoryAction(
         onClick = {
             val intent = NavigationIntent.NavigateToRoute(
                 SshAgentHistoryRoute(
+                    cipherId = cipher.id,
+                ),
+            )
+            navigate(intent)
+        },
+    )
+}
+
+/** The CLI, MCP and local `.env` file requests that reached an environment. */
+fun RememberStateFlowScope.cipherViewCliAgentHistoryAction(
+    cipher: DSecret,
+) = kotlin.run {
+    FlatItemAction(
+        id = "cipher.viewCliAgentHistory",
+        leading = icon(Icons.Outlined.History),
+        title = Res.string.ciphers_action_view_request_log_title.wrap(),
+        trailing = {
+            ChevronIcon()
+        },
+        onClick = {
+            val intent = NavigationIntent.NavigateToRoute(
+                CliAgentHistoryRoute(
                     cipherId = cipher.id,
                 ),
             )

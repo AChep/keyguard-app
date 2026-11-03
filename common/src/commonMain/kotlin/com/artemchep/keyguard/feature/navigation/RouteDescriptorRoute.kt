@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.navigation
 import com.artemchep.keyguard.feature.auth.certificate.AccountClientCertificateRoute
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.feature.attachments.AttachmentsRoute
+import com.artemchep.keyguard.feature.cliagent.history.CliAgentHistoryRoute
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
 import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsRoute
 import com.artemchep.keyguard.feature.export.ExportRoute
@@ -70,6 +71,9 @@ fun RouteDescriptor.toRoute(): Route? = when (this) {
 
     is RouteDescriptor.SshAgentHistory ->
         SshAgentHistoryRoute(cipherId = cipherId)
+
+    is RouteDescriptor.CliAgentHistory ->
+        CliAgentHistoryRoute(client = client, cipherId = cipherId)
 
     is RouteDescriptor.WordlistView ->
         WordlistViewRoute(WordlistViewRoute.Args(wordlistId = wordlistId))

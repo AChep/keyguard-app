@@ -59,6 +59,10 @@ private struct CliView: View {
                         }
                     }
                 }
+                #if os(macOS)
+                // iOS runs no CLI agent.
+                CliAgentHistorySection(client: CliAgentHistoryTarget.cli, searchTarget: .cliHistory)
+                #endif
                 if snapshot.failed {
                     Text(L10n.errorFailedUnknown).foregroundStyle(.red)
                 }

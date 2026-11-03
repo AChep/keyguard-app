@@ -66,6 +66,10 @@ or **Add or update environment variables**, and asks again.
 [Agent approvals](/docs/agent-approvals/) covers how long Keyguard remembers
 an approval. [MCP tools](/docs/cli/#mcp-tools) lists what the agent can do.
 
+To review what the agent asked for, select **Request log** in
+**Settings > Developer > Environments > MCP**. See
+[Request log](/docs/cli/#request-log).
+
 ## Give the agent's commands the values
 
 The agent never gets values through MCP. To run its code with them, use either:

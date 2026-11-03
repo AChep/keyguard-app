@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.agent.toApprovalCacheIdentity
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages
+import com.artemchep.keyguard.common.service.cli.agent.CliAgentUsageRecord
 import com.artemchep.keyguard.common.service.cli.agent.cliAgentError
 import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.KSerializer
@@ -30,7 +31,10 @@ class CliCommandDispatcher(
     // The approval broker bounds the time spent waiting on the user, and
     // the agent's own transport timeout bounds the request as a whole.
     @Suppress("ThrowsCount") // Each rejection has a stable, non-sensitive error code.
-    suspend fun handle(request: CliAgentMessages.CliRequest): CliAgentMessages.Response.Kind = try {
+    suspend fun handle(
+        request: CliAgentMessages.CliRequest,
+        usage: CliAgentUsageRecord? = null,
+    ): CliAgentMessages.Response.Kind = try {
         val state = service.state.value
         if (state.path == null) throw CliServiceException("unsupported_platform")
         if (!state.enabled) throw CliServiceException("integration_disabled")
@@ -40,6 +44,7 @@ class CliCommandDispatcher(
         val context = CliCallContext(
             caller = caller.toCliCaller(),
             terminalSession = caller.terminalSession(),
+            usage = usage,
         )
         val result = handler.answer(context, request.request)
         // The CLI may have been turned off while the user was asked.

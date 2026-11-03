@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.environment
 
 import com.artemchep.keyguard.test.environmentPayload
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.model.AddCliAgentUsageHistoryRequest
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DProfile
 import com.artemchep.keyguard.common.model.DSecret
@@ -18,13 +19,19 @@ import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages.Request
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages.Response
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentRequestHandler
+import com.artemchep.keyguard.common.service.cli.agent.CliAgentUsageRecorder
 import com.artemchep.keyguard.common.service.cli.agent.error
 import com.artemchep.keyguard.common.service.cli.agent.manageRequest
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
 import com.artemchep.keyguard.common.service.keyvalue.RealKeyValuePreference
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistory
+import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
+import com.artemchep.keyguard.common.service.pendinghistory.SealedPendingUsageHistory
+import com.artemchep.keyguard.common.service.session.CliAgentSessionAccess
 import com.artemchep.keyguard.common.service.vault.VaultSession
 import com.artemchep.keyguard.common.usecase.AddCipher
+import com.artemchep.keyguard.common.usecase.AddCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
 import com.artemchep.keyguard.common.usecase.GetProfiles
@@ -35,6 +42,7 @@ import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
 import com.artemchep.keyguard.feature.environments.EnvironmentValueSource
 import com.artemchep.keyguard.feature.environments.EnvironmentVariable
 import com.artemchep.keyguard.platform.LocalPath
+import com.artemchep.keyguard.test.RecordingLogRepository
 import com.artemchep.keyguard.test.TestCryptoGenerator
 import com.artemchep.keyguard.test.createProfile
 import com.artemchep.keyguard.test.createSecret
@@ -96,6 +104,12 @@ internal class EnvironmentFixture(
     val approvedPaths = mutableListOf<String?>()
     var beforeSave: suspend () -> Unit = {}
     val collections = MutableStateFlow<List<DCollection>>(emptyList())
+
+    /** The request log entries written into the unlocked vault. */
+    val recordedUsage = mutableListOf<AddCliAgentUsageHistoryRequest>()
+
+    /** The request log entries queued while the vault was locked. */
+    val queuedUsage = mutableListOf<PendingUsageHistory>()
     private val dependencies = EnvironmentSessionDependencies(
         getCiphers = object : GetCiphers { override fun invoke(): Flow<List<DSecret>> = ciphers },
         getProfiles = object : GetProfiles {
@@ -173,6 +187,22 @@ internal class EnvironmentFixture(
         mounts = EnvironmentMountBrokerHandler(environmentVault, repository, access, mounts, directoryAccess),
     )
 
+    val recorder = CliAgentUsageRecorder(
+        getVaultSession = getVaultSession,
+        sessionAccess = CliAgentSessionAccess {
+            object : AddCliAgentUsageHistory {
+                override fun invoke(request: AddCliAgentUsageHistoryRequest): IO<Unit> = { recordedUsage += request }
+            }
+        },
+        queue = object : PendingUsageHistoryQueue {
+            override fun get(): IO<List<SealedPendingUsageHistory>> = { emptyList() }
+            override fun enqueue(item: PendingUsageHistory): IO<Unit> = { queuedUsage += item }
+            override fun remove(id: String): IO<Unit> = { Unit }
+        },
+        json = Json,
+        logRepository = RecordingLogRepository(),
+    )
+
     /** The handler of the private requests of one agent connection. */
     fun agent() = CliAgentRequestHandler(
         cli = CliCommandDispatcher(
@@ -180,6 +210,7 @@ internal class EnvironmentFixture(
             listOf(EnvironmentRunCliCommand(cli, environmentVault, repository, access)),
         ),
         environments = broker(),
+        recorder = recorder,
     )
 
     fun mountStatus(id: String): EnvironmentMountStatus =

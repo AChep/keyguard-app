@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.navigation
 
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSendFilter
 import kotlinx.serialization.SerialName
@@ -75,6 +76,17 @@ sealed interface RouteDescriptor {
     @Serializable
     @SerialName("sshagent.history")
     data class SshAgentHistory(
+        val cipherId: String? = null,
+    ) : RouteDescriptor
+
+    /**
+     * The CLI agent's request log, of one environment or (`null`) of
+     * the requests of one [client].
+     */
+    @Serializable
+    @SerialName("cliagent.history")
+    data class CliAgentHistory(
+        val client: CliAgentUsageHistoryClient? = null,
         val cipherId: String? = null,
     ) : RouteDescriptor
 

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.sshagent.history
 
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
+import com.artemchep.keyguard.feature.agent.decodeAgentUsageHistoryCallerInfo
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
@@ -34,7 +35,7 @@ class SshAgentHistoryMapperTest {
         )
         val encoded = Json.encodeToString(caller)
 
-        val info = buildSshUsageHistoryCallerInfo(encoded, Json)
+        val info = decodeAgentUsageHistoryCallerInfo(encoded, Json)
 
         assertEquals("Terminal", info?.primaryLabel)
         assertEquals("ssh", info?.secondaryLabel)
@@ -47,7 +48,7 @@ class SshAgentHistoryMapperTest {
         )
         val encoded = Json.encodeToString(caller)
 
-        val info = buildSshUsageHistoryCallerInfo(encoded, Json)
+        val info = decodeAgentUsageHistoryCallerInfo(encoded, Json)
 
         assertEquals("ssh", info?.primaryLabel)
         assertNull(info?.secondaryLabel)
@@ -63,7 +64,7 @@ class SshAgentHistoryMapperTest {
         )
         val encoded = Json.encodeToString(caller)
 
-        val info = buildSshUsageHistoryCallerInfo(encoded, Json)
+        val info = decodeAgentUsageHistoryCallerInfo(encoded, Json)
 
         assertEquals("Example Client", info?.primaryLabel)
         assertEquals("com.example.client", info?.secondaryLabel)
@@ -71,7 +72,7 @@ class SshAgentHistoryMapperTest {
 
     @Test
     fun `build caller info returns null for malformed json`() {
-        val info = buildSshUsageHistoryCallerInfo("{not-json", Json)
+        val info = decodeAgentUsageHistoryCallerInfo("{not-json", Json)
 
         assertNull(info)
     }

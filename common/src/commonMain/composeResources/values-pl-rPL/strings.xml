@@ -442,6 +442,7 @@
     <string name="ciphers_action_change_passwords_title">Zmień hasła</string>
     <string name="ciphers_action_view_password_history_title">Zobacz historię haseł</string>
     <string name="ciphers_action_view_ssh_agent_history_title">Wyświetl historię agenta SSH</string>
+    <string name="ciphers_action_view_request_log_title">View request log</string>
     <string name="ciphers_action_upload_gpg_public_key_title">Wyślij klucz publiczny GPG</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Wysłać klucz publiczny do serwera kluczy?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard wyśle opancerzony klucz publiczny GPG tego elementu do skonfigurowanego serwera kluczy. Klucz publiczny może zawierać odciski palców, identyfikatory użytkownika, takie jak imiona i adresy e-mail, podklucze, daty oraz status unieważnienia. Serwer kluczy może przechowywać i redystrybuować te dane publiczne. Ten transfer nie powoduje wysłania e-maili weryfikacyjnych.</string>
@@ -504,10 +505,27 @@
     <string name="attachment_preview_error_text_decode">Nie można wyświetlić podglądu tego pliku tekstowego.</string>
     <string name="attachment_preview_error_image_decode">Nie można wyświetlić podglądu tego obrazu.</string>
     <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
+    <string name="attachment_preview_error_gzip_invalid">This Gzip file is damaged.</string>
+    <string name="attachment_preview_error_gzip_size_limit">The decompressed file is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
     <string name="attachment_preview_action_copy_all">Kopiuj wszystko</string>
     <string name="attachment_preview_action_wrap_lines">Zawijaj wiersze</string>
     <string name="attachment_preview_action_source">Źródło</string>
     <string name="attachment_preview_action_rendered_preview">Podgląd</string>
+    <string name="attachment_preview_action_tree">Tree</string>
+    <string name="attachment_preview_json_tree_view">Tree view</string>
+    <string name="attachment_preview_json_object">Object</string>
+    <string name="attachment_preview_json_array">Array</string>
+    <string name="attachment_preview_json_string">String</string>
+    <string name="attachment_preview_json_number">Number</string>
+    <string name="attachment_preview_json_boolean">Boolean</string>
+    <string name="attachment_preview_json_null">Null</string>
+    <string name="attachment_preview_json_expanded">Expanded</string>
+    <string name="attachment_preview_json_collapsed">Collapsed</string>
+    <string name="attachment_preview_json_error_invalid">This file is not valid JSON. Showing source.</string>
+    <string name="attachment_preview_json_error_too_large">This file is too large for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_deep">This JSON has too many nested levels for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_many_nodes">This JSON has too many values for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_duplicate_keys">This JSON has duplicate property names. Showing source to preserve every value.</string>
     <string name="vault_action_always_show_keyboard_title">Zawsze pokazuj klawiaturę</string>
     <string name="vault_action_remember_sorting_title">Zapamiętaj metodę sortowania</string>
     <string name="vault_action_sync_vault_title">Synchronizuj sejf</string>
@@ -677,6 +695,12 @@
     <string name="ssh_certificate_problem_key_mismatch">Ten certyfikat dotyczy innego klucza.</string>
     <string name="ssh_certificate_problem_not_yet_valid">Ten certyfikat jest ważny od <xliff:g id="date" example="Jan 1, 2027">%1$s</xliff:g>.</string>
     <string name="ssh_certificate_problem_expired">Ten certyfikat wygasł dnia <xliff:g id="date" example="Jan 1, 2026">%1$s</xliff:g>.</string>
+    <string name="ssh_bookmark">SSH bookmark</string>
+    <string name="ssh_bookmarks">SSH bookmarks</string>
+    <string name="ssh_bookmark_invalid">Not a valid SSH bookmark</string>
+    <string name="ssh_bookmark_placeholder">ssh://user@host:port</string>
+    <string name="ssh_bookmark_copy_command">Copy SSH command</string>
+    <string name="ssh_bookmark_connect">Connect</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> wybrany</string>
     <string name="selection_clear_action">Wyczyść zaznaczenie</string>
     <string name="selection_select_all_action">Zaznacz wszystko</string>
@@ -1013,7 +1037,6 @@
     <string name="privilegedapps_user_apps">Aplikacje użytkownika</string>
     <string name="privilegedapps_community_apps">Aplikacje społeczności</string>
     <string name="setup_header_text">Utwórz zaszyfrowany sejf w którym będą przechowywane lokalne dane.</string>
-    <string name="setup_free_text">Kontynuując, potwierdzasz, że zakupiłeś lub posiadałeś aktywną licencję.</string>
     <string name="setup_field_app_password_label">Hasło aplikacji</string>
     <string name="setup_checkbox_biometric_auth">Uwierzytelnianie biometryczne</string>
     <string name="setup_biometric_auth_confirm_title">Utwórz sejf</string>
@@ -1244,6 +1267,9 @@
     <string name="agent_history_response_key_not_found">Nie znaleziono klucza</string>
     <string name="agent_history_response_failure">Niepowodzenie</string>
     <string name="agent_history_response_vault_locked">Sejf zablokowany</string>
+    <string name="agent_history_response_timed_out">Timed out</string>
+    <!-- The client left before Keyguard answered its request -->
+    <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Nieznany klient</string>
     <string name="agent_history_unknown_key">Nieznany klucz</string>
     <string name="ssh_agent_history_all_accessible_keys">Wszystkie dostępne klucze</string>
@@ -1251,6 +1277,10 @@
     <string name="agent_history_clear_history_confirmation_title">Wyczyścić historię agenta <xliff:g id="protocol" example="SSH">%1$s</xliff:g>?</string>
     <string name="agent_history_clear_history_confirmation_text">Spowoduje to usunięcie całej historii użycia agenta <xliff:g id="protocol" example="SSH">%1$s</xliff:g>.</string>
     <string name="ssh_agent_history_empty_text">Tutaj pojawią się informacje o udostępnionych kluczach i żądaniach podpisu z ssh/git.</string>
+    <string name="cli_agent_history_request_run">Run a command</string>
+    <string name="cli_agent_history_request_read_local_env_file">Read a local .env file</string>
+    <string name="cli_agent_history_clear_history_confirmation_title">Clear request log?</string>
+    <string name="cli_agent_history_clear_history_confirmation_text">This will remove all requests in this log.</string>
     <string name="agent_setup_title">Konfiguracja klienta <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="ssh_agent_setup_intro">Skonfiguruj klienta SSH tak, aby nawiązywał połączenie z agentem SSH Keyguard, umożliwiając mu przeprowadzanie uwierzytelniania lub podpisywania wybranymi na to kluczami, bez ujawniania ich prywatnej części.</string>
     <string name="ssh_agent_setup_intro_text">Używaj kluczy SSH przechowywanych w sejfie do uwierzytelniania w klientach Git i SSH.</string>
@@ -1632,24 +1662,18 @@
     <string name="credential_exchange_export_credential_note">Notatka</string>
     <string name="credential_exchange_export_credential_fields">Pola niestandardowe</string>
     <string name="credential_exchange_export_credential_ssh_key">Klucz SSH</string>
+    <string name="credential_exchange_export_credential_gpg_key">GPG key</string>
+    <string name="credential_exchange_export_credential_environment">Environment</string>
     <string name="credential_exchange_export_export_button">Przenieś</string>
     <string name="credential_exchange_export_error_unknown">Wystąpił błąd podczas przygotowywania elementów.</string>
     <string name="credential_exchange_import_review_all_items_section">Wszystkie elementy</string>
     <string name="credential_exchange_export_error_account_unavailable">To konto nie jest już dostępne.</string>
     <string name="skipped_items_text">Niektóre elementy zostały pominięte.</string>
     <string name="account_action_import_credentials_title">Importuj z innej aplikacji</string>
-    <string name="credential_exchange_import_header_title">Importuj poświadczenia</string>
+    <string name="import_header_title">Import credentials</string>
     <string name="credential_exchange_import_header_text">Przenieś poświadczenia bezpośrednio z innego menedżera haseł zainstalowanego na tym urządzeniu.</string>
-    <string name="credential_exchange_import_step_1_title">Rozpocznij przenoszenie</string>
-    <string name="credential_exchange_import_step_1_text">Dotknij „Rozpocznij import”. Android wyświetli aplikacje, które mogą udostępniać poświadczenia aplikacji Keyguard.</string>
-    <string name="credential_exchange_import_step_2_title">Wybierz aplikację źródłową</string>
-    <string name="credential_exchange_import_step_2_text">Wybierz menedżer haseł, z którego chcesz importować dane, a następnie postępuj zgodnie z jego instrukcjami, aby zatwierdzić przeniesienie.</string>
-    <string name="credential_exchange_import_step_3_title">Sprawdź i zaimportuj</string>
-    <string name="credential_exchange_import_step_3_text">Po powrocie do Keyguard sprawdź otrzymane dane. Nic nie zostanie zapisane na tym koncie, dopóki nie dotkniesz „Importuj”.</string>
-    <string name="credential_exchange_import_learn_more">Dowiedz się więcej o wymianie poświadczeń</string>
-    <string name="credential_exchange_import_start_button">Rozpocznij import</string>
-    <string name="credential_exchange_import_retry_button">Ponów import</string>
-    <string name="credential_exchange_import_import_button">Importuj</string>
+    <string name="import_retry_button">Retry import</string>
+    <string name="import_confirm_button">Import</string>
     <string name="credential_exchange_import_review_source_label">Otrzymano od</string>
     <string name="credential_exchange_import_review_items_section">Elementy do zaimportowania</string>
     <string name="credential_exchange_import_empty_label">Wybrana aplikacja nie przesłała żadnych elementów, które można zaimportować.</string>
@@ -1657,9 +1681,32 @@
     <string name="credential_exchange_import_error_no_providers">Żadna z zainstalowanych aplikacji nie może udostępniać poświadczeń w ten sposób.</string>
     <string name="credential_exchange_import_error_parse">Nie udało się odczytać otrzymanych danych.</string>
     <string name="credential_exchange_import_error_unknown">Wystąpił błąd podczas importowania elementów.</string>
-    <string name="credential_exchange_import_error_save">Nie udało się zaimportować poświadczeń.</string>
-    <string name="credential_exchange_import_success_title">Import zakończony</string>
-    <string name="credential_exchange_import_untitled">Bez tytułu</string>
+    <string name="import_error_save">Failed to import the credentials.</string>
+    <string name="import_success_title">Import complete</string>
+    <string name="untitled">Untitled</string>
+    <string name="import_header_text">Move items from another password manager. Nothing is saved until you review the items and confirm the import.</string>
+    <string name="import_source_device_section">Another app on this device</string>
+    <string name="import_source_credential_exchange_title">Credential Exchange</string>
+    <string name="import_source_file_section">Export file</string>
+    <string name="import_learn_more">How to export from another app</string>
+    <string name="import_empty_file_label">The file has no items that can be imported.</string>
+    <string name="import_error_parse">The file isn't a <xliff:g id="format" example="Chrome">%1$s</xliff:g> export.</string>
+    <string name="import_error_too_large">The file is too large to import.</string>
+    <string name="import_error_attachment_too_large">An attachment is too large to import.</string>
+    <string name="import_error_unreadable">The file couldn't be read.</string>
+    <string name="import_error_premium">Importing items requires Keyguard Premium.</string>
+    <string name="import_error_wrong_password">Wrong password</string>
+    <string name="import_error_unsupported_encryption">Keyguard does not support this file's encryption. Export it again without encryption or in a supported password-protected format.</string>
+    <string name="import_password_text">The <xliff:g id="format" example="Bitwarden">%1$s</xliff:g> export is protected with a password. Enter the password you set when exporting it.</string>
+    <string name="import_source_backup_section">Keyguard backup</string>
+    <string name="import_backup_password_text">The backup is encrypted. Enter the backup password.</string>
+    <string name="import_backup_snapshots_text">Choose the snapshot to import.</string>
+    <string name="import_backup_empty_label">The snapshot has no items that can be imported.</string>
+    <string name="import_backup_error_not_found">This location has no Keyguard backup.</string>
+    <string name="import_backup_error_access_denied">The location rejected the credentials or denied access.</string>
+    <string name="import_backup_error_unreachable">The location couldn't be reached.</string>
+    <string name="import_backup_error_unreadable">The backup couldn't be read. It may be damaged, or made by a newer version of Keyguard.</string>
+    <string name="import_backup_error_empty">The backup has no snapshots.</string>
     <string name="contactus_header_title">Skontaktuj się z nami</string>
     <string name="contactus_message_label">Twoja wiadomość</string>
     <string name="contactus_english_note">Proszę używać języka angielskiego w celu uniknięcia nieporozumień.</string>
@@ -1802,6 +1849,9 @@
     <string name="pref_item_automatic_backups_panel_last_change_label">Ostatnia zmiana w sejfie</string>
     <string name="pref_item_automatic_backups_panel_pending_changes_label">Oczekujące zmiany</string>
     <string name="pref_item_automatic_backups_run_now_title">Utwórz kopię zapasową teraz</string>
+    <string name="pref_item_automatic_backups_import_title">Import from backup</string>
+    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
+    <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">Nieobsługiwana platforma</string>
     <string name="pref_item_automatic_backups_unsupported_text">Automatyczne kopie zapasowe są dostępne na Androidzie, komputerach oraz w systemach macOS i iOS.</string>
     <string name="pref_item_automatic_backups_enable_button">Włącz kopie zapasowe</string>
@@ -1876,6 +1926,11 @@
     <string name="pref_item_close_to_tray_title">Zwiń do zasobnika systemowego</string>
     <string name="pref_item_close_to_menu_bar_title">Po zamknięciu pozostaw na pasku menu</string>
     <string name="pref_item_minimize_on_copy_title">Minimalizuj po skopiowaniu</string>
+    <string name="pref_item_ui_scale_title">Interface scale</string>
+    <string name="pref_item_ui_scale_decrease">Decrease interface scale</string>
+    <string name="pref_item_ui_scale_increase">Increase interface scale</string>
+    <string name="pref_item_ui_scale_preview_default">Default</string>
+    <string name="pref_item_ui_scale_preview_selected">Selected</string>
     <string name="pref_item_check_pwned_passwords_title">Sprawdzaj wycieki haseł</string>
     <string name="pref_item_check_pwned_services_title">Sprawdzaj naruszenia bezpieczeństwa danych</string>
     <string name="pref_item_hibp_api_token_title">Token API Have I Been Pwned</string>
@@ -1978,9 +2033,18 @@
     <string name="pref_item_agent_local_storage_text">Gdy agent <xliff:g id="protocol" example="SSH">%1$s</xliff:g> jest włączony, Keyguard przechowuje na dysku niezaszyfrowaną kopię kluczy publicznych, aby klienci mogli wyświetlać listę kluczy przy zablokowanym sejfie. Klucze prywatne nigdy nie są ujawniane; nazwy kluczy są przechowywane tylko po włączeniu odpowiedniej opcji.</string>
     <string name="pref_item_agent_display_key_names_title">Wyświetlaj nazwy kluczy przed odblokowaniem sejfu</string>
     <string name="pref_item_agent_display_key_names_note">Niezaszyfrowana kopia tytułu elementu będzie przechowywana lokalnie</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_title">Generate SSH config for bookmarked hosts</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_text">Pins each host from an ssh:// field of an SSH key item to that key, so ssh offers only that key</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_note">Host names and public keys are stored unencrypted on disk.</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_title">Include the config in ~/.ssh/config</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_text">SSH ignores the bookmarks until ~/.ssh/config includes the generated config. Run SSH client setup, or add this line to the top of the file:</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_retry">Then turn the setting on again.</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_setup_action">Run SSH client setup</string>
     <string name="pref_item_agent_approval_window_always_ask">Pytaj za każdym razem</string>
     <string name="pref_item_agent_approval_window_until_lock">Do zablokowania sejfu</string>
+    <string name="pref_item_agent_approval_window_never_ask">Never ask</string>
     <string name="pref_item_approval_window_title">Zapamiętuj zgody</string>
+    <string name="pref_item_agent_approval_timeout_title">Approval timeout</string>
     <string name="pref_item_ssh_agent_approval_remember_note">Zgoda na podpisywanie jest zapamiętywana na ten czas osobno dla każdego klucza i aplikacji, aby nie trzeba było jej udzielać za każdym razem.</string>
     <string name="pref_item_agent_filters_text">Wybierz, które klucze <xliff:g id="protocol" example="SSH">%1$s</xliff:g> są dostępne dla agenta %1$s</string>
     <string name="pref_item_agent_filters_summary_all">Dostępne wszystkie klucze</string>
@@ -2310,6 +2374,10 @@
     <string name="gpg_tools_operation_decrypt_text">Odszyfruj tekst lub pliki przy użyciu przechowywanych kluczy prywatnych</string>
     <string name="gpg_tools_operation_sign_text">Podpisz tekst lub pliki przy użyciu przechowywanego klucza prywatnego</string>
     <string name="gpg_tools_operation_verify_text">Weryfikuj podpisy wbudowane lub odłączone</string>
+    <string name="gpg_tools_drop_file_to_encrypt">Drop a file to encrypt it</string>
+    <string name="gpg_tools_drop_file_to_decrypt">Drop a file to decrypt it</string>
+    <string name="gpg_tools_drop_file_to_sign">Drop a file to sign it</string>
+    <string name="gpg_tools_drop_file_to_verify">Drop a file to verify it</string>
     <string name="gpg_tools_mode_cleartext">Tekst jawny</string>
     <string name="gpg_tools_mode_inline">Wbudowany</string>
     <string name="gpg_tools_mode_detached">Odłączony</string>
@@ -2696,4 +2764,33 @@
     <string name="text_diff_removed_line">Usunięty wiersz</string>
     <string name="text_diff_original_line">Oryginalny wiersz <xliff:g id="number" example="12">%1$d</xliff:g></string>
     <string name="text_diff_new_line">Nowy wiersz <xliff:g id="number" example="12">%1$d</xliff:g></string>
+    <string name="attachment_drag_preparing">Preparing file. Keep holding to drag.</string>
+    <string name="attachment_drag_hint">Drag attachment to another app</string>
+    <string name="attachment_drag_error">Could not prepare the attachment for dragging</string>
+    <string name="drag_out_error">Could not start dragging</string>
+    <string name="client_certificate">Client certificate</string>
+    <string name="client_certificate_not_configured">Not configured</string>
+    <string name="client_certificate_add">Add certificate</string>
+    <string name="client_certificate_replace">Replace certificate</string>
+    <string name="client_certificate_remove">Remove certificate</string>
+    <string name="client_certificate_remove_title">Remove client certificate?</string>
+    <string name="client_certificate_remove_note">This account may stop syncing if the server requires a client certificate.</string>
+    <string name="client_certificate_note">Keyguard presents this certificate when it connects to this server. Its private key is stored in your encrypted vault.</string>
+    <string name="client_certificate_saved">Client certificate saved</string>
+    <string name="client_certificate_removed">Client certificate removed</string>
+    <string name="client_certificate_conflict">The certificate changed elsewhere. Reopen this screen to edit the latest certificate.</string>
+    <string name="client_certificate_unavailable">This account is no longer available for certificate changes.</string>
+    <string name="client_certificate_expired">This certificate has expired. The server may reject it.</string>
+    <string name="client_certificate_too_large">The certificate file must be 4 MB or smaller.</string>
+    <string name="client_certificate_expires">Expires %1$s</string>
+    <string name="client_certificate_issuer">Issued by %1$s</string>
+    <string name="client_certificate_empty_title">No client certificate</string>
+    <string name="client_certificate_empty_text">Add one if your server requires mutual TLS.</string>
+    <string name="client_certificate_file_types">PKCS#12 file (.p12 or .pfx)</string>
+    <string name="client_certificate_unsaved">Not saved</string>
+    <string name="client_certificate_details">Details</string>
+    <string name="client_certificate_subject">Subject</string>
+    <string name="client_certificate_serial_number">Serial number</string>
+    <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
+    <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
 </resources>

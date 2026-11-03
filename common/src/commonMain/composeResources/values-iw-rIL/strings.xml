@@ -442,6 +442,7 @@
     <string name="ciphers_action_change_passwords_title">שינוי סיסמאות</string>
     <string name="ciphers_action_view_password_history_title">הצגת היסטוריית הסיסמאות</string>
     <string name="ciphers_action_view_ssh_agent_history_title">הצגת היסטוריית סוכן SSH</string>
+    <string name="ciphers_action_view_request_log_title">View request log</string>
     <string name="ciphers_action_upload_gpg_public_key_title">העלאת מפתח GPG ציבורי</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">להעלות את המפתח הציבורי לשרת המפתחות?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard ישלח לשרת המפתחות שהוגדר את מפתח ה־GPG הציבורי של הפריט בקידוד ASCII Armor. המפתח הציבורי עשוי לכלול טביעות אצבע, מזהי משתמש כגון שמות וכתובות דוא״ל, מפתחות משנה, תאריכים ומצב ביטול. שרת המפתחות עשוי לשמור את הנתונים הציבוריים האלה ולהפיץ אותם מחדש.</string>
@@ -504,10 +505,27 @@
     <string name="attachment_preview_error_text_decode">לא ניתן להציג תצוגה מקדימה של קובץ טקסט זה.</string>
     <string name="attachment_preview_error_image_decode">לא ניתן להציג תצוגה מקדימה של תמונה זו.</string>
     <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
+    <string name="attachment_preview_error_gzip_invalid">This Gzip file is damaged.</string>
+    <string name="attachment_preview_error_gzip_size_limit">The decompressed file is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
     <string name="attachment_preview_action_copy_all">העתקת הכול</string>
     <string name="attachment_preview_action_wrap_lines">גלישת שורות</string>
     <string name="attachment_preview_action_source">מקור</string>
     <string name="attachment_preview_action_rendered_preview">תצוגה מקדימה</string>
+    <string name="attachment_preview_action_tree">Tree</string>
+    <string name="attachment_preview_json_tree_view">Tree view</string>
+    <string name="attachment_preview_json_object">Object</string>
+    <string name="attachment_preview_json_array">Array</string>
+    <string name="attachment_preview_json_string">String</string>
+    <string name="attachment_preview_json_number">Number</string>
+    <string name="attachment_preview_json_boolean">Boolean</string>
+    <string name="attachment_preview_json_null">Null</string>
+    <string name="attachment_preview_json_expanded">Expanded</string>
+    <string name="attachment_preview_json_collapsed">Collapsed</string>
+    <string name="attachment_preview_json_error_invalid">This file is not valid JSON. Showing source.</string>
+    <string name="attachment_preview_json_error_too_large">This file is too large for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_deep">This JSON has too many nested levels for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_many_nodes">This JSON has too many values for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_duplicate_keys">This JSON has duplicate property names. Showing source to preserve every value.</string>
     <string name="vault_action_always_show_keyboard_title">הצגת המקלדת תמיד</string>
     <string name="vault_action_remember_sorting_title">שמירת שיטת המיון</string>
     <string name="vault_action_sync_vault_title">סנכרון הכספת</string>
@@ -677,6 +695,12 @@
     <string name="ssh_certificate_problem_key_mismatch">תעודה זו מיועדת למפתח אחר.</string>
     <string name="ssh_certificate_problem_not_yet_valid">תעודה זו תקפה החל מ־<xliff:g id="date" example="Jan 1, 2027">%1$s</xliff:g>.</string>
     <string name="ssh_certificate_problem_expired">תוקפה של תעודה זו פג ב־<xliff:g id="date" example="Jan 1, 2026">%1$s</xliff:g>.</string>
+    <string name="ssh_bookmark">SSH bookmark</string>
+    <string name="ssh_bookmarks">SSH bookmarks</string>
+    <string name="ssh_bookmark_invalid">Not a valid SSH bookmark</string>
+    <string name="ssh_bookmark_placeholder">ssh://user@host:port</string>
+    <string name="ssh_bookmark_copy_command">Copy SSH command</string>
+    <string name="ssh_bookmark_connect">Connect</string>
     <string name="selection_n_selected">נבחרו <xliff:g id="size" example="15">%1$d</xliff:g></string>
     <string name="selection_clear_action">ביטול הבחירה</string>
     <string name="selection_select_all_action">בחירת הכול</string>
@@ -1013,7 +1037,6 @@
     <string name="privilegedapps_user_apps">יישומי המשתמש</string>
     <string name="privilegedapps_community_apps">יישומי הקהילה</string>
     <string name="setup_header_text">יש ליצור כספת מוצפנת לאחסון הנתונים המקומיים.</string>
-    <string name="setup_free_text">המשך התהליך מהווה אישור שרכשת את Keyguard או שהיה לך רישיון פעיל.</string>
     <string name="setup_field_app_password_label">סיסמת היישום</string>
     <string name="setup_checkbox_biometric_auth">אימות ביומטרי</string>
     <string name="setup_biometric_auth_confirm_title">יצירת כספת</string>
@@ -1244,6 +1267,9 @@
     <string name="agent_history_response_key_not_found">המפתח לא נמצא</string>
     <string name="agent_history_response_failure">נכשל</string>
     <string name="agent_history_response_vault_locked">הכספת נעולה</string>
+    <string name="agent_history_response_timed_out">Timed out</string>
+    <!-- The client left before Keyguard answered its request -->
+    <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">לקוח לא מזוהה</string>
     <string name="agent_history_unknown_key">מפתח לא מוכר</string>
     <string name="ssh_agent_history_all_accessible_keys">כל המפתחות הנגישים</string>
@@ -1251,6 +1277,10 @@
     <string name="agent_history_clear_history_confirmation_title">למחוק את היסטוריית סוכן <xliff:g id="protocol" example="SSH">%1$s</xliff:g>?</string>
     <string name="agent_history_clear_history_confirmation_text">פעולה זו תמחק את כל היסטוריית השימוש בסוכן <xliff:g id="protocol" example="SSH">%1$s</xliff:g>.</string>
     <string name="ssh_agent_history_empty_text">מפתחות שסופקו ובקשות לחתימה שהתקבלו מ-ssh/git יופיעו כאן.</string>
+    <string name="cli_agent_history_request_run">Run a command</string>
+    <string name="cli_agent_history_request_read_local_env_file">Read a local .env file</string>
+    <string name="cli_agent_history_clear_history_confirmation_title">Clear request log?</string>
+    <string name="cli_agent_history_clear_history_confirmation_text">This will remove all requests in this log.</string>
     <string name="agent_setup_title">הגדרת לקוח <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="ssh_agent_setup_intro">יש להגדיר לקוח SSH להתחברות לסוכן ה־SSH של Keyguard, כדי לאפשר לו לבצע אימות או חתימה באמצעות המפתחות שאושרו, בלי לחשוף את נתוני המפתחות הפרטיים.</string>
     <string name="ssh_agent_setup_intro_text">אימות לקוחות Git ו-SSH באמצעות מפתחות ה-SSH השמורים בכספת.</string>
@@ -1632,24 +1662,18 @@
     <string name="credential_exchange_export_credential_note">הערה</string>
     <string name="credential_exchange_export_credential_fields">שדות מותאמים אישית</string>
     <string name="credential_exchange_export_credential_ssh_key">מפתח SSH</string>
+    <string name="credential_exchange_export_credential_gpg_key">GPG key</string>
+    <string name="credential_exchange_export_credential_environment">Environment</string>
     <string name="credential_exchange_export_export_button">העברה</string>
     <string name="credential_exchange_export_error_unknown">אירעה שגיאה בהכנת הפריטים.</string>
     <string name="credential_exchange_import_review_all_items_section">כל הפריטים</string>
     <string name="credential_exchange_export_error_account_unavailable">החשבון הזה אינו זמין עוד.</string>
     <string name="skipped_items_text">בוצע דילוג על חלק מהפריטים.</string>
     <string name="account_action_import_credentials_title">ייבוא מיישום אחר</string>
-    <string name="credential_exchange_import_header_title">ייבוא פרטי כניסה</string>
+    <string name="import_header_title">Import credentials</string>
     <string name="credential_exchange_import_header_text">העברת פרטי כניסה ישירות ממנהל סיסמאות אחר שמותקן במכשיר הזה.</string>
-    <string name="credential_exchange_import_step_1_title">התחלת ההעברה</string>
-    <string name="credential_exchange_import_step_1_text">יש להקיש על „התחלת ייבוא”. Android יציג את היישומים שיכולים לשתף פרטי כניסה עם Keyguard.</string>
-    <string name="credential_exchange_import_step_2_title">בחירת יישום מקור</string>
-    <string name="credential_exchange_import_step_2_text">יש לבחור את מנהל הסיסמאות שממנו רוצים לייבא, ולפעול לפי ההנחיות שלו כדי לאשר את ההעברה.</string>
-    <string name="credential_exchange_import_step_3_title">סקירה וייבוא</string>
-    <string name="credential_exchange_import_step_3_text">לאחר החזרה ל-Keyguard, יש לבדוק מה התקבל. שום דבר לא יישמר בחשבון הזה עד להקשה על „ייבוא”.</string>
-    <string name="credential_exchange_import_learn_more">מידע על חילופי פרטי כניסה</string>
-    <string name="credential_exchange_import_start_button">התחלת ייבוא</string>
-    <string name="credential_exchange_import_retry_button">ניסיון ייבוא חוזר</string>
-    <string name="credential_exchange_import_import_button">ייבוא</string>
+    <string name="import_retry_button">Retry import</string>
+    <string name="import_confirm_button">Import</string>
     <string name="credential_exchange_import_review_source_label">התקבל מאת</string>
     <string name="credential_exchange_import_review_items_section">פריטים לייבוא</string>
     <string name="credential_exchange_import_empty_label">היישום שנבחר לא שלח פריטים שניתן לייבא.</string>
@@ -1657,9 +1681,32 @@
     <string name="credential_exchange_import_error_no_providers">אף אחד מהיישומים המותקנים אינו יכול לשתף פרטי כניסה בדרך זו.</string>
     <string name="credential_exchange_import_error_parse">לא ניתן לקרוא את הנתונים שהתקבלו.</string>
     <string name="credential_exchange_import_error_unknown">אירעה שגיאה במהלך ייבוא הפריטים.</string>
-    <string name="credential_exchange_import_error_save">ייבוא פרטי הכניסה נכשל.</string>
-    <string name="credential_exchange_import_success_title">הייבוא הושלם</string>
-    <string name="credential_exchange_import_untitled">ללא כותרת</string>
+    <string name="import_error_save">Failed to import the credentials.</string>
+    <string name="import_success_title">Import complete</string>
+    <string name="untitled">Untitled</string>
+    <string name="import_header_text">Move items from another password manager. Nothing is saved until you review the items and confirm the import.</string>
+    <string name="import_source_device_section">Another app on this device</string>
+    <string name="import_source_credential_exchange_title">Credential Exchange</string>
+    <string name="import_source_file_section">Export file</string>
+    <string name="import_learn_more">How to export from another app</string>
+    <string name="import_empty_file_label">The file has no items that can be imported.</string>
+    <string name="import_error_parse">The file isn't a <xliff:g id="format" example="Chrome">%1$s</xliff:g> export.</string>
+    <string name="import_error_too_large">The file is too large to import.</string>
+    <string name="import_error_attachment_too_large">An attachment is too large to import.</string>
+    <string name="import_error_unreadable">The file couldn't be read.</string>
+    <string name="import_error_premium">Importing items requires Keyguard Premium.</string>
+    <string name="import_error_wrong_password">Wrong password</string>
+    <string name="import_error_unsupported_encryption">Keyguard does not support this file's encryption. Export it again without encryption or in a supported password-protected format.</string>
+    <string name="import_password_text">The <xliff:g id="format" example="Bitwarden">%1$s</xliff:g> export is protected with a password. Enter the password you set when exporting it.</string>
+    <string name="import_source_backup_section">Keyguard backup</string>
+    <string name="import_backup_password_text">The backup is encrypted. Enter the backup password.</string>
+    <string name="import_backup_snapshots_text">Choose the snapshot to import.</string>
+    <string name="import_backup_empty_label">The snapshot has no items that can be imported.</string>
+    <string name="import_backup_error_not_found">This location has no Keyguard backup.</string>
+    <string name="import_backup_error_access_denied">The location rejected the credentials or denied access.</string>
+    <string name="import_backup_error_unreachable">The location couldn't be reached.</string>
+    <string name="import_backup_error_unreadable">The backup couldn't be read. It may be damaged, or made by a newer version of Keyguard.</string>
+    <string name="import_backup_error_empty">The backup has no snapshots.</string>
     <string name="contactus_header_title">יצירת קשר</string>
     <string name="contactus_message_label">ההודעה שלך</string>
     <string name="contactus_english_note">יש לכתוב באנגלית כדי למנוע אי־הבנות בפירוש המשוב.</string>
@@ -1802,6 +1849,9 @@
     <string name="pref_item_automatic_backups_panel_last_change_label">השינוי האחרון בכספת</string>
     <string name="pref_item_automatic_backups_panel_pending_changes_label">שינויים ממתינים</string>
     <string name="pref_item_automatic_backups_run_now_title">הפעלת גיבוי כעת</string>
+    <string name="pref_item_automatic_backups_import_title">Import from backup</string>
+    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
+    <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">פלטפורמה לא נתמכת</string>
     <string name="pref_item_automatic_backups_unsupported_text">גיבויים אוטומטיים זמינים ב־Android, במחשבים שולחניים, ב־macOS וב־iOS.</string>
     <string name="pref_item_automatic_backups_enable_button">הפעלת גיבויים</string>
@@ -1876,6 +1926,11 @@
     <string name="pref_item_close_to_tray_title">סגירה למגש המערכת</string>
     <string name="pref_item_close_to_menu_bar_title">סגירה לשורת התפריטים</string>
     <string name="pref_item_minimize_on_copy_title">מזעור בעת העתקה</string>
+    <string name="pref_item_ui_scale_title">Interface scale</string>
+    <string name="pref_item_ui_scale_decrease">Decrease interface scale</string>
+    <string name="pref_item_ui_scale_increase">Increase interface scale</string>
+    <string name="pref_item_ui_scale_preview_default">Default</string>
+    <string name="pref_item_ui_scale_preview_selected">Selected</string>
     <string name="pref_item_check_pwned_passwords_title">בדיקת סיסמאות שנחשפו</string>
     <string name="pref_item_check_pwned_services_title">בדיקת דליפות נתונים</string>
     <string name="pref_item_hibp_api_token_title">אסימון API של Have I Been Pwned</string>
@@ -1978,9 +2033,18 @@
     <string name="pref_item_agent_local_storage_text">כאשר סוכן <xliff:g id="protocol" example="SSH">%1$s</xliff:g> מופעל, Keyguard שומר עותק לא מוצפן של המפתחות הציבוריים בדיסק כדי שלקוחות יוכלו להציג את המפתחות כשהכספת נעולה. המפתחות הפרטיים אינם נחשפים לעולם; שמות המפתחות נשמרים רק אם מפעילים את האפשרות המתאימה.</string>
     <string name="pref_item_agent_display_key_names_title">הצגת שמות המפתחות לפני פתיחת הכספת</string>
     <string name="pref_item_agent_display_key_names_note">עותק לא מוצפן של שם הפריט יישמר באופן מקומי</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_title">Generate SSH config for bookmarked hosts</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_text">Pins each host from an ssh:// field of an SSH key item to that key, so ssh offers only that key</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_note">Host names and public keys are stored unencrypted on disk.</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_title">Include the config in ~/.ssh/config</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_text">SSH ignores the bookmarks until ~/.ssh/config includes the generated config. Run SSH client setup, or add this line to the top of the file:</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_retry">Then turn the setting on again.</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_setup_action">Run SSH client setup</string>
     <string name="pref_item_agent_approval_window_always_ask">לשאול בכל פעם</string>
     <string name="pref_item_agent_approval_window_until_lock">עד לנעילת הכספת</string>
+    <string name="pref_item_agent_approval_window_never_ask">Never ask</string>
     <string name="pref_item_approval_window_title">זכירת אישורים</string>
+    <string name="pref_item_agent_approval_timeout_title">Approval timeout</string>
     <string name="pref_item_ssh_agent_approval_remember_note">אישור חתימה נשמר למשך זמן זה עבור כל שילוב של מפתח ויישום, כך שאין צורך באישור בכל פעם.</string>
     <string name="pref_item_agent_filters_text">יש לבחור אילו מפתחות <xliff:g id="protocol" example="SSH">%1$s</xliff:g> יהיו זמינים לסוכן %1$s</string>
     <string name="pref_item_agent_filters_summary_all">כל המפתחות זמינים</string>
@@ -2310,6 +2374,10 @@
     <string name="gpg_tools_operation_decrypt_text">פענוח טקסט או קבצים באמצעות מפתחות פרטיים שמורים</string>
     <string name="gpg_tools_operation_sign_text">חתימה על טקסט או קבצים באמצעות מפתח פרטי שמור</string>
     <string name="gpg_tools_operation_verify_text">אימות חתימות משולבות או נפרדות</string>
+    <string name="gpg_tools_drop_file_to_encrypt">Drop a file to encrypt it</string>
+    <string name="gpg_tools_drop_file_to_decrypt">Drop a file to decrypt it</string>
+    <string name="gpg_tools_drop_file_to_sign">Drop a file to sign it</string>
+    <string name="gpg_tools_drop_file_to_verify">Drop a file to verify it</string>
     <string name="gpg_tools_mode_cleartext">טקסט גלוי</string>
     <string name="gpg_tools_mode_inline">משולבת</string>
     <string name="gpg_tools_mode_detached">נפרדת</string>
@@ -2696,4 +2764,33 @@
     <string name="text_diff_removed_line">שורה שהוסרה</string>
     <string name="text_diff_original_line">שורה מקורית <xliff:g id="number" example="12">%1$d</xliff:g></string>
     <string name="text_diff_new_line">שורה חדשה <xliff:g id="number" example="12">%1$d</xliff:g></string>
+    <string name="attachment_drag_preparing">Preparing file. Keep holding to drag.</string>
+    <string name="attachment_drag_hint">Drag attachment to another app</string>
+    <string name="attachment_drag_error">Could not prepare the attachment for dragging</string>
+    <string name="drag_out_error">Could not start dragging</string>
+    <string name="client_certificate">Client certificate</string>
+    <string name="client_certificate_not_configured">Not configured</string>
+    <string name="client_certificate_add">Add certificate</string>
+    <string name="client_certificate_replace">Replace certificate</string>
+    <string name="client_certificate_remove">Remove certificate</string>
+    <string name="client_certificate_remove_title">Remove client certificate?</string>
+    <string name="client_certificate_remove_note">This account may stop syncing if the server requires a client certificate.</string>
+    <string name="client_certificate_note">Keyguard presents this certificate when it connects to this server. Its private key is stored in your encrypted vault.</string>
+    <string name="client_certificate_saved">Client certificate saved</string>
+    <string name="client_certificate_removed">Client certificate removed</string>
+    <string name="client_certificate_conflict">The certificate changed elsewhere. Reopen this screen to edit the latest certificate.</string>
+    <string name="client_certificate_unavailable">This account is no longer available for certificate changes.</string>
+    <string name="client_certificate_expired">This certificate has expired. The server may reject it.</string>
+    <string name="client_certificate_too_large">The certificate file must be 4 MB or smaller.</string>
+    <string name="client_certificate_expires">Expires %1$s</string>
+    <string name="client_certificate_issuer">Issued by %1$s</string>
+    <string name="client_certificate_empty_title">No client certificate</string>
+    <string name="client_certificate_empty_text">Add one if your server requires mutual TLS.</string>
+    <string name="client_certificate_file_types">PKCS#12 file (.p12 or .pfx)</string>
+    <string name="client_certificate_unsaved">Not saved</string>
+    <string name="client_certificate_details">Details</string>
+    <string name="client_certificate_subject">Subject</string>
+    <string name="client_certificate_serial_number">Serial number</string>
+    <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
+    <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
 </resources>

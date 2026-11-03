@@ -442,6 +442,7 @@
     <string name="ciphers_action_change_passwords_title">비밀번호 변경</string>
     <string name="ciphers_action_view_password_history_title">비밀번호 생성 기록</string>
     <string name="ciphers_action_view_ssh_agent_history_title">SSH 에이전트 기록 보기</string>
+    <string name="ciphers_action_view_request_log_title">View request log</string>
     <string name="ciphers_action_upload_gpg_public_key_title">GPG 공개 키 업로드</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">키 서버에 공개 키를 업로드할까요?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard가 이 항목의 armored GPG 공개 키를 설정한 키 서버로 전송합니다. 공개 키에는 핑거프린트, 이름과 이메일 주소 같은 사용자 ID, 하위 키, 날짜 및 폐기 상태가 포함될 수 있습니다. 키 서버에서 이 공개 데이터를 저장하고 재배포할 수 있습니다.</string>
@@ -504,10 +505,27 @@
     <string name="attachment_preview_error_text_decode">이 텍스트 파일은 미리 볼 수 없습니다.</string>
     <string name="attachment_preview_error_image_decode">이 이미지는 미리 볼 수 없습니다.</string>
     <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
+    <string name="attachment_preview_error_gzip_invalid">This Gzip file is damaged.</string>
+    <string name="attachment_preview_error_gzip_size_limit">The decompressed file is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
     <string name="attachment_preview_action_copy_all">모두 복사</string>
     <string name="attachment_preview_action_wrap_lines">줄바꿈</string>
     <string name="attachment_preview_action_source">소스</string>
     <string name="attachment_preview_action_rendered_preview">미리 보기</string>
+    <string name="attachment_preview_action_tree">Tree</string>
+    <string name="attachment_preview_json_tree_view">Tree view</string>
+    <string name="attachment_preview_json_object">Object</string>
+    <string name="attachment_preview_json_array">Array</string>
+    <string name="attachment_preview_json_string">String</string>
+    <string name="attachment_preview_json_number">Number</string>
+    <string name="attachment_preview_json_boolean">Boolean</string>
+    <string name="attachment_preview_json_null">Null</string>
+    <string name="attachment_preview_json_expanded">Expanded</string>
+    <string name="attachment_preview_json_collapsed">Collapsed</string>
+    <string name="attachment_preview_json_error_invalid">This file is not valid JSON. Showing source.</string>
+    <string name="attachment_preview_json_error_too_large">This file is too large for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_deep">This JSON has too many nested levels for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_many_nodes">This JSON has too many values for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_duplicate_keys">This JSON has duplicate property names. Showing source to preserve every value.</string>
     <string name="vault_action_always_show_keyboard_title">키보드 항상 보이기</string>
     <string name="vault_action_remember_sorting_title">정렬 방식 기억</string>
     <string name="vault_action_sync_vault_title">보관함 동기화</string>
@@ -677,6 +695,12 @@
     <string name="ssh_certificate_problem_key_mismatch">다른 키의 인증서입니다.</string>
     <string name="ssh_certificate_problem_not_yet_valid">이 인증서는 <xliff:g id="date" example="Jan 1, 2027">%1$s</xliff:g>부터 유효합니다.</string>
     <string name="ssh_certificate_problem_expired">이 인증서는 <xliff:g id="date" example="Jan 1, 2026">%1$s</xliff:g>에 만료되었습니다.</string>
+    <string name="ssh_bookmark">SSH bookmark</string>
+    <string name="ssh_bookmarks">SSH bookmarks</string>
+    <string name="ssh_bookmark_invalid">Not a valid SSH bookmark</string>
+    <string name="ssh_bookmark_placeholder">ssh://user@host:port</string>
+    <string name="ssh_bookmark_copy_command">Copy SSH command</string>
+    <string name="ssh_bookmark_connect">Connect</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g>개 항목 선택됨</string>
     <string name="selection_clear_action">선택 해제</string>
     <string name="selection_select_all_action">모두 선택</string>
@@ -1013,7 +1037,6 @@
     <string name="privilegedapps_user_apps">사용자 앱</string>
     <string name="privilegedapps_community_apps">커뮤니티 앱</string>
     <string name="setup_header_text">로컬 데이터를 저장할 암호화된 보관함을 만듭니다.</string>
-    <string name="setup_free_text">계속 진행하면 사용 가능한 라이선스가 있거나 Keyguard를 구매했음을 의미합니다.</string>
     <string name="setup_field_app_password_label">앱 비밀번호</string>
     <string name="setup_checkbox_biometric_auth">생체 정보 인증</string>
     <string name="setup_biometric_auth_confirm_title">보관함 만들기</string>
@@ -1244,6 +1267,9 @@
     <string name="agent_history_response_key_not_found">키를 찾을 수 없음</string>
     <string name="agent_history_response_failure">실패</string>
     <string name="agent_history_response_vault_locked">보관함 잠김</string>
+    <string name="agent_history_response_timed_out">Timed out</string>
+    <!-- The client left before Keyguard answered its request -->
+    <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">알 수 없는 호출자</string>
     <string name="agent_history_unknown_key">알 수 없는 키</string>
     <string name="ssh_agent_history_all_accessible_keys">접근 가능한 모든 키</string>
@@ -1251,6 +1277,10 @@
     <string name="agent_history_clear_history_confirmation_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> 에이전트 기록을 삭제할까요?</string>
     <string name="agent_history_clear_history_confirmation_text">모든 <xliff:g id="protocol" example="SSH">%1$s</xliff:g> 에이전트 사용 기록을 삭제합니다.</string>
     <string name="ssh_agent_history_empty_text">SSH/Git에서 요청한 서명과 에이전트가 제공한 키가 여기에 나타납니다.</string>
+    <string name="cli_agent_history_request_run">Run a command</string>
+    <string name="cli_agent_history_request_read_local_env_file">Read a local .env file</string>
+    <string name="cli_agent_history_clear_history_confirmation_title">Clear request log?</string>
+    <string name="cli_agent_history_clear_history_confirmation_text">This will remove all requests in this log.</string>
     <string name="agent_setup_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> 클라이언트 설정</string>
     <string name="ssh_agent_setup_intro">SSH 클라이언트에서 Keyguard의 SSH 에이전트에 연결할 수 있게 설정합니다. 개인 키를 노출시키지 않고 로그인 또는 인증이 가능합니다.</string>
     <string name="ssh_agent_setup_intro_text">보관함에 저장된 SSH 키로 Git 및 SSH 클라이언트를 인증할 수 있습니다.</string>
@@ -1632,24 +1662,18 @@
     <string name="credential_exchange_export_credential_note">메모</string>
     <string name="credential_exchange_export_credential_fields">사용자 지정 필드</string>
     <string name="credential_exchange_export_credential_ssh_key">SSH 키</string>
+    <string name="credential_exchange_export_credential_gpg_key">GPG key</string>
+    <string name="credential_exchange_export_credential_environment">Environment</string>
     <string name="credential_exchange_export_export_button">전송</string>
     <string name="credential_exchange_export_error_unknown">항목을 준비하는 중 문제가 발생했습니다.</string>
     <string name="credential_exchange_import_review_all_items_section">모든 항목</string>
     <string name="credential_exchange_export_error_account_unavailable">이 계정을 더 이상 사용할 수 없습니다.</string>
     <string name="skipped_items_text">일부 항목을 건너뛰었습니다.</string>
     <string name="account_action_import_credentials_title">다른 앱에서 가져오기</string>
-    <string name="credential_exchange_import_header_title">자격 증명 가져오기</string>
+    <string name="import_header_title">Import credentials</string>
     <string name="credential_exchange_import_header_text">이 기기에 설치된 다른 비밀번호 관리자에서 자격 증명을 직접 가져옵니다.</string>
-    <string name="credential_exchange_import_step_1_title">전송 시작</string>
-    <string name="credential_exchange_import_step_1_text">가져오기 시작을 누르세요. 자격 증명을 Keyguard와 공유할 수 있는 앱이 표시됩니다.</string>
-    <string name="credential_exchange_import_step_2_title">원본 앱 선택</string>
-    <string name="credential_exchange_import_step_2_text">가져올 비밀번호 관리자를 선택한 다음, 해당 앱의 안내에 따라 전송을 승인하세요.</string>
-    <string name="credential_exchange_import_step_3_title">검토 및 가져오기</string>
-    <string name="credential_exchange_import_step_3_text">Keyguard로 돌아와 받은 내용을 검토하세요. 가져오기를 누르기 전에는 이 계정에 아무것도 저장되지 않습니다.</string>
-    <string name="credential_exchange_import_learn_more">자격 증명 교환 더 자세히 알아보기</string>
-    <string name="credential_exchange_import_start_button">가져오기 시작</string>
-    <string name="credential_exchange_import_retry_button">가져오기 다시 시도</string>
-    <string name="credential_exchange_import_import_button">가져오기</string>
+    <string name="import_retry_button">Retry import</string>
+    <string name="import_confirm_button">Import</string>
     <string name="credential_exchange_import_review_source_label">원본 앱</string>
     <string name="credential_exchange_import_review_items_section">가져올 항목</string>
     <string name="credential_exchange_import_empty_label">선택한 앱이 가져올 수 있는 항목을 보내지 않았습니다.</string>
@@ -1657,9 +1681,32 @@
     <string name="credential_exchange_import_error_no_providers">설치된 앱 중 이 방식으로 자격 증명을 공유할 수 있는 앱이 없습니다.</string>
     <string name="credential_exchange_import_error_parse">받은 데이터를 읽지 못했습니다.</string>
     <string name="credential_exchange_import_error_unknown">항목을 가져오는 중 문제가 발생했습니다.</string>
-    <string name="credential_exchange_import_error_save">자격 증명을 가져오지 못했습니다.</string>
-    <string name="credential_exchange_import_success_title">가져오기 완료</string>
-    <string name="credential_exchange_import_untitled">제목 없음</string>
+    <string name="import_error_save">Failed to import the credentials.</string>
+    <string name="import_success_title">Import complete</string>
+    <string name="untitled">Untitled</string>
+    <string name="import_header_text">Move items from another password manager. Nothing is saved until you review the items and confirm the import.</string>
+    <string name="import_source_device_section">Another app on this device</string>
+    <string name="import_source_credential_exchange_title">Credential Exchange</string>
+    <string name="import_source_file_section">Export file</string>
+    <string name="import_learn_more">How to export from another app</string>
+    <string name="import_empty_file_label">The file has no items that can be imported.</string>
+    <string name="import_error_parse">The file isn't a <xliff:g id="format" example="Chrome">%1$s</xliff:g> export.</string>
+    <string name="import_error_too_large">The file is too large to import.</string>
+    <string name="import_error_attachment_too_large">An attachment is too large to import.</string>
+    <string name="import_error_unreadable">The file couldn't be read.</string>
+    <string name="import_error_premium">Importing items requires Keyguard Premium.</string>
+    <string name="import_error_wrong_password">Wrong password</string>
+    <string name="import_error_unsupported_encryption">Keyguard does not support this file's encryption. Export it again without encryption or in a supported password-protected format.</string>
+    <string name="import_password_text">The <xliff:g id="format" example="Bitwarden">%1$s</xliff:g> export is protected with a password. Enter the password you set when exporting it.</string>
+    <string name="import_source_backup_section">Keyguard backup</string>
+    <string name="import_backup_password_text">The backup is encrypted. Enter the backup password.</string>
+    <string name="import_backup_snapshots_text">Choose the snapshot to import.</string>
+    <string name="import_backup_empty_label">The snapshot has no items that can be imported.</string>
+    <string name="import_backup_error_not_found">This location has no Keyguard backup.</string>
+    <string name="import_backup_error_access_denied">The location rejected the credentials or denied access.</string>
+    <string name="import_backup_error_unreachable">The location couldn't be reached.</string>
+    <string name="import_backup_error_unreadable">The backup couldn't be read. It may be damaged, or made by a newer version of Keyguard.</string>
+    <string name="import_backup_error_empty">The backup has no snapshots.</string>
     <string name="contactus_header_title">고객 지원</string>
     <string name="contactus_message_label">메시지 입력</string>
     <string name="contactus_english_note">메시지가 정확히 전달될 수 있도록 영어를 사용해 주세요.</string>
@@ -1802,6 +1849,9 @@
     <string name="pref_item_automatic_backups_panel_last_change_label">최근 보관함 변경</string>
     <string name="pref_item_automatic_backups_panel_pending_changes_label">대기 중인 변경 사항</string>
     <string name="pref_item_automatic_backups_run_now_title">지금 백업</string>
+    <string name="pref_item_automatic_backups_import_title">Import from backup</string>
+    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
+    <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">지원하지 않는 플랫폼</string>
     <string name="pref_item_automatic_backups_unsupported_text">Android, 데스크톱, macOS, iOS에서 자동 백업을 사용할 수 있습니다.</string>
     <string name="pref_item_automatic_backups_enable_button">백업 사용 설정</string>
@@ -1876,6 +1926,11 @@
     <string name="pref_item_close_to_tray_title">시스템 트레이로 닫기</string>
     <string name="pref_item_close_to_menu_bar_title">창을 닫을 때 메뉴 막대로 최소화</string>
     <string name="pref_item_minimize_on_copy_title">복사 시 최소화</string>
+    <string name="pref_item_ui_scale_title">Interface scale</string>
+    <string name="pref_item_ui_scale_decrease">Decrease interface scale</string>
+    <string name="pref_item_ui_scale_increase">Increase interface scale</string>
+    <string name="pref_item_ui_scale_preview_default">Default</string>
+    <string name="pref_item_ui_scale_preview_selected">Selected</string>
     <string name="pref_item_check_pwned_passwords_title">유출된 비밀번호 확인</string>
     <string name="pref_item_check_pwned_services_title">유출된 데이터 확인</string>
     <string name="pref_item_hibp_api_token_title">Have I Been Pwned API 토큰</string>
@@ -1978,9 +2033,18 @@
     <string name="pref_item_agent_local_storage_text"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> 에이전트가 켜져 있으면 Keyguard는 보관함이 잠겨 있을 때도 클라이언트가 키 목록을 조회할 수 있도록 공개 키의 암호화되지 않은 사본을 디스크에 저장합니다. 개인 키는 절대 노출되지 않습니다. 해당 옵션을 켠 경우에만 키 이름을 저장합니다.</string>
     <string name="pref_item_agent_display_key_names_title">보관함 잠금 해제 전에 키 이름 표시</string>
     <string name="pref_item_agent_display_key_names_note">항목 제목의 암호화되지 않은 사본이 기기에 저장됩니다</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_title">Generate SSH config for bookmarked hosts</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_text">Pins each host from an ssh:// field of an SSH key item to that key, so ssh offers only that key</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_note">Host names and public keys are stored unencrypted on disk.</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_title">Include the config in ~/.ssh/config</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_text">SSH ignores the bookmarks until ~/.ssh/config includes the generated config. Run SSH client setup, or add this line to the top of the file:</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_retry">Then turn the setting on again.</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_setup_action">Run SSH client setup</string>
     <string name="pref_item_agent_approval_window_always_ask">매번 확인</string>
     <string name="pref_item_agent_approval_window_until_lock">보관함이 잠길 때까지</string>
+    <string name="pref_item_agent_approval_window_never_ask">Never ask</string>
     <string name="pref_item_approval_window_title">승인 기억</string>
+    <string name="pref_item_agent_approval_timeout_title">Approval timeout</string>
     <string name="pref_item_ssh_agent_approval_remember_note">매번 묻는 대신 키와 앱별로 지정한 시간 동안 승인된 서명을 기억합니다.</string>
     <string name="pref_item_agent_filters_text"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> 에이전트에서 사용할 %1$s 키를 선택하세요</string>
     <string name="pref_item_agent_filters_summary_all">모든 키 사용 가능</string>
@@ -2310,6 +2374,10 @@
     <string name="gpg_tools_operation_decrypt_text">저장된 개인 키로 텍스트나 파일을 복호화합니다</string>
     <string name="gpg_tools_operation_sign_text">저장된 개인 키로 텍스트나 파일에 서명합니다</string>
     <string name="gpg_tools_operation_verify_text">인라인 또는 분리형 서명을 검증합니다</string>
+    <string name="gpg_tools_drop_file_to_encrypt">Drop a file to encrypt it</string>
+    <string name="gpg_tools_drop_file_to_decrypt">Drop a file to decrypt it</string>
+    <string name="gpg_tools_drop_file_to_sign">Drop a file to sign it</string>
+    <string name="gpg_tools_drop_file_to_verify">Drop a file to verify it</string>
     <string name="gpg_tools_mode_cleartext">평문</string>
     <string name="gpg_tools_mode_inline">인라인</string>
     <string name="gpg_tools_mode_detached">분리형</string>
@@ -2696,4 +2764,33 @@
     <string name="text_diff_removed_line">삭제된 줄</string>
     <string name="text_diff_original_line">원본 <xliff:g id="number" example="12">%1$d</xliff:g>번째 줄</string>
     <string name="text_diff_new_line">변경 후 <xliff:g id="number" example="12">%1$d</xliff:g>번째 줄</string>
+    <string name="attachment_drag_preparing">Preparing file. Keep holding to drag.</string>
+    <string name="attachment_drag_hint">Drag attachment to another app</string>
+    <string name="attachment_drag_error">Could not prepare the attachment for dragging</string>
+    <string name="drag_out_error">Could not start dragging</string>
+    <string name="client_certificate">Client certificate</string>
+    <string name="client_certificate_not_configured">Not configured</string>
+    <string name="client_certificate_add">Add certificate</string>
+    <string name="client_certificate_replace">Replace certificate</string>
+    <string name="client_certificate_remove">Remove certificate</string>
+    <string name="client_certificate_remove_title">Remove client certificate?</string>
+    <string name="client_certificate_remove_note">This account may stop syncing if the server requires a client certificate.</string>
+    <string name="client_certificate_note">Keyguard presents this certificate when it connects to this server. Its private key is stored in your encrypted vault.</string>
+    <string name="client_certificate_saved">Client certificate saved</string>
+    <string name="client_certificate_removed">Client certificate removed</string>
+    <string name="client_certificate_conflict">The certificate changed elsewhere. Reopen this screen to edit the latest certificate.</string>
+    <string name="client_certificate_unavailable">This account is no longer available for certificate changes.</string>
+    <string name="client_certificate_expired">This certificate has expired. The server may reject it.</string>
+    <string name="client_certificate_too_large">The certificate file must be 4 MB or smaller.</string>
+    <string name="client_certificate_expires">Expires %1$s</string>
+    <string name="client_certificate_issuer">Issued by %1$s</string>
+    <string name="client_certificate_empty_title">No client certificate</string>
+    <string name="client_certificate_empty_text">Add one if your server requires mutual TLS.</string>
+    <string name="client_certificate_file_types">PKCS#12 file (.p12 or .pfx)</string>
+    <string name="client_certificate_unsaved">Not saved</string>
+    <string name="client_certificate_details">Details</string>
+    <string name="client_certificate_subject">Subject</string>
+    <string name="client_certificate_serial_number">Serial number</string>
+    <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
+    <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
 </resources>

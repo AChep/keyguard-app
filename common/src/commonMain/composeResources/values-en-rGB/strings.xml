@@ -30,7 +30,7 @@
     <string name="instance_service_error_text">Keyguard could not start or contact its instance service. If this continues after restarting Keyguard, include the details below in a bug report.</string>
     <string name="instance_service_permission_text">Keyguard cannot safely access its instance files. Check ownership and permissions of its data and runtime directories and their parent directories.</string>
     <string name="instance_service_timeout_text">Another Keyguard process did not respond in time. Close that process and try again.</string>
-    <string name="instance_service_unavailable_text">The native instance service is unavailable. Reinstall Keyguard if restarting it does not help.</string>
+    <string name="instance_service_unavailable_text">The native instance service is unavailable. If restarting Keyguard does not help, reinstall it.</string>
     <string name="instance_service_configuration_text">The instance service configuration or protocol is invalid. Include the details below in a bug report.</string>
     <string name="instance_service_stopped_text">The instance service stopped and could not recover. Finish any edits, then quit and reopen Keyguard. Further launches cannot activate this window until you restart.</string>
     <!-- A name of a thing, such as an account -->
@@ -59,13 +59,13 @@
     <string name="no_password">No password</string>
     <string name="advanced_options">Advanced</string>
     <string name="file">File</string>
-    <string name="choose_file">Choose file</string>
+    <string name="choose_file">Choose a file</string>
     <string name="choose_folder">Choose folder</string>
     <string name="file_picker_selected_file_label">Selected file</string>
     <string name="file_name_placeholder">File name</string>
     <string name="file_status_pending_upload">Pending upload</string>
-    <string name="file_status_auto_resume">Auto-resumes</string>
-    <string name="file_status_downloading_failed">Downloading failed</string>
+    <string name="file_status_auto_resume">Resumes automatically</string>
+    <string name="file_status_downloading_failed">Download failed</string>
     <string name="file_status_download_failed_auto_resuming">Download failed, auto-resuming</string>
     <string name="file_status_downloaded">Downloaded</string>
     <string name="email">Email</string>
@@ -112,7 +112,7 @@
     <string name="expiry_date">Expiry date</string>
     <string name="company">Company</string>
     <string name="sync">Sync</string>
-    <string name="sync_requested">Sync was requested</string>
+    <string name="sync_requested">Sync requested</string>
     <!-- Opposite of 'visible' -->
     <string name="hidden">Hidden</string>
     <!-- Opposite of 'hidden' -->
@@ -224,8 +224,8 @@
     <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Autofill</string>
     <string name="autofill_and_save_uri">Autofill and save app or website info</string>
-    <string name="backup_disclaimer_title">Your data is your responsibility.</string>
-    <string name="backup_disclaimer_text">To ensure it's never lost, adopt the 3-2-1 Backup Rule: maintain three copies of your vault on two different media types, and keep one copy in a separate, secure location.</string>
+    <string name="backup_disclaimer_title">You are responsible for your data.</string>
+    <string name="backup_disclaimer_text">To help prevent data loss, follow the 3-2-1 backup rule: keep three copies of your vault on two different types of storage media, with one copy in a separate, secure location.</string>
     <string name="passkey">Passkey</string>
     <string name="credential_login_create_header">Create a login</string>
     <string name="credential_password_create_header">Create a password</string>
@@ -254,7 +254,7 @@
     <string name="api_key">API key</string>
     <string name="api_token">API token</string>
     <string name="zone_id">Zone ID</string>
-    <string name="destination_email">Destination email</string>
+    <string name="destination_email">Destination email address</string>
     <string name="domain">Domain</string>
     <string name="add_to_home_screen">Add to Home screen</string>
     <string name="edit">Edit</string>
@@ -356,15 +356,15 @@
     <string name="addaccount_method_header_title">Add account</string>
     <string name="addaccount_method_manual_title">Manual login</string>
     <string name="addaccount_method_manual_text">Enter credentials on this watch</string>
-    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-time sync of the database. Choosing a local database from the watch is not supported.</string>
-    <string name="addaccount_method_phone_title">Login on phone</string>
+    <string name="addaccount_method_keepass_wear_note">KeePass on Wear is currently a one-off sync of the database. Choosing a local database from the watch is not supported.</string>
+    <string name="addaccount_method_phone_title">Log in on phone</string>
     <string name="addaccount_method_phone_text">Use your paired Android phone</string>
     <string name="addaccount_method_phone_unavailable">No paired Android phone found</string>
     <string name="addaccount_method_phone_checking">Checking for a paired Android phone</string>
     <string name="addaccount_method_phone_services_unavailable">Google Play services is unavailable. Reopen this screen to try again.</string>
-    <string name="addaccount_method_phone_waiting">Waiting for phone</string>
-    <string name="addaccount_method_phone_importing">Importing account</string>
-    <string name="addaccount_method_phone_failed">Phone login failed</string>
+    <string name="addaccount_method_phone_waiting">Waiting for your phone</string>
+    <string name="addaccount_method_phone_importing">Importing your account</string>
+    <string name="addaccount_method_phone_failed">Could not log in using your phone</string>
     <string name="addaccount_method_phone_cancelled">Phone login cancelled on the phone</string>
     <string name="addaccount_method_phone_error_unreachable">The phone is not reachable</string>
     <string name="addaccount_method_phone_error_multiple_phones">More than one phone is reachable</string>
@@ -375,7 +375,7 @@
     <string name="addaccount_method_phone_error_verification">Couldn't verify the response from the phone</string>
     <string name="addaccount_method_phone_error_on_phone">Login failed on the phone. Check the phone for details.</string>
     <string name="addaccount_method_phone_error_import">Couldn't add the account to the watch</string>
-    <string name="addaccount_method_phone_pick">Choose phone</string>
+    <string name="addaccount_method_phone_pick">Choose a phone</string>
     <string name="companionauth_header_title">Watch setup</string>
     <string name="companionauth_header_text">Sign in to add this account to your watch</string>
     <string name="qr_wifi_description_text">Scan this QR code with another device to join this Wi-Fi network.</string>
@@ -442,23 +442,24 @@
     <string name="ciphers_action_change_passwords_title">Change passwords</string>
     <string name="ciphers_action_view_password_history_title">View password history</string>
     <string name="ciphers_action_view_ssh_agent_history_title">View SSH agent history</string>
+    <string name="ciphers_action_view_request_log_title">View request log</string>
     <string name="ciphers_action_upload_gpg_public_key_title">Upload GPG public key</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Upload public key to keyserver?</string>
-    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard will send this item's armored GPG public key to your configured keyserver. The public key may include fingerprints, user IDs such as names and e-mail addresses, subkeys, dates, and revocation status. The keyserver may store and redistribute this public data.</string>
-    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the e-mail addresses that should receive a verification e-mail from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_text">Keyguard will send this item's armoured GPG public key to your configured keyserver. The public key may include fingerprints, user IDs such as names and email addresses, subkeys, dates, and revocation status. The keyserver may store and redistribute this public data.</string>
+    <string name="ciphers_action_upload_gpg_public_key_confirmation_verify_text">Select the email addresses that should receive a verification email from the keyserver. Until an address is verified, the key cannot be found by that address.</string>
     <string name="ciphers_action_refresh_gpg_public_key_title">Refresh GPG public key</string>
-    <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Refresh public key from keyserver?</string>
+    <string name="ciphers_action_refresh_gpg_public_key_confirmation_title">Refresh the public key from the keyserver?</string>
     <string name="ciphers_action_refresh_gpg_public_key_confirmation_text">Keyguard will contact your configured GPG keyserver with this key's fingerprint. If a matching public key is found, Keyguard will update the stored public key, key metadata, and keyserver status for this item.</string>
     <string name="ciphers_action_verify_gpg_public_key_title">Verify GPG public key</string>
     <string name="ciphers_action_change_gpg_key_expiry_title">Change GPG key expiry</string>
     <string name="ciphers_action_archive_title">Archive</string>
-    <string name="ciphers_action_archive_confirmation_title">Move to archive?</string>
+    <string name="ciphers_action_archive_confirmation_title">Move to the archive?</string>
     <string name="ciphers_action_unarchive_title">Restore from archive</string>
     <string name="ciphers_action_unarchive_confirmation_title">Restore from archive?</string>
     <string name="ciphers_action_trash_title">Bin</string>
     <string name="ciphers_action_trash_confirmation_title">Move to the bin?</string>
     <string name="ciphers_action_restore_title">Restore</string>
-    <string name="ciphers_action_restore_confirmation_title">Restore from trash?</string>
+    <string name="ciphers_action_restore_confirmation_title">Restore from the bin?</string>
     <string name="ciphers_action_delete_title">Delete forever</string>
     <string name="ciphers_action_delete_confirmation_title">Delete forever?</string>
     <string name="ciphers_action_configure_watchtower_alerts_title">Configure Watchtower alerts</string>
@@ -500,16 +501,33 @@
     <string name="attachment_preview_error_unsupported_platform">Attachment preview is not supported on this platform.</string>
     <string name="attachment_preview_error_size_limit">This attachment is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
     <string name="attachment_preview_error_network">Failed to download the attachment preview.</string>
-    <string name="attachment_preview_error_decryption">Failed to decrypt the attachment preview.</string>
+    <string name="attachment_preview_error_decryption">The attachment preview could not be decrypted.</string>
     <string name="attachment_preview_error_text_decode">This text file cannot be previewed.</string>
     <string name="attachment_preview_error_image_decode">This image cannot be previewed.</string>
     <string name="attachment_preview_error_gpg_key">This file is not an OpenPGP key.</string>
+    <string name="attachment_preview_error_gzip_invalid">This Gzip file is damaged.</string>
+    <string name="attachment_preview_error_gzip_size_limit">The decompressed file is larger than the <xliff:g id="size_limit" example="8.0 MiB">%1$s</xliff:g> preview limit.</string>
     <string name="attachment_preview_action_copy_all">Copy all</string>
     <string name="attachment_preview_action_wrap_lines">Wrap lines</string>
     <string name="attachment_preview_action_source">Source</string>
     <string name="attachment_preview_action_rendered_preview">Preview</string>
+    <string name="attachment_preview_action_tree">Tree</string>
+    <string name="attachment_preview_json_tree_view">Tree view</string>
+    <string name="attachment_preview_json_object">Object</string>
+    <string name="attachment_preview_json_array">Array</string>
+    <string name="attachment_preview_json_string">String</string>
+    <string name="attachment_preview_json_number">Number</string>
+    <string name="attachment_preview_json_boolean">Boolean</string>
+    <string name="attachment_preview_json_null">Null</string>
+    <string name="attachment_preview_json_expanded">Expanded</string>
+    <string name="attachment_preview_json_collapsed">Collapsed</string>
+    <string name="attachment_preview_json_error_invalid">This file is not valid JSON. Showing source.</string>
+    <string name="attachment_preview_json_error_too_large">This file is too large for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_deep">This JSON has too many nested levels for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_too_many_nodes">This JSON has too many values for the tree preview. Showing source.</string>
+    <string name="attachment_preview_json_error_duplicate_keys">This JSON has duplicate property names. Showing source to preserve every value.</string>
     <string name="vault_action_always_show_keyboard_title">Always show keyboard</string>
-    <string name="vault_action_remember_sorting_title">Remember sorting method</string>
+    <string name="vault_action_remember_sorting_title">Remember how items are sorted</string>
     <string name="vault_action_sync_vault_title">Sync vault</string>
     <string name="vault_action_lock_vault_title">Lock vault</string>
     <string name="vault_action_rename_folder_title">Rename folder</string>
@@ -534,7 +552,7 @@
     <string name="uri_match_app_title">Match app</string>
     <string name="uri_match_detection_title">Match detection</string>
     <string name="uri_match_detection_default_title">Default</string>
-    <string name="uri_match_detection_default_note">Uses a global Default match detection behavior selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
+    <string name="uri_match_detection_default_note">Uses the global default match detection behaviour selected in Settings → Autofill → Default URI match detection. Base domain matching is the default option.</string>
     <string name="uri_match_detection_domain_title">Base domain</string>
     <string name="uri_match_detection_domain_note">Match resources by top-level and second-level domain.</string>
     <string name="uri_match_detection_host_title">Host</string>
@@ -589,18 +607,18 @@
     <string name="ssh_key_action_add_key_title">Add keys</string>
     <string name="ssh_key_action_replace_key_title">Replace keys</string>
     <string name="key_import_title">Import <xliff:g id="protocol" example="SSH">%1$s</xliff:g> key</string>
-    <string name="gpg_key_import_drop_here">Drop a file to import a GPG public or private key</string>
+    <string name="gpg_key_import_drop_here">Drop a file here to import a GPG public or private key</string>
     <string name="key_import_failed_title">Failed to import <xliff:g id="protocol" example="SSH">%1$s</xliff:g> key</string>
     <string name="key_import_success_title">Imported <xliff:g id="protocol" example="SSH">%1$s</xliff:g> key</string>
     <string name="gpg_key_import_error_empty">The GPG key file is empty.</string>
     <string name="gpg_key_import_error_unsupported_format">Unsupported GPG key format.</string>
-    <string name="gpg_key_import_error_unsupported_platform">GPG key import is not supported on this platform.</string>
+    <string name="gpg_key_import_error_unsupported_platform">Importing GPG keys is not supported on this platform.</string>
     <string name="key_import_error_invalid_passphrase">The <xliff:g id="protocol" example="SSH">%1$s</xliff:g> key passphrase is invalid.</string>
     <string name="key_import_error_malformed_key">The <xliff:g id="protocol" example="SSH">%1$s</xliff:g> key file is malformed.</string>
-    <string name="gpg_key_import_error_multiple_keys">The file contains more than one GPG key. Export and import the keys one at a time.</string>
+    <string name="gpg_key_import_error_multiple_keys">This file contains more than one GPG key. Export and import each key separately.</string>
     <string name="key_import_error_passphrase_required">A passphrase is required to unlock this <xliff:g id="protocol" example="SSH">%1$s</xliff:g> key.</string>
     <string name="gpg_key_import_error_key_changed">The GPG key changed while the import was in progress. Try importing it again.</string>
-    <string name="gpg_key_import_error_mismatched_key">The imported key does not match the GPG key in this item.</string>
+    <string name="gpg_key_import_error_mismatched_key">The key you imported does not match the GPG key in this item.</string>
     <string name="gpg_key_import_error_existing_malformed">The GPG key stored in this item is malformed and cannot be merged.</string>
     <string name="gpg_key_import_error_secret_conflict">The imported secret key material conflicts with the secret key stored in this item.</string>
     <string name="gpg_key_import_error_resource_limit">The GPG key is too large or complex to import.</string>
@@ -615,7 +633,7 @@
     <string name="gpg_key_expiry_unavailable">Expiry editing is not supported on this platform.</string>
     <string name="gpg_key_expiry_key_unreadable">The public key or its fingerprint could not be verified.</string>
     <string name="gpg_key_expiry_dialog_title">Change GPG key expiry</string>
-    <string name="gpg_key_expiry_dialog_message">Expiration is reversible and does not protect a compromised key. Revoke a compromised key instead.</string>
+    <string name="gpg_key_expiry_dialog_message">Expiry is reversible and does not protect a compromised key. Revoke a compromised key instead.</string>
     <string name="gpg_key_expiry_primary">Primary key</string>
     <string name="gpg_key_expiry_subkey">Subkey <xliff:g id="key_id" example="0A1B2C3D">%1$s</xliff:g></string>
     <string name="gpg_key_expiry_subkey_capabilities">Capabilities: <xliff:g id="capabilities" example="sign, encrypt">%1$s</xliff:g>. Current expiry: <xliff:g id="expiry" example="Jan 1, 2030">%2$s</xliff:g></string>
@@ -630,8 +648,8 @@
     <string name="gpg_key_expiry_no_explicit_expiry">No explicit expiry</string>
     <string name="gpg_key_expiry_success_title">GPG key expiry updated</string>
     <string name="gpg_key_expiry_success_message">Save this item, then redistribute or upload its public key.</string>
-    <string name="gpg_key_expiry_cipher_success_message">The item was updated. Redistribute or upload its public key.</string>
-    <string name="gpg_key_expiry_failed_title">Failed to update GPG key expiry</string>
+    <string name="gpg_key_expiry_cipher_success_message">The item has been updated. Redistribute or upload its public key.</string>
+    <string name="gpg_key_expiry_failed_title">Could not update GPG key expiry</string>
     <string name="gpg_key_expiry_failed_message">The key expiry could not be updated. The original key was left unchanged.</string>
     <string name="gpg_key_expiry_no_components_message">Select at least one key component.</string>
     <string name="gpg_key_expiry_after_primary_message">A subkey cannot remain usable after the primary key expires. Select the primary key too or choose an earlier expiry.</string>
@@ -641,7 +659,7 @@
     <string name="gpg_key_expiry_unsupported_signing_hash_message">This key can only be re-certified with an insecure digest algorithm. Migrate to a modern key instead.</string>
     <string name="gpg_key_expiry_missing_self_signature_message">This key cannot be renewed because its self-signature is missing, invalid, or rejected by security policy.</string>
     <string name="gpg_user_id_revocation_confirm">Revoke</string>
-    <string name="gpg_user_id_revocation_last_identity_message">A GPG key must keep at least one usable User ID. Add a replacement before revoking this one.</string>
+    <string name="gpg_user_id_revocation_last_identity_message">A GPG key must have at least one usable User ID. Add a replacement before revoking this one.</string>
     <string name="gpg_user_id_replacement_value_label">User ID</string>
     <string name="gpg_user_id_replacement_value_confirm">Replace</string>
     <string name="gpg_user_id_replacement_invalid_message_with_limit">Enter a non-empty User ID of at most <xliff:g id="byte_limit" example="1024">%1$d</xliff:g> UTF-8 bytes without control characters.</string>
@@ -649,12 +667,12 @@
     <string name="gpg_user_id_replacement_duplicate_message">That User ID is already active on this key.</string>
     <string name="gpg_user_id_replacement_title">Replace User ID</string>
     <string name="gpg_user_id_replacement_retired_message">That exact User ID was previously revoked and cannot be added again.</string>
-    <string name="gpg_user_id_replacement_target_missing">The selected User ID changed or is no longer active. Reopen the key and try again.</string>
+    <string name="gpg_user_id_replacement_target_missing">The selected User ID has changed or is no longer active. Reopen the key and try again.</string>
     <string name="gpg_user_id_revocation_title">Revoke User ID</string>
-    <string name="gpg_user_id_revocation_failed_message">The User ID could not be revoked. The original key was left unchanged.</string>
+    <string name="gpg_user_id_revocation_failed_message">Unable to revoke the User ID. The original key has not been changed.</string>
     <string name="gpg_user_id_revocation_target_missing">The selected User ID changed or is no longer eligible. Reopen the key and try again.</string>
     <string name="gpg_user_id_revocation_private_key_required">Import the private key to revoke one of its User IDs.</string>
-    <string name="gpg_user_id_revocation_unavailable">GPG User-ID revocation is not supported on this platform.</string>
+    <string name="gpg_user_id_revocation_unavailable">Revoking GPG User IDs is not supported on this platform.</string>
     <string name="gpg_user_id_mutation_key_revoked_message">A revoked GPG key cannot be changed.</string>
     <string name="ssh_key_import_drop_here">Drop a file to import an SSH key or certificate</string>
     <string name="ssh_key_import_error_unsupported_format">Unsupported SSH private key format.</string>
@@ -677,6 +695,12 @@
     <string name="ssh_certificate_problem_key_mismatch">This certificate is for another key.</string>
     <string name="ssh_certificate_problem_not_yet_valid">This certificate is valid from <xliff:g id="date" example="Jan 1, 2027">%1$s</xliff:g>.</string>
     <string name="ssh_certificate_problem_expired">This certificate expired on <xliff:g id="date" example="Jan 1, 2026">%1$s</xliff:g>.</string>
+    <string name="ssh_bookmark">SSH bookmark</string>
+    <string name="ssh_bookmarks">SSH bookmarks</string>
+    <string name="ssh_bookmark_invalid">Not a valid SSH bookmark</string>
+    <string name="ssh_bookmark_placeholder">ssh://user@host:port</string>
+    <string name="ssh_bookmark_copy_command">Copy SSH command</string>
+    <string name="ssh_bookmark_connect">Connect</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selected</string>
     <string name="selection_clear_action">Clear selection</string>
     <string name="selection_select_all_action">Select all</string>
@@ -685,7 +709,7 @@
     <string name="copy_value">Copy value</string>
     <string name="copy_url">Copy URL</string>
     <string name="copy_uri">Copy URI</string>
-    <string name="copy_send">Copy send</string>
+    <string name="copy_send">Copy Send</string>
     <string name="copy_package_name">Copy package name</string>
     <string name="copy_bundle_id">Copy bundle ID</string>
     <string name="copy_id">Copy ID</string>
@@ -727,7 +751,7 @@
     <string name="copied_otp_code">Copied a one-time password</string>
     <string name="copied_otp_secret_code">Copied a secret key</string>
     <string name="found_otp_code">Found a one-time password</string>
-    <string name="found_value">Found a value</string>
+    <string name="found_value">Value found</string>
     <string name="autofill_unlock_keyguard">Unlock Keyguard</string>
     <string name="autofill_unlock_subtitle">Enter your master password to fill the selected login.</string>
     <string name="autofill_open_keyguard">Open Keyguard</string>
@@ -761,11 +785,11 @@
     <string name="november">November</string>
     <string name="december">December</string>
     <string name="tolerance">Tolerance</string>
-    <string name="tolerance_min">Min</string>
+    <string name="tolerance_min">Minimum</string>
     <string name="tolerance_low">Low</string>
     <string name="tolerance_normal">Normal</string>
     <string name="tolerance_high">High</string>
-    <string name="tolerance_max">Max</string>
+    <string name="tolerance_max">Maximum</string>
     <string name="list_move_up">Move up</string>
     <string name="list_move_down">Move down</string>
     <string name="list_remove">Remove</string>
@@ -800,7 +824,7 @@
     <string name="error_invalid_uri">Invalid URI</string>
     <string name="error_invalid_key">Invalid key</string>
     <string name="error_invalid_card_number">Invalid card number</string>
-    <string name="error_webdav_url_required">WebDAV URL is required</string>
+    <string name="error_webdav_url_required">A WebDAV URL is required</string>
     <string name="error_webdav_file_url_required">Enter the full WebDAV URL to a file resource</string>
     <string name="error_s3_endpoint_invalid">Enter a full HTTP or HTTPS URL without credentials, a query, or a fragment</string>
     <string name="error_s3_bucket_required">Bucket is required</string>
@@ -817,7 +841,7 @@
     <string name="error_not_found">Not found</string>
     <string name="error_file_must_be_n_or_smaller">File must be <xliff:g id="size" example="500MB">%1$s</xliff:g> or smaller</string>
     <string name="error_otp_key_must_not_be_empty">The secret key for the one-time password must not be empty</string>
-    <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
+    <string name="error_otp_key_is_invalid">The secret key for the one-time password is invalid</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing an existing file is not allowed</string>
     <string name="error_account_already_exists">This account is already added to Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
@@ -825,14 +849,14 @@
     <string name="error_failed_create_passkey">Failed to create a passkey</string>
     <string name="error_failed_create_password">Failed to create a password</string>
     <string name="error_failed_use_passkey">Failed to authorise a request</string>
-    <string name="error_failed_use_password">Failed to authorize a request</string>
+    <string name="error_failed_use_password">Failed to authorise a request</string>
     <string name="error_failed_open_uri">Could not open this URI</string>
     <string name="error_failed_open_file">Could not open this file</string>
     <string name="error_failed_format_placeholder">Failed to format the placeholder</string>
     <string name="error_failed_open_app_for">No installed app can handle this request</string>
     <string name="error_failed_open_link">Could not open this link</string>
     <string name="error_failed_unknown">Something went wrong</string>
-    <string name="error_failed_encrypt_biometric_key">Failed to encrypt the biometric key</string>
+    <string name="error_failed_encrypt_biometric_key">Could not encrypt the biometric key</string>
     <string name="biometric_error_policy_not_installed">Keyguard could not install the system permission rule needed for system authentication.</string>
     <string name="biometric_error_policy_not_installed_flatpak">Keyguard needs a one-time system permission rule to use system authentication. Run this command in a terminal on the host, then try again:\n%1$s</string>
     <string name="error_failed_decrypt_biometric_key">Failed to decrypt the biometric key</string>
@@ -851,12 +875,12 @@
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant the privilege and continue</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_title">Grant privileged access and continue</string>
     <!--
         Shows up if the calling app is not privileged and allows a user
         to permanently add it to the privileged apps. Describes the risks
         a user takes by adding an app to the list -->
-    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app allows it to request credentials for any service. A malicious app could use this to try to steal your credentials.</string>
+    <string name="error_credential_calling_app_not_privileged_add_as_privileged_app_note">Trusting an app lets it request credentials for any service. A malicious app could exploit this to try to steal your credentials.</string>
     <string name="scanqr_title">Scan a QR code</string>
     <string name="scanqr_load_from_image">Load from a file</string>
     <string name="scanqr_load_from_image_note">Load and parse a QR code from an image file.</string>
@@ -893,7 +917,7 @@
     <string name="justdeleteme_search_placeholder">Search websites</string>
     <string name="justdeleteme_empty_label">No instructions</string>
     <!-- Title of the 'How to delete an account?' dialog -->
-    <string name="justgetmydata_title">How to get my data?</string>
+    <string name="justgetmydata_title">How do I get my data?</string>
     <string name="justgetmydata_subtitle">A collection of info on how to get the data from your account from web services</string>
     <!-- Simple process -->
     <string name="justgetmydata_difficulty_easy_label">Easy</string>
@@ -924,7 +948,7 @@
     <string name="emailleak_breach_occurred_at">Occurred on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_breach_reported_at">Reported on <xliff:g id="date" example="1 January 1970">%1$s</xliff:g></string>
     <string name="emailleak_failed_to_load_status_text">Failed to check data breaches. You might currently be offline</string>
-    <string name="emailleak_failed_no_api_found_text">Failed to check data breaches. The endpoint is not available</string>
+    <string name="emailleak_failed_no_api_found_text">Failed to check for data breaches. The endpoint is unavailable</string>
     <!-- Title of the 'Website data breach' dialog -->
     <string name="websiteleak_title">Data breach</string>
     <string name="websiteleak_note">Breached website data can provide malicious actors with access to sensitive personal and financial information, potentially compromising user accounts across that service.</string>
@@ -980,8 +1004,8 @@
     <string name="wordlist_delete_permanent_warning">%1$s will be permanently removed.</string>
     <string name="wordlist_edit_wordlist_title">Edit a wordlist</string>
     <string name="wordlist_add_wordlist_title">Add a wordlist</string>
-    <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
-    <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
+    <string name="wordlist_add_wordlist_via_file_title">Import from a file</string>
+    <string name="wordlist_add_wordlist_via_url_title">Import from a URL</string>
     <string name="wordlist_empty_label">No wordlists</string>
     <string name="wordlist_word_search_placeholder">Search words</string>
     <string name="wordlist_rename_action">Rename wordlist</string>
@@ -1000,20 +1024,19 @@
     <string name="urlblock_delete_one_confirmation_title">Delete the blocked URI?</string>
     <string name="urlblock_delete_many_confirmation_title">Delete the blocked URIs?</string>
     <string name="urlblock_empty_label">No blocked URIs</string>
-    <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
-    <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
+    <string name="urlblock_expose_title">Expose data to the Autofill framework before unlocking the vault</string>
+    <string name="urlblock_expose_text">If enabled, the item is stored outside the vault, allowing autofill suggestions to be completely hidden even when the vault is locked</string>
     <string name="urlrule_global_label">Global</string>
     <string name="urlrule_excluded_label">Excluded</string>
     <string name="privilegedapps_header_title">Privileged apps</string>
     <string name="privilegedapps_list_header_title">Privileged apps</string>
     <string name="privilegedapps_list_section_title">Privileged apps</string>
-    <string name="privilegedapps_delete_one_confirmation_title">Delete the privileged app?</string>
-    <string name="privilegedapps_delete_many_confirmation_title">Delete the privileged apps?</string>
+    <string name="privilegedapps_delete_one_confirmation_title">Delete this privileged app?</string>
+    <string name="privilegedapps_delete_many_confirmation_title">Remove the privileged apps from the list?</string>
     <string name="privilegedapps_empty_label">No privileged apps</string>
     <string name="privilegedapps_user_apps">User apps</string>
     <string name="privilegedapps_community_apps">Community apps</string>
     <string name="setup_header_text">Create an encrypted vault where the local data will be stored.</string>
-    <string name="setup_free_text">By continuing, you confirm that you have purchased Keyguard or have had an active licence.</string>
     <string name="setup_field_app_password_label">App password</string>
     <string name="setup_checkbox_biometric_auth">Biometric authentication</string>
     <string name="setup_biometric_auth_confirm_title">Create a vault</string>
@@ -1049,9 +1072,9 @@
     <string name="additem_header_new_title">New item</string>
     <string name="additem_header_edit_title">Edit item</string>
     <string name="additem_header_merge_title">Merge items</string>
-    <string name="additem_merge_remove_origin_ciphers_title">Move origin items to trash</string>
-    <string name="additem_merge_archive_origin_ciphers_title">Move origin items to archive</string>
-    <string name="additem_merge_keep_origin_ciphers_title">Keep origin items</string>
+    <string name="additem_merge_remove_origin_ciphers_title">Move original items to the bin</string>
+    <string name="additem_merge_archive_origin_ciphers_title">Move original items to archive</string>
+    <string name="additem_merge_keep_origin_ciphers_title">Keep original items</string>
     <string name="additem_merge_attachments_note">Merging items does not merge their attachments! The new item will not contain any attachments.</string>
     <string name="additem_note_placeholder">Add any notes about this item here</string>
     <string name="additem_markdown_note">Style text with <xliff:g id="italic" example="italic">%1$s</xliff:g> or <xliff:g id="bold" example="bold">%2$s</xliff:g> and more. Limited Markdown syntax is supported.</string>
@@ -1074,14 +1097,14 @@
     <string name="addsend_hide_text_by_default_title">When accessing the item, hide the text by default</string>
     <string name="addsend_hide_email_title">Hide email address</string>
     <string name="addsend_max_access_count_note">If you set a maximum access count, users will no longer be able to access this item once the limit is reached.</string>
-    <string name="addsend_auth_emails_label">Email(s)</string>
-    <string name="addsend_auth_emails_placeholder">Comma-separated emails</string>
-    <string name="addsend_auth_emails_note">Recipients will be asked to complete a one-time email verification after opening the link.</string>
+    <string name="addsend_auth_emails_label">Email addresses</string>
+    <string name="addsend_auth_emails_placeholder">Comma-separated email addresses</string>
+    <string name="addsend_auth_emails_note">After opening the link, recipients will be asked to complete a one-time verification of their email address.</string>
     <string name="addaccount_promo_title">Your vault is empty. Connect an account to get started:</string>
     <string name="addaccount_promo_title_no_direct_action">Your vault is empty. Go to Settings and add an account to get started.</string>
-    <string name="addaccount_promo_features">Want to get the most out of your experience? We've outlined all the primary features of the app for you below. Take a look to see how it can work for you.</string>
+    <string name="addaccount_promo_features">Want to get the most out of the app? We've outlined all its main features below. Take a look to see what it can do for you.</string>
     <string name="addaccount_description_short_bitwarden_text">Store an encrypted vault in the cloud.</string>
-    <string name="addaccount_description_short_keepass_text">Store encrypted vault locally using KDBX file format.</string>
+    <string name="addaccount_description_short_keepass_text">Store an encrypted vault locally in KDBX format.</string>
     <string name="addaccount_header_title">Add Bitwarden account</string>
     <string name="addaccount_disclaimer_bitwarden_label">We are not affiliated, associated, authorised, endorsed by, or in any way officially connected with the Bitwarden, Inc., or any of its subsidiaries or its affiliates.</string>
     <!--
@@ -1145,8 +1168,8 @@
     <string name="addaccount2fa_method_other_title">This method</string>
     <string name="addaccount2fa_method_web_vault_note">Open the web vault to finish signing in with this two-factor method, then return to the app.</string>
     <string name="addkeepass_header_title">Add KeePass account</string>
-    <string name="addkeepass_header_body">Save all your passwords in a single, highly-encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer, a USB drive, or sync it yourself using a service like Syncthing, Google Drive or Dropbox.</string>
-    <string name="addkeepass_use_at_your_own_risk_beta_text">KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
+    <string name="addkeepass_header_body">Save all your passwords in a single, highly encrypted KDBX file stored directly on your device. You have complete control over your data. Store it on your computer or a USB drive, or sync it yourself using a service such as Syncthing, Google Drive or Dropbox.</string>
+    <string name="addkeepass_use_at_your_own_risk_beta_text">The KeePass implementation is in beta and is not yet fully compatible with standard KeePass clients. Use at your own risk. Please ensure you have a verified backup of your database before proceeding.</string>
     <string name="provider_2fa_authenticator">Authenticator</string>
     <string name="provider_2fa_duo_organization">Duo (Organisation)</string>
     <string name="provider_2fa_fido2_webauthn">FIDO2 Web Authentication</string>
@@ -1176,7 +1199,7 @@
     <!-- A text of the system popup that asks a user to use his biometric to confirm access. -->
     <string name="elevatedaccess_biometric_auth_confirm_text">Use biometric authentication to confirm your access and unlock this data.</string>
     <string name="home_vault_label">Vault</string>
-    <string name="home_favorites_label">Favorites</string>
+    <string name="home_favorites_label">Favourites</string>
     <string name="home_other_label">Other</string>
     <string name="home_send_label">Send</string>
     <string name="home_generator_label">Generator</string>
@@ -1191,14 +1214,14 @@
     <string name="send_type_file">File</string>
     <string name="send_auth_title">Who can view</string>
     <string name="send_auth_type_none">Anyone with the link</string>
-    <string name="send_auth_type_password">Anyone with the link + password</string>
+    <string name="send_auth_type_password">Anyone with the link and password</string>
     <string name="send_auth_type_email">Specific people</string>
     <string name="cipher_type_login">Login</string>
     <string name="cipher_type_card">Card</string>
     <string name="cipher_type_identity">Identity</string>
     <string name="cipher_type_note">Note</string>
-    <string name="cipher_type_ssh_key">SSH Key</string>
-    <string name="cipher_type_gpg_key">GPG Key</string>
+    <string name="cipher_type_ssh_key">SSH key</string>
+    <string name="cipher_type_gpg_key">GPG key</string>
     <string name="cipher_type_passkey">Passkey</string>
     <string name="cipher_type_environment">Environment</string>
     <string name="field_type_text">Text</string>
@@ -1221,7 +1244,7 @@
     <string name="passwords_weak_label">Weak passwords</string>
     <string name="customfilters_header_title">Custom filters</string>
     <string name="customfilters_search_placeholder">Search filters</string>
-    <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut on your home screen.</string>
+    <string name="customfilters_dynamic_shortcut_tip">You can quickly apply filters by adding a shortcut to your home screen.</string>
     <string name="customfilters_delete_one_confirmation_title">Delete the filter?</string>
     <string name="customfilters_delete_many_confirmation_title">Delete the filters?</string>
     <string name="customfilters_edit_filter_title">Edit a custom filter</string>
@@ -1244,6 +1267,9 @@
     <string name="agent_history_response_key_not_found">Key not found</string>
     <string name="agent_history_response_failure">Failed</string>
     <string name="agent_history_response_vault_locked">Vault locked</string>
+    <string name="agent_history_response_timed_out">Timed out</string>
+    <!-- The client left before Keyguard answered its request -->
+    <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Unknown caller</string>
     <string name="agent_history_unknown_key">Unknown key</string>
     <string name="ssh_agent_history_all_accessible_keys">All accessible keys</string>
@@ -1251,32 +1277,36 @@
     <string name="agent_history_clear_history_confirmation_title">Clear <xliff:g id="protocol" example="SSH">%1$s</xliff:g> agent history?</string>
     <string name="agent_history_clear_history_confirmation_text">This will remove all <xliff:g id="protocol" example="SSH">%1$s</xliff:g> agent usage history.</string>
     <string name="ssh_agent_history_empty_text">Keys served and signatures requested by ssh/git appear here.</string>
+    <string name="cli_agent_history_request_run">Run a command</string>
+    <string name="cli_agent_history_request_read_local_env_file">Read a local .env file</string>
+    <string name="cli_agent_history_clear_history_confirmation_title">Clear request log?</string>
+    <string name="cli_agent_history_clear_history_confirmation_text">This will remove all requests in this log.</string>
     <string name="agent_setup_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> client setup</string>
-    <string name="ssh_agent_setup_intro">Setup an SSH client to connect to Keyguard's SSH agent to let it perform authentication or signing with your approved keys without exposing private key material.</string>
+    <string name="ssh_agent_setup_intro">Set up an SSH client to connect to Keyguard's SSH agent so it can perform authentication or signing with your approved keys without exposing private key material.</string>
     <string name="ssh_agent_setup_intro_text">Authenticate your Git and SSH clients with the SSH keys stored in your vault.</string>
-    <string name="ssh_agent_setup_step_1_title">1. Enable SSH agent in Keyguard</string>
-    <string name="ssh_agent_setup_step_1_text">Open Developer settings and enable SSH agent.</string>
-    <string name="ssh_agent_setup_step_2_title">2. Configure your SSH client</string>
-    <string name="ssh_agent_setup_step_2_text">Point your SSH client at Keyguard's socket path.</string>
+    <string name="ssh_agent_setup_step_1_title">1. Enable the SSH agent in Keyguard</string>
+    <string name="ssh_agent_setup_step_1_text">Open Developer settings and enable the SSH agent.</string>
+    <string name="ssh_agent_setup_step_2_title">2. Set up your SSH client</string>
+    <string name="ssh_agent_setup_step_2_text">Set your SSH client to use Keyguard's socket path.</string>
     <string name="ssh_agent_setup_linux_socket_fallback_note">Fallback path: use this when XDG_RUNTIME_DIR is unavailable in your session.</string>
     <string name="ssh_agent_setup_option_env_tab">Env</string>
-    <string name="ssh_agent_setup_option_identityagent_tab">Config</string>
+    <string name="ssh_agent_setup_option_identityagent_tab">Configuration</string>
     <string name="ssh_agent_setup_option_env_label">Set SSH_AUTH_SOCK to Keyguard&apos;s socket path.</string>
-    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH config.</string>
+    <string name="ssh_agent_setup_option_identityagent_label">Set IdentityAgent in your SSH configuration file.</string>
     <string name="ssh_agent_setup_step_3_title">3. Verify</string>
     <string name="ssh_agent_setup_step_3_text">Run these commands in the same shell session where you configured the agent.</string>
     <string name="ssh_agent_setup_windows_text">Keyguard listens on a Windows named pipe. Point Windows OpenSSH at this pipe.</string>
-    <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
+    <string name="ssh_agent_setup_android_termux_text">On Android, Keyguard provides the SSH agent via a dedicated helper package. Enable the SSH agent in Keyguard, install and configure the package, and approve requests when your SSH client connects.</string>
     <string name="ssh_agent_setup_android_termux_step_1_title">Install Termux</string>
-    <string name="ssh_agent_setup_android_termux_step_1_text">Termux is an Android terminal application and Linux environment.</string>
-    <string name="ssh_agent_setup_android_termux_step_2_title">Install package</string>
+    <string name="ssh_agent_setup_android_termux_step_1_text">Termux is a terminal app and Linux environment for Android.</string>
+    <string name="ssh_agent_setup_android_termux_step_2_title">Install the package</string>
     <string name="ssh_agent_setup_android_termux_step_2_text">Open Termux and install the package from a custom APT repository:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_title">Configure your SSH client</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Start the package and export the socket into your current shell:</string>
-    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">If you want to auto-start the package every time Termux starts, add it to your shell startup file:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_title">Set up your SSH client</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_current">Start the package and export its socket path to your current shell:</string>
+    <string name="ssh_agent_setup_android_termux_step_3_shell_startup">To start the package automatically whenever Termux starts, add the following to your shell startup file:</string>
     <string name="ssh_agent_setup_android_termux_step_4_title">Verify</string>
     <string name="ssh_agent_setup_android_termux_step_4_text">Run these commands in the same shell session where you configured the agent.</string>
-    <string name="ssh_agent_setup_android_how_does_it_work_title">How does it work</string>
+    <string name="ssh_agent_setup_android_how_does_it_work_title">How does it work?</string>
     <string name="ssh_agent_setup_android_how_does_it_work_1">The SSH agent receives requests from SSH tools, then forwards them to the Keyguard app instead of handling the sensitive operation itself.</string>
     <string name="ssh_agent_setup_android_how_does_it_work_2">The communication is done in two steps: first the agent signals the app to start a session, then both sides connect over a local TCP channel and exchange encrypted messages. The SSH agent acts as a relay, while the Keyguard app performs the actual operations.</string>
     <string name="ssh_agent_setup_client_socket_note">Point your SSH client at this agent:</string>
@@ -1315,7 +1345,7 @@
     <string name="connected_crypto_apps_unknown">Unknown</string>
     <string name="ipc_approval_title">External app request</string>
     <string name="ipc_approval_auth_reason">Approve an external cryptographic request</string>
-    <string name="ipc_approval_unavailable">This approval request expired or is no longer available.</string>
+    <string name="ipc_approval_unavailable">This approval request has expired or is no longer available.</string>
     <string name="ipc_approval_message"><xliff:g id="app" example="Termux">%1$s</xliff:g> wants to use the <xliff:g id="protocol" example="GPG agent">%2$s</xliff:g> to <xliff:g id="operation" example="encrypt a message">%3$s</xliff:g>.</string>
     <string name="ipc_approval_registration_note">This is the app's first request. Approving registers it with Keyguard.</string>
     <string name="ipc_approval_no_keys">No eligible keys are available.</string>
@@ -1325,7 +1355,7 @@
     <string name="ipc_protocol_openpgp">GPG agent</string>
     <string name="ipc_protocol_ssh">SSH agent</string>
     <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
-    <string name="ipc_operation_openpgp_check_permission">confirm it has access</string>
+    <string name="ipc_operation_openpgp_check_permission">confirm that it has access</string>
     <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_clear_sign">sign a message</string>
     <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
@@ -1343,7 +1373,7 @@
     <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_get_key_ids">look up recipient keys</string>
     <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
-    <string name="ipc_operation_openpgp_autocrypt_status">check which recipients it can encrypt to</string>
+    <string name="ipc_operation_openpgp_autocrypt_status">check which recipients it can encrypt messages for</string>
     <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
     <string name="ipc_operation_openpgp_get_key">export a public key</string>
     <!-- Completes the sentence: Termux wants to use the GPG agent to <operation>. -->
@@ -1441,7 +1471,7 @@
     <string name="send_main_header_title">Sends</string>
     <string name="send_main_search_placeholder">Search sends</string>
     <string name="send_main_new_item_button">New item</string>
-    <string name="send_main_drop_file_to_create">Drop a file to create a send</string>
+    <string name="send_main_drop_file_to_create">Drop a file to create a Send</string>
     <string name="send_main_empty_title">No Sends</string>
     <string name="send_main_empty_add_account_text">Add a Bitwarden account to securely share encrypted text and files.</string>
     <string name="send_email_is_required_to_access_label">Email-verified recipients can access this share</string>
@@ -1495,12 +1525,12 @@
     <string name="generator_email_forward_alias_type">Forwarded email alias</string>
     <string name="generator_gpg_key_name_title">Name</string>
     <string name="generator_gpg_key_email_title">Email</string>
-    <string name="generator_gpg_key_modern_note">Creates an OpenPGP key with Ed25519 signing/certification keys and an X25519 encryption subkey.</string>
-    <string name="generator_gpg_key_rsa_note">Creates an OpenPGP key with an RSA certification key and separate RSA signing and encryption subkeys.</string>
+    <string name="generator_gpg_key_modern_note">Creates an OpenPGP key with Ed25519 signing and certification keys and an X25519 encryption subkey.</string>
+    <string name="generator_gpg_key_rsa_note">Creates an OpenPGP key with an RSA certification key and separate RSA subkeys for signing and encryption.</string>
     <string name="gpg_key_version_title">Certificate version</string>
     <string name="gpg_key_version_v4_note">Compatible with GnuPG and older OpenPGP clients.</string>
     <string name="gpg_key_version_v6_note">Uses RFC 9580. Requires a client that supports v6 certificates.</string>
-    <string name="generator_gpg_key_modern_text">Modern OpenPGP key shape</string>
+    <string name="generator_gpg_key_modern_text">Modern OpenPGP key structure</string>
     <string name="generator_key_length_title">Length</string>
     <string name="generator_key_length_item"><xliff:g id="length" example="1024">%1$s</xliff:g>-bits</string>
     <string name="generator_key_rsa_note">All SSH clients support this algorithm. A key size of at least 2048 bits is recommended for RSA; 4096 bits is better. It is quite possible the RSA algorithm will become practically breakable in the foreseeable future.</string>
@@ -1510,7 +1540,7 @@
     <string name="generator_create_item_with_password_title">Create new login with the password</string>
     <string name="generator_create_item_with_username_title">Create new login with the username</string>
     <string name="generator_create_item_with_ssh_key_title">Create a new SSH key item</string>
-    <string name="generator_create_item_with_gpg_key_title">Create new GPG Key item</string>
+    <string name="generator_create_item_with_gpg_key_title">Create a new GPG key item</string>
     <string name="generator_password_history_title">Password history</string>
     <string name="generator_show_tips_title">Show tips</string>
     <string name="generator_tools_header_title">Tools</string>
@@ -1543,7 +1573,7 @@
     <string name="watchtower_item_reused_passwords_title">Reused Passwords</string>
     <string name="watchtower_item_reused_passwords_text">Don't use the same password on multiple websites. Generate unique passwords to improve security.</string>
     <string name="watchtower_item_weak_ssh_keys_title">Weak SSH keys</string>
-    <string name="watchtower_item_weak_ssh_keys_text">Items that do not pass NIST recommendations.</string>
+    <string name="watchtower_item_weak_ssh_keys_text">Items that do not meet NIST recommendations.</string>
     <string name="watchtower_item_unusable_ssh_certificates_title">Unusable SSH certificates</string>
     <string name="watchtower_item_unusable_ssh_certificates_text">SSH key items whose certificate is expired, not yet valid, malformed, a host certificate, or for another key.</string>
     <string name="watchtower_item_unusable_gpg_keys_title">Unusable GPG keys</string>
@@ -1551,7 +1581,7 @@
     <string name="watchtower_item_weak_gpg_keys_title">Weak GPG keys</string>
     <string name="watchtower_item_weak_gpg_keys_text">GPG key items that use weak or legacy algorithms and key sizes.</string>
     <string name="watchtower_item_gpg_key_publishing_title">GPG key publishing</string>
-    <string name="watchtower_item_gpg_key_publishing_text">GPG keys with missing, stale, unverified, or revoked keyserver status.</string>
+    <string name="watchtower_item_gpg_key_publishing_text">GPG keys whose keyserver status is missing, out of date, unverified or revoked.</string>
     <string name="watchtower_item_vulnerable_accounts_title">Vulnerable Accounts</string>
     <string name="watchtower_item_vulnerable_accounts_text">Sites that were affected by a data breach since you last changed a password. Change your password to keep your account safe.</string>
     <string name="watchtower_item_unsecure_websites_title">Unsecure Websites</string>
@@ -1567,7 +1597,7 @@
     <string name="watchtower_item_duplicate_websites_title">Duplicate URIs</string>
     <string name="watchtower_item_duplicate_websites_text">Items that have one or more URIs that cover the same websites after applying the match detection.</string>
     <string name="watchtower_item_broad_websites_title">Broad URI match detection</string>
-    <string name="watchtower_item_broad_websites_text">Items that have one or more URIs which match detection rules should likely be narrowed.</string>
+    <string name="watchtower_item_broad_websites_text">Items with one or more URIs whose match detection rules should probably be made more specific.</string>
     <string name="watchtower_item_trashed_items_title">Binned Items</string>
     <string name="watchtower_item_trashed_items_text">Items that have been moved into the bin. Having too many items in the bin may slow down operations with your vault.</string>
     <string name="watchtower_item_empty_folders_title">Empty Folders</string>
@@ -1583,7 +1613,7 @@
     <string name="watchtower_alerts_empty_text">Security alerts about your vault items appear here.</string>
     <string name="watchtower_alerts_unread_label">Unread</string>
     <string name="watchtower_mark_all_as_read_title">Mark all as read</string>
-    <string name="notification_vault_backup_title">Backing up vault</string>
+    <string name="notification_vault_backup_title">Backing up the vault</string>
     <string name="changepassword_header_title">Change app password</string>
     <string name="changepassword_change_password_button">Change password</string>
     <string name="changepassword_biometric_auth_checkbox">Biometric authentication</string>
@@ -1602,7 +1632,7 @@
     <string name="exportaccount_kdbx_password_label">Database password</string>
     <string name="exportaccount_format_kdbx_note">Export vault as a KeePass database. Folders become groups. Organizations and collections are not exported.</string>
     <string name="exportaccount_kdbx_attachment_too_large">An attachment is too large for a KeePass database. Export as a ZIP archive or without attachments.</string>
-    <string name="exportaccount_attachments_note">Vault will be kept unlocked during the export process. The attachments are referenced in the vault's data. The attachments are never stored in an unencrypted form in the process.</string>
+    <string name="exportaccount_attachments_note">The vault will remain unlocked throughout the export process. Attachments are referenced in the vault's data. Attachments are never stored in an unencrypted form during this process.</string>
     <string name="exportaccount_kdbx_attachments_note">Vault will be kept unlocked during the export process. The attachments are stored in the database. The attachments are never stored in an unencrypted form in the process.</string>
     <string name="exportaccount_include_attachments_title">Export attachments</string>
     <string name="exportaccount_confirm_password_label">Confirm archive password</string>
@@ -1621,9 +1651,9 @@
     <string name="exportaccount_export_success">Export complete</string>
     <string name="exportaccount_export_failure">Export failed</string>
     <string name="credential_exchange_export_header_title">Transfer credentials</string>
-    <string name="credential_exchange_export_header_text">App requests access to credentials</string>
+    <string name="credential_exchange_export_header_text">An app requests access to credentials</string>
     <string name="credential_exchange_export_header_text_named"><xliff:g id="app_name" example="Example Passwords">%1$s</xliff:g> requests access to credentials</string>
-    <string name="credential_exchange_export_empty_label">There are no credentials to transfer.</string>
+    <string name="credential_exchange_export_empty_label">There are no credentials available to transfer.</string>
     <string name="credential_exchange_export_credential_passkey">Passkey</string>
     <string name="credential_exchange_export_credential_password">Password</string>
     <string name="credential_exchange_export_credential_totp">One-time password</string>
@@ -1632,34 +1662,51 @@
     <string name="credential_exchange_export_credential_note">Note</string>
     <string name="credential_exchange_export_credential_fields">Custom fields</string>
     <string name="credential_exchange_export_credential_ssh_key">SSH key</string>
+    <string name="credential_exchange_export_credential_gpg_key">GPG key</string>
+    <string name="credential_exchange_export_credential_environment">Environment</string>
     <string name="credential_exchange_export_export_button">Transfer</string>
-    <string name="credential_exchange_export_error_unknown">Something went wrong while preparing the items.</string>
+    <string name="credential_exchange_export_error_unknown">There was a problem preparing the items.</string>
     <string name="credential_exchange_import_review_all_items_section">All items</string>
     <string name="credential_exchange_export_error_account_unavailable">This account is no longer available.</string>
     <string name="skipped_items_text">Some items were skipped.</string>
     <string name="account_action_import_credentials_title">Import from another app</string>
-    <string name="credential_exchange_import_header_title">Import credentials</string>
-    <string name="credential_exchange_import_header_text">Move credentials directly from another password manager installed on this device.</string>
-    <string name="credential_exchange_import_step_1_title">Start the transfer</string>
-    <string name="credential_exchange_import_step_1_text">Tap Start import. Android will show the apps that can share credentials with Keyguard.</string>
-    <string name="credential_exchange_import_step_2_title">Choose a source app</string>
-    <string name="credential_exchange_import_step_2_text">Select the password manager you want to import from, then follow its prompts to approve the transfer.</string>
-    <string name="credential_exchange_import_step_3_title">Review and import</string>
-    <string name="credential_exchange_import_step_3_text">Back in Keyguard, review what was received. Nothing is saved to this account until you tap Import.</string>
-    <string name="credential_exchange_import_learn_more">Learn about credential exchange</string>
-    <string name="credential_exchange_import_start_button">Start import</string>
-    <string name="credential_exchange_import_retry_button">Retry import</string>
-    <string name="credential_exchange_import_import_button">Import</string>
+    <string name="import_header_title">Import credentials</string>
+    <string name="credential_exchange_import_header_text">Transfer credentials directly from another password manager installed on this device.</string>
+    <string name="import_retry_button">Retry import</string>
+    <string name="import_confirm_button">Import</string>
     <string name="credential_exchange_import_review_source_label">Received from</string>
     <string name="credential_exchange_import_review_items_section">Items to import</string>
     <string name="credential_exchange_import_empty_label">The selected app didn't send any importable items.</string>
     <string name="credential_exchange_import_error_unavailable">Credential transfer isn't available on this device. It requires a recent version of Google Play services.</string>
     <string name="credential_exchange_import_error_no_providers">None of the installed apps can share credentials this way.</string>
-    <string name="credential_exchange_import_error_parse">The received data couldn't be read.</string>
+    <string name="credential_exchange_import_error_parse">The received data could not be read.</string>
     <string name="credential_exchange_import_error_unknown">Something went wrong while importing the items.</string>
-    <string name="credential_exchange_import_error_save">Failed to import the credentials.</string>
-    <string name="credential_exchange_import_success_title">Import complete</string>
-    <string name="credential_exchange_import_untitled">Untitled</string>
+    <string name="import_error_save">Failed to import the credentials.</string>
+    <string name="import_success_title">Import complete</string>
+    <string name="untitled">Untitled</string>
+    <string name="import_header_text">Move items from another password manager. Nothing is saved until you review the items and confirm the import.</string>
+    <string name="import_source_device_section">Another app on this device</string>
+    <string name="import_source_credential_exchange_title">Credential Exchange</string>
+    <string name="import_source_file_section">Export file</string>
+    <string name="import_learn_more">How to export from another app</string>
+    <string name="import_empty_file_label">The file has no items that can be imported.</string>
+    <string name="import_error_parse">The file isn't a <xliff:g id="format" example="Chrome">%1$s</xliff:g> export.</string>
+    <string name="import_error_too_large">The file is too large to import.</string>
+    <string name="import_error_attachment_too_large">An attachment is too large to import.</string>
+    <string name="import_error_unreadable">The file couldn't be read.</string>
+    <string name="import_error_premium">Importing items requires Keyguard Premium.</string>
+    <string name="import_error_wrong_password">Wrong password</string>
+    <string name="import_error_unsupported_encryption">Keyguard does not support this file's encryption. Export it again without encryption or in a supported password-protected format.</string>
+    <string name="import_password_text">The <xliff:g id="format" example="Bitwarden">%1$s</xliff:g> export is protected with a password. Enter the password you set when exporting it.</string>
+    <string name="import_source_backup_section">Keyguard backup</string>
+    <string name="import_backup_password_text">The backup is encrypted. Enter the backup password.</string>
+    <string name="import_backup_snapshots_text">Choose the snapshot to import.</string>
+    <string name="import_backup_empty_label">The snapshot has no items that can be imported.</string>
+    <string name="import_backup_error_not_found">This location has no Keyguard backup.</string>
+    <string name="import_backup_error_access_denied">The location rejected the credentials or denied access.</string>
+    <string name="import_backup_error_unreachable">The location couldn't be reached.</string>
+    <string name="import_backup_error_unreadable">The backup couldn't be read. It may be damaged, or made by a newer version of Keyguard.</string>
+    <string name="import_backup_error_empty">The backup has no snapshots.</string>
     <string name="contactus_header_title">Contact us</string>
     <string name="contactus_message_label">Your message</string>
     <string name="contactus_english_note">Use English to ensure that your feedback doesn't get misunderstood.</string>
@@ -1747,7 +1794,7 @@
     <string name="pref_item_watchtower_title">Watchtower</string>
     <string name="pref_item_watchtower_text">Compromised services, vulnerable passwords</string>
     <string name="pref_item_automatic_backups_title">Backups</string>
-    <string name="pref_item_automatic_backups_text">Automatic encrypted vault backups</string>
+    <string name="pref_item_automatic_backups_text">Automatically create encrypted vault backups</string>
     <string name="pref_item_notifications_title">Notifications</string>
     <string name="pref_item_notifications_text">Alerts</string>
     <string name="pref_item_appearance_title">Appearance</string>
@@ -1775,16 +1822,16 @@
     <string name="backup_progress_bytes"><xliff:g id="current" example="3 MB">%1$s</xliff:g> / <xliff:g id="total" example="10 MB">%2$s</xliff:g></string>
     <string name="backup_progress_items"><xliff:g id="current" example="3">%1$d</xliff:g> / <xliff:g id="total" example="10">%2$d</xliff:g></string>
     <string name="pref_item_automatic_backups_status_success_title">Last backup completed</string>
-    <string name="pref_item_automatic_backups_status_success_text">Finished %1$s. Exported %2$d items, %3$d attachments, %4$d new blobs, %5$d reused blobs.</string>
+    <string name="pref_item_automatic_backups_status_success_text">Finished at %1$s. Exported %2$d items, %3$d attachments, %4$d new blobs and %5$d reused blobs.</string>
     <string name="pref_item_automatic_backups_status_finished_text">Finished %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">Last backup failed</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
-    <string name="pref_item_automatic_backups_status_skipped_title">Last backup skipped</string>
+    <string name="pref_item_automatic_backups_status_skipped_title">Last backup was skipped</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">No backup yet</string>
-    <string name="pref_item_automatic_backups_status_never_text">Configure automatic backups, then run the first backup manually or wait for vault changes.</string>
+    <string name="pref_item_automatic_backups_status_never_text">Set up automatic backups, then run the first backup manually or wait for changes to the vault.</string>
     <string name="pref_item_automatic_backups_status_reason_vault_locked">Vault was locked.</string>
-    <string name="pref_item_automatic_backups_status_reason_not_configured">Backup is not fully configured.</string>
+    <string name="pref_item_automatic_backups_status_reason_not_configured">The backup is not fully configured.</string>
     <string name="pref_item_automatic_backups_status_reason_unknown">Unknown reason.</string>
     <string name="pref_item_automatic_backups_panel_repository_title">Repository metadata</string>
     <string name="pref_item_automatic_backups_panel_last_sync_title">Last backup</string>
@@ -1801,25 +1848,28 @@
     <string name="pref_item_automatic_backups_panel_blobs_value">%1$d new, %2$d reused</string>
     <string name="pref_item_automatic_backups_panel_last_change_label">Last vault change</string>
     <string name="pref_item_automatic_backups_panel_pending_changes_label">Pending changes</string>
-    <string name="pref_item_automatic_backups_run_now_title">Run backup now</string>
+    <string name="pref_item_automatic_backups_run_now_title">Back up now</string>
+    <string name="pref_item_automatic_backups_import_title">Import from backup</string>
+    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
+    <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">Unsupported platform</string>
     <string name="pref_item_automatic_backups_unsupported_text">Automatic backups are available on Android, desktop, macOS, and iOS.</string>
     <string name="pref_item_automatic_backups_enable_button">Enable backups</string>
-    <string name="pref_item_automatic_backups_setup_intro">Backups save vault snapshots to a location you choose. Keyguard creates them on vault changes, and you can trigger a snapshot manually anytime.</string>
+    <string name="pref_item_automatic_backups_setup_intro">Backups save vault snapshots to a location you choose. Keyguard creates them on vault changes, and you can trigger a snapshot manually at any time.</string>
     <string name="pref_item_automatic_backups_details_321_title">3-2-1 backup rule</string>
-    <string name="pref_item_automatic_backups_details_321_text">Keep at least three copies of your vault data: your active vault and two backups. Store those copies in at least two independent places or storage types, and keep one copy off this device or off-site. A synced folder is useful, but it should not be your only backup because deletions, corruption, and unwanted changes can sync too.</string>
+    <string name="pref_item_automatic_backups_details_321_text">Keep at least three copies of your vault data: your active vault and two backups. Store these copies in at least two independent locations or types of storage, and keep one copy off this device or off-site. A synced folder is useful, but it should not be your only backup, as deletions, corruption and unwanted changes can sync too.</string>
     <string name="pref_item_automatic_backups_details_321_three">Active vault plus two backups</string>
-    <string name="pref_item_automatic_backups_details_321_two">Two independent places or storage types</string>
+    <string name="pref_item_automatic_backups_details_321_two">Two independent locations or types of storage</string>
     <string name="pref_item_automatic_backups_details_321_one">One copy off-device or off-site</string>
     <string name="pref_item_automatic_backups_details_repository_structure_title">Repository structure</string>
     <string name="pref_item_automatic_backups_details_repository_structure_text">Encrypted repositories use ZIP AES-256. Open repo.zip and the latest readable indexes/*.zip with the backup password; the index points to each snapshots/*.zip and blobs/**/*.zip archive and stores its ZIP password as encryption.keyBase64. If no backup password was set, these files are regular ZIP archives.</string>
     <string name="pref_item_automatic_backups_details_retention_title">Snapshot retention</string>
-    <string name="pref_item_automatic_backups_details_retention_text">Retention is bucketed, so the history is not just the last snapshots in order. Keyguard keeps the newest snapshot, then prefers daily checkpoints from the last week and weekly checkpoints across the last month; any remaining slots go to the newest available snapshots.</string>
+    <string name="pref_item_automatic_backups_details_retention_text">Retention uses time-based groups, so the history is not simply the most recent snapshots in sequence. Keyguard keeps the newest snapshot, then prioritises daily checkpoints from the past week and weekly checkpoints from the past month; any remaining slots are filled with the newest available snapshots.</string>
     <string name="pref_item_automatic_backups_details_sync_title">Cloud sync</string>
-    <string name="pref_item_automatic_backups_details_sync_text">Sync the whole backup folder. Use the same backup password on every device that reads encrypted archives.</string>
+    <string name="pref_item_automatic_backups_details_sync_text">Synchronise the whole backup folder. Use the same backup password on every device that reads encrypted archives.</string>
     <string name="pref_item_automatic_backups_location_title">Backup location</string>
     <string name="pref_item_automatic_backups_password_title">Backup password</string>
-    <string name="pref_item_automatic_backups_password_message">This password encrypts the backup repository. If multiple app instances share the backup repository they must use the same password.</string>
+    <string name="pref_item_automatic_backups_password_message">This password encrypts the backup repository. If multiple instances of the app share the backup repository, they must use the same password.</string>
     <string name="pref_item_automatic_backups_password_not_set">Password not set; backup files are not encrypted</string>
     <string name="pref_item_automatic_backups_password_set">Password is set; backup files are encrypted</string>
     <string name="pref_item_automatic_backups_password_set_summary">Password set</string>
@@ -1827,7 +1877,7 @@
     <string name="pref_item_automatic_backups_include_attachments_title">Include attachments</string>
     <string name="pref_item_automatic_backups_include_attachments_enabled_summary">Included when available</string>
     <string name="pref_item_automatic_backups_include_attachments_disabled_summary">Not included</string>
-    <string name="pref_item_automatic_backups_retention_title">Keep snapshots</string>
+    <string name="pref_item_automatic_backups_retention_title">Snapshots to keep</string>
     <string name="pref_item_automatic_backups_retention_never_clear_value">Never clear</string>
     <string name="pref_item_automatic_backups_retention_value">%1$d snapshots</string>
     <string name="pref_item_automatic_backups_retention_keep_all">Keep all snapshots</string>
@@ -1875,13 +1925,18 @@
     <string name="pref_item_open_links_in_external_browser_title">Open links in external browser</string>
     <string name="pref_item_close_to_tray_title">Close to the system tray</string>
     <string name="pref_item_close_to_menu_bar_title">Close to the menu bar</string>
-    <string name="pref_item_minimize_on_copy_title">Minimize on copy</string>
+    <string name="pref_item_minimize_on_copy_title">Minimise on copy</string>
+    <string name="pref_item_ui_scale_title">Interface scale</string>
+    <string name="pref_item_ui_scale_decrease">Decrease interface scale</string>
+    <string name="pref_item_ui_scale_increase">Increase interface scale</string>
+    <string name="pref_item_ui_scale_preview_default">Default</string>
+    <string name="pref_item_ui_scale_preview_selected">Selected</string>
     <string name="pref_item_check_pwned_passwords_title">Check for pwned passwords</string>
     <string name="pref_item_check_pwned_services_title">Check for data breaches</string>
     <string name="pref_item_hibp_api_token_title">Have I Been Pwned API token</string>
     <string name="pref_item_hibp_api_token_text">Use HIBP directly instead of Bitwarden's premium proxy. Useful for local-only vaults.</string>
     <string name="pref_item_hibp_api_token_field_label">API token</string>
-    <string name="pref_item_hibp_api_token_status_checking">Checking...</string>
+    <string name="pref_item_hibp_api_token_status_checking">Checking…</string>
     <string name="pref_item_hibp_api_token_status_verified">Verified</string>
     <string name="pref_item_hibp_api_token_status_rejected">Rejected</string>
     <string name="pref_item_hibp_api_token_status_failed">Could not verify</string>
@@ -1915,7 +1970,7 @@
     <string name="pref_item_allow_screenshots_title">Allow screenshots</string>
     <string name="pref_item_allow_screenshots_text_on">Show the content of the app when switching between recent apps and allow capturing a screen</string>
     <string name="pref_item_allow_screenshots_text_off">Hide the content of the app when switching between recent apps and forbid capturing a screen</string>
-    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed, tap to disable</string>
+    <string name="pref_item_allow_screenshots_badge">Screenshots are allowed. Tap to disable.</string>
     <string name="pref_item_allow_screenshots_disabled_notification">Screenshots have been disabled</string>
     <string name="pref_item_allow_screenshots_mode_disabled_title">Disabled</string>
     <string name="pref_item_allow_screenshots_mode_limited_title">Allowed, with a visual cue</string>
@@ -1952,7 +2007,7 @@
     <string name="pref_item_agent_approval_scope_process">Per process</string>
     <string name="pref_item_agent_approval_scope_application">Per application</string>
     <string name="pref_item_agent_approval_scope_application_and_terminal_session">Per application, isolated by terminal session</string>
-    <string name="pref_item_agent_approval_scope_table_reuse_boundary">Who can reuse?</string>
+    <string name="pref_item_agent_approval_scope_table_reuse_boundary">Who can reuse an approval?</string>
     <string name="pref_item_agent_approval_scope_table_same_terminal">Same tab or pane</string>
     <string name="pref_item_agent_approval_scope_table_other_terminal">Other tab or pane</string>
     <string name="pref_item_agent_approval_scope_table_connection_reuse">Current live agent connection</string>
@@ -1978,9 +2033,18 @@
     <string name="pref_item_agent_local_storage_text">When the <xliff:g id="protocol" example="SSH">%1$s</xliff:g> agent is on, Keyguard keeps an unencrypted copy of the public keys on disk so clients can list keys while the vault is locked. Private keys are never exposed; key names are stored only if you enable the corresponding option.</string>
     <string name="pref_item_agent_display_key_names_title">Display key names before vault is unlocked</string>
     <string name="pref_item_agent_display_key_names_note">An unencrypted copy of the item title will be stored locally</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_title">Generate SSH config for bookmarked hosts</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_text">Pins each host from an ssh:// field of an SSH key item to that key, so ssh offers only that key</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_note">Host names and public keys are stored unencrypted on disk.</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_title">Include the config in ~/.ssh/config</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_text">SSH ignores the bookmarks until ~/.ssh/config includes the generated config. Run SSH client setup, or add this line to the top of the file:</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_retry">Then turn the setting on again.</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_setup_action">Run SSH client setup</string>
     <string name="pref_item_agent_approval_window_always_ask">Ask every time</string>
     <string name="pref_item_agent_approval_window_until_lock">Until vault locks</string>
+    <string name="pref_item_agent_approval_window_never_ask">Never ask</string>
     <string name="pref_item_approval_window_title">Remember approvals</string>
+    <string name="pref_item_agent_approval_timeout_title">Approval timeout</string>
     <string name="pref_item_ssh_agent_approval_remember_note">An approved signature is remembered for this long per key and application, instead of asking every time.</string>
     <string name="pref_item_agent_filters_text">Choose which <xliff:g id="protocol" example="SSH">%1$s</xliff:g> keys are accessible to the %1$s agent</string>
     <string name="pref_item_agent_filters_summary_all">All keys accessible</string>
@@ -1988,10 +2052,10 @@
     <string name="pref_item_agent_history_title">Request log</string>
     <string name="pref_item_ssh_agent_enable_title">Enable SSH agent</string>
     <string name="pref_item_ssh_agent_description">Keyguard serves your vault's SSH keys to ssh/git. Each signature requires your approval.</string>
-    <string name="pref_item_license_key_title">Link existing entitlement token</string>
+    <string name="pref_item_license_key_title">Link an existing entitlement token</string>
     <string name="pref_item_license_key_field_label">Entitlement token</string>
     <string name="pref_item_license_key_message_redeemed">Entitlement token linked successfully</string>
-    <string name="pref_item_license_key_message_invalid">Invalid or expired key</string>
+    <string name="pref_item_license_key_message_invalid">The key is invalid or has expired</string>
     <string name="pref_item_license_key_status_active">Active</string>
     <string name="pref_item_license_key_status_invalid">Invalid</string>
     <string name="pref_item_license_key_status_revoked">Revoked</string>
@@ -2012,23 +2076,23 @@
     <string name="pref_item_license_key_status_grace">Grace period</string>
     <string name="pref_item_license_key_status_pending">Pending</string>
     <string name="pref_item_license_key_status_refunded">Refunded</string>
-    <string name="pref_item_license_sync_title">Obtain entitlement token</string>
+    <string name="pref_item_license_sync_title">Obtain an entitlement token</string>
     <string name="pref_item_license_sync_text">Verifies your active store purchase and generates an entitlement token bound to the purchase. Use the token to transfer the purchase to your other devices.</string>
-    <string name="pref_item_license_sync_requested">Entitlement token was requested</string>
-    <string name="pref_item_license_sync_success">Entitlement token synced successfully</string>
-    <string name="pref_item_license_sync_already">Current entitlement token is already active</string>
+    <string name="pref_item_license_sync_requested">An entitlement token has been requested</string>
+    <string name="pref_item_license_sync_success">Entitlement token synchronised successfully</string>
+    <string name="pref_item_license_sync_already">The current entitlement token is already active</string>
     <string name="pref_item_license_sync_no_purchases">No eligible purchase found</string>
-    <string name="pref_item_license_sync_failed">Could not obtain entitlement token</string>
+    <string name="pref_item_license_sync_failed">Could not obtain an entitlement token</string>
     <string name="pref_item_biometric_unlock_title">Biometric unlock</string>
-    <string name="pref_item_windows_hello_unlock_title">Windows Hello unlock</string>
+    <string name="pref_item_windows_hello_unlock_title">Unlock with Windows Hello</string>
     <string name="pref_item_system_auth_unlock_title">System authentication unlock</string>
     <string name="pref_item_biometric_unlock_require_confirmation_title">Require confirmation</string>
     <string name="pref_item_biometric_unlock_require_confirmation_text">Require an extra tap on the confirmation button after successful biometric authentication</string>
     <string name="pref_item_yubikey_unlock_title">YubiKey unlock</string>
     <string name="pref_item_yubikey_unlock_text_on_slot_n">Configured with slot <xliff:g id="slot_number" example="1">%1$s</xliff:g></string>
-    <string name="pref_item_yubikey_unlock_provision_slot_title">Provision slot</string>
+    <string name="pref_item_yubikey_unlock_provision_slot_title">Configure slot</string>
     <string name="pref_item_yubikey_unlock_disable_title">Disable</string>
-    <string name="pref_item_yubikey_unlock_confirm_title">Provision YubiKey slot?</string>
+    <string name="pref_item_yubikey_unlock_confirm_title">Configure YubiKey slot?</string>
     <string name="pref_item_yubikey_unlock_confirm_message_empty">Provision slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> for vault unlock?</string>
     <string name="pref_item_yubikey_unlock_confirm_message_configured">Slot <xliff:g id="slot_number" example="1">%1$s</xliff:g> is already configured. Re-provisioning overwrites the current slot configuration.</string>
     <string name="pref_item_yubikey_unlock_note">Unlock the vault by touching a YubiKey configured for HMAC-SHA1 challenge-response. Keyguard can configure an empty slot for you, or use one you set up with YubiKey Manager.</string>
@@ -2042,7 +2106,7 @@
     <string name="pref_item_autofill_service_title">Autofill service</string>
     <string name="pref_item_autofill_service_text">Use the Android Autofill Framework to assist in filling login information into other apps on the device</string>
     <string name="pref_item_autofill_service_xiaomi_permission_note">Some Xiaomi devices require you to manually allow the "Display pop-up windows while running in the background" permission. Please open the settings and verify that it is granted.</string>
-    <string name="pref_item_autofill_service_browser_autofill_v2_title">Browser third-party autofill services</string>
+    <string name="pref_item_autofill_service_browser_autofill_v2_title">Third-party autofill services in browsers</string>
     <string name="pref_item_autofill_service_browser_autofill_v2_text">Enable third-party autofill in each of the listed browsers to let Keyguard fill logins there.</string>
     <string name="pref_item_autofill_service_browser_autofill_settings_error">Failed to open browser autofill settings</string>
     <string name="pref_item_autofill_service_enable_action">Enable AutoFill</string>
@@ -2066,15 +2130,15 @@
     <string name="pref_item_autofill_respect_autofill_disabled_note">Note that some websites are notorious for disabling autofill for a password field as well as some browsers are notorious for ignoring the autofill disabled flag</string>
     <string name="pref_item_autofill_save_request_title">Ask to save data</string>
     <string name="pref_item_autofill_save_request_text">Asks for updating the vault when filling of a form has completed</string>
-    <string name="pref_item_autofill_passkeys_enabled_title">Passkeys support</string>
-    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfill requests</string>
-    <string name="pref_item_autofill_passwords_enabled_title">Passwords support</string>
-    <string name="pref_item_autofill_passwords_enabled_text">Advertises passwords support to the Credential Manager, allowing the app to fulfill requests</string>
+    <string name="pref_item_autofill_passkeys_enabled_title">Passkey support</string>
+    <string name="pref_item_autofill_passkeys_enabled_text">Advertises passkey support to the Credential Manager, allowing the app to fulfil requests</string>
+    <string name="pref_item_autofill_passwords_enabled_title">Password support</string>
+    <string name="pref_item_autofill_passwords_enabled_text">Advertises password support to the Credential Manager, allowing the app to fulfil requests</string>
     <string name="pref_item_autofill_auto_save_source_title">Auto-save app or website info</string>
     <string name="pref_item_autofill_block_uri_title">Block autofill</string>
     <string name="pref_item_autofill_block_uri_text">Prevents offering autofill for these URIs</string>
     <string name="pref_item_autofill_privileged_apps_title">Privileged apps</string>
-    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can make credential requests on behalf of other services</string>
+    <string name="pref_item_autofill_privileged_apps_text">Privileged apps can request credentials on behalf of other services</string>
     <string name="pref_item_clipboard_auto_clear_title">Automatically clear clipboard</string>
     <string name="pref_item_clipboard_auto_clear_immediately_text">Immediately</string>
     <string name="pref_item_clipboard_auto_clear_never_text">Never</string>
@@ -2129,11 +2193,11 @@
     <string name="pref_item_allow_two_panel_layout_in_portrait_title">Allow two panel layout in portrait mode</string>
     <string name="pref_item_gpg_agent_approvals_note">Approvals are remembered for the selected duration and scope. Signing and decryption require separate approvals. Locking the vault clears remembered approvals.</string>
     <string name="pref_item_gpg_keyserver_search_title">GPG keyserver search</string>
-    <string name="pref_item_gpg_keyserver_search_text">Find public GPG keys by e-mail, fingerprint, key ID, or name</string>
+    <string name="pref_item_gpg_keyserver_search_text">Find public GPG keys by email address, fingerprint, key ID, or name</string>
     <string name="pref_item_gpg_keyserver_url_title">Keyserver</string>
     <string name="pref_item_gpg_keyserver_url_text">Server used to look up and refresh public GPG keys</string>
     <string name="pref_item_gpg_keyserver_protocol_title">Keyserver protocol</string>
-    <string name="pref_item_gpg_keyserver_auto_refresh_title">Auto-refresh public keys</string>
+    <string name="pref_item_gpg_keyserver_auto_refresh_title">Automatically refresh public keys</string>
     <string name="pref_item_gpg_keyserver_auto_refresh_note">While the app is active and the vault is unlocked, Keyguard contacts your configured GPG keyserver at the selected interval using the fingerprint of each GPG item that contains only a public key. If a matching public key is found, Keyguard updates the stored public key, key metadata, and keyserver status.</string>
     <string name="pref_item_gpg_keyserver_refresh_interval_title">Refresh interval</string>
     <string name="theme_dark">Dark</string>
@@ -2202,7 +2266,7 @@
     <string name="webdav_settings_url_title">WebDAV URL</string>
     <string name="webdav_settings_auth_note">If your WebDAV server requires authentication, enter your server credentials here. Do not enter your master password.</string>
     <string name="webdav_settings_test_title">Test connection</string>
-    <string name="webdav_settings_test_text">Writes and removes a small probe file to verify server access.</string>
+    <string name="webdav_settings_test_text">Writes and deletes a small test file to check access to the server.</string>
     <string name="webdav_settings_test_text_read_only">Reads the resource to verify server access.</string>
     <string name="remote_connection_test_success"><xliff:g id="protocol" example="WebDAV">%1$s</xliff:g> connection verified.</string>
     <string name="webdav_settings_password_requires_username_error">Enter a username before setting a WebDAV password.</string>
@@ -2211,7 +2275,7 @@
     <string name="webdav_picker_choose_folder">Choose this folder</string>
     <string name="webdav_picker_refresh">Refresh folder</string>
     <string name="webdav_picker_empty">This folder is empty.</string>
-    <string name="webdav_picker_error">Could not load this folder.</string>
+    <string name="webdav_picker_error">Unable to load this folder.</string>
     <string name="webdav_picker_filename_required">Enter a database name.</string>
     <string name="webdav_picker_filename_invalid">The database name cannot contain path separators.</string>
     <string name="webdav_picker_filename_extension">The database name must end with %1$s.</string>
@@ -2247,15 +2311,15 @@
     <string name="gpg_agent_request_approval_decrypt_message_known_app"><xliff:g id="who" example="Keyguard">%1$s</xliff:g> wants to use the following GPG key to decrypt data:</string>
     <string name="gpg_agent_request_approval_decrypt_message_unknown_app">An application wants to use the following GPG key to decrypt data:</string>
     <string name="gpg_agent_setup_intro">Set up GnuPG to use Keyguard's GPG agent for signing and decryption without exposing private key material.</string>
-    <string name="gpg_agent_setup_unsupported_text">The GPG agent is not available on this device.</string>
+    <string name="gpg_agent_setup_unsupported_text">The GPG agent is unavailable on this device.</string>
     <string name="gpg_agent_setup_step_1_title">1. Enable GPG agent in Keyguard</string>
-    <string name="gpg_agent_setup_step_1_text">Open GPG settings, enable GPG agent, and make sure the vault contains a GPG key the agent is allowed to use.</string>
+    <string name="gpg_agent_setup_step_1_text">Open GPG settings, enable the GPG agent and make sure the vault contains a GPG key that the agent is allowed to use.</string>
     <string name="gpg_agent_setup_step_2_title">2. Configure GNUPGHOME</string>
     <string name="gpg_agent_setup_step_2_text">Run GnuPG commands from a shell that points to Keyguard's agent home. Keyguard listens on the agent socket that GnuPG resolves for this home.</string>
     <string name="gpg_agent_setup_step_3_title">3. Import the public key</string>
-    <string name="gpg_agent_setup_step_3_text">Export the public key from the GPG Key item in Keyguard, then import it into this GnuPG home. This exposes only public key material.</string>
+    <string name="gpg_agent_setup_step_3_text">Export the public key from the GPG Key item in Keyguard, then import it into this GnuPG home directory. This exposes only public key material.</string>
     <string name="gpg_agent_setup_step_4_title">4. Verify</string>
-    <string name="gpg_agent_setup_step_4_text">List Keyguard-visible keys, then sign a short message. Replace YOUR_KEY_FINGERPRINT with the fingerprint from the imported key.</string>
+    <string name="gpg_agent_setup_step_4_text">List the keys visible to Keyguard, then sign a short message. Replace YOUR_KEY_FINGERPRINT with the fingerprint from the imported key.</string>
     <string name="gpg_agent_setup_step_5_title">5. Sign Git commits</string>
     <string name="gpg_agent_setup_step_5_text">Use the same GNUPGHOME when Git signs commits. Keep the config local to one repository, or change --local to --global.</string>
     <string name="gpg_agent_setup_windows_native_gnupg_note">Windows requires a native GnuPG installation. The GPG bundled with Git for Windows is not compatible with this setup.</string>
@@ -2283,7 +2347,7 @@
     <string name="gpg_key_sec_pub">sec/pub</string>
     <string name="gpg_key_secret_key">Secret key</string>
     <string name="gpg_key_subkey_n">Subkey <xliff:g id="index" example="1">%1$d</xliff:g></string>
-    <string name="gpg_tools_public_key_invalid">Paste valid armored public certificates. Unsupported or incomplete input cannot be added.</string>
+    <string name="gpg_tools_public_key_invalid">Paste valid armoured public certificates. Unsupported or incomplete input cannot be added.</string>
     <string name="gpg_tools_public_key_private">Paste public certificates only. Private keys cannot be added here.</string>
     <string name="gpg_tools_public_key_not_encryptable">Every recipient must have a currently usable encryption key.</string>
     <string name="gpg_tools_export_failed">Could not save the result. Try another location.</string>
@@ -2310,17 +2374,21 @@
     <string name="gpg_tools_operation_decrypt_text">Decrypt text or files with stored private keys</string>
     <string name="gpg_tools_operation_sign_text">Sign text or files with a stored private key</string>
     <string name="gpg_tools_operation_verify_text">Verify inline or detached signatures</string>
+    <string name="gpg_tools_drop_file_to_encrypt">Drop a file to encrypt it</string>
+    <string name="gpg_tools_drop_file_to_decrypt">Drop a file to decrypt it</string>
+    <string name="gpg_tools_drop_file_to_sign">Drop a file to sign it</string>
+    <string name="gpg_tools_drop_file_to_verify">Drop a file to verify it</string>
     <string name="gpg_tools_mode_cleartext">Cleartext</string>
     <string name="gpg_tools_mode_inline">Inline</string>
     <string name="gpg_tools_mode_detached">Detached</string>
-    <string name="gpg_tools_armor_label">Armor</string>
+    <string name="gpg_tools_armor_label">Armour</string>
     <string name="gpg_tools_sign_encrypted_message">Sign</string>
     <string name="gpg_tools_sign_none">Don&apos;t sign</string>
     <string name="gpg_tools_signed_text_label">Signed text</string>
     <string name="gpg_tools_encrypted_text_label">Encrypted message</string>
     <string name="gpg_tools_signature_label">Signature</string>
     <string name="gpg_tools_pasted_public_key_label">Public key</string>
-    <string name="gpg_tools_pasted_public_key_placeholder">Paste an armored public key block</string>
+    <string name="gpg_tools_pasted_public_key_placeholder">Paste an armoured public key block</string>
     <string name="gpg_tools_select_signing_key">Signing key</string>
     <string name="gpg_tools_select_recipients">Recipients</string>
     <string name="gpg_tools_stored_public_keys_note">Stored public keys are used automatically for verification.</string>
@@ -2331,7 +2399,7 @@
     <string name="gpg_tools_missing_private_key">No decryption-capable private key is available</string>
     <string name="gpg_tools_select_input_file">Input file</string>
     <string name="gpg_tools_select_signature_file">Signature file</string>
-    <string name="gpg_tools_clear_file">Clear</string>
+    <string name="gpg_tools_clear_file">Clear selection</string>
     <string name="gpg_tools_run_success">GPG operation completed</string>
     <string name="gpg_tools_valid_signature">Valid signature</string>
     <string name="gpg_tools_invalid_input">Could not read the OpenPGP input. Check the message, signature, and selected keys.</string>
@@ -2339,43 +2407,43 @@
     <string name="gpg_tools_missing_public_key">Missing public key</string>
     <string name="gpg_tools_signature_by">Signed by <xliff:g id="signer" example="0123 ABCD">%1$s</xliff:g></string>
     <string name="gpg_tools_signature_created_at">Created <xliff:g id="date" example="2026-06-28T12:30:00Z">%1$s</xliff:g></string>
-    <string name="gpg_tools_warning_key_revoked">Warning: signing key is revoked</string>
-    <string name="gpg_tools_warning_key_expired">Warning: signing key is expired</string>
-    <string name="gpg_tools_warning_signature_expired">Warning: signature is expired</string>
-    <string name="gpg_tools_warning_policy_conflict">Warning: signing key has conflicting policy information</string>
-    <string name="gpg_tools_warning_weak_digest">Warning: signature uses a weak digest algorithm</string>
+    <string name="gpg_tools_warning_key_revoked">Warning: the signing key has been revoked</string>
+    <string name="gpg_tools_warning_key_expired">Warning: the signing key has expired</string>
+    <string name="gpg_tools_warning_signature_expired">Warning: the signature has expired</string>
+    <string name="gpg_tools_warning_policy_conflict">Warning: the signing key has conflicting policy information</string>
+    <string name="gpg_tools_warning_weak_digest">Warning: the signature uses a weak digest algorithm</string>
     <string name="gpg_tools_warning_weak_rsa_decryption_key">Warning: message was decrypted with a weak RSA key</string>
-    <string name="gpg_tools_warning_elgamal_decryption_key">Warning: message was decrypted with a legacy ElGamal key</string>
+    <string name="gpg_tools_warning_elgamal_decryption_key">Warning: the message was decrypted using a legacy ElGamal key</string>
     <string name="gpg_tools_file_required">Choose an input file</string>
     <string name="gpg_tools_signature_file_required">Choose a signature file</string>
     <string name="gpg_tools_text_required">Enter text to process</string>
     <string name="gpg_tools_public_key_title">Custom public key</string>
-    <string name="gpg_tools_public_key_description">Paste an armored public key block to use for this operation. It is used in addition to your stored keys.</string>
+    <string name="gpg_tools_public_key_description">Paste an armoured public key block to use for this operation. It is used in addition to your stored keys.</string>
     <string name="gpg_tools_public_key_add">Add a public key</string>
     <string name="gpg_keyserver_search_header_title">GPG keyserver search</string>
-    <string name="gpg_keyserver_search_placeholder">Search e-mail, fingerprint, key ID, or name</string>
-    <string name="gpg_keyserver_search_empty_query_label">Enter an e-mail, fingerprint, key ID, or name</string>
+    <string name="gpg_keyserver_search_placeholder">Search email, fingerprint, key ID, or name</string>
+    <string name="gpg_keyserver_search_empty_query_label">Enter an email address, fingerprint, key ID, or name</string>
     <string name="gpg_keyserver_search_empty_label">No public keys found</string>
-    <string name="gpg_keyserver_search_error_text">Failed to search public keys</string>
+    <string name="gpg_keyserver_search_error_text">Failed to search for public keys</string>
     <string name="gpg_keyserver_search_revoked_label">Revoked</string>
     <string name="gpg_keyserver_search_index_label">Index</string>
-    <string name="gpg_keyserver_search_public_key_not_found_title">GPG public key not found on keyserver</string>
+    <string name="gpg_keyserver_search_public_key_not_found_title">GPG public key not found on the keyserver</string>
     <string name="gpg_keyserver_search_scan_no_fingerprint_title">The QR code has no GPG key fingerprint</string>
     <string name="gpg_keyserver_error_unexpected_fingerprint">The keyserver returned a GPG public key with a different fingerprint</string>
     <string name="gpg_keyserver_error_v6_unsupported">This keyserver does not support V6 GPG keys</string>
     <string name="gpg_keyserver_error_short_key_id_title">Short key IDs are not supported</string>
     <string name="gpg_keyserver_error_short_key_id_text">Short key IDs are not unique. Search by fingerprint or long key ID.</string>
     <string name="gpg_keyserver_upload_success_title">GPG public key uploaded</string>
-    <string name="gpg_keyserver_upload_verify_already_published_text">The selected e-mail addresses are already verified.</string>
+    <string name="gpg_keyserver_upload_verify_already_published_text">The selected email addresses are already verified.</string>
     <string name="gpg_keyserver_refresh_success_title">GPG public key refreshed</string>
-    <string name="gpg_keyserver_refresh_not_found_title">GPG public key not found on keyserver</string>
+    <string name="gpg_keyserver_refresh_not_found_title">GPG public key not found on the keyserver</string>
     <string name="gpg_keyserver_refresh_failed_title">Could not refresh GPG public key</string>
     <string name="gpg_keyserver_refresh_skipped_title">GPG public key cannot be refreshed</string>
     <string name="gpg_keyserver_verify_unknown_title">GPG public key verification status is unknown</string>
-    <string name="gpg_keyserver_verify_not_found_title">GPG public key not found on keyserver</string>
-    <string name="gpg_keyserver_verify_unverified_title">GPG public key found without verified e-mail</string>
+    <string name="gpg_keyserver_verify_not_found_title">GPG public key not found on the keyserver</string>
+    <string name="gpg_keyserver_verify_unverified_title">GPG public key found without a verified email address</string>
     <string name="gpg_keyserver_verify_verified_title">GPG public key verified</string>
-    <string name="gpg_keyserver_verify_revoked_title">GPG public key revoked</string>
+    <string name="gpg_keyserver_verify_revoked_title">GPG public key has been revoked</string>
     <string name="gpg_keyserver_status_title">GPG keyserver</string>
     <string name="gpg_keyserver_status_not_checked">Not checked</string>
     <string name="gpg_keyserver_status_checked_at">Checked <xliff:g id="date" example="1 January 1970 12:30">%1$s</xliff:g></string>
@@ -2390,7 +2458,7 @@
     <string name="cipher_links_outgoing_title">Linked items</string>
     <string name="cipher_links_incoming_title">Referenced by</string>
     <string name="cipher_link_unavailable_title">Item unavailable</string>
-    <string name="cipher_link_picker_title">Select linked item</string>
+    <string name="cipher_link_picker_title">Select an item to link</string>
     <string name="cipher_link_picker_action">Link to an item</string>
     <string name="pref_item_automatic_backups_initialization_error">Automatic backups could not start. Retry to reload the backup settings.</string>
     <string name="pref_item_automatic_backups_folder_access_help">If folder access is lost, choose the folder again to restore permission.</string>
@@ -2696,4 +2764,33 @@
     <string name="text_diff_removed_line">Removed line</string>
     <string name="text_diff_original_line">Original line <xliff:g id="number" example="12">%1$d</xliff:g></string>
     <string name="text_diff_new_line">New line <xliff:g id="number" example="12">%1$d</xliff:g></string>
+    <string name="attachment_drag_preparing">Preparing file. Keep holding to drag.</string>
+    <string name="attachment_drag_hint">Drag attachment to another app</string>
+    <string name="attachment_drag_error">Could not prepare the attachment for dragging</string>
+    <string name="drag_out_error">Could not start dragging</string>
+    <string name="client_certificate">Client certificate</string>
+    <string name="client_certificate_not_configured">Not configured</string>
+    <string name="client_certificate_add">Add certificate</string>
+    <string name="client_certificate_replace">Replace certificate</string>
+    <string name="client_certificate_remove">Remove certificate</string>
+    <string name="client_certificate_remove_title">Remove client certificate?</string>
+    <string name="client_certificate_remove_note">This account may stop syncing if the server requires a client certificate.</string>
+    <string name="client_certificate_note">Keyguard presents this certificate when it connects to this server. Its private key is stored in your encrypted vault.</string>
+    <string name="client_certificate_saved">Client certificate saved</string>
+    <string name="client_certificate_removed">Client certificate removed</string>
+    <string name="client_certificate_conflict">The certificate changed elsewhere. Reopen this screen to edit the latest certificate.</string>
+    <string name="client_certificate_unavailable">This account is no longer available for certificate changes.</string>
+    <string name="client_certificate_expired">This certificate has expired. The server may reject it.</string>
+    <string name="client_certificate_too_large">The certificate file must be 4 MB or smaller.</string>
+    <string name="client_certificate_expires">Expires %1$s</string>
+    <string name="client_certificate_issuer">Issued by %1$s</string>
+    <string name="client_certificate_empty_title">No client certificate</string>
+    <string name="client_certificate_empty_text">Add one if your server requires mutual TLS.</string>
+    <string name="client_certificate_file_types">PKCS#12 file (.p12 or .pfx)</string>
+    <string name="client_certificate_unsaved">Not saved</string>
+    <string name="client_certificate_details">Details</string>
+    <string name="client_certificate_subject">Subject</string>
+    <string name="client_certificate_serial_number">Serial number</string>
+    <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
+    <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
 </resources>

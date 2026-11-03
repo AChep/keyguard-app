@@ -555,8 +555,8 @@
     "target": 5469,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 22,
-    "negativeVotes": 3,
+    "positiveVotes": 24,
+    "negativeVotes": 6,
     "winning": 0
   },
   {
@@ -783,11 +783,11 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 6376,
-    "target": 10653,
+    "translated": 7187,
+    "target": 12008,
     "approved": 0,
-    "voted": 17,
-    "positiveVotes": 14,
+    "voted": 32,
+    "positiveVotes": 13,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -963,8 +963,8 @@
     "target": 1320,
     "approved": 0,
     "voted": 4,
-    "positiveVotes": 7,
-    "negativeVotes": 0,
+    "positiveVotes": 8,
+    "negativeVotes": 1,
     "winning": 0
   },
   {
@@ -1398,7 +1398,7 @@
       "id": "16247856",
       "username": "lucasmz.dev",
       "fullName": "Lucas (lucasmz.dev)",
-      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16247856/medium/91482f0aaca365225b9cce1b2666483e.jpg",
+      "avatarUrl": "https://crowdin-static.cf-downloads.crowdin.com/avatar/16247856/medium/370aa233aca4339cfbeb7ddf5940186c.png",
       "joined": "2024-03-31 23:41:48"
     },
     "languages": [
@@ -2032,7 +2032,7 @@
     "approved": 0,
     "voted": 6,
     "positiveVotes": 0,
-    "negativeVotes": 0,
+    "negativeVotes": 8,
     "winning": 0
   },
   {
@@ -2120,7 +2120,7 @@
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,
-    "negativeVotes": 0,
+    "negativeVotes": 1,
     "winning": 0
   },
   {
@@ -2203,8 +2203,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 14337,
-    "target": 16424,
+    "translated": 14437,
+    "target": 16539,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

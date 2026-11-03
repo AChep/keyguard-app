@@ -309,13 +309,7 @@ internal class BitwardenJsonImporter(
                 ),
                 card = item.card?.toCreateRequest() ?: CreateRequest.Card(),
                 identity = item.identity?.toCreateRequest() ?: CreateRequest.Identity(),
-                sshKey = (item.sshKey?.toCreateRequest() ?: CreateRequest.SshKey())
-                    .copy(
-                        certificate = transport.certificate,
-                        bookmarks = transport.bookmarks.map { bookmark ->
-                            DSecret.SshKey.Bookmark(name = bookmark.name, url = bookmark.url)
-                        }.toPersistentList(),
-                    ),
+                sshKey = item.sshKey.toCreateRequest(transport),
                 gpgKey = keyguard.gpgKey,
                 environment = keyguard.environment,
             )
@@ -416,10 +410,16 @@ private fun ItemCardExportEntity.toCreateRequest() = CreateRequest.Card(
     code = code,
 )
 
-private fun ItemSshKeyExportEntity.toCreateRequest() = CreateRequest.SshKey(
-    privateKey = privateKey,
-    publicKey = publicKey,
-    fingerprint = keyFingerprint,
+private fun ItemSshKeyExportEntity?.toCreateRequest(
+    transport: BitwardenTransportFields.Decoded,
+) = CreateRequest.SshKey(
+    privateKey = this?.privateKey,
+    publicKey = this?.publicKey,
+    fingerprint = this?.keyFingerprint,
+    certificate = transport.certificate,
+    bookmarks = transport.bookmarks.map { bookmark ->
+        DSecret.SshKey.Bookmark(name = bookmark.name, url = bookmark.url)
+    }.toPersistentList(),
 )
 
 /**

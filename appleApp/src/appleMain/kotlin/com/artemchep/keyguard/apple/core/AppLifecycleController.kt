@@ -8,22 +8,18 @@ import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.session.VaultSessionPersister
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
-import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.copy.AppleManagedImportFiles
-import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.apple.KeyguardCore
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.onState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.lock_reason_manually
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import org.koin.core.qualifier.named
@@ -61,10 +57,6 @@ internal class AppLifecycleController(
         // unlocked, so no gating is needed here (the same entry point as desktop).
         val appWorker = ctx.koin.get<AppWorker>(qualifier = named(AppWorker.Feature.SYNC))
         appWorker.launch(ctx.backgroundScope, lifecycleStateFlow)
-
-        // Populate the per-account favicon servers so website icon URLs can be
-        // resolved. Without it the transform no-ops and no favicon URL is produced.
-        startFaviconServers()
 
         // Write (or clear) the persisted master key, so the vault survives app
         // restarts while "Keep the vault unlocked" is on.
@@ -105,19 +97,6 @@ internal class AppLifecycleController(
         backupSchedulerStarted = true
         ctx.koin.get<com.artemchep.keyguard.common.service.backup.BackupSchedulerWorker>()
             .start(ctx.backgroundScope, lifecycleStateFlow)
-    }
-
-    private fun startFaviconServers() {
-        ctx.backgroundScope.launch {
-            ctx.unlockUseCase().collectLatest { state ->
-                if (state is VaultState.Main) {
-                    val getAccounts = state.sessionKoin.get<GetAccounts>()
-                    coroutineScope {
-                        Favicon.launch(this, getAccounts)
-                    }
-                }
-            }
-        }
     }
 
     private fun startVaultPersist() {

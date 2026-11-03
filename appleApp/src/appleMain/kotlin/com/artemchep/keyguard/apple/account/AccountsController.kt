@@ -230,6 +230,7 @@ internal class AccountsController(
                         collectionsRouteFactory = get(),
                         foldersRouteFactory = get(),
                         organizationsRouteFactory = get(),
+                        mutualTlsService = get(),
                         db = get(),
                         accountId = AccountId(accountId),
                     )

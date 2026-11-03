@@ -1,5 +1,9 @@
 package com.artemchep.keyguard.apple
 
+import com.artemchep.keyguard.apple.account.AccountClientCertificateSession
+import com.artemchep.keyguard.apple.icon.IconImageBridge
+import com.artemchep.keyguard.util.io.toNSData
+import platform.Foundation.NSData
 import com.artemchep.keyguard.apple.core.sessionKoin
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
@@ -222,6 +226,15 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     suspend fun closeAutofillSession() = appLifecycleController.closeAutofillSession()
 
     fun syncVault() = appLifecycleController.syncVault()
+
+    private val iconImageBridge by lazy { IconImageBridge(context.koin.get()) }
+
+    /**
+     * Downloads the image of an `iconKey` from a snapshot. Returns `nil` if the icon
+     * settings do not allow it or there is nothing to load; throws if the download fails.
+     */
+    @Throws(Exception::class)
+    suspend fun loadIcon(key: String): NSData? = iconImageBridge.load(key)?.toNSData()
 
     private val quickCopyController by lazy { QuickCopyController(context) }
 
@@ -1168,6 +1181,12 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun observeSyncStatus(
         onChange: (SyncStatusSnapshot) -> Unit,
     ): KeyguardCancellable = accountsController.observeSyncStatus(onChange)
+
+    fun makeAccountClientCertificateSession(accountId: String): AccountClientCertificateSession =
+        AccountClientCertificateSession(
+            context, accountId,
+            com.artemchep.keyguard.apple.dialog.FormDialogsSession(newFormDialogController()),
+        )
 
     fun makeAccountDetailSession(accountId: String): AccountDetailSession =
         accountsController.makeDetailSession(accountId)

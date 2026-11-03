@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioUnit
@@ -198,7 +199,7 @@ private class NotificationsFixture(
         connectivityService = NoopConnectivityService,
         fileWatcherService = fileWatcherService,
         json = Json.Default,
-        httpClient = httpClient,
+        httpClientProvider = BitwardenHttpClientProvider { httpClient },
         db = UnusedVaultDatabaseManager,
         queueSyncById = queueSyncById,
         queueSyncAll = NoopQueueSyncAll,

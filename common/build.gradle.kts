@@ -75,6 +75,22 @@ tasks.withType<Test>().configureEach {
     timeout.set(Duration.ofMinutes(10))
 }
 
+// Real-network tests are explicitly run by scripts/run_mtls_tests.py, which owns
+// the disposable TLS servers. A missing fixture must fail, never silently skip.
+val mtlsTests = providers.gradleProperty("keyguard.mtlsTests").map(String::toBoolean).getOrElse(false)
+if (mtlsTests) {
+    val port = providers.environmentVariable("KEYGUARD_MTLS_PORT").get()
+    tasks.withType<Test>().configureEach {
+        environment("KEYGUARD_MTLS_PORT", port)
+        outputs.upToDateWhen { false }
+    }
+    tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest>().configureEach {
+        environment("KEYGUARD_MTLS_PORT", port)
+        environment("SIMCTL_CHILD_KEYGUARD_MTLS_PORT", port)
+        outputs.upToDateWhen { false }
+    }
+}
+
 // The desktop agents serve their helpers over util/agent-ipc. Only the desktop
 // tests load its library, so the Android host tests never build it.
 configureNativeLibraryTests(":util:agent-ipc", testTaskName = "desktopTest")
@@ -266,6 +282,7 @@ kotlin {
             kotlin.include("com/artemchep/keyguard/common/service/download/TestDownloadAttachmentSourceLoader.kt")
             kotlin.include("com/artemchep/keyguard/common/service/vault/TestVaultSession.kt")
             kotlin.include("com/artemchep/keyguard/test/RecordingLogRepository.kt")
+            kotlin.include("com/artemchep/keyguard/test/MemoryStagingSpoolFactory.kt")
             kotlin.include("com/artemchep/keyguard/test/TestCryptoGenerator.kt")
             kotlin.include("com/artemchep/keyguard/test/IdentityBase64Service.kt")
             kotlin.include("com/artemchep/keyguard/test/TestBitwardenCr.kt")
@@ -292,6 +309,12 @@ kotlin {
 
         sharedAppleTest(parent = appleCommonTest)
         getByName("appleTest").kotlin.srcDir("src/appleTestFixtures/kotlin")
+        if (mtlsTests) {
+            getByName("appleTest").kotlin.srcDirs("src/mtlsTest/kotlin", "src/mtlsAppleTest/kotlin")
+            getByName("desktopTest").kotlin.srcDirs(
+                "src/mtlsTest/kotlin", "src/mtlsJvmTest/kotlin", "src/mtlsDesktopTest/kotlin",
+            )
+        }
 
         getByName("androidHostTest") {
             kotlin.srcDir("src/androidUnitTest/kotlin")
@@ -319,7 +342,6 @@ kotlin {
             implementation(libs.halilibo.richtext.ui.material3)
             implementation(libs.halilibo.richtext.commonmark)
             implementation(libs.halilibo.richtext.markdown)
-            implementation(libs.mm2d.touchicon)
             implementation(libs.google.zxing.core)
             implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
             implementation(libs.squareup.okhttp)

@@ -20,7 +20,7 @@ import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenCipherRepos
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenOrganizationRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenProfileRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import kotlinx.serialization.json.Json
 
 /**
@@ -36,7 +36,7 @@ class DownloadAttachmentMetadataImpl2(
     private val cryptoGenerator: CryptoGenerator,
     private val base64Service: Base64Service,
     private val json: Json,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
 ) : DownloadAttachmentMetadata {
     private val bitwardenDelegate = DownloadAttachmentMetadataBitwardenImpl(
         tokenRepository = tokenRepository,
@@ -48,7 +48,7 @@ class DownloadAttachmentMetadataImpl2(
         cryptoGenerator = cryptoGenerator,
         base64Service = base64Service,
         json = json,
-        httpClient = httpClient,
+        httpClientProvider = httpClientProvider,
         shouldRethrow = { it.isUnknownHostException() },
     )
 

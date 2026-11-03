@@ -1,11 +1,13 @@
 package com.artemchep.keyguard.common.service.http
 
+import com.artemchep.keyguard.common.service.icon.IconLocalRedirectGuard
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.provider.bitwarden.api.BitwardenPersona
 import com.artemchep.keyguard.provider.bitwarden.api.builder.configureBitwardenHttpRetry
 import io.ktor.client.HttpClientConfig
 import io.ktor.client.plugins.CurlUserAgent
 import io.ktor.client.plugins.HttpRequestRetry
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.UserAgent
 import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -44,4 +46,22 @@ fun HttpClientConfig<*>.configureKeyguardHttpClient(
     }
 }
 
+/**
+ * Installs the plugins of the client that downloads icons from third-party
+ * websites. It does not identify as a Bitwarden client, does not retry and
+ * does not cache: the image loaders cache the results. A website can not
+ * redirect it to a local address.
+ */
+fun HttpClientConfig<*>.configureKeyguardIconHttpClient() {
+    CurlUserAgent()
+    install(IconLocalRedirectGuard)
+    install(HttpTimeout) {
+        connectTimeoutMillis = ICON_CONNECT_TIMEOUT_MS
+        requestTimeoutMillis = ICON_REQUEST_TIMEOUT_MS
+    }
+}
+
 private const val HTTP_PING_INTERVAL_MS = 20_000L
+
+private const val ICON_CONNECT_TIMEOUT_MS = 10_000L
+private const val ICON_REQUEST_TIMEOUT_MS = 15_000L

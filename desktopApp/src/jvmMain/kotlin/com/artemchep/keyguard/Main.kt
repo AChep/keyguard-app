@@ -34,11 +34,8 @@ import coil3.SingletonImageLoader
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.di.ImageLoadingModule
 import com.artemchep.keyguard.common.di.setFromKoin
-import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.Files
-import com.artemchep.keyguard.common.service.app.AppIconFetcher
-import com.artemchep.keyguard.common.service.app.AppIconKeyer
 import com.artemchep.keyguard.common.service.clipboard.ClipboardEventBus
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -80,7 +77,6 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.service.agent.superviseAgent
 import com.artemchep.keyguard.desktop.ui.showAgentFailure
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
-import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
 import com.artemchep.keyguard.common.usecase.GetGpgAgent
 import com.artemchep.keyguard.common.usecase.GetLocale
@@ -118,8 +114,6 @@ import com.artemchep.keyguard.desktop.util.requestAppForeground
 import com.artemchep.keyguard.desktop.util.requestFocusWithRetry
 import com.artemchep.keyguard.di.GlobalModuleCommon
 import com.artemchep.keyguard.di.VaultModuleCommon
-import com.artemchep.keyguard.di.resolve
-import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.keyguard.AppRoute
 import com.artemchep.keyguard.feature.navigation.BackHandler
 import com.artemchep.keyguard.feature.navigation.LocalNavigationBackHandler
@@ -158,15 +152,12 @@ import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runInterruptible
@@ -216,10 +207,7 @@ fun main(args: Array<String>) {
 }
 
 internal fun createDesktopKoinApplication(): org.koin.core.KoinApplication {
-    val images = ImageLoadingModule { scope ->
-        add(AppIconFetcher.Factory(scope.get(), scope.get()))
-        add(AppIconKeyer())
-    }
+    val images = ImageLoadingModule()
     return koinApplication {
         allowOverride(false)
         modules(
@@ -292,19 +280,6 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
     val cryptoGenerator by lazy { koin.get<CryptoGenerator>() }
     val getVaultSession by lazy { koin.get<GetVaultSession>() }
     val putVaultSession by lazy { koin.get<PutVaultSession>() }
-    getVaultSession()
-        .map { session ->
-            val key = session as? MasterSession.Key
-            key?.session?.resolve { get<GetAccounts>() }
-        }
-        .mapLatest { getAccounts ->
-            if (getAccounts != null) {
-                coroutineScope {
-                    Favicon.launch(this, getAccounts)
-                }
-            }
-        }
-        .launchIn(GlobalScope)
 
     // locale
     val systemLocale = Locale.getDefault()

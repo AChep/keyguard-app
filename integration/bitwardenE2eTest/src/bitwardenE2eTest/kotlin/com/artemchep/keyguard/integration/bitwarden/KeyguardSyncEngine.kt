@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.integration.bitwarden
 
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import app.cash.sqldelight.db.AfterVersion
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
@@ -133,7 +134,7 @@ internal class KeyguardSyncEngine private constructor(
                 base64Service = fixture.base64Service,
                 getPasswordStrength = ConstantPasswordStrength,
                 json = fixture.json,
-                httpClient = fixture.httpClient,
+                httpClientProvider = BitwardenHttpClientProvider { fixture.httpClient },
                 db = db,
                 dbSyncer = DatabaseSyncer(fixture.cryptoGenerator),
                 pendingUploadCoordinator = FailingPendingUploadCoordinator,

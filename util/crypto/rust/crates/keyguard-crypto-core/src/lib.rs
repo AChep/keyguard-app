@@ -10,6 +10,7 @@ mod legacy_pem;
 mod openpgp;
 mod padding;
 mod passkeys;
+mod pkcs12;
 mod pkcs8_pbes2;
 mod primitives;
 pub mod protocol;
@@ -110,6 +111,8 @@ pub const CAPABILITY_OPENPGP_USER_ID_CERTIFICATION: u64 = 1 << 33;
 pub const CAPABILITY_OPENPGP_STREAM_DRAIN: u64 = 1 << 34;
 /// V4 and V6 OpenPGP generation and certificate mutations.
 pub const CAPABILITY_OPENPGP_V6_GENERATION_MUTATION: u64 = 1 << 35;
+/// PKCS#12 client-identity import and metadata.
+pub const CAPABILITY_PKCS12: u64 = 1 << 36;
 /// Complete capability set provided by this native library revision.
 pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_PBKDF2_SHA256
@@ -145,7 +148,8 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_OPENPGP_CERTIFICATE_MATERIAL_RECONCILE_V2
     | CAPABILITY_OPENPGP_USER_ID_CERTIFICATION
     | CAPABILITY_OPENPGP_STREAM_DRAIN
-    | CAPABILITY_OPENPGP_V6_GENERATION_MUTATION;
+    | CAPABILITY_OPENPGP_V6_GENERATION_MUTATION
+    | CAPABILITY_PKCS12;
 
 static PANIC_HOOK: Once = Once::new();
 
@@ -525,6 +529,7 @@ fn execute_one_shot(
         native_request::Operation::SshPublicKeyDecode(mut request) => {
             ssh_keys::public_key_decode(std::mem::take(&mut request.public_key_openssh))?
         }
+        native_request::Operation::Pkcs12(request) => pkcs12::process(request),
         native_request::Operation::SshCertificateDescribe(mut request) => {
             ssh_certificates::describe(
                 std::mem::take(&mut request.certificate_openssh),
@@ -623,6 +628,7 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::SshKeyExportCxf(_) => "ssh_key_export_cxf",
         native_request::Operation::SshPublicKeyDecode(_) => "ssh_public_key_decode",
         native_request::Operation::SshCertificateDescribe(_) => "ssh_certificate_describe",
+        native_request::Operation::Pkcs12(_) => "pkcs12",
         native_request::Operation::PasskeyKeyGenerate(_) => "passkey_key_generate",
         native_request::Operation::PasskeyKeyInspect(_) => "passkey_key_inspect",
         native_request::Operation::PasskeySign(_) => "passkey_sign",
@@ -1282,7 +1288,7 @@ mod tests {
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
         assert_eq!(PROTOCOL_VERSION, 3);
-        assert_eq!(CAPABILITIES, 0xf7fffffff);
+        assert_eq!(CAPABILITIES, 0x1f7fffffff);
         assert_eq!(CAPABILITIES & (1 << 31), 0, "bit 31 is retired");
         assert_eq!(CAPABILITY_OPENPGP_V6_GENERATION_MUTATION, 1 << 35);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256, 1 << 20);

@@ -8,7 +8,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60, 61"
+        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60, 61, 62"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -110,6 +110,8 @@ pub mod native_request {
         OpenPgpUserIdUpdate(super::OpenPgpUserIdUpdateRequest),
         #[prost(message, tag = "61")]
         SshCertificateDescribe(super::SshCertificateDescribeRequest),
+        #[prost(message, tag = "62")]
+        Pkcs12(super::Pkcs12Request),
     }
 }
 /// Ends a decryption session's input and returns one bounded output chunk.
@@ -1713,6 +1715,51 @@ pub mod open_pgp_user_id_update_result {
         #[prost(message, tag = "2")]
         Error(super::OpenPgpUserIdMutationError),
     }
+}
+/// Imports or describes a single TLS client identity. Passwords are never returned.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Pkcs12Request {
+    #[prost(bytes = "vec", tag = "1")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", optional, tag = "2")]
+    pub password_utf8: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
+    #[prost(bool, tag = "3")]
+    pub normalize: bool,
+    /// Used only for a transient Apple import wrapper; omitted for account storage.
+    #[prost(bytes = "vec", optional, tag = "4")]
+    pub output_password_utf8: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
+    #[prost(bool, tag = "5")]
+    pub export_private_key: bool,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Pkcs12Result {
+    /// 0 = success, 1 = password required, 2 = incorrect password, 3 = invalid bundle.
+    #[prost(uint32, tag = "1")]
+    pub status: u32,
+    #[prost(bytes = "vec", tag = "2")]
+    pub normalized_pkcs12: ::prost::alloc::vec::Vec<u8>,
+    #[prost(string, tag = "3")]
+    pub display_name: ::prost::alloc::string::String,
+    #[prost(string, tag = "4")]
+    pub issuer: ::prost::alloc::string::String,
+    #[prost(int64, tag = "5")]
+    pub expires_at: i64,
+    #[prost(bytes = "vec", tag = "6")]
+    pub private_key_der: ::prost::alloc::vec::Vec<u8>,
+    /// RFC 2253 distinguished names; issuer is field 4.
+    #[prost(string, tag = "7")]
+    pub subject: ::prost::alloc::string::String,
+    #[prost(string, tag = "8")]
+    pub issuer_common_name: ::prost::alloc::string::String,
+    #[prost(int64, tag = "9")]
+    pub not_before: i64,
+    #[prost(bytes = "vec", tag = "10")]
+    pub serial_number: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "11")]
+    pub sha256_fingerprint: ::prost::alloc::vec::Vec<u8>,
+    /// For example `RSA 2048`, `EC P-256` or `Ed25519`; empty when unknown.
+    #[prost(string, tag = "12")]
+    pub key_type: ::prost::alloc::string::String,
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
 #[repr(i32)]

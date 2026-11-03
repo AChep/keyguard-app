@@ -38,7 +38,24 @@ These fields appear when you select **Custom (self-hosted)**. Usually,
 | **API Server URL** | Empty means the **Server URL** plus `api/`. |
 | **Identity Server URL** | Empty means the **Server URL** plus `identity/`. |
 | **Icons Server URL** | Empty means the **Server URL** plus `icons/`. |
+| **Notifications Server URL** | Empty means the **Server URL** plus `notifications/`. |
+| **Client certificate** | Import a PKCS#12 (`.p12` or `.pfx`) file if your HTTPS server requires mutual TLS. Enter the file password when prompted. |
 | **HTTP headers** | Headers sent with every request to the server, for a reverse proxy that expects them. Select **Add more** for each header, and enter its **Key** and **Value**. |
+
+The client certificate is saved with the encrypted account. Its import password is
+discarded. For an existing account, open **Settings > Accounts**, select the account,
+then choose **Security > Client certificate**. Add or replace the certificate, check
+its details, and select **Save**. Removing it asks for confirmation and applies at once.
+You can make changes while offline; Keyguard then queues a sync.
+Changes leave your account and vault data intact. Active transfers may finish with
+the previous certificate.
+
+On Wear OS, import the certificate while adding the account from your phone.
+Editing a watch account’s certificate is not supported.
+
+Sign-in steps that open in your browser, such as SSO, can't use the
+certificate saved in Keyguard. Install the certificate on your device or in
+your browser as well.
 
 For example, to pass Cloudflare Access, create a service token in Cloudflare
 and add two headers:

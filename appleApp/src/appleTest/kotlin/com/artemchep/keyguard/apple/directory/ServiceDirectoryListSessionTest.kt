@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.apple.directory
 
+import com.artemchep.keyguard.feature.favicon.FaviconUrl
+import com.artemchep.keyguard.feature.favicon.iconRequestOrNull
 import com.artemchep.keyguard.apple.core.EntryListQuery
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
@@ -205,11 +207,11 @@ class ServiceDirectoryListSessionTest {
     }
 
     @Test
-    fun `rows resolve the favicon url from the entry host`() {
-        fun favicon(url: String?) = directoryRows(listOf(entry("Alpha", url))).single().snapshot().faviconUrl
-        assertEquals("https://icons.duckduckgo.com/ip3/example.com.ico", favicon("https://example.com/docs?q=1"))
-        assertEquals("https://icons.duckduckgo.com/ip3/example.com.ico", favicon("example.com/docs"))
-        assertNull(favicon("http://localhost/docs"))
+    fun `rows load the favicon of the entry website`() {
+        fun favicon(url: String?) = directoryRows(listOf(entry("Alpha", url))).single().snapshot().faviconKey
+            ?.let(::iconRequestOrNull)
+        assertEquals(FaviconUrl(url = "https://example.com"), favicon("https://example.com/docs?q=1"))
+        assertEquals(FaviconUrl(url = "https://example.com"), favicon("example.com/docs"))
         assertNull(favicon(null))
     }
 

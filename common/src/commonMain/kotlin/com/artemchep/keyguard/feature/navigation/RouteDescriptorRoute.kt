@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.navigation
 
+import com.artemchep.keyguard.feature.auth.certificate.AccountClientCertificateRoute
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.feature.attachments.AttachmentsRoute
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
@@ -40,6 +41,7 @@ import com.artemchep.keyguard.feature.watchtower.alerts.WatchtowerAlertsRoute
 /** Reconstructs a [Route] from its data-only [RouteDescriptor]. */
 fun RouteDescriptor.toRoute(): Route? = when (this) {
     RouteDescriptor.Environments -> EnvironmentsRoute
+    is RouteDescriptor.AccountClientCertificate -> AccountClientCertificateRoute(accountId)
     is RouteDescriptor.EnvironmentEdit -> EnvironmentEditRoute(environmentId)
     is RouteDescriptor.VaultCipherView ->
         VaultViewRoute(itemId = itemId, accountId = accountId)

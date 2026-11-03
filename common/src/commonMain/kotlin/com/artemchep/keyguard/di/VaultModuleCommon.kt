@@ -6,6 +6,7 @@ class VaultModuleCommon {
     val module = module {
         includes(
             VaultOperationsModule().module,
+            VaultBitwardenTransportModule().module,
             VaultTransfersModule().module,
             VaultPersistenceModule().module,
             VaultLicensingModule().module,

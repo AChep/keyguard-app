@@ -11,7 +11,6 @@ import com.artemchep.keyguard.feature.home.vault.component.formatCardNumber
 import com.artemchep.keyguard.feature.home.vault.component.obscureCardNumber
 import com.artemchep.keyguard.feature.home.vault.component.vaultItemReferenceLabel
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
-import com.artemchep.keyguard.feature.home.vault.model.VaultUriIcon
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.tags.TagsFieldModel
 import com.artemchep.keyguard.platform.LeContext
@@ -170,7 +169,6 @@ internal suspend fun buildVaultItemSnapshots(
     // a concealed row's value is sent and SwiftUI masks it locally.
     revealedIds: Set<String>? = null,
     onRequestReveal: ((VaultViewItem) -> String?)? = null,
-    uriAppIcons: Map<VaultUriIcon.App, String?> = emptyMap(),
 ): List<VaultItemSnapshot> {
     val out = ArrayList<VaultItemSnapshot>()
 
@@ -291,7 +289,7 @@ internal suspend fun buildVaultItemSnapshots(
                 switchValue = false,
                 actions = item.dropdown.toActionSnapshots(item.id),
                 shapeState = item.shapeState,
-                uriIcon = item.iconSource.toUriIconSnapshot(uriAppIcons),
+                uriIcon = item.iconSource.toUriIconSnapshot(),
                 dragUrl = item.drag?.url,
             )
 

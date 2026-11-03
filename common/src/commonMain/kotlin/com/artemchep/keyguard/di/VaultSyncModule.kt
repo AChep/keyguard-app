@@ -83,7 +83,7 @@ internal class VaultSyncModule {
                     getPasswordStrength = get(),
                     gpgKeyMetadataResolver = getOrNull(),
                     json = get(),
-                    httpClient = get(),
+                    httpClientProvider = get(),
                     db = get(),
                     dbSyncer = get(),
                     pendingUploadCoordinator = get(),

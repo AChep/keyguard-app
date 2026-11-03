@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.service.download.util.disableCache
 import com.artemchep.keyguard.common.service.download.util.throwIfDownloadFailed
 import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
+import com.artemchep.keyguard.provider.bitwarden.transport.AccountHttpClient
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.onDownload
 import io.ktor.client.request.prepareGet
@@ -28,11 +29,22 @@ import kotlinx.io.buffered
 
 @Suppress("TooGenericExceptionCaught")
 class DownloadTaskImpl internal constructor(
-    private val httpClient: HttpClient,
+    private val client: AccountHttpClient,
     private val fileEncryptionCodec: FileEncryptionCodec,
     private val stagingSpoolFactory: StagingSpoolFactory =
         DefaultStagingSpoolFactory(),
 ) : DownloadTask {
+    internal constructor(
+        httpClient: HttpClient,
+        fileEncryptionCodec: FileEncryptionCodec,
+        stagingSpoolFactory: StagingSpoolFactory =
+            DefaultStagingSpoolFactory(),
+    ) : this(
+        client = AccountHttpClient(httpClient),
+        fileEncryptionCodec = fileEncryptionCodec,
+        stagingSpoolFactory = stagingSpoolFactory,
+    )
+
     override fun fileLoader(
         data: ByteArray,
         key: ByteArray?,
@@ -72,31 +84,35 @@ class DownloadTaskImpl internal constructor(
         val downloadContext = currentCoroutineContext()
         val result = try {
             withContext(Dispatchers.IO) {
-                httpClient.prepareGet(url) {
-                    disableCache()
-                    onDownload { downloaded, total ->
-                        trySend(
-                            DownloadProgress.Loading(
-                                downloaded = downloaded,
-                                total = total,
-                            ),
-                        )
-                    }
-                }.execute { response ->
-                    response.status.throwIfDownloadFailed()
-                    response.bodyAsChannel()
-                        .asSource()
-                        .withCancellationChecks(downloadContext::ensureActive)
-                        .buffered()
-                        .use { source ->
-                            writer.writeSource(
-                                source = source,
-                                key = key,
-                                fileEncryptionCodec = fileEncryptionCodec,
-                                stagingSpoolFactory = stagingSpoolFactory,
-                                checkCancellation = downloadContext::ensureActive,
+                // A redirect off the account's servers fails before the
+                // response, so the writer is untouched when it is followed.
+                client.request(url) { httpClient, target ->
+                    httpClient.prepareGet(target) {
+                        disableCache()
+                        onDownload { downloaded, total ->
+                            trySend(
+                                DownloadProgress.Loading(
+                                    downloaded = downloaded,
+                                    total = total,
+                                ),
                             )
                         }
+                    }.execute { response ->
+                        response.status.throwIfDownloadFailed()
+                        response.bodyAsChannel()
+                            .asSource()
+                            .withCancellationChecks(downloadContext::ensureActive)
+                            .buffered()
+                            .use { source ->
+                                writer.writeSource(
+                                    source = source,
+                                    key = key,
+                                    fileEncryptionCodec = fileEncryptionCodec,
+                                    stagingSpoolFactory = stagingSpoolFactory,
+                                    checkCancellation = downloadContext::ensureActive,
+                                )
+                            }
+                    }
                 }
             }
             writer.locationUri().right()

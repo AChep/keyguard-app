@@ -77,7 +77,7 @@ class PlatformVaultModule {
                     connectivityService = get(),
                     fileWatcherService = get(),
                     json = get(),
-                    httpClient = get(),
+                    httpClientProvider = get(),
                     db = get(),
                     queueSyncById = get(),
                     queueSyncAll = get(),

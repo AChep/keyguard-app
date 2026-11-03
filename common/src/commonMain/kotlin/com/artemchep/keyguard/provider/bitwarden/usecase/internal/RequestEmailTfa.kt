@@ -11,7 +11,7 @@ import com.artemchep.keyguard.provider.bitwarden.api.builder.api
 import com.artemchep.keyguard.provider.bitwarden.api.builder.requestEmailCode
 import com.artemchep.keyguard.provider.bitwarden.api.obtainSecrets
 import com.artemchep.keyguard.provider.bitwarden.entity.TwoFactorEmailRequestEntity
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 
 interface RequestEmailTfa : (
     ServerEnv,
@@ -23,7 +23,7 @@ class RequestEmailTfaImpl(
     private val deviceIdUseCase: DeviceIdUseCase,
     private val cryptoGenerator: CryptoGenerator,
     private val base64Service: Base64Service,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
 ) : RequestEmailTfa {
     override fun invoke(
         env: ServerEnv,
@@ -32,7 +32,7 @@ class RequestEmailTfaImpl(
     ): IO<Unit> = ioEffect {
         val secrets = obtainSecrets(
             cryptoGenerator = cryptoGenerator,
-            httpClient = httpClient,
+            httpClient = httpClientProvider.client(env),
             env = env,
             email = email,
             password = password,
@@ -43,7 +43,7 @@ class RequestEmailTfaImpl(
             deviceIdentifier = deviceIdUseCase().bind(),
         )
         env.api.twoFactor.requestEmailCode(
-            httpClient = httpClient,
+            httpClient = httpClientProvider.client(env),
             env = env,
             model = request,
         )

@@ -52,6 +52,7 @@ public enum class NativeCryptoCapability(
     OPENPGP_STREAM_DRAIN(bit = 1L shl 34),
     /** Native OpenPGP generation and certificate mutations support V4 and V6. */
     OPENPGP_V6_GENERATION_MUTATION(bit = 1L shl 35),
+    PKCS12(bit = 1L shl 36),
 }
 
 public object NativeCrypto {

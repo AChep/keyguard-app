@@ -15,7 +15,7 @@ import com.artemchep.keyguard.provider.bitwarden.api.builder.api
 import com.artemchep.keyguard.provider.bitwarden.api.builder.breach
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -28,7 +28,7 @@ class AccountPwnageDataSourceRemoteImpl(
     private val tokenRepository: BitwardenTokenRepository,
     private val base64Service: Base64Service,
     private val json: Json,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
     private val db: VaultDatabaseManager,
 ) : AccountPwnageDataSourceRemote {
     companion object {
@@ -49,7 +49,7 @@ class AccountPwnageDataSourceRemoteImpl(
 
         val breaches = withRefreshableAccessToken(
             base64Service = base64Service,
-            httpClient = httpClient,
+            httpClient = httpClientProvider.client(user.env.back()),
             json = json,
             db = db,
             user = user,
@@ -57,7 +57,7 @@ class AccountPwnageDataSourceRemoteImpl(
             val serverEnv = latestUser.env.back()
             val accessToken = requireNotNull(latestUser.token).accessToken
             serverEnv.api.hibp.breach(
-                httpClient = httpClient,
+                httpClient = httpClientProvider.client(serverEnv),
                 env = serverEnv,
                 token = accessToken,
                 username = username,

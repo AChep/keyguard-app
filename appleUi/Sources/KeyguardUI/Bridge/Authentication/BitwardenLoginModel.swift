@@ -6,6 +6,7 @@ import KeyguardShared
 @Observable
 final class BitwardenLoginModel: SnapshotObserving {
     private let source: any BitwardenLoginSource
+    let filePicker = FilePickerSession()
     let dialogs: DialogsModel?
     private let openExternalURL: @MainActor (String) -> Void
     /// Cancelled once the form is dismissed or signs in; the source is then never observed again.
@@ -53,7 +54,24 @@ final class BitwardenLoginModel: SnapshotObserving {
         guard !lifetime.isCancelled else { return }
         dialogs?.startFormDialogs()
         startObservation(\.loginSubscription) { deliver in
-            source.subscribeLogin(
+            source.setLoginFilePickerRequestHandler { [weak self] request in
+                deliver { model in
+                    // Keep access material only for this import, without copying the private key to a temp file.
+                    model.filePicker.presentFilePicker(
+                        for: request, persistent: true, resolveAfterDismissal: true,
+                        resolve: { [weak self] id, uri, name, size, token in
+                            guard let self, !self.lifetime.isCancelled else { return }
+                            self.source.resolveLoginFilePicker(
+                                requestId: id, uri: uri, name: name, size: size, accessToken: token)
+                        },
+                        cancel: { [weak self] id in
+                            guard let self, !self.lifetime.isCancelled else { return }
+                            self.source.cancelLoginFilePicker(requestId: id)
+                        }
+                    )
+                }
+            }
+            return source.subscribeLogin(
                 onChange: { snapshot in deliver { $0.login = snapshot } },
                 onClose: { deliver { $0.complete() } },
                 onTwofaRequired: { deliver { $0.twofaActive = true } },
@@ -65,6 +83,7 @@ final class BitwardenLoginModel: SnapshotObserving {
 
     /// Ending both subscriptions drops every callback still queued behind the completion.
     private func complete() {
+        filePicker.cancel()
         stopObservation(\.twofaSubscription)
         stopObservation(\.ssoSubscription)
         stopObservation(\.loginSubscription)
@@ -75,6 +94,7 @@ final class BitwardenLoginModel: SnapshotObserving {
     }
 
     func stopLoginObservation() {
+        filePicker.cancel()
         stopTwofaObservation()
         stopSsoObservation()
         dialogs?.stopFormDialogs()

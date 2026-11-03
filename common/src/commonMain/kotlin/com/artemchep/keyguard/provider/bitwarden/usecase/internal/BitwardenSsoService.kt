@@ -39,7 +39,8 @@ import com.artemchep.keyguard.provider.bitwarden.model.Login
 import com.artemchep.keyguard.provider.bitwarden.model.PasswordResult
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenProfileRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
+import com.artemchep.keyguard.provider.bitwarden.transport.clientForKeyConnector
 import io.ktor.client.plugins.retry
 import io.ktor.client.request.bearerAuth
 import io.ktor.client.request.get
@@ -68,7 +69,7 @@ class BitwardenSsoService(
     private val cryptoGenerator: CryptoGenerator,
     private val base64Service: Base64Service,
     private val cipherEncryptor: CipherEncryptor,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
     private val json: Json,
     private val tokenRepository: BitwardenTokenRepository,
     private val profileRepository: BitwardenProfileRepository,
@@ -80,6 +81,7 @@ class BitwardenSsoService(
     fun authenticate(authorization: SsoAuthorization, twoFactor: ServerTwoFactorToken?): IO<SsoAuthenticated> =
         ioEffect(Dispatchers.Default) {
             val env = authorization.request.env
+            val httpClient = httpClientProvider.client(env)
             val response = httpClient.postConnectToken(
                 json = json,
                 env = env,
@@ -127,6 +129,7 @@ class BitwardenSsoService(
 
     fun resendEmail(authorization: SsoAuthorization, email: String, sessionToken: String?): IO<Unit> = ioEffect {
         val env = authorization.request.env
+        val httpClient = httpClientProvider.client(env)
         env.api.twoFactor.requestEmailCode(httpClient, env, TwoFactorEmailRequestEntity(
             email = email,
             deviceIdentifier = deviceIdUseCase().bind(),
@@ -146,14 +149,15 @@ class BitwardenSsoService(
                 generateSecrets(cryptoGenerator, password, prelogin.hash, prelogin.salt)
             } else {
                 val env = authenticated.authorization.request.env
-                obtainSecrets(cryptoGenerator, httpClient, env, profile.email, password)
+                obtainSecrets(cryptoGenerator, httpClientProvider.client(env), env, profile.email, password)
             }
         }
 
     fun unlockWithKeyConnector(accountId: String?, authenticated: SsoAuthenticated): IO<AccountId> =
         unlock(accountId, authenticated, SsoFailure.KEY_CONNECTOR) {
             val url = requireNotNull(authenticated.keyConnectorUrl).trimEnd('/') + "/user-keys"
-            val response = httpClient.get(url) {
+            val env = authenticated.authorization.request.env
+            val response = httpClientProvider.clientForKeyConnector(env, url).get(url) {
                 // A Key Connector is a separate host: it gets the
                 // access token, never the server's custom headers.
                 header("cache-control", "no-cache, no-store")
@@ -209,7 +213,7 @@ class BitwardenSsoService(
             env = env,
             sso = BitwardenToken.Sso(profile.id, authenticated.authorization.organizationIdentifier),
         )
-    }.let(saveAccount::invoke)
+    }.let { saveAccount(it, existingAccountId = accountId) }
 
     private suspend fun requireMatchingAccount(accountId: AccountId, env: ServerEnv, profile: SsoProfileEntity) {
         val previous = tokenRepository.getById(accountId).bind()

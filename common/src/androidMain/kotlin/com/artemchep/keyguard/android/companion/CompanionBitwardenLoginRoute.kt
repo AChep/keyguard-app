@@ -22,7 +22,7 @@ import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
 import com.artemchep.keyguard.provider.bitwarden.api.login
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import org.koin.compose.currentKoinScope
@@ -53,7 +53,7 @@ private fun CompanionBitwardenLoginScreen(
             cryptoGenerator = get(),
             base64Service = get(),
             deviceIdUseCase = get(),
-            httpClient = get(),
+            httpClientProvider = get(),
             json = get(),
         )
     }
@@ -64,6 +64,9 @@ private fun CompanionBitwardenLoginScreen(
         // while SSO saves the account on this device.
         isSsoAvailable = false,
         cipherUnsecureUrlCheck = get(),
+        dateFormatter = get(),
+        fileService = get(),
+        mutualTlsService = get(),
         confirmationRouteFactory = get(),
         discoverBitwardenServer = get(),
         args = BitwardenLoginRoute.Args(),
@@ -90,7 +93,7 @@ private class CompanionBitwardenAddAccount(
     private val cryptoGenerator: CryptoGenerator,
     private val base64Service: Base64Service,
     private val deviceIdUseCase: DeviceIdUseCase,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
     private val json: Json,
 ) : AddAccount {
     override fun invoke(
@@ -105,7 +108,7 @@ private class CompanionBitwardenAddAccount(
             deviceIdUseCase = deviceIdUseCase,
             cryptoGenerator = cryptoGenerator,
             base64Service = base64Service,
-            httpClient = httpClient,
+            httpClient = httpClientProvider.client(env),
             json = json,
             env = env,
             twoFactorToken = twoFactorToken,

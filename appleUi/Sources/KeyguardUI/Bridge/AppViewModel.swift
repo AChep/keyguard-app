@@ -49,6 +49,7 @@ public final class AppViewModel {
     let external: ExternalActions
     let links: LinkOpeningCoordinator
     let autofillIndex: AutofillIndexService
+    let icons: IconImageLoader
     #if os(iOS)
     let screenAwake = ScreenAwakeCoordinator { UIApplication.shared.isIdleTimerDisabled = $0 }
     #endif
@@ -58,6 +59,7 @@ public final class AppViewModel {
         self.core = core
         let autofillIndex = AutofillIndexService(core: core)
         self.autofillIndex = autofillIndex
+        icons = IconImageLoader { key in try await core.loadIcon(key: key) }
         let notifications = NotificationsModel(core: core)
         self.notifications = notifications
         let links = LinkOpeningCoordinator(

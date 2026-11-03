@@ -22,6 +22,7 @@ import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.job
@@ -89,10 +90,19 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
         .map { item ->
             when (item) {
                 is ConfirmationRoute.Args.Item.StringItem -> {
-                    val handle = textFieldHandle(
-                        key = createItemKey(item.key),
-                        initial = item.value,
-                    )
+                    val handle = if (item.ephemeral) {
+                        TextFieldHandle(
+                            sink = MutableStateFlow(TextCell(item.value)),
+                            id = createItemKey(item.key),
+                        ).also { handle ->
+                            screenScope.coroutineContext.job.invokeOnCompletion { handle.setText("") }
+                        }
+                    } else {
+                        textFieldHandle(
+                            key = createItemKey(item.key),
+                            initial = item.value,
+                        )
+                    }
                     handle.sink.map { cell ->
                         confirmationStringItem(
                             item = item,
@@ -286,7 +296,8 @@ private suspend fun RememberStateFlowScope.confirmationStringItem(
         sensitive = sensitive,
         monospace = monospace,
         password = password,
-        generator = generator,
+        generator = generator.takeUnless { item.ephemeral },
+        ephemeral = item.ephemeral,
         value = cell.text,
         enabled = item.enabled,
         state = model,

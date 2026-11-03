@@ -57,6 +57,14 @@ def classify(paths, *, full=False, all_checks=False):
         if path.endswith((".md", ".txt")) and not path.startswith(".github/native-crypto-"):
             continue
         if (
+            path == "scripts/run_mtls_tests.py"
+            or re.match(r"common/src/mtls[^/]*/", path)
+            or path.startswith("androidApp/src/mtlsTest/")
+            or re.match(r"common/src/[^/]+/kotlin/.+/provider/bitwarden/transport/", path)
+        ):
+            enable("desktop_regressions", "apple_regressions", "android_runtime")
+            continue
+        if (
             path in {"build.gradle.kts", "settings.gradle", "settings.gradle.kts", "gradle.properties", "gradlew", "gradlew.bat", "rust-toolchain.toml", ".cargo/config.toml"}
             or path.startswith(("gradle/", "buildPlugins/"))
             or path.startswith((".github/actions/setup_rust/", ".github/actions/setup_gradle/", ".github/actions/prefetch_native/", ".github/actions/setup_protobuf/"))

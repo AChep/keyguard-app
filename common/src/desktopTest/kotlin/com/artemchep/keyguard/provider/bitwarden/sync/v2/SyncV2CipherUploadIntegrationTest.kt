@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
@@ -2893,7 +2894,7 @@ class SyncV2CipherUploadIntegrationTest {
             base64Service = base64Service,
             getPasswordStrength = UploadTestPasswordStrength,
             json = UploadTestServer.json,
-            httpClient = server.client,
+            httpClientProvider = BitwardenHttpClientProvider { server.client },
             db = UploadTestVaultDatabaseManager(database),
             dbSyncer = DatabaseSyncer(cryptoGenerator),
             pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
@@ -3013,7 +3014,7 @@ class SyncV2CipherUploadIntegrationTest {
             base64Service = base64Service,
             getPasswordStrength = UploadTestPasswordStrength,
             json = UploadTestServer.json,
-            httpClient = server.client,
+            httpClientProvider = BitwardenHttpClientProvider { server.client },
             db = UploadTestVaultDatabaseManager(database),
             dbSyncer = DatabaseSyncer(cryptoGenerator),
             pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),

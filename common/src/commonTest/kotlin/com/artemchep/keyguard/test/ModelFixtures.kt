@@ -85,7 +85,6 @@ internal fun createAccount(
     webVaultUrl = "https://vault.example.com",
     localVaultUrl = null,
     type = type,
-    faviconServer = null,
 )
 
 internal fun createProfile(

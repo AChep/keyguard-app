@@ -16,7 +16,7 @@ import com.artemchep.keyguard.provider.bitwarden.api.builder.breach
 import com.artemchep.keyguard.provider.bitwarden.entity.HibpBreachResponse
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import kotlinx.coroutines.flow.first
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
@@ -30,7 +30,7 @@ class CheckUsernameLeakImpl(
     private val hibpRepository: HibpRepository,
     private val base64Service: Base64Service,
     private val json: Json,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
     private val db: VaultDatabaseManager,
     private val getHibpApiToken: GetHibpApiToken,
 ) : CheckUsernameLeak {
@@ -75,7 +75,7 @@ class CheckUsernameLeakImpl(
 
         return withRefreshableAccessToken(
             base64Service = base64Service,
-            httpClient = httpClient,
+            httpClient = httpClientProvider.client(user.env.back()),
             json = json,
             db = db,
             user = user,
@@ -83,7 +83,7 @@ class CheckUsernameLeakImpl(
             val serverEnv = latestUser.env.back()
             val accessToken = requireNotNull(latestUser.token).accessToken
             serverEnv.api.hibp.breach(
-                httpClient = httpClient,
+                httpClient = httpClientProvider.client(serverEnv),
                 env = serverEnv,
                 token = accessToken,
                 username = username,

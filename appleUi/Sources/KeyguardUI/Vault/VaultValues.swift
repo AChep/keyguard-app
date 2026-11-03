@@ -95,9 +95,9 @@ struct VaultRow: Equatable, Sendable {
     let flags: VaultRowFlags
     /// SF Symbol name of the cipher-type fallback icon; `nil` for non-item rows.
     let typeSymbol: String?
-    /// Favicon / app-icon URL; `nil` when the row renders the initials / type icon.
-    let iconUrl: String?
-    /// The initials shown when `iconUrl` is `nil` or fails.
+    /// The website icon, loaded by `IconImageLoader`; `nil` when the row renders the initials / type icon.
+    let iconKey: String?
+    /// The initials shown when `iconKey` is `nil` or fails.
     let iconInitials: String?
     /// Packed ARGB accents; `0` = no accent.
     let accentLightArgb: Int32
@@ -119,7 +119,7 @@ struct VaultRow: Equatable, Sendable {
         subtitle = bridged.subtitle.nilIfEmpty
         flags = VaultRowFlags(rawValue: bridged.flags)
         typeSymbol = bridged.typeSymbol.nilIfEmpty
-        iconUrl = bridged.iconUrl.nilIfEmpty
+        iconKey = bridged.iconKey.nilIfEmpty
         iconInitials = bridged.iconInitials.nilIfEmpty
         accentLightArgb = bridged.accentLightArgb
         accentDarkArgb = bridged.accentDarkArgb

@@ -35,7 +35,7 @@ struct DetailUriRow: View {
             subtitle: item.text,
             disclosure: item.actions.isEmpty ? nil : "ellipsis",
             favicon: FaviconView(
-                url: item.uriIcon?.url, placeholder: nil,
+                iconKey: item.uriIcon?.iconKey, placeholder: nil,
                 fallbackSymbol: fallbackSymbol, size: 20),
             colorizeTitle: item.colorize
         )

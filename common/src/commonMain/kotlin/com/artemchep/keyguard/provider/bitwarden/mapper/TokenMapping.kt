@@ -8,7 +8,6 @@ import com.artemchep.keyguard.core.store.bitwarden.KeePassToken
 import com.artemchep.keyguard.core.store.bitwarden.ServiceToken
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.provider.bitwarden.api.builder.buildHost
-import com.artemchep.keyguard.provider.bitwarden.api.builder.buildIconsRequestUrl
 import com.artemchep.keyguard.provider.bitwarden.api.builder.buildWebVaultUrl
 
 fun ServiceToken.toDomain(): DAccount = when (this) {
@@ -25,10 +24,6 @@ fun BitwardenToken.toDomain(): DAccount {
         webVaultUrl = environment.buildWebVaultUrl(),
         localVaultUrl = null,
         type = AccountType.BITWARDEN,
-        faviconServer = { domain ->
-            environment
-                .buildIconsRequestUrl(domain)
-        },
     )
 }
 
@@ -41,7 +36,6 @@ fun KeePassToken.toDomain(): DAccount {
         webVaultUrl = null,
         localVaultUrl = (database.location as? FileLocation.Local)?.uri,
         type = AccountType.KEEPASS,
-        faviconServer = null,
     )
 }
 

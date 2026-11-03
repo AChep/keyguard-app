@@ -36,6 +36,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabas
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.BitwardenSsoService
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SaveBitwardenAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SsoAuthenticated
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.MockRequestHandler
@@ -118,7 +119,7 @@ class BitwardenSsoServiceTest {
     private fun service(
         client: HttpClient,
         database: VaultDatabaseManager = this.database,
-        save: SaveBitwardenAccount = SaveBitwardenAccount { login ->
+        save: SaveBitwardenAccount = SaveBitwardenAccount { login, _ ->
             ioEffect {
                 val value = login.bind()
                 saved += value
@@ -126,7 +127,7 @@ class BitwardenSsoServiceTest {
             }
         },
     ) = BitwardenSsoService(
-        deviceId, crypto, base64, cipher, client, json,
+        deviceId, crypto, base64, cipher, BitwardenHttpClientProvider { client }, json,
         BitwardenTokenRepositoryImpl(database, Dispatchers.Unconfined),
         BitwardenProfileRepositoryImpl(database, Dispatchers.Unconfined),
         save,
@@ -441,7 +442,7 @@ class BitwardenSsoServiceTest {
             respond("""{"key":"${base64.encodeToString(masterKey)}"}""", headers = jsonHeaders)
         }
         // Stands for the database insert and the sync and backup after it.
-        val save = SaveBitwardenAccount { login ->
+        val save = SaveBitwardenAccount { login, _ ->
             ioEffect {
                 val value = login.bind()
                 saving.complete(Unit)

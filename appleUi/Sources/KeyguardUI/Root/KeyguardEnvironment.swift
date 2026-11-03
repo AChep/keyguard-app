@@ -40,6 +40,7 @@ private struct KeyguardEnvironment: ViewModifier {
             .environment(model.subscriptions)
             .environment(model.navigationSettings)
             .environment(model.backups)
+            .environment(\.iconImageLoader, model.icons)
             #if os(iOS)
         .environment(model.screenAwake)
             #endif

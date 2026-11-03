@@ -11,6 +11,10 @@ sealed interface RouteDescriptor {
     @SerialName("environments")
     data object Environments : RouteDescriptor
 
+    @Serializable
+    @SerialName("account.client_certificate")
+    data class AccountClientCertificate(val accountId: String) : RouteDescriptor
+
     /** Creates an environment, or edits the one with the [environmentId]. */
     @Serializable
     @SerialName("environments.edit")

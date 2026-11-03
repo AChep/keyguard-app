@@ -73,6 +73,8 @@ import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteObsoletePendingUploads
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
+import com.artemchep.keyguard.provider.bitwarden.transport.clientForUrl
 import io.ktor.client.HttpClient
 import io.ktor.client.call.NoTransformationFoundException
 import io.ktor.http.HttpStatusCode
@@ -124,6 +126,7 @@ class CipherSyncOps(
     private val getPasswordStrength: GetPasswordStrength,
     private val logRepository: LogRepository,
     private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider = BitwardenHttpClientProvider { httpClient },
     private val env: ServerEnv,
     private val token: String,
     private val ciphersApi: ServerEnvApi.Ciphers,
@@ -767,7 +770,7 @@ class CipherSyncOps(
                     encryptedSize = pendingUpload.encryptedSize,
                 )
                 uploadCipherAttachment(
-                    httpClient = httpClient,
+                    httpClient = httpClientProvider.clientForUrl(env, createResponse.uploadTarget.resolveUrl(env)),
                     env = env,
                     token = token,
                     target = createResponse.uploadTarget,

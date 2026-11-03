@@ -8,11 +8,15 @@ import androidx.compose.ui.Modifier
 fun FaviconIcon(
     imageModel: () -> Any?,
     modifier: Modifier = Modifier,
+    onError: (() -> Unit)? = null,
 ) {
     AsyncIcon(
         imageModel = imageModel,
         modifier = modifier,
-        contentDescription = "Favicon",
+        // The icon is decorative: the text
+        // next to it names the website.
+        contentDescription = null,
         errorImageVector = Icons.Outlined.KeyguardWebsite,
+        onError = onError,
     )
 }

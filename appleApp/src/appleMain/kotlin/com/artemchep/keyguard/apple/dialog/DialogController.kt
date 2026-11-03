@@ -71,6 +71,7 @@ import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConf
 import com.artemchep.keyguard.feature.confirmation.organization.organizationConfirmationStateProducer
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.feature.emailleak.EmailLeakState
+import com.artemchep.keyguard.feature.favicon.toIconKey
 import com.artemchep.keyguard.feature.emailleak.emailLeakStateProducer
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
@@ -1678,7 +1679,10 @@ internal class DialogController(
             kind = ConfirmationItemKind.STRING,
             enabled = enabled,
             title = title,
-            stringValue = state.text,
+            // Transient secrets stay in the native field buffer and the live producer.
+            // User edits preserve the revision, so omitting their echo does not reset the buffer.
+            stringValue = state.text.takeUnless { ephemeral }.orEmpty(),
+            ephemeral = ephemeral,
             stringRevision = state.textRevision,
             descriptionText = description,
             hint = state.hint,
@@ -1818,7 +1822,7 @@ internal class DialogController(
         title = title,
         domain = domain,
         descriptionText = description,
-        icon = icon,
+        iconKey = icon?.toIconKey(),
         count = count,
         countText = count?.let {
             textResource(
@@ -1915,7 +1919,7 @@ internal class DialogController(
         title = title,
         domain = domain,
         descriptionText = description,
-        icon = icon,
+        iconKey = icon?.toIconKey(),
         count = count,
         countText = count?.let {
             textResource(

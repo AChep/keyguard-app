@@ -1351,19 +1351,40 @@ fun BoxScope.VaultItemIcon2(
         is VaultItemIcon.WebsiteIcon,
         is VaultItemIcon.AppIcon,
             -> {
-            FaviconIcon(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(3.dp)
-                    .clip(CircleShape),
-                imageModel = {
-                    when (icon) {
-                        is VaultItemIcon.WebsiteIcon -> icon.data
-                        is VaultItemIcon.AppIcon -> icon.data
-                        else -> error("Unreachable statement")
-                    }
-                },
-            )
+            val fallback = when (icon) {
+                is VaultItemIcon.WebsiteIcon -> icon.fallback
+                is VaultItemIcon.AppIcon -> icon.fallback
+            }
+            var failed by remember(icon) {
+                mutableStateOf(false)
+            }
+            if (failed && fallback != null) {
+                VaultItemIcon2(
+                    icon = fallback,
+                    modifier = modifier,
+                    color = color,
+                )
+            } else {
+                FaviconIcon(
+                    modifier = modifier
+                        .fillMaxSize()
+                        .padding(3.dp)
+                        .clip(CircleShape),
+                    imageModel = {
+                        when (icon) {
+                            is VaultItemIcon.WebsiteIcon -> icon.data
+                            is VaultItemIcon.AppIcon -> icon.data
+                        }
+                    },
+                    onError = if (fallback != null) {
+                        {
+                            failed = true
+                        }
+                    } else {
+                        null
+                    },
+                )
+            }
         }
     }
 }

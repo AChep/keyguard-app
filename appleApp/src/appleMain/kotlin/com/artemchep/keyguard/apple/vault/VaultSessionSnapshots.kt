@@ -93,9 +93,9 @@ data class VaultRowSnapshot(
     val flags: Int,
     /** SF Symbol name of the cipher-type fallback icon; `""` for non-item rows. */
     val typeSymbol: String,
-    /** Favicon / app-icon URL; `""` when the row renders the initials / type icon. */
-    val iconUrl: String,
-    /** The initials shown when [iconUrl] is empty or fails; `""` if none. */
+    /** The website icon, loaded with `KeyguardCore.loadIcon`; `""` when the row renders the initials / type icon. */
+    val iconKey: String,
+    /** The initials shown when [iconKey] is empty or fails; `""` if none. */
     val iconInitials: String,
     val accentLightArgb: Int,
     val accentDarkArgb: Int,
@@ -368,7 +368,7 @@ internal fun AppleVaultRowContent.toSnapshot(): VaultRowSnapshot = VaultRowSnaps
     subtitle = subtitle,
     flags = flags,
     typeSymbol = typeSymbol,
-    iconUrl = iconUrl,
+    iconKey = iconKey,
     iconInitials = iconInitials,
     accentLightArgb = accentLightArgb,
     accentDarkArgb = accentDarkArgb,

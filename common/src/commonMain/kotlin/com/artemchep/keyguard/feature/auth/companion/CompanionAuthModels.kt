@@ -109,8 +109,10 @@ data class CompanionBitwardenEnvironment(
     val apiUrl: String = "",
     val identityUrl: String = "",
     val iconsUrl: String = "",
+    val notificationsUrl: String = "",
     val region: Region = Region.US,
     val headers: List<Header> = emptyList(),
+    val mutualTls: ServerEnv.MutualTls? = null,
 ) {
     @Serializable
     enum class Region {
@@ -130,6 +132,8 @@ data class CompanionBitwardenEnvironment(
         apiUrl = apiUrl,
         identityUrl = identityUrl,
         iconsUrl = iconsUrl,
+        notificationsUrl = notificationsUrl,
+        mutualTls = mutualTls,
         region = when (region) {
             Region.US -> ServerEnv.Region.US
             Region.EU -> ServerEnv.Region.EU
@@ -149,6 +153,8 @@ data class CompanionBitwardenEnvironment(
             apiUrl = env.apiUrl,
             identityUrl = env.identityUrl,
             iconsUrl = env.iconsUrl,
+            notificationsUrl = env.notificationsUrl,
+            mutualTls = env.mutualTls,
             region = when (env.region) {
                 ServerEnv.Region.US -> Region.US
                 ServerEnv.Region.EU -> Region.EU

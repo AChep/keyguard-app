@@ -6,6 +6,8 @@ import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptionFormat
 import com.artemchep.keyguard.crypto.FileEncryptionCodecJvm
+import com.artemchep.keyguard.provider.bitwarden.transport.AccountHttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.configureBitwardenMutualTlsClient
 import com.artemchep.keyguard.test.withTempDirectory
 import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
 import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
@@ -37,6 +39,7 @@ import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlinx.io.readByteArray
+import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
@@ -110,6 +113,49 @@ class DownloadTaskJvmSuccessfulOutputTest {
         }
 
         assertEquals(2, requestCount)
+    }
+
+    @Test
+    fun `url loader follows a redirect off the account's servers without the certificate`() = runTest {
+        val data = "payload".encodeToByteArray()
+        val target = "https://storage.example.com/payload.bin?sig=1"
+        val accountHttpClient = HttpClient(
+            MockEngine { request ->
+                assertEquals("vault.example.com", request.url.host)
+                respond(
+                    content = "",
+                    status = HttpStatusCode.Found,
+                    headers = headersOf(HttpHeaders.Location, target),
+                )
+            },
+        ) {
+            configureBitwardenMutualTlsClient(Json, setOf("vault.example.com:443"))
+        }
+        val storageRequests = mutableListOf<String>()
+        val redirectHttpClient = HttpClient(
+            MockEngine { request ->
+                storageRequests += request.url.toString()
+                respond(ByteReadChannel(data), HttpStatusCode.OK)
+            },
+        )
+        val task = DownloadTaskImpl(
+            client = AccountHttpClient(accountHttpClient, redirectHttpClient),
+            fileEncryptionCodec = CopyingFileEncryptionCodec(),
+        )
+
+        val sink = Buffer()
+        val complete = task
+            .fileLoader(
+                url = "https://vault.example.com/attachments/1/2?token=x",
+                key = null,
+                writer = DownloadWriter.SinkWriter(sink),
+            )
+            .filterIsInstance<DownloadProgress.Complete>()
+            .single()
+
+        assertIs<Either.Right<String?>>(complete.result)
+        assertContentEquals(data, sink.readByteArray())
+        assertEquals(listOf(target), storageRequests)
     }
 
     @Test

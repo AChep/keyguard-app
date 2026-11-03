@@ -10,7 +10,7 @@ import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
 import com.artemchep.keyguard.provider.bitwarden.api.login
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenTokenRepository
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 
@@ -21,7 +21,7 @@ class AddAccountImpl(
     private val deviceIdUseCase: DeviceIdUseCase,
     private val cryptoGenerator: CryptoGenerator,
     private val base64Service: Base64Service,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
     private val json: Json,
     private val tokenRepository: BitwardenTokenRepository,
     private val saveAccount: SaveBitwardenAccount,
@@ -40,7 +40,7 @@ class AddAccountImpl(
             deviceIdUseCase = deviceIdUseCase,
             cryptoGenerator = cryptoGenerator,
             base64Service = base64Service,
-            httpClient = httpClient,
+            httpClient = httpClientProvider.client(env),
             json = json,
             env = env,
             twoFactorToken = twoFactorToken,
@@ -59,5 +59,5 @@ class AddAccountImpl(
             email = email,
             env = env,
         )
-    }.let(saveAccount::invoke)
+    }.let { saveAccount(it, existingAccountId = accountId) }
 }

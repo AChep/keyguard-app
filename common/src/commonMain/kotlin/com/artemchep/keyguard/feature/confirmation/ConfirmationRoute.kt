@@ -52,6 +52,8 @@ class ConfirmationRoute(
                  * value, `false` otherwise.
                  */
                 val canBeEmpty: Boolean = true,
+                /** Keep this input only in the live form, never in restoration state or native snapshots. */
+                val ephemeral: Boolean = false,
             ) : Item<String> {
                 enum class Type {
                     Text,

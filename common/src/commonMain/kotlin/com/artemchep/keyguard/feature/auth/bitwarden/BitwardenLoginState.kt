@@ -4,6 +4,8 @@ import androidx.compose.runtime.Immutable
 import arrow.optics.optics
 import com.artemchep.keyguard.feature.auth.bitwarden.sso.BitwardenSsoRoute
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
+import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
+import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.collections.immutable.ImmutableList
@@ -37,6 +39,7 @@ data class LoginState(
     @Immutable
     @optics
     data class SideEffect(
+        val filePickerIntentFlow: Flow<FilePickerIntent<*>> = emptyFlow(),
         val onSuccessFlow: Flow<Unit> = emptyFlow(),
         val onErrorFlow: Flow<BitwardenLoginEvent.Error> = emptyFlow(),
         /** Opens the SSO sign-in for the entered email and server. */
@@ -120,6 +123,37 @@ sealed interface LoginStateItem {
         }
     }
 
+    data class MutualTls(
+        override val id: String,
+        override val options: List<FlatItemAction> = emptyList(),
+        override val state: LocalStateItem<State>,
+    ) : LoginStateItem, HasOptions<MutualTls>, HasState<MutualTls.State> {
+        override fun withOptions(options: List<FlatItemAction>): MutualTls =
+            copy(
+                options = options,
+            )
+
+        data class CertificateMetadata(
+            val displayName: String,
+            /** Localized labels and values shared by Compose and native renderers. */
+            val issuerText: String,
+            val expiresText: String,
+        )
+
+        data class State(
+            override val options: List<FlatItemAction> = emptyList(),
+            val certificateMetadata: CertificateMetadata? = null,
+            val importedPkcs12Base64: String? = null,
+            val onPickFile: (() -> Unit)? = null,
+            val onClearFile: (() -> Unit)? = null,
+        ) : HasOptions<State> {
+            override fun withOptions(options: List<FlatItemAction>) =
+                copy(
+                    options = options,
+                )
+        }
+    }
+
     //
     // Items that may modify the amount of items in the
     // list.
@@ -157,6 +191,8 @@ data class CreateRequest(
     val apiUrl: String? = null,
     val identityUrl: String? = null,
     val iconsUrl: String? = null,
+    val notificationsUrl: String? = null,
+    val mutualTls: ServerEnv.MutualTls? = null,
     // headers
     val headers: PersistentList<ServerHeader> = persistentListOf(),
 )

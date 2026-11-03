@@ -113,6 +113,8 @@ import com.artemchep.keyguard.platform.AppleBiometricKeychain
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.AppleStorageDirectories
 import com.artemchep.keyguard.util.io.resolve
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientFactory
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientFactoryApple
 import io.ktor.client.HttpClient
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CoroutineDispatcher
@@ -171,6 +173,7 @@ internal class MacosPlatformModule {
                 getStore = get<AppleKeyValueStoreFactory>()::getJson,
             )
         }
+        single<BitwardenHttpClientFactory> { BitwardenHttpClientFactoryApple(get()) }
         single<HttpClient> {
             appleHttpClient(
                 json = get(),

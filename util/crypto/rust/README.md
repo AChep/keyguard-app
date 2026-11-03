@@ -7,11 +7,22 @@ Multiplatform `:util:crypto` module.
   primitives, policy limits, and generation-tagged session registry.
 - `keyguard-crypto-sensitive` owns heap-stable AWS-LC digest/HMAC contexts and
   the narrowly audited, volatile-wipe adapter for pinned RustCrypto BLAKE2
-  state. It is the only non-FFI crate that contains reviewed unsafe code.
+  state, plus PKCS#12 client-identity parsing and normalization. It is the only
+  non-FFI crate that contains reviewed unsafe code.
 - `keyguard-crypto-jni` exports the nine methods on
   `com.artemchep.keyguard.nativecrypto.NativeCryptoJni`.
 - `keyguard-crypto-c` exports the Apple C ABI declared in
   `crates/keyguard-crypto-c/include/keyguard_crypto.h`.
+
+PKCS#12 uses AWS-LC full bindings. Mobile builds generate them with libclang
+(Xcode on Apple hosts, `libclang-dev` on Linux); desktop uses pregenerated bindings.
+Imported bundles contain
+one private key and a matching certificate, retain the chain, and are normalized
+with an empty password for encrypted account storage. Existing MACs must verify;
+MAC-less bundles are handled separately and never repair a failed MAC.
+Apple importers receive a temporary password wrapper in memory. macOS also
+imports the private key separately to create an identity without a keychain.
+
 The wire source of truth is `../schema/native_crypto.proto`. ABI version 1 and
 protocol version 3 are independent. Calls fail closed on an ABI/capability
 mismatch, malformed request, resource limit, stale session, or contained panic.

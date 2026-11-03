@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.auth.bitwarden
 
 import com.artemchep.keyguard.common.io.IO
+import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.getOrNull
@@ -11,8 +12,13 @@ import com.artemchep.keyguard.feature.navigation.state.DiskHandle
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
+import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
 import com.artemchep.keyguard.provider.bitwarden.model.ServerDiscoveryCandidate
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsCertificateMetadata
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsImportResult
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsService
 import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServer
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Proxy
 import kotlinx.coroutines.CoroutineExceptionHandler
@@ -38,6 +44,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
+import kotlin.time.Instant
 
 private const val DOMAIN = "example.com"
 private const val EMAIL = "user@$DOMAIN"
@@ -292,6 +299,91 @@ class BitwardenLoginSsoTest {
     }
 }
 
+class BitwardenLoginCertificateTest {
+    private val identity = ServerEnv.MutualTls.ImportedPkcs12("selected-test-identity")
+    private val args = BitwardenLoginRoute.Args(
+        email = EMAIL,
+        password = "test password",
+        env = ServerEnv(baseUrl = SERVER_URL, mutualTls = identity),
+    )
+
+    @Test
+    fun `visible certificate reaches password and SSO sign in`() = runTest {
+        val harness = Harness(this, emptyMap(), args = args, isSsoAvailable = true)
+        val states = harness.states()
+        runCurrent()
+        assertNotNull(states.login().certificate().certificateMetadata)
+        val opened = mutableListOf<BitwardenSsoRoute.Args>()
+        backgroundScope.launch { states.login().effects.onSsoFlow.collect { opened += it } }
+        runCurrent()
+
+        assertNotNull(states.login().onSsoClick).invoke()
+        assertNotNull(states.login().onLoginClick).invoke()
+        runCurrent()
+
+        assertEquals(identity, harness.submittedEnvironments.single().mutualTls)
+        assertEquals(identity, opened.single().env.mutualTls)
+        assertTrue(harness.errors.isEmpty())
+    }
+
+    @Test
+    fun `certificate stays off official servers and returns when switching back to custom`() = runTest {
+        val harness = Harness(this, emptyMap(), args = args)
+        val states = harness.states()
+        runCurrent()
+
+        assertNotNull(states.login().regionItems.single { it.key == ServerEnv.Region.EU.name }.onClick).invoke()
+        runCurrent()
+        assertNotNull(states.login().onLoginClick).invoke()
+        advanceTimeBy(1.seconds)
+        runCurrent()
+        assertNull(harness.submittedEnvironments.single().mutualTls)
+        assertEquals(ServerEnv.Region.EU, harness.submittedEnvironments.single().region)
+
+        assertNotNull(states.login().regionItems.single { it.key == ServerEnv.Region.selfhosted }.onClick).invoke()
+        runCurrent()
+        assertNotNull(states.login().onLoginClick).invoke()
+        runCurrent()
+        assertEquals(identity, harness.submittedEnvironments.last().mutualTls)
+        assertEquals(SERVER_URL, harness.submittedEnvironments.last().baseUrl)
+    }
+
+    @Test
+    fun `clearing the selected certificate removes it from sign in`() = runTest {
+        val harness = Harness(this, emptyMap(), args = args)
+        val states = harness.states()
+        runCurrent()
+
+        assertNotNull(states.login().certificate().onClearFile).invoke()
+        runCurrent()
+        assertNull(states.login().certificate().certificateMetadata)
+        assertNotNull(states.login().onLoginClick).invoke()
+        runCurrent()
+        assertNull(harness.submittedEnvironments.single().mutualTls)
+    }
+
+    @Test
+    fun `unreadable selected certificate blocks custom password and SSO sign in`() = runTest {
+        val harness = Harness(
+            this,
+            emptyMap(),
+            args = args,
+            isSsoAvailable = true,
+            certificateReadable = false,
+        )
+        val states = harness.states()
+        runCurrent()
+
+        assertNull(states.login().onLoginClick)
+        assertNull(states.login().onSsoClick)
+        assertTrue(harness.submittedEnvironments.isEmpty())
+    }
+
+    private fun LoginState.certificate() = items
+        .filterIsInstance<LoginStateItem.MutualTls>()
+        .single().state.flow.value
+}
+
 private fun custom(
     url: String,
     sameDomain: Boolean = true,
@@ -336,10 +428,12 @@ private class Harness(
     private val lookupDelayMs: Long = 0L,
     private val failures: Set<String> = emptySet(),
     private val isSsoAvailable: Boolean = false,
+    private val certificateReadable: Boolean = true,
 ) {
     val queries = mutableListOf<String>()
     val messages = mutableListOf<ToastMessage>()
     val errors = mutableListOf<Throwable>()
+    val submittedEnvironments = mutableListOf<ServerEnv>()
 
     private val handler = CoroutineExceptionHandler { _, e -> errors += e }
     private val scope = CoroutineScope(
@@ -362,10 +456,41 @@ private class Harness(
 
     suspend fun states(): StateFlow<Loadable<LoginState>?> = testScreenScope()
         .bitwardenLoginStateProducer(
-            addAccount = unused(),
+            addAccount = object : AddAccount {
+                override fun invoke(
+                    accountId: String?,
+                    env: ServerEnv,
+                    twoFactorToken: ServerTwoFactorToken?,
+                    clientSecret: String?,
+                    email: String,
+                    password: String,
+                ): IO<AccountId> {
+                    submittedEnvironments += env
+                    return { AccountId("test-account") }
+                }
+            },
             requestEmailTfa = unused(),
             isSsoAvailable = isSsoAvailable,
             cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
+            dateFormatter = proxy { _, _ -> "Test expiration date" },
+            fileService = unused(),
+            mutualTlsService = object : MutualTlsService {
+                override fun importPkcs12(sourcePkcs12: ByteArray, password: String?): MutualTlsImportResult =
+                    error("Unexpected certificate import")
+
+                override fun describeImportedPkcs12(pkcs12Base64: String): MutualTlsCertificateMetadata? =
+                    MutualTlsCertificateMetadata(
+                        displayName = "Selected test client",
+                        subject = "CN=Selected test client",
+                        issuer = "CN=Test CA",
+                        issuerName = "Test CA",
+                        validFrom = Instant.parse("2026-11-02T00:00:00Z"),
+                        expiresAt = Instant.parse("2126-11-02T00:00:00Z"),
+                        serialNumber = "01",
+                        sha256Fingerprint = "AB:CD",
+                        keyType = "RSA 2048",
+                    ).takeIf { certificateReadable }
+            },
             confirmationRouteFactory = unused(),
             discoverBitwardenServer = discoverBitwardenServer,
             args = args,

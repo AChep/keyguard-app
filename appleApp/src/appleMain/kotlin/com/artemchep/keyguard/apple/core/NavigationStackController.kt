@@ -223,6 +223,11 @@ internal sealed interface ScreenKind {
         override val defaultTitle get() = title
     }
 
+    data class AccountClientCertificate(val accountId: String) : ScreenKind {
+        override val entryKind get() = ScreenEntryKind.ACCOUNT_CLIENT_CERTIFICATE
+        override val defaultTitle get() = ""
+    }
+
     data class AccountDetail(
         val accountId: String,
     ) : ScreenKind {
@@ -314,6 +319,7 @@ enum class ScreenEntryKind {
     ORGANIZATIONS_LIST,
     COLLECTIONS_LIST,
     FOLDERS_LIST,
+    ACCOUNT_CLIENT_CERTIFICATE,
     ACCOUNT_DETAIL,
     EQUIVALENT_DOMAINS,
     DUPLICATES,
@@ -501,7 +507,8 @@ internal class NavigationStackController(
             organizations = organizations,
             collections = collections,
             folders = folders,
-            accountDetailId = (kind as? ScreenKind.AccountDetail)?.accountId,
+            accountDetailId = (kind as? ScreenKind.AccountDetail)?.accountId
+                ?: (kind as? ScreenKind.AccountClientCertificate)?.accountId,
             equivalentDomains = equivalentDomains,
             duplicatesSession = duplicatesSession,
             export = export,
@@ -1197,6 +1204,7 @@ internal class NavigationStackController(
 
     /** Exhaustive on purpose: the compiler forces every new [RouteDescriptor] to get a mapping here. */
     private fun descriptorScreen(descriptor: RouteDescriptor): ScreenKind? = when (descriptor) {
+        is RouteDescriptor.AccountClientCertificate -> ScreenKind.AccountClientCertificate(descriptor.accountId)
         RouteDescriptor.Environments -> ScreenKind.Environments(environmentId = null, create = false)
         is RouteDescriptor.EnvironmentEdit -> ScreenKind.Environments(
             environmentId = descriptor.environmentId,
@@ -1657,6 +1665,7 @@ internal class NavigationStackController(
             is ScreenKind.PasswordHistory,
             is ScreenKind.SshAgentHistory,
             is ScreenKind.SendDetail,
+            is ScreenKind.AccountClientCertificate,
             is ScreenKind.AccountDetail,
             -> Unit
         }

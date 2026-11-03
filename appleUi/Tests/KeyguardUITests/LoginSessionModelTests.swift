@@ -53,6 +53,8 @@ final class LoginSessionModelTests: XCTestCase {
         old.publish(login("old@example.test"))
         old.requireTwofa()
         old.complete()
+        old.publishFile?(
+            AddFilePickerRequest(requestId: "late", kind: .openDocument, mimeTypes: [], suggestedName: nil))
         presentation.close()
         let fresh = BitwardenSourceProbe()
         let next = fresh.makeModel()
@@ -66,6 +68,7 @@ final class LoginSessionModelTests: XCTestCase {
         XCTAssertEqual(first.login.email.text, "")
         XCTAssertFalse(first.twofaActive)
         XCTAssertFalse(first.loginDidSucceed)
+        XCTAssertNil(first.filePicker.pendingFilePicker)
         XCTAssertEqual(next.login.email.text, "new@example.test")
         XCTAssertFalse(next.twofaActive)
         XCTAssertFalse(next.loginDidSucceed)
@@ -165,6 +168,8 @@ final class LoginSessionModelTests: XCTestCase {
         bitwarden.complete()
         try await settle()
         bitwarden.requireTwofa()
+        bitwarden.publishFile?(
+            AddFilePickerRequest(requestId: "late", kind: .openDocument, mimeTypes: [], suggestedName: nil))
         let keepass = KeePassSourceProbe()
         let database = KeePassLoginModel(source: keepass)
         database.startKeePassLoginObservation()
@@ -176,6 +181,7 @@ final class LoginSessionModelTests: XCTestCase {
         try await settle()
         XCTAssertFalse(login.twofaActive)
         XCTAssertTrue(login.loginDidSucceed)
+        XCTAssertNil(login.filePicker.pendingFilePicker)
         XCTAssertNil(database.remoteSettings.webDav)
         XCTAssertNil(database.filePicker.pendingFilePicker)
         XCTAssertTrue(database.keepassDidSucceed)
@@ -311,6 +317,11 @@ final class LoginSessionModelTests: XCTestCase {
 
 @MainActor
 private final class BitwardenSourceProbe: BitwardenLoginSource {
+    var publishFile: ((AddFilePickerRequest) -> Void)?
+    func setLoginFilePickerRequestHandler(handler: ((AddFilePickerRequest) -> Void)?) { publishFile = handler }
+    func resolveLoginFilePicker(requestId: String, uri: String, name: String?, size: Int64, accessToken: String?) {}
+    func cancelLoginFilePicker(requestId: String) {}
+
     var publish: (LoginSnapshot) -> Void = { _ in }
     var publishTwofa: (TwofaSnapshot) -> Void = { _ in }
     var publishSso: (SsoLoginSnapshot) -> Void = { _ in }

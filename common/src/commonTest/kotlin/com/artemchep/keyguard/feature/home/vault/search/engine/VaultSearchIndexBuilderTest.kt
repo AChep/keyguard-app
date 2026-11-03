@@ -64,7 +64,6 @@ class VaultSearchIndexBuilderTest {
                         webVaultUrl = null,
                         localVaultUrl = null,
                         type = AccountType.BITWARDEN,
-                        faviconServer = null,
                     ),
                 ),
                 folders = listOf(
@@ -117,7 +116,6 @@ class VaultSearchIndexBuilderTest {
                         webVaultUrl = null,
                         localVaultUrl = null,
                         type = AccountType.BITWARDEN,
-                        faviconServer = null,
                     ),
                 ),
             ),
@@ -745,7 +743,6 @@ class VaultSearchIndexBuilderTest {
                 webVaultUrl = null,
                 localVaultUrl = null,
                 type = AccountType.BITWARDEN,
-                faviconServer = null,
             ),
         ),
         folders = listOf(

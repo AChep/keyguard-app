@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.session
 
+import com.artemchep.keyguard.common.service.download.BitwardenAttachmentSourceLoader
 import com.artemchep.keyguard.common.NotificationsWorker
 import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.MasterSession
@@ -10,6 +11,7 @@ import com.artemchep.keyguard.common.service.download.KeePassAttachmentSourceLoa
 import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountSyncer
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySyncer
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
+import com.artemchep.keyguard.common.service.icon.AccountIconServers
 import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlushRunner
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
@@ -41,6 +43,10 @@ fun interface PendingUsageHistorySessionAccess {
 
 fun interface AccountSessionAccess {
     operator fun invoke(session: MasterSession.Key): GetAccounts?
+}
+
+fun interface AccountIconServerSessionAccess {
+    operator fun invoke(session: MasterSession.Key): AccountIconServers?
 }
 
 fun interface WatchtowerSessionAccess {
@@ -93,3 +99,8 @@ class GpgAgentSessionDependencies(
     val metadataResolver: GpgKeyMetadataResolver?,
     val filterContext: CipherFilterContext,
 )
+
+internal fun interface BitwardenAttachmentSessionAccess {
+    operator fun invoke(session: com.artemchep.keyguard.common.model.MasterSession.Key):
+        BitwardenAttachmentSourceLoader?
+}

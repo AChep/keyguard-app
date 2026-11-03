@@ -26,7 +26,7 @@ fun interface SaveBitwardenAccount {
      * Saves the token produced by [login]. The premium check
      * runs before [login], so a refused user does not log in first.
      */
-    operator fun invoke(login: IO<BitwardenToken>): IO<AccountId>
+    operator fun invoke(login: IO<BitwardenToken>, existingAccountId: String?): IO<AccountId>
 }
 
 class SaveBitwardenAccountImpl(
@@ -42,10 +42,19 @@ class SaveBitwardenAccountImpl(
         private const val TAG = "AddAccount.bitwarden"
     }
 
-    override operator fun invoke(login: IO<BitwardenToken>): IO<AccountId> = ioEffect {
+    override operator fun invoke(login: IO<BitwardenToken>, existingAccountId: String?): IO<AccountId> = ioEffect {
         val token = login.bind()
         db.mutate(TAG) { database ->
-            database.accountQueries.insert(accountId = token.id, data = token)
+            val updated = if (existingAccountId != null) {
+                require(token.id == existingAccountId)
+                val current = database.accountQueries.getByAccountId(existingAccountId)
+                    .executeAsOneOrNull()?.data_ as? BitwardenToken
+                    ?: error("Account no longer exists")
+                token.copy(env = current.env)
+            } else {
+                token
+            }
+            database.accountQueries.insert(accountId = updated.id, data = updated)
         }.bind()
         AccountId(token.id)
     }

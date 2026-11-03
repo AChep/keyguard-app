@@ -75,7 +75,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.requireFolderSyncComple
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import io.ktor.http.HttpStatusCode
 import kotlin.coroutines.coroutineContext
 import kotlin.time.Clock
@@ -129,7 +129,7 @@ class SyncByBitwardenTokenV2Impl(
     private val base64Service: Base64Service,
     private val getPasswordStrength: GetPasswordStrength,
     private val json: Json,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
     private val db: VaultDatabaseManager,
     private val dbSyncer: DatabaseSyncer,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
@@ -161,7 +161,7 @@ class SyncByBitwardenTokenV2Impl(
                     }
                 withRefreshableAccessToken(
                     base64Service = base64Service,
-                    httpClient = httpClient,
+                    httpClient = httpClientProvider.client(user.env.back()),
                     json = json,
                     db = db,
                     user = user,
@@ -253,6 +253,7 @@ class SyncByBitwardenTokenV2Impl(
         entityTypesToSync: Set<SyncEntityType>? = null,
     ) {
         val env = user.env.back()
+        val httpClient = httpClientProvider.client(env)
         val api = env.api
         val token = requireNotNull(user.token).accessToken
         val database = db.get().bind()
@@ -463,6 +464,7 @@ class SyncByBitwardenTokenV2Impl(
                     gpgKeyMetadataResolver = gpgKeyMetadataResolver,
                     logRepository = logRepository,
                     httpClient = httpClient,
+                    httpClientProvider = httpClientProvider,
                     env = env,
                     token = token,
                     ciphersApi = api.ciphers,
@@ -603,6 +605,7 @@ class SyncByBitwardenTokenV2Impl(
                     cryptoGenerator = cryptoGenerator,
                     base64Service = base64Service,
                     httpClient = httpClient,
+                    httpClientProvider = httpClientProvider,
                     env = env,
                     token = token,
                     sendsApi = api.sends,

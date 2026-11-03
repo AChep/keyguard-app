@@ -75,8 +75,10 @@ data class BitwardenToken(
         val apiUrl: String = "",
         val identityUrl: String = "",
         val iconsUrl: String = "",
+        val notificationsUrl: String = "",
         val region: Region = Region.US,
         val headers: List<Header> = emptyList(),
+        val mutualTls: ServerEnv.MutualTls? = null,
     ) {
         companion object {
             fun of(model: ServerEnv) = Environment(
@@ -85,6 +87,7 @@ data class BitwardenToken(
                 apiUrl = model.apiUrl,
                 identityUrl = model.identityUrl,
                 iconsUrl = model.iconsUrl,
+                notificationsUrl = model.notificationsUrl,
                 region = when (model.region) {
                     ServerEnv.Region.US -> Region.US
                     ServerEnv.Region.EU -> Region.EU
@@ -97,6 +100,7 @@ data class BitwardenToken(
                             value = header.value,
                         )
                     },
+                mutualTls = model.mutualTls,
             )
         }
 
@@ -106,6 +110,7 @@ data class BitwardenToken(
             apiUrl = apiUrl,
             identityUrl = identityUrl,
             iconsUrl = iconsUrl,
+            notificationsUrl = notificationsUrl,
             region = when (region) {
                 Region.US -> ServerEnv.Region.US
                 Region.EU -> ServerEnv.Region.EU
@@ -117,6 +122,7 @@ data class BitwardenToken(
                         value = header.value,
                     )
                 },
+            mutualTls = mutualTls,
         )
 
         @Serializable

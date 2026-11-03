@@ -45,6 +45,8 @@ import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteObsoletePendingUploads
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
+import com.artemchep.keyguard.provider.bitwarden.transport.clientForUrl
 import io.ktor.client.HttpClient
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.NonCancellable
@@ -73,6 +75,7 @@ class SendSyncOps(
     private val cryptoGenerator: CryptoGenerator,
     private val base64Service: Base64Service,
     private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider = BitwardenHttpClientProvider { httpClient },
     private val env: ServerEnv,
     private val token: String,
     private val sendsApi: ServerEnvApi.Sends,
@@ -432,7 +435,7 @@ class SendSyncOps(
                 isCreate = false,
             )
             uploadSendFile(
-                httpClient = httpClient,
+                httpClient = httpClientProvider.clientForUrl(env, uploadTarget.resolveUrl(env)),
                 env = env,
                 token = token,
                 target = uploadTarget,
@@ -560,7 +563,7 @@ class SendSyncOps(
                 isCreate = true,
             )
             uploadSendFile(
-                httpClient = httpClient,
+                httpClient = httpClientProvider.clientForUrl(env, fileCreateResponse.uploadTarget.resolveUrl(env)),
                 env = env,
                 token = token,
                 target = fileCreateResponse.uploadTarget,

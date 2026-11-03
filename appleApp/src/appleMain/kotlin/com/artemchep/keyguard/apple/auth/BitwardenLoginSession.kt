@@ -1,7 +1,19 @@
 package com.artemchep.keyguard.apple.auth
 
 import arrow.core.right
+import com.artemchep.keyguard.apple.add.AddFilePickerRequest
+import com.artemchep.keyguard.apple.core.CoreContext
+import com.artemchep.keyguard.apple.core.FilePickerBridge
+import com.artemchep.keyguard.apple.core.DetailSession
+import com.artemchep.keyguard.apple.core.KeyguardCancellable
+import com.artemchep.keyguard.apple.core.collectOnMain
+import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
+import com.artemchep.keyguard.apple.core.resultRouteOrNull
 import com.artemchep.keyguard.apple.core.sessionKoin
+import com.artemchep.keyguard.apple.model.ActionKeyAllocator
+import com.artemchep.keyguard.apple.model.invokeAction
+import com.artemchep.keyguard.apple.model.toFieldSnapshot
+import com.artemchep.keyguard.apple.throttleLatest
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
@@ -25,22 +37,15 @@ import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.bitwardenLoginTwo
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
-import com.artemchep.keyguard.apple.core.CoreContext
-import com.artemchep.keyguard.apple.core.KeyguardCancellable
-import com.artemchep.keyguard.apple.core.collectOnMain
-import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
-import com.artemchep.keyguard.apple.core.resultRouteOrNull
-import com.artemchep.keyguard.apple.model.ActionKeyAllocator
-import com.artemchep.keyguard.apple.model.invokeAction
-import com.artemchep.keyguard.apple.model.toFieldSnapshot
-import com.artemchep.keyguard.apple.throttleLatest
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.provider.bitwarden.api.builder.buildWebVaultUrl
 import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServer
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.BitwardenSsoService
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
+import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.awaitCancellation
@@ -56,8 +61,6 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import com.artemchep.keyguard.apple.core.DetailSession
-import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import org.koin.core.scope.Scope
 
 /**
@@ -82,6 +85,16 @@ class BitwardenLoginSession internal constructor(
     private var latestSsoArgs: BitwardenSsoRoute.Args? = (request as? LoginRequest.Sso)?.args
     private var twofa: DetailSession<TwofaSnapshot, TwoFactorState?>? = null
     private var latestTwofa: PendingTwofa? = null
+    private val filePicker = FilePickerBridge()
+
+    fun setLoginFilePickerRequestHandler(handler: ((AddFilePickerRequest) -> Unit)?) =
+        form.runIfOpen { filePicker.onRequest = handler }
+
+    fun resolveLoginFilePicker(requestId: String, uri: String, name: String?, size: Long, accessToken: String?) =
+        form.runIfOpen { filePicker.resolve(requestId, uri, name, size, accessToken) }
+
+    fun cancelLoginFilePicker(requestId: String) = form.runIfOpen { filePicker.cancel(requestId) }
+
     private var complete: (() -> Unit)? = null
     private var onTwofaRequired: (() -> Unit)? = null
     private var onTwofaFinished: (() -> Unit)? = null
@@ -123,6 +136,7 @@ class BitwardenLoginSession internal constructor(
     fun close() = form.close()
 
     private fun dispose() {
+        filePicker.close()
         request = null
         stopSso()
         stopTwofa()
@@ -158,6 +172,9 @@ class BitwardenLoginSession internal constructor(
                     requestEmailTfa = requestEmailTfa,
                     isSsoAvailable = true,
                     cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
+                    dateFormatter = state.sessionKoin.get(),
+                    fileService = state.sessionKoin.get(),
+                    mutualTlsService = state.sessionKoin.get(),
                     confirmationRouteFactory = confirmationRouteFactory,
                     discoverBitwardenServer = discoverBitwardenServer,
                     args = args,
@@ -200,6 +217,12 @@ class BitwardenLoginSession internal constructor(
                     .collect { ssoArgs -> ctx.publishOnMain { onSsoRequired(ssoArgs) } }
             }
 
+            val onFilePickerIntent = form.gated(filePicker::pick)
+            launch {
+                effects.flatMapLatest { it.filePickerIntentFlow }
+                    .collect { intent -> ctx.publishOnMain { onFilePickerIntent(intent) } }
+            }
+
             // Snapshot stream. The dynamic Url/HttpHeader items carry
             // their own inner StateFlows that the top-level state does
             // NOT re-emit for, so combine them in: any inner field
@@ -210,6 +233,7 @@ class BitwardenLoginSession internal constructor(
                         when (item) {
                             is LoginStateItem.Url -> item.state.flow
                             is LoginStateItem.HttpHeader -> item.state.flow
+                            is LoginStateItem.MutualTls -> item.state.flow
                             else -> null
                         }
                     }
@@ -289,6 +313,31 @@ class BitwardenLoginSession internal constructor(
                         label = null,
                         text = null,
                         actions = (st.options + item.options).toSnapshots(item.id),
+                    )
+                }
+
+                is LoginStateItem.MutualTls -> {
+                    val st = innerStates[innerIndex++] as LoginStateItem.MutualTls.State
+                    val actions = buildList {
+                        st.onPickFile?.let { pick ->
+                            val id = "${item.id}.pick"
+                            actionHandlers[id] = pick
+                            add(LoginActionSnapshot(id, textResource(Res.string.select_file, leContext)))
+                        }
+                        st.onClearFile?.let { clear ->
+                            val id = "${item.id}.clear"
+                            actionHandlers[id] = clear
+                            add(LoginActionSnapshot(id, textResource(Res.string.clear_file, leContext)))
+                        }
+                    }
+                    LoginItemSnapshot(
+                        id = item.id,
+                        kind = LoginItemKind.MUTUAL_TLS,
+                        field = null,
+                        keyField = null,
+                        label = textResource(Res.string.addaccount_mutual_tls_file_label, leContext),
+                        text = st.certificateMetadata?.let { "${it.displayName}\n${it.issuerText}\n${it.expiresText}" },
+                        actions = actions,
                     )
                 }
 

@@ -1,5 +1,21 @@
 package com.artemchep.keyguard.feature.auth
 
+import app.cash.sqldelight.coroutines.asFlow
+import app.cash.sqldelight.coroutines.mapToOneOrNull
+import kotlinx.coroutines.IO
+import kotlinx.coroutines.Dispatchers
+import kotlin.time.Clock
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsService
+import com.artemchep.keyguard.provider.bitwarden.transport.describe
+import com.artemchep.keyguard.provider.bitwarden.ServerEnv
+import com.artemchep.keyguard.provider.bitwarden.isCustom
+import com.artemchep.keyguard.feature.auth.certificate.AccountClientCertificateRoute
+import com.artemchep.keyguard.feature.auth.certificate.ClientCertificateStatus
+import com.artemchep.keyguard.feature.auth.certificate.status
+import com.artemchep.keyguard.res.client_certificate
+import com.artemchep.keyguard.res.client_certificate_not_configured
+import com.artemchep.keyguard.res.addaccount_mutual_tls_status_failed
+import androidx.compose.material.icons.outlined.Security
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.RowScope
@@ -15,7 +31,6 @@ import androidx.compose.material.icons.outlined.Domain
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Folder
-import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material.icons.outlined.VerifiedUser
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.BadgedBox
@@ -106,7 +121,6 @@ import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasBrowser
 import com.artemchep.keyguard.platform.util.hasWatch
-import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AnimatedTotalCounterBadge
@@ -167,6 +181,7 @@ fun accountState(
         collectionsRouteFactory = get(),
         foldersRouteFactory = get(),
         organizationsRouteFactory = get(),
+        mutualTlsService = get(),
         db = get(),
         accountId = accountId,
     )
@@ -210,6 +225,7 @@ fun accountState(
     collectionsRouteFactory: CollectionsRouteFactory,
     foldersRouteFactory: FoldersRouteFactory,
     organizationsRouteFactory: OrganizationsRouteFactory,
+    mutualTlsService: MutualTlsService,
     db: VaultDatabaseManager,
     accountId: AccountId,
 ): AccountViewState = produceScreenState(
@@ -247,6 +263,7 @@ fun accountState(
         collectionsRouteFactory = collectionsRouteFactory,
         foldersRouteFactory = foldersRouteFactory,
         organizationsRouteFactory = organizationsRouteFactory,
+        mutualTlsService = mutualTlsService,
         db = db,
         accountId = accountId,
     )
@@ -280,6 +297,7 @@ suspend fun RememberStateFlowScope.accountStateProducer(
     collectionsRouteFactory: CollectionsRouteFactory,
     foldersRouteFactory: FoldersRouteFactory,
     organizationsRouteFactory: OrganizationsRouteFactory,
+    mutualTlsService: MutualTlsService,
     db: VaultDatabaseManager,
     accountId: AccountId,
 ): Flow<AccountViewState> {
@@ -438,55 +456,60 @@ suspend fun RememberStateFlowScope.accountStateProducer(
     fun <T : Any> Flow<T>.prepare() = this
         .distinctUntilChanged()
 
-    val primaryActionFlow = metaFlow.prepare()
-        .map { meta ->
-            val requiresAuthentication = meta?.lastSyncResult is DMeta.LastSyncResult.Failure
-            // TODO:
-//                    &&
-//                    meta.lastSyncResult.requiresAuthentication
-            val primaryActionOrNull = if (requiresAuthentication) {
-                val token = db.get()
-                    .effectMap {
-                        val info = it
-                            .accountQueries
-                            .getByAccountId(accountId.id)
-                            .executeAsOne()
-                            .data_
-                        info as BitwardenToken
-                    }
-                    .attempt()
-                    .bind()
-                token.fold(
-                    ifLeft = {
-                        null
-                    },
-                    ifRight = { t ->
-                        val email = t.user.email
-                        val env = t.env.back()
-                        AccountViewState.Content.Data.PrimaryAction(
-                            text = translate(Res.string.account_action_sign_in_title),
-                            icon = Icons.AutoMirrored.Outlined.Login,
-                            onClick = ::doReLogin
-                                .partially1(accountId)
-                                .partially1(email)
-                                .partially1(env)
-                                .partially1(t.sso),
-                        )
-                    },
-                )
-            } else {
-                null
-            }
-            primaryActionOrNull
+    val tokenFlow = db.get().bind().accountQueries.getByAccountId(accountId.id).asFlow()
+        .mapToOneOrNull(Dispatchers.IO)
+        .map { it?.data_ as? BitwardenToken }
+    val primaryActionFlow = combine(metaFlow.prepare(), tokenFlow) { meta, token ->
+        val requiresAuthentication = meta?.lastSyncResult is DMeta.LastSyncResult.Failure
+        if (requiresAuthentication && token != null) {
+            AccountViewState.Content.Data.PrimaryAction(
+                text = translate(Res.string.account_action_sign_in_title),
+                icon = Icons.AutoMirrored.Outlined.Login,
+                onClick = ::doReLogin
+                    .partially1(accountId)
+                    .partially1(token.user.email)
+                    .partially1(token.env.back())
+                    .partially1(token.sso),
+            )
+        } else null
+    }
+    val certificateFlow = tokenFlow
+        .map { it?.env }
+        .distinctUntilChanged()
+        .map { env ->
+            if (env == null || !env.back().isCustom() || CurrentPlatform.hasWatch()) return@map null
+            val metadata = mutualTlsService.describe(env.mutualTls)
+            val status = metadata?.status(Clock.System.now())
+            VaultViewItem.Action(
+                id = "client_certificate",
+                title = translate(Res.string.client_certificate),
+                text = when {
+                    metadata != null -> metadata.displayName
+                    env.mutualTls != null -> translate(Res.string.addaccount_mutual_tls_status_failed)
+                    else -> translate(Res.string.client_certificate_not_configured)
+                },
+                badge = when (status) {
+                    ClientCertificateStatus.EXPIRING_SOON -> Res.string.expiring_soon to 0.5f
+                    ClientCertificateStatus.EXPIRED -> Res.string.expired to 0f
+                    else -> null
+                }?.let { (res, score) ->
+                    VaultViewItem.Action.Badge(text = translate(res), score = score)
+                },
+                leading = { Icon(Icons.Outlined.Security, null) },
+                trailing = { ChevronIcon() },
+                onClick = { navigate(NavigationIntent.NavigateToRoute(AccountClientCertificateRoute(accountId.id))) },
+            )
         }
     val itemsFlow = combine(
         metaFlow.prepare(),
         accountFlow.prepare(),
         profileFlow.prepare(),
         countersFlow.prepare(),
-    ) { meta, account, profile, counters ->
+        certificateFlow,
+    ) { meta, account, profile, counters, certificate ->
         val items = buildItemsFlow(
             accountId = accountId,
+            certificate = certificate,
             scope = this,
             confirmationRouteFactory = confirmationRouteFactory,
             vaultRouteFactory = vaultRouteFactory,
@@ -647,6 +670,7 @@ suspend fun RememberStateFlowScope.accountStateProducer(
 
 @OptIn(ExperimentalMaterial3Api::class)
 private fun buildItemsFlow(
+    certificate: VaultViewItem.Action?,
     accountId: AccountId,
     scope: RememberStateFlowScope,
     confirmationRouteFactory: ConfirmationRouteFactory,
@@ -976,6 +1000,7 @@ private fun buildItemsFlow(
             )
         },
     ) {
+        if (certificate != null) emit(certificate)
         if (profile == null) return@emitWithSection
         emitFingerprint(
             scope = scope,

@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct FaviconView: View {
-    let url: String?
+    /// An `iconKey` of a snapshot; loaded by the shared core.
+    let iconKey: String?
     let placeholder: String?
     var fallbackSymbol: String = "globe"
     var size: CGFloat = 24
@@ -9,23 +10,29 @@ struct FaviconView: View {
     /// so icon-less rows match the Compose avatar. `nil` keeps the neutral default.
     var accent: Color? = nil
 
+    @Environment(\.iconImageLoader) private var loader
+    @State private var loaded: LoadedIcon?
+
     private var cornerRadius: CGFloat { size * 0.22 }
 
     var body: some View {
         Group {
-            if let url, let parsed = URL(string: url) {
-                AsyncImage(url: parsed) { phase in
-                    if let image = phase.image {
-                        image.resizable().scaledToFit()
-                    } else {
-                        // Loading and failure both show the placeholder, keeping
-                        // the row layout stable until the image resolves.
-                        placeholder(content: phase.error == nil ? .loading : .failed)
-                    }
-                }
+            if let image {
+                Image(decorative: image.cgImage, scale: 1)
+                    .resizable()
+                    .scaledToFit()
             } else {
-                placeholder(content: .failed)
+                // Loading and failure both show the placeholder, keeping
+                // the row layout stable until the image resolves.
+                placeholder(content: isLoading ? .loading : .failed)
             }
+        }
+        .task(id: iconKey) {
+            guard let iconKey, let loader else { return }
+            // Returns at once for a cached icon; keeping it in the state
+            // also keeps it on screen if the cache evicts it.
+            let image = await loader.image(for: iconKey)
+            loaded = LoadedIcon(key: iconKey, image: image)
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
@@ -33,6 +40,23 @@ struct FaviconView: View {
         // the semantics, so hide it from VoiceOver to avoid an unlabeled image
         // element (or the raw initials letters) adding noise to each row.
         .accessibilityHidden(true)
+    }
+
+    private var image: IconImage? {
+        guard let iconKey else { return nil }
+        if let cached = loader?.cachedImage(for: iconKey) {
+            return cached
+        }
+        return loaded?.key == iconKey ? loaded?.image : nil
+    }
+
+    private var isLoading: Bool {
+        iconKey != nil && loader != nil && loaded?.key != iconKey
+    }
+
+    private struct LoadedIcon {
+        let key: String
+        let image: IconImage?
     }
 
     private enum PlaceholderContent { case loading, failed }

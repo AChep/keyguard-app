@@ -184,6 +184,11 @@ struct NavStackContainer<Content: View>: View {
                 CollectionsListView(entry: entry)
             } else if entry.kind == ScreenEntryKind.foldersList {
                 FoldersListView(entry: entry)
+            } else if entry.kind == ScreenEntryKind.accountClientCertificate {
+                AccountClientCertificateScreen(
+                    accountId: entry.accountDetailId ?? "", makeModel: accountsModel.makeClientCertificateModel
+                )
+                .id(entry.instanceId)
             } else if entry.kind == ScreenEntryKind.accountDetail {
                 AccountDetailScreen(
                     accountId: entry.accountDetailId ?? "", makeSession: accountsModel.makeDetailSession

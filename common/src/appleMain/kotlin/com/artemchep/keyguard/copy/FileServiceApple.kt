@@ -15,7 +15,7 @@ import kotlinx.io.Source
 import kotlinx.io.buffered
 
 class FileServiceApple(
-    private val delegate: FileServiceImpl = FileServiceImpl(),
+    private val delegate: FileService = FileServiceImpl(),
 ) : FileService {
     override fun exists(uri: String): Boolean = delegate.exists(uri)
 
@@ -58,6 +58,17 @@ class FileServiceApple(
                     .use { source -> transferFrom(source) }
             }
         }
+    }
+
+    override fun <T> readFromFile(
+        uri: String,
+        accessToken: FileAccessToken?,
+        read: (Source) -> T,
+    ): T = withSecurityScopedUrl(
+        uri = uri,
+        accessToken = accessToken,
+    ) { scopedUri ->
+        delegate.readFromFile(scopedUri).use(read)
     }
 
     override fun writeToFile(uri: String): Sink = delegate.writeToFile(uri)

@@ -15,15 +15,12 @@ import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.session.VaultSessionPersister
 import com.artemchep.keyguard.common.usecase.ClearVaultSession
-import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterScreenOff
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.worker.WorkerRegistry
 import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.di.KeyguardKoinOwner
-import com.artemchep.keyguard.di.resolve
-import com.artemchep.keyguard.feature.favicon.Favicon
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.platform.lifecycle.toCommon
 import com.artemchep.keyguard.res.Res
@@ -33,7 +30,6 @@ import kotlin.getValue
 import kotlin.time.Clock
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filter
@@ -92,26 +88,6 @@ fun <T> T.installWorkers() where T : BaseApp, T : KeyguardKoinOwner {
                 it.start(this, processLifecycleFlow)
             }
         }
-    }
-}
-
-fun <T> T.installFavicons() where T : BaseApp, T : KeyguardKoinOwner {
-    val getVaultSession: GetVaultSession by lazy { koin.get() }
-
-    // favicon
-    ProcessLifecycleOwner.get().bindBlock {
-        getVaultSession()
-            .map { session ->
-                val key = session as? MasterSession.Key
-                key?.session?.resolve { get<GetAccounts>() }
-            }
-            .collectLatest { getAccounts ->
-                if (getAccounts != null) {
-                    coroutineScope {
-                        Favicon.launch(this, getAccounts)
-                    }
-                }
-            }
     }
 }
 

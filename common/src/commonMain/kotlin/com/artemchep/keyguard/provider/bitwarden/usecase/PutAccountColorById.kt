@@ -29,7 +29,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.AvatarRequestEntity
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenProfileRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import kotlinx.serialization.json.Json
 
 /**
@@ -77,7 +77,7 @@ internal class PutBitwardenAccountColorByIdImpl(
     private val profileRepository: BitwardenProfileRepository,
     private val base64Service: Base64Service,
     private val json: Json,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
     private val db: VaultDatabaseManager,
 ) {
     operator fun invoke(
@@ -92,7 +92,7 @@ internal class PutBitwardenAccountColorByIdImpl(
         )
         withRefreshableAccessToken(
             base64Service = base64Service,
-            httpClient = httpClient,
+            httpClient = httpClientProvider.client(token.env.back()),
             json = json,
             db = db,
             user = token,
@@ -100,7 +100,7 @@ internal class PutBitwardenAccountColorByIdImpl(
             val serverEnv = latestUser.env.back()
             val accessToken = requireNotNull(latestUser.token).accessToken
             serverEnv.api.accounts.avatar(
-                httpClient = httpClient,
+                httpClient = httpClientProvider.client(serverEnv),
                 env = serverEnv,
                 token = accessToken,
                 model = request,

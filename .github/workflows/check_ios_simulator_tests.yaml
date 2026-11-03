@@ -61,6 +61,7 @@ on:
       - '.github/actions/setup_rust/**'
       - '.github/workflows/check_ios_simulator_tests.yaml'
       - 'xcode/scripts/prepare-sqlcipher-tests.sh'
+      - 'scripts/run_mtls_tests.py'
       - '**/xcshareddata/swiftpm/Package.resolved'
   pull_request:
     branches:
@@ -112,6 +113,7 @@ on:
       - '.github/actions/setup_rust/**'
       - '.github/workflows/check_ios_simulator_tests.yaml'
       - 'xcode/scripts/prepare-sqlcipher-tests.sh'
+      - 'scripts/run_mtls_tests.py'
       - '**/xcshareddata/swiftpm/Package.resolved'
 
 permissions:
@@ -162,7 +164,7 @@ jobs:
         run: bash xcode/scripts/prepare-sqlcipher-tests.sh
       - name: "Run iOS simulator tests"
         run: >-
-          ./gradlew --continue
+          python3 scripts/run_mtls_tests.py -- ./gradlew --continue
           -PsqlCipherXcframeworkDir="$PWD/build/sqlcipher-tests/SQLCipher.xcframework"
           :common:iosSimulatorArm64SqlCipherTest
           :common:iosSimulatorArm64Test

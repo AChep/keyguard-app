@@ -43,6 +43,7 @@ fun RouteDescriptor.toDeepLink(): String? {
         is RouteDescriptor.Generator,
         is RouteDescriptor.Watchtower,
         RouteDescriptor.Environments,
+        is RouteDescriptor.AccountClientCertificate,
         is RouteDescriptor.EnvironmentEdit,
         RouteDescriptor.GpgTools,
         RouteDescriptor.Settings,

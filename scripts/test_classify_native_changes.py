@@ -9,6 +9,18 @@ from scripts.classify_native_changes import FLAGS, changed_paths, classify
 
 
 class NativeChangeClassificationTest(unittest.TestCase):
+    def test_mtls_changes_run_real_network_checks_on_all_engines(self):
+        for path in (
+            "scripts/run_mtls_tests.py",
+            "common/src/mtlsTest/kotlin/com/artemchep/keyguard/provider/bitwarden/transport/MutualTlsNetworkChecks.kt",
+            "common/src/appleMain/kotlin/com/artemchep/keyguard/provider/bitwarden/transport/BitwardenHttpClientFactoryApple.kt",
+            "androidApp/src/mtlsTest/kotlin/com/artemchep/keyguard/test/transport/MutualTlsNetworkTest.kt",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                for flag in ("desktop_run", "apple_regressions", "android_run"):
+                    self.assertTrue(result[flag], flag)
+
     def test_docs_translations_and_ui_do_not_build_native_packages(self):
         result = classify([
             "docs/architecture/native-crypto.md",

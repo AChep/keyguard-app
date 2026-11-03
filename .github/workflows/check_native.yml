@@ -608,7 +608,7 @@ jobs:
       - name: "Run macOS native consumer regressions"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && (needs.changes.outputs.apple == 'true' || needs.changes.outputs.apple_regressions == 'true')
         run: >-
-          ./gradlew --continue --max-workers=1
+          python3 scripts/run_mtls_tests.py -- ./gradlew --continue --max-workers=1
           -Pkeyguard.nativeCargo.cargoOffline=true
           :util:agent-ipc:macosArm64Test
           :util:crypto:macosArm64Test
@@ -622,6 +622,7 @@ jobs:
           :util:zxcvbn:macosArm64Test
           :common:macosArm64Test
           :appleApp:macosArm64Test
+          :common:desktopTest --tests 'com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsNetworkTest'
       - name: "Link native consumers for device and simulator"
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true'
         run: >-
@@ -821,10 +822,10 @@ jobs:
           disable-animations: true
           disk-size: 4G
           script: >-
-            ./gradlew --max-workers=1
+            python3 scripts/run_mtls_tests.py --android -- ./gradlew --max-workers=1
             -Pkeyguard.nativeCargo.cargoOffline=true
             :androidApp:connectedNoneDebugAndroidTest
-            -Pandroid.testInstrumentationRunnerArguments.class=com.artemchep.keyguard.test.nativebundle.NativeBundleSmokeTest,com.artemchep.keyguard.test.io.NativeIoAtomicDirectorySmokeTest
+            -Pandroid.testInstrumentationRunnerArguments.class=com.artemchep.keyguard.test.nativebundle.NativeBundleSmokeTest,com.artemchep.keyguard.test.io.NativeIoAtomicDirectorySmokeTest,com.artemchep.keyguard.test.transport.MutualTlsNetworkTest
       - name: "Build Wear package"
         if: matrix.api == 26 && needs.changes.outputs.android == 'true'
         run: >-

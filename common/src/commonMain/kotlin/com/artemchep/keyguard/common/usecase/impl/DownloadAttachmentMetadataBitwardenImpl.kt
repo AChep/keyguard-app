@@ -32,7 +32,7 @@ import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenOrganizatio
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenProfileRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import kotlinx.serialization.json.Json
 
 internal class AttachmentMetadataData(
@@ -61,7 +61,7 @@ class DownloadAttachmentMetadataBitwardenImpl(
     private val cryptoGenerator: CryptoGenerator,
     private val base64Service: Base64Service,
     private val json: Json,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
     /** Lets the JVM caller preserve its UnknownHostException rethrow. */
     private val shouldRethrow: (Throwable) -> Boolean = { false },
 ) : DownloadAttachmentMetadata {
@@ -198,7 +198,7 @@ class DownloadAttachmentMetadataBitwardenImpl(
         kotlin.runCatching {
             val entity = withRefreshableAccessToken(
                 base64Service = base64Service,
-                httpClient = httpClient,
+                httpClient = httpClientProvider.client(token.env.back()),
                 json = json,
                 db = databaseManager,
                 user = token,
@@ -208,7 +208,7 @@ class DownloadAttachmentMetadataBitwardenImpl(
                     .ciphers.focus(id = remoteCipherId)
                     .attachments.focus(id = attachmentId)
                     .get(
-                        httpClient = httpClient,
+                        httpClient = httpClientProvider.client(latestUser.env.back()),
                         env = latestUser.env.back(),
                         token = accessToken,
                     )

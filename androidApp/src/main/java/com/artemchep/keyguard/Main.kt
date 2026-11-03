@@ -15,11 +15,8 @@ import com.artemchep.keyguard.android.CredentialProviderPlatformConfig
 import com.artemchep.keyguard.android.LegacyAndroidCapabilitiesModule
 import com.artemchep.keyguard.android.PasskeysModule
 import com.artemchep.keyguard.android.PhoneCredentialProviderPlatformConfig
-import com.artemchep.keyguard.android.coil3.AppIconFetcher
-import com.artemchep.keyguard.android.coil3.AppIconKeyer
 import com.artemchep.keyguard.android.credentialexchange.CredentialExchangeRegistrationWorker
 import com.artemchep.keyguard.android.downloader.worker.AttachmentDownloadAllWorker
-import com.artemchep.keyguard.android.installFavicons
 import com.artemchep.keyguard.android.installVaultKeepAlive
 import com.artemchep.keyguard.android.installVaultLock
 import com.artemchep.keyguard.android.installVaultPersistedSession
@@ -70,16 +67,7 @@ internal fun createPhoneKoinApplication(
     sdkInt: Int = Build.VERSION.SDK_INT,
 ): org.koin.core.KoinApplication {
     val applicationModule = PhoneApplicationModule(application)
-    val images = ImageLoadingModule { scope ->
-        add(
-            AppIconFetcher.Factory(
-                googlePlayParser = scope.get(),
-                packageManager = application().packageManager,
-                getWebsiteIcons = scope.get(),
-            ),
-        )
-        add(AppIconKeyer())
-    }
+    val images = ImageLoadingModule()
     // Both branches spell out the full module list on purpose. The Koin compiler
     // validates only literal modules(...) calls, so a shared list, spread, or helper
     // would drop this graph from compile-time checking.
@@ -167,7 +155,6 @@ class Main : BaseApp() {
         val companionAuthBridge: CompanionAuthBridgeAndroid = koin.get()
 
         installWorkers()
-        installFavicons()
         installVaultPersistedSession()
         installVaultKeepAlive()
         installVaultLock()

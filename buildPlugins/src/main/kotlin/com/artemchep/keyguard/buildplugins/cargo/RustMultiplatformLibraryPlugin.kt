@@ -136,6 +136,14 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
                 )
                 environmentVariables.put("ANDROID_NDK_ROOT", ndkDirectoryPath)
                 environmentVariables.put("ANDROID_NDK", ndkDirectoryPath)
+                // bindgen runs host libclang, which cannot discover the NDK headers from CC alone.
+                environmentVariables.put(
+                    AndroidCargoEnvironment.targetEnvironmentName("BINDGEN_EXTRA_CLANG_ARGS", target.rustTarget),
+                    androidBuildTools.map { tools ->
+                        val sysroot = tools.toolchain.toolchainBinDir.parentFile.resolve("sysroot")
+                        "--sysroot=\"${sysroot.invariantSeparatorsPath}\""
+                    },
+                )
                 environmentVariables.put(
                     AndroidCargoEnvironment.targetEnvironmentName("CC", target.rustTarget),
                     androidBuildTools.map { tools -> tools.cCompiler.absolutePath },

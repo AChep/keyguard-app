@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.auth.bitwarden
 
+import com.artemchep.keyguard.feature.auth.certificate.ClientCertificateField
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
@@ -71,6 +72,8 @@ import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.EmailFlatTextField
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
+import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
+import com.artemchep.keyguard.ui.FakeFlatTextField
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
@@ -225,6 +228,7 @@ fun LoginContentSkeleton() {
 fun LoginScaffold(
     loginState: LoginState,
 ) {
+    FilePickerEffect(loginState.effects.filePickerIntentFlow)
     val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldColumn(
         modifier = Modifier
@@ -544,6 +548,8 @@ private fun LoginItem(
         shapeState = shapeState,
     )
 
+    is LoginStateItem.MutualTls -> LoginItemMutualTls(modifier = modifier, item = item)
+
     is LoginStateItem.Section -> LoginItemSection(modifier = modifier, item = item)
     is LoginStateItem.Label -> LoginItemLabel(modifier = modifier, item = item)
     is LoginStateItem.Add -> LoginItemAdd(modifier = modifier, item = item)
@@ -597,6 +603,22 @@ private fun LoginItemField(
                 actions = localState.orEmpty(),
             )
         },
+    )
+}
+
+@Composable
+private fun LoginItemMutualTls(
+    modifier: Modifier = Modifier,
+    item: LoginStateItem.MutualTls,
+) {
+    val field by item.state.flow.collectAsState()
+    ClientCertificateField(
+        modifier = modifier,
+        displayName = field.certificateMetadata?.displayName,
+        issuerText = field.certificateMetadata?.issuerText,
+        expiresText = field.certificateMetadata?.expiresText,
+        onPick = field.onPickFile,
+        onClear = field.onClearFile,
     )
 }
 

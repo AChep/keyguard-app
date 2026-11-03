@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.auth.bitwarden.twofactor
 
+import com.artemchep.keyguard.provider.bitwarden.transport.webClientCertificate
 import androidx.compose.runtime.Composable
 import arrow.core.Either
 import arrow.core.right
@@ -608,6 +609,7 @@ private fun RememberStateFlowScope.createStateFlowForDuo(
         }.build()
     }
 
+    val clientCertificate = args.env.webClientCertificate()
     val rememberMeSink = mutablePersistedFlow("remember_me") { defaultRememberMe }
 
     fun onComplete(
@@ -652,6 +654,7 @@ private fun RememberStateFlowScope.createStateFlowForDuo(
             authUrl = authUrl.toString(),
             error = null,
             rememberMe = rememberMe,
+            clientCertificate = clientCertificate,
             onComplete = ::onComplete
                 .takeIf { canLogin },
         )

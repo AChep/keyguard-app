@@ -18,9 +18,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Favicons load via SwiftUI AsyncImage -> URLSession.shared -> URLCache.shared.
-        // The default shared cache is too small to retain them, so enlarge it once at
-        // startup; favicon bytes then stay in memory (and on disk across launches).
+        // Icons download through the shared core's URLSession clients, and Gravatar
+        // avatars through AsyncImage; both use URLCache.shared. The default shared
+        // cache is too small to retain them, so enlarge it once at startup; the bytes
+        // then stay in memory (and on disk across launches). Clients that present a
+        // client certificate keep no cache.
         URLCache.shared = URLCache(
             memoryCapacity: 32 * 1024 * 1024,
             diskCapacity: 256 * 1024 * 1024

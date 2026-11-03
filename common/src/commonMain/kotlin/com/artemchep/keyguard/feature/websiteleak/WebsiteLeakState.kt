@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.websiteleak
 
+import com.artemchep.keyguard.feature.favicon.RemoteIconUrl
 import androidx.compose.runtime.Immutable
 import arrow.core.Either
 import kotlinx.collections.immutable.ImmutableList
@@ -19,7 +20,7 @@ data class WebsiteLeakState(
         val title: String,
         val domain: String,
         val description: String,
-        val icon: String?,
+        val icon: RemoteIconUrl?,
         val count: Int?,
         /** Time when this breach has occurred */
         val occurredAt: String?,

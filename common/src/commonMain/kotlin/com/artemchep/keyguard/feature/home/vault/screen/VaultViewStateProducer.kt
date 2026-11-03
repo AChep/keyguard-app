@@ -2926,6 +2926,7 @@ private fun RememberStateFlowScope.oh(
                     canEdit = canEdit,
                     contentColor = contentColor,
                     disabledContentColor = disabledContentColor,
+                    appIcons = appIcons,
                     websiteIcons = websiteIcons,
                     cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
                     cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
@@ -2975,6 +2976,7 @@ private fun RememberStateFlowScope.oh(
                     canEdit = canEdit,
                     contentColor = contentColor,
                     disabledContentColor = disabledContentColor,
+                    appIcons = appIcons,
                     websiteIcons = websiteIcons,
                     cipherUnsecureUrlCheck = cipherUnsecureUrlCheck,
                     cipherUnsecureUrlAutoFix = cipherUnsecureUrlAutoFix,
@@ -3767,6 +3769,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
     canEdit: Boolean,
     contentColor: Color,
     disabledContentColor: Color,
+    appIcons: Boolean,
     websiteIcons: Boolean,
     cipherUnsecureUrlCheck: CipherUnsecureUrlCheck,
     cipherUnsecureUrlAutoFix: CipherUnsecureUrlAutoFix,
@@ -3882,6 +3885,8 @@ private suspend fun RememberStateFlowScope.createUriItem(
         copy = copy,
     )
 
+    // A store icon is both an app icon and a download from a website.
+    val storeIcons = appIcons && websiteIcons
     val platformMarker = holder.info
         .firstOrNull { it is LinkInfoPlatform } as LinkInfoPlatform?
     when (platformMarker) {
@@ -3902,7 +3907,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                             )
                         },
                         title = AnnotatedString(androidMarker.label),
-                        iconSource = VaultUriIcon.AndroidApp(platformMarker.packageName, websiteIcons),
+                        iconSource = VaultUriIcon.AndroidApp(platformMarker.packageName, storeIcons),
                         matchTypeTitle = matchTypeTitle,
                         dropdown = dropdown,
                         overrides = overrides,
@@ -3919,7 +3924,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                             )
                         },
                         title = AnnotatedString(platformMarker.packageName),
-                        iconSource = VaultUriIcon.AndroidApp(platformMarker.packageName, websiteIcons),
+                        iconSource = VaultUriIcon.AndroidApp(platformMarker.packageName, storeIcons),
                         matchTypeTitle = matchTypeTitle,
                         dropdown = dropdown,
                         overrides = overrides,
@@ -3938,7 +3943,7 @@ private suspend fun RememberStateFlowScope.createUriItem(
                     )
                 },
                 title = AnnotatedString(platformMarker.bundleId),
-                iconSource = VaultUriIcon.IosApp(platformMarker.bundleId, websiteIcons),
+                iconSource = VaultUriIcon.IosApp(platformMarker.bundleId, storeIcons),
                 matchTypeTitle = matchTypeTitle,
                 dropdown = dropdown,
                 overrides = overrides,

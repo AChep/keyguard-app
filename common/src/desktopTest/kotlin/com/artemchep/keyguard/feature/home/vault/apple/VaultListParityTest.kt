@@ -12,7 +12,7 @@ import com.artemchep.keyguard.feature.home.vault.model.FilterItem
 import com.artemchep.keyguard.feature.home.vault.model.SortItem
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
-import com.artemchep.keyguard.feature.home.vault.model.resolveWebsiteIconUrl
+import com.artemchep.keyguard.feature.home.vault.model.iconKey
 import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.home.vault.screen.FilterSection
 import com.artemchep.keyguard.feature.home.vault.screen.VaultListPersistence
@@ -1217,9 +1217,9 @@ class VaultListParityTest {
 
         // Icon + org chrome.
         assertEquals(
-            item.icon.resolveWebsiteIconUrl().orEmpty(),
-            row.iconUrl,
-            "$ctx iconUrl",
+            item.icon.iconKey().orEmpty(),
+            row.iconKey,
+            "$ctx iconKey",
         )
         assertEquals(
             VaultItemIcon.TextIcon.short(item.title.text).text,

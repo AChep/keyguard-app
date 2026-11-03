@@ -3,7 +3,7 @@ package com.artemchep.keyguard.feature.home.vault.apple
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
-import com.artemchep.keyguard.feature.home.vault.model.resolveWebsiteIconUrl
+import com.artemchep.keyguard.feature.home.vault.model.iconKey
 import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.home.vault.screen.richFields
 import com.artemchep.keyguard.feature.home.vault.search.query.compiler.VaultTextField
@@ -116,7 +116,7 @@ internal fun VaultItem2.Item.toAppleRowContent(
         subtitle = text.orEmpty(),
         flags = flags,
         typeSymbol = appleCipherTypeSymbol(rich.typeName),
-        iconUrl = icon.resolveWebsiteIconUrl().orEmpty(),
+        iconKey = icon.iconKey().orEmpty(),
         iconInitials = VaultItemIcon.TextIcon.short(title.text).text,
         accentLightArgb = rich.accentArgbLight ?: 0,
         accentDarkArgb = rich.accentArgbDark ?: 0,
@@ -142,7 +142,7 @@ internal fun appleSectionRowContent(
     subtitle = "",
     flags = 0,
     typeSymbol = "",
-    iconUrl = "",
+    iconKey = "",
     iconInitials = "",
     accentLightArgb = 0,
     accentDarkArgb = 0,
@@ -166,7 +166,7 @@ internal fun appleButtonRowContent(
     subtitle = "",
     flags = 0,
     typeSymbol = "",
-    iconUrl = "",
+    iconKey = "",
     iconInitials = "",
     accentLightArgb = 0,
     accentDarkArgb = 0,
@@ -191,7 +191,7 @@ internal fun appleMarkerRowContent(
     subtitle = "",
     flags = 0,
     typeSymbol = "",
-    iconUrl = "",
+    iconKey = "",
     iconInitials = "",
     accentLightArgb = 0,
     accentDarkArgb = 0,

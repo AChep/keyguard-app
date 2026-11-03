@@ -53,6 +53,8 @@ import com.artemchep.keyguard.crypto.ssl.installPlatformTrustManager
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadService
 import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadServiceJvm
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientFactory
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientFactoryJvm
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
 import kotlin.time.Duration
@@ -176,6 +178,7 @@ class GlobalModuleJvm {
         single<GpgOpenPgpVerifier> {
             NativeGpgOpenPgpVerifier
         }
+        single<BitwardenHttpClientFactory> { BitwardenHttpClientFactoryJvm(get(), get()) }
         single<HttpClient> {
             val json: Json = get()
             val okHttpClient: OkHttpClient = get()

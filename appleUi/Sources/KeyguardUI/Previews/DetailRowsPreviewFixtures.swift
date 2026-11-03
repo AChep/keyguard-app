@@ -40,21 +40,21 @@ enum DetailRowsPreviewFixtures {
             item("uris", .section, title: "Linked URIs / apps"),
             item(
                 "web", .uri, title: "https://example.com", actions: actions,
-                dragUrl: "https://example.com", uriIcon: UriIconSnapshot(kind: .website, url: nil)),
+                dragUrl: "https://example.com", uriIcon: UriIconSnapshot(kind: .website, iconKey: nil)),
             item(
                 "ios", .uri, title: "com.example.ios", actions: [action("copy-ios", "Copy bundle ID", copy: true)],
-                uriIcon: UriIconSnapshot(kind: .app, url: nil)),
+                uriIcon: UriIconSnapshot(kind: .app, iconKey: nil)),
             item(
                 "android", .uri, title: "com.example.android",
                 actions: [action("copy-android", "Copy package name", copy: true)],
-                uriIcon: UriIconSnapshot(kind: .app, url: nil)),
+                uriIcon: UriIconSnapshot(kind: .app, iconKey: nil)),
             item(
                 "long-url", .uri, title: "https://example.com/" + String(repeating: "long-path/", count: 8),
-                text: "Existing subtitle", actions: actions, uriIcon: UriIconSnapshot(kind: .website, url: nil)),
+                text: "Existing subtitle", actions: actions, uriIcon: UriIconSnapshot(kind: .website, iconKey: nil)),
             item(
                 "regex", .uri, title: "^https://example\\.com/[0-9]+$", actions: actions,
-                colorize: true, uriIcon: UriIconSnapshot(kind: .link, url: nil)),
-            item("no-actions", .uri, title: "custom:unavailable", uriIcon: UriIconSnapshot(kind: .link, url: nil)),
+                colorize: true, uriIcon: UriIconSnapshot(kind: .link, iconKey: nil)),
+            item("no-actions", .uri, title: "custom:unavailable", uriIcon: UriIconSnapshot(kind: .link, iconKey: nil)),
             item("credentials", .section, title: "Credentials"),
             item("passkey", .passkey, title: "demo@example.com", text: "example.com", click: "preview-passkey"),
             item("attachment", .attachment, title: "Recovery codes.txt", text: "2 KB", click: "preview-attachment"),
@@ -80,7 +80,7 @@ enum DetailRowsPreviewFixtures {
             item(
                 "website", .uri, title: "https://example.com",
                 actions: [action("copy-url", "Copy URL", copy: true)],
-                uriIcon: UriIconSnapshot(kind: .website, url: nil)),
+                uriIcon: UriIconSnapshot(kind: .website, iconKey: nil)),
             item(
                 "otp", .totp, title: "One-time password", actions: [action("copy-otp", "Copy code", copy: true)],
                 totp: totp),

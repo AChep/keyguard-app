@@ -14,6 +14,9 @@ protocol BitwardenLoginSource: AnyObject {
     func stopSso()
     func subscribeTwofa(onChange: @escaping (TwofaSnapshot) -> Void) -> BridgeObservation
     func stopTwofa()
+    func setLoginFilePickerRequestHandler(handler: ((AddFilePickerRequest) -> Void)?)
+    func resolveLoginFilePicker(requestId: String, uri: String, name: String?, size: Int64, accessToken: String?)
+    func cancelLoginFilePicker(requestId: String)
     func close()
     func setLoginField(id: String, text: String)
     func selectLoginRegion(key: String)

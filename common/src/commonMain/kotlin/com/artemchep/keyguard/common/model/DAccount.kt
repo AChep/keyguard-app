@@ -21,7 +21,6 @@ data class DAccount(
      */
     val localVaultUrl: String?,
     val type: AccountType,
-    val faviconServer: ((String) -> String)?,
 ) : HasAccountId, Comparable<DAccount> {
     private val comparator = compareBy<DAccount>(
         { host },

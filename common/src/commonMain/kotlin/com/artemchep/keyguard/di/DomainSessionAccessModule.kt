@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.di
 
+import com.artemchep.keyguard.common.service.session.AccountIconServerSessionAccess
 import com.artemchep.keyguard.common.service.session.AccountSessionAccess
 import com.artemchep.keyguard.common.service.session.AppWorkerSessionAccess
 import com.artemchep.keyguard.common.service.session.AppWorkerSessionDependencies
+import com.artemchep.keyguard.common.service.session.BitwardenAttachmentSessionAccess
 import com.artemchep.keyguard.common.service.session.AttachmentSessionAccess
 import com.artemchep.keyguard.common.service.session.BackupConfigSessionAccess
 import com.artemchep.keyguard.common.service.session.BackupRunnerSessionAccess
@@ -57,8 +59,14 @@ class DomainSessionAccessModule {
         single<AccountSessionAccess> {
             AccountSessionAccess { key -> key.session.resolve { get() } }
         }
+        single<AccountIconServerSessionAccess> {
+            AccountIconServerSessionAccess { key -> key.session.resolve { get() } }
+        }
         single<VaultLicenseSessionAccess> {
             VaultLicenseSessionAccess { key -> key.session.resolve { get() } }
+        }
+        single<BitwardenAttachmentSessionAccess> {
+            BitwardenAttachmentSessionAccess { key -> key.session.resolve { get() } }
         }
         single<AttachmentSessionAccess> {
             AttachmentSessionAccess { key -> key.session.resolve { get() } }

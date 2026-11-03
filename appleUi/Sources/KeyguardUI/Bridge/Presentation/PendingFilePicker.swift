@@ -9,6 +9,8 @@ struct PendingFilePicker: Identifiable {
     let mimeTypes: [String]
     let persistent: Bool
     var suggestedName: String? = nil
+    /// Deliver the selected file after the picker sheet has dismissed.
+    var resolveAfterDismissal = false
     let resolve: (_ requestId: String, _ uri: String, _ name: String?, _ size: Int64, _ accessToken: String?) -> Void
     let cancel: (_ requestId: String) -> Void
 

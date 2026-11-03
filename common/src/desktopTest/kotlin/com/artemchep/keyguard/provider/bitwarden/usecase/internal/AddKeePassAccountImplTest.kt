@@ -552,6 +552,5 @@ class AddKeePassAccountImplTest {
         webVaultUrl = null,
         localVaultUrl = null,
         type = AccountType.KEEPASS,
-        faviconServer = null,
     )
 }

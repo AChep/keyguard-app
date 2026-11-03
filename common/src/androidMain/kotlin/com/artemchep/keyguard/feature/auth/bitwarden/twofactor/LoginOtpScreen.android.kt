@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.auth.bitwarden.twofactor
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.view.ViewGroup
+import android.webkit.ClientCertRequest
 import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebView
@@ -21,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,11 +31,17 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import arrow.core.left
 import arrow.core.right
+import com.artemchep.keyguard.provider.bitwarden.transport.WebClientCertificate
+import com.artemchep.keyguard.provider.bitwarden.transport.loadPrivateKeyEntry
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.util.DividerColor
+import java.security.cert.X509Certificate
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
 
 @SuppressLint("SetJavaScriptEnabled")
@@ -163,6 +171,8 @@ actual fun ColumnScope.LoginOtpScreenContentDuoWebView(
     state: BitwardenLoginTwofaState.Duo,
 ) {
     val updatedOnComplete by rememberUpdatedState(state.onComplete)
+    val clientCertificate = state.clientCertificate
+    val scope = rememberCoroutineScope()
     BaseWebView(
         modifier = Modifier
             .fillMaxWidth()
@@ -200,10 +210,46 @@ actual fun ColumnScope.LoginOtpScreenContentDuoWebView(
                     view?.loadUrl(jsInjector)
                     super.onPageFinished(view, url)
                 }
+
+                override fun onReceivedClientCertRequest(view: WebView?, request: ClientCertRequest) {
+                    scope.launch {
+                        request.answer(clientCertificate)
+                    }
+                }
             }
         },
         url = state.authUrl,
     )
+}
+
+/**
+ * Presents the account's certificate to the account's servers only;
+ * the Duo frame that the connector page embeds must not get it.
+ */
+private suspend fun ClientCertRequest.answer(certificate: WebClientCertificate?) {
+    var answered = false
+    try {
+        val entry = certificate
+            ?.takeIf { it.permits(host, port) }
+            ?.let {
+                withContext(Dispatchers.Default) {
+                    runCatching { it.loadPrivateKeyEntry() }.getOrNull()
+                }
+            }
+        if (entry != null) {
+            val chain = entry.certificateChain
+                .filterIsInstance<X509Certificate>()
+                .toTypedArray()
+            proceed(entry.privateKey, chain)
+        } else {
+            cancel()
+        }
+        answered = true
+    } finally {
+        if (!answered) {
+            cancel()
+        }
+    }
 }
 
 @Keep
@@ -235,8 +281,12 @@ private fun BaseWebView(
                 }
 
                 factory(this)
-                loadUrl(url)
                 tag = url
+                // The web view remembers which certificate it presented to a
+                // server; a replaced or removed certificate must not reuse it.
+                WebView.clearClientCertPreferences {
+                    loadUrl(url)
+                }
             }
         },
         update = { webView ->

@@ -65,6 +65,7 @@ private fun Map<String, List<RouteDescriptor>>.forPersistence() =
 private fun RouteDescriptor.canPersist(): Boolean = when (this) {
     // Drafts of an environment live only in memory,
     // so there is nothing to restore an editor to.
+    is RouteDescriptor.AccountClientCertificate,
     is RouteDescriptor.EnvironmentEdit -> false
     // The picked file and the review live only in memory, so a restored
     // import could only start over; leave it closed instead.

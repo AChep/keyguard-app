@@ -9,22 +9,32 @@ import UniformTypeIdentifiers
 final class FilePickerSession {
     private(set) var pendingFileExport: PendingFileExport?
     private(set) var pendingFilePicker: PendingFilePicker?
+    @ObservationIgnored private var pendingResolution: (request: PendingFilePicker, resolve: () -> Void)?
     #if os(macOS)
     @ObservationIgnored private var activePanel: NSSavePanel?
     #endif
 
     func presentFilePicker(
         for request: AddFilePickerRequest,
+        persistent: Bool = false,
+        resolveAfterDismissal: Bool = false,
         resolve: @escaping (String, String, String?, Int64, String?) -> Void,
         cancel: @escaping (String) -> Void
     ) {
+        #if os(iOS)
+        let deferResolution = resolveAfterDismissal
+        #else
+        // AppKit's modal panel has already closed when it returns its selection.
+        let deferResolution = false
+        #endif
         present(
             PendingFilePicker(
                 requestId: request.requestId,
                 kind: request.kind,
                 mimeTypes: request.mimeTypes,
-                persistent: false,
+                persistent: persistent,
                 suggestedName: request.suggestedName,
+                resolveAfterDismissal: deferResolution,
                 resolve: resolve,
                 cancel: cancel
             ))
@@ -101,7 +111,9 @@ final class FilePickerSession {
     }
 
     func cancel() {
-        guard let pending = pendingFilePicker else { return }
+        let pending = pendingFilePicker
+        let resolution = pendingResolution
+        pendingResolution = nil
         pendingFilePicker = nil
         pendingFileExport = nil
         #if os(macOS)
@@ -109,12 +121,20 @@ final class FilePickerSession {
         activePanel = nil
         panel?.cancel(nil)
         #endif
-        pending.cancel(pending.requestId)
+        if let resolution { resolution.request.cancel(resolution.request.requestId) }
+        if let pending { pending.cancel(pending.requestId) }
     }
 
     func cancel(requestID: UUID) {
-        guard pendingFilePicker?.id == requestID else { return }
+        guard pendingFilePicker?.id == requestID || pendingResolution?.request.id == requestID else { return }
         cancel()
+    }
+
+    /// A selected certificate may immediately open a password sheet.
+    func pickerDismissed() {
+        let resolution = pendingResolution
+        pendingResolution = nil
+        resolution?.resolve()
     }
 
     func resolve(result: Result<[URL], Error>, requestID: UUID) {
@@ -132,7 +152,7 @@ final class FilePickerSession {
                 pending.cancel(pending.requestId)
                 return
             }
-            pending.resolve(pending.requestId, url.absoluteString, url.lastPathComponent, -1, token)
+            complete(pending, uri: url.absoluteString, name: url.lastPathComponent, size: -1, token: token)
             return
         }
         #if os(iOS)
@@ -141,7 +161,7 @@ final class FilePickerSession {
             do {
                 let dest = try ManagedImportCopy.copy(from: url)
                 let file = dest.fileNameAndSize
-                pending.resolve(pending.requestId, dest.absoluteString, file.name, file.size, nil)
+                complete(pending, uri: dest.absoluteString, name: file.name, size: file.size, token: nil)
             } catch {
                 pending.cancel(pending.requestId)
             }
@@ -158,6 +178,15 @@ final class FilePickerSession {
         #endif
         let file = url.fileNameAndSize
         let token = pending.persistent ? url.securityScopedBookmarkToken() : nil
-        pending.resolve(pending.requestId, url.absoluteString, file.name, file.size, token)
+        complete(pending, uri: url.absoluteString, name: file.name, size: file.size, token: token)
+    }
+
+    private func complete(_ request: PendingFilePicker, uri: String, name: String?, size: Int64, token: String?) {
+        let resolve = { request.resolve(request.requestId, uri, name, size, token) }
+        if request.resolveAfterDismissal {
+            pendingResolution = (request, resolve)
+            return
+        }
+        resolve()
     }
 }

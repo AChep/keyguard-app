@@ -42,7 +42,7 @@ struct CipherDetailView: View {
         DetailForm(items: detail.items, invoke: invoke) {
             DetailIdentityHeader(title: detail.title) { size in
                 FaviconView(
-                    url: detail.iconUrl,
+                    iconKey: detail.iconKey,
                     placeholder: detail.iconPlaceholder,
                     fallbackSymbol: typeSymbol(detail.typeIcon),
                     size: size

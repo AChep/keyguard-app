@@ -22,7 +22,7 @@ blake2 = { version = "=0.10.6", default-features = false }
 block-buffer = "=0.10.4"
 blowfish = { version = "=0.9.1", features = ["bcrypt", "zeroize"] }
 aws-lc-rs = { version = "=1.18.2", default-features = false, features = ["non-fips"] }
-aws-lc-sys = { version = "=0.46.0", default-features = false }
+aws-lc-sys = { version = "=0.46.0", default-features = false, features = ["all-bindings"] }
 cbc = { version = "=0.1.2", default-features = false, features = ["alloc", "block-padding", "zeroize"] }
 chacha20 = { version = "=0.9.1", default-features = false, features = ["zeroize"] }
 cipher = { version = "=0.4.4", default-features = false, features = ["alloc", "block-padding", "zeroize"] }

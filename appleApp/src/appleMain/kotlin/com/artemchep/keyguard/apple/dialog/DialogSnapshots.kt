@@ -198,6 +198,7 @@ data class ConfirmationItemSnapshot(
     val booleanValue: Boolean = false,
     // STRING
     val stringValue: String = "",
+    val ephemeral: Boolean = false,
     val stringRevision: Int = 0,
     // Named descriptionText, not description: a Kotlin property exported as
     // `description` collides with NSObject.description (non-optional) on Swift.
@@ -254,7 +255,8 @@ data class LeakBreachSnapshot(
     val domain: String,
     // Not `description`: that collides with NSObject.description (non-optional) on Swift.
     val descriptionText: String,
-    val icon: String?,
+    /** The breach logo, loaded with `KeyguardCore.loadIcon`. */
+    val iconKey: String?,
     val count: Int?,
     /** The localized, number-formatted "Found in N account(s)" line. */
     val countText: String?,

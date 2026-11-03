@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.download
 
+import com.artemchep.keyguard.common.service.session.BitwardenAttachmentSessionAccess
 import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
@@ -41,6 +42,7 @@ class DownloadAttachmentSourceLoaderImpl internal constructor(
     private val downloadTask: DownloadTask,
     private val getVaultSession: GetVaultSession,
     private val sessionAccess: AttachmentSessionAccess,
+    private val bitwardenSessionAccess: BitwardenAttachmentSessionAccess,
 ) : DownloadAttachmentSourceLoader {
     override fun fileLoader(
         request: DownloadAttachmentRequestData,
@@ -52,11 +54,16 @@ class DownloadAttachmentSourceLoaderImpl internal constructor(
             writer = writer,
         )
 
-        is DownloadAttachmentRequestData.UrlSource -> downloadTask.fileLoader(
-            url = source.url,
-            key = request.encryptionKey,
-            writer = writer,
-        )
+        is DownloadAttachmentRequestData.UrlSource -> flow {
+            val loader = (getVaultSession().first() as? MasterSession.Key)
+                ?.let(bitwardenSessionAccess::invoke)
+            if (loader != null) {
+                emitAll(loader.fileLoader(request, source, writer))
+            } else {
+                emit(DownloadProgress.Loading())
+                emit(DownloadProgress.Complete(DownloadAttachmentSessionUnavailableException().left()))
+            }
+        }
 
         is DownloadAttachmentRequestData.KeePassSource -> flow {
             val loader = (getVaultSession().first() as? MasterSession.Key)

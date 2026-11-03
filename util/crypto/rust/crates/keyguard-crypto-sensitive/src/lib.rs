@@ -9,6 +9,7 @@
 #![deny(unsafe_op_in_unsafe_fn)]
 
 mod bcrypt_pbkdf;
+pub mod pkcs12;
 pub mod rsa;
 
 pub use bcrypt_pbkdf::bcrypt_pbkdf;

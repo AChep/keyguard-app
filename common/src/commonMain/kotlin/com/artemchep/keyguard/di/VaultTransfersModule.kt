@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.di
 
+import com.artemchep.keyguard.common.service.download.BitwardenAttachmentSourceLoader
+import com.artemchep.keyguard.common.service.download.BitwardenAttachmentHttpClientProvider
+import com.artemchep.keyguard.common.service.download.BitwardenAttachmentHttpClientProviderImpl
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepository
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepositoryImpl
 import com.artemchep.keyguard.common.service.backup.BackupDiagnostics
@@ -49,6 +52,8 @@ import org.koin.plugin.module.dsl.scoped
 internal class VaultTransfersModule {
     val module = module {
         scope<VaultSessionScope> {
+            scoped<BitwardenAttachmentSourceLoader>()
+            scoped<BitwardenAttachmentHttpClientProviderImpl>() bind BitwardenAttachmentHttpClientProvider::class
             scoped<BackupConfigRepository> {
                 BackupConfigRepositoryImpl(
                     store = get<VaultSettingsKeyValueStore>(),

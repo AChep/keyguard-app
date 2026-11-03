@@ -73,6 +73,7 @@ class NativeCryptoClientTest {
     fun rejectsRuntimeMissingLockstepExtensionCapabilities() {
         listOf(
             NativeCryptoCapability.OPENPGP_V6_GENERATION_MUTATION,
+            NativeCryptoCapability.PKCS12,
             NativeCryptoCapability.SSH_PUBLIC_KEY_DECODE,
             NativeCryptoCapability.OPENPGP_CLEAR_VERIFY,
             NativeCryptoCapability.OPENPGP_EXTERNAL_REVOCATION_POLICY,

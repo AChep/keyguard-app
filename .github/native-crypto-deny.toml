@@ -110,9 +110,9 @@ reason = "Keep AWS-LC on the explicitly selected non-FIPS backend without defaul
 
 [[bans.features]]
 crate = "aws-lc-sys"
-allow = []
+allow = ["all-bindings", "bindgen"]
 exact = true
-reason = "No optional low-level AWS-LC build feature is approved"
+reason = "PKCS#12 uses full bindings; mobile targets generate them with bindgen. Other optional build features remain disabled"
 
 [sources]
 unknown-registry = "deny"

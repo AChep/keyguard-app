@@ -54,6 +54,7 @@ message NativeRequest {
     OpenPgpStreamDrainRequest open_pgp_stream_drain = 59;
     OpenPgpUserIdUpdateRequest open_pgp_user_id_update = 60;
     SshCertificateDescribeRequest ssh_certificate_describe = 61;
+    Pkcs12Request pkcs12 = 62;
   }
 }
 
@@ -1373,4 +1374,32 @@ message OpenPgpUserIdUpdateResult {
     OpenPgpUserIdUpdateSuccess success = 1;
     OpenPgpUserIdMutationError error = 2;
   }
+}
+
+// Imports or describes a single TLS client identity. Passwords are never returned.
+message Pkcs12Request {
+  bytes data = 1;
+  optional bytes password_utf8 = 2;
+  bool normalize = 3;
+  // Used only for a transient Apple import wrapper; omitted for account storage.
+  optional bytes output_password_utf8 = 4;
+  bool export_private_key = 5;
+}
+
+message Pkcs12Result {
+  // 0 = success, 1 = password required, 2 = incorrect password, 3 = invalid bundle.
+  uint32 status = 1;
+  bytes normalized_pkcs12 = 2;
+  string display_name = 3;
+  string issuer = 4;
+  int64 expires_at = 5;
+  bytes private_key_der = 6;
+  // RFC 2253 distinguished names; issuer is field 4.
+  string subject = 7;
+  string issuer_common_name = 8;
+  int64 not_before = 9;
+  bytes serial_number = 10;
+  bytes sha256_fingerprint = 11;
+  // For example `RSA 2048`, `EC P-256` or `Ed25519`; empty when unknown.
+  string key_type = 12;
 }

@@ -115,6 +115,7 @@ data class LoginActionSnapshot(
 )
 
 enum class LoginItemKind {
+    MUTUAL_TLS,
     URL,
     HEADER,
     SECTION,

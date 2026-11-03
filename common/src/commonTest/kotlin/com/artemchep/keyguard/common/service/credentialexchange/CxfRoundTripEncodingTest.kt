@@ -2,6 +2,8 @@ package com.artemchep.keyguard.common.service.credentialexchange
 
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
+import com.artemchep.keyguard.common.service.imports.importSkips
+import com.artemchep.keyguard.test.FakeSshKeyImportService
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -122,7 +124,7 @@ class CxfRoundTripEncodingTest {
             payload = emptyUserHandleDocument(),
             now = harness.now,
         )
-        assertEquals(cxfImportSkips(), plan.skips)
+        assertEquals(importSkips(), plan.skips)
         val credential = plan.items.single().request.fido2Credentials.single()
         assertNull(credential.userHandle)
         assertEquals("AAECAwQFBg", credential.credentialId)
@@ -334,7 +336,7 @@ class CxfRoundTripEncodingTest {
                 .getValue(DSecret.Type.Card)
                 .map { it.name to it.value },
         )
-        assertEquals(cxfImportSkips(), views.importSkips)
+        assertEquals(importSkips(), views.importSkips)
     }
 
     // endregion

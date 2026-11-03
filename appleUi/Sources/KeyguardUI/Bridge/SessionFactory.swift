@@ -16,6 +16,17 @@ final class SessionFactory {
         core.makeGeneratorHistorySession()
     }
 
+    func makeEnvironmentsModel() -> EnvironmentsModel { EnvironmentsModel(session: core.makeEnvironmentsSession()) }
+
+    func makeCliModel() -> CliModel { CliModel(session: core.makeCliSession()) }
+
+    func makeCliAgentHistorySession(target: CliAgentHistoryTarget) -> CliAgentHistorySession {
+        core.makeCliAgentHistorySession(client: target.client, cipherId: target.cipherId)
+    }
+
+    /// Clears without asking; confirm with the user first.
+    func clearCliAgentHistory(client: String) { core.clearCliAgentHistory(client: client) }
+
     func makeGpgToolsModel() -> GpgToolsModel { GpgToolsModel(source: core.makeGpgToolsSession()) }
 
     func makeAddForm() -> AddFormModel { AddFormModel(core: core) }

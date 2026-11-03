@@ -35,12 +35,7 @@ struct KeePassLoginView: View {
             .frame(maxWidth: .infinity)
         }
         .navigationTitle(L10n.addkeepassHeaderTitle)
-        .sheet(isPresented: webdavPresented) {
-            if let snapshot = keepassModel.keepassWebDav { WebDavSettingsSheet(sessionId: snapshot.id) }
-        }
-        .sheet(isPresented: s3Presented) {
-            if let snapshot = keepassModel.keepassS3 { S3SettingsSheet(sessionId: snapshot.id) }
-        }
+        .remoteSettingsSheets(keepassModel.remoteSettings)
         #if os(iOS)
         // KeePass can itself be presented as an add-account sheet. Its document
         // pickers must be hosted here, above that sheet rather than beside it.
@@ -74,20 +69,6 @@ struct KeePassLoginView: View {
             if succeeded { dismiss() }
         }
         .onAppear { keepassModel.startKeePassLoginObservation() }
-    }
-
-    private var webdavPresented: Binding<Bool> {
-        Binding(
-            get: { keepassModel.keepassWebDav != nil },
-            set: { if !$0 { keepassModel.dismissWebDavSettings() } }
-        )
-    }
-
-    private var s3Presented: Binding<Bool> {
-        Binding(
-            get: { keepassModel.keepassS3 != nil },
-            set: { if !$0 { keepassModel.dismissS3Settings() } }
-        )
     }
 
     // MARK: - Header

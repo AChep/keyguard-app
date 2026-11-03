@@ -268,6 +268,12 @@ enum class SettingsSearchTarget(
         section = Res.string.agent_title,
         protocol = Res.string.protocol_ssh,
     ),
+    SSH_APPROVAL_TIMEOUT(
+        SettingsDestination.DEVELOPER.id,
+        Res.string.pref_item_agent_approval_timeout_title,
+        section = Res.string.agent_title,
+        protocol = Res.string.protocol_ssh,
+    ),
     SSH_NAMES(
         SettingsDestination.DEVELOPER.id,
         Res.string.pref_item_agent_display_key_names_title,
@@ -311,6 +317,12 @@ enum class SettingsSearchTarget(
         section = Res.string.agent_title,
         protocol = Res.string.protocol_gpg,
     ),
+    GPG_APPROVAL_TIMEOUT(
+        SettingsDestination.DEVELOPER.id,
+        Res.string.pref_item_agent_approval_timeout_title,
+        section = Res.string.agent_title,
+        protocol = Res.string.protocol_gpg,
+    ),
     GPG_SCOPE(
         SettingsDestination.DEVELOPER.id,
         Res.string.pref_item_agent_approval_scope_title,
@@ -335,6 +347,26 @@ enum class SettingsSearchTarget(
         Res.string.pref_item_agent_history_title,
         section = Res.string.agent_title,
         protocol = Res.string.protocol_gpg,
+    ),
+    CLI_HISTORY(
+        SettingsDestination.DEVELOPER.id,
+        Res.string.pref_item_agent_history_title,
+        section = Res.string.cli_title,
+        availability = Availability.MACOS,
+    ),
+    ENV_HISTORY(
+        SettingsDestination.DEVELOPER.id,
+        Res.string.pref_item_agent_history_title,
+        section = Res.string.environments_title,
+        // This log lists the reads of local .env files.
+        keywords = listOf(Res.string.environments_mounts),
+        availability = Availability.MACOS,
+    ),
+    MCP_HISTORY(
+        SettingsDestination.DEVELOPER.id,
+        Res.string.pref_item_agent_history_title,
+        section = Res.string.protocol_mcp,
+        availability = Availability.MACOS,
     ),
     PWNED_PASSWORDS(
         SettingsDestination.WATCHTOWER.id,

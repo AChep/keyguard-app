@@ -9,6 +9,8 @@ data class SshAgentPublicKeyRow(
     val fingerprint: String,
     val canSign: Boolean,
     val name: String?,
+    /** The OpenSSH certificate of the key, offered while it is valid. */
+    val certificate: String? = null,
 ) {
     val displayName: String
         get() = name

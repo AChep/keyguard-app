@@ -5,6 +5,7 @@
 //! accepted socket, collects reusable authorization subjects when the OS can
 //! prove them, and keeps display metadata separate from authorization state.
 
+use crate::caller_guard::CallerGuard;
 #[cfg(target_os = "linux")]
 use crate::unix_caller_identity::process_details_from_pid;
 use crate::unix_caller_identity::{
@@ -12,20 +13,20 @@ use crate::unix_caller_identity::{
 };
 #[cfg(target_os = "macos")]
 use crate::VerifiedSubjectKind;
-use crate::{AuthorizationContextFingerprint, ConnectionFingerprint, VerifiedSubject};
+use crate::{
+    AuthorizationContextFingerprint, ConnectionFingerprint, RelayedCaller, VerifiedSubject,
+};
 #[cfg(any(target_os = "linux", target_os = "macos"))]
 use std::os::fd::AsRawFd;
 use tokio::net::UnixStream;
 
-/// Protocol-neutral identity and retained platform guards for an accepted peer.
+/// Protocol-neutral identity and retained platform guard for an accepted peer.
 #[derive(Debug)]
 pub struct UnixCallerContext {
     /// Caller data ready for a protocol-specific wire adapter.
     pub caller: CallerIdentity,
-    #[cfg(target_os = "macos")]
-    pub macos_guard: Option<crate::macos::MacosPeerIdentity>,
-    #[cfg(target_os = "linux")]
-    pub linux_guard: Option<crate::linux_identity::LinuxProcessIdentity>,
+    /// Retained identity to revalidate before each sensitive operation.
+    pub guard: CallerGuard,
 }
 
 /// Protocol-neutral caller display and authorization data.
@@ -69,10 +70,20 @@ pub enum CallerAuthorizationEvidenceSource {
     MacosTerminalSession,
 }
 
-/// Collects caller data without retaining the platform guards.
-#[cfg(not(any(target_os = "linux", target_os = "macos")))]
-pub fn caller_from_unix_stream(stream: &UnixStream) -> Option<CallerIdentity> {
-    caller_context_from_unix_stream(stream).map(|context| context.caller)
+impl CallerAuthorizationEvidenceSource {
+    /// Value of the protocols' `CallerAuthorizationEvidenceSource`.
+    #[must_use]
+    pub const fn wire_value(self) -> i32 {
+        match self {
+            Self::LinuxPidfd => 2,
+            Self::MacosAuditToken => 4,
+            Self::MacosCodeSigning => 5,
+            Self::LinuxApplicationAncestry => 10,
+            Self::LinuxTerminalSession => 11,
+            Self::MacosApplicationAncestry => 12,
+            Self::MacosTerminalSession => 13,
+        }
+    }
 }
 
 /// Collects caller data and the guards required for per-request revalidation.
@@ -96,13 +107,95 @@ pub fn caller_context_from_unix_stream(stream: &UnixStream) -> Option<UnixCaller
     apply_linux_authenticated_display(&mut identity, &mut collected);
     identity.authorization = collected.authorization;
 
+    #[cfg(target_os = "macos")]
+    let guard = CallerGuard::from_macos(collected.macos_guard);
+    #[cfg(target_os = "linux")]
+    let guard = CallerGuard::from_linux(collected.linux_guard);
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    let guard = CallerGuard::default();
+
     Some(UnixCallerContext {
         caller: identity,
-        #[cfg(target_os = "macos")]
-        macos_guard: collected.macos_guard,
-        #[cfg(target_os = "linux")]
-        linux_guard: collected.linux_guard,
+        guard,
     })
+}
+
+#[cfg(any(target_os = "linux", target_os = "macos"))]
+fn relayed_caller_display(
+    pid: u32,
+    executable_path: &str,
+    app_name: Option<String>,
+    app_bundle_path: Option<String>,
+) -> RelayedCaller {
+    let process_name = std::path::Path::new(executable_path)
+        .file_name()
+        .and_then(|name| name.to_str())
+        .unwrap_or(executable_path);
+    RelayedCaller {
+        pid,
+        process_name: escape_display_identifier(process_name),
+        executable_path: escape_display_identifier(executable_path),
+        app_name: app_name.unwrap_or_default(),
+        app_bundle_path: app_bundle_path.unwrap_or_default(),
+    }
+}
+
+/// Describes the process that started the accepted peer `pid`, for a peer
+/// that only relays requests for it, such as a bundled command-line client.
+/// Display data only: authorization and the guard keep describing the peer.
+/// `None` when the OS can not prove the parent.
+#[must_use]
+pub fn relayed_caller(guard: &CallerGuard, pid: u32) -> Option<RelayedCaller> {
+    #[cfg(target_os = "macos")]
+    return macos_relayed_caller(guard, pid);
+    #[cfg(target_os = "linux")]
+    return linux_relayed_caller(guard, pid);
+    #[cfg(not(any(target_os = "linux", target_os = "macos")))]
+    {
+        let _ = (guard, pid);
+        None
+    }
+}
+
+#[cfg(target_os = "macos")]
+fn macos_relayed_caller(guard: &CallerGuard, pid: u32) -> Option<RelayedCaller> {
+    let identity = guard.macos().filter(|identity| identity.pid() == pid)?;
+    let relayed = identity
+        .relayed_caller()
+        .inspect_err(|error| tracing::debug!(%error, "macOS relayed caller unavailable"))
+        .ok()?;
+    // The parent was read by PID: re-sample the peer it was read for.
+    identity.revalidate().ok()?;
+    let application = relayed.application();
+    Some(relayed_caller_display(
+        relayed.pid(),
+        relayed.executable_path(),
+        application.map(macos_authenticated_application_label),
+        application.map(|application| escape_display_identifier(application.bundle_path())),
+    ))
+}
+
+#[cfg(target_os = "linux")]
+fn linux_relayed_caller(guard: &CallerGuard, pid: u32) -> Option<RelayedCaller> {
+    let parent = crate::linux_identity::parent_process(pid)
+        .inspect_err(|error| tracing::debug!(%error, "Linux relayed caller unavailable"))
+        .ok()?;
+    // Linux bounds an application by its cgroup, which a relay inherits
+    // from its parent.
+    let application = guard
+        .linux()
+        .filter(|identity| identity.pid == pid)
+        .and_then(|identity| identity.application());
+    Some(relayed_caller_display(
+        parent.pid,
+        &parent.executable_path,
+        application
+            .and_then(|application| application.display_name_hint())
+            .map(escape_display_identifier),
+        application
+            .and_then(|application| application.executable_path_hint())
+            .map(escape_display_identifier),
+    ))
 }
 
 #[cfg(target_os = "linux")]
@@ -391,10 +484,10 @@ fn populate_macos_details(identity: &mut CallerIdentity, pid: u32) {
         }
     }
 
-    // Retain only a bundle path enclosing the direct executable. This path is
+    // Retain only the application of a direct bundle executable. This path is
     // movable/renameable display metadata; it must remain secondary to the
     // authenticated code-signing label assigned below.
-    if let Some(app_bundle_path) = find_app_bundle_path(&identity.executable_path) {
+    if let Some(app_bundle_path) = crate::macos::outer_app_bundle_path(&identity.executable_path) {
         identity.app_pid = pid;
         identity.app_bundle_path = app_bundle_path;
     }
@@ -489,22 +582,6 @@ fn macos_proc_name(pid: u32) -> Option<String> {
     Some(String::from_utf8_lossy(&buf[..len]).to_string())
 }
 
-#[cfg(target_os = "macos")]
-fn find_app_bundle_path(executable_path: &str) -> Option<String> {
-    use std::path::Path;
-
-    let path = Path::new(executable_path);
-    for ancestor in path.ancestors() {
-        let Some(name) = ancestor.file_name().and_then(|s| s.to_str()) else {
-            continue;
-        };
-        if name.ends_with(".app") {
-            return Some(ancestor.to_string_lossy().to_string());
-        }
-    }
-    None
-}
-
 #[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::{
@@ -547,7 +624,7 @@ mod tests {
         let server_stream = UnixStream::from_std(server_stream).expect("Tokio server stream");
         let client_stream = UnixStream::from_std(client_stream).expect("Tokio client stream");
         let context = caller_context_from_unix_stream(&server_stream).expect("caller identity");
-        let guard = context.macos_guard.as_ref().expect("retained macOS guard");
+        let guard = context.guard.macos().expect("retained macOS guard");
         let expected_label = guard
             .application()
             .map(macos_authenticated_application_label)

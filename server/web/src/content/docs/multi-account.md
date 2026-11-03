@@ -1,52 +1,49 @@
 ---
 title: Multiple accounts
-description: Connect several Bitwarden and KeePass vaults side by side — one merged view, with per-account identity and control.
-category: accounts
-order: 1
+description: "Connect several Bitwarden and KeePass accounts and see their items in one merged vault."
+section: accounts
+type: concept
+order: 40
+platforms: all
+premium: true
+related: [bitwarden/self-hosted, keepass, sync-and-conflicts, premium]
 ---
 
-Keyguard can hold several vaults at once: **Bitwarden** accounts — official
-cloud, self-hosted, even on different servers — and **KeePass** databases,
-all signed in side by side.
+Keyguard holds several accounts at once and shows their items in one vault. An
+account is a Bitwarden account on any server, or a KeePass database.
 
-## One view, many accounts
+## The merged vault
 
-The main vault merges items from **all accounts into a single list**, and
-[search](/docs/search/) works across all accounts at once. When you do want a
-narrower view, filter by account (or folder, type, and so on), or open the
-account itself to see only its items. Multi-select and batch actions work in the
-merged view too.
+The vault list shows the items of every account together, and
+[Search](/docs/search/) covers all of them. Filters narrow the list to one
+account, folder or item type. [Bulk actions](/docs/bulk-actions/) work across
+accounts.
 
-You can [hide an account](#hiding-an-account), so it is only browsable from the settings.
+## The account screen
 
-## Telling accounts apart
+**Settings** lists your accounts, and selecting one opens its screen. The
+account screen shows only that account's items, folders and settings.
 
-Each account has its own identity, editable from the account's screen:
+## Account name and color
 
-- **Name** — give the account a label that means something to you;
-- **Accent color** — a per-account color that helps tell its items apart.
+Each account has a name and a color, set with **Change name** and
+**Change color** on the account screen. The color marks the account in the
+account list and in the vault's account filter.
 
 ## Hiding an account
 
-Every account has a **Hide items** toggle on its screen. Turn it on and the
-account's items disappear from the main screens of the app — the merged
-vault list and the views built on it — while the account itself stays
-signed in, keeps syncing, and remains visible in the account list. Open the
-account directly to browse its items, or flip the toggle off to reveal them
-everywhere again.
+The **Hide items** switch on the account screen removes the account's items
+from the main screens of the app. The account stays signed in, keeps syncing,
+and stays in the account list. Its own screen still lists its items.
 
-Use this for rarely needed vaults — such as archives or shared family
-vaults — to keep everyday lists focused while preserving access.
+Hiding suits accounts you rarely open, such as an archive or a shared family
+vault.
 
 ## Copying items between accounts
 
-An item can be **copied to another account** from its actions — pick the
-destination account (and, for Bitwarden, the organization or folder it
-should land in). The result is an independent copy in the destination
-vault; the original stays where it was.
+The **Copy to…** item action copies items into another account. The
+destination is an account, plus a folder, and on Bitwarden an organization and
+its collections.
 
-## On the watch
-
-The [Wear OS app](/docs/wear-os/) carries a **single account**, chosen when you
-pair the watch — see the [setup guide](/docs/wear-os/#setup) for how pairing
-works.
+The copy is a new, independent item: the original stays in its account, and
+editing one doesn't change the other. Attachments aren't copied.

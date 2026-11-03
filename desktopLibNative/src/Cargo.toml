@@ -16,11 +16,17 @@ crate-type = ["cdylib"]
 libc.workspace = true
 zeroize.workspace = true
 
+[target.'cfg(target_os = "macos")'.dependencies]
+jni.workspace = true
+keyguard-ffi = { workspace = true, features = ["jni"] }
+
 [target.'cfg(target_os = "linux")'.dependencies]
 serde = { workspace = true, features = ["derive"] }
-zbus = { workspace = true, features = ["async-io", "blocking-api"] }
+zbus = { workspace = true, features = ["default-rt", "proxy"] }
 
 [target.'cfg(windows)'.dependencies]
+jni.workspace = true
+keyguard-ffi = { workspace = true, features = ["jni"] }
 subtle.workspace = true
 windows = { workspace = true, features = [
     "Foundation",
@@ -29,6 +35,12 @@ windows = { workspace = true, features = [
     "Win32_Graphics_Gdi",
     "Win32_Security",
     "Win32_Security_Cryptography",
+    "Win32_Storage_FileSystem",
+    "Win32_System_Com",
+    "Win32_System_Com_StructuredStorage",
+    "Win32_System_DataExchange",
+    "Win32_System_Memory",
+    "Win32_System_Ole",
     "Win32_System_WinRT",
     "Win32_System_Threading",
     "Win32_System_LibraryLoader",
@@ -37,9 +49,15 @@ windows = { workspace = true, features = [
     "Win32_System_Rpc",
     "Win32_System_SystemServices",
     "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_Shell",
     "Win32_UI_WindowsAndMessaging",
 ] }
+# `#[implement]` expands to `::windows_core` paths.
+windows-core.workspace = true
 windows-future.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
 
 [build-dependencies]
 cc.workspace = true

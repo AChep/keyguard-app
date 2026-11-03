@@ -13,7 +13,9 @@ omitted by CTAP2.0 keys after allow-list filtering. Vault unlock requires user
 verification and PRF; legacy U2F is only usable for compatible account assertions.
 
 Linux builds need `libudev-dev` (or the distribution's equivalent). Runtime users
-need permission to access the key's hidraw device.
+need permission to access the key's hidraw device. Inside Flatpak that takes
+`--device=all`; the fork polls for keys there because udev event delivery is
+unreliable across sandbox runtimes.
 
 ## Tests
 

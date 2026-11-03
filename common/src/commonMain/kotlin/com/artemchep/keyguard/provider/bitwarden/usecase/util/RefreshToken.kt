@@ -50,7 +50,7 @@ internal suspend fun <T> withRefreshableAccessToken(
 
     var latestToken = user
     while (true) {
-        val token = user.token
+        val token = latestToken.token
         if (token != null) {
             // Refresh token immediately if the expiration date
             // has already passed.
@@ -90,8 +90,9 @@ suspend fun getAndUpdateUserToken(
             .getByAccountId(user.id)
             .executeAsOneOrNull()
     }.bind()
-    val newUserToken = newUser?.data_ as BitwardenToken?
-    if (newUserToken != null && newUserToken != user) {
+    val newUserToken = newUser?.data_ as? BitwardenToken
+        ?: error("Account no longer exists")
+    if (newUserToken != user) {
         return newUserToken
     }
 
@@ -108,12 +109,18 @@ suspend fun getAndUpdateUserToken(
         accessToken = login.accessToken,
         expirationDate = login.accessTokenExpiryDate,
     )
-    val u = user.copy(token = token)
-    db.mutate("RefreshToken") {
-        it.accountQueries.insert(
-            accountId = u.id,
-            data = u,
-        )
+    return db.mutate("RefreshToken") { database ->
+        val current = database.accountQueries.getByAccountId(user.id)
+            .executeAsOneOrNull()?.data_ as? BitwardenToken
+            ?: error("Account no longer exists")
+        // A concurrent re-login owns its newer credentials. Certificate changes
+        // are independent and must survive this refresh.
+        if (current.token != user.token || current.key != user.key || current.sso != user.sso) {
+            current
+        } else {
+            current.copy(token = token).also { updated ->
+                database.accountQueries.insert(accountId = updated.id, data = updated)
+            }
+        }
     }.bind()
-    return u
 }

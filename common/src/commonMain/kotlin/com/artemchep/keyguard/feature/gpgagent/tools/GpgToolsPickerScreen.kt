@@ -30,6 +30,9 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
+import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.gpgagent.keyserver.search.GpgKeyserverSearchRoute
 import com.artemchep.keyguard.feature.home.settings.gpg.GpgSettingsRoute
 import com.artemchep.keyguard.feature.home.vault.component.Section
@@ -45,6 +48,10 @@ import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.agent_title
 import com.artemchep.keyguard.res.gpg_keyserver_status_title
+import com.artemchep.keyguard.res.gpg_tools_drop_file_to_decrypt
+import com.artemchep.keyguard.res.gpg_tools_drop_file_to_encrypt
+import com.artemchep.keyguard.res.gpg_tools_drop_file_to_sign
+import com.artemchep.keyguard.res.gpg_tools_drop_file_to_verify
 import com.artemchep.keyguard.res.gpg_tools_header_title
 import com.artemchep.keyguard.res.gpg_tools_operation_decrypt_text
 import com.artemchep.keyguard.res.gpg_tools_operation_encrypt_text
@@ -71,10 +78,15 @@ internal fun GpgToolsPickerScreen() {
     val updatedNavigationController by rememberUpdatedState(LocalNavigationController.current)
     GpgToolsPickerScreen(
         operations = GpgToolsOperation.entries,
-        onOperationClick = { operation ->
+        onOperationOpen = { operation, file ->
             navigateTo(
                 navigationController = updatedNavigationController,
-                route = operation.route,
+                route = GpgToolsOperationRoute(
+                    args = GpgToolsOperationRoute.Args(
+                        operation = operation,
+                        inputFile = file,
+                    ),
+                ),
             )
         },
         onKeyserverSearchClick = {
@@ -111,7 +123,7 @@ private fun navigateTo(
 @Composable
 private fun GpgToolsPickerScreen(
     operations: List<GpgToolsOperation>,
-    onOperationClick: (GpgToolsOperation) -> Unit,
+    onOperationOpen: (GpgToolsOperation, FilePickerResult?) -> Unit,
     onKeyserverSearchClick: () -> Unit,
     onSettingsClick: () -> Unit,
 ) {
@@ -161,7 +173,10 @@ private fun GpgToolsPickerScreen(
                     GpgOperationCard(
                         operation = operation,
                         onClick = {
-                            onOperationClick(operation)
+                            onOperationOpen(operation, null)
+                        },
+                        onFileDrop = { file ->
+                            onOperationOpen(operation, file)
                         },
                     )
                 }
@@ -193,7 +208,9 @@ private fun GpgKeyserverSearchCard(
         icon = Icons.Outlined.KeyguardGpgSearch,
         title = stringResource(Res.string.pref_item_gpg_keyserver_search_title),
         text = stringResource(Res.string.pref_item_gpg_keyserver_search_text),
-        route = GpgKeyserverSearchRoute,
+        matchesRoute = { route ->
+            route === GpgKeyserverSearchRoute
+        },
         horizontalPadding = true,
         onClick = onClick,
     )
@@ -203,13 +220,33 @@ private fun GpgKeyserverSearchCard(
 private fun GpgOperationCard(
     operation: GpgToolsOperation,
     onClick: () -> Unit,
+    onFileDrop: (FilePickerResult) -> Unit,
 ) {
-    GpgToolsCard(
-        icon = operation.icon,
-        title = textResource(operation.title),
-        text = stringResource(operation.summary),
-        route = operation.route,
-        onClick = onClick,
+    // The grid stretches the cards of a row to the same
+    // height, so pass the min constraints to the card.
+    FileDropTargetBox(
+        enabled = true,
+        propagateMinConstraints = true,
+        onFileDrop = onFileDrop,
+        content = {
+            GpgToolsCard(
+                icon = operation.icon,
+                title = textResource(operation.title),
+                text = stringResource(operation.summary),
+                matchesRoute = { route ->
+                    route is GpgToolsOperationRoute &&
+                            route.args.operation == operation
+                },
+                onClick = onClick,
+            )
+        },
+        overlay = {
+            FileDropOverlay(
+                modifier = Modifier
+                    .matchParentSize(),
+                text = stringResource(operation.dropText),
+            )
+        },
     )
 }
 
@@ -218,12 +255,12 @@ private fun GpgToolsCard(
     icon: ImageVector,
     title: String,
     text: String,
-    route: Route,
+    matchesRoute: (Route) -> Boolean,
     horizontalPadding: Boolean = false,
     onClick: () -> Unit,
 ) {
     val selected = LocalHasDetailPane.current &&
-            navigationNextEntryOrNull()?.route === route
+            navigationNextEntryOrNull()?.route?.let(matchesRoute) == true
     val backgroundColor = if (selected) {
         MaterialTheme.colorScheme.selectedContainer
     } else {
@@ -294,18 +331,18 @@ private fun GpgToolsCard(
     }
 }
 
-private val GpgToolsOperation.route
-    get() = when (this) {
-        GpgToolsOperation.ENCRYPT -> GpgToolsEncryptRoute
-        GpgToolsOperation.DECRYPT -> GpgToolsDecryptRoute
-        GpgToolsOperation.SIGN -> GpgToolsSignRoute
-        GpgToolsOperation.VERIFY -> GpgToolsVerifyRoute
-    }
-
 private val GpgToolsOperation.summary
     get() = when (this) {
         GpgToolsOperation.ENCRYPT -> Res.string.gpg_tools_operation_encrypt_text
         GpgToolsOperation.DECRYPT -> Res.string.gpg_tools_operation_decrypt_text
         GpgToolsOperation.SIGN -> Res.string.gpg_tools_operation_sign_text
         GpgToolsOperation.VERIFY -> Res.string.gpg_tools_operation_verify_text
+    }
+
+private val GpgToolsOperation.dropText
+    get() = when (this) {
+        GpgToolsOperation.ENCRYPT -> Res.string.gpg_tools_drop_file_to_encrypt
+        GpgToolsOperation.DECRYPT -> Res.string.gpg_tools_drop_file_to_decrypt
+        GpgToolsOperation.SIGN -> Res.string.gpg_tools_drop_file_to_sign
+        GpgToolsOperation.VERIFY -> Res.string.gpg_tools_drop_file_to_verify
     }

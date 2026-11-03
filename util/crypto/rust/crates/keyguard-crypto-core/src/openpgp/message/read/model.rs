@@ -99,6 +99,8 @@ pub(crate) struct PublicKeyInfo {
     pub(crate) public_key_armored: String,
     pub(crate) subkeys: Vec<PublicSubkeyInfo>,
     pub(crate) user_id_details: Vec<UserIdInfo>,
+    pub(crate) user_id_history: Vec<UserIdInfo>,
+    pub(crate) can_modify_user_ids: bool,
     pub(crate) component_fingerprints: Vec<String>,
     pub(crate) revocation_authority_fingerprints: Vec<String>,
     pub(crate) authenticated: bool,
@@ -126,6 +128,11 @@ pub(crate) struct PublicSubkeyInfo {
 pub(crate) struct UserIdInfo {
     pub(crate) identity_id: String,
     pub(crate) user_id: String,
+    pub(crate) primary: bool,
+    pub(crate) revoked: bool,
+    pub(crate) can_revoke: bool,
+    pub(crate) can_replace: bool,
+    pub(crate) can_make_primary: bool,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

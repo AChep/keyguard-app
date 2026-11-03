@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.upload
 
 import com.artemchep.keyguard.common.model.KEEPASS_FILE_UPLOAD_MAX_BYTES
+import com.artemchep.keyguard.common.model.KEEPASS_FILE_UPLOAD_TOO_LARGE_MESSAGE
 import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.common.service.crypto.encryptToPath
 import com.artemchep.keyguard.common.service.file.FileService
@@ -139,7 +140,7 @@ internal class EncryptedFilePendingUploadServiceImpl(
     ): ByteArray = withContext(Dispatchers.IO) {
         val expectedPlainSize = pendingUpload.plainSize
         require(expectedPlainSize in 0L..KEEPASS_FILE_UPLOAD_MAX_BYTES) {
-            "KeePass attachment file must be 500 MB or smaller."
+            KEEPASS_FILE_UPLOAD_TOO_LARGE_MESSAGE
         }
         LocalPath(pendingUpload.path)
             .source()

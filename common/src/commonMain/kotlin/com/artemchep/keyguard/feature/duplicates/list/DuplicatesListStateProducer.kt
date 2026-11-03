@@ -40,6 +40,7 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.elevatedaccess.createElevatedAccessVerify
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
 import com.artemchep.keyguard.feature.generator.history.mapLatestScoped
+import com.artemchep.keyguard.feature.home.vault.add.hasGenericEditor
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.vault.screen.toVaultListItem
@@ -439,7 +440,7 @@ private suspend fun RememberStateFlowScope.createMergeButtonOrNull(
     cipherMerge: CipherMerge,
     canWrite: Boolean,
 ): VaultItem2.Button? {
-    if (!canWrite) {
+    if (!canWrite || ciphers.any { !it.type.hasGenericEditor() }) {
         return null
     }
 
@@ -643,7 +644,9 @@ private fun RememberStateFlowScope.createCipherSelectionFlow(
         ).verify(verify)
     }
 
-    if (canWrite && selectedCiphersAllSameType && selectedCiphers.size > 1) {
+    val supportsMerge = selectedCiphersAllSameType && selectedCiphers.size > 1 &&
+        selectedCiphers.all { it.type.hasGenericEditor() }
+    if (canWrite && supportsMerge) {
         actions += cipherMergeIntoAction(
             cipherMerge = toolbox.cipherMerge,
             ciphers = selectedCiphers,

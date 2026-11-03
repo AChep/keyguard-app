@@ -14,6 +14,7 @@ import com.artemchep.keyguard.util.zip.ZipService
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 import kotlinx.io.Sink
+import kotlinx.io.Source
 import kotlinx.io.discardingSink
 import kotlinx.io.readString
 import kotlinx.serialization.json.Json
@@ -96,6 +97,22 @@ class BackupRepositoryZipImpl(
             )
             return raced
         }
+        return metadata
+    }
+
+    override suspend fun readMetadata(
+        store: BackupObjectStore,
+        password: Password?,
+    ): BackupRepositoryMetadata? {
+        val metadata = readZipJsonOrNull<BackupRepositoryMetadata>(
+            store = store,
+            key = objectKey(REPO_FILE),
+            password = password,
+            entryName = REPO_ENTRY,
+        ) ?: return null
+        // No password-mode check: the archive has already opened with this
+        // password, which is all a reader needs.
+        validateBackupRepositoryFormat(metadata)
         return metadata
     }
 
@@ -303,6 +320,61 @@ class BackupRepositoryZipImpl(
         entryName = MANIFEST_ENTRY,
     )
 
+    override suspend fun <T> readSnapshot(
+        store: BackupObjectStore,
+        objectPassword: Password?,
+        snapshotPath: String,
+        readVault: suspend (BackupSnapshotManifest, Source) -> T,
+    ): T? = readZipOrNull(
+        store = store,
+        key = objectKey(snapshotPath),
+        password = objectPassword,
+        // The read finds a missing snapshot too, and unlike a lookup it is
+        // retried on a transient error.
+        stat = false,
+    ) { entries ->
+        var manifest: BackupSnapshotManifest? = null
+        entries.forEach { entry ->
+            when (entry.name) {
+                MANIFEST_ENTRY -> {
+                    manifest = json.decodeFromString(entry.source.readString())
+                }
+
+                // The writer puts the manifest first, and an entry is only
+                // readable while it is the current one.
+                VAULT_ENTRY -> {
+                    val snapshotManifest = manifest
+                        ?: return@readZipOrNull null
+                    return@readZipOrNull entry.readToEnd { source ->
+                        readVault(snapshotManifest, source)
+                    }
+                }
+            }
+        }
+        null
+    }
+
+    override suspend fun <T> readBlob(
+        store: BackupObjectStore,
+        objectPassword: Password?,
+        blobPath: String,
+        read: suspend (Source) -> T,
+    ): T? = readZipOrNull(
+        store = store,
+        key = objectKey(blobPath),
+        password = objectPassword,
+        // An import reads blobs by the hundred, so it learns that one is
+        // missing from the read alone, saving a request per blob.
+        stat = false,
+    ) { entries ->
+        val entry = entries
+            .firstOrNull { entry -> entry.name == BLOB_ENTRY }
+            ?: return@readZipOrNull null
+        entry.readToEnd { source ->
+            read(source)
+        }
+    }
+
     override suspend fun deleteSnapshot(
         store: BackupObjectStore,
         snapshotId: String,
@@ -337,8 +409,34 @@ class BackupRepositoryZipImpl(
         key: BackupObjectKey,
         password: Password?,
         entryName: String,
-    ): String? {
-        if (store.stat(key) == null) {
+    ): String? = readZipOrNull(
+        store = store,
+        key = key,
+        password = password,
+    ) { entries ->
+        entries
+            .firstOrNull { entry -> entry.name == entryName }
+            ?.source
+            ?.readString()
+    }
+
+    /**
+     * Opens the archive at [key] and hands its entries to [block], or
+     * returns `null` when there is no such object.
+     */
+    private suspend fun <T> readZipOrNull(
+        store: BackupObjectStore,
+        key: BackupObjectKey,
+        password: Password?,
+        /**
+         * Whether to look the object up before reading it. Not needed to
+         * find a missing one: [BackupObjectStore.read] reports that too.
+         * The lookup is not retried.
+         */
+        stat: Boolean = true,
+        block: suspend (Sequence<ZipReaderEntry>) -> T?,
+    ): T? {
+        if (stat && store.stat(key) == null) {
             return null
         }
 
@@ -349,12 +447,20 @@ class BackupRepositoryZipImpl(
                 return@retryTransientObjectRead null
             }
             ZipReader(source, password?.value).use { reader ->
-                reader.entries()
-                    .firstOrNull { entry -> entry.name == entryName }
-                    ?.source
-                    ?.readString()
+                block(reader.entries())
             }
         }
+    }
+
+    /**
+     * Hands the entry's bytes to [block], then reads what it left unread:
+     * only an entry read to its end is proven to decrypt and inflate, so a
+     * damaged one fails even when [block] stopped early.
+     */
+    private inline fun <T> ZipReaderEntry.readToEnd(
+        block: (Source) -> T,
+    ): T = block(source).also {
+        source.transferTo(discardingSink())
     }
 
     private suspend fun readIndexAtKey(

@@ -1,47 +1,30 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
+import com.artemchep.keyguard.common.service.agent.AgentRpcRequestContext
+import com.artemchep.keyguard.common.service.agent.agentRpcRequestError
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor.GpgAgentOperationResult
-
-data class GpgAgentRpcRequestContext(
-    val authenticated: Boolean,
-    val allowAuthenticate: Boolean,
-)
 
 internal class GpgAgentRpcHandler(
     private val requestProcessor: GpgAgentRequestProcessor,
-    private val authenticate: (GpgAgentMessages.AuthenticateRequest) -> Boolean = { false },
+    private val authenticate: (AgentIpcMessages.AuthenticateRequest) -> Boolean = { false },
 ) {
     suspend fun processRequest(
         request: GpgAgentMessages.IpcRequest,
-        context: GpgAgentRpcRequestContext,
+        context: AgentRpcRequestContext,
     ): GpgAgentMessages.IpcResponse {
-        val requestVariantCount =
-            (if (request.authenticate != null) 1 else 0) +
-                    (if (request.listKeys != null) 1 else 0) +
-                    (if (request.signHash != null) 1 else 0) +
-                    (if (request.pkdecrypt != null) 1 else 0)
-        if (requestVariantCount > 1) {
-            return errorResponse(
-                requestId = request.id,
-                message = "Malformed request: multiple request variants set",
-                code = GpgAgentMessages.ErrorCode.UNSPECIFIED,
-            )
-        }
-
-        if (!context.allowAuthenticate && request.authenticate != null) {
-            return errorResponse(
-                requestId = request.id,
-                message = "AuthenticateRequest is not supported on this transport",
-                code = GpgAgentMessages.ErrorCode.UNSPECIFIED,
-            )
-        }
-
-        if (!context.authenticated && request.authenticate == null) {
-            return errorResponse(
-                requestId = request.id,
-                message = "Not authenticated. Send AuthenticateRequest first.",
-                code = GpgAgentMessages.ErrorCode.NOT_AUTHENTICATED,
-            )
+        val variantCount = listOfNotNull(
+            request.authenticate,
+            request.listKeys,
+            request.signHash,
+            request.pkdecrypt,
+        ).size
+        agentRpcRequestError(
+            variantCount = variantCount,
+            isAuthenticate = request.authenticate != null,
+            context = context,
+        )?.let { error ->
+            return GpgAgentMessages.IpcResponse(id = request.id, error = error)
         }
 
         return when {
@@ -68,19 +51,19 @@ internal class GpgAgentRpcHandler(
             else -> errorResponse(
                 requestId = request.id,
                 message = "Unknown request type",
-                code = GpgAgentMessages.ErrorCode.UNSPECIFIED,
+                code = AgentIpcMessages.ErrorCode.UNSPECIFIED,
             )
         }
     }
 
     fun handleAuthenticate(
         requestId: Long,
-        request: GpgAgentMessages.AuthenticateRequest,
+        request: AgentIpcMessages.AuthenticateRequest,
     ): GpgAgentMessages.IpcResponse = GpgAgentMessages.IpcResponse(
         id = requestId,
-        authenticate = GpgAgentMessages.AuthenticateResponse(
+        authenticate = AgentIpcMessages.AuthenticateResponse(
             success = authenticate(request),
-            protocolRevision = GpgAgentMessages.PROTOCOL_REVISION,
+            protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
         ),
     )
 
@@ -99,7 +82,7 @@ internal class GpgAgentRpcHandler(
             GpgAgentRequestProcessor.ListKeysResult.VaultLocked -> errorResponse(
                 requestId = requestId,
                 message = "Vault is locked",
-                code = GpgAgentMessages.ErrorCode.VAULT_LOCKED,
+                code = AgentIpcMessages.ErrorCode.VAULT_LOCKED,
             )
         }
 
@@ -145,31 +128,31 @@ internal class GpgAgentRpcHandler(
             GpgAgentOperationResult.VaultLocked -> errorResponse(
                 requestId = requestId,
                 message = "Vault is locked",
-                code = GpgAgentMessages.ErrorCode.VAULT_LOCKED,
+                code = AgentIpcMessages.ErrorCode.VAULT_LOCKED,
             )
 
             GpgAgentOperationResult.UserDenied -> errorResponse(
                 requestId = requestId,
                 message = deniedMessage,
-                code = GpgAgentMessages.ErrorCode.USER_DENIED,
+                code = AgentIpcMessages.ErrorCode.USER_DENIED,
             )
 
             GpgAgentOperationResult.KeyNotFound -> errorResponse(
                 requestId = requestId,
                 message = "Key not found for the requested keygrip",
-                code = GpgAgentMessages.ErrorCode.KEY_NOT_FOUND,
+                code = AgentIpcMessages.ErrorCode.KEY_NOT_FOUND,
             )
 
             GpgAgentOperationResult.Unsupported -> errorResponse(
                 requestId = requestId,
                 message = "GPG key algorithm is not supported by this Keyguard version",
-                code = GpgAgentMessages.ErrorCode.UNSUPPORTED,
+                code = AgentIpcMessages.ErrorCode.UNSUPPORTED,
             )
 
             is GpgAgentOperationResult.Failure -> errorResponse(
                 requestId = requestId,
                 message = result.message,
-                code = GpgAgentMessages.ErrorCode.UNSPECIFIED,
+                code = AgentIpcMessages.ErrorCode.UNSPECIFIED,
             )
         }
 
@@ -179,7 +162,7 @@ internal class GpgAgentRpcHandler(
         code: Int,
     ) = GpgAgentMessages.IpcResponse(
         id = requestId,
-        error = GpgAgentMessages.ErrorResponse(
+        error = AgentIpcMessages.ErrorResponse(
             message = message,
             code = code,
         ),

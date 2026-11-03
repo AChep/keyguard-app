@@ -6,6 +6,7 @@ import KeyguardShared
 @Observable
 final class BitwardenLoginModel: SnapshotObserving {
     private let source: any BitwardenLoginSource
+    let filePicker = FilePickerSession()
     let dialogs: DialogsModel?
     private let openExternalURL: @MainActor (String) -> Void
     /// Cancelled once the form is dismissed or signs in; the source is then never observed again.
@@ -33,7 +34,18 @@ final class BitwardenLoginModel: SnapshotObserving {
 
     private(set) var twofaDidSucceed = false
 
+    private(set) var sso: SsoLoginSnapshot = SsoLoginSnapshot.companion.empty
+
+    /// Flips to `true` when the sign-in form opens SSO, pushing the SSO
+    /// screen on top of the login screen.
+    var ssoActive = false
+
+    /// `true` when the presentation starts with the SSO screen instead of the sign-in form.
+    var startsWithSso: Bool { source.startsWithSso }
+
     @ObservationIgnored private var loginSubscription: BridgeObservation?
+
+    @ObservationIgnored private var ssoSubscription: BridgeObservation?
 
     @ObservationIgnored private var twofaSubscription: BridgeObservation?
 
@@ -42,17 +54,38 @@ final class BitwardenLoginModel: SnapshotObserving {
         guard !lifetime.isCancelled else { return }
         dialogs?.startFormDialogs()
         startObservation(\.loginSubscription) { deliver in
-            source.subscribeLogin(
+            source.setLoginFilePickerRequestHandler { [weak self] request in
+                deliver { model in
+                    // Keep access material only for this import, without copying the private key to a temp file.
+                    model.filePicker.presentFilePicker(
+                        for: request, persistent: true, resolveAfterDismissal: true,
+                        resolve: { [weak self] id, uri, name, size, token in
+                            guard let self, !self.lifetime.isCancelled else { return }
+                            self.source.resolveLoginFilePicker(
+                                requestId: id, uri: uri, name: name, size: size, accessToken: token)
+                        },
+                        cancel: { [weak self] id in
+                            guard let self, !self.lifetime.isCancelled else { return }
+                            self.source.cancelLoginFilePicker(requestId: id)
+                        }
+                    )
+                }
+            }
+            return source.subscribeLogin(
                 onChange: { snapshot in deliver { $0.login = snapshot } },
                 onClose: { deliver { $0.complete() } },
-                onTwofaRequired: { deliver { $0.twofaActive = true } }
+                onTwofaRequired: { deliver { $0.twofaActive = true } },
+                onTwofaFinished: { deliver { $0.twofaDidSucceed = true } },
+                onSsoRequired: { deliver { $0.ssoActive = true } }
             )
         }
     }
 
     /// Ending both subscriptions drops every callback still queued behind the completion.
     private func complete() {
+        filePicker.cancel()
         stopObservation(\.twofaSubscription)
+        stopObservation(\.ssoSubscription)
         stopObservation(\.loginSubscription)
         lifetime.cancel()
         loginDidSucceed = true
@@ -61,7 +94,9 @@ final class BitwardenLoginModel: SnapshotObserving {
     }
 
     func stopLoginObservation() {
+        filePicker.cancel()
         stopTwofaObservation()
+        stopSsoObservation()
         dialogs?.stopFormDialogs()
         lifetime.cancel()
         stopObservation(\.loginSubscription)
@@ -86,6 +121,41 @@ final class BitwardenLoginModel: SnapshotObserving {
     /// Opens the Bitwarden registration page.
     func clickLoginRegister() {
         source.clickLoginRegister()
+    }
+
+    /// Opens SSO for the entered email and server; the session then reports `ssoActive`.
+    func startSso() {
+        source.startSso()
+    }
+
+    /// Runs the SSO step. Call when the SSO screen appears; it keeps running under the
+    /// 2FA screen, so balance it with `stopSsoObservation()` once the SSO screen is gone.
+    func startSsoObservation() {
+        guard !lifetime.isCancelled else { return }
+        startObservation(\.ssoSubscription, into: \.sso, subscribe: source.subscribeSso)
+    }
+
+    func stopSsoObservation() {
+        source.stopSso()
+        stopObservation(\.ssoSubscription)
+        sso = SsoLoginSnapshot.companion.empty
+        ssoActive = false
+    }
+
+    func setSsoField(id: String, text: String) {
+        source.setSsoField(id: id, text: text)
+    }
+
+    func unlockSso() {
+        source.unlockSso()
+    }
+
+    func retrySso() {
+        source.retrySso()
+    }
+
+    func completeSso(browserId: String, callback: String?, failed: Bool) {
+        source.completeSso(browserId: browserId, callback: callback, failed: failed)
     }
 
     func submitLogin() {

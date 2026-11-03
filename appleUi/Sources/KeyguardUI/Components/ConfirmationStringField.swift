@@ -8,6 +8,7 @@ struct ConfirmationStringField: View {
     let onChange: (String) -> Void
 
     @State private var revealed = false
+    @State private var ephemeralText = ""
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
@@ -44,10 +45,11 @@ struct ConfirmationStringField: View {
                     .foregroundStyle(.red)
             }
         }
+        .onDisappear { ephemeralText = "" }
     }
 
     private var textField: BridgedTextField {
-        let field = BridgedTextField(
+        var field = BridgedTextField(
             label: item.title.isEmpty ? (item.hint ?? "") : item.title,
             prompt: item.hint,
             text: item.stringValue,
@@ -57,6 +59,14 @@ struct ConfirmationStringField: View {
             style: .automatic,
             disablesAutocorrection: item.sensitive
         )
+        if item.ephemeral {
+            field.draft = Binding(
+                get: { ephemeralText },
+                set: {
+                    ephemeralText = $0; onChange($0)
+                }
+            )
+        }
         #if os(iOS)
         // A revealed token must keep its exact case.
         var configuredField = field

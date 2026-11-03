@@ -25,7 +25,9 @@ import kotlinx.coroutines.flow.map
 import com.artemchep.keyguard.common.model.DCipherFilter
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DFilter
+import com.artemchep.keyguard.apple.auth.LoginRequest
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRoute
+import com.artemchep.keyguard.feature.auth.bitwarden.sso.BitwardenSsoRoute
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
 import com.artemchep.keyguard.feature.export.ExportState
 import com.artemchep.keyguard.feature.feedback.FeedbackState
@@ -68,6 +70,9 @@ import com.artemchep.keyguard.apple.vault.ExportController
 import com.artemchep.keyguard.apple.vault.ExportSnapshot
 import com.artemchep.keyguard.apple.vault.FoldersController
 import com.artemchep.keyguard.apple.vault.FoldersSnapshot
+import com.artemchep.keyguard.apple.vault.ImportController
+import com.artemchep.keyguard.apple.vault.ImportInput
+import com.artemchep.keyguard.apple.vault.ImportSnapshot
 import com.artemchep.keyguard.apple.vault.OrganizationsController
 import com.artemchep.keyguard.apple.vault.OrganizationsSnapshot
 import com.artemchep.keyguard.apple.vault.VaultDetailSnapshot
@@ -92,6 +97,11 @@ import org.koin.core.scope.Scope
 internal sealed interface ScreenKind {
     val entryKind: ScreenEntryKind
     val defaultTitle: String
+
+    data class Environments(val environmentId: String?, val create: Boolean) : ScreenKind {
+        override val entryKind get() = ScreenEntryKind.ENVIRONMENTS
+        override val defaultTitle get() = ""
+    }
 
     data class CipherDetail(
         val itemId: String,
@@ -177,6 +187,15 @@ internal sealed interface ScreenKind {
         override val defaultTitle get() = ""
     }
 
+    /** The Swift view sets the localized title. [client] is a `CliAgentUsageHistoryClient` name. */
+    data class CliAgentHistory(
+        val client: String?,
+        val cipherId: String?,
+    ) : ScreenKind {
+        override val entryKind get() = ScreenEntryKind.CLI_AGENT_HISTORY
+        override val defaultTitle get() = ""
+    }
+
     data class SendDetail(
         val sendId: String,
         val accountId: String,
@@ -213,6 +232,11 @@ internal sealed interface ScreenKind {
         override val defaultTitle get() = title
     }
 
+    data class AccountClientCertificate(val accountId: String) : ScreenKind {
+        override val entryKind get() = ScreenEntryKind.ACCOUNT_CLIENT_CERTIFICATE
+        override val defaultTitle get() = ""
+    }
+
     data class AccountDetail(
         val accountId: String,
     ) : ScreenKind {
@@ -242,6 +266,16 @@ internal sealed interface ScreenKind {
     ) : ScreenKind {
         override val entryKind get() = ScreenEntryKind.EXPORT
         override val defaultTitle get() = title.orEmpty()
+    }
+
+    /** The title comes with the first snapshot. */
+    data class Import(
+        val accountId: String,
+        /** Opens the configured backup instead of listing the sources. */
+        val configuredBackup: Boolean = false,
+    ) : ScreenKind {
+        override val entryKind get() = ScreenEntryKind.IMPORT
+        override val defaultTitle get() = ""
     }
 
     /** The Swift view sets the localized title. */
@@ -277,6 +311,7 @@ internal sealed interface ScreenKind {
 
 /** Swift-facing discriminator for a navigation-stack entry. */
 enum class ScreenEntryKind {
+    ENVIRONMENTS,
     CIPHER_DETAIL,
     VAULT_LIST,
     WATCHTOWER,
@@ -289,14 +324,17 @@ enum class ScreenEntryKind {
     WORDLIST_DETAIL,
     PASSWORD_HISTORY,
     SSH_AGENT_HISTORY,
+    CLI_AGENT_HISTORY,
     SEND_DETAIL,
     ORGANIZATIONS_LIST,
     COLLECTIONS_LIST,
     FOLDERS_LIST,
+    ACCOUNT_CLIENT_CERTIFICATE,
     ACCOUNT_DETAIL,
     EQUIVALENT_DOMAINS,
     DUPLICATES,
     EXPORT,
+    IMPORT,
     CIPHER_FILTERS_LIST,
     CIPHER_FILTER_DETAIL,
     DOWNLOADS,
@@ -326,6 +364,8 @@ data class ScreenEntrySnapshot(
     val wordlistDetail: WordlistDetailSnapshot?,
     val passwordHistoryItemId: String?,
     val sshAgentHistoryCipherId: String?,
+    val cliAgentHistoryClient: String?,
+    val cliAgentHistoryCipherId: String?,
     val sendId: String?,
     val sendAccountId: String?,
     val organizations: OrganizationsSnapshot?,
@@ -335,6 +375,7 @@ data class ScreenEntrySnapshot(
     val equivalentDomains: EquivalentDomainsSnapshot?,
     val duplicatesSession: DuplicatesSession?,
     val export: ExportSnapshot?,
+    val imports: ImportSnapshot?,
     val cipherFilters: CipherFiltersListSnapshot?,
     val cipherFilterDetail: CipherFilterDetailSnapshot?,
     val downloads: DownloadsSnapshot?,
@@ -342,6 +383,12 @@ data class ScreenEntrySnapshot(
     val cipherId: String?,
     val cipherAccountId: String?,
     val fromList: Boolean,
+    val environmentId: String? = null,
+    val createEnvironment: Boolean = false,
+    /** The WebDAV settings sheet the screen opened; answered through its [RemoteSettingsSheets]. */
+    val webDavSettings: WebDavSettingsSnapshot? = null,
+    /** The S3 settings sheet the screen opened; answered through its [RemoteSettingsSheets]. */
+    val s3Settings: S3SettingsSnapshot? = null,
 )
 
 /**
@@ -363,6 +410,7 @@ internal class NavigationStackController(
     private val foldersController: FoldersController,
     private val equivalentDomainsController: EquivalentDomainsController,
     private val exportController: ExportController,
+    private val importController: ImportController,
     private val cipherFiltersController: CipherFiltersController,
     private val downloadsController: DownloadsController,
     private val feedbackController: FeedbackController,
@@ -404,6 +452,8 @@ internal class NavigationStackController(
         var duplicatesSession: DuplicatesSession? = null
         var export: ExportSnapshot? = null
         var exportState: ExportState? = null
+        var imports: ImportSnapshot? = null
+        var importInput: ImportInput? = null
         var cipherFilters: CipherFiltersListSnapshot? = null
         var cipherFilterDetail: CipherFilterDetailSnapshot? = null
         var downloads: DownloadsSnapshot? = null
@@ -411,6 +461,9 @@ internal class NavigationStackController(
         var feedbackState: FeedbackState? = null
         var actionHandlers: Map<String, () -> Unit> = emptyMap()
         var favourite: (() -> Unit)? = null
+        val settingsSheets = RemoteSettingsSheets(ctx)
+        var webDavSettings: WebDavSettingsSnapshot? = null
+        var s3Settings: S3SettingsSnapshot? = null
 
         /** Stops replaceable producers; independent vault/duplicates sessions remain alive. */
         fun stop() {
@@ -433,6 +486,7 @@ internal class NavigationStackController(
             emailRelayList = null
             wordlistList = null
             wordlistDetail = null
+            settingsSheets.cancel()
         }
 
         /** Full teardown for a removed entry (popped, scope cleared, locked); closes the owned sessions. Idempotent. */
@@ -460,15 +514,19 @@ internal class NavigationStackController(
             wordlistDetail = wordlistDetail,
             passwordHistoryItemId = (kind as? ScreenKind.PasswordHistory)?.itemId,
             sshAgentHistoryCipherId = (kind as? ScreenKind.SshAgentHistory)?.cipherId,
+            cliAgentHistoryClient = (kind as? ScreenKind.CliAgentHistory)?.client,
+            cliAgentHistoryCipherId = (kind as? ScreenKind.CliAgentHistory)?.cipherId,
             sendId = (kind as? ScreenKind.SendDetail)?.sendId,
             sendAccountId = (kind as? ScreenKind.SendDetail)?.accountId,
             organizations = organizations,
             collections = collections,
             folders = folders,
-            accountDetailId = (kind as? ScreenKind.AccountDetail)?.accountId,
+            accountDetailId = (kind as? ScreenKind.AccountDetail)?.accountId
+                ?: (kind as? ScreenKind.AccountClientCertificate)?.accountId,
             equivalentDomains = equivalentDomains,
             duplicatesSession = duplicatesSession,
             export = export,
+            imports = imports,
             cipherFilters = cipherFilters,
             cipherFilterDetail = cipherFilterDetail,
             downloads = downloads,
@@ -476,6 +534,10 @@ internal class NavigationStackController(
             cipherId = (kind as? ScreenKind.CipherDetail)?.itemId,
             cipherAccountId = (kind as? ScreenKind.CipherDetail)?.accountId,
             fromList = fromList,
+            environmentId = (kind as? ScreenKind.Environments)?.environmentId,
+            createEnvironment = (kind as? ScreenKind.Environments)?.create == true,
+            webDavSettings = webDavSettings,
+            s3Settings = s3Settings,
         )
     }
 
@@ -532,10 +594,10 @@ internal class NavigationStackController(
     }
 
     /**
-     * Receives a [BitwardenLoginRoute]'s args right before [addAccountHandler] presents the login sheet,
-     * so a re-login keeps the account's email and server.
+     * Receives a Bitwarden login request right before [addAccountHandler] presents the login sheet,
+     * so a re-login keeps the account's email and server, and an SSO account starts with SSO.
      */
-    var bitwardenLoginArgsHandler: ((BitwardenLoginRoute.Args) -> String)? = null
+    internal var bitwardenLoginRequestHandler: ((LoginRequest) -> String)? = null
 
     private var revealFileHandler: ((String) -> Unit)? = null
 
@@ -822,6 +884,37 @@ internal class NavigationStackController(
         entry(instanceId)?.exportState?.passwordFlow?.value?.model?.onChange?.invoke(text)
     }
 
+    fun setExportConfirmationPassword(instanceId: Long, text: String) = onMain {
+        entry(instanceId)?.exportState?.confirmationPasswordFlow?.value?.model?.onChange?.invoke(text)
+    }
+
+    fun setImportPassword(instanceId: Long, text: String) = onMain {
+        entry(instanceId)?.importInput?.setPassword(text)
+    }
+
+    fun setImportItemSelected(instanceId: Long, index: Int, selected: Boolean) = onMain {
+        entry(instanceId)?.importInput?.setItemSelected(index, selected)
+    }
+
+    fun resolveImportFilePicker(
+        instanceId: Long,
+        requestId: String,
+        uri: String,
+        name: String?,
+        size: Long,
+        accessToken: String?,
+    ) = onMain {
+        entry(instanceId)?.importInput?.resolve(requestId, uri, name, size, accessToken)
+    }
+
+    fun cancelImportFilePicker(instanceId: Long, requestId: String) = onMain {
+        entry(instanceId)?.importInput?.cancel(requestId)
+    }
+
+    /** The WebDAV and S3 settings sheets of the entry, which its screen may open. */
+    fun remoteSettingsSheets(instanceId: Long): RemoteSettingsSheets? =
+        entry(instanceId)?.settingsSheets
+
     fun popScreen(scope: String) = onMain {
         val entry = stacks[scope]?.removeLastOrNull() ?: return@onMain
         entry.release()
@@ -978,8 +1071,8 @@ internal class NavigationStackController(
                     ?.takeIf { addAccountHandler != null }
                 if (addAccount != null) {
                     onMain {
-                        val requestId = addAccount.bitwardenArgs?.let { args ->
-                            bitwardenLoginArgsHandler?.invoke(args)
+                        val requestId = addAccount.bitwarden?.let { request ->
+                            bitwardenLoginRequestHandler?.invoke(request)
                         }
                         addAccountHandler?.invoke(addAccount.type.name, requestId)
                     }
@@ -990,6 +1083,31 @@ internal class NavigationStackController(
             }
         }
         return ::dispatch
+    }
+
+    /**
+     * [interceptor] for the screen of [entry], which also opens the WebDAV and S3 settings
+     * screens as the entry's native sheets.
+     */
+    private fun entryInterceptor(sessionKoin: Scope, entry: ScreenEntry): (NavigationIntent) -> Boolean {
+        val next = interceptor(sessionKoin)
+        return { intent ->
+            val scope = sessionScope
+            val claimed = scope != null && entry.settingsSheets.intercept(
+                intent = intent,
+                scope = scope,
+                sessionKoin = sessionKoin,
+                onWebDavChange = { snapshot ->
+                    entry.webDavSettings = snapshot
+                    emitFor(entry)
+                },
+                onS3Change = { snapshot ->
+                    entry.s3Settings = snapshot
+                    emitFor(entry)
+                },
+            )
+            claimed || next(intent)
+        }
     }
 
     /** Hands an intent that leaves the app to its native handler; `false` for any other intent. */
@@ -1051,7 +1169,7 @@ internal class NavigationStackController(
 
     private class AddAccountRequest(
         val type: AccountType,
-        val bitwardenArgs: BitwardenLoginRoute.Args? = null,
+        val bitwarden: LoginRequest? = null,
     )
 
     /**
@@ -1065,7 +1183,8 @@ internal class NavigationStackController(
         val inner = (route as? RouteResultReceiver<*>)?.innerRoute ?: route
         return when (inner) {
             is KeePassLoginRoute -> AddAccountRequest(AccountType.KEEPASS)
-            is BitwardenLoginRoute -> AddAccountRequest(AccountType.BITWARDEN, inner.args)
+            is BitwardenLoginRoute -> AddAccountRequest(AccountType.BITWARDEN, LoginRequest.Form(inner.args))
+            is BitwardenSsoRoute -> AddAccountRequest(AccountType.BITWARDEN, LoginRequest.Sso(inner.args))
             else -> null
         }
     }
@@ -1099,6 +1218,12 @@ internal class NavigationStackController(
 
     /** Exhaustive on purpose: the compiler forces every new [RouteDescriptor] to get a mapping here. */
     private fun descriptorScreen(descriptor: RouteDescriptor): ScreenKind? = when (descriptor) {
+        is RouteDescriptor.AccountClientCertificate -> ScreenKind.AccountClientCertificate(descriptor.accountId)
+        RouteDescriptor.Environments -> ScreenKind.Environments(environmentId = null, create = false)
+        is RouteDescriptor.EnvironmentEdit -> ScreenKind.Environments(
+            environmentId = descriptor.environmentId,
+            create = descriptor.environmentId == null,
+        )
         is RouteDescriptor.VaultCipherView ->
             ScreenKind.CipherDetail(itemId = descriptor.itemId, accountId = descriptor.accountId)
 
@@ -1128,6 +1253,9 @@ internal class NavigationStackController(
 
         is RouteDescriptor.SshAgentHistory ->
             ScreenKind.SshAgentHistory(cipherId = descriptor.cipherId)
+
+        is RouteDescriptor.CliAgentHistory ->
+            ScreenKind.CliAgentHistory(client = descriptor.client?.name, cipherId = descriptor.cipherId)
 
         is RouteDescriptor.WordlistView ->
             ScreenKind.WordlistDetail(wordlistId = descriptor.wordlistId, title = "")
@@ -1191,6 +1319,12 @@ internal class NavigationStackController(
         is RouteDescriptor.Export ->
             ScreenKind.Export(title = descriptor.title, filter = descriptor.filter)
 
+        is RouteDescriptor.Import ->
+            ScreenKind.Import(
+                accountId = descriptor.accountId,
+                configuredBackup = descriptor.configuredBackup,
+            )
+
         is RouteDescriptor.CipherFilterView ->
             // The detail loads the DCipherFilter from the repo (no fallback model), so the
             // model never has to cross the bridge as serialized data.
@@ -1243,7 +1377,7 @@ internal class NavigationStackController(
                         sessionKoin = di,
                         itemId = kind.itemId,
                         accountId = kind.accountId,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                         publishTotp = { totp -> setEntryTotp(entry.instanceId, totp) },
                     ) { snapshot, handlers, favourite ->
                         entry.title = snapshot.title
@@ -1261,7 +1395,7 @@ internal class NavigationStackController(
                         ctx = ctx,
                         args = kind.args,
                         persistenceScope = stackedVaultListScope(kind),
-                        navigationInterceptorProvider = { sessionKoin -> interceptor(sessionKoin) },
+                        navigationInterceptorProvider = { sessionKoin -> entryInterceptor(sessionKoin, entry) },
                         openListCipher = ::openListCipher,
                     )
                 }
@@ -1270,7 +1404,7 @@ internal class NavigationStackController(
             // main thread), so they hold a KeyguardCancellable rather than a session-scope job.
             is ScreenKind.Watchtower -> {
                 val controller = WatchtowerController(ctx, kind.args, "watchtower.${entry.instanceId}")
-                controller.navigationInterceptorProvider = { sessionKoin -> interceptor(sessionKoin) }
+                controller.navigationInterceptorProvider = { sessionKoin -> entryInterceptor(sessionKoin, entry) }
                 val session = controller.makeSession()
                 entry.watchtowerSession = session
                 entry.cancellable = session.observe { snapshot ->
@@ -1281,7 +1415,7 @@ internal class NavigationStackController(
 
             is ScreenKind.WatchtowerAlerts -> {
                 val controller = WatchtowerController(ctx, persistenceScope = "watchtower.${entry.instanceId}")
-                controller.navigationInterceptorProvider = { sessionKoin -> interceptor(sessionKoin) }
+                controller.navigationInterceptorProvider = { sessionKoin -> entryInterceptor(sessionKoin, entry) }
                 entry.scopedWatchtowerController = controller
                 entry.cancellable = controller.observeWatchtowerNewAlerts(kind.args) { snapshot ->
                     entry.watchtowerAlerts = snapshot
@@ -1331,7 +1465,7 @@ internal class NavigationStackController(
                         scope = this,
                         sessionKoin = di,
                         accountId = kind.accountId,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers ->
                         entry.organizations = snapshot
                         entry.actionHandlers = handlers
@@ -1346,7 +1480,7 @@ internal class NavigationStackController(
                         sessionKoin = di,
                         accountId = kind.accountId,
                         organizationId = kind.organizationId,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers ->
                         entry.collections = snapshot
                         entry.actionHandlers = handlers
@@ -1361,7 +1495,7 @@ internal class NavigationStackController(
                         sessionKoin = di,
                         accountId = kind.accountId,
                         empty = kind.empty,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers ->
                         entry.folders = snapshot
                         entry.actionHandlers = handlers
@@ -1387,7 +1521,7 @@ internal class NavigationStackController(
                     entry.duplicatesSession = DuplicatesSession(
                         ctx = ctx,
                         filter = kind.filter,
-                        navigationInterceptorProvider = { sessionKoin -> interceptor(sessionKoin) },
+                        navigationInterceptorProvider = { sessionKoin -> entryInterceptor(sessionKoin, entry) },
                     )
                 }
 
@@ -1398,11 +1532,28 @@ internal class NavigationStackController(
                         sessionKoin = di,
                         title = kind.title,
                         filter = kind.filter,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers, state ->
                         entry.export = snapshot
                         entry.actionHandlers = handlers
                         entry.exportState = state
+                        emitFor(entry)
+                    }
+                }
+
+            is ScreenKind.Import ->
+                entry.job = scope.launch {
+                    importController.produceImportInto(
+                        scope = this,
+                        sessionKoin = di,
+                        accountId = kind.accountId,
+                        configuredBackup = kind.configuredBackup,
+                        interceptor = entryInterceptor(di, entry),
+                    ) { snapshot, handlers, input ->
+                        entry.title = snapshot.title
+                        entry.imports = snapshot
+                        entry.actionHandlers = handlers
+                        entry.importInput = input
                         emitFor(entry)
                     }
                 }
@@ -1412,7 +1563,7 @@ internal class NavigationStackController(
                     cipherFiltersController.produceFiltersInto(
                         scope = this,
                         sessionKoin = di,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot ->
                         entry.cipherFilters = snapshot
                         emitFor(entry)
@@ -1426,7 +1577,7 @@ internal class NavigationStackController(
                         sessionKoin = di,
                         filterId = kind.filterId,
                         fallbackModel = kind.model,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers ->
                         if (entry.title.isEmpty()) entry.title = snapshot.title
                         entry.cipherFilterDetail = snapshot
@@ -1440,7 +1591,7 @@ internal class NavigationStackController(
                     downloadsController.produceDownloadsInto(
                         scope = this,
                         sessionKoin = di,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers ->
                         entry.downloads = snapshot
                         entry.actionHandlers = handlers
@@ -1452,7 +1603,7 @@ internal class NavigationStackController(
                 entry.job = scope.launch {
                     feedbackController.produceFeedbackInto(
                         scope = this,
-                        interceptor = interceptor(di),
+                        interceptor = entryInterceptor(di, entry),
                     ) { snapshot, state ->
                         entry.feedback = snapshot
                         entry.feedbackState = state
@@ -1525,11 +1676,14 @@ internal class NavigationStackController(
 
             // Self-observing screens: the Swift view starts its own observation from the
             // entry's scalar args on appear, so there is no producer to launch here.
+            is ScreenKind.Environments,
             ScreenKind.GeneratorHistory,
             ScreenKind.Subscriptions,
             is ScreenKind.PasswordHistory,
             is ScreenKind.SshAgentHistory,
+            is ScreenKind.CliAgentHistory,
             is ScreenKind.SendDetail,
+            is ScreenKind.AccountClientCertificate,
             is ScreenKind.AccountDetail,
             -> Unit
         }

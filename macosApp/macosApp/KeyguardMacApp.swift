@@ -6,8 +6,7 @@ import KeyguardUI
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var quickSearch: QuickSearchController?
-    private var sshApproval: SshAgentApprovalController?
-    private var gpgApproval: GpgAgentApprovalController?
+    private var approvals: [AgentApprovalPanelController] = []
 
     /// "Close to the menu bar": when enabled, closing the last window keeps
     /// Keyguard running in the menu bar. Menu-bar-only mode also requires the
@@ -19,9 +18,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Favicons load via SwiftUI AsyncImage -> URLSession.shared -> URLCache.shared.
-        // The default shared cache is too small to retain them, so enlarge it once at
-        // startup; favicon bytes then stay in memory (and on disk across launches).
+        // Icons download through the shared core's URLSession clients, and Gravatar
+        // avatars through AsyncImage; both use URLCache.shared. The default shared
+        // cache is too small to retain them, so enlarge it once at startup; the bytes
+        // then stay in memory (and on disk across launches). Clients that present a
+        // client certificate keep no cache.
         URLCache.shared = URLCache(
             memoryCapacity: 32 * 1024 * 1024,
             diskCapacity: 256 * 1024 * 1024
@@ -31,8 +32,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func startControllers(model: AppViewModel) {
         guard quickSearch == nil else { return }
         quickSearch = QuickSearchController(model: model)
-        sshApproval = SshAgentApprovalController(model: model)
-        gpgApproval = GpgAgentApprovalController(model: model)
+        approvals = [
+            .sshAgent(model: model),
+            .gpgAgent(model: model),
+            .environments(model: model),
+            .cli(model: model),
+        ]
     }
 }
 

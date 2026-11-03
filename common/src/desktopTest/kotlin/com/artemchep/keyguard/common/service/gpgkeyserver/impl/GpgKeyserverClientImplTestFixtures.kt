@@ -1,5 +1,9 @@
 package com.artemchep.keyguard.common.service.gpgkeyserver.impl
 
+import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.model.DGpgKeyserverResult
+import com.artemchep.keyguard.common.model.GpgKeyserverConfig
+import com.artemchep.keyguard.common.model.SearchGpgPublicKeyRequest
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
@@ -17,6 +21,12 @@ import io.ktor.http.content.TextContent
 import io.ktor.http.headers
 
 internal const val TEST_FINGERPRINT = "ABCDEF0123456789ABCDEF0123456789ABCDEF01"
+internal val TEST_KEY_ID = TEST_FINGERPRINT.takeLast(16)
+
+internal val TEST_HKP_CONFIG = GpgKeyserverConfig(
+    url = GpgKeyserverConfig.HKP_UBUNTU_URL,
+    protocol = GpgKeyserverConfig.Protocol.HKP,
+)
 
 internal fun recordingClient(
     requests: MutableList<RecordedRequest>,
@@ -93,3 +103,37 @@ internal fun keyInfo(
     publicKeyArmored = "-----BEGIN PGP PUBLIC KEY BLOCK-----",
     subKeys = emptyList(),
 )
+
+internal fun singleKeyParser() = FakeParser(
+    result = GpgPublicKeyParseResult.Success(
+        keys = listOf(
+            keyInfo(
+                fingerprint = TEST_FINGERPRINT,
+                userIds = listOf("Alice Example <alice@example.com>"),
+                emails = listOf("alice@example.com"),
+            ),
+        ),
+    ),
+)
+
+/** Runs [request] against a [recordingClient] that records into [requests]. */
+internal suspend fun searchRecording(
+    requests: MutableList<RecordedRequest>,
+    request: SearchGpgPublicKeyRequest,
+    config: GpgKeyserverConfig = GpgKeyserverConfig(),
+    response: String = "-----BEGIN PGP PUBLIC KEY BLOCK-----",
+    contentType: ContentType = ContentType.parse("application/pgp-keys"),
+    parser: GpgPublicKeyParser = singleKeyParser(),
+): List<DGpgKeyserverResult> {
+    val client = recordingClient(
+        requests = requests,
+        response = response,
+        contentType = contentType,
+    )
+    return GpgKeyserverClientImpl(client, parser)
+        .search(
+            request = request,
+            config = config,
+        )
+        .bind()
+}

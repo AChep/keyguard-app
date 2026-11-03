@@ -1,24 +1,15 @@
 #if os(macOS)
 import SwiftUI
-import KeyguardShared
 
-/// SwiftUI root hosted inside `GpgAgentApprovalPanel`. The request id resets local
-/// form state before the next request can be approved.
-struct GpgAgentApprovalPanelRoot: View {
-    @Environment(GpgAgentModel.self) private var gpgAgentModel
-
-    var body: some View {
-        Group {
-            if let request = gpgAgentModel.gpgAgentRequests.first {
-                GpgAgentApprovalView(request: request)
-                    .id(request.id)
-            }
+extension AgentApprovalPanelController {
+    /// The GPG agent approval panel.
+    public static func gpgAgent(model: AppViewModel) -> AgentApprovalPanelController {
+        let gpgAgentModel = model.gpgAgent
+        // A controller owned by the app delegate also observes in menu-bar-only mode.
+        gpgAgentModel.startGpgAgentObservation()
+        return AgentApprovalPanelController(model: model, requests: { gpgAgentModel.gpgAgentRequests }) {
+            GpgAgentApprovalView(request: $0)
         }
-        .background(.regularMaterial)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
-        .overlay(
-            RoundedRectangle(cornerRadius: 12).strokeBorder(.separator, lineWidth: 1)
-        )
     }
 }
 

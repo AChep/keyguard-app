@@ -23,6 +23,27 @@ class JniLibrary internal constructor(
     private val unavailable: (cause: Throwable?) -> Throwable,
     private val verify: () -> Unit,
 ) {
+    companion object {
+        /** Loads an existing packaged binary whose filename does not follow JNI naming conventions. */
+        fun fromAbsolutePath(
+            path: () -> String?,
+            unavailable: (cause: Throwable?) -> Throwable,
+            verify: () -> Unit = {},
+        ): JniLibrary = JniLibrary(
+            load = {
+                val configured = path()?.takeIf(String::isNotBlank)
+                if (configured == null) false else {
+                    val file = File(configured)
+                    require(file.isAbsolute) { "Native library path must be absolute" }
+                    System.load(file.canonicalPath)
+                    true
+                }
+            },
+            unavailable = unavailable,
+            verify = verify,
+        )
+    }
+
     constructor(
         name: String,
         pathProperty: String,

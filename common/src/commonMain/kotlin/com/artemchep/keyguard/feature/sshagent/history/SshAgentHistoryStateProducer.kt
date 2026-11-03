@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetSshUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveSshUsageHistory
+import com.artemchep.keyguard.feature.agent.decodeAgentUsageHistoryCallerInfo
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
@@ -217,7 +218,7 @@ private suspend fun TranslatorScope.toItem(
     val cipher = event.cipherId?.let(ciphersById::get)
     val requestText = title(event.request)
     val responseText = title(event.response)
-    val callerInfo = buildSshUsageHistoryCallerInfo(
+    val callerInfo = decodeAgentUsageHistoryCallerInfo(
         caller = event.caller,
         json = json,
     )
@@ -235,16 +236,12 @@ private suspend fun TranslatorScope.toItem(
         else -> translate(Res.string.agent_history_unknown_key)
     }
     val formattedDate = dateFormatter.formatDateTime(event.instant)
-    val details = buildList {
-        add(requestText)
-        callerInfo?.secondaryLabel
-            ?.let(::add)
-        keyText
-            ?.let(::add)
-        fingerprintText
-            ?.takeIf { it != keyText }
-            ?.let(::add)
-    }.joinToString(separator = " • ")
+    val details = buildSshUsageHistoryDescription(
+        request = requestText,
+        key = keyText,
+        fingerprint = fingerprintText,
+        caller = callerInfo?.secondaryLabel,
+    )
 
     return SshAgentHistoryItem.Value(
         id = "ssh_history.${event.id.orEmpty()}",

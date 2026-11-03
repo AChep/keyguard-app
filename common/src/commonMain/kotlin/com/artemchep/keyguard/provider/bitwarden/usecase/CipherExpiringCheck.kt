@@ -25,6 +25,7 @@ class CipherExpiringCheckImpl : CipherExpiringCheck {
             DSecret.Type.SecureNote -> null
             DSecret.Type.SshKey -> null
             DSecret.Type.GpgKey -> null
+            DSecret.Type.Environment -> null
             DSecret.Type.None -> null
         }
     }

@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.gpgagent.tools
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.agent.isEligibleForAgent
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptTextRequest
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpDecryptionWarning
@@ -95,9 +96,11 @@ import org.koin.compose.currentKoinScope
 @Composable
 fun produceGpgToolsState(
     operation: GpgToolsOperation,
+    inputFile: FilePickerResult?,
 ): Loadable<GpgToolsState> = with(currentKoinScope()) {
     produceGpgToolsState(
         operation = operation,
+        inputFile = inputFile,
         getCiphers = get(),
         fileService = get(),
         keyMetadataResolver = get(),
@@ -109,6 +112,7 @@ fun produceGpgToolsState(
 @Composable
 fun produceGpgToolsState(
     operation: GpgToolsOperation,
+    inputFile: FilePickerResult?,
     getCiphers: GetCiphers,
     fileService: FileService,
     keyMetadataResolver: GpgKeyMetadataResolver,
@@ -119,6 +123,7 @@ fun produceGpgToolsState(
     initial = Loadable.Loading,
     args = arrayOf(
         operation,
+        inputFile,
         getCiphers,
         fileService,
         keyMetadataResolver,
@@ -128,6 +133,7 @@ fun produceGpgToolsState(
 ) {
     gpgToolsStateProducer(
         operation = operation,
+        inputFile = inputFile,
         getCiphers = getCiphers,
         fileService = fileService,
         keyMetadataResolver = keyMetadataResolver,
@@ -140,6 +146,7 @@ fun produceGpgToolsState(
 @Suppress("CyclomaticComplexMethod", "LongMethod")
 suspend fun RememberStateFlowScope.gpgToolsStateProducer(
     operation: GpgToolsOperation,
+    inputFile: FilePickerResult? = null,
     getCiphers: GetCiphers,
     fileService: FileService,
     keyMetadataResolver: GpgKeyMetadataResolver,
@@ -154,8 +161,18 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
         filePickerIntentFlow = filePickerIntentSink,
     )
 
+    fun FilePickerResult.toFileRef() = GpgToolsState.FileRef(
+        uri = uri.toString(),
+        name = name,
+        size = size,
+    )
+
     val scopeSink = mutablePersistedFlow("scope") {
-        GpgToolsScope.TEXT.key
+        if (inputFile != null) {
+            GpgToolsScope.FILE.key
+        } else {
+            GpgToolsScope.TEXT.key
+        }
     }
     val scopeFlow = scopeSink
         .map { it.toGpgToolsScopeOrDefault() }
@@ -179,7 +196,7 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
     val detachedSignatureTextHandle = textFieldHandle("detached_signature_text")
     val customPublicKeysSink = MutableStateFlow<List<GpgToolsState.CustomPublicKeyItem>>(emptyList())
     var customPublicKeyCounter = 0
-    val inputFileSink = MutableStateFlow<GpgToolsState.FileRef?>(null)
+    val inputFileSink = MutableStateFlow<GpgToolsState.FileRef?>(inputFile?.toFileRef())
     val signatureFileSink = MutableStateFlow<GpgToolsState.FileRef?>(null)
     val selectedPrivateKeyIdSink = mutablePersistedFlow<String?>("selected_private_key_id") {
         null
@@ -236,12 +253,6 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
             action { work() }
         }
     }
-
-    fun FilePickerResult.toFileRef() = GpgToolsState.FileRef(
-        uri = uri.toString(),
-        name = name,
-        size = size,
-    )
 
     fun selectFile(target: MutableStateFlow<GpgToolsState.FileRef?>) {
         filePickerIntentSink.emit(
@@ -669,6 +680,7 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
             withContext(Dispatchers.Default) {
                 val candidateRevocationKeys = ciphers.toGpgRevocationKeyCandidates()
                 ciphers
+                    .filter { it.isEligibleForAgent() }
                     .mapNotNull { it.toGpgAgentSecretOrNull() }
                     .map { secret ->
                         async {

@@ -45,6 +45,8 @@ class DateFormatterApple(
         timeZone: NSTimeZone,
     ) {
         val dateTime = createFormatter(locale, timeZone, NSDateFormatterLongStyle, NSDateFormatterShortStyle)
+        val dateTimeWithSeconds =
+            createFormatter(locale, timeZone, NSDateFormatterLongStyle, NSDateFormatterMediumStyle)
         val date = createFormatter(locale, timeZone, NSDateFormatterLongStyle, NSDateFormatterNoStyle)
 
         // Local values are encoded in UTC solely for Foundation formatting.
@@ -52,6 +54,9 @@ class DateFormatterApple(
         val localDate = createFormatter(locale, utcTimeZone, NSDateFormatterMediumStyle, NSDateFormatterNoStyle)
         val localTime = createFormatter(locale, utcTimeZone, NSDateFormatterNoStyle, NSDateFormatterShortStyle)
     }
+
+    override fun formatDateTimeWithSeconds(instant: Instant): String =
+        formatters.get().dateTimeWithSeconds.stringFromDate(instant.toNSDate())
 
     override fun formatDateTime(
         instant: Instant,

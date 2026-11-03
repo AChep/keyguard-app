@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.crypto
 
+import com.artemchep.keyguard.util.io.InternalKeyguardIoApi
 import com.artemchep.keyguard.util.io.spool.copyTo
 import kotlinx.io.Buffer
 import kotlinx.io.IOException
+import kotlinx.io.RawSink
 import kotlinx.io.readByteArray
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -95,6 +97,35 @@ class EncryptedTemporarySpillStorageJvmTest {
 
         writer.close()
 
+        assertEquals(1, storage.closeCount)
+    }
+
+    @Test
+    @OptIn(InternalKeyguardIoApi::class)
+    fun failedWritePreventsFurtherWritesAndSealing() {
+        val storage = TestPrivateTemporaryStorage()
+        val failure = IOException("write failed")
+        var failWrite = true
+        val failing = object : PrivateTemporaryStorage by storage {
+            override fun sink(): RawSink {
+                val sink = storage.sink()
+                return object : RawSink by sink {
+                    override fun write(source: Buffer, byteCount: Long) {
+                        sink.write(source, byteCount)
+                        if (failWrite) throw failure
+                    }
+                }
+            }
+        }
+        val payload = ByteArray(EncryptedTemporarySpillStorage.STAGING_BUFFER_BYTES * 2)
+
+        EncryptedTemporarySpillStorage.create(failing).use { writer ->
+            val sink = writer.sink()
+            assertSame(failure, assertFailsWith<IOException> { sink.write(payload) })
+            failWrite = false
+            assertFailsWith<IllegalStateException> { sink.write(payload) }
+            assertFailsWith<IllegalStateException> { writer.seal() }
+        }
         assertEquals(1, storage.closeCount)
     }
 

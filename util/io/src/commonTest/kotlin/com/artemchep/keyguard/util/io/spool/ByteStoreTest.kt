@@ -97,4 +97,31 @@ class ByteStoreTest {
         assertTrue(writer.closed)
         assertTrue(writer.snapshotClosed, "unverified bytes must never escape")
     }
+
+    @Test
+    fun randomAccessSnapshotSourceReplaysThroughOneReader() {
+        val bytes = ByteArray(200_000) { (it % 251).toByte() }
+        var readerCloses = 0
+        val snapshot = object : RandomAccessByteSnapshot {
+            override val size = bytes.size.toLong()
+
+            override fun openReader() = object : ByteSnapshotReader {
+                override fun readAt(position: Long, data: ByteArray, startIndex: Int, endIndex: Int): Int {
+                    if (position >= bytes.size) return 0
+                    val count = minOf(endIndex - startIndex, bytes.size - position.toInt())
+                    bytes.copyInto(data, startIndex, position.toInt(), position.toInt() + count)
+                    return count
+                }
+
+                override fun close() {
+                    readerCloses += 1
+                }
+            }
+
+            override fun close() = Unit
+        }
+        assertContentEquals(bytes, snapshot.readBytes())
+        assertContentEquals(bytes, snapshot.readBytes())
+        assertEquals(2, readerCloses)
+    }
 }

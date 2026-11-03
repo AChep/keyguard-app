@@ -22,7 +22,6 @@ import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -47,7 +46,6 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.fold
-import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.feature.biometric.BiometricPromptEffect
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenActionPadding
@@ -55,7 +53,6 @@ import com.artemchep.keyguard.feature.keyguard.unlock.unlockScreenTitlePadding
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.AutofillButton
-import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.OtherScaffold
@@ -64,9 +61,7 @@ import com.artemchep.keyguard.ui.skeleton.SkeletonButton
 import com.artemchep.keyguard.ui.skeleton.SkeletonCheckbox
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
-import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
-import org.koin.compose.koinInject
 
 @Composable
 fun SetupScreen(
@@ -323,17 +318,6 @@ fun ColumnScope.SetupScreenCreateVaultTitle() {
         text = stringResource(Res.string.setup_header_text),
         style = MaterialTheme.typography.bodyLarge,
     )
-
-    val config = koinInject<FlavorConfig>()
-    if (config.isFreeAsBeer) {
-        Spacer(Modifier.height(8.dp))
-        Text(
-            text = stringResource(Res.string.setup_free_text),
-            style = MaterialTheme.typography.bodyMedium,
-            color = LocalContentColor.current
-                .combineAlpha(DisabledEmphasisAlpha),
-        )
-    }
 }
 
 fun keyguardSpan() =

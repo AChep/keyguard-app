@@ -1,9 +1,14 @@
 package com.artemchep.keyguard.common.service.credentialexchange
 
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
+import com.artemchep.keyguard.common.service.imports.ImportError
+import com.artemchep.keyguard.common.service.imports.ImportResult
+import com.artemchep.keyguard.common.service.imports.importSkips
+import com.artemchep.keyguard.test.FakeSshKeyImportService
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
@@ -27,17 +32,17 @@ class CxfImportDocumentGateTest {
         val name: String,
         val payload: String,
         /** `null` means the document is accepted. */
-        val expected: CxfImportError?,
+        val expected: ImportError?,
     )
 
     private fun assertCases(cases: List<GateCase>) {
         cases.forEach { case ->
             val result = service.parse(payload = case.payload, now = now)
             when (val expected = case.expected) {
-                null -> assertIs<CxfImportResult.Success>(result, case.name)
+                null -> assertIs<ImportResult.Success>(result, case.name)
                 else -> assertEquals(
                     expected,
-                    assertIs<CxfImportResult.Failure>(result, case.name).error,
+                    assertIs<ImportResult.Failure>(result, case.name).error,
                     case.name,
                 )
             }
@@ -60,12 +65,12 @@ class CxfImportDocumentGateTest {
         GateCase(
             name = "0.1 is not the legacy carve-out",
             payload = documentWithVersion("""{"major": 0, "minor": 1}"""),
-            expected = CxfImportError.UnsupportedVersion(major = 0, minor = 1),
+            expected = ImportError.UnsupportedVersion,
         ),
         GateCase(
             name = "a future major is refused",
             payload = documentWithVersion("""{"major": 2, "minor": 0}"""),
-            expected = CxfImportError.UnsupportedVersion(major = 2, minor = 0),
+            expected = ImportError.UnsupportedVersion,
         ),
         GateCase(
             // A quoted number decodes as a number, so a sloppy exporter's `"1"`
@@ -77,7 +82,7 @@ class CxfImportDocumentGateTest {
         GateCase(
             name = "a negative major is refused",
             payload = documentWithVersion("""{"major": -1, "minor": 0}"""),
-            expected = CxfImportError.UnsupportedVersion(major = -1, minor = 0),
+            expected = ImportError.UnsupportedVersion,
         ),
     )
 
@@ -87,16 +92,16 @@ class CxfImportDocumentGateTest {
     }
 
     private val malformedVersionCases = listOf(
-        GateCase("an absent version", documentWithoutVersion(), CxfImportError.Parse),
-        GateCase("a version given as a string", documentWithVersion(""""1.0""""), CxfImportError.Parse),
-        GateCase("a version missing its minor", documentWithVersion("""{"major": 1}"""), CxfImportError.Parse),
+        GateCase("an absent version", documentWithoutVersion(), ImportError.Parse),
+        GateCase("a version given as a string", documentWithVersion(""""1.0""""), ImportError.Parse),
+        GateCase("a version missing its minor", documentWithVersion("""{"major": 1}"""), ImportError.Parse),
         GateCase(
             name = "a version whose major is not numeric at all",
             payload = documentWithVersion("""{"major": "one", "minor": 0}"""),
-            expected = CxfImportError.Parse,
+            expected = ImportError.Parse,
         ),
-        GateCase("a null version", documentWithVersion("null"), CxfImportError.Parse),
-        GateCase("a version given as an array", documentWithVersion("[1, 0]"), CxfImportError.Parse),
+        GateCase("a null version", documentWithVersion("null"), ImportError.Parse),
+        GateCase("a version given as an array", documentWithVersion("[1, 0]"), ImportError.Parse),
     )
 
     @Test
@@ -109,19 +114,19 @@ class CxfImportDocumentGateTest {
     // region The accounts member and the root
 
     private val structureCases = listOf(
-        GateCase("an absent accounts member", documentWithoutAccounts(), CxfImportError.Parse),
+        GateCase("an absent accounts member", documentWithoutAccounts(), ImportError.Parse),
         // §2.1.2 makes `[]` the only conforming spelling of an empty required
         // array, so absent, null and non-array are one violation — the same rule
         // an account's `items` member gets in `CxfImportSkipCounterMatrixTest`,
         // only there it costs one account instead of the whole document.
-        GateCase("accounts given as an object", documentWithAccountsMember("{}"), CxfImportError.Parse),
-        GateCase("accounts given as a string", documentWithAccountsMember(""""x""""), CxfImportError.Parse),
-        GateCase("a null accounts member", documentWithAccountsMember("null"), CxfImportError.Parse),
+        GateCase("accounts given as an object", documentWithAccountsMember("{}"), ImportError.Parse),
+        GateCase("accounts given as a string", documentWithAccountsMember(""""x""""), ImportError.Parse),
+        GateCase("a null accounts member", documentWithAccountsMember("null"), ImportError.Parse),
         GateCase("an empty accounts array", documentWithAccountsMember("[]"), null),
-        GateCase("a root that is an array", "[]", CxfImportError.Parse),
-        GateCase("a root that is a string", """"nope"""", CxfImportError.Parse),
-        GateCase("an empty payload", "", CxfImportError.Parse),
-        GateCase("a payload that is not json", "not json at all", CxfImportError.Parse),
+        GateCase("a root that is an array", "[]", ImportError.Parse),
+        GateCase("a root that is a string", """"nope"""", ImportError.Parse),
+        GateCase("an empty payload", "", ImportError.Parse),
+        GateCase("a payload that is not json", "not json at all", ImportError.Parse),
     )
 
     @Test
@@ -142,7 +147,7 @@ class CxfImportDocumentGateTest {
             """.trimIndent(),
             now = now,
         )
-        assertEquals(CxfImportError.Parse, assertIs<CxfImportResult.Failure>(result).error)
+        assertEquals(ImportError.Parse, assertIs<ImportResult.Failure>(result).error)
     }
 
     // endregion
@@ -162,14 +167,14 @@ class CxfImportDocumentGateTest {
         assertEquals(0, plan.sourceAccountCount)
         assertTrue(plan.folders.isEmpty())
         assertTrue(plan.items.isEmpty())
-        assertEquals(cxfImportSkips(), plan.skips)
-        // Both exporter strings are optional on the wire and fall back to "".
-        assertEquals("", plan.exporterRpId)
-        assertEquals("", plan.exporterDisplayName)
+        assertEquals(importSkips(), plan.skips)
+        // Both exporter strings are optional on the wire and fall back to null.
+        assertNull(plan.source.identifier)
+        assertNull(plan.source.displayName)
     }
 
     @Test
-    fun `a non-primitive exporter name degrades to an empty string`() {
+    fun `a non-primitive exporter name degrades to null`() {
         val plan = service.parseSuccessPlan(
             payload = """
                 {
@@ -182,8 +187,8 @@ class CxfImportDocumentGateTest {
             """.trimIndent(),
             now = now,
         )
-        assertEquals("", plan.exporterRpId)
-        assertEquals("", plan.exporterDisplayName)
+        assertNull(plan.source.identifier)
+        assertNull(plan.source.displayName)
     }
 }
 

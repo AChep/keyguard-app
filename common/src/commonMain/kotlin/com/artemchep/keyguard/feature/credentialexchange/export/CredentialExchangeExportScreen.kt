@@ -27,8 +27,8 @@ import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import com.artemchep.keyguard.feature.auth.userverification.UserVerificationRoute
-import com.artemchep.keyguard.feature.credentialexchange.CredentialExchangeItemRow
-import com.artemchep.keyguard.feature.credentialexchange.credentialExchangeSkippedNotes
+import com.artemchep.keyguard.feature.transfer.TransferItemRow
+import com.artemchep.keyguard.feature.transfer.transferSkippedNotes
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.res.Res
@@ -216,11 +216,11 @@ private fun LazyListScope.credentialExchangeExportReviewContent(
         }
     }
     items(stage.items) { item ->
-        CredentialExchangeItemRow(
+        TransferItemRow(
             item = item,
         )
     }
-    credentialExchangeSkippedNotes(
+    transferSkippedNotes(
         notes = stage.skipped,
     )
 }

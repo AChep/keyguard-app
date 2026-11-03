@@ -59,4 +59,32 @@ class GenerateAppleStringsTaskTest {
         assertFalse(plural.containsKey("one"))
         assertEquals("%arg éléments", plural.at("other", "stringUnit", "value"))
     }
+
+    @Test
+    fun `resource directories map to Apple localizations`() {
+        val root = temporaryFolder.newFolder()
+        val resources = root.resolve("resources")
+        listOf(
+            "values", "values-en-rGB", "values-fr-rFR", "values-iw-rIL", "values-in-rID",
+            "values-no-rNO", "values-pt-rBR", "values-zh-rCN", "values-zh-rTW", "values-b+sr+Latn",
+        ).forEach { locale ->
+            resources.resolve("$locale/strings.xml").apply {
+                parentFile.mkdirs()
+                writeText("<resources><string name=\"label\">$locale</string></resources>")
+            }
+        }
+        val project = ProjectBuilder.builder().withProjectDir(root).build()
+        val task = project.tasks.register("generate", GenerateAppleStringsTask::class.java).get().apply {
+            composeResourcesDir.set(resources)
+            catalogFile.set(root.resolve("Localizable.xcstrings"))
+            swiftFile.set(root.resolve("L10n.swift"))
+        }
+        task.generate()
+        val catalog = JsonSlurper().parse(task.catalogFile.get().asFile) as Map<*, *>
+        val localizations = ((catalog["strings"] as Map<*, *>)["label"] as Map<*, *>)["localizations"] as Map<*, *>
+        assertEquals(
+            setOf("en", "en-GB", "fr", "he", "id", "nb", "pt-BR", "zh-Hans", "zh-Hant", "sr"),
+            localizations.keys,
+        )
+    }
 }

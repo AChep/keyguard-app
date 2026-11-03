@@ -40,12 +40,14 @@ data class SshAgentStatusSnapshot(
     }
 }
 
-/** The approval-window picker follows the duration-picker convention: option id = whole milliseconds as a string. */
+/** The duration pickers follow the duration-picker convention: option id = whole milliseconds as a string. */
 data class SshAgentSettingsSnapshot(
     val loaded: Boolean,
     val enabled: Boolean,
     val approvalWindowTitle: String,
     val approvalWindowOptions: List<SettingOptionSnapshot>,
+    val approvalTimeoutTitle: String,
+    val approvalTimeoutOptions: List<SettingOptionSnapshot>,
     val displayKeyNames: Boolean,
     val filterActive: Boolean,
 ) {
@@ -55,6 +57,8 @@ data class SshAgentSettingsSnapshot(
             enabled = false,
             approvalWindowTitle = "",
             approvalWindowOptions = emptyList(),
+            approvalTimeoutTitle = "",
+            approvalTimeoutOptions = emptyList(),
             displayKeyNames = false,
             filterActive = false,
         )

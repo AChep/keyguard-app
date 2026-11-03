@@ -216,7 +216,7 @@ class PasskeyCreateActivity : BaseActivity(), KeyguardKoinOwner {
             return // end
         }
 
-        // Add the credential
+        // Stored and Unchanged both succeed; unavailable targets fail the IO.
         val result = withContext(Dispatchers.Default) {
             val request = AddCredentialCipherRequest(
                 cipherId = cipher.id,

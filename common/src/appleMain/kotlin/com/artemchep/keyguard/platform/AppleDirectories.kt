@@ -29,10 +29,10 @@ fun prepareAppleStorage(): String? = try {
     error.message
 }
 
-fun appleKeyguardDataDirectory(): LocalPath = appleKeyguardAtomicDataDirectory().path
+internal fun appleKeyguardDataDirectory(): LocalPath = appleKeyguardAtomicDataDirectory().path
 
-/** Existing Apple-managed container plus Keyguard's strict descendant. */
-fun appleKeyguardAtomicDataDirectory(): AtomicDirectoryDestination = AtomicDirectoryDestination(
+/** Existing Apple-managed container plus Keyguard's strict descendant. Inject [AppleStorageDirectories] instead. */
+internal fun appleKeyguardAtomicDataDirectory(): AtomicDirectoryDestination = AtomicDirectoryDestination(
     root = LocalPath(storage.resolve()),
     relativePath = AtomicRelativePath.fromComponents(AtomicPathComponent.parse("Keyguard")),
 )

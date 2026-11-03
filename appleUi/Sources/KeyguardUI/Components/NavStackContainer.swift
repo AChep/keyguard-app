@@ -124,7 +124,18 @@ struct NavStackContainer<Content: View>: View {
     @ViewBuilder
     private func screenView(for id: Int64) -> some View {
         if let entry = entries.first(where: { $0.instanceId == id }) {
-            if entry.kind == ScreenEntryKind.cipherDetail {
+            entryView(for: id)
+                .remoteSettingsSheets(for: entry)
+        }
+    }
+
+    @ViewBuilder
+    private func entryView(for id: Int64) -> some View {
+        if let entry = entries.first(where: { $0.instanceId == id }) {
+            if entry.kind == ScreenEntryKind.environments {
+                EnvironmentsScreen(environmentId: entry.environmentId, create: entry.createEnvironment)
+                    .id(entry.instanceId)
+            } else if entry.kind == ScreenEntryKind.cipherDetail {
                 StackCipherDetailView(entry: entry)
             } else if entry.kind == ScreenEntryKind.vaultList {
                 if usesPanels {
@@ -160,6 +171,13 @@ struct NavStackContainer<Content: View>: View {
                 )
                 .id(entry.instanceId)
                 .navigationTitle(L10n.agentHistoryHeaderTitle(L10n.protocolSsh))
+            } else if entry.kind == ScreenEntryKind.cliAgentHistory {
+                CliAgentHistoryScreen(
+                    client: entry.cliAgentHistoryClient, cipherId: entry.cliAgentHistoryCipherId,
+                    makeSession: sessions.makeCliAgentHistorySession, clear: sessions.clearCliAgentHistory
+                )
+                .id(entry.instanceId)
+                .navigationTitle(L10n.prefItemAgentHistoryTitle)
             } else if entry.kind == ScreenEntryKind.sendDetail {
                 SendDetailScreen(
                     target: ItemDetailTarget(itemId: entry.sendId ?? "", accountId: entry.sendAccountId ?? ""),
@@ -173,6 +191,11 @@ struct NavStackContainer<Content: View>: View {
                 CollectionsListView(entry: entry)
             } else if entry.kind == ScreenEntryKind.foldersList {
                 FoldersListView(entry: entry)
+            } else if entry.kind == ScreenEntryKind.accountClientCertificate {
+                AccountClientCertificateScreen(
+                    accountId: entry.accountDetailId ?? "", makeModel: accountsModel.makeClientCertificateModel
+                )
+                .id(entry.instanceId)
             } else if entry.kind == ScreenEntryKind.accountDetail {
                 AccountDetailScreen(
                     accountId: entry.accountDetailId ?? "", makeSession: accountsModel.makeDetailSession
@@ -190,6 +213,9 @@ struct NavStackContainer<Content: View>: View {
                 CipherFilterDetailView(entry: entry)
             } else if entry.kind == ScreenEntryKind.export_ {
                 ExportView(entry: entry)
+            } else if entry.kind == ScreenEntryKind.import {
+                ImportView(entry: entry)
+                    .id(entry.instanceId)
             } else if entry.kind == ScreenEntryKind.feedback {
                 FeedbackView(entry: entry)
             } else if entry.kind == ScreenEntryKind.subscriptions {

@@ -74,7 +74,26 @@ public data class GlobalHotKeySpec(
     public val isMetaPressed: Boolean = false,
 )
 
+/**
+ * Letters and digits carry their ASCII character above the ANSI key code. The native side
+ * registers the key that types this character in the current Latin layout, and falls back
+ * to the ANSI position.
+ */
 internal val GlobalHotKeyKey.macosKeyCode: Int?
+    get() {
+        val keyCode = macosAnsiKeyCode ?: return null
+        val character = macosCharacter ?: return keyCode
+        return (character.code shl 16) or keyCode
+    }
+
+private val GlobalHotKeyKey.macosCharacter: Char?
+    get() = when (this) {
+        in GlobalHotKeyKey.A..GlobalHotKeyKey.Z -> 'a' + (ordinal - GlobalHotKeyKey.A.ordinal)
+        in GlobalHotKeyKey.Digit0..GlobalHotKeyKey.Digit9 -> '0' + (ordinal - GlobalHotKeyKey.Digit0.ordinal)
+        else -> null
+    }
+
+private val GlobalHotKeyKey.macosAnsiKeyCode: Int?
     get() = when (this) {
         GlobalHotKeyKey.A -> 0x00
         GlobalHotKeyKey.B -> 0x0B

@@ -2,7 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>CyclomaticComplexMethod:WearPhoneLoginStateProducer.kt:@Composable @OptIn(ExperimentalCoroutinesApi::class) internal fun wearPhoneLoginScreenState: WearPhoneLoginState</ID>
     <ID>CyclomaticComplexMethod:WearSendListStateProducer.kt:@Composable fun wearSendListScreenState: WearSendListState</ID>
     <ID>CyclomaticComplexMethod:WearVaultListStateProducer.kt:@Composable internal fun wearVaultListScreenState: WearVaultListState</ID>
     <ID>CyclomaticComplexMethod:WearVaultListStateProducer.kt:private fun createFilteredCiphersFlow</ID>
@@ -40,7 +39,6 @@
     <ID>LongMethod:WearManualLoginScreen.kt:private fun TransformingLazyColumnScope.WearBitwardenLoginContent</ID>
     <ID>LongMethod:WearNavigationModule.kt:fun wearNavigationModule</ID>
     <ID>LongMethod:WearPasskeysCredentialViewScreen.kt:private fun TransformingLazyColumnScope.WearPasskeysCredentialViewContent</ID>
-    <ID>LongMethod:WearPhoneLoginStateProducer.kt:@Composable @OptIn(ExperimentalCoroutinesApi::class) internal fun wearPhoneLoginScreenState: WearPhoneLoginState</ID>
     <ID>LongMethod:WearPrivilegedAppListScreen.kt:@Composable fun WearPrivilegedAppListScreen</ID>
     <ID>LongMethod:WearSendListStateProducer.kt:@Composable fun wearSendListScreenState: WearSendListState</ID>
     <ID>LongMethod:WearSendListStateProducer.kt:private fun createFilteredSendsFlow</ID>

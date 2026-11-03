@@ -1,28 +1,6 @@
 use anyhow::{anyhow, bail, Context, Result};
-use std::io;
-use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
-
-pub async fn read_exact_or_eof<S>(
-    stream: &mut S,
-    buf: &mut [u8],
-    eof_message: &str,
-) -> io::Result<Option<()>>
-where
-    S: AsyncRead + Unpin,
-{
-    let mut offset = 0;
-    while offset < buf.len() {
-        let read = stream.read(&mut buf[offset..]).await?;
-        if read == 0 {
-            if offset == 0 {
-                return Ok(None);
-            }
-            return Err(io::Error::new(io::ErrorKind::UnexpectedEof, eof_message));
-        }
-        offset += read;
-    }
-    Ok(Some(()))
-}
+use keyguard_android_agent_bridge::secure_transport::read_exact_or_eof;
+use tokio::io::{AsyncRead, AsyncWrite, AsyncWriteExt};
 
 pub async fn read_ssh_agent_packet<S>(
     stream: &mut S,

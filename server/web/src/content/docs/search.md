@@ -1,35 +1,43 @@
 ---
 title: Search
-description: Find any item fast with Keyguard's search — terms, exact phrases, exclusion, and field qualifiers.
-category: reference
-order: 1
+description: "Search your vault with terms, phrases, exclusions and field qualifiers, and sort the results."
+section: vault
+type: feature
+order: 20
+platforms: all
+related: [filters, items, attachments]
 ---
 
-Keyguard's search finds the item you need in a few keystrokes. The same query
-language works in the main vault search field and in **Quick search** — open it
-from anywhere with `Ctrl/⌘ + Shift + Space`. Results update as you type, ranked
-so the best match rises to the top.
+Search finds items as you type, with the best match first. Plain words, quoted
+phrases, exclusions and field qualifiers combine in one query.
 
-## The basics
+On desktop, Ctrl+Shift+Space (Cmd+Shift+Space on macOS) opens
+[Quick search](/docs/quick-search/), which takes the same queries.
 
-Type a word and Keyguard matches it against the most useful fields of every
-item — title, username, email, website URL and domain, attachment names, and
-more (see [What's searched](#whats-searched) below). Matching is:
+## How matching works
 
-- **Case-insensitive** — `alice` and `Alice` are the same.
-- **Accent-insensitive** — `jose` matches `José`.
-- **Partial** — `ali` matches `alice`; you rarely type a whole word.
+A plain word matches the main fields of every item: title, username, email,
+phone, URL and domain, identity and cardholder names, custom field names and
+attachment names. Notes, passwords and custom field values match only through
+a qualifier, listed in the [Qualifier reference](#qualifier-reference).
+
+Matching is:
+
+- **Case-insensitive**: `alice` matches `Alice`.
+- **Partial**: `lic` matches `alice`.
+- **Accent-insensitive in text fields**, such as titles, names and notes:
+  `jose` matches `José`. Usernames, emails and URLs keep their accents.
+
+Search runs inside the current list, so any filter you set applies first. See
+[Filters](/docs/filters/).
 
 ## Combine terms
 
-Add more words to narrow the results. Every term must match — terms are
-combined with **AND**:
+Add more words to narrow the results. An item must match every term:
 
 ```text
 github work
 ```
-
-finds only items that match both `github` and `work`.
 
 ## Match a phrase
 
@@ -39,8 +47,8 @@ Wrap words in quotes to match them together, in order:
 "example team"
 ```
 
-Case, accents, and separators are still ignored, so `"example team"` also
-matches an item titled `Example-Team`.
+Case and separators are still ignored, so `"example team"` also matches an
+item titled `Example-Team`.
 
 ## Exclude matches
 
@@ -54,28 +62,38 @@ domain:example -tag:archive
 
 ## Search a specific field
 
-Use `qualifier:value` to search within a specific field. Mix qualifiers with
-plain words, quote their values, and negate them freely:
+Use `qualifier:value` to search one field. Qualifiers mix with plain words,
+take quoted values, and accept `-`:
 
 ```text
 username:alice
 title:github note:"shared access"
 ```
 
-### Qualifier reference
+## Sort the list
+
+Select **Sort by** in the search bar, then a criterion and an order. The
+default is **Title**, **Alphabetically**. Only the **Title** sort lists
+favorites first.
+
+To keep your sort after Keyguard restarts, turn on **Remember sorting method**
+in the vault's menu.
+
+## Qualifier reference
 
 | Qualifier | Searches in |
-| :-- | :-- |
+| --- | --- |
 | `title:`, `name:` | Item title |
 | `username:` | Username |
-| `email:` | Email (email-like username, or identity email) |
+| `email:` | Email: an email-like username, or an identity's email |
 | `url:` | Full URL |
-| `domain:`, `host:` | URL host (and passkey domain) |
+| `domain:`, `host:` | URL host and passkey domain |
 | `note:` | Notes |
-| `field:` | Custom field names **and** values |
+| `field:` | Custom field names and values |
 | `attachment:` | Attachment file names |
 | `passkey:` | Passkey domain and name |
 | `ssh:` | SSH key fields |
+| `gpg:` | GPG key fields |
 | `password:` | Password |
 | `card-number:` | Card number |
 | `card-brand:` | Card brand |
@@ -85,8 +103,16 @@ title:github note:"shared access"
 | `organization:` | Organization |
 | `collection:` | Collection |
 
-An unrecognized qualifier is treated as plain text — `type:login` searches for the words "type:login".
+`note:`, `password:` and `card-number:` skip items with **Auth re-prompt**
+turned on. An unknown qualifier is plain text: `type:login` searches for the
+words "type" and "login".
 
-## See also
+## Sort options
 
-- [Shortcuts](/features/shortcuts-placeholders/#shortcuts) — including Quick search.
+| Criterion | Orders |
+| --- | --- |
+| **Title** | **Alphabetically**, **Reverse Alphabetically** |
+| **Modification date** | **Newest First**, **Oldest First** |
+| **Password** | **Alphabetically**, **Reverse Alphabetically** |
+| **Password modification date** | **Newest First**, **Oldest First** |
+| **Password strength** | **Weakest First**, **Strongest First** |

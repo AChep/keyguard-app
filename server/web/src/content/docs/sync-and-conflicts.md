@@ -1,38 +1,45 @@
 ---
-title: Sync & conflict resolution
-description: How offline edits sync back, and how Keyguard merges conflicting edits field by field.
-category: accounts
-order: 5
+title: Sync and conflict resolution
+description: "How offline edits sync back to the server, and how Keyguard merges conflicting edits field by field."
+section: accounts
+type: concept
+order: 50
+platforms: all
+related: [multi-account, keepass, backups]
 ---
 
-Keyguard keeps a local copy of your vault, so you can view, add, and edit items
-without a connection. Changes sync back to the cloud when you are online again;
-local providers such as KDBX do not need active Internet conenction. If the
-same item was edited in two places in the meantime, Keyguard merges both edits
-field by field.
+Keyguard keeps a local copy of your vault, so you can view, add and edit items
+without a connection. A conflict happens when the same item changes in two
+places before they sync, such as on two devices while one is offline.
 
-> A conflict can happen when you edit an item on a device without an active
-> internet connection and then edit the same item on another device.
+## Offline changes
+
+Changes made offline stay on the device and sync to the server when you're
+online again. For a KeePass account, the database file plays the server's role,
+and a local file needs no connection.
 
 ## How merging works
 
-Keyguard uses a **three-way merge**. Alongside your local copy, the app keeps the
-last version of each item synced from the server and uses it as the merge
-**base**. Comparing both sides against that base identifies which side changed
+Keyguard resolves a conflict with a three-way merge. Alongside your local copy,
+it keeps the last version of each item synced from the server, and uses it as
+the merge base. Comparing both sides against the base shows which side changed
 each field.
 
-Keyguard splits the item into separate fields and merges them one by one:
+Keyguard merges the item field by field:
 
-- a field edited on **one side only** (locally *or* remotely) keeps that
-  change;
-- a field edited on **both sides** takes the remote (server) version;
-- items **added or removed** from a list are replayed onto a new base item.
+- A field edited on one side only, local or remote, keeps that change.
+- A field edited on both sides takes the remote version.
+- Entries added to or removed from a list, such as custom fields, are replayed
+  onto the merged item.
 
-### Examples
+Without a base version, the remote item wins. On Bitwarden accounts, a
+password, authenticator key or hidden custom field that loses a merge moves to
+the item's password history.
 
-- You edit the **Username** on one device and the **Password** on another —
-  both changes are kept and merged together.
-- You edit the **Username** on one device and the same **Username** on another
-  — the change from the server wins.
-- You add a **custom field** on one device and a different custom field on
-  another — both are kept: the item ends up with the two new fields.
+## Examples
+
+| Device A | Device B | Result |
+| --- | --- | --- |
+| Edits the username | Edits the password | Both changes are kept |
+| Edits the username | Edits the same username | The edit that reached the server first wins |
+| Adds a custom field | Adds a different custom field | The item has both new fields |

@@ -62,7 +62,7 @@ fun AccountPreLoginResponse.toDomain(email: String): PreLogin {
     val hash = when (resolvedKdfType) {
         // is AccountPreLoginResponse.Pbkdf2
         null, 0 -> {
-            PreLogin.Hash.Pbkdf2(
+            PreLogin.Hash.Pbkdf2.login(
                 iterationsCount = resolvedKdfIterationsCount
                     .takeOrDefault(PBKDF2_ITERATIONS),
             )

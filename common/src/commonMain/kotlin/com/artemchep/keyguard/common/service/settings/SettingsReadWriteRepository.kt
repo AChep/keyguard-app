@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.settings
 
+import com.artemchep.keyguard.common.model.GlobalShortcutAction
+import com.artemchep.keyguard.common.model.GlobalShortcutConfig
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.AppColors
@@ -14,6 +16,7 @@ import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.keyvalue.backup.KeyValueBackupState
+import com.artemchep.keyguard.common.service.licensekey.model.LicenseEntitlement
 import kotlin.time.Duration
 import kotlin.time.Instant
 
@@ -28,6 +31,11 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
     //
     // Actual settings
     //
+
+    fun setGlobalShortcut(
+        action: GlobalShortcutAction,
+        config: GlobalShortcutConfig,
+    ): IO<Unit>
 
     fun setAutofillDefaultMatchDetection(
         matchDetection: String,
@@ -137,6 +145,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         premium: Boolean,
     ): IO<Unit>
 
+    fun setCacheLicenseExpiry(
+        expiry: LicenseEntitlement.Expiry?,
+    ): IO<Unit>
+
     fun setCacheNavItemsConfig(
         config: NavItemsConfig?,
     ): IO<Unit>
@@ -169,12 +181,20 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         duration: Duration,
     ): IO<Unit>
 
+    fun setSshAgentApprovalTimeout(
+        duration: Duration,
+    ): IO<Unit>
+
     fun setSshAgentApprovalCachePolicy(
         policy: AgentApprovalCachePolicy,
     ): IO<Unit>
 
     fun setSshAgentDisplayKeyNames(
         displayKeyNames: Boolean,
+    ): IO<Unit>
+
+    fun setSshAgentBookmarksConfig(
+        enabled: Boolean,
     ): IO<Unit>
 
     fun setSshAgentFilter(
@@ -189,8 +209,28 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         duration: Duration,
     ): IO<Unit>
 
+    fun setGpgAgentApprovalTimeout(
+        duration: Duration,
+    ): IO<Unit>
+
     fun setGpgAgentApprovalCachePolicy(
         policy: AgentApprovalCachePolicy,
+    ): IO<Unit>
+
+    fun setEnvironmentsMcpApprovalWindow(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setEnvironmentsMcpApprovalTimeout(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setCliApprovalWindow(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setCliApprovalTimeout(
+        duration: Duration,
     ): IO<Unit>
 
     fun setGpgAgentDisplayKeyNames(
@@ -279,6 +319,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
 
     fun setMinimizeOnCopy(
         minimizeOnCopy: Boolean,
+    ): IO<Unit>
+
+    fun setUiScale(
+        uiScale: Float,
     ): IO<Unit>
 
     fun setColors(

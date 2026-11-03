@@ -4,14 +4,33 @@ import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.KeyPair
+import com.artemchep.keyguard.feature.environments.edit.EnvironmentEditRoute
 import com.artemchep.keyguard.feature.navigation.Route
+
+/**
+ * Whether the generic editor can save the items of this type. Merging
+ * goes through the generic editor, so it also decides that.
+ */
+fun DSecret.Type.hasGenericEditor(): Boolean = this != DSecret.Type.Environment
 
 fun LeAddRoute(
     args: AddRoute.Args = AddRoute.Args(),
-): Route =
-    AddRouteImpl(
+): Route {
+    // Environments have a dedicated editor: the generic
+    // one would persist their secrets as a draft.
+    val type = args.initialValue?.type ?: args.type
+    if (
+        type == DSecret.Type.Environment &&
+        args.merge == null
+    ) {
+        return EnvironmentEditRoute(
+            environmentId = args.initialValue?.id,
+        )
+    }
+    return AddRouteImpl(
         args = args,
     )
+}
 
 data class AddRouteImpl(
     val args: AddRoute.Args = AddRoute.Args(),

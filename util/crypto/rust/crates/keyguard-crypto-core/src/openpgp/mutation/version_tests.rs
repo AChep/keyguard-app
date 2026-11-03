@@ -208,13 +208,15 @@ fn v6_mutations_preserve_material_and_emit_mergeable_artifacts() {
             )
             .collect();
         let renewed = update_expiration_request(ExpirationUpdateInput {
-            private_key: original.private_key_armored.clone(),
-            public_key: original.public_key_armored.clone(),
-            expected_primary_fingerprint: original.fingerprint.clone(),
+            documents: MutationDocuments {
+                private_key: original.private_key_armored.clone(),
+                public_key: original.public_key_armored.clone(),
+                expected_primary_fingerprint: original.fingerprint.clone(),
+                candidate_revocation_keys: Vec::new(),
+                reference_time_epoch_seconds: CREATED + 20,
+            },
             component_fingerprints: components,
             expires_at_epoch_seconds: Some(CREATED + 7_200),
-            candidate_revocation_keys: Vec::new(),
-            reference_time_epoch_seconds: CREATED + 20,
         })
         .expect("renew V6 primary and subkeys");
         let after =
@@ -240,13 +242,15 @@ fn v6_mutations_preserve_material_and_emit_mergeable_artifacts() {
         );
 
         let replaced = replace_user_id_request(UserIdReplacementInput {
-            private_key: renewed.key_material.private_key_armored.clone(),
-            public_key: renewed.key_material.public_key_armored.clone(),
-            expected_primary_fingerprint: original.fingerprint.clone(),
+            documents: MutationDocuments {
+                private_key: renewed.key_material.private_key_armored.clone(),
+                public_key: renewed.key_material.public_key_armored.clone(),
+                expected_primary_fingerprint: original.fingerprint.clone(),
+                candidate_revocation_keys: Vec::new(),
+                reference_time_epoch_seconds: CREATED + 30,
+            },
             old_identity_id: identity_id(USER_ID_TAG, USER_ID.as_bytes()),
             new_user_id: "Renamed <renamed@example.test>".to_owned(),
-            candidate_revocation_keys: Vec::new(),
-            reference_time_epoch_seconds: CREATED + 30,
         })
         .expect("replace V6 identity");
         let replacement_secret = parse_single_secret(&replaced.key_material.private_key_armored)
@@ -285,12 +289,14 @@ fn v6_mutations_preserve_material_and_emit_mergeable_artifacts() {
         );
 
         let revoked = revoke_user_id_request(UserIdRevocationInput {
-            private_key: replaced.key_material.private_key_armored.clone(),
-            public_key: replaced.key_material.public_key_armored.clone(),
-            expected_primary_fingerprint: original.fingerprint.clone(),
+            documents: MutationDocuments {
+                private_key: replaced.key_material.private_key_armored.clone(),
+                public_key: replaced.key_material.public_key_armored.clone(),
+                expected_primary_fingerprint: original.fingerprint.clone(),
+                candidate_revocation_keys: Vec::new(),
+                reference_time_epoch_seconds: CREATED + 40,
+            },
             identity_id: replaced.new_identity_id.clone(),
-            candidate_revocation_keys: Vec::new(),
-            reference_time_epoch_seconds: CREATED + 40,
         })
         .expect("revoke last V6 identity");
         let public = parse_single_public(&revoked.key_material.public_key_armored)
@@ -329,13 +335,15 @@ fn v6_primary_without_identities_can_be_renewed() {
     secret.details.users.clear();
     let material = encode_key_material(&secret).expect("identityless certificate");
     let updated = update_expiration_request(ExpirationUpdateInput {
-        private_key: material.private_key_armored.clone(),
-        public_key: material.public_key_armored.clone(),
-        expected_primary_fingerprint: material.fingerprint.clone(),
+        documents: MutationDocuments {
+            private_key: material.private_key_armored.clone(),
+            public_key: material.public_key_armored.clone(),
+            expected_primary_fingerprint: material.fingerprint.clone(),
+            candidate_revocation_keys: Vec::new(),
+            reference_time_epoch_seconds: CREATED + 10,
+        },
         component_fingerprints: vec![material.fingerprint.clone()],
         expires_at_epoch_seconds: None,
-        candidate_revocation_keys: Vec::new(),
-        reference_time_epoch_seconds: CREATED + 10,
     })
     .expect("renew identityless V6 primary");
     let public = parse_single_public(&updated.key_material.public_key_armored).unwrap();

@@ -2,17 +2,24 @@ package com.artemchep.keyguard.common.service.credentialexchange
 
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.impl.MAX_SSH_PRIVATE_KEY_B64_LENGTH
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.common.service.imports.ImportSkips
+import com.artemchep.keyguard.common.service.imports.importSkips
+import com.artemchep.keyguard.test.FakeSshKeyImportService
+import com.artemchep.keyguard.test.sshKeyImportFailure
+import com.artemchep.keyguard.test.sshKeyImportNeedsPassphrase
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
 /**
- * Every [CxfImportSkipReason], and the exact input that increments it.
+ * Every [ImportSkipReason], and the exact input that increments it.
  *
- * Each row asserts the **whole** [CxfImportSkips] tally rather than one reason,
+ * Each row asserts the **whole** [ImportSkips] tally rather than one reason,
  * so a cause cannot leak into a neighbouring reason unnoticed — a passkey
- * failure that started also raising [CxfImportSkipReason.Item] would fail here
+ * failure that started also raising [ImportSkipReason.Item] would fail here
  * even though both numbers are individually plausible.
  *
  * The complement lives in `CxfImportSilentDropTest`: everything that is dropped
@@ -24,7 +31,7 @@ class CxfImportSkipCounterMatrixTest {
     private fun skips(
         payload: String,
         service: CxfImportServiceImpl = CxfImportServiceImpl(FakeSshKeyImportService()),
-    ): CxfImportSkips = service.parseSuccessPlan(payload = payload, now = now).skips
+    ): ImportSkips = service.parseSuccessPlan(payload = payload, now = now).skips
 
     private fun assertCases(cases: List<SkipCase>) {
         cases.forEach { case ->
@@ -56,10 +63,10 @@ class CxfImportSkipCounterMatrixTest {
             """.trimIndent(),
         )
         val skips = skips(document)
-        assertEquals(cxfImportSkips(CxfImportSkipReason.Passkey to 3), skips)
+        assertEquals(importSkips(ImportSkipReason.Passkey to 3), skips)
         assertEquals(
             mapOf("Netflix" to 2, "GitHub" to 1),
-            skips.titlesOf(CxfImportSkipReason.Passkey),
+            skips.titlesOf(ImportSkipReason.Passkey),
         )
     }
 
@@ -84,7 +91,7 @@ class CxfImportSkipCounterMatrixTest {
         // where the item went.
         val plan = CxfImportServiceImpl(FakeSshKeyImportService())
             .parseSuccessPlan(documentWithItems(itemWith(passkey(key = "###"))), now)
-        assertEquals(cxfImportSkips(CxfImportSkipReason.Passkey to 1), plan.skips)
+        assertEquals(importSkips(ImportSkipReason.Passkey to 1), plan.skips)
         assertTrue(plan.items.isEmpty())
     }
 
@@ -103,7 +110,7 @@ class CxfImportSkipCounterMatrixTest {
         // bad totp with a surviving basic-auth.
         val plan = CxfImportServiceImpl(FakeSshKeyImportService())
             .parseSuccessPlan(documentWithItems(itemWith(totp(secret = ""))), now)
-        assertEquals(cxfImportSkips(CxfImportSkipReason.Otp to 1), plan.skips)
+        assertEquals(importSkips(ImportSkipReason.Otp to 1), plan.skips)
         assertTrue(plan.items.isEmpty())
     }
 
@@ -117,7 +124,7 @@ class CxfImportSkipCounterMatrixTest {
         val atLimit = "A".repeat(MAX_SSH_PRIVATE_KEY_B64_LENGTH)
         // The item is emptied by the failing key, and the key is already
         // counted — so the loss is reported once, not twice.
-        val sshKeyOnly = cxfImportSkips(CxfImportSkipReason.SshKey to 1)
+        val sshKeyOnly = importSkips(ImportSkipReason.SshKey to 1)
 
         assertEquals(
             sshKeyOnly,
@@ -125,7 +132,7 @@ class CxfImportSkipCounterMatrixTest {
             "one past the size cap",
         )
         assertEquals(
-            cxfImportSkips(),
+            importSkips(),
             skips(documentWithItems(itemWith(sshKey(privateKey = atLimit)))),
             "exactly at the size cap",
         )
@@ -174,7 +181,7 @@ class CxfImportSkipCounterMatrixTest {
     fun `a second credential of a single instance kind is counted`() {
         singleInstanceKinds.forEach { (kind, json) ->
             assertEquals(
-                cxfImportSkips(CxfImportSkipReason.DuplicateCredential to 1),
+                importSkips(ImportSkipReason.DuplicateCredential to 1),
                 skips(documentWithItems(itemWith(json, json))),
                 kind,
             )
@@ -189,14 +196,14 @@ class CxfImportSkipCounterMatrixTest {
         // the single-copy item raises.
         val blank = basicAuth(username = "   ")
         assertEquals(
-            cxfImportSkips(CxfImportSkipReason.Item to 1),
+            importSkips(ImportSkipReason.Item to 1),
             skips(documentWithItems(itemWith(blank))),
             "the single-copy item is the baseline",
         )
         assertEquals(
-            cxfImportSkips(
-                CxfImportSkipReason.DuplicateCredential to 1,
-                CxfImportSkipReason.Item to 1,
+            importSkips(
+                ImportSkipReason.DuplicateCredential to 1,
+                ImportSkipReason.Item to 1,
             ),
             skips(documentWithItems(itemWith(blank, blank))),
             "adding a duplicate must not remove the item count",
@@ -208,7 +215,7 @@ class CxfImportSkipCounterMatrixTest {
         // Both kinds are deliberately many-per-item: every passkey is kept, and
         // several field bags concatenate.
         assertEquals(
-            cxfImportSkips(),
+            importSkips(),
             skips(
                 documentWithItems(
                     itemWith(passkey(credentialId = "AAECAwQFBg"), passkey(credentialId = "BgUEAwIBAA")),
@@ -217,7 +224,7 @@ class CxfImportSkipCounterMatrixTest {
             "two passkeys",
         )
         assertEquals(
-            cxfImportSkips(),
+            importSkips(),
             skips(documentWithItems(itemWith(customFields("A"), customFields("B")))),
             "two custom-field bags",
         )
@@ -239,12 +246,12 @@ class CxfImportSkipCounterMatrixTest {
             Triple(
                 "a passkey the decoder rejects",
                 itemWith("""{"type": "passkey", "credentialId": "AAECAwQFBg"}"""),
-                cxfImportSkips(CxfImportSkipReason.UnknownCredential to 1),
+                importSkips(ImportSkipReason.UnknownCredential to 1),
             ),
             Triple(
                 "an unrepresentable totp",
                 itemWith(totp(digits = 10)),
-                cxfImportSkips(CxfImportSkipReason.Otp to 1),
+                importSkips(ImportSkipReason.Otp to 1),
             ),
         )
         cases.forEach { (name, itemsJson, expected) ->
@@ -256,9 +263,9 @@ class CxfImportSkipCounterMatrixTest {
     fun `a surviving item does not suppress a sibling's item count`() {
         // The suppression is per item, not per account.
         assertEquals(
-            cxfImportSkips(
-                CxfImportSkipReason.UnknownCredential to 1,
-                CxfImportSkipReason.Item to 1,
+            importSkips(
+                ImportSkipReason.UnknownCredential to 1,
+                ImportSkipReason.Item to 1,
             ),
             skips(
                 documentWithItems(
@@ -284,7 +291,7 @@ class CxfImportSkipCounterMatrixTest {
         // empty, so `[]` is the only conforming spelling of an account with no
         // items; absent, null and non-array are one violation with one policy —
         // the account decoded, but an unknown number of its items is unreachable.
-        val unread = cxfImportSkips(CxfImportSkipReason.Account to 1)
+        val unread = importSkips(ImportSkipReason.Account to 1)
         val cases = listOf(
             Triple("an entry that is not an object", """"not-an-account"""", unread),
             Triple("an items member that is not an array", accountWithItems("""{"id": "x"}"""), unread),
@@ -293,7 +300,7 @@ class CxfImportSkipCounterMatrixTest {
             Triple("a string items member", accountWithItems(""""nope""""), unread),
             Triple("a numeric items member", accountWithItems("0"), unread),
             Triple("a boolean items member", accountWithItems("false"), unread),
-            Triple("an empty items array", accountWithItems("[]"), cxfImportSkips()),
+            Triple("an empty items array", accountWithItems("[]"), importSkips()),
         )
         cases.forEach { (name, accountJson, expected) ->
             assertEquals(expected, skips(documentWithAccounts(accountJson)), name)
@@ -323,7 +330,7 @@ class CxfImportSkipCounterMatrixTest {
             now = now,
         )
         // The `?: return` exits `parseAccount`, not the loop in `buildPlan`.
-        assertEquals(cxfImportSkips(CxfImportSkipReason.Account to 3), plan.skips)
+        assertEquals(importSkips(ImportSkipReason.Account to 3), plan.skips)
         // Only object entries are counted as source accounts, and the readable
         // ones still contributed their items.
         assertEquals(4, plan.sourceAccountCount)
@@ -348,8 +355,8 @@ class CxfImportSkipCounterMatrixTest {
             now = now,
         )
         assertEquals(listOf("Work"), plan.folders.map { it.title })
-        assertEquals(1, plan.skips[CxfImportSkipReason.Account])
-        assertEquals(0, plan.skips[CxfImportSkipReason.Collection])
+        assertEquals(1, plan.skips[ImportSkipReason.Account])
+        assertEquals(0, plan.skips[ImportSkipReason.Collection])
     }
 
     // endregion
@@ -374,7 +381,7 @@ class CxfImportSkipCounterMatrixTest {
             now = now,
         )
         assertEquals(listOf("Work", "Home", "Archive"), plan.folders.map { it.title })
-        assertEquals(1, plan.skips[CxfImportSkipReason.Collection])
+        assertEquals(1, plan.skips[ImportSkipReason.Collection])
         assertEquals(1, plan.skips.totalCount)
     }
 
@@ -393,7 +400,7 @@ class CxfImportSkipCounterMatrixTest {
             """.trimIndent(),
         )
         assertEquals(listOf("Work"), plan.folders.map { it.title })
-        assertEquals(1, plan.skips[CxfImportSkipReason.Collection])
+        assertEquals(1, plan.skips[ImportSkipReason.Collection])
     }
 
     @Test
@@ -416,7 +423,7 @@ class CxfImportSkipCounterMatrixTest {
         // Re-rooted, not dropped: the tree loses one level, not a subtree.
         assertEquals(listOf("Kept One", "Kept Two"), plan.folders.map { it.title })
         assertTrue(plan.folders.all { it.parentKey == null })
-        assertEquals(1, plan.skips[CxfImportSkipReason.Collection])
+        assertEquals(1, plan.skips[ImportSkipReason.Collection])
     }
 
     @Test
@@ -441,7 +448,7 @@ class CxfImportSkipCounterMatrixTest {
             listOf("Good", "Child One", "Child Two"),
             plan.folders.map { it.title },
         )
-        assertEquals(1, plan.skips[CxfImportSkipReason.Collection])
+        assertEquals(1, plan.skips[ImportSkipReason.Collection])
     }
 
     @Test
@@ -467,7 +474,7 @@ class CxfImportSkipCounterMatrixTest {
         assertEquals(2, plan.items.size)
         assertEquals(null, plan.items[0].folderKey)
         assertTrue(plan.items[1].folderKey != null)
-        assertEquals(1, plan.skips[CxfImportSkipReason.Collection])
+        assertEquals(1, plan.skips[ImportSkipReason.Collection])
     }
 
     @Test
@@ -476,7 +483,7 @@ class CxfImportSkipCounterMatrixTest {
             """[${goodCollection("Zm9sZGVyLTE", "Work")}, 42, "x", null]""",
         )
         assertEquals(listOf("Work"), plan.folders.map { it.title })
-        assertEquals(3, plan.skips[CxfImportSkipReason.Collection])
+        assertEquals(3, plan.skips[ImportSkipReason.Collection])
     }
 
     @Test
@@ -489,7 +496,7 @@ class CxfImportSkipCounterMatrixTest {
             """[{"id": "Zm9sZGVyLTE", "title": "T"}, ${goodCollection("Zm9sZGVyLTI", "Work")}]""",
         )
         assertEquals(listOf("T", "Work"), plan.folders.map { it.title })
-        assertEquals(cxfImportSkips(), plan.skips)
+        assertEquals(importSkips(), plan.skips)
     }
 
     @Test
@@ -504,19 +511,19 @@ class CxfImportSkipCounterMatrixTest {
             """[{"id": "Zm9sZGVyLTE", "title": "Work", "items": "nope"}]""",
         )
         assertEquals(listOf("Work"), plan.folders.map { it.title })
-        assertEquals(cxfImportSkips(), plan.skips)
+        assertEquals(importSkips(), plan.skips)
     }
 
     @Test
     fun `an unreadable collections member counts once however it is spelled`() {
-        val unread = cxfImportSkips(CxfImportSkipReason.Collection to 1)
+        val unread = importSkips(ImportSkipReason.Collection to 1)
         val cases = listOf(
             Triple("a string", accountWithCollections(""""garbage""""), unread),
             Triple("null", accountWithCollections("null"), unread),
             Triple("an object", accountWithCollections("{}"), unread),
             Triple("a number", accountWithCollections("42"), unread),
             Triple("an absent member", accountWithoutCollections(), unread),
-            Triple("an empty array", accountWithCollections("[]"), cxfImportSkips()),
+            Triple("an empty array", accountWithCollections("[]"), importSkips()),
         )
         cases.forEach { (name, accountJson, expected) ->
             assertEquals(expected, skips(documentWithAccounts(accountJson)), name)
@@ -529,14 +536,14 @@ class CxfImportSkipCounterMatrixTest {
             """[{"id": "Zm9sZGVyLTE", "title": "Work", "items": [], "subCollections": "nope"}]""",
         )
         assertEquals(listOf("Work"), notAnArray.folders.map { it.title })
-        assertEquals(1, notAnArray.skips[CxfImportSkipReason.Collection])
+        assertEquals(1, notAnArray.skips[ImportSkipReason.Collection])
         // `subCollections` is optional and MUST NOT be present when empty, so an
         // explicit null is how an exporter spells "no children" — never a loss.
         val explicitNull = collectionPlan(
             """[{"id": "Zm9sZGVyLTE", "title": "Work", "items": [], "subCollections": null}]""",
         )
         assertEquals(listOf("Work"), explicitNull.folders.map { it.title })
-        assertEquals(cxfImportSkips(), explicitNull.skips)
+        assertEquals(importSkips(), explicitNull.skips)
     }
 
     @Test
@@ -551,13 +558,13 @@ class CxfImportSkipCounterMatrixTest {
             ),
             now = now,
         )
-        assertEquals(1, plan.skips[CxfImportSkipReason.Item])
-        assertEquals(1, plan.skips[CxfImportSkipReason.Collection])
-        assertEquals(1, plan.skips[CxfImportSkipReason.Account])
+        assertEquals(1, plan.skips[ImportSkipReason.Item])
+        assertEquals(1, plan.skips[ImportSkipReason.Collection])
+        assertEquals(1, plan.skips[ImportSkipReason.Account])
         assertEquals(3, plan.skips.totalCount)
     }
 
-    private fun collectionPlan(collectionsJson: String): CxfImportPlan =
+    private fun collectionPlan(collectionsJson: String): ImportPlan =
         CxfImportServiceImpl(FakeSshKeyImportService()).parseSuccessPlan(
             payload = documentWithAccounts(accountWithCollections(collectionsJson)),
             now = now,
@@ -570,27 +577,41 @@ private val passkeyCases = listOf(
     SkipCase(
         name = "an undecodable credential id",
         itemsJson = itemWith(passkey(credentialId = "###"), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Passkey to 1),
+        expected = importSkips(ImportSkipReason.Passkey to 1),
     ),
     SkipCase(
         name = "an undecodable user handle",
         itemsJson = itemWith(passkey(userHandle = "###"), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Passkey to 1),
+        expected = importSkips(ImportSkipReason.Passkey to 1),
     ),
     SkipCase(
         name = "an undecodable key",
         itemsJson = itemWith(passkey(key = "###"), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Passkey to 1),
+        expected = importSkips(ImportSkipReason.Passkey to 1),
     ),
     SkipCase(
         name = "two bad passkeys count twice",
         itemsJson = itemWith(passkey(key = "###"), passkey(userHandle = "###"), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Passkey to 2),
+        expected = importSkips(ImportSkipReason.Passkey to 2),
     ),
     SkipCase(
         name = "a padded user handle is accepted",
         itemsJson = itemWith(passkey(userHandle = "AAECAwQFBg=="), basicAuth()),
-        expected = cxfImportSkips(),
+        expected = importSkips(),
+    ),
+    SkipCase(
+        name = "an undecodable PRF seed",
+        itemsJson = itemWith(passkey(hmacCredentials = hmacCredentials(credWithUv = "###")), basicAuth()),
+        expected = importSkips(ImportSkipReason.Passkey to 1),
+    ),
+    SkipCase(
+        // 87,383 characters decode to 65,537 bytes, one over the cap.
+        name = "a PRF seed over the size cap",
+        itemsJson = itemWith(
+            passkey(hmacCredentials = hmacCredentials(credWithoutUv = "A".repeat(87_383))),
+            basicAuth(),
+        ),
+        expected = importSkips(ImportSkipReason.Passkey to 1),
     ),
 )
 
@@ -598,45 +619,45 @@ private val otpCases = listOf(
     SkipCase(
         name = "a blank secret",
         itemsJson = itemWith(totp(secret = ""), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Otp to 1),
+        expected = importSkips(ImportSkipReason.Otp to 1),
     ),
     SkipCase(
         name = "a whitespace secret",
         itemsJson = itemWith(totp(secret = "   "), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Otp to 1),
+        expected = importSkips(ImportSkipReason.Otp to 1),
     ),
     SkipCase(
         name = "ten digits is past what the parser accepts",
         itemsJson = itemWith(totp(digits = 10), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Otp to 1),
+        expected = importSkips(ImportSkipReason.Otp to 1),
     ),
     SkipCase(
         name = "zero digits is past what the parser accepts",
         itemsJson = itemWith(totp(digits = 0), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Otp to 1),
+        expected = importSkips(ImportSkipReason.Otp to 1),
     ),
     SkipCase(
         name = "nine digits is accepted",
         itemsJson = itemWith(totp(digits = 9), basicAuth()),
-        expected = cxfImportSkips(),
+        expected = importSkips(),
     ),
     SkipCase(
         // The parser would substitute 30, so refusing the credential is
         // the only way the loss reaches the review screen.
         name = "a non-positive period is a skip",
         itemsJson = itemWith(totp(period = 0), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Otp to 1),
+        expected = importSkips(ImportSkipReason.Otp to 1),
     ),
     SkipCase(
         name = "a negative period is refused",
         itemsJson = itemWith(totp(period = -1), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Otp to 1),
+        expected = importSkips(ImportSkipReason.Otp to 1),
     ),
     SkipCase(
         // Both directions run the same `canonicalTotpSecretOrNull`.
         name = "a secret that is not base32 is a skip",
         itemsJson = itemWith(totp(secret = "not base32!"), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Otp to 1),
+        expected = importSkips(ImportSkipReason.Otp to 1),
     ),
     SkipCase(
         // §3.3.16 makes ignoring an unnamed algorithm a MUST. A
@@ -644,32 +665,32 @@ private val otpCases = listOf(
         // rejects, which is worse than a credential the user is told about.
         name = "md5 is refused, never downgraded to sha1",
         itemsJson = itemWith(totp(algorithm = "md5"), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Otp to 1),
+        expected = importSkips(ImportSkipReason.Otp to 1),
     ),
     SkipCase(
         name = "an algorithm the format does not name is refused",
         itemsJson = itemWith(totp(algorithm = "sha3-256"), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Otp to 1),
+        expected = importSkips(ImportSkipReason.Otp to 1),
     ),
     SkipCase(
         name = "an empty algorithm is refused",
         itemsJson = itemWith(totp(algorithm = ""), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Otp to 1),
+        expected = importSkips(ImportSkipReason.Otp to 1),
     ),
     SkipCase(
         name = "a whitespace-only algorithm is refused",
         itemsJson = itemWith(totp(algorithm = "  "), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Otp to 1),
+        expected = importSkips(ImportSkipReason.Otp to 1),
     ),
     SkipCase(
         name = "a cased steam marker is the steam extension",
         itemsJson = itemWith(totp(algorithm = "STEAM"), basicAuth()),
-        expected = cxfImportSkips(),
+        expected = importSkips(),
     ),
     SkipCase(
         name = "a hyphen-grouped secret is canonicalized, not refused",
         itemsJson = itemWith(totp(secret = "JBSW-Y3DP-EHPK-3PXP"), basicAuth()),
-        expected = cxfImportSkips(),
+        expected = importSkips(),
     ),
     SkipCase(
         // A six-character remainder is not producible by any byte
@@ -677,7 +698,7 @@ private val otpCases = listOf(
         // credential rather than a malformed one.
         name = "a secret of an impossible base32 length is accepted",
         itemsJson = itemWith(totp(secret = "ABCDEF"), basicAuth()),
-        expected = cxfImportSkips(),
+        expected = importSkips(),
     ),
 )
 
@@ -702,19 +723,19 @@ private val unknownCases = listOf(
     SkipCase(
         name = "an unmodeled kind beside a real one",
         itemsJson = itemWith("""{"type": "wifi", "ssid": {"fieldType": "string", "value": "g"}}""", basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.UnknownCredential to 1),
+        expected = importSkips(ImportSkipReason.UnknownCredential to 1),
     ),
     SkipCase(
         // The credential reason already explains the empty item — the
         // exporter's rule, applied to the importer.
         name = "an item holding only an unmodeled kind counts once",
         itemsJson = itemWith("""{"type": "wifi", "ssid": {"fieldType": "string", "value": "g"}}"""),
-        expected = cxfImportSkips(CxfImportSkipReason.UnknownCredential to 1),
+        expected = importSkips(ImportSkipReason.UnknownCredential to 1),
     ),
     SkipCase(
         name = "a known kind missing a required member",
         itemsJson = itemWith("""{"type": "note"}""", basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.UnknownCredential to 1),
+        expected = importSkips(ImportSkipReason.UnknownCredential to 1),
     ),
 )
 
@@ -722,36 +743,36 @@ private val itemCases = listOf(
     SkipCase(
         name = "an element that is not an object",
         itemsJson = """"not-an-item"""",
-        expected = cxfImportSkips(CxfImportSkipReason.Item to 1),
+        expected = importSkips(ImportSkipReason.Item to 1),
     ),
     SkipCase(
         name = "an item shell missing its title",
         itemsJson = """{"id": "aXRlbTAx", "credentials": []}""",
-        expected = cxfImportSkips(CxfImportSkipReason.Item to 1),
+        expected = importSkips(ImportSkipReason.Item to 1),
     ),
     SkipCase(
         name = "an empty credentials array",
         itemsJson = """{"id": "aXRlbTAx", "title": "Empty", "credentials": []}""",
-        expected = cxfImportSkips(CxfImportSkipReason.Item to 1),
+        expected = importSkips(ImportSkipReason.Item to 1),
     ),
     SkipCase(
         // The no-counter path: a non-array member yields zero credentials
         // without any of them being reported as undecodable.
         name = "a credentials member that is not an array",
         itemsJson = """{"id": "aXRlbTAx", "title": "Broken", "credentials": {}}""",
-        expected = cxfImportSkips(CxfImportSkipReason.Item to 1),
+        expected = importSkips(ImportSkipReason.Item to 1),
     ),
     SkipCase(
         // Decodes fine and maps to nothing, so the post-mapping login gate is
         // what keeps it from becoming a wholly empty Login.
         name = "a basic-auth with no members",
         itemsJson = itemWith("""{"type": "basic-auth"}"""),
-        expected = cxfImportSkips(CxfImportSkipReason.Item to 1),
+        expected = importSkips(ImportSkipReason.Item to 1),
     ),
     SkipCase(
         name = "a basic-auth whose only member is blank",
         itemsJson = itemWith(basicAuth(username = "   ")),
-        expected = cxfImportSkips(CxfImportSkipReason.Item to 1),
+        expected = importSkips(ImportSkipReason.Item to 1),
     ),
     SkipCase(
         // The identity analogue of the two rows above: every member of the five
@@ -760,14 +781,14 @@ private val itemCases = listOf(
         // than let it materialise a blank record and suppress this counter.
         name = "an identity-shaped credential with no members",
         itemsJson = itemWith("""{"type": "person-name"}"""),
-        expected = cxfImportSkips(CxfImportSkipReason.Item to 1),
+        expected = importSkips(ImportSkipReason.Item to 1),
     ),
     SkipCase(
         name = "an identity-shaped credential whose only member is blank",
         itemsJson = itemWith(
             """{"type": "address", "city": {"fieldType": "string", "value": "   "}}""",
         ),
-        expected = cxfImportSkips(CxfImportSkipReason.Item to 1),
+        expected = importSkips(ImportSkipReason.Item to 1),
     ),
     SkipCase(
         // An item shell that decodes only after a malformed decorative member is
@@ -775,14 +796,14 @@ private val itemCases = listOf(
         // rather than for the adornment.
         name = "an item whose adornment is malformed and which holds nothing",
         itemsJson = """{"id": "aXRlbTAx", "title": "T", "favorite": "yes", "credentials": []}""",
-        expected = cxfImportSkips(CxfImportSkipReason.Item to 1),
+        expected = importSkips(ImportSkipReason.Item to 1),
     ),
 )
 
 private data class SkipCase(
     val name: String,
     val itemsJson: String,
-    val expected: CxfImportSkips,
+    val expected: ImportSkips,
 )
 
 /**
@@ -799,27 +820,27 @@ private val degeneratePasskeyCases = listOf(
     SkipCase(
         name = "an empty credential id",
         itemsJson = itemWith(passkey(credentialId = ""), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Passkey to 1),
+        expected = importSkips(ImportSkipReason.Passkey to 1),
     ),
     SkipCase(
         name = "an empty key",
         itemsJson = itemWith(passkey(key = ""), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Passkey to 1),
+        expected = importSkips(ImportSkipReason.Passkey to 1),
     ),
     SkipCase(
         name = "an empty rp id",
         itemsJson = itemWith(passkey(rpId = ""), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Passkey to 1),
+        expected = importSkips(ImportSkipReason.Passkey to 1),
     ),
     SkipCase(
         name = "a whitespace-only rp id",
         itemsJson = itemWith(passkey(rpId = "   "), basicAuth()),
-        expected = cxfImportSkips(CxfImportSkipReason.Passkey to 1),
+        expected = importSkips(ImportSkipReason.Passkey to 1),
     ),
     SkipCase(
         name = "an empty user handle is absence, not a failure",
         itemsJson = itemWith(passkey(userHandle = ""), basicAuth()),
-        expected = cxfImportSkips(),
+        expected = importSkips(),
     ),
 )
 
@@ -859,17 +880,28 @@ private fun passkey(
     rpId: String = "example.com",
     userHandle: String = "AAECAwQFBg",
     key: String = CXF_TEST_PASSKEY_KEY_URL,
-): String = """
-    {
-      "type": "passkey",
-      "credentialId": "$credentialId",
-      "rpId": "$rpId",
-      "username": "alice",
-      "userDisplayName": "Alice",
-      "userHandle": "$userHandle",
-      "key": "$key"
-    }
-""".trimIndent()
+    hmacCredentials: String? = null,
+): String {
+    val extensions = hmacCredentials
+        ?.let { ", \"fido2Extensions\": {\"hmacCredentials\": $it}" }
+        .orEmpty()
+    return """
+        {
+          "type": "passkey",
+          "credentialId": "$credentialId",
+          "rpId": "$rpId",
+          "username": "alice",
+          "userDisplayName": "Alice",
+          "userHandle": "$userHandle",
+          "key": "$key"$extensions
+        }
+    """.trimIndent()
+}
+
+private fun hmacCredentials(
+    credWithUv: String = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+    credWithoutUv: String = "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+): String = """{"algorithm": "hmac-sha256", "credWithUV": "$credWithUv", "credWithoutUV": "$credWithoutUv"}"""
 
 private fun totp(
     secret: String = "JBSWY3DPEHPK3PXP",

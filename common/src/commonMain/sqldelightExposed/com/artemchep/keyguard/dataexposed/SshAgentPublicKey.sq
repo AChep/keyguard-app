@@ -9,6 +9,7 @@ CREATE TABLE sshAgentPublicKey (
   fingerprint TEXT NOT NULL,
   canSign INTEGER AS Boolean NOT NULL,
   name TEXT,
+  certificate TEXT,
   PRIMARY KEY (accountId, cipherId)
 );
 
@@ -21,7 +22,8 @@ INSERT OR REPLACE INTO sshAgentPublicKey(
   keyType,
   fingerprint,
   canSign,
-  name
+  name,
+  certificate
 )
 VALUES (
   :accountId,
@@ -31,7 +33,8 @@ VALUES (
   :keyType,
   :fingerprint,
   :canSign,
-  :name
+  :name,
+  :certificate
 );
 
 get:

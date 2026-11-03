@@ -11,6 +11,13 @@ sealed interface FilePickerIntent<R> {
                 "application/x-kdbx",
                 "application/x-keepass",
             )
+
+        val mimeTypesPkcs12
+            get() = arrayOf(
+                "application/x-pkcs12",
+                "application/pkcs12",
+                "application/x-pfx",
+            )
     }
 
     val onResult: (R) -> Unit

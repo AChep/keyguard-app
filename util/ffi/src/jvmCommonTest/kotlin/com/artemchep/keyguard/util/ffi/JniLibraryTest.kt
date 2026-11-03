@@ -12,6 +12,15 @@ import kotlin.test.assertSame
 
 class JniLibraryTest {
     @Test
+    fun explicitPathFactoryMapsMissingPathAndRetries() {
+        var path: String? = null
+        val library = JniLibrary.fromAbsolutePath(path = { path }, unavailable = ::Unavailable)
+        assertNull(assertFailsWith<Unavailable> { library.ensureLoaded() }.cause)
+        path = "relative-library"
+        assertFailsWith<IllegalArgumentException> { library.ensureLoaded() }
+    }
+
+    @Test
     fun missingLibraryThrowsTheModuleFailureWithoutWrapping() {
         // The module failure is an IOException, like util/io's.
         val library = JniLibrary(

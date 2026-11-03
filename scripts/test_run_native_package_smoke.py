@@ -36,6 +36,9 @@ class DesktopPackageSmokeTest(unittest.TestCase):
                 launcher = Path(tmp, relative)
                 launcher.parent.mkdir(parents=True)
                 launcher.touch()
+                if target == "windows":
+                    (launcher.parent / "app").mkdir()
+                    (launcher.parent / "app/Keyguard.cfg").touch()
                 self.assertEqual(launcher.resolve(), smoke.find_launcher(Path(tmp), target))
 
     def test_rejects_missing_and_ambiguous_launchers(self) -> None:
@@ -126,6 +129,63 @@ class DesktopPackageSmokeTest(unittest.TestCase):
                 smoke._run(["flatpak", "run", "--user", "app", smoke.SMOKE_ARGUMENT], Path(tmp), os.environ.copy(), "nonce", 5, "app")
             self.assertIn(f"--env={smoke.RESULT_NONCE_ENV}=nonce", commands[0])
             self.assertIn(f"--env={smoke.RESULT_PATH_ENV}={Path(tmp, 'result.txt')}", commands[0])
+
+
+class WindowsLauncherTest(unittest.TestCase):
+    def test_finds_gui_beside_config_with_cli_in_resources(self) -> None:
+        for prefix in ("", "Program Files/Keyguard"):
+            # The uppercase name reproduces the collision even on a
+            # case-sensitive filesystem.
+            for cli_name in ("keyguard.exe", "Keyguard.exe"):
+                with self.subTest(prefix=prefix, cli=cli_name), tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    app = root / prefix
+                    resources = app / "app/resources"
+                    resources.mkdir(parents=True)
+                    (resources / cli_name).touch()
+                    (app / "app/Keyguard.cfg").touch()
+                    launcher = app / "Keyguard.exe"
+                    launcher.touch()
+                    self.assertEqual(launcher.resolve(), smoke.find_launcher(root, "windows"))
+
+    def test_rejects_cli_only_package(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            resources = root / "app/resources"
+            resources.mkdir(parents=True)
+            (resources / "keyguard.exe").touch()
+            with self.assertRaisesRegex(RuntimeError, "Expected one Windows application root"):
+                smoke.find_launcher(root, "windows")
+
+    def test_reports_missing_gui_even_when_cli_exists(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            resources = root / "app/resources"
+            resources.mkdir(parents=True)
+            (resources / "Keyguard.exe").touch()
+            (root / "app/Keyguard.cfg").touch()
+            with self.assertRaisesRegex(RuntimeError, "launcher is missing"):
+                smoke.find_launcher(root, "windows")
+
+    def test_rejects_multiple_app_roots_before_checking_launchers(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            for name in ("one", "two"):
+                app = root / name
+                (app / "app").mkdir(parents=True)
+                (app / "app/Keyguard.cfg").touch()
+            # The second root is incomplete, but still makes the package ambiguous.
+            (root / "one/Keyguard.exe").touch()
+            with self.assertRaisesRegex(RuntimeError, "Expected one Windows application root"):
+                smoke.find_launcher(root, "windows")
+
+    def test_requires_config_to_be_a_file(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "app/Keyguard.cfg").mkdir(parents=True)
+            (root / "Keyguard.exe").touch()
+            with self.assertRaisesRegex(RuntimeError, "Expected one Windows application root"):
+                smoke.find_launcher(root, "windows")
 
 
 if __name__ == "__main__":

@@ -41,6 +41,7 @@ fun rememberSettingsUiItems(
                     SettingPaneItem.Item(Setting.FONT),
                     SettingPaneItem.Item(Setting.MARKDOWN),
                     SettingPaneItem.Item(Setting.NAV_ANIMATION),
+                    SettingPaneItem.Item(Setting.UI_SCALE),
                 ),
             ),
             SettingPaneItem.Group(

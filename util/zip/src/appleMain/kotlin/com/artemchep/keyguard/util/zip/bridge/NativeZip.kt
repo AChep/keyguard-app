@@ -1,7 +1,7 @@
 package com.artemchep.keyguard.util.zip.bridge
 
 /**
- * The Apple-side surface of the native zip writer and reader (ABI v1).
+ * The Apple-side surface of the native zip writer and reader (ABI v2).
  *
  * Every function but [abiVersion] returns a packed scalar: `0` is success, a
  * positive value is the payload, and a negative value is a failure decoded by
@@ -12,7 +12,12 @@ package com.artemchep.keyguard.util.zip.bridge
  * Lives in `appleMain` because the JVM uses zip4j and never crosses this
  * bridge.
  */
+@Suppress("TooManyFunctions") // One entry point per native ABI operation.
 internal expect object NativeZip {
+    fun memoryOpen(bytes: ByteArray, index: Int, offset: Int, password: String): Long
+    fun memoryRead(handle: Long, buffer: ByteArray, count: Int): Long
+    fun memoryClose(handle: Long): Long
+
     fun abiVersion(): Int
 
     /** Creates or truncates an archive and returns its handle. */

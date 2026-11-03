@@ -29,17 +29,14 @@ fun showDirectoryPicker(
     FileKit.openDirectoryPicker()
 }
 
-fun showFileSaver(
+suspend fun showFileSaver(
     suggestedName: String,
     extension: String?,
-    block: (File) -> Unit,
-) = showFileBlock(
-    block = block,
-) {
+): File? = withContext(Dispatchers.Default) {
     FileKit.openFileSaver(
         suggestedName = suggestedName,
         defaultExtension = extension,
-    )
+    )?.file
 }
 
 private inline fun showFileBlock(

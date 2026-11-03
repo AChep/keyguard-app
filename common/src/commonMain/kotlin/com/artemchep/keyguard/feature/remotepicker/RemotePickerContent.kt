@@ -1,18 +1,13 @@
 package com.artemchep.keyguard.feature.remotepicker
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
-import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material.icons.outlined.Refresh
@@ -21,7 +16,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -58,6 +52,7 @@ import com.artemchep.keyguard.ui.FabScope
 import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
+import com.artemchep.keyguard.ui.breadcrumbsItem
 import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
@@ -151,11 +146,9 @@ private fun FabScope.RemotePickerFab(
 private fun LazyListScope.remotePickerBody(
     state: RemotePickerState,
 ) {
-    item("breadcrumbs") {
-        RemotePickerBreadcrumbs(
-            breadcrumbs = state.breadcrumbs,
-        )
-    }
+    breadcrumbsItem(
+        breadcrumbs = state.breadcrumbs,
+    )
     remotePickerFileName(state)
     remotePickerDirectoryContent(
         content = state.content,
@@ -271,39 +264,6 @@ private fun LazyListScope.remotePickerDirectoryItems(
 }
 
 @Composable
-private fun RemotePickerBreadcrumbs(
-    breadcrumbs: List<RemotePickerState.Breadcrumb>,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .horizontalScroll(rememberScrollState())
-            .padding(horizontal = Dimens.contentPadding),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        breadcrumbs.forEachIndexed { index, breadcrumb ->
-            if (index > 0) {
-                Icon(
-                    modifier = Modifier
-                        .size(18.dp),
-                    imageVector = Icons.Outlined.ChevronRight,
-                    contentDescription = null,
-                )
-            }
-            TextButton(
-                onClick = breadcrumb.onClick ?: NoOpOnClick,
-                enabled = breadcrumb.onClick != null,
-            ) {
-                Text(
-                    text = breadcrumb.name,
-                    maxLines = 1,
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun RemotePickerItem(
     item: RemotePickerState.Item,
     shapeState: Int,
@@ -370,5 +330,3 @@ private fun RemotePickerError(
         }
     }
 }
-
-private val NoOpOnClick: () -> Unit = {}

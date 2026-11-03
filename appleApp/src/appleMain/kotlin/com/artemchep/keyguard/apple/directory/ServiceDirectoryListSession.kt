@@ -1,12 +1,12 @@
 package com.artemchep.keyguard.apple.directory
 
-import com.artemchep.keyguard.URL_DUCKDUCKGO_ICONS
 import com.artemchep.keyguard.apple.core.EntryListQuery
 import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.model.uniqueListIds
 import com.artemchep.keyguard.common.io.parallelSearch
 import com.artemchep.keyguard.common.util.ensureUrlScheme
-import com.artemchep.keyguard.feature.favicon.FaviconAccountServer
+import com.artemchep.keyguard.feature.favicon.FaviconUrl
+import com.artemchep.keyguard.feature.favicon.toIconKey
 import com.artemchep.keyguard.feature.home.vault.search.IndexedText
 import com.artemchep.keyguard.feature.home.vault.search.find
 import com.artemchep.keyguard.feature.home.vault.search.sort.AlphabeticalSort
@@ -135,20 +135,13 @@ private data class DirectoryCatalog(
 
 internal data class DirectoryRow(val id: String, val entry: DirectoryEntry) {
     val index = IndexedText(entry.name)
-    private val faviconUrl = entry.faviconUrl
-        ?.let { DirectoryFaviconServer.transform(ensureUrlScheme(it)) }
+    private val faviconKey = entry.faviconUrl
+        ?.let { FaviconUrl(url = ensureUrlScheme(it)).toIconKey() }
 
     fun snapshot() = ServiceDirectoryItemSnapshot(
-        id, ServiceDirectoryItemKind.CONTENT, entry.name, faviconUrl,
+        id, ServiceDirectoryItemKind.CONTENT, entry.name, faviconKey,
     )
 }
-
-// Unlike the JVM image loader, Apple can't scrape a site
-// for its own icon, so the rows use DuckDuckGo's icons.
-private val DirectoryFaviconServer = FaviconAccountServer(
-    id = "duckduckgo",
-    transformer = { host -> "$URL_DUCKDUCKGO_ICONS$host.ico" },
-)
 
 /** List and detail lookup must allocate identities from the same sorted catalog. */
 internal fun directoryRows(entries: List<DirectoryEntry>): List<DirectoryRow> {

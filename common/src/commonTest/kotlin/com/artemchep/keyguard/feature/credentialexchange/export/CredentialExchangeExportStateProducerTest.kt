@@ -29,6 +29,7 @@ import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
 import kotlin.test.assertNull
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
@@ -302,6 +303,25 @@ class CredentialExchangeExportStateProducerTest {
         val review = assertIs<CredentialExchangeExportState.Stage.Review>(stage)
         assertTrue(review.items.isEmpty())
         assertNull(review.onConfirm)
+        assertTrue(recorder.results.isEmpty())
+    }
+
+    @Test
+    fun `a vault containing only environments with references still shows its warning`() {
+        val recorder = CompleteRecorder()
+        val skips = cxfExportSkips(CxfExportSkipReason.EnvironmentReference to 1).titled("Production")
+        val accounts = profileAccountsWith(
+            CountingFailureExportService(setOf("acc-1", "acc-2"), skips = skips),
+        )
+        val stage = Step.Review(accounts).render(recorder).stage()
+        val review = assertIs<CredentialExchangeExportState.Stage.Review>(stage)
+        assertTrue(review.items.isEmpty())
+        assertNull(review.onConfirm)
+        val note = review.skipped.single()
+        assertEquals("EnvironmentReference", note.id)
+        assertEquals(2, note.count)
+        assertEquals(listOf("Production"), note.titles.map { it.text })
+        assertNotNull(note.onToggle)
         assertTrue(recorder.results.isEmpty())
     }
 

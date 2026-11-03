@@ -100,7 +100,7 @@ pub(crate) fn signature_ignoring_unhashed_issuer_hints(
 /// with the candidate signer under RFC 9580 sections 5.2.3.2 through 5.2.3.5.
 ///
 /// rPGP performs the final public-key operation, but this shared boundary is
-/// still required: rPGP 0.20 accepts forbidden V3 elliptic-curve signatures,
+/// still required: rPGP 0.21 accepts forbidden V3 elliptic-curve signatures,
 /// and its ECDSA digest-floor comparison treats a byte count as a bit count.
 pub(crate) fn signature_verification_compatible<V: KeyDetails>(
     signature: &Signature,

@@ -10,7 +10,9 @@ import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.icons.ChevronIcon
@@ -23,8 +25,14 @@ fun settingGpgAgentSetupProvider(
 ) = settingGpgAgentSetupProvider()
 
 fun settingGpgAgentSetupProvider(): SettingComponent = kotlin.run {
+    // The Termux helper does not run on a watch.
+    if (CurrentPlatform.hasWatch()) {
+        return@run flowOf(null)
+    }
+
     val item = SettingIi(
         platformClasses = listOf(
+            Platform.Mobile.Android::class,
             Platform.Desktop.Linux::class,
             Platform.Desktop.MacOS::class,
             Platform.Desktop.Windows::class,

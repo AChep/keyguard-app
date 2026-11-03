@@ -15,6 +15,7 @@ data class AddCredentialCipherRequestPasskeyData(
     val userName: String?,
     val userDisplayName: String?,
     val discoverable: Boolean,
+    val prfSecret: String? = null,
 ) : AddCredentialCipherRequestData
 
 data class AddCredentialCipherRequestPasswordData(

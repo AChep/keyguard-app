@@ -16,6 +16,8 @@ data class WebAuthnRegistrationRequest(
     val userVerification: String? = null,
     val attestation: CreatePasskeyAttestation? = null,
     val excludedCredentialIds: Set<String> = emptySet(),
+    /** Non-null if the relying party requested the PRF extension. */
+    val prf: WebAuthnPrfRegistrationInput? = null,
 )
 
 internal fun CreatePasskey.toRegistrationRequest(rpId: String) = WebAuthnRegistrationRequest(
@@ -31,4 +33,5 @@ internal fun CreatePasskey.toRegistrationRequest(rpId: String) = WebAuthnRegistr
     userVerification = authenticatorSelection.userVerification,
     attestation = attestation,
     excludedCredentialIds = decodeExcludedCredentialIds(this),
+    prf = toPrfRegistrationInputOrNull(),
 )

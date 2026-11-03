@@ -9,7 +9,7 @@ extern "C" {
 #endif
 
 /*
- * Native ZIP archive reading and writing ABI v1. Every function except
+ * Native ZIP archive reading and writing ABI v2. Every function except
  * keyguard_zip_abi_version returns an int64_t:
  *
  *   - 0: success without a payload.
@@ -109,7 +109,7 @@ enum keyguard_zip_bridge_error {
 };
 
 enum {
-    KEYGUARD_ZIP_ABI_VERSION = 1,
+    KEYGUARD_ZIP_ABI_VERSION = 2,
     KEYGUARD_ZIP_MAX_ENTRY_NAME_BYTES = 4096,
     KEYGUARD_ZIP_MAX_PATH_BYTES = 4096,
 };
@@ -194,6 +194,16 @@ int64_t keyguard_zip_reader_read(
 
 /* Closes the reader, leaving the file in place. */
 int64_t keyguard_zip_reader_close(uint64_t handle);
+
+/*
+ * In-memory selected entry API. No filesystem access. Maximum archive: 8 MiB.
+ * local_header_offset must match the selected entry in the validated directory.
+ */
+int64_t keyguard_zip_memory_open(const uint8_t *data, size_t data_len, size_t index,
+                                uint64_t local_header_offset,
+                                const uint8_t *password, size_t password_len);
+int64_t keyguard_zip_memory_read(uint64_t handle, uint8_t *output, size_t length);
+int64_t keyguard_zip_memory_close(uint64_t handle);
 
 #ifdef __cplusplus
 }

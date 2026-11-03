@@ -73,6 +73,60 @@ class BitwardenResponseEntityCompatibilityTest {
     }
 
     @Test
+    fun `send decodes unknown type as unknown`() {
+        val entity = json.decodeFromString<SendEntity>(
+            """
+            {
+              "object": "send",
+              "id": "send-item",
+              "accessId": "access-send-item",
+              "type": 2,
+              "authType": 0,
+              "name": "2.name",
+              "notes": null,
+              "file": null,
+              "text": null,
+              "data": {
+                "encryptionVersion": 1,
+                "data": "{\"format_version\":1}",
+                "metadata": {
+                  "itemId": "cipher-1"
+                }
+              },
+              "key": "2.key",
+              "maxAccessCount": null,
+              "accessCount": 0,
+              "password": null,
+              "emails": "a@example.com",
+              "disabled": false,
+              "revisionDate": "2024-01-01T00:00:00Z",
+              "expirationDate": null,
+              "deletionDate": "2024-01-08T00:00:00Z",
+              "hideEmail": false
+            }
+            """.trimIndent(),
+        )
+
+        assertEquals(SendTypeEntity.Unknown, entity.type)
+    }
+
+    @Test
+    fun `send does not serialize unknown type`() {
+        val entity = SendEntity(
+            id = "send-unknown",
+            accessId = "access-send-unknown",
+            type = SendTypeEntity.Unknown,
+            accessCount = 0,
+            revisionDate = Instant.parse("2024-01-01T00:00:00Z"),
+            disabled = false,
+        )
+
+        assertFailsWith<SerializationException> {
+            json.encodeToString(entity)
+        }
+    }
+
+    @Test
     fun `cipher data serializes as json string`() {
         val entity = CipherEntity(
             id = "cipher-1",

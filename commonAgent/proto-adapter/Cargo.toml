@@ -1,0 +1,17 @@
+[package]
+name = "keyguard-agent-proto-adapter"
+version.workspace = true
+edition = "2021"
+rust-version.workspace = true
+description = "Adapters from native caller identity to the shared Keyguard agent protobuf schema"
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[target.'cfg(unix)'.dependencies]
+keyguard-agent-identity.workspace = true
+keyguard-agent-proto.workspace = true
+tokio = { workspace = true, features = ["net"] }
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

@@ -5,6 +5,8 @@ import KeyguardShared
 @MainActor
 @Observable
 final class DialogsModel: SnapshotObserving {
+    private(set) var attachmentArchiveExport: AttachmentArchiveExportFile?
+    @ObservationIgnored private var attachmentArchiveExportTask: Task<Void, Never>?
     private let core: KeyguardCore
     private let formDialogs: any FormDialogsSource
 
@@ -32,6 +34,9 @@ final class DialogsModel: SnapshotObserving {
         startObservation(\.websiteLeakSubscription, into: \.websiteLeak, observe: core.observeWebsiteLeak)
         // The account "Change color" picker.
         startObservation(\.colorPickerSubscription, into: \.colorPicker, observe: core.observeColorPicker)
+        // The environment editor's drill-down picker of a field of another item.
+        startObservation(
+            \.cipherFieldPickerSubscription, into: \.cipherFieldPicker, observe: core.observeCipherFieldPicker)
         // The collection / organization read-only "info" dialog.
         startObservation(\.infoDialogSubscription, into: \.infoDialog, observe: core.observeInfoDialog)
         startFormDialogs()
@@ -58,7 +63,11 @@ final class DialogsModel: SnapshotObserving {
 
     private(set) var passkeyCredential: PasskeyCredentialSnapshot?
 
-    private(set) var attachmentPreview: AttachmentPreviewSnapshot?
+    private(set) var attachmentPreview: AttachmentPreviewSnapshot? {
+        didSet {
+            if attachmentPreview == nil { cancelAttachmentArchiveExport() }
+        }
+    }
 
     private(set) var confirmation: ConfirmationSnapshot?
 
@@ -89,6 +98,8 @@ final class DialogsModel: SnapshotObserving {
 
     private(set) var cipherLinkPicker: CipherLinkPickerSnapshot?
 
+    private(set) var cipherFieldPicker: CipherFieldPickerSnapshot?
+
     @ObservationIgnored private var passwordMemorySubscription: BridgeObservation?
 
     @ObservationIgnored private var largeTypeSubscription: BridgeObservation?
@@ -118,6 +129,8 @@ final class DialogsModel: SnapshotObserving {
     @ObservationIgnored private var accountPickerSubscription: BridgeObservation?
 
     @ObservationIgnored private var cipherLinkPickerSubscription: BridgeObservation?
+
+    @ObservationIgnored private var cipherFieldPickerSubscription: BridgeObservation?
 
     /// Highlights every Large Type tile up to (and including) `index`.
     func selectLargeTypeSymbol(index: Int) {
@@ -157,8 +170,68 @@ final class DialogsModel: SnapshotObserving {
         core.invokeAttachmentPreviewCopy()
     }
 
+    func backInAttachmentArchive() { core.attachmentPreviewBack() }
+    func openAttachmentArchiveBreadcrumb(_ index: Int) { core.attachmentPreviewOpenBreadcrumb(index: Int32(index)) }
+    func saveAttachmentArchiveEntry() { core.attachmentPreviewSave() }
+    func openAttachmentArchiveEntry(_ id: String, save: Bool) { core.attachmentPreviewOpenEntry(id: id, save: save) }
+    func submitAttachmentArchivePassword(_ password: String) { core.attachmentPreviewPassword(password: password) }
+    func cancelAttachmentArchiveOperation() { core.attachmentPreviewCancel() }
+
+    func prepareAttachmentArchiveExport() {
+        guard attachmentPreview?.exportId != nil, attachmentArchiveExport == nil else { return }
+        let core = core
+        core.prepareAttachmentPreviewExport { [weak self] snapshot in
+            Task { @MainActor in
+                guard let snapshot else { return }
+                guard let url = URL(string: snapshot.uri) else {
+                    core.finishAttachmentPreviewExport(id: snapshot.id, outcome: .failed)
+                    return
+                }
+                guard let self, self.attachmentPreview?.exportId == snapshot.requestId else {
+                    core.finishAttachmentPreviewExport(id: snapshot.id, outcome: .cancelled)
+                    return
+                }
+                let request = AttachmentArchiveExportFile(
+                    id: snapshot.id, url: url, name: snapshot.name,
+                    lease: GpgToolsExportLease {
+                        core.finishAttachmentPreviewExport(id: snapshot.id, outcome: .cancelled)
+                    }
+                )
+                self.attachmentArchiveExport = request
+                #if os(macOS)
+                self.attachmentArchiveExportTask = Task { [weak self] in
+                    do {
+                        let saved = try await GpgToolsFileSupport.exportFile(request.url, suggestedName: request.name)
+                        self?.finishAttachmentArchiveExport(request, outcome: saved ? .saved : .cancelled)
+                    } catch is CancellationError {
+                        self?.finishAttachmentArchiveExport(request, outcome: .cancelled)
+                    } catch {
+                        self?.finishAttachmentArchiveExport(request, outcome: .failed)
+                    }
+                }
+                #endif
+            }
+        }
+    }
+
+    func finishAttachmentArchiveExport(
+        _ request: AttachmentArchiveExportFile, outcome: AttachmentArchiveExportOutcomeSnapshot
+    ) {
+        core.finishAttachmentPreviewExport(id: request.id, outcome: outcome)
+        request.lease.release()
+        if attachmentArchiveExport?.id == request.id { attachmentArchiveExport = nil }
+        attachmentArchiveExportTask = nil
+    }
+
     func closeAttachmentPreview() {
+        cancelAttachmentArchiveExport()
         core.closeAttachmentPreview()
+    }
+
+    private func cancelAttachmentArchiveExport() {
+        attachmentArchiveExportTask?.cancel()
+        attachmentArchiveExportTask = nil
+        attachmentArchiveExport = nil
     }
 
     func setConfirmationItemBoolean(key: String, value: Bool) {
@@ -252,6 +325,26 @@ final class DialogsModel: SnapshotObserving {
 
     func closeColorPicker() {
         core.closeColorPicker()
+    }
+
+    func setCipherFieldPickerQuery(_ text: String) {
+        core.setCipherFieldPickerQuery(text: text)
+    }
+
+    func selectCipherFieldPickerItem(id: String) {
+        core.selectCipherFieldPickerItem(id: id)
+    }
+
+    func selectCipherFieldPickerField(id: String) {
+        core.selectCipherFieldPickerField(id: id)
+    }
+
+    func backCipherFieldPicker() {
+        core.backCipherFieldPicker()
+    }
+
+    func closeCipherFieldPicker() {
+        core.closeCipherFieldPicker()
     }
 
     func closeInfoDialog() {

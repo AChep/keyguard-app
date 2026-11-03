@@ -29,6 +29,7 @@ import com.artemchep.keyguard.test.gpgMetadata
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -77,11 +78,11 @@ class GpgPublicKeySyncerImplTest {
             keygrip = "3123456789ABCDEF0123456789ABCDEF01234567",
             capabilities = emptySet(),
         )
+        val activeCiphers = listOf(publicOnly, privateBacked, decryptOnly, certificationOnly)
+        val ciphers = MutableStateFlow(activeCiphers)
         val syncer = createSyncer(
             repository = repository,
-            ciphers = MutableStateFlow(
-                listOf(publicOnly, privateBacked, decryptOnly, certificationOnly),
-            ),
+            ciphers = ciphers,
             gpgAgentEnabled = enabled,
             displayKeyNames = MutableStateFlow(true),
             filter = MutableStateFlow(GpgAgentFilter()),
@@ -166,6 +167,20 @@ class GpgPublicKeySyncerImplTest {
                 ),
                 repository.certificationAuthorities.map { it.primaryFingerprint },
             )
+
+            val originalEntries = repository.entries
+            val originalAuthorities = repository.certificationAuthorities
+            ciphers.value = activeCiphers.map { cipher ->
+                cipher.copy(archivedDate = Instant.parse("2024-02-01T00:00:00Z"))
+            }
+            advanceUntilIdle()
+            assertTrue(repository.entries.isEmpty())
+            assertTrue(repository.certificationAuthorities.isEmpty())
+
+            ciphers.value = activeCiphers
+            advanceUntilIdle()
+            assertEquals(originalEntries, repository.entries)
+            assertEquals(originalAuthorities, repository.certificationAuthorities)
 
             enabled.value = false
             advanceUntilIdle()

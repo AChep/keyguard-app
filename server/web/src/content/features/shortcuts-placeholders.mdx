@@ -5,68 +5,22 @@ icon: "⚡"
 group: "Power tools"
 order: 14
 featured: false
-premium: false
+doc: placeholders
 ---
 
 import placeholdersUris from '../../assets/screenshots/placeholders-uris.png';
 import urlOverrideList from '../../assets/screenshots/url-override-list.png';
 import urlOverrideApplied from '../../assets/screenshots/url-override-applied.png';
 
-Three tools for customizing how items behave:
+Keyboard shortcuts put Keyguard's common actions under your fingers, from
+opening Quick search to copying a password or a one-time code.
 
-- [**Shortcuts**](#shortcuts) run the most common actions from the keyboard.
-- [**Placeholders**](#placeholders) are tokens that expand into the item's own data at the moment you use it.
-- [**URL overrides**](#url-overrides) add a button next to a matching URL that opens a rewritten version of it, or launches a local program.
+Placeholders turn an item's links into templates that fill in the item's own
+data when you open them. URL overrides add a button that rewrites a matching
+link, or launches a local program.
 
 <Screenshot src={placeholdersUris} caption="An item's URIs built with a placeholder token that expands to the username when the item is launched." />
-
-## Shortcuts
-
-Common actions are a keystroke away (`⌘` on macOS, `Ctrl` elsewhere):
-
-```text
-Ctrl/⌘ + Shift + Space    Open Quick search
-Ctrl/⌘ + Shift + L        Lock the vault
-Ctrl/⌘ + N                Create a new item
-Ctrl/⌘ + C                Copy username / primary field
-Ctrl/⌘ + Shift + C        Copy password
-Ctrl/⌘ + Alt + C          Copy one-time password
-```
-
-See the [full shortcut reference](/docs/shortcuts/) for the complete list.
-
-## Placeholders
-
-Placeholders follow the [KeePass spec](https://keepass.info/help/base/placeholders.html) and expand inside URL fields and URL override commands, resolving to the item's data the moment you use it:
-
-```text
-https://example.com?user={username}   →   https://example.com?user=joe
-```
-
-Beyond the core fields, you can reach custom fields, parts of the URL, and the current time:
-
-```text
-{username}     the item's username
-{s:license}    a custom field named "license"
-{url:host}     the host part of the item's URL
-{dt_simple}    a sortable timestamp, e.g. 20240101170534
-```
-
-Every placeholder, including text transformations and date components, is
-listed in the [placeholder reference](/docs/placeholders/).
-
-## URL overrides
-
-A URL override rewrites a link using a **regex** and a **command** (which can contain placeholders). For example, give every insecure link a button that opens it over HTTPS:
-
-```text
-Regex:    ^http://.*
-Command:  https://{url:rmvscm}
-```
 
 <Screenshot src={urlOverrideList} caption="The URL overrides screen, with an HTTPS-ify rule and an SSH hostname launcher." />
 
 <Screenshot src={urlOverrideApplied} caption="The SSH hostname override applied to an item's ssh:// URL." />
-
-More examples, including launching local programs, are in the
-[URL override guide](/docs/url-overrides/).

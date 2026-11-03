@@ -12,17 +12,13 @@ sealed interface VaultUriIcon {
         override val enabled: Boolean,
     ) : VaultUriIcon
 
-    sealed interface App : VaultUriIcon {
-        val identifier: String
-    }
-
     data class IosApp(
-        override val identifier: String,
+        val identifier: String,
         override val enabled: Boolean,
-    ) : App
+    ) : VaultUriIcon
 
     data class AndroidApp(
-        override val identifier: String,
+        val identifier: String,
         override val enabled: Boolean,
-    ) : App
+    ) : VaultUriIcon
 }

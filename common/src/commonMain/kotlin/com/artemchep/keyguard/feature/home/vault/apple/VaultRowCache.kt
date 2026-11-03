@@ -130,6 +130,9 @@ internal val vaultRowFingerprintInputs: List<Pair<String, (DSecret) -> Any?>> = 
     "identity.firstName" to { it.identity?.firstName },
     "sshKey.fingerprint" to { it.sshKey?.fingerprint },
     "gpgKey.fingerprint" to { it.gpgKey?.fingerprint },
+    // The payload redacts its toString(), which would hide
+    // every change of it, so its stored form is used.
+    "environment" to { it.environment?.document },
 )
 
 private const val FNV64_OFFSET_BASIS = -0x340d631b7bdddcdbL // 0xcbf29ce484222325

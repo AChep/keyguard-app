@@ -148,6 +148,7 @@ internal class WatchtowerController(
                             content.reused,
                             content.weakSshKeys,
                             content.weakGpgKeys,
+                            content.unusableSshCertificates,
                             content.unusableGpgKeys,
                             content.gpgKeyPublishing,
                             content.incompleteItems,
@@ -378,6 +379,18 @@ internal class WatchtowerController(
                 "expiringItems",
                 Res.string.watchtower_item_expiring_items_title,
                 Res.string.watchtower_item_expiring_items_text,
+                it.count,
+                it.new,
+                infoStatus(it.count),
+                it.onClick,
+            )
+        }
+        content.unusableSshCertificates.value.getOrNull()?.let {
+            card(
+                maintenance,
+                "unusableSshCertificates",
+                Res.string.watchtower_item_unusable_ssh_certificates_title,
+                Res.string.watchtower_item_unusable_ssh_certificates_text,
                 it.count,
                 it.new,
                 infoStatus(it.count),

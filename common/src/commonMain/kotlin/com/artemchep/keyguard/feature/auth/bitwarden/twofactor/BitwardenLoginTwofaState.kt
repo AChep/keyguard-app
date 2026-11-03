@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.auth.bitwarden.twofactor
 
+import com.artemchep.keyguard.provider.bitwarden.transport.WebClientCertificate
 import androidx.compose.runtime.Immutable
 import arrow.core.Either
 import arrow.optics.optics
@@ -147,6 +148,8 @@ sealed class BitwardenLoginTwofaState {
         val authUrl: String,
         val error: String? = null,
         val rememberMe: RememberMe = RememberMe(),
+        /** Presented if the account's server asks the web page for one. */
+        val clientCertificate: WebClientCertificate? = null,
         val onComplete: ((Either<Throwable, String>) -> Unit)?,
     ) : BitwardenLoginTwofaState() {
         companion object

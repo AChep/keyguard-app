@@ -12,13 +12,13 @@ import app.keemobile.kotpass.database.header.DatabaseHeader
 import app.keemobile.kotpass.database.modifiers.binaries
 import app.keemobile.kotpass.database.modifiers.regenerateVectors
 import app.keemobile.kotpass.io.KotlinxSinkAdapter
+import app.keemobile.kotpass.io.NonClosingSink
 import app.keemobile.kotpass.io.gzipSink
 import app.keemobile.kotpass.models.XmlContext
 import app.keemobile.kotpass.xml.DefaultXmlContentParser
 import app.keemobile.kotpass.xml.XmlContentParser
 import okio.Buffer
 import okio.BufferedSink
-import okio.ByteString.Companion.toByteString
 import okio.Sink
 import okio.buffer
 import okio.use
@@ -68,6 +68,34 @@ private fun KeePassDatabase.encodeToSink(
     cipherProviders: List<CipherProvider>,
     kdfProvider: KdfProvider,
 ) {
+    when (this) {
+        is KeePassDatabase.Ver3x -> encodeVer3xToSink(
+            output = output,
+            contentParser = contentParser,
+            cipherProviders = cipherProviders,
+            kdfProvider = kdfProvider,
+        )
+
+        is KeePassDatabase.Ver4x -> KeePassDatabaseWriter
+            .open(
+                database = this,
+                output = output,
+                contentParser = contentParser,
+                cipherProviders = cipherProviders,
+                kdfProvider = kdfProvider,
+            )
+            .use { writer ->
+                writer.finish(content)
+            }
+    }
+}
+
+private fun KeePassDatabase.Ver3x.encodeVer3xToSink(
+    output: BufferedSink,
+    contentParser: XmlContentParser,
+    cipherProviders: List<CipherProvider>,
+    kdfProvider: KdfProvider,
+) {
     val transformedKey = KeyTransform.transformedKey(kdfProvider, header, credentials)
     val masterSeed = header.masterSeed.toByteArray()
     val masterKey = KeyTransform.masterKey(masterSeed, transformedKey)
@@ -76,41 +104,15 @@ private fun KeePassDatabase.encodeToSink(
         val cipher = resolveCipher(header, cipherProviders)
         val headerBuffer = Buffer().apply { header.writeTo(this) }
         val headerHash = headerBuffer.sha256()
-
-        when (this) {
-            is KeePassDatabase.Ver3x -> {
-                output.write(headerBuffer, headerBuffer.size)
-                encodeVer3xContent(
-                    output = output,
-                    headerHash = headerHash,
-                    contentParser = contentParser,
-                    cipher = cipher,
-                    masterKey = masterKey,
-                    binaryWritePlan = binaryWritePlan,
-                )
-            }
-
-            is KeePassDatabase.Ver4x -> {
-                val hmacKey = KeyTransform.hmacKey(masterSeed, transformedKey)
-                try {
-                    val headerHmac = headerBuffer.hmacSha256(hmacKey.toByteString())
-                    headerBuffer.write(headerHash)
-                    headerBuffer.write(headerHmac)
-                } finally {
-                    hmacKey.fill(0)
-                }
-                output.write(headerBuffer, headerBuffer.size)
-                encodeVer4xContent(
-                    output = output,
-                    contentParser = contentParser,
-                    cipher = cipher,
-                    transformedKey = transformedKey,
-                    masterSeed = masterSeed,
-                    masterKey = masterKey,
-                    binaryWritePlan = binaryWritePlan,
-                )
-            }
-        }
+        output.write(headerBuffer, headerBuffer.size)
+        encodeVer3xContent(
+            output = output,
+            headerHash = headerHash,
+            contentParser = contentParser,
+            cipher = cipher,
+            masterKey = masterKey,
+            binaryWritePlan = binaryWritePlan,
+        )
         output.flush()
     } finally {
         masterKey.fill(0)
@@ -141,7 +143,7 @@ private fun KeePassDatabase.Ver3x.encodeVer3xContent(
             streamStart.fill(0)
         }
 
-        writeCompressedContent(blockSink, header.compression) { sink ->
+        blockSink.compressedSink(header.compression).use { sink ->
             val innerEncryption =
                 EncryptionSaltGenerator.create(
                     id = header.innerRandomStreamId,
@@ -167,67 +169,15 @@ private fun KeePassDatabase.Ver3x.encodeVer3xContent(
     }
 }
 
-private fun KeePassDatabase.Ver4x.encodeVer4xContent(
-    output: Sink,
-    contentParser: XmlContentParser,
-    cipher: CipherProvider,
-    transformedKey: ByteArray,
-    masterSeed: ByteArray,
-    masterKey: ByteArray,
-    binaryWritePlan: BinaryWritePlan,
-) {
-    val blockSink = ContentBlocks.ver4Sink(output, masterSeed, transformedKey)
-    val cipherSink =
-        CipherSink(
-            downstream = blockSink,
-            session = cipher.createEncryptor(masterKey, header.encryptionIV.toByteArray()),
-        )
-    try {
-        writeCompressedContent(cipherSink, header.compression) { sink ->
-            innerHeader.writeTo(sink, binaryWritePlan)
-            val innerEncryption =
-                EncryptionSaltGenerator.create(
-                    id = innerHeader.randomStreamId,
-                    key = innerHeader.randomStreamKey,
-                )
-            val context =
-                XmlContext.Encode.Encrypted(
-                    version = header.version,
-                    innerEncryption = innerEncryption,
-                    binaryWritePlan = binaryWritePlan,
-                )
-            contentParser.marshalContentTo(context, content, sink)
-        }
-
-        // Inner header + XML -> gzip -> cipher -> v4 blocks.
-        cipherSink.finish()
-        blockSink.finish()
-    } finally {
-        cipherSink.close()
-        blockSink.close()
-    }
-}
-
-private inline fun writeCompressedContent(
-    downstream: Sink,
+/**
+ * Closing the returned sink finishes the compressed stream, for
+ * example emits the gzip trailer, but leaves this sink writable.
+ */
+internal fun Sink.compressedSink(
     compression: DatabaseHeader.Compression,
-    write: (BufferedSink) -> Unit,
-) {
-    when (compression) {
-        DatabaseHeader.Compression.None -> {
-            val sink = downstream.buffer()
-            write(sink)
-            sink.flush()
-        }
-
-        DatabaseHeader.Compression.GZip -> {
-            downstream.gzipSink().buffer().use { sink ->
-                write(sink)
-                // Closing emits the deflate tail and gzip trailer. gzipSink uses a
-                // non-closing delegate, so the next KDBX layer remains writable.
-            }
-        }
-    }
+): BufferedSink = when (compression) {
+    DatabaseHeader.Compression.None -> NonClosingSink(this).buffer()
+    DatabaseHeader.Compression.GZip -> gzipSink().buffer()
 }
 
 fun KeePassDatabase.encodeAsXml(

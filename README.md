@@ -39,7 +39,9 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - a support for [shortcuts](https://keyguard.dev/docs/shortcuts/), [placeholders](https://keyguard.dev/docs/placeholders/) and [URL overrides](https://keyguard.dev/docs/url-overrides/);
 - a support for an [SSH agent](https://keyguard.dev/docs/ssh-agent/) - interacting with SSH-based services on Android and Desktop platform;
 - a support for a [GPG agent](https://keyguard.dev/docs/gpg-agent/) - interacting with GPG-based services on Android ([OpenKeychain-compatible](https://github.com/open-keychain/open-keychain) provider) and Desktop platform; GPG tools are available on all platforms;
+- a support for [Environments](https://keyguard.dev/docs/environments/) - store environment variables, such as API keys and database URLs on Desktop platforms;
 - a support for the [credential exchange](https://keyguard.dev/docs/credential-exchange/) protocol on Android;
+- a built-in [CLI and MCP server](https://keyguard.dev/docs/cli/);
 - a [smart conflict resolution](https://keyguard.dev/docs/sync-and-conflicts/);
 - and much more!
 

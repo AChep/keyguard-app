@@ -29,7 +29,7 @@ use keyguard_crypto_sensitive::generate_rsa_pkcs1_der;
 use crate::openpgp::{
     certificate::{KeyMaterial, UserIdCertificationBuilder, UserIdCertificationError},
     crypto::{
-        secret::{AwsLcRng, AwsLcRsaSecretKey, SecretPacketRef, is_rsa_private_algorithm},
+        secret::{AwsLcRng, OpenPgpSecretSigner, SecretPacketRef},
         signer::{SigningKeyRef, issuer_key_id_subpackets, signature_config},
     },
     error::{OpenPgpWriteError, pgp_internal},
@@ -325,24 +325,10 @@ fn compose_generated_certificate(
     created_at: Timestamp,
     expiration: Option<u32>,
 ) -> Result<SignedSecretKey, OpenPgpWriteError> {
-    let primary_ref = SecretPacketRef::Primary(&primary);
-    let signing_ref = SecretPacketRef::Subkey(&signing);
-    let primary_rsa = is_rsa_private_algorithm(primary.algorithm())
-        .then(|| AwsLcRsaSecretKey::new(primary_ref))
-        .transpose()?;
-    let signing_rsa = is_rsa_private_algorithm(signing.algorithm())
-        .then(|| AwsLcRsaSecretKey::new(signing_ref))
-        .transpose()?;
-    let primary_signer = SigningKeyRef(
-        primary_rsa
-            .as_ref()
-            .map_or(&primary as &dyn SigningKey, |key| key),
-    );
-    let signing_signer = SigningKeyRef(
-        signing_rsa
-            .as_ref()
-            .map_or(&signing as &dyn SigningKey, |key| key),
-    );
+    let primary_owner = OpenPgpSecretSigner::for_packet(SecretPacketRef::Primary(&primary))?;
+    let signing_owner = OpenPgpSecretSigner::for_packet(SecretPacketRef::Subkey(&signing))?;
+    let primary_signer = primary_owner.as_ref();
+    let signing_signer = signing_owner.as_ref();
     let mut certification = signature_config(
         &primary_signer,
         SignatureType::CertPositive,

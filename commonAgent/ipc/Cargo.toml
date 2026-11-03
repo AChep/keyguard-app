@@ -1,0 +1,38 @@
+[package]
+name = "keyguard-agent-ipc"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "The private channel of the Keyguard agents to the app: frames, connection, launch token, handshake and client"
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[features]
+default = ["proto"]
+# The protobuf handshake, errors and client. Without it the crate builds
+# without protoc, for the keyguard CLI.
+proto = ["dep:keyguard-agent-proto", "dep:prost"]
+
+[dependencies]
+anyhow.workspace = true
+hex.workspace = true
+keyguard-agent-identity.workspace = true
+keyguard-agent-proto = { workspace = true, optional = true }
+prost = { workspace = true, optional = true }
+tokio = { workspace = true, features = ["io-util", "net", "sync", "time"] }
+tracing.workspace = true
+zeroize.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = ["Win32_Foundation"] }
+
+[dev-dependencies]
+common-ssh-agent-rust.workspace = true
+tokio = { workspace = true, features = ["io-util", "macros", "net", "rt", "rt-multi-thread", "sync", "test-util", "time"] }
+
+[target.'cfg(windows)'.dev-dependencies]
+getrandom.workspace = true
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

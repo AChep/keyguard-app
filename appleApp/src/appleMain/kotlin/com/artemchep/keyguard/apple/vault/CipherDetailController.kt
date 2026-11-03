@@ -11,8 +11,9 @@ import com.artemchep.keyguard.common.usecase.GetTotpCodeWithOffset
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
-import com.artemchep.keyguard.feature.home.vault.model.resolveWebsiteIconUrl
+import com.artemchep.keyguard.feature.home.vault.model.iconKey
 import com.artemchep.keyguard.feature.home.vault.model.short
+import com.artemchep.keyguard.feature.attachments.model.AttachmentDragPreparer
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewState
 import com.artemchep.keyguard.feature.home.vault.screen.vaultViewScreenStateProducer
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -21,10 +22,6 @@ import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.dialog.DialogController
 import com.artemchep.keyguard.apple.model.buildVaultItemSnapshots
-import com.artemchep.keyguard.apple.model.resolveUriAppIcons
-import com.artemchep.keyguard.common.service.app.parser.IosAppAppStoreParser
-import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
-import com.artemchep.keyguard.feature.home.vault.model.VaultUriIcon
 import com.artemchep.keyguard.apple.model.toHeaderActionSnapshots
 import com.artemchep.keyguard.apple.model.totpBadgeFlow
 import com.artemchep.keyguard.common.model.LinkInfo
@@ -43,8 +40,6 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -96,21 +91,7 @@ internal class CipherDetailController(
         // this producer run, so it resets when the detail is re-opened or the vault locks.
         val revealedIds = MutableStateFlow<Set<String>>(emptySet())
 
-        val iosAppParser = sessionKoin.get<IosAppAppStoreParser>()
-        val androidAppParser = sessionKoin.get<AndroidAppGooglePlayParser>()
-        val uriAppIcons = latest.map { state ->
-            (state?.content as? VaultViewState.Content.Cipher)?.items.orEmpty()
-                .filterIsInstance<VaultViewItem.Uri>()
-                .mapNotNull { it.iconSource as? VaultUriIcon.App }
-                .toSet()
-        }.resolveUriAppIcons { source ->
-            when (source) {
-                is VaultUriIcon.IosApp -> iosAppParser(source.identifier).bind()?.iconUrl
-                is VaultUriIcon.AndroidApp -> androidAppParser(source.identifier).bind()?.iconUrl
-            }
-        }.stateIn(scope, SharingStarted.Eagerly, emptyMap())
-
-        val snapshots = cipherDetailSnapshots(latest, leContext, revealedIds, uriAppIcons)
+        val snapshots = cipherDetailSnapshots(latest, leContext, revealedIds)
 
         // The TOTP countdown ticks every second; folding it into [snapshots] would
         // rebuild the whole detail (rows, handler maps, avatar lookup) on every tick.
@@ -156,6 +137,8 @@ internal class CipherDetailController(
                 keyPairGenerator = get(),
                 keyPrivateExport = get(),
                 keyPublicExport = get(),
+                keyCertificateExport = get(),
+                sshCertificateParser = get(),
                 gpgKeyExport = get(),
                 gpgPublicKeyExport = get(),
                 gpgPrivateKeyExport = get(),
@@ -181,6 +164,7 @@ internal class CipherDetailController(
                 favouriteCipherById = get(),
                 downloadManager = get(),
                 downloadAttachment = get(),
+                prepareAttachmentDrag = AttachmentDragPreparer(get()),
                 removeAttachment = get(),
                 canPreviewAttachment = get(),
                 attachmentPreviewRouteFactory = get(),
@@ -203,8 +187,11 @@ internal class CipherDetailController(
                 placeholderFactories = get<PlaceholderFactoryRegistry>().values,
                 linkInfoExtractors = ctx.koin.appleCipherLinkInfoExtractors(),
                 confirmationRouteFactory = get(),
+                environmentAccess = get(),
+                environmentMounts = get(),
                 gpgPublicKeyParser = get(),
                 getGpgKeyserverConfig = get(),
+                getGpgKeyserverState = get(),
                 changeGpgKeyExpirationById = get(),
                 uploadGpgPublicKey = get(),
                 refreshGpgPublicKeys = get(),
@@ -223,7 +210,6 @@ internal class CipherDetailController(
         latest: StateFlow<VaultViewState?>,
         leContext: LeContext,
         revealedIds: MutableStateFlow<Set<String>>,
-        uriAppIcons: StateFlow<Map<VaultUriIcon.App, String?>>,
     ): Flow<Triple<VaultViewState, VaultDetailSnapshot, LinkedHashMap<String, () -> Unit>>> =
         latest.filterNotNull()
             .flatMapLatest { vaultState ->
@@ -248,7 +234,6 @@ internal class CipherDetailController(
                                 add(item.item.actionsState)
                             }
                         add(revealedIds)
-                        add(uriAppIcons)
                     }
                     // Never empty (locked is always present), so combine() always
                     // emits at least once.
@@ -264,7 +249,6 @@ internal class CipherDetailController(
                     leContext,
                     actionHandlers,
                     revealedIds,
-                    uriAppIcons.value,
                 )
                 Triple(vaultState, snapshot, actionHandlers)
             }
@@ -352,7 +336,6 @@ internal class CipherDetailController(
         leContext: LeContext,
         actionHandlers: LinkedHashMap<String, () -> Unit>,
         revealedIds: MutableStateFlow<Set<String>>,
-        uriAppIcons: Map<VaultUriIcon.App, String?>,
     ): VaultDetailSnapshot {
         return when (val content = state.content) {
             is VaultViewState.Content.Cipher -> {
@@ -411,7 +394,6 @@ internal class CipherDetailController(
                     usernameAvatarUrl = usernameAvatarUrl,
                     revealedIds = revealedIds.value,
                     onRequestReveal = onRequestReveal,
-                    uriAppIcons = uriAppIcons,
                 )
                 // Mirrors the Compose `VaultViewCipherTitleActions`: an edit button plus the
                 // overflow menu. Registered in the same [actionHandlers] map as the field-row
@@ -431,7 +413,7 @@ internal class CipherDetailController(
                     notFound = false,
                     cipherId = data.id,
                     items = items,
-                    iconUrl = content.icon.resolveWebsiteIconUrl(),
+                    iconKey = content.icon.iconKey(),
                     iconPlaceholder = VaultItemIcon.TextIcon.short(data.name).text,
                     editActionId = editActionId,
                     actions = actions,

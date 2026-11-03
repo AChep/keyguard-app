@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_WINDOW_NEVER_ASK
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowVariants
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
@@ -17,6 +18,7 @@ class GetSshAgentApprovalWindowVariantsImpl : GetSshAgentApprovalWindowVariants 
                     1L.hours,
                     4L.hours,
                     INFINITE,
+                    AGENT_APPROVAL_WINDOW_NEVER_ASK,
                 )
             }
     }

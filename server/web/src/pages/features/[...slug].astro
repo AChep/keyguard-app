@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import FeatureLayout from '../../layouts/FeatureLayout.astro';
 import Screenshot from '../../components/Screenshot.astro';
+import { resolveDoc } from '../../lib/docs';
 
 export async function getStaticPaths() {
   const features = await getCollection('features');
@@ -13,13 +14,14 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
+const doc = await resolveDoc(entry.data.doc, `features/${entry.id}`);
 ---
 
 <FeatureLayout
   title={entry.data.title}
   summary={entry.data.summary}
   slug={entry.id}
-  premium={entry.data.premium}
+  doc={doc}
 >
   <Content components={{ Screenshot }} />
 </FeatureLayout>

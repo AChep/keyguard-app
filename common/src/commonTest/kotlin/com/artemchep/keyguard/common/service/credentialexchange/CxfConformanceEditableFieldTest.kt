@@ -3,8 +3,9 @@ package com.artemchep.keyguard.common.service.credentialexchange
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfExportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
-import com.artemchep.keyguard.common.service.credentialexchange.impl.DEFAULT_FIELD_LABEL
+import com.artemchep.keyguard.common.service.imports.mapping.IMPORT_DEFAULT_FIELD_LABEL
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
+import com.artemchep.keyguard.test.FakeSshKeyImportService
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -95,7 +96,7 @@ class CxfConformanceEditableFieldTest {
         // field while building the cipher — a null name would fail the whole
         // import transaction rather than this one field.
         val field = importField(fieldType = "string")
-        assertEquals(DEFAULT_FIELD_LABEL, field.name)
+        assertEquals(IMPORT_DEFAULT_FIELD_LABEL, field.name)
     }
 
     @Test

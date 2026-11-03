@@ -1,0 +1,16 @@
+extends: existence
+message: "Write to the reader as 'you'. Don't use '%s'."
+level: error
+ignorecase: false
+tokens:
+  - '[Ww]e'
+  - "[Ww]e're"
+  - "[Ww]e've"
+  - "[Ww]e'll"
+  - '[Oo]ur'
+  - '[Oo]urs'
+  - 'us'
+  - "I'm"
+  - "I've"
+  - "I'll"
+  - '[Pp]lease'

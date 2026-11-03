@@ -57,7 +57,9 @@ pub extern "C" fn keyguard_instance_clear_error() {
 }
 
 /// # Safety
-/// Non-empty input must contain `length` readable bytes for the duration of the call.
+/// If `pointer` is non-null and `length` is in `1..=MAX_STRING_BYTES`, `pointer` must address
+/// `length` initialized bytes in one allocation. The caller chooses `'a`; for all of it the
+/// bytes must stay allocated and unchanged.
 unsafe fn string_from_raw<'a>(pointer: *const u8, length: usize) -> Result<&'a str, i64> {
     if length > MAX_STRING_BYTES {
         return Err(INVALID_ARGUMENT);
@@ -68,7 +70,7 @@ unsafe fn string_from_raw<'a>(pointer: *const u8, length: usize) -> Result<&'a s
     if pointer.is_null() {
         return Err(INVALID_ARGUMENT);
     }
-    // SAFETY: Null and oversized inputs were rejected; the caller guarantees readable bytes.
+    // SAFETY: Null and oversized inputs were rejected; the caller guarantees the bytes for `'a`.
     let bytes = unsafe { slice::from_raw_parts(pointer, length) };
     str::from_utf8(bytes).map_err(|_| INVALID_ARGUMENT)
 }
@@ -96,10 +98,13 @@ unsafe fn arbitrate(
 ) -> i64 {
     contained(|| {
         // SAFETY: The exported function forwards the caller's readable-buffer contracts.
+        // The view does not outlive this call.
         let coordination = unsafe { string_from_raw(coordination_ptr, coordination_len) }?;
         // SAFETY: The exported function forwards the caller's readable-buffer contracts.
+        // The view does not outlive this call.
         let runtime = unsafe { string_from_raw(runtime_ptr, runtime_len) }?;
         // SAFETY: The exported function forwards the caller's readable-buffer contracts.
+        // The view does not outlive this call.
         let identity = unsafe { string_from_raw(identity_ptr, identity_len) }?;
         Ok(operation(coordination, runtime, identity, timeout_ms))
     })

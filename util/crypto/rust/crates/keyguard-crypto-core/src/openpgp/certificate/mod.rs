@@ -13,7 +13,8 @@ mod model;
 
 pub(crate) use certification::{
     UserIdCertificationBuilder, UserIdCertificationError, UserIdRevocationBuilder,
-    existing_user_id_recertification_config, new_user_id_certification_config,
+    additional_user_id_certification_config, existing_user_id_recertification_config,
+    new_user_id_certification_config, preserve_key_policy,
 };
 pub(crate) use identity::identity_id;
 pub(crate) use index::{

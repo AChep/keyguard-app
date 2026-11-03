@@ -64,13 +64,9 @@ data class GpgPublicKeySnapshot(
 fun GpgAgentSecret.toGpgPublicKeyEntry(
     name: String?,
 ): GpgPublicKeyEntry {
-    val hasPrivateKey = hasPrivateKey
     val agentKeys = metadata.routableAgentKeys
-    val authorizedSigningKeygrips = authorizedAgentKeys
-        .asSequence()
-        .filter(GpgAgentKeyMetadataKey::canSign)
-        .map { key -> key.keygrip.normalizeGpgKeygrip() }
-        .toSet()
+    val signingKeygrips = agentKeygripsFor(GpgAgentOperation.SIGN)
+    val decryptionKeygrips = agentKeygripsFor(GpgAgentOperation.DECRYPT)
     return GpgPublicKeyEntry(
         accountId = cipher.accountId,
         cipherId = cipher.id,
@@ -81,25 +77,44 @@ fun GpgAgentSecret.toGpgPublicKeyEntry(
             ?: agentKeys.firstNotNullOfOrNull {
                 it.fingerprint.takeIf(String::isNotBlank)
             },
-        canSign = hasPrivateKey && authorizedSigningKeygrips.isNotEmpty(),
-        canDecrypt = hasPrivateKey && agentKeys.any { it.canDecrypt },
+        canSign = signingKeygrips.isNotEmpty(),
+        canDecrypt = decryptionKeygrips.isNotEmpty(),
         name = name,
         keyInfo = agentKeys
             .filter { it.isUsableAgentKey }
             .map { key ->
+                val keygrip = key.keygrip.normalizeGpgKeygrip()
                 GpgPublicKeyEntry.KeyInfo(
-                    keygrip = key.keygrip.normalizeGpgKeygrip(),
+                    keygrip = keygrip,
                     fingerprint = key.fingerprint.ifBlank {
                         fingerprint.orEmpty()
                     },
                     algorithm = key.algorithm,
-                    canSign = hasPrivateKey &&
-                        key.keygrip.normalizeGpgKeygrip() in authorizedSigningKeygrips,
-                    canDecrypt = hasPrivateKey && key.canDecrypt,
+                    canSign = keygrip in signingKeygrips,
+                    canDecrypt = keygrip in decryptionKeygrips,
                 )
             },
     )
 }
+
+private fun GpgAgentSecret.agentKeygripsFor(
+    operation: GpgAgentOperation,
+): Set<String> = agentKeysFor(operation)
+    .mapTo(mutableSetOf()) { key -> key.keygrip.normalizeGpgKeygrip() }
+
+internal fun GpgPublicKeyEntry.toGpgAgentKeyInfoRows(): List<GpgAgentKeyInfoRow> =
+    keyInfo.map { key ->
+        GpgAgentKeyInfoRow(
+            accountId = accountId,
+            cipherId = cipherId,
+            keygrip = key.keygrip,
+            fingerprint = key.fingerprint,
+            algorithm = key.algorithm,
+            canSign = key.canSign,
+            canDecrypt = key.canDecrypt,
+            name = name,
+        )
+    }
 
 data class GpgAgentKeyInfoRow(
     val accountId: String,
@@ -116,4 +131,10 @@ data class GpgAgentKeyInfoRow(
             ?.takeIf { it.isNotBlank() }
             ?: fingerprint.takeIf { it.isNotBlank() }
             ?: keygrip
+
+    /** Reads the stored result of [agentKeysFor] for this component. */
+    fun supports(operation: GpgAgentOperation): Boolean = when (operation) {
+        GpgAgentOperation.SIGN -> canSign
+        GpgAgentOperation.DECRYPT -> canDecrypt
+    }
 }

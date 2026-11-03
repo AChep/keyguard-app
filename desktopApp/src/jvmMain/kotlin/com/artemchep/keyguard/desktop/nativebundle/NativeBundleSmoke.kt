@@ -12,7 +12,9 @@ import com.artemchep.keyguard.desktop.instance.verifyPackagedInstanceService
 import com.artemchep.keyguard.di.resolve
 import com.artemchep.keyguard.nativebundle.NativeBundleProbe
 import com.artemchep.keyguard.nativebundle.nativeProbe
+import com.artemchep.keyguard.util.fido2.NativeFido2Client
 import com.artemchep.keyguard.util.io.LocalPath
+import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeys
 import okhttp3.OkHttpClient
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -44,13 +46,19 @@ internal fun runNativePackagedSmoke() {
             directory.toFile().deleteRecursively()
         }
         nativeProbe("instance") { verifyPackagedInstanceService() }
+        nativeProbe("windowsPasskeys") { WindowsPasskeys.status() }
+        // On Linux this also resolves libudev from the Flatpak runtime.
+        nativeProbe("fido2") { NativeFido2Client().ensureLoaded() }
         nativeProbe("desktopBridge") { ensureDesktopLibAvailable() }
+        nativeProbe("agentIpc") { verifyPackagedAgentIpc() }
         nativeProbe("sshHelper") { verifyHelper(resources, "keyguard-ssh-agent") }
         nativeProbe("gpgHelper") { verifyHelper(resources, "keyguard-gpg-agent") }
         nativeProbe("koin") { verifyPackagedKoinGraph() }
+        nativeProbe("sshHelperIpc") { verifyPackagedSshHelperIpc() }
         val tls = nativeProbe("tls") { verifyPackagedDesktopTls() }
         val success = "native packaged smoke passed: crypto=PASS io=PASS zxcvbn=PASS " +
-            "instance=PASS desktopBridge=PASS sshHelper=PASS gpgHelper=PASS koin=PASS tls=PASS tlsRuntime=$tls"
+            "instance=PASS windowsPasskeys=PASS fido2=PASS desktopBridge=PASS agentIpc=PASS sshHelper=PASS " +
+            "gpgHelper=PASS koin=PASS sshHelperIpc=PASS tls=PASS tlsRuntime=$tls"
         publishResult(success)
         println(success)
     } catch (error: Throwable) {
@@ -60,7 +68,7 @@ internal fun runNativePackagedSmoke() {
 }
 
 private fun rejectDevelopmentLibraries() {
-    listOf("Crypto", "Io", "Zxcvbn", "Instance").forEach { module ->
+    listOf("Crypto", "Io", "Zxcvbn", "Instance", "WindowsPasskeys", "Fido2", "AgentIpc").forEach { module ->
         val property = "keyguard.native$module.libraryPath"
         check(System.getProperty(property).isNullOrBlank()) {
             "Packaged smoke rejects the development override $property"

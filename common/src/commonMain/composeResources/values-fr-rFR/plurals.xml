@@ -60,9 +60,17 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> clé SSH</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> clés SSH</item>
     </plurals>
+    <plurals name="skipped_ssh_certificates_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> certificat SSH</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> certificats SSH</item>
+    </plurals>
     <plurals name="skipped_gpg_keys_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> clé GPG</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> clés GPG</item>
+    </plurals>
+    <plurals name="skipped_unsupported_environments_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> unsupported environment</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> unsupported environments</item>
     </plurals>
     <plurals name="skipped_attachments_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> pièce jointe</item>
@@ -72,13 +80,33 @@
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> ancien mot de passe enregistré</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> anciens mots de passe enregistrés</item>
     </plurals>
+    <plurals name="skipped_environment_variable_references_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item reference in an environment</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> item references in environments</item>
+    </plurals>
+    <plurals name="skipped_environment_references_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> environnement dont les références à des éléments ne peuvent pas être transférées</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> environnements dont les références à des éléments ne peuvent pas être transférées</item>
+    </plurals>
     <plurals name="skipped_archived_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> élément archivé</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> éléments archivés</item>
     </plurals>
+    <plurals name="exportaccount_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> élément</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> éléments</item>
+    </plurals>
     <plurals name="skipped_items_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> élément</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> éléments</item>
+    </plurals>
+    <plurals name="skipped_import_files_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> unrecognized export file</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> unrecognized export files</item>
+    </plurals>
+    <plurals name="skipped_malformed_csv_records_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> malformed CSV record. The import may be incomplete.</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> malformed CSV records. The import may be incomplete.</item>
     </plurals>
     <plurals name="skipped_accounts_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> compte</item>
@@ -88,37 +116,45 @@
         <item quantity="one">Les données reçues contiennent <xliff:g id="number" example="1">%1$d</xliff:g> compte ; tous ses éléments sont importés dans ce compte.</item>
         <item quantity="other">Les données reçues contiennent <xliff:g id="number">%1$d</xliff:g> comptes ; tous leurs éléments sont importés dans ce compte.</item>
     </plurals>
-    <plurals name="credential_exchange_import_review_folders_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> dossier</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> dossiers</item>
+    <plurals name="import_review_folders_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> folder</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> folders</item>
     </plurals>
-    <plurals name="credential_exchange_import_review_logins_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> identifiant</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> identifiants</item>
+    <plurals name="import_review_logins_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> login</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> logins</item>
     </plurals>
-    <plurals name="credential_exchange_import_review_passkeys_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> clé d'accès</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> clés d'accès</item>
+    <plurals name="import_review_passkeys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> passkey</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> passkeys</item>
     </plurals>
-    <plurals name="credential_exchange_import_review_otp_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> mot de passe à usage unique</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> mots de passe à usage unique</item>
+    <plurals name="import_review_otp_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> one-time password</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> one-time passwords</item>
     </plurals>
-    <plurals name="credential_exchange_import_review_cards_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> carte bancaire</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> cartes bancaires</item>
+    <plurals name="import_review_cards_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> card</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> cards</item>
     </plurals>
-    <plurals name="credential_exchange_import_review_identities_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> identité</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> identités</item>
+    <plurals name="import_review_identities_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> identity</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> identities</item>
     </plurals>
-    <plurals name="credential_exchange_import_review_notes_note">
+    <plurals name="import_review_notes_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> note</item>
         <item quantity="other"><xliff:g id="number">%1$d</xliff:g> notes</item>
     </plurals>
-    <plurals name="credential_exchange_import_review_ssh_keys_note">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> clé SSH</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> clés SSH</item>
+    <plurals name="import_review_ssh_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> SSH key</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> SSH keys</item>
+    </plurals>
+    <plurals name="import_review_gpg_keys_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> GPG key</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> GPG keys</item>
+    </plurals>
+    <plurals name="import_review_environments_note">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> environment</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> environments</item>
     </plurals>
     <plurals name="skipped_unsupported_credentials_note">
         <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> identifiant non pris en charge</item>
@@ -136,9 +172,9 @@
         <item quantity="one">et <xliff:g id="number" example="1">%1$d</xliff:g> de plus</item>
         <item quantity="other">et <xliff:g id="number">%1$d</xliff:g> de plus</item>
     </plurals>
-    <plurals name="credential_exchange_import_success_text">
-        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> élément a été ajouté au compte.</item>
-        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> éléments ont été ajoutés au compte.</item>
+    <plurals name="import_success_text">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item has been added to the account.</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items have been added to the account.</item>
     </plurals>
     <plurals name="years_plural">
         <item quantity="one"><xliff:g id="number" example="1">%1$s</xliff:g> an</item>
@@ -147,6 +183,14 @@
     <plurals name="gpg_keyserver_upload_verify_requested_plural">
         <item quantity="one">E-mail de vérification envoyé pour <xliff:g id="number" example="1">%1$s</xliff:g> adresse</item>
         <item quantity="other">E-mail de vérification envoyé pour <xliff:g id="number">%1$s</xliff:g> adresses</item>
+    </plurals>
+    <plurals name="import_backup_snapshot_items">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> item</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> items</item>
+    </plurals>
+    <plurals name="import_backup_snapshot_attachments">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> attachment</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> attachments</item>
     </plurals>
     <!-- Automatic backups -->
     <plurals name="pref_item_automatic_backups_retention_keep_snapshot_count">
@@ -164,5 +208,41 @@
     <plurals name="agent_approval_expires_in_seconds_plural">
         <item quantity="one">Expire dans <xliff:g id="seconds" example="1">%1$d</xliff:g> seconde</item>
         <item quantity="other">Expire dans <xliff:g id="seconds" example="30">%1$d</xliff:g> secondes</item>
+    </plurals>
+    <plurals name="agent_approval_expires_in_minutes_plural">
+        <item quantity="one">Expires in <xliff:g id="minutes" example="1">%1$d</xliff:g> minute</item>
+        <item quantity="other">Expires in <xliff:g id="minutes" example="5">%1$d</xliff:g> minutes</item>
+    </plurals>
+    <plurals name="gpg_user_ids_count_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> Identifiant utilisateur actif</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> Identifiants utilisateurs actifs</item>
+    </plurals>
+    <plurals name="agent_auto_setup_files_to_change_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> fichier à modifier</item>
+        <item quantity="other"><xliff:g id="number" example="2">%1$d</xliff:g> fichiers à modifier</item>
+    </plurals>
+    <plurals name="tag_items_count_plural">
+        <item quantity="one"><xliff:g id="number" example="1">%1$d</xliff:g> élément</item>
+        <item quantity="other"><xliff:g id="number">%1$d</xliff:g> éléments</item>
+    </plurals>
+    <plurals name="attachment_preview_gpg_skipped_certificates_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> certificate could not be read</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> certificates could not be read</item>
+    </plurals>
+    <plurals name="attachment_preview_json_properties">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> property</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> properties</item>
+    </plurals>
+    <plurals name="attachment_preview_json_items">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> item</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> items</item>
+    </plurals>
+    <plurals name="pref_item_ssh_agent_bookmarks_config_hosts_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> host pinned</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> hosts pinned</item>
+    </plurals>
+    <plurals name="pref_item_ssh_agent_bookmarks_config_skipped_plural">
+        <item quantity="one"><xliff:g id="count" example="1">%1$d</xliff:g> bookmark skipped: its URL is invalid, or the agent doesn't offer its key</item>
+        <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> bookmarks skipped: their URLs are invalid, or the agent doesn't offer their keys</item>
     </plurals>
 </resources>

@@ -2,6 +2,10 @@ package com.artemchep.keyguard.common.service.credentialexchange
 
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.ImportResult
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.test.FakeSshKeyImportService
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -16,19 +20,19 @@ class CxfImportServiceTest {
         sshKeyImportService = FakeSshKeyImportService(),
     )
 
-    private fun parseGolden(): CxfImportPlan {
+    private fun parseGolden(): ImportPlan {
         val result = service.parse(
             payload = GOLDEN_IMPORT_JSON,
             now = now,
         )
-        return assertIs<CxfImportResult.Success>(result).plan
+        return assertIs<ImportResult.Success>(result).plan
     }
 
     @Test
     fun `golden vector parses the exporter metadata`() {
         val plan = parseGolden()
-        assertEquals("com.example.exporter", plan.exporterRpId)
-        assertEquals("Example Exporter", plan.exporterDisplayName)
+        assertEquals("com.example.exporter", plan.source.identifier)
+        assertEquals("Example Exporter", plan.source.displayName)
         assertEquals(1, plan.sourceAccountCount)
     }
 
@@ -37,9 +41,9 @@ class CxfImportServiceTest {
         val plan = parseGolden()
         assertEquals(
             listOf(
-                Triple("account-0/0", null, "Work"),
-                Triple("account-0/1", "account-0/0", "Dev"),
-                Triple("account-0/2", null, "Duplicates"),
+                Triple("folder-0", null, "Work"),
+                Triple("folder-1", "folder-0", "Dev"),
+                Triple("folder-2", null, "Duplicates"),
             ),
             plan.folders.map { Triple(it.key, it.parentKey, it.title) },
         )
@@ -49,9 +53,9 @@ class CxfImportServiceTest {
     fun `golden vector assigns items to their first linking collection`() {
         val plan = parseGolden()
         val login = plan.items.single { it.request.type == DSecret.Type.Login }
-        assertEquals("account-0/0", login.folderKey)
+        assertEquals("folder-0", login.folderKey)
         val card = plan.items.single { it.request.type == DSecret.Type.Card }
-        assertEquals("account-0/1", card.folderKey)
+        assertEquals("folder-1", card.folderKey)
         // The identity item is only linked with a mismatching account id.
         val identity = plan.items.single { it.request.type == DSecret.Type.Identity }
         assertNull(identity.folderKey)
@@ -146,9 +150,9 @@ class CxfImportServiceTest {
         // A wifi credential inside the login item and an api-key credential
         // forming an otherwise empty item. The api-key item is not counted
         // again: its only credential is already counted.
-        assertEquals(2, plan.skips[CxfImportSkipReason.UnknownCredential])
-        assertEquals(0, plan.skips[CxfImportSkipReason.Item])
-        assertEquals(0, plan.skips[CxfImportSkipReason.Passkey])
+        assertEquals(2, plan.skips[ImportSkipReason.UnknownCredential])
+        assertEquals(0, plan.skips[ImportSkipReason.Item])
+        assertEquals(0, plan.skips[ImportSkipReason.Passkey])
         // login + card + identity + ssh + note.
         assertEquals(5, plan.items.size)
     }
@@ -159,7 +163,7 @@ class CxfImportServiceTest {
         // the credential that emptied it must not show up as two separate rows.
         val plan = parseGolden()
         assertEquals(1, plan.skips.counted.size)
-        assertEquals(CxfImportSkipReason.UnknownCredential, plan.skips.counted.single().first)
+        assertEquals(ImportSkipReason.UnknownCredential, plan.skips.counted.single().first)
     }
 
     @Test
@@ -181,10 +185,10 @@ class CxfImportServiceTest {
               ]
             }
         """.trimIndent()
-        val plan = assertIs<CxfImportResult.Success>(
+        val plan = assertIs<ImportResult.Success>(
             service.parse(payload = payload, now = now),
         ).plan
-        assertEquals(2, plan.skips[CxfImportSkipReason.Item])
+        assertEquals(2, plan.skips[ImportSkipReason.Item])
         assertTrue(plan.items.isEmpty())
     }
 }

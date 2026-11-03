@@ -4,6 +4,8 @@ import com.artemchep.keyguard.android.downloader.journal.BarcodeUsageHistoryRepo
 import com.artemchep.keyguard.android.downloader.journal.BarcodeUsageHistoryRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepository
 import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepositoryImpl
+import com.artemchep.keyguard.android.downloader.journal.CliAgentUsageHistoryRepository
+import com.artemchep.keyguard.android.downloader.journal.CliAgentUsageHistoryRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.GeneratorHistoryRepository
 import com.artemchep.keyguard.android.downloader.journal.GeneratorHistoryRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.GpgUsageHistoryRepository
@@ -22,6 +24,7 @@ import com.artemchep.keyguard.common.service.wordlist.repo.impl.GeneratorWordlis
 import com.artemchep.keyguard.common.usecase.AddCipherOpenedHistory
 import com.artemchep.keyguard.common.usecase.AddCipherUsedAutofillHistory
 import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
+import com.artemchep.keyguard.common.usecase.AddCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.AddEmailRelay
 import com.artemchep.keyguard.common.usecase.AddGeneratorHistory
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
@@ -32,6 +35,8 @@ import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistoryById
 import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.GetBarcodeUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCipherOpenedHistory
+import com.artemchep.keyguard.common.usecase.GetCliAgentUsageHistory
+import com.artemchep.keyguard.common.usecase.GetCliAgentUsageHistoryCount
 import com.artemchep.keyguard.common.usecase.GetEmailRelays
 import com.artemchep.keyguard.common.usecase.GetGeneratorHistory
 import com.artemchep.keyguard.common.usecase.GetGpgUsageHistory
@@ -41,6 +46,7 @@ import com.artemchep.keyguard.common.usecase.GetSshUsageHistoryCount
 import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
 import com.artemchep.keyguard.common.usecase.GetWordlists
 import com.artemchep.keyguard.common.usecase.PutBarcodeUsageHistory
+import com.artemchep.keyguard.common.usecase.RemoveCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveEmailRelayById
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryById
@@ -59,11 +65,14 @@ import com.artemchep.keyguard.common.usecase.impl.RemoveGeneratorHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddCipherOpenedHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddCipherUsedAutofillHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddCipherUsedPasskeyHistoryImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.AddCliAgentUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddGpgUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddSshUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherRemovePasswordHistoryByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherRemovePasswordHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCipherOpenedHistoryImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetCliAgentUsageHistoryCountImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetCliAgentUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetEmailRelaysImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetGpgUsageHistoryCountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetGpgUsageHistoryImpl
@@ -71,6 +80,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.GetSshUsageHistoryCount
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetSshUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetWordlistPrimitiveImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetWordlistsImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveCliAgentUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveEmailRelayByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveGpgUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveSshUsageHistoryImpl
@@ -153,6 +163,14 @@ internal class VaultHistoryModule {
 
             scoped<RemoveGpgUsageHistoryImpl>() bind RemoveGpgUsageHistory::class
 
+            scoped<AddCliAgentUsageHistoryImpl>() bind AddCliAgentUsageHistory::class
+
+            scoped<GetCliAgentUsageHistoryImpl>() bind GetCliAgentUsageHistory::class
+
+            scoped<GetCliAgentUsageHistoryCountImpl>() bind GetCliAgentUsageHistoryCount::class
+
+            scoped<RemoveCliAgentUsageHistoryImpl>() bind RemoveCliAgentUsageHistory::class
+
             scoped<GetCipherOpenedHistoryImpl>() bind GetCipherOpenedHistory::class
 
             scoped<CipherHistoryOpenedRepository> {
@@ -178,6 +196,13 @@ internal class VaultHistoryModule {
 
             scoped<GpgUsageHistoryRepository> {
                 GpgUsageHistoryRepositoryImpl(
+                    databaseManager = get(),
+                    dispatcher = databaseDispatcher(),
+                )
+            }
+
+            scoped<CliAgentUsageHistoryRepository> {
+                CliAgentUsageHistoryRepositoryImpl(
                     databaseManager = get(),
                     dispatcher = databaseDispatcher(),
                 )

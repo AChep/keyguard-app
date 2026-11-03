@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.navigation
 
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.DFilter
 import com.artemchep.keyguard.common.model.DSendFilter
 import kotlinx.serialization.SerialName
@@ -7,6 +8,19 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed interface RouteDescriptor {
+    @Serializable
+    @SerialName("environments")
+    data object Environments : RouteDescriptor
+
+    @Serializable
+    @SerialName("account.client_certificate")
+    data class AccountClientCertificate(val accountId: String) : RouteDescriptor
+
+    /** Creates an environment, or edits the one with the [environmentId]. */
+    @Serializable
+    @SerialName("environments.edit")
+    data class EnvironmentEdit(val environmentId: String? = null) : RouteDescriptor
+
     @Serializable
     @SerialName("vault.cipher.view")
     data class VaultCipherView(
@@ -62,6 +76,17 @@ sealed interface RouteDescriptor {
     @Serializable
     @SerialName("sshagent.history")
     data class SshAgentHistory(
+        val cipherId: String? = null,
+    ) : RouteDescriptor
+
+    /**
+     * The CLI agent's request log, of one environment or (`null`) of
+     * the requests of one [client].
+     */
+    @Serializable
+    @SerialName("cliagent.history")
+    data class CliAgentHistory(
+        val client: CliAgentUsageHistoryClient? = null,
         val cipherId: String? = null,
     ) : RouteDescriptor
 
@@ -124,6 +149,14 @@ sealed interface RouteDescriptor {
     data class Export(
         val title: String? = null,
         val filter: DFilter? = null,
+    ) : RouteDescriptor
+
+    /** Imports items from another password manager into the account. */
+    @Serializable
+    @SerialName("vault.import")
+    data class Import(
+        val accountId: String,
+        val configuredBackup: Boolean = false,
     ) : RouteDescriptor
 
     @Serializable

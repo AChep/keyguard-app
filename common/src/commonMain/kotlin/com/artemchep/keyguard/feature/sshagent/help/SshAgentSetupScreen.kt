@@ -4,12 +4,6 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Terminal
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,16 +14,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.build.BuildKonfig
+import com.artemchep.keyguard.feature.agent.help.AgentAutomaticSetup
 import com.artemchep.keyguard.feature.agent.help.AgentSetupBodyLabel
 import com.artemchep.keyguard.feature.agent.help.AgentSetupCodeBlock
 import com.artemchep.keyguard.feature.agent.help.AgentSetupParagraph
 import com.artemchep.keyguard.feature.agent.help.AgentSetupScaffold
 import com.artemchep.keyguard.feature.agent.help.AgentSetupSectionDivider
+import com.artemchep.keyguard.feature.agent.help.AgentSetupTermuxInstall
+import com.artemchep.keyguard.feature.agent.help.AgentTermuxAutomaticSetup
+import com.artemchep.keyguard.feature.agent.help.SSH_AGENT_SETUP_VERIFY_CMD_LIST
+import com.artemchep.keyguard.feature.agent.help.SetupAgent
 import com.artemchep.keyguard.feature.home.vault.component.LargeSection
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.localization.TextHolder
-import com.artemchep.keyguard.feature.navigation.LocalNavigationController
-import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
@@ -62,29 +59,10 @@ private const val SSH_AGENT_SETUP_WINDOWS_PIPE =
     "\\\\.\\pipe\\keyguard-ssh-agent"
 private const val SSH_AGENT_SETUP_OPTION_IDENTITYAGENT_FILE =
     "~/.ssh/config"
-private const val SSH_AGENT_SETUP_VERIFY_CMD_LIST =
-    "ssh-add -L"
 private const val SSH_AGENT_SETUP_VERIFY_CMD_CONNECT =
     "ssh -T git@github.com"
 
-private const val TERMUX_URL =
-    "https://github.com/termux/termux-app?tab=readme-ov-file#installation"
-
-/** Adds Keyguard termux repo as one of the sources */
-private const val SSH_AGENT_TERMUX_PKG_ADD_REPO = $$"""mkdir -p "$PREFIX/etc/apt/keyrings"
-mkdir -p "$PREFIX/etc/apt/sources.list.d"
-
-KG_KEY_PATH="$PREFIX/etc/apt/keyrings/keyguard-repo.gpg"
-
-curl -fsSL https://gh.artemchep.com/keyguard-repo-termux/keyguard-repo.gpg \
-  -o $KG_KEY_PATH
-
-echo "deb [signed-by=$KG_KEY_PATH] https://gh.artemchep.com/keyguard-repo-termux/ stable main" \
-  > $PREFIX/etc/apt/sources.list.d/keyguard.list
-
-pkg update"""
-
-private const val SSH_AGENT_TERMUX_PKG_INSTALL = """pkg install keyguard-android-ssh-agent"""
+private const val SSH_AGENT_TERMUX_PKG_INSTALL = """pkg install openssh keyguard-android-ssh-agent"""
 
 private const val SSH_AGENT_TERMUX_PKG_SETUP =
     $$"""if [ -x "$PREFIX/bin/keyguard-android-ssh-agent" ]; then
@@ -102,6 +80,7 @@ fun SshAgentSetupScreen() {
 
 @Composable
 private fun ColumnScope.SshAgentSetupScreenContent() {
+    AgentAutomaticSetup(SetupAgent.SSH)
     AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_intro),
     )
@@ -255,7 +234,7 @@ private fun ColumnScope.SshAgentSetupSupportedPlatformContent(
             .height(4.dp),
     )
     AgentSetupCodeBlock(
-        text = SSH_AGENT_SETUP_VERIFY_CMD_LIST,
+        text = sshAuthSockCommand(sshAgentSocketPath, isWindows) + "\n" + SSH_AGENT_SETUP_VERIFY_CMD_LIST,
     )
     Spacer(
         modifier = Modifier
@@ -275,57 +254,16 @@ private fun sshAgentSetupMacosSocket(): String =
 
 @Composable
 private fun ColumnScope.SshAgentSetupAndroidPlatformContent() {
-    val navigationController by rememberUpdatedState(LocalNavigationController.current)
     LargeSection(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_title),
     )
     AgentSetupParagraph(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_text),
     )
-    Section(
-        text = stringResource(Res.string.ssh_agent_setup_android_termux_step_1_title),
+    AgentSetupTermuxInstall(
+        installCommand = SSH_AGENT_TERMUX_PKG_INSTALL,
     )
-    AgentSetupParagraph(
-        text = stringResource(Res.string.ssh_agent_setup_android_termux_step_1_text),
-    )
-    TextButton(
-        modifier = Modifier
-            .padding(horizontal = Dimens.buttonHorizontalPadding),
-        onClick = {
-            val intent = NavigationIntent.NavigateToBrowser(
-                url = TERMUX_URL,
-            )
-            navigationController.queue(intent)
-        },
-    ) {
-        Icon(
-            imageVector = Icons.Outlined.Terminal,
-            contentDescription = null,
-        )
-        Spacer(
-            modifier = Modifier
-                .width(Dimens.buttonIconPadding),
-        )
-        Text(
-            text = stringResource(Res.string.learn_more),
-        )
-    }
-    Section(
-        text = stringResource(Res.string.ssh_agent_setup_android_termux_step_2_title),
-    )
-    AgentSetupParagraph(
-        text = stringResource(Res.string.ssh_agent_setup_android_termux_step_2_text),
-    )
-    Spacer(
-        modifier = Modifier
-            .height(4.dp),
-    )
-    AgentSetupCodeBlock(
-        text = SSH_AGENT_TERMUX_PKG_ADD_REPO,
-    )
-    AgentSetupCodeBlock(
-        text = SSH_AGENT_TERMUX_PKG_INSTALL,
-    )
+    AgentTermuxAutomaticSetup(SetupAgent.SSH)
     Section(
         text = stringResource(Res.string.ssh_agent_setup_android_termux_step_3_title),
     )
@@ -389,10 +327,10 @@ private fun sshAuthSockCommand(
 private fun identityAgentConfig(
     socketPath: String,
     isWindows: Boolean,
-): String = if (isWindows) {
-    "Host *\n  IdentityAgent $socketPath"
-} else {
-    "Host *\n  IdentityAgent \"${socketPath.escapeDoubleQuoted()}\""
+): String {
+    // OpenSSH reads backslashes as escapes; Windows accepts forward slashes in pipe paths.
+    val path = if (isWindows) socketPath.replace('\\', '/') else socketPath
+    return "Host *\n  IdentityAgent \"${path.escapeDoubleQuoted()}\""
 }
 
 private fun String.escapeDoubleQuoted(): String =

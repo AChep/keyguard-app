@@ -13,7 +13,9 @@ internal typealias PrivateTemporaryStorage =
 internal expect fun privateTemporaryStorageDirectory(): LocalPath
 
 @OptIn(InternalKeyguardIoApi::class)
-internal fun createPrivateTemporaryStorage(): PrivateTemporaryStorage =
+internal fun createPrivateTemporaryStorage(
+    directory: LocalPath = privateTemporaryStorageDirectory(),
+): PrivateTemporaryStorage =
     com.artemchep.keyguard.util.io.scratch.createPrivateTemporaryStorage(
-        directory = privateTemporaryStorageDirectory(),
+        directory = directory,
     )

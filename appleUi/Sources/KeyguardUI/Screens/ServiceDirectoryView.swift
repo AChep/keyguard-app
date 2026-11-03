@@ -59,7 +59,8 @@ struct ServiceDirectoryView: View {
 
     private func row(_ item: ServiceDirectoryItemSnapshot) -> some View {
         HStack(spacing: 12) {
-            favicon(item.faviconUrl)
+            FaviconView(iconKey: item.faviconKey, placeholder: nil, size: 24)
+                .clipShape(Circle())
             Text(
                 highlightedText(
                     item.name,
@@ -71,26 +72,5 @@ struct ServiceDirectoryView: View {
         }
         .padding(.vertical, 2)
         .contentShape(Rectangle())
-    }
-
-    @ViewBuilder
-    private func favicon(_ raw: String?) -> some View {
-        if let raw, let iconURL = URL(string: raw) {
-            AsyncImage(url: iconURL) { phase in
-                if let image = phase.image {
-                    image.resizable().scaledToFit()
-                } else {
-                    placeholderIcon
-                }
-            }
-            .frame(width: 24, height: 24)
-            .clipShape(Circle())
-        } else {
-            placeholderIcon.frame(width: 24, height: 24)
-        }
-    }
-
-    private var placeholderIcon: some View {
-        Image(systemName: "globe").foregroundStyle(.secondary)
     }
 }

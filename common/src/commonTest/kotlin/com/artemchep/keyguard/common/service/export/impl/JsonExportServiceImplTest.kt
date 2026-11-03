@@ -12,6 +12,7 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.time.Instant
 
 class JsonExportServiceImplTest {
     private val json = Json
@@ -174,6 +175,108 @@ class JsonExportServiceImplTest {
     }
 
     @Test
+    fun `exports an ssh certificate as the custom field it syncs as`() {
+        val cipher = createSecret(
+            id = "cipher",
+            type = DSecret.Type.SshKey,
+            fields = listOf(
+                DSecret.Field(
+                    name = "keyguard.ssh.certificate",
+                    value = "stale certificate",
+                    type = DSecret.Field.Type.Text,
+                ),
+                DSecret.Field(
+                    name = "Note",
+                    value = "hello",
+                    type = DSecret.Field.Type.Text,
+                ),
+            ),
+            sshKey = DSecret.SshKey(
+                publicKey = "ssh-ed25519 AAAA",
+                certificate = CERTIFICATE,
+                bookmarks = listOf(
+                    DSecret.SshKey.Bookmark(name = "GitHub", url = "ssh://git@github.com"),
+                ),
+            ),
+            links = listOf(
+                DSecret.Link(TARGET_REMOTE_ID),
+            ),
+        )
+
+        assertEquals(
+            listOf(
+                ExportedField(
+                    type = 0,
+                    name = "Note",
+                    value = "hello",
+                ),
+                ExportedField(
+                    type = 0,
+                    name = "GitHub",
+                    value = "ssh://git@github.com",
+                ),
+                ExportedField(
+                    type = 0,
+                    name = "keyguard.ssh.certificate",
+                    value = CERTIFICATE,
+                ),
+                ExportedField(
+                    type = 0,
+                    name = "keyguard.link.1",
+                    value = "keyguard://cipher/$TARGET_REMOTE_ID",
+                ),
+            ),
+            exportedFields(cipher)
+                .jsonArray
+                .map { it.jsonObject.toExportedField() },
+        )
+    }
+
+    @Test
+    fun `exports the PRF secrets of a field that was never decoded with the new ones`() {
+        val cipher = createSecret(
+            id = "cipher",
+            fields = listOf(
+                DSecret.Field(
+                    name = "keyguard.passkeys",
+                    value = """{"version":1,"credentials":[{"credentialId":"cred-1","prfSecret":"b2xk"}]}""",
+                    type = DSecret.Field.Type.Hidden,
+                ),
+                DSecret.Field(
+                    name = "Note",
+                    value = "hello",
+                    type = DSecret.Field.Type.Text,
+                ),
+            ),
+            login = DSecret.Login(
+                fido2Credentials = listOf(
+                    passkey("cred-1", prfSecret = null),
+                    passkey("cred-2", prfSecret = "bmV3"),
+                ),
+            ),
+        )
+
+        assertEquals(
+            listOf(
+                ExportedField(
+                    type = 0,
+                    name = "Note",
+                    value = "hello",
+                ),
+                ExportedField(
+                    type = 1,
+                    name = "keyguard.passkeys",
+                    value = "{\"version\":1,\"credentials\":[{\"credentialId\":\"cred-1\",\"prfSecret\":\"b2xk\"}," +
+                        "{\"credentialId\":\"cred-2\",\"prfSecret\":\"bmV3\"}]}",
+                ),
+            ),
+            exportedFields(cipher)
+                .jsonArray
+                .map { it.jsonObject.toExportedField() },
+        )
+    }
+
+    @Test
     fun `exports null fields when there are no user fields or links`() {
         assertEquals(
             JsonNull,
@@ -197,6 +300,26 @@ class JsonExportServiceImplTest {
         .jsonObject
         .getValue("fields")
 
+    private fun passkey(
+        credentialId: String,
+        prfSecret: String?,
+    ) = DSecret.Login.Fido2Credentials(
+        credentialId = credentialId,
+        keyType = "public-key",
+        keyAlgorithm = "ECDSA",
+        keyCurve = "P-256",
+        keyValue = "AQID",
+        rpId = "example.com",
+        rpName = null,
+        counter = 0,
+        userHandle = null,
+        userName = null,
+        userDisplayName = null,
+        discoverable = true,
+        creationDate = Instant.fromEpochSeconds(0),
+        prfSecret = prfSecret,
+    )
+
     private fun JsonObject.toExportedField() = ExportedField(
         type = getValue("type").jsonPrimitive.content.toInt(),
         name = getValue("name").jsonPrimitive.content,
@@ -215,3 +338,4 @@ private const val OTHER_REMOTE_ID = "c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"
 private const val PRIVATE_KEY_ARMORED = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
 private const val PUBLIC_KEY_ARMORED = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
 private const val FINGERPRINT = "0123456789ABCDEF"
+private const val CERTIFICATE = "ssh-ed25519-cert-v01@openssh.com AAAA user@example.com"

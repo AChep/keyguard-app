@@ -150,6 +150,7 @@ class GpgKeyserverClientImplSearchTest {
                     query = mapOf(
                         "op" to "index",
                         "options" to "mr",
+                        "fingerprint" to "on",
                         "search" to "Alice Example",
                     ),
                 ),
@@ -267,5 +268,46 @@ class GpgKeyserverClientImplSearchTest {
         )
         // An empty query is trivially servable (search() short-circuits to empty).
         assertTrue(impl.canServeSearch(SearchGpgPublicKeyRequest("   "), vks))
+        // A 0x-prefixed or colon-separated fingerprint is a fingerprint lookup.
+        assertTrue(impl.canServeSearch(SearchGpgPublicKeyRequest("0x$TEST_FINGERPRINT"), vks))
+        assertTrue(impl.canServeSearch(SearchGpgPublicKeyRequest(TEST_FINGERPRINT.chunked(2).joinToString(":")), vks))
+        // A 0x-prefixed key ID is a key ID lookup, never free text.
+        assertTrue(impl.canServeSearch(SearchGpgPublicKeyRequest("0x$TEST_KEY_ID"), vks))
+        // No keyserver serves a short key ID, so search() fails instead of
+        // re-routing it.
+        assertTrue(impl.canServeSearch(SearchGpgPublicKeyRequest("0xDEADBEEF"), vks))
+        assertTrue(impl.canServeSearch(SearchGpgPublicKeyRequest("0xDEADBEEF"), hkp))
+    }
+
+    @Test
+    fun `HKP index rows without a fingerprint are dropped`() = runTest {
+        val results = searchRecording(
+            requests = mutableListOf(),
+            request = SearchGpgPublicKeyRequest("Alice"),
+            config = TEST_HKP_CONFIG,
+            response = """
+                info:1:5
+                pub:0123456789abcdef:1:4096:1700000000::
+                uid:Alice:::::::::
+                pub:89ABCDEF:1:4096:1700000000::
+                uid:Bob:::::::::
+                pub:0123456789ABCDEF0123456789ABCDEF:1:1024:900000000::
+                uid:Carol:::::::::
+                pub:not-a-key:1:4096:1700000000::
+                uid:Mallory:::::::::
+                pub:${TEST_FINGERPRINT.lowercase()}:1:4096:1700000000::
+                uid:Dave:::::::::
+            """.trimIndent(),
+            contentType = ContentType.Text.Plain,
+            parser = FakeParser(),
+        )
+
+        // Key IDs, a v3 fingerprint and a malformed key are dropped.
+        assertEquals(
+            listOf(
+                Triple(TEST_FINGERPRINT, TEST_KEY_ID, listOf("Dave")),
+            ),
+            results.map { Triple(it.fingerprint, it.keyId, it.userIds) },
+        )
     }
 }

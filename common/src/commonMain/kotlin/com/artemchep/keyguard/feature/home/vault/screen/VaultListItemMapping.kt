@@ -272,6 +272,7 @@ private fun DSecret.vaultItemText(): String = when (type) {
     DSecret.Type.SecureNote -> if (reprompt) concealedText() else notes
     DSecret.Type.SshKey -> sshKey?.fingerprint.orEmpty()
     DSecret.Type.GpgKey -> gpgKey?.fingerprint.orEmpty()
+    DSecret.Type.Environment -> ""
     DSecret.Type.None -> ""
 }
 

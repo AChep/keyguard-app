@@ -3,6 +3,11 @@ package com.artemchep.keyguard.common.service.credentialexchange
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.common.service.imports.ImportSkips
+import com.artemchep.keyguard.common.service.imports.importSkips
+import com.artemchep.keyguard.test.FakeSshKeyImportService
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -12,7 +17,7 @@ import kotlin.time.Instant
 /**
  * A catalogue of everything the importer discards **without counting it**.
  *
- * `CxfImportSkips` backs the review screen's promise that nothing is dropped
+ * `ImportSkips` backs the review screen's promise that nothing is dropped
  * silently, so each row here asserts both halves: the data really is gone, and
  * `plan.skips` really is empty. Every row is a deliberate decision — adding a
  * counter for one of them flips exactly one row.
@@ -27,13 +32,13 @@ class CxfImportSilentDropTest {
         sshKeyImportService = FakeSshKeyImportService(),
     )
 
-    private fun plan(payload: String): CxfImportPlan = service.parseSuccessPlan(
+    private fun plan(payload: String): ImportPlan = service.parseSuccessPlan(
         payload = payload,
         now = now,
     )
 
-    private fun assertNothingCounted(plan: CxfImportPlan) {
-        assertEquals(cxfImportSkips(), plan.skips, "a loss here is uncounted by design")
+    private fun assertNothingCounted(plan: ImportPlan) {
+        assertEquals(importSkips(), plan.skips, "a loss here is uncounted by design")
     }
 
     private fun singleRequest(payload: String): CreateRequest {
@@ -183,7 +188,7 @@ class CxfImportSilentDropTest {
         )
         assertEquals(listOf("Broken", "Home"), plan.folders.map { it.title })
         // The usable link in the same array still places its item.
-        assertEquals("account-0/0", plan.items.single().folderKey)
+        assertEquals("folder-0", plan.items.single().folderKey)
         assertNothingCounted(plan)
     }
 
@@ -223,7 +228,7 @@ class CxfImportSilentDropTest {
             ),
         )
         // Keyguard folders are single-valued, so the second link is unrepresentable.
-        assertEquals("account-0/0", plan.items.single().folderKey)
+        assertEquals("folder-0", plan.items.single().folderKey)
         assertNothingCounted(plan)
     }
 
@@ -260,7 +265,7 @@ class CxfImportSilentDropTest {
         // `decodeItem` re-admits the optional members one at a time, so a
         // malformed decorative member — an ISO-8601 `modifiedAt`, a scalar
         // `tags` — costs only itself and the item keeps its credentials. The
-        // loss is uncounted by design: `CxfImportSkipReason` excludes
+        // loss is uncounted by design: `ImportSkipReason` excludes
         // field-level fidelity losses inside a surviving item. `scope` is no
         // longer one of these members: it is decoded outside the shell, array
         // by array, so a missing `androidApps` no longer costs the item its
@@ -427,16 +432,39 @@ class CxfImportSilentDropTest {
     }
 
     @Test
-    fun `blank tags pass through unfiltered`() {
-        // Every other member is blank-checked; tags are not. Pinned as the odd
-        // one out so a future clean-up is a deliberate change.
+    fun `PRF seeds of an unknown algorithm are dropped and the passkey kept`() {
+        // CXF v1.0 §3.3.12.3: "Importing providers that encounter an unknown
+        // algorithm SHOULD ignore this entry."
+        val passkey = cxfPasskeyCredentialJson()
+            .removeSuffix("}")
+            .plus(
+                """
+                , "fido2Extensions": {"hmacCredentials": {
+                  "algorithm": "hmac-sha512",
+                  "credWithUV": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8",
+                  "credWithoutUV": "AAECAwQFBgcICQoLDA0ODxAREhMUFRYXGBkaGxwdHh8"
+                }}}
+                """.trimIndent(),
+            )
+        val request = singleRequest(
+            documentWithItems("""{"id": "aXRlbTAx", "title": "Passkey", "credentials": [$passkey]}"""),
+        )
+        val credential = request.fido2Credentials.single()
+        assertNull(credential.prfSecret)
+        assertNull(credential.prfSecretWithoutUv)
+    }
+
+    @Test
+    fun `blank and repeated tags are dropped`() {
+        // Tags are read as every other importer reads them: blank ones mean
+        // nothing and a repeated one is the same tag.
         val request = singleRequest(
             documentWithItems(
                 """
                 {
                   "id": "aXRlbTAx",
                   "title": "Tagged",
-                  "tags": ["work", "", "  "],
+                  "tags": ["work", "", "  ", "work"],
                   "credentials": [
                     {
                       "type": "basic-auth",
@@ -447,7 +475,7 @@ class CxfImportSilentDropTest {
                 """.trimIndent(),
             ),
         )
-        assertEquals(listOf("work", "", "  "), request.tags)
+        assertEquals(listOf("work"), request.tags)
     }
 
     // endregion
@@ -477,7 +505,7 @@ class CxfImportSilentDropTest {
         // Item ids are the exporter's, not ours, so a duplicate is not an error
         // — but both items then resolve to the same folder link.
         assertEquals(2, plan.items.size)
-        assertTrue(plan.items.all { it.folderKey == "account-0/0" })
+        assertTrue(plan.items.all { it.folderKey == "folder-0" })
         assertNothingCounted(plan)
     }
 

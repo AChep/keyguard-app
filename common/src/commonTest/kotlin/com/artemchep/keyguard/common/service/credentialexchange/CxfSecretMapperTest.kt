@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.service.credentialexchange.model.CxfEditabl
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -132,6 +133,16 @@ class CxfSecretMapperTest {
         // of a username and there is no issuer at all.
         assertEquals("alice", totp?.username)
         assertNull(totp?.issuer)
+    }
+
+    @Test
+    fun `steam with a non-sha1 hash is skipped instead of changing its algorithm`() {
+        listOf("SHA256", "SHA512").forEach { algorithm ->
+            val raw = "otpauth://totp/Account?secret=JBSWY3DPEHPK3PXP&encoder=steam&algorithm=$algorithm"
+            val token = assertNotNull(TotpToken.parse(raw).getOrNull())
+
+            assertNull(mapTotp(token))
+        }
     }
 
     @Test

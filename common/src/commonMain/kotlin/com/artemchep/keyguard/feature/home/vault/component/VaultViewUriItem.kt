@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -39,13 +38,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import arrow.core.Either
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.service.app.parser.AppStoreListingInfo
+import com.artemchep.keyguard.feature.dragout.compose.dragOutArea
+import com.artemchep.keyguard.feature.dragout.compose.dragOutHandle
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.error_failed_unknown
@@ -60,14 +59,12 @@ import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.icons.FaviconIcon
-import com.artemchep.keyguard.ui.icons.IconSmallBox
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.warning
 import com.artemchep.keyguard.ui.theme.warningContainer
-import com.artemchep.keyguard.ui.util.DividerColor
 import io.ktor.http.HttpStatusCode
 import org.jetbrains.compose.resources.stringResource
 
@@ -80,62 +77,65 @@ fun VaultViewUriItem(
         modifier = modifier,
         shapeState = item.shapeState,
         leading = {
-            item.icon()
+            Box(
+                modifier = Modifier
+                    .dragOutHandle(
+                        source = item.drag,
+                        // A tap on the icon still opens the row's actions.
+                        exclusiveTouch = false,
+                    ),
+            ) {
+                item.icon()
+            }
         },
         content = {
-            FlatItemTextContent(
-                title = {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(
+            Column(
+                modifier = Modifier
+                    .dragOutArea(
+                        source = item.drag,
+                    ),
+            ) {
+                FlatItemTextContent(
+                    title = {
+                        Row(
                             modifier = Modifier
-                                .weight(1f),
-                            text = item.title,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 5,
-                        )
-                        ExpandedIfNotEmptyForRow(
-                            item.matchTypeTitle,
-                        ) { matchTypeTitle ->
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
                             Text(
                                 modifier = Modifier
-                                    .padding(
-                                        start = 8.dp,
-                                    )
-                                    .widthIn(max = 128.dp)
-                                    .border(
-                                        Dp.Hairline,
-                                        DividerColor,
-                                        MaterialTheme.shapes.small,
-                                    )
-                                    .padding(
-                                        horizontal = 8.dp,
-                                        vertical = 4.dp,
-                                    ),
-                                text = matchTypeTitle,
-                                style = MaterialTheme.typography.labelSmall,
-                                textAlign = TextAlign.End,
-                                maxLines = 2,
+                                    .weight(1f),
+                                text = item.title,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 5,
+                            )
+                            ExpandedIfNotEmptyForRow(
+                                item.matchTypeTitle,
+                            ) { matchTypeTitle ->
+                                VaultViewOutlinedBadge(
+                                    modifier = Modifier
+                                        .padding(
+                                            start = 8.dp,
+                                        ),
+                                    text = matchTypeTitle,
+                                )
+                            }
+                        }
+                    },
+                    text = if (item.text != null) {
+                        // composable
+                        {
+                            Text(
+                                text = item.text,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 5,
                             )
                         }
-                    }
-                },
-                text = if (item.text != null) {
-                    // composable
-                    {
-                        Text(
-                            text = item.text,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 5,
-                        )
-                    }
-                } else {
-                    null
-                },
-            )
+                    } else {
+                        null
+                    },
+                )
+            }
             ExpandedIfNotEmpty(
                 item.warningTitle,
             ) { warningTitle ->
@@ -193,9 +193,11 @@ fun VaultViewUriItem(
             ) {
                 item.overrides.forEach { override ->
                     val updatedDropdownState = rememberUpdatedState(override.dropdown)
-                    UrlOverrideItem(
+                    VaultViewBadge(
+                        icon = Icons.Outlined.Terminal,
                         title = override.title,
                         text = override.text,
+                        textFontFamily = FontFamily.Monospace,
                         error = override.error,
                         onClick = {
                             selectedDropdown = updatedDropdownState.value
@@ -223,77 +225,6 @@ fun VaultViewUriItem(
         },
         dropdown = item.dropdown,
     )
-}
-
-@Composable
-private fun UrlOverrideItem(
-    modifier: Modifier = Modifier,
-    title: String,
-    text: String,
-    error: Boolean = false,
-    onClick: () -> Unit,
-) {
-    Surface(
-        modifier = modifier,
-        color = MaterialTheme.colorScheme.surface,
-        shape = MaterialTheme.shapes.small,
-        tonalElevation = 1.dp,
-    ) {
-        Row(
-            modifier = Modifier
-                .clickable(onClick = onClick)
-                .padding(
-                    start = 8.dp,
-                    end = 8.dp,
-                    top = 8.dp,
-                    bottom = 8.dp,
-                ),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            val contentColor = if (error) {
-                MaterialTheme.colorScheme.error
-            } else {
-                LocalContentColor.current
-            }
-            Box(
-                modifier = Modifier
-                    .size(16.dp),
-            ) {
-                IconSmallBox(
-                    main = Icons.Outlined.Terminal,
-                )
-            }
-            Spacer(
-                modifier = Modifier
-                    .width(8.dp),
-            )
-            Text(
-                modifier = Modifier
-                    .widthIn(max = 128.dp)
-                    .alignByBaseline(),
-                text = title,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.bodyMedium,
-            )
-            Spacer(
-                modifier = Modifier
-                    .width(8.dp),
-            )
-            Text(
-                modifier = Modifier
-                    .widthIn(max = 128.dp)
-                    .alignByBaseline(),
-                text = text,
-                color = contentColor
-                    .combineAlpha(MediumEmphasisAlpha),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                fontFamily = FontFamily.Monospace,
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
-    }
 }
 
 @Composable

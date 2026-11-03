@@ -14,6 +14,9 @@ import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.GpgKeyserverVerificationStatus
 import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.service.database.DatabaseSqlManager
@@ -40,6 +43,7 @@ import com.artemchep.keyguard.data.GeneratorWordlist
 import com.artemchep.keyguard.data.GeneratorEmailRelay
 import com.artemchep.keyguard.data.GeneratorHistory
 import com.artemchep.keyguard.data.PrivilegedApp
+import com.artemchep.keyguard.data.CliAgentUsageHistory
 import com.artemchep.keyguard.data.SshUsageHistory
 import com.artemchep.keyguard.data.UrlBlock
 import com.artemchep.keyguard.data.UrlOverride
@@ -106,6 +110,12 @@ class VaultDatabaseManagerImpl(
                     gpgUsageHistoryAdapter = GpgUsageHistory.Adapter(
                         requestAdapter = EnumCodeToLongAdapter(GpgUsageHistoryRequestType::of) { it.code },
                         responseAdapter = EnumCodeToLongAdapter(GpgUsageHistoryResponseType::of) { it.code },
+                        createdAtAdapter = InstantToLongAdapter,
+                    ),
+                    cliAgentUsageHistoryAdapter = CliAgentUsageHistory.Adapter(
+                        clientAdapter = EnumCodeToLongAdapter(CliAgentUsageHistoryClient::of) { it.code },
+                        requestAdapter = EnumCodeToLongAdapter(CliAgentUsageHistoryRequestType::of) { it.code },
+                        responseAdapter = EnumCodeToLongAdapter(CliAgentUsageHistoryResponseType::of) { it.code },
                         createdAtAdapter = InstantToLongAdapter,
                     ),
                     gpgKeyserverStateAdapter = GpgKeyserverState.Adapter(

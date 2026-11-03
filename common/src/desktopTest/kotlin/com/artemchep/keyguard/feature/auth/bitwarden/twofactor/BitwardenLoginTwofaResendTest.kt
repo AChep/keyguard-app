@@ -118,20 +118,27 @@ private class Harness(
         io
     }
 
+    private val env = ServerEnv(baseUrl = "https://vault.example.com")
+
     suspend fun emailStates(): StateFlow<TwoFactorState?> = testScreenScope()
         .bitwardenLoginTwofaStateProducer(
             cryptoGenerator = cryptoGenerator,
             base64Service = unused(),
             deeplinkService = unused(),
             json = Json,
-            addAccount = unused(),
-            requestEmailTfa = requestEmailTfa,
             args = BitwardenLoginTwofaRoute.Args(
                 providers = listOf(TwoFactorProviderArgument.Email(email = "u***@example.com")),
-                clientSecret = null,
                 email = "user@example.com",
-                password = "password",
-                env = ServerEnv(baseUrl = "https://vault.example.com"),
+                env = env,
+                continuation = BitwardenPasswordLoginContinuation(
+                    addAccount = unused(),
+                    requestEmailTfa = requestEmailTfa,
+                    accountId = null,
+                    env = env,
+                    clientSecret = null,
+                    email = "user@example.com",
+                    password = "password",
+                ),
             ),
             transmitter = unused(),
         )

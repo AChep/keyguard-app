@@ -1,12 +1,15 @@
 package com.artemchep.keyguard.common.service.sshagent
 
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
+import com.artemchep.keyguard.common.service.agent.AgentPacketSession
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_APP_BUNDLE_PATH_LENGTH
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_EXECUTABLE_PATH_LENGTH
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_NAME_LENGTH
 import com.artemchep.keyguard.common.service.agent.isUnsafeAgentCallerDisplayCodePoint
+import com.artemchep.keyguard.common.service.agent.serve
 import java.io.EOFException
 import java.net.Socket
 import java.net.SocketException
@@ -33,13 +36,14 @@ internal suspend fun runSshAgentProxyBridge(
     proxyPort: Int,
     sessionId: ByteArray,
     sessionSecret: ByteArray,
-    senderAppInfo: SshAgentMessages.CallerIdentity? = null,
+    senderAppInfo: CallerIdentity? = null,
+    onOversizeResponse: (size: Int) -> Unit = {},
     connectHostCandidates: List<String> = DEFAULT_CONNECT_HOST_CANDIDATES,
     connectTimeoutMs: Int = DEFAULT_CONNECT_TIMEOUT_MS,
     connectDeadlineMs: Long = DEFAULT_CONNECT_DEADLINE_MS,
     connectRetryDelayMs: Long = DEFAULT_CONNECT_RETRY_DELAY_MS,
     handshakeTimeoutMs: Long = DEFAULT_PROXY_HANDSHAKE_TIMEOUT_MS,
-    packetReadTimeoutMs: Long = DEFAULT_PROXY_PACKET_READ_TIMEOUT_MS,
+    packetReadTimeoutMs: Long = DEFAULT_SSH_PROXY_PACKET_READ_TIMEOUT_MS,
     packetWriteTimeoutMs: Long = DEFAULT_PROXY_PACKET_WRITE_TIMEOUT_MS,
     socketFactory: () -> Socket = ::Socket,
     monotonicTimeMs: () -> Long = { System.nanoTime() / 1_000_000L },
@@ -48,10 +52,91 @@ internal suspend fun runSshAgentProxyBridge(
     delayMs: (suspend (Long) -> Unit)? = null,
 ) {
     val rpcHandler = SshAgentRpcHandler(
-        requestProcessor = requestProcessor,
-        authenticate = { false },
+        requestProcessor = CallerMergingSshAgentRequestProcessor(
+            delegate = requestProcessor,
+            senderAppInfo = senderAppInfo,
+            replaceCallerAuthorization = true,
+        ),
     )
 
+    runAndroidAgentProxySession(
+        agentName = "SSH agent",
+        proxyPort = proxyPort,
+        sessionId = sessionId,
+        sessionSecret = sessionSecret,
+        connectHostCandidates = connectHostCandidates,
+        connectTimeoutMs = connectTimeoutMs,
+        connectDeadlineMs = connectDeadlineMs,
+        connectRetryDelayMs = connectRetryDelayMs,
+        handshakeTimeoutMs = handshakeTimeoutMs,
+        packetReadTimeoutMs = packetReadTimeoutMs,
+        packetWriteTimeoutMs = packetWriteTimeoutMs,
+        socketFactory = socketFactory,
+        monotonicTimeMs = monotonicTimeMs,
+        delayMs = delayMs,
+    ) { maxPacketSize ->
+        SshAgentPacketSession(
+            rpcHandler = rpcHandler,
+            authenticatedByTransport = true,
+            maxPacketSize = maxPacketSize,
+            onOversizeResponse = onOversizeResponse,
+        )
+    }
+}
+
+/**
+ * Runs every request's caller through [mergeAndroidSshAgentCallerIdentity],
+ * which bounds and strips its display fields. The Android bridge attributes
+ * requests to the app that sent the broadcast and never trusts the helper's
+ * own authorization; desktop passes no sender and keeps the authorization.
+ */
+internal class CallerMergingSshAgentRequestProcessor(
+    private val delegate: SshAgentRequestProcessor,
+    private val senderAppInfo: CallerIdentity?,
+    private val replaceCallerAuthorization: Boolean,
+) : SshAgentRequestProcessor {
+    override suspend fun listKeys(
+        caller: CallerIdentity?,
+    ): SshAgentRequestProcessor.ListKeysResult = delegate.listKeys(caller.merged())
+
+    override suspend fun signData(
+        request: SshAgentMessages.SignDataRequest,
+    ): SshAgentRequestProcessor.SignDataResult =
+        delegate.signData(request.copy(caller = request.caller.merged()))
+
+    private fun CallerIdentity?.merged(): CallerIdentity? = mergeAndroidSshAgentCallerIdentity(
+        caller = this,
+        senderAppInfo = senderAppInfo,
+        replaceCallerAuthorization = replaceCallerAuthorization,
+    )
+}
+
+/**
+ * Connects back to a Termux helper's proxy port, completes the session
+ * handshake and serves a [session] with packet I/O bounded by socket deadlines.
+ * The read deadline doubles as the idle timeout between requests, so each
+ * protocol picks one that outlasts its helper's own idle limit.
+ */
+internal suspend fun runAndroidAgentProxySession(
+    agentName: String,
+    proxyPort: Int,
+    sessionId: ByteArray,
+    sessionSecret: ByteArray,
+    packetReadTimeoutMs: Long,
+    connectHostCandidates: List<String> = DEFAULT_CONNECT_HOST_CANDIDATES,
+    connectTimeoutMs: Int = DEFAULT_CONNECT_TIMEOUT_MS,
+    connectDeadlineMs: Long = DEFAULT_CONNECT_DEADLINE_MS,
+    connectRetryDelayMs: Long = DEFAULT_CONNECT_RETRY_DELAY_MS,
+    handshakeTimeoutMs: Long = DEFAULT_PROXY_HANDSHAKE_TIMEOUT_MS,
+    packetWriteTimeoutMs: Long = DEFAULT_PROXY_PACKET_WRITE_TIMEOUT_MS,
+    socketFactory: () -> Socket = ::Socket,
+    monotonicTimeMs: () -> Long = { System.nanoTime() / 1_000_000L },
+    // Null default (not `= { delay(it) }`) to avoid a Kotlin 2.4.0 JVM-backend crash;
+    // see withAndroidSshAgentProxySocket. Forwarded as-is to the connector.
+    delayMs: (suspend (Long) -> Unit)? = null,
+    /** Creates the session of a connection, whose packets the transport caps at the given size. */
+    session: (maxPacketSize: Int) -> AgentPacketSession<*, *>,
+) {
     withAndroidSshAgentProxySocket(
         proxyPort = proxyPort,
         connectHostCandidates = connectHostCandidates,
@@ -65,7 +150,7 @@ internal suspend fun runSshAgentProxyBridge(
         val channel = runSocketOperationWithDeadline(
             socket = socket,
             timeoutMs = handshakeTimeoutMs,
-            operationName = "SSH agent proxy handshake",
+            operationName = "$agentName proxy handshake",
         ) {
             SshAgentTcpProtocol.openAsApp(
                 input = socket.getInputStream(),
@@ -74,46 +159,49 @@ internal suspend fun runSshAgentProxyBridge(
                 sessionSecret = sessionSecret,
             )
         }
-        // Closing the local proxy socket during bridge cancellation or peer disconnect
-        // should terminate the session quietly instead of surfacing as an uncaught failure.
-        try {
-            runSshAgentPacketSession(
-                channel = channel,
-                rpcHandler = rpcHandler,
-                initialContext = SshAgentRpcRequestContext(
-                    authenticated = true,
-                    allowAuthenticate = false,
-                    callerAugmentation = senderAppInfo,
-                    replaceCallerAuthorization = true,
-                ),
-                readPacket = { packetChannel ->
+        runProxySessionQuietly(socket) {
+            session(SshAgentTcpProtocol.MAX_FRAME_PAYLOAD_SIZE).serve(
+                readPacket = {
                     runSocketOperationWithDeadline(
                         socket = socket,
                         timeoutMs = packetReadTimeoutMs,
-                        operationName = "SSH agent proxy packet read",
+                        operationName = "$agentName proxy packet read",
                     ) {
-                        packetChannel.readPacket()
+                        channel.readPacket()
                     }
                 },
-                writePacket = { packetChannel, packet ->
+                writePacket = { packet ->
                     runSocketOperationWithDeadline(
                         socket = socket,
                         timeoutMs = packetWriteTimeoutMs,
-                        operationName = "SSH agent proxy packet write",
+                        operationName = "$agentName proxy packet write",
                     ) {
-                        packetChannel.writePacket(packet)
+                        channel.writePacket(packet)
                     }
+                    true
                 },
             )
-        } catch (_: EOFException) {
-            return@withAndroidSshAgentProxySocket
-        } catch (_: SocketTimeoutException) {
-            return@withAndroidSshAgentProxySocket
-        } catch (e: SocketException) {
-            val skip = e.isExpectedProxyShutdown(socket, currentCoroutineContext().isActive)
-            if (skip) {
-                return@withAndroidSshAgentProxySocket
-            }
+        }
+    }
+}
+
+/**
+ * Runs a proxy session. Closing the local proxy socket during bridge cancellation
+ * or a peer disconnect ends the session quietly instead of surfacing as an
+ * uncaught failure.
+ */
+internal suspend fun runProxySessionQuietly(
+    socket: Socket,
+    block: suspend () -> Unit,
+) {
+    try {
+        block()
+    } catch (_: EOFException) {
+        return
+    } catch (_: SocketTimeoutException) {
+        return
+    } catch (e: SocketException) {
+        if (!e.isExpectedProxyShutdown(socket, currentCoroutineContext().isActive)) {
             throw e
         }
     }
@@ -124,13 +212,13 @@ internal fun CoroutineScope.launchSshAgentProxyBridge(
     proxyPort: Int,
     sessionId: ByteArray,
     sessionSecret: ByteArray,
-    senderAppInfo: SshAgentMessages.CallerIdentity? = null,
+    senderAppInfo: CallerIdentity? = null,
     connectHostCandidates: List<String> = DEFAULT_CONNECT_HOST_CANDIDATES,
     connectTimeoutMs: Int = DEFAULT_CONNECT_TIMEOUT_MS,
     connectDeadlineMs: Long = DEFAULT_CONNECT_DEADLINE_MS,
     connectRetryDelayMs: Long = DEFAULT_CONNECT_RETRY_DELAY_MS,
     handshakeTimeoutMs: Long = DEFAULT_PROXY_HANDSHAKE_TIMEOUT_MS,
-    packetReadTimeoutMs: Long = DEFAULT_PROXY_PACKET_READ_TIMEOUT_MS,
+    packetReadTimeoutMs: Long = DEFAULT_SSH_PROXY_PACKET_READ_TIMEOUT_MS,
     packetWriteTimeoutMs: Long = DEFAULT_PROXY_PACKET_WRITE_TIMEOUT_MS,
     socketFactory: () -> Socket = ::Socket,
     monotonicTimeMs: () -> Long = { System.nanoTime() / 1_000_000L },
@@ -163,7 +251,8 @@ internal fun CoroutineScope.launchSshAgentProxyBridge(
 }
 
 internal const val DEFAULT_PROXY_HANDSHAKE_TIMEOUT_MS = 10_000L
-internal const val DEFAULT_PROXY_PACKET_READ_TIMEOUT_MS = 120_000L
+// Matches CLIENT_PACKET_TIMEOUT of the Termux SSH agent helper.
+internal const val DEFAULT_SSH_PROXY_PACKET_READ_TIMEOUT_MS = 120_000L
 internal const val DEFAULT_PROXY_PACKET_WRITE_TIMEOUT_MS = 10_000L
 
 /**
@@ -232,7 +321,7 @@ internal fun buildAndroidSshAgentCallerIdentity(
     appName: String? = null,
     appBundlePath: String? = null,
     authorization: CallerAuthorization? = null,
-): SshAgentMessages.CallerIdentity? {
+): CallerIdentity? {
     val normalizedProcessName = sanitizeAndroidCallerDisplayValue(
         processName,
         MAX_AGENT_CALLER_NAME_LENGTH,
@@ -262,7 +351,7 @@ internal fun buildAndroidSshAgentCallerIdentity(
         return null
     }
 
-    return SshAgentMessages.CallerIdentity(
+    return CallerIdentity(
         pid = pid ?: 0,
         uid = uid ?: 0,
         gid = gid ?: 0,
@@ -354,10 +443,10 @@ private fun compareUnsigned(
 }
 
 internal fun mergeAndroidSshAgentCallerIdentity(
-    caller: SshAgentMessages.CallerIdentity?,
-    senderAppInfo: SshAgentMessages.CallerIdentity?,
+    caller: CallerIdentity?,
+    senderAppInfo: CallerIdentity?,
     replaceCallerAuthorization: Boolean = false,
-): SshAgentMessages.CallerIdentity? {
+): CallerIdentity? {
     if (senderAppInfo == null) {
         return if (replaceCallerAuthorization) {
             // The Android bridge could not attribute the outer broadcast to
@@ -431,8 +520,8 @@ private fun CallerAuthorization?.hasVerifiedAndroidFrameworkPackageSubject(): Bo
         subject.fingerprint.size == AgentCallerAuthorizationSchema.FINGERPRINT_SIZE
 }
 
-private fun SshAgentMessages.CallerIdentity.sanitizeAndroidCallerIdentity(
-): SshAgentMessages.CallerIdentity = copy(
+private fun CallerIdentity.sanitizeAndroidCallerIdentity(
+): CallerIdentity = copy(
     processName = sanitizeAndroidCallerDisplayValue(
         processName,
         MAX_AGENT_CALLER_NAME_LENGTH,

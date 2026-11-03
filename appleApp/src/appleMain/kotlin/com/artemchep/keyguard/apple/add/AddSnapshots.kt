@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.apple.add
 
 import com.artemchep.keyguard.apple.KeyguardCore
+import com.artemchep.keyguard.apple.model.TagsFieldSnapshot
 import com.artemchep.keyguard.apple.model.TextFieldSnapshot
 
 enum class AddItemKind {
@@ -15,7 +16,7 @@ enum class AddItemKind {
     FIELD_TEXT,
     FIELD_SWITCH,
     FIELD_LINKED_ID,
-    TAG,
+    TAGS,
     PASSKEY,
     ATTACHMENT,
     SSH_KEY,
@@ -90,9 +91,11 @@ data class AddGpgKeySnapshot(
     val publicKey: String,
     val privateKey: String,
     val fingerprint: String,
-    val userId: String,
     val hasKey: Boolean,
     val canChange: Boolean,
+    val userIdsAction: AddGpgUserIdActionSnapshot? = null,
+    val userIdsSummary: String? = null,
+    val userIds: AddGpgUserIdsSnapshot? = null,
 )
 
 data class AddMergeSourceSnapshot(
@@ -114,6 +117,7 @@ data class AddMergeSnapshot(
  *  - a toggle lives in [switchValue] / [switchEnabled] / [switchId] (routed via
  *    [AddFormSession.setAddSwitch]);
  *  - a current dropdown value is [enumValue], its choices [options];
+ *  - a tags editor lives in [tags] (its commands are routed via [AddFormSession.setAddField]);
  *  - inline / overflow actions live in [actions];
  *  - [options] and [actions] entries route via [AddFormSession.invokeAddAction].
  */
@@ -133,6 +137,7 @@ data class AddItemSnapshot(
     val sshKey: AddSshKeySnapshot?,
     val gpgKey: AddGpgKeySnapshot?,
     val passkeyName: String?,
+    val tags: TagsFieldSnapshot?,
     /**
      * TOTP rows only: pass a raw scanned `otpauth://` URI or Base32 secret to [AddFormSession.scanAddTotp] with
      * this id. Null when the form can't accept a scan.
@@ -231,4 +236,59 @@ enum class AddDatePickerKind {
 data class AddEditFormRequest(
     val requestId: String,
     val isSend: Boolean,
+)
+
+/** An embedded subflow; all actions and fields belong to the current add-form session. */
+data class AddGpgUserIdsSnapshot(
+    val title: String,
+    val message: String,
+    val error: String?,
+    val busy: Boolean,
+    val loading: Boolean,
+    val page: AddGpgUserIdsPage,
+    val identities: List<AddGpgIdentitySnapshot>,
+    val history: List<AddGpgIdentitySnapshot>,
+    val fields: List<AddGpgUserIdFieldSnapshot>,
+    val add: AddGpgUserIdActionSnapshot?,
+    val formats: List<AddGpgUserIdFormatSnapshot>,
+    val confirm: AddGpgUserIdActionSnapshot?,
+    val back: AddGpgUserIdActionSnapshot,
+)
+
+enum class AddGpgUserIdsPage {
+    LIST,
+    EDIT,
+    REVOKE,
+}
+
+data class AddGpgUserIdFormatSnapshot(
+    val key: String,
+    val action: AddGpgUserIdActionSnapshot,
+    val selected: Boolean,
+)
+
+data class AddGpgIdentitySnapshot(
+    val id: String,
+    val value: String,
+    val status: String?,
+    val actions: List<AddGpgUserIdActionSnapshot>,
+)
+
+data class AddGpgUserIdFieldSnapshot(
+    val field: TextFieldSnapshot,
+    val label: String,
+    val kind: AddGpgUserIdFieldKind,
+)
+
+enum class AddGpgUserIdFieldKind {
+    NAME,
+    EMAIL,
+    RAW,
+}
+
+data class AddGpgUserIdActionSnapshot(
+    val id: String,
+    val title: String,
+    val enabled: Boolean,
+    val destructive: Boolean,
 )

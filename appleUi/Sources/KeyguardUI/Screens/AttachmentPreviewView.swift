@@ -9,41 +9,118 @@ import UIKit
 
 struct AttachmentPreviewView: View {
     @Environment(DialogsModel.self) private var dialogsModel
+    @Environment(\.dismiss) private var dismiss
 
-    /// `0` renders the markdown, `1` shows the raw source.
-    @State private var markdownMode = 0
+    /// `0` renders the preview or JSON tree, `1` shows the raw source.
+    @State private var textMode = 0
+    @State private var archivePassword = ""
+    @FocusState private var archivePasswordFocused: Bool
+    @State private var archiveScrollTargets: [String: String] = [:]
 
     var body: some View {
+        let export = dialogsModel.attachmentArchiveExport
+        let snapshot = dialogsModel.attachmentPreview
+        let busy = snapshot?.busy == true || snapshot?.exportId != nil
+        // Inside an archive the dismiss button steps back, like an embedded editor step.
         ModalSheet(
-            title: dialogsModel.attachmentPreview?.fileName ?? L10n.attachment,
+            title: snapshot?.fileName ?? L10n.attachment,
             width: 640,
             height: 480,
-            detents: [.large]
+            detents: [.large],
+            dismissLabel: snapshot?.canGoBack == true ? L10n.attachmentArchiveBack : L10n.close,
+            onDismiss: {
+                if dialogsModel.attachmentPreview?.canGoBack == true {
+                    dialogsModel.backInAttachmentArchive()
+                } else {
+                    dismiss()
+                }
+            }
         ) {
-            if let snapshot = dialogsModel.attachmentPreview {
+            if let snapshot {
                 content(snapshot)
             } else {
                 // Briefly nil mid-dismissal; render nothing.
                 Color.clear
             }
         } actions: {
-            if dialogsModel.attachmentPreview?.canCopy == true {
-                Button {
+            if snapshot?.canSave == true {
+                Button(L10n.attachmentArchiveSave, systemImage: "square.and.arrow.down") {
+                    dialogsModel.saveAttachmentArchiveEntry()
+                }
+                .help(L10n.attachmentArchiveSave)
+                .disabled(busy)
+            }
+            if snapshot?.canCopy == true {
+                Button(L10n.copy, systemImage: "doc.on.doc") {
                     dialogsModel.copyAttachmentPreviewText()
-                } label: {
-                    Image(systemName: "doc.on.doc")
                 }
                 .help(L10n.copy)
-                .accessibilityLabel(L10n.copy)
             }
         }
+        .task(id: dialogsModel.attachmentPreview?.exportId) {
+            if dialogsModel.attachmentPreview?.exportId != nil { dialogsModel.prepareAttachmentArchiveExport() }
+        }
+        .onChange(of: dialogsModel.attachmentPreview?.needsPassword) { _, needsPassword in
+            if needsPassword != true { archivePassword = "" }
+        }
+        .onChange(of: dialogsModel.attachmentPreview?.jsonDocumentId) { _, document in
+            if document != nil { textMode = 0 }
+        }
+        #if os(iOS)
+        .fileExporter(
+            isPresented: Binding(get: { export != nil }, set: { _ in }),
+            item: export,
+            defaultFilename: export?.name,
+            onCompletion: { result in
+                guard let export else { return }
+                switch result {
+                case .success: dialogsModel.finishAttachmentArchiveExport(export, outcome: .saved)
+                case .failure: dialogsModel.finishAttachmentArchiveExport(export, outcome: .failed)
+                }
+            },
+            onCancellation: {
+                guard let export else { return }
+                dialogsModel.finishAttachmentArchiveExport(export, outcome: .cancelled)
+            }
+        )
+        #endif
     }
 
     @ViewBuilder
     private func content(_ snapshot: AttachmentPreviewSnapshot) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            if snapshot.kind == AttachmentPreviewKindSnapshot.markdown {
-                Picker("", selection: $markdownMode) {
+            if snapshot.busy {
+                HStack {
+                    ProgressView()
+                    Button(L10n.cancel) { dialogsModel.cancelAttachmentArchiveOperation() }
+                }
+            }
+
+            if snapshot.needsPassword {
+                passwordPane(snapshot)
+            } else {
+                previewPane(snapshot)
+            }
+        }
+        .padding(24)
+    }
+
+    @ViewBuilder
+    private func previewPane(_ snapshot: AttachmentPreviewSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            if snapshot.kind == AttachmentPreviewKindSnapshot.json, snapshot.jsonTree != nil {
+                Picker("", selection: $textMode) {
+                    Text(L10n.attachmentPreviewActionSource).tag(1)
+                    Text(L10n.attachmentPreviewActionTree).tag(0)
+                }
+                .pickerStyle(.segmented)
+                .labelsHidden()
+                .accessibilityLabel("\(L10n.attachmentPreviewActionSource) / \(L10n.attachmentPreviewActionTree)")
+            } else if snapshot.kind == AttachmentPreviewKindSnapshot.markdown
+                || snapshot.kind == AttachmentPreviewKindSnapshot.table
+                || (snapshot.kind == AttachmentPreviewKindSnapshot.gpgKey && snapshot.text != nil)
+            {
+                Picker("", selection: $textMode) {
                     Text(L10n.fileActionPreviewTitle).tag(0)
                     Text(L10n.attachmentPreviewActionSource).tag(1)
                 }
@@ -51,26 +128,82 @@ struct AttachmentPreviewView: View {
                 .labelsHidden()
                 // The empty title + `.labelsHidden()` keeps the segmented layout but
                 // leaves VoiceOver with no name for the control; describe that it
-                // toggles rendered markdown vs. the raw source.
+                // toggles the rendered preview vs. the raw source.
                 .accessibilityLabel("\(L10n.fileActionPreviewTitle) / \(L10n.attachmentPreviewActionSource)")
             }
 
             Group {
-                if snapshot.kind == AttachmentPreviewKindSnapshot.loading {
+                if snapshot.kind == AttachmentPreviewKindSnapshot.archive {
+                    AttachmentArchiveView(
+                        snapshot: snapshot,
+                        savedScrollTarget: archiveScrollTargets[snapshot.archivePath],
+                        onScroll: { target in
+                            if let target { archiveScrollTargets[snapshot.archivePath] = target }
+                        }
+                    )
+                    .id(snapshot.archivePath)
+                } else if snapshot.kind == AttachmentPreviewKindSnapshot.loading {
                     loadingPane()
                 } else if snapshot.kind == AttachmentPreviewKindSnapshot.image {
                     imagePane(snapshot)
                 } else if snapshot.kind == AttachmentPreviewKindSnapshot.text {
                     textPane(snapshot)
+                } else if snapshot.kind == AttachmentPreviewKindSnapshot.json {
+                    AttachmentPreviewJsonView(
+                        tree: snapshot.jsonTree,
+                        errorMessage: snapshot.jsonErrorMessage,
+                        showTree: textMode == 0
+                    ) {
+                        textPane(snapshot)
+                    }
+                    .id(snapshot.jsonDocumentId)
                 } else if snapshot.kind == AttachmentPreviewKindSnapshot.markdown {
                     markdownPane(snapshot)
+                } else if snapshot.kind == AttachmentPreviewKindSnapshot.table {
+                    tablePane(snapshot)
+                } else if snapshot.kind == AttachmentPreviewKindSnapshot.gpgKey {
+                    gpgKeyPane(snapshot)
                 } else {
                     errorPane(snapshot.errorMessage)
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(24)
+    }
+
+    @ViewBuilder
+    private func passwordPane(_ snapshot: AttachmentPreviewSnapshot) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text(L10n.attachmentArchivePassword).font(.headline)
+            SecureField(L10n.password, text: $archivePassword)
+                #if os(iOS)
+            .textContentType(.password)
+                #endif
+                .focused($archivePasswordFocused)
+                .onSubmit(submitArchivePassword)
+            if snapshot.passwordIncorrect {
+                Label(L10n.attachmentArchiveErrorPassword, systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.red)
+            }
+            HStack {
+                Spacer()
+                Button(L10n.cancel, role: .cancel) {
+                    archivePassword = ""
+                    dialogsModel.cancelAttachmentArchiveOperation()
+                }
+                Button(L10n.confirm, action: submitArchivePassword)
+                    .disabled(archivePassword.isEmpty)
+                    .keyboardShortcut(.defaultAction)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .onAppear { archivePasswordFocused = true }
+    }
+
+    private func submitArchivePassword() {
+        guard !archivePassword.isEmpty else { return }
+        dialogsModel.submitAttachmentArchivePassword(archivePassword)
+        archivePassword = ""
     }
 
     @ViewBuilder
@@ -103,7 +236,7 @@ struct AttachmentPreviewView: View {
 
     @ViewBuilder
     private func markdownPane(_ snapshot: AttachmentPreviewSnapshot) -> some View {
-        if markdownMode == 0 {
+        if textMode == 0 {
             ScrollView {
                 MarkdownTextView(text: snapshot.text ?? "")
                     .padding(12)
@@ -116,8 +249,91 @@ struct AttachmentPreviewView: View {
     }
 
     @ViewBuilder
+    private func tablePane(_ snapshot: AttachmentPreviewSnapshot) -> some View {
+        if textMode == 0 {
+            AttachmentPreviewTableView(
+                rows: snapshot.tableRows,
+                columnLengths: snapshot.tableColumnLengths
+            )
+            .background(.quaternary.opacity(0.5), in: RoundedRectangle(cornerRadius: 8))
+        } else {
+            textPane(snapshot)
+        }
+    }
+
+    @ViewBuilder
+    private func gpgKeyPane(_ snapshot: AttachmentPreviewSnapshot) -> some View {
+        // A binary key has no source to show.
+        if textMode == 0 || snapshot.text == nil {
+            // The key details have no actions.
+            DetailForm(items: snapshot.items, invoke: { _ in })
+        } else {
+            textPane(snapshot)
+        }
+    }
+
+    @ViewBuilder
     private func errorPane(_ message: String?) -> some View {
         AttachmentPreviewErrorPane(message: message)
+    }
+}
+
+private struct AttachmentPreviewTableView: View {
+    /// The first row is the header. A row may have fewer cells than `columnLengths`.
+    let rows: [[String]]
+    let columnLengths: [KotlinInt]
+
+    @ScaledMetric(relativeTo: .body) private var fontSize = PlatformFont.systemFontSize
+
+    private static let cellPadding: CGFloat = 8
+
+    var body: some View {
+        let widths = columnWidths()
+        let rowWidth = widths.reduce(0, +)
+        ScrollView([.vertical, .horizontal]) {
+            LazyVStack(alignment: .leading, spacing: 0, pinnedViews: [.sectionHeaders]) {
+                Section {
+                    ForEach(rows.indices.dropFirst(), id: \.self) { index in
+                        if index > 1 {
+                            Divider().frame(width: rowWidth)
+                        }
+                        row(rows[index], widths: widths)
+                    }
+                } header: {
+                    VStack(alignment: .leading, spacing: 0) {
+                        row(rows.first ?? [], widths: widths)
+                            .bold()
+                        Divider().frame(width: rowWidth)
+                    }
+                    .background(.bar)
+                }
+            }
+        }
+        .textSelection(.enabled)
+    }
+
+    private func row(_ cells: [String], widths: [CGFloat]) -> some View {
+        HStack(spacing: 0) {
+            ForEach(widths.indices, id: \.self) { index in
+                Text(index < cells.count ? cells[index] : "")
+                    .lineLimit(1)
+                    .truncationMode(.tail)
+                    .padding(.horizontal, Self.cellPadding)
+                    .padding(.vertical, 6)
+                    .frame(width: widths[index], alignment: .leading)
+            }
+        }
+        .font(.system(size: fontSize, design: .monospaced))
+    }
+
+    /// Monospace glyphs share one width; the bold header's is the widest.
+    private func columnWidths() -> [CGFloat] {
+        let font = PlatformFont.monospacedSystemFont(ofSize: fontSize, weight: .bold)
+        let charWidth = ("0" as NSString).size(withAttributes: [.font: font]).width
+        return columnLengths.map { length in
+            let chars = min(max(Int(truncating: length), 3), 40)
+            return charWidth * CGFloat(chars) + Self.cellPadding * 2
+        }
     }
 }
 

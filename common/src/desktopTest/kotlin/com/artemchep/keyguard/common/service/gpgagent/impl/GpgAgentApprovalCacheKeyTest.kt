@@ -3,7 +3,7 @@ package com.artemchep.keyguard.common.service.gpgagent.impl
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentOperation
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -13,8 +13,8 @@ import kotlin.test.assertNull
 class GpgAgentApprovalCacheKeyTest {
     @Test
     fun `legacy callers never produce reusable gpg cache keys`() {
-        val first = GpgAgentMessages.CallerIdentity(appName = "Terminal")
-        val second = GpgAgentMessages.CallerIdentity(appName = "Terminal")
+        val first = CallerIdentity(appName = "Terminal")
+        val second = CallerIdentity(appName = "Terminal")
 
         assertNull(gpgApprovalCacheKey(GpgAgentOperation.SIGN, "ABC", first))
         assertNull(gpgApprovalCacheKey(GpgAgentOperation.SIGN, "ABC", second))
@@ -37,7 +37,7 @@ class GpgAgentApprovalCacheKeyTest {
 
     @Test
     fun `malformed gpg authorization never produces a cache key`() {
-        val caller = GpgAgentMessages.CallerIdentity(
+        val caller = CallerIdentity(
             appName = "Terminal",
             authorization = CallerAuthorization(
                 connectionFingerprint = ByteArray(31),
@@ -66,7 +66,7 @@ class GpgAgentApprovalCacheKeyTest {
     private fun caller(
         appName: String,
         fingerprintByte: Byte,
-    ) = GpgAgentMessages.CallerIdentity(
+    ) = CallerIdentity(
         appName = appName,
         authorization = CallerAuthorization(
             connectionFingerprint = ByteArray(32) { fingerprintByte },
@@ -76,7 +76,7 @@ class GpgAgentApprovalCacheKeyTest {
     private fun separatedCaller(
         connectionByte: Byte,
         contextByte: Byte,
-    ) = GpgAgentMessages.CallerIdentity(
+    ) = CallerIdentity(
         appName = "Terminal",
         authorization = CallerAuthorization(
             connectionFingerprint = ByteArray(32) { connectionByte },

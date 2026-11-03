@@ -1,10 +1,13 @@
 package com.artemchep.keyguard.common.model.create
 
+import com.artemchep.keyguard.feature.environments.EnvironmentPayload
 import arrow.optics.optics
+import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.platform.LeUri
+import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
 import kotlin.time.Instant
@@ -18,6 +21,8 @@ data class CreateRequest(
     val note: String? = null,
     val favorite: Boolean? = null,
     val reprompt: Boolean? = null,
+    /** Null preserves the existing icon; [KeePassIcon.Key] restores the default. */
+    val customIcon: KeePassIcon? = null,
     val uris: PersistentList<DSecret.Uri> = persistentListOf(),
     val links: PersistentList<DSecret.Link> = persistentListOf(),
     val fido2Credentials: PersistentList<DSecret.Login.Fido2Credentials> = persistentListOf(),
@@ -31,6 +36,12 @@ data class CreateRequest(
     val identity: Identity = Identity(),
     val sshKey: SshKey = SshKey(),
     val gpgKey: GpgKey = GpgKey(),
+    /** Written as its document, so an import keeps the keys this version does not read. */
+    val environment: EnvironmentPayload.Decoded? = null,
+    /** Null preserves the existing archive state; a new item is then not archived. */
+    val archivedDate: Instant? = null,
+    /** Null preserves the existing trash state; a new item is then not trashed. */
+    val deletedDate: Instant? = null,
     // other
     val now: Instant,
 ) {
@@ -93,6 +104,23 @@ data class CreateRequest(
         ) : Attachment {
             companion object
         }
+
+        /**
+         * A file already encrypted with [keyBase64] into the pending uploads
+         * of the cipher's account, e.g. by an import that must never write
+         * its plaintext to disk. Saving the cipher takes [file] over: a
+         * failed save deletes it, so it must be new to the vault, staged for
+         * this save alone.
+         */
+        @optics
+        data class Staged(
+            override val id: String,
+            val name: String,
+            val keyBase64: String,
+            val file: PendingUploadFile,
+        ) : Attachment {
+            companion object
+        }
     }
 
     @optics
@@ -147,6 +175,8 @@ data class CreateRequest(
         val privateKey: String? = null,
         val publicKey: String? = null,
         val fingerprint: String? = null,
+        val certificate: String? = null,
+        val bookmarks: PersistentList<DSecret.SshKey.Bookmark> = persistentListOf(),
     ) {
         companion object;
     }

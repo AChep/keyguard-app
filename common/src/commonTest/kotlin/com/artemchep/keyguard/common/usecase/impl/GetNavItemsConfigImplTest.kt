@@ -339,6 +339,28 @@ class GetNavItemsConfigImplTest {
     }
 
     @Test
+    fun `gpg tools are hidden when the only key is archived or trashed`() = runTest {
+        val cipher = createGpgCipher(accountId = "account-1")
+        val fixture = fixture(
+            accounts = listOf(createAccount(id = "account-1", type = AccountType.BITWARDEN)),
+            profiles = listOf(createProfile(accountId = "account-1", hidden = false)),
+            ciphers = listOf(cipher),
+        )
+        val date = Instant.parse("2024-02-01T00:00:00Z")
+        listOf(cipher.copy(archivedDate = date), cipher.copy(deletedDate = date)).forEach { inactive ->
+            fixture.ciphersFlow.value = listOf(inactive)
+            advanceTimeBy(2_001L)
+            advanceUntilIdle()
+            assertFalse(fixture.useCase().value.gpgToolsVisible())
+
+            fixture.ciphersFlow.value = listOf(cipher)
+            advanceTimeBy(2_001L)
+            advanceUntilIdle()
+            assertTrue(fixture.useCase().value.gpgToolsVisible())
+        }
+    }
+
+    @Test
     fun `gpg tools stay visible during transient mixed account cipher snapshot`() = runTest {
         val gpgCipher = createGpgCipher(
             accountId = "gpg-account",

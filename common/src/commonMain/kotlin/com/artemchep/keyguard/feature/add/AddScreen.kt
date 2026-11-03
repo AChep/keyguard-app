@@ -90,6 +90,7 @@ import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
 import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
+import com.artemchep.keyguard.feature.gpgkey.userids.GpgUserIdsDialog
 import com.artemchep.keyguard.feature.home.vault.component.CompactVaultItem
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
@@ -130,7 +131,6 @@ import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.PasswordPwnedBadge
 import com.artemchep.keyguard.ui.rememberFieldBuffer
 import com.artemchep.keyguard.ui.PasswordStrengthBadge
-import com.artemchep.keyguard.ui.TagFlatTextField
 import com.artemchep.keyguard.ui.UrlFlatTextField
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.focus.focusRequester2
@@ -147,6 +147,7 @@ import com.artemchep.keyguard.ui.markdown.MarkdownText
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
+import com.artemchep.keyguard.ui.tags.TagsField
 import com.artemchep.keyguard.ui.text.annotatedResource
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -214,7 +215,7 @@ fun getAnyFieldShapeState(
         is AddStateItem.Url<*> -> ::getAnyFieldShapeStateUrlPredicate
         is AddStateItem.Link<*> -> ::getAnyFieldShapeStateLinkPredicate
         is AddStateItem.Field<*> -> ::getAnyFieldShapeStateFieldPredicate
-        is AddStateItem.Tag<*> -> ::getAnyFieldShapeStateTagPredicate
+        is AddStateItem.Tags<*> -> ::getAnyFieldShapeStateTagPredicate
         else -> ::getAnyFieldShapeStateOtherPredicate
     }
     return getShapeState(
@@ -272,7 +273,7 @@ private fun getAnyFieldShapeStateFieldPredicate(
 private fun getAnyFieldShapeStateTagPredicate(
     item: AddStateItem,
     index: Int,
-) = item is AddStateItem.Tag<*>
+) = item is AddStateItem.Tags<*>
 
 private fun getAnyFieldShapeStateOtherPredicate(
     item: AddStateItem,
@@ -428,8 +429,8 @@ fun AnyField(
         )
     }
 
-    is AddStateItem.Tag<*> -> {
-        FieldTag(
+    is AddStateItem.Tags<*> -> {
+        FieldTags(
             modifier = modifier,
             item = item,
             shapeState = shapeState,
@@ -924,6 +925,7 @@ private fun GpgKeyField(
     shapeState: Int,
 ) {
     val state by item.state.flow.collectAsState()
+    GpgUserIdsDialog(state.userIds)
     FileDropField(
         modifier = modifier,
         containerPadding = defaultFlatItemPaddingValues(),
@@ -932,10 +934,8 @@ private fun GpgKeyField(
         val supportingRows = listOfNotNull(
             state.expiration
                 ?.let { row -> Res.string.gpg_key_expiry_title to row },
-            state.identityReplacement
-                ?.let { row -> Res.string.gpg_user_id_replacement_title to row },
-            state.identityRevocation
-                ?.let { row -> Res.string.gpg_user_id_revocation_title to row },
+            state.identityManagement
+                ?.let { row -> Res.string.gpg_key_user_ids to row },
         )
         Column {
             FlatItemLayoutExpressive(
@@ -1073,10 +1073,11 @@ private fun UrlTextField(
     UrlFlatTextField(
         modifier = modifier
             .padding(horizontal = Dimens.fieldHorizontalPadding),
-        label = stringResource(Res.string.uri),
+        label = state.label ?: stringResource(Res.string.uri),
+        placeholder = state.placeholder,
         shapeState = shapeState,
         value = field,
-        leading = {
+        leading = item.leading ?: {
             IconBox(
                 main = Icons.Outlined.KeyguardWebsite,
             )
@@ -1346,52 +1347,17 @@ private fun TextTextField(
 
 context(addScope: AddScreenScope)
 @Composable
-private fun FieldTag(
+private fun FieldTags(
     modifier: Modifier = Modifier,
-    item: AddStateItem.Tag<*>,
-    shapeState: Int,
-) = Column(modifier = modifier) {
-    val state by item.state.flow.collectAsState()
-    val actions = remember(
-        state.options,
-        item.options,
-    ) {
-        buildContextItems(
-            state.options,
-            item.options,
-        ) {
-            // Do nothing.
-        }
-    }
-    when (val s = state) {
-        is AddStateItem.Tag.State.Text -> {
-            FieldTextTag(
-                state = s,
-                actions = actions,
-                shapeState = shapeState,
-            )
-        }
-    }
-}
-
-context(addScope: AddScreenScope)
-@Composable
-private fun FieldTextTag(
-    modifier: Modifier = Modifier,
-    state: AddStateItem.Tag.State.Text,
-    actions: ImmutableList<ContextItem>,
+    item: AddStateItem.Tags<*>,
     shapeState: Int,
 ) {
-    TagFlatTextField(
+    val state by item.state.flow.collectAsState()
+    TagsField(
         modifier = modifier
             .padding(horizontal = Dimens.fieldHorizontalPadding),
+        value = state,
         shapeState = shapeState,
-        value = state.text,
-        trailing = {
-            OptionsButton(
-                actions = actions,
-            )
-        },
     )
 }
 
@@ -1920,8 +1886,26 @@ private fun AddItem(
 ) = Column(
     modifier = modifier,
 ) {
+    AddButton(
+        modifier = modifier,
+        text = item.text,
+        actions = item.actions,
+    )
+}
+
+/**
+ * A tonal button that adds an item: runs the only action
+ * right away, or shows a menu of the [actions].
+ */
+@Composable
+internal fun AddButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    actions: List<ContextItem>,
+    enabled: Boolean = true,
+) {
     val dropdownShownState = remember { mutableStateOf(false) }
-    if (item.actions.isEmpty()) {
+    if (actions.isEmpty()) {
         dropdownShownState.value = false
     }
 
@@ -1937,9 +1921,10 @@ private fun AddItem(
         modifier = modifier
             .padding(top = 8.dp)
             .padding(horizontal = Dimens.buttonHorizontalPadding),
+        enabled = enabled,
         onClick = {
-            if (item.actions.size == 1) run {
-                val action = item.actions
+            if (actions.size == 1) run {
+                val action = actions
                     .firstNotNullOfOrNull { it as? FlatItemAction }
                 action?.onClick?.invoke()
                 return@Button
@@ -1961,14 +1946,14 @@ private fun AddItem(
                 .width(ButtonDefaults.IconSpacing),
         )
         Text(
-            text = item.text,
+            text = text,
         )
 
         KeyguardDropdownMenu(
             expanded = dropdownShownState.value,
             onDismissRequest = onDismissRequest,
         ) {
-            item.actions.forEachIndexed { index, action ->
+            actions.forEachIndexed { index, action ->
                 DropdownMenuItemFlat(
                     action = action,
                 )

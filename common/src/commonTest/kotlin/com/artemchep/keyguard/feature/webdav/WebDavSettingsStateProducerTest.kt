@@ -105,6 +105,29 @@ class WebDavSettingsStateProducerTest {
     }
 
     @Test
+    fun `keepass settings reject malformed urls before saving or testing connection`() {
+        listOf(
+            "100.100.100.100:8080",
+            "https://example.com:invalid/vault.kdbx",
+        ).forEach { url ->
+            val result = buildWebDavSettingsResult(
+                url = url,
+                username = "",
+                password = "",
+                purpose = WebDavSettingsRoute.Purpose.KeePassDatabase,
+            )
+
+            assertEquals(
+                WebDavSettingsBuildResult.Failure(
+                    WebDavSettingsState.Error.FileUrlRequired,
+                ),
+                result,
+                url,
+            )
+        }
+    }
+
+    @Test
     fun `keepass purpose rejects encoded path separator`() {
         val result = buildWebDavSettingsResult(
             url = "https://example.com/dav/a%2Fb.kdbx",
@@ -176,6 +199,55 @@ class WebDavSettingsStateProducerTest {
 
         assertEquals("https://example.com/dav/root/", result.rootUrl)
         assertEquals("", result.args.initialFileName)
+    }
+
+    @Test
+    fun `keepass browse accepts an ip address and port with an http scheme`() {
+        listOf("http", "https").forEach { scheme ->
+            val url = "$scheme://100.100.100.100:8080"
+            val result = assertIs<WebDavPickerArgsBuildResult.Success>(
+                buildWebDavPickerArgs(
+                    url = url,
+                    username = "",
+                    password = "",
+                    purpose = WebDavSettingsRoute.Purpose.KeePassDatabase,
+                    keePassMode = WebDavSettingsRoute.KeePassMode.Open,
+                    browseRootUrl = null,
+                ),
+            )
+
+            assertEquals("$url/", result.rootUrl)
+            assertEquals("", result.args.initialFileName)
+        }
+    }
+
+    @Test
+    fun `browse rejects malformed urls for every purpose and keepass mode`() {
+        listOf(
+            "100.100.100.100:8080",
+            "https://example.com:invalid/vault.kdbx",
+        ).forEach { url ->
+            WebDavSettingsRoute.Purpose.entries.forEach { purpose ->
+                WebDavSettingsRoute.KeePassMode.entries.forEach { keePassMode ->
+                    val result = buildWebDavPickerArgs(
+                        url = url,
+                        username = "",
+                        password = "",
+                        purpose = purpose,
+                        keePassMode = keePassMode,
+                        browseRootUrl = null,
+                    )
+
+                    assertEquals(
+                        WebDavPickerArgsBuildResult.Failure(
+                            WebDavSettingsState.Error.InvalidUrl,
+                        ),
+                        result,
+                        "$url, $purpose, $keePassMode",
+                    )
+                }
+            }
+        }
     }
 
     @Test

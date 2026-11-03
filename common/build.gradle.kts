@@ -1,4 +1,6 @@
 import com.android.build.api.dsl.KotlinMultiplatformAndroidHostTestCompilation
+import com.artemchep.keyguard.buildplugins.cargo.configureNativeLibraryTests
+import com.artemchep.keyguard.buildplugins.cargo.bundledAppResourcesFrom
 import com.artemchep.keyguard.buildplugins.kotlin.configureComposeIosSwiftRuntime
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleMain
 import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleTest
@@ -12,7 +14,13 @@ import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.INT
 import com.codingfeline.buildkonfig.compiler.FieldSpec.Type.STRING
 import com.artemchep.keyguard.buildplugins.version.keyguardVersionInfo
 import org.gradle.api.tasks.testing.Test
+import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.process.CommandLineArgumentProvider
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTargetWithTests
 import org.jetbrains.kotlin.gradle.plugin.mpp.NativeBuildType
 import java.time.Duration
 
@@ -67,6 +75,26 @@ tasks.withType<Test>().configureEach {
     timeout.set(Duration.ofMinutes(10))
 }
 
+// Real-network tests are explicitly run by scripts/run_mtls_tests.py, which owns
+// the disposable TLS servers. A missing fixture must fail, never silently skip.
+val mtlsTests = providers.gradleProperty("keyguard.mtlsTests").map(String::toBoolean).getOrElse(false)
+if (mtlsTests) {
+    val port = providers.environmentVariable("KEYGUARD_MTLS_PORT").get()
+    tasks.withType<Test>().configureEach {
+        environment("KEYGUARD_MTLS_PORT", port)
+        outputs.upToDateWhen { false }
+    }
+    tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeTest>().configureEach {
+        environment("KEYGUARD_MTLS_PORT", port)
+        environment("SIMCTL_CHILD_KEYGUARD_MTLS_PORT", port)
+        outputs.upToDateWhen { false }
+    }
+}
+
+// The desktop agents serve their helpers over util/agent-ipc. Only the desktop
+// tests load its library, so the Android host tests never build it.
+configureNativeLibraryTests(":util:agent-ipc", testTaskName = "desktopTest")
+
 tasks.withType<org.jetbrains.kotlin.gradle.targets.native.tasks.KotlinNativeSimulatorTest>().configureEach {
     // Foundation file coordination requires the simulator's running system services.
     // Standalone processes cannot coordinate access to Files-provider directories.
@@ -86,13 +114,21 @@ kotlin {
             isIncludeAndroidResources = true
         }
     }
-    macosArm64 {
-        // SQLCipher is supplied by Xcode, so keep its integration tests opt-in.
-        // ./gradlew :common:macosArm64SqlCipherTest -PsqlCipherFrameworkDir=/path/containing/SQLCipher.framework
-        providers.gradleProperty("sqlCipherFrameworkDir").orNull?.let { frameworkDir ->
+    // Explicit integration binaries use the same SQLCipher artifact as the apps.
+    // Ordinary graph tests keep the system SQLite linker setup.
+    targets.withType<KotlinNativeTargetWithTests<*>>().configureEach {
+        val slice = when (name) {
+            "macosArm64" -> "macos-arm64_x86_64"
+            "iosSimulatorArm64" -> "ios-arm64_x86_64-simulator"
+            else -> null
+        }
+        val frameworkDir = providers.gradleProperty("sqlCipherXcframeworkDir").orNull
+            ?.let { root -> slice?.let { "$root/$it" } }
+        if (frameworkDir != null) {
             val mainCompilation = compilations.getByName("main")
             val sqlCipherTest = compilations.create("sqlCipherTest") {
                 associateWith(mainCompilation)
+                defaultSourceSet.kotlin.srcDirs("src/appleSqlCipherTest/kotlin", "src/appleTestFixtures/kotlin")
                 defaultSourceSet.dependencies {
                     implementation(kotlin("test"))
                     implementation(libs.kotlinx.coroutines.test)
@@ -106,8 +142,8 @@ kotlin {
             testRuns.create("sqlCipher") {
                 setExecutionSourceFrom(sqlCipherBinary)
             }
-            // Both test compilations include the same common Compose resources.
-            tasks.withType<Copy>().matching { it.name == "copyTestComposeResourcesForMacosArm64" }.configureEach {
+            val targetSuffix = name.replaceFirstChar(Char::uppercaseChar)
+            tasks.withType<Copy>().matching { it.name == "copyTestComposeResourcesFor$targetSuffix" }.configureEach {
                 duplicatesStrategy = DuplicatesStrategy.EXCLUDE
             }
         }
@@ -167,6 +203,11 @@ kotlin {
                 api(project(":util:zip"))
                 api(project(":util:kdbx"))
                 api(project(":util:crypto"))
+                api(project(":feature:agent-setup"))
+                implementation(project(":util:csv"))
+                implementation(project(":util:gzip"))
+                api(project(":feature:cli"))
+                api(project(":feature:environments"))
                 api(project(":util:dns"))
                 api(project(":util:s3"))
                 api(project(":util:signalr"))
@@ -225,6 +266,11 @@ kotlin {
             kotlin.include("com/artemchep/keyguard/common/service/backup/**")
             kotlin.include("com/artemchep/keyguard/common/service/s3/InMemoryS3Client.kt")
             kotlin.include("com/artemchep/keyguard/common/service/directorywatcher/**")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/AgentIpcAuthenticatorTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/AgentIpcFramingTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/CliAgentConnectionTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/FakeAgentConnection.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/agent/FramedAgentPacketChannelTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/gpgagent/GpgAgentPacketSessionTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/licensekey/Kg2LicenseKeyDecoderTest.kt")
             kotlin.include("com/artemchep/keyguard/common/service/text/impl/Base32ServiceImplTest.kt")
@@ -236,11 +282,15 @@ kotlin {
             kotlin.include("com/artemchep/keyguard/common/service/download/TestDownloadAttachmentSourceLoader.kt")
             kotlin.include("com/artemchep/keyguard/common/service/vault/TestVaultSession.kt")
             kotlin.include("com/artemchep/keyguard/test/RecordingLogRepository.kt")
+            kotlin.include("com/artemchep/keyguard/test/MemoryStagingSpoolFactory.kt")
             kotlin.include("com/artemchep/keyguard/test/TestCryptoGenerator.kt")
             kotlin.include("com/artemchep/keyguard/test/IdentityBase64Service.kt")
             kotlin.include("com/artemchep/keyguard/test/TestBitwardenCr.kt")
             kotlin.include("com/artemchep/keyguard/test/ModelFixtures.kt")
             kotlin.include("com/artemchep/keyguard/common/usecase/impl/GetAppBuildDateImplTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/usecase/impl/GetPurchasedImplTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/usecase/impl/GetVaultSessionLicensePremiumImplTest.kt")
+            kotlin.include("com/artemchep/keyguard/common/service/licensekey/impl/LicenseSyncerTest.kt")
             kotlin.include("com/artemchep/keyguard/provider/bitwarden/api/builder/ServerEnvApiAzureUploadValidationTest.kt")
             kotlin.include("com/artemchep/keyguard/provider/bitwarden/api/builder/ServerEnvApiMultipartFilenameParameterTest.kt")
             kotlin.include("com/artemchep/keyguard/feature/fileupload/FileUploadTest.kt")
@@ -258,12 +308,25 @@ kotlin {
         }
 
         sharedAppleTest(parent = appleCommonTest)
+        getByName("appleTest").kotlin.srcDir("src/appleTestFixtures/kotlin")
+        if (mtlsTests) {
+            getByName("appleTest").kotlin.srcDirs("src/mtlsTest/kotlin", "src/mtlsAppleTest/kotlin")
+            getByName("desktopTest").kotlin.srcDirs(
+                "src/mtlsTest/kotlin", "src/mtlsJvmTest/kotlin", "src/mtlsDesktopTest/kotlin",
+            )
+        }
 
         getByName("androidHostTest") {
             kotlin.srcDir("src/androidUnitTest/kotlin")
         }
 
         getByName("desktopTest") {
+            // The golden fixtures of the agents' private channels, fixtures/,
+            // which their Rust tests check as well.
+            resources.srcDir("../commonSshAgent/proto")
+            resources.srcDir("../commonGpgAgent/proto")
+            resources.srcDir("../desktopCliAgent/proto")
+            resources.srcDir("../commonAgent/android-bridge/tests")
             dependencies {
                 // The backup tests inspect the archives the repository wrote
                 // with zip4j's own reader, independently of `util/zip`.
@@ -279,7 +342,6 @@ kotlin {
             implementation(libs.halilibo.richtext.ui.material3)
             implementation(libs.halilibo.richtext.commonmark)
             implementation(libs.halilibo.richtext.markdown)
-            implementation(libs.mm2d.touchicon)
             implementation(libs.google.zxing.core)
             implementation(project.dependencies.platform(libs.squareup.okhttp.bom))
             implementation(libs.squareup.okhttp)
@@ -289,6 +351,8 @@ kotlin {
 
         getByName("desktopMain") {
             dependencies {
+                api(project(":util:agent-ipc"))
+                api(project(":util:windows-passkeys"))
                 implementation(libs.kotlinx.coroutines.swing)
                 implementation(libs.google.zxing.javase)
                 implementation(libs.harawata.appdirs)
@@ -491,6 +555,20 @@ registerJvmBenchmark(
     flightRecorder(layout.buildDirectory.file("reports/cipher-url-check/cipher-url-check-profile.jfr"))
 }
 
+// Not a benchmark: the same isolated JVM task writes the Keyguard export
+// of the import corpus, see src/desktopTest/resources/import-corpus/README.md.
+registerJvmBenchmark(
+    "importCorpusKeyguard",
+    "Writes the Keyguard export of the import corpus into the desktopTest resources.",
+    "com.artemchep.keyguard.common.service.imports.corpus.*",
+) {
+    systemProperty(
+        "keyguard.import-corpus.output",
+        layout.projectDirectory.dir("src/desktopTest/resources/import-corpus").asFile.absolutePath,
+    )
+    systemProperty("keyguard.import-corpus.version", libs.versions.appVersionName.get())
+}
+
 // See:
 // https://kotlinlang.org/docs/ksp-multiplatform.html#compilation-and-processing
 dependencies {
@@ -557,3 +635,26 @@ tasks.register("checkSshjDependencies") {
 }
 
 configureComposeIosSwiftRuntime()
+
+// This opt-in UI host exercises the production modifier without bootstrapping a vault.
+val attachmentDragProbeResources = bundledAppResourcesFrom(":desktopLibNative")
+val attachmentDragProbeCompilation = kotlin.targets.getByName("desktop").compilations.getByName("test")
+class AttachmentDragProbeArguments(
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    val resources: FileCollection,
+) : CommandLineArgumentProvider {
+    override fun asArguments(): List<String> {
+        val library = resources.singleFile.walkTopDown().single { it.isFile && it.name == "keyguard-lib" }
+        return listOf("-Dcompose.application.resources.dir=${library.parentFile.absolutePath}")
+    }
+}
+tasks.register<JavaExec>("attachmentDragMacProbe") {
+    group = "verification"
+    description = "Shows the synthetic Compose macOS file-promise drag probe."
+    dependsOn(attachmentDragProbeCompilation.compileTaskProvider)
+    classpath = files(attachmentDragProbeCompilation.output.allOutputs, attachmentDragProbeCompilation.runtimeDependencyFiles)
+    mainClass.set("com.artemchep.keyguard.feature.dragout.DragOutMacProbeKt")
+    jvmArgs("-Xcheck:jni")
+    jvmArgumentProviders.add(AttachmentDragProbeArguments(attachmentDragProbeResources))
+}

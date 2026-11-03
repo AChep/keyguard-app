@@ -41,11 +41,8 @@ pub unsafe fn hidiocgrdesc(
     from_unix_result(libc::ioctl(fd, _HIDIOCGRDESC as IocType, val))
 }
 
-pub fn is_u2f_device(fd: RawFd) -> bool {
-    match read_report_descriptor(fd) {
-        Ok(desc) => has_fido_usage(desc),
-        Err(_) => false, // Upon failure, just say it's not a U2F device.
-    }
+pub fn is_u2f_device(fd: RawFd) -> io::Result<bool> {
+    read_report_descriptor(fd).map(has_fido_usage)
 }
 
 pub fn read_hid_rpt_sizes_or_defaults(fd: RawFd) -> (usize, usize) {

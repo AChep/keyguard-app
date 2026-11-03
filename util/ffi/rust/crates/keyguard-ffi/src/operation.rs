@@ -1,8 +1,11 @@
-//! The cancellable operation protocol of the hardware bridges.
+//! The cancellable operation protocol of the native bridges.
 //!
 //! A caller creates a handle, may cancel it from any thread, executes one
 //! bounded request with it, and closes it. A response is a zero status byte
 //! followed by the body, or a single non-zero status byte.
+//!
+//! A hardware bridge claims its device for each operation; operations that
+//! share no device run alongside each other.
 
 use std::{
     collections::BTreeMap,
@@ -77,6 +80,9 @@ impl OperationRegistry {
     }
 
     /// Allocates a cancellation token, not a device. Returns zero on failure.
+    ///
+    /// IDs run from 1 to `i64::MAX` and are never reissued, so a late cancel or
+    /// close never reaches a newer operation. Once they run out, every call fails.
     pub fn create(&self) -> u64 {
         let Ok(mut operations) = self.operations.lock() else {
             return 0;
@@ -84,10 +90,14 @@ impl OperationRegistry {
         if operations.len() >= MAX_OPERATIONS {
             return 0;
         }
-        let id = self.next_id.fetch_add(1, Ordering::Relaxed);
-        if id == 0 || id > i64::MAX as u64 {
+        let Ok(id) = self
+            .next_id
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |id| {
+                (id <= i64::MAX as u64).then(|| id + 1)
+            })
+        else {
             return 0;
-        }
+        };
         operations.insert(id, Arc::new(AtomicBool::new(false)));
         id
     }
@@ -121,6 +131,37 @@ impl OperationRegistry {
     /// [`OperationStatus::CANCELED`] for a canceled one, and
     /// [`OperationStatus::BUSY`] while another operation holds the device.
     pub fn begin<E: OperationStatus>(&self, id: u64) -> Result<OperationGuard<'_>, E> {
+        let canceled = self.token(id)?;
+        let device = match self.device.try_lock() {
+            Ok(device) => device,
+            // This mutex only serializes access; it holds no backend state
+            // that could have been left inconsistent by the failed operation.
+            Err(TryLockError::Poisoned(error)) => error.into_inner(),
+            Err(TryLockError::WouldBlock) => return Err(E::BUSY),
+        };
+        Ok(OperationGuard {
+            canceled,
+            _device: Some(device),
+        })
+    }
+
+    /// Like [`OperationRegistry::begin`], but claims no device, so the
+    /// operation `id` runs alongside any other.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`OperationStatus::INTERNAL`] for a poisoned registry,
+    /// [`OperationStatus::INVALID_ARGUMENT`] for an unknown handle, and
+    /// [`OperationStatus::CANCELED`] for a canceled one.
+    pub fn begin_shared<E: OperationStatus>(&self, id: u64) -> Result<OperationGuard<'_>, E> {
+        Ok(OperationGuard {
+            canceled: self.token(id)?,
+            _device: None,
+        })
+    }
+
+    /// The cancellation token of a live, uncanceled operation.
+    fn token<E: OperationStatus>(&self, id: u64) -> Result<Arc<AtomicBool>, E> {
         let canceled = self
             .operations
             .lock()
@@ -131,17 +172,7 @@ impl OperationRegistry {
         if canceled.load(Ordering::Acquire) {
             return Err(E::CANCELED);
         }
-        let device = match self.device.try_lock() {
-            Ok(device) => device,
-            // This mutex only serializes access; it holds no backend state
-            // that could have been left inconsistent by the failed operation.
-            Err(TryLockError::Poisoned(error)) => error.into_inner(),
-            Err(TryLockError::WouldBlock) => return Err(E::BUSY),
-        };
-        Ok(OperationGuard {
-            canceled,
-            _device: device,
-        })
+        Ok(canceled)
     }
 }
 
@@ -151,10 +182,11 @@ impl Default for OperationRegistry {
     }
 }
 
-/// A claimed device. Dropping the guard releases it.
+/// A running operation, and the device it claimed, if any. Dropping the guard
+/// releases the device.
 pub struct OperationGuard<'a> {
     canceled: Arc<AtomicBool>,
-    _device: MutexGuard<'a, ()>,
+    _device: Option<MutexGuard<'a, ()>>,
 }
 
 impl OperationGuard<'_> {
@@ -283,6 +315,35 @@ mod tests {
         assert_ne!(registry.create(), 0);
     }
 
+    /// A wrapping counter reissued IDs after 2^64 creates: a late close
+    /// canceled a newer operation and a live token could be replaced.
+    #[test]
+    fn exhausted_ids_fail_permanently_without_reissuing_ids() {
+        let registry = OperationRegistry::new();
+        let live = registry.create();
+        let stale = registry.create();
+        registry.close(stale);
+
+        registry.next_id.store(i64::MAX as u64, Ordering::Relaxed);
+        let last = registry.create();
+        assert_eq!(last, i64::MAX as u64);
+        registry.close(last);
+        for _ in 0..3 {
+            assert_eq!(registry.create(), 0);
+        }
+        assert_eq!(
+            registry.next_id.load(Ordering::Relaxed),
+            i64::MAX as u64 + 1
+        );
+
+        registry.next_id.store(u64::MAX, Ordering::Relaxed);
+        assert_eq!(registry.create(), 0);
+        assert_eq!(registry.next_id.load(Ordering::Relaxed), u64::MAX);
+
+        assert_eq!(begin(&registry, stale), Err(Status::InvalidArgument));
+        assert_eq!(begin(&registry, live), Ok(()));
+    }
+
     #[test]
     fn begin_reports_unknown_canceled_and_closed_handles() {
         let registry = OperationRegistry::new();
@@ -308,6 +369,32 @@ mod tests {
         assert!(guard.canceled().load(Ordering::Acquire));
         drop(guard);
         assert_eq!(begin(&registry, second), Ok(()));
+    }
+
+    #[test]
+    fn shared_operations_claim_no_device_but_see_cancellation() {
+        let registry = OperationRegistry::new();
+        let exclusive = registry.create();
+        let shared = registry.create();
+        let other = registry.create();
+        let guard = registry.begin::<Status>(exclusive).unwrap();
+        // Neither a claimed device nor another shared operation makes one busy.
+        let first = registry.begin_shared::<Status>(shared).unwrap();
+        let second = registry.begin_shared::<Status>(other).unwrap();
+        registry.cancel(shared);
+        assert!(first.canceled().load(Ordering::Acquire));
+        assert!(!second.canceled().load(Ordering::Acquire));
+        assert!(matches!(
+            registry.begin_shared::<Status>(shared),
+            Err(Status::Canceled)
+        ));
+        assert!(matches!(
+            registry.begin_shared::<Status>(0),
+            Err(Status::InvalidArgument)
+        ));
+        // A shared operation holds no device, so it leaves it free.
+        drop(guard);
+        assert_eq!(begin(&registry, registry.create()), Ok(()));
     }
 
     #[test]

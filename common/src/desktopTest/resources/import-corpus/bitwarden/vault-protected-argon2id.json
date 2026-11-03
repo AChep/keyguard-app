@@ -1,0 +1,11 @@
+{
+  "encrypted": true,
+  "passwordProtected": true,
+  "salt": "AJ8K2wlaE4IA/nQfgpyrzw==",
+  "kdfType": 1,
+  "kdfIterations": 3,
+  "encKeyValidation_DO_NOT_EDIT": "2.mj0s8+ALS/EFfGAoD9vSSQ==|yH4vncarIVE6328sx06RSMs3O2PG1IMcPVs57CVCmBijQpGLAHWPcb9mCSSQTYPr|Is9dQxNeb009Lpf742WuVRncEEn7JXKUBCjHexynBRw=",
+  "data": "2.oj09BDR4l/jkkP/at69MMA==|tP6yVlRQtk1ONDepUZv3RVXn0nj7Ghh7Q83x60DHYkQLb3z0TQeOoe3+GWwgv2gkH1Yos0dfPCrrCCxzSJlwmgpeZyfg9WNTWxb2S220+92NPagWdfVOs+HHeyDocFqSrf+mo+Z5Ek6Q2yyeH9VQqRhSw1miWiVIFto8MgLkcb3J6oANpSnQ5+GreCxmlnn4IXB6pixwSVjCVsaqmcvKiFqq1dO7X6tc7dol5Ni5xYRxWDOWqOde0+CjXhktQGFmZva8v9zKGGlaE/Qep5SdMSYaLvY4owtEzpJbYXw0IgAVBiU8ZVKwM10/RUH0Ae2AGE8diJpC5Em/y9X1jb10oowFN4+qEMA7Kn8wwyj3IVLMC/PuxMo/YusdAGzfqbStYtedS/AVS5nHB+iUiaRR9bdEc2nV/l2oE/7ZVoc4OA42bngG3Z99O665gC93dzwSMn8IeYxwU7dfw39WLJrT9DjTwqrFJbCMl4zPdhJlUMvyccuLImPDmU8RibHQGousAIChD3P2QYtSmc6OMcP7VZ180liD0P1uRqekBOCRPgk80woo43oyLg7xdzvGtXsPLmuu/iYlvNDfJ+kjHbGRl7gYv7GkpQPHu7ibVI6bLJ7zNGwI1m8+GjT5L5uJJu3GnlUhZg/uNUtMoE6zEDwQbI96Hp+UyxLYiFRHtUBeHjE=|1ny9hqt2bsaQLO2RghRgeY9vfKyTw9vwTiSfOpdwM5c=",
+  "kdfMemory": 64,
+  "kdfParallelism": 4
+}

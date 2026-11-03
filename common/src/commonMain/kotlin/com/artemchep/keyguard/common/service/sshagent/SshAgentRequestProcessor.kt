@@ -1,11 +1,13 @@
 package com.artemchep.keyguard.common.service.sshagent
 
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
+
 /**
  * Everything the approval surface may show for a pending SSH signing
  * request.
  */
 data class SshAgentApprovalPrompt(
-    val caller: SshAgentMessages.CallerIdentity?,
+    val caller: CallerIdentity?,
     val keyName: String,
     val keyFingerprint: String,
     /**
@@ -43,7 +45,7 @@ interface SshAgentRequestProcessor {
     }
 
     suspend fun listKeys(
-        caller: SshAgentMessages.CallerIdentity?,
+        caller: CallerIdentity?,
     ): ListKeysResult
 
     suspend fun signData(

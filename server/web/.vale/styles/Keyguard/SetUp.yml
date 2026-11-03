@@ -1,0 +1,8 @@
+extends: substitution
+message: "Use '%s' instead of '%s'."
+level: error
+ignorecase: true
+swap:
+  '(?:to|can|then|you|must|first|and) setup': set up
+  'log in|logs in|logged in|logging in|log into': sign in
+  'log out|logs out|logged out|logging out': sign out

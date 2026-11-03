@@ -3,6 +3,10 @@ package com.artemchep.keyguard.common.service.credentialexchange
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.test.FakeSshKeyImportService
+import com.artemchep.keyguard.test.fakeSshKeyPair
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -23,10 +27,10 @@ class CxfConformanceCredentialTypesTest {
         sshKeyImportService = FakeSshKeyImportService(),
     )
 
-    private fun parseAllTypes(): CxfImportPlan =
+    private fun parseAllTypes(): ImportPlan =
         service.parseSuccessPlan(payload = ALL_TYPES_IMPORT_JSON, now = now)
 
-    private fun CxfImportPlan.requestTitled(title: String): CreateRequest =
+    private fun ImportPlan.requestTitled(title: String): CreateRequest =
         items.single { it.request.title == title }.request
 
     @Test
@@ -48,14 +52,14 @@ class CxfConformanceCredentialTypesTest {
     @Test
     fun `the five unmodeled spec types are counted as unknown credentials`() {
         val plan = parseAllTypes()
-        assertEquals(5, plan.skips[CxfImportSkipReason.UnknownCredential])
+        assertEquals(5, plan.skips[ImportSkipReason.UnknownCredential])
         // Each unmodeled credential was its item's only credential, so the
         // credential reason already explains the emptied item.
-        assertEquals(0, plan.skips[CxfImportSkipReason.Item])
-        assertEquals(0, plan.skips[CxfImportSkipReason.Passkey])
-        assertEquals(0, plan.skips[CxfImportSkipReason.Otp])
-        assertEquals(0, plan.skips[CxfImportSkipReason.SshKey])
-        assertEquals(0, plan.skips[CxfImportSkipReason.DuplicateCredential])
+        assertEquals(0, plan.skips[ImportSkipReason.Item])
+        assertEquals(0, plan.skips[ImportSkipReason.Passkey])
+        assertEquals(0, plan.skips[ImportSkipReason.Otp])
+        assertEquals(0, plan.skips[ImportSkipReason.SshKey])
+        assertEquals(0, plan.skips[ImportSkipReason.DuplicateCredential])
     }
 
     @Test
@@ -255,8 +259,8 @@ class CxfConformanceCredentialTypesTest {
             """,
         )
         val plan = service.parseSuccessPlan(payload = payload, now = now)
-        assertEquals(1, plan.skips[CxfImportSkipReason.UnknownCredential])
-        assertEquals(0, plan.skips[CxfImportSkipReason.Item])
+        assertEquals(1, plan.skips[ImportSkipReason.UnknownCredential])
+        assertEquals(0, plan.skips[ImportSkipReason.Item])
         assertEquals("alice", plan.items.single().request.login.username)
     }
 
@@ -275,8 +279,8 @@ class CxfConformanceCredentialTypesTest {
         // §2.1.1: an unusable value in a required member drops the enclosing
         // structure — the credential, and with it the now-empty item. Both are
         // gone, but the loss is reported once: the credential reason explains it.
-        assertEquals(1, plan.skips[CxfImportSkipReason.UnknownCredential])
-        assertEquals(0, plan.skips[CxfImportSkipReason.Item])
+        assertEquals(1, plan.skips[ImportSkipReason.UnknownCredential])
+        assertEquals(0, plan.skips[ImportSkipReason.Item])
         assertTrue(plan.items.isEmpty())
     }
 
@@ -301,9 +305,9 @@ class CxfConformanceCredentialTypesTest {
             """,
         )
         val plan = service.parseSuccessPlan(payload = payload, now = now)
-        assertEquals(1, plan.skips[CxfImportSkipReason.UnknownCredential])
-        assertEquals(0, plan.skips[CxfImportSkipReason.Item])
-        assertEquals(0, plan.skips[CxfImportSkipReason.Passkey])
+        assertEquals(1, plan.skips[ImportSkipReason.UnknownCredential])
+        assertEquals(0, plan.skips[ImportSkipReason.Item])
+        assertEquals(0, plan.skips[ImportSkipReason.Passkey])
     }
 
     private fun assertFieldNames(

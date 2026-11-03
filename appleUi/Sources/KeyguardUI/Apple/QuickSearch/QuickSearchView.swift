@@ -206,7 +206,7 @@ struct QuickSearchView: View {
             let selectedItem = items.first { $0.id == snapshot.selectedItemId }
             QuickSearchDetail(
                 detail: detail,
-                iconUrl: selectedItem?.iconUrl,
+                iconKey: selectedItem?.iconKey,
                 iconPlaceholder: selectedItem?.iconPlaceholder,
                 // The detail snapshot carries only `hasOtp`, so take the live code from
                 // the row-level TOTP channel.
@@ -400,7 +400,7 @@ private struct QuickSearchUnlockContent: View {
 private struct QuickSearchDetail: View {
     @Environment(QuickSearchModel.self) private var quickSearchModel
     let detail: QuickSearchDetailSnapshot
-    let iconUrl: String?
+    let iconKey: String?
     let iconPlaceholder: String?
     /// nil until the first per-second push arrives.
     let totp: TotpFieldSnapshot?
@@ -452,7 +452,7 @@ private struct QuickSearchDetail: View {
         .safeAreaInset(edge: .top, spacing: 0) {
             DetailHeaderBar(title: detail.title) {
                 FaviconView(
-                    url: iconUrl,
+                    iconKey: iconKey,
                     placeholder: iconPlaceholder,
                     fallbackSymbol: "key.fill",
                     size: 36

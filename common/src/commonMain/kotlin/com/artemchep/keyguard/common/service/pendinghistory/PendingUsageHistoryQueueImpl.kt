@@ -73,6 +73,7 @@ class PendingUsageHistoryQueueImpl(
                 cipherId = item.cipherId,
                 fingerprint = item.fingerprint,
                 keygrip = item.keygrip,
+                cliAgent = item.cliAgent,
             )
             val plaintext = json.encodeToString(model).encodeToByteArray()
             try {

@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+// Handshake and error messages shared by the SSH, GPG and CLI agent IPC
+// protocols. Each agent keeps its own envelope; these field numbers and enum
+// values are what the wire carries.
+package keyguard.agent;
+
+// The first request of every private connection.
+message AuthenticateRequest {
+  // The 32 bytes the app passed to the agent at launch.
+  bytes token = 1;
+  // Exactly the revision of the app. Zero, as from an agent older than this
+  // field, is never valid.
+  uint32 protocol_revision = 2;
+}
+
+message AuthenticateResponse {
+  bool success = 1;
+  // The revision of the app, so that an agent can report a mismatch.
+  uint32 protocol_revision = 2;
+}
+
+// The SSH and GPG agents' errors. The CLI agent has string codes instead,
+// which reach its public clients as they are.
+message ErrorResponse {
+  string message = 1;
+  ErrorCode code = 2;
+}
+
+enum ErrorCode {
+  ERROR_CODE_UNSPECIFIED = 0;
+  ERROR_CODE_VAULT_LOCKED = 1;
+  ERROR_CODE_USER_DENIED = 2;
+  ERROR_CODE_KEY_NOT_FOUND = 3;
+  ERROR_CODE_AUTH_FAILED = 4;
+  ERROR_CODE_NOT_AUTHENTICATED = 5;
+  // Only the GPG agent answers with this one.
+  ERROR_CODE_UNSUPPORTED = 6;
+}

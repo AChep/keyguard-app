@@ -36,7 +36,6 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Label
 import androidx.compose.material.icons.outlined.AutoAwesome
 import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Email
@@ -181,54 +180,6 @@ fun UrlFlatTextField(
         keyboardOptions = keyboardOptions.copy(
             autoCorrectEnabled = false,
             keyboardType = KeyboardType.Uri,
-        ),
-        keyboardActions = keyboardActions,
-        singleLine = true,
-        maxLines = 1,
-        clearButton = clearButton,
-        leading = leading,
-        trailing = trailing,
-        content = content,
-    )
-}
-
-@Composable
-fun TagFlatTextField(
-    modifier: Modifier = Modifier,
-    testTag: String? = null,
-    label: String? = null,
-    placeholder: String? = null,
-    value: TextFieldModel,
-    shapeState: Int = ShapeState.ALL,
-    expressive: Boolean = LocalExpressive.current,
-    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default,
-    clearButton: Boolean = defaultClearButton(),
-    leading: (@Composable RowScope.() -> Unit)? = if (defaultLeading()) {
-        // composable
-        {
-            IconBox(
-                main = Icons.AutoMirrored.Outlined.Label,
-            )
-        }
-    } else {
-        null
-    },
-    trailing: (@Composable RowScope.() -> Unit)? = null,
-    content: (@Composable ColumnScope.() -> Unit)? = null,
-) {
-    FlatTextField(
-        modifier = modifier,
-        testTag = testTag,
-        label = label
-            ?: stringResource(Res.string.tag),
-        placeholder = placeholder,
-        value = value,
-        shapeState = shapeState,
-        expressive = expressive,
-        keyboardOptions = keyboardOptions.copy(
-            autoCorrectEnabled = false,
-            keyboardType = KeyboardType.Text,
         ),
         keyboardActions = keyboardActions,
         singleLine = true,
@@ -1364,6 +1315,7 @@ fun BiFlatTextField(
     expressive: Boolean = LocalExpressive.current,
     valueVisualTransformation: VisualTransformation = VisualTransformation.None,
     valueIncognito: Boolean = false,
+    leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     val labelInteractionSource = remember { MutableInteractionSource() }
@@ -1421,6 +1373,7 @@ fun BiFlatTextField(
                 incognito = valueIncognito,
             )
         },
+        leading = leading,
         trailing = trailing,
     )
 }
@@ -1526,6 +1479,7 @@ fun BiFlatContainer(
     expressive: Boolean = LocalExpressive.current,
     label: @Composable ColumnScope.() -> Unit,
     content: @Composable ColumnScope.() -> Unit,
+    leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
 ) {
     FlatTextFieldSurface(
@@ -1538,13 +1492,21 @@ fun BiFlatContainer(
         Row(
             modifier = contentModifier
                 .padding(
-                    start = 16.dp,
+                    // A leading icon button brings its own padding.
+                    start = if (leading != null) 4.dp else 16.dp,
                     end = 8.dp,
                     top = 8.dp,
                     bottom = 8.dp,
                 ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (leading != null) {
+                leading()
+                Spacer(
+                    modifier = Modifier
+                        .width(4.dp),
+                )
+            }
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -1595,7 +1557,7 @@ fun BiFlatContainer(
 }
 
 @Composable
-private fun FlatTextFieldSurface(
+internal fun FlatTextFieldSurface(
     modifier: Modifier = Modifier,
     isError: Boolean,
     isFocused: Boolean,

@@ -8,10 +8,10 @@ import com.artemchep.keyguard.feature.remotepicker.RemotePickerMode
 import com.artemchep.keyguard.feature.remotepicker.RemotePickerState
 import com.artemchep.keyguard.feature.remotepicker.isRemotePickerFileSelectable
 import com.artemchep.keyguard.feature.remotepicker.joinRemotePickerPath
-import com.artemchep.keyguard.feature.remotepicker.remotePickerBreadcrumbs
 import com.artemchep.keyguard.feature.remotepicker.remotePickerDirectoryLoadFlow
 import com.artemchep.keyguard.feature.remotepicker.remotePickerExistingNames
 import com.artemchep.keyguard.feature.remotepicker.validateRemotePickerFileName
+import com.artemchep.keyguard.ui.pathBreadcrumbs
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.awaitCancellation
@@ -33,7 +33,7 @@ class WebDavPickerStateProducerTest {
     fun `breadcrumbs remain bounded by root`() {
         val selectedPaths = mutableListOf<String>()
 
-        val breadcrumbs = remotePickerBreadcrumbs("one/two") { path ->
+        val breadcrumbs = pathBreadcrumbs("one/two") { path ->
             selectedPaths += path
         }
 

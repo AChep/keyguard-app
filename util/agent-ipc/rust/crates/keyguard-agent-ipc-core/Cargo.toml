@@ -1,0 +1,41 @@
+[package]
+name = "keyguard-agent-ipc-core"
+description = "Private IPC endpoints between Keyguard and its agent helpers"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[[bin]]
+name = "agent-ipc-fixture"
+path = "src/bin/agent-ipc-fixture.rs"
+
+[dependencies]
+getrandom.workspace = true
+keyguard-ffi.workspace = true
+zeroize.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+libc.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+windows-sys = { workspace = true, features = [
+    "Win32_Foundation",
+    "Win32_Security",
+    "Win32_Security_Authorization",
+    "Win32_Storage_FileSystem",
+    "Win32_System_IO",
+    "Win32_System_Pipes",
+    "Win32_System_Threading",
+] }
+
+[dev-dependencies]
+# The helpers' own client, as tests connect like a helper does. Protobuf-free.
+keyguard-agent-ipc.workspace = true
+tempfile.workspace = true
+tokio = { workspace = true, features = ["io-util", "macros", "net", "rt", "time"] }
+
+[lints]
+workspace = true

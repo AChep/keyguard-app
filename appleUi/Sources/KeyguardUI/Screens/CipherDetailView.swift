@@ -12,7 +12,7 @@ struct CipherDetailView: View {
         #if os(macOS)
         if showsNavigationTitle {
             detailContent
-                .navigationTitle(detail.title.isEmpty ? L10n.credentialExchangeImportUntitled : detail.title)
+                .navigationTitle(detail.title.isEmpty ? L10n.untitled : detail.title)
         } else {
             detailContent
         }
@@ -42,7 +42,7 @@ struct CipherDetailView: View {
         DetailForm(items: detail.items, invoke: invoke) {
             DetailIdentityHeader(title: detail.title) { size in
                 FaviconView(
-                    url: detail.iconUrl,
+                    iconKey: detail.iconKey,
                     placeholder: detail.iconPlaceholder,
                     fallbackSymbol: typeSymbol(detail.typeIcon),
                     size: size
@@ -109,6 +109,7 @@ struct CipherDetailView: View {
         case "SecureNote": return "note.text"
         case "SshKey": return "terminal"
         case "GpgKey": return "key.horizontal"
+        case "Environment": return "terminal"
         default: return "key"
         }
     }

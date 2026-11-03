@@ -52,6 +52,7 @@ fun createSshAgentPublicKeyRow(
     name: String?,
     cryptoGenerator: CryptoGenerator,
     base64Service: Base64Service,
+    certificate: String? = null,
 ): SshAgentPublicKeyRow? {
     val material = parseSshAgentPublicKeyMaterial(
         publicKey = publicKey,
@@ -67,5 +68,16 @@ fun createSshAgentPublicKeyRow(
         fingerprint = fingerprint,
         canSign = canSign,
         name = name?.takeIf { it.isNotBlank() },
+        // Like the key, the certificate is kept without its comment. Its key ID
+        // and principals are signed, so they stay.
+        certificate = certificate
+            ?.let {
+                parseSshAgentPublicKeyMaterial(
+                    publicKey = it,
+                    cryptoGenerator = cryptoGenerator,
+                    base64Service = base64Service,
+                )
+            }
+            ?.publicKey,
     )
 }

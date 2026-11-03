@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.keepass.saveKeePassDatabase
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.text.Base64Service
 import com.artemchep.keyguard.common.service.s3.S3ClientFactory
+import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.common.service.webdav.WebDavClientFactory
 import com.artemchep.keyguard.common.usecase.PutAccountColorById
 import com.artemchep.keyguard.common.util.toHex
@@ -28,7 +29,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.AvatarRequestEntity
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenProfileRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import kotlinx.serialization.json.Json
 
 /**
@@ -76,7 +77,7 @@ internal class PutBitwardenAccountColorByIdImpl(
     private val profileRepository: BitwardenProfileRepository,
     private val base64Service: Base64Service,
     private val json: Json,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
     private val db: VaultDatabaseManager,
 ) {
     operator fun invoke(
@@ -91,7 +92,7 @@ internal class PutBitwardenAccountColorByIdImpl(
         )
         withRefreshableAccessToken(
             base64Service = base64Service,
-            httpClient = httpClient,
+            httpClient = httpClientProvider.client(token.env.back()),
             json = json,
             db = db,
             user = token,
@@ -99,7 +100,7 @@ internal class PutBitwardenAccountColorByIdImpl(
             val serverEnv = latestUser.env.back()
             val accessToken = requireNotNull(latestUser.token).accessToken
             serverEnv.api.accounts.avatar(
-                httpClient = httpClient,
+                httpClient = httpClientProvider.client(serverEnv),
                 env = serverEnv,
                 token = accessToken,
                 model = request,
@@ -128,6 +129,7 @@ internal class PutKeePassAccountColorByIdImpl(
     private val fileService: FileService,
     private val webDavClientFactory: WebDavClientFactory,
     private val s3ClientFactory: S3ClientFactory,
+    private val stagingSpoolFactory: StagingSpoolFactory,
 ) : PutKeePassAccountColorById {
     override operator fun invoke(
         color: Color,
@@ -181,6 +183,7 @@ internal class PutKeePassAccountColorByIdImpl(
             webDavClientFactory = webDavClientFactory,
             s3ClientFactory = s3ClientFactory,
             expectedMetadata = metadataAfter,
+            stagingSpoolFactory = stagingSpoolFactory,
         )
 
         val newProfile = BitwardenProfile.avatarColor.set(profile, colorHexString)

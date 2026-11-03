@@ -16,6 +16,13 @@ class NativeFido2Client {
     val isSupported: Boolean
         get() = NativeFido2.isSupported
 
+    /** Loads the native library and checks its ABI without opening a device. */
+    fun ensureLoaded() {
+        val handle = NativeFido2.create()
+        check(handle != 0L) { "Native FIDO2 client returned no operation handle" }
+        NativeFido2.close(handle)
+    }
+
     /**
      * Returns a credential ID, a 32-byte PRF result, or an encoded assertion for the requested
      * operation. The caller owns the result and must clear secret bytes after use.

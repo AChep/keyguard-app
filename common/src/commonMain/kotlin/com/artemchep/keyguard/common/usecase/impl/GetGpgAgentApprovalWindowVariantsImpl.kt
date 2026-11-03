@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.usecase.impl
 
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_WINDOW_NEVER_ASK
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindowVariants
 import kotlinx.coroutines.flow.flowOf
 import kotlin.time.Duration
@@ -13,6 +14,7 @@ class GetGpgAgentApprovalWindowVariantsImpl : GetGpgAgentApprovalWindowVariants 
             5.minutes,
             15.minutes,
             Duration.INFINITE,
+            AGENT_APPROVAL_WINDOW_NEVER_ASK,
         ),
     )
 

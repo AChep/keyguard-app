@@ -1,11 +1,11 @@
 package com.artemchep.keyguard.gpge2e
 
 import com.artemchep.keyguard.common.model.GpgKeyConfig
-import com.artemchep.keyguard.common.service.agent.AgentIpcEndpoint
 import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
 import com.artemchep.keyguard.common.service.gpgagent.isWindowsNamedPipePath
 import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
+import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.attribute.PosixFilePermission
@@ -17,6 +17,7 @@ import org.junit.BeforeClass
 import org.junit.Assume.assumeTrue
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 class GpgAgentEndToEndTest {
@@ -112,25 +113,20 @@ class GpgAgentEndToEndTest {
 
             // 3) Stand up the Kotlin IPC server + Rust binary at the same
             // endpoint that the real gpg client resolves for this GNUPGHOME.
-            val authToken = ByteArray(32).also { SecureRandom().nextBytes(it) }
-            val processor = TestGpgAgentRequestProcessor(keys = allKeys)
             launcher = KeyguardAgentLauncher(
                 binaryPath = binaryPath,
-                processor = processor,
-                authToken = authToken,
+                processor = TestGpgAgentRequestProcessor(keys = allKeys),
+                authToken = ByteArray(32).also { SecureRandom().nextBytes(it) },
+                gnupgVersion = clientGpg.gnupgVersion(),
             )
-            val ipcEndpoint = if (isWindows()) {
-                AgentIpcEndpoint.WindowsPipe("\\\\.\\pipe\\kg-gpge2e-$token-ipc")
+            val ipcLocation = if (isWindows()) {
+                AgentIpcLocation.WindowsPipe(prefix = "", exactName = "kg-gpge2e-$token-ipc")
             } else {
-                val ipcSocketPath = workRoot.resolve("ipc.sock")
-                AgentIpcEndpoint.UnixSocket(
-                    socketPath = ipcSocketPath,
-                    directory = workRoot,
-                )
+                AgentIpcLocation.UnixDirectory(parent = workRoot.toString(), exactName = "ipc")
             }
             gpgAgentSocket = gpgAgentSocketForClientHome(clientHome)
             prepareGpgAgentSocketDirectory(clientHome, gpgAgentSocket)
-            launcher.start(ipcEndpoint = ipcEndpoint, gpgSocket = gpgAgentSocket)
+            launcher.start(ipcLocation = ipcLocation, gpgSocket = gpgAgentSocket)
         }
 
         @JvmStatic
@@ -373,7 +369,7 @@ class GpgAgentEndToEndTest {
             )
             try {
                 defaultLauncher.start(
-                    ipcEndpoint = AgentIpcEndpoint.UnixSocket(caseRoot.resolve("ipc.sock"), caseRoot),
+                    ipcLocation = AgentIpcLocation.UnixDirectory(parent = caseRoot.toString(), exactName = "ipc"),
                     environmentOverrides = environment,
                 )
                 externalSocketDirectory = !socketDirectory.toRealPath().startsWith(home.toRealPath())
@@ -383,6 +379,8 @@ class GpgAgentEndToEndTest {
                     stdin = "Default path signing test\n".encodeToByteArray(),
                 )
                 assertTrue(signed.isSuccess, signed.toString())
+                // This launcher passes no client version, so the agent reports its fallback.
+                assertNoVersionWarning(signed.stderr)
                 val verified = gpg.run("--no-autostart", "--verify", stdin = signed.stdout.encodeToByteArray())
                 assertTrue(verified.isSuccess, verified.toString())
                 assertEquals("# persistent\nno-autostart\n", Files.readString(commonConfig))
@@ -491,6 +489,13 @@ class GpgAgentEndToEndTest {
     }
 
     // ---- Raw Assuan failure-path tests ----------------------------------------------
+
+    @Test
+    fun `assuan reports the selected GnuPG version`() {
+        val expected = clientGpg.gnupgVersion()
+        val transcript = assuanTranscript("GETINFO version\n", "RESET\n", "GETINFO version\n", "BYE\n")
+        assertEquals(2, transcript.count { it == "D $expected" }, transcript.joinToString("\n"))
+    }
 
     @Test
     fun `assuan keyinfo lists served keys`() {
@@ -688,6 +693,7 @@ class GpgAgentEndToEndTest {
             "clearsign for $algo failed (exit ${signResult.exitCode}):\n${signResult.stderr}",
         )
         val signed = signResult.stdout
+        assertNoVersionWarning(signResult.stderr)
         assertTrue(
             signed.contains("BEGIN PGP SIGNED MESSAGE"),
             "clearsign for $algo produced no signed message:\n$signed\n${signResult.stderr}",
@@ -740,6 +746,12 @@ class GpgAgentEndToEndTest {
             secret, decryptResult.stdout,
             "decrypt for $algo recovered the wrong plaintext:\n${decryptResult.stderr}",
         )
+        assertNoVersionWarning(decryptResult.stderr)
+    }
+
+    private fun assertNoVersionWarning(stderr: String) {
+        assertFalse(stderr.contains("server_version_mismatch"), stderr)
+        assertFalse(stderr.contains("server 'gpg-agent' is older"), stderr)
     }
 
     private fun assertPkdecryptFailure(
@@ -810,3 +822,13 @@ class GpgAgentEndToEndTest {
 
 private fun isWindows(): Boolean =
     System.getProperty("os.name").startsWith("Windows", ignoreCase = true)
+
+private fun GpgCli.gnupgVersion(): String {
+    val result = run("--no-options", "--batch", "--no-autostart", "--with-colons", "--list-config", "version")
+    assertEquals(0, result.exitCode, result.stderr)
+    val versions = result.stdout.lines()
+        .map { it.trim() }
+        .filter { it.startsWith("cfg:version:") }
+    assertEquals(1, versions.size, "gpg did not report a single version:\n${result.stdout}")
+    return versions.single().removePrefix("cfg:version:")
+}

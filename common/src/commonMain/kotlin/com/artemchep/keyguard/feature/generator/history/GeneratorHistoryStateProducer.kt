@@ -46,6 +46,7 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.Selection
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
+import com.artemchep.keyguard.ui.selection.removeMissingSelection
 import com.artemchep.keyguard.ui.selection.selectionHandle
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toImmutableList
@@ -57,12 +58,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import org.koin.compose.currentKoinScope
 
@@ -154,23 +153,10 @@ suspend fun RememberStateFlowScope.generatorHistoryStateProducer(
 
     val itemsRawFlow = getGeneratorHistory()
         .shareInScreenScope()
-    // Automatically de-select items
-    // that do not exist.
-    combine(
-        itemsRawFlow,
-        selectionHandle.idsFlow,
-    ) { items, selectedItemIds ->
-        val newSelectedItemIds = selectedItemIds
-            .asSequence()
-            .filter { itemId ->
-                items.any { it.id == itemId }
-            }
-            .toSet()
-        newSelectedItemIds.takeIf { it.size < selectedItemIds.size }
-    }
-        .filterNotNull()
-        .onEach { ids -> selectionHandle.setSelection(ids) }
-        .launchIn(screenScope)
+    selectionHandle.removeMissingSelection(
+        scope = screenScope,
+        itemsFlow = itemsRawFlow,
+    ) { it.id }
 
     suspend fun onDeleteByItems(
         items: List<DGeneratorHistory>,

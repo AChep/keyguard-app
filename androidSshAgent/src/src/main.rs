@@ -1,28 +1,45 @@
-mod broadcast;
-mod caller_identity;
 mod daemon;
 mod packet_io;
 mod process;
 mod rpc;
-mod secure_transport;
-mod socket_guard;
 
-use anyhow::{bail, Context, Result};
-use broadcast::{BroadcastCommandSpec, DEFAULT_COMPONENT};
+use anyhow::{Context, Result};
 use clap::Parser;
 use daemon::{run_blocking, Config};
-use process::{kill_existing_agent, print_auth_socket_export, print_env_exports, redirect_null};
+use keyguard_android_agent_bridge::bridge::{BridgeConfig, DEFAULT_CONNECT_TIMEOUT_MS};
+use keyguard_android_agent_bridge::broadcast::{BridgeContract, LegacyAcknowledgement};
+use keyguard_android_agent_bridge::process::{exit_with, fork_daemon, prefers_csh};
+use keyguard_android_agent_bridge::socket_guard::{EnsureSocket, SocketGuard};
+use process::{kill_existing_agent, print_auth_socket_export, print_env_exports};
 use rand::RngCore;
-use socket_guard::{EnsureSocket, SocketGuard};
 use std::ffi::OsString;
 use std::path::PathBuf;
-use tokio::time::Duration;
 
-const DEFAULT_CONNECT_TIMEOUT_MS: u64 = 60_000;
+const DEFAULT_COMPONENT: &str =
+    "com.artemchep.keyguard/com.artemchep.keyguard.android.sshagent.SshAgentReceiver";
+
+/// Must match `AgentBridge.SSH` in the Keyguard app.
+pub(crate) const SSH_AGENT_CONTRACT: BridgeContract = BridgeContract {
+    action: "com.artemchep.keyguard.action.RUN_ANDROID_SSH_AGENT",
+    extra_protocol_version: "com.artemchep.keyguard.extra.SSH_AGENT_PROTOCOL_VERSION",
+    extra_proxy_port: "com.artemchep.keyguard.extra.SSH_AGENT_PROXY_PORT",
+    extra_session_id: "com.artemchep.keyguard.extra.SSH_AGENT_SESSION_ID",
+    extra_session_secret: "com.artemchep.keyguard.extra.SSH_AGENT_SESSION_SECRET",
+    result_prefix: "keyguard.ssh-agent.broadcast.v1:",
+    // Older Keyguard releases handled the SSH broadcast without acknowledging it.
+    legacy_acknowledgement: LegacyAcknowledgement::Tolerate,
+};
 
 #[derive(Parser, Debug)]
 #[command(name = "keyguard-android-ssh-agent", version, about)]
 struct Args {
+    /// Review and configure startup for these Termux shells: bash,zsh,fish.
+    #[arg(long, value_delimiter = ',', conflicts_with_all = ["undo_setup", "kill", "cmd", "addr", "ensure", "foreground", "debug"])]
+    setup_shells: Vec<keyguard_agent_setup::Shell>,
+
+    /// Review removal of configuration created by --setup-shells.
+    #[arg(long, conflicts_with_all = ["kill", "cmd", "addr", "ensure", "foreground", "debug"])]
+    undo_setup: bool,
     #[arg(short = 'a', value_name = "bind_address")]
     addr: Option<PathBuf>,
 
@@ -59,19 +76,32 @@ struct Args {
 }
 
 fn main() {
-    std::process::exit(match try_main() {
-        Ok(code) => code,
-        Err(err) => {
-            eprintln!("{err:#}");
-            1
-        }
-    });
+    exit_with(try_main())
+}
+
+/// The socket that Termux shells configured by `--setup-shells` start the agent on.
+fn termux_setup_agent() -> Result<keyguard_agent_setup::Agent> {
+    Ok(keyguard_agent_setup::Agent::Ssh {
+        socket: keyguard_agent_setup::termux::prefix()?
+            .join("tmp/keyguard-ssh-agent.sock")
+            .to_string_lossy()
+            .into_owned(),
+        host: None,
+        include: None,
+    })
 }
 
 fn try_main() -> Result<i32> {
     let args = Args::parse();
-    let is_csh = args.csh
-        || (!args.bash && std::env::var("SHELL").is_ok_and(|shell| shell.ends_with("csh")));
+    if args.undo_setup {
+        keyguard_agent_setup::termux::undo(keyguard_agent_setup::AgentKind::Ssh)?;
+        return Ok(0);
+    }
+    if !args.setup_shells.is_empty() {
+        keyguard_agent_setup::termux::setup(termux_setup_agent()?, args.setup_shells)?;
+        return Ok(0);
+    }
+    let is_csh = prefers_csh(args.csh, args.bash);
     let mut pid = std::process::id() as i32;
 
     if args.kill {
@@ -94,33 +124,20 @@ fn try_main() -> Result<i32> {
     let socket_file = socket_guard.path().to_path_buf();
     let listener = socket_guard.bind_listener()?;
     let config = Config {
-        android_component: args.android_component,
-        connect_timeout: Duration::from_millis(args.connect_timeout_ms),
-        debug: args.debug,
+        bridge: BridgeConfig::new(args.android_component, args.connect_timeout_ms, args.debug),
         socket_path: socket_file.clone(),
-        broadcast_command: BroadcastCommandSpec::default(),
     };
 
     let has_cmd = !args.cmd.is_empty();
     let is_foreground = has_cmd || args.foreground || args.debug;
 
     if !is_foreground {
-        // SAFETY: `fork(2)` is called once during startup before any extra threads are created.
-        // Both branches immediately either return to the parent or continue the child bootstrap.
-        match unsafe { libc::fork() } {
-            -1 => {
-                bail!(
-                    "Failed to fork background agent: {}",
-                    std::io::Error::last_os_error()
-                );
-            }
-            0 => {
-                redirect_null(libc::STDIN_FILENO, false)?;
-                redirect_null(libc::STDOUT_FILENO, true)?;
-                redirect_null(libc::STDERR_FILENO, true)?;
+        // SAFETY: called once during startup, before any extra threads are created.
+        match unsafe { fork_daemon() }? {
+            None => {
                 return run_blocking(listener, None, config);
             }
-            child_pid => {
+            Some(child_pid) => {
                 pid = child_pid;
                 socket_guard.disarm();
                 print_env_exports(is_csh, &socket_file, Some(pid));

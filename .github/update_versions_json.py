@@ -23,6 +23,22 @@ def _read_text_file(path: str | None) -> str | None:
         return f.read()
 
 
+def _read_summaries_dir(path: str | None) -> dict[str, str]:
+    """Reads the summary of each platform from <platform>.md files, keyed by the platform."""
+    if not path or not os.path.isdir(path):
+        return {}
+
+    summaries = {}
+    for name in sorted(os.listdir(path)):
+        platform, extension = os.path.splitext(name)
+        if extension != ".md":
+            continue
+        text = _read_text_file(os.path.join(path, name))
+        if text and text.strip():
+            summaries[platform] = text.strip()
+    return summaries
+
+
 def _read_versions_json(path: str):
     if not os.path.exists(path):
         logger.error(f"JSON file '{path}' not found.")
@@ -54,6 +70,32 @@ def _contains_pair(items, semantic_version: str, tag_version: str) -> bool:
     return False
 
 
+def _find_by_tag(items, tag_version: str):
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        version = item.get("version")
+        if isinstance(version, dict) and version.get("tag") == tag_version:
+            return item
+    return None
+
+
+def _read_changelog(args) -> dict:
+    summary = _read_text_file(args.changelog_summary_file)
+    summary = summary.strip() if summary else None
+
+    summaries = _read_summaries_dir(args.changelog_summaries_dir)
+
+    raw_text = _read_text_file(args.changelog_raw_file)
+    raw_text = raw_text.strip() if raw_text else None
+
+    changelog = {"summary": summary}
+    if summaries:
+        changelog["summaries"] = summaries
+    changelog["raw"] = raw_text
+    return changelog
+
+
 def _write_versions_json(path: str, items) -> None:
     content = json.dumps(items, ensure_ascii=False, indent=4) + "\n"
 
@@ -77,7 +119,8 @@ def _write_versions_json(path: str, items) -> None:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Update versions JSON by appending a release entry if missing."
+        description="Update versions JSON by appending a release entry if missing, "
+                    "or by replacing the changelog of an existing entry."
     )
     parser.add_argument("json_file", help="Path to the JSON file to update")
     parser.add_argument("--date", help="Release date (ISO-8601, e.g. 2025-12-30)")
@@ -89,11 +132,33 @@ def main():
         help="Path to the changelog summary file (optional)",
     )
     parser.add_argument(
+        "--changelog_summaries_dir",
+        default=None,
+        help="Path to the directory with the changelog summary of each platform as <platform>.md (optional)",
+    )
+    parser.add_argument(
         "--changelog_raw_file",
         default=None,
         help="Path to the changelog raw file (optional)",
     )
+    parser.add_argument(
+        "--replace_changelog",
+        action="store_true",
+        help="Replace the changelog of the existing entry of --tag_version instead of adding an entry",
+    )
     args = parser.parse_args()
+
+    items = _read_versions_json(args.json_file)
+
+    if args.replace_changelog:
+        item = _find_by_tag(items, args.tag_version)
+        if item is None:
+            logger.error(f"No entry for tag={args.tag_version}; nothing to replace.")
+            sys.exit(1)
+        item["changelog"] = _read_changelog(args)
+        _write_versions_json(args.json_file, items)
+        logger.info(f"Replaced the changelog of tag={args.tag_version} in '{args.json_file}'.")
+        return
 
     try:
         # Validate date format early.
@@ -103,18 +168,12 @@ def main():
         logger.error(msg)
         sys.exit(1)
 
-    items = _read_versions_json(args.json_file)
-
     if _contains_pair(items, args.semantic_version, args.tag_version):
         msg = f"Entry for semantic={args.semantic_version} and tag={args.tag_version} already exists; nothing to do."
         logger.info(msg)
         return
 
-    summary = _read_text_file(args.changelog_summary_file)
-    summary = summary.strip() if summary else None
-
-    raw_text = _read_text_file(args.changelog_raw_file)
-    raw_text = raw_text.strip() if raw_text else None
+    changelog = _read_changelog(args)
 
     new_item = {
         "date": args.date,
@@ -122,10 +181,7 @@ def main():
             "semantic": args.semantic_version,
             "tag": args.tag_version,
         },
-        "changelog": {
-            "summary": summary,
-            "raw": raw_text,
-        },
+        "changelog": changelog,
         "url": f"https://github.com/AChep/keyguard-app/releases/tag/{args.tag_version}",
     }
 

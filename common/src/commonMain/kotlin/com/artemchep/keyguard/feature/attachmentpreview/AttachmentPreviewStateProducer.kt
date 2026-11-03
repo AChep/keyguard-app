@@ -11,18 +11,24 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.AttachmentPreviewException
 import com.artemchep.keyguard.common.model.AttachmentPreviewKind
+import com.artemchep.keyguard.common.model.AttachmentPreviewLimits
 import com.artemchep.keyguard.common.model.AttachmentPreviewPayload
 import com.artemchep.keyguard.common.model.AttachmentPreviewPolicy
 import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.attachmentPreviewKindByFileName
-import com.artemchep.keyguard.common.model.isMarkdownAttachmentPreview
+import com.artemchep.keyguard.common.model.attachmentPreviewFileExtension
+import com.artemchep.keyguard.common.model.isAttachmentPreviewGzip
+import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.download.DownloadInfoEntity
 import com.artemchep.keyguard.common.service.download.DownloadManager
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.usecase.CanPreviewAttachment
 import com.artemchep.keyguard.common.usecase.CopyText
+import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.ui.theme.isDark
@@ -32,7 +38,22 @@ import dev.snipme.highlights.model.ColorHighlight
 import dev.snipme.highlights.model.SyntaxLanguage
 import dev.snipme.highlights.model.SyntaxThemes
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import com.artemchep.keyguard.util.gzip.GzipError
+import com.artemchep.keyguard.util.gzip.GzipException
+import com.artemchep.keyguard.util.gzip.gunzip
+import com.artemchep.keyguard.util.zip.ZipArchive
+import com.artemchep.keyguard.util.zip.ZipArchiveException
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
@@ -47,6 +68,9 @@ fun produceAttachmentPreviewState(
         canPreviewAttachment = get(),
         getAttachmentPreview = get(),
         downloadManager = get(),
+        temporaryDirProvider = get(),
+        gpgPublicKeyParser = get(),
+        dateFormatter = get(),
     )
 }
 
@@ -56,6 +80,9 @@ fun produceAttachmentPreviewState(
     canPreviewAttachment: CanPreviewAttachment,
     getAttachmentPreview: GetAttachmentPreview,
     downloadManager: DownloadManager,
+    temporaryDirProvider: PrivateTemporaryDirProvider,
+    gpgPublicKeyParser: GpgPublicKeyParser,
+    dateFormatter: DateFormatter,
 ): Loadable<AttachmentPreviewState> = produceScreenState(
     key = "attachment_preview:${args.localCipherId}:${args.attachmentId}",
     initial = Loadable.Loading,
@@ -64,6 +91,9 @@ fun produceAttachmentPreviewState(
         canPreviewAttachment,
         getAttachmentPreview,
         downloadManager,
+        temporaryDirProvider,
+        gpgPublicKeyParser,
+        dateFormatter,
     ),
 ) {
     attachmentPreviewStateProducer(
@@ -71,55 +101,117 @@ fun produceAttachmentPreviewState(
         canPreviewAttachment = canPreviewAttachment,
         getAttachmentPreview = getAttachmentPreview,
         downloadManager = downloadManager,
+        temporaryDirProvider = temporaryDirProvider,
+        gpgPublicKeyParser = gpgPublicKeyParser,
+        dateFormatter = dateFormatter,
     )
 }
 
+@Suppress("TooGenericExceptionCaught") // Presentation boundary; fatal errors and cancellation are rethrown.
 suspend fun RememberStateFlowScope.attachmentPreviewStateProducer(
     args: AttachmentPreviewRoute.Args,
     canPreviewAttachment: CanPreviewAttachment,
     getAttachmentPreview: GetAttachmentPreview,
     downloadManager: DownloadManager,
+    temporaryDirProvider: PrivateTemporaryDirProvider,
+    gpgPublicKeyParser: GpgPublicKeyParser,
+    dateFormatter: DateFormatter,
 ): Flow<Loadable<AttachmentPreviewState>> {
     val producerScope = this
     val copyText = copier()
-    val state = createAttachmentPreviewState(
-        args = args,
-        canPreviewAttachment = canPreviewAttachment,
-        getAttachmentPreview = getAttachmentPreview,
-        downloadManager = downloadManager,
-        copyText = copyText,
+    val gpgKeyDecoder = AttachmentPreviewGpgKeyDecoder(
+        parser = gpgPublicKeyParser,
+        dateFormatter = dateFormatter,
+        translator = producerScope,
     )
-    val content = state.content as? AttachmentPreviewContent.TextLike
-    return if (content?.code?.canSyntaxHighlight() != true) {
-        flowOf(Loadable.Ok(state))
-    } else {
-        flow {
-            emit(Loadable.Ok(state))
-
-            snapshotFlow { producerScope.colorScheme.isDark }
-                .distinctUntilChanged()
-                .collect { isDark ->
-                    val highlightedCode = runCatching {
-                        content.code.withSyntaxHighlighting(isDark = isDark)
-                    }.getOrNull()
-                    if (highlightedCode != null) {
-                        emit(
-                            Loadable.Ok(
-                                state.withCode(highlightedCode),
-                            ),
+    return flow {
+        val state = createAttachmentPreviewState(
+            args = args,
+            canPreviewAttachment = canPreviewAttachment,
+            getAttachmentPreview = getAttachmentPreview,
+            downloadManager = downloadManager,
+            copyText = copyText,
+            gpgKeyDecoder = gpgKeyDecoder,
+        )
+        val isDark = snapshotFlow { producerScope.colorScheme.isDark }
+        val archive = state.content as? AttachmentPreviewContent.Archive
+        if (archive != null) {
+            coroutineScope {
+                val session = try {
+                    val tree = withContext(Dispatchers.Default) { archiveTree(archive.source.entries) }
+                    withContext(Dispatchers.Main.immediate) {
+                        AttachmentArchiveSession(
+                            scope = CoroutineScope(this@coroutineScope.coroutineContext + Dispatchers.Main.immediate),
+                            fileName = state.fileName,
+                            archive = archive.source,
+                            copyText = copyText,
+                            gpgKeyDecoder = gpgKeyDecoder,
+                            onError = producerScope::showArchiveError,
+                            temporaryDirProvider = temporaryDirProvider,
+                            tree = tree,
                         )
                     }
+                } catch (e: Throwable) {
+                    archive.source.close()
+                    e.throwIfFatalOrCancellation()
+                    emit(Loadable.Ok(state.copy(content = AttachmentPreviewContent.Error(e.toPreviewError()))))
+                    return@coroutineScope
                 }
+                val removeBackHandler = producerScope.interceptBackPress(session.state.map { it.onNavigateBack })
+                try {
+                    emitAll(session.state.withHighlightedCode(isDark))
+                } finally {
+                    removeBackHandler()
+                    withContext(NonCancellable + Dispatchers.Main.immediate) { session.close() }
+                }
+            }
+        } else {
+            emit(Loadable.Ok(state))
+            if ((state.content as? AttachmentPreviewContent.TextLike)?.code?.canSyntaxHighlight() == true) {
+                emitAll(flowOf(state).withHighlightedCode(isDark))
+            }
         }
     }
 }
 
+private suspend fun RememberStateFlowScope.showArchiveError(error: AttachmentPreviewError) {
+    val msg = ToastMessage(
+        type = ToastMessage.Type.ERROR,
+        title = translate(error),
+    )
+    message(msg)
+}
+
+/** Highlights code for the theme once per content, not on every other state change. */
+private fun Flow<AttachmentPreviewState>.withHighlightedCode(
+    isDark: Flow<Boolean>,
+): Flow<Loadable<AttachmentPreviewState>> = flow {
+    var cache: Triple<AttachmentPreviewContent, Boolean, AttachmentPreviewContent>? = null
+    val states = combine(this@withHighlightedCode, isDark) { state, dark ->
+        val content = state.content
+        val code = (content as? AttachmentPreviewContent.TextLike)?.code
+        if (code?.canSyntaxHighlight() != true) {
+            cache = null
+            return@combine Loadable.Ok(state)
+        }
+        val highlighted = cache
+            ?.takeIf { it.first === content && it.second == dark }
+            ?.third
+            ?: withContext(Dispatchers.Default) { state.withCode(code.withSyntaxHighlighting(dark)).content }
+                .also { cache = Triple(content, dark, it) }
+        Loadable.Ok(state.copy(content = highlighted))
+    }
+    emitAll(states)
+}
+
+@Suppress("TooGenericExceptionCaught") // Presentation boundary; fatal errors and cancellation are rethrown.
 internal suspend fun createAttachmentPreviewState(
     args: AttachmentPreviewRoute.Args,
     canPreviewAttachment: CanPreviewAttachment,
     getAttachmentPreview: GetAttachmentPreview,
     downloadManager: DownloadManager,
     copyText: CopyText,
+    gpgKeyDecoder: AttachmentPreviewGpgKeyDecoder,
 ): AttachmentPreviewState {
     canPreviewAttachment(
         fileName = args.fileName,
@@ -156,7 +248,17 @@ internal suspend fun createAttachmentPreviewState(
         },
         ifRight = { payload ->
             fileName = payload.fileName
-            payload.toPreviewContent(copyText = copyText)
+            try {
+                withContext(Dispatchers.Default) {
+                    payload.toPreviewContent(
+                        copyText = copyText,
+                        gpgKeyDecoder = gpgKeyDecoder,
+                    )
+                }
+            } catch (e: Throwable) {
+                e.throwIfFatalOrCancellation()
+                AttachmentPreviewContent.Error(e.toPreviewError())
+            }
         },
     )
     val state = AttachmentPreviewState(
@@ -190,11 +292,18 @@ internal suspend fun cachedAttachmentPreviewLocalUrl(
     }
 }
 
-private fun Throwable.toPreviewError(): AttachmentPreviewError = when (this) {
+internal fun Throwable.toPreviewError(): AttachmentPreviewError = when (this) {
+    is ZipArchiveException -> reason.toPreviewError()
+    is GzipException -> reason.toPreviewError()
     is AttachmentPreviewException.TooLarge -> AttachmentPreviewError.TooLarge
     is AttachmentPreviewException.NetworkFailed -> AttachmentPreviewError.Network
     is AttachmentPreviewException.DecryptionFailed -> AttachmentPreviewError.Decryption
     else -> AttachmentPreviewError.Unknown
+}
+
+private fun GzipError.toPreviewError(): AttachmentPreviewError = when (this) {
+    GzipError.Invalid -> AttachmentPreviewError.GzipInvalid
+    GzipError.TooLarge -> AttachmentPreviewError.GzipTooLarge
 }
 
 internal fun AttachmentPreviewPolicy.toPreviewErrorOrNull(): AttachmentPreviewError? = when (this) {
@@ -204,30 +313,71 @@ internal fun AttachmentPreviewPolicy.toPreviewErrorOrNull(): AttachmentPreviewEr
     AttachmentPreviewPolicy.UnsupportedPlatform -> AttachmentPreviewError.UnsupportedPlatform
 }
 
-private fun AttachmentPreviewPayload.toPreviewContent(
+private suspend fun AttachmentPreviewPayload.toPreviewContent(
     copyText: CopyText,
+    gpgKeyDecoder: AttachmentPreviewGpgKeyDecoder,
 ): AttachmentPreviewContent {
-    return when (attachmentPreviewKindByFileName(fileName)) {
-        AttachmentPreviewKind.Image -> AttachmentPreviewContent.Image(bytes = bytes)
-        AttachmentPreviewKind.Markdown -> decodeTextPreview(
+    // Check the kind first, so that an unsupported Gzip file is not inflated.
+    val kind = attachmentPreviewKindByFileName(fileName)
+        ?: return AttachmentPreviewContent.Error(AttachmentPreviewError.UnsupportedFileType)
+    // The payload may share its bytes with the attachment source.
+    val previewBytes = unwrapGzipAttachmentPreview(fileName, bytes, clearBytes = false)
+    return when (kind) {
+        AttachmentPreviewKind.Archive -> AttachmentPreviewContent.Archive(
+            ZipArchive(previewBytes, maxEntries = AttachmentPreviewLimits.MAX_ARCHIVE_ENTRIES),
+        )
+        AttachmentPreviewKind.GpgKey -> gpgKeyDecoder.decode(
             fileName = fileName,
-            bytes = bytes,
+            bytes = previewBytes,
             copyText = copyText,
         )
+        AttachmentPreviewKind.Image -> AttachmentPreviewContent.Image(bytes = previewBytes)
+        AttachmentPreviewKind.Markdown,
+        AttachmentPreviewKind.Table,
         AttachmentPreviewKind.Text -> decodeTextPreview(
             fileName = fileName,
-            bytes = bytes,
+            bytes = previewBytes,
             copyText = copyText,
+            checkCancellation = currentCoroutineContext()::ensureActive,
         )
-
-        null -> AttachmentPreviewContent.Error(AttachmentPreviewError.UnsupportedFileType)
     }
 }
+
+/**
+ * Returns the content to preview. A Gzip file is previewed as the
+ * file it wraps: [bytes] are inflated, refusing to produce more than
+ * [AttachmentPreviewLimits.MAX_ENTRY_PREVIEW_BYTES]. Only the owner
+ * of [bytes] may pass [clearBytes] to clear them once they are inflated.
+ */
+internal suspend fun unwrapGzipAttachmentPreview(
+    fileName: String,
+    bytes: ByteArray,
+    clearBytes: Boolean,
+): ByteArray {
+    if (!fileName.isAttachmentPreviewGzip()) {
+        return bytes
+    }
+    val context = currentCoroutineContext()
+    return try {
+        bytes.gunzip(
+            maxSize = AttachmentPreviewLimits.MAX_ENTRY_PREVIEW_BYTES,
+            checkCancellation = context::ensureActive,
+        )
+    } finally {
+        if (clearBytes) bytes.fill(0)
+    }
+}
+
+private val UTF8_BOM = byteArrayOf(0xEF.toByte(), 0xBB.toByte(), 0xBF.toByte())
+
+internal fun ByteArray.hasUtf8Bom(): Boolean =
+    size >= UTF8_BOM.size && UTF8_BOM.indices.all { this[it] == UTF8_BOM[it] }
 
 internal fun decodeTextPreview(
     fileName: String,
     bytes: ByteArray,
     copyText: CopyText,
+    checkCancellation: () -> Unit = {},
 ): AttachmentPreviewContent {
     val sampleSize = minOf(bytes.size, 4096)
     for (i in 0 until sampleSize) {
@@ -236,22 +386,14 @@ internal fun decodeTextPreview(
         }
     }
 
-    val offset = if (
-        bytes.size >= 3 &&
-        bytes[0] == 0xEF.toByte() &&
-        bytes[1] == 0xBB.toByte() &&
-        bytes[2] == 0xBF.toByte()
-    ) {
-        3
-    } else {
-        0
-    }
+    val offset = if (bytes.hasUtf8Bom()) UTF8_BOM.size else 0
     val text = bytes
         .decodeToString(
             startIndex = offset,
             endIndex = bytes.size,
             throwOnInvalidSequence = false,
         )
+    val isJson = fileName.attachmentPreviewFileExtension() in setOf("json", "jsonld")
     val code = AttachmentPreviewCode(
         text = text,
         lineIndex = AttachmentPreviewLineIndex.of(text),
@@ -265,13 +407,32 @@ internal fun decodeTextPreview(
             type = CopyText.Type.VALUE,
         )
     }
-    return if (isMarkdownAttachmentPreview(fileName)) {
-        AttachmentPreviewContent.Markdown(
+    val kind = attachmentPreviewKindByFileName(fileName)
+    val table = if (kind == AttachmentPreviewKind.Table) {
+        val delimiter = attachmentPreviewTableDelimiter(fileName, text)
+        parseAttachmentPreviewTable(text, delimiter)
+    } else {
+        null
+    }
+    return when {
+        isJson -> AttachmentPreviewContent.Json(
+            code = code,
+            preview = parseAttachmentPreviewJsonBytes(text, bytes, offset, checkCancellation),
+            onCopy = onCopy,
+        )
+
+        kind == AttachmentPreviewKind.Markdown -> AttachmentPreviewContent.Markdown(
             code = code,
             onCopy = onCopy,
         )
-    } else {
-        AttachmentPreviewContent.Text(
+
+        table != null -> AttachmentPreviewContent.Table(
+            code = code,
+            table = table,
+            onCopy = onCopy,
+        )
+
+        else -> AttachmentPreviewContent.Text(
             code = code,
             onCopy = onCopy,
         )
@@ -284,6 +445,10 @@ private fun AttachmentPreviewState.withCode(
     content = when (val content = content) {
         is AttachmentPreviewContent.Text -> content.copy(code = code)
         is AttachmentPreviewContent.Markdown -> content.copy(code = code)
+        is AttachmentPreviewContent.Table -> content.copy(code = code)
+        is AttachmentPreviewContent.Json -> content.copy(code = code)
+        is AttachmentPreviewContent.Archive,
+        is AttachmentPreviewContent.GpgKey,
         is AttachmentPreviewContent.Image,
         is AttachmentPreviewContent.Error -> content
     },

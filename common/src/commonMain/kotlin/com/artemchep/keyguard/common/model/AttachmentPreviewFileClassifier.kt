@@ -4,11 +4,20 @@ fun attachmentPreviewKindByFileName(
     fileName: String,
 ): AttachmentPreviewKind? {
     val extension = fileName.attachmentPreviewFileExtension()
+    if (extension in ATTACHMENT_PREVIEW_ARCHIVE_EXTENSIONS) {
+        return AttachmentPreviewKind.Archive
+    }
+    if (extension in ATTACHMENT_PREVIEW_GPG_KEY_EXTENSIONS) {
+        return AttachmentPreviewKind.GpgKey
+    }
     if (extension in ATTACHMENT_PREVIEW_IMAGE_EXTENSIONS) {
         return AttachmentPreviewKind.Image
     }
     if (extension in ATTACHMENT_PREVIEW_MARKDOWN_EXTENSIONS) {
         return AttachmentPreviewKind.Markdown
+    }
+    if (extension in ATTACHMENT_PREVIEW_TABLE_EXTENSIONS) {
+        return AttachmentPreviewKind.Table
     }
 
     val name = fileName.attachmentPreviewFileName().lowercase()
@@ -27,29 +36,71 @@ fun isMarkdownAttachmentPreview(
     fileName: String,
 ): Boolean = fileName.attachmentPreviewFileExtension() in ATTACHMENT_PREVIEW_MARKDOWN_EXTENSIONS
 
+/**
+ * Returns the name of the file to preview, for example `app.log`
+ * for both `logs/app.log` and `logs/app.log.gz`.
+ */
 internal fun String.attachmentPreviewFileName(): String {
-    val separatorIndex = indexOfLast { it == '/' || it == '\\' }
-    return if (separatorIndex != -1 && separatorIndex < length - 1) {
-        substring(separatorIndex + 1)
+    val path = attachmentPreviewPath()
+    val separatorIndex = path.indexOfLast { it == '/' || it == '\\' }
+    return if (separatorIndex != -1 && separatorIndex < path.length - 1) {
+        path.substring(separatorIndex + 1)
     } else {
-        this
+        path
     }
 }
 
+/**
+ * Returns the extension of the file to preview, for example `log`
+ * for both `app.log` and `app.log.gz`.
+ */
 internal fun String.attachmentPreviewFileExtension(): String? {
-    val separatorIndex = indexOfLast { it == '/' || it == '\\' }
-    val extensionIndex = indexOfLast { it == '.' }
-    return if (extensionIndex != -1 && extensionIndex > separatorIndex && extensionIndex < length - 1) {
-        substring(extensionIndex + 1).lowercase()
+    val path = attachmentPreviewPath()
+    val separatorIndex = path.indexOfLast { it == '/' || it == '\\' }
+    val extensionIndex = path.indexOfLast { it == '.' }
+    return if (extensionIndex != -1 && extensionIndex > separatorIndex && extensionIndex < path.length - 1) {
+        path.substring(extensionIndex + 1).lowercase()
     } else {
         null
     }
 }
 
+/**
+ * Returns `true` if this is a Gzip file. A Gzip file is
+ * previewed as the file it wraps.
+ */
+internal fun String.isAttachmentPreviewGzip(): Boolean =
+    endsWith(ATTACHMENT_PREVIEW_GZIP_SUFFIX, ignoreCase = true)
+
+private fun String.attachmentPreviewPath(): String =
+    if (isAttachmentPreviewGzip()) {
+        dropLast(ATTACHMENT_PREVIEW_GZIP_SUFFIX.length)
+    } else {
+        this
+    }
+
+private const val ATTACHMENT_PREVIEW_GZIP_SUFFIX = ".gz"
+
+private val ATTACHMENT_PREVIEW_ARCHIVE_EXTENSIONS = setOf(
+    "zip",
+    "jar",
+    "apk",
+    "epub",
+    "cbz",
+)
+
+private val ATTACHMENT_PREVIEW_GPG_KEY_EXTENSIONS = setOf(
+    "asc",
+    "gpg",
+    "pgp",
+)
+
 private val ATTACHMENT_PREVIEW_IMAGE_EXTENSIONS = setOf(
     "png",
     "jpg",
     "jpeg",
+    "jfif",
+    "jpe",
     "gif",
     "bmp",
     "webp",
@@ -60,6 +111,16 @@ private val ATTACHMENT_PREVIEW_IMAGE_EXTENSIONS = setOf(
 private val ATTACHMENT_PREVIEW_MARKDOWN_EXTENSIONS = setOf(
     "md",
     "markdown",
+    "mdown",
+    "mdwn",
+    "mkd",
+    "mkdn",
+    "mkdown",
+)
+
+private val ATTACHMENT_PREVIEW_TABLE_EXTENSIONS = setOf(
+    "csv",
+    "tsv",
 )
 
 private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
@@ -68,7 +129,6 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "ads",
     "applescript",
     "as",
-    "asc",
     "ascx",
     "asm",
     "asmx",
@@ -115,7 +175,6 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "csr",
     "css",
     "csslintrc",
-    "csv",
     "ctl",
     "cts",
     "curlrc",
@@ -183,6 +242,8 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "htpasswd",
     "hxx",
     "iced",
+    "ics",
+    "ifb",
     "inc",
     "ini",
     "ino",
@@ -222,17 +283,12 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "makefile",
     "map",
     "master",
-    "mdown",
-    "mdwn",
     "mdx",
     "metadata",
     "mht",
     "mhtml",
     "mjs",
     "mk",
-    "mkd",
-    "mkdn",
-    "mkdown",
     "ml",
     "mli",
     "mm",
@@ -246,6 +302,7 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "npmrc",
     "nvmrc",
     "ops",
+    "ovpn",
     "pas",
     "pasm",
     "patch",
@@ -336,7 +393,6 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "toml",
     "tpl",
     "ts",
-    "tsv",
     "tsx",
     "tt",
     "tt2",
@@ -345,6 +401,8 @@ private val ATTACHMENT_PREVIEW_TEXT_EXTENSIONS = setOf(
     "v",
     "vb",
     "vbs",
+    "vcard",
+    "vcf",
     "vh",
     "vhd",
     "vhdl",

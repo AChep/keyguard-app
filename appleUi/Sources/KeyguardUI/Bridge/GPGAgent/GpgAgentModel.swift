@@ -53,6 +53,10 @@ final class GpgAgentModel: SnapshotObserving {
         core.setGpgAgentApprovalWindow(optionId: optionId)
     }
 
+    func setGpgAgentApprovalTimeout(optionId: String) {
+        core.setGpgAgentApprovalTimeout(optionId: optionId)
+    }
+
     func setGpgAgentApprovalCachePolicy(optionId: String) {
         core.setGpgAgentApprovalCachePolicy(optionId: optionId)
     }

@@ -267,7 +267,6 @@ internal object VaultSearchBenchmarkFixtures {
                     webVaultUrl = "https://${account.host}",
                     localVaultUrl = null,
                     type = AccountType.BITWARDEN,
-                    faviconServer = null,
                 )
             },
         folders =

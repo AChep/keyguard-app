@@ -1,18 +1,16 @@
 ---
 title: "Smart conflict resolution"
-summary: "When the same item changes in two places, Keyguard uses 3-way merge."
+summary: "When an item changes in more than one place, Keyguard merges the edits field by field."
 icon: "🔀"
 group: "Your data"
 order: 14
 featured: false
-premium: false
+doc: sync-and-conflicts
 ---
 
-Edits collide when the same item is changed in two places before either side syncs, such as a tweak on another device or a quick fix in the web vault. Keyguard compares both sets of changes and reconciles them field by field:
+Edits collide when the same item changes in two places before either side
+syncs, such as a tweak on another device or a quick fix in the web vault.
 
-- a field changed on only one side keeps that change.
-- a field changed on **both** sides takes the server's version.
-- items added or removed are replayed onto the latest data.
-
-The exact merge rules are documented in
-[sync & conflict resolution](/docs/sync-and-conflicts/).
+Keyguard doesn't make you pick one version. It compares both against the last
+synced copy and merges them field by field, so a new username from one device
+and a new password from another both survive.

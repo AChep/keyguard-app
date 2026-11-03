@@ -124,6 +124,7 @@ pub struct MacosPeerIdentity {
     code_signing_status: MacosCodeSigningStatus,
     team_identifier: Option<String>,
     signing_identifier: Option<String>,
+    code_directory_hash: Vec<u8>,
     application: Option<MacosApplicationIdentity>,
     terminal_session: Option<MacosTerminalSessionIdentity>,
     audit_token: AuditToken,
@@ -297,6 +298,34 @@ impl MacosApplicationIdentity {
     }
 }
 
+/// The process that started a relaying peer. Presentation data only.
+#[derive(Clone, Debug)]
+pub struct MacosRelayedCaller {
+    pid: u32,
+    executable_path: String,
+    application: Option<MacosApplicationIdentity>,
+}
+
+impl MacosRelayedCaller {
+    /// PID of the process that started the peer.
+    #[must_use]
+    pub const fn pid(&self) -> u32 {
+        self.pid
+    }
+
+    /// Kernel-reported executable path of the process.
+    #[must_use]
+    pub fn executable_path(&self) -> &str {
+        &self.executable_path
+    }
+
+    /// Verified origin application of the process, if any.
+    #[must_use]
+    pub const fn application(&self) -> Option<&MacosApplicationIdentity> {
+        self.application.as_ref()
+    }
+}
+
 impl MacosPeerIdentity {
     /// Maximum descriptors beyond the accepted public socket needed by one
     /// connection at the peak of revalidation: retained socket duplicate,
@@ -351,6 +380,12 @@ impl MacosPeerIdentity {
         self.signing_identifier.as_deref()
     }
 
+    /// Code-directory hash of the direct peer's validated live code.
+    #[must_use]
+    pub fn code_directory_hash(&self) -> &[u8] {
+        &self.code_directory_hash
+    }
+
     /// Verified origin application, when a bounded ancestry walk found and
     /// validated an enclosing `.app` process.
     #[must_use]
@@ -380,6 +415,25 @@ impl MacosPeerIdentity {
         self.terminal_session
             .as_ref()
             .map(|session| session.subject)
+    }
+
+    /// The process that started this peer, for a peer that only relays
+    /// requests for it, such as a bundled command-line client. Its
+    /// application is collected as for a direct peer, except that the
+    /// relay's own application never names the caller. Authorization and
+    /// [`Self::revalidate`] keep describing the peer.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error when the peer has no parent of the same user, or
+    /// the parent changed during collection.
+    pub fn relayed_caller(&self) -> Result<MacosRelayedCaller, MacosCodeSigningFailure> {
+        collect_relayed_caller(
+            &SystemAncestrySource,
+            self.pid,
+            self.effective_uid,
+            self.terminal_session.as_ref(),
+        )
     }
 
     /// Revalidates the retained socket audit token and dynamic code identity.
@@ -520,12 +574,17 @@ fn collect_from_audit_token(
             );
             None
         });
-    let application =
-        collect_origin_application(&source, peer.pid, expected_uid, terminal_session.as_ref())
-            .unwrap_or_else(|_| {
-                tracing::debug!(stage = "application", "macOS reusable ancestry unavailable");
-                None
-            });
+    let application = collect_origin_application(
+        &source,
+        peer.pid,
+        expected_uid,
+        terminal_session.as_ref(),
+        false,
+    )
+    .unwrap_or_else(|_| {
+        tracing::debug!(stage = "application", "macOS reusable ancestry unavailable");
+        None
+    });
     let final_peer = read_peer_credentials(fd)?;
     let final_token = read_peer_audit_token(fd)?;
     if peer != final_peer || token != final_token {
@@ -541,6 +600,7 @@ fn collect_from_audit_token(
         code_signing_status: validated.code_signing_status,
         team_identifier: validated.team_identifier,
         signing_identifier: validated.signing_identifier,
+        code_directory_hash: validated.code_directory_hash,
         application,
         terminal_session,
         audit_token: token,
@@ -646,6 +706,47 @@ struct ValidatedCodeSubject {
     code_signing_status: MacosCodeSigningStatus,
     team_identifier: Option<String>,
     signing_identifier: Option<String>,
+    code_directory_hash: Vec<u8>,
+}
+
+/// Returns the code-directory hash recorded in the signature of the
+/// executable at `path`, for comparison with a peer's validated live code.
+///
+/// # Errors
+///
+/// Returns an error when the file cannot be opened as code or has no
+/// code-directory hash, for example an unsigned executable.
+pub fn static_code_directory_hash(
+    path: &std::path::Path,
+) -> Result<Vec<u8>, MacosCodeSigningFailure> {
+    use std::os::unix::ffi::OsStrExt;
+    let bytes = path.as_os_str().as_bytes();
+    let length = CfIndex::try_from(bytes.len())
+        .map_err(|_| MacosCodeSigningFailure::new("executable path is too long"))?;
+    // SAFETY: `bytes` stays alive for this synchronous call, which copies
+    // `length` bytes. A null allocator selects the default allocator.
+    let url =
+        unsafe { CFURLCreateFromFileSystemRepresentation(ptr::null(), bytes.as_ptr(), length, 0) };
+    let url = OwnedCf::from_created(url, "CFURLCreateFromFileSystemRepresentation")?;
+    let mut code: SecCodeRef = ptr::null();
+    // SAFETY: `url` is a live CFURL and `code` points to writable retained
+    // output storage.
+    let status = unsafe { SecStaticCodeCreateWithPath(url.as_ptr(), 0, &mut code) };
+    require_status("SecStaticCodeCreateWithPath", status)?;
+    let code = OwnedCf::from_created(code, "SecStaticCodeCreateWithPath")?;
+    let signing_info = copy_signing_information(code.as_ptr())?;
+    let cdhash = dictionary_data(
+        signing_info.as_ptr(),
+        // SAFETY: Security.framework exports this immortal CFString key.
+        unsafe { kSecCodeInfoUnique },
+        "static code-directory hash",
+    )?;
+    if cdhash.is_empty() || cdhash.len() > MAX_CDHASH_BYTES {
+        return Err(MacosCodeSigningFailure::new(
+            "static code has an invalid code-directory hash",
+        ));
+    }
+    Ok(cdhash)
 }
 
 fn validated_code_subject(
@@ -721,6 +822,7 @@ fn validated_code_subject(
         code_signing_status,
         team_identifier,
         signing_identifier,
+        code_directory_hash: cdhash,
     })
 }
 
@@ -1042,20 +1144,24 @@ struct MacosApplicationCandidate {
     login: Option<Arc<MacosLoginSessionProof>>,
 }
 
+/// With `relay`, the peer's own application never names the caller.
 fn collect_origin_application(
     source: &impl MacosAncestrySource,
     peer_pid: u32,
     expected_uid: u32,
     terminal_session: Option<&MacosTerminalSessionIdentity>,
+    relay: bool,
 ) -> Result<Option<MacosApplicationIdentity>, MacosCodeSigningFailure> {
-    let Some(first) = find_origin_application(source, peer_pid, expected_uid, terminal_session)?
+    let Some(first) =
+        find_origin_application(source, peer_pid, expected_uid, terminal_session, relay)?
     else {
         return Ok(None);
     };
     let lifecycle = source.lifecycle(first.selected.pid)?;
     let code = source.application_code(first.selected.pid)?;
-    let confirmed = find_origin_application(source, peer_pid, expected_uid, terminal_session)?
-        .ok_or_else(|| MacosCodeSigningFailure::new("origin application disappeared"))?;
+    let confirmed =
+        find_origin_application(source, peer_pid, expected_uid, terminal_session, relay)?
+            .ok_or_else(|| MacosCodeSigningFailure::new("origin application disappeared"))?;
     if first != confirmed {
         return Err(MacosCodeSigningFailure::new(
             "origin application changed during validation",
@@ -1118,13 +1224,57 @@ fn collect_origin_application(
     }))
 }
 
+fn collect_relayed_caller(
+    source: &impl MacosAncestrySource,
+    peer_pid: u32,
+    expected_uid: u32,
+    terminal_session: Option<&MacosTerminalSessionIdentity>,
+) -> Result<MacosRelayedCaller, MacosCodeSigningFailure> {
+    let peer = source.snapshot(peer_pid)?;
+    let parent_pid = peer.parent_pid;
+    if parent_pid <= 1 || parent_pid == peer_pid {
+        return Err(MacosCodeSigningFailure::new("relay has no parent process"));
+    }
+    let lifecycle = source.lifecycle(parent_pid)?;
+    let parent = source.snapshot(parent_pid)?;
+    if parent.effective_uid != expected_uid {
+        return Err(MacosCodeSigningFailure::new(
+            "relay parent belongs to another user",
+        ));
+    }
+    let application =
+        collect_origin_application(source, peer_pid, expected_uid, terminal_session, true)
+            .unwrap_or_else(|_| {
+                tracing::debug!(stage = "relay", "macOS reusable ancestry unavailable");
+                None
+            });
+    // launchd adopts an orphaned relay, so an unchanged parent PID proves
+    // that the parent snapshot does not describe a reused PID.
+    if source.snapshot(peer_pid)? != peer {
+        return Err(MacosCodeSigningFailure::new(
+            "relay parent changed during collection",
+        ));
+    }
+    lifecycle
+        .ensure_live()
+        .map_err(|error| MacosCodeSigningFailure::new(error.to_string()))?;
+    Ok(MacosRelayedCaller {
+        pid: parent_pid,
+        executable_path: parent.executable_path,
+        application,
+    })
+}
+
 fn find_origin_application(
     source: &impl MacosAncestrySource,
     peer_pid: u32,
     expected_uid: u32,
     terminal_session: Option<&MacosTerminalSessionIdentity>,
+    relay: bool,
 ) -> Result<Option<MacosApplicationCandidate>, MacosCodeSigningFailure> {
     let permitted_login = terminal_session.and_then(|session| session.login.as_ref());
+    // The relay stays in the chain, which a system login proof starts with.
+    let mut skip_bundle = relay;
     let mut current_pid = peer_pid;
     let mut selected_bundle: Option<String> = None;
     let mut selected = None;
@@ -1176,7 +1326,9 @@ fn find_origin_application(
             crossed_login = Some(Arc::clone(login));
         }
         chain.push(snapshot.clone());
-        if snapshot.bundle_path.is_empty() {
+        if std::mem::take(&mut skip_bundle) {
+            // The relay's own application is not the caller.
+        } else if snapshot.bundle_path.is_empty() {
             if selected_bundle.is_some() {
                 ended = true;
                 break;
@@ -1572,9 +1724,16 @@ fn process_path(pid: u32) -> Result<String, MacosCodeSigningFailure> {
     Ok(path.to_owned())
 }
 
-fn outer_app_bundle_path(executable_path: &str) -> Option<String> {
-    std::path::Path::new(executable_path)
-        .ancestors()
+/// The outermost `.app` of a bundle's main executable, which sits directly in
+/// `Contents/MacOS`. A tool elsewhere in a bundle, such as Xcode's
+/// `Contents/Developer/usr/bin/git`, acts for the process that started it.
+pub(crate) fn outer_app_bundle_path(executable_path: &str) -> Option<String> {
+    let path = std::path::Path::new(executable_path);
+    let macos = path.parent()?;
+    if macos.file_name()? != "MacOS" || macos.parent()?.file_name()? != "Contents" {
+        return None;
+    }
+    path.ancestors()
         .filter(|ancestor| {
             ancestor
                 .file_name()
@@ -2197,11 +2356,22 @@ unsafe extern "C" {
         flags: u32,
         information: *mut CfDictionaryRef,
     ) -> OsStatus;
+    fn SecStaticCodeCreateWithPath(
+        path: CfTypeRef,
+        flags: u32,
+        static_code: *mut SecCodeRef,
+    ) -> OsStatus;
 }
 
 #[link(name = "CoreFoundation", kind = "framework")]
 unsafe extern "C" {
     fn CFRelease(value: CfTypeRef);
+    fn CFURLCreateFromFileSystemRepresentation(
+        allocator: CfTypeRef,
+        buffer: *const u8,
+        length: CfIndex,
+        is_directory: CfBoolean,
+    ) -> CfTypeRef;
     fn CFGetTypeID(value: CfTypeRef) -> CfTypeId;
     fn CFDataGetTypeID() -> CfTypeId;
     fn CFStringGetTypeID() -> CfTypeId;
@@ -2249,6 +2419,16 @@ mod tests {
     use super::*;
     use std::os::fd::AsRawFd;
     use std::os::unix::net::UnixStream;
+
+    // Apple silicon executables always carry at least a linker signature.
+    #[cfg(target_arch = "aarch64")]
+    #[test]
+    fn static_code_directory_hash_reads_the_executable_signature() {
+        let executable = std::env::current_exe().expect("test executable");
+        let cdhash = static_code_directory_hash(&executable).expect("signed test executable");
+        assert!((20..=MAX_CDHASH_BYTES).contains(&cdhash.len()));
+        assert!(static_code_directory_hash(std::path::Path::new("/nonexistent/keyguard")).is_err());
+    }
 
     use std::cell::{Cell, RefCell};
     use std::collections::BTreeMap;
@@ -2345,8 +2525,8 @@ mod tests {
             Option<MacosApplicationIdentity>,
         ) {
             let session = collect_terminal_session(self, 60, 501).unwrap_or_default();
-            let app =
-                collect_origin_application(self, 60, 501, session.as_ref()).unwrap_or_default();
+            let app = collect_origin_application(self, 60, 501, session.as_ref(), false)
+                .unwrap_or_default();
             (session, app)
         }
     }
@@ -2439,6 +2619,7 @@ mod tests {
                 ),
                 team_identifier: None,
                 signing_identifier: None,
+                code_directory_hash: vec![1; 20],
                 application,
                 terminal_session: session,
                 audit_token: AuditToken {
@@ -2475,6 +2656,179 @@ mod tests {
                 .kind(),
             VerifiedSubjectKind::StableApplication
         );
+    }
+
+    const BUNDLED_CLI: &str = "/Applications/Keyguard.app/Contents/Resources/keyguard";
+
+    /// Adds a CLI at `cli` that the terminal command (60) started.
+    fn insert_relay(source: &FixtureSource, cli: &str) {
+        source.processes.borrow_mut().insert(
+            70,
+            MacosProcessSnapshot {
+                pid: 70,
+                parent_pid: 60,
+                session_id: 40,
+                controlling_tty: 100,
+                effective_uid: 501,
+                real_uid: 501,
+                start_seconds: 1070,
+                start_microseconds: 200,
+                executable_path: cli.to_owned(),
+                bundle_path: outer_app_bundle_path(cli).unwrap_or_default(),
+            },
+        );
+        source.change(60, |command| {
+            command.executable_path = "/Users/test/.local/bin/claude".to_owned();
+        });
+    }
+
+    #[test]
+    fn relayed_caller_is_the_parent_in_its_own_application() {
+        for (cli, direct_application) in [
+            // The bundled CLI is a tool of the bundle, not its application.
+            (BUNDLED_CLI, "iTerm"),
+            (
+                "/Applications/Keyguard.app/Contents/MacOS/keyguard",
+                "Keyguard",
+            ),
+        ] {
+            let source = FixtureSource::iterm();
+            insert_relay(&source, cli);
+            let session = collect_terminal_session(&source, 70, 501).expect("terminal session");
+            let direct = collect_origin_application(&source, 70, 501, session.as_ref(), false)
+                .expect("direct walk")
+                .expect("direct application");
+            assert_eq!(direct.display_name, direct_application);
+
+            let relayed =
+                collect_relayed_caller(&source, 70, 501, session.as_ref()).expect("relayed caller");
+            assert_eq!(relayed.pid(), 60);
+            assert_eq!(relayed.executable_path(), "/Users/test/.local/bin/claude");
+            assert_eq!(
+                relayed
+                    .application()
+                    .expect("terminal application")
+                    .display_name(),
+                "iTerm"
+            );
+        }
+    }
+
+    const XCODE_GIT: &str = "/Applications/Xcode-beta.app/Contents/Developer/usr/bin/git";
+
+    /// Runs the peer (60) as `ssh-keygen` under the Xcode `git` (55) that
+    /// `/usr/bin/git` executes, started by `parent_pid`.
+    fn insert_xcode_git(source: &FixtureSource, parent_pid: u32) {
+        source.processes.borrow_mut().insert(
+            55,
+            MacosProcessSnapshot {
+                pid: 55,
+                parent_pid,
+                session_id: 40,
+                controlling_tty: 100,
+                effective_uid: 501,
+                real_uid: 501,
+                start_seconds: 1055,
+                start_microseconds: 200,
+                executable_path: XCODE_GIT.to_owned(),
+                bundle_path: outer_app_bundle_path(XCODE_GIT).unwrap_or_default(),
+            },
+        );
+        source.change(60, |peer| {
+            peer.parent_pid = 55;
+            peer.executable_path = "/usr/bin/ssh-keygen".to_owned();
+        });
+    }
+
+    #[test]
+    fn only_a_main_executable_names_its_outermost_application() {
+        const CODE: &str = "/Applications/Visual Studio Code.app";
+        for (executable_path, application) in [
+            (
+                "/Applications/Visual Studio Code.app/Contents/MacOS/Code",
+                Some(CODE),
+            ),
+            (
+                "/Applications/Visual Studio Code.app/Contents/Frameworks/\
+                 Code Helper (Plugin).app/Contents/MacOS/Code Helper (Plugin)",
+                Some(CODE),
+            ),
+            (
+                "/Applications/Foo.app/Contents/XPCServices/Bar.xpc/Contents/MacOS/Bar",
+                Some("/Applications/Foo.app"),
+            ),
+            (XCODE_GIT, None),
+            (
+                "/Applications/Docker.app/Contents/Resources/bin/docker",
+                None,
+            ),
+            (BUNDLED_CLI, None),
+            ("/Applications/Foo.app/Contents/MacOS/bin/tool", None),
+            ("/Library/Foo/Bar.xpc/Contents/MacOS/Bar", None),
+            ("/usr/bin/ssh-keygen", None),
+        ] {
+            assert_eq!(
+                outer_app_bundle_path(executable_path).as_deref(),
+                application,
+                "{executable_path}"
+            );
+        }
+    }
+
+    #[test]
+    fn xcode_git_in_a_terminal_names_the_terminal() {
+        let source = FixtureSource::iterm();
+        insert_xcode_git(&source, 50);
+        let (session, app) = source.collect();
+        assert!(session.expect("terminal session").login.is_some());
+        let app = app.expect("terminal application");
+        assert_eq!(app.display_name, "iTerm");
+        assert_eq!(app.pid, 20);
+        assert_eq!(app.accepted_chain.len(), 6);
+    }
+
+    #[test]
+    fn xcode_git_started_by_an_application_names_that_application() {
+        const CODE: &str = "/Applications/Visual Studio Code.app";
+        let source = FixtureSource::iterm();
+        insert_xcode_git(&source, 30);
+        source.change(60, |peer| peer.controlling_tty = 0);
+        source.change(55, |git| git.controlling_tty = 0);
+        for (pid, executable_path) in [
+            (
+                30,
+                format!(
+                    "{CODE}/Contents/Frameworks/Code Helper (Plugin).app/Contents/MacOS/\
+                     Code Helper (Plugin)"
+                ),
+            ),
+            (20, format!("{CODE}/Contents/MacOS/Code")),
+        ] {
+            source.change(pid, |process| {
+                process.bundle_path = outer_app_bundle_path(&executable_path).unwrap_or_default();
+                process.executable_path = executable_path;
+            });
+        }
+        let (session, app) = source.collect();
+        assert!(session.is_none());
+        let app = app.expect("launching application");
+        assert_eq!(app.display_name, "Visual Studio Code");
+        assert_eq!(app.pid, 20);
+    }
+
+    #[test]
+    fn relayed_caller_rejects_a_parent_that_changes_during_collection() {
+        let source = FixtureSource::iterm();
+        insert_relay(&source, BUNDLED_CLI);
+        let session = collect_terminal_session(&source, 70, 501).expect("terminal session");
+        // launchd adopts the relay once its parent exits.
+        *source.mutate_on_application.borrow_mut() = Some(|processes| {
+            processes.get_mut(&70).expect("relay").parent_pid = 1;
+        });
+        assert!(collect_relayed_caller(&source, 70, 501, session.as_ref()).is_err());
+
+        source.change(70, |relay| relay.parent_pid = 1);
+        assert!(collect_relayed_caller(&source, 70, 501, session.as_ref()).is_err());
     }
 
     #[test]
@@ -2646,7 +3000,7 @@ mod tests {
                 .expect("collection")
                 .expect("session");
             *source.mutate_on_application.borrow_mut() = Some(*mutate);
-            assert!(collect_origin_application(&source, 60, 501, Some(&session)).is_err());
+            assert!(collect_origin_application(&source, 60, 501, Some(&session), false).is_err());
             assert_eq!(source.live_guards(), 1, "only original session retained");
         }
     }
@@ -2998,16 +3352,17 @@ mod tests {
         let login = session.login.as_ref().expect("verified system login");
         assert_eq!(login.leader.effective_uid, 0);
         assert_eq!(login.leader.real_uid, owner);
-        let app = collect_origin_application(&source, pid, owner, Some(&session))
+        let app = collect_origin_application(&source, pid, owner, Some(&session), false)
             .expect("live application collection")
             .expect("verified application");
         assert!(Arc::ptr_eq(login, app.login.as_ref().expect("joint proof")));
         let repeated_session = collect_terminal_session(&source, pid, owner)
             .expect("repeat session collection")
             .expect("repeat session");
-        let repeated_app = collect_origin_application(&source, pid, owner, Some(&repeated_session))
-            .expect("repeat app collection")
-            .expect("repeat application");
+        let repeated_app =
+            collect_origin_application(&source, pid, owner, Some(&repeated_session), false)
+                .expect("repeat app collection")
+                .expect("repeat application");
         assert_eq!(session, repeated_session);
         assert_eq!(app, repeated_app);
     }

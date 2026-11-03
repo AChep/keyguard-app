@@ -12,4 +12,6 @@ data class FilePickerResult(
      * bookmark for persisted file URIs.
      */
     val accessToken: String? = null,
+    /** True only when this picker request created the document, so an abandoned write may delete it. */
+    val created: Boolean = false,
 )

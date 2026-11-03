@@ -13,19 +13,20 @@ enum DetailRowsPreviewFixtures {
         actions: [VaultActionSnapshot] = [], click: String? = nil, concealed: Bool = false,
         visible: Bool = false, locked: Bool = false, reveal: String? = nil,
         totp: TotpFieldSnapshot? = nil, attachment: AttachmentFieldSnapshot? = nil,
-        url: String? = nil, markdown: Bool = false, monospace: Bool = false,
-        severity: VaultAlertSeverity? = nil, colorize: Bool = false, uriIcon: UriIconSnapshot? = nil
+        dragUrl: String? = nil, url: String? = nil, markdown: Bool = false, monospace: Bool = false,
+        severity: VaultAlertSeverity? = nil, colorize: Bool = false, uriIcon: UriIconSnapshot? = nil,
+        reference: VaultReferenceSnapshot? = nil, label: String? = nil
     ) -> VaultItemSnapshot {
         VaultItemSnapshot(
             id: id, kind: kind, title: title, text: text, concealed: concealed, monospace: monospace,
             totp: totp, launchUrl: url, switchValue: true, actions: actions, markdown: markdown,
             avatarUrl: nil, shapeState: -1, clickActionId: click,
             badges: kind == .quickBadges ? [VaultBadgeSnapshot(title: "Personal", text: "Synced")] : [],
-            attachment: attachment, spacerHeight: 16, cardBrand: kind == .card ? "Visa" : nil,
+            attachment: attachment, dragUrl: dragUrl, spacerHeight: 16, cardBrand: kind == .card ? "Visa" : nil,
             cardNumberFormatted: kind == .card && visible ? "4111 1111 1111 1111" : nil,
             cardNumberObscured: kind == .card ? "•••• •••• •••• 1111" : nil,
             isVisible: visible, revealActionId: reveal, revealLocked: locked, alertSeverity: severity,
-            colorize: colorize, uriIcon: uriIcon
+            colorize: colorize, uriIcon: uriIcon, reference: reference, label: label
         )
     }
 
@@ -39,21 +40,21 @@ enum DetailRowsPreviewFixtures {
             item("uris", .section, title: "Linked URIs / apps"),
             item(
                 "web", .uri, title: "https://example.com", actions: actions,
-                uriIcon: UriIconSnapshot(kind: .website, url: nil)),
+                dragUrl: "https://example.com", uriIcon: UriIconSnapshot(kind: .website, iconKey: nil)),
             item(
                 "ios", .uri, title: "com.example.ios", actions: [action("copy-ios", "Copy bundle ID", copy: true)],
-                uriIcon: UriIconSnapshot(kind: .app, url: nil)),
+                uriIcon: UriIconSnapshot(kind: .app, iconKey: nil)),
             item(
                 "android", .uri, title: "com.example.android",
                 actions: [action("copy-android", "Copy package name", copy: true)],
-                uriIcon: UriIconSnapshot(kind: .app, url: nil)),
+                uriIcon: UriIconSnapshot(kind: .app, iconKey: nil)),
             item(
                 "long-url", .uri, title: "https://example.com/" + String(repeating: "long-path/", count: 8),
-                text: "Existing subtitle", actions: actions, uriIcon: UriIconSnapshot(kind: .website, url: nil)),
+                text: "Existing subtitle", actions: actions, uriIcon: UriIconSnapshot(kind: .website, iconKey: nil)),
             item(
                 "regex", .uri, title: "^https://example\\.com/[0-9]+$", actions: actions,
-                colorize: true, uriIcon: UriIconSnapshot(kind: .link, url: nil)),
-            item("no-actions", .uri, title: "custom:unavailable", uriIcon: UriIconSnapshot(kind: .link, url: nil)),
+                colorize: true, uriIcon: UriIconSnapshot(kind: .link, iconKey: nil)),
+            item("no-actions", .uri, title: "custom:unavailable", uriIcon: UriIconSnapshot(kind: .link, iconKey: nil)),
             item("credentials", .section, title: "Credentials"),
             item("passkey", .passkey, title: "demo@example.com", text: "example.com", click: "preview-passkey"),
             item("attachment", .attachment, title: "Recovery codes.txt", text: "2 KB", click: "preview-attachment"),
@@ -79,7 +80,7 @@ enum DetailRowsPreviewFixtures {
             item(
                 "website", .uri, title: "https://example.com",
                 actions: [action("copy-url", "Copy URL", copy: true)],
-                uriIcon: UriIconSnapshot(kind: .website, url: nil)),
+                uriIcon: UriIconSnapshot(kind: .website, iconKey: nil)),
             item(
                 "otp", .totp, title: "One-time password", actions: [action("copy-otp", "Copy code", copy: true)],
                 totp: totp),
@@ -160,6 +161,17 @@ enum DetailRowsPreviewFixtures {
             item("untitled", text: "A value without a label"),
             item("empty", title: "Empty value", text: ""),
             item(
+                "reference", title: "DB_PASSWORD", text: "synthetic-password",
+                actions: [action("copy-reference", "Copy", copy: true)], monospace: true,
+                reference: VaultReferenceSnapshot(
+                    title: "Example database", text: "Password", unavailable: false,
+                    clickActionId: "open-reference")),
+            item(
+                "reference-unavailable", title: "API_KEY", concealed: true, locked: true, monospace: true,
+                reference: VaultReferenceSnapshot(
+                    title: "API_KEY", text: nil, unavailable: true,
+                    clickActionId: nil)),
+            item(
                 "plain-note", .note,
                 text: String(repeating: "Plain text notes remain readable at narrow widths. ", count: 10)),
         ]
@@ -228,15 +240,16 @@ enum DetailRowsPreviewFixtures {
                 "file-\(index)", .attachment, title: "Attachment \(index + 1).txt", text: "2 MB",
                 actions: [action("file-action-\(index)", "File action")], click: "file-preview-\(index)",
                 attachment: AttachmentFieldSnapshot(
-                    status: state, progress: 0.5, downloadedText: "1 MB", autoResume: false))
+                    status: state, progress: 0.5, downloadedText: "1 MB", autoResume: false, drag: nil))
         } + [
             item(
                 "indeterminate", .attachment, title: "Starting download.txt",
                 attachment: AttachmentFieldSnapshot(
-                    status: .loading, progress: -1, downloadedText: nil, autoResume: false)),
+                    status: .loading, progress: -1, downloadedText: nil, autoResume: false, drag: nil)),
             item(
                 "auto-resume", .attachment, title: "Will resume.txt",
-                attachment: AttachmentFieldSnapshot(status: .failed, progress: 0, downloadedText: nil, autoResume: true)
+                attachment: AttachmentFieldSnapshot(
+                    status: .failed, progress: 0, downloadedText: nil, autoResume: true, drag: nil)
             ),
             item("otp-loading", .totp, title: "Loading code", totp: TotpFieldSnapshot.companion.loading),
             item("otp-error", .totp, title: "Invalid code", totp: TotpFieldSnapshot.companion.error),

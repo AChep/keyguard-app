@@ -6,6 +6,8 @@ import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptionFormat
 import com.artemchep.keyguard.crypto.FileEncryptionCodecJvm
+import com.artemchep.keyguard.provider.bitwarden.transport.AccountHttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.configureBitwardenMutualTlsClient
 import com.artemchep.keyguard.test.withTempDirectory
 import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
 import com.artemchep.keyguard.util.io.atomic.AtomicPathComponent
@@ -30,12 +32,14 @@ import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withTimeout
 import kotlinx.io.Buffer
 import kotlinx.io.RawSink
 import kotlinx.io.Sink
 import kotlinx.io.Source
 import kotlinx.io.buffered
 import kotlinx.io.readByteArray
+import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.MediaType
 import okhttp3.OkHttpClient
@@ -58,6 +62,7 @@ import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertTrue
+import kotlin.time.Duration.Companion.seconds
 import okio.Buffer as OkioBuffer
 
 private const val TEST_BYTE_PATTERN_MODULUS = 251
@@ -108,6 +113,49 @@ class DownloadTaskJvmSuccessfulOutputTest {
         }
 
         assertEquals(2, requestCount)
+    }
+
+    @Test
+    fun `url loader follows a redirect off the account's servers without the certificate`() = runTest {
+        val data = "payload".encodeToByteArray()
+        val target = "https://storage.example.com/payload.bin?sig=1"
+        val accountHttpClient = HttpClient(
+            MockEngine { request ->
+                assertEquals("vault.example.com", request.url.host)
+                respond(
+                    content = "",
+                    status = HttpStatusCode.Found,
+                    headers = headersOf(HttpHeaders.Location, target),
+                )
+            },
+        ) {
+            configureBitwardenMutualTlsClient(Json, setOf("vault.example.com:443"))
+        }
+        val storageRequests = mutableListOf<String>()
+        val redirectHttpClient = HttpClient(
+            MockEngine { request ->
+                storageRequests += request.url.toString()
+                respond(ByteReadChannel(data), HttpStatusCode.OK)
+            },
+        )
+        val task = DownloadTaskImpl(
+            client = AccountHttpClient(accountHttpClient, redirectHttpClient),
+            fileEncryptionCodec = CopyingFileEncryptionCodec(),
+        )
+
+        val sink = Buffer()
+        val complete = task
+            .fileLoader(
+                url = "https://vault.example.com/attachments/1/2?token=x",
+                key = null,
+                writer = DownloadWriter.SinkWriter(sink),
+            )
+            .filterIsInstance<DownloadProgress.Complete>()
+            .single()
+
+        assertIs<Either.Right<String?>>(complete.result)
+        assertContentEquals(data, sink.readByteArray())
+        assertEquals(listOf(target), storageRequests)
     }
 
     @Test
@@ -494,38 +542,56 @@ class DownloadTaskJvmFailureAndEdgeCaseTest {
             write(original)
         }
         val responseBody = CancellableResponseBody(prefix)
-        val task = downloadTask(responseBody = responseBody, fileEncryptionCodec = codec)
-        val completed = AtomicBoolean(false)
+        downloadHttpClient(responseBody).use { httpClient ->
+            val task = DownloadTaskImpl(httpClient = httpClient, fileEncryptionCodec = codec)
+            val completed = AtomicBoolean(false)
 
-        val collection = launch(
-            context = Dispatchers.Default,
-            start = CoroutineStart.UNDISPATCHED,
-        ) {
-            task
-                .fileLoader(
-                    url = "https://example.com/payload.bin",
-                    key = key,
-                    writer = DownloadWriter.SinkWriter(sink),
-                )
-                .collect { progress ->
-                    if (progress is DownloadProgress.Complete) {
-                        completed.set(true)
+            val collection = launch(
+                context = Dispatchers.Default,
+                start = CoroutineStart.UNDISPATCHED,
+            ) {
+                task
+                    .fileLoader(
+                        url = "https://example.com/payload.bin",
+                        key = key,
+                        writer = DownloadWriter.SinkWriter(sink),
+                    )
+                    .collect { progress ->
+                        if (progress is DownloadProgress.Complete) {
+                            completed.set(true)
+                        }
                     }
+            }
+
+            try {
+                assertTrue(
+                    responseBody.readStarted.await(
+                        CALL_CANCELLATION_TIMEOUT_SECONDS,
+                        TimeUnit.SECONDS,
+                    ),
+                    "Response body read did not start",
+                )
+                withTimeout(CALL_CANCELLATION_TIMEOUT_SECONDS.seconds) {
+                    collection.cancelAndJoin()
                 }
+
+                assertTrue(responseBody.call.isCanceled())
+                // Ktor can finish collecting before its engine closes the response body.
+                assertTrue(
+                    responseBody.closed.await(
+                        CALL_CANCELLATION_TIMEOUT_SECONDS,
+                        TimeUnit.SECONDS,
+                    ),
+                    "Response body did not close after call cancellation",
+                )
+                assertFalse(completed.get())
+                assertContentEquals(original, sink.readByteArray())
+            } finally {
+                withTimeout(CALL_CANCELLATION_TIMEOUT_SECONDS.seconds) {
+                    collection.cancelAndJoin()
+                }
+            }
         }
-
-        assertTrue(
-            responseBody.readStarted.await(
-                CALL_CANCELLATION_TIMEOUT_SECONDS,
-                TimeUnit.SECONDS,
-            ),
-        )
-        collection.cancelAndJoin()
-
-        assertTrue(responseBody.call.isCanceled())
-        assertTrue(responseBody.closed.get())
-        assertFalse(completed.get())
-        assertContentEquals(original, sink.readByteArray())
     }
 }
 
@@ -544,16 +610,21 @@ private fun downloadTask(
     responseStatus: HttpStatusCode = HttpStatusCode.OK,
     fileEncryptionCodec: FileEncryptionCodec = CopyingFileEncryptionCodec(),
 ) = DownloadTaskImpl(
-    httpClient = HttpClient(OkHttp) {
-        engine {
-            preconfigured = okHttpClient(
-                responseBody = responseBody,
-                responseStatus = responseStatus,
-            )
-        }
-    },
+    httpClient = downloadHttpClient(responseBody, responseStatus),
     fileEncryptionCodec = fileEncryptionCodec,
 )
+
+private fun downloadHttpClient(
+    responseBody: ResponseBody,
+    responseStatus: HttpStatusCode = HttpStatusCode.OK,
+) = HttpClient(OkHttp) {
+    engine {
+        preconfigured = okHttpClient(
+            responseBody = responseBody,
+            responseStatus = responseStatus,
+        )
+    }
+}
 
 private fun okHttpClient(
     responseBody: ResponseBody,
@@ -613,7 +684,7 @@ private class CancellableResponseBody(prefix: ByteArray = byteArrayOf()) : Respo
     private val initialBytes = OkioBuffer().write(prefix)
     lateinit var call: Call
     val readStarted = CountDownLatch(1)
-    val closed = AtomicBoolean(false)
+    val closed = CountDownLatch(1)
 
     private val responseSource = object : okio.Source {
         override fun read(
@@ -631,7 +702,7 @@ private class CancellableResponseBody(prefix: ByteArray = byteArrayOf()) : Respo
         override fun timeout(): Timeout = Timeout.NONE
 
         override fun close() {
-            closed.set(true)
+            closed.countDown()
         }
     }.buffer()
 

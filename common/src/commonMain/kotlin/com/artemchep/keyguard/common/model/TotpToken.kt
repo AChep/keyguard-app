@@ -136,12 +136,45 @@ private fun parseOtpAuth(
     url: String,
 ): Either<Throwable, TotpToken> = Either.catch {
     val parsedUrl = Url(url)
-    when (parsedUrl.host) {
-        "hotp" -> parseHotpAuth(url, parsedUrl)
+    when {
+        parsedUrl.host == "hotp" -> parseHotpAuth(url, parsedUrl)
+        parsedUrl.host == "totp" && parsedUrl.parameters["encoder"].equals("steam", ignoreCase = true) ->
+            parseSteamOtpAuth(url, parsedUrl)
         // totp
         else -> parseTotpAuth(url, parsedUrl)
     }
 }.flatten()
+
+/** KeePassXC represents Steam OTPs using an explicit otpauth encoder. */
+private fun parseSteamOtpAuth(
+    raw: String,
+    url: Url,
+): Either<Throwable, TotpToken.SteamAuth> = Either.catch {
+    val params = url.parameters
+    // SteamAuth has fixed digits and period; do not silently discard settings
+    // that would generate different codes in the source application.
+    params["digits"]?.also {
+        require(parseOtpDigits(it) == TotpToken.SteamAuth.DIGITS) {
+            "Steam OTP digits must be ${TotpToken.SteamAuth.DIGITS}."
+        }
+    }
+    params["period"]?.also {
+        require(it.toLongOrNull() == TotpToken.SteamAuth.PERIOD) {
+            "Steam OTP period must be ${TotpToken.SteamAuth.PERIOD}."
+        }
+    }
+    val keyBase32 = params["secret"].orEmpty()
+    if (keyBase32.isBlank()) {
+        throw OtpEmptySecretKeyException()
+    }
+    val algorithm = params["algorithm"]?.let(::parseHashAlgorithmOrNull)
+        ?: CryptoHashAlgorithm.SHA_1
+    TotpToken.SteamAuth(
+        algorithm = algorithm,
+        keyBase32 = keyBase32,
+        raw = raw,
+    )
+}
 
 private fun parseTotpAuth(
     raw: String,

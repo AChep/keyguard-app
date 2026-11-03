@@ -1,10 +1,11 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
-import com.artemchep.keyguard.common.service.agent.currentUnixEffectiveUid
 import com.artemchep.keyguard.common.service.agent.macosDevAgentSocketPath
 import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.flatpakDataDirectory
+import com.sun.security.auth.module.UnixSystem
 import java.nio.file.Files
 import java.nio.file.Path
 
@@ -103,19 +104,8 @@ private fun linuxManagedGpgHome(platform: Platform.Desktop.Linux): ManagedGpgHom
 }
 
 private fun flatpakManagedGpgHomePath(): Path =
-    gpgEnvPath("XDG_DATA_HOME")
-        ?.resolve("gnupg")
-        ?: Path.of(System.getProperty("user.home"))
-            .resolve(".var")
-            .resolve("app")
-            .resolve(flatpakId())
-            .resolve("data")
-            .resolve("gnupg")
-
-private fun flatpakId(): String =
-    System.getenv("FLATPAK_ID")
-        ?.takeIf { it.isNotBlank() }
-        ?: FLATPAK_APP_ID_FALLBACK
+    flatpakDataDirectory()
+        .resolve("gnupg")
 
 internal fun linuxManagedGpgHome(
     userHome: Path,
@@ -170,8 +160,10 @@ internal fun gpgEnvPath(name: String): Path? =
         ?.takeIf { it.isNotBlank() }
         ?.let { Path.of(it) }
 
-private fun currentUnixUid(): Long? = runCatchingNonFatal {
-    currentUnixEffectiveUid()
+/**
+ * The user ID of this process on Linux and macOS. It is the real user ID,
+ * which equals the effective one: Keyguard is never setuid.
+ */
+internal fun currentUnixUid(): Long? = runCatchingNonFatal {
+    UnixSystem().uid
 }.getOrNull()
-
-private const val FLATPAK_APP_ID_FALLBACK = "com.artemchep.keyguard"

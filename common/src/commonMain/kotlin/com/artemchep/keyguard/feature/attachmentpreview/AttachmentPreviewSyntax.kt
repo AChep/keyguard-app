@@ -28,8 +28,11 @@ fun attachmentPreviewSyntaxLanguageByFileName(
     "ts", "tsx", "mts", "cts" -> SyntaxLanguage.TYPESCRIPT
     else -> when (attachmentPreviewKindByFileName(fileName)) {
         AttachmentPreviewKind.Markdown,
+        AttachmentPreviewKind.Table,
         AttachmentPreviewKind.Text -> SyntaxLanguage.DEFAULT
 
+        AttachmentPreviewKind.Archive,
+        AttachmentPreviewKind.GpgKey,
         AttachmentPreviewKind.Image,
         null -> null
     }

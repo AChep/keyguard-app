@@ -7,6 +7,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@Suppress("TooManyFunctions")
 class GpgPublicKeyModelsTest {
     @Test
     fun `entry falls back to the first component key fingerprint`() = createSecret(
@@ -172,6 +173,63 @@ class GpgPublicKeyModelsTest {
         assertTrue(entry.canSign)
         assertTrue(entry.keyInfo.single().canSign)
     }
+
+    @Test
+    fun `signing needs a current authorization while decryption survives revocation`() {
+        val secret = createSecret()
+        val revoked = createSecret(
+            authorization = GpgAgentAuthorizationSnapshot(
+                evaluatedAtEpochSeconds = 1,
+                policyRevision = GpgAgentAuthorizationSnapshot.SUPPORTED_POLICY_REVISION,
+                keys = listOf(createMetadataKey(keygrip = KEYGRIP_1)),
+                revocations = mapOf(FINGERPRINT_1.normalizeGpgFingerprint() to GpgRevocationStatus.REVOKED),
+            ),
+        )
+        assertEquals(listOf(KEYGRIP_1), secret.agentKeygrips(GpgAgentOperation.SIGN))
+        assertEquals(listOf(KEYGRIP_1), secret.agentKeygrips(GpgAgentOperation.DECRYPT))
+        for (unauthorized in listOf(revoked, secret.copy(authorization = null))) {
+            assertEquals(emptyList(), unauthorized.agentKeygrips(GpgAgentOperation.SIGN))
+            assertEquals(listOf(KEYGRIP_1), unauthorized.agentKeygrips(GpgAgentOperation.DECRYPT))
+        }
+        for (privateKeyArmored in listOf(null, " ")) {
+            val publicOnly = createSecret(privateKeyArmored = privateKeyArmored)
+            GpgAgentOperation.entries.forEach { operation ->
+                assertEquals(emptyList(), publicOnly.agentKeygrips(operation))
+            }
+        }
+    }
+
+    @Test
+    fun `catalog rows support exactly the operations their components serve`() {
+        val secrets = listOf(
+            createSecret(),
+            createSecret().copy(authorization = null),
+            createSecret(privateKeyArmored = null),
+            createSecret(
+                keys = listOf(
+                    createMetadataKey(keygrip = KEYGRIP_1.lowercase(), capabilities = setOf("sign")),
+                    createMetadataKey(
+                        keygrip = KEYGRIP_2,
+                        fingerprint = FINGERPRINT_2,
+                        capabilities = setOf("decrypt"),
+                    ),
+                ),
+            ),
+        )
+        for (secret in secrets) {
+            val rows = secret.toGpgPublicKeyEntry(name = null).toGpgAgentKeyInfoRows()
+            assertTrue(rows.isNotEmpty())
+            GpgAgentOperation.entries.forEach { operation ->
+                val keygrips = secret.agentKeygrips(operation)
+                rows.forEach { row ->
+                    assertEquals(row.keygrip in keygrips, row.supports(operation), "$operation ${row.keygrip}")
+                }
+            }
+        }
+    }
+
+    private fun GpgAgentSecret.agentKeygrips(operation: GpgAgentOperation) =
+        agentKeysFor(operation).map { it.keygrip.normalizeGpgKeygrip() }
 
     private fun createSecret(
         privateKeyArmored: String? = "private-key",

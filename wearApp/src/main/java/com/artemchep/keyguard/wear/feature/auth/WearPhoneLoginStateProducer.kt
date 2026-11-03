@@ -1,8 +1,10 @@
 package com.artemchep.keyguard.wear.feature.auth
 
 import androidx.compose.runtime.Composable
+import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthPhoneDevice
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthPhoneDiscovery
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthRequestState
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -13,6 +15,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.wear.feature.picker.WearPickerRoute
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
@@ -66,14 +69,6 @@ internal fun wearPhoneLoginScreenState(
     suspend fun showPhonePicker(
         phoneDevices: List<CompanionAuthPhoneDevice>,
     ) {
-        if (phoneDevices.isEmpty()) {
-            return
-        }
-        if (phoneDevices.size == 1) {
-            startPhoneLogin(nodeId = phoneDevices.first().id)
-            return
-        }
-
         val actions = phoneDevices.map { phoneDevice ->
             FlatItemAction(
                 id = phoneDevice.id,
@@ -90,9 +85,23 @@ internal fun wearPhoneLoginScreenState(
         )
     }
 
-    val phoneDevicesFlow = companionAuthBridge
-        .reachablePhoneDevicesFlow()
-        .distinctUntilChanged()
+    suspend fun launchPhoneLogin(
+        phoneDevices: List<CompanionAuthPhoneDevice>,
+    ) {
+        when (phoneLoginLaunchBehaviorOf(phoneDevices.size)) {
+            WearPhoneLoginLaunchBehavior.NONE -> Unit
+            WearPhoneLoginLaunchBehavior.AUTO_START -> {
+                startPhoneLogin(nodeId = phoneDevices.first().id)
+            }
+            WearPhoneLoginLaunchBehavior.PICK_DEVICE -> {
+                showPhonePicker(phoneDevices)
+            }
+        }
+    }
+
+    val phoneDiscoveryFlow = companionAuthBridge
+        .phoneDiscoveryFlow()
+        .persistingStateIn(screenScope, SharingStarted.WhileSubscribed(), CompanionAuthPhoneDiscovery.Loading)
 
     val requestStateFlow = activeRequestIdSink
         .flatMapLatest { requestId ->
@@ -110,68 +119,34 @@ internal fun wearPhoneLoginScreenState(
             }
         }
 
-    phoneDevicesFlow
-        .onEach { phoneDevices ->
-            if (phoneDevices.isEmpty()) {
-                return@onEach
-            }
-            if (didAutoLaunchSink.value) {
-                return@onEach
-            }
-            if (activeRequestIdSink.value != null) {
+    phoneDiscoveryFlow
+        .onEach { phoneDiscovery ->
+            val shouldAutoLaunch = shouldAutoLaunchPhoneLogin(
+                phoneDeviceCount = phoneDiscovery.devices.size,
+                didAutoLaunch = didAutoLaunchSink.value,
+                hasActiveRequest = activeRequestIdSink.value != null,
+            )
+            if (!shouldAutoLaunch) {
                 return@onEach
             }
 
             didAutoLaunchSink.value = true
-            when (phoneLoginLaunchBehaviorOf(phoneDevices.size)) {
-                WearPhoneLoginLaunchBehavior.NONE -> Unit
-                WearPhoneLoginLaunchBehavior.AUTO_START -> {
-                    startPhoneLogin(nodeId = phoneDevices.first().id)
-                }
-                WearPhoneLoginLaunchBehavior.PICK_DEVICE -> {
-                    showPhonePicker(phoneDevices)
-                }
-            }
+            launchPhoneLogin(phoneDiscovery.devices)
         }
         .launchIn(screenScope)
 
     val onActionClick = onClick {
-        val phoneDevices = companionAuthBridge.getReachablePhoneDevices()
-        when (phoneLoginLaunchBehaviorOf(phoneDevices.size)) {
-            WearPhoneLoginLaunchBehavior.NONE -> Unit
-            WearPhoneLoginLaunchBehavior.AUTO_START -> {
-                startPhoneLogin(nodeId = phoneDevices.first().id)
-            }
-            WearPhoneLoginLaunchBehavior.PICK_DEVICE -> {
-                showPhonePicker(phoneDevices)
-            }
-        }
+        launchPhoneLogin(phoneDiscoveryFlow.value.devices)
     }
 
     combine(
-        phoneDevicesFlow,
+        phoneDiscoveryFlow,
         requestStateFlow,
-    ) { phoneDevices, requestState ->
-        val actionEnabled = shouldEnablePhoneLoginAction(
-            phoneDeviceCount = phoneDevices.size,
+    ) { phoneDiscovery, requestState ->
+        wearPhoneLoginStateOf(
+            phoneDiscovery = phoneDiscovery,
             requestState = requestState,
-        )
-        WearPhoneLoginState(
-            statusText = phoneStatusTextOf(
-                isPhoneAvailable = phoneDevices.isNotEmpty(),
-                requestState = requestState,
-            ),
-            showProgress = shouldShowPhoneLoginProgress(requestState),
-            actionText = if (actionEnabled) {
-                phoneLoginActionTextOf(phoneDevices.size)
-            } else {
-                null
-            },
-            onActionClick = if (actionEnabled) {
-                onActionClick
-            } else {
-                null
-            },
+            onActionClick = onActionClick,
         )
     }
 }

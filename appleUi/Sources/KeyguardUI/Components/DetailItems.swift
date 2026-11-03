@@ -139,7 +139,7 @@ struct DetailHeaderBar<Leading: View, Trailing: View>: View {
         HStack(spacing: 12) {
             leading()
             VStack(alignment: .leading, spacing: 2) {
-                Text(title.isEmpty ? L10n.credentialExchangeImportUntitled : title)
+                Text(title.isEmpty ? L10n.untitled : title)
                     .font(.title2.weight(.semibold))
                     .textSelection(.enabled)
                 if let subtitle, !subtitle.isEmpty {
@@ -402,34 +402,12 @@ struct DetailRow: View {
                 .foregroundStyle(.secondary)
                 .frame(width: 20)
                 .accessibilityHidden(true)
-            FlowLayout(spacing: 4, clampsToWidth: true) {
-                ForEach(Array(item.actions.enumerated()), id: \.element.id) { index, node in
-                    if index > 0 {
-                        Image(systemName: "chevron.compact.right")
-                            .font(.caption)
-                            .foregroundStyle(.tertiary)
-                            .accessibilityHidden(true)
-                    }
-                    if index == item.actions.count - 1 {
-                        Button {
-                            invoke(item.clickActionId ?? node.id)
-                        } label: {
-                            Text(node.title).touchTarget()
-                        }
-                        .buttonStyle(.plain)
-                        .breadcrumbAffordance(node.title)
-                    } else {
-                        Button {
-                            invoke(node.id)
-                        } label: {
-                            Text(node.title).touchTarget()
-                        }
-                        .buttonStyle(.plain)
-                        .foregroundStyle(.secondary)
-                        .breadcrumbAffordance(node.title)
-                    }
+            BreadcrumbBar(
+                nodes: item.actions.enumerated().map { index, node in
+                    let actionId = index == item.actions.count - 1 ? item.clickActionId ?? node.id : node.id
+                    return BreadcrumbBar.Node(id: node.id, title: node.title) { invoke(actionId) }
                 }
-            }
+            )
             Spacer(minLength: 0)
             if item.clickActionId != nil {
                 Image(systemName: "chevron.forward")
@@ -487,13 +465,17 @@ struct DetailRow: View {
                         systemImage: "doc",
                         title: item.title ?? "",
                         subtitle: item.text,
-                        disclosure: item.clickActionId == nil ? nil : "eye"
+                        disclosure: item.clickActionId == nil ? nil : "eye",
+                        attachmentDrag: item.attachment?.drag
                     )
                     attachmentStatus(item.attachment)
                         .padding(.leading, 32)
                 }
             }
             .modifier(DetailAttachmentAccessibility(item: item, invoke: invoke))
+            #if os(macOS)
+            .modifier(DetailAttachmentDrag(drag: item.attachment?.drag))
+            #endif
         } accessories: {
             #if os(iOS)
             if let action = item.actions.first(where: { $0.id == "\(item.id):attachment.openWith" }) {
@@ -648,19 +630,6 @@ struct DetailRow: View {
         }
     }
     #endif
-}
-
-private extension View {
-    @ViewBuilder
-    func breadcrumbAffordance(_ title: String) -> some View {
-        #if os(macOS)
-        self
-            .foregroundStyle(.tint)
-            .help(title)
-        #else
-        self.help(title)
-        #endif
-    }
 }
 
 // MARK: - TOTP badge

@@ -41,6 +41,29 @@ internal fun toOpenSshPublicKey(key: RSAPublicKey): String {
     return "ssh-rsa ${Base64.getEncoder().encodeToString(blob)}"
 }
 
+/** An OpenSSH public key of the [keyType] whose key bytes count up from the [seed]. */
+internal fun buildOpenSshPublicKey(
+    keyType: String,
+    seed: Int,
+): String {
+    val blob = buildOpenSshPublicKeyBlob(
+        keyType = keyType,
+        seed = seed,
+    )
+    return "$keyType ${Base64.getEncoder().encodeToString(blob)}"
+}
+
+internal fun buildOpenSshPublicKeyBlob(
+    keyType: String,
+    seed: Int,
+): ByteArray = ByteArrayOutputStream().use { bytes ->
+    DataOutputStream(bytes).use { output ->
+        output.writeSshString(keyType.toByteArray(Charsets.US_ASCII))
+        output.writeSshString(ByteArray(32) { (seed + it).toByte() })
+    }
+    bytes.toByteArray()
+}
+
 internal fun toPkcs8PrivateKeyPem(privateKey: PrivateKey): String {
     val body = Base64.getEncoder().encodeToString(privateKey.encoded)
     return buildString {

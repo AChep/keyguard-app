@@ -173,6 +173,8 @@ public struct RootContainer<Main: View>: View {
             InfoDialogView()
         case .accountPicker:
             AccountPickerView()
+        case .cipherFieldPicker:
+            CipherFieldPickerView()
         }
     }
 }

@@ -49,6 +49,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.model.AttachmentItem
+import com.artemchep.keyguard.feature.dragout.compose.dragOutArea
+import com.artemchep.keyguard.feature.dragout.compose.dragOutHandle
+import com.artemchep.keyguard.feature.dragout.model.DragOutSource
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.res.Res
@@ -70,12 +73,21 @@ fun ItemAttachment(
     modifier: Modifier,
     item: AttachmentItem,
     shapeState: Int,
+    drag: DragOutSource? = null,
 ) {
     val downloadStatusState = item.statusState.collectAsState()
     val selectableState = item.selectableState.collectAsState()
     val actionsState = item.actionsState.collectAsState()
     ItemAttachmentLayout(
         modifier = modifier,
+        contentModifier = Modifier.dragOutArea(
+            source = drag,
+            enabled = !selectableState.value.selecting,
+        ),
+        iconModifier = Modifier.dragOutHandle(
+            source = drag,
+            enabled = !selectableState.value.selecting,
+        ),
         name = item.name,
         size = item.size,
         shapeState = shapeState,
@@ -86,6 +98,11 @@ fun ItemAttachment(
         },
         selectableState = selectableState,
         content = {
+            val dragPreparing = drag?.preparing?.collectAsState()?.value == true
+            if (dragPreparing) {
+                Text(stringResource(Res.string.attachment_drag_preparing), style = MaterialTheme.typography.labelSmall)
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+            }
             ExpandedIfNotEmpty(
                 // If the download progress does not exist then
                 // do not show the visuals.
@@ -278,6 +295,8 @@ fun ItemAttachment(
 @Composable
 private fun ItemAttachmentLayout(
     modifier: Modifier,
+    iconModifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
     name: String,
     size: String? = null,
     shapeState: Int,
@@ -300,31 +319,33 @@ private fun ItemAttachmentLayout(
         backgroundColor = backgroundColor,
         shapeState = shapeState,
         content = {
-            FlatItemTextContent(
-                title = {
-                    Text(
-                        text = name,
-                        maxLines = 4,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
-                text = if (size != null) {
-                    // composable
-                    {
+            Column(modifier = contentModifier) {
+                FlatItemTextContent(
+                    title = {
                         Text(
-                            text = size,
-                            maxLines = 2,
+                            text = name,
+                            maxLines = 4,
                             overflow = TextOverflow.Ellipsis,
                         )
-                    }
-                } else {
-                    null
-                },
-            )
-            content?.invoke()
+                    },
+                    text = if (size != null) {
+                        // composable
+                        {
+                            Text(
+                                text = size,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    } else {
+                        null
+                    },
+                )
+                content?.invoke()
+            }
         },
         leading = {
-            Box {
+            Box(modifier = iconModifier) {
                 val url = previewUrlProvider()
                 val downloaded = downloadedProvider()
                 AttachmentIcon(

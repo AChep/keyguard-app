@@ -35,7 +35,8 @@ rand.workspace = true
 sec1.workspace = true
 rc2.workspace = true
 salsa20.workspace = true
-ssh-key = { path = "../../../../../thirdParty/rust/ssh-key-0.6.7-keyguard", default-features = false, features = ["keyguard-decryption", "std"] }
+# `ecdsa` decodes the CA key of a certificate signed by an ECDSA CA.
+ssh-key = { path = "../../../../../thirdParty/rust/ssh-key-0.6.7-keyguard", default-features = false, features = ["ecdsa", "keyguard-decryption", "std"] }
 thiserror.workspace = true
 tempfile = { version = "=3.27.0", default-features = false }
 twofish.workspace = true
@@ -44,7 +45,8 @@ zeroize.workspace = true
 
 [dev-dependencies]
 criterion = { version = "=0.8.2", default-features = false }
-proptest = "=1.11.0"
+proptest = "=1.12.0"
+syn = { version = "=2.0.119", features = ["full", "visit"] }
 
 [lints]
 workspace = true

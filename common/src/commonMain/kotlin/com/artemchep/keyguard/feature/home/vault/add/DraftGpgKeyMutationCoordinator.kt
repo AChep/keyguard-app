@@ -14,6 +14,10 @@ import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementService
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationRequest
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationResult
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationService
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdChange
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdUpdateRequest
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdUpdateResult
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdUpdateService
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -34,11 +38,18 @@ internal class DraftGpgKeyMutationCoordinator(
     private val expirationService: GpgKeyExpirationService,
     private val userIdReplacementService: GpgUserIdReplacementService,
     private val userIdRevocationService: GpgUserIdRevocationService,
+    private val userIdUpdateService: GpgUserIdUpdateService,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
 ) {
     private val mutableInProgress = MutableStateFlow(false)
 
     val inProgress: StateFlow<Boolean> = mutableInProgress.asStateFlow()
+
+    val userIdReplacementSupported: Boolean get() = userIdReplacementService.isSupported
+
+    val userIdRevocationSupported: Boolean get() = userIdRevocationService.isSupported
+
+    val userIdUpdateSupported: Boolean get() = userIdUpdateService.isSupported
 
     suspend fun updateExpiration(
         snapshot: GpgKeyMutationGuard.Snapshot,
@@ -103,6 +114,20 @@ internal class DraftGpgKeyMutationCoordinator(
             (result as? GpgUserIdRevocationResult.Success)
                 ?.takeIf { it.changed }
                 ?.key
+        },
+    )
+
+    suspend fun updateUserId(
+        snapshot: GpgKeyMutationGuard.Snapshot,
+        change: GpgUserIdChange,
+    ): DraftGpgKeyMutationOutcome<GpgUserIdUpdateResult> = mutate(
+        expectedSnapshot = snapshot,
+        supported = userIdUpdateService.isSupported,
+        operation = { sourceKey, candidates ->
+            userIdUpdateService.update(GpgUserIdUpdateRequest(sourceKey, change, candidates))
+        },
+        updatedKey = { result ->
+            (result as? GpgUserIdUpdateResult.Success)?.takeIf { it.changed }?.key
         },
     )
 

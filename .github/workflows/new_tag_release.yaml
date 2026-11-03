@@ -7,11 +7,16 @@ on:
 
 jobs:
   # Generates variations of the changelog
+  #   - changelog-commits.json: structured commits and resolved comparison refs
   #   - changelog-raw.md: all git commits
   #   - changelog-summary.md: short summary using LLM
+  #   - changelog-summaries/<platform>.md: short summary of the changes for one platform using LLM
   #   - changelog-full.md: full release notes using LLM + referenced issue titles
+  #
+  # To rewrite the notes of a published release, run regenerate_release_notes.yaml.
   generate-changelog:
     name: "Generate changelog"
+    if: startsWith(github.ref, 'refs/tags/r')
     runs-on: ubuntu-slim
     permissions:
       contents: read
@@ -22,32 +27,38 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           submodules: recursive
+          fetch-depth: 0
+      - uses: ./.github/actions/setup_python
       - name: "Generate changelog"
-        id: changelog
-        uses: metcalfc/changelog-generator@0440d0932f9a0dd1cc9ecd8412830761351323bd
-        with:
-          myToken: ${{ secrets.GITHUB_TOKEN }}
-      - name: "Print changelog"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cat << "EOF"
-          ${{ steps.changelog.outputs.changelog }}
-          EOF
+          python .github/get_release_commits.py \
+            --output changelog-commits.json \
+            --markdown-output changelog-raw.md
+      - name: "Print changelog"
+        run: cat changelog-raw.md
       - run: pip install -r .github/get_release_changelog_summary.requirements.txt
       - name: "Generate release notes"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GEMINI_API_TOKEN: ${{ secrets.GEMINI_API_TOKEN }}
         run: |
-          cat << "EOF" > changelog-raw.md
-          ${{ steps.changelog.outputs.changelog }}
-          EOF
           python .github/get_release_changelog_summary.py \
-            changelog-raw.md \
-            --token "${{ secrets.GEMINI_API_TOKEN }}" \
+            changelog-commits.json \
+            --token "$GEMINI_API_TOKEN" \
             --output changelog-summary.md \
-            --full-output changelog-full.md
+            --full-output changelog-full.md \
+            --platform-output-dir changelog-summaries
       - name: "Print summary"
         run: |
           cat changelog-summary.md
+      - name: "Print platform summaries"
+        run: |
+          for file in changelog-summaries/*.md; do
+            echo "== $file"
+            cat "$file"
+          done
       - name: "Print full release notes"
         run: |
           cat changelog-full.md
@@ -56,8 +67,10 @@ jobs:
         with:
           name: changelog
           path: |
+            changelog-commits.json
             changelog-raw.md
             changelog-summary.md
+            changelog-summaries/
             changelog-full.md
   # Generates versions.json with historical data taken from
   # AChep/keyguard-version and new data for the new release tag.
@@ -119,6 +132,7 @@ jobs:
             --semantic_version ${{ steps.producer.outputs.version_semantic }} \
             --tag_version ${{ steps.producer.outputs.version_tag }} \
             --changelog_summary_file artifacts-changelog/changelog-summary.md \
+            --changelog_summaries_dir artifacts-changelog/changelog-summaries \
             --changelog_raw_file artifacts-changelog/changelog-raw.md
       - name: "Produce MSIX version"
         id: msix
@@ -134,6 +148,7 @@ jobs:
           path: keyguard-version/versions.json
   generate-versions-code-google-play-store:
     name: "Generate versions code for Google Play Store"
+    if: startsWith(github.ref, 'refs/tags/r')
     runs-on: ubuntu-slim
     outputs:
       wear-version-code: ${{ steps.producer.outputs.wear_version_code }}
@@ -155,6 +170,7 @@ jobs:
           echo "wear_version_code=$WEAR_VERSION_CODE" >> "$GITHUB_OUTPUT"
           echo "android_version_code=$ANDROID_VERSION_CODE" >> "$GITHUB_OUTPUT"
   build-macos-app:
+    if: startsWith(github.ref, 'refs/tags/r')
     runs-on: ${{ matrix.runner }}
     strategy:
       fail-fast: false
@@ -203,14 +219,6 @@ jobs:
         run: |
           echo "" >> gradle.properties
           echo "cert_identity=${{ secrets.CERT_IDENTITY }}" >> gradle.properties
-      - name: "Setup notarization config"
-        run: |
-          {
-            echo ""
-            echo "notarization_apple_id=${{ secrets.NOTARIZATION_APPLE_ID }}"
-            echo "notarization_password=${{ secrets.NOTARIZATION_PASSWD }}"
-            echo "notarization_asc_provider=${{ secrets.NOTARIZATION_ASC_PROVIDER }}"
-          } >> gradle.properties
       - name: "Build release app image"
         run: >-
           ./gradlew
@@ -221,11 +229,10 @@ jobs:
         run: |
           codesign --verify --strict --verbose=2 \
             desktopApp/build/compose/binaries/main-release/app/Keyguard.app
-      - name: "Build and notarize DMG"
+      - name: "Build DMG"
         run: >-
           ./gradlew
           :desktopApp:packageReleaseDmg
-          :desktopApp:notarizeReleaseDmg
           -x :desktopApp:createReleaseDistributable
           -Pkeyguard.nativeCargo.cargoOffline=true
       - name: "Verify final DMG native bundle"
@@ -256,7 +263,7 @@ jobs:
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()
         with:
-          name: logs-mac-${{ matrix.arch }}
+          name: logs-mac-${{ matrix.arch }}-build-${{ github.run_attempt }}
           path: desktopApp/build/compose/logs/**/*.txt
           retention-days: 30
       - name: "Upload binaries"
@@ -264,16 +271,62 @@ jobs:
         with:
           name: binaries-mac-${{ matrix.arch }}
           path: desktopApp/build/compose/binaries/main-release/**
+          overwrite: true
           retention-days: 1
       - name: "Add a suffix to the artifacts"
         run: |
           cd desktopApp/build/compose/binaries/main-release/dmg
           for f in * ; do mv -- "$f" "$(echo "$f" | sed -nE 's/^(.*)(\..*)$/\1-${{ matrix.arch }}\2/p')" ; done
-      - name: "Upload .dmg"
+      - name: "Upload DMG for notarization"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: notarization-input-mac-${{ matrix.arch }}
+          path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
+          if-no-files-found: error
+          overwrite: true
+          retention-days: 1
+  notarize-macos-app:
+    runs-on: macos-15
+    needs:
+      - build-macos-app
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [apple, intel]
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Download signed DMG"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: notarization-input-mac-${{ matrix.arch }}
+          path: artifacts
+      - name: "Notarize and staple DMG"
+        shell: bash
+        env:
+          NOTARIZATION_APPLE_ID: ${{ secrets.NOTARIZATION_APPLE_ID }}
+          NOTARIZATION_PASSWD: ${{ secrets.NOTARIZATION_PASSWD }}
+          NOTARIZATION_ASC_PROVIDER: ${{ secrets.NOTARIZATION_ASC_PROVIDER }}
+        run: bash .github/notarize_macos_dmg.sh artifacts notarization-logs
+      - name: "Upload notarization logs"
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: logs-mac-${{ matrix.arch }}-notarization-${{ github.run_attempt }}
+          path: notarization-logs/
+          retention-days: 30
+      - name: "Upload notarized DMG"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-mac-${{ matrix.arch }}
-          path: desktopApp/build/compose/binaries/main-release/dmg/*.dmg
+          path: artifacts/*.dmg
+          if-no-files-found: error
+          overwrite: true
           retention-days: 1
   build-linux-app:
     runs-on: ${{ matrix.runner }}
@@ -414,6 +467,11 @@ jobs:
         with:
           lfs: true
           submodules: recursive
+      - name: "Test Windows package layout"
+        run: >-
+          python -m unittest
+          scripts.test_verify_native_bundle.WindowsRuntimeTest
+          scripts.test_run_native_package_smoke.WindowsLauncherTest
       - name: "Setup Gradle (x64)"
         if: matrix.msix_arch == 'x64'
         uses: ./.github/actions/setup_gradle
@@ -650,10 +708,10 @@ jobs:
           $imageRoot = Join-Path $env:RUNNER_TEMP 'msi-upgrade-image'
           ./scripts/verify_windows_msi.ps1 -Directory packages/arm64 -Version $env:MSI_VERSION `
             -Architecture aarch64 -ExtractDirectory $imageRoot
-          $launchers = @(Get-ChildItem -LiteralPath $imageRoot -Filter Keyguard.exe -Recurse -File)
-          if ($launchers.Count -ne 1) { throw 'Expected one extracted ARM64 app image.' }
+          $appImage = python -c 'from pathlib import Path; import sys; from scripts.run_native_package_smoke import find_windows_launcher; print(find_windows_launcher(Path(sys.argv[1])).parent)' $imageRoot
+          if ($LASTEXITCODE -ne 0) { throw 'Could not locate the extracted ARM64 app image.' }
           # Only the installer version differs; the payload remains the tested release image.
-          ./scripts/package_windows_arm64_msi.ps1 -AppImage $launchers[0].DirectoryName `
+          ./scripts/package_windows_arm64_msi.ps1 -AppImage $appImage `
             -Version 0.0.0 -WixDirectory $env:WIX_DIRECTORY -OutputDirectory packages/previous
       - name: "Test installation, upgrades, and uninstall"
         shell: pwsh
@@ -841,7 +899,8 @@ jobs:
           path: |
             androidApp/build/outputs/bundle/**/*.aab
           retention-days: 1
-  build-android-ssh-agent:
+  build-android-termux-agents:
+    if: startsWith(github.ref, 'refs/tags/r')
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -869,12 +928,23 @@ jobs:
           pip install git+https://github.com/termux/termux-create-package.git@1f2f17c7f6971c938a7c644e5cb46e7913960c8f
       - name: "Build Termux packages"
         run: |
-          ./gradlew :androidSshAgent:packageAndroidSshAgentTermuxAll
+          ./gradlew :androidSshAgent:packageAndroidSshAgentTermuxAll :androidGpgAgent:packageAndroidGpgAgentTermuxAll
+      # Collect every package in one flat directory: an artifact with several
+      # paths keeps their directories, and the release and the APT repo
+      # expect the .deb files at the top level.
+      - name: "Collect .deb"
+        run: |
+          mkdir -p build/termux-debs
+          cp androidSshAgent/build/termux/debs/*.deb \
+            androidGpgAgent/build/termux/debs/*.deb \
+            build/termux-debs/
+          ls -l build/termux-debs
       - name: "Upload .deb"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
           name: app-termux
-          path: androidSshAgent/build/termux/debs/*.deb
+          path: build/termux-debs/*.deb
+          if-no-files-found: error
           retention-days: 1
   dist:
     runs-on: ubuntu-latest
@@ -883,9 +953,9 @@ jobs:
       - generate-versions
       - build-wearos-app
       - build-android-app
-      - build-android-ssh-agent
+      - build-android-termux-agents
       - build-linux-app
-      - build-macos-app
+      - notarize-macos-app
       - build-windows-app
       - check-windows-msi
     env:
@@ -995,7 +1065,7 @@ jobs:
           cp artifacts-wearos/apk/none/release/wearApp-none-release.apk \
             "artifacts-versioned/Keyguard-Watch-$VERSION.apk"
       - name: "Create release"
-        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64
         if: startsWith(github.ref, 'refs/tags/')
         with:
           name: Release ${{ needs.generate-versions.outputs.release-name }}
@@ -1071,20 +1141,21 @@ jobs:
       - name: "Prepare env"
         run: |
           echo ${{ secrets.SERVICE_ACCOUNT_B64 }} | base64 -d | zcat > service-account-google.json
-          mkdir whatsnew
-          mv artifacts-changelog/changelog-summary.md whatsnew/whatsnew-en-US
+          mkdir whatsnew-android whatsnew-wearos
+          mv artifacts-changelog/changelog-summaries/android.md whatsnew-android/whatsnew-en-US
+          mv artifacts-changelog/changelog-summaries/wearos.md whatsnew-wearos/whatsnew-en-US
       - name: "Distribute Android on Play Store"
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
         with:
           serviceAccountJson: service-account-google.json
-          whatsNewDirectory: whatsnew
+          whatsNewDirectory: whatsnew-android
           packageName: com.artemchep.keyguard
           releaseFiles: artifacts-android/**/*.aab
       - name: "Distribute WearOS on Play Store"
         uses: r0adkll/upload-google-play@e738b9dd8f2476ea806d921b64aacd24f34515a5
         with:
           serviceAccountJson: service-account-google.json
-          whatsNewDirectory: whatsnew
+          whatsNewDirectory: whatsnew-wearos
           packageName: com.artemchep.keyguard
           releaseFiles: artifacts-wearos/**/*.aab
           track: wear:production
@@ -1155,13 +1226,22 @@ jobs:
           git commit -m "Mirror latest Keyguard Termux packages"
           git push origin HEAD:master
   deploy-microsoft-store:
-    name: Deploy Microsoft Store
+    name: Submit Microsoft Store
     runs-on: windows-latest
+    concurrency:
+      group: microsoft-store-submission
+      cancel-in-progress: false
     needs:
+      - generate-changelog
       - build-windows-app
       - dist
     if: needs.build-windows-app.outputs.msix-store == 'true'
     steps:
+      - name: "Download changelog"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: changelog
+          path: artifacts-changelog
       - name: "Download Windows app (MSIX Store x64)"
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
@@ -1225,9 +1305,10 @@ jobs:
           --sellerId "${{ secrets.MSSTORE_SELLER_ID }}"
           --clientId "${{ secrets.MSSTORE_CLIENT_ID }}"
           --clientSecret "${{ secrets.MSSTORE_CLIENT_SECRET }}"
-      # The submission is left as a draft (--noCommit) so it can be reviewed
-      # in the Partner Center before it is committed. Read it back because the
-      # CLI may otherwise return success without attaching the package.
+      # Upload as a draft (--noCommit) and verify the attached package before
+      # submitting it for certification. The CLI may otherwise return success
+      # without attaching the package. The release notes are set after the
+      # upload, because publishing recreates the draft.
       - name: "Create and verify draft submission"
         shell: pwsh
         env:
@@ -1237,6 +1318,29 @@ jobs:
           msstore publish "$env:STORE_UPLOAD_PATH" --appId "${{ secrets.MSSTORE_APP_ID }}" --noCommit
           if ($LASTEXITCODE -ne 0) {
             throw "msstore publish exited $LASTEXITCODE."
+          }
+
+          $releaseNotes = (Get-Content -Raw -LiteralPath "artifacts-changelog/changelog-summaries/windows.md").Trim()
+          $submissionJson = msstore submission get "${{ secrets.MSSTORE_APP_ID }}" | Out-String
+          if ($LASTEXITCODE -ne 0) {
+            throw "msstore submission get exited $LASTEXITCODE."
+          }
+          $submission = $submissionJson | ConvertFrom-Json -ErrorAction Stop
+          $baseListing = $submission.Listings.'en-us'.BaseListing
+          if ($null -eq $baseListing) {
+            Write-Warning "The Store draft has no en-us listing; the release notes are not set."
+          } else {
+            $baseListing | Add-Member -NotePropertyName ReleaseNotes -NotePropertyValue $releaseNotes -Force
+            $updatedJson = $submission | ConvertTo-Json -Depth 100 -Compress
+            # The JSON is passed as a command-line argument, which Windows limits to 32767 characters.
+            if ($updatedJson.Length -gt 30000) {
+              Write-Warning "The Store draft is too large to pass on the command line ($($updatedJson.Length) characters); the release notes are not set."
+            } else {
+              msstore submission update "${{ secrets.MSSTORE_APP_ID }}" $updatedJson
+              if ($LASTEXITCODE -ne 0) {
+                throw "msstore submission update exited $LASTEXITCODE."
+              }
+            }
           }
 
           $draftJson = msstore submission get "${{ secrets.MSSTORE_APP_ID }}" | Out-String
@@ -1268,6 +1372,18 @@ jobs:
             }
             throw "The Store draft does not contain '$env:STORE_UPLOAD_NAME' as PendingUpload. Found: $observedPackages"
           }
+      - name: "Submit for certification"
+        shell: pwsh
+        env:
+          STORE_APP_ID: ${{ secrets.MSSTORE_APP_ID }}
+        run: |
+          msstore submission publish "$env:STORE_APP_ID"
+          if ($LASTEXITCODE -ne 0) {
+            throw "msstore submission publish exited $LASTEXITCODE."
+          }
+
+          "## Microsoft Store submission" >> $env:GITHUB_STEP_SUMMARY
+          "The update was submitted for certification. Microsoft controls certification and publication according to the submission's publishing settings." >> $env:GITHUB_STEP_SUMMARY
   deploy-flathub:
     name: Deploy Flathub
     runs-on: ubuntu-slim
@@ -1297,23 +1413,3 @@ jobs:
           gh workflow run update-keyguard-bin.yml \
             --repo AChep/keyguard-repo-aur \
             --ref master
-  deploy:
-    name: Deploy ${{ matrix.wf-file }}
-    runs-on: ubuntu-slim
-    needs:
-      - dist
-    strategy:
-      fail-fast: false
-      matrix:
-        wf-file:
-          - new_release_deploy_fdroid.yml
-          - new_release_deploy_homebrew.yml
-          - new_release_deploy_scoop.yml
-    steps:
-      - name: "Checkout"
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-      - name: "Trigger Workflow"
-        uses: ./.github/actions/github_trigger_wf
-        with:
-          github-token: ${{ secrets.PERSONAL_TOKEN }}
-          github-wf-file: ${{ matrix.wf-file }}

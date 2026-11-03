@@ -7,14 +7,18 @@ import com.artemchep.keyguard.common.service.licensekey.LicenseRepository
 import com.artemchep.keyguard.common.service.licensekey.LicenseServerConfig
 import com.artemchep.keyguard.common.service.licensekey.decoder.Kg2LicenseKeyDecoder
 import com.artemchep.keyguard.common.service.licensekey.impl.LicenseRepositoryImpl
+import com.artemchep.keyguard.common.usecase.GetCacheLicenseExpiry
 import com.artemchep.keyguard.common.usecase.GetCachePremium
 import com.artemchep.keyguard.common.usecase.GetDebugPremium
 import com.artemchep.keyguard.common.usecase.GetLicensePremium
+import com.artemchep.keyguard.common.usecase.PutCacheLicenseExpiry
 import com.artemchep.keyguard.common.usecase.PutCachePremium
 import com.artemchep.keyguard.common.usecase.PutDebugPremium
+import com.artemchep.keyguard.common.usecase.impl.GetCacheLicenseExpiryImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCachePremiumImpl
 import com.artemchep.keyguard.common.usecase.impl.GetDebugPremiumImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVaultSessionLicensePremiumImpl
+import com.artemchep.keyguard.common.usecase.impl.PutCacheLicenseExpiryImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCachePremiumImpl
 import com.artemchep.keyguard.common.usecase.impl.PutDebugPremiumImpl
 import org.koin.core.qualifier.named
@@ -55,6 +59,10 @@ internal class ApplicationLicensingModule {
         single<GetCachePremiumImpl>() bind GetCachePremium::class
 
         single<PutCachePremiumImpl>() bind PutCachePremium::class
+
+        single<GetCacheLicenseExpiryImpl>() bind GetCacheLicenseExpiry::class
+
+        single<PutCacheLicenseExpiryImpl>() bind PutCacheLicenseExpiry::class
 
         single<GetDebugPremiumImpl>() bind GetDebugPremium::class
 

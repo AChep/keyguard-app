@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.androidipc
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.filterCiphers
+import com.artemchep.keyguard.common.service.agent.isEligibleForAgent
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpCertificationAuthority
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpRing
@@ -105,6 +106,7 @@ internal class GpgOpenPgpVaultLoader(
         val getCiphers = dependencies.getCiphers
         val eligible = getCiphers()
             .first()
+            .filter { it.isEligibleForAgent() }
             .mapNotNull { cipher ->
                 val material = cipher.toGpgAgentSecretOrNull()
                     ?: return@mapNotNull null

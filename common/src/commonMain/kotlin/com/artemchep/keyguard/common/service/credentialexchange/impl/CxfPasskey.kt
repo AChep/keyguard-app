@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.credentialexchange.impl
 
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyKeyInspectionResult
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyKeyMaterial
@@ -56,11 +57,7 @@ internal fun mapCredentialId(
         // (CXF v1.0 §3.3.12), which a WebAuthn Credential ID never leaves empty.
         ?.takeIf { it.isNotEmpty() }
         ?: return null
-    return try {
-        PasskeyBase64.encodeToString(bytes)
-    } finally {
-        bytes.fill(0)
-    }
+    return bytes.useAndClear(PasskeyBase64::encodeToString)
 }
 
 /**
@@ -76,11 +73,9 @@ internal fun mapKey(
 ): String? {
     val der = decodeStoredKeyDer(keyValue)
         ?: return null
-    return try {
-        passkeyCrypto.inspectKeyMaterialOrNull(der)
+    return der.useAndClear {
+        passkeyCrypto.inspectKeyMaterialOrNull(it)
             ?.encodeCxfKey()
-    } finally {
-        der.fill(0)
     }
 }
 
@@ -155,9 +150,5 @@ internal fun mapUserHandle(
         ?.let { value -> runCatchingNonFatal { cxfUrlSafeBase64.decode(value) }.getOrNull() }
         ?.takeIf { it.size in 1..MAX_PASSKEY_USER_HANDLE_BYTES }
         ?: return null
-    return try {
-        PasskeyBase64.encodeToString(bytes)
-    } finally {
-        bytes.fill(0)
-    }
+    return bytes.useAndClear(PasskeyBase64::encodeToString)
 }

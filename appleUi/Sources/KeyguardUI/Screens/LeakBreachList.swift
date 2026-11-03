@@ -148,7 +148,7 @@ private struct LeakBreachRow: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(alignment: .center, spacing: 16) {
                 FaviconView(
-                    url: breach.icon,
+                    iconKey: breach.iconKey,
                     placeholder: nil,
                     fallbackSymbol: "globe",
                     size: 24
@@ -203,7 +203,7 @@ private extension LeakBreachSnapshot {
             domain,
             title,
             descriptionText,
-            icon ?? "",
+            iconKey ?? "",
             countText ?? "",
             occurredAt ?? "",
             reportedAt ?? "",

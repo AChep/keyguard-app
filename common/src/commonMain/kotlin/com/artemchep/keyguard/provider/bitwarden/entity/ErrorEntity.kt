@@ -35,6 +35,12 @@ data class ErrorEntity(
     @JsonNames("twoFactorProviders2")
     @SerialName("TwoFactorProviders2")
     val twoFactorProviders2: TwoFactorProviders? = null,
+    @JsonNames("ssoEmail2faSessionToken", "ssoEmail2FaSessionToken")
+    @SerialName("SsoEmail2faSessionToken")
+    val ssoEmailSessionToken: String? = null,
+    @JsonNames("email")
+    @SerialName("Email")
+    val email: String? = null,
     //
     // Captcha
     //
@@ -189,6 +195,8 @@ fun ErrorEntity.toException(
         if (providers.isNotEmpty()) {
             return@run ApiException.Type.TwoFaRequired(
                 providers = providers,
+                ssoEmailSessionToken = ssoEmailSessionToken,
+                email = email,
             )
         }
 

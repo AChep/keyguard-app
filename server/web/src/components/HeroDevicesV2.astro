@@ -8,18 +8,19 @@ import LaptopFrame from './devices/LaptopFrame.astro';
 import watchShot from '../assets/screenshots/watch.png';
 import phoneShot from '../assets/screenshots/phone.png';
 import tabletShot from '../assets/screenshots/tablet.png';
-import desktopShot from '../assets/screenshots/desktop.png';
 import linuxShot from '../assets/screenshots/linux.png';
 
 // One entry per device drives both the tab bar and the carousel slides.
 // `width` must stay a complete class literal so the Tailwind scanner sees it.
 // Widths follow real hardware proportions (watch ~41mm, phone ~72mm, tablet
 // ~258mm, laptop ~310mm), anchored to the laptop at 52rem; the base sizes are
-// compressed so small devices stay legible on phone screens.
+// compressed so small devices stay legible on phone screens. `short` is the
+// tab label on narrow screens, where the full labels do not fit in one row.
 const devices = [
   {
     id: 'watch',
     label: 'Wear OS',
+    short: 'Wear OS',
     width: 'w-24 sm:w-28',
     Frame: WatchFrame,
     props: { src: watchShot, alt: 'Keyguard on a Wear OS watch' },
@@ -27,6 +28,7 @@ const devices = [
   {
     id: 'pixel',
     label: 'Android (phone)',
+    short: 'Phone',
     width: 'w-36 sm:w-48',
     Frame: PhoneFrame,
     props: { src: phoneShot, alt: 'Keyguard on an Android phone' },
@@ -34,6 +36,7 @@ const devices = [
   {
     id: 'tablet',
     label: 'Android (tablet)',
+    short: 'Tablet',
     width: 'w-[17rem] sm:w-[43rem]',
     Frame: TabletFrame,
     props: { src: tabletShot, alt: 'Keyguard on an Android tablet' },
@@ -41,6 +44,7 @@ const devices = [
   // {
   //   id: 'iphone',
   //   label: 'iPhone',
+  //   short: 'iPhone',
   //   width: 'w-36 sm:w-48',
   //   Frame: IphoneFrame,
   //   props: {},
@@ -48,6 +52,7 @@ const devices = [
   {
     id: 'macos',
     label: 'macOS',
+    short: 'macOS',
     width: 'w-[20rem] sm:w-[52rem]',
     Frame: LaptopFrame,
     props: { variant: 'mac', src: linuxShot, alt: 'Keyguard on macOS' },
@@ -55,6 +60,7 @@ const devices = [
   {
     id: 'windows',
     label: 'Windows',
+    short: 'Windows',
     width: 'w-[20rem] sm:w-[52rem]',
     Frame: LaptopFrame,
     props: { variant: 'windows', src: linuxShot, alt: 'Keyguard on Windows' },
@@ -62,71 +68,216 @@ const devices = [
   {
     id: 'linux',
     label: 'Linux',
+    short: 'Linux',
     width: 'w-[20rem] sm:w-[52rem]',
     Frame: LaptopFrame,
     props: { variant: 'linux', src: linuxShot, alt: 'Keyguard on Linux' },
   },
 ] as const;
+
+// The tabs and their highlighted copy share these classes, so the copy lines
+// up with the real tabs pixel for pixel.
+const tabClass =
+  'flex-auto whitespace-nowrap rounded-full px-1 py-2 text-center text-[0.8125rem]/5 font-medium md:flex-none md:px-4 md:text-sm';
 ---
 
 {/* The carousel bleeds the full viewport width so neighboring devices stay
     visible to the screen edges; only the tab bar keeps the page max-width. */}
-<div data-hero-devices-v2 class="mt-8 w-full">
-  <div class="no-scrollbar mx-auto flex w-full max-w-6xl overflow-x-auto px-6">
+<div data-hero-devices-v2 class="mt-16 w-full">
+  <div class="mx-auto flex w-full max-w-6xl justify-center px-4 sm:px-6">
+    {/* Two stacked layers in one grid cell: the real tabs, and an aria-hidden
+        copy in the selected colors that the script clips to the indicator.
+        With no backdrop of their own, the tabs quiet the keystream instead. */}
+    <div data-keystream-quiet class="device-tabs grid w-full max-w-md md:w-max md:max-w-none">
+      <div
+        role="tablist"
+        aria-label="Keyguard devices"
+        class="relative col-start-1 row-start-1 flex md:gap-1"
+      >
+        {
+          devices.map((d, i) => (
+            <button
+              type="button"
+              role="tab"
+              id={`hdv2-tab-${d.id}`}
+              aria-label={d.label}
+              aria-selected={i === 0 ? 'true' : 'false'}
+              aria-controls={`hdv2-slide-${d.id}`}
+              tabindex={i === 0 ? 0 : -1}
+              data-device-tab={d.id}
+              class:list={[
+                tabClass,
+                'cursor-pointer text-on-surface-variant transition-colors hover:bg-on-surface/5 hover:text-on-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary',
+              ]}
+            >
+              <span class="md:hidden">{d.short}</span>
+              <span class="hidden md:inline">{d.label}</span>
+            </button>
+          ))
+        }
+      </div>
+      <div
+        aria-hidden="true"
+        data-device-highlight
+        class="device-highlight pointer-events-none col-start-1 row-start-1 flex text-on-primary md:gap-1"
+      >
+        {
+          devices.map((d) => (
+            <span class={tabClass}>
+              <span class="md:hidden">{d.short}</span>
+              <span class="hidden md:inline">{d.label}</span>
+            </span>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="device-stage relative mt-8 lg:mt-10">
+    {/* Spotlight behind the centered device; the script sizes it to match. */}
     <div
-      role="tablist"
-      aria-label="Keyguard devices"
-      class="glass mx-auto flex w-max shrink-0 items-center gap-1 rounded-full p-1"
+      data-device-glow
+      aria-hidden="true"
+      class="device-glow pointer-events-none absolute left-1/2 top-[calc(50%-1.25rem)]"
+    ></div>
+
+    {/* Carousel. The asymmetric edge padding equals half of the first/last slide
+        width, so scrollLeft 0 already centers the first slide and the last slide
+        can reach the center too. pt/pb keep the device shadows and the watch
+        bands from being clipped by the scroller's paint box. */}
+    <div
+      data-device-scroller
+      class="device-scroller no-scrollbar relative flex snap-x snap-mandatory items-center gap-6 overflow-x-auto pt-4 pb-14 pl-[calc(50%-3rem)] pr-[calc(50%-10rem)] sm:gap-10 sm:pl-[calc(50%-3.5rem)] sm:pr-[calc(50%-26rem)]"
     >
       {
         devices.map((d, i) => (
-          <button
-            type="button"
-            role="tab"
-            id={`hdv2-tab-${d.id}`}
-            aria-selected={i === 0 ? 'true' : 'false'}
-            aria-controls={`hdv2-slide-${d.id}`}
-            tabindex={i === 0 ? 0 : -1}
-            data-device-tab={d.id}
-            class="shrink-0 whitespace-nowrap rounded-full px-4 py-1.5 text-sm font-medium text-on-surface-variant transition hover:text-on-surface aria-selected:bg-primary aria-selected:text-on-primary"
+          <div
+            id={`hdv2-slide-${d.id}`}
+            role="tabpanel"
+            aria-roledescription="slide"
+            aria-label={`${d.label}, ${i + 1} of ${devices.length}`}
+            data-device-slide={d.id}
+            data-active={i === 0 ? 'true' : undefined}
+            class:list={['device-slide shrink-0 snap-center', d.width]}
           >
-            {d.label}
-          </button>
+            <div class="device-pose">
+              <d.Frame {...d.props} />
+            </div>
+          </div>
         ))
       }
     </div>
   </div>
-
-  {/* Carousel. The asymmetric edge padding equals half of the first/last slide
-      width, so scrollLeft 0 already centers the first slide and the last slide
-      can reach the center too. pt/pb keep the device shadows and the watch
-      bands from being clipped by the scroller's paint box. */}
-  <div
-    data-device-scroller
-    class="no-scrollbar relative mt-10 flex items-center gap-6 overflow-x-auto pt-4 pb-14 pl-[calc(50%-3rem)] pr-[calc(50%-10rem)] sm:gap-10 sm:pl-[calc(50%-3.5rem)] sm:pr-[calc(50%-26rem)]"
-  >
-    {
-      devices.map((d, i) => (
-        <div
-          id={`hdv2-slide-${d.id}`}
-          role="tabpanel"
-          aria-roledescription="slide"
-          aria-label={`${d.label}, ${i + 1} of ${devices.length}`}
-          data-device-slide={d.id}
-          data-active={i === 0 ? 'true' : undefined}
-          class:list={[
-            'shrink-0 scale-80 opacity-80 will-change-[scale,opacity]',
-            'motion-safe:transition-[scale,opacity] motion-safe:duration-500 motion-safe:ease-out',
-            'data-active:scale-100 data-active:opacity-100',
-            d.width,
-          ]}
-        >
-          <d.Frame {...d.props} />
-        </div>
-      ))
-    }
-  </div>
 </div>
+
+<style>
+  /* The script writes these on every scroll frame. Registered as
+     non-inherited so an update restyles the pose alone, not its subtree. */
+  @property --d {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 1;
+  }
+  @property --a {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 1;
+  }
+
+  /* Dimmed dark devices blend into a dark page but smear on a light one,
+     so the light theme dims less. */
+  [data-hero-devices-v2] {
+    --device-dim: 0.22;
+    --device-glow: 8.8%;
+  }
+  :global(.dark) [data-hero-devices-v2] {
+    --device-dim: 0.5;
+    --device-glow: 13.6%;
+  }
+
+  /* Tab indicator: the highlighted copy, clipped to a pill by the script.
+     Hidden until then. */
+  .device-highlight {
+    clip-path: inset(0 100% 0 0);
+    background: linear-gradient(
+      to bottom,
+      color-mix(in oklab, var(--primary), white 16%),
+      var(--primary)
+    );
+  }
+
+  /* The slide itself stays untransformed, because browsers place snap
+     points by the transformed box; its child takes the pose. */
+  .device-slide {
+    perspective: 1800px;
+    cursor: pointer;
+  }
+  .device-slide[data-active] {
+    cursor: auto;
+  }
+
+  /* Devices away from the center (|--d| → 1) turn toward it, shrink, and
+     power down their screens. --d is the signed distance in slides. The
+     centered device also leans toward a mouse pointer through `rotate`,
+     which eases on its own while `transform` tracks the scroll. */
+  .device-pose {
+    --d: 1;
+    --a: 1;
+    transform: rotateY(calc(var(--d) * -18deg)) scale(calc(1 - var(--a) * 0.16));
+    rotate: var(--tilt, none);
+    filter: brightness(calc(1 - var(--a) * var(--device-dim)))
+      saturate(calc(1 - var(--a) * 0.6));
+    transition: rotate 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    will-change: transform, filter;
+  }
+  .device-slide[data-active] .device-pose {
+    --d: 0;
+    --a: 0;
+  }
+
+  .device-glow {
+    width: calc(var(--glow-w, 0px) * 1.7);
+    height: calc(var(--glow-h, 0px) * 1.5);
+    translate: -50% -50%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in oklab, var(--primary) var(--device-glow), transparent),
+      color-mix(in oklab, var(--primary) 3.2%, transparent) 55%,
+      transparent
+    );
+  }
+
+  .device-scroller[data-animating] {
+    scroll-snap-type: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* On the layers, not the bar: the keystream reads the bar's position
+       once, before the entrance ends. */
+    .device-tabs > * {
+      animation: device-rise 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+    .device-stage {
+      animation: device-rise 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.12s both;
+    }
+    /* A light band sweeps across the screen as a device settles in the center. */
+    .device-slide[data-active] :global(.device-glare)::before {
+      animation: device-glare 1.3s cubic-bezier(0.45, 0, 0.2, 1) 0.1s both;
+    }
+  }
+
+  @keyframes device-rise {
+    from {
+      opacity: 0;
+      transform: translateY(1.5rem);
+    }
+  }
+  @keyframes device-glare {
+    to {
+      transform: translateX(380%) skewX(-20deg);
+    }
+  }
+</style>
 
 <script>
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -146,74 +297,263 @@ const devices = [
     return null;
   };
 
+  const clamp = (v: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, v));
+  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+  const smoothstep = (t: number) => t * t * (3 - 2 * t);
+
   function init(root: HTMLElement) {
     const scroller = root.querySelector<HTMLElement>('[data-device-scroller]');
     const tablist = root.querySelector<HTMLElement>('[role="tablist"]');
+    const highlight = root.querySelector<HTMLElement>('[data-device-highlight]');
+    const glow = root.querySelector<HTMLElement>('[data-device-glow]');
     const tabs = Array.from(root.querySelectorAll<HTMLButtonElement>('[data-device-tab]'));
     const slides = Array.from(root.querySelectorAll<HTMLElement>('[data-device-slide]'));
-    if (!scroller || !tablist || !tabs.length || !slides.length) return;
+    const poses = slides.map((s) => s.firstElementChild as HTMLElement);
+    const n = slides.length;
+    if (!scroller || !tablist || !highlight || !glow || n < 2 || tabs.length !== n) return;
 
-    const centerOn = (slide: HTMLElement, behavior: ScrollBehavior) => {
-      // offsetLeft/offsetWidth are pre-transform layout values relative to the
-      // scroller (its offsetParent, since it is `relative`), so the target is
-      // exact even while a previous scale transition is still mid-flight.
-      const left = slide.offsetLeft + slide.offsetWidth / 2 - scroller.clientWidth / 2;
-      scroller.scrollTo({
-        left: Math.max(0, Math.min(left, scroller.scrollWidth - scroller.clientWidth)),
-        behavior,
+    // Layout, measured up front and on resize so a scroll frame never forces
+    // a reflow. offsetLeft is a pre-transform value relative to the scroller
+    // (its offsetParent), so slide centers are in scroll coordinates.
+    let centers: number[] = [];
+    let sizes: [number, number][] = [];
+    let tabL: number[] = [];
+    let tabR: number[] = [];
+    let tabTop = 0;
+    let tabBottom = 0;
+    let barW = 0;
+    let barH = 0;
+    let radius = 0;
+
+    const measure = () => {
+      centers = slides.map((s) => s.offsetLeft + s.offsetWidth / 2);
+      sizes = slides.map((s) => [s.offsetWidth, s.offsetHeight]);
+      const bar = tablist.getBoundingClientRect();
+      const rects = tabs.map((t) => t.getBoundingClientRect());
+      tabL = rects.map((r) => r.left - bar.left);
+      tabR = rects.map((r) => r.right - bar.left);
+      tabTop = rects[0].top - bar.top;
+      tabBottom = rects[0].bottom - bar.top;
+      barW = bar.width;
+      barH = bar.height;
+      radius = parseFloat(getComputedStyle(tabs[0]).borderTopLeftRadius) || 0;
+    };
+
+    // Fractional scroll position in slides: 2.5 is halfway between the third
+    // and the fourth device.
+    const position = () => {
+      const c = scroller.scrollLeft + scroller.clientWidth / 2;
+      for (let i = 0; i < n - 1; i++) {
+        if (c < centers[i + 1]) return clamp(i + (c - centers[i]) / (centers[i + 1] - centers[i]), 0, n - 1);
+      }
+      return n - 1;
+    };
+
+    let selected = 0; // the tab marked as selected
+    let active = 0; // the device settled in the center
+    let programmatic = false; // a tab-driven scroll is in flight
+
+    const setSelected = (k: number) => {
+      if (k === selected) return;
+      selected = k;
+      tabs.forEach((t, j) => {
+        t.setAttribute('aria-selected', String(j === k));
+        t.tabIndex = j === k ? 0 : -1;
       });
     };
 
-    const select = (id: string, behavior?: ScrollBehavior) => {
-      let target: HTMLElement | undefined;
-      for (const tab of tabs) {
-        const active = tab.dataset.deviceTab === id;
-        tab.setAttribute('aria-selected', String(active));
-        tab.tabIndex = active ? 0 : -1;
-      }
-      for (const slide of slides) {
-        const active = slide.dataset.deviceSlide === id;
-        slide.toggleAttribute('data-active', active);
-        if (active) target = slide;
-      }
-      if (target) centerOn(target, behavior ?? (reduceMotion.matches ? 'instant' : 'smooth'));
+    const resetTilt = () => {
+      for (const pose of poses) pose.style.removeProperty('--tilt');
     };
 
-    for (const tab of tabs)
-      tab.addEventListener('click', () => select(tab.dataset.deviceTab!));
-    for (const slide of slides)
-      slide.addEventListener('click', () => select(slide.dataset.deviceSlide!));
+    const setActive = (k: number) => {
+      if (k === active) return;
+      active = k;
+      slides.forEach((s, j) => s.toggleAttribute('data-active', j === k));
+      resetTilt();
+    };
+
+    // Everything visual is a pure function of the scroll position, so swipes,
+    // trackpads, and tab clicks all animate the same way.
+    const render = () => {
+      const p = position();
+      const i = Math.min(Math.floor(p), n - 2);
+      const f = p - i;
+
+      poses.forEach((pose, k) => {
+        const d = clamp(k - p, -1, 1);
+        pose.style.setProperty('--d', d.toFixed(4));
+        pose.style.setProperty('--a', Math.abs(d).toFixed(4));
+      });
+
+      // The indicator crawls between tabs: its leading edge sets off first
+      // and the trailing edge catches up, in either direction.
+      const right = lerp(tabR[i], tabR[i + 1], smoothstep(clamp(f / 0.65, 0, 1)));
+      const left = lerp(tabL[i], tabL[i + 1], smoothstep(clamp((f - 0.35) / 0.65, 0, 1)));
+      highlight.style.clipPath = `inset(${tabTop}px ${barW - right}px ${barH - tabBottom}px ${left}px round ${radius}px)`;
+
+      glow.style.setProperty('--glow-w', `${lerp(sizes[i][0], sizes[i + 1][0], f)}px`);
+      glow.style.setProperty('--glow-h', `${lerp(sizes[i][1], sizes[i + 1][1], f)}px`);
+
+      if (!programmatic) setSelected(Math.round(p));
+    };
+
+    let anim = 0;
+
+    const settle = () => {
+      if (anim) return;
+      programmatic = false;
+      const k = Math.round(position());
+      setSelected(k);
+      setActive(k);
+    };
+
+    const offsetOf = (k: number) =>
+      clamp(centers[k] - scroller.clientWidth / 2, 0, scroller.scrollWidth - scroller.clientWidth);
+
+    const stopAnimation = () => {
+      cancelAnimationFrame(anim);
+      anim = 0;
+      delete scroller.dataset.animating;
+    };
+
+    // Tab-driven scrolls run on our own curve: native smooth scrolling varies
+    // per browser and is too quick to follow the indicator. Snapping pauses
+    // meanwhile, since browsers re-snap after every programmatic scroll.
+    const animateTo = (left: number) => {
+      stopAnimation();
+      const from = scroller.scrollLeft;
+      const distance = left - from;
+      const duration = clamp(450 + Math.abs(distance) * 0.2, 550, 1000);
+      const start = performance.now();
+      scroller.dataset.animating = '';
+      const step = (now: number) => {
+        const t = Math.min(1, (now - start) / duration);
+        scroller.scrollLeft = from + distance * (1 - (1 - t) ** 4);
+        render();
+        if (t < 1) {
+          anim = requestAnimationFrame(step);
+        } else {
+          stopAnimation();
+          settle();
+        }
+      };
+      anim = requestAnimationFrame(step);
+    };
+
+    const select = (k: number, instant = reduceMotion.matches) => {
+      setSelected(k);
+      const left = offsetOf(k);
+      if (Math.abs(left - scroller.scrollLeft) < 1) {
+        stopAnimation();
+        settle();
+        return;
+      }
+      programmatic = true;
+      if (instant) {
+        stopAnimation();
+        scroller.scrollTo({ left, behavior: 'instant' });
+      } else {
+        animateTo(left);
+      }
+    };
+
+    let frame = 0;
+    let settleTimer = 0;
+    scroller.addEventListener(
+      'scroll',
+      () => {
+        if (!frame)
+          frame = requestAnimationFrame(() => {
+            frame = 0;
+            render();
+          });
+        // `scrollend` is not everywhere yet; a quiet period counts as one.
+        clearTimeout(settleTimer);
+        settleTimer = window.setTimeout(settle, 150);
+      },
+      { passive: true },
+    );
+    scroller.addEventListener('scrollend', () => {
+      clearTimeout(settleTimer);
+      settle();
+    });
+
+    // A touch, drag or sideways wheel takes over from a running animation.
+    const interrupt = () => {
+      if (!anim) return;
+      stopAnimation();
+      programmatic = false;
+    };
+    scroller.addEventListener('pointerdown', interrupt, { passive: true });
+    scroller.addEventListener(
+      'wheel',
+      (e: WheelEvent) => {
+        if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) interrupt();
+      },
+      { passive: true },
+    );
+
+    tabs.forEach((tab, k) => tab.addEventListener('click', () => select(k)));
+    slides.forEach((slide, k) => slide.addEventListener('click', () => select(k)));
 
     // Roving tabindex + arrow keys on the tablist.
     tablist.addEventListener('keydown', (e: KeyboardEvent) => {
-      const idx = tabs.findIndex((t) => t.getAttribute('aria-selected') === 'true');
+      const k = tabs.indexOf(document.activeElement as HTMLButtonElement);
+      if (k < 0) return;
       let next = -1;
-      if (e.key === 'ArrowRight') next = (idx + 1) % tabs.length;
-      else if (e.key === 'ArrowLeft') next = (idx - 1 + tabs.length) % tabs.length;
+      if (e.key === 'ArrowRight') next = (k + 1) % n;
+      else if (e.key === 'ArrowLeft') next = (k - 1 + n) % n;
       else if (e.key === 'Home') next = 0;
-      else if (e.key === 'End') next = tabs.length - 1;
+      else if (e.key === 'End') next = n - 1;
       if (next < 0) return;
       e.preventDefault();
       tabs[next].focus();
-      select(tabs[next].dataset.deviceTab!);
+      select(next);
     });
 
-    // Keep the selected slide centered across viewport resizes.
-    let raf = 0;
-    window.addEventListener('resize', () => {
-      cancelAnimationFrame(raf);
-      raf = requestAnimationFrame(() => {
-        const active = slides.find((s) => s.hasAttribute('data-active'));
-        if (active) centerOn(active, 'instant');
+    // The centered device leans toward a mouse pointer.
+    scroller.addEventListener('pointermove', (e: PointerEvent) => {
+      if (e.pointerType !== 'mouse' || reduceMotion.matches || programmatic) return;
+      const r = slides[active].getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width;
+      const y = (e.clientY - r.top) / r.height;
+      if (x < 0 || x > 1 || y < 0 || y > 1) {
+        resetTilt();
+        return;
+      }
+      // One rotation about an in-plane axis: up to 2.5° around X, 3.5° around Y.
+      const ax = (0.5 - y) * 5;
+      const ay = (x - 0.5) * 7;
+      const angle = Math.hypot(ax, ay);
+      if (angle > 0.01) {
+        poses[active].style.setProperty('--tilt', `${ax.toFixed(3)} ${ay.toFixed(3)} 0 ${angle.toFixed(2)}deg`);
+      }
+    });
+    scroller.addEventListener('pointerleave', resetTilt);
+
+    // Re-measure on viewport and font changes, keeping the device centered.
+    let pending = 0;
+    const relayout = () => {
+      cancelAnimationFrame(pending);
+      pending = requestAnimationFrame(() => {
+        measure();
+        if (!programmatic) scroller.scrollTo({ left: offsetOf(selected), behavior: 'instant' });
+        render();
       });
-    });
+    };
+    const observer = new ResizeObserver(relayout);
+    observer.observe(scroller);
+    observer.observe(tablist);
 
+    measure();
     // Pre-select the visitor's own platform, jumping there without animation.
-    const detected = detectDevice();
-    const initial = slides.find((s) => s.hasAttribute('data-active'))?.dataset.deviceSlide;
-    if (detected && detected !== initial && slides.some((s) => s.dataset.deviceSlide === detected)) {
-      select(detected, 'instant');
+    const detected = slides.findIndex((s) => s.dataset.deviceSlide === detectDevice());
+    if (detected > 0) {
+      select(detected, true);
+      settle();
     }
+    render();
   }
 
   document.querySelectorAll<HTMLElement>('[data-hero-devices-v2]').forEach(init);

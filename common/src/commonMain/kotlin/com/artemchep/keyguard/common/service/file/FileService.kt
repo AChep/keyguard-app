@@ -17,6 +17,7 @@ sealed interface AtomicFileWriteOutcome {
     ) : AtomicFileWriteOutcome
 }
 
+@Suppress("TooManyFunctions") // URI, bookmark, and callback overloads share the same file operations.
 interface FileService {
     fun exists(uri: String): Boolean
 
@@ -36,6 +37,17 @@ interface FileService {
         uri: String,
         accessToken: FileAccessToken?,
     ): Source = readFromFile(uri)
+
+    /**
+     * Reads while platform access to the file remains open, without first
+     * buffering the entire file. The source is closed after [read] returns
+     * or throws, and must not escape the callback.
+     */
+    fun <T> readFromFile(
+        uri: String,
+        accessToken: FileAccessToken?,
+        read: (Source) -> T,
+    ): T = readFromFile(uri, accessToken).use(read)
 
     fun writeToFile(uri: String): Sink
 

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.gpgagent.tools
 
 import androidx.compose.runtime.Composable
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.RouteDescriptor
 
@@ -15,38 +16,19 @@ object GpgToolsRoute : Route {
     }
 }
 
-object GpgToolsEncryptRoute : Route {
-    @Composable
-    override fun Content() {
-        GpgToolsOperationScreen(
-            operation = GpgToolsOperation.ENCRYPT,
-        )
-    }
-}
+class GpgToolsOperationRoute(
+    val args: Args,
+) : Route {
+    data class Args(
+        val operation: GpgToolsOperation,
+        val inputFile: FilePickerResult? = null,
+    )
 
-object GpgToolsDecryptRoute : Route {
     @Composable
     override fun Content() {
         GpgToolsOperationScreen(
-            operation = GpgToolsOperation.DECRYPT,
-        )
-    }
-}
-
-object GpgToolsSignRoute : Route {
-    @Composable
-    override fun Content() {
-        GpgToolsOperationScreen(
-            operation = GpgToolsOperation.SIGN,
-        )
-    }
-}
-
-object GpgToolsVerifyRoute : Route {
-    @Composable
-    override fun Content() {
-        GpgToolsOperationScreen(
-            operation = GpgToolsOperation.VERIFY,
+            operation = args.operation,
+            inputFile = args.inputFile,
         )
     }
 }

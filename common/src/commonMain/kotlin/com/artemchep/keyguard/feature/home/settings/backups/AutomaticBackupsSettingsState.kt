@@ -9,5 +9,7 @@ data class AutomaticBackupsSettingsState(
     val onSetupClick: () -> Unit,
     val onRetentionChange: (Int) -> Unit,
     val onRunNow: () -> Unit,
+    /** Imports a snapshot of the configured backup into an account. */
+    val onImport: () -> Unit,
     val onDisableClick: () -> Unit,
 )

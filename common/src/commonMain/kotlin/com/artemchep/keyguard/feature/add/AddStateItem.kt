@@ -15,6 +15,7 @@ import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.home.vault.add.GpgKeyDecor2Brr
 import com.artemchep.keyguard.feature.home.vault.add.KeyPairDecor2Brr
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
+import com.artemchep.keyguard.feature.tags.TagsFieldModel
 import com.artemchep.keyguard.ui.ContextItem
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
@@ -157,6 +158,8 @@ sealed interface AddStateItem {
 
     data class Url<Request>(
         override val id: String,
+        /** The icon, or `null` for the one of a website. */
+        val leading: (@Composable RowScope.() -> Unit)? = null,
         override val options: ImmutableList<ContextItem> = persistentListOf(),
         override val state: LocalStateItem<State, Request>,
     ) : AddStateItem, HasOptions<Url<*>>, HasState<Url.State, Request> {
@@ -169,6 +172,9 @@ sealed interface AddStateItem {
         data class State(
             override val options: ImmutableList<ContextItem> = persistentListOf(),
             val text: TextFieldModel,
+            /** The label, or `null` for the one of a URI. */
+            val label: String? = null,
+            val placeholder: String? = null,
             val matchType: DSecret.Uri.MatchType? = null,
             val matchTypeTitle: String? = null,
         ) : HasOptions<State> {
@@ -254,30 +260,11 @@ sealed interface AddStateItem {
         }
     }
 
-    data class Tag<Request>(
+    @Stable
+    data class Tags<Request>(
         override val id: String,
-        override val options: ImmutableList<ContextItem> = persistentListOf(),
-        override val state: LocalStateItem<State, Request>,
-    ) : AddStateItem, HasOptions<Tag<*>>, HasState<Tag.State, Request> {
-        override fun withOptions(
-            options: ImmutableList<ContextItem>,
-        ) = copy(
-            options = options,
-        )
-
-        sealed interface State : HasOptions<State> {
-            data class Text(
-                override val options: ImmutableList<ContextItem> = persistentListOf(),
-                val text: TextFieldModel,
-            ) : State {
-                override fun withOptions(
-                    options: ImmutableList<ContextItem>,
-                ) = copy(
-                    options = options,
-                )
-            }
-        }
-    }
+        override val state: LocalStateItem<TagsFieldModel, Request>,
+    ) : AddStateItem, HasState<TagsFieldModel, Request>
 
     data class Note<Request>(
         override val id: String,

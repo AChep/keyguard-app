@@ -2,8 +2,13 @@ package com.artemchep.keyguard.apple.dialog
 
 import com.artemchep.keyguard.apple.core.sessionKoin
 import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerRoute
+import com.artemchep.keyguard.feature.home.vault.link.field.CipherFieldPickerResult
+import com.artemchep.keyguard.feature.home.vault.link.field.CipherFieldPickerRoute
+import com.artemchep.keyguard.feature.home.vault.link.field.CipherFieldPickerState
+import com.artemchep.keyguard.feature.home.vault.link.field.cipherFieldPickerStateProducer
 import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerResult
 import com.artemchep.keyguard.feature.home.vault.link.cipherLinkPickerStateProducer
+import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
 
 import com.artemchep.keyguard.feature.confirmation.folder.FolderConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.folder.FolderConfirmationResult
@@ -17,7 +22,13 @@ import androidx.compose.ui.graphics.toArgb
 import com.artemchep.keyguard.AppMode
 import com.artemchep.keyguard.URL_HAVE_I_BEEN_PWNED
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
-import com.artemchep.keyguard.common.model.AttachmentPreviewLimits
+import com.artemchep.keyguard.apple.gpgtools.GpgToolsFiles
+import com.artemchep.keyguard.common.service.file.FileService
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewExport
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewExportOutcome
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import com.artemchep.keyguard.common.model.BiometricAuthPromptSimple
 import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.io.bind
@@ -30,10 +41,10 @@ import com.artemchep.keyguard.common.usecase.ClearVaultSession
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.common.usecase.PutBarcodeUsageHistory
 import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewContent
-import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewError
 import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewRoute
 import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewState
 import com.artemchep.keyguard.feature.attachmentpreview.attachmentPreviewStateProducer
+import com.artemchep.keyguard.feature.attachmentpreview.translate
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeRoute
 import com.artemchep.keyguard.feature.barcodetype.BarcodeTypeState
 import com.artemchep.keyguard.feature.barcodetype.barcodeTypeStateProducer
@@ -60,10 +71,11 @@ import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConf
 import com.artemchep.keyguard.feature.confirmation.organization.organizationConfirmationStateProducer
 import com.artemchep.keyguard.feature.emailleak.EmailLeakRoute
 import com.artemchep.keyguard.feature.emailleak.EmailLeakState
+import com.artemchep.keyguard.feature.favicon.toIconKey
 import com.artemchep.keyguard.feature.emailleak.emailLeakStateProducer
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
-import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountBin
+import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServiceViewDialogRoute
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataViewDialogRoute
 import com.artemchep.keyguard.feature.passwordmemory.PasswordMemoryRoute
@@ -75,6 +87,7 @@ import com.artemchep.keyguard.feature.largetype.largeTypeStateProducer
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
+import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewState
 import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServiceViewDialogRoute
@@ -102,6 +115,8 @@ import com.artemchep.keyguard.util.io.toNSData
 import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.apple.core.onFilePickerResult
 import com.artemchep.keyguard.apple.core.toFilePickerRequest
+import com.artemchep.keyguard.apple.model.buildVaultItemSnapshots
+import com.artemchep.keyguard.apple.model.toTagsSnapshot
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.elevatedaccess_biometric_auth_confirm_title
@@ -230,7 +245,14 @@ internal class DialogController(
         DialogHost<PasskeyCredentialSnapshot, (() -> Unit)?>(null)
 
     private val attachmentPreviewDialog =
-        DialogHost<AttachmentPreviewSnapshot, (() -> Unit)?>(null)
+        DialogHost<AttachmentPreviewSnapshot, AttachmentPreviewState?>(null)
+
+    private val preparingAttachmentExports = mutableSetOf<String>()
+    private val attachmentExports = mutableMapOf<String, Pair<GpgToolsFiles, AttachmentPreviewExport>>()
+
+    init {
+        disposeDialogs += ::closeAttachmentExportFiles
+    }
 
     /** The maps are keyed by the snapshot item / option keys SwiftUI passes back. */
     private class ConfirmationHandlers(
@@ -310,6 +332,16 @@ internal class DialogController(
     private val cipherLinkPickerDialog =
         DialogHost<CipherLinkPickerSnapshot, CipherLinkPickerHandlers>(CipherLinkPickerHandlers())
 
+    private data class CipherFieldPickerHandlers(
+        val onQuery: ((String) -> Unit)? = null,
+        val onSelectItem: Map<String, () -> Unit> = emptyMap(),
+        val onSelectField: Map<String, () -> Unit> = emptyMap(),
+        val onBack: (() -> Unit)? = null,
+    )
+
+    private val cipherFieldPickerDialog =
+        DialogHost<CipherFieldPickerSnapshot, CipherFieldPickerHandlers>(CipherFieldPickerHandlers())
+
     // Confirmation FILE items: each producer FilePickerIntent becomes an AddFilePickerRequest (the create-form
     // type, so Swift reuses its file panel) and waits here, keyed by request id, until Swift resolves or cancels it.
     private var onConfirmationFilePickerRequest: ((AddFilePickerRequest) -> Unit)? = null
@@ -343,10 +375,12 @@ internal class DialogController(
         val elevatedAccess = intent.resultRouteOrNull<ElevatedAccessRoute, ElevatedAccessResult>()?.second
         val colorPicker = intent.resultRouteOrNull<ColorPickerRoute, ColorPickerResult>()
         val cipherLinkPicker = intent.resultRouteOrNull<CipherLinkPickerRoute, CipherLinkPickerResult>()
+        val cipherFieldPicker = intent.resultRouteOrNull<CipherFieldPickerRoute, CipherFieldPickerResult>()
         val accountPicker = intent.resultRouteOrNull<OrganizationConfirmationRoute, OrganizationConfirmationResult>()
         val folderPicker = intent.resultRouteOrNull<FolderConfirmationRoute, FolderConfirmationResult>()
         val hasConfirmation = confirmation != null || tagsConfirmation != null
-        val hasPicker = cipherLinkPicker != null || accountPicker != null || folderPicker != null
+        val hasPicker = cipherLinkPicker != null || cipherFieldPicker != null ||
+            accountPicker != null || folderPicker != null
         if (formDialogsOnly && !hasConfirmation && !hasPicker) return@interceptor false
         // The producers dispatch their navigation intents from the background
         // pipeline, while the dialog state (the present* job + handler fields)
@@ -359,6 +393,12 @@ internal class DialogController(
             cipherLinkPicker != null && sessionKoin != null -> {
                 ctx.scope.launch {
                     presentCipherLinkPicker(cipherLinkPicker.first.args, cipherLinkPicker.second, sessionKoin)
+                }
+                true
+            }
+            cipherFieldPicker != null && sessionKoin != null -> {
+                ctx.scope.launch {
+                    presentCipherFieldPicker(cipherFieldPicker.first.args, cipherFieldPicker.second, sessionKoin)
                 }
                 true
             }
@@ -388,8 +428,10 @@ internal class DialogController(
                 true
             }
 
-            tagsConfirmation != null -> {
-                ctx.scope.launch { presentTagsConfirmation(tagsConfirmation.first.args, tagsConfirmation.second) }
+            tagsConfirmation != null && sessionKoin != null -> {
+                ctx.scope.launch {
+                    presentTagsConfirmation(tagsConfirmation.first.args, tagsConfirmation.second, sessionKoin)
+                }
                 true
             }
 
@@ -722,6 +764,8 @@ internal class DialogController(
                 ),
                 null,
             )
+            // Flag-only changes reuse the content snapshot, such as the image data copy.
+            var cache: Pair<AttachmentPreviewContent, AttachmentPreviewSnapshot>? = null
             ctx.koin.newHeadlessStateFlowScope(
                 "attachment_preview",
                 this,
@@ -732,24 +776,112 @@ internal class DialogController(
                     canPreviewAttachment = sessionKoin.get(),
                     getAttachmentPreview = sessionKoin.get(),
                     downloadManager = sessionKoin.get(),
+                    temporaryDirProvider = sessionKoin.get(),
+                    gpgPublicKeyParser = sessionKoin.get(),
+                    dateFormatter = sessionKoin.get(),
                 )
                 .collect { loadable ->
                     val state = loadable.getOrNull() ?: return@collect
-                    val snapshot = buildAttachmentPreviewSnapshot(state, leContext)
+                    val content = cache?.takeIf { it.first === state.content }?.second
+                        ?: buildAttachmentPreviewSnapshot(state, leContext, cache?.second?.jsonTree)
+                            .withJsonDocumentIdentity(state.content, cache?.first, cache?.second)
+                            .also { cache = state.content to it }
                     publish(
-                        snapshot,
-                        (state.content as? AttachmentPreviewContent.TextLike)?.onCopy,
+                        content.withAttachmentPreviewState(state),
+                        state,
                     )
                 }
         }
     }
 
     fun invokeAttachmentPreviewCopy() {
-        attachmentPreviewDialog.handlers?.invoke()
+        attachmentPreviewDialog.handlers?.content?.onCopy?.invoke()
+    }
+
+    /** Cancels a running archive operation, otherwise goes up a folder. */
+    fun attachmentPreviewBack() {
+        attachmentPreviewDialog.handlers?.onNavigateBack?.invoke()
+    }
+
+    fun attachmentPreviewOpenBreadcrumb(index: Int) {
+        val content = attachmentPreviewDialog.handlers?.content as? AttachmentPreviewContent.Archive ?: return
+        content.breadcrumbs.getOrNull(index)?.onClick?.invoke()
+    }
+
+    fun attachmentPreviewSave() = attachmentPreviewDialog.handlers?.onSave?.invoke()
+
+    fun attachmentPreviewOpenEntry(id: String, save: Boolean) {
+        val content = attachmentPreviewDialog.handlers?.content as? AttachmentPreviewContent.Archive ?: return
+        val entry = content.items.firstOrNull { it.id == id } ?: return
+        (if (save) entry.onSave else entry.onOpen)?.invoke()
+    }
+
+    fun attachmentPreviewPassword(password: String) =
+        attachmentPreviewDialog.handlers?.password?.onSubmit?.invoke(password)
+
+    fun attachmentPreviewCancel() {
+        val state = attachmentPreviewDialog.handlers ?: return
+        (state.password?.onCancel ?: state.onCancel)?.invoke()
+    }
+
+    @Suppress("TooGenericExceptionCaught") // Presentation boundary; fatal errors and cancellation are rethrown.
+    fun prepareAttachmentPreviewExport(onResult: (AttachmentArchiveExportSnapshot?) -> Unit) {
+        val export = attachmentPreviewDialog.handlers?.export ?: return onResult(null)
+        if (attachmentExports.values.any { it.second === export } || !preparingAttachmentExports.add(export.id)) {
+            return onResult(null)
+        }
+        val fileService = ctx.koin.get<FileService>()
+        // Reuse the protected, lease-owned export files used by the native GPG tools.
+        ctx.scope.launch {
+            var owner: GpgToolsFiles? = null
+            try {
+                val files = GpgToolsFiles(fileService)
+                owner = files
+                files.retain()
+                val file = files.create(export.name)
+                withContext(Dispatchers.Default) {
+                    fileService.writeToFile(file.uri).use { export.writeTo(it) }
+                }
+                if (attachmentPreviewDialog.handlers?.export !== export) {
+                    files.close()
+                    files.release()
+                    onResult(null)
+                    return@launch
+                }
+                attachmentExports[file.id] = files to export
+                onResult(AttachmentArchiveExportSnapshot(file.id, export.id, file.uri, file.name))
+            } catch (e: Throwable) {
+                owner?.close()
+                owner?.release()
+                onResult(null)
+                e.throwIfFatalOrCancellation()
+                export.finish(AttachmentPreviewExportOutcome.Failed)
+            } finally {
+                preparingAttachmentExports.remove(export.id)
+            }
+        }
+    }
+
+    fun finishAttachmentPreviewExport(id: String, outcome: AttachmentArchiveExportOutcomeSnapshot) {
+        val (files, export) = attachmentExports.remove(id) ?: return
+        files.close()
+        files.release()
+        if (attachmentPreviewDialog.handlers?.export === export) {
+            export.finish(when (outcome) {
+                AttachmentArchiveExportOutcomeSnapshot.SAVED -> AttachmentPreviewExportOutcome.Saved
+                AttachmentArchiveExportOutcomeSnapshot.CANCELLED -> AttachmentPreviewExportOutcome.Cancelled
+                AttachmentArchiveExportOutcomeSnapshot.FAILED -> AttachmentPreviewExportOutcome.Failed
+            })
+        }
     }
 
     fun closeAttachmentPreview() {
+        closeAttachmentExportFiles()
         attachmentPreviewDialog.close()
+    }
+
+    private fun closeAttachmentExportFiles() {
+        attachmentExports.values.forEach { (files, _) -> files.close() }
     }
 
     fun observeConfirmation(
@@ -802,41 +934,38 @@ internal class DialogController(
     private fun presentTagsConfirmation(
         args: TagsConfirmationRoute.Args,
         transmitter: RouteResultTransmitter<TagsConfirmationResult>,
+        sessionKoin: Scope,
     ) {
         confirmationDialog.present { publish ->
             val interceptor = confirmationDialog.closeOnPop()
             val leContext = ctx.koin.get<LeContext>()
             ctx.koin.newHeadlessStateFlowScope("tags_confirmation", this, interceptor)
-                .tagsConfirmationStateProducer(args, transmitter)
+                .tagsConfirmationStateProducer(
+                    args = args,
+                    transmitter = transmitter,
+                    getCiphers = sessionKoin.get(),
+                )
                 .collect { state ->
+                    val stringHandlers = LinkedHashMap<String, (String) -> Unit>()
+                    val tags = state.tags.toTagsSnapshot("tags", stringHandlers)
                     publish(
                         ConfirmationSnapshot(
                             title = textResource(Res.string.ciphers_action_change_tags_title, leContext),
                             subtitle = null,
-                            message = if (state.items.isEmpty()) textResource(Res.string.tag_none, leContext) else null,
-                            items = state.items.map { item ->
+                            message = null,
+                            items = listOf(
                                 ConfirmationItemSnapshot(
-                                    key = item.key,
-                                    kind = ConfirmationItemKind.STRING,
-                                    enabled = item.field.onChange != null,
+                                    key = "tags",
+                                    kind = ConfirmationItemKind.TAGS,
+                                    enabled = state.tags.onCommit != null,
                                     title = "",
-                                    stringValue = item.field.text,
-                                    stringRevision = item.field.textRevision,
-                                    hint = item.field.hint,
-                                    removable = item.onRemove != null,
-                                )
-                            },
+                                    tags = tags,
+                                ),
+                            ),
                             confirmEnabled = state.onConfirm != null,
-                            canAddItem = state.onAdd != null,
                         ),
                         ConfirmationHandlers(
-                            stringOnChange = state.items.mapNotNull { item ->
-                                item.field.onChange?.let { item.key to it }
-                            }.toMap(),
-                            onRemove = state.items.mapNotNull { item ->
-                                item.onRemove?.let { item.key to it }
-                            }.toMap(),
-                            onAdd = state.onAdd,
+                            stringOnChange = stringHandlers,
                             onConfirm = state.onConfirm,
                         ),
                     )
@@ -1256,13 +1385,7 @@ internal class DialogController(
                         CipherLinkPickerSnapshot(
                             query = state.query.text,
                             queryRevision = state.query.textRevision,
-                            items = state.items.map {
-                                CipherLinkPickerItemSnapshot(
-                                    id = it.presentation.source.id,
-                                    title = it.presentation.title.text,
-                                    text = it.presentation.text,
-                                )
-                            },
+                            items = state.items.map { it.presentation.toCipherLinkPickerItemSnapshot() },
                         ),
                         CipherLinkPickerHandlers(state.query.onChange, handlers),
                     )
@@ -1280,6 +1403,95 @@ internal class DialogController(
 
     fun closeCipherLinkPicker() {
         cipherLinkPickerDialog.close()
+    }
+
+    fun observeCipherFieldPicker(
+        onChange: (CipherFieldPickerSnapshot?) -> Unit,
+    ): KeyguardCancellable = cipherFieldPickerDialog.register(onChange)
+
+    private fun presentCipherFieldPicker(
+        args: CipherFieldPickerRoute.Args,
+        transmitter: RouteResultTransmitter<CipherFieldPickerResult>,
+        sessionKoin: Scope,
+    ) {
+        cipherFieldPickerDialog.present { publish ->
+            val interceptor = cipherFieldPickerDialog.closeOnPop()
+            ctx.koin.newHeadlessStateFlowScope("cipher_field_picker", this, interceptor)
+                .cipherFieldPickerStateProducer(
+                    args = args,
+                    transmitter = transmitter,
+                    getCiphers = sessionKoin.get(),
+                    getCollections = sessionKoin.get(),
+                    getAppIcons = sessionKoin.get(),
+                    getWebsiteIcons = sessionKoin.get(),
+                )
+                .collect { state ->
+                    publish(
+                        state.toCipherFieldPickerSnapshot(),
+                        state.toCipherFieldPickerHandlers(),
+                    )
+                }
+        }
+    }
+
+    private fun CipherFieldPickerState.toCipherFieldPickerSnapshot(): CipherFieldPickerSnapshot {
+        val fieldsStep = step as? CipherFieldPickerState.Step.Fields
+        val itemsStep = step as? CipherFieldPickerState.Step.Items
+        return CipherFieldPickerSnapshot(
+            query = query.text,
+            queryRevision = query.textRevision,
+            item = fieldsStep?.item?.toCipherLinkPickerItemSnapshot(),
+            items = itemsStep?.items.orEmpty().map { it.presentation.toCipherLinkPickerItemSnapshot() },
+            fields = fieldsStep?.fields.orEmpty().map { field ->
+                CipherFieldPickerFieldSnapshot(
+                    id = field.id,
+                    title = field.title,
+                    text = field.text,
+                    password = field.kind == CipherFieldPickerState.Field.Kind.Password,
+                    enabled = field.onClick != null,
+                )
+            },
+        )
+    }
+
+    private fun VaultItemPresentation.toCipherLinkPickerItemSnapshot() = CipherLinkPickerItemSnapshot(
+        id = source.id,
+        title = title.text,
+        text = text,
+    )
+
+    private fun CipherFieldPickerState.toCipherFieldPickerHandlers(): CipherFieldPickerHandlers {
+        val fieldsStep = step as? CipherFieldPickerState.Step.Fields
+        val itemsStep = step as? CipherFieldPickerState.Step.Items
+        return CipherFieldPickerHandlers(
+            onQuery = query.onChange,
+            onSelectItem = itemsStep?.items.orEmpty()
+                .associate { it.presentation.source.id to it.onClick },
+            onSelectField = fieldsStep?.fields.orEmpty()
+                .mapNotNull { field -> field.onClick?.let { field.id to it } }
+                .toMap(),
+            onBack = onBack,
+        )
+    }
+
+    fun setCipherFieldPickerQuery(text: String) {
+        cipherFieldPickerDialog.handlers.onQuery?.invoke(text)
+    }
+
+    fun selectCipherFieldPickerItem(id: String) {
+        cipherFieldPickerDialog.handlers.onSelectItem[id]?.invoke()
+    }
+
+    fun selectCipherFieldPickerField(id: String) {
+        cipherFieldPickerDialog.handlers.onSelectField[id]?.invoke()
+    }
+
+    fun backCipherFieldPicker() {
+        cipherFieldPickerDialog.handlers.onBack?.invoke()
+    }
+
+    fun closeCipherFieldPicker() {
+        cipherFieldPickerDialog.close()
     }
 
     fun observeAccountPicker(
@@ -1312,6 +1524,7 @@ internal class DialogController(
                         AccountPickerSnapshot(
                             title = title,
                             note = args.decor.note?.text,
+                            warnings = state.warnings.map { it.note.text },
                             newFolderName = content.folderNew?.text,
                             newFolderNameRevision = content.folderNew?.textRevision ?: 0,
                             newFolderNameError = content.folderNew?.error,
@@ -1466,7 +1679,10 @@ internal class DialogController(
             kind = ConfirmationItemKind.STRING,
             enabled = enabled,
             title = title,
-            stringValue = state.text,
+            // Transient secrets stay in the native field buffer and the live producer.
+            // User edits preserve the revision, so omitting their echo does not reset the buffer.
+            stringValue = state.text.takeUnless { ephemeral }.orEmpty(),
+            ephemeral = ephemeral,
             stringRevision = state.textRevision,
             descriptionText = description,
             hint = state.hint,
@@ -1606,7 +1822,7 @@ internal class DialogController(
         title = title,
         domain = domain,
         descriptionText = description,
-        icon = icon,
+        iconKey = icon?.toIconKey(),
         count = count,
         countText = count?.let {
             textResource(
@@ -1703,7 +1919,7 @@ internal class DialogController(
         title = title,
         domain = domain,
         descriptionText = description,
-        icon = icon,
+        iconKey = icon?.toIconKey(),
         count = count,
         countText = count?.let {
             textResource(
@@ -1729,7 +1945,21 @@ internal class DialogController(
     private suspend fun buildAttachmentPreviewSnapshot(
         state: AttachmentPreviewState,
         leContext: LeContext,
+        previousJsonTree: AttachmentPreviewJsonTreeSnapshot?,
     ): AttachmentPreviewSnapshot = when (val content = state.content) {
+        is AttachmentPreviewContent.Archive -> AttachmentPreviewSnapshot(
+            fileName = state.fileName,
+            kind = AttachmentPreviewKindSnapshot.ARCHIVE,
+            archivePath = content.path,
+            archiveBreadcrumbs = content.breadcrumbs.map { it.name },
+            archiveEntries = content.items.map { item ->
+                AttachmentArchiveEntrySnapshot(
+                    id = item.id, name = item.name, directory = item.isDirectory,
+                    size = item.size?.let(::humanReadableByteCountSI), encrypted = item.isEncrypted,
+                    canOpen = item.onOpen != null, canSave = item.onSave != null,
+                )
+            },
+        )
         is AttachmentPreviewContent.Image -> AttachmentPreviewSnapshot(
             fileName = state.fileName,
             kind = AttachmentPreviewKindSnapshot.IMAGE,
@@ -1740,56 +1970,56 @@ internal class DialogController(
             ),
         )
 
-        is AttachmentPreviewContent.Text -> AttachmentPreviewSnapshot(
+        is AttachmentPreviewContent.Text -> content.toAttachmentPreviewTextSnapshot(
             fileName = state.fileName,
             kind = AttachmentPreviewKindSnapshot.TEXT,
-            text = content.code.text,
-            spans = content.code.annotatedString.toAttachmentPreviewSpans(),
-            canCopy = true,
         )
 
-        is AttachmentPreviewContent.Markdown -> AttachmentPreviewSnapshot(
+        is AttachmentPreviewContent.Markdown -> content.toAttachmentPreviewTextSnapshot(
             fileName = state.fileName,
             kind = AttachmentPreviewKindSnapshot.MARKDOWN,
-            text = content.code.text,
-            spans = content.code.annotatedString.toAttachmentPreviewSpans(),
-            canCopy = true,
+        )
+
+        is AttachmentPreviewContent.Json -> content.toAttachmentPreviewJsonSnapshot(
+            fileName = state.fileName,
+            leContext = leContext,
+            previousJsonTree = previousJsonTree,
+        )
+
+        is AttachmentPreviewContent.Table -> content.toAttachmentPreviewTableSnapshot(
+            fileName = state.fileName,
+        )
+
+        is AttachmentPreviewContent.GpgKey -> AttachmentPreviewSnapshot(
+            fileName = state.fileName,
+            kind = AttachmentPreviewKindSnapshot.GPG_KEY,
+            text = content.source?.text,
+            spans = content.source?.annotatedString?.toAttachmentPreviewSpans().orEmpty(),
+            canCopy = content.onCopy != null,
+            items = buildVaultItemSnapshots(
+                items = content.items,
+                notesText = null,
+                leContext = leContext,
+                // The items have no actions.
+                actionHandlers = mutableMapOf(),
+            ),
         )
 
         is AttachmentPreviewContent.Error -> AttachmentPreviewSnapshot(
             fileName = state.fileName,
             kind = AttachmentPreviewKindSnapshot.ERROR,
-            errorMessage = content.type.toMessage(leContext),
+            errorMessage = TranslatorScope.of(leContext).translate(content.type),
         )
     }
 
-    // Mirrors the shared Compose AttachmentPreviewError.message() mapping.
-    private suspend fun AttachmentPreviewError.toMessage(
-        leContext: LeContext,
-    ): String = when (this) {
-        AttachmentPreviewError.UnsupportedFileType ->
-            textResource(Res.string.attachment_preview_error_unsupported_file, leContext)
-
-        AttachmentPreviewError.UnsupportedPlatform ->
-            textResource(Res.string.attachment_preview_error_unsupported_platform, leContext)
-
-        AttachmentPreviewError.TooLarge ->
-            textResource(
-                Res.string.attachment_preview_error_size_limit,
-                leContext,
-                humanReadableByteCountBin(AttachmentPreviewLimits.MAX_ENCRYPTED_BYTES),
-            )
-
-        AttachmentPreviewError.Network ->
-            textResource(Res.string.attachment_preview_error_network, leContext)
-
-        AttachmentPreviewError.Decryption ->
-            textResource(Res.string.attachment_preview_error_decryption, leContext)
-
-        AttachmentPreviewError.TextDecode ->
-            textResource(Res.string.attachment_preview_error_text_decode, leContext)
-
-        AttachmentPreviewError.Unknown ->
-            textResource(Res.string.error_failed_unknown, leContext)
-    }
+    private fun AttachmentPreviewSnapshot.withAttachmentPreviewState(
+        state: AttachmentPreviewState,
+    ) = copy(
+        canGoBack = state.onBack != null,
+        canSave = state.onSave != null,
+        busy = state.busy,
+        needsPassword = state.password != null,
+        passwordIncorrect = state.password?.incorrect == true,
+        exportId = state.export?.id,
+    )
 }

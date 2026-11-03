@@ -6,6 +6,10 @@ import com.artemchep.keyguard.common.service.credentialexchange.impl.CXF_MAX_COL
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfExportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.ImportResult
+import com.artemchep.keyguard.test.FakeSshKeyImportService
+import com.artemchep.keyguard.test.fakeSshKeyPair
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -37,7 +41,7 @@ class CxfRoundTripTest {
     private fun roundTrip(
         ciphers: List<DSecret>,
         folders: List<com.artemchep.keyguard.common.model.DFolder> = emptyList(),
-    ): CxfImportPlan {
+    ): ImportPlan {
         val document = exportService.buildDocument(
             accounts = listOfNotNull(
                 exportService.buildAccount(
@@ -56,7 +60,7 @@ class CxfRoundTripTest {
             payload = payload,
             now = now,
         )
-        return assertIs<CxfImportResult.Success>(result).plan
+        return assertIs<ImportResult.Success>(result).plan
     }
 
     @Test
@@ -75,7 +79,7 @@ class CxfRoundTripTest {
         assertEquals(DSecret.Type.SshKey, request.type)
         // The export side produced the fake DER; the import side must have
         // handed exactly that DER (PEM-wrapped) to the conversion seam.
-        val pem = sshKeyImportService.lastRequest?.content.orEmpty()
+        val pem = sshKeyImportService.lastRequest?.content?.decodeToString().orEmpty()
         assertTrue(pem.startsWith("-----BEGIN PRIVATE KEY-----\n"))
         assertTrue(pem.contains("AQIDBAUG"))
         assertEquals(fakeSshKeyPair().privateKey.ssh, request.sshKey.privateKey)

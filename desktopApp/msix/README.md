@@ -53,6 +53,26 @@ Add-AppxPackage desktopApp\build\compose\binaries\main\msix\Keyguard-*.msix
 
 Remove with `Get-AppxPackage ArtemChepurnyi.Keyguard | Remove-AppxPackage`.
 
+## Passkey provider
+
+The package registers `Keyguard.exe --windows-passkey-provider` as a COM server.
+The CLSID is derived from the package identity and publisher, so it stays stable
+across upgrades and x64/ARM64 builds. Store and sideload packages have separate
+provider identities. `keyguard-passkeys.json` must contain the same CLSID as the
+manifest; the final native-bundle check verifies this.
+
+Provider registration requires a Windows 11 build with the third-party passkey
+APIs. Enable it in Keyguard's Autofill settings, accept the public metadata cache,
+then enable Keyguard in Windows passkey settings. The MSI and unpackaged builds
+cannot register a provider.
+
+To check PRF, use an isolated test vault and a test relying party that requests
+`prf.eval.first` at registration and sign-in. Select Keyguard for both operations.
+Registration must return `prf.enabled = true` and a 32-byte `prf.results.first`.
+Sign in with that credential and the same input: its 32-byte result must match
+registration. Missing results leave browser/provider PRF interoperability
+unverified, even when the native encoder tests pass.
+
 ## Assets
 
 Generated from `../flatpak/icon.svg` (`brew install librsvg imagemagick`), run from `Assets/`:

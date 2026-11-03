@@ -2,11 +2,7 @@ package com.artemchep.keyguard.feature.home.settings.backups
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -19,26 +15,15 @@ import androidx.compose.material.icons.outlined.Password
 import androidx.compose.material.icons.outlined.AttachFile
 import androidx.compose.material.icons.outlined.Attachment
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.ShapeState
@@ -47,17 +32,16 @@ import com.artemchep.keyguard.common.service.backup.BackupStoreKind
 import com.artemchep.keyguard.feature.home.settings.KgSwitch
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatSimpleNote
-import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.theme.Dimens
-import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.verticalPaddingHalf
 import com.artemchep.keyguard.ui.util.HorizontalDivider
+import com.artemchep.keyguard.ui.wizard.WizardChoice
+import com.artemchep.keyguard.ui.wizard.WizardSummaryRow
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -123,21 +107,21 @@ private fun BackupDestinationChoices(
         modifier = Modifier
             .selectableGroup(),
     ) {
-        BackupDestinationChoice(
+        WizardChoice(
             title = stringResource(Res.string.pref_item_automatic_backups_local_folder_title),
             icon = Icons.Outlined.Folder,
             selected = store is BackupStoreConfig.Local,
             shapeState = ShapeState.START,
             onClick = { onStoreKindChange(BackupStoreKind.Local) },
         )
-        BackupDestinationChoice(
+        WizardChoice(
             title = stringResource(Res.string.pref_item_automatic_backups_webdav_server_title),
             icon = Icons.Outlined.Cloud,
             selected = store is BackupStoreConfig.WebDav,
             shapeState = ShapeState.CENTER,
             onClick = { onStoreKindChange(BackupStoreKind.WebDav) },
         )
-        BackupDestinationChoice(
+        WizardChoice(
             title = stringResource(Res.string.pref_item_automatic_backups_s3_title),
             icon = Icons.Outlined.Inventory2,
             selected = store is BackupStoreConfig.S3,
@@ -145,33 +129,6 @@ private fun BackupDestinationChoices(
             onClick = { onStoreKindChange(BackupStoreKind.S3) },
         )
     }
-}
-
-@Composable
-private fun BackupDestinationChoice(
-    title: String,
-    icon: ImageVector,
-    selected: Boolean,
-    shapeState: Int,
-    onClick: () -> Unit,
-) {
-    val backgroundColor = if (selected) {
-        MaterialTheme.colorScheme.secondaryContainer
-    } else Color.Unspecified
-    FlatItemLayoutExpressive(
-        rowModifier = Modifier.semantics {
-            this.selected = selected
-            role = Role.RadioButton
-        },
-        shapeState = shapeState,
-        backgroundColor = backgroundColor,
-        leading = { Icon(icon, contentDescription = null) },
-        content = {
-            Text(title, style = MaterialTheme.typography.titleMedium)
-        },
-        trailing = { RadioButton(selected = selected, onClick = null) },
-        onClick = onClick,
-    )
 }
 
 @Composable
@@ -244,12 +201,12 @@ internal fun BackupSetupReview(state: AutomaticBackupsSetupState) {
             .padding(horizontal = Dimens.textHorizontalPadding),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        TwoColumnRow(
+        WizardSummaryRow(
             icon = config.store.icon,
             title = stringResource(Res.string.pref_item_automatic_backups_location_title),
             value = backupLocationText(config.store),
         )
-        TwoColumnRow(
+        WizardSummaryRow(
             icon = Icons.Outlined.Password,
             title = stringResource(Res.string.pref_item_automatic_backups_password_title),
             value = stringResource(
@@ -260,7 +217,7 @@ internal fun BackupSetupReview(state: AutomaticBackupsSetupState) {
                 },
             ),
         )
-        TwoColumnRow(
+        WizardSummaryRow(
             icon = Icons.Outlined.AttachFile,
             title = stringResource(Res.string.pref_item_automatic_backups_include_attachments_title),
             value = stringResource(
@@ -271,7 +228,7 @@ internal fun BackupSetupReview(state: AutomaticBackupsSetupState) {
                 },
             ),
         )
-        TwoColumnRow(
+        WizardSummaryRow(
             icon = Icons.Outlined.History,
             title = stringResource(Res.string.pref_item_automatic_backups_retention_title),
             value = retentionText(config.retention.maxSnapshots),
@@ -281,39 +238,6 @@ internal fun BackupSetupReview(state: AutomaticBackupsSetupState) {
         FlatSimpleNote(
             type = SimpleNote.Type.ERROR,
             text = error,
-        )
-    }
-}
-
-@Composable
-private fun TwoColumnRow(
-    icon: ImageVector,
-    title: String,
-    value: String?,
-) {
-    Row(
-        verticalAlignment = Alignment.Top,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            modifier = Modifier
-                .weight(1f)
-                .widthIn(max = 120.dp),
-            text = title,
-            fontWeight = FontWeight.Medium,
-        )
-        Spacer(modifier = Modifier.width(16.dp))
-        Text(
-            modifier = Modifier
-                .weight(1f)
-                .widthIn(max = 120.dp),
-            text = value.orEmpty(),
-            style = MaterialTheme.typography.bodySmall,
-            color = LocalContentColor.current.combineAlpha(MediumEmphasisAlpha),
         )
     }
 }

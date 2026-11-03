@@ -52,6 +52,9 @@ data class PasskeyAssertionSnapshot(
     val signature: ByteArray,
     val userHandle: ByteArray,
     val rpId: String,
+    /** The PRF outputs, if the request had inputs for this passkey and it supports the PRF. */
+    val prfFirst: ByteArray? = null,
+    val prfSecond: ByteArray? = null,
 )
 
 /** A computed WebAuthn registration (the appex returns these as `ASPasskeyRegistrationCredential`). */
@@ -60,6 +63,11 @@ data class PasskeyRegistrationSnapshot(
     val attestationObject: ByteArray,
     val rpId: String,
     val identity: PasskeyIdentitySnapshot,
+    /** Whether the passkey supports the PRF, only if the request asked for it. */
+    val prfEnabled: Boolean = false,
+    /** The PRF outputs, if the request had inputs. */
+    val prfFirst: ByteArray? = null,
+    val prfSecond: ByteArray? = null,
 )
 
 enum class SshAgentHistoryItemKind {
@@ -89,6 +97,40 @@ data class SshAgentHistorySnapshot(
 ) {
     companion object {
         val empty = SshAgentHistorySnapshot(loaded = false, subtitle = null, items = emptyList())
+    }
+}
+
+enum class CliAgentHistoryItemKind {
+    SECTION,
+    VALUE,
+}
+
+/**
+ * For SECTION headers only [caller] (the date label) is set. For VALUE rows [caller] is the requesting client,
+ * [description] the request details line, [details] the command line and its directory or the path of a
+ * local `.env` file (may span lines), and [response] the uppercase
+ * [com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType] name.
+ */
+data class CliAgentHistoryItemSnapshot(
+    val id: String,
+    val kind: CliAgentHistoryItemKind,
+    val caller: String,
+    val description: String,
+    val details: String?,
+    val date: String?,
+    val responseText: String,
+    val response: String?,
+)
+
+/** [canClear] is true only for a client's log that has rows. */
+data class CliAgentHistorySnapshot(
+    val loaded: Boolean,
+    val subtitle: String?,
+    val items: List<CliAgentHistoryItemSnapshot>,
+    val canClear: Boolean,
+) {
+    companion object {
+        val empty = CliAgentHistorySnapshot(loaded = false, subtitle = null, items = emptyList(), canClear = false)
     }
 }
 

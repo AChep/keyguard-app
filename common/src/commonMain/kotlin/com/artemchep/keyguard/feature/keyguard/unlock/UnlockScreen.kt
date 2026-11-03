@@ -67,7 +67,7 @@ import com.artemchep.keyguard.ui.PasswordFlatTextField
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.icons.KeyguardYubiKey
-import com.artemchep.keyguard.ui.rememberCountdownSeconds
+import com.artemchep.keyguard.ui.rememberCountdownText
 import com.artemchep.keyguard.ui.skeleton.SkeletonButton
 import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -453,7 +453,7 @@ private fun UnlockCtaButton(
             style = textStyle,
         )
 
-        val countdown = rememberCountdownSeconds(LocalAuthScreen.current.expiresAt)
+        val countdown = rememberCountdownText(LocalAuthScreen.current.expiresAt)
         if (countdown != null) {
             Spacer(
                 modifier = Modifier

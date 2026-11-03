@@ -8,10 +8,21 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.toIO
+import com.artemchep.keyguard.common.model.Premium
+import com.artemchep.keyguard.common.model.isActive
 import com.artemchep.keyguard.platform.recordException
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 
-interface GetPurchased : () -> Flow<Boolean>
+interface GetPurchased : () -> Flow<Premium>
+
+fun <T> IO<T>.premium(
+    getPurchased: GetPurchased,
+    predicate: IO<Boolean> = io(true),
+): IO<T> = premium(
+    getPurchased = { getPurchased().map { it.isActive } },
+    predicate = predicate,
+)
 
 fun <T> IO<T>.premium(
     getPurchased: () -> Flow<Boolean>,

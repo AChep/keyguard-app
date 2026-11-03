@@ -1,7 +1,14 @@
 package com.artemchep.keyguard.apple.lists
 
 import com.artemchep.keyguard.apple.core.sessionKoin
+import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
+import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.common.usecase.RemoveCliAgentUsageHistory
+import com.artemchep.keyguard.feature.cliagent.history.CliAgentHistoryItem
+import com.artemchep.keyguard.feature.cliagent.history.CliAgentHistoryState
+import com.artemchep.keyguard.feature.cliagent.history.cliAgentHistoryStateProducer
 import com.artemchep.keyguard.feature.home.vault.model.VaultPasswordHistoryItem
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewPasswordHistoryState
 import com.artemchep.keyguard.feature.home.vault.screen.vaultViewPasswordHistoryScreenStateProducer
@@ -35,6 +42,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 
 internal class ReadOnlyListsController(
     private val ctx: CoreContext,
@@ -95,6 +103,48 @@ internal class ReadOnlyListsController(
             }
         }
         return SshAgentHistorySnapshot(loaded = true, subtitle = state.subtitle, items = items)
+    }
+
+    /**
+     * The request log of the [client] ([CliAgentUsageHistoryClient] name), or of the
+     * environment [cipherId] across all clients.
+     */
+    fun makeCliAgentHistorySession(
+        client: String?,
+        cipherId: String?,
+    ): CliAgentHistorySession = CliAgentHistorySession { publish ->
+        ctx.launchSessionObserver(
+            onLocked = {
+                publish(CliAgentHistorySnapshot.empty)
+            },
+        ) { state ->
+            val producerScope = this
+            val producerFlow = with(state.sessionKoin) {
+                ctx.koin.newHeadlessStateFlowScope("cli_agent_history", producerScope)
+                    .cliAgentHistoryStateProducer(
+                        client = client?.let(CliAgentUsageHistoryClient::ofName),
+                        cipherId = cipherId,
+                        getCliAgentUsageHistory = get(),
+                        removeCliAgentUsageHistory = get(),
+                        getCiphers = get(),
+                        dateFormatter = get(),
+                        confirmationRouteFactory = get(),
+                        json = get(),
+                    )
+            }
+            producerFlow
+                .map { loadable -> loadable.getOrNull().toHistorySnapshot() }
+                .collectOnMain { publish(it) }
+        }
+    }
+
+    /** Clears the log of the [client] ([CliAgentUsageHistoryClient] name) without asking. */
+    fun clearCliAgentHistory(client: String) {
+        val value = CliAgentUsageHistoryClient.ofName(client)
+        ctx.backgroundScope.launch {
+            val state = ctx.currentState() as? VaultState.Main ?: return@launch
+            state.sessionKoin.get<RemoveCliAgentUsageHistory>()(value).launchIn(this)
+        }
     }
 
     /** Threads the dialog interceptor so the producer's routes reach a renderer instead of being dropped. */
@@ -534,4 +584,35 @@ internal class ReadOnlyListsController(
             selectionActions = selectionActions,
         )
     }
+}
+
+internal fun CliAgentHistoryState?.toHistorySnapshot(): CliAgentHistorySnapshot {
+    this ?: return CliAgentHistorySnapshot.empty
+    val items = items.map { item ->
+        when (item) {
+            is CliAgentHistoryItem.Section -> CliAgentHistoryItemSnapshot(
+                id = item.id,
+                kind = CliAgentHistoryItemKind.SECTION,
+                caller = item.text.orEmpty(),
+                description = "",
+                details = null,
+                date = null,
+                responseText = "",
+                response = null,
+            )
+
+            is CliAgentHistoryItem.Value -> CliAgentHistoryItemSnapshot(
+                id = item.id,
+                kind = CliAgentHistoryItemKind.VALUE,
+                caller = item.caller,
+                description = item.description,
+                details = item.details,
+                date = item.formattedDate,
+                responseText = item.responseText,
+                response = item.response.name,
+            )
+        }
+    }
+    // The producer's only option is Clear, offered for a client's log with rows.
+    return CliAgentHistorySnapshot(loaded = true, subtitle = subtitle, items = items, canClear = options.isNotEmpty())
 }

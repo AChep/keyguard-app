@@ -78,7 +78,8 @@ import kotlin.time.Instant
  * Permanent differential coverage for OpenPGP read behavior.
  *
  * The oracle below preserves the BC 1.84 read behavior in test-only form. The native and
- * BC results are compared as complete domain DTOs. ASCII-armor `Version:` headers are removed,
+ * BC results are compared as domain DTOs with native-only policy metadata excluded below.
+ * ASCII-armor `Version:` headers are removed,
  * and CRLF is canonicalized to LF because BC uses the platform line separator while rPGP emits
  * LF. Packet bytes, per-certificate packet ordering, CRC, and all other armor remain exact. The
  * designated-revoker collection comparison additionally sorts complete certificate DTOs by
@@ -240,7 +241,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
         val imported = assertIs<GpgKeyImportResult.Success>(
             NativeGpgKeyImportService.import(
                 GpgKeyImportRequest(
-                    content = forgedRing.armored(),
+                    content = forgedRing.armored().encodeToByteArray(),
                     fileName = "third-party-certified-public.asc",
                 ),
             ),
@@ -395,6 +396,7 @@ class OpenPgpReadBouncyCastleDifferentialTest {
         assertTrue(parsedVictim.revoked)
         assertFalse(parsedVictim.canSign)
         assertFalse(parsedVictim.canEncrypt)
+        assertFalse(parsedVictim.canModifyUserIds)
     }
 }
 
@@ -1299,8 +1301,8 @@ private object BouncyCastleVerificationOracle {
 /**
  * Canonicalizes the armor and drops fields that only the native parser exposes.
  *
- * The BC oracle models no renewal policy at all, so `renewal` is the one parse
- * field the two sides cannot be compared on. Stable User-ID identities are also
+ * The BC oracle models neither renewal nor User-ID mutation policy, so `renewal`
+ * and `canModifyUserIds` cannot be compared. Stable User-ID identities are also
  * native-protocol metadata and have no Bouncy Castle equivalent. Agent authorization is compared
  * only for components backed by secret fingerprints; public-only policy is
  * covered by the parse DTO assertions. The tier itself is covered by the native
@@ -1325,6 +1327,7 @@ private fun GpgPublicKeyParseResult.withCanonicalArmorForComparison(): GpgPublic
                             renewal = GpgRenewalAuthorization.NONE,
                             userIdDetails = emptyList(),
                             weakSelfSignatureAlgorithms = emptyList(),
+                            canModifyUserIds = false,
                         )
                     },
             )

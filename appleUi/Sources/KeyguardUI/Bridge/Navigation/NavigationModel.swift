@@ -246,6 +246,35 @@ final class NavigationModel: SnapshotObserving {
         core.setExportPassword(instanceId: instanceId, text: text)
     }
 
+    func setExportConfirmationPassword(instanceId: Int64, text: String) {
+        core.setExportConfirmationPassword(instanceId: instanceId, text: text)
+    }
+
+    func setImportPassword(instanceId: Int64, text: String) {
+        core.setImportPassword(instanceId: instanceId, text: text)
+    }
+
+    func setImportItemSelected(instanceId: Int64, index: Int32, selected: Bool) {
+        core.setImportItemSelected(instanceId: instanceId, index: index, selected: selected)
+    }
+
+    func resolveImportFilePicker(
+        instanceId: Int64, requestId: String, uri: String, name: String?, size: Int64, accessToken: String?
+    ) {
+        core.resolveImportFilePicker(
+            instanceId: instanceId, requestId: requestId, uri: uri, name: name, size: size,
+            accessToken: accessToken)
+    }
+
+    func cancelImportFilePicker(instanceId: Int64, requestId: String) {
+        core.cancelImportFilePicker(instanceId: instanceId, requestId: requestId)
+    }
+
+    /// The WebDAV and S3 settings sheets of a stack entry; see `ScreenEntrySnapshot.webDavSettings`.
+    func remoteSettingsSheets(instanceId: Int64) -> RemoteSettingsSheets? {
+        core.remoteSettingsSheets(instanceId: instanceId)
+    }
+
     func pushCollectionsList(accountId: String, organizationId: String?, title: String) {
         core.pushCollectionsList(accountId: accountId, organizationId: organizationId, title: title)
     }

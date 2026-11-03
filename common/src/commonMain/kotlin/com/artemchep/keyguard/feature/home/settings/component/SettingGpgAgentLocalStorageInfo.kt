@@ -27,6 +27,7 @@ fun settingGpgAgentLocalStorageInfoProvider(
 fun settingGpgAgentLocalStorageInfoProvider(): SettingComponent = kotlin.run {
     val item = SettingIi(
         platformClasses = listOf(
+            Platform.Mobile.Android::class,
             Platform.Desktop.Linux::class,
             Platform.Desktop.MacOS::class,
             Platform.Desktop.Windows::class,

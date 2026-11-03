@@ -24,3 +24,8 @@ class WebAuthnNotSupportedException(
     message: String,
     cause: Throwable? = null,
 ) : WebAuthnException(message, cause)
+
+class WebAuthnSyntaxException(
+    message: String,
+    cause: Throwable? = null,
+) : WebAuthnException(message, cause)

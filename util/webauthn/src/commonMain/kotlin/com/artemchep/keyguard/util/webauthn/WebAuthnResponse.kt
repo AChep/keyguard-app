@@ -26,13 +26,14 @@ internal fun clientDataJsonBytes(
 internal fun credentialResponseJson(
     credentialId: ByteArray,
     response: JsonObject,
+    clientExtensionResults: JsonObject = JsonObject(emptyMap()),
 ): JsonObject = buildJsonObject {
     put("id", credentialId)
     put("rawId", credentialId)
     put("type", "public-key")
     put("authenticatorAttachment", "cross-platform")
     put("response", response)
-    put("clientExtensionResults", buildJsonObject { })
+    put("clientExtensionResults", clientExtensionResults)
 }
 
 internal fun registrationResponseJson(
@@ -55,14 +56,12 @@ internal fun assertionResponseJson(
     clientDataJson: String,
     authenticatorData: String,
     signature: String,
-    userHandle: String?,
+    userHandle: ByteArray?,
 ): JsonObject = buildJsonObject {
     put("clientDataJSON", clientDataJson)
     put("authenticatorData", authenticatorData)
     put("signature", signature)
-    userHandle
-        ?.takeIf { it.isNotEmpty() }
-        ?.let { put("userHandle", it) }
+    userHandle?.let { put("userHandle", it) }
 }
 
 private fun JsonObjectBuilder.put(key: String, data: ByteArray) {

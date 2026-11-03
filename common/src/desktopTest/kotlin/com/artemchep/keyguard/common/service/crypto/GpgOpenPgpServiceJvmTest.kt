@@ -60,11 +60,11 @@ class GpgOpenPgpServiceJvmTest {
     private val service = NativeGpgOpenPgpService()
 
     private val privateKey = GpgOpenPgpPrivateKey(
-        armored = CV25519_SECRET_KEY,
+        armored = GpgTestKeyFixtures.CV25519,
         preferredFingerprint = "D0BBCFBB250D3BB0658E5384F83D947D29EFECF7",
     )
     private val publicKey by lazy {
-        GpgOpenPgpPublicKey(publicKeyArmoredOf(CV25519_SECRET_KEY))
+        GpgOpenPgpPublicKey(publicKeyArmoredOf(GpgTestKeyFixtures.CV25519))
     }
 
     @BeforeTest
@@ -515,7 +515,7 @@ class GpgOpenPgpServiceJvmTest {
         hashAlgorithm: Int,
     ): String {
         val secretRing = PGPSecretKeyRingCollection(
-            PGPUtil.getDecoderStream(ByteArrayInputStream(CV25519_SECRET_KEY.encodeToByteArray())),
+            PGPUtil.getDecoderStream(ByteArrayInputStream(GpgTestKeyFixtures.CV25519.encodeToByteArray())),
             JcaKeyFingerprintCalculator(),
         ).keyRings.next()
         // The CV25519 fixture signs with its Ed25519 primary; the X25519 subkey is
@@ -962,7 +962,7 @@ class GpgOpenPgpServiceJvmTest {
     }
 
     @Test
-    fun `verify clear-signed file skips an unknown armor header`() {
+    fun `verify clear-signed file rejects an unknown armor header without releasing plaintext`() {
         val text = "charset header body"
         val signed = service.clearSignText(
             GpgOpenPgpSignTextRequest(
@@ -971,22 +971,23 @@ class GpgOpenPgpServiceJvmTest {
                 privateKey = privateKey,
             ),
         )
-        // Armor headers other than Hash are not part of the signed data, so a producer
-        // that emits one (gpg has historically emitted Charset) must not make an
-        // otherwise sound signature unverifiable. Unknown headers are skipped.
+        // Reject unsigned assertions in the cleartext header section, even when
+        // the signature over the body is valid.
         val declared = signed.replace("Hash: SHA256", "Hash: SHA256\nCharset: ISO-8859-1")
 
         val body = Buffer()
-        val result = service.verifyClearSignedFile(
-            GpgOpenPgpReadFileRequest(
-                input = declared.encodeToByteArray().toSource(),
-                output = body,
-                publicKeys = listOf(publicKey),
-            ),
-        )
+        val failure = assertFailsWith<NativeCryptoException> {
+            service.verifyClearSignedFile(
+                GpgOpenPgpReadFileRequest(
+                    input = declared.encodeToByteArray().toSource(),
+                    output = body,
+                    publicKeys = listOf(publicKey),
+                ),
+            )
+        }
 
-        assertEquals(GpgOpenPgpVerificationStatus.VALID, result.verification.status)
-        assertEquals(text, body.readByteArray().decodeToString().trimEnd('\r', '\n'))
+        assertEquals(NativeCryptoErrorCode.INVALID_ARGUMENT, failure.code)
+        assertEquals(0L, body.size)
     }
 
     @Test
@@ -1267,7 +1268,7 @@ class GpgOpenPgpServiceJvmTest {
     @Test
     fun `revoked primary invalidates an otherwise usable encryption subkey`() {
         val secretCollection = PGPSecretKeyRingCollection(
-            PGPUtil.getDecoderStream(ByteArrayInputStream(CV25519_SECRET_KEY.encodeToByteArray())),
+            PGPUtil.getDecoderStream(ByteArrayInputStream(GpgTestKeyFixtures.CV25519.encodeToByteArray())),
             JcaKeyFingerprintCalculator(),
         )
         val secretRing = secretCollection.keyRings.next()
@@ -1407,24 +1408,6 @@ class GpgOpenPgpServiceJvmTest {
         return result.exitCode == 0
     }
 
-    private fun publicKeyArmoredOf(
-        secretArmored: String,
-    ): String {
-        val secretCollection = PGPSecretKeyRingCollection(
-            PGPUtil.getDecoderStream(ByteArrayInputStream(secretArmored.encodeToByteArray())),
-            JcaKeyFingerprintCalculator(),
-        )
-        val secretRing = secretCollection.keyRings.next()
-        val publicRing = PGPPublicKeyRing(
-            secretRing.publicKeys.asSequence().toList(),
-        )
-        val out = ByteArrayOutputStream()
-        ArmoredOutputStream(out).use { armoredOut ->
-            publicRing.encode(armoredOut)
-        }
-        return out.toString(Charsets.UTF_8)
-    }
-
     companion object {
         private const val BUFFER_SIZE = 4096
 
@@ -1438,27 +1421,5 @@ class GpgOpenPgpServiceJvmTest {
             append("trailing whitespace here   ")
         }
         private val MARKER_LINES_RECOVERED_TEXT = MARKER_LINES_TEXT.trimEnd(' ', '\t')
-
-        // Real, unprotected (empty-passphrase) Ed25519 cert primary with a
-        // CV25519 (algorithm 18, ECDH) encryption subkey. User-id:
-        // "Keyguard Test CV25519 <cv25519@test.invalid>".
-        private val CV25519_SECRET_KEY = """
-            -----BEGIN PGP PRIVATE KEY BLOCK-----
-
-            lFgEaj9rzxYJKwYBBAHaRw8BAQdAbF/WEPrIP6KKXMDvdC38qJefWOzgPjl1oRjO
-            Zq0b1Q4AAP416BYYjfvazxmhBWie0YPQHmRv5DtZABE+5Eo8vsGC8BB2tCxLZXln
-            dWFyZCBUZXN0IENWMjU1MTkgPGN2MjU1MTlAdGVzdC5pbnZhbGlkPoivBBMWCgBX
-            FiEE0LvPuyUNO7BljlOE+D2UfSnv7PcFAmo/a88bFIAAAAAABAAObWFudTIsMi41
-            KzEuMTIsMCwzAhsDBQsJCAcCAiICBhUKCQgLAgQWAgMBAh4HAheAAAoJEPg9lH0p
-            7+z3szkA/iTKzuwQ/a33NXIiGaEluTQsPTfvLZFPHzsSrHRUPtAxAP4me3t1tgkV
-            BrbfFEx8MwS2TpYJ+TseDv+Pf+vwp/doBJxdBGo/a+wSCisGAQQBl1UBBQEBB0Bc
-            0xWVtzx07/KrLcmPAncTB+02SZ5KSLrZ4UXO8bp9dgMBCAcAAP934N+JD9z0Gkm1
-            ZSVtLdTx8gIrDriwen2vkSJLUzL+UBCqiJQEGBYKADwWIQTQu8+7JQ07sGWOU4T4
-            PZR9Ke/s9wUCaj9r7BsUgAAAAAAEAA5tYW51MiwyLjUrMS4xMiwwLDMCGwwACgkQ
-            +D2UfSnv7PculAD/T22Upu3v6Pbqn5DBsKxu7yiu4LFs1jjnbbp7LLpDFL0BALpz
-            Bc+fU17BLteMYYp5rXgKCOm+qy1Z70+LJ8ljtz4I
-            =s3tp
-            -----END PGP PRIVATE KEY BLOCK-----
-        """.trimIndent()
     }
 }

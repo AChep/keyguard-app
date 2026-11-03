@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.download
 
+import com.artemchep.keyguard.common.service.session.BitwardenAttachmentSessionAccess
 import arrow.core.Either
 import arrow.core.right
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
@@ -22,21 +23,32 @@ import kotlinx.io.Buffer
 
 class DownloadAttachmentSourceLoaderTest {
     @Test
-    fun `keepass request reports retryable failure while vault is unavailable`() = runTest {
+    fun `attachment requests report retryable failure while vault is unavailable`() = runTest {
         val loader = DownloadAttachmentSourceLoaderImpl(
+            bitwardenSessionAccess = BitwardenAttachmentSessionAccess { null },
             sessionAccess = testDomainSessionAccess(),
             downloadTask = UnusedDownloadTask,
             getVaultSession = TestGetVaultSession(MasterSession.Empty()),
         )
 
-        val complete = loader.fileLoader(
-            request = keePassRequest(),
-            writer = DownloadWriter.SinkWriter(Buffer()),
-        ).last()
-
-        val result = assertIs<DownloadProgress.Complete>(complete).result
-        val error = assertIs<Either.Left<Throwable>>(result).value
-        assertIs<DownloadAttachmentSessionUnavailableException>(error)
+        val requests = listOf(
+            keePassRequest(),
+            keePassRequest().copy(
+                source = DownloadAttachmentRequestData.UrlSource(
+                    "https://vault.example.test/file",
+                    urlIsOneTime = false,
+                ),
+            ),
+        )
+        for (request in requests) {
+            val complete = loader.fileLoader(
+                request = request,
+                writer = DownloadWriter.SinkWriter(Buffer()),
+            ).last()
+            val result = assertIs<DownloadProgress.Complete>(complete).result
+            val error = assertIs<Either.Left<Throwable>>(result).value
+            assertIs<DownloadAttachmentSessionUnavailableException>(error)
+        }
     }
 
     @Test
@@ -45,6 +57,7 @@ class DownloadAttachmentSourceLoaderTest {
         val secondLoader = RecordingKeePassAttachmentSourceLoader("second")
         val vaultSession = TestGetVaultSession(session(firstLoader))
         val loader = DownloadAttachmentSourceLoaderImpl(
+            bitwardenSessionAccess = BitwardenAttachmentSessionAccess { null },
             sessionAccess = testDomainSessionAccess(),
             downloadTask = UnusedDownloadTask,
             getVaultSession = vaultSession,

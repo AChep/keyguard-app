@@ -6,6 +6,8 @@ fun Platform.hasAutofill(): Boolean = when (this) {
     is Platform.Mobile.Android -> !isChromebook && !isWatch
     is Platform.Mobile.Ios -> true
     Platform.Desktop.MacOS.Native -> true
+    // Passkey provider.
+    Platform.Desktop.Windows -> true
     else -> false
 }
 
@@ -19,6 +21,11 @@ fun Platform.hasBrowser(): Boolean =
 fun Platform.hasSubscription(): Boolean =
     this is Platform.Mobile.Android ||
             this is Platform.Mobile.Ios
+
+/** Premium is sold on the website instead of a store. */
+fun Platform.hasWebPurchase(): Boolean =
+    this is Platform.Desktop &&
+            this !is Platform.Apple
 
 fun Platform.hasDynamicShortcuts(): Boolean =
     this is Platform.Mobile.Android

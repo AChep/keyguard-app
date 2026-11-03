@@ -1,0 +1,59 @@
+package com.artemchep.keyguard.common.service.sshagent
+
+// The published test key and certificates of the vendored ssh-key crate:
+// thirdParty/rust/ssh-key-0.6.7-keyguard/tests/examples/.
+
+/** `id_ed25519`, the key that every certificate below certifies. */
+internal const val TEST_ED25519_PRIVATE_KEY =
+    "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwA" +
+    "AAAtzc2gtZW\nQyNTUxOQAAACCzPq7zfqLffKoBDe/eo04kH2XxtSmk9D7RQyf1xUqrYgAAAJgAIAxdACAM\nXQAAAAtzc2g" +
+    "tZWQyNTUxOQAAACCzPq7zfqLffKoBDe/eo04kH2XxtSmk9D7RQyf1xUqrYg\nAAAEC2BsIi0QwW2uFscKTUUXNHLsYX4Fxla" +
+    "SDSblbAj7WR7bM+rvN+ot98qgEN796jTiQf\nZfG1KaT0PtFDJ/XFSqtiAAAAEHVzZXJAZXhhbXBsZS5jb20BAgMEBQ==\n-" +
+    "----END OPENSSH PRIVATE KEY-----\n"
+
+/** `id_ed25519.pub`. */
+internal const val TEST_ED25519_PUBLIC_KEY =
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqti user@example.co" +
+    "m"
+
+/** `ed25519-user-forever-cert.pub`: a user certificate that never expires. */
+internal const val TEST_ED25519_USER_CERTIFICATE =
+    "ssh-ed25519-cert-v01@openssh.com AAAAIHNzaC1lZDI1NTE5LWNlcnQtdjAxQG9wZW5zc2guY29tAAAAIPOmlVBAtxv" +
+    "SFYDdF0F9PH+bk1thCIzQJ/ZvnZEh8jXOAAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqtiAAAAAAAAAAAAAAA" +
+    "BAAAAHWtleWd1YXJkLWVkMjU1MTktdXNlci1mb3JldmVyAAAADQAAAAl0ZXN0LXVzZXIAAAAAAAAAAP//////////AAAAAAA" +
+    "AAIIAAAAVcGVybWl0LVgxMS1mb3J3YXJkaW5nAAAAAAAAABdwZXJtaXQtYWdlbnQtZm9yd2FyZGluZwAAAAAAAAAWcGVybWl" +
+    "0LXBvcnQtZm9yd2FyZGluZwAAAAAAAAAKcGVybWl0LXB0eQAAAAAAAAAOcGVybWl0LXVzZXItcmMAAAAAAAAAAAAAADMAAAA" +
+    "Lc3NoLWVkMjU1MTkAAAAgyUI7e+fYO3X2o0IqysZWRq2W3MXBibcnLGXK0gPfN6EAAABTAAAAC3NzaC1lZDI1NTE5AAAAQKL" +
+    "SdyH9xzhS4RQ1Q4fHQQHmEQMlotDcSQZRSqaJ6HMZnBB9wto14acydCKZms9/HDRTZ3kUp/6e36idXYKGqQY= user@examp" +
+    "le.com"
+
+/**
+ * `id_ed25519-cert-with-p256-ca.pub`: a user certificate valid from
+ * 2022-04-09T14:35:39Z to 2100-03-05T14:35:39Z.
+ */
+internal const val TEST_ED25519_BOUNDED_USER_CERTIFICATE =
+    "ssh-ed25519-cert-v01@openssh.com AAAAIHNzaC1lZDI1NTE5LWNlcnQtdjAxQG9wZW5zc2guY29tAAAAIE7x9ln6uZL" +
+    "LkfXM8iatrnAAuytVHeCznU8VlEgx7TvLAAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqtiAAAAAAAAAAAAAAA" +
+    "BAAAAFGVkMjU1MTktd2l0aC1wMjU2LWNhAAAAAAAAAABiUZm7AAAAAPTaMrsAAAAAAAAAggAAABVwZXJtaXQtWDExLWZvcnd" +
+    "hcmRpbmcAAAAAAAAAF3Blcm1pdC1hZ2VudC1mb3J3YXJkaW5nAAAAAAAAABZwZXJtaXQtcG9ydC1mb3J3YXJkaW5nAAAAAAA" +
+    "AAApwZXJtaXQtcHR5AAAAAAAAAA5wZXJtaXQtdXNlci1yYwAAAAAAAAAAAAAAaAAAABNlY2RzYS1zaGEyLW5pc3RwMjU2AAA" +
+    "ACG5pc3RwMjU2AAAAQQR8H9hzDOU0V76NkkCY7DZIgw+SqoojY6xlb91FIfpjE+UR8YkbTp5ar44ULQatFaZqQlfz8FHYToo" +
+    "OL5G6gHBHAAAAZAAAABNlY2RzYS1zaGEyLW5pc3RwMjU2AAAASQAAACEA/0Cwxhkac5AeNYE958j8GgvmkIESDH1TE7QYIqx" +
+    "sFsIAAAAgTEw8WVjlz8AnvyaKGOUELMpyFFJagtD2JFAIAJvilrc= user@example.com"
+
+internal const val TEST_ED25519_BOUNDED_USER_CERTIFICATE_VALID_AFTER = 1_649_514_939L
+
+internal const val TEST_ED25519_BOUNDED_USER_CERTIFICATE_VALID_BEFORE = 4_107_940_539L
+
+/** `id_ed25519-cert.pub`: a host certificate. */
+internal const val TEST_ED25519_HOST_CERTIFICATE =
+    "ssh-ed25519-cert-v01@openssh.com AAAAIHNzaC1lZDI1NTE5LWNlcnQtdjAxQG9wZW5zc2guY29tAAAAIAYkJPGaYen" +
+    "7NK8MwZwWmNAyRaFNsc86AU9NObU2cM2uAAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqtiAAAAAAAAAAAAAAA" +
+    "CAAAAB2VkMjU1MTkAAAAUAAAAEGhvc3QuZXhhbXBsZS5jb20AAAAAYkx3NwAAAAB8DuY3AAAAAAAAAAAAAAAAAAAAMwAAAAt" +
+    "zc2gtZWQyNTUxOQAAACCzPq7zfqLffKoBDe/eo04kH2XxtSmk9D7RQyf1xUqrYgAAAFMAAAALc3NoLWVkMjU1MTkAAABApVX" +
+    "BNiYPlPoa1BYH5G4NP9XtjTMZlm7HO5GdbLSvvAw5Vdob7Ka+23hB7isJKHYtzFGGSKXAqxp/Zi8REbCaAw== user@examp" +
+    "le.com"
+
+internal const val TEST_ED25519_HOST_CERTIFICATE_VALID_AFTER = 1_649_178_423L
+
+internal const val TEST_ED25519_HOST_CERTIFICATE_VALID_BEFORE = 2_081_351_223L

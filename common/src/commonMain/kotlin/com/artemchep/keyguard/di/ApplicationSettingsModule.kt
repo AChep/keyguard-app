@@ -45,11 +45,14 @@ import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCheckPasskeys
 import com.artemchep.keyguard.common.usecase.GetCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.GetCheckTwoFA
+import com.artemchep.keyguard.common.usecase.GetCliApprovalTimeout
+import com.artemchep.keyguard.common.usecase.GetCliApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoClearVariants
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefreshVariants
 import com.artemchep.keyguard.common.usecase.GetCloseToTray
+import com.artemchep.keyguard.common.usecase.GetGlobalShortcuts
 import com.artemchep.keyguard.common.usecase.GetColors
 import com.artemchep.keyguard.common.usecase.GetColorsVariants
 import com.artemchep.keyguard.common.usecase.GetConcealFields
@@ -58,6 +61,11 @@ import com.artemchep.keyguard.common.usecase.GetFont
 import com.artemchep.keyguard.common.usecase.GetFontVariants
 import com.artemchep.keyguard.common.usecase.GetGpgAgent
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetAgentApprovalTimeoutVariants
+import com.artemchep.keyguard.common.usecase.GetEnvironmentsApprovalWindowVariants
+import com.artemchep.keyguard.common.usecase.GetEnvironmentsMcpApprovalTimeout
+import com.artemchep.keyguard.common.usecase.GetEnvironmentsMcpApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalTimeout
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetGpgAgentApprovalWindowVariants
 import com.artemchep.keyguard.common.usecase.GetGpgAgentDisplayKeyNames
@@ -85,8 +93,10 @@ import com.artemchep.keyguard.common.usecase.GetProducts
 import com.artemchep.keyguard.common.usecase.GetScreenState
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalTimeout
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindowVariants
+import com.artemchep.keyguard.common.usecase.GetSshAgentBookmarksConfig
 import com.artemchep.keyguard.common.usecase.GetSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
@@ -96,6 +106,7 @@ import com.artemchep.keyguard.common.usecase.GetThemeExpressive
 import com.artemchep.keyguard.common.usecase.GetThemeUseAmoledDark
 import com.artemchep.keyguard.common.usecase.GetThemeVariants
 import com.artemchep.keyguard.common.usecase.GetTwoFa
+import com.artemchep.keyguard.common.usecase.GetUiScale
 import com.artemchep.keyguard.common.usecase.GetUseExternalBrowser
 import com.artemchep.keyguard.common.usecase.GetVersionLog
 import com.artemchep.keyguard.common.usecase.GetWebDavTransactions
@@ -116,6 +127,8 @@ import com.artemchep.keyguard.common.usecase.PutAutotypeSpeed
 import com.artemchep.keyguard.common.usecase.PutCheckPasskeys
 import com.artemchep.keyguard.common.usecase.PutCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.PutCheckTwoFA
+import com.artemchep.keyguard.common.usecase.PutCliApprovalTimeout
+import com.artemchep.keyguard.common.usecase.PutCliApprovalWindow
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.PutCloseToTray
@@ -125,6 +138,9 @@ import com.artemchep.keyguard.common.usecase.PutDebugScreenDelay
 import com.artemchep.keyguard.common.usecase.PutFont
 import com.artemchep.keyguard.common.usecase.PutGpgAgent
 import com.artemchep.keyguard.common.usecase.PutGpgAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.PutEnvironmentsMcpApprovalTimeout
+import com.artemchep.keyguard.common.usecase.PutEnvironmentsMcpApprovalWindow
+import com.artemchep.keyguard.common.usecase.PutGpgAgentApprovalTimeout
 import com.artemchep.keyguard.common.usecase.PutGpgAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.PutGpgAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.PutGpgAgentFilter
@@ -140,12 +156,15 @@ import com.artemchep.keyguard.common.usecase.PutOnboardingLastVisitInstant
 import com.artemchep.keyguard.common.usecase.PutScreenState
 import com.artemchep.keyguard.common.usecase.PutSshAgent
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalCachePolicy
+import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalTimeout
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalWindow
+import com.artemchep.keyguard.common.usecase.PutSshAgentBookmarksConfig
 import com.artemchep.keyguard.common.usecase.PutSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.PutSshAgentFilter
 import com.artemchep.keyguard.common.usecase.PutTheme
 import com.artemchep.keyguard.common.usecase.PutThemeExpressive
 import com.artemchep.keyguard.common.usecase.PutThemeUseAmoledDark
+import com.artemchep.keyguard.common.usecase.PutUiScale
 import com.artemchep.keyguard.common.usecase.PutUseExternalBrowser
 import com.artemchep.keyguard.common.usecase.PutWebDavTransactions
 import com.artemchep.keyguard.common.usecase.PutWebsiteIcons
@@ -172,11 +191,14 @@ import com.artemchep.keyguard.common.usecase.impl.GetCanWriteImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCheckPasskeysImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCheckPwnedServicesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCheckTwoFAImpl
+import com.artemchep.keyguard.common.usecase.impl.GetCliApprovalTimeoutImpl
+import com.artemchep.keyguard.common.usecase.impl.GetCliApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoClearImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoClearVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoRefreshImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoRefreshVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCloseToTrayImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGlobalShortcutsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetColorsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetColorsVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetConcealFieldsImpl
@@ -184,6 +206,11 @@ import com.artemchep.keyguard.common.usecase.impl.GetDebugScreenDelayImpl
 import com.artemchep.keyguard.common.usecase.impl.GetFontImpl
 import com.artemchep.keyguard.common.usecase.impl.GetFontVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentApprovalCachePolicyImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAgentApprovalTimeoutVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetEnvironmentsApprovalWindowVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetEnvironmentsMcpApprovalTimeoutImpl
+import com.artemchep.keyguard.common.usecase.impl.GetEnvironmentsMcpApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentApprovalTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentApprovalWindowVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGpgAgentDisplayKeyNamesImpl
@@ -210,8 +237,10 @@ import com.artemchep.keyguard.common.usecase.impl.GetPinCodeImpl
 import com.artemchep.keyguard.common.usecase.impl.GetProductsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetScreenStateImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalCachePolicyImpl
+import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentApprovalWindowVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetSshAgentBookmarksConfigImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentImpl
@@ -222,6 +251,7 @@ import com.artemchep.keyguard.common.usecase.impl.GetThemeImpl
 import com.artemchep.keyguard.common.usecase.impl.GetThemeUseAmoledDarkImpl
 import com.artemchep.keyguard.common.usecase.impl.GetThemeVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetTwoFaImpl
+import com.artemchep.keyguard.common.usecase.impl.GetUiScaleImpl
 import com.artemchep.keyguard.common.usecase.impl.GetUseExternalBrowserImpl
 import com.artemchep.keyguard.common.usecase.impl.GetVersionLogImpl
 import com.artemchep.keyguard.common.usecase.impl.GetWebDavTransactionsImpl
@@ -243,6 +273,8 @@ import com.artemchep.keyguard.common.usecase.impl.PutAutotypeSpeedImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckPasskeysImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckPwnedServicesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckTwoFAImpl
+import com.artemchep.keyguard.common.usecase.impl.PutCliApprovalTimeoutImpl
+import com.artemchep.keyguard.common.usecase.impl.PutCliApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.PutClipboardAutoClearImpl
 import com.artemchep.keyguard.common.usecase.impl.PutClipboardAutoRefreshImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCloseToTrayImpl
@@ -251,6 +283,9 @@ import com.artemchep.keyguard.common.usecase.impl.PutConcealFieldsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutDebugScreenDelayImpl
 import com.artemchep.keyguard.common.usecase.impl.PutFontImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentApprovalCachePolicyImpl
+import com.artemchep.keyguard.common.usecase.impl.PutEnvironmentsMcpApprovalTimeoutImpl
+import com.artemchep.keyguard.common.usecase.impl.PutEnvironmentsMcpApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentApprovalTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGpgAgentFilterImpl
@@ -266,13 +301,16 @@ import com.artemchep.keyguard.common.usecase.impl.PutNavLabelImpl
 import com.artemchep.keyguard.common.usecase.impl.PutOnboardingLastVisitInstantImpl
 import com.artemchep.keyguard.common.usecase.impl.PutScreenStateImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalCachePolicyImpl
+import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.PutSshAgentBookmarksConfigImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentDisplayKeyNamesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentFilterImpl
 import com.artemchep.keyguard.common.usecase.impl.PutSshAgentImpl
 import com.artemchep.keyguard.common.usecase.impl.PutThemeExpressiveImpl
 import com.artemchep.keyguard.common.usecase.impl.PutThemeImpl
 import com.artemchep.keyguard.common.usecase.impl.PutThemeUseAmoledDarkImpl
+import com.artemchep.keyguard.common.usecase.impl.PutUiScaleImpl
 import com.artemchep.keyguard.common.usecase.impl.PutUserExternalBrowserImpl
 import com.artemchep.keyguard.common.usecase.impl.PutWebDavTransactionsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutWebsiteIconsImpl
@@ -346,9 +384,13 @@ internal class ApplicationSettingsModule {
 
         single<PutSshAgentApprovalWindowImpl>() bind PutSshAgentApprovalWindow::class
 
+        single<PutSshAgentApprovalTimeoutImpl>() bind PutSshAgentApprovalTimeout::class
+
         single<PutSshAgentApprovalCachePolicyImpl>() bind PutSshAgentApprovalCachePolicy::class
 
         single<PutSshAgentDisplayKeyNamesImpl>() bind PutSshAgentDisplayKeyNames::class
+
+        single<PutSshAgentBookmarksConfigImpl>() bind PutSshAgentBookmarksConfig::class
 
         single<PutSshAgentFilterImpl>() bind PutSshAgentFilter::class
 
@@ -356,11 +398,15 @@ internal class ApplicationSettingsModule {
 
         single<GetSshAgentApprovalWindowImpl>() bind GetSshAgentApprovalWindow::class
 
+        single<GetSshAgentApprovalTimeoutImpl>() bind GetSshAgentApprovalTimeout::class
+
         single<GetSshAgentApprovalCachePolicyImpl>() bind GetSshAgentApprovalCachePolicy::class
 
         single<GetSshAgentApprovalWindowVariantsImpl>() bind GetSshAgentApprovalWindowVariants::class
 
         single<GetSshAgentDisplayKeyNamesImpl>() bind GetSshAgentDisplayKeyNames::class
+
+        single<GetSshAgentBookmarksConfigImpl>() bind GetSshAgentBookmarksConfig::class
 
         single<GetSshAgentFilterImpl>() bind GetSshAgentFilter::class
 
@@ -369,6 +415,8 @@ internal class ApplicationSettingsModule {
         single<PutGpgAgentImpl>() bind PutGpgAgent::class
 
         single<PutGpgAgentApprovalWindowImpl>() bind PutGpgAgentApprovalWindow::class
+
+        single<PutGpgAgentApprovalTimeoutImpl>() bind PutGpgAgentApprovalTimeout::class
 
         single<PutGpgAgentApprovalCachePolicyImpl>() bind PutGpgAgentApprovalCachePolicy::class
 
@@ -380,9 +428,31 @@ internal class ApplicationSettingsModule {
 
         single<GetGpgAgentApprovalWindowImpl>() bind GetGpgAgentApprovalWindow::class
 
+        single<GetGpgAgentApprovalTimeoutImpl>() bind GetGpgAgentApprovalTimeout::class
+
         single<GetGpgAgentApprovalCachePolicyImpl>() bind GetGpgAgentApprovalCachePolicy::class
 
         single<GetGpgAgentApprovalWindowVariantsImpl>() bind GetGpgAgentApprovalWindowVariants::class
+
+        single<PutEnvironmentsMcpApprovalWindowImpl>() bind PutEnvironmentsMcpApprovalWindow::class
+
+        single<PutEnvironmentsMcpApprovalTimeoutImpl>() bind PutEnvironmentsMcpApprovalTimeout::class
+
+        single<GetEnvironmentsMcpApprovalWindowImpl>() bind GetEnvironmentsMcpApprovalWindow::class
+
+        single<GetEnvironmentsMcpApprovalTimeoutImpl>() bind GetEnvironmentsMcpApprovalTimeout::class
+
+        single<PutCliApprovalWindowImpl>() bind PutCliApprovalWindow::class
+
+        single<PutCliApprovalTimeoutImpl>() bind PutCliApprovalTimeout::class
+
+        single<GetCliApprovalWindowImpl>() bind GetCliApprovalWindow::class
+
+        single<GetCliApprovalTimeoutImpl>() bind GetCliApprovalTimeout::class
+
+        single<GetEnvironmentsApprovalWindowVariantsImpl>() bind GetEnvironmentsApprovalWindowVariants::class
+
+        single<GetAgentApprovalTimeoutVariantsImpl>() bind GetAgentApprovalTimeoutVariants::class
 
         single<GetGpgAgentDisplayKeyNamesImpl>() bind GetGpgAgentDisplayKeyNames::class
 
@@ -402,6 +472,8 @@ internal class ApplicationSettingsModule {
 
         single<PutUserExternalBrowserImpl>() bind PutUseExternalBrowser::class
 
+        single<GetGlobalShortcutsImpl>() bind GetGlobalShortcuts::class
+
         single<GetCloseToTrayImpl>() bind GetCloseToTray::class
 
         single<PutCloseToTrayImpl>() bind PutCloseToTray::class
@@ -409,6 +481,10 @@ internal class ApplicationSettingsModule {
         single<GetMinimizeOnCopyImpl>() bind GetMinimizeOnCopy::class
 
         single<PutMinimizeOnCopyImpl>() bind PutMinimizeOnCopy::class
+
+        single<GetUiScaleImpl>() bind GetUiScale::class
+
+        single<PutUiScaleImpl>() bind PutUiScale::class
 
         single<PutAllowTwoPanelLayoutInLandscapeImpl>() bind PutAllowTwoPanelLayoutInLandscape::class
 

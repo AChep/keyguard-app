@@ -2,14 +2,23 @@ package com.artemchep.keyguard.feature.filepicker
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.desktop.util.showDirectoryPicker
 import com.artemchep.keyguard.desktop.util.showFilePicker
 import com.artemchep.keyguard.desktop.util.showFileSaver
 import com.artemchep.keyguard.platform.leParseUri
+import com.artemchep.keyguard.platform.recordException
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.error_failed_open_app_for
 import com.artemchep.keyguard.ui.CollectedEffect
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import org.jetbrains.compose.resources.getString
+import org.koin.compose.koinInject
+import java.io.File
 
 @Composable
 actual fun FilePickerEffect(
@@ -18,22 +27,15 @@ actual fun FilePickerEffect(
     val state = remember {
         MutableStateFlow<FilePickerIntent<*>?>(null)
     }
+    val showMessage: ShowMessage = koinInject()
 
     CollectedEffect(flow) { intent ->
         state.value = intent
 
         when (intent) {
             is FilePickerIntent.NewDocument -> {
-                showFileSaver(
-                    suggestedName = intent.fileName,
-                    extension = null,
-                ) { file ->
-                    val info = FilePickerResult(
-                        uri = leParseUri(file.toURI().toString()),
-                        name = file.name,
-                        size = null,
-                    )
-                    intent.onResult(info)
+                handleNewDocument(intent, showMessage) {
+                    showFileSaver(suggestedName = intent.fileName, extension = null)
                 }
             }
             is FilePickerIntent.OpenDocument -> {
@@ -62,6 +64,27 @@ actual fun FilePickerEffect(
             }
         }
     }
+}
+
+@Suppress("TooGenericExceptionCaught") // Picker boundary; cancellation and fatal failures are rethrown.
+internal suspend fun handleNewDocument(
+    intent: FilePickerIntent.NewDocument,
+    showMessage: ShowMessage,
+    selectFile: suspend () -> File?,
+) {
+    val result = try {
+        selectFile()?.let { file ->
+            FilePickerResult(uri = leParseUri(file.toURI().toString()), name = file.name, size = null)
+        }
+    } catch (e: Throwable) {
+        e.throwIfFatalOrCancellation()
+        recordException(e)
+        showMessage.copy(
+            ToastMessage(type = ToastMessage.Type.ERROR, title = getString(Res.string.error_failed_open_app_for)),
+        )
+        null
+    }
+    intent.onResult(result)
 }
 
 internal fun mimeTypesToExtensions(mimeTypes: Iterable<String>): Set<String>? {

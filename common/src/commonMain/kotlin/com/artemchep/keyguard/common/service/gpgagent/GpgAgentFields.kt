@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.gpgagent
 
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.common.service.agent.isEligibleForAgent
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -247,10 +248,12 @@ fun GpgAgentSecret.resolveAuthorizationOrClear(
 val GpgAgentSecret.hasPrivateKey: Boolean
     get() = privateKeyArmored?.isNotBlank() == true
 
-internal fun DSecret.isEligibleForGpgAgent(): Boolean = toGpgAgentSecretOrNull() != null
+internal fun DSecret.isEligibleForGpgAgent(): Boolean =
+    isEligibleForAgent() && toGpgAgentSecretOrNull() != null
 
+/** Maps key material; callers are responsible for checking item eligibility. */
 fun DSecret.toGpgAgentSecretOrNull(): GpgAgentSecret? {
-    if (!isGpgAgentSecretType() || deleted) {
+    if (!isGpgAgentSecretType()) {
         return null
     }
     val privateKeyArmored = getGpgAgentPrivateKeyArmored()

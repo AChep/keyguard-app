@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.feature.navigation
 
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
+
 const val DEEP_LINK_SCHEME = "keyguard"
 
 fun RouteDescriptor.toDeepLink(): String? {
@@ -14,6 +16,11 @@ fun RouteDescriptor.toDeepLink(): String? {
         is RouteDescriptor.SendView -> url("send", "sendId" to sendId, "accountId" to accountId)
         is RouteDescriptor.PasswordHistory -> url("cipher/password-history", "itemId" to itemId)
         is RouteDescriptor.SshAgentHistory -> url("ssh-agent/history", "cipherId" to cipherId)
+        is RouteDescriptor.CliAgentHistory -> url(
+            "cli-agent/history",
+            "client" to client?.name,
+            "cipherId" to cipherId,
+        )
         is RouteDescriptor.WordlistView -> url("generator/wordlist", "wordlistId" to wordlistId.toString())
         is RouteDescriptor.Organizations -> url("organizations", "accountId" to accountId)
         is RouteDescriptor.Collections -> url(
@@ -42,11 +49,15 @@ fun RouteDescriptor.toDeepLink(): String? {
         is RouteDescriptor.SendList,
         is RouteDescriptor.Generator,
         is RouteDescriptor.Watchtower,
+        RouteDescriptor.Environments,
+        is RouteDescriptor.AccountClientCertificate,
+        is RouteDescriptor.EnvironmentEdit,
         RouteDescriptor.GpgTools,
         RouteDescriptor.Settings,
         is RouteDescriptor.Folders,
         is RouteDescriptor.Duplicates,
         is RouteDescriptor.Export,
+        is RouteDescriptor.Import,
         is RouteDescriptor.Unmapped,
         -> null
     }
@@ -88,6 +99,7 @@ fun routeDescriptorFromDeepLink(url: String): RouteDescriptor? {
 
         "cipher/password-history" -> params["itemId"]?.let { RouteDescriptor.PasswordHistory(it) }
         "ssh-agent/history" -> RouteDescriptor.SshAgentHistory(cipherId = params["cipherId"])
+        "cli-agent/history" -> cliAgentHistoryFromDeepLink(params)
         "generator/wordlist" -> params["wordlistId"]?.toLongOrNull()?.let { RouteDescriptor.WordlistView(it) }
         "organizations" -> params["accountId"]?.let { RouteDescriptor.Organizations(it) }
         "collections" -> params["accountId"]?.let {
@@ -111,3 +123,8 @@ fun routeDescriptorFromDeepLink(url: String): RouteDescriptor? {
         else -> null
     }
 }
+
+private fun cliAgentHistoryFromDeepLink(params: Map<String, String>) = RouteDescriptor.CliAgentHistory(
+    client = params["client"]?.let(CliAgentUsageHistoryClient::ofName),
+    cipherId = params["cipherId"],
+)

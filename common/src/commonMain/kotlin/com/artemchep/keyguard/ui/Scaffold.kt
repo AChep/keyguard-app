@@ -518,7 +518,7 @@ interface OverlayScope {
     val contentPadding: State<PaddingValues>
 }
 
-private class MutableOverlayScope(
+internal class MutableOverlayScope(
     override val contentPadding: State<PaddingValues>,
 ) : OverlayScope
 

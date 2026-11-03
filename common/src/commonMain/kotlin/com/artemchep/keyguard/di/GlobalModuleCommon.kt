@@ -9,6 +9,7 @@ class GlobalModuleCommon {
             VaultSessionLifecycleModule().module,
             DomainSessionAccessModule().module,
             ApplicationIntegrationsModule().module,
+            ApplicationIconsModule().module,
             ApplicationTransfersModule().module,
             ApplicationCryptoModule().module,
             ApplicationLicensingModule().module,
@@ -16,6 +17,8 @@ class GlobalModuleCommon {
             ApplicationAuthenticationModule().module,
             ApplicationGeneratorsModule().module,
             ApplicationSettingsModule().module,
+            ApplicationEnvironmentsModule().module,
+            ApplicationCliModule().module,
         )
     }
 }

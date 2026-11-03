@@ -12,6 +12,7 @@ final class KeePassLoginModel: SnapshotObserving {
 
     init(source: any KeePassLoginSource) {
         self.source = source
+        remoteSettings = RemoteSettingsModel(source: source.remoteSettings)
         lifetime = BridgeObservation(cancel: { source.close() })
     }
 
@@ -19,11 +20,8 @@ final class KeePassLoginModel: SnapshotObserving {
 
     private(set) var keepassDidSucceed = false
 
-    @ObservationIgnored private var dismissedWebDavId: String?
-    private(set) var keepassWebDav: WebDavSettingsSnapshot?
-
-    @ObservationIgnored private var dismissedS3Id: String?
-    private(set) var keepassS3: S3SettingsSnapshot?
+    /// The settings sheet of a WebDAV or S3 database.
+    let remoteSettings: RemoteSettingsModel
 
     @ObservationIgnored private var keepassLoginSubscription: BridgeObservation?
 
@@ -51,18 +49,8 @@ final class KeePassLoginModel: SnapshotObserving {
             return source.subscribe(
                 onChange: { snapshot in deliver { $0.keepass = snapshot } },
                 onClose: { deliver { $0.complete() } },
-                onWebDavChange: { snapshot in
-                    deliver { model in
-                        if let snapshot, snapshot.id == model.dismissedWebDavId { return }
-                        model.keepassWebDav = snapshot
-                    }
-                },
-                onS3Change: { snapshot in
-                    deliver { model in
-                        if let snapshot, snapshot.id == model.dismissedS3Id { return }
-                        model.keepassS3 = snapshot
-                    }
-                }
+                onWebDavChange: { snapshot in deliver { $0.remoteSettings.receiveWebDav(snapshot) } },
+                onS3Change: { snapshot in deliver { $0.remoteSettings.receiveS3(snapshot) } }
             )
         }
     }
@@ -72,8 +60,7 @@ final class KeePassLoginModel: SnapshotObserving {
         filePicker.cancel()
         stopObservation(\.keepassLoginSubscription)
         lifetime.cancel()
-        keepassWebDav = nil
-        keepassS3 = nil
+        remoteSettings.clear()
         keepassDidSucceed = true
     }
 
@@ -83,8 +70,7 @@ final class KeePassLoginModel: SnapshotObserving {
         stopObservation(\.keepassLoginSubscription)
         keepass = KeePassLoginSnapshot.companion.empty
         keepassDidSucceed = false
-        keepassWebDav = nil
-        keepassS3 = nil
+        remoteSettings.clear()
     }
 
     /// Selecting a tab makes the shared producer launch the matching file picker.
@@ -92,7 +78,7 @@ final class KeePassLoginModel: SnapshotObserving {
         source.selectKeePassTab(key: key)
     }
 
-    /// Selecting WebDAV or S3 surfaces the settings sheet through `keepassWebDav` or `keepassS3`.
+    /// Selecting WebDAV or S3 surfaces the settings sheet through `remoteSettings`.
     func selectKeePassLocation(key: String) {
         source.selectKeePassLocation(key: key)
     }
@@ -120,57 +106,5 @@ final class KeePassLoginModel: SnapshotObserving {
 
     func submitKeePassLogin() {
         source.submitKeePassLogin()
-    }
-
-    /// `id` is "url", "username" or "password".
-    func setWebDavField(sessionId: String, id: String, text: String) {
-        source.setWebDavField(sessionId: sessionId, id: id, text: text)
-    }
-
-    /// Validates and saves the WebDAV settings; the producer then delivers the
-    /// location to the KeePass form and the sheet dismisses via `keepassWebDav`.
-    func submitWebDavSettings(sessionId: String) {
-        source.submitWebDavSettings(sessionId: sessionId)
-    }
-
-    /// Validates the settings and pings the server; the result arrives as a toast.
-    func testWebDavConnection(sessionId: String) {
-        source.testWebDavConnection(sessionId: sessionId)
-    }
-
-    func dismissWebDavSettings() {
-        dismissedWebDavId = keepassWebDav?.id
-        keepassWebDav = nil
-        source.cancelWebDavSettings()
-    }
-
-    /// `id` is "endpoint", "region", "bucket", "key", "accessKeyId" or "secretAccessKey".
-    func setS3Field(sessionId: String, id: String, text: String) {
-        source.setS3Field(sessionId: sessionId, id: id, text: text)
-    }
-
-    func blurS3Field(sessionId: String, id: String) {
-        source.blurS3Field(sessionId: sessionId, id: id)
-    }
-
-    func setS3PathStyle(sessionId: String, value: Bool) {
-        source.setS3PathStyle(sessionId: sessionId, value: value)
-    }
-
-    /// Validates and saves the S3 settings; the producer then delivers the
-    /// location to the KeePass form and the sheet dismisses via `keepassS3`.
-    func submitS3Settings(sessionId: String) {
-        source.submitS3Settings(sessionId: sessionId)
-    }
-
-    /// Validates the settings and reads the object (or probes its folder); the result arrives as a toast.
-    func testS3Connection(sessionId: String) {
-        source.testS3Connection(sessionId: sessionId)
-    }
-
-    func dismissS3Settings() {
-        dismissedS3Id = keepassS3?.id
-        keepassS3 = nil
-        source.cancelS3Settings()
     }
 }

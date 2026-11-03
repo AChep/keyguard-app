@@ -30,6 +30,8 @@ fun rememberSettingsDeveloperItems(
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.SSH_SETTINGS),
                     SettingPaneItem.Item(Setting.GPG_SETTINGS),
+                    SettingPaneItem.Item(Setting.CLI_SETTINGS),
+                    SettingPaneItem.Item(Setting.ENVIRONMENTS),
                 ),
             ),
             SettingPaneItem.Group(

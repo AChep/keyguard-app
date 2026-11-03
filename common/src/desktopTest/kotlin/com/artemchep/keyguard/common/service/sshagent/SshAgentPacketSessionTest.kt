@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.common.service.sshagent
 
-import com.artemchep.keyguard.common.service.agent.AgentPacketChannel
+import com.artemchep.keyguard.common.service.agent.AgentIpcMessages
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
+import com.artemchep.keyguard.common.service.agent.serve
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -17,7 +19,7 @@ class SshAgentPacketSessionTest {
                 SshAgentProtoCodec.encodeRequest(
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = byteArrayOf(1, 2, 3),
                         ),
                     ),
@@ -41,14 +43,8 @@ class SshAgentPacketSessionTest {
             authenticate = { it.token.contentEquals(byteArrayOf(1, 2, 3)) },
         )
 
-        runSshAgentPacketSession(
-            channel = channel,
-            rpcHandler = rpcHandler,
-            initialContext = SshAgentRpcRequestContext(
-                authenticated = false,
-                allowAuthenticate = true,
-            ),
-        )
+        SshAgentPacketSession(rpcHandler, authenticatedByTransport = false)
+            .serve(channel::readPacket, channel::writePacket)
 
         assertEquals(2, channel.responses.size)
         val authResponse = SshAgentProtoCodec.decodeResponse(channel.responses[0])
@@ -64,7 +60,7 @@ class SshAgentPacketSessionTest {
                 SshAgentProtoCodec.encodeRequest(
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = byteArrayOf(9, 9, 9),
                         ),
                     ),
@@ -82,14 +78,8 @@ class SshAgentPacketSessionTest {
             authenticate = { false },
         )
 
-        runSshAgentPacketSession(
-            channel = channel,
-            rpcHandler = rpcHandler,
-            initialContext = SshAgentRpcRequestContext(
-                authenticated = false,
-                allowAuthenticate = true,
-            ),
-        )
+        SshAgentPacketSession(rpcHandler, authenticatedByTransport = false)
+            .serve(channel::readPacket, channel::writePacket)
 
         assertEquals(1, channel.responses.size)
         val authResponse = SshAgentProtoCodec.decodeResponse(channel.responses.single())
@@ -103,7 +93,7 @@ class SshAgentPacketSessionTest {
                 SshAgentProtoCodec.encodeRequest(
                     SshAgentMessages.IpcRequest(
                         id = 1L,
-                        authenticate = SshAgentMessages.AuthenticateRequest(
+                        authenticate = AgentIpcMessages.AuthenticateRequest(
                             token = byteArrayOf(1, 2, 3),
                         ),
                     ),
@@ -126,14 +116,8 @@ class SshAgentPacketSessionTest {
             ),
         )
 
-        runSshAgentPacketSession(
-            channel = channel,
-            rpcHandler = rpcHandler,
-            initialContext = SshAgentRpcRequestContext(
-                authenticated = true,
-                allowAuthenticate = false,
-            ),
-        )
+        SshAgentPacketSession(rpcHandler, authenticatedByTransport = true)
+            .serve(channel::readPacket, channel::writePacket)
 
         assertEquals(2, channel.responses.size)
         val authResponse = SshAgentProtoCodec.decodeResponse(channel.responses[0])
@@ -147,14 +131,14 @@ class SshAgentPacketSessionTest {
 
     @Test
     fun `tcp session augments caller identity when configured`() = runTest {
-        var capturedCaller: SshAgentMessages.CallerIdentity? = null
+        var capturedCaller: CallerIdentity? = null
         val channel = FakePacketChannel(
             requests = listOf(
                 SshAgentProtoCodec.encodeRequest(
                     SshAgentMessages.IpcRequest(
                         id = 1L,
                         listKeys = SshAgentMessages.ListKeysRequest(
-                            caller = SshAgentMessages.CallerIdentity(
+                            caller = CallerIdentity(
                                 pid = 7,
                                 processName = "ssh",
                                 executablePath = "/usr/bin/ssh",
@@ -165,28 +149,29 @@ class SshAgentPacketSessionTest {
             ),
         )
         val rpcHandler = SshAgentRpcHandler(
-            requestProcessor = requestProcessor(
-                listKeys = { caller ->
-                    capturedCaller = caller
-                    SshAgentRequestProcessor.ListKeysResult.Success(
-                        SshAgentMessages.ListKeysResponse(keys = emptyList()),
-                    )
-                },
+            requestProcessor = CallerMergingSshAgentRequestProcessor(
+                delegate = requestProcessor(
+                    listKeys = { caller ->
+                        capturedCaller = caller
+                        SshAgentRequestProcessor.ListKeysResult.Success(
+                            SshAgentMessages.ListKeysResponse(keys = emptyList()),
+                        )
+                    },
+                ),
+                senderAppInfo = buildAndroidSshAgentCallerIdentity(
+                    appName = "Termux",
+                    appBundlePath = "com.termux",
+                    authorization = buildAndroidFrameworkPackageAuthorization(
+                        packageName = "com.termux",
+                        signingCertificates = listOf(byteArrayOf(1)),
+                    ),
+                ),
+                replaceCallerAuthorization = true,
             ),
         )
 
-        runSshAgentPacketSession(
-            channel = channel,
-            rpcHandler = rpcHandler,
-            initialContext = SshAgentRpcRequestContext(
-                authenticated = true,
-                allowAuthenticate = false,
-                callerAugmentation = buildAndroidSshAgentCallerIdentity(
-                    appName = "Termux",
-                    appBundlePath = "com.termux",
-                ),
-            ),
-        )
+        SshAgentPacketSession(rpcHandler, authenticatedByTransport = true)
+            .serve(channel::readPacket, channel::writePacket)
 
         assertEquals(1, channel.responses.size)
         assertEquals(7, capturedCaller?.pid)
@@ -197,11 +182,11 @@ class SshAgentPacketSessionTest {
     }
 
     private fun requestProcessor(
-        listKeys: suspend (SshAgentMessages.CallerIdentity?) -> SshAgentRequestProcessor.ListKeysResult =
+        listKeys: suspend (CallerIdentity?) -> SshAgentRequestProcessor.ListKeysResult =
             { SshAgentRequestProcessor.ListKeysResult.VaultLocked },
     ) = object : SshAgentRequestProcessor {
         override suspend fun listKeys(
-            caller: SshAgentMessages.CallerIdentity?,
+            caller: CallerIdentity?,
         ): SshAgentRequestProcessor.ListKeysResult = listKeys(caller)
 
         override suspend fun signData(
@@ -211,17 +196,19 @@ class SshAgentPacketSessionTest {
 
     private class FakePacketChannel(
         requests: List<ByteArray>,
-    ) : AgentPacketChannel {
+    ) {
         private val requests = ArrayDeque(requests)
 
         val responses = mutableListOf<ByteArray>()
 
-        override fun readPacket(): ByteArray? = requests.removeFirstOrNull()
+        fun readPacket(): ByteArray? = requests.removeFirstOrNull()
 
-        override fun writePacket(
+        fun writePacket(
             packet: ByteArray,
-        ) {
-            responses += packet
+        ): Boolean {
+            // The session zeroes a packet once it is sent.
+            responses += packet.copyOf()
+            return true
         }
     }
 }

@@ -111,6 +111,21 @@ class SshAgentPublicKeyRepositoryImplTest {
     }
 
     @Test
+    fun `the certificate of a key is cached with its row`() = runTest {
+        val repository = createRepository()
+        val certificate = "ssh-ed25519-cert-v01@openssh.com AAAA user@example.com"
+        val row = createRow(
+            keyType = "ssh-ed25519",
+            seed = 1,
+            fingerprint = "SHA256:certified",
+            name = "Certified key",
+        ).copy(certificate = certificate)
+        repository.replaceAll(listOf(row)).invoke()
+
+        assertEquals(certificate, repository.get().invoke().single().certificate)
+    }
+
+    @Test
     fun `clear removes all cached rows`() = runTest {
         val repository = createRepository()
         repository.replaceAll(

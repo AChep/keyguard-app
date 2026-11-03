@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.common.service.sshagent
 
-import com.artemchep.keyguard.common.service.agent.AgentPacketChannel
 import com.artemchep.keyguard.nativecrypto.NativeCryptoErrorCode
 import com.artemchep.keyguard.nativecrypto.NativeCryptoException
 import com.artemchep.keyguard.nativecrypto.NativeCryptoPrimitives
@@ -77,7 +76,7 @@ internal object SshAgentTcpProtocol {
         private val sessionId: ByteArray,
         sessionSecret: ByteArray,
         role: Role,
-    ) : AgentPacketChannel {
+    ) {
         private var sendCounter = 0L
         private var receiveCounter = 0L
 
@@ -190,13 +189,13 @@ internal object SshAgentTcpProtocol {
             }
         }
 
-        override fun readPacket(): ByteArray? = try {
+        fun readPacket(): ByteArray? = try {
             readFrame(expectedType = FRAME_TYPE_PACKET)
         } catch (_: EOFException) {
             null
         }
 
-        override fun writePacket(
+        fun writePacket(
             packet: ByteArray,
         ) {
             require(packet.size <= MAX_FRAME_PAYLOAD_SIZE) {

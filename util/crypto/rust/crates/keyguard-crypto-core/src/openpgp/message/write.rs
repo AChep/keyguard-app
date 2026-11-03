@@ -64,8 +64,8 @@ use crate::{
         crypto::{
             leading_mpi_bits,
             secret::{
-                AwsLcRng, AwsLcRsaSecretKey, SecretChunks, SecretPacketRef, SecretPacketSelection,
-                is_rsa_private_algorithm,
+                AwsLcRng, AwsLcRsaSecretKey, OpenPgpSecretSigner, SecretChunks, SecretPacketRef,
+                SecretPacketSelection,
             },
             signer::select_signature_hash,
         },

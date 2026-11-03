@@ -7,16 +7,17 @@ sealed interface CompanionAuthRequestState {
 
     data class Failed(
         val error: CompanionAuthError,
-        val message: String? = null,
     ) : CompanionAuthRequestState
 
-    data class Cancelled(
-        val message: String? = null,
-    ) : CompanionAuthRequestState
+    data object Cancelled : CompanionAuthRequestState
 
     data object Success : CompanionAuthRequestState
 }
 
+/**
+ * An event's `message` is a diagnostic for the logs. The screen shows a
+ * localized text for the resulting [CompanionAuthError] instead.
+ */
 sealed interface CompanionAuthRequestEvent {
     data object RequestStarted : CompanionAuthRequestEvent
 
@@ -65,7 +66,7 @@ fun reduceCompanionAuthRequestState(
             -> CompanionAuthRequestState.WaitingForPhone
 
             CompanionAuthRequestState.Importing -> current
-            is CompanionAuthRequestState.Cancelled,
+            CompanionAuthRequestState.Cancelled,
             is CompanionAuthRequestState.Failed,
             CompanionAuthRequestState.Success,
             -> current
@@ -76,11 +77,10 @@ fun reduceCompanionAuthRequestState(
             CompanionAuthRequestState.WaitingForPhone,
             -> CompanionAuthRequestState.Failed(
                 error = CompanionAuthError.LAUNCH_FAILED,
-                message = event.message,
             )
 
             CompanionAuthRequestState.Importing -> current
-            is CompanionAuthRequestState.Cancelled,
+            CompanionAuthRequestState.Cancelled,
             is CompanionAuthRequestState.Failed,
             CompanionAuthRequestState.Success,
             -> current
@@ -91,11 +91,10 @@ fun reduceCompanionAuthRequestState(
             CompanionAuthRequestState.WaitingForPhone,
             -> CompanionAuthRequestState.Failed(
                 error = CompanionAuthError.TIMEOUT,
-                message = event.message,
             )
 
             CompanionAuthRequestState.Importing -> current
-            is CompanionAuthRequestState.Cancelled,
+            CompanionAuthRequestState.Cancelled,
             is CompanionAuthRequestState.Failed,
             CompanionAuthRequestState.Success,
             -> current
@@ -104,12 +103,10 @@ fun reduceCompanionAuthRequestState(
         is CompanionAuthRequestEvent.PhoneCancelled -> when (current) {
             null,
             CompanionAuthRequestState.WaitingForPhone,
-            -> CompanionAuthRequestState.Cancelled(
-                message = event.message,
-            )
+            -> CompanionAuthRequestState.Cancelled
 
             CompanionAuthRequestState.Importing -> current
-            is CompanionAuthRequestState.Cancelled,
+            CompanionAuthRequestState.Cancelled,
             is CompanionAuthRequestState.Failed,
             CompanionAuthRequestState.Success,
             -> current
@@ -120,11 +117,10 @@ fun reduceCompanionAuthRequestState(
             CompanionAuthRequestState.WaitingForPhone,
             -> CompanionAuthRequestState.Failed(
                 error = event.error,
-                message = event.message,
             )
 
             CompanionAuthRequestState.Importing -> current
-            is CompanionAuthRequestState.Cancelled,
+            CompanionAuthRequestState.Cancelled,
             is CompanionAuthRequestState.Failed,
             CompanionAuthRequestState.Success,
             -> current
@@ -136,7 +132,7 @@ fun reduceCompanionAuthRequestState(
             CompanionAuthRequestState.Importing,
             -> CompanionAuthRequestState.Importing
 
-            is CompanionAuthRequestState.Cancelled,
+            CompanionAuthRequestState.Cancelled,
             is CompanionAuthRequestState.Failed,
             CompanionAuthRequestState.Success,
             -> current
@@ -148,7 +144,7 @@ fun reduceCompanionAuthRequestState(
             CompanionAuthRequestState.Importing,
             -> CompanionAuthRequestState.Success
 
-            is CompanionAuthRequestState.Cancelled,
+            CompanionAuthRequestState.Cancelled,
             is CompanionAuthRequestState.Failed,
             CompanionAuthRequestState.Success,
             -> current
@@ -160,10 +156,9 @@ fun reduceCompanionAuthRequestState(
             CompanionAuthRequestState.Importing,
             -> CompanionAuthRequestState.Failed(
                 error = CompanionAuthError.IMPORT_FAILED,
-                message = event.message,
             )
 
-            is CompanionAuthRequestState.Cancelled,
+            CompanionAuthRequestState.Cancelled,
             is CompanionAuthRequestState.Failed,
             CompanionAuthRequestState.Success,
             -> current
@@ -175,10 +170,9 @@ fun reduceCompanionAuthRequestState(
             CompanionAuthRequestState.Importing,
             -> CompanionAuthRequestState.Failed(
                 error = CompanionAuthError.INVALID_REQUEST,
-                message = event.message,
             )
 
-            is CompanionAuthRequestState.Cancelled,
+            CompanionAuthRequestState.Cancelled,
             is CompanionAuthRequestState.Failed,
             CompanionAuthRequestState.Success,
             -> current
@@ -187,7 +181,7 @@ fun reduceCompanionAuthRequestState(
 }
 
 fun CompanionAuthRequestState?.isTerminal(): Boolean = when (this) {
-    is CompanionAuthRequestState.Cancelled,
+    CompanionAuthRequestState.Cancelled,
     is CompanionAuthRequestState.Failed,
     CompanionAuthRequestState.Success,
     -> true

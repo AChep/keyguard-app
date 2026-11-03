@@ -18,6 +18,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.resolveDownloadedGpgKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.chunkedGpgFingerprint
 import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
+import com.artemchep.keyguard.common.service.gpgagent.parseGpgFingerprintUriOrNull
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetGpgKeyserverConfig
 import com.artemchep.keyguard.common.usecase.SearchGpgPublicKey
@@ -85,7 +86,9 @@ fun produceGpgKeyserverSearchState(
     val contentFlow = queryHandle.querySink
         .debounceSearch { it.text }
         .mapLatest { cell ->
+            // A pasted fingerprint URI is a fingerprint search, like a scanned one.
             val query = cell.text.trim()
+                .let { it.parseGpgFingerprintUriOrNull() ?: it }
             val revision = query.hashCode()
             if (query.isEmpty()) {
                 val content = GpgKeyserverSearchState.Content(
@@ -120,6 +123,25 @@ fun produceGpgKeyserverSearchState(
             Loadable.Ok(result)
         }
 
+    fun onScanned(text: String) {
+        // Only a fingerprint URI becomes the query: any other QR code, bare
+        // hex included, may hold a secret, which the search would send to
+        // a keyserver.
+        val fingerprint = text.parseGpgFingerprintUriOrNull()
+        if (fingerprint == null) {
+            action {
+                message(
+                    ToastMessage(
+                        type = ToastMessage.Type.ERROR,
+                        title = translate(Res.string.gpg_keyserver_search_scan_no_fingerprint_title),
+                    ),
+                )
+            }
+            return
+        }
+        queryHandle.setText(fingerprint)
+    }
+
     combine(
         configFlow,
         queryFlow,
@@ -130,6 +152,7 @@ fun produceGpgKeyserverSearchState(
                 keyserverUrl = config.url,
                 filter = queryFlow,
                 content = content,
+                onScanned = ::onScanned,
             ),
         )
     }
@@ -284,5 +307,6 @@ private suspend fun resolvePublicKeyArmoredOrNull(
         ),
     )
         .bind()
+        // The client keeps only the keys with this primary fingerprint.
         .firstOrNull { it.publicKeyArmored?.isNotBlank() == true }
         ?.publicKeyArmored

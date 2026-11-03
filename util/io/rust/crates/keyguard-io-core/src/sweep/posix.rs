@@ -304,32 +304,40 @@ fn process_candidate_group<F>(
             }
         }
         TemporaryArtifactProtocol::SidecarLeaseV1 => {
-            let data = candidates
-                .iter()
-                .filter(|candidate| candidate.entry_kind == TemporaryArtifactEntryKind::Data)
-                .collect::<Vec<_>>();
-            let leases = candidates
-                .iter()
-                .filter(|candidate| candidate.entry_kind == TemporaryArtifactEntryKind::Lease)
-                .collect::<Vec<_>>();
-            match (data.as_slice(), leases.as_slice(), candidates.len()) {
-                ([data], [sidecar], 2) => process_sidecar_pair(
-                    directory_fd,
-                    data,
-                    sidecar,
-                    now,
-                    options.older_than,
-                    file_lease_probe,
-                    report,
-                ),
-                ([], [sidecar], 1) => report.record_outcome(process_sidecar_only(
-                    directory_fd,
-                    sidecar,
-                    now,
-                    options.older_than,
-                    file_lease_probe,
-                )),
-                ([_], [], 1) => {
+            use TemporaryArtifactEntryKind::{Data, Lease};
+
+            match candidates {
+                // Name order puts the `.lease` sidecar before its `.tmp` data,
+                // but classification must not depend on that.
+                [first, second] => {
+                    let (data, sidecar) = match (first.entry_kind, second.entry_kind) {
+                        (Data, Lease) => (first, second),
+                        (Lease, Data) => (second, first),
+                        (Data, Data) | (Lease, Lease) => {
+                            classify_many(report, 2, OutcomeClass::Unsafe);
+                            return;
+                        }
+                    };
+                    process_sidecar_pair(
+                        directory_fd,
+                        data,
+                        sidecar,
+                        now,
+                        options.older_than,
+                        file_lease_probe,
+                        report,
+                    );
+                }
+                [sidecar] if sidecar.entry_kind == Lease => {
+                    report.record_outcome(process_sidecar_only(
+                        directory_fd,
+                        sidecar,
+                        now,
+                        options.older_than,
+                        file_lease_probe,
+                    ));
+                }
+                [_] => {
                     classify_many(report, 1, OutcomeClass::InspectionFailed);
                     report.record_failure(&io::Error::other(
                         "sidecar-lease data is missing its lease entry",
@@ -1541,6 +1549,72 @@ mod tests {
         assert!(report.candidate_partition_holds());
         assert!(directory.0.join(data_only.data).exists());
         assert!(directory.0.join(malformed).exists());
+    }
+
+    fn enumerate_test_candidates(directory: &Path) -> (OwnedFd, Vec<Candidate>) {
+        let directory = open_directory(directory).expect("open directory");
+        let mut report = SweepReport::default();
+        let candidates =
+            enumerate_candidates(&directory, u32::MAX, &mut report).expect("enumerate");
+        (directory, candidates)
+    }
+
+    fn process_test_group(directory: &OwnedFd, candidates: &[Candidate]) -> SweepReport {
+        let mut report = SweepReport {
+            candidate_names: u64::try_from(candidates.len()).expect("small group"),
+            ..SweepReport::default()
+        };
+        process_candidate_group(
+            directory.as_raw_fd(),
+            candidates,
+            DirectoryLease::Unsupported,
+            SystemTime::now(),
+            options(),
+            &|_| Ok(LeaseAttempt::Acquired),
+            &mut report,
+        );
+        report
+    }
+
+    #[test]
+    fn sidecar_pair_is_classified_in_either_order() {
+        for data_first in [false, true] {
+            let directory = TestDirectory::new();
+            let names = create_sidecar_pair(&directory.0, "123e4567-e89b-42d3-a456-426614174012");
+            let (fd, mut candidates) = enumerate_test_candidates(&directory.0);
+            candidates.sort_unstable_by_key(|candidate| {
+                (candidate.entry_kind == TemporaryArtifactEntryKind::Data) != data_first
+            });
+
+            let report = process_test_group(&fd, &candidates);
+
+            assert_eq!(report.removed, 2, "data first: {data_first}");
+            assert!(report.candidate_partition_holds());
+            assert!(!directory.0.join(names.data).exists());
+            assert!(!directory.0.join(names.lease.expect("sidecar")).exists());
+        }
+    }
+
+    #[test]
+    fn sidecar_group_with_duplicate_entry_kinds_is_retained() {
+        for kind in [
+            TemporaryArtifactEntryKind::Data,
+            TemporaryArtifactEntryKind::Lease,
+        ] {
+            let directory = TestDirectory::new();
+            let names = create_sidecar_pair(&directory.0, "123e4567-e89b-42d3-a456-426614174013");
+            let (fd, mut candidates) = enumerate_test_candidates(&directory.0);
+            for candidate in &mut candidates {
+                candidate.entry_kind = kind;
+            }
+
+            let report = process_test_group(&fd, &candidates);
+
+            assert_eq!(report.skipped_unsafe, 2, "kind: {kind:?}");
+            assert!(report.candidate_partition_holds());
+            assert!(directory.0.join(names.data).exists());
+            assert!(directory.0.join(names.lease.expect("sidecar")).exists());
+        }
     }
 
     #[test]

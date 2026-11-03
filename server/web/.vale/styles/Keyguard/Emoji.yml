@@ -1,0 +1,6 @@
+extends: existence
+message: "No emoji in the docs."
+level: error
+nonword: true
+tokens:
+  - '[\x{1F300}-\x{1FAFF}\x{2600}-\x{27BF}\x{1F000}-\x{1F2FF}]'

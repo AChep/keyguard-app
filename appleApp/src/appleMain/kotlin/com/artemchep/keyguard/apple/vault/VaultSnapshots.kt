@@ -19,11 +19,11 @@ data class VaultDetailSnapshot(
     val cipherId: String,
     val items: List<VaultItemSnapshot>,
     /**
-     * A directly-loadable website favicon URL, or `null` when there is no website icon
-     * (icon disabled, no site URL, or a non-login type); the header then falls back to [typeIcon].
+     * The website icon, loaded with `KeyguardCore.loadIcon`, or `null` when there is no website
+     * icon (icon disabled, no site URL, or a non-login type); the header then falls back to [typeIcon].
      */
-    val iconUrl: String? = null,
-    /** Initials to render when [iconUrl] is `null` / fails to load. */
+    val iconKey: String? = null,
+    /** Initials to render when [iconKey] is `null` / fails to load. */
     val iconPlaceholder: String? = null,
     /**
      * `null` when the cipher is read-only. Routes back via [CipherDetailSession.invokeAction]
@@ -110,7 +110,7 @@ data class QuickSearchDetailSnapshot(
  */
 data class QuickSearchResultSnapshot(
     val id: String,
-    val iconUrl: String?,
+    val iconKey: String?,
     val iconPlaceholder: String?,
 )
 
@@ -144,7 +144,7 @@ internal fun QuickSearchHeadlessState.toSnapshot(): QuickSearchSnapshot = QuickS
     results = results.map { item ->
         QuickSearchResultSnapshot(
             id = item.id,
-            iconUrl = item.iconUrl,
+            iconKey = item.iconKey,
             iconPlaceholder = item.iconPlaceholder,
         )
     },

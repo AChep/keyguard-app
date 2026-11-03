@@ -7,11 +7,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.build.BuildKonfig
+import com.artemchep.keyguard.feature.agent.help.AgentAutomaticSetup
 import com.artemchep.keyguard.feature.agent.help.AgentSetupBodyLabel
 import com.artemchep.keyguard.feature.agent.help.AgentSetupCodeBlock
 import com.artemchep.keyguard.feature.agent.help.AgentSetupParagraph
 import com.artemchep.keyguard.feature.agent.help.AgentSetupScaffold
 import com.artemchep.keyguard.feature.agent.help.AgentSetupSectionDivider
+import com.artemchep.keyguard.feature.agent.help.SetupAgent
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
@@ -42,7 +44,7 @@ private const val GPG_AGENT_SETUP_IMPORT_CMD =
     "gpg --import /path/to/keyguard-public-key.asc"
 private const val GPG_AGENT_SETUP_WINDOWS_IMPORT_CMD =
     "gpg --import \"C:\\path\\to\\keyguard-public-key.asc\""
-private const val GPG_AGENT_SETUP_LIST_KEYS_CMD =
+internal const val GPG_AGENT_SETUP_LIST_KEYS_CMD =
     "gpg --no-autostart --list-secret-keys --with-keygrip --keyid-format=long"
 private const val GPG_AGENT_SETUP_VERIFY_CMD_LIST =
     $$"""GPG_AGENT_SOCKET="$(gpgconf --homedir "$GNUPGHOME" --list-dirs agent-socket)"
@@ -50,11 +52,11 @@ gpg-connect-agent --raw-socket "$GPG_AGENT_SOCKET" "KEYINFO --list" /bye"""
 private const val GPG_AGENT_SETUP_WINDOWS_VERIFY_CMD_LIST =
     $$"""$env:GPG_AGENT_SOCKET = & gpgconf --homedir "$env:GNUPGHOME" --list-dirs agent-socket
 gpg-connect-agent --raw-socket "$env:GPG_AGENT_SOCKET" "KEYINFO --list" /bye"""
-private const val GPG_AGENT_SETUP_VERIFY_CMD_SIGN =
+internal const val GPG_AGENT_SETUP_VERIFY_CMD_SIGN =
     $$"""printf "Keyguard GPG agent test\n" | gpg --no-autostart --local-user YOUR_KEY_FINGERPRINT --clearsign"""
 private const val GPG_AGENT_SETUP_WINDOWS_VERIFY_CMD_SIGN =
     "\"Keyguard GPG agent test\" | gpg --no-autostart --local-user YOUR_KEY_FINGERPRINT --clearsign"
-private const val GPG_AGENT_SETUP_GIT_CONFIG_CMD = """git config --local user.signingkey YOUR_KEY_FINGERPRINT
+internal const val GPG_AGENT_SETUP_GIT_CONFIG_CMD = """git config --local user.signingkey YOUR_KEY_FINGERPRINT
 git config --local commit.gpgsign true
 git config --local gpg.format openpgp
 git config --local gpg.program gpg"""
@@ -76,6 +78,7 @@ fun GpgAgentSetupScreen() {
 
 @Composable
 private fun ColumnScope.GpgAgentSetupScreenContent() {
+    AgentAutomaticSetup(SetupAgent.GPG)
     AgentSetupParagraph(
         text = stringResource(Res.string.gpg_agent_setup_intro),
     )
@@ -105,6 +108,8 @@ private fun ColumnScope.GpgAgentSetupScreenContent() {
             commands = windowsGpgAgentSetupCommands(gpgAgentSetupWindowsHome()),
             prerequisiteNote = stringResource(Res.string.gpg_agent_setup_windows_native_gnupg_note),
         )
+
+        is Platform.Mobile.Android -> GpgAgentSetupAndroidPlatformContent()
 
         else -> AgentSetupParagraph(
             text = stringResource(Res.string.gpg_agent_setup_unsupported_text),

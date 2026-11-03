@@ -1,0 +1,242 @@
+{
+  "encrypted": false,
+  "folders": [
+    {
+      "name": "Work",
+      "id": "cee64d2a-6d35-415c-8b04-ad7391c0c223"
+    },
+    {
+      "name": "Work/Email",
+      "id": "40cc22d2-a330-4936-b019-3a9ae5af46a0"
+    }
+  ],
+  "items": [
+    {
+      "type": 4,
+      "name": "Home",
+      "favorite": false,
+      "reprompt": 0,
+      "id": "af0b5d22-02a1-4afc-96c4-7a38ab529463",
+      "collectionIds": null,
+      "fields": [],
+      "identity": {
+        "title": "Ms",
+        "firstName": "Alice",
+        "lastName": "Example",
+        "address1": "12 Sample Road",
+        "city": "Springfield",
+        "postalCode": "62701",
+        "country": "US",
+        "email": "alice@example.com",
+        "phone": "+1 555 0100"
+      },
+      "passwordHistory": [],
+      "creationDate": "2026-10-26T11:15:51.101Z",
+      "revisionDate": "2026-10-26T11:15:51.101Z"
+    },
+    {
+      "type": 1,
+      "name": "Mail",
+      "favorite": true,
+      "reprompt": 1,
+      "id": "73064ad4-dae5-492e-bf8f-dc73b0f3e792",
+      "collectionIds": null,
+      "folderId": "40cc22d2-a330-4936-b019-3a9ae5af46a0",
+      "notes": "First line\nSecond line",
+      "fields": [
+        {
+          "type": 0,
+          "name": "PIN",
+          "value": "1234"
+        },
+        {
+          "type": 1,
+          "name": "Recovery",
+          "value": "abcd-efgh"
+        },
+        {
+          "type": 2,
+          "name": "Remember me",
+          "value": "true"
+        },
+        {
+          "type": 3,
+          "name": "Login",
+          "linkedId": 100
+        }
+      ],
+      "login": {
+        "uris": [
+          {
+            "uri": "https://mail.example.com",
+            "match": 1
+          },
+          {
+            "uri": "androidapp://com.example.mail"
+          }
+        ],
+        "fido2Credentials": [
+          {
+            "credentialId": "8c0a1f6e-1c55-4bde-9b8f-4f1f2b7c9d10",
+            "keyType": "public-key",
+            "keyAlgorithm": "ECDSA",
+            "keyCurve": "P-256",
+            "keyValue": "MIGHAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBG0wawIBAQQgAO8Cd9SDNm8vFNJLkhN9HocYn7rwtGlY_2S6mAfV3VGhRANCAARM3r4E2B0CGldvI4_-iNAVL19bsbZUSIGIvWHybW4OkJJGIQNxmI8FdqBHCF7oDoOKZ_o4SzHwEcIJ0mo03eNi",
+            "rpId": "mail.example.com",
+            "counter": "0",
+            "discoverable": "true",
+            "creationDate": "2024-01-01T00:00:00.000Z",
+            "userHandle": "YWxpY2U",
+            "userName": "alice@example.com",
+            "rpName": "Example Mail",
+            "userDisplayName": "Alice Example"
+          }
+        ],
+        "username": "alice@example.com",
+        "password": "correct horse battery staple",
+        "totp": "otpauth://totp/Example:alice@example.com?secret=JBSWY3DPEHPK3PXP&issuer=Example"
+      },
+      "passwordHistory": [
+        {
+          "password": "old password",
+          "lastUsedDate": "2026-10-26T11:15:24.188Z"
+        }
+      ],
+      "creationDate": "2026-10-26T11:15:17.922Z",
+      "revisionDate": "2026-10-26T11:15:24.201Z"
+    },
+    {
+      "type": 2,
+      "name": "Manual",
+      "favorite": false,
+      "reprompt": 0,
+      "id": "10c62293-293a-423e-81d3-8ee5ff5e7089",
+      "collectionIds": null,
+      "notes": "Has an attachment.",
+      "fields": [],
+      "secureNote": {
+        "type": 0
+      },
+      "passwordHistory": [],
+      "creationDate": "2026-10-26T11:15:36.094Z",
+      "revisionDate": "2026-10-26T11:15:36.094Z"
+    },
+    {
+      "type": 1,
+      "name": "Old forum",
+      "favorite": false,
+      "reprompt": 0,
+      "id": "44553f0c-cc37-4402-a743-738c50a22e44",
+      "collectionIds": null,
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "uri": "https://forum.example.org"
+          }
+        ],
+        "fido2Credentials": [],
+        "username": "bob",
+        "password": "older password"
+      },
+      "passwordHistory": [],
+      "creationDate": "2026-10-26T11:16:09.154Z",
+      "revisionDate": "2026-10-26T11:16:09.154Z",
+      "archivedDate": "2026-10-26T11:16:12.314Z"
+    },
+    {
+      "type": 2,
+      "name": "Old note",
+      "favorite": false,
+      "reprompt": 0,
+      "id": "d205a882-9c72-49bb-b669-3a22387153b9",
+      "collectionIds": null,
+      "notes": "Kept for later.",
+      "fields": [],
+      "secureNote": {
+        "type": 0
+      },
+      "passwordHistory": [],
+      "creationDate": "2026-10-26T11:16:18.226Z",
+      "revisionDate": "2026-10-26T11:16:18.227Z",
+      "archivedDate": "2026-10-26T11:16:21.132Z"
+    },
+    {
+      "type": 5,
+      "name": "Server key",
+      "favorite": false,
+      "reprompt": 0,
+      "id": "33d7c29c-a268-42b0-9377-75b4e644db37",
+      "collectionIds": null,
+      "fields": [],
+      "sshKey": {
+        "privateKey": "-----BEGIN OPENSSH PRIVATE KEY-----\nb3BlbnNzaC1rZXktdjEAAAAABG5vbmUAAAAEbm9uZQAAAAAAAAABAAAAMwAAAAtzc2gtZW\nQyNTUxOQAAACCzPq7zfqLffKoBDe/eo04kH2XxtSmk9D7RQyf1xUqrYgAAAJgAIAxdACAM\nXQAAAAtzc2gtZWQyNTUxOQAAACCzPq7zfqLffKoBDe/eo04kH2XxtSmk9D7RQyf1xUqrYg\nAAAEC2BsIi0QwW2uFscKTUUXNHLsYX4FxlaSDSblbAj7WR7bM+rvN+ot98qgEN796jTiQf\nZfG1KaT0PtFDJ/XFSqtiAAAAEHVzZXJAZXhhbXBsZS5jb20BAgMEBQ==\n-----END OPENSSH PRIVATE KEY-----\n",
+        "publicKey": "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqti user@example.com",
+        "keyFingerprint": "SHA256:UCUiLr7Pjs9wFFJMDByLgc3NrtdU344OgUM45wZPcIQ"
+      },
+      "passwordHistory": [],
+      "creationDate": "2026-10-26T11:15:56.958Z",
+      "revisionDate": "2026-10-26T11:15:56.958Z"
+    },
+    {
+      "type": 1,
+      "name": "Untitled site",
+      "favorite": false,
+      "reprompt": 0,
+      "id": "60972e41-ee4a-4f5c-b396-a4451e922cff",
+      "collectionIds": null,
+      "notes": "Ünïcödé — 日本語",
+      "fields": [],
+      "login": {
+        "uris": [
+          {
+            "uri": "https://plain.example.org"
+          }
+        ],
+        "fido2Credentials": [],
+        "username": "plain-user",
+        "password": " spaced \"and\" quoted, "
+      },
+      "passwordHistory": [],
+      "creationDate": "2026-10-26T11:16:03.056Z",
+      "revisionDate": "2026-10-26T11:16:03.056Z"
+    },
+    {
+      "type": 3,
+      "name": "Visa",
+      "favorite": false,
+      "reprompt": 0,
+      "id": "7869fee5-7b1c-45e7-a2cd-c6398ee1bcd4",
+      "collectionIds": null,
+      "fields": [],
+      "card": {
+        "cardholderName": "Alice Example",
+        "brand": "Visa",
+        "number": "4111111111111111",
+        "expMonth": "12",
+        "expYear": "2030",
+        "code": "123"
+      },
+      "passwordHistory": [],
+      "creationDate": "2026-10-26T11:15:44.903Z",
+      "revisionDate": "2026-10-26T11:15:44.903Z"
+    },
+    {
+      "type": 2,
+      "name": "Wi-Fi",
+      "favorite": false,
+      "reprompt": 0,
+      "id": "3e27e721-eb7c-475f-8d0c-95954cbddea4",
+      "collectionIds": null,
+      "folderId": "cee64d2a-6d35-415c-8b04-ad7391c0c223",
+      "notes": "The password is \"42\", with a comma.",
+      "fields": [],
+      "secureNote": {
+        "type": 0
+      },
+      "passwordHistory": [],
+      "creationDate": "2026-10-26T11:15:30.012Z",
+      "revisionDate": "2026-10-26T11:15:30.012Z"
+    }
+  ]
+}

@@ -47,6 +47,15 @@ runs:
         JAVA_HOME: ${{ steps.setup-daemon-java.outputs.path || steps.setup-java.outputs.path }}
       with:
         cache-write-only: ${{ inputs.cache-write-only }}
+    - name: "Configure CI Gradle defaults"
+      shell: bash
+      env:
+        # A runner runs one build at a time, so it keeps the shared Kotlin daemon
+        # and a heap that fits the smallest hosted runners.
+        CI_GRADLE_PROPERTIES: |
+          kotlin.compiler.execution.strategy=daemon
+          org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
+      run: bash "$GITHUB_ACTION_PATH/setup_gradle_properties.sh"
     - name: "Configure Gradle daemon JDK (Windows ARM64)"
       if: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' }}
       shell: bash

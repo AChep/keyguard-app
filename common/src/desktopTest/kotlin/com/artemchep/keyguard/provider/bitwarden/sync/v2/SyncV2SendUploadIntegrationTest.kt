@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenMeta
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenSend
@@ -965,7 +966,7 @@ class SyncV2SendUploadIntegrationTest {
                 base64Service = base64Service,
                 getPasswordStrength = UploadTestPasswordStrength,
                 json = UploadTestServer.json,
-                httpClient = server.client,
+                httpClientProvider = BitwardenHttpClientProvider { server.client },
                 db = UploadTestVaultDatabaseManager(database),
                 dbSyncer = DatabaseSyncer(cryptoGenerator),
                 pendingUploadCoordinator = coordinator,

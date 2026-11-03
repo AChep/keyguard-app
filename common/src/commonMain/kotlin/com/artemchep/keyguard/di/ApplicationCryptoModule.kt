@@ -6,9 +6,12 @@ import com.artemchep.keyguard.common.service.crypto.GpgCertificateMaterialReconc
 import com.artemchep.keyguard.common.service.crypto.GpgKeyEditorImportReconciler
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdUpdateService
+import com.artemchep.keyguard.crypto.NativeGpgUserIdUpdateService
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdReplacementService
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationService
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.crypto.SshCertificateParser
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.googleauthenticator.impl.OtpMigrationServiceImpl
@@ -52,6 +55,7 @@ import com.artemchep.keyguard.crypto.NativeGpgPublicKeyParser
 import com.artemchep.keyguard.crypto.NativeGpgUserIdReplacementService
 import com.artemchep.keyguard.crypto.NativeGpgUserIdRevocationService
 import com.artemchep.keyguard.crypto.NativeKeyPairGenerator
+import com.artemchep.keyguard.crypto.NativeSshCertificateParser
 import com.artemchep.keyguard.crypto.NativeSshKeyImportService
 import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticator
 import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticatorDataFactory
@@ -90,6 +94,10 @@ internal class ApplicationCryptoModule {
             NativeSshKeyImportService
         }
 
+        single<SshCertificateParser> {
+            NativeSshCertificateParser
+        }
+
         single<GpgPublicKeyParser> {
             NativeGpgPublicKeyParser
         }
@@ -102,6 +110,7 @@ internal class ApplicationCryptoModule {
             NativeGpgUserIdRevocationService
         }
 
+        single<GpgUserIdUpdateService> { NativeGpgUserIdUpdateService }
         single<GpgUserIdReplacementService> {
             NativeGpgUserIdReplacementService
         }

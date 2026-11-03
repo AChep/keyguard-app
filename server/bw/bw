@@ -1,0 +1,453 @@
+#!/usr/bin/env bash
+# Bitwarden-compatible test server for Keyguard: Vaultwarden in Docker, plus
+# account commands that run the CLI in integration/bitwardenE2eTest.
+# Settings and the image pin come from vaultwarden.env next to this script.
+#
+# BW_DRY_RUN=1 prints the Gradle command line of an account command, one
+# argument per line, instead of running it.
+set -euo pipefail
+
+script_dir="$(cd "$(dirname "$0")" && pwd)"
+repo_root="$(cd "$script_dir/../.." && pwd)"
+env_file="$script_dir/vaultwarden.env"
+prog="$(basename "$0")"
+label=com.artemchep.keyguard.bw
+
+usage() {
+  cat <<USAGE
+Usage: $prog <command> [options]
+
+Runs a Bitwarden-compatible test server (Vaultwarden) in Docker and seeds
+accounts on it. The database lives in RAM and is gone when the container stops.
+
+Server commands:
+  run     [server options]    Run in the foreground. Ctrl+C stops it.
+  start   [server options]    Run in the background and wait until it answers.
+  stop    [--port N | --all]  Stop and remove a server.
+  status                      List servers and probe /alive.
+  logs    [--port N] [-f]     Print a server's log.
+
+Server options:
+  --port N        Host port (default: 8000).
+  --bind ADDR     Host address (default: 127.0.0.1).
+                  0.0.0.0 lets an Android emulator use 10.0.2.2.
+  --domain URL    Public base URL (default: http://127.0.0.1:<port>).
+  --web-vault     Enable the web vault, to register accounts in a browser.
+
+Account commands, run through Gradle:
+  register --email E --password P [--name N] [--argon2] [--pbkdf2-iterations N]
+  seed     --email E --password P [--folders N] [--logins N] [--notes N]
+           [--attachment] [--send text|file]
+  totp     --email E --password P
+  org      --email E --password P --name N [--member EMAIL]
+  send     --email E --password P --text T [--password-protect P]
+  attach   --email E --password P --cipher ID --file PATH
+  code     --secret S
+
+  All except code take --server URL. It defaults to the only running server.
+  All take --json to print only the JSON result.
+
+  help    Show this help.
+USAGE
+}
+
+fail() {
+  echo "$prog: $1" >&2
+  exit 1
+}
+
+fail_usage() {
+  echo "$prog: $1" >&2
+  echo "Run '$prog help' for usage." >&2
+  exit 2
+}
+
+need_value() {
+  [ $# -ge 2 ] || fail_usage "$1 needs a value"
+}
+
+need_tool() {
+  command -v "$1" >/dev/null 2>&1 || fail "$1 is not installed"
+}
+
+check_port() {
+  case "$1" in
+    '' | *[!0-9]*) fail_usage "invalid port: $1" ;;
+  esac
+}
+
+container_name() {
+  echo "keyguard-bw-$1"
+}
+
+container_exists() {
+  docker container inspect "$1" >/dev/null 2>&1
+}
+
+# Ports of the labelled containers, one per line. $1: all or running.
+labelled_ports() {
+  local state_filter=()
+  if [ "$1" = running ]; then
+    state_filter=(--filter status=running)
+  fi
+  docker ps -a --filter "label=$label" ${state_filter[@]+"${state_filter[@]}"} \
+    --format "{{.Label \"$label\"}}"
+}
+
+count_lines() {
+  if [ -z "$1" ]; then
+    echo 0
+  else
+    printf '%s\n' "$1" | wc -l | tr -d ' '
+  fi
+}
+
+# HTTP status of GET /alive, or 000 when nothing answers.
+probe_alive() {
+  curl -s -o /dev/null -w '%{http_code}' --max-time 2 "$1/alive" || true
+}
+
+# Sets port, bind, domain, web_vault and name from the run/start options.
+parse_server_options() {
+  port=8000
+  bind=127.0.0.1
+  domain=
+  web_vault=false
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --port)
+        need_value "$@"
+        port="$2"
+        shift 2
+        ;;
+      --bind)
+        need_value "$@"
+        bind="$2"
+        shift 2
+        ;;
+      --domain)
+        need_value "$@"
+        domain="$2"
+        shift 2
+        ;;
+      --web-vault)
+        web_vault=true
+        shift
+        ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      *) fail_usage "unknown option: $1" ;;
+    esac
+  done
+  check_port "$port"
+  domain="${domain:-http://127.0.0.1:$port}"
+  name="$(container_name "$port")"
+}
+
+# Sets docker_args to the `docker run` arguments after `run`.
+build_docker_args() {
+  [ -f "$env_file" ] || fail "missing $env_file"
+  local image
+  image="$(sed -n 's/^VAULTWARDEN_IMAGE=//p' "$env_file")"
+  [ -n "$image" ] || fail "VAULTWARDEN_IMAGE is not set in $env_file"
+
+  # An -e after --env-file wins.
+  local env_args=(--env-file "$env_file")
+  if [ "$web_vault" = true ]; then
+    env_args+=(-e WEB_VAULT_ENABLED=true)
+  fi
+
+  docker_args=(
+    --rm
+    --name "$name"
+    --label "$label=$port"
+    -p "$bind:$port:80"
+    --tmpfs /data
+    "${env_args[@]}"
+    -e "DOMAIN=$domain"
+    "$image"
+  )
+}
+
+refuse_existing() {
+  if container_exists "$name"; then
+    fail "$name already exists. Stop it with: $prog stop --port $port"
+  fi
+}
+
+print_urls() {
+  echo "Vaultwarden: $domain"
+  if [ "$web_vault" = true ]; then
+    echo "Register:    ${domain%/}/#/register"
+  fi
+}
+
+cmd_run() {
+  parse_server_options "$@"
+  need_tool docker
+  build_docker_args
+  refuse_existing
+  print_urls >&2
+  exec docker run "${docker_args[@]}"
+}
+
+cmd_start() {
+  parse_server_options "$@"
+  need_tool docker
+  need_tool curl
+  build_docker_args
+  refuse_existing
+
+  if ! docker run -d "${docker_args[@]}" >/dev/null; then
+    docker rm -f "$name" >/dev/null 2>&1 || true
+    fail "could not start $name"
+  fi
+
+  # The domain may name another host, such as 10.0.2.2, so probe the bound address.
+  local probe_host="$bind"
+  if [ "$probe_host" = 0.0.0.0 ]; then
+    probe_host=127.0.0.1
+  fi
+  local deadline=$((SECONDS + 60))
+  until [ "$(probe_alive "http://$probe_host:$port")" = 200 ]; do
+    if ! container_exists "$name"; then
+      fail "$name exited during startup. Run '$prog run --port $port' to see its output."
+    fi
+    if [ "$SECONDS" -ge "$deadline" ]; then
+      echo "$prog: $name did not answer /alive within 60 s. Its log:" >&2
+      docker logs "$name" >&2 || true
+      docker rm -f "$name" >/dev/null 2>&1 || true
+      exit 1
+    fi
+    sleep 1
+  done
+  print_urls
+}
+
+cmd_stop() {
+  local port='' all=false
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --port)
+        need_value "$@"
+        port="$2"
+        shift 2
+        ;;
+      --all)
+        all=true
+        shift
+        ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      *) fail_usage "unknown option: $1" ;;
+    esac
+  done
+  if [ -n "$port" ] && [ "$all" = true ]; then
+    fail_usage "pass --port N or --all, not both"
+  fi
+  need_tool docker
+
+  local ports
+  if [ -n "$port" ]; then
+    check_port "$port"
+    if ! container_exists "$(container_name "$port")"; then
+      echo "No server on port $port."
+      return
+    fi
+    ports="$port"
+  else
+    ports="$(labelled_ports all)"
+    case "$(count_lines "$ports")" in
+      0)
+        echo "No server running."
+        return
+        ;;
+      1) ;;
+      *)
+        [ "$all" = true ] || fail_usage "several servers are running; pass --port N or --all"
+        ;;
+    esac
+  fi
+
+  local p
+  for p in $ports; do
+    docker rm -f "$(container_name "$p")" >/dev/null
+    echo "Stopped $(container_name "$p")."
+  done
+}
+
+cmd_status() {
+  [ $# -eq 0 ] || fail_usage "status takes no options"
+  need_tool docker
+  need_tool curl
+
+  local tab rows
+  tab="$(printf '\t')"
+  rows="$(docker ps -a --filter "label=$label" \
+    --format "{{.Label \"$label\"}}$tab{{.Names}}$tab{{.Status}}")"
+  if [ -z "$rows" ]; then
+    echo "No server running." >&2
+    exit 1
+  fi
+
+  local p n s code alive
+  printf '%-6s  %-18s  %-9s  %s\n' PORT NAME ALIVE STATUS
+  while IFS="$tab" read -r p n s; do
+    code="$(probe_alive "http://127.0.0.1:$p")"
+    case "$code" in
+      200) alive=yes ;;
+      000) alive="no answer" ;;
+      *) alive="HTTP $code" ;;
+    esac
+    printf '%-6s  %-18s  %-9s  %s\n' "$p" "$n" "$alive" "$s"
+  done <<ROWS
+$rows
+ROWS
+}
+
+cmd_logs() {
+  local port='' follow=()
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --port)
+        need_value "$@"
+        port="$2"
+        shift 2
+        ;;
+      -f | --follow)
+        follow=(-f)
+        shift
+        ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+      *) fail_usage "unknown option: $1" ;;
+    esac
+  done
+  need_tool docker
+
+  if [ -z "$port" ]; then
+    port="$(single_port all "pass --port N")"
+  fi
+  check_port "$port"
+  exec docker logs ${follow[@]+"${follow[@]}"} "$(container_name "$port")"
+}
+
+# Prints the port of the only labelled container.
+# $1: all or running. $2: what to do when there are several.
+single_port() {
+  local ports
+  ports="$(labelled_ports "$1")"
+  case "$(count_lines "$ports")" in
+    0) fail "no server running, use '$prog start'" ;;
+    1) echo "$ports" ;;
+    *) fail_usage "several servers are running; $2" ;;
+  esac
+}
+
+# Quotes one argument for Gradle's --args, which Gradle splits with plexus-utils
+# CommandLineUtils: quotes group, spaces split and nothing escapes. Each `"`
+# becomes `'"'` between double-quoted segments.
+quote_gradle_arg() {
+  local s="$1" out='"'
+  while :; do
+    case "$s" in
+      *'"'*)
+        out="$out${s%%'"'*}\"'\"'\""
+        s="${s#*'"'}"
+        ;;
+      *)
+        out="$out$s\""
+        break
+        ;;
+    esac
+  done
+  printf '%s' "$out"
+}
+
+cmd_account() {
+  local command="$1"
+  shift
+
+  local json=false has_server=false arg
+  for arg in "$@"; do
+    case "$arg" in
+      --json) json=true ;;
+      --server) has_server=true ;;
+      -h | --help)
+        usage
+        exit 0
+        ;;
+    esac
+  done
+
+  local cli_args=("$command")
+  if [ "$command" != code ] && [ "$has_server" = false ]; then
+    need_tool docker
+    local port
+    port="$(single_port running "pass --server URL")"
+    cli_args+=(--server "http://127.0.0.1:$port")
+  fi
+
+  # Gradle runs the CLI in another directory, so make --file absolute.
+  local prev=''
+  for arg in "$@"; do
+    [ -n "$arg" ] || fail_usage "empty arguments are not supported"
+    if [ "$prev" = --file ]; then
+      case "$arg" in
+        /*) ;;
+        *) arg="$PWD/$arg" ;;
+      esac
+    fi
+    cli_args+=("$arg")
+    prev="$arg"
+  done
+
+  local args='' quoted
+  for arg in "${cli_args[@]}"; do
+    quoted="$(quote_gradle_arg "$arg")"
+    args="${args:+$args }$quoted"
+  done
+
+  local gradle=(
+    "$repo_root/gradlew" -q --console=plain --configure-on-demand -p "$repo_root"
+    :integration:bitwardenE2eTest:bw "--args=$args"
+  )
+  if [ "${BW_DRY_RUN:-}" = 1 ]; then
+    printf '%s\n' "${gradle[@]}"
+    return
+  fi
+  if [ "$json" = true ]; then
+    # Gradle may print configuration notes first; the JSON is the last line.
+    "${gradle[@]}" | tail -n 1
+  else
+    echo "Running through Gradle; the first run compiles Keyguard (minutes)." >&2
+    exec "${gradle[@]}"
+  fi
+}
+
+[ $# -gt 0 ] || {
+  usage >&2
+  exit 2
+}
+command="$1"
+shift
+case "$command" in
+  run) cmd_run "$@" ;;
+  start) cmd_start "$@" ;;
+  stop) cmd_stop "$@" ;;
+  status) cmd_status "$@" ;;
+  logs) cmd_logs "$@" ;;
+  register | seed | totp | org | send | attach | code) cmd_account "$command" "$@" ;;
+  help | -h | --help) usage ;;
+  *)
+    echo "$prog: unknown command: $command" >&2
+    usage >&2
+    exit 2
+    ;;
+esac

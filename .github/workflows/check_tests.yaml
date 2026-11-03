@@ -148,8 +148,15 @@ jobs:
               :common:checkBouncyCastleProductionDependencies
               :common:checkSshjDependencies
               :common:desktopTest
+              :feature:agent-setup:checkComposeFree
+              :feature:agent-setup:desktopTest
               :feature:android-ipc-presentation:checkComposeFree
               :feature:android-ipc-presentation:desktopTest
+              :feature:cli:checkComposeFree
+              :feature:cli:desktopTest
+              :feature:environments:checkComposeFree
+              :feature:environments:checkEnvironmentLimits
+              :feature:environments:desktopTest
               :standard:presentation:checkComposeFree
               :standard:presentation:desktopTest
               :desktopApp:jvmTest
@@ -166,19 +173,27 @@ jobs:
             max_workers: 2
             tasks: >-
               :desktopLibJvm:jvmTest
+              :util:agent-ipc:checkComposeFree
+              :util:agent-ipc:desktopTest
               :util:crypto:desktopTest
+              :util:csv:checkComposeFree
+              :util:csv:desktopTest
               :util:dns:checkComposeFree
               :util:dns:desktopTest
               :util:ffi:checkComposeFree
               :util:ffi:desktopTest
               :util:io:desktopTest
               :util:instance:desktopTest
+              :util:windows-passkeys:checkComposeFree
+              :util:windows-passkeys:desktopTest
               :util:fido2:checkComposeFree
               :util:fido2:desktopTest
               :util:yubikey:checkComposeFree
               :util:yubikey:desktopTest
               :util:foundation:desktopTest
               :util:foundation:checkBouncyCastleProductionDependencies
+              :util:gzip:checkComposeFree
+              :util:gzip:desktopTest
               :util:kdbx:desktopTest
               :util:kdbx:checkBouncyCastleProductionDependencies
               :util:messagepack:desktopTest
@@ -197,12 +212,14 @@ jobs:
             max_workers: 2
             tasks: >-
               :util:crypto:testAndroidHostTest
+              :util:csv:testAndroidHostTest
               :util:dns:testAndroidHostTest
               :util:ffi:testAndroidHostTest
               :util:io:testAndroidHostTest
               :util:yubikey:testAndroidHostTest
               :util:fido2:testAndroidHostTest
               :util:foundation:testAndroidHostTest
+              :util:gzip:testAndroidHostTest
               :util:kdbx:testAndroidHostTest
               :util:messagepack:testAndroidHostTest
               :util:planeta:testAndroidHostTest

@@ -14,6 +14,26 @@ from scripts import verify_native_bundle as verify
 from scripts import native_bundle_android as android
 
 
+class MsixPasskeyProviderTest(unittest.TestCase):
+    def test_requires_matching_com_activation_and_native_identity(self):
+        clsid = "3182b386-7a7e-4f75-80af-a60876594f5d"
+        template = (verify.REPOSITORY / "desktopApp/msix/AppxManifest.xml").read_text(encoding="utf-8")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AppxManifest.xml").write_text(template.replace("@PASSKEY_CLSID@", clsid), encoding="utf-8")
+            config = root / "keyguard-passkeys.json"
+            with self.assertRaises(verify.InspectionError):
+                verify.inspect_msix_passkey_provider(root)
+            config.write_text('{"clsid":"' + clsid + '"}', encoding="utf-8")
+            verify.inspect_msix_passkey_provider(root)
+            config.write_text('{"clsid":"00000000-0000-0000-0000-000000000000"}', encoding="utf-8")
+            with self.assertRaises(verify.InspectionError):
+                verify.inspect_msix_passkey_provider(root)
+            (root / "AppxManifest.xml").write_text(template, encoding="utf-8")
+            with self.assertRaises(verify.InspectionError):
+                verify.inspect_msix_passkey_provider(root)
+
+
 def elf(abi: str = "arm64-v8a", exports: frozenset[str] = frozenset(), alignment: int = 16384) -> bytes:
     elf_class, machine = android.ABI_ELF[abi]
     strings = b"\0" + b"".join(symbol.encode() + b"\0" for symbol in sorted(exports))
@@ -104,6 +124,18 @@ def apk(path: Path, abis: tuple[str, ...] = ("arm64-v8a",),
                         padding += 16384
                     info.extra = struct.pack("<HH", 0xCAFE, padding - 4) + bytes(padding - 4)
                 package.writestr(info, elf(abi, verify.MODULES[name].exports("jni")))
+
+
+def desktop_exports(platform: str, modules, bridge: str):
+    """A fake `read_exports` for a desktop bundle: the bridge and each JNI module's library."""
+    libraries = {verify.library_filename(name, platform): set(verify.MODULES[name].exports("jni")) for name in modules}
+
+    def exports(path, *_args):
+        if path.name == bridge:
+            return set(verify.BRIDGE_EXPORTS)
+        return libraries[path.name]
+
+    return exports
 
 
 class NativeBundleTest(unittest.TestCase):
@@ -218,29 +250,6 @@ class NativeBundleTest(unittest.TestCase):
                     pe_exports(machine=machine),
                 )
 
-    def test_windows_runtime_requires_matching_launcher_and_jvm(self) -> None:
-        for arch, machine, wrong in (("x86_64", 0x8664, 0xAA64), ("aarch64", 0xAA64, 0x8664)):
-            with self.subTest(arch=arch), tempfile.TemporaryDirectory() as tmp:
-                root = Path(tmp)
-                launcher = root / "Keyguard.exe"
-                runtime = root / "runtime/bin/server/jvm.dll"
-                runtime.parent.mkdir(parents=True)
-                for path in (launcher, runtime):
-                    path.write_bytes(pe_exports(machine=machine))
-                verify.inspect_windows_runtime(root, arch)
-                for path in (launcher, runtime):
-                    path.write_bytes(pe_exports(machine=wrong))
-                    with self.assertRaisesRegex(verify.InspectionError, "wrong architecture"):
-                        verify.inspect_windows_runtime(root, arch)
-                    path.unlink()
-                    with self.assertRaises(verify.InspectionError):
-                        verify.inspect_windows_runtime(root, arch)
-                    path.write_bytes(pe_exports(machine=machine))
-                (root / "duplicate").mkdir()
-                (root / "duplicate/Keyguard.exe").write_bytes(pe_exports(machine=machine))
-                with self.assertRaisesRegex(verify.InspectionError, "expected one Windows launcher"):
-                    verify.inspect_windows_runtime(root, arch)
-
     def test_pe_coff_symbols_do_not_satisfy_export_contract(self) -> None:
         data = bytearray(pe_exports())
         # Add a defined external COFF symbol that is absent from the export table.
@@ -276,16 +285,12 @@ class NativeBundleTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             names = [verify.library_filename(name, "macos") for name in verify.DESKTOP_MODULES]
-            names += ["keyguard-lib", "keyguard-ssh-agent", "keyguard-gpg-agent"]
+            names += ["keyguard-lib", "keyguard-ssh-agent", "keyguard-gpg-agent", "keyguard-cli-agent", "keyguard"]
             for name in names:
                 (root / name).write_bytes(macho())
                 (root / name).chmod(0o755)
 
-            def exports(path, *_args):
-                if path.name == "keyguard-lib":
-                    return set(verify.BRIDGE_EXPORTS)
-                return set(next(module.exports("jni") for name, module in verify.MODULES.items() if name in verify.DESKTOP_MODULES and path.name == verify.library_filename(name, "macos")))
-
+            exports = desktop_exports("macos", verify.DESKTOP_MODULES, "keyguard-lib")
             with patch.object(verify, "read_exports", side_effect=exports):
                 verify.inspect_desktop(root, "macos", "aarch64")
                 for name in names[1:]:
@@ -301,6 +306,51 @@ class NativeBundleTest(unittest.TestCase):
                     with self.assertRaisesRegex(verify.InspectionError, "not executable"):
                         verify.inspect_desktop(root, "macos", "aarch64")
 
+    def test_only_windows_desktop_requires_the_passkey_provider(self) -> None:
+        self.assertNotIn("windows_passkeys", verify.DESKTOP_MODULES)
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            names = [verify.library_filename(name, "windows") for name in verify.WINDOWS_DESKTOP_MODULES]
+            names += ["keyguard-lib.dll", "keyguard-ssh-agent.exe", "keyguard-gpg-agent.exe", "keyguard-cli-agent.exe", "keyguard.exe"]
+            for name in names:
+                (root / name).write_bytes(b"MZ")
+
+            exports = desktop_exports("windows", verify.WINDOWS_DESKTOP_MODULES, "keyguard-lib.dll")
+            with patch.object(verify, "inspect_windows_runtime"), \
+                    patch.object(verify, "require_architecture"), \
+                    patch.object(verify, "read_exports", side_effect=exports), \
+                    patch.object(verify.binary, "inspect_hardening", return_value="hardened"):
+                verify.inspect_desktop(root, "windows", "x64")
+                (root / verify.library_filename("windows_passkeys", "windows")).unlink()
+                with self.assertRaisesRegex(verify.InspectionError, "missing bundled library keyguard_windows_passkeys_jni.dll"):
+                    verify.inspect_desktop(root, "windows", "x64")
+
+    def test_every_desktop_package_requires_the_agent_ipc_library(self) -> None:
+        # Edited in the DESKTOP_MODULES literal, so Windows inherits it.
+        self.assertIn("agent_ipc", verify.WINDOWS_DESKTOP_MODULES)
+        self.assertNotIn("agent_ipc", verify.APPLE_APP_MODULES)
+        for platform, bridge, suffix in (("linux", "keyguard-lib", ""), ("macos", "keyguard-lib", ""),
+                                         ("windows", "keyguard-lib.dll", ".exe")):
+            with self.subTest(platform=platform), tempfile.TemporaryDirectory() as tmp:
+                root = Path(tmp)
+                modules = verify.WINDOWS_DESKTOP_MODULES if platform == "windows" else verify.DESKTOP_MODULES
+                names = [verify.library_filename(name, platform) for name in modules] + [bridge]
+                names += [helper + suffix for helper in ("keyguard-ssh-agent", "keyguard-gpg-agent", "keyguard-cli-agent", "keyguard")]
+                for name in names:
+                    (root / name).write_bytes(b"")
+                    (root / name).chmod(0o755)
+
+                exports = desktop_exports(platform, modules, bridge)
+                with patch.object(verify, "inspect_windows_runtime"), \
+                        patch.object(verify, "require_architecture"), \
+                        patch.object(verify, "read_exports", side_effect=exports), \
+                        patch.object(verify.binary, "inspect_hardening", return_value="hardened"):
+                    verify.inspect_desktop(root, platform, "x86_64")
+                    library = verify.library_filename("agent_ipc", platform)
+                    (root / library).unlink()
+                    with self.assertRaisesRegex(verify.InspectionError, f"missing bundled library {library}"):
+                        verify.inspect_desktop(root, platform, "x86_64")
+
     def test_apple_archive_checks_members_and_full_module_contract(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp, "libkeyguard_io_c.a")
@@ -312,6 +362,18 @@ class NativeBundleTest(unittest.TestCase):
                     verify.inspect_apple([path], "aarch64", False)
             with self.assertRaisesRegex(verify.InspectionError, "truncated"):
                 verify.archive_members(path, archive(macho())[:-10])
+
+    def test_agent_ipc_archive_holds_exactly_the_reviewed_c_abi(self) -> None:
+        module = verify.MODULES["agent_ipc"]
+        self.assertEqual((11, 12), (len(module.exports("jni")), len(module.exports("c"))))
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp, "libkeyguard_agent_ipc_c.a")
+            path.write_bytes(archive(macho()))
+            with patch.object(verify, "read_exports", return_value=set(module.exports("c"))):
+                verify.inspect_apple([path], "aarch64", False)
+            with patch.object(verify, "read_exports", return_value=set(module.exports("c")) | {"keyguard_agent_ipc_unreviewed"}):
+                with self.assertRaisesRegex(verify.InspectionError, "unreviewed API exports: keyguard_agent_ipc_unreviewed"):
+                    verify.inspect_apple([path], "aarch64", False)
 
     def test_apple_app_and_crypto_link_contracts_are_distinct(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -337,6 +399,45 @@ class NativeBundleTest(unittest.TestCase):
             policy.scan_artifact.return_value = ["bcprov.jar"]
             with self.assertRaisesRegex(verify.InspectionError, "bcprov.jar"):
                 verify.inspect_dependency_policy([Path("package")])
+
+
+class WindowsRuntimeTest(unittest.TestCase):
+    def test_requires_matching_launcher_and_jvm(self) -> None:
+        for arch, machine, wrong in (("x86_64", 0x8664, 0xAA64), ("aarch64", 0xAA64, 0x8664)):
+            for prefix in ("", "Program Files/Keyguard"):
+                with self.subTest(arch=arch, prefix=prefix), tempfile.TemporaryDirectory() as tmp:
+                    root = Path(tmp)
+                    app = root / prefix
+                    resources = app / "app/resources"
+                    resources.mkdir(parents=True)
+                    (resources / "keyguard.exe").write_bytes(pe_exports(machine=machine))
+                    (app / "app/Keyguard.cfg").touch()
+                    launcher = app / "Keyguard.exe"
+                    runtime = app / "runtime/bin/server/jvm.dll"
+                    runtime.parent.mkdir(parents=True)
+                    for path in (launcher, runtime):
+                        path.write_bytes(pe_exports(machine=machine))
+                    verify.inspect_windows_runtime(root, arch)
+                    for path in (launcher, runtime):
+                        path.write_bytes(pe_exports(machine=wrong))
+                        with self.assertRaisesRegex(verify.InspectionError, "wrong architecture"):
+                            verify.inspect_windows_runtime(root, arch)
+                        path.unlink()
+                        message = "launcher is missing" if path == launcher else "missing bundled runtime binary"
+                        with self.assertRaisesRegex(verify.InspectionError, message):
+                            verify.inspect_windows_runtime(root, arch)
+                        path.write_bytes(pe_exports(machine=machine))
+                    (root / "duplicate/app").mkdir(parents=True)
+                    (root / "duplicate/app/Keyguard.cfg").touch()
+                    with self.assertRaisesRegex(verify.InspectionError, "Expected one Windows application root"):
+                        verify.inspect_windows_runtime(root, arch)
+
+    def test_requires_application_config(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "Keyguard.exe").write_bytes(pe_exports())
+            with self.assertRaisesRegex(verify.InspectionError, "Expected one Windows application root"):
+                verify.inspect_windows_runtime(root, "x86_64")
 
 
 if __name__ == "__main__":

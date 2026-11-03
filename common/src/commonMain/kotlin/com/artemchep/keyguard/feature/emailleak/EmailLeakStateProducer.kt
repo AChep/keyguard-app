@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.emailleak
 
+import com.artemchep.keyguard.feature.favicon.RemoteIconUrl
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -62,7 +63,7 @@ suspend fun RememberStateFlowScope.emailLeakStateProducer(
                     EmailLeakState.Breach(
                         title = leak.title,
                         domain = leak.website,
-                        icon = leak.icon,
+                        icon = leak.icon?.let(::RemoteIconUrl),
                         count = leak.count,
                         description = leak.description,
                         occurredAt = leak.occurredAt

@@ -17,7 +17,6 @@ import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
 import com.artemchep.keyguard.provider.bitwarden.api.builder.buildWebVaultUrl
 import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderArgument
 import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderType
-import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.util.fido2.Fido2AssertionRequest
 import com.artemchep.keyguard.util.fido2.Fido2Exception
@@ -52,7 +51,6 @@ internal suspend fun RememberStateFlowScope.createStateFlowForFido2WebAuthn(
     base64Service: Base64Service,
     deeplinkService: DeeplinkService,
     json: Json,
-    addAccount: AddAccount,
     args: BitwardenLoginTwofaRoute.Args,
     provider: TwoFactorProviderArgument.Fido2WebAuthn,
     transmitter: RouteResultTransmitter<Unit>,
@@ -80,7 +78,7 @@ internal suspend fun RememberStateFlowScope.createStateFlowForFido2WebAuthn(
 
         suspend fun nextRequest(): Fido2AssertionRequest? {
             val options = initialOptions.also { initialOptions = null } ?: try {
-                addAccount(args.accountId, args.env, null, args.clientSecret, args.email, args.password).bind()
+                args.continuation.authenticate(null).bind()
                 currentCoroutineContext().ensureActive()
                 phase.value = Fido2LoginPhase.COMPLETE
                 transmitter(Unit)
@@ -100,10 +98,8 @@ internal suspend fun RememberStateFlowScope.createStateFlowForFido2WebAuthn(
         suspend fun submit(token: String) {
             currentCoroutineContext().ensureActive()
             phase.value = Fido2LoginPhase.SUBMITTING
-            addAccount(
-                args.accountId, args.env,
+            args.continuation.authenticate(
                 ServerTwoFactorToken(token, TwoFactorProviderType.Fido2WebAuthn, rememberMe.value),
-                args.clientSecret, args.email, args.password,
             ).bind()
             currentCoroutineContext().ensureActive()
             phase.value = Fido2LoginPhase.COMPLETE

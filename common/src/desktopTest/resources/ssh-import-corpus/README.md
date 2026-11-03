@@ -11,9 +11,8 @@ intentionally public and must never be reused.
   algorithm, cipher/KDF, passphrase flow, expected domain result, golden ID,
   provenance, and coverage state.
 - `public-key-goldens.tsv` stores exact normalized OpenSSH public keys and
-  Keyguard's existing SHA-256 fingerprint spelling. The public identities were
-  checked independently with OpenSSH `ssh-keygen`; Keyguard intentionally
-  retains trailing Base64 padding.
+  SHA-256 fingerprints. Both were checked independently with OpenSSH
+  `ssh-keygen`; fingerprints use its unpadded Base64 spelling.
 - `legacy-pem-dek-matrix.tsv` freezes all 42 BC 1.84 legacy `DEK-Info`
   spellings: AES/DES/DES-EDE/DES-EDE3/Blowfish/RC2 across every reachable
   CBC/CFB/OFB/ECB spelling, including the bare EDE aliases.
@@ -36,7 +35,11 @@ intentionally public and must never be reused.
 - `pkcs8-pbe/` contains the deterministic 14-row accepted PBES2 matrix.
 - `ppk/` covers PPK v1-v3, RSA and Ed25519 success, AES-256-CBC, and PPK v3
   Argon2d/i/id. The PPK v1 header cases deliberately exercise SSHJ's historic,
-  header-compatible reader behavior.
+  header-compatible reader behavior, with mandatory v2-style MAC verification.
+  Rust tests additionally check historical v1 `Private-Hash` and private-only
+  MAC known answers, including RSA public/private consistency. The verbatim
+  upstream v3 ECDSA file independently checks the empty-key MAC even though
+  ECDSA import remains unsupported.
 
 `FROZEN_UPSTREAM` means a fixture is copied verbatim from an independently
 maintained upstream corpus. `FROZEN_DERIVED` identifies a byte-stable
@@ -56,7 +59,9 @@ under `src/test/resources/keyformats`, `src/test/resources/keytypes`, and
 `PuTTYKeyFileTest`. SSHJ is Apache-2.0 licensed. The PPK v1 files are
 explicitly marked derivatives of v2 payloads; changing the version header is
 the compatibility behavior under test. The unencrypted PPK v3 derivatives
-have a valid v3 HMAC-SHA256 recomputed over the canonical PPK fields.
+have a valid v3 HMAC-SHA256 recomputed over the canonical PPK fields with an
+empty MAC key. The generator uses an equivalent zero-filled HMAC block because
+JCE rejects empty `SecretKeySpec` keys.
 
 `common/src/desktopTest/fixtures/ssh-import-corpus/GenerateSshImportCorpus.java`
 is not part of a Gradle source set. With JDK 21 and BC 1.84 `bcprov`,

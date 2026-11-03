@@ -1,0 +1,19 @@
+extends: substitution
+message: "Spell it '%s', not '%s'."
+level: error
+ignorecase: false
+swap:
+  'Mac ?OS|MacOS|MacOs|macOs': macOS
+  'IOS|Ios': iOS
+  'WearOS|Wear Os|Android Wear': Wear OS
+  'FlatPak|Flatpack': Flatpak
+  'Appimage|AppIMAGE': AppImage
+  'Keepass|KeePASS|Keypass': KeePass
+  'Kdbx': KDBX
+  'BitWarden|Bit Warden': Bitwarden
+  'VaultWarden|Vault Warden': Vaultwarden
+  'Yubikey|yubikey|Yubi Key': YubiKey
+  'GnuPg|GNUPG|GnuPGP': GnuPG
+  'OpenSsh|Openssh|Open SSH': OpenSSH
+  'TermUX|TermuX': Termux
+  'WatchTower|Watch Tower': Watchtower

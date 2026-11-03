@@ -3,8 +3,10 @@
 use std::{panic::AssertUnwindSafe, ptr};
 
 use jni::{
-    JNIEnv,
-    objects::{AutoElements, JByteArray, JObject, ReleaseMode},
+    Env, EnvUnowned, Outcome,
+    elements::{AutoElements, ReleaseMode},
+    jni_str,
+    objects::{JByteArray, JObject},
     sys::{jbyte, jbyteArray, jint, jlong},
 };
 use keyguard_crypto_core as core;
@@ -18,7 +20,7 @@ const ZERO_CHUNK: [jbyte; 8 * 1024] = [0; 8 * 1024];
 /// Returns the native function ABI version.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_abiVersion(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
 ) -> jint {
     std::panic::catch_unwind(AssertUnwindSafe(|| {
@@ -31,7 +33,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_
 /// Returns the native capability bit mask.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_capabilities(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
 ) -> jlong {
     std::panic::catch_unwind(AssertUnwindSafe(|| {
@@ -44,7 +46,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_
 /// Generates a secure random integer without a protobuf control envelope.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_randomInt(
-    _environment: JNIEnv<'_>,
+    _environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     exclusive_upper_bound: jint,
 ) -> jlong {
@@ -58,7 +60,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_
 /// Executes a versioned one-shot protobuf request.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_call(
-    environment: JNIEnv<'_>,
+    environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     input: JByteArray<'_>,
 ) -> jbyteArray {
@@ -74,7 +76,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_
 /// Opens a versioned streaming operation.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_streamOpen(
-    environment: JNIEnv<'_>,
+    environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     input: JByteArray<'_>,
 ) -> jbyteArray {
@@ -90,7 +92,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_
 /// Adds a raw chunk to a streaming operation.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_streamUpdate(
-    environment: JNIEnv<'_>,
+    environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
     input: JByteArray<'_>,
@@ -107,7 +109,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_
 /// Finalizes and consumes a streaming operation.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_streamFinish(
-    environment: JNIEnv<'_>,
+    environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
 ) -> jbyteArray {
@@ -119,7 +121,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_
 /// Closes a streaming operation.
 #[unsafe(no_mangle)]
 pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_streamClose(
-    environment: JNIEnv<'_>,
+    environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     handle: jlong,
 ) -> jbyteArray {
@@ -132,7 +134,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_
 #[unsafe(no_mangle)]
 #[allow(clippy::too_many_arguments)]
 pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_aesCbcPkcs7HmacSha256Encrypt(
-    environment: JNIEnv<'_>,
+    environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     encryption_key: JByteArray<'_>,
     mac_key: JByteArray<'_>,
@@ -185,7 +187,7 @@ pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_
 #[unsafe(no_mangle)]
 #[allow(clippy::too_many_arguments)]
 pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_aesCbcPkcs7HmacSha256Decrypt(
-    environment: JNIEnv<'_>,
+    environment: EnvUnowned<'_>,
     _object: JObject<'_>,
     encryption_key: JByteArray<'_>,
     mac_key: JByteArray<'_>,
@@ -228,18 +230,18 @@ pub extern "system" fn Java_com_artemchep_keyguard_nativecrypto_NativeCryptoJni_
 }
 
 fn with_byte_array(
-    environment: JNIEnv<'_>,
+    environment: EnvUnowned<'_>,
     input: JByteArray<'_>,
     operation: &'static str,
     maximum_input_len: usize,
     function: impl FnOnce(&[u8]) -> Vec<u8>,
 ) -> jbyteArray {
     byte_array_boundary(environment, operation, |environment| {
-        let length = match environment.get_array_length(&input) {
+        let length = match input.len(environment) {
             Ok(length) => length,
             Err(_) => return core::internal_response(operation),
         };
-        if usize::try_from(length).map_or(true, |length| length > maximum_input_len) {
+        if length > maximum_input_len {
             return core::resource_limit_response(operation);
         }
         let input = match environment.convert_byte_array(input) {
@@ -252,60 +254,99 @@ fn with_byte_array(
 }
 
 fn without_input(
-    environment: JNIEnv<'_>,
+    environment: EnvUnowned<'_>,
     operation: &'static str,
     function: impl FnOnce() -> Vec<u8>,
 ) -> jbyteArray {
     byte_array_boundary(environment, operation, |_| function())
 }
 
+/// Runs `body` with the environment of the current native method call. Panics
+/// are not caught here, so callers run it inside their own unwind boundary.
+///
+/// This mirrors `keyguard_ffi::with_java_env`. The exact-pinned crypto
+/// workspace is a dependency leaf and does not depend on `keyguard-ffi`, so
+/// keep the two in sync across jni upgrades.
+fn with_env<'local, R>(
+    environment: &mut EnvUnowned<'local>,
+    body: impl FnOnce(&mut Env<'local>) -> R,
+) -> R {
+    let outcome = environment
+        .with_env_no_catch(|environment| Ok::<_, jni::errors::Error>(body(environment)))
+        .into_outcome();
+    match outcome {
+        Outcome::Ok(value) => value,
+        Outcome::Err(_) | Outcome::Panic(_) => {
+            unreachable!("the body cannot fail, and panics are not caught")
+        }
+    }
+}
+
 fn byte_array_boundary(
-    mut environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     operation: &'static str,
-    function: impl FnOnce(&mut JNIEnv<'_>) -> Vec<u8>,
+    function: impl FnOnce(&mut Env<'_>) -> Vec<u8>,
 ) -> jbyteArray {
     match std::panic::catch_unwind(AssertUnwindSafe(|| {
         core::install_redacting_panic_hook();
-        let response = function(&mut environment);
-        return_response(&mut environment, response)
+        with_env(&mut environment, |environment| {
+            let response = function(environment);
+            return_response(environment, response)
+        })
     })) {
         Ok(output) => output,
         Err(_) => std::panic::catch_unwind(AssertUnwindSafe(|| {
-            return_response(&mut environment, core::panic_response(operation))
+            with_env(&mut environment, |environment| {
+                return_response(environment, core::panic_response(operation))
+            })
         }))
         .unwrap_or_else(|_| {
-            std::panic::catch_unwind(AssertUnwindSafe(|| throw_bridge_failure(&mut environment)))
-                .unwrap_or(ptr::null_mut())
+            std::panic::catch_unwind(AssertUnwindSafe(|| {
+                with_env(&mut environment, throw_bridge_failure)
+            }))
+            .unwrap_or(ptr::null_mut())
         }),
     }
 }
 
 fn fast_array_boundary(
-    mut environment: JNIEnv<'_>,
+    mut environment: EnvUnowned<'_>,
     outputs: &[&JByteArray<'_>],
-    function: impl FnOnce(&mut JNIEnv<'_>) -> Result<usize, NativeErrorCode>,
+    function: impl FnOnce(&mut Env<'_>) -> Result<usize, NativeErrorCode>,
 ) -> jlong {
     let result = std::panic::catch_unwind(AssertUnwindSafe(|| {
         core::install_redacting_panic_hook();
-        function(&mut environment)
+        with_env(&mut environment, function)
     }));
     match result {
         Ok(Ok(output_len)) => pack_fast_result(NativeErrorCode::Ok, output_len),
         Ok(Err(code)) => {
-            if clear_java_arrays(&environment, outputs).is_err() {
+            if clear_outputs(&mut environment, outputs).is_err() {
                 pack_fast_result(NativeErrorCode::Internal, 0)
             } else {
                 pack_fast_result(normalize_fast_error(code), 0)
             }
         }
         Err(_) => {
-            if clear_java_arrays(&environment, outputs).is_err() {
+            if clear_outputs(&mut environment, outputs).is_err() {
                 pack_fast_result(NativeErrorCode::Internal, 0)
             } else {
                 pack_fast_result(NativeErrorCode::Panic, 0)
             }
         }
     }
+}
+
+fn clear_outputs(
+    environment: &mut EnvUnowned<'_>,
+    outputs: &[&JByteArray<'_>],
+) -> Result<(), NativeErrorCode> {
+    std::panic::catch_unwind(AssertUnwindSafe(|| {
+        with_env(environment, |environment| {
+            clear_java_arrays(environment, outputs)
+        })
+    }))
+    .unwrap_or(Err(NativeErrorCode::Internal))
 }
 
 fn scalar_boundary(function: impl FnOnce() -> Result<i32, NativeErrorCode>) -> jlong {
@@ -321,7 +362,7 @@ fn scalar_boundary(function: impl FnOnce() -> Result<i32, NativeErrorCode>) -> j
 }
 
 fn read_java_bytes(
-    environment: &JNIEnv<'_>,
+    environment: &Env<'_>,
     input: &JByteArray<'_>,
 ) -> Result<Zeroizing<Vec<u8>>, NativeErrorCode> {
     environment
@@ -330,14 +371,10 @@ fn read_java_bytes(
         .map_err(|_| NativeErrorCode::Internal)
 }
 
-fn java_array_len(
-    environment: &JNIEnv<'_>,
-    input: &JByteArray<'_>,
-) -> Result<usize, NativeErrorCode> {
-    let length = environment
-        .get_array_length(input)
-        .map_err(|_| NativeErrorCode::Internal)?;
-    usize::try_from(length).map_err(|_| NativeErrorCode::Internal)
+fn java_array_len(environment: &Env<'_>, input: &JByteArray<'_>) -> Result<usize, NativeErrorCode> {
+    input
+        .len(environment)
+        .map_err(|_| NativeErrorCode::Internal)
 }
 
 fn encrypted_size(plaintext_len: usize) -> Result<usize, NativeErrorCode> {
@@ -354,7 +391,7 @@ fn encrypted_size(plaintext_len: usize) -> Result<usize, NativeErrorCode> {
 }
 
 fn ensure_fast_array_ownership(
-    environment: &JNIEnv<'_>,
+    environment: &Env<'_>,
     outputs: &[&JByteArray<'_>],
     inputs: &[&JByteArray<'_>],
 ) -> Result<(), NativeErrorCode> {
@@ -387,64 +424,75 @@ fn ensure_fast_array_ownership(
     Ok(())
 }
 
-struct SensitiveOutputElements<'local, 'other_local, 'array> {
-    inner: AutoElements<'local, 'other_local, 'array, jbyte>,
+struct SensitiveOutputElements<'local, 'array> {
+    /// Taken only when a committed copy is discarded.
+    inner: Option<AutoElements<'local, jbyte, &'array JByteArray<'local>>>,
     committed: bool,
 }
 
-impl<'local, 'other_local, 'array> SensitiveOutputElements<'local, 'other_local, 'array> {
+impl<'local, 'array> SensitiveOutputElements<'local, 'array> {
     fn new(
-        environment: &mut JNIEnv<'local>,
-        output: &'array JByteArray<'other_local>,
+        environment: &Env<'_>,
+        output: &'array JByteArray<'local>,
     ) -> Result<Self, NativeErrorCode> {
         // SAFETY: the fast JNI entry points verify that outputs are distinct
         // from every simultaneously acquired input/output array. Kotlin owns
         // these caller-allocated arrays for the duration of this native call.
-        let inner = unsafe { environment.get_array_elements(output, ReleaseMode::CopyBack) }
+        let inner = unsafe { output.get_elements(environment, ReleaseMode::CopyBack) }
             .map_err(|_| NativeErrorCode::Internal)?;
         Ok(Self {
-            inner,
+            inner: Some(inner),
             committed: false,
         })
     }
 
     fn as_bytes_mut(&mut self) -> &mut [u8] {
-        jbyte_as_u8_slice_mut(&mut self.inner)
+        self.inner
+            .as_deref_mut()
+            .map(jbyte_as_u8_slice_mut)
+            .unwrap_or_default()
     }
 
     fn commit_success(&mut self) -> Result<(), NativeErrorCode> {
-        self.inner.commit().map_err(|_| NativeErrorCode::Internal)?;
-        if self.inner.is_copy() {
-            self.inner[..].zeroize();
-            self.inner.discard();
+        let inner = self.inner.as_mut().ok_or(NativeErrorCode::Internal)?;
+        inner.commit().map_err(|_| NativeErrorCode::Internal)?;
+        if inner.is_copy() {
+            inner[..].zeroize();
+            if let Some(inner) = self.inner.take() {
+                inner.discard();
+            }
         }
         self.committed = true;
         Ok(())
     }
 }
 
-impl Drop for SensitiveOutputElements<'_, '_, '_> {
+impl Drop for SensitiveOutputElements<'_, '_> {
     fn drop(&mut self) {
-        if !self.committed {
+        if !self.committed
+            && let Some(inner) = &mut self.inner
+        {
             // `CopyBack` propagates this wipe to Java for both copied and
             // directly pinned array elements before the outer boundary returns.
-            self.inner[..].zeroize();
+            inner[..].zeroize();
         }
     }
 }
 
 fn clear_java_arrays(
-    environment: &JNIEnv<'_>,
+    environment: &Env<'_>,
     outputs: &[&JByteArray<'_>],
 ) -> Result<(), NativeErrorCode> {
-    for output in outputs {
+    // A null output holds nothing to wipe, and `ensure_fast_array_ownership`
+    // already reported it as an invalid argument.
+    for output in outputs.iter().filter(|output| !output.is_null()) {
         let length = java_array_len(environment, output)?;
         let mut offset = 0;
         while offset < length {
             let chunk_len = (length - offset).min(ZERO_CHUNK.len());
             let start = i32::try_from(offset).map_err(|_| NativeErrorCode::Internal)?;
-            environment
-                .set_byte_array_region(output, start, &ZERO_CHUNK[..chunk_len])
+            output
+                .set_region(environment, start, &ZERO_CHUNK[..chunk_len])
                 .map_err(|_| NativeErrorCode::Internal)?;
             offset += chunk_len;
         }
@@ -480,7 +528,7 @@ fn pack_int_result(code: NativeErrorCode, value: i32) -> jlong {
     ((status << 32) | u64::from(value as u32)) as jlong
 }
 
-fn return_response(environment: &mut JNIEnv<'_>, response: Vec<u8>) -> jbyteArray {
+fn return_response(environment: &mut Env<'_>, response: Vec<u8>) -> jbyteArray {
     let response = Zeroizing::new(response);
     match environment.byte_array_from_slice(&response) {
         Ok(output) => output.into_raw(),
@@ -488,10 +536,10 @@ fn return_response(environment: &mut JNIEnv<'_>, response: Vec<u8>) -> jbyteArra
     }
 }
 
-fn throw_bridge_failure(environment: &mut JNIEnv<'_>) -> jbyteArray {
+fn throw_bridge_failure(environment: &mut Env<'_>) -> jbyteArray {
     let _ = environment.throw_new(
-        "java/lang/IllegalStateException",
-        "native crypto JNI bridge failed",
+        jni_str!("java/lang/IllegalStateException"),
+        jni_str!("native crypto JNI bridge failed"),
     );
     ptr::null_mut()
 }

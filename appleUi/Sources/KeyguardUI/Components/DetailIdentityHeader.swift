@@ -57,6 +57,6 @@ struct DetailIdentityHeader<Icon: View>: View {
     }
 
     private var displayTitle: String {
-        title.isEmpty ? L10n.credentialExchangeImportUntitled : title
+        title.isEmpty ? L10n.untitled : title
     }
 }

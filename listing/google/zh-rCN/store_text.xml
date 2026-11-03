@@ -7,5 +7,5 @@
     <!-- A name of the Quarterly subscription plan -->
     <string name="listing_store_google_subscription_quarterly">季度计划</string>
     <!-- A name of the One-time purchase plan -->
-    <string name="listing_store_google_product_lifetime">终身计划</string>
+    <string name="listing_store_google_product_lifetime">一次性购买</string>
 </resources>

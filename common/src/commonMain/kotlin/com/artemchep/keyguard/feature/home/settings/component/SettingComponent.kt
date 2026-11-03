@@ -11,12 +11,14 @@ import com.artemchep.keyguard.feature.home.settings.KgPicker
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.pref_item_color_scheme_title
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.theme.Dimens
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import kotlin.reflect.KClass
 
@@ -31,6 +33,18 @@ data class SettingIi(
         val group: String,
         val tokens: List<String>,
     )
+}
+
+/**
+ * Search consumes the setting providers directly, without the pane's
+ * platform filter, so check the platform before resolving the service.
+ */
+internal inline fun platformSettingProvider(
+    platformClasses: List<KClass<out Platform>>,
+    provider: () -> SettingComponent,
+): SettingComponent {
+    if (platformClasses.none { it.isInstance(CurrentPlatform) }) return flowOf(null)
+    return provider()
 }
 
 @Composable

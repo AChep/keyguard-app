@@ -17,6 +17,12 @@ plugins {
 android {
     configureKeyguardApplication(project)
 
+    if (providers.gradleProperty("keyguard.mtlsTests").map(String::toBoolean).getOrElse(false)) {
+        sourceSets.getByName("androidTest").kotlin.srcDirs(
+            "src/mtlsTest/kotlin", "../common/src/mtlsTest/kotlin", "../common/src/mtlsJvmTest/kotlin",
+        )
+    }
+
     buildTypes {
         create("benchmarkRelease") {
             signingConfig = signingConfigs.getByName("debug")
@@ -66,6 +72,7 @@ dependencies {
     testImplementation(libs.junit)
 
     // Android tests
+    androidTestImplementation(kotlin("test-junit"))
     androidTestImplementation(project(":androidTest"))
     androidTestImplementation(project(":util:crypto"))
     androidTestImplementation(project(":util:io"))

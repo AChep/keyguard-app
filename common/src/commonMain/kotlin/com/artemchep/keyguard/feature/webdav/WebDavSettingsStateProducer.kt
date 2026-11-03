@@ -20,6 +20,7 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.util.webdav.resolveWebDavResourceUrl
 import com.artemchep.keyguard.util.webdav.webDavRelativePathOrNull
+import io.ktor.http.URLParserException
 import io.ktor.http.Url
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -370,6 +371,8 @@ private fun normalizeWebDavBrowseRootOrNull(
         path = "",
         collection = true,
     )
+} catch (_: URLParserException) {
+    null
 } catch (_: IllegalArgumentException) {
     null
 }

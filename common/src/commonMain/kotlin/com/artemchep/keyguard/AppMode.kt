@@ -44,7 +44,7 @@ sealed interface AppMode {
     @optics
     data class PickPasskey(
         val target: PasskeyTarget,
-        val onComplete: (DSecret.Login.Fido2Credentials) -> Unit,
+        val onComplete: (DSecret, DSecret.Login.Fido2Credentials) -> Unit,
     ) : AppMode, HasType {
         companion object;
 

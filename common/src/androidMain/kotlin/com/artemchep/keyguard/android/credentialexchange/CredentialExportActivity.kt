@@ -119,16 +119,6 @@ class CredentialExportActivity : BaseActivity(), KeyguardKoinOwner {
      */
     private val importerNameSink = mutableStateOf<String?>(null)
 
-    /**
-     * The label of the account the picked entry addresses, shown on the consent
-     * screen so the user knows which account is about to be read.
-     *
-     * `null` when the entry's account is no longer mirrored, i.e. hidden or deleted —
-     * the screen renders an explanation in that case, so the subtitle simply omits
-     * the name rather than inventing one.
-     */
-    private val accountNameSink = mutableStateOf<String?>(null)
-
     private sealed interface UiState {
         data object Loading : UiState
 
@@ -213,10 +203,6 @@ class CredentialExportActivity : BaseActivity(), KeyguardKoinOwner {
                 onComplete = ::onComplete,
             )
             importerNameSink.value = resolveImporterName(request.callingAppInfo.packageName)
-            // `null` when the entry is ours but its account is no longer mirrored —
-            // hidden or deleted. The screen explains that; the subtitle just omits
-            // the account name.
-            accountNameSink.value = entry.account?.label
             uiStateSink.value = UiState.Review(routeArgs)
         }
     }
@@ -414,7 +400,6 @@ class CredentialExportActivity : BaseActivity(), KeyguardKoinOwner {
             titleText = stringResource(Res.string.credential_exchange_export_header_title),
             subtitle = {
                 val importerName = importerNameSink.value
-                val accountName = accountNameSink.value
                 Text(
                     text = when {
                         importerName != null -> stringResource(

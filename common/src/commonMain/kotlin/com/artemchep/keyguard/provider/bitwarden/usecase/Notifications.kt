@@ -30,7 +30,7 @@ import com.artemchep.keyguard.provider.bitwarden.api.notificationsHub
 import com.artemchep.keyguard.provider.bitwarden.api.resolveNotificationsHubMessageAction
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -60,7 +60,7 @@ class NotificationsImpl(
     private val connectivityService: ConnectivityService,
     private val fileWatcherService: FileWatcherService,
     private val json: Json,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
     private val db: VaultDatabaseManager,
     private val queueSyncById: QueueSyncById,
     private val queueSyncAll: QueueSyncAll,
@@ -169,7 +169,7 @@ class NotificationsImpl(
             val result = runCatching {
                 withRefreshableAccessToken(
                     base64Service = base64Service,
-                    httpClient = httpClient,
+                    httpClient = httpClientProvider.client(user.env.back()),
                     json = json,
                     db = db,
                     user = user,
@@ -195,7 +195,7 @@ class NotificationsImpl(
                         try {
                             notificationsHub(
                                 user = latestUser,
-                                httpClient = httpClient,
+                                httpClient = httpClientProvider.client(latestUser.env.back()),
                                 onConnected = {
                                     // After a successful re-connect we want to immediately
                                     // sync the account. We do not know what has happened in-between

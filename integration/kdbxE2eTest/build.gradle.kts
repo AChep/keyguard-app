@@ -13,6 +13,7 @@ keyguardE2e {
 }
 
 dependencies {
+    kdbxE2eTestImplementation(project(":integration:testProcess"))
     kdbxE2eTestImplementation(project(":util:kdbx"))
     kdbxE2eTestImplementation(libs.kotlinx.serialization.json)
 }

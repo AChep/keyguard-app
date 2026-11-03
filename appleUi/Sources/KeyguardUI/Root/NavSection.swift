@@ -88,6 +88,7 @@ struct NavSection: Identifiable, Hashable {
         case "note": return "note.text"
         case "sshKey": return "terminal"
         case "gpgKey": return "key"
+        case "environment": return "terminal"
         case "otp": return "clock"
         default: return "line.3.horizontal.decrease.circle"
         }

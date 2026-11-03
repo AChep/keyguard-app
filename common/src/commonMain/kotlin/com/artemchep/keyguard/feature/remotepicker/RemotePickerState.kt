@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.remotepicker
 import androidx.compose.runtime.MutableState
 import arrow.core.Either
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.ui.Breadcrumb
 
 /** The state of a remote storage browser, shared by the WebDAV and S3 pickers. */
 data class RemotePickerState(
@@ -14,11 +15,6 @@ data class RemotePickerState(
     val onConfirm: (() -> Unit)?,
     val onRefresh: () -> Unit,
 ) {
-    data class Breadcrumb(
-        val name: String,
-        val onClick: (() -> Unit)?,
-    )
-
     data class Item(
         val key: String,
         val name: String,

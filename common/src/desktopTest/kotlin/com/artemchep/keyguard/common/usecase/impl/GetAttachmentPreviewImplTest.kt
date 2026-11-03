@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.model.AttachmentPreviewRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLoader
+import com.artemchep.keyguard.common.service.download.BitwardenAttachmentHttpClientProvider
 import com.artemchep.keyguard.common.service.download.DownloadProgress
 import com.artemchep.keyguard.common.service.download.DownloadWriter
 import com.artemchep.keyguard.common.service.download.locationUri
@@ -17,6 +18,11 @@ import com.artemchep.keyguard.common.service.file.FileServiceImpl
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.crypto.CryptoGeneratorJvm
 import com.artemchep.keyguard.crypto.FileEncryptionCodecJvm
+import com.artemchep.keyguard.util.zip.ZipArchive
+import com.artemchep.keyguard.util.zip.ZipConfig
+import com.artemchep.keyguard.util.zip.ZipEntry
+import com.artemchep.keyguard.util.zip.createZipService
+import com.artemchep.keyguard.provider.bitwarden.transport.AccountHttpClient
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -27,6 +33,9 @@ import io.ktor.http.headersOf
 import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.test.runTest
+import kotlinx.io.Buffer
+import kotlinx.io.readByteArray
+import kotlinx.io.readString
 import java.io.File
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
@@ -58,11 +67,9 @@ class GetAttachmentPreviewImplTest {
                 },
                 fileEncryptionCodec = fileEncryptionCodec,
                 fileService = FileServiceImpl(),
-                httpClient = HttpClient(
-                    MockEngine {
-                        error("Unexpected network request.")
-                    },
-                ),
+                httpClientProvider = BitwardenAttachmentHttpClientProvider { _, _ ->
+                    error("Unexpected network request.")
+                },
                 downloadAttachmentSourceLoader = unusedSourceLoader,
             )
 
@@ -313,6 +320,34 @@ class GetAttachmentPreviewImplTest {
         assertContentEquals(bytes, payload.bytes)
     }
 
+    @Test
+    fun `zip attachments remain browsable through Bitwarden and KeePass sources`() = runTest {
+        val output = Buffer()
+        createZipService().zip(
+            output,
+            ZipConfig(),
+            listOf(ZipEntry("notes.txt", ZipEntry.Data.In { Buffer().apply { write("hello".encodeToByteArray()) } })),
+        )
+        val bytes = output.readByteArray()
+        val key = ByteArray(64) { it.toByte() }
+        val sources = listOf(
+            metadata(
+                DownloadAttachmentRequestData.DirectSource(fileEncryptionCodec.encrypt(bytes, key)),
+                encryptionKey = key,
+            ),
+            metadata(DownloadAttachmentRequestData.KeePassSource("hashref://preview", bytes.size.toLong())),
+        )
+        for (source in sources) {
+            val payload = useCase(source.copy(name = "archive.ZIP"), sourceLoader = sourceLoader(bytes))(
+                request.copy(fileName = "archive.ZIP"),
+            )()
+            assertEquals("archive.ZIP", payload.fileName)
+            ZipArchive(payload.bytes).use { archive ->
+                assertEquals("hello", archive.openEntry(0, maxBytes = 5).use { it.readString() })
+            }
+        }
+    }
+
     private fun useCase(
         metadata: DownloadAttachmentRequestData,
         fileService: FileService = FileServiceImpl(),
@@ -326,7 +361,10 @@ class GetAttachmentPreviewImplTest {
         downloadAttachmentMetadata = FakeDownloadAttachmentMetadata(metadata),
         fileEncryptionCodec = fileEncryptionCodec,
         fileService = fileService,
-        httpClient = httpClient,
+        httpClientProvider = BitwardenAttachmentHttpClientProvider { cipherId, _ ->
+            assertEquals(metadata.localCipherId, cipherId)
+            AccountHttpClient(httpClient)
+        },
         downloadAttachmentSourceLoader = sourceLoader,
     )
 

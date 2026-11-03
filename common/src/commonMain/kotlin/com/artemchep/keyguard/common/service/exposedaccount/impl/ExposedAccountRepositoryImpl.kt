@@ -41,17 +41,11 @@ class ExposedAccountRepositoryImpl(
 
     override fun getRegistrations(): Flow<List<ExposedAccountRegistration>> = daoEffect { db ->
         val queries = db.credentialExchangeExportEntryQueries
-        queries.getRegistrations { accountId, name, email, host, entryId ->
-            val account = ExposedAccount(
-                accountId = accountId,
-                name = name,
-                email = email,
-                host = host,
-            )
+        queries.getRegistrations { accountId, name, entryId ->
             ExposedAccountRegistration(
                 accountId = accountId,
                 entryId = entryId,
-                label = account.label,
+                label = name,
             )
         }
     }.flatMapQueryToList(dispatcher)
@@ -88,8 +82,6 @@ class ExposedAccountRepositoryImpl(
                     db.accountQueries.insert(
                         accountId = account.accountId,
                         name = account.name,
-                        email = account.email,
-                        host = account.host,
                     )
                 }
                 mintMissingEntries(db, allAccountIds)
@@ -121,8 +113,6 @@ class ExposedAccountRepositoryImpl(
     ): ExposedAccount = ExposedAccount(
         accountId = entity.accountId,
         name = entity.name,
-        email = entity.email,
-        host = entity.host,
     )
 
     private inline fun <T> daoEffect(

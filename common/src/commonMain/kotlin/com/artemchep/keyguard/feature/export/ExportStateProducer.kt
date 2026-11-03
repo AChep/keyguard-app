@@ -1,6 +1,10 @@
 package com.artemchep.keyguard.feature.export
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.FolderZip
+import androidx.compose.material.icons.outlined.Key
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import arrow.core.identity
 import arrow.core.partially1
 import com.artemchep.keyguard.common.io.effectTap
@@ -12,6 +16,7 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.common.service.export.ExportManager
+import com.artemchep.keyguard.common.service.export.model.ExportFormat
 import com.artemchep.keyguard.common.service.export.model.ExportRequest
 import com.artemchep.keyguard.common.service.filter.AddCipherFilter
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
@@ -39,6 +44,7 @@ import com.artemchep.keyguard.feature.home.vault.screen.FilterParams
 import com.artemchep.keyguard.feature.home.vault.screen.createFilter
 import com.artemchep.keyguard.feature.home.vault.screen.createFilterItemsFlow
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
@@ -46,6 +52,7 @@ import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.ui.FlatItemAction
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -53,6 +60,7 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
+import org.jetbrains.compose.resources.StringResource
 import org.koin.compose.currentKoinScope
 
 @Composable
@@ -147,17 +155,38 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
         key = "attachments",
     ) { false }
 
+    val formatSink = mutablePersistedFlow(
+        key = "format",
+        serialize = { _, format: ExportFormat -> format.name },
+        deserialize = { _, name: String -> ExportFormat.valueOf(name) },
+    ) { ExportFormat.Zip }
+
+    // The step is kept, so the wizard stays on
+    // it after the user views the items.
+    val stepSink = mutablePersistedFlow(
+        key = "step",
+        serialize = { _, step: ExportStep -> step.name },
+        deserialize = { _, name: String ->
+            ExportStep.entries.firstOrNull { it.name == name }
+                ?: ExportStep.Format
+        },
+    ) { ExportStep.Format }
+
     val passwordHandle = textFieldHandle(key = "password")
+    val confirmationPasswordHandle = textFieldHandle(key = "password_confirmation")
+    val mismatchError = translate(Res.string.pref_item_automatic_backups_wizard_password_mismatch_error)
 
     fun onExport(
         password: String,
         filter: DFilter,
         attachments: Boolean,
+        format: ExportFormat,
     ) {
         val request = ExportRequest(
             filter = filter,
             password = password,
             attachments = attachments,
+            format = format,
         )
         if (onExportRequest != null) {
             onExportRequest(request)
@@ -348,6 +377,30 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
             )
         }
         .stateIn(screenScope)
+    val formatFlow = formatSink
+        .map { format ->
+            val options = ExportFormat.entries
+                .map { entry ->
+                    FlatItemAction(
+                        id = entry.extension,
+                        icon = entry.icon(),
+                        title = entry.titleRes().wrap(),
+                        selected = entry == format,
+                        onClick = {
+                            formatSink.value = entry
+                        },
+                    )
+                }
+            ExportState.Format(
+                title = translate(format.titleRes()),
+                note = translate(format.noteRes()),
+                attachmentsNote = translate(format.attachmentsNoteRes()),
+                passwordLabel = translate(format.passwordLabelRes()),
+                confirmPasswordLabel = translate(format.confirmPasswordLabelRes()),
+                options = options,
+            )
+        }
+        .stateIn(screenScope)
     val passwordPairFlow = passwordHandle.sink
         .map { cell ->
             cell to validatedPassword(
@@ -370,13 +423,72 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
             )
         }
         .stateIn(screenScope)
+    val passwordMatchesFlow = combine(
+        passwordHandle.sink,
+        confirmationPasswordHandle.sink,
+    ) { password, confirmation ->
+        password.text == confirmation.text
+    }
+    val confirmationPasswordFlow = combine(
+        passwordHandle.sink,
+        confirmationPasswordHandle.sink,
+    ) { password, cell ->
+        val validated = if (password.text == cell.text) {
+            Validated.Success(cell.text)
+        } else {
+            Validated.Failure(cell.text, mismatchError)
+        }
+        val model = TextFieldModel.of(
+            cell = cell,
+            handle = confirmationPasswordHandle,
+            validated = validated,
+        )
+        ExportState.Password(
+            model = model,
+        )
+    }
+        .stateIn(screenScope)
+    val wizardFlow = combine(
+        stepSink,
+        itemsFlow,
+        passwordRawFlow,
+        passwordMatchesFlow,
+    ) { step, items, passwordValidated, passwordMatches ->
+        val data = ExportWizardData(
+            step = step,
+            itemsCount = items.count,
+            passwordValid = passwordValidated is Validated.Success,
+            passwordMatches = passwordMatches,
+        )
+        data.toState(stepSink)
+    }
+        .stateIn(screenScope)
+    // Back goes to the previous step; on the
+    // first step it leaves the screen.
+    interceptBackPress(
+        interceptorFlow = wizardFlow
+            .map { it.onBack },
+    )
+    // A password is ready to use once it is
+    // confirmed, on every platform.
+    val confirmedPasswordFlow = combine(
+        passwordRawFlow,
+        passwordMatchesFlow,
+    ) { passwordValidated, passwordMatches ->
+        if (passwordMatches) {
+            passwordValidated
+        } else {
+            Validated.Failure(passwordValidated.model, mismatchError)
+        }
+    }
     val contentFlow = combine(
         writeDownloadsPermissionFlow,
         attachmentsSink,
-        passwordRawFlow,
+        formatSink,
+        confirmedPasswordFlow,
         filterResult
             .filterFlow,
-    ) { writeDownloadsPermission, enableAttachments, passwordValidated, filterHolder ->
+    ) { writeDownloadsPermission, enableAttachments, format, passwordValidated, filterHolder ->
         val export = kotlin.run {
             val canExport = passwordValidated is Validated.Success &&
                     writeDownloadsPermission is PermissionState.Granted
@@ -395,6 +507,7 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
                     .partially1(passwordValidated.model)
                     .partially1(filter)
                     .partially1(enableAttachments)
+                    .partially1(format)
             } else {
                 null
             }
@@ -407,11 +520,44 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
         .stateIn(screenScope)
 
     val state = ExportState(
+        wizardFlow = wizardFlow,
         itemsFlow = itemsFlow,
         attachmentsFlow = attachmentsFlow,
         filterFlow = filterFlow,
+        formatFlow = formatFlow,
         passwordFlow = passwordFlow,
+        confirmationPasswordFlow = confirmationPasswordFlow,
         contentFlow = contentFlow,
     )
     return flowOf(Loadable.Ok(state))
+}
+
+internal fun ExportFormat.icon(): ImageVector = when (this) {
+    ExportFormat.Zip -> Icons.Outlined.FolderZip
+    ExportFormat.Kdbx -> Icons.Outlined.Key
+}
+
+internal fun ExportFormat.titleRes(): StringResource = when (this) {
+    ExportFormat.Zip -> Res.string.exportaccount_format_zip
+    ExportFormat.Kdbx -> Res.string.exportaccount_format_kdbx
+}
+
+internal fun ExportFormat.noteRes(): StringResource = when (this) {
+    ExportFormat.Zip -> Res.string.exportaccount_format_note
+    ExportFormat.Kdbx -> Res.string.exportaccount_format_kdbx_note
+}
+
+internal fun ExportFormat.attachmentsNoteRes(): StringResource = when (this) {
+    ExportFormat.Zip -> Res.string.exportaccount_attachments_note
+    ExportFormat.Kdbx -> Res.string.exportaccount_kdbx_attachments_note
+}
+
+internal fun ExportFormat.passwordLabelRes(): StringResource = when (this) {
+    ExportFormat.Zip -> Res.string.exportaccount_password_label
+    ExportFormat.Kdbx -> Res.string.exportaccount_kdbx_password_label
+}
+
+internal fun ExportFormat.confirmPasswordLabelRes(): StringResource = when (this) {
+    ExportFormat.Zip -> Res.string.exportaccount_confirm_password_label
+    ExportFormat.Kdbx -> Res.string.exportaccount_kdbx_confirm_password_label
 }

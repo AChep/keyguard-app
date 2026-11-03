@@ -6,6 +6,8 @@ import com.artemchep.keyguard.feature.home.settings.Setting
 import com.artemchep.keyguard.feature.home.settings.SettingPaneContent
 import com.artemchep.keyguard.feature.home.settings.SettingPaneItem
 import com.artemchep.keyguard.feature.localization.wrap
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.util.hasWebPurchase
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.collections.immutable.ImmutableList
@@ -25,25 +27,29 @@ fun SubscriptionsSettingsScreen() {
 fun rememberSettingsSubscriptionsItems(
 ): ImmutableList<SettingPaneItem> {
     return remember {
-        persistentListOf(
-            SettingPaneItem.Item(Setting.SUBSCRIPTIONS),
-            SettingPaneItem.Group(
-                key = "other",
-                title = Res.string.misc.wrap(),
-                list = persistentListOf(
-                    SettingPaneItem.Item(Setting.SUBSCRIPTIONS_IN_STORE),
-                    SettingPaneItem.Item(Setting.ABOUT_TEAM),
-                    SettingPaneItem.Item(Setting.FEEDBACK_APP),
-                    SettingPaneItem.Item(Setting.APK),
-                ),
-            ),
-            SettingPaneItem.Group(
-                key = "sharing",
-                list = persistentListOf(
-                    SettingPaneItem.Item(Setting.LICENSE_CLAIM),
-                    SettingPaneItem.Item(Setting.LICENSE_REDEEM),
-                ),
+        val subscriptions = SettingPaneItem.Item(Setting.SUBSCRIPTIONS)
+        val other = SettingPaneItem.Group(
+            key = "other",
+            title = Res.string.misc.wrap(),
+            list = persistentListOf(
+                SettingPaneItem.Item(Setting.SUBSCRIPTIONS_IN_STORE),
+                SettingPaneItem.Item(Setting.ABOUT_TEAM),
+                SettingPaneItem.Item(Setting.FEEDBACK_APP),
             ),
         )
+        val sharing = SettingPaneItem.Group(
+            key = "sharing",
+            list = persistentListOf(
+                SettingPaneItem.Item(Setting.LICENSE_PURCHASE),
+                SettingPaneItem.Item(Setting.LICENSE_CLAIM),
+                SettingPaneItem.Item(Setting.LICENSE_REDEEM),
+            ),
+        )
+        // Without a store, buying and linking a license
+        // are the main actions of the screen.
+        if (CurrentPlatform.hasWebPurchase()) {
+            return@remember persistentListOf(subscriptions, sharing, other)
+        }
+        persistentListOf(subscriptions, other, sharing)
     }
 }

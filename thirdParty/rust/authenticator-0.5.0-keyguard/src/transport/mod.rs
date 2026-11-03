@@ -31,6 +31,16 @@ pub mod hid;
 ))]
 pub mod hidproto;
 
+// Keyguard: Flatpak rescan helpers for the Linux monitor.
+#[cfg(target_os = "linux")]
+pub(crate) mod linux_rescan;
+
+// Exercise the real monitor even though unit tests replace `platform` below.
+#[cfg(all(target_os = "linux", test))]
+#[path = "linux/monitor.rs"]
+#[allow(dead_code)]
+mod linux_monitor_tests;
+
 #[cfg(all(target_os = "linux", not(test)))]
 #[path = "linux/mod.rs"]
 pub mod platform;

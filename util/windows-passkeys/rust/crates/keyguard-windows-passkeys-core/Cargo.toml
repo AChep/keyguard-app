@@ -1,0 +1,28 @@
+[package]
+name = "keyguard-windows-passkeys-core"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+keyguard-ffi.workspace = true
+prost.workspace = true
+ciborium.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+# Reads the package's provider configuration, keyguard-passkeys.json.
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+sha2.workspace = true
+windows = { workspace = true, features = [
+    "Win32_Foundation", "Win32_System_Com", "Win32_System_LibraryLoader",
+    "Win32_Storage_Packaging_Appx", "Win32_Security_Cryptography",
+    "Win32_Networking_WindowsWebServices",
+] }
+windows-core.workspace = true
+
+[lints]
+workspace = true

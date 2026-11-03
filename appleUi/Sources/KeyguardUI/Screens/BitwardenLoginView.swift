@@ -7,6 +7,14 @@ struct BitwardenLoginView: View {
 
     private var login: LoginSnapshot { loginModel.login }
 
+    /// The form hosts only its own 2FA; SSO's 2FA is pushed from the SSO screen.
+    private var loginTwofaActive: Binding<Bool> {
+        Binding(
+            get: { loginModel.twofaActive && !loginModel.ssoActive },
+            set: { loginModel.twofaActive = $0 }
+        )
+    }
+
     var body: some View {
         @Bindable var loginModel = loginModel
         ScrollView {
@@ -19,6 +27,14 @@ struct BitwardenLoginView: View {
 
                 field(login.email, title: L10n.email, secure: false)
                 field(login.password, title: L10n.password, secure: true)
+
+                Button {
+                    loginModel.startSso()
+                } label: {
+                    Label(L10n.ssoLogin, systemImage: "building.2")
+                }
+                .buttonStyle(.borderless)
+                .disabled(!login.canSso)
 
                 if let discovery = login.serverDiscovery {
                     Button {
@@ -62,8 +78,28 @@ struct BitwardenLoginView: View {
             .padding(40)
             .frame(maxWidth: .infinity)
         }
+        #if os(iOS)
+        .sheet(
+            item: Binding(get: { loginModel.filePicker.pendingFilePicker }, set: { _ in }),
+            onDismiss: { loginModel.filePicker.pickerDismissed() }
+        ) { request in
+            DocumentOpenPicker(request: request) { result in
+                loginModel.filePicker.resolve(result: result, requestID: request.id)
+            }
+            .ignoresSafeArea()
+            .interactiveDismissDisabled()
+        }
+        #endif
         .navigationTitle(L10n.addaccountMethodHeaderTitle)
-        .navigationDestination(isPresented: $loginModel.twofaActive) {
+        .navigationDestination(isPresented: $loginModel.ssoActive) {
+            BitwardenSsoView()
+        }
+        // The SSO step keeps running under its 2FA screen, so it
+        // stops only once its own screen is popped.
+        .onChange(of: loginModel.ssoActive) { _, active in
+            if !active { loginModel.stopSsoObservation() }
+        }
+        .navigationDestination(isPresented: loginTwofaActive) {
             BitwardenTwofaView()
         }
         .onChange(of: loginModel.loginDidSucceed) { _, succeeded in
@@ -113,19 +149,9 @@ struct BitwardenLoginView: View {
 
     // MARK: - Fields
 
-    @ViewBuilder
     private func field(_ field: TextFieldSnapshot, title: String, secure: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        LoginFieldRow(field: field) {
             loginTextField(field, title: title, secure: secure)
-                // The per-field local buffer must reset when this row is
-                // reused for a different field.
-                .id(field.id)
-                // Locked by the producer: a re-login's email / server, or while
-                // the login runs.
-                .disabled(!field.editable)
-            if let error = field.error {
-                errorText(error)
-            }
         }
     }
 
@@ -201,6 +227,18 @@ struct BitwardenLoginView: View {
                     .font(.footnote)
                     .foregroundStyle(.secondary)
             }
+        } else if item.kind == LoginItemKind.mutualTls {
+            VStack(alignment: .leading, spacing: 8) {
+                if let label = item.label { Label(label, systemImage: "lock.shield") }
+                if let text = item.text {
+                    Text(text).font(.footnote).foregroundStyle(.secondary)
+                }
+                HStack {
+                    ForEach(item.actions, id: \.id) { action in
+                        Button(action.title) { loginModel.invokeLoginAction(id: action.id) }
+                    }
+                }
+            }
         } else if item.kind == LoginItemKind.add {
             addButton(item)
         }
@@ -264,20 +302,8 @@ struct BitwardenLoginView: View {
     // MARK: - Login
 
     private var loginButton: some View {
-        Button(action: submit) {
-            if login.isLoading {
-                ProgressView()
-                    .controlSize(.small)
-                    .frame(maxWidth: .infinity)
-            } else {
-                Text(L10n.addaccountSignInButton)
-                    .frame(maxWidth: .infinity)
-            }
-        }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
-        .accessibilityLabel(L10n.addaccountSignInButton)
-        .disabled(!login.canLogin)
+        LoginPrimaryButton(
+            title: L10n.addaccountSignInButton, isLoading: login.isLoading, enabled: login.canLogin, action: submit)
     }
 
     private func submit() {
@@ -290,5 +316,53 @@ struct BitwardenLoginView: View {
         Text(message)
             .font(.footnote)
             .foregroundStyle(.red)
+    }
+}
+
+/// A sign-in field with its error.
+struct LoginFieldRow<Input: View>: View {
+    let field: TextFieldSnapshot
+    @ViewBuilder let input: Input
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            input
+                // The per-field local buffer must reset when this row is
+                // reused for a different field.
+                .id(field.id)
+                // Locked by the producer: a re-login's email / server, or while
+                // the login runs.
+                .disabled(!field.editable)
+            if let error = field.error {
+                Text(error)
+                    .font(.footnote)
+                    .foregroundStyle(.red)
+            }
+        }
+    }
+}
+
+/// The full-width primary action of a sign-in step.
+struct LoginPrimaryButton: View {
+    let title: String
+    let isLoading: Bool
+    let enabled: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            if isLoading {
+                ProgressView()
+                    .controlSize(.small)
+                    .frame(maxWidth: .infinity)
+            } else {
+                Text(title)
+                    .frame(maxWidth: .infinity)
+            }
+        }
+        .buttonStyle(.borderedProminent)
+        .controlSize(.large)
+        .accessibilityLabel(title)
+        .disabled(!enabled)
     }
 }

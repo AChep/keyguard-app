@@ -4,8 +4,16 @@ import kotlinx.io.IOException
 import kotlinx.io.Sink
 import kotlinx.io.Source
 
-private const val BYTE_SNAPSHOT_TRANSFER_BYTES = 64 * 1024
+internal const val BYTE_SNAPSHOT_TRANSFER_BYTES = 64 * 1024
 private const val MAX_CONSECUTIVE_ZERO_READS = 16
+
+/** Validates the arguments of [ByteSnapshotReader.readAt]. */
+fun requireSnapshotReadRange(position: Long, data: ByteArray, startIndex: Int, endIndex: Int) {
+    require(position >= 0L) { "Snapshot read position must not be negative" }
+    require(startIndex >= 0 && endIndex >= startIndex && endIndex <= data.size) {
+        "Snapshot read array range is invalid"
+    }
+}
 
 /** Copies this snapshot without taking ownership of [output]. */
 fun ByteSnapshot.copyTo(output: Sink, checkCancellation: () -> Unit = {}) {
@@ -19,10 +27,14 @@ fun ByteSnapshot.copyTo(output: Sink, checkCancellation: () -> Unit = {}) {
     }
 }
 
-private fun Source.copyTo(
+/**
+ * Copies this source to [output] until it is exhausted, without taking
+ * ownership of either. The [transfer] buffer is zeroed afterwards.
+ */
+fun Source.copyTo(
     output: Sink,
-    transfer: ByteArray,
-    checkCancellation: () -> Unit,
+    transfer: ByteArray = ByteArray(BYTE_SNAPSHOT_TRANSFER_BYTES),
+    checkCancellation: () -> Unit = {},
 ) {
     var consecutiveZeroReads = 0
     try {

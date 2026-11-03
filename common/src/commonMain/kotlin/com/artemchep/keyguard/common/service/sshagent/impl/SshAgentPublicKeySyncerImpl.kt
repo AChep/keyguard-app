@@ -2,9 +2,7 @@ package com.artemchep.keyguard.common.service.sshagent.impl
 
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
-import com.artemchep.keyguard.common.model.CipherFilterContext
 import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.filterCiphers
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -12,12 +10,10 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepositor
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRow
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.sshagent.createSshAgentPublicKeyRow
-import com.artemchep.keyguard.common.service.sshagent.isEligibleForSshAgent
 import com.artemchep.keyguard.common.service.text.Base64Service
-import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgent
+import com.artemchep.keyguard.common.usecase.GetSshAgentCiphers
 import com.artemchep.keyguard.common.usecase.GetSshAgentDisplayKeyNames
-import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,15 +25,12 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 class SshAgentPublicKeySyncerImpl(
-    private val filterContext: CipherFilterContext,
-    private val getCiphers: GetCiphers,
+    private val getSshAgentCiphers: GetSshAgentCiphers,
     private val getSshAgent: GetSshAgent,
-    private val getSshAgentFilter: GetSshAgentFilter,
     private val getSshAgentDisplayKeyNames: GetSshAgentDisplayKeyNames,
     private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository,
     private val cryptoGenerator: CryptoGenerator,
@@ -58,21 +51,8 @@ class SshAgentPublicKeySyncerImpl(
                     return@flatMapLatest flowOf(SyncState.Disabled)
                 }
 
-                val filteredCiphersFlow = combine(
-                    getCiphers(),
-                    getSshAgentFilter()
-                        .map { it.normalize() },
-                ) { ciphers, filter ->
-                    val eligibleCiphers = ciphers
-                        .filter { it.isEligibleForSshAgent() }
-                    filter.filterCiphers(
-                        context = filterContext,
-                        ciphers = eligibleCiphers,
-                    )
-                }
-                    .distinctUntilChanged()
                 combine(
-                    filteredCiphersFlow,
+                    getSshAgentCiphers(),
                     getSshAgentDisplayKeyNames(),
                 ) { filteredCiphers, displayKeyNames ->
                     val exposedKeys = mapCiphersToExposedSshKeys(
@@ -132,6 +112,8 @@ class SshAgentPublicKeySyncerImpl(
                     .takeIf { displayKeyNames },
                 cryptoGenerator = cryptoGenerator,
                 base64Service = base64Service,
+                // The agent checks the validity when it offers the certificate.
+                certificate = sshKey.certificate,
             )
         }
 

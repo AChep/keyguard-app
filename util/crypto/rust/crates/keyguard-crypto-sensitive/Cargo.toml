@@ -19,5 +19,9 @@ num-bigint-dig.workspace = true
 num-integer.workspace = true
 zeroize.workspace = true
 
+# Full bindings are pregenerated for desktop targets, but not every mobile ABI.
+[target.'cfg(any(target_os = "ios", target_os = "android"))'.dependencies]
+aws-lc-sys = { workspace = true, features = ["bindgen"] }
+
 [lints]
 workspace = true

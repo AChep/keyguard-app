@@ -4,9 +4,12 @@ import kotlinx.io.Source
 import kotlinx.io.asInputStream
 import kotlinx.io.asSource
 import kotlinx.io.buffered
+import net.lingala.zip4j.exception.ZipException as Zip4jException
 import net.lingala.zip4j.io.inputstream.ZipInputStream
+import net.lingala.zip4j.model.LocalFileHeader
 import net.lingala.zip4j.model.enums.EncryptionMethod
 import java.io.FilterInputStream
+import java.io.IOException
 import java.io.InputStream
 
 @Suppress("FunctionName")
@@ -27,7 +30,7 @@ private class ZipReaderJvm(
     private var encryptionRejected = false
 
     private val zipStream = createZipStream(
-        inputStream = source.asInputStream(),
+        inputStream = ZipSourceInputStream(source.asInputStream()),
         password = password,
     )
 
@@ -39,7 +42,7 @@ private class ZipReaderJvm(
         // entry's bytes.
         invalidateCurrentEntry()
 
-        val header = zipStream.nextEntry
+        val header = readNextHeader()
             ?: return null
         if (requireEncryption &&
             (!header.isEncrypted || header.encryptionMethod != EncryptionMethod.AES)
@@ -57,9 +60,13 @@ private class ZipReaderJvm(
         )
     }
 
+    private fun readNextHeader(): LocalFileHeader? = zipRead {
+        zipStream.nextEntry
+    }
+
     override fun close() {
         invalidateCurrentEntry()
-        zipStream.close()
+        zipRead { zipStream.close() }
     }
 
     private fun invalidateCurrentEntry() {
@@ -95,17 +102,17 @@ private class ZipEntryInputStream(
 
     override fun read(): Int {
         checkValid()
-        return super.read()
+        return zipRead { super.read() }
     }
 
     override fun read(b: ByteArray, off: Int, len: Int): Int {
         checkValid()
-        return super.read(b, off, len)
+        return zipRead { super.read(b, off, len) }
     }
 
     override fun skip(n: Long): Long {
         checkValid()
-        return super.skip(n)
+        return zipRead { super.skip(n) }
     }
 
     override fun close() = Unit
@@ -114,5 +121,42 @@ private class ZipEntryInputStream(
         if (!valid) {
             throw ZipException("The archive has already moved past this entry")
         }
+    }
+}
+
+/** Decoder I/O failures describe invalid bytes; source I/O failures describe storage. */
+private inline fun <T> zipRead(block: () -> T): T = try {
+    block()
+} catch (e: ZipSourceException) {
+    throw e.error
+} catch (e: IOException) {
+    throw if (e is Zip4jException && e.type == Zip4jException.Type.WRONG_PASSWORD) {
+        ZipPasswordException(cause = e)
+    } else {
+        ZipException("The archive is invalid or corrupt", cause = e)
+    }
+}
+
+/**
+ * Keep source failures out of zip4j's IOException handlers, which may replace
+ * them with password errors. Only [zipRead] unwraps this private marker.
+ */
+private class ZipSourceException(val error: IOException) : RuntimeException(error)
+
+private class ZipSourceInputStream(
+    private val delegate: InputStream,
+) : InputStream() {
+    override fun read(): Int = sourceRead { delegate.read() }
+
+    override fun read(b: ByteArray, off: Int, len: Int): Int = sourceRead { delegate.read(b, off, len) }
+
+    override fun skip(n: Long): Long = sourceRead { delegate.skip(n) }
+
+    override fun close() = sourceRead { delegate.close() }
+
+    private inline fun <T> sourceRead(block: () -> T): T = try {
+        block()
+    } catch (e: IOException) {
+        throw ZipSourceException(e)
     }
 }

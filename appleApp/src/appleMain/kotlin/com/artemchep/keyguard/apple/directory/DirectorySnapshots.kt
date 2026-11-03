@@ -38,7 +38,8 @@ data class ServiceDirectoryItemSnapshot(
     val id: String,
     val kind: ServiceDirectoryItemKind,
     val name: String,
-    val faviconUrl: String?,
+    /** Loaded with `KeyguardCore.loadIcon`; `null` if the service has no website. */
+    val faviconKey: String?,
     val highlights: List<DirectoryTextRangeSnapshot> = emptyList(),
 )
 

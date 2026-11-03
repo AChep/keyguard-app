@@ -1,5 +1,5 @@
 #!/bin/sh
-# Build KeyguardShared, generate strings, and run XcodeGen before this script.
+# Build KeyguardShared, generate strings, and run generate-projects.sh before this script.
 set -eu
 cd "$(dirname "$0")/../.."
 xcodebuild -project macosApp/Keyguard.xcodeproj \

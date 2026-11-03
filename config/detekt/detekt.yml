@@ -27,10 +27,12 @@ style:
     # half-built result away entirely. Read its KDoc in
     # common/io/RunCatchingGuards.kt before adding a file here.
     forbiddenImports:
-      - reason: 'Only the CXF import document boundary may absorb StackOverflowError/OutOfMemoryError.'
+      - reason: 'Only an import document boundary may absorb StackOverflowError/OutOfMemoryError.'
         value: 'com.artemchep.keyguard.common.io.runCatchingUntrustedInput'
     excludes:
       - '**/credentialexchange/impl/CxfImportServiceImpl.kt'
+      - '**/common/service/imports/impl/ImportServiceImpl.kt'
+      - '**/common/service/imports/impl/keyguardbackup/BackupImportServiceImpl.kt'
   MagicNumber:
     excludes:
       - '**/test/**'

@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.di
 
+import com.artemchep.keyguard.common.service.download.BitwardenAttachmentSourceLoader
+import com.artemchep.keyguard.common.service.download.BitwardenAttachmentHttpClientProvider
+import com.artemchep.keyguard.common.service.download.BitwardenAttachmentHttpClientProviderImpl
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepository
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepositoryImpl
 import com.artemchep.keyguard.common.service.backup.BackupDiagnostics
@@ -9,6 +12,8 @@ import com.artemchep.keyguard.common.service.download.KeePassAttachmentSourceLoa
 import com.artemchep.keyguard.common.service.download.KeePassAttachmentSourceResolverImpl
 import com.artemchep.keyguard.common.service.export.ExportVaultDataService
 import com.artemchep.keyguard.common.service.export.ExportVaultDataServiceImpl
+import com.artemchep.keyguard.common.service.export.KdbxExportService
+import com.artemchep.keyguard.common.service.export.impl.KdbxExportServiceImpl
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.keepass.DefaultKeePassAttachmentStorageFactory
 import com.artemchep.keyguard.common.service.keepass.KeePassAttachmentReader
@@ -23,6 +28,8 @@ import com.artemchep.keyguard.common.usecase.DownloadAttachment
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.common.usecase.ExportLogs
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
+import com.artemchep.keyguard.common.usecase.PrepareAttachmentContent
+import com.artemchep.keyguard.common.usecase.impl.PrepareAttachmentContentImpl
 import com.artemchep.keyguard.common.usecase.MarkBackupAsDirty
 import com.artemchep.keyguard.common.usecase.UploadGpgPublicKey
 import com.artemchep.keyguard.common.usecase.impl.BackupSettingsImpl
@@ -34,6 +41,7 @@ import com.artemchep.keyguard.common.usecase.impl.MarkBackupAsDirtyImpl
 import com.artemchep.keyguard.common.usecase.impl.UploadGpgPublicKeyImpl
 import com.artemchep.keyguard.provider.bitwarden.repository.BitwardenCipherRepository
 import com.artemchep.keyguard.provider.bitwarden.repository.ServiceTokenRepository
+import com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec.KeePassCipherCodec
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadGarbageCollector
 import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadGarbageCollectorImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.ExportLogsImpl
@@ -44,6 +52,8 @@ import org.koin.plugin.module.dsl.scoped
 internal class VaultTransfersModule {
     val module = module {
         scope<VaultSessionScope> {
+            scoped<BitwardenAttachmentSourceLoader>()
+            scoped<BitwardenAttachmentHttpClientProviderImpl>() bind BitwardenAttachmentHttpClientProvider::class
             scoped<BackupConfigRepository> {
                 BackupConfigRepositoryImpl(
                     store = get<VaultSettingsKeyValueStore>(),
@@ -74,6 +84,24 @@ internal class VaultTransfersModule {
 
             scoped<ExportVaultDataServiceImpl>() bind ExportVaultDataService::class
 
+            scoped<KdbxExportService> {
+                KdbxExportServiceImpl(
+                    cipherRepository = get(),
+                    getFolderTreeById = get(),
+                    cipherCodec = KeePassCipherCodec(
+                        cryptoGenerator = get(),
+                        base32Service = get(),
+                        base64Service = get(),
+                        fileService = get(),
+                        pendingUploadCoordinator = get(),
+                        getPasswordStrength = get(),
+                        json = get(),
+                        gpgKeyMetadataResolver = getOrNull(),
+                    ),
+                    stagingSpoolFactory = get(),
+                )
+            }
+
             scoped<BackupRunner> {
                 BackupRunner(
                     exportVaultDataService = get(),
@@ -91,6 +119,8 @@ internal class VaultTransfersModule {
             scoped<DownloadAttachmentImpl2>() bind DownloadAttachment::class
 
             scoped<DownloadAttachmentMetadataImpl2>() bind DownloadAttachmentMetadata::class
+
+            scoped<PrepareAttachmentContentImpl>() bind PrepareAttachmentContent::class
 
             scoped<GetAttachmentPreviewImpl>() bind GetAttachmentPreview::class
 

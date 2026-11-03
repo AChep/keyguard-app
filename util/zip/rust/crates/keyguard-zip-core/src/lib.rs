@@ -7,6 +7,7 @@
 //! travels back out. The panic boundary belongs to each bridge, not here.
 
 pub mod error;
+pub mod memory_reader;
 pub mod reader;
 pub mod registry;
 pub mod writer;
@@ -23,7 +24,7 @@ pub use reader::ArchiveReader;
 pub use writer::ArchiveWriter;
 
 /// Version of the direct native function ABI.
-pub const ABI_VERSION: u32 = 1;
+pub const ABI_VERSION: u32 = 2;
 
 /// Largest accepted entry name, in UTF-8 bytes (the customary path budget,
 /// not ZIP's 16-bit limit).
@@ -31,6 +32,9 @@ pub const MAX_ENTRY_NAME_BYTES: usize = 4096;
 
 /// Largest accepted destination path, in UTF-8 bytes.
 pub const MAX_PATH_BYTES: usize = 4096;
+
+/// Largest accepted in-memory archive, in bytes.
+pub const MAX_MEMORY_ARCHIVE_BYTES: usize = 8 * 1024 * 1024;
 
 /// Creates or truncates an archive at `path` and returns its handle.
 ///

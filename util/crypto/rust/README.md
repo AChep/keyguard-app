@@ -7,13 +7,24 @@ Multiplatform `:util:crypto` module.
   primitives, policy limits, and generation-tagged session registry.
 - `keyguard-crypto-sensitive` owns heap-stable AWS-LC digest/HMAC contexts and
   the narrowly audited, volatile-wipe adapter for pinned RustCrypto BLAKE2
-  state. It is the only non-FFI crate that contains reviewed unsafe code.
+  state, plus PKCS#12 client-identity parsing and normalization. It is the only
+  non-FFI crate that contains reviewed unsafe code.
 - `keyguard-crypto-jni` exports the nine methods on
   `com.artemchep.keyguard.nativecrypto.NativeCryptoJni`.
 - `keyguard-crypto-c` exports the Apple C ABI declared in
   `crates/keyguard-crypto-c/include/keyguard_crypto.h`.
+
+PKCS#12 uses AWS-LC full bindings. Mobile builds generate them with libclang
+(Xcode on Apple hosts, `libclang-dev` on Linux); desktop uses pregenerated bindings.
+Imported bundles contain
+one private key and a matching certificate, retain the chain, and are normalized
+with an empty password for encrypted account storage. Existing MACs must verify;
+MAC-less bundles are handled separately and never repair a failed MAC.
+Apple importers receive a temporary password wrapper in memory. macOS also
+imports the private key separately to create an identity without a keychain.
+
 The wire source of truth is `../schema/native_crypto.proto`. ABI version 1 and
-protocol version 2 are independent. Calls fail closed on an ABI/capability
+protocol version 3 are independent. Calls fail closed on an ABI/capability
 mismatch, malformed request, resource limit, stale session, or contained panic.
 Rust-owned request/response byte buffers and Argon2 memory blocks are
 zeroized, and the FFI panic hook never prints panic payloads. Digest/HMAC
@@ -24,12 +35,24 @@ exact-pinned and mechanically checked; see the
 [sensitive-context security record](../../../docs/security/native-crypto-sensitive-contexts.md)
 and architecture acceptance ledger.
 
+User ID mutation workflows share `mutation/user_id` contracts and operation-specific
+policy authorization with read metadata. Revocation capability and execution share
+the same timing and revocability plan. Signing still checks secret material and
+template support. Every certificate mutation, including revocation and expiration
+renewal, either takes effect at the request time or returns an exact retry
+timestamp at most five seconds ahead; a later conflict is terminal. New signatures
+are never dated in the future, and status is read at the request time only, as in
+Sequoia. No-op requests do not wait. Kotlin bounds automatic retries to five
+seconds, then shows the retry time and a manual Retry action; Rust never sleeps.
+Architecture checks parse production Rust paths recursively.
+
 OpenPGP designated-revoker evidence also fails closed for new-data use and
 certificate mutation. When a structurally relevant revocation names an
 authenticated Revocation Key declaration but that authority key is absent,
 the component is `Indeterminate`: it is not reported as cryptographically
 revoked, yet it cannot encrypt, sign, appear as an authorized agent key, or
-emit new certificate statements. Issuer identifiers are lookup hints rather
+emit new certificate statements. An authorized primary can still self-revoke an
+indeterminate User ID. Issuer identifiers are lookup hints rather
 than authentication, so forged hints can temporarily quarantine a component;
 supplying the exact declared authority key resolves that availability tradeoff
 by either verifying or disproving the revocation. Historical verification and
@@ -72,7 +95,7 @@ Install `protoc`, then verify that the checked-in Rust protocol still matches
 the wire schema before running the workspace checks:
 
 ```sh
-cargo run --manifest-path ../tools/native-crypto-protocol/Cargo.toml --locked -- check
+python3 ../../../scripts/native_protocol.py check crypto
 cargo fmt --all -- --check
 cargo clippy --workspace --all-targets --locked --no-deps -- -D warnings
 cargo test --workspace --all-targets --locked
@@ -86,12 +109,13 @@ After changing `../schema/native_crypto.proto`, regenerate the Rust protocol
 with:
 
 ```sh
-cargo run --manifest-path ../tools/native-crypto-protocol/Cargo.toml --locked -- generate
+python3 ../../../scripts/native_protocol.py generate crypto
 ```
 
 Run the bounded fuzz targets with `cargo fuzz run dispatch`,
 `cargo fuzz run session_lifecycle`, `cargo fuzz run ssh_private_key_import`,
-and `cargo fuzz run openpgp_read`. Release performance baselines are
+`cargo fuzz run ssh_certificate_describe`, and `cargo fuzz run openpgp_read`.
+Release performance baselines are
 `cargo bench -p keyguard-crypto-core --bench argon2` and
 `cargo bench -p keyguard-crypto-core --bench bulk_primitives`. The diagnostic
 `small_primitives` bench separates fused protobuf encode/dispatch cost from the

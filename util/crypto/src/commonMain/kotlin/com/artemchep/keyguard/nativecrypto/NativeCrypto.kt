@@ -52,11 +52,12 @@ public enum class NativeCryptoCapability(
     OPENPGP_STREAM_DRAIN(bit = 1L shl 34),
     /** Native OpenPGP generation and certificate mutations support V4 and V6. */
     OPENPGP_V6_GENERATION_MUTATION(bit = 1L shl 35),
+    PKCS12(bit = 1L shl 36),
 }
 
 public object NativeCrypto {
     public const val EXPECTED_ABI_VERSION: Int = 1
-    public const val PROTOCOL_VERSION: Int = 2
+    public const val PROTOCOL_VERSION: Int = 3
     public const val MAX_CONTROL_ENVELOPE_BYTES: Int = 16 * 1024 * 1024
 
     private val client: NativeCryptoClient by lazy {

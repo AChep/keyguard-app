@@ -9,6 +9,7 @@ import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.DeleteForever
+import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.EditNotifications
 import androidx.compose.material.icons.outlined.FileCopy
@@ -65,6 +66,7 @@ import com.artemchep.keyguard.common.usecase.UnarchiveCipherById
 import com.artemchep.keyguard.common.usecase.UploadGpgPublicKey
 import com.artemchep.keyguard.common.usecase.VerifyGpgPublicKey
 import com.artemchep.keyguard.common.util.StringComparatorIgnoreCase
+import com.artemchep.keyguard.feature.cliagent.history.CliAgentHistoryRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
@@ -88,6 +90,7 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.feature.send.add.SendAddRoute
+import com.artemchep.keyguard.feature.environments.mount.EnvironmentMountRoute
 import com.artemchep.keyguard.feature.sshagent.history.SshAgentHistoryRoute
 import com.artemchep.keyguard.platform.LeSystem
 import com.artemchep.keyguard.res.Res
@@ -852,10 +855,8 @@ fun RememberStateFlowScope.cipherCopyToAction(
             val ciphersHaveAttachments = ciphers.any { it.attachments.isNotEmpty() }
             val note = when {
                 ciphersHaveAttachments -> {
-                    val text =
-                        "Copying a cipher does not copy its attachments, this feature is work in progress."
                     SimpleNote(
-                        text = text,
+                        text = translate(Res.string.ciphers_copy_attachments_note),
                         type = SimpleNote.Type.INFO,
                     )
                 }
@@ -870,6 +871,7 @@ fun RememberStateFlowScope.cipherCopyToAction(
                             note = note,
                             icon = iconImageVector,
                         ),
+                        accountChangeWarnings = cipherCopyWarnings(ciphers) { translate(it) },
                     ),
                 ),
             ) { result ->
@@ -1187,6 +1189,24 @@ fun RememberStateFlowScope.cipherViewPasswordHistoryAction(
     )
 }
 
+fun RememberStateFlowScope.cipherCreateEnvironmentMountAction(
+    cipher: DSecret,
+) = kotlin.run {
+    FlatItemAction(
+        id = "cipher.createEnvironmentMount",
+        leading = icon(Icons.Outlined.Description),
+        title = Res.string.environments_mount_create.wrap(),
+        onClick = {
+            val intent = NavigationIntent.NavigateToRoute(
+                EnvironmentMountRoute(
+                    environmentId = cipher.id,
+                ),
+            )
+            navigate(intent)
+        },
+    )
+}
+
 fun RememberStateFlowScope.cipherViewSshAgentHistoryAction(
     cipher: DSecret,
 ) = kotlin.run {
@@ -1200,6 +1220,28 @@ fun RememberStateFlowScope.cipherViewSshAgentHistoryAction(
         onClick = {
             val intent = NavigationIntent.NavigateToRoute(
                 SshAgentHistoryRoute(
+                    cipherId = cipher.id,
+                ),
+            )
+            navigate(intent)
+        },
+    )
+}
+
+/** The CLI, MCP and local `.env` file requests that reached an environment. */
+fun RememberStateFlowScope.cipherViewCliAgentHistoryAction(
+    cipher: DSecret,
+) = kotlin.run {
+    FlatItemAction(
+        id = "cipher.viewCliAgentHistory",
+        leading = icon(Icons.Outlined.History),
+        title = Res.string.ciphers_action_view_request_log_title.wrap(),
+        trailing = {
+            ChevronIcon()
+        },
+        onClick = {
+            val intent = NavigationIntent.NavigateToRoute(
+                CliAgentHistoryRoute(
                     cipherId = cipher.id,
                 ),
             )

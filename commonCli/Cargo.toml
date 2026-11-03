@@ -1,0 +1,33 @@
+[package]
+name = "keyguard-cli-protocol"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+description = "The wire contract of the keyguard CLI and its agent, and the client side of their transport"
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+anyhow.workspace = true
+keyguard-agent-identity.workspace = true
+keyguard-agent-ipc.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+tokio = { workspace = true, features = ["io-util", "net", "time"] }
+zeroize.workspace = true
+
+[target.'cfg(unix)'.dependencies]
+dirs.workspace = true
+
+[target.'cfg(windows)'.dependencies]
+hex.workspace = true
+sha2.workspace = true
+windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_System_Threading"] }
+
+[dev-dependencies]
+tempfile.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
+
+[lints.clippy]
+undocumented_unsafe_blocks = "deny"

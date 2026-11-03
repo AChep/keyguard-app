@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.usecase.RunBackupNow
 import com.artemchep.keyguard.common.usecase.TestBackupLocation
 import com.artemchep.keyguard.feature.home.settings.backups.AutomaticBackupsSettingsState
 import com.artemchep.keyguard.feature.home.settings.backups.automaticBackupsSettingsStateProducer
+import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
@@ -27,10 +28,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.flow.first
 import org.jetbrains.compose.resources.getString
+import org.koin.core.scope.Scope
 
 /** Shared saved configuration and backup status; each setup wizard owns its editor. */
 internal class BackupsController(
     private val ctx: CoreContext,
+    /** Shows the producer's account picker and opens its import screen. */
+    private val navigationInterceptor: (Scope) -> (NavigationIntent) -> Boolean,
 ) {
     // BackupConfigRepository is session-scoped; resolved per-session in
     // observeBackupSettings and cached for disableBackup.
@@ -62,10 +66,15 @@ internal class BackupsController(
                 ctx.publishOnMain {
                     backupConfigRepositoryRef = repository
                 }
-                ctx.koin.newHeadlessStateFlowScope("settings_automatic_backups", this)
+                ctx.koin.newHeadlessStateFlowScope(
+                    name = "settings_automatic_backups",
+                    scope = this,
+                    navigationInterceptor = navigationInterceptor(sessionKoin),
+                )
                     .automaticBackupsSettingsStateProducer(
                         backupConfigRepository = sessionKoin.get(),
                         runBackupNow = sessionKoin.get(),
+                        getAccounts = sessionKoin.get(),
                     )
             } catch (e: CancellationException) {
                 throw e
@@ -174,6 +183,10 @@ internal class BackupsController(
     }
 
     fun isValidBackupWebDavUrl(url: String): Boolean = isValidWebDavCollectionUrl(url)
+
+    fun importFromBackup() {
+        latestBackupState?.onImport?.invoke()
+    }
 
     fun triggerBackupNow() {
         val state = latestBackupState ?: return

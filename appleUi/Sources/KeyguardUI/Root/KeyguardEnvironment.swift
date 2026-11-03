@@ -28,6 +28,8 @@ private struct KeyguardEnvironment: ViewModifier {
             .environment(model.wordlists)
             .environment(model.sshAgent)
             .environment(model.gpgAgent)
+            .environment(model.environmentAccess)
+            .environment(model.cliAccess)
             .environment(model.quickSearch)
             .environment(model.appInformation)
             .environment(model.settings)
@@ -38,6 +40,7 @@ private struct KeyguardEnvironment: ViewModifier {
             .environment(model.subscriptions)
             .environment(model.navigationSettings)
             .environment(model.backups)
+            .environment(\.iconImageLoader, model.icons)
             #if os(iOS)
         .environment(model.screenAwake)
             #endif

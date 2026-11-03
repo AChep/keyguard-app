@@ -5,6 +5,10 @@ import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfExportSe
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.ImportResult
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.test.FakeSshKeyImportService
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -29,7 +33,7 @@ class CxfConformanceBehaviorTest {
         sshKeyPkcs8Exporter = FakeSshKeyPkcs8Exporter(FAKE_PKCS8_DER),
     )
 
-    private fun parse(payload: String): CxfImportPlan =
+    private fun parse(payload: String): ImportPlan =
         service.parseSuccessPlan(payload = payload, now = now)
 
     @Test
@@ -65,13 +69,13 @@ class CxfConformanceBehaviorTest {
         // turn "Steam" into an otpauth SHA-1 credential carrying a Steam
         // secret, i.e. one that can never produce a valid code.
         val cased = parse(documentWithItems(totpItemJson(algorithm = " SHA256 ")))
-        assertEquals(0, cased.skips[CxfImportSkipReason.Otp])
+        assertEquals(0, cased.skips[ImportSkipReason.Otp])
         assertEquals(
             "otpauth://totp/?secret=JBSWY3DPEHPK3PXP&algorithm=SHA256",
             cased.items.single().request.login.totp,
         )
         val steam = parse(documentWithItems(totpItemJson(algorithm = "STEAM")))
-        assertEquals(0, steam.skips[CxfImportSkipReason.Otp])
+        assertEquals(0, steam.skips[ImportSkipReason.Otp])
         assertEquals("steam://JBSWY3DPEHPK3PXP", steam.items.single().request.login.totp)
     }
 
@@ -140,7 +144,7 @@ class CxfConformanceBehaviorTest {
         // An unreadable `collections` member is one count for unknowably many:
         // there is no way to say how many folders were behind it.
         assertEquals(1, plan.skips.totalCount)
-        assertEquals(1, plan.skips[CxfImportSkipReason.Collection])
+        assertEquals(1, plan.skips[ImportSkipReason.Collection])
         val item = plan.items.single()
         assertEquals("alice", item.request.login.username)
         assertNull(item.folderKey)
@@ -198,17 +202,17 @@ class CxfConformanceBehaviorTest {
         )
         assertEquals(
             listOf(
-                Triple("account-0/0", null, "L1"),
-                Triple("account-0/1", "account-0/0", "L2"),
-                Triple("account-0/2", "account-0/1", "L3"),
-                Triple("account-0/3", "account-0/2", "L4"),
+                Triple("folder-0", null, "L1"),
+                Triple("folder-1", "folder-0", "L2"),
+                Triple("folder-2", "folder-1", "L3"),
+                Triple("folder-3", "folder-2", "L4"),
             ),
             plan.folders.map { Triple(it.key, it.parentKey, it.title) },
         )
     }
 
     @Test
-    fun `two accounts import with namespaced folders and foreign links ignored`() {
+    fun `two accounts import with separate folders and foreign links ignored`() {
         // §3.2.2.1 LinkedItem: an absent `account` member means the enclosing
         // account; a present one names the owning account. Item ids are only
         // unique per account, so account-1 linking account-0's "aXRlbTAx"
@@ -217,15 +221,15 @@ class CxfConformanceBehaviorTest {
         assertEquals(2, plan.sourceAccountCount)
         assertEquals(
             listOf(
-                Triple("account-0/0", null, "Work"),
-                Triple("account-1/0", null, "Home"),
+                Triple("folder-0", null, "Work"),
+                Triple("folder-1", null, "Home"),
             ),
             plan.folders.map { Triple(it.key, it.parentKey, it.title) },
         )
         val alpha = plan.items.single { it.request.title == "Alpha" }
-        assertEquals("account-0/0", alpha.folderKey)
+        assertEquals("folder-0", alpha.folderKey)
         val beta = plan.items.single { it.request.title == "Beta" }
-        assertEquals("account-1/0", beta.folderKey)
+        assertEquals("folder-1", beta.folderKey)
         // Account-1's own item shares the id of account-0's foreign-linked
         // item and must stay unfoldered.
         val gamma = plan.items.single { it.request.title == "Gamma" }
@@ -240,7 +244,7 @@ class CxfConformanceBehaviorTest {
             payload = """{"version":{"major":1,"minor":3,"errata":20260309},"accounts":[]}""",
             now = now,
         )
-        assertIs<CxfImportResult.Success>(result)
+        assertIs<ImportResult.Success>(result)
     }
 }
 

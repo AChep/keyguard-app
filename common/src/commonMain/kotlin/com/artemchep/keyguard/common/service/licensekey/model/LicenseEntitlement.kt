@@ -67,27 +67,35 @@ sealed interface LicenseEntitlement {
  */
 fun LicenseEntitlement.isCurrentlyLicensed(
     now: Instant = Clock.System.now(),
-): Boolean {
+): Boolean = licensedUntil()?.isCurrentlyLicensed(now) ?: false
+
+/**
+ * Returns the expiry until which this license grants premium,
+ * or `null` if it grants none.
+ */
+fun LicenseEntitlement.licensedUntil(): Expiry? {
     when (status) {
         LicenseStatus.INVALID,
         LicenseStatus.REVOKED,
         LicenseStatus.REFUNDED,
-            -> return false
+            -> return null
 
         else -> Unit
     }
     return when (this) {
-        is Decoded -> isExpiryCurrentlyLicensed(expiry, now)
-        is Undecodable -> false
+        is Decoded -> expiry
+        is Undecodable -> null
     }
 }
 
-private fun isExpiryCurrentlyLicensed(
-    expiry: Expiry,
-    now: Instant,
-): Boolean = when (expiry) {
+/**
+ * Return this expiry grants premium right now.
+ */
+fun Expiry.isCurrentlyLicensed(
+    now: Instant = Clock.System.now(),
+): Boolean = when (this) {
     Expiry.Lifetime -> true
-    is Expiry.PaidThrough -> currentYearMonthUtc(now) <= expiry.yearMonth
+    is Expiry.PaidThrough -> currentYearMonthUtc(now) <= yearMonth
 }
 
 private fun currentYearMonthUtc(now: Instant): String {

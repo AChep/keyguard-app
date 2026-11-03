@@ -77,6 +77,22 @@ sealed interface PendingUploadTarget {
     }
 
     /**
+     * Pending upload for a cipher attachment staged before its cipher has an
+     * id, e.g. by an import that encrypts the files of an archive as it reads
+     * them, before it creates any cipher.
+     *
+     * Shares the namespace of [CipherAttachment], so the files are swept the
+     * same way; [attachmentId] alone keeps them apart, as it is a fresh UUID.
+     */
+    data class NewCipherAttachment(
+        override val accountId: String,
+        val attachmentId: String,
+    ) : PendingUploadTarget {
+        override val namespace: String = CipherAttachment.NAMESPACE
+        override val fileId: String = attachmentId
+    }
+
+    /**
      * Pending upload for a Bitwarden Send file.
      *
      * A send has at most one file payload, so [sendId] is sufficient as the

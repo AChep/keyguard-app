@@ -11,6 +11,12 @@ final class AccountsModel: SnapshotObserving {
         self.core = core
     }
 
+    func makeClientCertificateModel(accountId: String) -> AccountClientCertificateModel {
+        let session = core.makeAccountClientCertificateSession(accountId: accountId)
+        return AccountClientCertificateModel(
+            session: session, dialogs: DialogsModel(core: core, formDialogs: session.dialogs))
+    }
+
     func makeDetailSession(accountId: String) -> AccountDetailSession {
         core.makeAccountDetailSession(accountId: accountId)
     }

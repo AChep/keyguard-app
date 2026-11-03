@@ -135,6 +135,7 @@ fun DFilter.Primitive.existsIn(
     // materialized raw-password set); the caller must fall back.
     is DFilter.ByPasswordValue,
     is DFilter.ByWeakSshKeys,
+    is DFilter.ByUnusableSshCertificates,
     is DFilter.ByUnusableGpgKeys,
     is DFilter.ByWeakGpgKeys,
     is DFilter.ByGpgKeyPublishing,

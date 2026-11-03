@@ -13,6 +13,7 @@ class OrganizationConfirmationRoute(
     data class Args(
         val decor: Decor,
         val flags: Int = 0,
+        val accountChangeWarnings: List<AccountChangeWarning> = emptyList(),
         // selection
         val accountId: String? = null,
         val accountType: AccountType? = null,

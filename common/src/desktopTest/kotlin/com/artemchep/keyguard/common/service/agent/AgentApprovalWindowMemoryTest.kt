@@ -307,6 +307,50 @@ class AgentApprovalWindowMemoryTest {
     }
 
     @Test
+    fun `idle approvals expire while each lookup extends them up to the window`() = runTest {
+        val vault = createVaultSession()
+        val timeSource = TestTimeSource()
+        val memory = AgentApprovalWindowMemory<String, TestPolicy>(
+            approvalCacheConfig = fixedAgentApprovalCacheConfig(30.minutes, TestPolicy.Application),
+            getVaultSession = FixedVaultSession(vault),
+            scope = backgroundScope,
+            idleTimeout = 10.minutes,
+            timeSource = timeSource,
+        )
+        val session = memory.getOrGenerateSession(vault)
+        session.access { "key" }.remember()
+        repeat(3) {
+            timeSource += 9.minutes
+            assertTrue(session.access { "key" }.isRemembered)
+        }
+        timeSource += 4.minutes
+        assertFalse(session.access { "key" }.isRemembered, "The window stays the hard limit")
+
+        session.access { "key" }.remember()
+        timeSource += 10.minutes
+        assertFalse(session.access { "key" }.isRemembered)
+    }
+
+    @Test
+    fun `invalidating every approval also rejects a pending remember`() = runTest {
+        val vault = createVaultSession()
+        val memory = AgentApprovalWindowMemory<String, TestPolicy>(
+            createApprovalCacheConfig(), FixedVaultSession(vault), backgroundScope,
+        )
+        val session = memory.getOrGenerateSession(vault)
+        session.access { "a" }.remember()
+        val remembered = session.access { "a" }
+        val pending = session.access { "b" }
+
+        memory.invalidateAll()
+        pending.remember()
+
+        assertFalse(remembered.canReuseNow())
+        assertFalse(session.access { "a" }.isRemembered)
+        assertFalse(session.access { "b" }.isRemembered)
+    }
+
+    @Test
     fun `providers without an immediate snapshot cannot authorize reuse`() = runTest {
         val vault = createVaultSession()
         val config = AgentApprovalCacheConfigProvider {
@@ -318,6 +362,45 @@ class AgentApprovalWindowMemoryTest {
         val remembered = session.access { "key" }
         assertTrue(remembered.isRemembered)
         assertFalse(remembered.canReuseNow())
+    }
+
+    @Test
+    fun `never ask approves every request of the unlocked session`() = runTest {
+        val vault = createVaultSession()
+        val memory = AgentApprovalWindowMemory<String, TestPolicy>(
+            createApprovalCacheConfig(approvalWindow = AGENT_APPROVAL_WINDOW_NEVER_ASK),
+            FixedVaultSession(vault),
+            backgroundScope,
+        )
+        val session = memory.getOrGenerateSession(vault)
+        val access = session.access { "key" }
+        assertTrue(access.isRemembered)
+        assertTrue(access.canReuseNow())
+        // A request that can not be remembered is approved too.
+        val unidentified = session.access { null }
+        assertTrue(unidentified.isRemembered)
+        assertTrue(unidentified.canReuseNow())
+
+        memory.clearSession()
+        assertFalse(access.canReuseNow())
+        assertFalse(session.access { "key" }.isRemembered)
+        val nextSession = memory.getOrGenerateSession(vault)
+        assertTrue(nextSession.access { "key" }.canReuseNow())
+    }
+
+    @Test
+    fun `leaving never ask asks again`() = runTest {
+        val vault = createVaultSession()
+        val config = createApprovalCacheConfig(approvalWindow = AGENT_APPROVAL_WINDOW_NEVER_ASK)
+        val memory = AgentApprovalWindowMemory<String, TestPolicy>(config, FixedVaultSession(vault), backgroundScope)
+        val session = memory.getOrGenerateSession(vault)
+        val access = session.access { "key" }
+        access.remember()
+
+        config.updateApprovalWindow(Duration.INFINITE, persist = {})()
+
+        assertFalse(access.canReuseNow())
+        assertFalse(session.access { "key" }.isRemembered, "Never ask remembers nothing")
     }
 
     private enum class TestPolicy {

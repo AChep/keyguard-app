@@ -6,7 +6,7 @@ import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.common.usecase.GetTotpCode
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
-import com.artemchep.keyguard.feature.home.vault.model.resolveWebsiteIconUrl
+import com.artemchep.keyguard.feature.home.vault.model.iconKey
 import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import kotlinx.coroutines.CoroutineScope
@@ -29,8 +29,9 @@ enum class QuickSearchHeadlessEmptyState {
 
 data class QuickSearchHeadlessItem(
     val id: String,
-    val iconUrl: String?,
-    /** Initials to render when [iconUrl] is `null` / fails to load. */
+    /** The website icon key, loaded by the platform image loader. */
+    val iconKey: String?,
+    /** Initials to render when [iconKey] is `null` / fails to load. */
     val iconPlaceholder: String?,
     val token: TotpToken?,
 )
@@ -176,7 +177,7 @@ private fun QuickSearchState.toHeadless(): QuickSearchHeadlessState = QuickSearc
     results = results.map { r ->
         QuickSearchHeadlessItem(
             id = r.item.id,
-            iconUrl = r.item.icon.resolveWebsiteIconUrl(),
+            iconKey = r.item.icon.iconKey(),
             iconPlaceholder = VaultItemIcon.TextIcon.short(r.item.title.text).text,
             token = r.item.token,
         )

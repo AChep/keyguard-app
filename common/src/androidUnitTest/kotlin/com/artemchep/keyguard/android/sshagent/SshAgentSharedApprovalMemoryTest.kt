@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.AgentCallerAuthorizationSchema
 import com.artemchep.keyguard.common.service.agent.CallerAuthorization
 import com.artemchep.keyguard.common.service.agent.CallerAuthorizationSubject
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.sshagent.SshAgentApprovalWindowMemory
 import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
@@ -183,7 +184,7 @@ class SshAgentSharedApprovalMemoryTest {
             publicKey = publicKey,
             data = byteArrayOf(1, 2, 3),
             flags = 0x02,
-            caller = SshAgentMessages.CallerIdentity(
+            caller = CallerIdentity(
                 appName = "Verified app",
                 appBundlePath = "com.example.app",
                 authorization = CallerAuthorization(

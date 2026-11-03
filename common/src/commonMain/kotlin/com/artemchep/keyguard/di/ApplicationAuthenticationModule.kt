@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
 import com.artemchep.keyguard.common.service.notification.NotificationFingerprintRepository
 import com.artemchep.keyguard.common.service.notification.impl.NotificationFingerprintRepositoryImpl
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
+import com.artemchep.keyguard.common.service.session.VaultSessionPersister
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepository
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentPublicKeyRepositoryImpl
 import com.artemchep.keyguard.common.service.vault.FingerprintReadRepository
@@ -136,6 +137,8 @@ internal class ApplicationAuthenticationModule {
                 scope = GlobalScope,
             )
         }
+
+        single<VaultSessionPersister>()
 
         single<PutVaultSessionImpl>() bind PutVaultSession::class
 

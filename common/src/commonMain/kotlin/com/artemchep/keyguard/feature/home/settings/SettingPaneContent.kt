@@ -25,7 +25,6 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAboutAppCha
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutAppProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutTeamProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutTelegramProvider
-import com.artemchep.keyguard.feature.home.settings.component.settingApkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAppIconsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillBlockUriProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillCopyTotpProvider
@@ -68,6 +67,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingFeedbackApp
 import com.artemchep.keyguard.feature.home.settings.component.settingFontProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGitHubProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentApprovalCachePolicyProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentApprovalTimeoutProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentApprovalWindowProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentDisplayKeyNamesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentFiltersProvider
@@ -80,6 +80,23 @@ import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserve
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverRefreshIntervalProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverSearchProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverUrlProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsCreateProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsListProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpSetupProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpApprovalTimeoutProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpSettingsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMountsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCliApprovalTimeoutProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCliApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCliProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCliSettingsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCliSetupProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingCliHistoryProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsHistoryProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpHistoryProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGravatarProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingHibpApiTokenProvider
@@ -87,6 +104,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingKeepScreenO
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchAppPicker
 import com.artemchep.keyguard.feature.home.settings.component.settingLaunchYubiKey
 import com.artemchep.keyguard.feature.home.settings.component.settingLicenseClaimProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingLicensePurchaseProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingLocalizationProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingLogsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingMarkdownProvider
@@ -113,7 +131,9 @@ import com.artemchep.keyguard.feature.home.settings.component.settingScreenshots
 import com.artemchep.keyguard.feature.home.settings.component.settingSectionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSelectLocaleProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalCachePolicyProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalTimeoutProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentBookmarksConfigProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentDisplayKeyNamesProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentFiltersProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentHistoryProvider
@@ -128,7 +148,9 @@ import com.artemchep.keyguard.feature.home.settings.component.settingThemeExpres
 import com.artemchep.keyguard.feature.home.settings.component.settingThemeUseAmoledDarkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutLandscapeProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingTwoPanelLayoutPortraitProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingUiScaleProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingUnreadWatchtowerAlerts
+import com.artemchep.keyguard.feature.home.settings.component.settingKeyboardShortcutsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingUrlOverrideProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingUseExternalBrowserProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingVaultClearProvider
@@ -227,19 +249,40 @@ object Setting {
     const val FEATURES_OVERVIEW = "features_overview"
     const val URL_OVERRIDE = "url_override"
     const val WEBDAV_TRANSACTIONS = "webdav_transactions"
+    const val KEYBOARD_SHORTCUTS = "keyboard_shortcuts"
     const val CONNECTED_APPS = "connected_apps"
     const val SSH_SETTINGS = "ssh_settings"
     const val SSH_AGENT = "ssh_agent"
     const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
+    const val SSH_AGENT_APPROVAL_TIMEOUT = "ssh_agent_approval_timeout"
     const val SSH_AGENT_APPROVAL_CACHE_POLICY = "ssh_agent_approval_cache_policy"
     const val SSH_AGENT_DISPLAY_KEY_NAMES = "ssh_agent_display_key_names"
+    const val SSH_AGENT_BOOKMARKS_CONFIG = "ssh_agent_bookmarks_config"
     const val SSH_AGENT_LOCAL_STORAGE_INFO = "ssh_agent_local_storage_info"
     const val SSH_AGENT_SETUP = "ssh_agent_setup"
     const val SSH_AGENT_FILTERS = "ssh_agent_filters"
     const val SSH_AGENT_HISTORY = "ssh_agent_history"
+    const val CLI_SETTINGS = "cli_settings"
+    const val CLI = "cli"
+    const val CLI_APPROVAL_WINDOW = "cli_approval_window"
+    const val CLI_APPROVAL_TIMEOUT = "cli_approval_timeout"
+    const val CLI_SETUP = "cli_setup"
+    const val CLI_HISTORY = "cli_history"
+    const val ENVIRONMENTS = "environments"
+    const val ENVIRONMENTS_MCP_SETTINGS = "environments_mcp_settings"
+    const val ENVIRONMENTS_MCP_APPROVAL_WINDOW = "environments_mcp_approval_window"
+    const val ENVIRONMENTS_MCP_APPROVAL_TIMEOUT = "environments_mcp_approval_timeout"
+    const val ENVIRONMENTS_MCP = "environments_mcp"
+    const val ENVIRONMENTS_MCP_SETUP = "environments_mcp_setup"
+    const val ENVIRONMENTS_MCP_HISTORY = "environments_mcp_history"
+    const val ENVIRONMENTS_LIST = "environments_list"
+    const val ENVIRONMENTS_CREATE = "environments_create"
+    const val ENVIRONMENTS_MOUNTS = "environments_mounts"
+    const val ENVIRONMENTS_HISTORY = "environments_history"
     const val GPG_SETTINGS = "gpg_settings"
     const val GPG_AGENT = "gpg_agent"
     const val GPG_AGENT_APPROVAL_WINDOW = "gpg_agent_approval_window"
+    const val GPG_AGENT_APPROVAL_TIMEOUT = "gpg_agent_approval_timeout"
     const val GPG_AGENT_APPROVAL_CACHE_POLICY = "gpg_agent_approval_cache_policy"
     const val GPG_AGENT_DISPLAY_KEY_NAMES = "gpg_agent_display_key_names"
     const val GPG_AGENT_LOCAL_STORAGE_INFO = "gpg_agent_local_storage_info"
@@ -261,6 +304,7 @@ object Setting {
     const val USE_EXTERNAL_BROWSER = "use_external_browser"
     const val CLOSE_TO_TRAY = "close_to_tray"
     const val MINIMIZE_ON_COPY = "minimize_on_copy"
+    const val UI_SCALE = "ui_scale"
     const val APP_ICONS = "app_icons"
     const val WEBSITE_ICONS = "website_icons"
     const val CHECK_PWNED_PASSWORDS = "check_pwned_passwords"
@@ -271,10 +315,10 @@ object Setting {
     const val CLEAR_CACHE = "clear_cache"
     const val RESET_WATCHTOWER_ALERTS = "reset_watchtower_alerts"
     const val UNREAD_WATCHTOWER_ALERTS = "unread_watchtower_alerts"
-    const val APK = "apk"
     const val SUBSCRIPTIONS = "subscriptions"
     const val SUBSCRIPTIONS_IN_STORE = "subscriptions_in_store"
     const val SUBSCRIPTIONS_DEBUG = "subscriptions_debug"
+    const val LICENSE_PURCHASE = "license_purchase"
     const val LICENSE_CLAIM = "license_claim"
     const val LICENSE_REDEEM = "license_redeem"
     const val SCREEN_DELAY = "screen_delay"
@@ -360,19 +404,40 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.FEATURES_OVERVIEW to ::settingFeaturesOverviewProvider,
     Setting.URL_OVERRIDE to ::settingUrlOverrideProvider,
     Setting.WEBDAV_TRANSACTIONS to ::settingWebDavTransactionsProvider,
+    Setting.KEYBOARD_SHORTCUTS to ::settingKeyboardShortcutsProvider,
     Setting.CONNECTED_APPS to ::settingConnectedAppsProvider,
     Setting.SSH_SETTINGS to ::settingSshSettingsProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,
     Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,
+    Setting.SSH_AGENT_APPROVAL_TIMEOUT to ::settingSshAgentApprovalTimeoutProvider,
     Setting.SSH_AGENT_APPROVAL_CACHE_POLICY to ::settingSshAgentApprovalCachePolicyProvider,
     Setting.SSH_AGENT_DISPLAY_KEY_NAMES to ::settingSshAgentDisplayKeyNamesProvider,
+    Setting.SSH_AGENT_BOOKMARKS_CONFIG to ::settingSshAgentBookmarksConfigProvider,
     Setting.SSH_AGENT_LOCAL_STORAGE_INFO to ::settingSshAgentLocalStorageInfoProvider,
     Setting.SSH_AGENT_SETUP to ::settingSshAgentSetupProvider,
     Setting.SSH_AGENT_FILTERS to ::settingSshAgentFiltersProvider,
     Setting.SSH_AGENT_HISTORY to ::settingSshAgentHistoryProvider,
+    Setting.CLI_SETTINGS to ::settingCliSettingsProvider,
+    Setting.CLI to ::settingCliProvider,
+    Setting.CLI_APPROVAL_WINDOW to ::settingCliApprovalWindowProvider,
+    Setting.CLI_APPROVAL_TIMEOUT to ::settingCliApprovalTimeoutProvider,
+    Setting.CLI_SETUP to ::settingCliSetupProvider,
+    Setting.CLI_HISTORY to ::settingCliHistoryProvider,
+    Setting.ENVIRONMENTS to ::settingEnvironmentsProvider,
+    Setting.ENVIRONMENTS_MCP_SETTINGS to ::settingEnvironmentsMcpSettingsProvider,
+    Setting.ENVIRONMENTS_MCP_APPROVAL_WINDOW to ::settingEnvironmentsMcpApprovalWindowProvider,
+    Setting.ENVIRONMENTS_MCP_APPROVAL_TIMEOUT to ::settingEnvironmentsMcpApprovalTimeoutProvider,
+    Setting.ENVIRONMENTS_MCP to ::settingEnvironmentsMcpProvider,
+    Setting.ENVIRONMENTS_MCP_SETUP to ::settingEnvironmentsMcpSetupProvider,
+    Setting.ENVIRONMENTS_MCP_HISTORY to ::settingEnvironmentsMcpHistoryProvider,
+    Setting.ENVIRONMENTS_LIST to ::settingEnvironmentsListProvider,
+    Setting.ENVIRONMENTS_CREATE to ::settingEnvironmentsCreateProvider,
+    Setting.ENVIRONMENTS_MOUNTS to ::settingEnvironmentsMountsProvider,
+    Setting.ENVIRONMENTS_HISTORY to ::settingEnvironmentsHistoryProvider,
     Setting.GPG_SETTINGS to ::settingGpgSettingsProvider,
     Setting.GPG_AGENT to ::settingGpgAgentProvider,
     Setting.GPG_AGENT_APPROVAL_WINDOW to ::settingGpgAgentApprovalWindowProvider,
+    Setting.GPG_AGENT_APPROVAL_TIMEOUT to ::settingGpgAgentApprovalTimeoutProvider,
     Setting.GPG_AGENT_APPROVAL_CACHE_POLICY to ::settingGpgAgentApprovalCachePolicyProvider,
     Setting.GPG_AGENT_DISPLAY_KEY_NAMES to ::settingGpgAgentDisplayKeyNamesProvider,
     Setting.GPG_AGENT_LOCAL_STORAGE_INFO to ::settingGpgAgentLocalStorageInfoProvider,
@@ -395,6 +460,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.USE_EXTERNAL_BROWSER to ::settingUseExternalBrowserProvider,
     Setting.CLOSE_TO_TRAY to ::settingCloseToTrayProvider,
     Setting.MINIMIZE_ON_COPY to ::settingMinimizeOnCopyProvider,
+    Setting.UI_SCALE to ::settingUiScaleProvider,
     Setting.APP_ICONS to ::settingAppIconsProvider,
     Setting.WEBSITE_ICONS to ::settingWebsiteIconsProvider,
     Setting.CHECK_PWNED_PASSWORDS to ::settingCheckPwnedPasswordsProvider,
@@ -405,10 +471,10 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.CLEAR_CACHE to ::settingClearCache,
     Setting.RESET_WATCHTOWER_ALERTS to ::settingResetWatchtowerAlerts,
     Setting.UNREAD_WATCHTOWER_ALERTS to ::settingUnreadWatchtowerAlerts,
-    Setting.APK to ::settingApkProvider,
     Setting.SUBSCRIPTIONS to ::settingSubscriptionsProvider,
     Setting.SUBSCRIPTIONS_IN_STORE to ::settingSubscriptionsPlayStoreProvider,
     Setting.SUBSCRIPTIONS_DEBUG to ::settingSubscriptionsDebug,
+    Setting.LICENSE_PURCHASE to ::settingLicensePurchaseProvider,
     Setting.LICENSE_CLAIM to ::settingLicenseClaimProvider,
     Setting.LICENSE_REDEEM to ::settingRedeemLicenseProvider,
     Setting.SCREEN_DELAY to ::settingScreenDelay,

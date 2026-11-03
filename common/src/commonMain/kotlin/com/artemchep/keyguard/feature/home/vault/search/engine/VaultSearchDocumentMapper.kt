@@ -161,7 +161,8 @@ internal fun searchableCustomFieldNames(
     source: DSecret,
 ): List<String> = source.fields
     .mapNotNull(::searchableCustomFieldName)
-    .orEmpty()
+    .orEmpty() + (source.environment as? com.artemchep.keyguard.feature.environments.EnvironmentPayload.Decoded)
+    ?.definition?.variables.orEmpty().map { it.name }.filter(String::isNotBlank)
 
 internal fun searchableCustomFieldValue(
     field: DSecret.Field,

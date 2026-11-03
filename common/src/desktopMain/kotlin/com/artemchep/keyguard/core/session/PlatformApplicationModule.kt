@@ -7,6 +7,8 @@ import com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability
 import arrow.core.partially1
 import arrow.optics.Getter
 import com.artemchep.autotype.biometricsIsSupported
+import com.artemchep.keyguard.common.PlatformTemporaryArtifactRootRegistry
+import com.artemchep.keyguard.common.TemporaryArtifactRoot
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.effectMap
@@ -19,6 +21,7 @@ import com.artemchep.keyguard.common.model.AutofillTarget
 import com.artemchep.keyguard.common.model.BiometricStatus
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
+import com.artemchep.keyguard.common.model.Premium
 import com.artemchep.keyguard.common.model.Product
 import com.artemchep.keyguard.common.model.RichResult
 import com.artemchep.keyguard.common.model.Subscription
@@ -35,6 +38,9 @@ import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreF
 import com.artemchep.keyguard.common.service.backup.S3BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksConfigSyncer
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksConfigStore
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.impl.SshBookmarksConfigStoreImpl
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
@@ -63,6 +69,8 @@ import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.PlatformLogSinkRegistry
 import com.artemchep.keyguard.common.service.logging.kotlin.LogRepositoryKotlin
+import com.artemchep.keyguard.common.service.passkey.WindowsPasskeyModule
+import com.artemchep.keyguard.common.service.passkey.WindowsPasskeyService
 import com.artemchep.keyguard.common.service.permission.PermissionService
 import com.artemchep.keyguard.common.service.power.PowerService
 import com.artemchep.keyguard.common.service.review.ReviewService
@@ -74,14 +82,17 @@ import com.artemchep.keyguard.common.service.text.impl.TextServiceImpl
 import com.artemchep.keyguard.common.usecase.BiometricStatusUseCase
 import com.artemchep.keyguard.common.usecase.CleanUpAttachment
 import com.artemchep.keyguard.common.usecase.ClearData
+import com.artemchep.keyguard.common.usecase.ClearDataHookRegistry
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PutLocale
+import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.util.yubikey.NativeYubiKeyClient
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.GetLocaleImpl
+import com.artemchep.keyguard.common.usecase.impl.GetPurchasedImpl
 import com.artemchep.keyguard.common.usecase.impl.PutLocaleImpl
 import com.artemchep.keyguard.common.worker.WorkerRegistry
 import com.artemchep.keyguard.common.worker.Wrker
@@ -120,7 +131,9 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import org.koin.core.qualifier.named
+import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.koin.plugin.module.dsl.single
 
 class BiometricStatusUseCaseImpl(
     private val promptHost: BiometricPromptHost,
@@ -160,10 +173,6 @@ class GetSuggestionsImpl : GetSuggestions<Any?> {
     }
 }
 
-class GetPurchasedImpl : GetPurchased {
-    override fun invoke(): Flow<Boolean> = flowOf(true)
-}
-
 class CleanUpAttachmentImpl : CleanUpAttachment {
     override fun invoke(): IO<Int> = kotlin.run {
         val msg = "Attachment cleanup is not supported on desktop."
@@ -186,12 +195,14 @@ class SubscriptionServiceAndroid : SubscriptionService {
 class ClearDataAndroid(
     private val logRepository: LogRepository,
     private val dataDirectory: DataDirectory,
+    private val hooks: ClearDataHookRegistry,
 ) : ClearData {
     companion object {
         private const val TAG = "ClearData"
     }
 
     override fun invoke(): IO<Unit> = ioEffect {
+        hooks.values.forEach { it.beforeClearData() }
         val ios = listOf(
             dataDirectory.data().flatMap(::delete.partially1("data")),
             dataDirectory.cache().flatMap(::delete.partially1("cache")),
@@ -251,9 +262,49 @@ class CacheDirProviderJvm(
 class PlatformApplicationModule {
     val module = module {
         includes(GlobalModuleJvm().module)
+        includes(WindowsPasskeyModule().module)
         single { PlatformLinkInfoExtractorRegistry(emptyList()) }
         single { PlatformLogSinkRegistry(listOf(get<LogRepositoryKotlin>())) }
-        single { WorkerRegistry(listOf(get<BackupSchedulerWorker>())) }
+        single {
+            WorkerRegistry(
+                listOf(
+                    get<BackupSchedulerWorker>(),
+                    get<WatchtowerSyncer>(),
+                    get<SshBookmarksConfigSyncer>(),
+                ),
+            )
+        }
+        single<SshBookmarksConfigSyncer>()
+        single {
+            ClearDataHookRegistry(
+                when (CurrentPlatform) {
+                    is Platform.Desktop.Windows -> listOf(get<WindowsPasskeyService>())
+                    else -> emptyList()
+                } + get<SshBookmarksConfigStoreImpl>(),
+            )
+        }
+        single<SshBookmarksConfigStoreImpl> {
+            SshBookmarksConfigStoreImpl.ofPlatform(CurrentPlatform)
+        } bind SshBookmarksConfigStore::class
+        single {
+            val dataDirectory: DataDirectory = get()
+            PlatformTemporaryArtifactRootRegistry(
+                listOf(
+                    TemporaryArtifactRoot(
+                        label = "desktop-data",
+                        provideDirectory = {
+                            LocalPath(dataDirectory.dataBlocking())
+                        },
+                    ),
+                    TemporaryArtifactRoot(
+                        label = "desktop-downloads",
+                        provideDirectory = {
+                            LocalPath(dataDirectory.downloadsBlocking())
+                        },
+                    ),
+                ),
+            )
+        }
 
         factory<LeContext> {
             LeContext()
@@ -335,7 +386,18 @@ class PlatformApplicationModule {
             )
         }
         single<GetPurchased> {
-            GetPurchasedImpl()
+            GetPurchasedImpl(
+                config = get(),
+                // Desktop has no store; licenses are bought on the website.
+                storePurchased = emptyFlow(),
+                getLicensePremium = get(),
+                getDebugPremium = get(),
+                getCachePremium = get(),
+                putCachePremium = get(),
+                windowCoroutineScope = get(),
+                // Desktop builds unlock premium features without a license.
+                withoutPurchase = Premium.INCLUDED,
+            )
         }
 
         single<CleanUpAttachment> {
@@ -417,6 +479,7 @@ class PlatformApplicationModule {
             ClearDataAndroid(
                 logRepository = get(),
                 dataDirectory = get(),
+                hooks = get(),
             )
         }
         single<KeyValueStoreFactory> { DesktopKeyValueStoreFactory(get(), get()) }

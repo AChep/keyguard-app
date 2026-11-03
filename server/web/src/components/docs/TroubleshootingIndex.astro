@@ -1,0 +1,40 @@
+---
+import { render } from 'astro:content';
+import { getDocsInOrder } from '../../lib/docs';
+
+// Every known problem in the docs, in sidebar order: the symptoms (H2s) of
+// each troubleshooting page, and the entries (H3s) under a feature page's
+// "Troubleshooting" H2.
+const pages = [];
+for (const doc of await getDocsInOrder()) {
+  if (doc.data.generated) continue;
+  const { headings } = await render(doc);
+  let symptoms;
+  if (doc.data.type === 'troubleshooting') {
+    symptoms = headings.filter((h) => h.depth === 2);
+  } else {
+    const start = headings.findIndex((h) => h.depth === 2 && h.text === 'Troubleshooting');
+    if (start < 0) continue;
+    const end = headings.findIndex((h, i) => i > start && h.depth === 2);
+    symptoms = headings.slice(start + 1, end < 0 ? undefined : end).filter((h) => h.depth === 3);
+  }
+  if (symptoms.length > 0) pages.push({ doc, symptoms });
+}
+---
+
+<ul>
+  {
+    pages.map(({ doc, symptoms }) => (
+      <li>
+        <a href={`/docs/${doc.id}/`}>{doc.data.title}</a>
+        <ul>
+          {symptoms.map((h) => (
+            <li>
+              <a href={`/docs/${doc.id}/#${h.slug}`}>{h.text}</a>
+            </li>
+          ))}
+        </ul>
+      </li>
+    ))
+  }
+</ul>

@@ -23,6 +23,8 @@ import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParser
 import com.artemchep.keyguard.common.service.crypto.GpgPublicSubKeyInfo
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
+import com.artemchep.keyguard.common.service.crypto.SshCertificate
+import com.artemchep.keyguard.common.service.crypto.SshCertificateParser
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentAuthorizationSnapshot
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
@@ -36,6 +38,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.PassKeyServiceInfo
 import com.artemchep.keyguard.common.service.similarity.impl.SimilarityServiceImpl
+import com.artemchep.keyguard.common.service.sshagent.testSshCertificate
 import com.artemchep.keyguard.common.service.text.TextService
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.service.tld.TldService
@@ -69,6 +72,7 @@ import com.artemchep.keyguard.common.usecase.impl.WatchtowerInactiveTfa
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerIncomplete
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordPwned
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordStrength
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerSshCertificateUnusable
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSshKeyStrength
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerUnsecureWebsite
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerWeakGpgKey
@@ -124,6 +128,9 @@ internal class WatchtowerBenchmarkFixtures(
         DWatchtowerAlertType.WEAK_PASSWORD to WatchtowerPasswordStrength(),
         DWatchtowerAlertType.WEAK_SSH_KEY to WatchtowerSshKeyStrength(
             cipherSshKeyWeakCheck = CipherSshKeyWeakCheckImpl(BenchmarkKeyPairGenerator),
+        ),
+        DWatchtowerAlertType.SSH_CERTIFICATE_UNUSABLE to WatchtowerSshCertificateUnusable(
+            sshCertificateParser = BenchmarkSshCertificateParser,
         ),
         DWatchtowerAlertType.GPG_KEY_UNUSABLE to WatchtowerGpgKeyUnusable(
             policy = GpgWatchtowerPolicy(BenchmarkGpgParser),
@@ -202,6 +209,7 @@ internal class WatchtowerBenchmarkFixtures(
     fun cases(): List<WatchtowerBenchmarkCase> = listOf(
         clientCase("password-strength", DWatchtowerAlertType.WEAK_PASSWORD),
         clientCase("ssh-key-strength", DWatchtowerAlertType.WEAK_SSH_KEY),
+        clientCase("ssh-certificate-unusable", DWatchtowerAlertType.SSH_CERTIFICATE_UNUSABLE),
         clientCase("gpg-key-unusable", DWatchtowerAlertType.GPG_KEY_UNUSABLE),
         clientCase("gpg-key-strength", DWatchtowerAlertType.WEAK_GPG_KEY),
         clientCase("gpg-key-publishing", DWatchtowerAlertType.GPG_KEY_PUBLISHING),
@@ -463,6 +471,11 @@ private fun createSecret(
                 privateKey = if (index % 40 == 1) "weak-private-key" else "strong-private-key",
                 publicKey = "ssh-rsa benchmark",
                 fingerprint = "SHA256:benchmark-$index",
+                certificate = when (index % 60) {
+                    1 -> null
+                    21 -> "ssh-rsa-cert-v01@openssh.com benchmark-$index"
+                    else -> "ssh-rsa-cert-v01@openssh.com benchmark-$index-expired"
+                },
             )
         } else {
             null
@@ -605,6 +618,16 @@ private object BenchmarkKeyPairGenerator : KeyPairGenerator {
         if (privateKey.startsWith("weak")) 1024 else 4096
 
     private fun <T> unsupported(): T = error("Not used by the Watchtower benchmark")
+}
+
+private object BenchmarkSshCertificateParser : SshCertificateParser {
+    override fun parse(certificate: String, publicKey: String?): SshCertificate = testSshCertificate(
+        validBefore = if (certificate.endsWith("expired")) {
+            FIXED_INSTANT.epochSeconds
+        } else {
+            Long.MAX_VALUE
+        },
+    )
 }
 
 private object BenchmarkGpgParser : GpgPublicKeyParser {

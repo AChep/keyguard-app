@@ -307,6 +307,11 @@ fn check(status: i32) -> Result<(), Error> {
     }
 }
 
+/// # Safety
+///
+/// If the checks pass, `pointer` must address `length` initialized bytes in
+/// one allocation that stay allocated and unchanged for the caller-chosen
+/// `'a`. Keep `'a` inside the life of the WebAuthn guard that owns them.
 unsafe fn borrow_buffer<'a>(
     pointer: *const u8,
     length: u32,
@@ -316,10 +321,14 @@ unsafe fn borrow_buffer<'a>(
     if pointer.is_null() || !(min..=max).contains(&(length as usize)) {
         return Err(Error::Protocol);
     }
-    // SAFETY: The caller guarantees the OS allocation is alive and has length readable bytes.
+    // SAFETY: The caller guarantees the OS allocation is alive and unchanged for `'a` and has
+    // `length` readable bytes.
     Ok(unsafe { std::slice::from_raw_parts(pointer, length as usize) })
 }
 
+/// # Safety
+///
+/// As [`borrow_buffer`], for this call.
 unsafe fn validate_raw_auth_data(pointer: *const u8, length: u32) -> Result<(), Error> {
     // The data starts with the RP ID hash (32), flags (1) and signature counter (4).
     // SAFETY: The caller guarantees this buffer belongs to the live WebAuthn allocation.

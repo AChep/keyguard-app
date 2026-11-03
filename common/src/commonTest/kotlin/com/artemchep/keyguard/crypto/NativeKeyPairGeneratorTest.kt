@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -42,7 +43,7 @@ class NativeKeyPairGeneratorTest {
         assertEquals(KeyPair.Type.ED25519, generated.type)
         assertTrue(generated.publicKey.ssh.startsWith("ssh-ed25519 "))
         assertTrue(generated.publicKey.fingerprint.startsWith("SHA256:"))
-        assertTrue(generated.publicKey.fingerprint.endsWith("="))
+        assertFalse(generated.publicKey.fingerprint.endsWith("="))
         assertTrue(generated.privateKey.ssh.startsWith("-----BEGIN OPENSSH PRIVATE KEY-----\n"))
         assertNull(generator.getPrivateKeyLengthOrNull(generated))
 
@@ -82,6 +83,7 @@ class NativeKeyPairGeneratorTest {
                 "AAACC44rmmfQf58bmD/3xQqefZyT90tEccY5NVWANfBS11PwAAAIgDtbT+A7W0/gAAAAtzc2gtZWQ" +
                 "yNTUxOQAAACC44rmmfQf58bmD/3xQqefZyT90tEccY5NVWANfBS11PwAAAEBmyVSflzmdIePYrjty" +
                 "XgOu37oThPVL/WQ8cy6sP5Tk/LjiuaZ9B/nxuYP/fFCp59nJP3S0Rxxjk1VYA18FLXU/AAAAAAECAwQF"
-        const val ED_FINGERPRINT = "SHA256:VMsjBVFrX4BnedkIhA3m9moiqwP6x2OcTGScAhS1TDw="
+        // From `ssh-keygen -l -E sha256`.
+        const val ED_FINGERPRINT = "SHA256:VMsjBVFrX4BnedkIhA3m9moiqwP6x2OcTGScAhS1TDw"
     }
 }

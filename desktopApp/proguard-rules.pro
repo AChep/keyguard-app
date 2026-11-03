@@ -119,6 +119,11 @@
 -keep class com.artemchep.keyguard.common.model.DFilter { *; }
 -keep class com.artemchep.keyguard.common.model.DFilter$** { *; }
 
+# ProGuard 7.8 drops App from VaultUriIcon's permitted subclasses while
+# retaining the interface, so loading it crashes the vault item details screen.
+-keep class com.artemchep.keyguard.feature.home.vault.model.VaultUriIcon { *; }
+-keep class com.artemchep.keyguard.feature.home.vault.model.VaultUriIcon$** { *; }
+
 # ProGuard 7.8 can produce invalid return bytecode when optimizing Compose's
 # generated Desktop paragraph factory. Keep shrinking enabled for the class,
 # but preserve its method bodies.
@@ -131,7 +136,7 @@
 
 # The SSH and GPG helper processes share this desktop IPC transport. ProGuard
 # 7.8 changes its authentication/session behavior when optimizing the package.
-# This protects 135 shared transport classes instead of all 500 agent classes.
+# This protects 205 shared transport classes instead of all 545 agent classes.
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.common.service.agent.** { *; }
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.common.service.sshagent.SshAgentPacketSessionKt { *; }
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.common.service.sshagent.SshAgentPacketSessionKt$* { *; }
@@ -139,6 +144,18 @@
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.common.service.gpgagent.GpgAgentPacketSessionKt { *; }
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.common.service.gpgagent.GpgAgentPacketSessionKt$* { *; }
 -keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.common.service.gpgagent.GpgAgentProtoCodec { *; }
+
+# The native channel under that transport. Its JNI library binds to
+# NativeAgentIpcJni by name, and its calls block, cancel and close across
+# threads. Keep its method bodies as written, as for the transport above.
+-keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.util.agentipc.** { *; }
+
+# The native drag bridges call these back by JNI name and signature, so no
+# bytecode calls them. Keep each method and its exact signature.
+-keepclassmembers class * implements com.artemchep.desktop.NativeDragCallbacks { <methods>; }
+-keepclassmembers class * implements com.artemchep.desktop.MacFilePromiseReader { <methods>; }
+-keepclassmembers class * implements com.artemchep.desktop.WindowsVirtualFileReader { <methods>; }
+-keepclassmembers class com.artemchep.desktop.WindowsVirtualFileEntry { <methods>; }
 
 # OkHttp supports optional TLS providers and GraalVM native-image integrations
 # that are not part of the Desktop application runtime.

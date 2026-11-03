@@ -1,4 +1,5 @@
 import AuthenticationServices
+import CryptoKit
 import SwiftUI
 import KeyguardShared
 import OSLog
@@ -271,11 +272,12 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         }
         let clientDataHash = request.clientDataHash
         let userVerification = request.userVerificationPreference.rawValue
+        let prf = PasskeyPrfAssertionInput(of: request)
         presentUnlock { [weak self] in
             self?.completePasskeyAssertion(
                 recordId: recordId, rpId: identity.relyingPartyIdentifier,
                 credentialID: identity.credentialID, clientDataHash: clientDataHash,
-                allowed: [identity.credentialID], userVerification: userVerification)
+                allowed: [identity.credentialID], userVerification: userVerification, prf: prf)
         }
     }
 
@@ -287,14 +289,18 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         let allowed = requestParameters.allowedCredentials
         let clientDataHash = requestParameters.clientDataHash
         let userVerification = requestParameters.userVerificationPreference.rawValue
+        let prf = PasskeyPrfAssertionInput(of: requestParameters)
         presentUnlock { [weak self] in
             self?.assertMatchingPasskey(
                 rpId: rpId, allowed: allowed, clientDataHash: clientDataHash,
-                userVerification: userVerification)
+                userVerification: userVerification, prf: prf)
         }
     }
 
-    private func assertMatchingPasskey(rpId: String, allowed: [Data], clientDataHash: Data, userVerification: String) {
+    private func assertMatchingPasskey(
+        rpId: String, allowed: [Data], clientDataHash: Data, userVerification: String,
+        prf: PasskeyPrfAssertionInput?
+    ) {
         let core = core
         requestTask = Task { [self] in
             let identities: [PasskeyIdentitySnapshot]
@@ -321,7 +327,7 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
                         self.completePasskeyAssertion(
                             recordId: match.recordId, rpId: match.rpId,
                             credentialID: match.credentialId.toData(), clientDataHash: clientDataHash,
-                            allowed: allowed, userVerification: userVerification)
+                            allowed: allowed, userVerification: userVerification, prf: prf)
                     },
                     onCancel: { [weak self] in
                         guard let self, self.activeCore === core else { return }
@@ -332,9 +338,10 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
 
     private func completePasskeyAssertion(
         recordId: String, rpId: String, credentialID: Data, clientDataHash: Data,
-        allowed: [Data], userVerification: String
+        allowed: [Data], userVerification: String, prf: PasskeyPrfAssertionInput?
     ) {
         let core = core
+        let prfValues = prf?.values(for: credentialID)
         requestTask = Task { [self] in
             if let assertion = try? await core.assertPasskey(
                 recordId: recordId,
@@ -343,7 +350,9 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
                 expectedCredentialId: credentialID.toKotlinByteArray(),
                 allowedCredentialIds: allowed.map { $0.toKotlinByteArray() },
                 userVerification: userVerification,
-                userVerified: true
+                userVerified: true,
+                prfFirst: prfValues?.first.toKotlinByteArray(),
+                prfSecond: prfValues?.second?.toKotlinByteArray()
             ) {
                 guard isCurrent(core) else { return }
                 completeAssertion(assertion, clientDataHash: clientDataHash)
@@ -363,6 +372,14 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
             authenticatorData: assertion.authenticatorData.toData(),
             credentialID: assertion.credentialId.toData()
         )
+        if #available(macOS 15, iOS 18, *), let first = assertion.prfFirst {
+            credential.extensionOutput = ASPasskeyAssertionCredentialExtensionOutput(
+                prf: ASAuthorizationPublicKeyCredentialPRFAssertionOutput(
+                    first: SymmetricKey(data: first.toData()),
+                    second: assertion.prfSecond.map { SymmetricKey(data: $0.toData()) }
+                )
+            )
+        }
         finish { [self] in
             extensionContext.completeAssertionRequest(using: credential)
         }
@@ -391,6 +408,7 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         let userHandle = identity.userHandle
         let clientDataHash = request.clientDataHash
         let userVerification = request.userVerificationPreference.rawValue
+        let prf = PasskeyPrfRegistrationInput(of: request)
         let core = core
         let model = AutofillListModel(
             core: core,
@@ -405,7 +423,8 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
                     userName: userName,
                     userHandle: userHandle,
                     clientDataHash: clientDataHash,
-                    userVerification: userVerification
+                    userVerification: userVerification,
+                    prf: prf
                 )
             },
             onCancel: { [weak self] in
@@ -423,7 +442,8 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
         userName: String,
         userHandle: Data,
         clientDataHash: Data,
-        userVerification: String
+        userVerification: String,
+        prf: PasskeyPrfRegistrationInput?
     ) {
         let core = core
         requestTask = Task { [self] in
@@ -447,7 +467,10 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
                             userDisplayName: nil,
                             userHandle: userHandle.toKotlinByteArray(),
                             userVerification: userVerification,
-                            userVerified: true
+                            userVerified: true,
+                            prfRequested: prf != nil,
+                            prfFirst: prf?.values?.first.toKotlinByteArray(),
+                            prfSecond: prf?.values?.second?.toKotlinByteArray()
                         )
                     else { throw NSError(domain: ASExtensionErrorDomain, code: ASExtensionError.Code.failed.rawValue) }
                     // Publish the newly stored passkey before returning to Safari. The host
@@ -478,6 +501,16 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
                     credentialID: registration.credentialId.toData(),
                     attestationObject: registration.attestationObject.toData()
                 )
+                if #available(macOS 15, iOS 18, *), registration.prfEnabled {
+                    credential.extensionOutput = ASPasskeyRegistrationCredentialExtensionOutput(
+                        prf: registration.prfFirst.map { first in
+                            ASAuthorizationPublicKeyCredentialPRFRegistrationOutput(
+                                first: SymmetricKey(data: first.toData()),
+                                second: registration.prfSecond.map { SymmetricKey(data: $0.toData()) }
+                            )
+                        } ?? .supported
+                    )
+                }
                 finish { [self] in
                     await extensionContext.completeRegistrationRequest(using: credential)
                 }
@@ -642,5 +675,65 @@ class CredentialProviderViewController: ASCredentialProviderViewController {
                 guard self?.requestGeneration == generation else { return }
                 self?.cancel(.userCanceled)
             })
+    }
+}
+
+// MARK: - Passkey PRF
+
+/// The inputs of the WebAuthn PRF extension as bytes. The AuthenticationServices
+/// types need macOS 15 / iOS 18, and the macOS extension still runs on macOS 14.
+private struct PasskeyPrfValues {
+    let first: Data
+    let second: Data?
+
+    @available(macOS 15, iOS 18, *)
+    init(_ values: ASAuthorizationPublicKeyCredentialPRFAssertionInput.InputValues) {
+        first = values.saltInput1
+        second = values.saltInput2
+    }
+}
+
+/// The PRF inputs of an assertion; the inputs for a credential override the shared ones.
+private struct PasskeyPrfAssertionInput {
+    let values: PasskeyPrfValues?
+    let perCredential: [Data: PasskeyPrfValues]
+
+    func values(for credentialID: Data) -> PasskeyPrfValues? {
+        perCredential[credentialID] ?? values
+    }
+
+    /// `nil` unless the request asks for the PRF.
+    init?(of request: ASPasskeyCredentialRequest) {
+        guard #available(macOS 15, iOS 18, *),
+            case .assertion(let input) = request.extensionInput
+        else { return nil }
+        self.init(input.prf)
+    }
+
+    /// `nil` unless the request asks for the PRF.
+    init?(of parameters: ASPasskeyCredentialRequestParameters) {
+        guard #available(macOS 15, iOS 18, *) else { return nil }
+        self.init(parameters.extensionInput?.prf)
+    }
+
+    @available(macOS 15, iOS 18, *)
+    private init?(_ prf: ASAuthorizationPublicKeyCredentialPRFAssertionInput?) {
+        guard let prf else { return nil }
+        values = prf.inputValues.map { PasskeyPrfValues($0) }
+        perCredential = (prf.perCredentialInputValues ?? [:]).mapValues { PasskeyPrfValues($0) }
+    }
+}
+
+/// The PRF inputs of a registration that asks for the PRF.
+private struct PasskeyPrfRegistrationInput {
+    let values: PasskeyPrfValues?
+
+    /// `nil` unless the request asks for the PRF.
+    init?(of request: ASPasskeyCredentialRequest) {
+        guard #available(macOS 15, iOS 18, *),
+            case .registration(let input) = request.extensionInput,
+            let prf = input.prf
+        else { return nil }
+        values = prf.inputValues.map { PasskeyPrfValues($0) }
     }
 }

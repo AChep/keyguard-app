@@ -1,0 +1,4 @@
+-- Mirror the certificate of an SSH key, so that the agent offers it before the
+-- vault is unlocked. Without it, a server that trusts only the certificate
+-- rejects the plain key and never asks Keyguard to sign.
+ALTER TABLE sshAgentPublicKey ADD COLUMN certificate TEXT;

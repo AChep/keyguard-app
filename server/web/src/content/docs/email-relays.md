@@ -1,38 +1,54 @@
 ---
-title: Email relays
-description: Generate masked email addresses through SimpleLogin, addy.io, Firefox Relay, and other forwarder services.
-category: guides
-order: 7
+title: Email forwarders
+description: "Generate masked email addresses through SimpleLogin, addy.io, Firefox Relay and other forwarders."
+section: vault
+type: reference
+order: 60
+platforms: all
+related: [generator]
 ---
 
-An email relay gives every signup a **masked address** that forwards to
-your primary inbox. If an alias is compromised or spammed, you can disable it without
-changing your primary email. Keyguard's [generator](/docs/generator/) creates
-these aliases through a connected forwarder service.
+The email forwarding services Keyguard supports, and the fields each one
+needs. A forwarder creates a masked address and forwards its mail to your
+inbox.
 
-Connect services under the generator's **Email forwarders** screen. Each
-integration needs an API credential from the service:
+## Services
 
-| Service                  | What you enter                                          |
-| :----------------------- | :------------------------------------------------------ |
-| [SimpleLogin](https://simplelogin.io)              | API key; server URL only if self-hosted                 |
-| [addy.io (AnonAddy)](https://addy.io)       | API key and your alias domain; server URL if self-hosted |
-| [Firefox Relay](https://relay.firefox.com)            | API key                                                 |
-| [DuckDuckGo](https://duckduckgo.com/email)               | API key                                                 |
-| [Fastmail](https://www.fastmail.com)                 | API key                                                 |
-| [Forward Email](https://forwardemail.net)            | API key and your domain                                 |
-| [Cloudflare Email Routing](https://developers.cloudflare.com/email-routing/) | API token, zone ID, your domain, and the destination email |
+In the [Generator](/docs/generator/) menu, open **Email forwarders**. Select
+**Add integration**, then a service. It appears as a generator type and
+requests a new alias each time you generate one.
 
-You can find the API key or token in the service's account/developer
-settings. Once connected, pick the forwarder in the generator's username
-options and Keyguard requests a fresh alias whenever you generate one —
-ready to drop into a new login item.
+| Service | Fields | Records the website |
+| --- | --- | --- |
+| [addy.io](https://addy.io) | **API key**, **Domain**, **Recipient ID (optional)**, **Server URL** | In the alias description |
+| [Cloudflare Email Routing](https://developers.cloudflare.com/email-routing/) | **API token**, **Zone ID**, **Domain**, **Destination email** | In the routing rule's name |
+| [DuckDuckGo](https://duckduckgo.com/email/) | **API key** | No |
+| [Fastmail](https://www.fastmail.com) | **API key** | As the site the masked email is for |
+| [Firefox Relay](https://relay.firefox.com) | **API key** | No |
+| [Forward Email](https://forwardemail.net) | **API key**, **Domain** | In the alias description |
+| [SimpleLogin](https://simplelogin.io) | **API key**, **Server URL** | As the site the alias is used on |
 
-Notes on specific services:
+Keyguard knows the website only when you generate an alias from autofill on
+Android.
 
-- **SimpleLogin** generates aliases in the format configured in your
-  SimpleLogin account (random words or UUID); Keyguard preserves this setting.
-- **addy.io** and **SimpleLogin** both work with self-hosted installations:
-  point the server URL at your instance.
-- **Cloudflare Email Routing** creates routing rules on your own domain, so
-  it needs the zone ID and the address the aliases should forward to.
+## Fields
+
+Every service also has a **Name**. It labels the service's type in the
+generator and defaults to the service's name.
+
+| Field | Value |
+| --- | --- |
+| **API key**, **API token** | A credential from the service's account or developer settings |
+| **Server URL** | Optional. The base URL of a self-hosted addy.io or SimpleLogin server. Empty means the service's own server. |
+| **Domain** | addy.io: the alias domain, such as `anonaddy.me`. Forward Email and Cloudflare: your domain. |
+| **Recipient ID (optional)** | addy.io: the ID of a verified recipient. Empty means your default recipient. |
+| **Zone ID** | Cloudflare: the ID of your domain's zone |
+| **Destination email** | Cloudflare: the address that aliases forward to |
+
+## Alias formats
+
+| Service | Alias |
+| --- | --- |
+| Cloudflare Email Routing | 8 random lowercase letters and digits at your domain. Keyguard creates a forwarding rule for each alias. |
+| SimpleLogin | The format set in your SimpleLogin account, such as random words or a UUID |
+| Other services | The service's own format |

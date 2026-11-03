@@ -4,8 +4,12 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.model.AddCliAgentUsageHistoryRequest
 import com.artemchep.keyguard.common.model.AddGpgUsageHistoryRequest
 import com.artemchep.keyguard.common.model.AddSshUsageHistoryRequest
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
@@ -16,6 +20,7 @@ import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.settings.impl.SettingsRepositoryImpl
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
+import com.artemchep.keyguard.common.usecase.AddCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import kotlinx.coroutines.flow.first
@@ -35,6 +40,7 @@ class PendingUsageHistoryFlusherTest {
     private val queue = FakeQueue()
     private val addGpg = RecordingAddGpgUsageHistory()
     private val addSsh = RecordingAddSshUsageHistory()
+    private val addCli = RecordingAddCliAgentUsageHistory()
     private val settingsRepository = SettingsRepositoryImpl(
         store = JsonKeyValueStore(),
         json = json,
@@ -45,6 +51,7 @@ class PendingUsageHistoryFlusherTest {
         queue = queue,
         addGpgUsageHistory = addGpg,
         addSshUsageHistory = addSsh,
+        addCliAgentUsageHistory = addCli,
         vaultSettingsStore = TestVaultSettingsStore(JsonKeyValueStore()),
         settingsRepository = settingsRepository,
         base64Service = Base64ServiceImpl(),
@@ -206,6 +213,78 @@ class PendingUsageHistoryFlusherTest {
         assertEquals(1, result.deferredRows)
     }
 
+    @Test
+    fun `flush drains CLI agent events with their details`() = runTest {
+        flusher.flush().bind()
+        val publicKey = settingsRepository.getExposedContentPublicKey().first()!!
+        queue.rows += sealedRow(
+            publicKey = publicKey,
+            id = "event-cli",
+            timestamp = 3_000L,
+            payload = PendingUsageHistoryPayload(
+                protocol = PendingUsageHistory.Protocol.CLI_AGENT.name,
+                sessionId = "test-session",
+                caller = "{}",
+                requestType = CliAgentUsageHistoryRequestType.RUN.name,
+                responseType = CliAgentUsageHistoryResponseType.FAILURE.name,
+                cipherId = "environment",
+                cliAgent = PendingCliAgentUsageHistory(
+                    client = CliAgentUsageHistoryClient.CLI.name,
+                    clientName = "Client",
+                    errorCode = "operation_failed",
+                    command = "npm start",
+                    path = "/project",
+                ),
+            ),
+        )
+
+        flusher.flush().bind()
+
+        val cli = addCli.requests.single()
+        assertEquals(
+            AddCliAgentUsageHistoryRequest(
+                cipherId = "environment",
+                sessionId = "test-session",
+                client = CliAgentUsageHistoryClient.CLI,
+                caller = "{}",
+                clientName = "Client",
+                request = CliAgentUsageHistoryRequestType.RUN,
+                response = CliAgentUsageHistoryResponseType.FAILURE,
+                errorCode = "operation_failed",
+                command = "npm start",
+                path = "/project",
+                instant = Instant.fromEpochMilliseconds(3_000L),
+                eventId = "event-cli",
+            ),
+            cli,
+        )
+        assertTrue(queue.rows.isEmpty())
+    }
+
+    @Test
+    fun `a CLI agent event without details maps to an unknown client`() = runTest {
+        flusher.flush().bind()
+        val publicKey = settingsRepository.getExposedContentPublicKey().first()!!
+        queue.rows += sealedRow(
+            publicKey = publicKey,
+            id = "event-cli",
+            timestamp = 1_000L,
+            payload = PendingUsageHistoryPayload(
+                protocol = PendingUsageHistory.Protocol.CLI_AGENT.name,
+                sessionId = "test-session",
+                requestType = CliAgentUsageHistoryRequestType.MCP_LIST_VARIABLES.name,
+                responseType = CliAgentUsageHistoryResponseType.VAULT_LOCKED.name,
+            ),
+        )
+
+        flusher.flush().bind()
+
+        val cli = addCli.requests.single()
+        assertEquals(CliAgentUsageHistoryClient.UNKNOWN, cli.client)
+        assertEquals(CliAgentUsageHistoryRequestType.MCP_LIST_VARIABLES, cli.request)
+        assertEquals(CliAgentUsageHistoryResponseType.VAULT_LOCKED, cli.response)
+    }
+
     private fun sealedRow(
         publicKey: ByteArray,
         id: String,
@@ -245,6 +324,15 @@ private class RecordingAddGpgUsageHistory : AddGpgUsageHistory {
 
     override fun invoke(request: AddGpgUsageHistoryRequest): IO<Unit> = ioEffect {
         check(!failWhen(request)) { "Simulated insert failure" }
+        requests += request
+        Unit
+    }
+}
+
+private class RecordingAddCliAgentUsageHistory : AddCliAgentUsageHistory {
+    val requests = mutableListOf<AddCliAgentUsageHistoryRequest>()
+
+    override fun invoke(request: AddCliAgentUsageHistoryRequest): IO<Unit> = ioEffect {
         requests += request
         Unit
     }

@@ -1,86 +1,19 @@
 package com.artemchep.keyguard.feature.export
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.icons.outlined.SaveAlt
-import androidx.compose.material.icons.outlined.Storage
-import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
-import com.artemchep.keyguard.common.model.Loadable
-import com.artemchep.keyguard.common.model.ShapeState
-import com.artemchep.keyguard.common.service.permission.PermissionState
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
-import com.artemchep.keyguard.feature.home.vault.component.Section
-import com.artemchep.keyguard.feature.home.vault.model.FilterItem
-import com.artemchep.keyguard.feature.navigation.NavigationIcon
-import com.artemchep.keyguard.feature.search.filter.FilterButton
-import com.artemchep.keyguard.feature.search.filter.FilterScreen
-import com.artemchep.keyguard.feature.twopane.TwoPaneScreen
-import com.artemchep.keyguard.platform.LocalLeContext
+import androidx.compose.ui.tooling.preview.Preview
+import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.common.service.export.model.ExportFormat
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
-import com.artemchep.keyguard.ui.AutofillButton
-import com.artemchep.keyguard.ui.DefaultFab
-import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
-import com.artemchep.keyguard.ui.FabState
-import com.artemchep.keyguard.ui.FlatItem
-import com.artemchep.keyguard.ui.FlatItemLayout
-import com.artemchep.keyguard.ui.FlatItemTextContent
-import com.artemchep.keyguard.ui.MediumEmphasisAlpha
-import com.artemchep.keyguard.ui.OptionsButton
-import com.artemchep.keyguard.ui.PasswordFlatTextField
-import com.artemchep.keyguard.ui.ScaffoldColumn
-import com.artemchep.keyguard.ui.SwitchExpressive
-import com.artemchep.keyguard.ui.icons.ChevronIcon
-import com.artemchep.keyguard.ui.icons.KeyguardAttachment
-import com.artemchep.keyguard.ui.icons.KeyguardCipher
-import com.artemchep.keyguard.ui.icons.icon
-import com.artemchep.keyguard.ui.skeleton.SkeletonTextField
-import com.artemchep.keyguard.ui.theme.Dimens
-import com.artemchep.keyguard.ui.theme.badgeContainer
-import com.artemchep.keyguard.ui.theme.combineAlpha
-import com.artemchep.keyguard.ui.theme.onWarningContainer
-import com.artemchep.keyguard.ui.theme.warning
-import com.artemchep.keyguard.ui.theme.warningContainer
-import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import com.artemchep.keyguard.ui.toolbar.SmallToolbar
-import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
-import com.artemchep.keyguard.ui.util.HorizontalDivider
+import com.artemchep.keyguard.ui.wizard.WizardBackButton
+import com.artemchep.keyguard.ui.wizard.WizardBottomBar
+import com.artemchep.keyguard.ui.wizard.WizardHeader
+import com.artemchep.keyguard.ui.wizard.WizardPreview
+import com.artemchep.keyguard.ui.wizard.WizardScaffold
 import org.jetbrains.compose.resources.stringResource
-import kotlinx.collections.immutable.persistentListOf
 
 @Composable
 fun ExportScreen(
@@ -89,447 +22,160 @@ fun ExportScreen(
     val loadableState = produceExportScreenState(
         args = args,
     )
-
     val title = args.title
         ?: stringResource(Res.string.exportaccount_header_title)
-    val scrollBehavior = ToolbarBehavior.behavior()
-    when (loadableState) {
-        is Loadable.Ok -> {
-            val state = loadableState.value
-            ExportScreenOk(
-                title = title,
-                scrollBehavior = scrollBehavior,
-                state = state,
-            )
-        }
-
-        is Loadable.Loading -> {
-            ExportScreenSkeleton(
-                title = title,
-                scrollBehavior = scrollBehavior,
-            )
-        }
-    }
+    ExportWizardContent(
+        title = title,
+        state = loadableState.getOrNull(),
+    )
 }
 
 @Composable
-fun ExportScreenSkeleton(
+internal fun ExportWizardContent(
     title: String,
-    scrollBehavior: TopAppBarScrollBehavior,
+    state: ExportState?,
 ) {
-    TwoPaneScreen(
-        header = { modifier ->
-            SmallToolbar(
-                modifier = modifier,
-                containerColor = Color.Transparent,
-                title = {
-                    Text(
-                        text = title,
-                    )
-                },
-                navigationIcon = {
-                    NavigationIcon()
-                },
+    val wizard = state?.wizardFlow?.collectAsState()?.value
+    WizardScaffold(
+        title = title,
+        step = wizard?.step,
+        navigationIcon = {
+            WizardBackButton(
+                onBack = wizard?.onBack,
             )
-
-            SideEffect {
-                if (scrollBehavior.state.heightOffsetLimit != 0f) {
-                    scrollBehavior.state.heightOffsetLimit = 0f
-                }
+        },
+        bottomBar = {
+            if (state != null && wizard != null) {
+                ExportWizardBottomBar(
+                    state = state,
+                    wizard = wizard,
+                )
             }
         },
-        detail = { modifier ->
-            val items = persistentListOf<FilterItem>()
-            ExportScreenFilterList(
-                modifier = modifier,
-                items = items,
-                onClear = null,
-                onSave = null,
-            )
-        },
-    ) { modifier, tabletUi ->
-        ExportScreen(
-            modifier = modifier,
-            items = null,
-            filter = null,
-            password = null,
-            content = null,
-            loading = true,
-            tabletUi = tabletUi,
-            title = title,
-            scrollBehavior = scrollBehavior,
-        )
+    ) { step ->
+        if (state != null) {
+            ExportWizardHeader(step)
+            when (step) {
+                ExportStep.Format -> ExportFormatStep(state)
+                ExportStep.Items -> ExportItemsStep(state)
+                ExportStep.Password -> ExportPasswordStep(state)
+                ExportStep.Review -> ExportReviewStep(state)
+            }
+        }
     }
 }
 
 @Composable
-fun ExportScreenOk(
-    title: String,
-    scrollBehavior: TopAppBarScrollBehavior,
+private fun ExportWizardBottomBar(
     state: ExportState,
+    wizard: ExportState.Wizard,
 ) {
-    val items by state.itemsFlow.collectAsState()
-    val attachments by state.attachmentsFlow.collectAsState()
-    val filter by state.filterFlow.collectAsState()
-    val password by state.passwordFlow.collectAsState()
-    val content by state.contentFlow.collectAsState()
-    TwoPaneScreen(
-        header = { modifier ->
-            SmallToolbar(
-                modifier = modifier,
-                containerColor = Color.Transparent,
-                title = {
-                    Text(
-                        text = title,
-                    )
-                },
-                navigationIcon = {
-                    NavigationIcon()
-                },
-                actions = {
-                    OptionsButton(
-                        //actions = state.actions,
-                    )
-                },
-            )
-
-            SideEffect {
-                if (scrollBehavior.state.heightOffsetLimit != 0f) {
-                    scrollBehavior.state.heightOffsetLimit = 0f
-                }
-            }
-        },
-        detail = { modifier ->
-            ExportScreenFilterList(
-                modifier = modifier,
-                items = filter.items,
-                onClear = filter.onClear,
-                onSave = filter.onSave,
-            )
-        },
-    ) { modifier, tabletUi ->
-        ExportScreen(
-            modifier = modifier,
-            items = items,
-            attachments = attachments,
-            filter = filter,
-            password = password,
-            content = content,
-            loading = false,
-            tabletUi = tabletUi,
-            title = title,
-            scrollBehavior = scrollBehavior,
+    if (wizard.step == ExportStep.Review) {
+        val content by state.contentFlow.collectAsState()
+        WizardBottomBar(
+            text = stringResource(Res.string.exportaccount_export_button),
+            onClick = content.onExportClick,
+        )
+    } else {
+        WizardBottomBar(
+            text = stringResource(Res.string.continue_),
+            onClick = wizard.onContinue,
         )
     }
 }
 
-//
-// Filter
-//
-
 @Composable
-private fun ExportScreenFilterList(
-    modifier: Modifier = Modifier,
-    items: List<FilterItem>,
-    onClear: (() -> Unit)?,
-    onSave: (() -> Unit)?,
-) {
-    FilterScreen(
-        modifier = modifier,
-        count = null,
-        items = items,
-        onClear = onClear,
-        onSave = onSave,
+private fun ExportWizardHeader(step: ExportStep) {
+    val title = when (step) {
+        ExportStep.Format -> Res.string.exportaccount_wizard_format_title
+        ExportStep.Items -> Res.string.exportaccount_wizard_items_title
+        ExportStep.Password -> Res.string.exportaccount_wizard_password_title
+        ExportStep.Review -> Res.string.exportaccount_wizard_review_title
+    }
+    val detail = when (step) {
+        ExportStep.Format -> Res.string.exportaccount_wizard_format_detail
+        ExportStep.Items -> Res.string.exportaccount_wizard_items_detail
+        ExportStep.Password -> Res.string.exportaccount_wizard_password_detail
+        ExportStep.Review -> Res.string.exportaccount_wizard_review_detail
+    }
+    WizardHeader(
+        stepNumber = step.ordinal + 1,
+        stepCount = ExportStep.entries.size,
+        title = stringResource(title),
+        detail = stringResource(detail),
     )
 }
 
 @Composable
-private fun ExportScreenFilterButton(
-    modifier: Modifier = Modifier,
-    items: List<FilterItem>,
-    onClear: (() -> Unit)?,
-    onSave: (() -> Unit)?,
+internal fun ExportWizardPreview(
+    data: ExportPreviewData? = ExportPreviewData(),
+    dark: Boolean = false,
+    expressive: Boolean = true,
 ) {
-    FilterButton(
-        modifier = modifier,
-        count = null,
-        items = items,
-        onClear = onClear,
-        onSave = onSave,
-    )
-}
-
-//
-// Main
-//
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ExportScreen(
-    modifier: Modifier,
-    items: ExportState.Items? = null,
-    attachments: ExportState.Attachments? = null,
-    filter: ExportState.Filter? = null,
-    password: ExportState.Password? = null,
-    content: ExportState.Content? = null,
-    loading: Boolean,
-    tabletUi: Boolean,
-    title: String,
-    scrollBehavior: TopAppBarScrollBehavior,
-) {
-    ScaffoldColumn(
-        modifier = modifier
-            .nestedScroll(scrollBehavior.nestedScrollConnection),
-        expressive = true,
-        topAppBarScrollBehavior = scrollBehavior,
-        topBar = {
-            if (tabletUi) {
-                return@ScaffoldColumn
-            }
-
-            LargeToolbar(
-                title = {
-                    Text(
-                        text = title,
-                    )
-                },
-                navigationIcon = {
-                    NavigationIcon()
-                },
-                actions = {
-                    if (filter != null) {
-                        ExportScreenFilterButton(
-                            modifier = Modifier,
-                            items = filter.items,
-                            onClear = filter.onClear,
-                            onSave = filter.onSave,
-                        )
-                    }
-                },
-                scrollBehavior = scrollBehavior,
-            )
-        },
-        floatingActionState = run {
-            val fabOnClick = content?.onExportClick
-            val fabState = if (fabOnClick != null) {
-                FabState(
-                    onClick = fabOnClick,
-                    model = null,
-                )
-            } else {
-                null
-            }
-            rememberUpdatedState(newValue = fabState)
-        },
-        floatingActionButton = {
-            DefaultFab(
-                icon = {
-                    Icon(Icons.Outlined.SaveAlt, null)
-                },
-                text = {
-                    Text(
-                        text = stringResource(Res.string.exportaccount_export_button),
-                    )
-                },
-            )
-        },
-    ) {
-        // Add extra padding to match the horizontal and
-        // vertical paddings.
-        if (tabletUi) {
-            Spacer(
-                modifier = Modifier
-                    .height(8.dp),
-            )
-        }
-
-        if (loading) {
-            ExportContentSkeleton()
-        } else if (
-            items != null &&
-            attachments != null &&
-            password != null &&
-            content != null
-        ) {
-            ExportContentOk(
-                items = items,
-                attachments = attachments,
-                password = password,
-                content = content,
-            )
-        }
-
-        Spacer(
-            modifier = Modifier
-                .height(32.dp),
+    WizardPreview(dark = dark, expressive = expressive) {
+        ExportWizardContent(
+            title = stringResource(Res.string.exportaccount_header_title),
+            state = data?.let { exportPreviewState(it) },
         )
-        Icon(
-            modifier = Modifier
-                .padding(horizontal = Dimens.textHorizontalPadding),
-            imageVector = Icons.Outlined.Info,
-            contentDescription = null,
-            tint = LocalContentColor.current.combineAlpha(alpha = MediumEmphasisAlpha),
-        )
-        Spacer(
-            modifier = Modifier
-                .height(16.dp),
-        )
-        Text(
-            modifier = Modifier
-                .padding(horizontal = Dimens.textHorizontalPadding),
-            text = stringResource(Res.string.exportaccount_format_note),
-            style = MaterialTheme.typography.bodyMedium,
-            color = LocalContentColor.current
-                .combineAlpha(alpha = MediumEmphasisAlpha),
-        )
-        ExpandedIfNotEmpty(
-            Unit.takeIf { attachments?.enabled == true },
-        ) {
-            Column {
-                Spacer(
-                    modifier = Modifier
-                        .height(16.dp),
-                )
-                Text(
-                    modifier = Modifier
-                        .padding(horizontal = Dimens.textHorizontalPadding),
-                    text = stringResource(Res.string.exportaccount_attachments_note),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = LocalContentColor.current
-                        .combineAlpha(alpha = MediumEmphasisAlpha),
-                )
-            }
-        }
     }
 }
 
+@Preview(name = "Format", group = "Export", widthDp = 390, heightDp = 844)
 @Composable
-private fun ColumnScope.ExportContentSkeleton(
-) {
-    SkeletonTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimens.fieldHorizontalPadding),
+internal fun ExportFormatPreview() {
+    ExportWizardPreview()
+}
+
+@Preview(name = "Format — KDBX", group = "Export", widthDp = 390, heightDp = 844)
+@Composable
+internal fun ExportFormatKdbxPreview() {
+    ExportWizardPreview(ExportPreviewData(format = ExportFormat.Kdbx))
+}
+
+@Preview(name = "Items", group = "Export", widthDp = 390, heightDp = 844)
+@Composable
+internal fun ExportItemsPreview() {
+    ExportWizardPreview(ExportPreviewData(step = ExportStep.Items))
+}
+
+@Preview(name = "Items — attachments", group = "Export", widthDp = 390, heightDp = 844)
+@Composable
+internal fun ExportItemsAttachmentsPreview() {
+    ExportWizardPreview(ExportPreviewData(step = ExportStep.Items, attachmentsEnabled = true))
+}
+
+@Preview(name = "Password — mismatch", group = "Export", widthDp = 390, heightDp = 844)
+@Composable
+internal fun ExportPasswordMismatchPreview() {
+    ExportWizardPreview(
+        ExportPreviewData(
+            step = ExportStep.Password,
+            password = "example-password",
+            confirmation = "different-password",
+        ),
     )
 }
 
+@Preview(name = "Review", group = "Export", widthDp = 390, heightDp = 844)
 @Composable
-private fun ColumnScope.ExportContentOk(
-    items: ExportState.Items,
-    attachments: ExportState.Attachments,
-    password: ExportState.Password,
-    content: ExportState.Content,
-) {
-    ExpandedIfNotEmpty(
-        valueOrNull = content.writePermission as? PermissionState.Declined,
-    ) { permission ->
-        val updatedContext by rememberUpdatedState(LocalLeContext)
-        CompositionLocalProvider(
-            LocalContentColor provides MaterialTheme.colorScheme.onWarningContainer,
-        ) {
-            FlatItemSimpleExpressive(
-                modifier = Modifier
-                    .padding(bottom = 24.dp),
-                backgroundColor = MaterialTheme.colorScheme.warningContainer,
-                leading = icon<RowScope>(Icons.Outlined.Storage, Icons.Outlined.Warning),
-                title = {
-                    Text(
-                        text = stringResource(Res.string.pref_item_permission_write_external_storage_grant),
-                    )
-                },
-                onClick = {
-                    permission.ask(updatedContext)
-                },
-            )
-        }
-    }
-    PasswordFlatTextField(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimens.fieldHorizontalPadding),
-        label = stringResource(Res.string.exportaccount_password_label),
-        value = password.model,
-        shapeState = if (attachments.onToggle != null) ShapeState.START else ShapeState.ALL,
-        trailing = {
-            AutofillButton(
-                key = "password",
-                password = true,
-                onValueChange = password.model.onSetText,
-            )
-        },
-    )
-    if (attachments.onToggle != null) {
-        Spacer(
-            modifier = Modifier
-                .height(2.dp),
-        )
-        FlatItemLayoutExpressive(
-            shapeState = ShapeState.END,
-            leading = {
-                Icon(Icons.Outlined.KeyguardAttachment, null)
-            },
-            content = {
-                FlatItemTextContent(
-                    title = {
-                        Text(
-                            text = stringResource(Res.string.exportaccount_include_attachments_title),
-                        )
-                    },
-                    text = {
-                        val size = attachments.size
-                            ?: return@FlatItemTextContent
-                        Text(size)
-                    },
-                )
-            },
-            trailing = {
-                SwitchExpressive(
-                    checked = attachments.enabled,
-                    onCheckedChange = null,
-                )
-            },
-            onClick = attachments.onToggle,
-        )
-    }
-    Section(
-        expressive = true,
-    )
+internal fun ExportReviewPreview() {
+    ExportWizardPreview(ExportPreviewData.review())
+}
 
-    val updateOnClickView by rememberUpdatedState(items.onView)
-    Button(
-        modifier = Modifier
-            .padding(horizontal = Dimens.buttonHorizontalPadding),
-        onClick = {
-            updateOnClickView
-                ?.invoke()
-        },
-        colors = ButtonDefaults.filledTonalButtonColors(),
-        elevation = ButtonDefaults.filledTonalButtonElevation(),
-        enabled = updateOnClickView != null,
-    ) {
-        BadgedBox(
-            badge = {
-                Badge(
-                    containerColor = MaterialTheme.colorScheme.badgeContainer,
-                ) {
-                    val size = items.count
-                    Text(text = size.toString())
-                }
-            },
-        ) {
-            Icon(
-                modifier = Modifier
-                    .size(ButtonDefaults.IconSize),
-                imageVector = Icons.Outlined.KeyguardCipher,
-                contentDescription = null,
-            )
-        }
-        Spacer(
-            modifier = Modifier
-                .width(24.dp),
-        )
-        Text(
-            text = stringResource(Res.string.items),
-        )
-    }
+@Preview(name = "Review — permission", group = "Export", widthDp = 390, heightDp = 844)
+@Composable
+internal fun ExportReviewPermissionPreview() {
+    ExportWizardPreview(ExportPreviewData.review().copy(permissionDeclined = true))
+}
+
+@Preview(name = "Review — dark", group = "Export", widthDp = 390, heightDp = 844)
+@Composable
+internal fun ExportReviewDarkPreview() {
+    ExportWizardPreview(ExportPreviewData.review(), dark = true)
+}
+
+@Preview(name = "Loading", group = "Export", widthDp = 390, heightDp = 844)
+@Composable
+internal fun ExportLoadingPreview() {
+    ExportWizardPreview(data = null)
 }

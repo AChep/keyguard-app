@@ -7,6 +7,12 @@ struct DetailUriRow: View {
     let invoke: (String) -> Void
 
     var body: some View {
+        row
+            .modifier(DetailUriDrag(url: item.dragUrl.flatMap(URL.init(string:))))
+    }
+
+    @ViewBuilder
+    private var row: some View {
         if item.actions.isEmpty {
             rowLabel
         } else {
@@ -29,7 +35,7 @@ struct DetailUriRow: View {
             subtitle: item.text,
             disclosure: item.actions.isEmpty ? nil : "ellipsis",
             favicon: FaviconView(
-                url: item.uriIcon?.url, placeholder: nil,
+                iconKey: item.uriIcon?.iconKey, placeholder: nil,
                 fallbackSymbol: fallbackSymbol, size: 20),
             colorizeTitle: item.colorize
         )
@@ -43,6 +49,20 @@ struct DetailUriRow: View {
         case .website: "globe"
         case .app: "app"
         default: "link"
+        }
+    }
+}
+
+/// Offers the row's link to other apps; Kotlin decides which links are draggable.
+private struct DetailUriDrag: ViewModifier {
+    let url: URL?
+
+    func body(content: Content) -> some View {
+        if let url {
+            content
+                .onDrag { NSItemProvider(object: url as NSURL) }
+        } else {
+            content
         }
     }
 }

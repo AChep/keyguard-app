@@ -23,6 +23,7 @@ fun PendingUsageHistoryQueue.enqueueEvent(
     cipherId: String? = null,
     fingerprint: String? = null,
     keygrip: String? = null,
+    cliAgent: PendingCliAgentUsageHistory? = null,
     coalescenceKey: String? = null,
 ): IO<Unit> = ioEffect {
     val item = PendingUsageHistory(
@@ -35,6 +36,7 @@ fun PendingUsageHistoryQueue.enqueueEvent(
         cipherId = cipherId,
         fingerprint = fingerprint,
         keygrip = keygrip,
+        cliAgent = cliAgent,
         timestampEpochMilliseconds = Clock.System
             .now()
             .toEpochMilliseconds(),

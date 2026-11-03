@@ -17,6 +17,9 @@ internal enum class StagingPurpose {
     KeePassDatabase,
     KeePassAttachmentPlaintext,
     BackupObjectUpload,
+
+    /** Verified bytes offered to other apps by a drag; readers seek to arbitrary offsets. */
+    PreparedContentPlaintext,
 }
 
 /**
@@ -39,7 +42,10 @@ internal data class SpoolLimits(
     }
 }
 
-/** A supplied cancellation probe scopes the writer and its snapshots to that operation. */
+/**
+ * A supplied cancellation probe scopes the writer and its snapshots to that operation.
+ * [StagingPurpose.PreparedContentPlaintext] snapshots outlive it and never consult the probe.
+ */
 internal interface StagingSpoolFactory {
     fun create(
         purpose: StagingPurpose,

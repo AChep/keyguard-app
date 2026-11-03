@@ -70,6 +70,7 @@ pub unsafe extern "C" fn keyguard_io_txn_begin(
         // SAFETY: The caller contract is forwarded from this function's own.
         let options = unsafe { options_from_raw(options) }?;
         // SAFETY: The caller contract is forwarded from this function's own.
+        // The view does not outlive this call.
         let destination = unsafe { string_from_raw(destination_ptr, destination_len) }?;
         Ok(bridge::txn_begin(destination, options))
     }))
@@ -88,6 +89,7 @@ pub unsafe extern "C" fn keyguard_io_directory_open(
 ) -> i64 {
     unwrap(contained(|| {
         // SAFETY: The caller contract is forwarded from this function's own.
+        // The view does not outlive this call.
         let directory = unsafe { string_from_raw(directory_ptr, directory_len) }?;
         Ok(bridge::directory_open(directory))
     }))
@@ -118,6 +120,7 @@ pub unsafe extern "C" fn keyguard_io_txn_begin_at_directory(
         // SAFETY: The caller contract is forwarded from this function's own.
         let options = unsafe { options_from_raw(options) }?;
         // SAFETY: The caller contract is forwarded from this function's own.
+        // The view does not outlive this call.
         let destination =
             unsafe { string_from_raw(relative_destination_ptr, relative_destination_len) }?;
         Ok(bridge::txn_begin_at_directory(
@@ -148,6 +151,7 @@ pub unsafe extern "C" fn keyguard_io_txn_write(
 ) -> i64 {
     unwrap(contained(|| {
         // SAFETY: The caller contract is forwarded from this function's own.
+        // The view does not outlive this call.
         let bytes = unsafe { bytes_from_raw(input_ptr, input_len) }?;
         Ok(bridge::txn_write(handle, bytes))
     }))
@@ -181,6 +185,7 @@ pub unsafe extern "C" fn keyguard_io_scratch_open(
 ) -> i64 {
     unwrap(contained(|| {
         // SAFETY: The caller contract is forwarded from this function's own.
+        // The view does not outlive this call.
         let directory = unsafe { string_from_raw(directory_ptr, directory_len) }?;
         Ok(bridge::scratch_open(directory))
     }))
@@ -201,6 +206,7 @@ pub unsafe extern "C" fn keyguard_io_scratch_write(
 ) -> i64 {
     unwrap(contained(|| {
         // SAFETY: The caller contract is forwarded from this function's own.
+        // The view does not outlive this call.
         let bytes = unsafe { bytes_from_raw(input_ptr, input_len) }?;
         Ok(bridge::scratch_write(handle, bytes))
     }))
@@ -233,8 +239,8 @@ pub unsafe extern "C" fn keyguard_io_scratch_read_at(
     output_len: usize,
 ) -> i64 {
     unwrap(contained(|| {
-        // SAFETY: The caller contract guarantees `output_len` writable bytes
-        // for the call.
+        // SAFETY: Forwarded from this function's own contract. The view does
+        // not outlive this call.
         let buffer = unsafe { bytes_from_raw_mut(output_ptr, output_len) }?;
         Ok(bridge::scratch_read_at(handle, position, buffer))
     }))
@@ -281,6 +287,7 @@ pub unsafe extern "C" fn keyguard_io_sweep_orphans(
             return Err(abi::pack_bridge_invalid_argument());
         }
         // SAFETY: The caller contract is forwarded from this function's own.
+        // The view does not outlive this call.
         let directory = unsafe { string_from_raw(directory_ptr, directory_len) }?;
         match bridge::sweep(directory, older_than_ms, role_mask) {
             Ok(core_report) => {

@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.buildplugins.resources
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
@@ -9,7 +8,6 @@ import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import java.util.Locale
 
 @CacheableTask
 abstract class GenerateLocaleConfigTask : DefaultTask() {
@@ -34,13 +32,18 @@ abstract class GenerateLocaleConfigTask : DefaultTask() {
         localeDirectoryNames.get()
             .sorted()
             .forEach { name ->
-                parseLocaleDirectoryName(name)?.let(locales::add)
+                parseLocaleDirectory(name)?.let { locales += it.toLanguageTag() }
             }
 
         val localeList = locales.toList()
         writeKotlin(localeList)
         writeResources(localeList)
     }
+
+    private fun LocaleDirectory.toLanguageTag(): String =
+        listOfNotNull(language, script, region)
+            .plus(variants)
+            .joinToString(separator = "-")
 
     private fun writeKotlin(locales: List<String>) {
         val payload = locales.joinToString { "\"$it\"" }
@@ -74,74 +77,4 @@ $payload
             writeText(content)
         }
     }
-
-    private fun parseLocaleDirectoryName(name: String): String? {
-        if (name == "values") {
-            return null
-        }
-        if (!name.startsWith("values-")) {
-            return null
-        }
-
-        val qualifier = name.removePrefix("values-")
-        if (qualifier.startsWith("b+")) {
-            return parseBcp47(name, qualifier.removePrefix("b+"))
-        }
-
-        val parts = qualifier.split('-')
-        val language = parts.firstOrNull()
-            ?: return null
-        if (!language.matches(Regex("[a-z]{2,8}"))) {
-            return null
-        }
-
-        var script: String? = null
-        var region: String? = null
-        parts.drop(1).forEach { part ->
-            when {
-                script == null && part.length == 4 && part.all(Char::isLetter) -> {
-                    script = part.lowercase().replaceFirstChar(Char::titlecase)
-                }
-
-                region == null && part.startsWith("r") && part.length > 1 -> {
-                    region = canonicalizeRegion(part.removePrefix("r"))
-                }
-
-                else -> throw GradleException("Unsupported locale qualifier directory: $name")
-            }
-        }
-
-        return buildList {
-            add(language.lowercase())
-            script?.let(::add)
-            region?.let(::add)
-        }.joinToString(separator = "-")
-    }
-
-    private fun parseBcp47(directoryName: String, rawTag: String): String {
-        val segments = rawTag.split('+')
-            .filter(String::isNotBlank)
-        if (segments.isEmpty()) {
-            throw GradleException("Unsupported locale qualifier directory: $directoryName")
-        }
-
-        return segments.mapIndexed { index, segment ->
-            when {
-                index == 0 -> segment.lowercase()
-                segment.length == 4 && segment.all(Char::isLetter) ->
-                    segment.lowercase().replaceFirstChar(Char::titlecase)
-
-                segment.length == 2 && segment.all(Char::isLetter) -> segment.uppercase(Locale.ROOT)
-                segment.length == 3 && segment.all(Char::isDigit) -> segment
-                else -> segment
-            }
-        }.joinToString(separator = "-")
-    }
-
-    private fun canonicalizeRegion(region: String): String =
-        when {
-            region.length == 2 && region.all(Char::isLetter) -> region.uppercase(Locale.ROOT)
-            region.length == 3 && region.all(Char::isDigit) -> region
-            else -> throw GradleException("Unsupported locale region qualifier: $region")
-        }
 }

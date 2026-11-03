@@ -15,7 +15,18 @@ interface GpgPublicKeyParser {
     fun parse(
         armored: String,
     ): GpgPublicKeyParseResult
+
+    /** Parses binary or ASCII-armored [keyData] without modifying it. */
+    fun parse(
+        keyData: ByteArray,
+    ): GpgPublicKeyParseResult = GpgPublicKeyParseResult.Error(GpgPublicKeyParseError.Unsupported)
 }
+
+/** Returns `true` if the text contains an ASCII-armored OpenPGP secret key block. */
+fun String.containsGpgPrivateKeyArmor(): Boolean =
+    GPG_PRIVATE_KEY_ARMOR_LABELS.any { contains(it, ignoreCase = true) }
+
+private val GPG_PRIVATE_KEY_ARMOR_LABELS = listOf("-----BEGIN PGP PRIVATE KEY", "-----BEGIN PGP SECRET KEY")
 
 /**
  * Parses [armored] and returns the key whose fingerprint matches [fingerprint]
@@ -75,6 +86,11 @@ data class GpgUserIdInfo(
     /** Stable identifier derived from the exact OpenPGP identity packet body. */
     val identityId: String,
     val userId: String,
+    val primary: Boolean = false,
+    val revoked: Boolean = false,
+    val canRevoke: Boolean = false,
+    val canReplace: Boolean = false,
+    val canMakePrimary: Boolean = false,
 )
 
 data class GpgPublicKeyInfo(
@@ -123,11 +139,9 @@ data class GpgPublicKeyInfo(
     val userIdDetails: List<GpgUserIdInfo> = emptyList(),
     /** Distinct digest names from verified renewal-only self-signatures; display metadata only. */
     val weakSelfSignatureAlgorithms: List<String> = emptyList(),
-) {
-    /** The parser accepts only v4 and v6; a v6 fingerprint has 32 bytes. */
-    val canRevokeLastIdentity: Boolean
-        get() = fingerprint.length == 64
-}
+    val userIdHistory: List<GpgUserIdInfo> = emptyList(),
+    val canModifyUserIds: Boolean = false,
+)
 
 data class GpgPublicSubKeyInfo(
     val fingerprint: String,

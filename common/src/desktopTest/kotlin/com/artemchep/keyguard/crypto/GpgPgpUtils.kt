@@ -66,9 +66,13 @@ internal fun parseGpgPublicKeyRingCollection(
 
 internal fun parseGpgSecretKeyRingCollection(
     armored: String,
+): PGPSecretKeyRingCollection = parseGpgSecretKeyRingCollection(armored.encodeToByteArray())
+
+internal fun parseGpgSecretKeyRingCollection(
+    content: ByteArray,
 ): PGPSecretKeyRingCollection {
     val collection = PGPSecretKeyRingCollection(
-        PGPUtil.getDecoderStream(ByteArrayInputStream(armored.encodeToByteArray())),
+        PGPUtil.getDecoderStream(ByteArrayInputStream(content)),
         JcaKeyFingerprintCalculator(),
     )
     collection.keyRings

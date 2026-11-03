@@ -34,6 +34,7 @@ import com.artemchep.keyguard.common.usecase.CipherDuplicatesCheck
 import com.artemchep.keyguard.common.usecase.CipherExpiringCheck
 import com.artemchep.keyguard.common.usecase.CipherFieldSwitchToggle
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
+import com.artemchep.keyguard.common.usecase.CommitImportPlan
 import com.artemchep.keyguard.common.usecase.CipherMerge
 import com.artemchep.keyguard.common.usecase.CipherSshKeyWeakCheck
 import com.artemchep.keyguard.common.usecase.CipherToolbox
@@ -57,6 +58,7 @@ import com.artemchep.keyguard.common.usecase.GetFingerprintByAccount
 import com.artemchep.keyguard.common.usecase.GetFolderTree
 import com.artemchep.keyguard.common.usecase.GetFolderTreeById
 import com.artemchep.keyguard.common.usecase.GetFolders
+import com.artemchep.keyguard.common.usecase.GetGpgKeyserverState
 import com.artemchep.keyguard.common.usecase.GetHibpApiToken
 import com.artemchep.keyguard.common.usecase.GetLocalNetworkAccessHint
 import com.artemchep.keyguard.common.usecase.GetMetas
@@ -107,6 +109,7 @@ import com.artemchep.keyguard.common.usecase.impl.CheckHibpApiTokenImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAccountStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCanAddAccountImpl
 import com.artemchep.keyguard.common.usecase.impl.GetEnvSendUrlImpl
+import com.artemchep.keyguard.common.usecase.impl.GetGpgKeyserverStateImpl
 import com.artemchep.keyguard.common.usecase.impl.GetHibpApiTokenImpl
 import com.artemchep.keyguard.common.usecase.impl.GetLocalNetworkAccessHintImpl
 import com.artemchep.keyguard.common.usecase.impl.GetNavItemsConfigImpl
@@ -137,6 +140,7 @@ import com.artemchep.keyguard.feature.home.vault.search.query.parser.DefaultVaul
 import com.artemchep.keyguard.feature.home.vault.search.query.parser.VaultSearchParser
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddCipherImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.CommitImportPlanImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddCredentialCipherImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddFolderImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddPrivilegedAppImpl
@@ -214,10 +218,13 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddKeePassAccountImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.BitwardenSsoService
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountUseCase
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SaveBitwardenAccount
+import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SaveBitwardenAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyFolderById
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyProfileById
@@ -325,6 +332,7 @@ internal class VaultOperationsModule {
             } bind GpgKeyserverRefreshWorker::class
 
             scoped<VerifyGpgPublicKeyImpl>() bind VerifyGpgPublicKey::class
+            scoped<GetGpgKeyserverStateImpl>() bind GetGpgKeyserverState::class
 
             scoped<GetSendsImpl> {
                 GetSendsImpl(
@@ -479,6 +487,8 @@ internal class VaultOperationsModule {
                 )
             } bind GetMetas::class
 
+            scoped<SaveBitwardenAccountImpl>() bind SaveBitwardenAccount::class
+            scoped<BitwardenSsoService>()
             scoped<AddAccountImpl>() bind AddAccount::class
 
             scoped<AddKeePassAccount> {
@@ -494,6 +504,7 @@ internal class VaultOperationsModule {
                     base64Service = get(),
                     webDavClientFactory = get(),
                     s3ClientFactory = get(),
+                    stagingSpoolFactory = get(),
                     db = get(),
                 )
             }
@@ -523,6 +534,8 @@ internal class VaultOperationsModule {
             scoped<TrashCipherByIdImpl>() bind TrashCipherById::class
 
             scoped<ArchiveCipherByIdImpl>() bind ArchiveCipherById::class
+
+            scoped<CommitImportPlanImpl>() bind CommitImportPlan::class
 
             scoped<TrashCipherByFolderIdImpl>() bind TrashCipherByFolderId::class
 

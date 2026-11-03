@@ -3,6 +3,13 @@ package com.artemchep.keyguard.common.service.credentialexchange
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CXF_MAX_COLLECTION_DEPTH
+import com.artemchep.keyguard.common.service.credentialexchange.impl.CXF_MAX_JSON_DEPTH
+import com.artemchep.keyguard.common.service.imports.ImportError
+import com.artemchep.keyguard.common.service.imports.ImportResult
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.common.service.imports.importSkips
+import com.artemchep.keyguard.test.FakeSshKeyImportService
+import com.artemchep.keyguard.test.fakeSshKeyPair
 import kotlinx.coroutines.CancellationException
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -28,9 +35,8 @@ class CxfImportHostileDocumentTest {
 
     @Test
     fun `the collection walk re-roots at the depth cap`() {
-        // The bound is policy, not a `StackOverflowError` guard: the JSON parse
-        // and the collection decode are both strictly deeper recursions the
-        // document has already survived. Past the bound a subtree becomes a new
+        // The collection cap is policy, not a `StackOverflowError` guard: the
+        // JSON depth bound sits above it. Past the cap a subtree becomes a new
         // top-level folder, so nothing is dropped.
         val plan = service.parseSuccessPlan(
             payload = nestedCollectionDocument(depth = CXF_MAX_COLLECTION_DEPTH + 20),
@@ -42,30 +48,34 @@ class CxfImportHostileDocumentTest {
 
     @Test
     fun `absurdly nested collections fail the parse instead of crashing`() {
-        // Deep enough that the JSON reader itself gives out — measured: this
-        // document shape parses and plans fine to depth 2200 and both
-        // `parseToJsonElement` and `parse` fail together at 2600, so the reader
-        // is the binding constraint and the collection decode never is. What
-        // matters is that it stays a controlled failure: an `Error` escaping
-        // here leaves the screen spinning forever.
+        // Rejected by the depth bound on the text, before any recursive walk:
+        // on Kotlin/Native a stack overflow cannot be caught, and an `Error`
+        // escaping here leaves the screen spinning forever.
         val result = service.parse(
             payload = nestedCollectionDocument(depth = 10_000),
             now = now,
         )
-        assertIs<CxfImportResult.Failure>(result)
+        assertEquals(ImportResult.Failure(ImportError.Parse), result)
     }
 
     @Test
-    fun `deep but readable nesting keeps every item`() {
-        // The other side of that ceiling, and the reason it is worth pinning: a
-        // chain the reader can hold must not cost the document anything. The
-        // item here has nothing to do with the deep chain.
+    fun `the JSON depth bound admits re-rooted overflow up to its edge`() {
+        // The envelope takes four levels and each collection two more, so the
+        // deepest bracket of a `depth`-level chain sits at `2 * depth + 4`.
+        val deepest = (CXF_MAX_JSON_DEPTH - 4) / 2
+        assertTrue(deepest > CXF_MAX_COLLECTION_DEPTH)
+
         val plan = service.parseSuccessPlan(
-            payload = deeplyLinkedDocument(depth = 1_000),
+            payload = nestedCollectionDocument(depth = deepest),
             now = now,
         )
-        assertEquals(1, plan.items.size)
-        assertEquals(1_000, plan.folders.size)
+        assertEquals(deepest, plan.folders.size)
+
+        val result = service.parse(
+            payload = nestedCollectionDocument(depth = deepest + 1),
+            now = now,
+        )
+        assertEquals(ImportResult.Failure(ImportError.Parse), result)
     }
 
     @Test
@@ -202,7 +212,7 @@ class CxfImportHostileDocumentTest {
             assertEquals(case.expected, case.read(request), case.name)
             // A member dropped inside a surviving credential is an uncounted
             // fidelity loss by contract — see `CxfImportSilentDropTest`.
-            assertEquals(cxfImportSkips(), plan.skips, case.name)
+            assertEquals(importSkips(), plan.skips, case.name)
         }
     }
 
@@ -223,7 +233,7 @@ class CxfImportHostileDocumentTest {
                 now = now,
             )
             assertEquals(
-                cxfImportSkips(CxfImportSkipReason.UnknownCredential to 1),
+                importSkips(ImportSkipReason.UnknownCredential to 1),
                 plan.skips,
                 credential,
             )
@@ -247,7 +257,7 @@ class CxfImportHostileDocumentTest {
             now = now,
         )
         assertEquals("alice", plan.items.single().request.login.username)
-        assertEquals(cxfImportSkips(), plan.skips)
+        assertEquals(importSkips(), plan.skips)
     }
 
     @Test
@@ -267,7 +277,7 @@ class CxfImportHostileDocumentTest {
             now = now,
         )
         assertTrue(plan.items.isEmpty())
-        assertEquals(cxfImportSkips(CxfImportSkipReason.UnknownCredential to 1), plan.skips)
+        assertEquals(importSkips(ImportSkipReason.UnknownCredential to 1), plan.skips)
     }
 
     @Test
@@ -283,7 +293,7 @@ class CxfImportHostileDocumentTest {
             ),
             now = now,
         )
-        assertEquals(1, plan.skips[CxfImportSkipReason.UnknownCredential])
+        assertEquals(1, plan.skips[ImportSkipReason.UnknownCredential])
     }
 
     @Test
@@ -299,8 +309,8 @@ class CxfImportHostileDocumentTest {
             payload = documentWithItems(itemWithCredentials(VALID_SSH_KEY)),
             now = now,
         )
-        val failure = assertIs<CxfImportResult.Failure>(result)
-        assertEquals(CxfImportError.Parse, failure.error)
+        val failure = assertIs<ImportResult.Failure>(result)
+        assertEquals(ImportError.Parse, failure.error)
     }
 
     @Test
@@ -329,7 +339,7 @@ class CxfImportHostileDocumentTest {
             payload = documentWithItems(itemWithCredentials(VALID_SSH_KEY)),
             now = now,
         )
-        assertEquals(1, plan.skips[CxfImportSkipReason.SshKey])
+        assertEquals(1, plan.skips[ImportSkipReason.SshKey])
         assertTrue(plan.items.isEmpty())
     }
 
@@ -352,7 +362,7 @@ class CxfImportHostileDocumentTest {
                 now = now,
             )
             assertEquals(
-                cxfImportSkips(CxfImportSkipReason.UnknownCredential to 1),
+                importSkips(ImportSkipReason.UnknownCredential to 1),
                 plan.skips,
                 "element: $element",
             )
@@ -371,7 +381,7 @@ class CxfImportHostileDocumentTest {
             now = now,
         )
         assertTrue(plan.items.isEmpty())
-        assertEquals(cxfImportSkips(CxfImportSkipReason.Passkey to 1), plan.skips)
+        assertEquals(importSkips(ImportSkipReason.Passkey to 1), plan.skips)
     }
 
     @Test
@@ -383,7 +393,7 @@ class CxfImportHostileDocumentTest {
         )
         shells.forEach { shell ->
             val plan = service.parseSuccessPlan(documentWithItems(shell), now)
-            assertEquals(cxfImportSkips(CxfImportSkipReason.Item to 1), plan.skips, "shell: $shell")
+            assertEquals(importSkips(ImportSkipReason.Item to 1), plan.skips, "shell: $shell")
         }
     }
 
@@ -419,7 +429,7 @@ class CxfImportHostileDocumentTest {
             )
             val request = assertNotNull(plan.items.singleOrNull(), adornment).request
             assertEquals("alice", request.login.username, adornment)
-            assertEquals(cxfImportSkips(), plan.skips, adornment)
+            assertEquals(importSkips(), plan.skips, adornment)
         }
     }
 
@@ -444,7 +454,7 @@ class CxfImportHostileDocumentTest {
         val request = assertNotNull(plan.items.singleOrNull()).request
         assertEquals(true, request.favorite)
         assertTrue(request.tags.isEmpty())
-        assertEquals(cxfImportSkips(), plan.skips)
+        assertEquals(importSkips(), plan.skips)
     }
 
     @Test
@@ -476,7 +486,7 @@ class CxfImportHostileDocumentTest {
             )
             val request = assertNotNull(plan.items.singleOrNull(), scope).request
             assertEquals(listOf(expected), request.uris.map { it.uri }, scope)
-            assertEquals(cxfImportSkips(), plan.skips, scope)
+            assertEquals(importSkips(), plan.skips, scope)
         }
     }
 
@@ -492,7 +502,7 @@ class CxfImportHostileDocumentTest {
         shells.forEach { shell ->
             val plan = service.parseSuccessPlan(documentWithItems(shell), now)
             assertTrue(plan.items.isEmpty(), "shell: $shell")
-            assertEquals(cxfImportSkips(CxfImportSkipReason.Item to 1), plan.skips, "shell: $shell")
+            assertEquals(importSkips(ImportSkipReason.Item to 1), plan.skips, "shell: $shell")
         }
     }
 

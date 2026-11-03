@@ -1,5 +1,6 @@
+use super::worker::Generation;
 use super::{
-    with_restartable_thread, CallbackDispatcher, CallbackRegistration, UnregisterResponse,
+    with_restartable_thread, CallbackDispatcher, CallbackRegistration,
     REGISTER_STATUS_INTERNAL_ERROR, REGISTER_STATUS_INVALID_SHORTCUT, REGISTER_STATUS_UNAVAILABLE,
     REGISTER_STATUS_UNSUPPORTED_SESSION,
 };
@@ -11,7 +12,7 @@ use std::mem::MaybeUninit;
 use std::ptr;
 use std::sync::atomic::{AtomicI32, Ordering};
 use std::sync::mpsc;
-use std::sync::{Mutex, OnceLock};
+use std::sync::{Arc, Mutex, OnceLock};
 use std::thread;
 use std::time::Duration;
 
@@ -131,14 +132,20 @@ enum Command {
     },
     Unregister {
         id: i32,
-        response_tx: mpsc::Sender<UnregisterResponse>,
+        response_tx: mpsc::Sender<bool>,
     },
 }
 
 #[derive(Clone)]
 struct HotKeyThread {
     command_tx: mpsc::Sender<Command>,
-    callback_dispatcher: CallbackDispatcher,
+    generation: Arc<Generation>,
+}
+
+impl PartialEq for HotKeyThread {
+    fn eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.generation, &other.generation)
+    }
 }
 
 static HOTKEY_THREAD: OnceLock<Mutex<Option<HotKeyThread>>> = OnceLock::new();
@@ -161,8 +168,11 @@ pub(crate) fn register(key_code: u32, modifiers: u32, callback: HotKeyPressedCal
     .unwrap_or(REGISTER_STATUS_INTERNAL_ERROR)
 }
 
-pub(crate) fn unregister(id: i32) -> bool {
+pub(crate) fn unregister(id: i32, owner: &Arc<Generation>) -> bool {
     with_restartable_thread(hotkey_thread_slot(), HotKeyThread::start, |thread| {
+        if !Arc::ptr_eq(owner, &thread.generation) {
+            return Some(false);
+        }
         thread.unregister(id)
     })
     .unwrap_or(false)
@@ -184,10 +194,11 @@ impl HotKeyThread {
         let (command_tx, command_rx) = mpsc::channel();
         let callback_dispatcher = CallbackDispatcher::start("keyguard-hotkey-linux-callback")
             .ok_or(REGISTER_STATUS_INTERNAL_ERROR)?;
-        let callback_dispatcher_worker = callback_dispatcher.clone();
+        let generation = Generation::new(callback_dispatcher);
+        let worker_generation = generation.clone();
         thread::Builder::new()
             .name("keyguard-hotkey-linux".to_owned())
-            .spawn(move || hotkey_thread_main(command_rx, ready_tx, callback_dispatcher_worker))
+            .spawn(move || hotkey_thread_main(command_rx, ready_tx, worker_generation))
             .map_err(|_| REGISTER_STATUS_INTERNAL_ERROR)?;
 
         ready_rx
@@ -195,7 +206,7 @@ impl HotKeyThread {
             .map_err(|_| REGISTER_STATUS_INTERNAL_ERROR)??;
         Ok(Self {
             command_tx,
-            callback_dispatcher,
+            generation,
         })
     }
 
@@ -232,15 +243,14 @@ impl HotKeyThread {
             return None;
         }
 
-        let response = response_rx.recv().ok()?;
-        Some(self.callback_dispatcher.complete_unregister(response))
+        response_rx.recv().ok()
     }
 }
 
 fn hotkey_thread_main(
     command_rx: mpsc::Receiver<Command>,
     ready_tx: mpsc::SyncSender<Result<(), i32>>,
-    callback_dispatcher: CallbackDispatcher,
+    generation: Arc<Generation>,
 ) {
     if !supports_global_hotkeys_in_session(
         env::var("DISPLAY").ok().as_deref(),
@@ -266,7 +276,6 @@ fn hotkey_thread_main(
     let root = unsafe { XDefaultRootWindow(display) };
     let _ = ready_tx.send(Ok(()));
 
-    let mut next_id = 1;
     let mut registrations = HashMap::<i32, RegisteredHotKey>::new();
     let mut pressed_hotkeys = HashSet::<HotKeyTrigger>::new();
 
@@ -275,7 +284,7 @@ fn hotkey_thread_main(
             display,
             &registrations,
             &mut pressed_hotkeys,
-            &callback_dispatcher,
+            generation.dispatcher(),
         );
 
         match command_rx.recv_timeout(Duration::from_millis(16)) {
@@ -286,7 +295,7 @@ fn hotkey_thread_main(
                     command,
                     &mut registrations,
                     &mut pressed_hotkeys,
-                    &mut next_id,
+                    &generation,
                 );
             }
             Err(mpsc::RecvTimeoutError::Timeout) => {}
@@ -304,22 +313,19 @@ fn hotkey_thread_main(
     unsafe {
         XCloseDisplay(display);
     }
+    generation.stopped();
 }
 
+/// XWayland exposes DISPLAY under Wayland too, but its grabs only see keys
+/// typed into other X11 windows, so they are reported as unsupported.
 fn supports_global_hotkeys_in_session(
     display: Option<&str>,
     wayland_display: Option<&str>,
     session_type: Option<&str>,
 ) -> bool {
-    if display.is_some_and(|value| !value.is_empty()) {
-        return true;
-    }
-
-    if wayland_display.is_some_and(|value| !value.is_empty()) {
-        return false;
-    }
-
-    !session_type.is_some_and(|value| value.eq_ignore_ascii_case("wayland"))
+    display.is_some_and(|value| !value.is_empty())
+        && !wayland_display.is_some_and(|value| !value.is_empty())
+        && !session_type.is_some_and(|value| value.eq_ignore_ascii_case("wayland"))
 }
 
 fn handle_command(
@@ -328,7 +334,7 @@ fn handle_command(
     command: Command,
     registrations: &mut HashMap<i32, RegisteredHotKey>,
     pressed_hotkeys: &mut HashSet<HotKeyTrigger>,
-    next_id: &mut i32,
+    generation: &Arc<Generation>,
 ) {
     match command {
         Command::Register {
@@ -365,6 +371,13 @@ fn handle_command(
                 return;
             }
 
+            let id = match generation.allocate_id() {
+                Ok(id) => id,
+                Err(error) => {
+                    let _ = response_tx.send(error);
+                    return;
+                }
+            };
             if !grab_hotkey(display, root, keycode, modifiers) {
                 log_linux_hotkey(&format!(
                     "register failed: XGrabKey rejected keycode={keycode} modifiers=0x{modifiers:x}"
@@ -373,8 +386,7 @@ fn handle_command(
                 return;
             }
 
-            let id = *next_id;
-            *next_id += 1;
+            generation.insert(id, callback.clone());
             registrations.insert(
                 id,
                 RegisteredHotKey {
@@ -388,7 +400,7 @@ fn handle_command(
 
         Command::Unregister { id, response_tx } => {
             let Some(registered) = registrations.get(&id).cloned() else {
-                let _ = response_tx.send(UnregisterResponse::Unchanged);
+                let _ = response_tx.send(false);
                 return;
             };
 
@@ -400,18 +412,17 @@ fn handle_command(
                 ));
                 registrations.remove(&id);
                 // Retire before reporting success so queued invocations skip
-                // this callback. The caller waits for an active invocation
-                // after receiving the response, leaving this worker free to
-                // process commands submitted reentrantly by that callback.
+                // this callback. The caller waits for an active invocation,
+                // leaving this worker free to process commands submitted
+                // reentrantly by that callback.
                 registered.callback.retire();
-                let _ = response_tx.send(UnregisterResponse::Removed(registered.callback));
             } else {
                 log_linux_hotkey(&format!(
                     "unregister failed: id={id} keycode={} modifiers=0x{:x}",
                     registered.keycode, registered.modifiers
                 ));
-                let _ = response_tx.send(UnregisterResponse::Unchanged);
             }
+            let _ = response_tx.send(ok);
         }
     }
 }
@@ -467,29 +478,23 @@ fn resolve_hotkey_event(
     registrations: &HashMap<i32, RegisteredHotKey>,
     pressed_hotkeys: &mut HashSet<HotKeyTrigger>,
 ) -> Option<(i32, CallbackRegistration)> {
-    let (id, registered) = registrations
-        .iter()
-        .find(|(_, registered)| {
-            registered.keycode == trigger.keycode && registered.modifiers == trigger.modifiers
-        })
-        .map(|(id, registered)| (*id, registered.clone()))?;
-
-    match event_type {
-        KEY_PRESS => {
-            if pressed_hotkeys.insert(trigger) {
-                Some((id, registered.callback))
-            } else {
-                None
-            }
+    if event_type == KEY_RELEASE {
+        // Match the release by key only: the modifiers may already be up.
+        if !is_auto_repeat_release {
+            pressed_hotkeys.retain(|pressed| pressed.keycode != trigger.keycode);
         }
-        KEY_RELEASE => {
-            if !is_auto_repeat_release {
-                pressed_hotkeys.remove(&trigger);
-            }
-            None
-        }
-        _ => None,
+        return None;
     }
+    if event_type != KEY_PRESS {
+        return None;
+    }
+
+    let (id, registered) = registrations.iter().find(|(_, registered)| {
+        registered.keycode == trigger.keycode && registered.modifiers == trigger.modifiers
+    })?;
+    pressed_hotkeys
+        .insert(trigger)
+        .then(|| (*id, registered.callback.clone()))
 }
 
 fn is_auto_repeat_release(display: *mut Display, release_event: XKeyEvent) -> bool {
@@ -787,6 +792,46 @@ mod tests {
     }
 
     #[test]
+    fn release_after_modifiers_were_released_clears_pressed_state() {
+        let registrations = registration_map();
+        let mut pressed_hotkeys = HashSet::new();
+
+        assert_eq!(
+            Some(7),
+            dispatched_id(
+                KEY_PRESS,
+                49,
+                1 << 2,
+                false,
+                &registrations,
+                &mut pressed_hotkeys,
+            ),
+        );
+        assert_eq!(
+            None,
+            dispatched_id(
+                KEY_RELEASE,
+                49,
+                0,
+                false,
+                &registrations,
+                &mut pressed_hotkeys,
+            ),
+        );
+        assert_eq!(
+            Some(7),
+            dispatched_id(
+                KEY_PRESS,
+                49,
+                1 << 2,
+                false,
+                &registrations,
+                &mut pressed_hotkeys,
+            ),
+        );
+    }
+
+    #[test]
     fn unrelated_release_does_not_clear_pressed_hotkey() {
         let registrations = registration_map();
         let mut pressed_hotkeys = HashSet::new();
@@ -843,12 +888,22 @@ mod tests {
             Some("wayland-1"),
             Some("x11"),
         ));
-        assert!(supports_global_hotkeys_in_session(
+        assert!(!supports_global_hotkeys_in_session(
             Some(":0"),
             Some("wayland-0"),
             Some("wayland"),
         ));
-        assert!(supports_global_hotkeys_in_session(None, None, Some("x11")));
-        assert!(supports_global_hotkeys_in_session(None, None, None));
+        assert!(!supports_global_hotkeys_in_session(
+            Some(":0"),
+            None,
+            Some("wayland"),
+        ));
+        assert!(!supports_global_hotkeys_in_session(None, None, Some("x11")));
+        assert!(supports_global_hotkeys_in_session(
+            Some(":0"),
+            None,
+            Some("x11"),
+        ));
+        assert!(supports_global_hotkeys_in_session(Some(":0"), None, None));
     }
 }

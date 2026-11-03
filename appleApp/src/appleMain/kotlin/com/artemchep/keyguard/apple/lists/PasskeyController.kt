@@ -3,6 +3,7 @@ package com.artemchep.keyguard.apple.lists
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.sessionKoin
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequest
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.service.passkey.toAddCredentialCipherRequest
@@ -16,10 +17,14 @@ import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
 import com.artemchep.keyguard.util.webauthn.WebAuthnAllowedCredentialDescriptors
 import com.artemchep.keyguard.util.webauthn.WebAuthnAssertionHashRequest
 import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticator
+import com.artemchep.keyguard.util.webauthn.WebAuthnPrfRegistrationInput
+import com.artemchep.keyguard.util.webauthn.WebAuthnPrfValues
 import com.artemchep.keyguard.util.webauthn.WebAuthnRegistrationRequest
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeySignatureAlgorithm
 import com.artemchep.keyguard.util.webauthn.entity.CreatePasskeyPubKeyCredParams
 import com.artemchep.keyguard.util.webauthn.findExcludedPasskeyCredentialOrNull
+import com.artemchep.keyguard.util.webauthn.wireIfCanAnswer
+import com.artemchep.keyguard.util.webauthn.wireIfIndexable
 
 /**
  * Adapts the AutoFill vault and Swift snapshots to the shared WebAuthn authenticator.
@@ -44,7 +49,9 @@ internal class PasskeyController(
     suspend fun hasExcludedPasskeyCredential(rpId: String, credentialIds: List<ByteArray>): Boolean {
         val state = ctx.currentState() as? VaultState.Main
         if (state == null || credentialIds.isEmpty()) return false
-        val credentials = AutofillVaultReader(state.sessionKoin).read()
+        // Like the other platforms: an archived passkey is still stored, so it still excludes
+        // another one for the account, while the trash does not.
+        val credentials = AutofillVaultReader(state.sessionKoin).read(includeArchived = true)
             .flatMap { it.login?.fido2Credentials.orEmpty() }
             .map { it.toDomain().toWebAuthnCredential() }
         return findExcludedPasskeyCredentialOrNull(
@@ -62,6 +69,8 @@ internal class PasskeyController(
         allowedCredentialIds: List<ByteArray>,
         userVerification: String?,
         userVerified: Boolean,
+        prfFirst: ByteArray?,
+        prfSecond: ByteArray?,
     ): PasskeyAssertionSnapshot? {
         val parts = recordId.split('|', limit = 3)
         if (parts.size != PASSKEY_RECORD_PARTS) return null
@@ -80,7 +89,7 @@ internal class PasskeyController(
             ?: return null
 
         if (fido2.rpId != expectedRpId ||
-            !PasskeyCredentialId.encode(fido2.credentialId).contentEquals(expectedCredentialId)
+            PasskeyCredentialId.encodeOrNull(fido2.credentialId)?.contentEquals(expectedCredentialId) != true
         ) return null
 
         val result = di.get<WebAuthnAuthenticator>().getAssertion(
@@ -89,6 +98,7 @@ internal class PasskeyController(
                 clientDataHash = clientDataHash,
                 userVerification = userVerification,
                 allowedCredentials = WebAuthnAllowedCredentialDescriptors.fromCredentialIds(allowedCredentialIds),
+                prf = prfFirst?.let { WebAuthnPrfValues(first = it, second = prfSecond) },
             ),
             credential = fido2.toWebAuthnCredential(),
             userVerified = userVerified,
@@ -97,8 +107,10 @@ internal class PasskeyController(
             credentialId = result.credentialId,
             authenticatorData = result.authenticatorData,
             signature = result.signature,
-            userHandle = result.userHandle?.let(PasskeyBase64::decode) ?: ByteArray(0),
+            userHandle = result.userHandle ?: ByteArray(0),
             rpId = fido2.rpId,
+            prfFirst = result.prfResults?.first,
+            prfSecond = result.prfResults?.second,
         )
     }
 
@@ -111,6 +123,9 @@ internal class PasskeyController(
         userHandle: ByteArray,
         userVerification: String?,
         userVerified: Boolean,
+        prfRequested: Boolean,
+        prfFirst: ByteArray?,
+        prfSecond: ByteArray?,
     ): PasskeyRegistrationSnapshot? {
         val parts = cipherRecordId.split('|', limit = 2)
         if (parts.size != 2) return null
@@ -135,6 +150,13 @@ internal class PasskeyController(
                 pubKeyCredParams = listOf(
                     CreatePasskeyPubKeyCredParams(PasskeySignatureAlgorithm.ES256.coseValue.toDouble(), "public-key"),
                 ),
+                prf = if (prfRequested) {
+                    WebAuthnPrfRegistrationInput(
+                        eval = prfFirst?.let { WebAuthnPrfValues(first = it, second = prfSecond) },
+                    )
+                } else {
+                    null
+                },
             ),
             userVerified = userVerified,
         )
@@ -142,9 +164,10 @@ internal class PasskeyController(
             cipherId = cipherId,
             data = result.credential.toAddCredentialCipherRequest(),
         )
-        val stored = runCatching { di.get<AddCredentialCipher>()(request).bind() }
-            .getOrDefault(false)
-        if (!stored) return null
+        // A failed save returns null; a cancelled request stays cancelled.
+        val stored = runCatchingNonFatal { di.get<AddCredentialCipher>()(request).bind() }
+            .getOrNull()
+        if (stored != AddCredentialCipher.Result.Stored) return null
 
         return PasskeyRegistrationSnapshot(
             credentialId = result.credentialId,
@@ -157,35 +180,41 @@ internal class PasskeyController(
                 credentialId = result.credentialId,
                 userHandle = userHandle,
             ),
+            prfEnabled = result.prfEnabled,
+            prfFirst = result.prfResults?.first,
+            prfSecond = result.prfResults?.second,
         )
     }
 }
 
 private const val PASSKEY_RECORD_PARTS = 3
 
-/** Malformed imported metadata must not prevent indexing other valid credentials. */
+/**
+ * The passkeys that can answer a request for [rpId] that allows the [allowedCredentials],
+ * or without an [rpId], the system index: those that can answer any request for their
+ * relying party. Malformed imported metadata never prevents listing other credentials.
+ */
 internal fun List<BitwardenCipher>.toPasskeyIdentities(
     accountNames: Map<String, String> = emptyMap(),
     rpId: String? = null,
-    allowedCredentials: WebAuthnAllowedCredentialDescriptors = WebAuthnAllowedCredentialDescriptors(false, emptyList()),
+    allowedCredentials: WebAuthnAllowedCredentialDescriptors = WebAuthnAllowedCredentialDescriptors.NONE,
 ): List<PasskeyIdentitySnapshot> = flatMap { cipher ->
     cipher.login?.fido2Credentials.orEmpty().mapNotNull { fido2 ->
-        runCatching {
-            val credential = fido2.toDomain().toWebAuthnCredential()
-            if ((rpId != null && credential.rpId != rpId) || !allowedCredentials.allows(credential)) {
-                return@mapNotNull null
-            }
-            val credentialId = requireNotNull(fido2.credentialId)
-            require(credentialId.isNotBlank() && fido2.rpId.isNotBlank())
-            PasskeyIdentitySnapshot(
-                recordId = "${cipher.accountId}|${cipher.cipherId}|$credentialId",
-                rpId = fido2.rpId,
-                userName = fido2.userName ?: cipher.login?.username.orEmpty(),
-                credentialId = PasskeyCredentialId.encode(credentialId),
-                userHandle = fido2.userHandle?.let(PasskeyBase64::decode) ?: ByteArray(0),
-                accountName = accountNames[cipher.accountId].orEmpty(),
-                cipherName = cipher.name.orEmpty(),
-            )
-        }.getOrNull()
+        val credential = fido2.toDomain().toWebAuthnCredential()
+        // Lists exactly the passkeys the authenticator can then sign with.
+        val wire = if (rpId != null) {
+            credential.wireIfCanAnswer(rpId, allowedCredentials)
+        } else {
+            credential.wireIfIndexable()
+        } ?: return@mapNotNull null
+        PasskeyIdentitySnapshot(
+            recordId = "${cipher.accountId}|${cipher.cipherId}|${credential.credentialId}",
+            rpId = credential.rpId,
+            userName = fido2.userName ?: cipher.login?.username.orEmpty(),
+            credentialId = wire.credentialId,
+            userHandle = wire.userHandle ?: ByteArray(0),
+            accountName = accountNames[cipher.accountId].orEmpty(),
+            cipherName = cipher.name.orEmpty(),
+        )
     }
 }

@@ -488,8 +488,54 @@ class NativeCryptoSmokeTest {
         assertEquals(NativeCryptoErrorCode.INVALID_ARGUMENT, error.code)
     }
 
+    @Test
+    fun describesAnSshCertificateThroughTheRealNativeLibrary() {
+        val certificate = NativeCrypto.ssh.describeCertificate(
+            certificateOpenSsh = ED25519_USER_FOREVER_CERTIFICATE,
+            publicKeyOpenSsh = ED25519_PUBLIC_KEY,
+        )
+        assertEquals(NativeSshCertificateType.USER, certificate.type)
+        assertEquals("keyguard-ed25519-user-forever", certificate.keyId)
+        assertEquals(0uL, certificate.serial)
+        assertEquals(listOf("test-user"), certificate.principals)
+        assertEquals(0L, certificate.validAfter)
+        assertEquals(Long.MAX_VALUE, certificate.validBefore)
+        assertEquals("SHA256:jTLGWbD4UG+AGexRMvU0a1/TJtuiUI597k4ZJzE4/8U", certificate.caFingerprint)
+        assertEquals(emptyList(), certificate.criticalOptions)
+        assertEquals(
+            NativeSshCertificateOption(name = "permit-pty", value = ""),
+            certificate.extensions.first { it.name == "permit-pty" },
+        )
+        assertTrue(certificate.publicKeyMatches)
+
+        val unmatched = NativeCrypto.ssh.describeCertificate(ED25519_USER_FOREVER_CERTIFICATE)
+        assertEquals(false, unmatched.publicKeyMatches)
+
+        val error = assertFailsWith<NativeCryptoException> {
+            NativeCrypto.ssh.describeCertificate(ED25519_PUBLIC_KEY)
+        }
+        assertEquals(NativeCryptoErrorCode.INVALID_ARGUMENT, error.code)
+    }
+
     private fun hex(value: String): ByteArray = value
         .chunked(2)
         .map { byte -> byte.toInt(16).toByte() }
         .toByteArray()
+
+    private companion object {
+        // thirdParty/rust/ssh-key-0.6.7-keyguard/tests/examples/id_ed25519.pub
+        const val ED25519_PUBLIC_KEY =
+            "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqti user@example.com"
+
+        // thirdParty/rust/ssh-key-0.6.7-keyguard/tests/examples/ed25519-user-forever-cert.pub
+        const val ED25519_USER_FOREVER_CERTIFICATE =
+            "ssh-ed25519-cert-v01@openssh.com " +
+                "AAAAIHNzaC1lZDI1NTE5LWNlcnQtdjAxQG9wZW5zc2guY29tAAAAIPOmlVBAtxvSFYDdF0F9PH+bk1thCIzQJ/ZvnZEh8jXO" +
+                "AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqtiAAAAAAAAAAAAAAABAAAAHWtleWd1YXJkLWVkMjU1MTktdXNl" +
+                "ci1mb3JldmVyAAAADQAAAAl0ZXN0LXVzZXIAAAAAAAAAAP//////////AAAAAAAAAIIAAAAVcGVybWl0LVgxMS1mb3J3YXJk" +
+                "aW5nAAAAAAAAABdwZXJtaXQtYWdlbnQtZm9yd2FyZGluZwAAAAAAAAAWcGVybWl0LXBvcnQtZm9yd2FyZGluZwAAAAAAAAAK" +
+                "cGVybWl0LXB0eQAAAAAAAAAOcGVybWl0LXVzZXItcmMAAAAAAAAAAAAAADMAAAALc3NoLWVkMjU1MTkAAAAgyUI7e+fYO3X2" +
+                "o0IqysZWRq2W3MXBibcnLGXK0gPfN6EAAABTAAAAC3NzaC1lZDI1NTE5AAAAQKLSdyH9xzhS4RQ1Q4fHQQHmEQMlotDcSQZR" +
+                "SqaJ6HMZnBB9wto14acydCKZms9/HDRTZ3kUp/6e36idXYKGqQY= user@example.com"
+    }
 }

@@ -1,0 +1,5 @@
+[env]
+# aws-lc-sys 0.46+ links an installed AWS-LC it finds through OPENSSL_DIR or
+# pkg-config. Always build the bundled source each lockfile pins instead.
+# keyguard-crypto-sensitive's build script fails the build if this is bypassed.
+AWS_LC_SYS_USE_SYSTEM = { value = "0", force = true }

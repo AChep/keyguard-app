@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.websiteleak
 
+import com.artemchep.keyguard.feature.favicon.RemoteIconUrl
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -69,7 +70,7 @@ suspend fun RememberStateFlowScope.websiteLeakStateProducer(
                     WebsiteLeakState.Breach(
                         title = leak.title.orEmpty(),
                         domain = leak.domain.orEmpty(),
-                        icon = leak.logoPath.orEmpty(),
+                        icon = leak.logoPath?.let(::RemoteIconUrl),
                         count = leak.pwnCount,
                         description = leak.description.orEmpty(),
                         occurredAt = leak.breachDate

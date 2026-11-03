@@ -41,13 +41,26 @@ data class GpgAgentSettingsSnapshot(
     val enabled: Boolean,
     val approvalWindowTitle: String,
     val approvalWindowOptions: List<SettingOptionSnapshot>,
+    val approvalTimeoutTitle: String,
+    val approvalTimeoutOptions: List<SettingOptionSnapshot>,
     val approvalCachePolicyTitle: String,
     val approvalCachePolicyOptions: List<SettingOptionSnapshot>,
     val displayKeyNames: Boolean,
     val filterActive: Boolean,
 ) {
     companion object {
-        val empty = GpgAgentSettingsSnapshot(false, false, "", emptyList(), "", emptyList(), false, false)
+        val empty = GpgAgentSettingsSnapshot(
+            loaded = false,
+            enabled = false,
+            approvalWindowTitle = "",
+            approvalWindowOptions = emptyList(),
+            approvalTimeoutTitle = "",
+            approvalTimeoutOptions = emptyList(),
+            approvalCachePolicyTitle = "",
+            approvalCachePolicyOptions = emptyList(),
+            displayKeyNames = false,
+            filterActive = false,
+        )
     }
 }
 

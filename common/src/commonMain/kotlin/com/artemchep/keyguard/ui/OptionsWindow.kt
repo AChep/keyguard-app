@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.ui.theme.danger
@@ -152,6 +153,8 @@ fun OptionsButton(
 @Composable
 fun OptionsButton(
     enabled: Boolean = true,
+    icon: ImageVector = Icons.Outlined.MoreVert,
+    contentDescription: String? = null,
     content: @Composable DropdownScope.() -> Unit,
 ) {
     var isAutofillWindowShowing by remember {
@@ -172,8 +175,8 @@ fun OptionsButton(
             },
         ) {
             Icon(
-                imageVector = Icons.Outlined.MoreVert,
-                contentDescription = null,
+                imageVector = icon,
+                contentDescription = contentDescription,
             )
         }
         // Inject the dropdown popup to the bottom of the

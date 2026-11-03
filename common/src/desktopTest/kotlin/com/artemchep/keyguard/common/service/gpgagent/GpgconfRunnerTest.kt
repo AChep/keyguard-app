@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeoutException
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
 import kotlin.test.assertIs
 import kotlin.test.assertSame
@@ -82,5 +83,19 @@ class GpgconfRunnerTest {
         val socket = Path.of(System.getProperty("java.io.tmpdir")).toAbsolutePath().resolve("S.gpg-agent")
 
         assertEquals(socket, parseGpgconfAgentSocket("invalid\u0000path\n$socket\n"))
+    }
+
+    @Test
+    fun `version parser accepts one valid record among warnings`() {
+        for (version in listOf("2.2.40", "2.5.24", "2.5.24-beta1", "2.4.8+vendor.1")) {
+            assertEquals(version, parseGpgVersion("gpg: WARNING: unsafe permissions\ncfg:version:$version\r\n"))
+        }
+        for (output in listOf(
+            "", "gpg (GnuPG) 2.5.24", "cfg:version:2..24", "cfg:version:2.5.24 other",
+            "cfg:version:2.5.24\u0000", "cfg:version:2.5.24\ncfg:version:2.5.25",
+            "cfg:version:2.5.24-" + "a".repeat(128),
+        )) {
+            assertFails(output) { parseGpgVersion(output) }
+        }
     }
 }

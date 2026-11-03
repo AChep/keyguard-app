@@ -3,12 +3,9 @@ package com.artemchep.keyguard.common.service.backup
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.s3.InMemoryS3Client
 import com.artemchep.keyguard.common.service.s3.InMemoryS3ClientFactory
-import com.artemchep.keyguard.common.service.staging.SpoolLimits
+import com.artemchep.keyguard.test.MemoryStagingSpoolFactory
 import com.artemchep.keyguard.common.service.staging.StagingPurpose
-import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
 import com.artemchep.keyguard.util.io.readByteArrayAndClose
-import com.artemchep.keyguard.util.io.spool.AdaptiveSpool
-import com.artemchep.keyguard.util.io.spool.ByteStoreWriter
 import com.artemchep.keyguard.util.s3.S3Exception
 import com.artemchep.keyguard.util.s3.S3Operation
 import com.artemchep.keyguard.util.s3.S3WritePrecondition
@@ -203,23 +200,4 @@ class S3BackupObjectStoreTest {
         prefix = "keyguard/",
         stagingSpoolFactory = stagingSpoolFactory,
     )
-}
-
-private class MemoryStagingSpoolFactory : StagingSpoolFactory {
-    val purposes = mutableListOf<StagingPurpose>()
-
-    override fun create(
-        purpose: StagingPurpose,
-        limits: SpoolLimits,
-        checkCancellation: () -> Unit,
-        limitExceeded: (maximumBytes: Long) -> Throwable,
-    ): ByteStoreWriter {
-        purposes += purpose
-        return AdaptiveSpool(
-            memoryLimitBytes = limits.maximumBytes,
-            maximumBytes = limits.maximumBytes,
-            spillFactory = { error("Tests never spill.") },
-            limitExceeded = limitExceeded,
-        )
-    }
 }

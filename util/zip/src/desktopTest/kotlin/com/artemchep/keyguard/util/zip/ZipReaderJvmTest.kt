@@ -15,6 +15,19 @@ import net.lingala.zip4j.io.outputstream.ZipOutputStream as Zip4jOutputStream
 /** The JDK's own reader lists what the writer produces. */
 class ZipReaderJvmTest {
     @Test
+    fun normalizesCorruptionWhenSkippingEntries() {
+        for (bytes in corruptReaderArchives()) {
+            assertFailsWith<ZipException> {
+                ZipReader(bytes.source()).use { reader ->
+                    while (reader.nextEntry() != null) {
+                        // zip4j drains and validates the unread entry when advancing.
+                    }
+                }
+            }
+        }
+    }
+
+    @Test
     fun rejectsZipCryptoEvenWithTheCorrectPassword() {
         val archive = archiveWithEncryptionMethods(listOf(EncryptionMethod.ZIP_STANDARD))
         ZipReader(archive.source(), "password").use { reader ->

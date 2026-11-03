@@ -1,16 +1,23 @@
 package com.artemchep.keyguard.feature.home.settings.backups
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.SystemUpdateAlt
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.backup.BackupConfig
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepository
 import com.artemchep.keyguard.common.service.backup.sanitized
+import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.RunBackupNow
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
+import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
+import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationRoute
+import com.artemchep.keyguard.feature.imports.ImportRoute
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
@@ -31,6 +38,7 @@ fun produceAutomaticBackupsSettingsScreenState(): Loadable<AutomaticBackupsSetti
         produceAutomaticBackupsSettingsScreenState(
             backupConfigRepository = get(),
             runBackupNow = get(),
+            getAccounts = get(),
         )
     }
 
@@ -38,23 +46,27 @@ fun produceAutomaticBackupsSettingsScreenState(): Loadable<AutomaticBackupsSetti
 fun produceAutomaticBackupsSettingsScreenState(
     backupConfigRepository: BackupConfigRepository,
     runBackupNow: RunBackupNow,
+    getAccounts: GetAccounts,
 ): Loadable<AutomaticBackupsSettingsState> = produceScreenState(
     key = "settings_automatic_backups",
     initial = Loadable.Loading,
     args = arrayOf(
         backupConfigRepository,
         runBackupNow,
+        getAccounts,
     ),
 ) {
     automaticBackupsSettingsStateProducer(
         backupConfigRepository = backupConfigRepository,
         runBackupNow = runBackupNow,
+        getAccounts = getAccounts,
     )
 }
 
 suspend fun RememberStateFlowScope.automaticBackupsSettingsStateProducer(
     backupConfigRepository: BackupConfigRepository,
     runBackupNow: RunBackupNow,
+    getAccounts: GetAccounts,
 ): Flow<Loadable<AutomaticBackupsSettingsState>> {
     fun putConfig(
         block: (BackupConfig) -> BackupConfig,
@@ -90,6 +102,43 @@ suspend fun RememberStateFlowScope.automaticBackupsSettingsStateProducer(
         navigate(NavigationIntent.NavigateToRoute(route))
     }
 
+    fun navigateToImport(accountId: String) {
+        val route = ImportRoute(
+            args = ImportRoute.Args(
+                accountId = AccountId(accountId),
+                configuredBackup = true,
+            ),
+        )
+        navigate(NavigationIntent.NavigateToRoute(route))
+    }
+
+    suspend fun importFromBackup() {
+        val accounts = getAccounts().first()
+        accounts.singleOrNull()?.let { account ->
+            navigateToImport(account.accountId())
+            return
+        }
+        // A backup holds every account, but an import writes into one.
+        val route = registerRouteResultReceiver(
+            route = OrganizationConfirmationRoute(
+                args = OrganizationConfirmationRoute.Args(
+                    decor = OrganizationConfirmationRoute.Args.Decor(
+                        title = translate(Res.string.pref_item_automatic_backups_import_account_title),
+                        icon = Icons.Outlined.SystemUpdateAlt,
+                    ),
+                    flags = OrganizationConfirmationRoute.Args.HIDE_ORGANIZATION or
+                        OrganizationConfirmationRoute.Args.HIDE_COLLECTION or
+                        OrganizationConfirmationRoute.Args.HIDE_FOLDER,
+                ),
+            ),
+        ) { result ->
+            if (result is OrganizationConfirmationResult.Confirm) {
+                navigateToImport(result.accountId)
+            }
+        }
+        navigate(NavigationIntent.NavigateToRoute(route))
+    }
+
     // Created once so status ticks during a run do not change callback identity.
     val onSetupClick = {
         navigate(NavigationIntent.NavigateToRoute(AutomaticBackupsSetupRoute))
@@ -107,6 +156,7 @@ suspend fun RememberStateFlowScope.automaticBackupsSettingsStateProducer(
         runBackupNow()
             .launchIn(appScope)
     }
+    val onImport = onClick(::importFromBackup)
     val onDisableClick = onClick(::confirmDisable)
     return combine(
         backupConfigRepository.getConfig(),
@@ -118,6 +168,7 @@ suspend fun RememberStateFlowScope.automaticBackupsSettingsStateProducer(
             onSetupClick = onSetupClick,
             onRetentionChange = onRetentionChange,
             onRunNow = onRunNow,
+            onImport = onImport,
             onDisableClick = onDisableClick,
         )
     }

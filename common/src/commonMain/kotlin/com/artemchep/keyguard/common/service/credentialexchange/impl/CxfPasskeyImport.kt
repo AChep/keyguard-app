@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.credentialexchange.impl
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
+import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyKeyMaterial
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyKeyProfile
@@ -36,11 +37,7 @@ internal fun mapImportCredentialId(
         ?.let { value -> runCatchingNonFatal { cxfUrlSafeBase64.decode(value) }.getOrNull() }
         ?.takeIf { it.isNotEmpty() }
         ?: return null
-    return try {
-        PasskeyCredentialId.decode(bytes)
-    } finally {
-        bytes.fill(0)
-    }
+    return bytes.useAndClear(PasskeyCredentialId::decode)
 }
 
 /**
@@ -55,11 +52,9 @@ internal fun mapImportKey(
 ): CxfImportedPasskeyKey? {
     val der = decodeImportKeyDer(key)
         ?: return null
-    return try {
-        passkeyCrypto.inspectKeyMaterialOrNull(der)
+    return der.useAndClear {
+        passkeyCrypto.inspectKeyMaterialOrNull(it)
             ?.encodeImportedKey()
-    } finally {
-        der.fill(0)
     }
 }
 
@@ -116,7 +111,7 @@ internal fun mapImportUserHandle(
 
 private fun mapDecodedImportUserHandle(
     bytes: ByteArray,
-): CxfImportUserHandle = try {
+): CxfImportUserHandle = bytes.useAndClear {
     if (bytes.isEmpty()) {
         // A non-empty spelling that decodes to no bytes says the same thing `""`
         // does; kept so a laxer codec cannot store an empty handle.
@@ -126,15 +121,13 @@ private fun mapDecodedImportUserHandle(
     } else {
         CxfImportUserHandle.Present(PasskeyBase64.encodeToString(bytes))
     }
-} finally {
-    bytes.fill(0)
 }
 
 /**
  * Maps an imported passkey into Keyguard's stored form, or returns `null` (a
  * counted skip) when the credential id, the private key or the rp id is
  * missing, oversized or undecodable — the three members without which no
- * assertion can ever be produced.
+ * assertion can ever be produced — or when its PRF seeds cannot be stored.
  *
  * The `userHandle` member is the exception: an empty one is read as *absent* and
  * the passkey is kept. See [CxfImportUserHandle].
@@ -148,15 +141,19 @@ internal fun mapImportPasskey(
     passkey: CxfCredential.Passkey,
     creationDate: Instant,
     passkeyCrypto: PasskeyCrypto,
-): DSecret.Login.Fido2Credentials? =
-    when (val handle = mapImportUserHandle(passkey.userHandle)) {
+): DSecret.Login.Fido2Credentials? {
+    val prf = mapImportPasskeyPrfSecrets(passkey.fido2Extensions)
+        .takeUnless { it == CxfPasskeyPrf.Unusable }
+        ?: return null
+    return when (val handle = mapImportUserHandle(passkey.userHandle)) {
         CxfImportUserHandle.Undecodable -> null
         CxfImportUserHandle.Absent ->
-            mapDecodedImportPasskey(passkey, null, creationDate, passkeyCrypto)
+            mapDecodedImportPasskey(passkey, null, creationDate, passkeyCrypto, prf.valueOrNull())
 
         is CxfImportUserHandle.Present ->
-            mapDecodedImportPasskey(passkey, handle.value, creationDate, passkeyCrypto)
+            mapDecodedImportPasskey(passkey, handle.value, creationDate, passkeyCrypto, prf.valueOrNull())
     }
+}
 
 /**
  * Assembles the stored credential. `discoverable` is derived from the user
@@ -172,6 +169,7 @@ private fun mapDecodedImportPasskey(
     userHandle: String?,
     creationDate: Instant,
     passkeyCrypto: PasskeyCrypto,
+    prfSecrets: CxfImportedPrfSecrets?,
 ): DSecret.Login.Fido2Credentials? {
     val credentialId = mapImportCredentialId(passkey.credentialId)
     val key = mapImportKey(passkey.key, passkeyCrypto)
@@ -193,5 +191,7 @@ private fun mapDecodedImportPasskey(
         userDisplayName = passkey.userDisplayName.takeIf { it.isNotBlank() },
         discoverable = userHandle != null,
         creationDate = creationDate,
+        prfSecret = prfSecrets?.prfSecret,
+        prfSecretWithoutUv = prfSecrets?.prfSecretWithoutUv,
     )
 }

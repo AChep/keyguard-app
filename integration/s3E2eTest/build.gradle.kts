@@ -11,6 +11,7 @@ keyguardE2e {
 }
 
 dependencies {
+    s3E2eTestImplementation(project(":integration:testProcess"))
     s3E2eTestImplementation(project(":util:s3"))
     s3E2eTestImplementation(libs.kotlinx.coroutines.test)
     s3E2eTestImplementation(libs.ktor.ktor.client.cio)

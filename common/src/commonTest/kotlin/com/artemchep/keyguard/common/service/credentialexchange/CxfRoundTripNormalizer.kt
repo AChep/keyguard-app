@@ -4,14 +4,14 @@ import com.artemchep.keyguard.common.model.CryptoHashAlgorithm
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.TotpToken
 import com.artemchep.keyguard.common.model.create.CreateRequest
-import com.artemchep.keyguard.common.service.credentialexchange.impl.CXF_CARD_VALID_FROM_LABEL
+import com.artemchep.keyguard.common.service.imports.mapping.IMPORT_CARD_VALID_FROM_LABEL
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CXF_TOTP_DIGITS_RANGE
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CXF_TOTP_PERIOD_RANGE_LONG
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfIdentityOverflowLabels
-import com.artemchep.keyguard.common.service.credentialexchange.impl.DEFAULT_FIELD_LABEL
-import com.artemchep.keyguard.common.service.credentialexchange.impl.canonicalTotpSecretOrNull
+import com.artemchep.keyguard.common.service.imports.mapping.IMPORT_DEFAULT_FIELD_LABEL
 import com.artemchep.keyguard.common.service.credentialexchange.impl.mapTotpAlgorithm
 import com.artemchep.keyguard.common.service.credentialexchange.impl.yearMonthOrNull
+import com.artemchep.keyguard.common.service.imports.mapping.canonicalTotpSecretOrNull
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import kotlin.time.Instant
 
@@ -267,7 +267,7 @@ private fun List<DSecret.Field>.exportableFields(): List<DSecret.Field> = this
     .map { field ->
         field.copy(
             // (1) A field with no name is stored under a generic one.
-            name = field.name?.ifBlank { null } ?: DEFAULT_FIELD_LABEL,
+            name = field.name?.ifBlank { null } ?: IMPORT_DEFAULT_FIELD_LABEL,
             linkedId = null,
         )
     }
@@ -404,7 +404,7 @@ private fun DSecret.Card.normalizeCard(): CreateRequest.Card? {
 private fun DSecret.Card.validFromFields(): List<DSecret.Field> = listOfNotNull(
     yearMonthOrNull(month = fromMonth, year = fromYear)?.let { travelled ->
         DSecret.Field(
-            name = CXF_CARD_VALID_FROM_LABEL,
+            name = IMPORT_CARD_VALID_FROM_LABEL,
             value = travelled.value,
             type = DSecret.Field.Type.Text,
         )

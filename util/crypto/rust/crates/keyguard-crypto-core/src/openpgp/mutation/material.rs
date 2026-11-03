@@ -24,6 +24,7 @@ use pgp::{
     composed::{SignedPublicKey, SignedSecretKey},
     types::{KeyDetails, KeyVersion},
 };
+use zeroize::{Zeroize, Zeroizing};
 
 use crate::openpgp::{
     certificate::{
@@ -48,49 +49,66 @@ pub(crate) struct MutationOutput {
     pub(crate) certificate_index: CertificateIndex,
 }
 
-/// Enforces the shared document and candidate-count limits for certificate mutations.
-pub(crate) fn validate_mutation_document_bounds(
-    private_key: &[u8],
-    public_key: &[u8],
-    candidate_revocation_keys: &[Vec<u8>],
-) -> Result<(), MutationMaterialError> {
-    if private_key.len() > MAX_KEY_DOCUMENT_BYTES
-        || public_key.len() > MAX_KEY_DOCUMENT_BYTES
-        || candidate_revocation_keys.len() > MAX_MUTATION_CANDIDATE_CERTIFICATES
-        || candidate_revocation_keys
-            .iter()
-            .any(|candidate| candidate.len() > MAX_KEY_DOCUMENT_BYTES)
-    {
-        return Err(MutationMaterialError::ResourceLimit);
-    }
-    Ok(())
+/// The documents and pins every certificate mutation request carries.
+pub(crate) struct MutationDocuments {
+    pub(crate) private_key: Vec<u8>,
+    pub(crate) public_key: Vec<u8>,
+    pub(crate) expected_primary_fingerprint: String,
+    pub(crate) candidate_revocation_keys: Vec<Vec<u8>>,
+    pub(crate) reference_time_epoch_seconds: u64,
 }
 
-/// Maximum distance a replacement signature may advance past the caller's
-/// reference time to remain newer than the statement it supersedes.
-const MAX_SIGNATURE_TIME_ADVANCE_SECONDS: u64 = 300;
-
-/// Resolves the instant a mutation's new signatures are created at.
-///
-/// OpenPGP self-signature selection is timestamp based, so a replacement must
-/// be strictly newer than its predecessor. Returns `None` when the required
-/// advance exceeds [`MAX_SIGNATURE_TIME_ADVANCE_SECONDS`] or does not fit a
-/// V4 timestamp.
-pub(crate) fn next_signature_time(
-    reference_time: u64,
-    newest_superseded: Option<u64>,
-) -> Option<pgp::types::Timestamp> {
-    let earliest = match newest_superseded {
-        Some(time) => time.checked_add(1)?,
-        None => reference_time,
-    };
-    let resolved = reference_time.max(earliest);
-    if resolved.saturating_sub(reference_time) > MAX_SIGNATURE_TIME_ADVANCE_SECONDS {
-        return None;
+impl Drop for MutationDocuments {
+    fn drop(&mut self) {
+        self.private_key.zeroize();
     }
-    u32::try_from(resolved)
-        .ok()
-        .map(pgp::types::Timestamp::from_secs)
+}
+
+/// Request failures every mutation reports before its own argument errors.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) enum MutationRequestError {
+    EmptyPrivateKey,
+    ResourceLimit,
+}
+
+impl MutationDocuments {
+    /// Checks the shared request invariants. Workflows call this before their
+    /// own argument checks, so the same bad input reports the same error.
+    pub(crate) fn check(&self) -> Result<(), MutationRequestError> {
+        if self.private_key.iter().all(u8::is_ascii_whitespace) {
+            return Err(MutationRequestError::EmptyPrivateKey);
+        }
+        if !self.within_bounds() {
+            return Err(MutationRequestError::ResourceLimit);
+        }
+        Ok(())
+    }
+
+    /// Opens the preflight, erasing the private key as soon as it is parsed.
+    pub(crate) fn open(&mut self) -> Result<MutationPreflight, MutationMaterialError> {
+        // Parsing stays bounded even if a workflow skipped `check`.
+        if !self.within_bounds() {
+            return Err(MutationMaterialError::ResourceLimit);
+        }
+        let private_key = Zeroizing::new(std::mem::take(&mut self.private_key));
+        MutationPreflight::open(
+            &private_key,
+            &self.public_key,
+            &self.candidate_revocation_keys,
+            &self.expected_primary_fingerprint,
+            self.reference_time_epoch_seconds,
+        )
+    }
+
+    fn within_bounds(&self) -> bool {
+        self.private_key.len() <= MAX_KEY_DOCUMENT_BYTES
+            && self.public_key.len() <= MAX_KEY_DOCUMENT_BYTES
+            && self.candidate_revocation_keys.len() <= MAX_MUTATION_CANDIDATE_CERTIFICATES
+            && self
+                .candidate_revocation_keys
+                .iter()
+                .all(|candidate| candidate.len() <= MAX_KEY_DOCUMENT_BYTES)
+    }
 }
 
 /// Everything the three certificate mutations need before they may sign.
@@ -219,10 +237,11 @@ impl MutationPreflight {
     /// `transferable_public_output` is reserved for an explicitly local-only
     /// mutation: its private result retains the new evidence, while its public
     /// result must not disclose the affected identity.
+    /// The result is validated at the reference time: new signatures are never
+    /// dated after it (see `policy::next_signature_time`).
     pub(crate) fn finalize<T, E>(
         &self,
         mutated: &PublicCertificatePacketSet,
-        mutation_time: u64,
         transferable_public_output: bool,
         inspect: impl FnOnce(
             &CanonicalCertificate,
@@ -239,8 +258,12 @@ impl MutationPreflight {
         let mut candidates = canonical.components.clone();
         candidates.extend(all_components(&self.external));
         let mut budget = OpenPgpPolicyBudget::default();
-        let policy =
-            validate_certificate(&canonical.semantic, &candidates, mutation_time, &mut budget)?;
+        let policy = validate_certificate(
+            &canonical.semantic,
+            &candidates,
+            self.reference_time,
+            &mut budget,
+        )?;
         let stored_secret_fingerprints = self.stored_secret_fingerprints();
         let (inspected, certificate_index) =
             inspect(&canonical, &policy, &stored_secret_fingerprints)?;

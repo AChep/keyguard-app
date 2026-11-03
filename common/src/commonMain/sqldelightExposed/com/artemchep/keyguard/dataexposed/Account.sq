@@ -1,21 +1,19 @@
 -- A mirror of the vault's accounts, readable while the vault is LOCKED.
 --
--- Deliberately feature-agnostic: it stores the raw pieces rather than a
--- formatted label, so each consumer can present them its own way. The first
--- consumer is the credential-transfer picker, which needs one entry per account
--- and must resolve an entry before the vault is unlocked; locked-state autofill
--- suggestions are intended to use the same rows.
+-- Deliberately feature-agnostic: each consumer presents the name its own way.
+-- The first consumer is the credential-transfer picker, which needs one entry
+-- per account and must resolve an entry before the vault is unlocked.
 --
 -- PRIVACY: account identity is otherwise never stored outside the vault. Item
--- metadata already is (see sshAgentPublicKey.name, urlBlock.uri), but account
--- name/email/host is a new category of exposure, accepted deliberately. Only
--- NON-HIDDEN accounts are mirrored — `hidden` means "do not use during
--- autofill", which has to hold before unlock too.
+-- metadata already is (see sshAgentPublicKey.name, urlBlock.uri), but an account
+-- name is a new category of exposure, accepted deliberately. Only the name is
+-- mirrored: the email and the server host are not, and a consumer that needs to
+-- show a blank name falls back to generic wording instead. Only NON-HIDDEN
+-- accounts are mirrored — `hidden` means "do not use during autofill", which
+-- has to hold before unlock too.
 CREATE TABLE account (
   accountId TEXT NOT NULL PRIMARY KEY,
-  name TEXT NOT NULL,
-  email TEXT NOT NULL,
-  host TEXT NOT NULL
+  name TEXT NOT NULL
 );
 
 -- Rewritten wholesale on every sync (deleteAll + insert, same as
@@ -23,13 +21,13 @@ CREATE TABLE account (
 -- and nothing account-side has to survive a sync — unlike
 -- credentialExchangeExportEntry, whose entryId must.
 insert:
-INSERT OR REPLACE INTO account(accountId, name, email, host)
-VALUES (:accountId, :name, :email, :host);
+INSERT OR REPLACE INTO account(accountId, name)
+VALUES (:accountId, :name);
 
 get:
 SELECT *
 FROM account
-ORDER BY name ASC, email ASC, accountId ASC;
+ORDER BY name ASC, accountId ASC;
 
 getByAccountId:
 SELECT *

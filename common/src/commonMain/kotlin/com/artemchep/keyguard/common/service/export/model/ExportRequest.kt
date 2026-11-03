@@ -6,4 +6,5 @@ data class ExportRequest(
     val filter: DFilter,
     val password: String,
     val attachments: Boolean,
+    val format: ExportFormat = ExportFormat.Zip,
 )

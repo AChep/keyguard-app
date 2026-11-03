@@ -1,6 +1,8 @@
 //! Socket module: platform-specific SSH agent socket serving.
 
 mod server;
+#[cfg(test)]
+pub(crate) use server::response_frame;
 #[cfg(unix)]
 mod unix;
 #[cfg(windows)]

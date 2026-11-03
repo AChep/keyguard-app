@@ -1,0 +1,33 @@
+---
+import BaseLayout from './BaseLayout.astro';
+
+interface Props {
+  frontmatter: {
+    title: string;
+    description: string;
+    updated: string;
+  };
+}
+
+const { title, description, updated } = Astro.props.frontmatter;
+const updatedLabel = new Date(updated).toLocaleDateString('en', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+---
+
+<BaseLayout title={title} description={description}>
+  <article class="mx-auto max-w-3xl px-6 py-12 sm:py-16">
+    <header class="mb-8">
+      <h1 class="text-3xl font-semibold tracking-tight text-on-surface sm:text-4xl">{title}</h1>
+      <p class="mt-3 text-sm text-on-surface-variant">
+        Last updated <time datetime={updated}>{updatedLabel}</time>
+      </p>
+    </header>
+    <div class="prose-doc">
+      <slot />
+    </div>
+  </article>
+</BaseLayout>

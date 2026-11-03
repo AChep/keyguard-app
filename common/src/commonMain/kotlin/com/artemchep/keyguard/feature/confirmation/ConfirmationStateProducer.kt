@@ -15,14 +15,17 @@ import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.add.AddState
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.RouteResultHandler
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.job
 import org.jetbrains.compose.resources.StringResource
 import org.koin.compose.currentKoinScope
 
@@ -67,6 +70,11 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
     args: ConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<ConfirmationResult>,
 ): Flow<ConfirmationState> {
+    val resultHandler = RouteResultHandler(transmitter)
+    screenScope.coroutineContext.job.invokeOnCompletion {
+        resultHandler.complete(ConfirmationResult.Deny)
+    }
+
     fun createItemKey(key: String) = "item.$key"
 
     val filePickerIntentSink = EventFlow<FilePickerIntent<*>>()
@@ -82,10 +90,19 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
         .map { item ->
             when (item) {
                 is ConfirmationRoute.Args.Item.StringItem -> {
-                    val handle = textFieldHandle(
-                        key = createItemKey(item.key),
-                        initial = item.value,
-                    )
+                    val handle = if (item.ephemeral) {
+                        TextFieldHandle(
+                            sink = MutableStateFlow(TextCell(item.value)),
+                            id = createItemKey(item.key),
+                        ).also { handle ->
+                            screenScope.coroutineContext.job.invokeOnCompletion { handle.setText("") }
+                        }
+                    } else {
+                        textFieldHandle(
+                            key = createItemKey(item.key),
+                            initial = item.value,
+                        )
+                    }
                     handle.sink.map { cell ->
                         confirmationStringItem(
                             item = item,
@@ -217,18 +234,19 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
                 sideEffects = sideEffects,
                 items = Loadable.Ok(items),
                 onDeny = {
-                    navigatePopSelf()
-                    transmitter(ConfirmationResult.Deny)
+                    resultHandler.complete(ConfirmationResult.Deny) {
+                        navigatePopSelf()
+                    }
                 },
                 onConfirm = if (valid) {
                     // lambda
                     {
-                        navigatePopSelf()
-
                         val data = items
                             .associate { it.key to it.value }
                         val result = ConfirmationResult.Confirm(data)
-                        transmitter(result)
+                        resultHandler.complete(result) {
+                            navigatePopSelf()
+                        }
                     }
                 } else {
                     null
@@ -278,7 +296,8 @@ private suspend fun RememberStateFlowScope.confirmationStringItem(
         sensitive = sensitive,
         monospace = monospace,
         password = password,
-        generator = generator,
+        generator = generator.takeUnless { item.ephemeral },
+        ephemeral = item.ephemeral,
         value = cell.text,
         enabled = item.enabled,
         state = model,

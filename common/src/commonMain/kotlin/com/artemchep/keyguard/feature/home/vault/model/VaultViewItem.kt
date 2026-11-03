@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.home.vault.model
 
+import com.artemchep.keyguard.feature.dragout.model.DragOutSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.runtime.Composable
@@ -133,10 +134,20 @@ sealed interface VaultViewItem {
         val badge: Badge? = null,
         val badge2: List<StateFlow<Badge?>> = emptyList(),
         /**
+         * A short outlined label shown next to
+         * the value.
+         */
+        val label: String? = null,
+        /**
          * List of the callable actions appended
          * to the item.
          */
         val dropdown: List<ContextItem> = emptyList(),
+        /**
+         * The item and the field the value is read from,
+         * `null` for the own values of an item.
+         */
+        val reference: Reference? = null,
     ) : VaultViewItem, Groupable<Value> {
         companion object;
 
@@ -148,6 +159,14 @@ sealed interface VaultViewItem {
         data class Badge(
             val text: String,
             val score: Float,
+        )
+
+        data class Reference(
+            /** The referenced item, `null` if it is not available. */
+            val item: VaultItemPresentation?,
+            val field: String,
+            /** Opens the referenced item, `null` if it is not available. */
+            val onClick: (() -> Unit)? = null,
         )
 
         override fun withShape(shape: Int) = copy(shapeState = shape)
@@ -342,6 +361,7 @@ sealed interface VaultViewItem {
         val overrides: List<Override> = emptyList(),
         val colorize: Boolean = false,
         val iconSource: VaultUriIcon? = null,
+        val drag: DragOutSource? = null,
     ) : VaultViewItem, Groupable<Uri> {
         companion object;
 
@@ -446,6 +466,7 @@ sealed interface VaultViewItem {
         override val id: String,
         val shapeState: Int = ShapeState.ALL,
         val item: AttachmentItem,
+        val drag: DragOutSource? = null,
     ) : VaultViewItem, Groupable<Attachment> {
         companion object;
 

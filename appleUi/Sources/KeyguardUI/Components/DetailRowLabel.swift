@@ -1,4 +1,5 @@
 import SwiftUI
+import KeyguardShared
 
 /// The same leading icon, text hierarchy, and disclosure treatment for detail links.
 struct DetailRowLabel: View {
@@ -8,6 +9,7 @@ struct DetailRowLabel: View {
     var disclosure: String? = nil
     var favicon: FaviconView? = nil
     var colorizeTitle = false
+    var attachmentDrag: AttachmentDragSnapshot? = nil
 
     var body: some View {
         HStack(spacing: 12) {
@@ -18,6 +20,9 @@ struct DetailRowLabel: View {
                     .foregroundStyle(.secondary)
                     .frame(width: 20)
                     .accessibilityHidden(true)
+                    #if os(iOS)
+                .modifier(DetailAttachmentDrag(drag: attachmentDrag))
+                    #endif
             }
             VStack(alignment: .leading, spacing: 4) {
                 PasswordText(title, colorize: colorizeTitle)

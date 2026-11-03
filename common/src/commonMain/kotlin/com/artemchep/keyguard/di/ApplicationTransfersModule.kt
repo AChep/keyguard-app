@@ -13,9 +13,14 @@ import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLo
 import com.artemchep.keyguard.common.service.download.DownloadService
 import com.artemchep.keyguard.common.service.download.DownloadServiceImpl
 import com.artemchep.keyguard.common.service.download.DownloadTask
+import com.artemchep.keyguard.common.service.dragout.PreparedContentStore
 import com.artemchep.keyguard.common.service.download.DownloadTaskImpl
 import com.artemchep.keyguard.common.service.export.JsonExportService
 import com.artemchep.keyguard.common.service.export.impl.JsonExportServiceImpl
+import com.artemchep.keyguard.common.service.imports.BackupImportService
+import com.artemchep.keyguard.common.service.imports.ImportService
+import com.artemchep.keyguard.common.service.imports.impl.ImportServiceImpl
+import com.artemchep.keyguard.common.service.imports.impl.keyguardbackup.BackupImportServiceImpl
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.s3.KtorS3ClientFactory
 import com.artemchep.keyguard.common.service.s3.S3ClientFactory
@@ -25,15 +30,18 @@ import com.artemchep.keyguard.common.usecase.CheckS3Connection
 import com.artemchep.keyguard.common.usecase.GpgKeyExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPrivateExport
 import com.artemchep.keyguard.common.usecase.GpgKeyPublicExport
+import com.artemchep.keyguard.common.usecase.KeyCertificateExport
 import com.artemchep.keyguard.common.usecase.KeyPairExport
 import com.artemchep.keyguard.common.usecase.KeyPrivateExport
 import com.artemchep.keyguard.common.usecase.KeyPublicExport
 import com.artemchep.keyguard.common.usecase.ListS3Directory
 import com.artemchep.keyguard.common.usecase.RemoveAttachment
+import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.usecase.impl.CheckS3ConnectionImpl
 import com.artemchep.keyguard.common.usecase.impl.GpgKeyExportImpl
 import com.artemchep.keyguard.common.usecase.impl.GpgKeyPrivateExportImpl
 import com.artemchep.keyguard.common.usecase.impl.GpgKeyPublicExportImpl
+import com.artemchep.keyguard.common.usecase.impl.KeyCertificateExportImpl
 import com.artemchep.keyguard.common.usecase.impl.KeyPairExportImpl
 import com.artemchep.keyguard.common.usecase.impl.KeyPrivateExportImpl
 import com.artemchep.keyguard.common.usecase.impl.KeyPublicExportImpl
@@ -44,10 +52,18 @@ import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.impl.PendingUploadCoordinatorImpl
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 import org.koin.plugin.module.dsl.single
 
 internal class ApplicationTransfersModule {
     val module = module {
+        single<PreparedContentStore> {
+            PreparedContentStore(
+                scope = getKoin().get<WindowCoroutineScope>(),
+                logRepository = get(),
+            )
+        } onClose { it?.close() }
+
         single<DownloadTask> {
             DownloadTaskImpl(
                 httpClient = get(),
@@ -78,6 +94,10 @@ internal class ApplicationTransfersModule {
 
         single<PendingUploadCoordinatorImpl>() bind PendingUploadCoordinator::class
 
+        single<ImportServiceImpl>() bind ImportService::class
+
+        single<BackupImportServiceImpl>() bind BackupImportService::class
+
         single<JsonExportServiceImpl>() bind JsonExportService::class
 
         single<CxfExportService> {
@@ -92,6 +112,8 @@ internal class ApplicationTransfersModule {
         single<KeyPublicExportImpl>() bind KeyPublicExport::class
 
         single<KeyPrivateExportImpl>() bind KeyPrivateExport::class
+
+        single<KeyCertificateExportImpl>() bind KeyCertificateExport::class
 
         single<GpgKeyExportImpl>() bind GpgKeyExport::class
 

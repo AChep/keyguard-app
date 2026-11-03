@@ -11,6 +11,15 @@ internal fun ByteSnapshot.readBytes(): ByteArray = openSource().use { source ->
     source.readByteArray()
 }
 
+/** Whether [candidate] appears contiguously in this array; an empty candidate always does. */
+internal fun ByteArray.containsSubsequence(candidate: ByteArray): Boolean = when {
+    candidate.isEmpty() -> true
+    candidate.size > size -> false
+    else -> (0..size - candidate.size).any { offset ->
+        candidate.indices.all { index -> this[offset + index] == candidate[index] }
+    }
+}
+
 @OptIn(InternalKeyguardIoApi::class)
 internal class TestPrivateTemporaryStorage(
     private val tamperOnFirstSource: ((ByteArray) -> ByteArray)? = null,

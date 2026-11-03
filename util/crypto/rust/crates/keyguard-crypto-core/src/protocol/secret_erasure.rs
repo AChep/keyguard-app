@@ -60,6 +60,7 @@ macro_rules! erase_on_drop {
 // Requests that carry keys, passphrases or plaintext.
 erase_on_drop! {
     record_zeroized_secret_request_drop;
+    Pkcs12Request { data, password_utf8, output_password_utf8 },
     HmacStreamOpenRequest { key },
     AesCbcPkcs7StreamOpenRequest { key, iv },
     AesCbcPkcs7HmacSha256EncryptStreamOpenRequest { encryption_key, mac_key, iv },
@@ -102,6 +103,7 @@ erase_on_drop! {
     OpenPgpExpirationUpdateRequest { private_key },
     OpenPgpUserIdRevocationRequest { private_key },
     OpenPgpUserIdReplacementRequest { private_key },
+    OpenPgpUserIdUpdateRequest { private_key },
     OpenPgpCertificateMaterialReconcileV2Request { existing_secret_certificate, incoming_secret_certificate },
     OpenPgpAgentSignRequest { private_key, hash },
     OpenPgpAgentDecryptRequest { private_key, ciphertext },
@@ -120,4 +122,9 @@ erase_on_drop! {
     OpenPgpDecryptFinal { data },
     OpenPgpAgentSignSuccess { canonical_sexp },
     OpenPgpAgentDecryptSuccess { canonical_sexp },
+}
+
+erase_on_drop! {
+    record_zeroized_secret_output_drop;
+    Pkcs12Result { normalized_pkcs12, private_key_der },
 }

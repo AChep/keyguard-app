@@ -13,8 +13,8 @@ data class PreLogin(
             val iterationsCount: Int,
         ) : Hash {
             init {
-                require(iterationsCount >= ITERATIONS_MIN) {
-                    preloginDowngradeMessage("PBKDF2 iterations", ITERATIONS_MIN.toString())
+                require(iterationsCount >= ITERATIONS_FLOOR) {
+                    preloginDowngradeMessage("PBKDF2 iterations", ITERATIONS_FLOOR.toString())
                 }
                 require(iterationsCount <= ITERATIONS_MAX) {
                     preloginTooLargeMessage("PBKDF2 iterations", ITERATIONS_MAX.toString())
@@ -22,11 +22,34 @@ data class PreLogin(
             }
 
             companion object {
+                /**
+                 * The lowest count Bitwarden ever allowed. Settings that are
+                 * not a login, such as a password-protected export, may
+                 * go this low: a weak file is still the user's own file.
+                 */
+                const val ITERATIONS_FLOOR = 5_000
+
+                /**
+                 * The lowest count a login accepts, see [login].
+                 */
                 const val ITERATIONS_MIN = 600_000
 
                 // Upper bound guards against a malicious or misconfigured server
                 // forcing an unbounded key-derivation cost before login.
                 const val ITERATIONS_MAX = 2_000_000
+
+                /**
+                 * The settings a server asks a login to use. Refuses
+                 * a downgrade below [ITERATIONS_MIN].
+                 */
+                fun login(
+                    iterationsCount: Int,
+                ): Pbkdf2 {
+                    require(iterationsCount >= ITERATIONS_MIN) {
+                        preloginDowngradeMessage("PBKDF2 iterations", ITERATIONS_MIN.toString())
+                    }
+                    return Pbkdf2(iterationsCount)
+                }
             }
         }
 

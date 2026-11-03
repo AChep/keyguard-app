@@ -1,9 +1,15 @@
 package com.artemchep.keyguard.feature.home.vault.apple
 
+import com.artemchep.keyguard.test.environmentPayload
 import androidx.compose.ui.text.AnnotatedString
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
+import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
+import com.artemchep.keyguard.feature.environments.EnvironmentFieldReference
+import com.artemchep.keyguard.feature.environments.EnvironmentPayload
+import com.artemchep.keyguard.feature.environments.EnvironmentValueSource
+import com.artemchep.keyguard.feature.environments.EnvironmentVariable
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.test.createSecret
@@ -235,12 +241,48 @@ class VaultRowCacheTest {
             "identity.firstName" to base.copy(identity = DSecret.Identity(firstName = "John")),
             "sshKey.fingerprint" to base.copy(sshKey = DSecret.SshKey(fingerprint = "SHA256:abc")),
             "gpgKey.fingerprint" to base.copy(gpgKey = DSecret.GpgKey(fingerprint = "ABCD1234")),
+            "environment" to base.copy(
+                environment = environment(EnvironmentValueSource.Literal("value")),
+            ),
         )
         for ((label, mutated) in mutations) {
             assertNotEquals(
                 baseFingerprint,
                 fingerprintOf(mutated, epochs),
                 "mutating '$label' must change the fingerprint",
+            )
+        }
+    }
+
+    private fun environment(
+        source: EnvironmentValueSource,
+    ) = environmentPayload(
+        EnvironmentDefinition(
+            variables = listOf(
+                EnvironmentVariable(name = "API_KEY", source = source),
+            ),
+        ),
+    )
+
+    @Test
+    fun `environment changes hidden by its redacted toString change the fingerprint`() {
+        val epochs = FingerprintEpochs()
+        val base = secret("id0")
+        val cipherId = "00000000-0000-0000-0000-000000000001"
+        val pairs: List<Pair<EnvironmentPayload, EnvironmentPayload>> = listOf(
+            environment(EnvironmentValueSource.Literal("a")) to
+                    environment(EnvironmentValueSource.Literal("b")),
+            environment(EnvironmentValueSource.Reference(cipherId, EnvironmentFieldReference.Custom("a"))) to
+                    environment(EnvironmentValueSource.Reference(cipherId, EnvironmentFieldReference.Custom("b"))),
+            EnvironmentPayload.Unsupported("""{"version":2,"value":"a"}""") to
+                    EnvironmentPayload.Unsupported("""{"version":2,"value":"b"}"""),
+        )
+        for ((a, b) in pairs) {
+            // Precondition: the redacted text of the payloads is equal.
+            assertEquals(a.toString(), b.toString())
+            assertNotEquals(
+                fingerprintOf(base.copy(environment = a), epochs),
+                fingerprintOf(base.copy(environment = b), epochs),
             )
         }
     }

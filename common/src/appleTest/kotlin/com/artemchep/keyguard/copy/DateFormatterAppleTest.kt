@@ -89,6 +89,10 @@ class DateFormatterAppleTest {
             )
             assertEquals(expectedDate, formatter.formatDate(instant))
             assertEquals(expectedDateTime, formatter.formatDateTime(instant))
+            assertEquals(
+                reference(locale, timeZone, NSDateFormatterLongStyle, NSDateFormatterMediumStyle, instant),
+                formatter.formatDateTimeWithSeconds(instant),
+            )
 
             formatter.formatDateMedium(LocalDate(2026, 9, 24))
             formatter.formatTimeShort(LocalTime(2, 30))

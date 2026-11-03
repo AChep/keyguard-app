@@ -1,5 +1,9 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import com.artemchep.keyguard.common.service.environment.checkEnvironmentOperation
+import com.artemchep.keyguard.feature.environments.editableDefinition
+import com.artemchep.keyguard.feature.environments.isWritable
+import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenEnvironmentFieldCodec
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -12,6 +16,7 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.canDelete
 import com.artemchep.keyguard.common.model.canEdit
 import com.artemchep.keyguard.common.model.create.CreateRequest
+import com.artemchep.keyguard.common.service.sshagent.bookmarks.withSshBookmarkFields
 import com.artemchep.keyguard.common.service.cipherlink.canonicalizeCipherLinkIds
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
@@ -25,18 +30,23 @@ import com.artemchep.keyguard.common.usecase.ResolveFolderHierarchyMode
 import com.artemchep.keyguard.common.usecase.TrashCipherById
 import com.artemchep.keyguard.common.util.useAndClear
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.core.store.bitwarden.KeePassIcon
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
 import com.artemchep.keyguard.core.store.bitwarden.CipherSourceDataReconciler
 import com.artemchep.keyguard.core.store.bitwarden.getUrlChecksumBase64
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.provider.bitwarden.crypto.keyBase64OrGenerate
 import com.artemchep.keyguard.provider.bitwarden.crypto.makeCipherAttachmentCryptoKeyMaterial
+import com.artemchep.keyguard.provider.bitwarden.mapper.of
 import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadTarget
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyDatabase
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlin.time.Instant
 
@@ -62,7 +72,25 @@ class AddCipherImpl(
     override fun invoke(
         cipherIdsToRequests: Map<String?, CreateRequest>,
     ): IO<List<String>> = ioEffect {
-        cipherIdsToRequests
+        val unsaved = UnsavedPendingUploads(
+            pendingUploadCoordinator = pendingUploadCoordinator,
+            files = cipherIdsToRequests.values.flatMap { request ->
+                request.attachments
+                    .filterIsInstance<CreateRequest.Attachment.Staged>()
+                    .map { it.file }
+            },
+        )
+        unsaved.discardOnFailure {
+            save(cipherIdsToRequests, unsaved).bind()
+        }
+    }
+
+    private fun save(
+        cipherIdsToRequests: Map<String?, CreateRequest>,
+        unsaved: UnsavedPendingUploads,
+    ): IO<List<String>> = ioEffect {
+        val requestContext = currentCoroutineContext()
+        val requests = cipherIdsToRequests
             .mapValues { (key, request) ->
                 val value = request.ownership2!!
                 val folderId = when (val folder = value.folder) {
@@ -93,8 +121,12 @@ class AddCipherImpl(
                 )
                 request.copy(ownership = own)
             }
-    }.flatMap { map ->
+        requestContext to requests
+    }.flatMap { (requestContext, map) ->
         modifyDatabase { database ->
+            // Revalidate after waiting for the vault database mutex. Disabling an
+            // integration revokes its authority without canceling ordinary writes.
+            requestContext.checkEnvironmentOperation()
             val dao = database.cipherQueries
             val now = Clock.System.now()
             val oldCiphersMap = map
@@ -125,7 +157,9 @@ class AddCipherImpl(
                         cipher = cipher,
                         base64Service = base64Service,
                         pendingUploadCoordinator = pendingUploadCoordinator,
-                    )
+                    ).also { prepared ->
+                        unsaved += prepared.createdPendingUploads
+                    }
                 }
             if (models.isEmpty()) {
                 return@modifyDatabase ModifyDatabase.Result(
@@ -137,10 +171,15 @@ class AddCipherImpl(
                 .flatMap { it.createdPendingUploads }
             val removedPendingUploads = models
                 .flatMap { it.removedPendingUploads }
+            // From here on, persist deletes the files if the write fails.
+            unsaved.handOver()
             pendingUploadCoordinator.persist(
                 createdPendingUploads = createdPendingUploads,
                 removedPendingUploads = removedPendingUploads,
             ) {
+                // Preparing uploads may suspend after the database lock. Check the
+                // original caller again at the last boundary before persistence.
+                requestContext.checkEnvironmentOperation()
                 dao.transaction {
                     models.forEach { prepared ->
                         val cipher = prepared.cipher
@@ -225,6 +264,11 @@ internal suspend fun prepareCipherPendingUploads(
         .asSequence()
         .filterIsInstance<CreateRequest.Attachment.Local>()
         .associateBy { it.id }
+    val stagedRequestAttachmentIds = request.attachments
+        .asSequence()
+        .filterIsInstance<CreateRequest.Attachment.Staged>()
+        .map { it.id }
+        .toSet()
     val oldLocalAttachmentsById = old?.attachments
         .orEmpty()
         .filterIsInstance<BitwardenCipher.Attachment.Local>()
@@ -248,6 +292,14 @@ internal suspend fun prepareCipherPendingUploads(
                 is BitwardenCipher.Attachment.Local -> {
                     val pendingUpload = attachment.pendingUpload
                     if (pendingUpload != null) {
+                        // Staged by the caller, but new to the vault all the
+                        // same: no saved state points at it if the save fails.
+                        // Unless the saved cipher does, which keeps it.
+                        if (attachment.id in stagedRequestAttachmentIds &&
+                            pendingUpload.path !in oldPendingUploadsByPath
+                        ) {
+                            createdPendingUploads += pendingUpload
+                        }
                         return@map attachment.copy(
                             size = attachment.size ?: pendingUpload.plainSize,
                         )
@@ -291,7 +343,10 @@ internal suspend fun prepareCipherPendingUploads(
             }
         }
     } catch (e: Throwable) {
-        pendingUploadCoordinator.deleteBestEffort(createdPendingUploads)
+        // Also when cancelled: nothing saved points at the files yet.
+        withContext(NonCancellable) {
+            pendingUploadCoordinator.deleteBestEffort(createdPendingUploads)
+        }
         throw e
     }
 
@@ -343,6 +398,7 @@ private suspend fun BitwardenCipher.Companion.of(
     now: Instant,
     old: BitwardenCipher? = null,
 ): BitwardenCipher {
+    val request = request.withSshBookmarkFields()
     val accountId = request.ownership?.accountId
     val folderId = request.ownership?.folderId
     val organizationId = request.ownership?.organizationId
@@ -373,10 +429,24 @@ private suspend fun BitwardenCipher.Companion.of(
         DSecret.Type.Identity -> BitwardenCipher.Type.Identity
         DSecret.Type.SshKey -> BitwardenCipher.Type.SshKey
         DSecret.Type.GpgKey -> BitwardenCipher.Type.GpgKey
+        DSecret.Type.Environment -> BitwardenCipher.Type.Environment
         null,
         DSecret.Type.None,
         -> error("Cipher must have a type!")
     }
+
+    if (old?.type == BitwardenCipher.Type.Environment) {
+        require(old.environment?.toDomain().editableDefinition() != null) {
+            "Unsupported environments cannot be edited"
+        }
+    }
+    val environment = if (type == BitwardenCipher.Type.Environment) {
+        val payload = requireNotNull(request.environment) { "Environment definition is required" }
+        require(payload.isWritable()) {
+            "Invalid environment definition"
+        }
+        BitwardenCipher.Environment(document = payload.document)
+    } else null
 
     var login: BitwardenCipher.Login? = null
     var secureNote: BitwardenCipher.SecureNote? = null
@@ -396,7 +466,9 @@ private suspend fun BitwardenCipher.Companion.of(
             )
         }
 
-        BitwardenCipher.Type.SecureNote -> {
+        BitwardenCipher.Type.SecureNote,
+        BitwardenCipher.Type.Environment,
+        -> {
             secureNote = BitwardenCipher.SecureNote.of(
                 request = request,
             )
@@ -515,6 +587,8 @@ private suspend fun BitwardenCipher.Companion.of(
                             base64Service = base64Service,
                         )
                     }
+
+                    is CreateRequest.Attachment.Staged -> attachment.toBitwardenLocalAttachment()
                 }
                 newAttachment
             }
@@ -665,9 +739,10 @@ private suspend fun BitwardenCipher.Companion.of(
     )
     val cipherId = old?.cipherId ?: cryptoGenerator.uuid()
     val createdDate = old?.createdDate ?: request.now
-    val deletedDate = old?.deletedDate
-    val archivedDate = old?.archivedDate
-    val customIcon = old?.customIcon
+    val deletedDate = request.deletedDate ?: old?.deletedDate
+    val archivedDate = request.archivedDate ?: old?.archivedDate
+    val customIcon = (request.customIcon ?: old?.customIcon)
+        ?.takeUnless { it == KeePassIcon.Key }
     val cipher = BitwardenCipher(
         accountId = accountId,
         cipherId = cipherId,
@@ -705,47 +780,24 @@ private suspend fun BitwardenCipher.Companion.of(
         identity = identity,
         sshKey = sshKey,
         gpgKey = gpgKey,
+        environment = environment,
         // other
         passwordHistory = passwordHistory,
     )
-    return cipher.copy(
+    val decodedEnvironment = if (cipher.type == BitwardenCipher.Type.SecureNote) {
+        BitwardenEnvironmentFieldCodec.decode(cipher.fields)
+    } else null
+    val finalCipher = if (decodedEnvironment != null) cipher.copy(
+        type = BitwardenCipher.Type.Environment,
+        environment = decodedEnvironment.environment,
+        fields = decodedEnvironment.remainingFields,
+    ) else cipher
+    return finalCipher.copy(
         sourceData = CipherSourceDataReconciler.onEdit(
             old = old,
-            new = cipher,
+            new = finalCipher,
         ),
     )
-}
-
-private fun BitwardenCipher.Field.LinkedId.Companion.of(
-    linkedId: DSecret.Field.LinkedId,
-) = when (linkedId) {
-    DSecret.Field.LinkedId.Login_Username -> BitwardenCipher.Field.LinkedId.Login_Username
-    DSecret.Field.LinkedId.Login_Password -> BitwardenCipher.Field.LinkedId.Login_Password
-    DSecret.Field.LinkedId.Card_CardholderName -> BitwardenCipher.Field.LinkedId.Card_CardholderName
-    DSecret.Field.LinkedId.Card_ExpMonth -> BitwardenCipher.Field.LinkedId.Card_ExpMonth
-    DSecret.Field.LinkedId.Card_ExpYear -> BitwardenCipher.Field.LinkedId.Card_ExpYear
-    DSecret.Field.LinkedId.Card_Code -> BitwardenCipher.Field.LinkedId.Card_Code
-    DSecret.Field.LinkedId.Card_Brand -> BitwardenCipher.Field.LinkedId.Card_Brand
-    DSecret.Field.LinkedId.Card_Number -> BitwardenCipher.Field.LinkedId.Card_Number
-    DSecret.Field.LinkedId.Identity_Title -> BitwardenCipher.Field.LinkedId.Identity_Title
-    DSecret.Field.LinkedId.Identity_MiddleName -> BitwardenCipher.Field.LinkedId.Identity_MiddleName
-    DSecret.Field.LinkedId.Identity_Address1 -> BitwardenCipher.Field.LinkedId.Identity_Address1
-    DSecret.Field.LinkedId.Identity_Address2 -> BitwardenCipher.Field.LinkedId.Identity_Address2
-    DSecret.Field.LinkedId.Identity_Address3 -> BitwardenCipher.Field.LinkedId.Identity_Address3
-    DSecret.Field.LinkedId.Identity_City -> BitwardenCipher.Field.LinkedId.Identity_City
-    DSecret.Field.LinkedId.Identity_State -> BitwardenCipher.Field.LinkedId.Identity_State
-    DSecret.Field.LinkedId.Identity_PostalCode -> BitwardenCipher.Field.LinkedId.Identity_PostalCode
-    DSecret.Field.LinkedId.Identity_Country -> BitwardenCipher.Field.LinkedId.Identity_Country
-    DSecret.Field.LinkedId.Identity_Company -> BitwardenCipher.Field.LinkedId.Identity_Company
-    DSecret.Field.LinkedId.Identity_Email -> BitwardenCipher.Field.LinkedId.Identity_Email
-    DSecret.Field.LinkedId.Identity_Phone -> BitwardenCipher.Field.LinkedId.Identity_Phone
-    DSecret.Field.LinkedId.Identity_Ssn -> BitwardenCipher.Field.LinkedId.Identity_Ssn
-    DSecret.Field.LinkedId.Identity_Username -> BitwardenCipher.Field.LinkedId.Identity_Username
-    DSecret.Field.LinkedId.Identity_PassportNumber -> BitwardenCipher.Field.LinkedId.Identity_PassportNumber
-    DSecret.Field.LinkedId.Identity_LicenseNumber -> BitwardenCipher.Field.LinkedId.Identity_LicenseNumber
-    DSecret.Field.LinkedId.Identity_FirstName -> BitwardenCipher.Field.LinkedId.Identity_FirstName
-    DSecret.Field.LinkedId.Identity_LastName -> BitwardenCipher.Field.LinkedId.Identity_LastName
-    DSecret.Field.LinkedId.Identity_FullName -> BitwardenCipher.Field.LinkedId.Identity_FullName
 }
 
 private suspend fun BitwardenCipher.Login.Companion.of(
@@ -871,6 +923,8 @@ internal suspend fun BitwardenCipher.Login.Companion.of(
                 userDisplayName = it.userDisplayName,
                 discoverable = it.discoverable.toString(),
                 creationDate = it.creationDate,
+                prfSecret = it.prfSecret,
+                prfSecretWithoutUv = it.prfSecretWithoutUv,
             )
         }
 
@@ -898,6 +952,14 @@ private suspend fun BitwardenCipher.SshKey.Companion.of(
     privateKey = request.sshKey.privateKey,
     publicKey = request.sshKey.publicKey,
     fingerprint = request.sshKey.fingerprint,
+    certificate = request.sshKey.certificate,
+    bookmarks = request.sshKey.bookmarks
+        .map { bookmark ->
+            BitwardenCipher.SshKey.Bookmark(
+                name = bookmark.name,
+                url = bookmark.url,
+            )
+        },
 )
 
 private suspend fun BitwardenCipher.GpgKey.Companion.of(

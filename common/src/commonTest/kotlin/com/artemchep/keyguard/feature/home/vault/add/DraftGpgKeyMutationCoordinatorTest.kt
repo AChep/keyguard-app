@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationRequest
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationResult
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationService
 import com.artemchep.keyguard.common.service.crypto.GpgUserIdRevocationServiceUnsupported
+import com.artemchep.keyguard.common.service.crypto.GpgUserIdUpdateServiceUnsupported
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
@@ -306,6 +307,7 @@ class DraftGpgKeyMutationCoordinatorTest {
         expirationService = expirationService,
         userIdReplacementService = replacementService,
         userIdRevocationService = revocationService,
+        userIdUpdateService = GpgUserIdUpdateServiceUnsupported,
         dispatcher = UnconfinedTestDispatcher(testScheduler),
     )
 

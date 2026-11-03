@@ -74,7 +74,7 @@ if [ "$FRAMEWORK_BUILD" = Release ]; then
   # Kotlin/Native release linking exceeds the default Gradle heap. Serializing the
   # work also keeps the compilers and the linker from competing for that memory.
   ./gradlew --no-daemon \
-    "-Dorg.gradle.jvmargs=-Xmx16384m -Dfile.encoding=UTF-8" \
+    "-Dorg.gradle.jvmargs=-Xmx16384m -Dfile.encoding=UTF-8 -XX:+ExitOnOutOfMemoryError" \
     --max-workers=1 \
     -Pbuildkonfig.flavor="$KONFIG_FLAVOR" \
     ":appleApp:licensee$SLICE" \

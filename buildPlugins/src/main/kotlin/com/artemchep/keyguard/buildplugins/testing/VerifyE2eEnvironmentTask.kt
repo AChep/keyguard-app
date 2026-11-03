@@ -20,6 +20,7 @@ enum class E2eToolchain {
     PYKEEPASS,
     WEBDAV,
     VERSITYGW,
+    DOCKER,
 }
 
 /** Checks the host tools only when its associated E2E suite is requested. */
@@ -120,6 +121,13 @@ abstract class VerifyE2eEnvironmentTask : DefaultTask() {
                 )
                 requireVersityGw1(output)
             }
+            // `docker version` exits non-zero when the daemon does not answer.
+            E2eToolchain.DOCKER -> runner.requireRuns(
+                command = listOf("docker", "version", "--format", "{{.Server.Version}}"),
+                timeout = Duration.ofSeconds(15),
+                requirement = "Bitwarden E2E tests require a running Docker daemon " +
+                    "('docker' on PATH, or DOCKER_HOST pointing at the daemon)",
+            )
         }
     }
 }

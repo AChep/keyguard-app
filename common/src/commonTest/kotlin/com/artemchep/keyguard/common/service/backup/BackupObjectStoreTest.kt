@@ -132,7 +132,7 @@ private class ProbeFakeBackupObjectStoreFactory : BackupObjectStoreFactory {
     ): BackupObjectStore = this.store
 }
 
-private class ProbeFakeBackupObjectStore(
+internal class ProbeFakeBackupObjectStore(
     private val corruptFullRead: Boolean = false,
     private val omitProbeFromList: Boolean = false,
     private val cleanupIncomplete: Boolean = false,

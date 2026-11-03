@@ -19,8 +19,7 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::OnceLock;
 use std::thread;
 use std::time::{Duration, Instant};
-use zbus::blocking::Connection;
-use zbus::zvariant::{self, Value};
+use zbus::{Connection, Fd, Variant};
 
 const POLICY_RELOAD_TIMEOUT: Duration = Duration::from_secs(2);
 const POLICY_RELOAD_POLL_INTERVAL: Duration = Duration::from_millis(100);
@@ -29,7 +28,11 @@ const POLICY_RELOAD_POLL_INTERVAL: Duration = Duration::from_millis(100);
 const SYSTEM_BUS_ADDRESS: &str = "unix:path=/run/dbus/system_bus_socket";
 
 fn system_connection() -> zbus::Result<Connection> {
-    zbus::blocking::connection::Builder::address(SYSTEM_BUS_ADDRESS)?.build()
+    zbus::block_on(zbus::connection::Builder::address(SYSTEM_BUS_ADDRESS).build())
+}
+
+fn authority_proxy(connection: &Connection) -> zbus::Result<AuthorityProxy<'static>> {
+    zbus::block_on(AuthorityProxy::new(connection))
 }
 
 type Outcome = (ChallengeStatus, Option<String>);
@@ -37,8 +40,7 @@ type Outcome = (ChallengeStatus, Option<String>);
 #[zbus::proxy(
     interface = "org.freedesktop.PolicyKit1.Authority",
     default_service = "org.freedesktop.PolicyKit1",
-    default_path = "/org/freedesktop/PolicyKit1/Authority",
-    gen_async = false
+    default_path = "/org/freedesktop/PolicyKit1/Authority"
 )]
 trait Authority {
     fn check_authorization(
@@ -57,10 +59,10 @@ trait Authority {
 }
 
 /// `(sa{sv})`
-#[derive(serde::Serialize, zvariant::Type)]
+#[derive(serde::Serialize, zbus::Type)]
 struct Subject<'a> {
     kind: &'a str,
-    details: HashMap<&'a str, Value<'a>>,
+    details: HashMap<&'a str, Variant<'a>>,
 }
 
 impl<'a> Subject<'a> {
@@ -76,8 +78,8 @@ impl<'a> Subject<'a> {
         Self {
             kind: "unix-process",
             details: HashMap::from([
-                ("pidfd", Value::Fd(zvariant::Fd::from(pidfd.as_fd()))),
-                ("uid", Value::I32(uid)),
+                ("pidfd", Variant::Fd(Fd::from(pidfd.as_fd()))),
+                ("uid", Variant::I32(uid)),
             ]),
         }
     }
@@ -87,13 +89,13 @@ impl<'a> Subject<'a> {
     fn system_bus_name(name: &'a str) -> Self {
         Self {
             kind: "system-bus-name",
-            details: HashMap::from([("name", Value::Str(name.into()))]),
+            details: HashMap::from([("name", Variant::Str(name.into()))]),
         }
     }
 }
 
 /// `(bba{ss})`
-#[derive(serde::Deserialize, zvariant::Type)]
+#[derive(serde::Deserialize, zbus::Type)]
 struct AuthorizationResult {
     is_authorized: bool,
     is_challenge: bool,
@@ -101,7 +103,7 @@ struct AuthorizationResult {
 }
 
 /// `(ssssssuuua{ss})`
-#[derive(serde::Deserialize, zvariant::Type)]
+#[derive(serde::Deserialize, zbus::Type)]
 struct ActionDescription {
     action_id: String,
     _description: String,
@@ -129,8 +131,8 @@ fn probe_support() -> bool {
         return false;
     }
     let has_polkit = system_connection()
-        .and_then(|connection| AuthorityProxy::new(&connection))
-        .and_then(|authority| authority.backend_version())
+        .and_then(|connection| authority_proxy(&connection))
+        .and_then(|authority| zbus::block_on(authority.backend_version()))
         .is_ok();
     if !has_polkit {
         eprintln!("keyguard-lib::biometrics: polkit is not reachable on the system bus");
@@ -166,7 +168,7 @@ fn connect_authority() -> Result<(Connection, AuthorityProxy<'static>), Outcome>
             Some(format!("Failed to connect to the system bus: {err}")),
         )
     })?;
-    let authority = AuthorityProxy::new(&connection).map_err(|err| {
+    let authority = authority_proxy(&connection).map_err(|err| {
         (
             ChallengeStatus::Unavailable,
             Some(format!("Failed to reach polkit: {err}")),
@@ -223,13 +225,13 @@ fn check_authorization(
     subject: &Subject<'_>,
     cancellation_id: &str,
 ) -> zbus::Result<Outcome> {
-    let result = authority.check_authorization(
+    let result = zbus::block_on(authority.check_authorization(
         subject,
         ACTION_ID,
         HashMap::new(),
         FLAG_ALLOW_USER_INTERACTION,
         cancellation_id,
-    )?;
+    ))?;
     let (status, error) = classify_authorization(
         result.is_authorized,
         result.is_challenge,
@@ -270,7 +272,7 @@ fn open_pidfd() -> Option<OwnedFd> {
 }
 
 fn is_action_registered(authority: &AuthorityProxy<'_>) -> zbus::Result<bool> {
-    let actions = authority.enumerate_actions("")?;
+    let actions = zbus::block_on(authority.enumerate_actions(""))?;
     Ok(actions.iter().any(|action| action.action_id == ACTION_ID))
 }
 

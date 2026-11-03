@@ -2,11 +2,11 @@ package com.artemchep.keyguard.di
 
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.AppWorkerIm
+import com.artemchep.keyguard.common.PlatformTemporaryArtifactRootRegistry
 import com.artemchep.keyguard.common.TemporaryArtifactMaintenance
 import com.artemchep.keyguard.common.TemporaryArtifactMaintenanceImpl
 import com.artemchep.keyguard.common.TemporaryArtifactRoot
 import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.platformTemporaryArtifactRoots
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
@@ -65,7 +65,7 @@ import com.artemchep.keyguard.common.usecase.impl.ShowNotificationImpl
 import com.artemchep.keyguard.common.usecase.impl.UnlockUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.UpdateVersionLogImpl
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSyncerImpl
-import com.artemchep.keyguard.crypto.privateTemporaryStorageDirectory
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.provider.bitwarden.usecase.BlockedUrlCheckImpl
@@ -75,8 +75,6 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlDuplicateCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServer
 import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServerImpl
-import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
-import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfaImpl
 import com.artemchep.keyguard.util.dns.DnsTxtResolver
 import com.artemchep.keyguard.util.dns.createDnsTxtResolver
 import com.artemchep.keyguard.util.io.artifact.sweepTemporaryArtifacts
@@ -97,6 +95,7 @@ internal class ApplicationIntegrationsModule {
         single<StagingSpoolFactory> {
             DefaultStagingSpoolFactory(
                 observer = get(),
+                directoryProvider = get(),
             )
         }
 
@@ -146,6 +145,7 @@ internal class ApplicationIntegrationsModule {
         single<DismissNotificationsByChannelImpl>() bind DismissNotificationsByChannel::class
 
         single<TemporaryArtifactMaintenance> {
+            val temporaryDirProvider = get<PrivateTemporaryDirProvider>()
             TemporaryArtifactMaintenanceImpl(
                 roots = buildList {
                     add(
@@ -153,7 +153,7 @@ internal class ApplicationIntegrationsModule {
                             label = "private-temporary",
                             provideDirectory = {
                                 withContext(Dispatchers.IO) {
-                                    privateTemporaryStorageDirectory()
+                                    temporaryDirProvider.get()
                                 }
                             },
                         ),
@@ -166,7 +166,7 @@ internal class ApplicationIntegrationsModule {
                             ),
                         )
                     }
-                    addAll(platformTemporaryArtifactRoots())
+                    addAll(get<PlatformTemporaryArtifactRootRegistry>().values)
                 },
                 sweeper = { directory, olderThan ->
                     withContext(Dispatchers.IO) {
@@ -260,8 +260,6 @@ internal class ApplicationIntegrationsModule {
         }
 
         single<SimilarityServiceImpl>() bind SimilarityService::class
-
-        single<RequestEmailTfaImpl>() bind RequestEmailTfa::class
 
         single<DeviceIdUseCase>()
 

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.sync.v2
 
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import com.artemchep.keyguard.common.exception.HttpException
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
@@ -1402,6 +1403,115 @@ class SyncV2CipherUploadIntegrationTest {
     }
 
     @Test
+    fun `production CipherSyncOps trashes a cipher created as trashed`() = runTest {
+        val server = UploadTestServer()
+        val fixture = createProductionCipherOpsFixture(server)
+        val local = newTestCipher(fixture).copy(deletedDate = T2)
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.pushToServer(
+                local = local,
+                server = null,
+                force = false,
+            ),
+        )
+
+        assertEquals("cipher-created-1", outcome.local.service.remote?.id)
+        assertEquals(T4, outcome.local.deletedDate)
+        assertEquals(T4, outcome.local.service.remote?.deletedDate)
+        assertEquals(
+            listOf(
+                HttpMethod.Post to "/api/ciphers/",
+                HttpMethod.Put to "/api/ciphers/cipher-created-1/delete",
+                HttpMethod.Get to "/api/ciphers/cipher-created-1",
+            ),
+            server.requests.map { it.method to it.path },
+        )
+    }
+
+    @Test
+    fun `production CipherSyncOps trashes an organization cipher created as trashed`() = runTest {
+        val server = UploadTestServer()
+        val fixture = createProductionCipherOpsFixture(server)
+        fixture.crypto.appendOrganizationToken2(
+            id = "organization-1",
+            keyData = ByteArray(64) { index -> (index + 101).toByte() },
+        )
+        val local = newTestCipher(fixture).copy(
+            organizationId = "organization-1",
+            deletedDate = T2,
+        )
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.pushToServer(
+                local = local,
+                server = null,
+                force = false,
+            ),
+        )
+
+        assertEquals(T4, outcome.local.deletedDate)
+        assertEquals(
+            listOf(
+                HttpMethod.Post to "/api/ciphers/create",
+                HttpMethod.Put to "/api/ciphers/cipher-created-1/delete",
+                HttpMethod.Get to "/api/ciphers/cipher-created-1",
+            ),
+            server.requests.map { it.method to it.path },
+        )
+    }
+
+    @Test
+    fun `production CipherSyncOps creates an archived cipher with its archive date`() = runTest {
+        val server = UploadTestServer()
+        val fixture = createProductionCipherOpsFixture(server)
+        val local = newTestCipher(fixture).copy(archivedDate = T2)
+
+        val outcome = assertIs<RemoteWriteOutcome.Upsert<BitwardenCipher>>(
+            fixture.ops.pushToServer(
+                local = local,
+                server = null,
+                force = false,
+            ),
+        )
+
+        assertEquals(T2, server.ciphers.getValue("cipher-created-1").archivedDate)
+        assertEquals(T2, outcome.local.archivedDate)
+        assertNull(outcome.local.deletedDate)
+        assertEquals(listOf(HttpMethod.Post to "/api/ciphers/"), server.requests.map { it.method to it.path })
+    }
+
+    @Test
+    fun `production CipherSyncOps keeps the trash of a created cipher it failed to trash`() = runTest {
+        val server = UploadTestServer()
+        val fixture = createProductionCipherOpsFixture(server)
+        val local = newTestCipher(fixture).copy(deletedDate = T2)
+        server.nextCipherTrashFailure = HttpStatusCode.Forbidden
+
+        val error = assertCipherFailure {
+            fixture.ops.pushToServer(
+                local = local,
+                server = null,
+                force = false,
+            )
+        }
+
+        val partial = assertIs<BitwardenCipher>(error.partialRemoteLocal)
+        assertEquals("cipher-created-1", partial.service.remote?.id)
+        assertNull(partial.service.remote?.deletedDate)
+        // The next sync finds a trashed cipher whose remote is not, and
+        // trashes it as it does any other.
+        val failed = fixture.ops.markRemoteFailure(
+            local = local,
+            remoteLocal = partial,
+            error = error.cause,
+        )
+        assertEquals(T2, failed.deletedDate)
+        assertEquals("cipher-created-1", failed.service.remote?.id)
+        assertNull(failed.service.remote?.deletedDate)
+    }
+
+    @Test
     fun `production CipherSyncOps decodes create response with response item key`() = runTest {
         val server = UploadTestServer()
         val fixture = createProductionCipherOpsFixture(server)
@@ -2784,7 +2894,7 @@ class SyncV2CipherUploadIntegrationTest {
             base64Service = base64Service,
             getPasswordStrength = UploadTestPasswordStrength,
             json = UploadTestServer.json,
-            httpClient = server.client,
+            httpClientProvider = BitwardenHttpClientProvider { server.client },
             db = UploadTestVaultDatabaseManager(database),
             dbSyncer = DatabaseSyncer(cryptoGenerator),
             pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
@@ -2904,7 +3014,7 @@ class SyncV2CipherUploadIntegrationTest {
             base64Service = base64Service,
             getPasswordStrength = UploadTestPasswordStrength,
             json = UploadTestServer.json,
-            httpClient = server.client,
+            httpClientProvider = BitwardenHttpClientProvider { server.client },
             db = UploadTestVaultDatabaseManager(database),
             dbSyncer = DatabaseSyncer(cryptoGenerator),
             pendingUploadCoordinator = UploadTestPendingUploadCoordinator(),
@@ -3508,3 +3618,17 @@ private class CipherUploadIntegrationOps(
         server: CipherEntity,
     ): RemoteWriteOutcome<BitwardenCipher> = pushToServer(local, server, force = true)
 }
+
+/** A cipher not yet created on the server. */
+private fun newTestCipher(
+    fixture: ProductionCipherOpsFixture,
+) = testCipher(
+    localId = "cipher-local-1",
+    remoteId = "unused-remote",
+    localRevisionDate = T2,
+    remoteRevisionDate = T0,
+    attachments = emptyList(),
+).copy(
+    keyBase64 = fixture.cipherKeyBase64(),
+    service = BitwardenService(version = BitwardenService.VERSION),
+)

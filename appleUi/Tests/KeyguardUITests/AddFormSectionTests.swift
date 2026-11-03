@@ -46,7 +46,7 @@ final class AddFormSectionTests: XCTestCase {
             id: id, kind: kind, title: title, text: nil, fields: [],
             switchValue: false, switchEnabled: false, switchId: nil,
             enumValue: nil, dateText: nil, timeText: nil,
-            attachment: nil, sshKey: nil, gpgKey: nil, passkeyName: nil,
+            attachment: nil, sshKey: nil, gpgKey: nil, passkeyName: nil, tags: nil,
             totpScanId: nil, options: [], actions: []
         )
     }

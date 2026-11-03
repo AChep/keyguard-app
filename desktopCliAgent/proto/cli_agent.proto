@@ -1,0 +1,215 @@
+syntax = "proto3";
+
+// The private channel between Keyguard and its CLI agent. The agent opens a
+// connection per request: it authenticates, then sends the request. The
+// public socket of the `keyguard` CLI and of MCP stays JSON; the agent
+// translates its requests into these messages.
+//
+// Kotlin mirrors this schema in CliAgentMessages.kt. Both test suites check
+// the encodings in fixtures/.
+package keyguard.cliagent;
+
+// The caller and handshake messages are shared with the SSH and GPG agents:
+// commonAgent/proto.
+import "agent.proto";
+import "caller.proto";
+
+message Request {
+  oneof request {
+    // The first request of every connection. A rejected one is answered
+    // with `success` false, and the app closes the connection.
+    keyguard.agent.AuthenticateRequest authenticate = 1;
+    ManageRequest manage = 2;
+    MountsRequest mounts = 3;
+    WatchMountsRequest watch_mounts = 4;
+    MountStatusRequest mount_status = 5;
+    ResolveMountRequest resolve_mount = 6;
+    CliRequest cli = 7;
+  }
+}
+
+message Response {
+  oneof response {
+    keyguard.agent.AuthenticateResponse authenticate = 1;
+    ManageResponse manage = 2;
+    // Answers both `mounts` and `watch_mounts`.
+    MountsResponse mounts = 3;
+    MountStatusResponse mount_status = 5;
+    ResolveMountResponse resolve_mount = 6;
+    CliResponse cli = 7;
+    ErrorResponse error = 15;
+  }
+}
+
+message ErrorResponse {
+  // A stable, non-sensitive code, such as `user_denied`. The CLI and MCP
+  // clients receive it as is.
+  string code = 1;
+}
+
+// Environment management of an MCP client. Never answered with values.
+message ManageRequest {
+  keyguard.agent.CallerIdentity caller = 1;
+  // A fresh random identity of the public connection, 32 bytes. An MCP
+  // client keeps its approvals for as long as it keeps the connection.
+  bytes connection_id = 2;
+  // The name the MCP client reports for itself. A hint, never an identity.
+  string client_name = 3;
+  // One of the public tools, such as `list_environments`.
+  string tool = 4;
+  // The text arguments of the tool, by name.
+  map<string, string> arguments = 5;
+  // The `variables` argument of `append_variables`.
+  repeated VariableUpdate variables = 6;
+}
+
+message VariableUpdate {
+  string name = 1;
+  // Absent to keep the current value, or to create an unset variable.
+  optional bytes value = 2;
+}
+
+message ManageResponse {
+  oneof result {
+    // `authenticate`
+    AccountList accounts = 1;
+    // `list_environments`
+    EnvironmentList environments = 2;
+    // `create_environment`, `rename_environment` and `append_variables`
+    EnvironmentId environment = 3;
+    // `list_variables`
+    VariableList variables = 4;
+    // `create_local_env_file`
+    LocalEnvFile local_env_file = 5;
+    // `list_local_env_files`
+    LocalEnvFileList local_env_files = 6;
+  }
+}
+
+message AccountList {
+  repeated Account accounts = 1;
+}
+
+message Account {
+  string id = 1;
+  string name = 2;
+}
+
+message EnvironmentList {
+  repeated Environment environments = 1;
+}
+
+message Environment {
+  string id = 1;
+  string account_id = 2;
+  string name = 3;
+  uint32 variable_count = 4;
+  bool editable = 5;
+}
+
+message EnvironmentId {
+  string id = 1;
+  string account_id = 2;
+}
+
+message VariableList {
+  repeated Variable variables = 1;
+}
+
+// How a variable is sourced, never its value or the item it references.
+message Variable {
+  string name = 1;
+  VariableSource source = 2;
+  bool is_set = 3;
+  bool supported = 4;
+}
+
+enum VariableSource {
+  VARIABLE_SOURCE_UNSPECIFIED = 0;
+  VARIABLE_SOURCE_VALUE = 1;
+  VARIABLE_SOURCE_REFERENCE = 2;
+  VARIABLE_SOURCE_UNSET = 3;
+  VARIABLE_SOURCE_UNSUPPORTED = 4;
+}
+
+message LocalEnvFileList {
+  repeated LocalEnvFile local_env_files = 1;
+}
+
+message LocalEnvFile {
+  string id = 1;
+  string environment_id = 2;
+  string path = 3;
+  bool enabled = 4;
+  MountStatus status = 5;
+  // Absent when the mount's environment is no longer available.
+  optional string account_id = 6;
+}
+
+enum MountStatus {
+  MOUNT_STATUS_UNSPECIFIED = 0;
+  MOUNT_STATUS_PENDING = 1;
+  MOUNT_STATUS_READY = 2;
+  MOUNT_STATUS_ERROR = 3;
+}
+
+// The local `.env` files the agent serves.
+message MountsRequest {}
+
+// Answered once the served mounts change, or after a timeout.
+message WatchMountsRequest {
+  // The revision of the last mounts that the agent applied.
+  string revision = 1;
+}
+
+message MountsResponse {
+  // An opaque revision of these mounts.
+  string revision = 1;
+  repeated Mount mounts = 2;
+}
+
+message Mount {
+  string id = 1;
+  string path = 2;
+  // Changes whenever the reader of the file must be approved again.
+  string generation = 3;
+  // An implicit security-scoped bookmark of the directory of the file on
+  // macOS. Absent when the agent opens the directory by its path.
+  optional bytes bookmark = 4;
+}
+
+message MountStatusRequest {
+  string mount_id = 1;
+  MountStatus status = 2;
+}
+
+message MountStatusResponse {}
+
+// The content of a local `.env` file, for a reader the user approves.
+message ResolveMountRequest {
+  string mount_id = 1;
+  string generation = 2;
+}
+
+message ResolveMountResponse {
+  string generation = 1;
+  bytes content = 2;
+}
+
+// A command of the `keyguard` CLI. The agent validates the request of the
+// public frame, then passes it on as JSON, so that a new command needs no
+// change to this schema or to the agent.
+message CliRequest {
+  keyguard.agent.CallerIdentity caller = 1;
+  // The `command` of the public frame, such as `run`.
+  string command = 2;
+  // The validated request of the command, as JSON. Can hold values.
+  bytes request = 3;
+}
+
+message CliResponse {
+  // The public success body of the command, `{"ok":true,...}`, as JSON.
+  // The agent checks it against the command before passing it on. Can hold
+  // values.
+  bytes result = 1;
+}

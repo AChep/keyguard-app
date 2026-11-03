@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import com.artemchep.keyguard.common.exception.GpgKeyserverUnsupportedKeyVersionException
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
@@ -69,7 +70,7 @@ class RefreshGpgPublicKeysImpl(
                 onSuccess = { result ->
                     RefreshOutcome.Pending(result)
                 },
-                onFailure = { RefreshOutcome.Failed },
+                onFailure = ::toRefreshFailureOutcome,
             )
         }.toMutableMap()
         applyRefreshes(outcomes)
@@ -118,7 +119,7 @@ class RefreshGpgPublicKeysImpl(
         RefreshGpgPublicKeysResult(
             refreshed = refreshed,
             notFound = notFound,
-            skipped = skipped,
+            skipped = skipped + outcomes.values.count { it is RefreshOutcome.Skipped },
             failed = outcomes.values.count { it is RefreshOutcome.Failed },
         )
     }
@@ -169,6 +170,15 @@ class RefreshGpgPublicKeysImpl(
         }
     }
 
+    private fun toRefreshFailureOutcome(e: Throwable): RefreshOutcome =
+        // The keyserver cannot hold the key, so "not found" would be
+        // wrong; keep the current state.
+        if (e is GpgKeyserverUnsupportedKeyVersionException) {
+            RefreshOutcome.Skipped
+        } else {
+            RefreshOutcome.Failed
+        }
+
     private fun toRefreshTarget(cipher: DSecret): RefreshTarget? {
         if (cipher.deleted || cipher.service.deleted || !cipher.canEdit()) return null
         return cipher.gpgKeyserverRefreshFingerprintOrNull()?.let { fingerprint ->
@@ -194,5 +204,6 @@ private sealed interface RefreshOutcome {
         val acceptedPublicKeyArmored: String,
     ) : RefreshOutcome
     data class NotFound(val acceptedPublicKeyArmored: String) : RefreshOutcome
+    data object Skipped : RefreshOutcome
     data object Failed : RefreshOutcome
 }

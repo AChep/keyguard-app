@@ -4,9 +4,12 @@
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import subprocess
 import sys
+import uuid
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Sequence
@@ -15,12 +18,12 @@ if __package__:
     from . import check_bouncycastle_policy as dependencies
     from . import native_bundle_android as android
     from . import native_bundle_binary as binary
-    from .run_native_package_smoke import run_smoke
+    from .run_native_package_smoke import find_windows_launcher, run_smoke
 else:
     import check_bouncycastle_policy as dependencies
     import native_bundle_android as android
     import native_bundle_binary as binary
-    from run_native_package_smoke import run_smoke
+    from run_native_package_smoke import find_windows_launcher, run_smoke
 
 REPOSITORY = Path(__file__).resolve().parent.parent
 InspectionError = binary.InspectionError
@@ -48,8 +51,10 @@ class NativeModule:
 
 
 # These are reviewed ABI contracts, not symbols inferred from the artifact being
-# checked. ZIP is native on Apple only; instance is desktop/macOS only.
+# checked. ZIP is native on Apple only; instance and agent IPC are desktop/macOS only.
 MODULES = {
+    "windows_passkeys": NativeModule("windows_passkeys", "com_artemchep_keyguard_util_windowspasskeys_NativeWindowsPasskeys",
+                                      ("abiVersion", "create", "execute", "cancel", "close"), ()),
     "crypto": NativeModule("crypto", "com_artemchep_keyguard_nativecrypto_NativeCryptoJni", (), ()),
     "io": NativeModule("io", "com_artemchep_keyguard_util_io_NativeIoJni", (
         "abiVersion", "directoryOpen", "directoryClose", "txnBegin", "txnBeginAtDirectory",
@@ -76,8 +81,17 @@ MODULES = {
         "abi_version", "writer_open", "writer_begin_entry", "writer_write", "writer_end_entry",
         "writer_finish", "writer_abort", "reader_open", "reader_next_entry", "reader_read", "reader_close",
     )),
+    "agent_ipc": NativeModule("agent_ipc", "com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni", (
+        "abiVersion", "lastError", "listen", "endpoint", "accept", "closeListener", "peerPid",
+        "read", "write", "awaitInput", "close",
+    ), (
+        "abi_version", "last_error", "clear_error", "listen", "endpoint", "accept", "close_listener",
+        "peer_pid", "read", "write", "await_input", "close",
+    )),
 }
-DESKTOP_MODULES = ("crypto", "io", "zxcvbn", "instance", "yubikey", "fido2")
+DESKTOP_MODULES = ("crypto", "io", "zxcvbn", "instance", "yubikey", "fido2", "agent_ipc")
+# The passkey provider exists only on Windows; other desktop packages do not bundle it.
+WINDOWS_DESKTOP_MODULES = DESKTOP_MODULES + ("windows_passkeys",)
 ANDROID_MODULES = ("crypto", "io", "zxcvbn")
 APPLE_APP_MODULES = ("crypto", "io", "zxcvbn", "zip")
 BRIDGE_EXPORTS = frozenset((
@@ -153,9 +167,12 @@ def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
         raise InspectionError(f"{root}: expected an extracted/installed package directory")
     if target_platform == "windows":
         inspect_windows_runtime(root, arch)
+        if (root / "AppxManifest.xml").is_file():
+            inspect_msix_passkey_provider(root)
     resources = find_resources(root, target_platform)
     suffix = LIBRARY_SUFFIX[target_platform]
-    libraries = [(library_filename(name, target_platform), MODULES[name].exports("jni"), MODULES[name].jni_prefix) for name in DESKTOP_MODULES]
+    modules = WINDOWS_DESKTOP_MODULES if target_platform == "windows" else DESKTOP_MODULES
+    libraries = [(library_filename(name, target_platform), MODULES[name].exports("jni"), MODULES[name].jni_prefix) for name in modules]
     libraries.append(("keyguard-lib.dll" if target_platform == "windows" else "keyguard-lib", BRIDGE_EXPORTS, None))
     for name, exports, prefix in libraries:
         path = resources / name
@@ -168,7 +185,7 @@ def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
         # other libraries previously had no package hardening gate.
         hardening = binary.inspect_hardening(path) if name == library_filename("crypto", target_platform) else "exports and architecture"
         print(f"OK {path} ({hardening})")
-    for name in ("keyguard-ssh-agent", "keyguard-gpg-agent"):
+    for name in ("keyguard-ssh-agent", "keyguard-gpg-agent", "keyguard-cli-agent", "keyguard"):
         path = resources / (name + (".exe" if target_platform == "windows" else ""))
         if not path.is_file():
             raise InspectionError(f"{root}: missing bundled helper {path.name}")
@@ -179,15 +196,36 @@ def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
 
 
 def inspect_windows_runtime(root: Path, arch: str) -> None:
-    launchers = sorted(path for path in root.rglob("Keyguard.exe") if path.is_file())
-    if len(launchers) != 1:
-        raise InspectionError(f"{root}: expected one Windows launcher; found {len(launchers)}")
-    launcher = launchers[0]
+    try:
+        launcher = find_windows_launcher(root)
+    except RuntimeError as error:
+        raise InspectionError(str(error)) from error
     for path in (launcher, launcher.parent / "runtime/bin/server/jvm.dll"):
         if not path.is_file():
             raise InspectionError(f"{root}: missing bundled runtime binary {path}")
         require_architecture(path, path.read_bytes(), "windows", arch)
         print(f"OK {path} (launcher/runtime architecture)")
+
+
+def inspect_msix_passkey_provider(root: Path) -> None:
+    """COM activation and the native bridge must agree on the packaged CLSID."""
+    try:
+        manifest = ET.parse(root / "AppxManifest.xml")
+        namespace = "http://schemas.microsoft.com/appx/manifest/com/windows10"
+        servers = manifest.findall(f".//{{{namespace}}}ExeServer")
+        servers = [server for server in servers if server.get("Arguments") == "--windows-passkey-provider"]
+        if len(servers) != 1 or servers[0].get("Executable") != "Keyguard.exe":
+            raise ValueError("expected one Keyguard passkey COM server")
+        classes = servers[0].findall(f"{{{namespace}}}Class")
+        if len(classes) != 1:
+            raise ValueError("expected one passkey COM class")
+        clsid = uuid.UUID(classes[0].attrib["Id"])
+        config = json.loads((root / "keyguard-passkeys.json").read_text(encoding="utf-8"))
+        if uuid.UUID(config["clsid"]) != clsid:
+            raise ValueError("passkey CLSID does not match the manifest")
+    except (OSError, ValueError, KeyError, TypeError, ET.ParseError) as error:
+        raise InspectionError(f"{root}: invalid MSIX passkey provider: {error}") from error
+    print(f"OK {root} (passkey COM activation and identity)")
 
 
 def inspect_android(paths: Sequence[Path], expected_abis: Sequence[str], split_package: bool = False) -> None:

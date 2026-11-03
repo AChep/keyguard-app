@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.provider.bitwarden.usecase
 
+import com.artemchep.keyguard.feature.environments.EnvironmentPayload
+import com.artemchep.keyguard.feature.environments.EnvironmentResolver
+import com.artemchep.keyguard.feature.environments.EnvironmentValueSource
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.usecase.CipherIncompleteCheck
 
@@ -58,6 +61,7 @@ class CipherIncompleteCheckImpl : CipherIncompleteCheck {
             DSecret.Type.SecureNote -> incompleteNote(secret)
             DSecret.Type.SshKey -> incompleteSshKey(secret)
             DSecret.Type.GpgKey -> incompleteGpgKey(secret)
+            DSecret.Type.Environment -> incompleteEnvironment(secret)
             DSecret.Type.None -> false
         }
     }
@@ -98,6 +102,15 @@ class CipherIncompleteCheckImpl : CipherIncompleteCheck {
             }
         }
         return false
+    }
+
+    private fun incompleteEnvironment(secret: DSecret): Boolean {
+        val definition = (secret.environment as? EnvironmentPayload.Decoded)?.definition
+            ?: return true
+        // References resolve against other items when a local .env
+        // file is read; here they only count as set.
+        return definition.variables.any { it.source == EnvironmentValueSource.Unset } ||
+            EnvironmentResolver.validate(definition).isNotEmpty()
     }
 
     private fun incompleteNote(secret: DSecret): Boolean {

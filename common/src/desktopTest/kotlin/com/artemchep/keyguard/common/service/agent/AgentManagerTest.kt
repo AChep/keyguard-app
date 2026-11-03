@@ -9,7 +9,6 @@ import kotlin.test.assertContains
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertFailsWith
-import kotlin.test.assertSame
 import kotlin.test.assertTrue
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineStart
@@ -210,37 +209,6 @@ class AgentManagerTest {
         assertContains(thrown.message.orEmpty(), "[stderr] still starting")
     }
 
-}
-
-class AgentManagerPeerProcessTest {
-    @Test
-    fun `publishes expected IPC peer process`() = runTest {
-        val expectedPeerProcess = CompletableDeferred<Process>()
-        val process = TestProcess()
-
-        publishExpectedPeerProcess(
-            expectedPeerProcess = expectedPeerProcess,
-            process = process,
-        )
-
-        assertSame(process, expectedPeerProcess.await())
-    }
-
-    @Test
-    fun `rethrows IPC server failure that wins process publication race`() = runTest {
-        val serverFailure = IllegalStateException("IPC server failed after readiness")
-        val expectedPeerProcess = CompletableDeferred<Process>()
-        expectedPeerProcess.completeExceptionally(serverFailure)
-
-        val thrown = assertFailsWith<IllegalStateException> {
-            publishExpectedPeerProcess(
-                expectedPeerProcess = expectedPeerProcess,
-                process = TestProcess(),
-            )
-        }
-
-        assertEquals(serverFailure.message, thrown.message)
-    }
 }
 
 private class TestProcess(

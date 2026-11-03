@@ -425,7 +425,7 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
                     val secretInlineSuggestionsMaxCount =
                         if (manualSelection) totalInlineSuggestionsMaxCount - 1 else totalInlineSuggestionsMaxCount
 
-                    var index = 0
+                    var inlineSuggestionIndex = 0
                     r.value.forEach { secret ->
                         var datasetHasInlinePresentation = false
                         val dataset = tryBuildDataset(
@@ -433,10 +433,10 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
                             secret = secret,
                             struct = autofillStructure,
                             provideInlinePresentation = {
-                                if (index < secretInlineSuggestionsMaxCount) {
+                                if (inlineSuggestionIndex < secretInlineSuggestionsMaxCount) {
                                     tryBuildSecretInlinePresentation(
                                         request,
-                                        index,
+                                        inlineSuggestionIndex,
                                         secret,
                                     )?.also {
                                         datasetHasInlinePresentation = true
@@ -446,9 +446,11 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
                                 }
                             },
                         )
-                        if (dataset != null && (!shouldInlineSuggestions || datasetHasInlinePresentation)) {
+                        if (dataset != null) {
                             responseBuilder.addDataset(dataset)
-                            index += 1
+                            if (datasetHasInlinePresentation) {
+                                inlineSuggestionIndex += 1
+                            }
                         }
                     }
                     if (manualSelection) {
@@ -484,7 +486,7 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
 
                                     tryBuildManualSelectionInlinePresentation(
                                         request,
-                                        index,
+                                        inlineSuggestionIndex,
                                         intent = intent,
                                     )
                                 },

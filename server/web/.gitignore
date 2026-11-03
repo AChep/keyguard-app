@@ -3,6 +3,8 @@ dist/
 
 # generated types
 .astro/
+test-results/
+playwright-report/
 
 # dependencies
 node_modules/
@@ -15,7 +17,8 @@ pnpm-debug.log*
 
 # environment variables
 .env
-.env.production
+.env.*
+!.env.example
 
 # macOS
 .DS_Store

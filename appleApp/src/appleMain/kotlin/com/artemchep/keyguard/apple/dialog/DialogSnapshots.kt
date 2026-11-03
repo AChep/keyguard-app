@@ -5,8 +5,11 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import com.artemchep.keyguard.apple.core.toArgbLong
+import com.artemchep.keyguard.apple.model.TagsFieldSnapshot
+import com.artemchep.keyguard.apple.model.VaultItemSnapshot
 import com.artemchep.keyguard.common.model.BarcodeImageFormat
 import com.artemchep.keyguard.apple.KeyguardCore
+import com.artemchep.keyguard.feature.attachmentpreview.AttachmentPreviewContent
 import com.artemchep.keyguard.ui.format
 import platform.Foundation.NSData
 
@@ -77,10 +80,14 @@ data class PasskeyCredentialSnapshot(
 )
 
 enum class AttachmentPreviewKindSnapshot {
+    ARCHIVE,
     LOADING,
     IMAGE,
     TEXT,
+    JSON,
     MARKDOWN,
+    TABLE,
+    GPG_KEY,
     ERROR,
 }
 
@@ -98,7 +105,8 @@ data class AttachmentPreviewSpanSnapshot(
 /**
  * The attachment preview sheet. Which content field is set depends on [kind]: [imageData] for IMAGE (raw
  * decrypted bytes, as NSData so Swift can decode them without per-byte ObjC calls), [text] + [spans] for
- * TEXT / MARKDOWN, [errorMessage] for ERROR. [canCopy] enables [KeyguardCore.invokeAttachmentPreviewCopy].
+ * TEXT / MARKDOWN / TABLE / JSON, [jsonTree] for JSON's parsed tree, [errorMessage] for ERROR.
+ * [canCopy] enables [KeyguardCore.invokeAttachmentPreviewCopy].
  * `null` from [KeyguardCore.observeAttachmentPreview] means the dialog is hidden.
  */
 data class AttachmentPreviewSnapshot(
@@ -107,9 +115,46 @@ data class AttachmentPreviewSnapshot(
     val imageData: NSData? = null,
     val text: String? = null,
     val spans: List<AttachmentPreviewSpanSnapshot> = emptyList(),
+    val jsonDocumentId: String? = null,
+    val jsonTree: AttachmentPreviewJsonTreeSnapshot? = null,
+    val jsonErrorMessage: String? = null,
     val errorMessage: String? = null,
     val imageDecodeErrorMessage: String? = null,
     val canCopy: Boolean = false,
+    val archivePath: String = "",
+    /** The breadcrumb names; every one but the last opens its folder. */
+    val archiveBreadcrumbs: List<String> = emptyList(),
+    val archiveEntries: List<AttachmentArchiveEntrySnapshot> = emptyList(),
+    /** The first row is the header. A row may have fewer cells than [tableColumnLengths]. */
+    val tableRows: List<List<String>> = emptyList(),
+    /** The longest cell per column, in characters. */
+    val tableColumnLengths: List<Int> = emptyList(),
+    /** The parsed key details of a GPG_KEY; [text] is its armored source, if any. */
+    val items: List<VaultItemSnapshot> = emptyList(),
+    val canGoBack: Boolean = false,
+    val canSave: Boolean = false,
+    val busy: Boolean = false,
+    val needsPassword: Boolean = false,
+    val passwordIncorrect: Boolean = false,
+    val exportId: String? = null,
+)
+
+internal fun AttachmentPreviewContent.TextLike.toAttachmentPreviewTextSnapshot(
+    fileName: String,
+    kind: AttachmentPreviewKindSnapshot,
+): AttachmentPreviewSnapshot = AttachmentPreviewSnapshot(
+    fileName = fileName,
+    kind = kind,
+    text = code.text,
+    spans = code.annotatedString.toAttachmentPreviewSpans(),
+    canCopy = true,
+)
+
+internal fun AttachmentPreviewContent.Table.toAttachmentPreviewTableSnapshot(
+    fileName: String,
+): AttachmentPreviewSnapshot = toAttachmentPreviewTextSnapshot(fileName, AttachmentPreviewKindSnapshot.TABLE).copy(
+    tableRows = table.rows,
+    tableColumnLengths = table.columnLengths,
 )
 
 /**
@@ -135,6 +180,7 @@ enum class ConfirmationItemKind {
     STRING,
     CHOICE,
     FILE,
+    TAGS,
 }
 
 /**
@@ -152,6 +198,7 @@ data class ConfirmationItemSnapshot(
     val booleanValue: Boolean = false,
     // STRING
     val stringValue: String = "",
+    val ephemeral: Boolean = false,
     val stringRevision: Int = 0,
     // Named descriptionText, not description: a Kotlin property exported as
     // `description` collides with NSObject.description (non-optional) on Swift.
@@ -170,6 +217,8 @@ data class ConfirmationItemSnapshot(
     // FILE
     val fileName: String? = null,
     val hasFile: Boolean = false,
+    // TAGS: the commands route through `setConfirmationItemString`.
+    val tags: TagsFieldSnapshot? = null,
 )
 
 /** One option of a [ConfirmationItemKind.CHOICE] row's dropdown. */
@@ -206,7 +255,8 @@ data class LeakBreachSnapshot(
     val domain: String,
     // Not `description`: that collides with NSObject.description (non-optional) on Swift.
     val descriptionText: String,
-    val icon: String?,
+    /** The breach logo, loaded with `KeyguardCore.loadIcon`. */
+    val iconKey: String?,
     val count: Int?,
     /** The localized, number-formatted "Found in N account(s)" line. */
     val countText: String?,
@@ -308,6 +358,7 @@ data class AccountPickerSnapshot(
     val title: String,
     /** An informational note above the sections, e.g. why some accounts are missing. */
     val note: String? = null,
+    val warnings: List<String> = emptyList(),
     val sections: List<AccountPickerSectionSnapshot>,
     val confirmEnabled: Boolean,
 )
@@ -358,6 +409,28 @@ data class CipherLinkPickerItemSnapshot(
     val text: String?,
 )
 
+/**
+ * A drill-down picker of a field of another item: the items first, then the
+ * fields of the [item] the user opened. Values are never part of it.
+ */
+data class CipherFieldPickerSnapshot(
+    val query: String,
+    val queryRevision: Int,
+    /** The opened item, `null` while the items are listed. */
+    val item: CipherLinkPickerItemSnapshot?,
+    val items: List<CipherLinkPickerItemSnapshot>,
+    val fields: List<CipherFieldPickerFieldSnapshot>,
+)
+
+data class CipherFieldPickerFieldSnapshot(
+    val id: String,
+    val title: String,
+    val text: String,
+    val password: Boolean,
+    /** `false` if the field can not be referenced, for example a duplicate name. */
+    val enabled: Boolean,
+)
+
 /** User-entered attempt only; the expected password stays inside the shared producer. */
 data class PasswordMemorySnapshot(
     val value: String,
@@ -365,3 +438,23 @@ data class PasswordMemorySnapshot(
     val error: String?,
     val canVerify: Boolean,
 )
+
+
+data class AttachmentArchiveEntrySnapshot(
+    val id: String,
+    val name: String,
+    val directory: Boolean,
+    val size: String?,
+    val encrypted: Boolean,
+    val canOpen: Boolean,
+    val canSave: Boolean,
+)
+
+data class AttachmentArchiveExportSnapshot(
+    val id: String,
+    val requestId: String,
+    val uri: String,
+    val name: String,
+)
+
+enum class AttachmentArchiveExportOutcomeSnapshot { SAVED, CANCELLED, FAILED }

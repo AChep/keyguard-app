@@ -2,17 +2,20 @@ package com.artemchep.keyguard.provider.bitwarden.sync.v2.keepass.codec
 
 import app.keemobile.kotpass.constants.BasicField
 import app.keemobile.kotpass.constants.PredefinedIcon
+import app.keemobile.kotpass.cryptography.EncryptedValue
 import app.keemobile.kotpass.database.BinaryIndex
 import app.keemobile.kotpass.database.BinaryIndexEntry
 import app.keemobile.kotpass.models.BinaryData
 import app.keemobile.kotpass.models.BinaryReference
 import app.keemobile.kotpass.models.Entry
 import app.keemobile.kotpass.models.EntryFields
+import app.keemobile.kotpass.models.EntryValue
 import app.keemobile.kotpass.models.TimeData
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.KEEPASS_FILE_UPLOAD_MAX_BYTES
+import com.artemchep.keyguard.common.model.KEEPASS_FILE_UPLOAD_TOO_LARGE_MESSAGE
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.file.FileService
@@ -51,8 +54,8 @@ import kotlin.time.Instant
  * - Owns entry-level fields, tags, binaries, history, times, icon metadata, and
  *   type detection for one KeePass [Entry].
      * - Delegates login subfields to [KeePassUrlCodec], [KeePassTotpCodec], and
-     *   [KeePassPasskeyCodec]; delegates card, identity, SSH, and GPG payloads to
-     *   their dedicated codecs.
+     *   [KeePassPasskeyCodec]; delegates card, identity, SSH, GPG, and environment
+     *   payloads to their dedicated codecs.
  *
  * Entry fields consumed or written directly:
  *
@@ -110,6 +113,7 @@ class KeePassCipherCodec(
     private val identityCodec = KeePassIdentityCodec()
     private val sshKeyCodec = KeePassSshKeyCodec()
     private val gpgKeyCodec = KeePassGpgKeyCodec()
+    private val environmentCodec = KeePassEnvironmentCodec()
     private val cipherLinkCodec = KeePassCipherLinkCodec()
 
     companion object {
@@ -214,6 +218,9 @@ class KeePassCipherCodec(
         if (local.gpgKey != null) {
             gpgKeyCodec.encode(local.gpgKey).forEach { scope.setValue(it.key, it.value) }
         }
+        if (local.environment != null) {
+            environmentCodec.encode(local.environment).forEach { scope.setValue(it.key, it.value) }
+        }
         cipherLinkCodec.encode(local.links).forEach { scope.setValue(it.key, it.value) }
 
         local.fields.forEach { field ->
@@ -254,6 +261,10 @@ class KeePassCipherCodec(
                 }
             }
         }
+        // The bookmarks are the user's fields, so they come after the other ones.
+        local.sshKey?.bookmarks
+            ?.let(sshKeyCodec::encodeBookmarks)
+            ?.forEach { scope.setValue(it.key, it.value) }
 
         // Local entity ids are UUIDs. Reusing that id for a new KeePass entry
         // makes the write idempotent if the KDBX file is saved but the
@@ -377,6 +388,7 @@ class KeePassCipherCodec(
         var identity: BitwardenCipher.Identity? = null
         var sshKey: BitwardenCipher.SshKey? = null
         var gpgKey: BitwardenCipher.GpgKey? = null
+        var environment: BitwardenCipher.Environment? = null
 
         when (type) {
             BitwardenCipher.Type.Login -> {
@@ -405,10 +417,19 @@ class KeePassCipherCodec(
                 gpgKey = gpgKeyCodec.decode(scope)
             }
 
+            BitwardenCipher.Type.Environment -> {
+                // The entry type alone marks an environment, even without the field.
+                environment = environmentCodec.decode(scope) ?: BitwardenCipher.Environment()
+            }
+
             BitwardenCipher.Type.SecureNote -> {}
         }
-        if (type == BitwardenCipher.Type.SecureNote && gpgKeyCodec.detects(remote)) {
-            gpgKey = gpgKeyCodec.decode(scope)
+        if (type == BitwardenCipher.Type.SecureNote) {
+            // As on Bitwarden, an environment wins and the GPG fields stay custom fields.
+            when {
+                environmentCodec.detects(remote) -> environment = environmentCodec.decode(scope)
+                gpgKeyCodec.detects(remote) -> gpgKey = gpgKeyCodec.decode(scope)
+            }
         }
         val links = cipherLinkCodec.decode(
             scope = scope,
@@ -449,6 +470,14 @@ class KeePassCipherCodec(
             } else BitwardenCipher.RepromptType.None
         }
 
+        // Last, so that a bookmark never takes a field that another part reads.
+        if (type == BitwardenCipher.Type.SshKey) {
+            val bookmarks = sshKeyCodec.decodeBookmarks(scope)
+            if (bookmarks.isNotEmpty()) {
+                sshKey = (sshKey ?: BitwardenCipher.SshKey()).copy(bookmarks = bookmarks)
+            }
+        }
+
         val customFields = scope.getAvailableFields()
             .asSequence()
             .map { field ->
@@ -486,6 +515,8 @@ class KeePassCipherCodec(
                 )
             }
             .toList()
+
+        val effectiveType = if (environment != null) BitwardenCipher.Type.Environment else type
 
         val attachments = remote.binaries
             .let { remoteBinaries ->
@@ -542,7 +573,9 @@ class KeePassCipherCodec(
             card = card,
             identity = identity,
             sshKey = sshKey,
-            secureNote = if (type == BitwardenCipher.Type.SecureNote || type == BitwardenCipher.Type.GpgKey) {
+            secureNote = if (
+                type == BitwardenCipher.Type.SecureNote || type == BitwardenCipher.Type.GpgKey || environment != null
+            ) {
                 BitwardenCipher.SecureNote()
             } else {
                 null
@@ -552,6 +585,7 @@ class KeePassCipherCodec(
                 resolver = gpgKeyMetadataResolver,
             ),
             fields = customFields,
+            environment = environment,
             links = links,
             sourceData = CipherSourceData(
                 providerId = CipherSourceProviderIds.KEEPASS,
@@ -561,7 +595,7 @@ class KeePassCipherCodec(
                 .takeIf { it != KeePassIcon.Key },
             favorite = favorite,
             reprompt = reprompt,
-            type = type,
+            type = effectiveType,
             createdDate = remote.times?.creationTime
                 ?.takeIf { it.toEpochMilliseconds() != 0L }
                 ?: local?.createdDate,
@@ -610,6 +644,8 @@ class KeePassCipherCodec(
             cardCodec.hasCardFields(remote) -> return BitwardenCipher.Type.Card
             identityCodec.detects(remote) -> return BitwardenCipher.Type.Identity
             sshKeyCodec.detects(remote) -> return BitwardenCipher.Type.SshKey
+            // Same order as for secure notes: an environment wins over GPG fields.
+            environmentCodec.detects(remote) -> return BitwardenCipher.Type.Environment
             gpgKeyCodec.detects(remote) -> return BitwardenCipher.Type.GpgKey
         }
 
@@ -867,7 +903,7 @@ class KeePassCipherCodec(
         val pendingUpload = attachment.pendingUpload
             ?: return readAttachmentDataFromUri(attachment.url)
         require(pendingUpload.plainSize <= KEEPASS_FILE_UPLOAD_MAX_BYTES) {
-            "KeePass attachment file must be 500 MB or smaller."
+            KEEPASS_FILE_UPLOAD_TOO_LARGE_MESSAGE
         }
         val fileKey = requireNotNull(attachment.keyBase64) {
             "A staged KeePass attachment must have an encryption key."
@@ -894,7 +930,7 @@ class KeePassCipherCodec(
                 if (read == -1) break
                 total += read
                 require(total <= KEEPASS_FILE_UPLOAD_MAX_BYTES) {
-                    "KeePass attachment file must be 500 MB or smaller."
+                    KEEPASS_FILE_UPLOAD_TOO_LARGE_MESSAGE
                 }
                 output.write(buffer, 0, read)
             }
@@ -916,6 +952,45 @@ class KeePassCipherCodec(
     }
 
     // endregion
+}
+
+/**
+ * KeePass keeps the previous passwords as snapshots of the
+ * entry, oldest first; the reverse of decoding the password
+ * history. [KeePassCipherCodec.encode] does not write them,
+ * sync leaves the history of an entry as is.
+ */
+internal fun Entry.withPasswordHistory(
+    passwordHistory: List<BitwardenCipher.Login.PasswordHistory>,
+): Entry {
+    if (passwordHistory.isEmpty()) {
+        return this
+    }
+
+    // Only the passwords are known, so a snapshot keeps the
+    // basic fields and no attachments. KeePass counts the
+    // attachments of every snapshot toward the history size
+    // limit, and drops the history once it is over it.
+    val basicFields = fields.filterKeys { it in BasicField.keys }
+    val history = passwordHistory
+        .sortedBy { it.lastUsedDate }
+        .map { item ->
+            val password = EntryValue.Encrypted(
+                EncryptedValue.fromString(item.password),
+            )
+            val date = item.lastUsedDate
+                ?: times?.creationTime
+            copy(
+                fields = basicFields + (BasicField.Password() to password),
+                times = times?.copy(
+                    lastAccessTime = date,
+                    lastModificationTime = date,
+                ),
+                binaries = emptyList(),
+                history = emptyList(),
+            )
+        }
+    return copy(history = history)
 }
 
 private fun getPassword(entry: Entry): String? = entry.fields.password?.content

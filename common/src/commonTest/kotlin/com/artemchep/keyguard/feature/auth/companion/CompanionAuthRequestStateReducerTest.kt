@@ -40,7 +40,6 @@ class CompanionAuthRequestStateReducerTest {
         assertEquals(
             CompanionAuthRequestState.Failed(
                 error = CompanionAuthError.LAUNCH_FAILED,
-                message = "boom",
             ),
             reduced,
         )
@@ -62,7 +61,6 @@ class CompanionAuthRequestStateReducerTest {
         assertEquals(
             CompanionAuthRequestState.Failed(
                 error = CompanionAuthError.TIMEOUT,
-                message = "timeout",
             ),
             reduced,
         )
@@ -82,9 +80,7 @@ class CompanionAuthRequestStateReducerTest {
         )
 
         assertEquals(
-            CompanionAuthRequestState.Cancelled(
-                message = "cancelled",
-            ),
+            CompanionAuthRequestState.Cancelled,
             reduced,
         )
     }
@@ -102,7 +98,6 @@ class CompanionAuthRequestStateReducerTest {
         assertEquals(
             CompanionAuthRequestState.Failed(
                 error = CompanionAuthError.REQUEST_FAILED,
-                message = "network error",
             ),
             failed,
         )
@@ -120,7 +115,6 @@ class CompanionAuthRequestStateReducerTest {
         assertEquals(
             CompanionAuthRequestState.Failed(
                 error = CompanionAuthError.IMPORT_FAILED,
-                message = "import failed",
             ),
             failed,
         )

@@ -126,6 +126,8 @@ enum ElevatedAccessLocalHost: Int, Hashable {
     case menuBar
     case quickSearch
     case recents
+    case environmentApproval
+    case cliApproval
 }
 
 private struct LocalElevatedAccessModifier: ViewModifier {

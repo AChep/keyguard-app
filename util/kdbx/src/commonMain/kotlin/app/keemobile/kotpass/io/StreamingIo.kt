@@ -3,6 +3,7 @@ package app.keemobile.kotpass.io
 import app.keemobile.kotpass.errors.FormatError
 import kotlinx.io.write
 import okio.Buffer
+import okio.Closeable
 import okio.Sink
 import okio.Source
 import okio.Timeout
@@ -102,7 +103,7 @@ internal class NonClosingSink(
     override fun close() = delegate.flush()
 }
 
-internal inline fun <T> Source.closeOnFailure(block: () -> T): T =
+internal inline fun <T> Closeable.closeOnFailure(block: () -> T): T =
     try {
         block()
     } catch (error: Throwable) {

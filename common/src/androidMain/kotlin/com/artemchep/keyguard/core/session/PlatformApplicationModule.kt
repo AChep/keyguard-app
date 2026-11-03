@@ -11,6 +11,10 @@ import com.artemchep.keyguard.android.credentialexchange.CredentialExchangeImpor
 import com.artemchep.keyguard.android.downloader.journal.DownloadRepositoryImpl
 import com.artemchep.keyguard.android.downloader.journal.room.DownloadDatabaseManager
 import com.artemchep.keyguard.android.notiifcation.NotificationRepositoryAndroid
+import com.artemchep.keyguard.billing.googlePlayPurchased
+import com.artemchep.keyguard.billing.hasGooglePlayServices
+import com.artemchep.keyguard.common.PlatformTemporaryArtifactRootRegistry
+import com.artemchep.keyguard.common.TemporaryArtifactRoot
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
@@ -91,7 +95,8 @@ import com.artemchep.keyguard.core.session.usecase.DatabaseSqlManagerInFileAndro
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
 import com.artemchep.keyguard.di.GlobalModuleJvm
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
-import com.artemchep.keyguard.feature.auth.companion.CompanionAuthCoordinatorAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthInitiatorAndroid
+import com.artemchep.keyguard.feature.auth.companion.CompanionAuthReceiverAndroid
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthSecurityAndroid
 import com.artemchep.keyguard.feature.auth.companion.CompanionAuthTransportAndroid
 import com.artemchep.keyguard.feature.navigation.NavigationModule
@@ -134,6 +139,25 @@ class PlatformApplicationModule {
         }
         single { PlatformLogSinkRegistry(listOf(get<LogRepositoryAndroid>())) }
         single { AndroidLinkInfoExtractorRegistry(listOf(get<LinkInfoExtractorAndroid>())) }
+        single {
+            val context: Context = get()
+            PlatformTemporaryArtifactRootRegistry(
+                listOf(
+                    TemporaryArtifactRoot(
+                        label = "android-files",
+                        provideDirectory = {
+                            context.filesDir.toLocalPath()
+                        },
+                    ),
+                    TemporaryArtifactRoot(
+                        label = "android-downloads",
+                        provideDirectory = {
+                            DownloadFileStoreAndroid.getDir(context).toLocalPath()
+                        },
+                    ),
+                ),
+            )
+        }
 
         factory<LeContext>() {
             val context: Context = get()
@@ -189,9 +213,10 @@ class PlatformApplicationModule {
         }
         single<GetPurchased> {
             GetPurchasedImpl(
-                context = get(),
                 config = get(),
-                subscriptionService = get(),
+                storePurchased = get<SubscriptionService>().googlePlayPurchased(
+                    hasGooglePlayServices = get<Context>().hasGooglePlayServices(),
+                ),
                 getLicensePremium = get(),
                 getDebugPremium = get(),
                 getCachePremium = get(),
@@ -230,8 +255,8 @@ class PlatformApplicationModule {
                 base64Service = get(),
             )
         }
-        single<CompanionAuthCoordinatorAndroid> {
-            CompanionAuthCoordinatorAndroid(
+        single<CompanionAuthInitiatorAndroid> {
+            CompanionAuthInitiatorAndroid(
                 application = get(),
                 json = get(),
                 transport = get(),
@@ -239,10 +264,19 @@ class PlatformApplicationModule {
                 getVaultSession = get(),
             )
         }
+        single<CompanionAuthReceiverAndroid> {
+            CompanionAuthReceiverAndroid(
+                json = get(),
+                transport = get(),
+                security = get(),
+            )
+        }
         single<CompanionAuthBridgeAndroid> {
             CompanionAuthBridgeAndroid(
                 json = get(),
-                coordinator = get(),
+                initiator = get(),
+                receiver = get(),
+                security = get(),
             )
         }
         single<ConnectivityService> {

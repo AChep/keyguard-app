@@ -26,37 +26,7 @@ sealed interface GpgUserIdReplacementResult {
     ) : GpgUserIdReplacementResult
 
     data class Error(
-        val reason: GpgUserIdReplacementError,
+        val reason: GpgUserIdMutationError,
+        val retryAt: kotlin.time.Instant? = null,
     ) : GpgUserIdReplacementResult
-}
-
-enum class GpgUserIdReplacementError {
-    EmptyPrivateKey,
-    MalformedKey,
-    FingerprintMismatch,
-    TargetNotFound,
-    TargetInactive,
-    InvalidNewUserId,
-    SameIdentity,
-    DuplicateIdentity,
-    PreviouslyRevokedIdentity,
-    AmbiguousPrimary,
-    UnsupportedKeyVersion,
-    ProtectedSecretKey,
-    MissingSelfSignature,
-    NonRevocable,
-    UnsupportedTemplate,
-
-    /** Authenticated certificate policy is ambiguous and cannot be resolved by retrying later. */
-    PolicyConflict,
-
-    /** A new signature must be dated after an existing statement; advancing the clock may help. */
-    TimeConflict,
-    SignatureVerificationFailed,
-    MetadataResolutionFailed,
-    InternalFailure,
-    CertificateRevoked,
-    UnresolvedRevocationAuthority,
-    UnsupportedSigningHash,
-    UnsupportedPlatform,
 }

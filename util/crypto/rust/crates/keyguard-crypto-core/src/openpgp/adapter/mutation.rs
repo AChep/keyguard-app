@@ -5,8 +5,7 @@ use crate::{
         self as workflow, CertificateMaterialContributions, CertificateMaterialReconcileInput,
         ExpirationUpdateFailure, ExpirationUpdateInput, MaterialInputContribution,
         MaterialInputError, MaterialPairError, MaterialWithheldReason, ReconcileError,
-        UserIdReplacementFailure, UserIdReplacementInput, UserIdRevocationFailure,
-        UserIdRevocationInput,
+        UserIdMutationFailure, UserIdReplacementInput, UserIdRevocationInput,
     },
     primitives::PrimitiveError,
 };
@@ -22,10 +21,9 @@ use super::{
         OpenPgpCertificateMaterialReconcileV2Success, OpenPgpCertificateMaterialWithheldReason,
         OpenPgpExpirationUpdateError, OpenPgpExpirationUpdateErrorReason,
         OpenPgpExpirationUpdateRequest, OpenPgpExpirationUpdateResult,
-        OpenPgpExpirationUpdateSuccess, OpenPgpUserIdReplacementError,
-        OpenPgpUserIdReplacementErrorReason, OpenPgpUserIdReplacementRequest,
+        OpenPgpExpirationUpdateSuccess, OpenPgpUserIdMutationError,
+        OpenPgpUserIdMutationErrorReason, OpenPgpUserIdReplacementRequest,
         OpenPgpUserIdReplacementResult, OpenPgpUserIdReplacementSuccess,
-        OpenPgpUserIdRevocationError, OpenPgpUserIdRevocationErrorReason,
         OpenPgpUserIdRevocationRequest, OpenPgpUserIdRevocationResult,
         OpenPgpUserIdRevocationSuccess, open_pgp_certificate_material_reconcile_v2_result,
         open_pgp_expiration_update_result, open_pgp_user_id_replacement_result,
@@ -33,17 +31,28 @@ use super::{
     },
 };
 
+/// Moves the documents every certificate mutation request carries out of a wire request.
+macro_rules! take_documents {
+    ($request:ident) => {
+        workflow::MutationDocuments {
+            private_key: std::mem::take(&mut $request.private_key),
+            public_key: std::mem::take(&mut $request.public_key),
+            expected_primary_fingerprint: std::mem::take(
+                &mut $request.expected_primary_fingerprint,
+            ),
+            candidate_revocation_keys: std::mem::take(&mut $request.candidate_revocation_keys),
+            reference_time_epoch_seconds: $request.reference_time_epoch_seconds,
+        }
+    };
+}
+
 pub(crate) fn update_expiration(
     mut request: OpenPgpExpirationUpdateRequest,
 ) -> Result<Vec<u8>, PrimitiveError> {
     let input = ExpirationUpdateInput {
-        private_key: std::mem::take(&mut request.private_key),
-        public_key: std::mem::take(&mut request.public_key),
-        expected_primary_fingerprint: std::mem::take(&mut request.expected_primary_fingerprint),
+        documents: take_documents!(request),
         component_fingerprints: std::mem::take(&mut request.component_fingerprints),
         expires_at_epoch_seconds: request.expires_at_epoch_seconds,
-        candidate_revocation_keys: std::mem::take(&mut request.candidate_revocation_keys),
-        reference_time_epoch_seconds: request.reference_time_epoch_seconds,
     };
     match workflow::update_expiration_request(input) {
         Ok(success) => Ok(OpenPgpExpirationUpdateResult {
@@ -60,6 +69,7 @@ pub(crate) fn update_expiration(
             result: Some(open_pgp_expiration_update_result::Result::Error(
                 OpenPgpExpirationUpdateError {
                     reason: expiration_reason(error) as i32,
+                    retry_at_epoch_seconds: error.retry_at(),
                 },
             )),
         }
@@ -155,12 +165,8 @@ pub(crate) fn revoke_user_id(
     mut request: OpenPgpUserIdRevocationRequest,
 ) -> Result<Vec<u8>, PrimitiveError> {
     let input = UserIdRevocationInput {
-        private_key: std::mem::take(&mut request.private_key),
-        public_key: std::mem::take(&mut request.public_key),
-        expected_primary_fingerprint: std::mem::take(&mut request.expected_primary_fingerprint),
+        documents: take_documents!(request),
         identity_id: std::mem::take(&mut request.identity_id),
-        candidate_revocation_keys: std::mem::take(&mut request.candidate_revocation_keys),
-        reference_time_epoch_seconds: request.reference_time_epoch_seconds,
     };
     match workflow::revoke_user_id_request(input) {
         Ok(success) => Ok(OpenPgpUserIdRevocationResult {
@@ -175,12 +181,10 @@ pub(crate) fn revoke_user_id(
             )),
         }
         .encode_to_vec()),
-        Err(UserIdRevocationFailure::ResourceLimit) => Err(PrimitiveError::ResourceLimit),
+        Err(UserIdMutationFailure::ResourceLimit) => Err(PrimitiveError::ResourceLimit),
         Err(error) => Ok(OpenPgpUserIdRevocationResult {
             result: Some(open_pgp_user_id_revocation_result::Result::Error(
-                OpenPgpUserIdRevocationError {
-                    reason: revocation_reason(error) as i32,
-                },
+                user_id_error(error),
             )),
         }
         .encode_to_vec()),
@@ -191,13 +195,9 @@ pub(crate) fn replace_user_id(
     mut request: OpenPgpUserIdReplacementRequest,
 ) -> Result<Vec<u8>, PrimitiveError> {
     let input = UserIdReplacementInput {
-        private_key: std::mem::take(&mut request.private_key),
-        public_key: std::mem::take(&mut request.public_key),
-        expected_primary_fingerprint: std::mem::take(&mut request.expected_primary_fingerprint),
+        documents: take_documents!(request),
         old_identity_id: std::mem::take(&mut request.old_identity_id),
         new_user_id: std::mem::take(&mut request.new_user_id),
-        candidate_revocation_keys: std::mem::take(&mut request.candidate_revocation_keys),
-        reference_time_epoch_seconds: request.reference_time_epoch_seconds,
     };
     match workflow::replace_user_id_request(input) {
         Ok(success) => Ok(OpenPgpUserIdReplacementResult {
@@ -215,12 +215,10 @@ pub(crate) fn replace_user_id(
             )),
         }
         .encode_to_vec()),
-        Err(UserIdReplacementFailure::ResourceLimit) => Err(PrimitiveError::ResourceLimit),
+        Err(UserIdMutationFailure::ResourceLimit) => Err(PrimitiveError::ResourceLimit),
         Err(error) => Ok(OpenPgpUserIdReplacementResult {
             result: Some(open_pgp_user_id_replacement_result::Result::Error(
-                OpenPgpUserIdReplacementError {
-                    reason: replacement_reason(error) as i32,
-                },
+                user_id_error(error),
             )),
         }
         .encode_to_vec()),
@@ -263,7 +261,9 @@ fn expiration_reason(error: ExpirationUpdateFailure) -> OpenPgpExpirationUpdateE
         ExpirationUpdateFailure::InvalidExpiration => {
             OpenPgpExpirationUpdateErrorReason::InvalidExpiration
         }
-        ExpirationUpdateFailure::TimeConflict => OpenPgpExpirationUpdateErrorReason::TimeConflict,
+        ExpirationUpdateFailure::TimeConflict | ExpirationUpdateFailure::RetryAt(_) => {
+            OpenPgpExpirationUpdateErrorReason::TimeConflict
+        }
         ExpirationUpdateFailure::SignatureVerificationFailed => {
             OpenPgpExpirationUpdateErrorReason::SignatureVerificationFailed
         }
@@ -351,112 +351,99 @@ fn pair_reason(error: MaterialPairError) -> OpenPgpCertificateMaterialPairErrorR
     }
 }
 
-fn revocation_reason(error: UserIdRevocationFailure) -> OpenPgpUserIdRevocationErrorReason {
-    match error {
-        UserIdRevocationFailure::EmptyPrivateKey => {
-            OpenPgpUserIdRevocationErrorReason::EmptyPrivateKey
-        }
-        UserIdRevocationFailure::MalformedKey => OpenPgpUserIdRevocationErrorReason::MalformedKey,
-        UserIdRevocationFailure::FingerprintMismatch => {
-            OpenPgpUserIdRevocationErrorReason::FingerprintMismatch
-        }
-        UserIdRevocationFailure::TargetNotFound => {
-            OpenPgpUserIdRevocationErrorReason::TargetNotFound
-        }
-        UserIdRevocationFailure::LastUserId => OpenPgpUserIdRevocationErrorReason::LastUserId,
-        UserIdRevocationFailure::UnsupportedKeyVersion => {
-            OpenPgpUserIdRevocationErrorReason::UnsupportedKeyVersion
-        }
-        UserIdRevocationFailure::ProtectedSecretKey => {
-            OpenPgpUserIdRevocationErrorReason::ProtectedSecretKey
-        }
-        UserIdRevocationFailure::MissingSelfSignature => {
-            OpenPgpUserIdRevocationErrorReason::MissingSelfSignature
-        }
-        UserIdRevocationFailure::NonRevocable => OpenPgpUserIdRevocationErrorReason::NonRevocable,
-        UserIdRevocationFailure::TimeConflict => OpenPgpUserIdRevocationErrorReason::TimeConflict,
-        UserIdRevocationFailure::SignatureVerificationFailed => {
-            OpenPgpUserIdRevocationErrorReason::SignatureVerificationFailed
-        }
-        UserIdRevocationFailure::InternalFailure => {
-            OpenPgpUserIdRevocationErrorReason::InternalFailure
-        }
-        UserIdRevocationFailure::CertificateRevoked => {
-            OpenPgpUserIdRevocationErrorReason::CertificateRevoked
-        }
-        UserIdRevocationFailure::UnresolvedRevocationAuthority => {
-            OpenPgpUserIdRevocationErrorReason::UnresolvedRevocationAuthority
-        }
-        UserIdRevocationFailure::UnsupportedSigningHash => {
-            OpenPgpUserIdRevocationErrorReason::UnsupportedSigningHash
-        }
-        UserIdRevocationFailure::ResourceLimit => {
-            OpenPgpUserIdRevocationErrorReason::InternalFailure
-        }
+fn user_id_error(error: UserIdMutationFailure) -> OpenPgpUserIdMutationError {
+    OpenPgpUserIdMutationError {
+        reason: user_id_reason(error) as i32,
+        retry_at_epoch_seconds: error.retry_at(),
     }
 }
 
-fn replacement_reason(error: UserIdReplacementFailure) -> OpenPgpUserIdReplacementErrorReason {
+fn user_id_reason(error: UserIdMutationFailure) -> OpenPgpUserIdMutationErrorReason {
     match error {
-        UserIdReplacementFailure::EmptyPrivateKey => {
-            OpenPgpUserIdReplacementErrorReason::EmptyPrivateKey
+        UserIdMutationFailure::EmptyPrivateKey => OpenPgpUserIdMutationErrorReason::EmptyPrivateKey,
+        UserIdMutationFailure::MalformedKey => OpenPgpUserIdMutationErrorReason::MalformedKey,
+        UserIdMutationFailure::FingerprintMismatch => {
+            OpenPgpUserIdMutationErrorReason::FingerprintMismatch
         }
-        UserIdReplacementFailure::MalformedKey => OpenPgpUserIdReplacementErrorReason::MalformedKey,
-        UserIdReplacementFailure::FingerprintMismatch => {
-            OpenPgpUserIdReplacementErrorReason::FingerprintMismatch
+        UserIdMutationFailure::TargetNotFound => OpenPgpUserIdMutationErrorReason::TargetNotFound,
+        UserIdMutationFailure::TargetInactive => OpenPgpUserIdMutationErrorReason::TargetInactive,
+        UserIdMutationFailure::InvalidNewUserId => {
+            OpenPgpUserIdMutationErrorReason::InvalidNewUserId
         }
-        UserIdReplacementFailure::TargetNotFound => {
-            OpenPgpUserIdReplacementErrorReason::TargetNotFound
+        UserIdMutationFailure::SameIdentity => OpenPgpUserIdMutationErrorReason::SameIdentity,
+        UserIdMutationFailure::DuplicateIdentity => {
+            OpenPgpUserIdMutationErrorReason::DuplicateIdentity
         }
-        UserIdReplacementFailure::TargetInactive => {
-            OpenPgpUserIdReplacementErrorReason::TargetInactive
+        UserIdMutationFailure::PreviouslyRevokedIdentity => {
+            OpenPgpUserIdMutationErrorReason::PreviouslyRevokedIdentity
         }
-        UserIdReplacementFailure::InvalidNewUserId => {
-            OpenPgpUserIdReplacementErrorReason::InvalidNewUserId
+        UserIdMutationFailure::UnsupportedKeyVersion => {
+            OpenPgpUserIdMutationErrorReason::UnsupportedKeyVersion
         }
-        UserIdReplacementFailure::SameIdentity => OpenPgpUserIdReplacementErrorReason::SameIdentity,
-        UserIdReplacementFailure::DuplicateIdentity => {
-            OpenPgpUserIdReplacementErrorReason::DuplicateIdentity
+        UserIdMutationFailure::ProtectedSecretKey => {
+            OpenPgpUserIdMutationErrorReason::ProtectedSecretKey
         }
-        UserIdReplacementFailure::PreviouslyRevokedIdentity => {
-            OpenPgpUserIdReplacementErrorReason::PreviouslyRevokedIdentity
+        UserIdMutationFailure::MissingSelfSignature => {
+            OpenPgpUserIdMutationErrorReason::MissingSelfSignature
         }
-        UserIdReplacementFailure::UnsupportedKeyVersion => {
-            OpenPgpUserIdReplacementErrorReason::UnsupportedKeyVersion
+        UserIdMutationFailure::NonRevocable => OpenPgpUserIdMutationErrorReason::NonRevocable,
+        UserIdMutationFailure::UnsupportedTemplate => {
+            OpenPgpUserIdMutationErrorReason::UnsupportedTemplate
         }
-        UserIdReplacementFailure::ProtectedSecretKey => {
-            OpenPgpUserIdReplacementErrorReason::ProtectedSecretKey
+        UserIdMutationFailure::PolicyConflict => OpenPgpUserIdMutationErrorReason::PolicyConflict,
+        UserIdMutationFailure::LastUserId => OpenPgpUserIdMutationErrorReason::LastUserId,
+        UserIdMutationFailure::RetryAt(_) | UserIdMutationFailure::TimeConflict => {
+            OpenPgpUserIdMutationErrorReason::TimeConflict
         }
-        UserIdReplacementFailure::MissingSelfSignature => {
-            OpenPgpUserIdReplacementErrorReason::MissingSelfSignature
+        UserIdMutationFailure::SignatureVerificationFailed => {
+            OpenPgpUserIdMutationErrorReason::SignatureVerificationFailed
         }
-        UserIdReplacementFailure::NonRevocable => OpenPgpUserIdReplacementErrorReason::NonRevocable,
-        UserIdReplacementFailure::UnsupportedTemplate => {
-            OpenPgpUserIdReplacementErrorReason::UnsupportedTemplate
+        UserIdMutationFailure::InternalFailure => OpenPgpUserIdMutationErrorReason::InternalFailure,
+        UserIdMutationFailure::CertificateRevoked => {
+            OpenPgpUserIdMutationErrorReason::CertificateRevoked
         }
-        UserIdReplacementFailure::PolicyConflict => {
-            OpenPgpUserIdReplacementErrorReason::PolicyConflict
+        UserIdMutationFailure::UnresolvedRevocationAuthority => {
+            OpenPgpUserIdMutationErrorReason::UnresolvedRevocationAuthority
         }
-        UserIdReplacementFailure::TimeConflict => OpenPgpUserIdReplacementErrorReason::TimeConflict,
-        UserIdReplacementFailure::SignatureVerificationFailed => {
-            OpenPgpUserIdReplacementErrorReason::SignatureVerificationFailed
+        UserIdMutationFailure::UnsupportedSigningHash => {
+            OpenPgpUserIdMutationErrorReason::UnsupportedSigningHash
         }
-        UserIdReplacementFailure::InternalFailure => {
-            OpenPgpUserIdReplacementErrorReason::InternalFailure
-        }
-        UserIdReplacementFailure::CertificateRevoked => {
-            OpenPgpUserIdReplacementErrorReason::CertificateRevoked
-        }
-        UserIdReplacementFailure::UnresolvedRevocationAuthority => {
-            OpenPgpUserIdReplacementErrorReason::UnresolvedRevocationAuthority
-        }
-        UserIdReplacementFailure::UnsupportedSigningHash => {
-            OpenPgpUserIdReplacementErrorReason::UnsupportedSigningHash
-        }
-        UserIdReplacementFailure::ResourceLimit => {
-            OpenPgpUserIdReplacementErrorReason::InternalFailure
-        }
+        UserIdMutationFailure::ResourceLimit => OpenPgpUserIdMutationErrorReason::InternalFailure,
     }
+}
+
+pub(crate) fn update_user_id(
+    mut request: super::wire::OpenPgpUserIdUpdateRequest,
+) -> Result<Vec<u8>, PrimitiveError> {
+    use super::wire::{
+        OpenPgpUserIdUpdateResult, OpenPgpUserIdUpdateSuccess,
+        open_pgp_user_id_update_request::Change, open_pgp_user_id_update_result::Result as Outcome,
+    };
+    let change = match request
+        .change
+        .take()
+        .ok_or(PrimitiveError::InvalidArgument)?
+    {
+        Change::NewUserId(value) => workflow::UserIdUpdate::Add(value),
+        Change::PrimaryIdentityId(id) => workflow::UserIdUpdate::MakePrimary(id),
+    };
+    let input = workflow::UserIdUpdateInput {
+        documents: take_documents!(request),
+        change,
+    };
+    let result = match workflow::update_user_id_request(input) {
+        Ok(success) => Outcome::Success(OpenPgpUserIdUpdateSuccess {
+            key_material: Some(key_material(success.key_material)),
+            certificate_index: Some(certificate_index(success.certificate_index)),
+            changed: success.changed,
+        }),
+        Err(UserIdMutationFailure::ResourceLimit) => return Err(PrimitiveError::ResourceLimit),
+        Err(error) => Outcome::Error(user_id_error(error)),
+    };
+    Ok(OpenPgpUserIdUpdateResult {
+        result: Some(result),
+    }
+    .encode_to_vec())
 }
 
 #[cfg(test)]
@@ -478,12 +465,12 @@ mod tests {
     #[test]
     fn replacement_conflicts_keep_distinct_wire_reasons() {
         assert_eq!(
-            replacement_reason(UserIdReplacementFailure::TimeConflict),
-            OpenPgpUserIdReplacementErrorReason::TimeConflict,
+            user_id_reason(UserIdMutationFailure::TimeConflict),
+            OpenPgpUserIdMutationErrorReason::TimeConflict,
         );
         assert_eq!(
-            replacement_reason(UserIdReplacementFailure::PolicyConflict),
-            OpenPgpUserIdReplacementErrorReason::PolicyConflict,
+            user_id_reason(UserIdMutationFailure::PolicyConflict),
+            OpenPgpUserIdMutationErrorReason::PolicyConflict,
         );
     }
 }

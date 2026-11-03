@@ -2,11 +2,18 @@ package com.artemchep.keyguard.common.service.credentialexchange.impl
 
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.create.CreateRequest
-import com.artemchep.keyguard.common.service.credentialexchange.CxfImportSkipReason
-import com.artemchep.keyguard.common.service.credentialexchange.CxfImportSkips
-import com.artemchep.keyguard.common.service.credentialexchange.cxfImportSkips
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredential
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfItem
+import com.artemchep.keyguard.common.service.imports.ImportSkipReason
+import com.artemchep.keyguard.common.service.imports.impl.ImportPlanBuilder
+import com.artemchep.keyguard.common.service.imports.mapping.ImportedItemMeta
+import com.artemchep.keyguard.common.service.imports.mapping.importedKeyguardTypeOrNull
+import com.artemchep.keyguard.common.service.imports.mapping.importedLogin
+import com.artemchep.keyguard.common.service.imports.mapping.importedRequest
+import com.artemchep.keyguard.common.service.imports.mapping.orNullIfBlank
+import com.artemchep.keyguard.provider.bitwarden.mapper.toBitwardenField
+import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
+import com.artemchep.keyguard.provider.bitwarden.mapper.toDomain
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
@@ -26,7 +33,8 @@ import kotlin.time.Instant
  * - The first note attaches to every produced request; a standalone note
  *   becomes a secure note only when nothing else was produced.
  * - Custom fields not consumed by the identity merge attach to the first
- *   produced request, or become a standalone secure note.
+ *   produced request, or become a standalone secure note — or the Keyguard
+ *   type that note carries, as Keyguard's own exporter writes an environment.
  * - Extra credentials of any other single-instance kind are counted skips.
  */
 internal class CxfImportSecretMapper(
@@ -41,41 +49,29 @@ internal class CxfImportSecretMapper(
     )
 
     /**
-     * The outcome of mapping one CXF item: zero or more create requests
-     * (ownership left `null` for the commit step) plus the **credential-level**
-     * skip reasons. The item-level [CxfImportSkipReason.Item] decision belongs
+     * Maps one CXF item into zero or more create requests (ownership left
+     * `null` for the commit step) and counts its **credential-level** skips
+     * into the [plan]. The item-level [ImportSkipReason.Item] decision belongs
      * to the caller, which also knows about credentials the decoder rejected
      * before the mapper saw them — see `CxfImportServiceImpl.parseItems`.
      */
-    data class ItemResult(
-        val requests: List<CreateRequest>,
-        val skips: CxfImportSkips,
-    )
-
     fun mapItem(
         item: CxfItem,
         now: Instant,
-    ): ItemResult {
+        plan: ImportPlanBuilder,
+    ): List<CreateRequest> {
         val grouped = groupCxfCredentials(item.credentials)
-        val builder = ItemBuilder(
+        // All of these are losses inside this one item, so the whole tally
+        // is attributed to it.
+        plan.skip(ImportSkipReason.DuplicateCredential, item.title, count = grouped.duplicateCount)
+        return ItemBuilder(
             item = item,
             grouped = grouped,
             now = now,
+            plan = plan,
             passkeyCrypto = passkeyCrypto,
             sshKeyImportService = sshKeyImportService,
-        )
-        val requests = builder.build()
-        return ItemResult(
-            requests = requests,
-            // All four are losses inside this one item, so the whole tally is
-            // attributed to it here rather than at the counters that fed it.
-            skips = cxfImportSkips(
-                CxfImportSkipReason.Passkey to builder.skippedPasskeyCount,
-                CxfImportSkipReason.Otp to builder.skippedOtpCount,
-                CxfImportSkipReason.SshKey to builder.skippedSshKeyCount,
-                CxfImportSkipReason.DuplicateCredential to grouped.duplicateCount,
-            ).titled(item.title),
-        )
+        ).build()
     }
 }
 
@@ -171,7 +167,7 @@ private class CxfCredentialGrouper {
      * `{"type":"basic-auth"}` is a conforming credential that carries nothing
      * and a populated sibling has to win over it. Otherwise a password or a
      * card number would vanish under
-     * [CxfImportSkipReason.DuplicateCredential], whose contract says nothing
+     * [ImportSkipReason.DuplicateCredential], whose contract says nothing
      * of value was lost.
      */
     private fun <T : CxfCredential> first(current: T?, candidate: T): T {
@@ -204,25 +200,27 @@ private val CxfCredential.isContentFree: Boolean
     }
 
 /**
- * Builds the create requests for one item; mutable skip counters accumulate
+ * Builds the create requests for one item; the skips count into the [plan]
  * as the credential mappers run.
  */
 private class ItemBuilder(
     private val item: CxfItem,
     private val grouped: CxfGroupedCredentials,
     private val now: Instant,
+    private val plan: ImportPlanBuilder,
     private val passkeyCrypto: PasskeyCrypto,
     private val sshKeyImportService: SshKeyImportService,
 ) {
-    var skippedPasskeyCount = 0
-        private set
-    var skippedOtpCount = 0
-        private set
-    var skippedSshKeyCount = 0
-        private set
-
     private val uris = mapImportUris(item.scope)
     private val allCustomFields = grouped.customFields.flatMap { it.fields }
+    private val meta = ImportedItemMeta(
+        now = now,
+        title = item.title,
+        note = grouped.note?.content?.value,
+        favorite = item.favorite ?: false,
+        uris = uris,
+        tags = item.tags.orEmpty(),
+    )
 
     fun build(): List<CreateRequest> {
         val requests = mutableListOf<CreateRequest>()
@@ -237,6 +235,8 @@ private class ItemBuilder(
                 ?: mapImportCustomFields(allCustomFields),
         )
     }
+
+    private fun skip(reason: ImportSkipReason) = plan.skip(reason, item.title)
 
     /**
      * A cheap bail-out taken before anything is mapped: an item without a single
@@ -264,24 +264,21 @@ private class ItemBuilder(
                 creationDate = passkeyCreationDate,
                 passkeyCrypto = passkeyCrypto,
             )
-                .also { if (it == null) skippedPasskeyCount++ }
+                .also { if (it == null) skip(ImportSkipReason.Passkey) }
         }
         val totpUri = grouped.totp?.let { totp ->
             mapImportTotpUri(totp)
-                .also { if (it == null) skippedOtpCount++ }
+                .also { if (it == null) skip(ImportSkipReason.Otp) }
         }
         // Both fallbacks read the MAPPED passkeys: a credential that was thrown
         // away must not donate the identity or the url the item is judged by.
-        val login = CreateRequest.Login(
-            username = basicAuth?.username?.value?.takeIf { it.isNotBlank() }
+        val login = importedLogin(
+            username = basicAuth?.username?.value.orNullIfBlank()
                 ?: passkeys.firstNotNullOfOrNull { it.userName },
-            // `isNotEmpty`, not `isNotBlank`: a password of only whitespace is a
-            // password. Blank-filtering it here dropped the secret while the
-            // credential still travelled — the username survived, so the item
-            // imported and the skip tally stayed empty. The export counterpart
-            // `mapBasicAuth` uses the same predicate, so a Keyguard round trip
-            // no longer destroys such a password.
-            password = basicAuth?.password?.value?.takeIf { it.isNotEmpty() },
+            // A password of only whitespace is a password, and `importedLogin`
+            // keeps it. The export counterpart `mapBasicAuth` uses the same
+            // predicate, so a Keyguard round trip does not destroy one.
+            password = basicAuth?.password?.value,
             totp = totpUri,
         )
         // A login that carries nothing authenticable is not a login: the item
@@ -293,8 +290,7 @@ private class ItemBuilder(
             return null
         }
         val loginUris = uris.ifEmpty { mapPasskeyFallbackUris(passkeys) }
-        return baseRequest().copy(
-            type = DSecret.Type.Login,
+        return importedRequest(DSecret.Type.Login, meta).copy(
             login = login,
             fido2Credentials = passkeys.toPersistentList(),
             uris = loginUris.toPersistentList(),
@@ -306,12 +302,10 @@ private class ItemBuilder(
             ?.let(::mapImportCreditCard)
             ?.takeIf { !it.isEmpty }
             ?: return null
-        return baseRequest().copy(
-            type = DSecret.Type.Card,
-            title = item.title.takeIf { it.isNotBlank() }
+        return importedRequest(DSecret.Type.Card, meta, imported.fields).copy(
+            title = item.title.orNullIfBlank()
                 ?: imported.card.cardholderName,
             card = imported.card,
-            fields = imported.fields.toPersistentList(),
         )
     }
 
@@ -336,12 +330,8 @@ private class ItemBuilder(
         // item from the `Item` counter. The leftover custom fields survive
         // either way: `attachLeftovers` still places them.
         val empty = imported.identity == CreateRequest.Identity() && imported.fields.isEmpty()
-        val request = baseRequest()
-            .copy(
-                type = DSecret.Type.Identity,
-                identity = imported.identity,
-                fields = imported.fields.toPersistentList(),
-            )
+        val request = importedRequest(DSecret.Type.Identity, meta, imported.fields)
+            .copy(identity = imported.identity)
             .takeIf { !empty }
         return BuiltIdentity(
             request = request,
@@ -353,40 +343,28 @@ private class ItemBuilder(
         val imported = grouped.sshKey
             ?.let { credential ->
                 mapImportSshKey(credential, sshKeyImportService)
-                    .also { if (it == null) skippedSshKeyCount++ }
+                    .also { if (it == null) skip(ImportSkipReason.SshKey) }
             }
             ?: return null
-        return baseRequest().copy(
-            type = DSecret.Type.SshKey,
+        return importedRequest(DSecret.Type.SshKey, meta, imported.fields).copy(
             sshKey = imported.sshKey,
-            fields = imported.fields.toPersistentList(),
         )
     }
 
     /**
-     * Applies the note and leftover custom fields: the note goes onto every
-     * produced request, the fields onto the first one. When the item produced
-     * nothing else, both collapse into a standalone secure note.
+     * Applies the leftover custom fields onto the first produced request. When
+     * the item produced nothing else, the note and the fields collapse into a
+     * standalone secure note.
      */
     private fun attachLeftovers(
         requests: MutableList<CreateRequest>,
         remainingCustomFields: List<DSecret.Field>,
     ): List<CreateRequest> {
-        val note = grouped.note?.content?.value?.takeIf { it.isNotBlank() }
         if (requests.isEmpty()) {
-            if (note != null || remainingCustomFields.isNotEmpty()) {
-                requests += baseRequest().copy(
-                    type = DSecret.Type.SecureNote,
-                    note = note,
-                    fields = remainingCustomFields.toPersistentList(),
-                )
+            if (meta.note.orNullIfBlank() != null || remainingCustomFields.isNotEmpty()) {
+                buildStandaloneNote(remainingCustomFields)?.let(requests::add)
             }
             return requests
-        }
-        if (note != null) {
-            for (index in requests.indices) {
-                requests[index] = requests[index].copy(note = note)
-            }
         }
         if (remainingCustomFields.isNotEmpty()) {
             val first = requests.first()
@@ -397,12 +375,30 @@ private class ItemBuilder(
         return requests
     }
 
-    private fun baseRequest(): CreateRequest = CreateRequest(
-        title = item.title.takeIf { it.isNotBlank() },
-        favorite = item.favorite ?: false,
-        reprompt = false,
-        uris = uris.toPersistentList(),
-        tags = item.tags.orEmpty().toPersistentList(),
-        now = now,
-    )
+    /**
+     * A secure note, or the Keyguard type its custom fields carry: Keyguard's
+     * own exporter writes an environment as a note with custom fields. `null`
+     * for an environment the vault would not write, which is counted.
+     */
+    private fun buildStandaloneNote(
+        fields: List<DSecret.Field>,
+    ): CreateRequest? {
+        val keyguard = importedKeyguardTypeOrNull(
+            type = BitwardenCipher.Type.SecureNote,
+            fields = fields.map(DSecret.Field::toBitwardenField),
+        )
+        if (keyguard == null) {
+            skip(ImportSkipReason.Environment)
+            return null
+        }
+        plan.skip(ImportSkipReason.EnvironmentReference, item.title, count = keyguard.clearedReferenceCount)
+        return importedRequest(
+            type = keyguard.type,
+            meta = meta,
+            fields = keyguard.fields.map(BitwardenCipher.Field::toDomain),
+        ).copy(
+            gpgKey = keyguard.gpgKey,
+            environment = keyguard.environment,
+        )
+    }
 }

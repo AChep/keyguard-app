@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.auth.companion
 
 import android.app.Application
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.text.Base64Service
@@ -60,14 +61,14 @@ internal class CompanionAuthSecurityAndroid(
         if (publicKeyBase64.length > COMPANION_AUTH_MAX_PUBLIC_KEY_BASE64_CHARS) {
             return false
         }
-        val bytes = runCatching {
+        val bytes = runCatchingNonFatal {
             base64Service.decode(publicKeyBase64)
         }.getOrNull() ?: return false
         if (bytes.isEmpty() || bytes.size > COMPANION_AUTH_MAX_PUBLIC_KEY_BYTES) {
             return false
         }
 
-        val publicKey = runCatching {
+        val publicKey = runCatchingNonFatal {
             decodePublicKey(bytes)
         }.getOrNull() as? ECPublicKey ?: return false
         return publicKey.params.hasSameParameters(expectedPublicKeyParameters) &&
@@ -187,12 +188,18 @@ internal class CompanionAuthSecurityAndroid(
         )
     }
 
-    suspend fun incomingDir(
+    /**
+     * Deletes the request's pending session and every file it received.
+     */
+    suspend fun deleteRequestArtifacts(
         requestId: String,
-    ): File = withContext(Dispatchers.IO) {
+    ) {
         val normalizedRequestId = canonicalCompanionAuthRequestIdOrNull(requestId)
-            ?: error("Invalid companion auth request id: $requestId")
-        requestDir(normalizedRequestId)
+            ?: return
+        withContext(Dispatchers.IO) {
+            requestDir(normalizedRequestId).deleteRecursively()
+        }
+        deletePendingSession(normalizedRequestId)
     }
 
     internal fun requestDir(

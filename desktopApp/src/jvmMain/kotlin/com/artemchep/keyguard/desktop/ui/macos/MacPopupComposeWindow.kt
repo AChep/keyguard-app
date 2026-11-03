@@ -52,7 +52,7 @@ internal fun MacOwnerlessPopupComposeWindow(
     val currentState = rememberUpdatedState(state)
     val currentOnCloseRequest = rememberUpdatedState(onCloseRequest)
 
-    val overlaySessionActive by rememberMacPopupOverlaySession(visible)
+    val overlaySessionActive by rememberMacPopupOverlaySession(visible, focusRequestKey)
     val popupVisible = visible && overlaySessionActive
 
     SwingDialog(

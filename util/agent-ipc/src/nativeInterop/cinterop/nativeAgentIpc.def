@@ -1,0 +1,3 @@
+headers = keyguard_agent_ipc.h
+headerFilter = keyguard_agent_ipc.h
+staticLibraries = libkeyguard_agent_ipc_c.a

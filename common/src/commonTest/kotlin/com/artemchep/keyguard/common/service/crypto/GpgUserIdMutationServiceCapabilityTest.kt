@@ -24,7 +24,7 @@ class GpgUserIdMutationServiceCapabilityTest {
         val result = GpgUserIdReplacementServiceUnsupported.replace(replacementRequest)
 
         assertEquals(
-            GpgUserIdReplacementError.UnsupportedPlatform,
+            GpgUserIdMutationError.UnsupportedPlatform,
             assertIs<GpgUserIdReplacementResult.Error>(result).reason,
         )
     }
@@ -36,7 +36,7 @@ class GpgUserIdMutationServiceCapabilityTest {
         val result = GpgUserIdRevocationServiceUnsupported.revoke(revocationRequest)
 
         assertEquals(
-            GpgUserIdRevocationError.UnsupportedPlatform,
+            GpgUserIdMutationError.UnsupportedPlatform,
             assertIs<GpgUserIdRevocationResult.Error>(result).reason,
         )
     }

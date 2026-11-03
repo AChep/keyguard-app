@@ -73,6 +73,8 @@ import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadFile
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteBestEffort
 import com.artemchep.keyguard.provider.bitwarden.upload.deleteObsoletePendingUploads
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
+import com.artemchep.keyguard.provider.bitwarden.transport.clientForUrl
 import io.ktor.client.HttpClient
 import io.ktor.client.call.NoTransformationFoundException
 import io.ktor.http.HttpStatusCode
@@ -97,6 +99,10 @@ import kotlin.time.Instant
  * 3. If the cipher should be trashed, trash it.
  * 4. Final GET to refresh local state.
  *
+ * **Push flow** for creations (POST → attachments → trash → GET): the
+ * create calls ignore the trash state, so a cipher created as trashed, e.g.
+ * by an import, is trashed once its attachments are uploaded.
+ *
  * Intermediate server responses are captured as [partialRemoteLocal]
  * so that metadata can be preserved even if a later step fails.
  *
@@ -120,6 +126,7 @@ class CipherSyncOps(
     private val getPasswordStrength: GetPasswordStrength,
     private val logRepository: LogRepository,
     private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider = BitwardenHttpClientProvider { httpClient },
     private val env: ServerEnv,
     private val token: String,
     private val ciphersApi: ServerEnvApi.Ciphers,
@@ -366,6 +373,10 @@ class CipherSyncOps(
                 local = decodedResponse,
                 updatePartialRemoteLocal = { partialRemoteLocal = it },
             )
+            decodedResponse = trashCreatedCipher(
+                update = update,
+                local = decodedResponse,
+            )
         } catch (e: Throwable) {
             e.throwIfFatalOrCancellation()
             return RemoteWriteOutcome.Failure(partialRemoteLocal, e)
@@ -539,6 +550,31 @@ class CipherSyncOps(
                 throw e
             }
         }
+    }
+
+    /**
+     * Moves a cipher just created as trashed to the trash. Runs after its
+     * attachments are uploaded, as those of a trashed cipher are not synced.
+     * If it fails, the cipher keeps its local trash state and the next sync
+     * trashes it the way it trashes any existing cipher.
+     */
+    private suspend fun trashCreatedCipher(
+        update: CipherUpdate,
+        local: BitwardenCipher,
+    ): BitwardenCipher {
+        if (update is CipherUpdate.Modify || update.source.deletedDate == null) {
+            return local
+        }
+        val remoteCipherId =
+            requireNotNull(local.service.remote?.id) {
+                "Bitwarden cipher id must be available after create."
+            }
+        val cipherApi = ciphersApi.focus(remoteCipherId)
+        trashCipher(cipherApi)
+        return decodeServerCipherForPush(
+            server = getCipher(cipherApi),
+            local = local,
+        )
     }
 
     private suspend fun createUserCipher(update: CipherUpdate.Create): CipherEntity {
@@ -734,7 +770,7 @@ class CipherSyncOps(
                     encryptedSize = pendingUpload.encryptedSize,
                 )
                 uploadCipherAttachment(
-                    httpClient = httpClient,
+                    httpClient = httpClientProvider.clientForUrl(env, createResponse.uploadTarget.resolveUrl(env)),
                     env = env,
                     token = token,
                     target = createResponse.uploadTarget,

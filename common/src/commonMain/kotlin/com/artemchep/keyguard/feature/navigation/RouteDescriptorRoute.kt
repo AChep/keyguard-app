@@ -1,7 +1,9 @@
 package com.artemchep.keyguard.feature.navigation
 
+import com.artemchep.keyguard.feature.auth.certificate.AccountClientCertificateRoute
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.feature.attachments.AttachmentsRoute
+import com.artemchep.keyguard.feature.cliagent.history.CliAgentHistoryRoute
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
 import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsRoute
 import com.artemchep.keyguard.feature.export.ExportRoute
@@ -22,9 +24,12 @@ import com.artemchep.keyguard.feature.sshagent.history.SshAgentHistoryRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewRoute
 import com.artemchep.keyguard.feature.home.settings.subscriptions.SubscriptionsSettingsRoute
 import com.artemchep.keyguard.feature.home.vault.search.sort.Sort
+import com.artemchep.keyguard.feature.imports.ImportRoute
 import com.artemchep.keyguard.feature.justdeleteme.directory.JustDeleteMeServicesRoute
 import com.artemchep.keyguard.feature.justgetdata.directory.JustGetMyDataServicesRoute
 import com.artemchep.keyguard.feature.passkeys.directory.PasskeysServicesRoute
+import com.artemchep.keyguard.feature.environments.edit.EnvironmentEditRoute
+import com.artemchep.keyguard.feature.home.settings.environments.EnvironmentsRoute
 import com.artemchep.keyguard.feature.gpgagent.tools.GpgToolsRoute
 import com.artemchep.keyguard.feature.home.settings.SettingsRoute
 import com.artemchep.keyguard.feature.send.SendRoute
@@ -36,6 +41,9 @@ import com.artemchep.keyguard.feature.watchtower.alerts.WatchtowerAlertsRoute
 
 /** Reconstructs a [Route] from its data-only [RouteDescriptor]. */
 fun RouteDescriptor.toRoute(): Route? = when (this) {
+    RouteDescriptor.Environments -> EnvironmentsRoute
+    is RouteDescriptor.AccountClientCertificate -> AccountClientCertificateRoute(accountId)
+    is RouteDescriptor.EnvironmentEdit -> EnvironmentEditRoute(environmentId)
     is RouteDescriptor.VaultCipherView ->
         VaultViewRoute(itemId = itemId, accountId = accountId)
 
@@ -64,6 +72,9 @@ fun RouteDescriptor.toRoute(): Route? = when (this) {
     is RouteDescriptor.SshAgentHistory ->
         SshAgentHistoryRoute(cipherId = cipherId)
 
+    is RouteDescriptor.CliAgentHistory ->
+        CliAgentHistoryRoute(client = client, cipherId = cipherId)
+
     is RouteDescriptor.WordlistView ->
         WordlistViewRoute(WordlistViewRoute.Args(wordlistId = wordlistId))
 
@@ -86,6 +97,14 @@ fun RouteDescriptor.toRoute(): Route? = when (this) {
 
     is RouteDescriptor.Export ->
         ExportRoute(ExportRoute.Args(title = title, filter = filter))
+
+    is RouteDescriptor.Import ->
+        ImportRoute(
+            ImportRoute.Args(
+                accountId = AccountId(accountId),
+                configuredBackup = configuredBackup,
+            ),
+        )
 
     is RouteDescriptor.SendList -> {
         val args = SendRoute.Args(

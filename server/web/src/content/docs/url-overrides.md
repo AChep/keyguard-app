@@ -1,49 +1,73 @@
 ---
 title: URL overrides
-description: Rewrite or extend an item's URLs with regex-matched commands and placeholders.
-category: reference
-order: 3
+description: "Rewrite or extend an item's URLs with regex-matched commands and placeholders."
+section: reference
+type: feature
+order: 20
+platforms: all
+related: [placeholders, url-matching]
 ---
 
-URL overrides extend what an item's URLs can do. When a URL matches an
-override, Keyguard shows an extra button next to it that opens the rewritten
-URL — or even launches a local program. Manage them under **Settings → Other → URL
-overrides**.
+A URL override adds an extra entry under every item URL that matches its
+regular expression. The entry opens a rewritten URL, or runs a command on your
+device.
 
-An override has at least:
+## Add a URL override
 
-- **Regex** — the override applies to URLs that match this regular expression;
-- **Command** — the new URL that replaces the old one, which usually contains
-  [placeholders](/docs/placeholders/).
+1. In **Settings > Other > URL overrides**, select **Add**.
+2. Fill in the fields listed in [Fields](#fields).
+3. Select **OK**. Items with a matching URL show the override under that URL.
 
-## Example: HTTPS-ify
+To run a `cmd://` override, open the entry's menu and select **Execute**.
 
-Add a button to every insecure link that opens the same website over HTTPS:
+## Fields
 
-| Field   | Content                |
-| :------ | :--------------------- |
-| Regex   | `^http://.*`           |
-| Command | `https://{url:rmvscm}` |
+| Field | Value |
+| --- | --- |
+| **Name** | The label of the override's entry on the item |
+| **Regular expression** | The override applies to URLs that this expression matches. It must match the whole URL. |
+| **Command** | The new URL, usually built with [Placeholders](/docs/placeholders/). A command that starts with `cmd://` runs the rest as a shell command. |
+| **Enabled** | On by default. Turn it off to keep the override without applying it. |
 
-When done correctly, all URLs that use HTTP get a button to open the same
-website using the HTTPS protocol. That said, consider replacing HTTP
-URLs with their safer alternative when possible.
+A `cmd://` command runs in the platform's shell:
 
-## Example: FileZilla FTP client
+| Platform | Shell |
+| --- | --- |
+| Android | `sh` |
+| Linux, macOS | `bash` |
+| Windows | `cmd` |
 
-Add a URL to the item that will be overridden later:
+## Examples
+
+### Open HTTP links over HTTPS
+
+This override adds an HTTPS version of every `http://` URL. Where you can,
+change the item's URL to `https://` instead.
+
+```text
+Regular expression: ^http://.*
+Command:            https://{url:rmvscm}
+```
+
+### Open FTP links in FileZilla
+
+Add this URL to the item:
 
 ```text
 ftp://{username}:{password}@example.com
 ```
 
-This URL may already work if the FTP client correctly sets up URL protocol
-handlers. Otherwise, add the following URL override (Linux):
+If your FTP client registers itself for `ftp://` links, the URL works as is.
+Otherwise, add this override on Linux. It starts FileZilla with your
+credentials filled in.
 
-| Field   | Content                 |
-| :------ | :---------------------- |
-| Regex   | `^ftp://.*`             |
-| Command | `cmd://filezilla {url}` |
+```text
+Regular expression: ^ftp://.*
+Command:            cmd://filezilla {url}
+```
 
-When done correctly, all matching URLs get a button that executes the command,
-launching the FileZilla client with your credentials filled in.
+## Limitations
+
+| Build | Limitation |
+| --- | --- |
+| Flatpak | `cmd://` commands run inside the Flatpak sandbox, so they can't start programs installed on the host. |

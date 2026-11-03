@@ -5,8 +5,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -18,7 +20,6 @@ import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.ErrorOutline
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Warning
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -219,27 +220,28 @@ private fun GeneratorHistoryItem(
         modifier = modifier,
         item = item.item,
         leading = { composable ->
-            BadgedBox(
-                badge = {
-                    androidx.compose.animation.AnimatedVisibility(
-                        modifier = Modifier
-                            .size(16.dp),
-                        visible = !item.read,
-                        enter = fadeIn() + scaleIn(),
-                        exit = scaleOut() + fadeOut(),
-                    ) {
-                        AvatarBadgeSurface(
-                            modifier = Modifier,
-                            backgroundColor = MaterialTheme.colorScheme.badgeContainer,
-                        ) {
-                            AvatarBadgeIcon(
-                                imageVector = Icons.Outlined.Info,
-                            )
-                        }
-                    }
-                },
-            ) {
+            // BadgedBox queries avatar baselines during measurement, which can crash
+            // recycled lazy-list nodes in Compose 1.13 (b/549552303).
+            Box {
                 composable()
+                androidx.compose.animation.AnimatedVisibility(
+                    modifier = Modifier
+                        .align(Alignment.TopEnd)
+                        .offset(x = 4.dp, y = (-2).dp)
+                        .size(16.dp),
+                    visible = !item.read,
+                    enter = fadeIn() + scaleIn(),
+                    exit = scaleOut() + fadeOut(),
+                ) {
+                    AvatarBadgeSurface(
+                        modifier = Modifier,
+                        backgroundColor = MaterialTheme.colorScheme.badgeContainer,
+                    ) {
+                        AvatarBadgeIcon(
+                            imageVector = Icons.Outlined.Info,
+                        )
+                    }
+                }
             }
         },
         content = {

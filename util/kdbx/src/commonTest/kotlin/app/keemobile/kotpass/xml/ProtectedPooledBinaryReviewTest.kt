@@ -10,11 +10,11 @@ import app.keemobile.kotpass.database.encode
 import app.keemobile.kotpass.database.visitBinaryContents
 import app.keemobile.kotpass.database.header.DatabaseHeader
 import app.keemobile.kotpass.io.encodeBase64
-import app.keemobile.kotpass.io.gzip
 import app.keemobile.kotpass.database.BinaryIndex
 import app.keemobile.kotpass.models.DatabaseContent
 import app.keemobile.kotpass.models.FormatVersion
 import app.keemobile.kotpass.models.XmlContext
+import com.artemchep.keyguard.util.gzip.gzip
 import okio.Buffer
 import kotlin.test.Test
 import kotlin.test.assertContentEquals

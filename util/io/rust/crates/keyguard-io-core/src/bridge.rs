@@ -51,6 +51,7 @@ fn registry_error(error: RegistryError) -> i64 {
             Operation::Bridge,
             FileSystemFailure::semantic(FailureKind::ResourceBusy),
         ),
+        RegistryError::Exhausted => TxnError::bridge_internal(),
     };
     pack_txn_error(failure)
 }
@@ -69,7 +70,9 @@ pub fn txn_begin(destination: &str, wire: TxnOptionsWire) -> i64 {
         return pack_txn_error(TxnError::bridge_invalid_argument());
     };
     match AtomicWriteTxn::begin(RealFs, Path::new(destination), options) {
-        Ok(txn) => txns().insert(txn) as i64,
+        Ok(txn) => txns()
+            .insert(txn)
+            .map_or_else(registry_error, |handle| handle as i64),
         Err(error) => pack_txn_error(error),
     }
 }
@@ -79,7 +82,9 @@ pub fn txn_begin(destination: &str, wire: TxnOptionsWire) -> i64 {
 #[must_use]
 pub fn directory_open(directory: &str) -> i64 {
     match AtomicDirectory::open(&RealFs, Path::new(directory)) {
-        Ok(directory) => directories().insert(directory) as i64,
+        Ok(directory) => directories()
+            .insert(directory)
+            .map_or_else(registry_error, |handle| handle as i64),
         Err(error) => pack_txn_error(error),
     }
 }
@@ -123,7 +128,9 @@ pub fn txn_begin_at_directory(
         Err(error) => return registry_error(error),
     };
     match AtomicWriteTxn::begin_at_directory(RealFs, &directory, destination, options) {
-        Ok(txn) => txns().insert(txn) as i64,
+        Ok(txn) => txns()
+            .insert(txn)
+            .map_or_else(registry_error, |handle| handle as i64),
         Err(error) => pack_txn_error(error),
     }
 }
@@ -240,7 +247,9 @@ fn txn_abort_in<F: FsOps>(registry: &Registry<AtomicWriteTxn<F>>, handle: u64) -
 #[must_use]
 pub fn scratch_open(directory: &str) -> i64 {
     match ScratchFile::open(Path::new(directory)) {
-        Ok(scratch) => scratches().insert(scratch) as i64,
+        Ok(scratch) => scratches()
+            .insert(scratch)
+            .map_or_else(registry_error, |handle| handle as i64),
         Err(error) => io_failure(Operation::CreateStaged, &error),
     }
 }
@@ -506,7 +515,7 @@ mod tests {
             options,
         )
         .expect("transaction must begin");
-        let handle = registry.insert(txn);
+        let handle = registry.insert(txn).expect("insert must succeed");
 
         let first = txn_write_in(&registry, handle, b"new contents");
         assert_eq!(txn_write_in(&registry, handle, b"must not replay"), first);
@@ -537,7 +546,7 @@ mod tests {
             options,
         )
         .expect("transaction must begin");
-        let handle = registry.insert(txn);
+        let handle = registry.insert(txn).expect("insert must succeed");
 
         let panic = catch_unwind(AssertUnwindSafe(|| {
             txn_write_in(&registry, handle, b"new contents")

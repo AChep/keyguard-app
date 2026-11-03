@@ -27,12 +27,23 @@ import kotlin.uuid.Uuid
  */
 class KeePassFolderCodec {
     fun encodeNew(local: BitwardenFolder): Group =
-        Group(
+        encodeNew(
             uuid = runCatchingNonFatal {
                 Uuid.parse(local.folderId)
             }.getOrElse { Uuid.random() },
             name = local.name,
-            times = TimeData.create(now = local.revisionDate),
+            revisionDate = local.revisionDate,
+        )
+
+    fun encodeNew(
+        uuid: Uuid,
+        name: String,
+        revisionDate: Instant,
+    ): Group =
+        Group(
+            uuid = uuid,
+            name = name,
+            times = TimeData.create(now = revisionDate),
         )
 
     fun decode(

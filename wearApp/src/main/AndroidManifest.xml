@@ -135,7 +135,7 @@
             android:windowSoftInputMode="adjustResize"
             tools:ignore="NewApi" />
         <activity
-            android:name="com.artemchep.keyguard.android.sshagent.SshRequestActivity"
+            android:name="com.artemchep.keyguard.android.agentbridge.AgentRequestActivity"
             android:taskAffinity=""
             tools:node="remove" />
 
@@ -152,14 +152,17 @@
             android:name="com.artemchep.keyguard.android.sshagent.SshAgentReceiver"
             tools:node="remove" />
         <receiver
-            android:name="com.artemchep.keyguard.android.sshagent.SshRequestNotificationActionReceiver"
+            android:name="com.artemchep.keyguard.android.gpgagent.GpgAgentReceiver"
+            tools:node="remove" />
+        <receiver
+            android:name="com.artemchep.keyguard.android.agentbridge.AgentRequestNotificationActionReceiver"
             tools:node="remove" />
 
         <service
             android:name="com.artemchep.keyguard.android.clipboard.KeyguardClipboardService"
             tools:node="remove" />
         <service
-            android:name="com.artemchep.keyguard.android.sshagent.SshAgentService"
+            android:name="com.artemchep.keyguard.android.agentbridge.AgentBridgeService"
             tools:node="remove" />
         <service
             android:name="com.artemchep.keyguard.android.autofill.KeyguardAutofillService"

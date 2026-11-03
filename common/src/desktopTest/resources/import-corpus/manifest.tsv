@@ -1,0 +1,8 @@
+id	format	resource	password	result	items	folders	skips
+bitwarden-json	Bitwarden	bitwarden/vault.json	-	SUCCESS	9	2	PasswordHistory=1
+bitwarden-csv	Bitwarden	bitwarden/vault.csv	-	SUCCESS	6	2	-
+bitwarden-protected-pbkdf2	Bitwarden	bitwarden/vault-protected-pbkdf2.json	corpus-export-password	SUCCESS	9	2	PasswordHistory=1
+bitwarden-protected-argon2id	Bitwarden	bitwarden/vault-protected-argon2id.json	corpus-export-password	SUCCESS	1	0	-
+bitwarden-account-encrypted	Bitwarden	bitwarden/vault-account-encrypted.json	-	UNSUPPORTED_ENCRYPTION	-	-	-
+keepassxc-csv	KeePassXc	keepassxc/database.csv	-	SUCCESS	6	4	-
+keyguard-zip	KeyguardZip	keyguard/export.zip	keyguard-corpus-password	SUCCESS	9	2	PasswordHistory=1

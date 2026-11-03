@@ -23,7 +23,7 @@ struct VaultRowIcon: View {
 
     private var favicon: some View {
         FaviconView(
-            url: row.iconUrl,
+            iconKey: row.iconKey,
             placeholder: row.iconInitials,
             fallbackSymbol: row.typeSymbol ?? "key",
             size: 30,

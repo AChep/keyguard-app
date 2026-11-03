@@ -17,12 +17,9 @@ use crate::openpgp::{
 };
 
 use super::{
-    acceptance::{
-        SelfRevocationHashSecurity, key_created_at_or_before, self_revocation_signature_acceptable,
-        signature_expired,
-    },
+    acceptance::{key_created_at_or_before, signature_expired},
     budget::DesignatedRevokerId,
-    revocation::{RevocationTarget, revocation_is_effective, signature_is_revocable},
+    revocation::signature_is_revocable,
     selection::{component_is_expired, encryption_component_usable, signing_component_usable},
 };
 
@@ -225,8 +222,6 @@ pub(in crate::openpgp) struct IdentityPolicy<'a> {
     /// `true` when no certification is effective, matching the
     /// `revocation_is_effective` convention.
     pub(in crate::openpgp) effective_certification_revocable: bool,
-    /// Hash property required for this component's self-revocations.
-    pub(super) self_revocation_hash_security: SelfRevocationHashSecurity,
     pub(in crate::openpgp) revocation_status: RevocationStatus,
     /// Creation time of the authenticated revocation proving `Revoked`.
     /// Callers must not infer this evidence from the absence of an active UID.
@@ -316,42 +311,6 @@ impl<'a> IdentityPolicy<'a> {
                     && !signature_expired(signature, time)
             })
             .all(signature_is_revocable)
-    }
-
-    /// Effective time of this identity's own revocation as seen at `time`.
-    ///
-    /// A mutation dates its new signature after every statement it supersedes,
-    /// so it must ask whether the identity is already revoked at *that*
-    /// instant rather than at the certificate's reference time. Only
-    /// self-revocations are considered; third-party evidence needs the
-    /// designated-revoker resolution that `revocation_status` already carries,
-    /// and treating unresolvable evidence as "already revoked" would be the
-    /// wrong direction to fail.
-    pub(in crate::openpgp) fn self_revoked_at(&self, time: u64) -> Option<u64> {
-        let target = RevocationTarget::Certification {
-            revocable: self.effective_certification_revocable,
-        };
-        self.verified_revocations
-            .iter()
-            .copied()
-            .filter(|signature| {
-                self_revocation_signature_acceptable(
-                    signature,
-                    time,
-                    target,
-                    self.self_revocation_hash_security,
-                )
-            })
-            .filter(|signature| {
-                revocation_is_effective(
-                    std::iter::once(*signature),
-                    self.effective_signature,
-                    time,
-                    target,
-                )
-            })
-            .filter_map(|signature| signature_creation_time(signature).map(u64::from))
-            .max()
     }
 }
 
@@ -458,7 +417,6 @@ impl<'a> ValidatedCertificate<'a> {
         )
     }
 
-    #[cfg(test)]
     pub(in crate::openpgp) fn reference_time(&self) -> u64 {
         self.reference_time
     }
@@ -576,7 +534,7 @@ impl<'a> ValidatedCertificate<'a> {
     ) -> bool {
         self.user_ids
             .iter()
-            .any(|identity| identity.packet_body != Some(packet_body) && identity.authenticated())
+            .any(|identity| identity.authenticated() && identity.packet_body != Some(packet_body))
     }
 
     pub(in crate::openpgp) fn primary_available(&self) -> bool {

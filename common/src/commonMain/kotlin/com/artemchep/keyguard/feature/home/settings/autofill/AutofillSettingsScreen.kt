@@ -5,6 +5,8 @@ import androidx.compose.runtime.remember
 import com.artemchep.keyguard.feature.home.settings.Setting
 import com.artemchep.keyguard.feature.home.settings.SettingPaneContent
 import com.artemchep.keyguard.feature.home.settings.SettingPaneItem
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import kotlinx.collections.immutable.ImmutableList
@@ -24,13 +26,18 @@ fun AutofillSettingsScreen() {
 fun rememberSettingsAutofillItems(
 ): ImmutableList<SettingPaneItem> {
     return remember {
-        persistentListOf(
-            SettingPaneItem.Group(
-                key = "credential",
-                list = persistentListOf(
-                    SettingPaneItem.Item(Setting.CREDENTIAL_PROVIDER),
-                ),
+        val credential = SettingPaneItem.Group(
+            key = "credential",
+            list = persistentListOf(
+                SettingPaneItem.Item(Setting.CREDENTIAL_PROVIDER),
             ),
+        )
+        // Windows has only the passkey provider; the other options configure Android services.
+        if (CurrentPlatform is Platform.Desktop.Windows) {
+            return@remember persistentListOf(credential)
+        }
+        persistentListOf(
+            credential,
             SettingPaneItem.Group(
                 key = "autofill",
                 list = persistentListOf(

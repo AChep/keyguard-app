@@ -16,7 +16,10 @@ class NativeCryptoServicesModule {
             )
         }
         single<GpgOpenPgpService> {
-            NativeGpgOpenPgpService(stagingSpoolFactory = get())
+            NativeGpgOpenPgpService(
+                stagingSpoolFactory = get(),
+                stagingDirectoryProvider = get(),
+            )
         }
     }
 }

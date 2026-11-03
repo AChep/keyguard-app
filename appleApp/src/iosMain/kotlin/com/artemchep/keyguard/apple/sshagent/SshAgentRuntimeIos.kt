@@ -12,7 +12,7 @@ private object NoopSshAgentRuntime : SshAgentRuntime {
     override val isBinaryAvailable: Boolean
         get() = false
 
-    override fun start(
+    override suspend fun start(
         scope: CoroutineScope,
         config: SshAgentRuntimeConfig,
     ): SshAgentRuntimeHandle? = null

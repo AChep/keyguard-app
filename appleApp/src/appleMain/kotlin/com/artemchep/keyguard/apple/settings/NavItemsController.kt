@@ -256,6 +256,7 @@ private val filterIconHints: Map<ImageVector, String> by lazy {
         DSecret.Type.SecureNote.iconImageVector() to "note",
         DSecret.Type.SshKey.iconImageVector() to "sshKey",
         DSecret.Type.GpgKey.iconImageVector() to "gpgKey",
+        DSecret.Type.Environment.iconImageVector() to "environment",
         Icons.Outlined.KeyguardTwoFa to "otp",
     )
 }

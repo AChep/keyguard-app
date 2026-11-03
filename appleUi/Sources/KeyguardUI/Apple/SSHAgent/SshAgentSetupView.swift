@@ -44,6 +44,11 @@ struct SshAgentSetupView: View {
                 Text(L10n.sshAgentSetupIntroText)
                     .foregroundStyle(.secondary)
 
+                if !socketPath.isEmpty {
+                    AgentAutomaticSetupView(
+                        agent: .ssh(socket: socketPath), enabled: sshAgentModel.sshAgentSettings.enabled)
+                }
+
                 // Use the shared step-1 title to match steps 2/3 and the common
                 // SshAgentSetupScreen.
                 stepHeader(L10n.sshAgentSetupStep1Title)
@@ -73,7 +78,7 @@ struct SshAgentSetupView: View {
 
                 stepHeader(L10n.sshAgentSetupStep3Title)
                 Text(L10n.sshAgentSetupTestConnectionHint)
-                codeBlock(Self.verifyListCommand)
+                codeBlock("\(envCommand); \(Self.verifyListCommand)")
                 codeBlock(Self.verifyConnectCommand)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

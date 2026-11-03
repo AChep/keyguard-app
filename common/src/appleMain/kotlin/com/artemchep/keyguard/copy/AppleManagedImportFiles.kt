@@ -21,7 +21,7 @@ import platform.Foundation.NSUUID
 object AppleManagedImportFiles {
     private const val DIRECTORY_NAME = "keyguard-import"
 
-    private val root: Path
+    internal val root: Path
         get() = Path(NSTemporaryDirectory(), DIRECTORY_NAME)
 
     /** The `<UUID>` directory for a new copy; the caller creates it. */

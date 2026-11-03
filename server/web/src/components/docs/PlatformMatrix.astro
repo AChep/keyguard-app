@@ -1,0 +1,52 @@
+---
+import { DOC_PLATFORMS, DOC_STAGE_LABELS } from '../../consts';
+import { expandPlatforms, getDocGroups } from '../../lib/docs';
+
+// Feature × platform matrix, built from every feature and how-to page's
+// frontmatter, so it can't disagree with the pages themselves. Help pages
+// describe the project, not the app, so they're left out.
+const groups = (await getDocGroups())
+  .filter((group) => group.id !== 'help')
+  .map((group) => ({
+    label: group.label,
+    docs: group.entries
+      .flatMap((entry) => (entry.kind === 'doc' ? [entry.doc] : entry.subsection.docs))
+      .filter((doc) => doc.data.type === 'feature' || doc.data.type === 'how-to')
+      .map((doc) => ({ doc, platforms: expandPlatforms(doc.data.platforms) })),
+  }))
+  .filter((group) => group.docs.length > 0);
+
+const columns = DOC_PLATFORMS.filter((platform) =>
+  groups.some((group) => group.docs.some((row) => row.platforms.includes(platform.id))),
+);
+---
+
+<table>
+  <thead>
+    <tr>
+      <th>Page</th>
+      {columns.map((platform) => <th>{platform.label}</th>)}
+    </tr>
+  </thead>
+  {
+    groups.map((group) => (
+      <tbody>
+        <tr>
+          <th colspan={columns.length + 1}>{group.label}</th>
+        </tr>
+        {group.docs.map(({ doc, platforms }) => (
+          <tr>
+            <td>
+              <a href={`/docs/${doc.id}/`}>{doc.data.title}</a>
+              {doc.data.premium && <> (Premium)</>}
+              {doc.data.stage && <> ({DOC_STAGE_LABELS[doc.data.stage]})</>}
+            </td>
+            {columns.map((platform) => (
+              <td>{platforms.includes(platform.id) ? 'Yes' : '—'}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    ))
+  }
+</table>

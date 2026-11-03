@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.RoundedPolygon
+import com.artemchep.keyguard.common.model.Premium
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.usecase.GetPurchased
@@ -76,6 +77,7 @@ import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.util.hasAutofill
 import com.artemchep.keyguard.platform.util.hasSubscription
+import com.artemchep.keyguard.platform.util.hasWebPurchase
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
@@ -227,9 +229,11 @@ fun rememberSettingsItems(
                             leading = if (isSubscription) {
                                 {
                                     val getPurchased = koinInject<GetPurchased>()
-                                    val isPurchased by remember(getPurchased) {
+                                    val premium by remember(getPurchased) {
                                         getPurchased()
-                                    }.collectAsState(false)
+                                    }.collectAsState(Premium.NONE)
+                                    // Premium that comes with the build is not a purchase.
+                                    val isPurchased = premium == Premium.PURCHASED
 
                                     val targetTint =
                                         if (isPurchased) MaterialTheme.colorScheme.primary else LocalContentColor.current
@@ -246,7 +250,9 @@ fun rememberSettingsItems(
                             } else {
                                 null
                             },
-                            footer = if (isSubscription) {
+                            // Web purchase builds include the premium features,
+                            // so there are no benefits to advertise.
+                            footer = if (isSubscription && !CurrentPlatform.hasWebPurchase()) {
                                 {
                                     Row(
                                         modifier = Modifier

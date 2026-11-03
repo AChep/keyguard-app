@@ -199,7 +199,7 @@ impl TryFrom<&RsaKeypair> for rsa::RsaPrivateKey {
             rsa::BigUint::try_from(&key.private.d)?,
             vec![
                 rsa::BigUint::try_from(&key.private.p)?,
-                rsa::BigUint::try_from(&key.private.p)?,
+                rsa::BigUint::try_from(&key.private.q)?,
             ],
         )?;
 
@@ -256,5 +256,36 @@ where
 
     fn try_from(keypair: &RsaKeypair) -> Result<pkcs1v15::SigningKey<D>> {
         Ok(pkcs1v15::SigningKey::new(keypair.try_into()?))
+    }
+}
+
+#[cfg(all(test, feature = "rsa"))]
+mod tests {
+    use super::*;
+    use crate::PrivateKey;
+
+    #[test]
+    fn rsa_conversion_preserves_private_components() {
+        for encoded_key in [
+            include_str!("../../tests/examples/id_rsa_3072"),
+            include_str!("../../tests/examples/id_rsa_4096"),
+        ] {
+            let key = PrivateKey::from_openssh(encoded_key).unwrap();
+            let keypair = key.key_data().rsa().unwrap();
+            let converted = rsa::RsaPrivateKey::try_from(keypair).unwrap();
+
+            assert_eq!(
+                converted.primes(),
+                &[
+                    rsa::BigUint::try_from(&keypair.private.p).unwrap(),
+                    rsa::BigUint::try_from(&keypair.private.q).unwrap(),
+                ]
+            );
+            assert_eq!(&RsaKeypair::try_from(&converted).unwrap(), keypair);
+            assert_eq!(
+                rsa::RsaPrivateKey::try_from(keypair.clone()).unwrap(),
+                converted
+            );
+        }
     }
 }

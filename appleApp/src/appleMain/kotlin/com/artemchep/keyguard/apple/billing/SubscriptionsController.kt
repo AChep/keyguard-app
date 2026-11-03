@@ -4,6 +4,7 @@ import com.artemchep.keyguard.AppleBillingBridgeRegistry
 import com.artemchep.keyguard.apple.core.sessionKoin
 import com.artemchep.keyguard.common.model.Product
 import com.artemchep.keyguard.common.model.Subscription
+import com.artemchep.keyguard.common.model.isActive
 import com.artemchep.keyguard.common.usecase.GetProducts
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.GetSubscriptions
@@ -144,7 +145,7 @@ internal class SubscriptionsController(private val ctx: CoreContext) {
             val storeAvailable = !ctx.koin.get<FlavorConfig>().isFreeAsBeer
             SubscriptionsSnapshot(
                 loaded = billing.catalogLoaded || !storeAvailable,
-                isPremium = data.third,
+                isPremium = data.third.isActive,
                 subscriptions = data.first?.map { subscription ->
                     subscription.toSnapshot(
                         billing.entitlements.firstOrNull { it.productId == subscription.id }?.renewalKnown == true,

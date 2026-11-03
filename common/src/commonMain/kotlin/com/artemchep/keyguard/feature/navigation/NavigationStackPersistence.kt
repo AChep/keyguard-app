@@ -63,6 +63,13 @@ private fun Map<String, List<RouteDescriptor>>.forPersistence() =
         .filterValues { it.isNotEmpty() }
 
 private fun RouteDescriptor.canPersist(): Boolean = when (this) {
+    // Drafts of an environment live only in memory,
+    // so there is nothing to restore an editor to.
+    is RouteDescriptor.AccountClientCertificate,
+    is RouteDescriptor.EnvironmentEdit -> false
+    // The picked file and the review live only in memory, so a restored
+    // import could only start over; leave it closed instead.
+    is RouteDescriptor.Import -> false
     is RouteDescriptor.VaultList -> filter.canPersist()
     is RouteDescriptor.Folders -> filter.canPersist()
     is RouteDescriptor.Duplicates -> filter.canPersist()
@@ -74,6 +81,7 @@ private fun RouteDescriptor.canPersist(): Boolean = when (this) {
     is RouteDescriptor.SendView,
     is RouteDescriptor.PasswordHistory,
     is RouteDescriptor.SshAgentHistory,
+    is RouteDescriptor.CliAgentHistory,
     RouteDescriptor.PasswordMemory,
     is RouteDescriptor.Generator,
     is RouteDescriptor.WordlistView,
@@ -86,6 +94,7 @@ private fun RouteDescriptor.canPersist(): Boolean = when (this) {
     RouteDescriptor.GeneratorHistory,
     RouteDescriptor.EmailRelayList,
     RouteDescriptor.WordlistList,
+    RouteDescriptor.Environments,
     RouteDescriptor.GpgTools,
     RouteDescriptor.Settings,
     RouteDescriptor.Feedback,
@@ -113,6 +122,7 @@ private fun DFilter?.canPersist(): Boolean = when (this) {
     DFilter.ByPasskeys,
     is DFilter.ByPasswordStrength,
     DFilter.ByWeakSshKeys,
+    DFilter.ByUnusableSshCertificates,
     DFilter.ByUnusableGpgKeys,
     DFilter.ByWeakGpgKeys,
     DFilter.ByGpgKeyPublishing,

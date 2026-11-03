@@ -16,8 +16,10 @@ import arrow.core.right
 import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.model.PureYubiKeyAuthPrompt
 import com.artemchep.keyguard.common.model.YubiKeyAuthPrompt
+import com.artemchep.keyguard.platform.requireSecurityKeyAccess
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.cancel
+import com.artemchep.keyguard.res.yubikey_error_title
 import com.artemchep.keyguard.res.yubikey_usb_text
 import com.artemchep.keyguard.res.yubikey_usb_touch_the_gold_sensor_note
 import com.artemchep.keyguard.ui.CollectedEffect
@@ -131,6 +133,7 @@ private fun NativePromptEffect(flow: Flow<NativePrompt>) {
 }
 
 private suspend fun awaitYubiKey(operation: YubiKeyOperation): YubiKeyResult {
+    requireSecurityKeyAccess(Res.string.yubikey_error_title)
     val client = NativeYubiKeyClient()
     val start = TimeSource.Monotonic.markNow()
     while (true) {

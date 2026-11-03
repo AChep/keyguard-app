@@ -69,6 +69,7 @@ internal fun <State, Filter, Content, Item, ContentItem> ServiceDirectoryListSca
     contentItemOrNull: (Item) -> ContentItem?,
     noItems: @Composable (Modifier) -> Unit,
     contentItem: @Composable (Modifier, ContentItem) -> Unit,
+    searchTrailing: @Composable () -> Unit = {},
 ) {
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
     val filterState = run {
@@ -164,7 +165,7 @@ internal fun <State, Filter, Content, Item, ContentItem> ServiceDirectoryListSca
                         focusFlow = query?.focusFlow,
                         count = count,
                         leading = {},
-                        trailing = {},
+                        trailing = searchTrailing,
                         onTextChange = query?.onChange,
                     )
                 }

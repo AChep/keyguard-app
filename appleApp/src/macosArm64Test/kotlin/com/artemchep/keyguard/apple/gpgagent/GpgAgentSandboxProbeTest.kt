@@ -3,6 +3,7 @@ package com.artemchep.keyguard.apple.gpgagent
 import platform.posix.STDIN_FILENO
 import platform.posix.arc4random_buf
 import com.artemchep.keyguard.common.model.GpgKeyConfig
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentRequestProcessor
@@ -68,7 +69,7 @@ class GpgAgentSandboxProbeTest {
                     key.metadata,
                 ).routableAgentKeys.map { key to it } }
                 val processor = object : GpgAgentRequestProcessor {
-                    override suspend fun listKeys(caller: GpgAgentMessages.CallerIdentity?) =
+                    override suspend fun listKeys(caller: CallerIdentity?) =
                         GpgAgentRequestProcessor.ListKeysResult.Success(GpgAgentMessages.ListKeysResponse(
                             keys = components.map { (key, component) ->
                                 GpgAgentMessages.GpgKey(key.userId, component.keygrip, component.fingerprint,

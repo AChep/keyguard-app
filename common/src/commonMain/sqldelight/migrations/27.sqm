@@ -1,0 +1,20 @@
+CREATE TABLE cliAgentUsageHistory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cipherId TEXT,
+  sessionId TEXT NOT NULL,
+  client INTEGER NOT NULL,
+  caller TEXT,
+  clientName TEXT,
+  request INTEGER NOT NULL,
+  response INTEGER NOT NULL,
+  errorCode TEXT,
+  command TEXT,
+  path TEXT,
+  createdAt INTEGER NOT NULL,
+  eventId TEXT,
+  FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_cliAgentUsageHistory_client_createdAt ON cliAgentUsageHistory(client, createdAt DESC);
+CREATE INDEX IF NOT EXISTS idx_cliAgentUsageHistory_cipherId_createdAt ON cliAgentUsageHistory(cipherId, createdAt DESC);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_cliAgentUsageHistory_eventId ON cliAgentUsageHistory(eventId);

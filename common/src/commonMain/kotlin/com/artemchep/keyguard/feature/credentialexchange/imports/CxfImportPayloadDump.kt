@@ -3,12 +3,16 @@ package com.artemchep.keyguard.feature.credentialexchange.imports
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
+import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.credentialexchange.CredentialExchangeImportTransportResult
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.usecase.DateFormatter
+import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.util.io.writeText
 import kotlin.time.Clock
+import kotlinx.coroutines.launch
 
 /**
  * The raw received payload, but only when payload dumping is enabled.
@@ -57,4 +61,33 @@ internal fun saveCxfImportPayload(
         }
         .bind()
     fileName
+}
+
+/**
+ * Writes the received CXF payload to the downloads folder and reports the
+ * outcome in a toast. A debug affordance, see [saveCxfImportPayload].
+ */
+internal fun RememberStateFlowScope.launchSaveCxfImportPayload(
+    payload: String,
+    dirsService: DirsService,
+    dateFormatter: DateFormatter,
+) {
+    screenScope.launch {
+        val message = runCatchingNonFatal {
+            val fileName = saveCxfImportPayload(
+                payload = payload,
+                dirsService = dirsService,
+                dateFormatter = dateFormatter,
+            ).bind()
+            ToastMessage(title = "Saved $fileName")
+        }.getOrElse { e ->
+            // The exception itself, not the payload: a storage failure can quote
+            // back what it was asked to write.
+            ToastMessage(
+                title = "Failed to save the payload: ${e::class.simpleName}",
+                type = ToastMessage.Type.ERROR,
+            )
+        }
+        message(message)
+    }
 }

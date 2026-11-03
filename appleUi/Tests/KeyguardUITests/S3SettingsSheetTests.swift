@@ -59,7 +59,7 @@ final class S3SettingsSheetTests: XCTestCase {
 
     private func content(_ model: KeePassLoginModel) -> some View {
         S3SettingsSheet(sessionId: "s3")
-            .environment(model)
+            .environment(model.remoteSettings)
             .environment(
                 NotificationsModel(
                     observeMessages: { _ in BridgeObservation(cancel: {}) },
@@ -68,7 +68,8 @@ final class S3SettingsSheetTests: XCTestCase {
 
     private func snapshot(request: Int32 = 0, error: Bool = false) -> S3SettingsSnapshot {
         S3SettingsSnapshot(
-            id: "s3", endpoint: "", region: "", bucket: "vaults", key: "vault.kdbx", accessKeyId: "AKID",
+            id: "s3", purpose: "KeePassDatabase", endpoint: "", region: "", bucket: "vaults", key: "vault.kdbx",
+            accessKeyId: "AKID",
             secretAccessKey: "", pathStyle: true, errorKind: error ? "SecretAccessKeyRequired" : nil,
             isTestingConnection: false,
             fieldErrors: error

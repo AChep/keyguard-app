@@ -31,6 +31,7 @@ class CopyText(
         URL(Res.string.copied_url, Res.string.copy_url),
         URI(Res.string.copied_uri, Res.string.copy_uri),
         PACKAGE_NAME(Res.string.copied_package_name, Res.string.copy_package_name),
+        ID(Res.string.copied_id, Res.string.copy_id),
         PRIVATE_KEY(Res.string.copied_key, Res.string.copy_unencrypted_private_key),
         PUBLIC_KEY(Res.string.copied_key, Res.string.copy_public_key),
         FINGERPRINT(Res.string.copied_fingerprint, Res.string.copy_fingerprint),

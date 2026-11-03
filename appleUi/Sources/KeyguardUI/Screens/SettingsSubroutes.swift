@@ -398,6 +398,8 @@ struct DeveloperSettingsView: View {
     @Environment(SshAgentModel.self) private var sshAgentModel
     #if os(macOS)
     @Environment(GpgAgentModel.self) private var gpgAgentModel
+    @Environment(SessionFactory.self) private var sessions
+    @State private var cli = FormPresentation<CliModel>(stop: { $0.close() })
     #endif
     let item: SettingsItemSnapshot
 
@@ -413,22 +415,42 @@ struct DeveloperSettingsView: View {
 
     private var searchReady: Bool {
         #if os(macOS)
-        s.loaded && gpgAgentModel.gpgAgentSettings.loaded
+        s.loaded && gpgAgentModel.gpgAgentSettings.loaded && cli.model?.snapshot != nil
         #else
         s.loaded
         #endif
     }
 
+    private var searchAliases: [SettingsSearchTarget: SettingsSearchTarget] {
+        // The MCP page opens from the Environments page.
+        var aliases: [SettingsSearchTarget: SettingsSearchTarget] = [.mcpHistory: .envHistory]
+        if !(status.running && status.sshAuthSock != nil) {
+            aliases[.sshSocket] = .sshEnable
+        }
+        return aliases
+    }
+
     var body: some View {
-        SettingsForm(
-            ready: searchReady,
-            aliases: status.running && status.sshAuthSock != nil ? [:] : [.sshSocket: .sshEnable]
-        ) {
+        SettingsForm(ready: searchReady, aliases: searchAliases) {
             #if os(macOS)
             sshAgentSection
             approvalsSection
             keysSection
             GpgAgentSettingsSections()
+            // Builds that serve no command of the CLI have no CLI path.
+            if cli.model?.snapshot?.path != nil {
+                Section(L10n.cliTitle) {
+                    // Search reveals the row that opens the page with the request log.
+                    NavigationLink(L10n.cliTitle) { CliScreen() }
+                        .settingsSearchTarget(.cliHistory)
+                    Text(L10n.cliNote).foregroundStyle(.secondary)
+                }
+            }
+            Section(L10n.environmentsTitle) {
+                NavigationLink(L10n.environmentsTitle) { EnvironmentsScreen() }
+                    .settingsSearchTarget(.envHistory)
+                Text(L10n.environmentsDescription).foregroundStyle(.secondary)
+            }
             #else
             Section(L10n.agentTitle(L10n.protocolSsh)) {
                 Label(L10n.agentBinaryUnavailableText, systemImage: "xmark.circle")
@@ -444,10 +466,12 @@ struct DeveloperSettingsView: View {
                 sshAgentModel.startSshAgentObservation()
                 gpgAgentModel.startGpgAgentObservation()
                 gpgAgentModel.startGpgAgentSettingsObservation()
+                cli.start(makeModel: sessions.makeCliModel)
             },
             stop: {
                 sshAgentModel.stopSshAgentSettingsObservation()
                 gpgAgentModel.stopGpgAgentSettingsObservation()
+                cli.close()
             }
         )
         .sheet(item: $dialog) { dialog in
@@ -516,7 +540,7 @@ struct DeveloperSettingsView: View {
         case SshAgentRunState.starting:
             HStack(spacing: 8) {
                 ProgressView().controlSize(.small)
-                Text(L10n.prefItemAgentStatusStarting).foregroundStyle(.secondary)
+                Text(L10n.statusStarting).foregroundStyle(.secondary)
             }
         case SshAgentRunState.failed:
             Label(L10n.statusFailedToStart, systemImage: "exclamationmark.triangle.fill")
@@ -540,6 +564,13 @@ struct DeveloperSettingsView: View {
                 set: { sshAgentModel.setSshAgentApprovalWindow(optionId: $0) }
             )
             .settingsSearchTarget(.sshApproval)
+            durationPicker(
+                L10n.prefItemAgentApprovalTimeoutTitle,
+                options: s.approvalTimeoutOptions,
+                currentTitle: s.approvalTimeoutTitle,
+                set: { sshAgentModel.setSshAgentApprovalTimeout(optionId: $0) }
+            )
+            .settingsSearchTarget(.sshApprovalTimeout)
         } header: {
             Text(L10n.agentApprovalsHeaderTitle)
         } footer: {

@@ -15,14 +15,15 @@ use std::collections::HashMap;
 use base64ct::{Base64, Encoding};
 use keyguard_crypto_sensitive::{
     DigestAlgorithm, DigestContext, HmacContext, RsaPrimeComponents, RsaPrivateComponents,
-    SensitiveBackendError, complete_rsa_pkcs1_der,
+    SensitiveBackendError, SensitiveRsaError, check_rsa_private_key_support,
+    complete_rsa_pkcs1_der,
 };
 use pkcs1::RsaPrivateKey;
 use pkcs8::{
     AlgorithmIdentifierRef, ObjectIdentifier, PrivateKeyInfo,
     der::{
         Decode as _, Encode as _,
-        asn1::{AnyRef, OctetStringRef, UintRef},
+        asn1::{AnyRef, OctetStringRef},
     },
 };
 use prost::Message;
@@ -91,7 +92,7 @@ enum ImportOutcome {
 }
 
 pub(super) fn import(
-    content: String,
+    content: Vec<u8>,
     passphrase_utf8: Option<Vec<u8>>,
 ) -> Result<Vec<u8>, PrimitiveError> {
     let content = Zeroizing::new(content);
@@ -113,28 +114,38 @@ pub(super) fn import(
         return Err(PrimitiveError::InvalidArgument);
     }
 
-    let content = content.trim();
+    // PPK comments can contain arbitrary bytes. Preserve them through the
+    // file and wire boundaries; PEM/OpenSSH still require UTF-8 text.
+    let text = std::str::from_utf8(&content).ok().map(str::trim);
+    let content = text.map_or_else(|| content.trim_ascii(), str::as_bytes);
     if passphrase.is_none() {
-        let format_label =
-            if content.starts_with("PuTTY-User-Key-File-") && shallow_putty_is_encrypted(content) {
-                Some("PuTTY")
-            } else if content.starts_with("-----BEGIN ") && shallow_pem_is_encrypted(content) {
-                Some("PEM")
-            } else {
-                None
-            };
+        let format_label = if content.starts_with(b"PuTTY-User-Key-File-")
+            && shallow_putty_is_encrypted(content)
+        {
+            Some("PuTTY")
+        } else if text
+            .is_some_and(|text| text.starts_with("-----BEGIN ") && shallow_pem_is_encrypted(text))
+        {
+            Some("PEM")
+        } else {
+            None
+        };
         if let Some(format_label) = format_label {
             return encode_outcome(ImportOutcome::NeedsPassphrase(format_label));
         }
     }
-    let result = if content.starts_with("-----BEGIN OPENSSH PRIVATE KEY-----") {
-        import_openssh(content, passphrase)
-    } else if content.starts_with("PuTTY-User-Key-File-") {
+    let result = if content.starts_with(b"PuTTY-User-Key-File-") {
         import_putty(content, passphrase)
-    } else if content.starts_with("-----BEGIN ") {
-        import_pem(content, passphrase)
     } else {
-        Err(ImportError::UnsupportedFormat)
+        match text {
+            Some(text) if text.starts_with("-----BEGIN OPENSSH PRIVATE KEY-----") => {
+                import_openssh(text, passphrase)
+            }
+            Some(text) if text.starts_with("-----BEGIN ") => import_pem(text, passphrase),
+            // Armored keys are text; other binary files are not keys at all.
+            None if content.starts_with(b"-----BEGIN ") => Err(ImportError::MalformedKey),
+            _ => Err(ImportError::UnsupportedFormat),
+        }
     };
 
     match result {
@@ -156,11 +167,11 @@ fn shallow_pem_is_encrypted(content: &str) -> bool {
         })
 }
 
-fn shallow_putty_is_encrypted(content: &str) -> bool {
-    content.lines().find_map(|line| {
-        line.trim()
-            .strip_prefix("Encryption:")
-            .map(|value| !value.trim().eq_ignore_ascii_case("none"))
+fn shallow_putty_is_encrypted(content: &[u8]) -> bool {
+    content.split(|byte| *byte == b'\n').find_map(|line| {
+        line.trim_ascii()
+            .strip_prefix(b"Encryption:")
+            .map(|value| !value.trim_ascii().eq_ignore_ascii_case(b"none"))
     }) == Some(true)
 }
 
@@ -406,6 +417,7 @@ const fn map_import_error(error: ImportError) -> PrimitiveError {
 fn rsa_material_from_openssh(keypair: &RsaKeypair) -> Result<SshKeyMaterial, ImportError> {
     let modulus = positive_mpint(&keypair.public.n)?;
     let public_exponent = positive_mpint(&keypair.public.e)?;
+    validate_rsa_private_key_support(&modulus, &public_exponent)?;
     let mut private_exponent = sensitive_positive_mpint(&keypair.private.d)?;
     let mut prime_p = sensitive_positive_mpint(&keypair.private.p)?;
     let mut prime_q = sensitive_positive_mpint(&keypair.private.q)?;
@@ -638,25 +650,6 @@ fn rsa_material_from_parsed(
     })
 }
 
-fn rsa_material_from_components(
-    modulus: &[u8],
-    public_exponent: &[u8],
-    private_exponent: &[u8],
-) -> Result<SshKeyMaterial, ImportError> {
-    let modulus = validate_rsa_component(modulus)?;
-    let public_exponent = validate_rsa_component(public_exponent)?;
-    let private_exponent = validate_rsa_component(private_exponent)?;
-    validate_rsa_triplet(modulus, public_exponent, private_exponent)?;
-    let private_key = incomplete_rsa_pkcs8(modulus, public_exponent, private_exponent)?;
-    let public_key =
-        ssh_keys::encode_rsa_public(modulus, public_exponent).map_err(map_primitive_error)?;
-    Ok(SshKeyMaterial {
-        r#type: SshKeyType::Rsa as i32,
-        private_key: private_key.to_vec(),
-        public_key,
-    })
-}
-
 fn validate_rsa_component(value: &[u8]) -> Result<&[u8], ImportError> {
     let value = strip_leading_zeroes(value);
     if value.is_empty() || value.len() > MAX_RSA_COMPONENT_BYTES {
@@ -671,7 +664,7 @@ fn validate_rsa_triplet(
     public_exponent: &[u8],
     private_exponent: &[u8],
 ) -> Result<(), ImportError> {
-    validate_rsa_public_components(modulus, public_exponent)?;
+    validate_rsa_private_key_support(modulus, public_exponent)?;
     if private_exponent.len() > modulus.len() {
         Err(ImportError::MalformedKey)
     } else {
@@ -686,8 +679,22 @@ fn validate_rsa_public_components(
     ssh_keys::validate_rsa_public_components(modulus, public_exponent).map_err(map_primitive_error)
 }
 
-fn wrap_rsa_pkcs8(pkcs1: &[u8]) -> Result<Zeroizing<Vec<u8>>, ImportError> {
-    wrap_rsa_pkcs8_with_parameters(pkcs1, Some(AnyRef::NULL))
+/// Admits only private keys that the signing backend can use.
+///
+/// Public-key decoding accepts a wider range, so a valid key can still be
+/// unsupported here. Malformed values keep failing the public checks first.
+fn validate_rsa_private_key_support(
+    modulus: &[u8],
+    public_exponent: &[u8],
+) -> Result<(), ImportError> {
+    validate_rsa_public_components(modulus, public_exponent)?;
+    check_rsa_private_key_support(modulus, public_exponent).map_err(|error| match error {
+        SensitiveRsaError::InvalidKeySize => ImportError::UnsupportedAlgorithm,
+        SensitiveRsaError::InvalidKey => ImportError::MalformedKey,
+        SensitiveRsaError::AllocationFailure | SensitiveRsaError::BackendFailure => {
+            ImportError::BackendFailure
+        }
+    })
 }
 
 fn wrap_rsa_pkcs8_with_parameters(
@@ -704,34 +711,6 @@ fn wrap_rsa_pkcs8_with_parameters(
     .to_der()
     .map(Zeroizing::new)
     .map_err(|_| ImportError::BackendFailure)
-}
-
-fn incomplete_rsa_pkcs8(
-    modulus: &[u8],
-    public_exponent: &[u8],
-    private_exponent: &[u8],
-) -> Result<Zeroizing<Vec<u8>>, ImportError> {
-    let zero_bytes = [0_u8];
-    let zero = UintRef::new(&zero_bytes).map_err(|_| ImportError::MalformedKey)?;
-    let modulus = UintRef::new(modulus).map_err(|_| ImportError::MalformedKey)?;
-    let public_exponent = UintRef::new(public_exponent).map_err(|_| ImportError::MalformedKey)?;
-    let private_exponent = UintRef::new(private_exponent).map_err(|_| ImportError::MalformedKey)?;
-    let pkcs1 = Zeroizing::new(
-        RsaPrivateKey {
-            modulus,
-            public_exponent,
-            private_exponent,
-            prime1: zero,
-            prime2: zero,
-            exponent1: zero,
-            exponent2: zero,
-            coefficient: zero,
-            other_prime_infos: None,
-        }
-        .to_der()
-        .map_err(|_| ImportError::BackendFailure)?,
-    );
-    wrap_rsa_pkcs8(&pkcs1)
 }
 
 fn material_public_ed25519(material: &SshKeyMaterial) -> Option<&[u8]> {
@@ -802,7 +781,7 @@ const fn hex_digit(value: u8) -> Option<u8> {
 
 // PuTTY parsing follows below. Keeping it separate from PEM/OpenSSH parsing
 // prevents legacy container quirks from weakening the strict DER paths.
-fn import_putty(content: &str, passphrase: Option<&[u8]>) -> Result<ImportOutcome, ImportError> {
+fn import_putty(content: &[u8], passphrase: Option<&[u8]>) -> Result<ImportOutcome, ImportError> {
     let document = PuttyDocument::parse(content)?;
     if document.encryption != "none" && document.encryption != "aes256-cbc" {
         return Err(ImportError::MalformedKey);
@@ -815,22 +794,17 @@ fn import_putty(content: &str, passphrase: Option<&[u8]>) -> Result<ImportOutcom
     }
 
     let public_key = document.decode_public()?;
-    let mut private_key = document.decode_private()?;
-    if document.encryption == "aes256-cbc" {
-        let passphrase = passphrase.ok_or(ImportError::InvalidPassphrase)?;
-        let derived = document.derive_encryption(passphrase)?;
-        if private_key.is_empty() || !private_key.len().is_multiple_of(16) {
-            return Err(ImportError::MalformedKey);
-        }
-        Cipher::Aes256Cbc
-            .decrypt(&derived.key, &derived.iv, &mut private_key, None)
-            .map_err(|_| ImportError::InvalidPassphrase)?;
-        document.verify_encrypted_mac(&derived.mac_key, &public_key, &private_key)?;
-    }
+    let PuttyPrivatePayload {
+        private_key,
+        mac_key,
+    } = document.private_payload(passphrase)?;
+    let integrity = document.verify_mac(&mac_key, &public_key, &private_key)?;
 
     let material = match document.algorithm {
         "ssh-rsa" => normalize_putty_rsa(&public_key, &private_key)?,
-        "ssh-ed25519" => normalize_putty_ed25519(&public_key, &private_key)?,
+        "ssh-ed25519" if integrity == PuttyIntegrity::WholeFile => {
+            normalize_putty_ed25519(&public_key, &private_key)?
+        }
         _ => return Err(ImportError::UnsupportedAlgorithm),
     };
     Ok(ImportOutcome::Success(material))
@@ -840,18 +814,22 @@ struct PuttyDocument<'a> {
     version: u8,
     algorithm: &'a str,
     encryption: &'a str,
-    comment: &'a str,
+    comment: &'a [u8],
     headers: HashMap<&'a str, &'a str>,
     public_base64: String,
     private_base64: Zeroizing<String>,
 }
 
 impl<'a> PuttyDocument<'a> {
-    fn parse(content: &'a str) -> Result<Self, ImportError> {
-        let lines: Vec<&str> = content.lines().collect();
+    fn parse(content: &'a [u8]) -> Result<Self, ImportError> {
+        let lines: Vec<&[u8]> = content
+            .split(|byte| *byte == b'\n')
+            .map(|line| line.strip_suffix(b"\r").unwrap_or(line))
+            .collect();
         let first = lines
             .first()
-            .map(|line| line.trim())
+            .and_then(|line| std::str::from_utf8(line).ok())
+            .map(str::trim)
             .ok_or(ImportError::MalformedKey)?;
         let (header, algorithm) = first.split_once(": ").ok_or(ImportError::MalformedKey)?;
         let version = header
@@ -861,25 +839,27 @@ impl<'a> PuttyDocument<'a> {
             .ok_or(ImportError::UnsupportedFormat)?;
         let mut headers = HashMap::new();
         let mut public_base64 = String::new();
-        let mut private_lines: &[&str] = &[];
+        let mut private_lines: Vec<&str> = Vec::new();
+        let mut comment = None;
         let mut index = 1;
         while index < lines.len() {
             let raw_line = lines[index];
             index += 1;
-            let line = raw_line.trim();
+            // Only the comment is opaque bytes. Structural headers and Base64
+            // remain text, with the existing whitespace compatibility.
+            if let Some(value) = raw_line.trim_ascii_start().strip_prefix(b"Comment: ") {
+                if comment.replace(value).is_some() {
+                    return Err(ImportError::MalformedKey);
+                }
+                continue;
+            }
+            let line = std::str::from_utf8(raw_line)
+                .map_err(|_| ImportError::MalformedKey)?
+                .trim();
             if line.is_empty() {
                 continue;
             }
-            // SSHJ includes the Comment bytes after the exact `": "`
-            // separator in the encrypted-key MAC. Preserve those bytes,
-            // including leading and trailing whitespace, while retaining the
-            // existing trimming behavior for every structural header.
-            let (name, value) =
-                if let Some(comment) = raw_line.trim_start().strip_prefix("Comment: ") {
-                    ("Comment", comment)
-                } else {
-                    line.split_once(": ").ok_or(ImportError::MalformedKey)?
-                };
+            let (name, value) = line.split_once(": ").ok_or(ImportError::MalformedKey)?;
             if headers.insert(name, value).is_some() {
                 return Err(ImportError::MalformedKey);
             }
@@ -892,7 +872,10 @@ impl<'a> PuttyDocument<'a> {
                 if index.checked_add(count).is_none_or(|end| end > lines.len()) {
                     return Err(ImportError::MalformedKey);
                 }
-                let payload = &lines[index..index + count];
+                let payload = lines[index..index + count]
+                    .iter()
+                    .map(|line| std::str::from_utf8(line).map_err(|_| ImportError::MalformedKey))
+                    .collect::<Result<Vec<_>, _>>()?;
                 let payload_length = payload
                     .iter()
                     .map(|line| line.trim().len())
@@ -909,7 +892,7 @@ impl<'a> PuttyDocument<'a> {
             }
         }
         let encryption = *headers.get("Encryption").ok_or(ImportError::MalformedKey)?;
-        let comment = headers.get("Comment").copied().unwrap_or("");
+        let comment = comment.unwrap_or_default();
         let private_base64 =
             ssh_keys::join_secret_lines(private_lines.iter().map(|line| line.trim()))
                 .map_err(map_primitive_error)?;
@@ -933,6 +916,35 @@ impl<'a> PuttyDocument<'a> {
 
     fn decode_private(&self) -> Result<Zeroizing<Vec<u8>>, ImportError> {
         decode_bounded_base64_secret(&self.private_base64)
+    }
+
+    // Keep decryption and MAC-key selection together so callers cannot use a
+    // supplied passphrase or run Argon2 for an unencrypted document.
+    fn private_payload(
+        &self,
+        passphrase: Option<&[u8]>,
+    ) -> Result<PuttyPrivatePayload, ImportError> {
+        let mut private_key = self.decode_private()?;
+        let mac_key = if self.encryption == "aes256-cbc" {
+            let derived =
+                self.derive_encryption(passphrase.ok_or(ImportError::InvalidPassphrase)?)?;
+            if private_key.is_empty() || !private_key.len().is_multiple_of(16) {
+                return Err(ImportError::MalformedKey);
+            }
+            Cipher::Aes256Cbc
+                .decrypt(&derived.key, &derived.iv, &mut private_key, None)
+                .map_err(|_| ImportError::InvalidPassphrase)?;
+            derived.mac_key
+        } else if self.version <= 2 {
+            sensitive_digest(DigestAlgorithm::Sha1, &[PUTTY_MAC_PREFIX])?
+        } else {
+            // PPK v3 with Encryption: none uses an empty MAC key and no Argon2.
+            Zeroizing::new(Vec::new())
+        };
+        Ok(PuttyPrivatePayload {
+            private_key,
+            mac_key,
+        })
     }
 
     fn derive_encryption(&self, passphrase: &[u8]) -> Result<PuttyDerived, ImportError> {
@@ -992,24 +1004,35 @@ impl<'a> PuttyDocument<'a> {
             .ok_or(ImportError::MalformedKey)
     }
 
-    fn verify_encrypted_mac(
+    fn verify_mac(
         &self,
         mac_key: &[u8],
         public_key: &[u8],
         private_key: &[u8],
-    ) -> Result<(), ImportError> {
+    ) -> Result<PuttyIntegrity, ImportError> {
+        let integrity_error = if self.encryption == "none" {
+            ImportError::MalformedKey
+        } else {
+            ImportError::InvalidPassphrase
+        };
+        if let Some(expected) = self.headers.get("Private-Hash") {
+            if self.version != 1 || self.headers.contains_key("Private-MAC") {
+                return Err(integrity_error);
+            }
+            let actual = sensitive_digest(DigestAlgorithm::Sha1, &[private_key])?;
+            return if putty_mac_matches_lower_hex(expected.as_bytes(), &actual) {
+                Ok(PuttyIntegrity::PrivateOnly)
+            } else {
+                Err(integrity_error)
+            };
+        }
         let expected = self
             .headers
             .get("Private-MAC")
             .copied()
-            .ok_or(ImportError::InvalidPassphrase)?;
-        let algorithm = if self.version <= 2 {
-            DigestAlgorithm::Sha1
-        } else {
-            DigestAlgorithm::Sha256
-        };
+            .ok_or(integrity_error)?;
         let actual = putty_mac(
-            algorithm,
+            self.mac_algorithm(),
             mac_key,
             self.algorithm,
             self.encryption,
@@ -1017,11 +1040,33 @@ impl<'a> PuttyDocument<'a> {
             public_key,
             private_key,
         )?;
-        if !putty_mac_matches_lower_hex(expected.as_bytes(), &actual) {
-            return Err(ImportError::InvalidPassphrase);
+        if putty_mac_matches_lower_hex(expected.as_bytes(), &actual) {
+            return Ok(PuttyIntegrity::WholeFile);
         }
-        Ok(())
+        if self.version == 1 {
+            // Genuine v1 authenticates only the private blob, with no string
+            // wrapper. Also retain the full-field v2 MAC alias checked above.
+            let actual = sensitive_hmac(DigestAlgorithm::Sha1, mac_key, &[private_key])?;
+            if putty_mac_matches_lower_hex(expected.as_bytes(), &actual) {
+                return Ok(PuttyIntegrity::PrivateOnly);
+            }
+        }
+        Err(integrity_error)
     }
+
+    const fn mac_algorithm(&self) -> DigestAlgorithm {
+        if self.version <= 2 {
+            DigestAlgorithm::Sha1
+        } else {
+            DigestAlgorithm::Sha256
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+enum PuttyIntegrity {
+    WholeFile,
+    PrivateOnly,
 }
 
 fn putty_mac_matches_lower_hex(expected: &[u8], actual: &[u8]) -> bool {
@@ -1059,6 +1104,11 @@ fn validate_putty_argon2_bounds(
     Ok(())
 }
 
+struct PuttyPrivatePayload {
+    private_key: Zeroizing<Vec<u8>>,
+    mac_key: Zeroizing<Vec<u8>>,
+}
+
 struct PuttyDerived {
     key: Zeroizing<Vec<u8>>,
     iv: Zeroizing<Vec<u8>>,
@@ -1079,25 +1129,18 @@ fn putty_mac(
     key: &[u8],
     key_type: &str,
     encryption: &str,
-    comment: &str,
+    comment: &[u8],
     public_key: &[u8],
     private_key: &[u8],
 ) -> Result<Zeroizing<Vec<u8>>, ImportError> {
     let mut context = HmacContext::new(algorithm, key).map_err(sensitive_error)?;
-    // SSHJ's historical PPK verifier writes Java Strings with
-    // `DataOutputStream.writeBytes`: the length is measured in UTF-16 code
-    // units and each unit contributes only its low eight bits. Preserve that
-    // behavior for imported keys, including non-ASCII comments.
-    for value in [key_type, encryption, comment] {
-        let encoded = Zeroizing::new(
-            value
-                .encode_utf16()
-                .map(|unit| unit.to_le_bytes()[0])
-                .collect::<Vec<_>>(),
-        );
-        putty_mac_update(&mut context, &encoded)?;
-    }
-    for value in [public_key, private_key] {
+    for value in [
+        key_type.as_bytes(),
+        encryption.as_bytes(),
+        comment,
+        public_key,
+        private_key,
+    ] {
         putty_mac_update(&mut context, value)?;
     }
     let mut output = Zeroizing::new(vec![0_u8; algorithm.output_size()]);
@@ -1130,6 +1173,22 @@ fn sensitive_digest(
     Ok(output)
 }
 
+fn sensitive_hmac(
+    algorithm: DigestAlgorithm,
+    key: &[u8],
+    parts: &[&[u8]],
+) -> Result<Zeroizing<Vec<u8>>, ImportError> {
+    let mut context = HmacContext::new(algorithm, key).map_err(sensitive_error)?;
+    for part in parts {
+        context.update(part).map_err(sensitive_error)?;
+    }
+    let mut output = Zeroizing::new(vec![0_u8; algorithm.output_size()]);
+    context
+        .finalize_into(&mut output)
+        .map_err(sensitive_error)?;
+    Ok(output)
+}
+
 fn normalize_putty_rsa(
     public_key: &[u8],
     private_key: &[u8],
@@ -1141,12 +1200,26 @@ fn normalize_putty_rsa(
     let public_exponent = public.read_positive_mpint()?;
     let modulus = public.read_positive_mpint()?;
     public.finish_zero_padding()?;
+    validate_rsa_private_key_support(modulus, public_exponent)?;
 
+    // PuTTY requires d, p, q and iqmp (Appendix C.3.1) and rejects records
+    // without them. The factors also bind v1's unauthenticated public blob to
+    // the private exponent (Appendix C.5.2) before the CRT key is completed.
     let mut private = WireReader::new(private_key);
     let private_exponent = private.read_positive_mpint()?;
-    // SSHJ deliberately imports only d and ignores optional p/q/iqmp fields.
-    // Permit those fields and AES block padding while retaining n/e/d output.
-    rsa_material_from_components(modulus, public_exponent, private_exponent)
+    let prime_p = private.read_positive_mpint()?;
+    let prime_q = private.read_positive_mpint()?;
+    let coefficient = private.read_positive_mpint()?;
+    let components = RsaPrivateComponents::new(
+        modulus.to_vec(),
+        public_exponent.to_vec(),
+        private_exponent.to_vec(),
+        None,
+    );
+    let primes = RsaPrimeComponents::new(prime_p.to_vec(), prime_q.to_vec(), coefficient.to_vec());
+    let pkcs1 =
+        complete_rsa_pkcs1_der(&components, &primes).map_err(|_| ImportError::MalformedKey)?;
+    normalize_rsa_pkcs1(&pkcs1)
 }
 
 fn normalize_putty_ed25519(
@@ -1301,6 +1374,7 @@ fn decode_bounded_base64_secret(value: &str) -> Result<Zeroizing<Vec<u8>>, Impor
 #[cfg(test)]
 mod tests {
     use keyguard_crypto_sensitive::generate_rsa_pkcs1_der;
+    use pkcs8::der::asn1::UintRef;
     use ssh_key::{
         LineEnding, Mpint,
         private::{KeypairData, RsaKeypair, RsaPrivateKey as SshRsaPrivateKey},
@@ -1337,7 +1411,7 @@ mod tests {
                 "PuTTY-User-Key-File-2: ssh-rsa\nEncryption: none\nPublic-Lines: 1\nAAAA\nPrivate-Lines: {count}\n{body}"
             );
             assert_eq!(
-                *PuttyDocument::parse(&putty)
+                *PuttyDocument::parse(putty.as_bytes())
                     .expect("PuTTY document")
                     .decode_private()
                     .expect("PuTTY private body"),
@@ -1348,18 +1422,6 @@ mod tests {
 
     const OPENSSH_NONE: &str = include_str!(
         "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/openssh/id_ed25519"
-    );
-    const RSA_512_PKCS8: &str = concat!(
-        "-----BEGIN PRIVATE KEY-----\n",
-        "MIIBVgIBADANBgkqhkiG9w0BAQEFAASCAUAwggE8AgEAAkEAv1eNChgOjTbDmuNq\n",
-        "Qy2zizY+TRobUQraS0GRWMvKz/XEayiyAjMdsYmf+AfjNYiaH+XyeHbU4wWQcbkU\n",
-        "V0z4UQIDAQABAkEAvVnPyhhqdham1eWNZ/OXBQHl/3kBZV7fDbBSPNRX3Rj7RtBS\n",
-        "Q73TEq8NvxAKJJQH0MNbgt7t5oIh2jiFdRkTvQIhAO54Jy8iJvfjYLc56Fi1qLip\n",
-        "aSezmfbHGvyYUs+TllUvAiEAzWh9cHcCpLU7eLDuqkbJ2XZpavTB1WxfkrcHduRx\n",
-        "Kn8CIQC/LVxckQikmoki2y3GUHxe7pH63iWEjcK41nUtLKjMyQIgeVRKG/9AIXgn\n",
-        "i8+++fdcTUZDWHkAcYdVIL1Z/GFNcxMCIQDmG2Gj8qCcvHGYGoVx3YlsSj6F39VJ\n",
-        "/zDcDK88UMMc1g==\n",
-        "-----END PRIVATE KEY-----\n",
     );
     const OPENSSH_ENCRYPTED: [&str; 10] = [
         include_str!(
@@ -1555,28 +1617,8 @@ mod tests {
 
     #[test]
     fn frozen_putty_v1_v2_and_v3_matrix_imports() {
-        for document in [
-            include_str!(
-                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v1-rsa-none.ppk"
-            ),
-            include_str!(
-                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-rsa-none.ppk"
-            ),
-            include_str!(
-                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v3-rsa-none.ppk"
-            ),
-        ] {
-            assert_eq!(success(document, None).r#type, SshKeyType::Rsa as i32);
-        }
-        for document in [
-            include_str!(
-                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-ed25519-none.ppk"
-            ),
-            include_str!(
-                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v3-ed25519-none.ppk"
-            ),
-        ] {
-            assert_eq!(success(document, None).r#type, SshKeyType::Ed25519 as i32,);
+        for (document, key_type) in unencrypted_putty_fixtures() {
+            assert_eq!(success(document, None).r#type, key_type as i32);
         }
 
         assert_error(
@@ -1587,7 +1629,187 @@ mod tests {
             SshPrivateKeyImportErrorReason::UnsupportedAlgorithm,
         );
 
-        let encrypted = [
+        for (document, passphrase, key_type) in encrypted_putty_fixtures() {
+            assert_needs_passphrase(document, "PuTTY");
+            assert_eq!(success(document, Some(passphrase)).r#type, key_type as i32);
+            assert_error(
+                document,
+                Some(b"wrong-passphrase"),
+                SshPrivateKeyImportErrorReason::InvalidPassphrase,
+            );
+        }
+    }
+
+    #[test]
+    fn upstream_putty_v3_none_uses_empty_mac_key() {
+        // SSHJ's verbatim PuTTY ECDSA fixture is independently generated. Its
+        // unsupported key type must not prevent this MAC known-answer check.
+        let document = PuttyDocument::parse(include_bytes!(
+            "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v3-ecdsa-none.ppk"
+        )).unwrap();
+        let public = document.decode_public().unwrap();
+        let PuttyPrivatePayload {
+            private_key: private,
+            mac_key,
+        } = document.private_payload(Some(b"ignored")).unwrap();
+        assert!(mac_key.is_empty());
+        assert_eq!(
+            document.verify_mac(&mac_key, &public, &private),
+            Ok(PuttyIntegrity::WholeFile)
+        );
+        let old_incorrect_key =
+            sensitive_digest(DigestAlgorithm::Sha256, &[PUTTY_MAC_PREFIX]).unwrap();
+        assert_eq!(
+            document.verify_mac(&old_incorrect_key, &public, &private),
+            Err(ImportError::MalformedKey)
+        );
+    }
+
+    #[test]
+    fn historical_putty_v1_verifies_private_integrity_and_rsa_consistency() {
+        let fixture = unencrypted_putty_fixtures()[0].0;
+        // Known answers computed independently with Python hashlib/hmac over
+        // the frozen RSA private blob, without any SSH string framing.
+        for (header, tag) in [
+            ("Private-Hash", "2ed35deff1e1ab7da5fd05c0e3c0c48850e9fdbb"),
+            ("Private-MAC", "38a3b3227872e3b9cbe84d3c131df8d08515b476"),
+        ] {
+            let document = replace_putty_private_mac(fixture, tag)
+                .replace("Private-MAC:", &format!("{header}:"));
+            assert_eq!(success(&document, None).r#type, SshKeyType::Rsa as i32);
+            assert_eq!(
+                success(&document, Some(b"ignored")).r#type,
+                SshKeyType::Rsa as i32
+            );
+            let parsed = PuttyDocument::parse(document.as_bytes()).unwrap();
+            let mut private = parsed.decode_private().unwrap();
+            let last = skip_wire_string(&private, 0) - 1;
+            private[last] ^= 1;
+            assert_error(
+                &replace_putty_payload(&document, "Private-Lines", &private),
+                None,
+                SshPrivateKeyImportErrorReason::MalformedKey,
+            );
+            // Public bytes are outside the v1 checksum, so successful integrity
+            // verification must still be followed by mathematical validation.
+            let mut public = parsed.decode_public().unwrap();
+            *public.last_mut().unwrap() ^= 2;
+            assert_error(
+                &replace_putty_payload(&document, "Public-Lines", &public),
+                None,
+                SshPrivateKeyImportErrorReason::MalformedKey,
+            );
+            assert_error(
+                &replace_putty_header(&document, header, "00"),
+                None,
+                SshPrivateKeyImportErrorReason::MalformedKey,
+            );
+            assert_error(
+                &remove_putty_header(&document, header),
+                None,
+                SshPrivateKeyImportErrorReason::MalformedKey,
+            );
+            // Changing the version may never enable the weaker historical tag.
+            for version in [2, 3] {
+                assert_error(
+                    &document.replace("File-1:", &format!("File-{version}:")),
+                    None,
+                    SshPrivateKeyImportErrorReason::MalformedKey,
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn historical_putty_v1_encrypted_integrity_covers_plaintext_and_padding() {
+        let fixture = unencrypted_putty_fixtures()[0].0;
+        let parsed = PuttyDocument::parse(fixture.as_bytes()).unwrap();
+        let mut private = parsed.decode_private().unwrap();
+        let padded_len = private.len().next_multiple_of(16);
+        private.resize(padded_len, 0x5a);
+        let derived = parsed.derive_encryption(b"v1-passphrase").unwrap();
+        let hash = sensitive_digest(DigestAlgorithm::Sha1, &[&private]).unwrap();
+        let tag = sensitive_hmac(DigestAlgorithm::Sha1, &derived.mac_key, &[&private]).unwrap();
+        Cipher::Aes256Cbc
+            .encrypt(&derived.key, &derived.iv, &mut private)
+            .unwrap();
+        let encrypted = replace_putty_payload(fixture, "Private-Lines", &private);
+        let encrypted = replace_putty_header(&encrypted, "Encryption", "aes256-cbc");
+        for (header, tag) in [
+            ("Private-Hash", hash.as_slice()),
+            ("Private-MAC", tag.as_slice()),
+        ] {
+            let document = replace_putty_private_mac(&encrypted, &encode_test_hex(tag))
+                .replace("Private-MAC:", &format!("{header}:"));
+            assert_needs_passphrase(&document, "PuTTY");
+            assert_eq!(
+                success(&document, Some(b"v1-passphrase")).r#type,
+                SshKeyType::Rsa as i32
+            );
+            assert_error(
+                &document,
+                Some(b"wrong"),
+                SshPrivateKeyImportErrorReason::InvalidPassphrase,
+            );
+            let mut corrupted = private.clone();
+            *corrupted.last_mut().unwrap() ^= 1;
+            assert_error(
+                &replace_putty_payload(&document, "Private-Lines", &corrupted),
+                Some(b"v1-passphrase"),
+                SshPrivateKeyImportErrorReason::InvalidPassphrase,
+            );
+        }
+    }
+
+    #[test]
+    fn putty_preserves_raw_comment_bytes_for_all_versions() {
+        for (fixture, passphrase, _) in putty_integrity_fixtures() {
+            let document = replace_putty_comment_and_mac(fixture, passphrase, "caf\u{00e9}", true);
+            let mut raw = document.replace("caf\u{00e9}", "caf?").into_bytes();
+            let offset = raw.iter().position(|byte| *byte == b'?').unwrap();
+            raw[offset] = 0xe9;
+            assert!(std::str::from_utf8(&raw).is_err());
+            assert!(matches!(
+                result_bytes(&raw, passphrase),
+                ssh_private_key_import_result::Result::Success(_)
+            ));
+            if passphrase.is_some() {
+                assert!(matches!(
+                    result_bytes(&raw, None),
+                    ssh_private_key_import_result::Result::NeedsPassphrase(_)
+                ));
+            }
+            raw[offset] ^= 1;
+            let expected = putty_integrity_reason(passphrase);
+            assert!(
+                matches!(result_bytes(&raw, passphrase), ssh_private_key_import_result::Result::Error(error)
+                if error.reason == expected as i32)
+            );
+        }
+    }
+
+    #[test]
+    fn unencrypted_putty_rejects_private_exponent_changes_without_updating_mac() {
+        for (document, key_type) in unencrypted_putty_fixtures() {
+            if key_type != SshKeyType::Rsa {
+                continue;
+            }
+            let parsed = PuttyDocument::parse(document.as_bytes()).expect("PPK fixture");
+            let mut private = parsed.decode_private().expect("private payload");
+            // Change d without changing the mpint's length/sign or its MAC.
+            let last = skip_wire_string(&private, 0) - 1;
+            private[last] ^= 1;
+            let corrupted = replace_putty_payload(document, "Private-Lines", &private);
+            assert_error(
+                &corrupted,
+                None,
+                SshPrivateKeyImportErrorReason::MalformedKey,
+            );
+        }
+    }
+
+    fn encrypted_putty_fixtures() -> [(&'static str, &'static [u8], SshKeyType); 5] {
+        [
             (
                 include_str!(
                     "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v1-ed25519-aes256-cbc.ppk"
@@ -1623,122 +1845,212 @@ mod tests {
                 b"changeit".as_slice(),
                 SshKeyType::Rsa,
             ),
-        ];
-        for (document, passphrase, key_type) in encrypted {
-            assert_needs_passphrase(document, "PuTTY");
-            assert_eq!(success(document, Some(passphrase)).r#type, key_type as i32);
-            assert_error(
-                document,
-                Some(b"wrong-passphrase"),
-                SshPrivateKeyImportErrorReason::InvalidPassphrase,
-            );
-        }
+        ]
     }
 
-    #[test]
-    fn putty_mac_validation_matches_sshj_encryption_boundary() {
-        let unencrypted = include_str!(
-            "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-rsa-none.ppk"
-        );
-        let unencrypted_without_mac = remove_putty_private_mac(unencrypted);
-        let unencrypted_wrong_mac = replace_putty_private_mac(unencrypted, "00");
-        assert_eq!(
-            success(&unencrypted_without_mac, None).r#type,
-            SshKeyType::Rsa as i32,
-        );
-        assert_eq!(
-            success(&unencrypted_wrong_mac, None).r#type,
-            SshKeyType::Rsa as i32,
-        );
-
-        let encrypted = include_str!(
-            "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-ed25519-aes256-cbc.ppk"
-        );
-        assert_error(
-            &remove_putty_private_mac(encrypted),
-            Some(b"123456"),
-            SshPrivateKeyImportErrorReason::InvalidPassphrase,
-        );
-        assert_error(
-            &replace_putty_private_mac(encrypted, "00"),
-            Some(b"123456"),
-            SshPrivateKeyImportErrorReason::InvalidPassphrase,
-        );
-        let uppercase_mac = encrypted
-            .lines()
-            .find_map(|line| line.strip_prefix("Private-MAC: "))
-            .expect("frozen PPK MAC")
-            .to_ascii_uppercase();
-        for malformed_mac in ["0", "not-hex", uppercase_mac.as_str()] {
-            assert_error(
-                &replace_putty_private_mac(encrypted, malformed_mac),
-                Some(b"123456"),
-                SshPrivateKeyImportErrorReason::InvalidPassphrase,
-            );
-        }
-    }
-
-    #[test]
-    fn encrypted_putty_mac_preserves_comment_whitespace_like_sshj() {
-        let fixtures = [
+    fn unencrypted_putty_fixtures() -> [(&'static str, SshKeyType); 5] {
+        [
             (
                 include_str!(
-                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-ed25519-aes256-cbc.ppk"
+                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v1-rsa-none.ppk"
                 ),
-                b"123456".as_slice(),
+                SshKeyType::Rsa,
+            ),
+            (
+                include_str!(
+                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-rsa-none.ppk"
+                ),
+                SshKeyType::Rsa,
+            ),
+            (
+                include_str!(
+                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v3-rsa-none.ppk"
+                ),
+                SshKeyType::Rsa,
+            ),
+            (
+                include_str!(
+                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-ed25519-none.ppk"
+                ),
                 SshKeyType::Ed25519,
             ),
             (
                 include_str!(
-                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v3-rsa-argon2i-aes256-cbc.ppk"
+                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v3-ed25519-none.ppk"
                 ),
-                b"changeit".as_slice(),
-                SshKeyType::Rsa,
+                SshKeyType::Ed25519,
             ),
-        ];
-        let exact_comment = "  MAC-significant comment\t ";
+        ]
+    }
 
-        for (fixture, passphrase, key_type) in fixtures {
-            let document = replace_putty_comment_and_mac(fixture, passphrase, exact_comment);
-            assert_eq!(success(&document, Some(passphrase)).r#type, key_type as i32,);
+    fn encrypted_putty_integrity_fixtures() -> [(&'static str, &'static [u8], SshKeyType); 3] {
+        // Repeat corruption cases once per version. The frozen matrix above
+        // covers all three Argon2 modes, including the more expensive v3 id key.
+        let [v1, v2, _v3_d, v3_i, _v3_id] = encrypted_putty_fixtures();
+        [v1, v2, v3_i]
+    }
 
-            let whitespace_trimmed =
-                replace_putty_header(&document, "Comment", exact_comment.trim());
-            assert_error(
-                &whitespace_trimmed,
-                Some(passphrase),
-                SshPrivateKeyImportErrorReason::InvalidPassphrase,
-            );
+    fn putty_integrity_fixtures()
+    -> impl Iterator<Item = (&'static str, Option<&'static [u8]>, SshKeyType)> {
+        unencrypted_putty_fixtures()
+            .into_iter()
+            .map(|(document, key_type)| (document, None, key_type))
+            .chain(
+                encrypted_putty_integrity_fixtures()
+                    .into_iter()
+                    .map(|(document, passphrase, key_type)| (document, Some(passphrase), key_type)),
+            )
+    }
+
+    const fn putty_integrity_reason(passphrase: Option<&[u8]>) -> SshPrivateKeyImportErrorReason {
+        if passphrase.is_some() {
+            SshPrivateKeyImportErrorReason::InvalidPassphrase
+        } else {
+            SshPrivateKeyImportErrorReason::MalformedKey
         }
     }
 
     #[test]
-    fn encrypted_putty_mac_uses_sshj_java_string_encoding() {
-        let fixtures = [
-            (
-                include_str!(
-                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-ed25519-aes256-cbc.ppk"
-                ),
-                b"123456".as_slice(),
-                SshKeyType::Ed25519,
-            ),
-            (
-                include_str!(
-                    "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v3-rsa-argon2i-aes256-cbc.ppk"
-                ),
-                b"changeit".as_slice(),
-                SshKeyType::Rsa,
-            ),
-        ];
-
-        // U+00E9 is one Java UTF-16 code unit whose low byte is E9. U+1F680
-        // is a surrogate pair whose low bytes are 3D and 80. Neither matches
-        // the UTF-8 bytes, so these documents regress the retired SSHJ path.
-        for comment in ["caf\u{00e9}", "rocket \u{1f680}"] {
-            for (fixture, passphrase, key_type) in fixtures {
-                let document = replace_putty_comment_and_mac(fixture, passphrase, comment);
-                assert_eq!(success(&document, Some(passphrase)).r#type, key_type as i32,);
+    fn unencrypted_putty_requires_integrity_for_all_versions() {
+        for (document, _) in unencrypted_putty_fixtures() {
+            let parsed = PuttyDocument::parse(document.as_bytes()).expect("PPK fixture");
+            let mac = parsed.headers["Private-MAC"];
+            let mut public = parsed.decode_public().expect("public payload");
+            *public.last_mut().unwrap() ^= 1;
+            let mut private = parsed.decode_private().expect("private payload");
+            // Normalization ignores these trailing bytes, but the MAC must not.
+            private.push(1);
+            let mut corrupted = vec![
+                remove_putty_header(document, "Private-MAC"),
+                replace_putty_header(document, "Comment", "corrupted comment"),
+                replace_putty_payload(document, "Public-Lines", &public),
+                replace_putty_payload(document, "Private-Lines", &private),
+            ];
+            for invalid in [
+                "".to_owned(),
+                "0".to_owned(),
+                "00".to_owned(),
+                "not-hex".to_owned(),
+                "0".repeat(mac.len()),
+                mac.to_ascii_uppercase(),
+            ] {
+                corrupted.push(replace_putty_private_mac(document, &invalid));
             }
+            for corrupted in corrupted {
+                for passphrase in [None, Some(b"ignored".as_slice())] {
+                    assert_error(
+                        &corrupted,
+                        passphrase,
+                        SshPrivateKeyImportErrorReason::MalformedKey,
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn unencrypted_putty_imports_and_signs_with_or_without_a_passphrase() {
+        for (document, key_type) in unencrypted_putty_fixtures() {
+            for passphrase in [Some(b"".as_slice()), Some(b"ignored".as_slice())] {
+                assert_eq!(success(document, passphrase).r#type, key_type as i32);
+            }
+            let mut material = success(document, None);
+            assert_eq!(material.r#type, key_type as i32);
+            let description = ssh_keys::describe(
+                key_type,
+                std::mem::take(&mut material.private_key),
+                std::mem::take(&mut material.public_key),
+            )
+            .expect("describe valid PPK");
+            let mut description = SshKeyDescription::decode(description.as_slice()).unwrap();
+            ssh_keys::sign(
+                std::mem::take(&mut description.private_key_pem),
+                Some(std::mem::take(&mut description.public_key_openssh)),
+                b"PPK integrity regression".to_vec(),
+                0x02,
+            )
+            .expect("sign with valid PPK");
+            // These headers must never trigger a KDF on an unencrypted key.
+            let extra_headers =
+                format!("{document}\nKey-Derivation: unsupported\nArgon2-Memory: 4294967295\n");
+            assert_eq!(
+                success(&extra_headers, Some(b"ignored")).r#type,
+                key_type as i32
+            );
+        }
+    }
+
+    #[test]
+    fn encrypted_putty_requires_integrity_for_all_versions() {
+        for (document, passphrase, _) in encrypted_putty_integrity_fixtures() {
+            let parsed = PuttyDocument::parse(document.as_bytes()).expect("PPK fixture");
+            let mac = parsed.headers["Private-MAC"];
+            let mut private = parsed.decode_private().expect("encrypted payload");
+            *private.last_mut().unwrap() ^= 1;
+            let mut corrupted = vec![
+                remove_putty_header(document, "Private-MAC"),
+                replace_putty_header(document, "Comment", "corrupted comment"),
+                replace_putty_payload(document, "Private-Lines", &private),
+            ];
+            for invalid in [
+                "0".to_owned(),
+                "00".to_owned(),
+                "not-hex".to_owned(),
+                "0".repeat(mac.len()),
+                mac.to_ascii_uppercase(),
+            ] {
+                corrupted.push(replace_putty_private_mac(document, &invalid));
+            }
+            for corrupted in corrupted {
+                assert_error(
+                    &corrupted,
+                    Some(passphrase),
+                    SshPrivateKeyImportErrorReason::InvalidPassphrase,
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn putty_requires_original_comment_bytes_for_all_versions() {
+        for (fixture, passphrase, key_type) in putty_integrity_fixtures() {
+            let reason = putty_integrity_reason(passphrase);
+            for comment in ["  caf\u{00e9}\t ", "Ключ", "rocket \u{1f680}"] {
+                for sshj_encoding in [false, true] {
+                    let document =
+                        replace_putty_comment_and_mac(fixture, passphrase, comment, sshj_encoding);
+                    if sshj_encoding {
+                        assert_error(&document, passphrase, reason);
+                        continue;
+                    }
+                    assert_eq!(success(&document, passphrase).r#type, key_type as i32);
+                    let changed = replace_putty_header(&document, "Comment", "changed comment");
+                    assert_error(&changed, passphrase, reason);
+                    if comment != comment.trim() {
+                        let trimmed = replace_putty_header(&document, "Comment", comment.trim());
+                        assert_error(&trimmed, passphrase, reason);
+                    }
+                    // A valid comment MAC must still authenticate the private data.
+                    let parsed = PuttyDocument::parse(document.as_bytes()).unwrap();
+                    let mut private = parsed.decode_private().unwrap();
+                    *private.last_mut().unwrap() ^= 1;
+                    let corrupted = replace_putty_payload(&document, "Private-Lines", &private);
+                    assert_error(&corrupted, passphrase, reason);
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn putty_rejects_comment_substitution_with_matching_utf16_low_bytes() {
+        for (fixture, passphrase, key_type) in putty_integrity_fixtures() {
+            let document = replace_putty_comment_and_mac(fixture, passphrase, "root@sshj", false);
+            assert_eq!(success(&document, passphrase).r#type, key_type as i32);
+
+            // U+0172 and ASCII 'r' share the low UTF-16 byte 0x72. Changing
+            // the comment without updating its MAC must fail authentication.
+            let changed = replace_putty_header(&document, "Comment", "\u{0172}oot@sshj");
+            assert_error(&changed, passphrase, putty_integrity_reason(passphrase));
         }
     }
 
@@ -1946,7 +2258,8 @@ mod tests {
         let mut invalid = private.clone();
         invalid.public_exponent = UintRef::new(&exponent_one).expect("positive exponent one");
         let invalid_pkcs1 = Zeroizing::new(invalid.to_der().expect("invalid test PKCS#1"));
-        let invalid_pkcs8 = wrap_rsa_pkcs8(&invalid_pkcs1).expect("invalid test PKCS#8");
+        let invalid_pkcs8 = wrap_rsa_pkcs8_with_parameters(&invalid_pkcs1, Some(AnyRef::NULL))
+            .expect("invalid test PKCS#8");
         let input = encode_test_pem("PRIVATE KEY", &invalid_pkcs8);
 
         assert_error(&input, None, SshPrivateKeyImportErrorReason::MalformedKey);
@@ -2116,9 +2429,7 @@ mod tests {
     }
 
     #[test]
-    fn imported_rsa_modulus_bounds_match_jdk21_without_changing_generation_policy() {
-        assert_eq!(success(RSA_512_PKCS8, None).r#type, SshKeyType::Rsa as i32);
-
+    fn rsa_public_modulus_bounds_match_jdk21() {
         let exponent = [3_u8];
         let modulus_512 = [0x80_u8; 64];
         let modulus_511 = [0x7f_u8; 64];
@@ -2149,22 +2460,7 @@ mod tests {
     fn openssh_rsa_normalization_retains_complete_crt_and_signs() {
         let generated = generate_rsa_pkcs1_der(1_024).expect("RSA generation");
         let parsed = RsaPrivateKey::from_der(&generated).expect("generated PKCS#1");
-        let keypair = RsaKeypair {
-            public: RsaPublicKey {
-                n: mpint(parsed.modulus.as_bytes()),
-                e: mpint(parsed.public_exponent.as_bytes()),
-            },
-            private: SshRsaPrivateKey {
-                d: mpint(parsed.private_exponent.as_bytes()),
-                iqmp: mpint(parsed.coefficient.as_bytes()),
-                p: mpint(parsed.prime1.as_bytes()),
-                q: mpint(parsed.prime2.as_bytes()),
-            },
-        };
-        let openssh = PrivateKey::new_with_checkint(KeypairData::Rsa(keypair), "", 0x1234_5678)
-            .expect("OpenSSH RSA key")
-            .to_openssh(LineEnding::LF)
-            .expect("OpenSSH PEM");
+        let openssh = encode_test_openssh_rsa(&parsed);
 
         let material = success(&openssh, None);
         let info = PrivateKeyInfo::from_der(&material.private_key).expect("PKCS#8 output");
@@ -2179,7 +2475,7 @@ mod tests {
             assert!(component.iter().any(|byte| *byte != 0));
         }
 
-        let formatted = ssh_keys::format_private_key_text(SshKeyType::Rsa, &material.private_key)
+        let formatted = ssh_keys::format_private_key_text(&material.private_key)
             .expect("format complete imported RSA");
         ssh_keys::sign(
             formatted,
@@ -2194,20 +2490,10 @@ mod tests {
     fn openssh_rsa_late_component_failure_uses_zeroizing_guards() {
         let generated = generate_rsa_pkcs1_der(1_024).expect("RSA generation");
         let parsed = RsaPrivateKey::from_der(&generated).expect("generated PKCS#1");
-        let keypair = RsaKeypair {
-            public: RsaPublicKey {
-                n: mpint(parsed.modulus.as_bytes()),
-                e: mpint(parsed.public_exponent.as_bytes()),
-            },
-            private: SshRsaPrivateKey {
-                d: mpint(parsed.private_exponent.as_bytes()),
-                p: mpint(parsed.prime1.as_bytes()),
-                q: mpint(parsed.prime2.as_bytes()),
-                // Parsing fails only after d, p, and q have been copied into
-                // Zeroizing guards, exercising their early-return path.
-                iqmp: Mpint::from_bytes(&[0xff]).expect("negative mpint"),
-            },
-        };
+        let mut keypair = test_openssh_rsa_keypair(&parsed);
+        // Parsing fails only after d, p, and q have been copied into
+        // Zeroizing guards, exercising their early-return path.
+        keypair.private.iqmp = Mpint::from_bytes(&[0xff]).expect("negative mpint");
 
         assert!(matches!(
             rsa_material_from_openssh(&keypair),
@@ -2216,28 +2502,102 @@ mod tests {
     }
 
     #[test]
-    fn putty_rsa_keeps_incomplete_ned_pkcs8_compatibility() {
-        let document = include_str!(
-            "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-rsa-none.ppk"
-        );
-        let material = success(document, None);
-        let info = PrivateKeyInfo::from_der(&material.private_key).expect("PKCS#8 output");
-        let private = RsaPrivateKey::from_der(info.private_key).expect("PKCS#1 output");
-        for component in [
-            private.prime1.as_bytes(),
-            private.prime2.as_bytes(),
-            private.exponent1.as_bytes(),
-            private.exponent2.as_bytes(),
-            private.coefficient.as_bytes(),
+    fn putty_rsa_imports_complete_crt_for_all_versions() {
+        for document in [
+            include_str!(
+                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v1-rsa-none.ppk"
+            ),
+            include_str!(
+                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v2-rsa-none.ppk"
+            ),
+            include_str!(
+                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v3-rsa-none.ppk"
+            ),
         ] {
-            assert_eq!(component, &[0]);
+            let material = success(document, None);
+            let info = PrivateKeyInfo::from_der(&material.private_key).expect("PKCS#8 output");
+            let private = RsaPrivateKey::from_der(info.private_key).expect("PKCS#1 output");
+            for component in [
+                private.prime1.as_bytes(),
+                private.prime2.as_bytes(),
+                private.exponent1.as_bytes(),
+                private.exponent2.as_bytes(),
+                private.coefficient.as_bytes(),
+            ] {
+                assert!(component.iter().any(|byte| *byte != 0));
+            }
         }
-        let digest = sensitive_digest(DigestAlgorithm::Sha256, &[&material.private_key])
-            .expect("SHA-256 golden");
-        assert_eq!(
-            encode_test_hex(&digest),
-            "f290cb725f4985c52d3651968fb45c05271f0ce63f1c0d6e547ac59f41364ad0",
-        );
+    }
+
+    #[test]
+    fn unsupported_rsa_private_keys_are_rejected_at_import_in_every_container() {
+        // Admission reads only n and e, so the private values are
+        // placeholders. A key that got past it would fail as malformed.
+        let placeholder = UintRef::new(&[0x03]).expect("placeholder component");
+        for (label, bits, public_exponent) in [
+            ("RSA-512", 512, &[0x01, 0x00, 0x01][..]),
+            (
+                "RSA-1024 with a 41-bit exponent",
+                1_024,
+                &[0x01, 0x00, 0x00, 0x00, 0x00, 0x0f],
+            ),
+            ("RSA-16384", 16_384, &[0x01, 0x00, 0x01]),
+        ] {
+            let modulus = vec![0xff; bits / 8];
+            let private = RsaPrivateKey {
+                modulus: UintRef::new(&modulus).expect("modulus"),
+                public_exponent: UintRef::new(public_exponent).expect("public exponent"),
+                private_exponent: placeholder,
+                prime1: placeholder,
+                prime2: placeholder,
+                exponent1: placeholder,
+                exponent2: placeholder,
+                coefficient: placeholder,
+                other_prime_infos: None,
+            };
+
+            for (container, document) in test_rsa_private_key_containers(&private) {
+                assert!(
+                    matches!(
+                        result(&document, None),
+                        ssh_private_key_import_result::Result::Error(error)
+                            if error.reason
+                                == SshPrivateKeyImportErrorReason::UnsupportedAlgorithm as i32
+                    ),
+                    "{label} as {container}",
+                );
+            }
+
+            // Public-key decoding keeps its wider policy for the same key.
+            let public_key = ssh_keys::encode_rsa_public(
+                private.modulus.as_bytes(),
+                private.public_exponent.as_bytes(),
+            )
+            .expect("RSA public key");
+            let public_key = SshPublicKey::from_bytes(&public_key)
+                .and_then(|key| key.to_openssh())
+                .expect("OpenSSH public key");
+            assert!(ssh_keys::public_key_decode(public_key).is_ok(), "{label}");
+        }
+    }
+
+    #[test]
+    fn supported_rsa_private_key_imports_signs_and_exports_in_every_container() {
+        let generated = generate_rsa_pkcs1_der(1_024).expect("RSA generation");
+        let private = RsaPrivateKey::from_der(&generated).expect("generated PKCS#1");
+
+        for (container, document) in test_rsa_private_key_containers(&private) {
+            let material = success(&document, None);
+            let formatted = ssh_keys::format_private_key_text(&material.private_key)
+                .expect("format imported RSA");
+            for flags in [0x00, 0x02, 0x04] {
+                assert!(
+                    ssh_keys::sign(formatted.clone(), None, b"message".to_vec(), flags).is_ok(),
+                    "{container} with flags {flags}",
+                );
+            }
+            export_imported_material_for_cxf(material);
+        }
     }
 
     #[test]
@@ -2252,12 +2612,28 @@ mod tests {
             None,
             SshPrivateKeyImportErrorReason::MalformedKey,
         );
+        for (document, expected) in [
+            (
+                b"\x89PNG\r\n\x1a\n\xff".as_slice(),
+                SshPrivateKeyImportErrorReason::UnsupportedFormat,
+            ),
+            (
+                b"-----BEGIN RSA PRIVATE KEY-----\n\xff\n".as_slice(),
+                SshPrivateKeyImportErrorReason::MalformedKey,
+            ),
+        ] {
+            assert!(matches!(
+                result_bytes(document, None),
+                ssh_private_key_import_result::Result::Error(error)
+                    if error.reason == expected as i32
+            ));
+        }
         assert_eq!(
-            import("x".repeat(MAX_IMPORT_TEXT_BYTES + 1), None),
+            import(vec![b'x'; MAX_IMPORT_TEXT_BYTES + 1], None),
             Err(PrimitiveError::ResourceLimit),
         );
         assert_eq!(
-            import(OPENSSH_NONE.to_owned(), Some(vec![0xff])),
+            import(OPENSSH_NONE.as_bytes().to_vec(), Some(vec![0xff])),
             Err(PrimitiveError::InvalidArgument),
         );
     }
@@ -2322,7 +2698,7 @@ mod tests {
             replace_openssh_bcrypt_rounds(OPENSSH_ENCRYPTED[6], MAX_OPENSSH_BCRYPT_ROUNDS + 1);
         assert_needs_passphrase(&openssh_resource, "OpenSSH");
         assert_eq!(
-            import(openssh_resource, Some(b"hunter42".to_vec()),),
+            import(openssh_resource.into_bytes(), Some(b"hunter42".to_vec()),),
             Err(PrimitiveError::ResourceLimit),
         );
 
@@ -2347,7 +2723,7 @@ mod tests {
         ] {
             assert_needs_passphrase(&resource_limited, "PuTTY");
             assert_eq!(
-                import(resource_limited, Some(b"changeit".to_vec())),
+                import(resource_limited.into_bytes(), Some(b"changeit".to_vec())),
                 Err(PrimitiveError::ResourceLimit),
             );
         }
@@ -2361,7 +2737,14 @@ mod tests {
     }
 
     fn result(document: &str, passphrase: Option<&[u8]>) -> ssh_private_key_import_result::Result {
-        let encoded = import(document.to_owned(), passphrase.map(|value| value.to_vec()))
+        result_bytes(document.as_bytes(), passphrase)
+    }
+
+    fn result_bytes(
+        document: &[u8],
+        passphrase: Option<&[u8]>,
+    ) -> ssh_private_key_import_result::Result {
+        let encoded = import(document.to_vec(), passphrase.map(|value| value.to_vec()))
             .expect("domain import result");
         SshPrivateKeyImportResult::decode(encoded.as_slice())
             .expect("import result protobuf")
@@ -2434,6 +2817,69 @@ mod tests {
 
     fn mpint(value: &[u8]) -> Mpint {
         Mpint::from_positive_bytes(value).expect("positive RSA component")
+    }
+
+    fn test_openssh_rsa_keypair(private: &RsaPrivateKey<'_>) -> RsaKeypair {
+        RsaKeypair {
+            public: RsaPublicKey {
+                n: mpint(private.modulus.as_bytes()),
+                e: mpint(private.public_exponent.as_bytes()),
+            },
+            private: SshRsaPrivateKey {
+                d: mpint(private.private_exponent.as_bytes()),
+                iqmp: mpint(private.coefficient.as_bytes()),
+                p: mpint(private.prime1.as_bytes()),
+                q: mpint(private.prime2.as_bytes()),
+            },
+        }
+    }
+
+    fn encode_test_openssh_rsa(private: &RsaPrivateKey<'_>) -> Zeroizing<String> {
+        let keypair = KeypairData::Rsa(test_openssh_rsa_keypair(private));
+        PrivateKey::new_with_checkint(keypair, "", 0x1234_5678)
+            .expect("OpenSSH RSA key")
+            .to_openssh(LineEnding::LF)
+            .expect("OpenSSH PEM")
+    }
+
+    /// Encodes one RSA key in every unencrypted container that import reads.
+    fn test_rsa_private_key_containers(private: &RsaPrivateKey<'_>) -> [(&'static str, String); 4] {
+        let pkcs1 = Zeroizing::new(private.to_der().expect("PKCS#1 DER"));
+        let pkcs8 = wrap_rsa_pkcs8_with_parameters(&pkcs1, Some(AnyRef::NULL)).expect("PKCS#8 DER");
+
+        // PuTTY stores e and n in the public blob, and d, p, q and iqmp in the
+        // private blob.
+        let public_key = ssh_keys::encode_rsa_public(
+            private.modulus.as_bytes(),
+            private.public_exponent.as_bytes(),
+        )
+        .expect("PuTTY public blob");
+        let mut private_key = Vec::new();
+        for component in [
+            private.private_exponent,
+            private.prime1,
+            private.prime2,
+            private.coefficient,
+        ] {
+            let component = mpint(component.as_bytes());
+            let length = u32::try_from(component.as_bytes().len()).expect("mpint length");
+            private_key.extend_from_slice(&length.to_be_bytes());
+            private_key.extend_from_slice(component.as_bytes());
+        }
+        let putty = replace_putty_keypair(
+            include_str!(
+                "../../../../../../common/src/desktopTest/resources/ssh-import-corpus/ppk/v3-rsa-none.ppk"
+            ),
+            &public_key,
+            &private_key,
+        );
+
+        [
+            ("PKCS#1 PEM", encode_test_pem("RSA PRIVATE KEY", &pkcs1)),
+            ("PKCS#8 PEM", encode_test_pem("PRIVATE KEY", &pkcs8)),
+            ("OpenSSH", encode_test_openssh_rsa(private).to_string()),
+            ("PuTTY", putty),
+        ]
     }
 
     fn mutate_openssh_outer_public(document: &str) -> String {
@@ -2607,10 +3053,11 @@ mod tests {
             .expect("bounded wire string")
     }
 
-    fn remove_putty_private_mac(document: &str) -> String {
+    fn remove_putty_header(document: &str, name: &str) -> String {
+        let prefix = format!("{name}:");
         let mut output = document
             .lines()
-            .filter(|line| !line.starts_with("Private-MAC:"))
+            .filter(|line| !line.starts_with(&prefix))
             .collect::<Vec<_>>()
             .join("\n");
         output.push('\n');
@@ -2653,6 +3100,49 @@ mod tests {
         output
     }
 
+    fn replace_putty_payload(document: &str, name: &str, payload: &[u8]) -> String {
+        let mut lines = document.lines().map(str::to_owned).collect::<Vec<_>>();
+        let prefix = format!("{name}: ");
+        let header = lines
+            .iter()
+            .position(|line| line.starts_with(&prefix))
+            .expect("PPK payload header");
+        let count = lines[header]
+            .strip_prefix(&prefix)
+            .unwrap()
+            .parse::<usize>()
+            .unwrap();
+        let encoded = Base64::encode_string(payload);
+        let replacement = encoded
+            .as_bytes()
+            .chunks(64)
+            .map(|line| std::str::from_utf8(line).unwrap().to_owned())
+            .collect::<Vec<_>>();
+        lines[header] = format!("{prefix}{}", replacement.len());
+        lines.splice(header + 1..header + 1 + count, replacement);
+        lines.join("\n") + "\n"
+    }
+
+    fn replace_putty_keypair(document: &str, public_key: &[u8], private_key: &[u8]) -> String {
+        let document = replace_putty_payload(document, "Public-Lines", public_key);
+        let document = replace_putty_payload(&document, "Private-Lines", private_key);
+        let parsed = PuttyDocument::parse(document.as_bytes()).expect("PuTTY document");
+        let PuttyPrivatePayload { mac_key, .. } = parsed
+            .private_payload(None)
+            .expect("unencrypted PuTTY payload");
+        let mac = putty_mac(
+            parsed.mac_algorithm(),
+            &mac_key,
+            parsed.algorithm,
+            parsed.encryption,
+            parsed.comment,
+            public_key,
+            private_key,
+        )
+        .expect("PuTTY MAC");
+        replace_putty_private_mac(&document, &encode_test_hex(&mac))
+    }
+
     fn corrupt_putty_private_base64_tail(document: &str) -> String {
         let mut lines = document.lines().map(str::to_owned).collect::<Vec<_>>();
         let header = lines
@@ -2691,73 +3181,39 @@ mod tests {
         output
     }
 
-    fn replace_putty_comment_and_mac(document: &str, passphrase: &[u8], comment: &str) -> String {
-        let parsed = PuttyDocument::parse(document).expect("valid encrypted PuTTY fixture");
+    fn replace_putty_comment_and_mac(
+        document: &str,
+        passphrase: Option<&[u8]>,
+        comment: &str,
+        sshj_encoding: bool,
+    ) -> String {
+        let parsed = PuttyDocument::parse(document.as_bytes()).expect("valid PuTTY fixture");
         let public_key = parsed.decode_public().expect("valid public payload");
-        let mut private_key = parsed.decode_private().expect("valid private payload");
-        let derived = parsed
-            .derive_encryption(passphrase)
-            .expect("valid fixture KDF parameters");
-        Cipher::Aes256Cbc
-            .decrypt(&derived.key, &derived.iv, &mut private_key, None)
-            .expect("valid encrypted fixture");
-        let algorithm = if parsed.version <= 2 {
-            DigestAlgorithm::Sha1
+        let PuttyPrivatePayload {
+            private_key,
+            mac_key,
+        } = parsed.private_payload(passphrase).unwrap();
+        let comment_bytes = if sshj_encoding {
+            comment
+                .encode_utf16()
+                .map(|unit| unit.to_le_bytes()[0])
+                .collect::<Vec<_>>()
         } else {
-            DigestAlgorithm::Sha256
+            comment.as_bytes().to_vec()
         };
-        let mac = sshj_putty_mac_for_test(
-            algorithm,
-            &derived.mac_key,
+        let mac = putty_mac(
+            parsed.mac_algorithm(),
+            &mac_key,
             parsed.algorithm,
             parsed.encryption,
-            comment,
+            &comment_bytes,
             &public_key,
             &private_key,
-        );
+        )
+        .unwrap();
 
         let with_comment = replace_putty_header(document, "Comment", comment);
         replace_putty_private_mac(&with_comment, &encode_test_hex(&mac))
-    }
-
-    fn sshj_putty_mac_for_test(
-        algorithm: DigestAlgorithm,
-        key: &[u8],
-        key_type: &str,
-        encryption: &str,
-        comment: &str,
-        public_key: &[u8],
-        private_key: &[u8],
-    ) -> Zeroizing<Vec<u8>> {
-        let mut encoded = Zeroizing::new(Vec::new());
-        for value in [key_type, encryption, comment] {
-            let java_bytes = value
-                .encode_utf16()
-                .map(|unit| unit.to_le_bytes()[0])
-                .collect::<Vec<_>>();
-            encoded.extend_from_slice(
-                &u32::try_from(java_bytes.len())
-                    .expect("test comment fits u32")
-                    .to_be_bytes(),
-            );
-            encoded.extend_from_slice(&java_bytes);
-        }
-        for value in [public_key, private_key] {
-            encoded.extend_from_slice(
-                &u32::try_from(value.len())
-                    .expect("test payload fits u32")
-                    .to_be_bytes(),
-            );
-            encoded.extend_from_slice(value);
-        }
-
-        let mut context = HmacContext::new(algorithm, key).expect("valid test HMAC key");
-        context.update(&encoded).expect("valid test HMAC input");
-        let mut output = Zeroizing::new(vec![0_u8; algorithm.output_size()]);
-        context
-            .finalize_into(&mut output)
-            .expect("valid test HMAC output");
-        output
     }
 
     fn encode_test_hex(value: &[u8]) -> String {

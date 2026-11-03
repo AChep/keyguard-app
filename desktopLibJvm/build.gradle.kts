@@ -14,6 +14,7 @@ kotlin {
     sourceSets {
         getByName("jvmMain") {
             dependencies {
+                implementation(project(":util:ffi"))
                 implementation(libs.java.jna)
                 implementation(libs.kotlinx.coroutines.core)
                 implementation(libs.dbus.java.core)

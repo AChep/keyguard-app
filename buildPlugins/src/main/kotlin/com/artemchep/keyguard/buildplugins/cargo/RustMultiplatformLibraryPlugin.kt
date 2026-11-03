@@ -1,18 +1,16 @@
 package com.artemchep.keyguard.buildplugins.cargo
 
 import com.android.build.api.variant.KotlinMultiplatformAndroidComponentsExtension
-import com.artemchep.keyguard.buildplugins.androidssh.AndroidCargoEnvironment
+import com.artemchep.keyguard.buildplugins.androidagent.AndroidCargoEnvironment
 import com.artemchep.keyguard.buildplugins.libs
 import com.artemchep.keyguard.buildplugins.version
 import com.artemchep.keyguard.buildplugins.versionInt
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskProvider
-import org.gradle.api.tasks.testing.Test
 import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.getByType
 import org.gradle.kotlin.dsl.register
-import org.gradle.kotlin.dsl.withType
 
 /**
  * Builds the conventional Rust libraries that back a Kotlin Multiplatform utility module.
@@ -29,45 +27,17 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
     protected open val mobileTargets: Boolean = true
 
     override fun apply(target: Project) = with(target) {
-        pluginManager.apply("keyguard.cargo-common")
-
         val extension = extensions.create<RustMultiplatformLibraryExtension>("keyguardRust", project)
         val naming = RustModuleNaming(this)
-        val moduleTaskName = naming.moduleTaskName
         val nativeTaskName = naming.nativeTaskName
         val cargoPackagePrefix = naming.cargoPackagePrefix
         val nativeLibraryPrefix = naming.nativeLibraryPrefix
         val rustSourceDirectory = naming.rustSourceDirectory
-        val hostPlatform = detectHostPlatform()
-        val desktopLibraryFileName = hostPlatform.dynamicLibraryName("${nativeLibraryPrefix}_jni")
-        val desktopCargoTaskName = "cargoBuild${nativeTaskName}Desktop"
-        val desktopCompileTaskName = "compile${nativeTaskName}Desktop"
-        val cargoOffline = cargoOfflineProvider(moduleTaskName)
-
-        val cargoExtension = extensions.getByType<CargoCommonExtension>().apply {
-            sourceDir.set(rustSourceDirectory)
-            cargoPackage.set("$cargoPackagePrefix-jni")
-            cargoArguments.add("--locked")
-            cargoBinaryName.set(desktopLibraryFileName)
-        }
-        val desktopTasks = cargoExtension.register(
-            compileTaskName = desktopCompileTaskName,
-            cargoTaskName = desktopCargoTaskName,
+        // Mobile JVM host tests also load the desktop library in multiplatform modules.
+        val desktopTasks = configureRustJniLibrary(
+            naming = naming,
+            testTaskName = if (mobileTargets) null else "desktopTest",
         )
-
-        tasks.withType<CargoBuildTask>().configureEach {
-            offline.set(cargoOffline)
-        }
-
-        val verifyDesktopRustTarget = tasks.register<VerifyRustTargetInstalledTask>(
-            "verify${nativeTaskName}DesktopRustTarget",
-        ) {
-            sourceDir.set(rustSourceDirectory)
-            rustTarget.set(hostPlatform.rustTarget)
-        }
-        desktopTasks.build.configure {
-            dependsOn(verifyDesktopRustTarget)
-        }
 
         val compileAndroidAll = if (mobileTargets) {
             val androidPrepareTasks = registerAndroidLibraries(
@@ -98,29 +68,10 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
             naming = naming,
             targets = appleTargets,
         )
-        tasks.register("$desktopCompileTaskName${hostPlatform.name}") {
-            group = "build"
-            description =
-                "Builds the $nativeTaskName JNI library for the current ${hostPlatform.name} host."
-            dependsOn(desktopTasks.compile)
-        }
         tasks.register("compile${nativeTaskName}All") {
             group = "build"
             description = "Builds $nativeTaskName artifacts for every supported platform."
             dependsOn(listOfNotNull(compileAndroidAll, compileAppleAll, desktopTasks.compile))
-        }
-        tasks.named("assemble") {
-            dependsOn(desktopTasks.compile)
-        }
-        // The module's own JVM tests load the library it builds. Without Android and iOS builds,
-        // only the desktop tests can load it.
-        configureNativeLibraryTests(
-            producerPath = path,
-            testTaskName = if (mobileTargets) null else "desktopTest",
-        )
-        // Fail on JNI misuse in the module's own tests. Benchmarks run without the extra checks.
-        tasks.withType<Test>().named { it == "desktopTest" }.configureEach {
-            jvmArgs("-Xcheck:jni")
         }
         Unit
     }
@@ -185,6 +136,14 @@ open class RustMultiplatformLibraryPlugin : Plugin<Project> {
                 )
                 environmentVariables.put("ANDROID_NDK_ROOT", ndkDirectoryPath)
                 environmentVariables.put("ANDROID_NDK", ndkDirectoryPath)
+                // bindgen runs host libclang, which cannot discover the NDK headers from CC alone.
+                environmentVariables.put(
+                    AndroidCargoEnvironment.targetEnvironmentName("BINDGEN_EXTRA_CLANG_ARGS", target.rustTarget),
+                    androidBuildTools.map { tools ->
+                        val sysroot = tools.toolchain.toolchainBinDir.parentFile.resolve("sysroot")
+                        "--sysroot=\"${sysroot.invariantSeparatorsPath}\""
+                    },
+                )
                 environmentVariables.put(
                     AndroidCargoEnvironment.targetEnvironmentName("CC", target.rustTarget),
                     androidBuildTools.map { tools -> tools.cCompiler.absolutePath },

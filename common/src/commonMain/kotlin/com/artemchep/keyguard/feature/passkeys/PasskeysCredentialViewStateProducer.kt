@@ -4,8 +4,6 @@ import androidx.compose.runtime.Composable
 import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.AppMode
-import com.artemchep.keyguard.common.io.attempt
-import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -69,12 +67,12 @@ suspend fun RememberStateFlowScope.passkeysCredentialViewStateProducer(
                 ?.login
                 ?.fido2Credentials
                 ?.firstOrNull { it.credentialId == args.credentialId }
-            credentialOrNull
+            cipherOrNull to credentialOrNull
         }
         .onStart {
-            emit(args.model)
+            emit(null to args.model)
         }
-        .map { credential ->
+        .map { (cipher, credential) ->
             if (credential == null) {
                 val e = RuntimeException("Credential does not exist.")
                 return@map e.left()
@@ -82,19 +80,9 @@ suspend fun RememberStateFlowScope.passkeysCredentialViewStateProducer(
 
             // If we are in the pick passkey mode then allow a use to use
             // the passkey.
-            val onUse = if (mode is AppMode.PickPasskey) {
-                val matches = passkeyTargetCheck(credential, mode.target)
-                    .attempt()
-                    .bind()
-                    .isRight { it }
-                if (matches) {
-                    // lambda
-                    {
-                        mode.onComplete(credential)
-                    }
-                } else {
-                    null
-                }
+            val availableCipher = cipher?.takeUnless { it.deleted || it.archived }
+            val onUse = if (mode is AppMode.PickPasskey && availableCipher != null) {
+                passkeyPickAction(mode, availableCipher, credential, passkeyTargetCheck)
             } else {
                 null
             }

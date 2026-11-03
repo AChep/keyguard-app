@@ -6,6 +6,8 @@ import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.service.credentialexchange.impl.cxfUrlSafeBase64
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfAccount
 import com.artemchep.keyguard.common.service.credentialexchange.model.CxfCredentialType
+import com.artemchep.keyguard.common.service.imports.ImportPlan
+import com.artemchep.keyguard.common.service.imports.ImportResult
 import kotlin.test.assertIs
 import kotlin.time.Instant
 import kotlinx.serialization.json.JsonArray
@@ -40,12 +42,12 @@ fun CxfExportService.buildAccount(
 fun CxfImportService.parseSuccessPlan(
     payload: String,
     now: Instant,
-): CxfImportPlan {
+): ImportPlan {
     val result = parse(
         payload = payload,
         now = now,
     )
-    return assertIs<CxfImportResult.Success>(result).plan
+    return assertIs<ImportResult.Success>(result).plan
 }
 
 /**

@@ -49,7 +49,9 @@ import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevationSemi
 import com.artemchep.keyguard.feature.onboarding.OnboardingCard
 import com.artemchep.keyguard.feature.onboarding.onboardingItemsPremium
+import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LocalLeContext
+import com.artemchep.keyguard.platform.util.hasWebPurchase
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DefaultEmphasisAlpha
@@ -75,10 +77,16 @@ private const val ProductsCountDefault = 1
 
 fun settingSubscriptionsProvider(
     koinScope: Scope,
-) = settingSubscriptionsProvider(
-    getSubscriptions = koinScope.get(),
-    getProducts = koinScope.get(),
-)
+): SettingComponent = if (CurrentPlatform.hasWebPurchase()) {
+    settingSubscriptionsWebProvider(
+        getPurchased = koinScope.get(),
+    )
+} else {
+    settingSubscriptionsProvider(
+        getSubscriptions = koinScope.get(),
+        getProducts = koinScope.get(),
+    )
+}
 
 fun settingSubscriptionsProvider(
     getSubscriptions: GetSubscriptions,
@@ -121,38 +129,7 @@ private fun SettingSubscriptions(
     loadableProducts: Loadable<List<Product>?>,
 ) {
     LocalSettingPaneComponents.current.KgBlock {
-        Text(
-            stringResource(Res.string.pref_item_premium_membership_title),
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier
-                .padding(horizontal = Dimens.textHorizontalPadding),
-        )
-        Text(
-            stringResource(Res.string.pref_item_premium_membership_text),
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier
-                .padding(top = 4.dp)
-                .padding(horizontal = Dimens.textHorizontalPadding),
-        )
-        Spacer(Modifier.height(8.dp))
-        Row(
-            modifier = Modifier
-                .padding(top = 8.dp, bottom = 16.dp)
-                .horizontalScroll(rememberScrollState())
-                .padding(horizontal = Dimens.textHorizontalPadding),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-        ) {
-            onboardingItemsPremium.forEach { item ->
-                OnboardingCard(
-                    modifier = Modifier
-                        .widthIn(max = 156.dp),
-                    contentModifier = Modifier,
-                    title = stringResource(item.title),
-                    text = stringResource(item.text),
-                    imageVector = item.icon,
-                )
-            }
-        }
+        SettingSubscriptionsHeader()
         Section(text = stringResource(Res.string.pref_item_premium_membership_section_subscriptions_title))
         loadableSubscriptions.fold(
             ifLoading = {
@@ -218,6 +195,42 @@ private fun SettingSubscriptions(
                 }
             },
         )
+    }
+}
+
+@Composable
+internal fun ColumnScope.SettingSubscriptionsHeader() {
+    Text(
+        stringResource(Res.string.pref_item_premium_membership_title),
+        style = MaterialTheme.typography.bodyLarge,
+        modifier = Modifier
+            .padding(horizontal = Dimens.textHorizontalPadding),
+    )
+    Text(
+        stringResource(Res.string.pref_item_premium_membership_text),
+        style = MaterialTheme.typography.bodyMedium,
+        modifier = Modifier
+            .padding(top = 4.dp)
+            .padding(horizontal = Dimens.textHorizontalPadding),
+    )
+    Spacer(Modifier.height(8.dp))
+    Row(
+        modifier = Modifier
+            .padding(top = 8.dp, bottom = 16.dp)
+            .horizontalScroll(rememberScrollState())
+            .padding(horizontal = Dimens.textHorizontalPadding),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        onboardingItemsPremium.forEach { item ->
+            OnboardingCard(
+                modifier = Modifier
+                    .widthIn(max = 156.dp),
+                contentModifier = Modifier,
+                title = stringResource(item.title),
+                text = stringResource(item.text),
+                imageVector = item.icon,
+            )
+        }
     }
 }
 

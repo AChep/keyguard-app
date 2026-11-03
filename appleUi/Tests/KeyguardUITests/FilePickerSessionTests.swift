@@ -138,6 +138,45 @@ final class FilePickerSessionTests: XCTestCase {
     }
 
     @MainActor
+    func testCertificateSelectionWaitsForDismissalAndResolvesOnce() {
+        let picker = FilePickerSession()
+        let original = URL(fileURLWithPath: #filePath)
+        var resolutions: [String] = []
+        let pending = PendingFilePicker(
+            requestId: "certificate", kind: .openDocument, mimeTypes: [], persistent: true,
+            resolveAfterDismissal: true,
+            resolve: { _, uri, _, _, _ in resolutions.append(uri) },
+            cancel: { _ in XCTFail("Expected the selected certificate") }
+        )
+        picker.enqueue(pending)
+        picker.resolve(result: .success([original]), requestID: pending.id)
+        XCTAssertNil(picker.pendingFilePicker)
+        XCTAssertTrue(resolutions.isEmpty)
+
+        picker.pickerDismissed()
+        picker.pickerDismissed()
+        XCTAssertEqual(resolutions, [original.absoluteString])
+    }
+
+    @MainActor
+    func testClosingBeforePickerDismissalCancelsTheSelectedCertificate() {
+        let picker = FilePickerSession()
+        var cancellations = 0
+        let pending = PendingFilePicker(
+            requestId: "certificate", kind: .openDocument, mimeTypes: [], persistent: true,
+            resolveAfterDismissal: true,
+            resolve: { _, _, _, _, _ in XCTFail("Closed session must not import") },
+            cancel: { _ in cancellations += 1 }
+        )
+        picker.enqueue(pending)
+        picker.resolve(result: .success([URL(fileURLWithPath: #filePath)]), requestID: pending.id)
+        picker.cancel()
+        picker.cancel()
+        picker.pickerDismissed()
+        XCTAssertEqual(cancellations, 1)
+    }
+
+    @MainActor
     private func request(
         _ id: String,
         resolve: @escaping () -> Void = {},

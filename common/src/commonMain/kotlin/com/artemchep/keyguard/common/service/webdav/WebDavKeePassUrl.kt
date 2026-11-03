@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.webdav
 
 import io.ktor.http.URLBuilder
+import io.ktor.http.URLParserException
 import io.ktor.http.URLProtocol
 import io.ktor.http.Url
 import io.ktor.http.encodedPath
@@ -17,6 +18,8 @@ internal fun parseWebDavKeePassFileUrlOrNull(
     url: String,
 ): WebDavKeePassFileUrl? = try {
     parseWebDavKeePassFileUrl(url)
+} catch (_: URLParserException) {
+    null
 } catch (_: IllegalArgumentException) {
     null
 }

@@ -5,11 +5,10 @@ import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
+import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistory
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.pendinghistory.SealedPendingUsageHistory
-import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.test.runTest
 import kotlinx.serialization.json.Json
@@ -30,27 +29,20 @@ class AndroidIpcUsageRecorderTest {
         )
 
     @Test
-    fun `encodes Android caller as structured GPG and SSH identities`() {
-        val gpg =
-            Json.decodeFromString<GpgAgentMessages.CallerIdentity>(
-                assertNotNull(caller.encodeGpgUsageHistoryCaller(Json)),
-            )
-        val ssh =
-            Json.decodeFromString<SshAgentMessages.CallerIdentity>(
-                assertNotNull(caller.encodeSshUsageHistoryCaller(Json)),
+    fun `encodes Android caller as a shared identity`() {
+        val identity =
+            Json.decodeFromString<CallerIdentity>(
+                assertNotNull(caller.encodeAndroidIpcUsageHistoryCaller(Json)),
             )
 
-        listOf(gpg, ssh).forEach { identity ->
-            assertEquals(321, identity.pid)
-            assertEquals("Example\\u202e Client", identity.appName)
-            assertEquals("com.example.client", identity.appBundlePath)
-        }
-        assertEquals(10_001, gpg.uid)
-        assertEquals(10_001, ssh.uid)
+        assertEquals(321, identity.pid)
+        assertEquals(10_001, identity.uid)
+        assertEquals("Example\\u202e Client", identity.appName)
+        assertEquals("com.example.client", identity.appBundlePath)
     }
 
     @Test
-    fun `recorder owns protocol-specific caller encoding`() =
+    fun `recorder uses shared caller encoding for both protocols`() =
         runTest {
             val queue = RecordingQueue()
             var directEvent: PendingUsageHistory? = null
@@ -85,11 +77,11 @@ class AndroidIpcUsageRecorderTest {
             }
 
             val gpgCaller =
-                Json.decodeFromString<GpgAgentMessages.CallerIdentity>(
+                Json.decodeFromString<CallerIdentity>(
                     assertNotNull(directEvent?.caller),
                 )
             val sshCaller =
-                Json.decodeFromString<SshAgentMessages.CallerIdentity>(
+                Json.decodeFromString<CallerIdentity>(
                     assertNotNull(queue.items.single().caller),
                 )
             assertEquals("com.example.client", gpgCaller.appBundlePath)

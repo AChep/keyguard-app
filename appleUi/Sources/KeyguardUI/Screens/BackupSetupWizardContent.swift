@@ -1,17 +1,6 @@
 import SwiftUI
 import KeyguardShared
 
-/// The S3 destination fields of the backup wizard.
-struct BackupS3Fields: Equatable {
-    var endpoint = ""
-    var region = ""
-    var bucket = ""
-    var prefix = ""
-    var accessKeyId = ""
-    var secretAccessKey = ""
-    var pathStyle = true
-}
-
 struct BackupSetupWizardContent: View {
     @Environment(\.dismiss) private var dismiss
 
@@ -26,6 +15,7 @@ struct BackupSetupWizardContent: View {
     @State private var hasEdits = false
     @State private var confirmingDiscard = false
     @FocusState private var focusedField: Field?
+    @FocusState private var locationField: BackupLocationField?
 
     // Preserve the opening configuration across live snapshot re-renders.
     @State private var initialHasPassword: Bool
@@ -33,8 +23,7 @@ struct BackupSetupWizardContent: View {
     @State private var initialWebDavUsername: String
 
     private enum Field: Hashable {
-        case server, username, serverPassword, encryptionPassword, confirmationPassword
-        case s3Endpoint, s3Region, s3Bucket, s3Prefix, s3AccessKeyId, s3Secret
+        case encryptionPassword, confirmationPassword
     }
 
     let s: BackupSetupSnapshot
@@ -131,12 +120,10 @@ struct BackupSetupWizardContent: View {
     private func page(_ step: BackupSetupStep) -> some View {
         Form {
             Section {
-                BackupWizardHeader(
+                WizardHeader(
                     title: step.title,
                     subtitle: step.subtitle,
                     systemImage: step.systemImage,
-                    stepLabel: L10n.prefItemAutomaticBackupsWizardStepLabel(
-                        step.number, BackupSetupStep.allCases.count),
                     step: step.number,
                     stepCount: BackupSetupStep.allCases.count
                 )
@@ -157,8 +144,8 @@ struct BackupSetupWizardContent: View {
         .navigationBarTitleDisplayMode(.inline)
         #endif
         .navigationBarBackButtonHidden(s.isTestingLocation)
-        .safeAreaInset(edge: .bottom, spacing: 0) {
-            Button {
+        .wizardFooter {
+            WizardPrimaryButton {
                 advance(from: step)
             } label: {
                 HStack {
@@ -174,14 +161,8 @@ struct BackupSetupWizardContent: View {
                     )
                     .frame(maxWidth: .infinity)
                 }
-                .padding(.vertical, 4)
             }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
             .disabled(!canAdvance(from: step) || s.isTestingLocation || !s.loaded)
-            .keyboardShortcut(.defaultAction)
-            .padding(16)
-            .background(.bar)
         }
         .disabled(s.isTestingLocation)
     }
@@ -201,44 +182,19 @@ struct BackupSetupWizardContent: View {
         }
         switch s.storeKind {
         case "webdav":
-            Section {
-                TextField(
-                    L10n.url, text: $webDavURL,
-                    prompt: Text(verbatim: KeyguardUrls.shared.PLACEHOLDER_WEBDAV_COLLECTION)
-                )
-                .focused($focusedField, equals: .server)
-                .submitLabel(.next)
-                .onSubmit { focusedField = .username }
-                #if os(iOS)
-                .keyboardType(.URL)
-                .textInputAutocapitalization(.never)
-                #endif
-                .autocorrectionDisabled()
-                TextField(L10n.username, text: $webDavUsername)
-                    .focused($focusedField, equals: .username)
-                    .submitLabel(.next)
-                    .onSubmit { focusedField = .serverPassword }
-                    #if os(iOS)
-                .textInputAutocapitalization(.never)
-                    #endif
-                    .autocorrectionDisabled()
-                SecureField(L10n.password, text: $webDavPassword)
-                    .focused($focusedField, equals: .serverPassword)
-                    .privacySensitive()
-            } header: {
-                Text(L10n.prefItemAutomaticBackupsWebdavServerTitle)
-            } footer: {
-                if !webDavURL.isEmpty && !isValidWebDavURL(webDavURL) {
-                    Label(L10n.prefItemAutomaticBackupsWizardInvalidUrlError, systemImage: "exclamationmark.circle")
-                        .foregroundStyle(.red)
-                } else if s.hasWebDavPassword && webDavURL == initialWebDavURL
+            BackupWebDavSection(
+                url: $webDavURL,
+                username: $webDavUsername,
+                password: $webDavPassword,
+                focusedField: $locationField,
+                isValidURL: isValidWebDavURL,
+                keepsPassword: s.hasWebDavPassword && webDavURL == initialWebDavURL
                     && webDavUsername == initialWebDavUsername
-                {
-                    Text(L10n.prefItemAutomaticBackupsWebdavKeepPassword)
-                }
-            }
+            )
         case "s3":
-            s3Sections
+            BackupS3Sections(
+                fields: $s3, focusedField: $locationField, errorKind: currentS3ErrorKind,
+                keepsSecret: keepsSavedS3Secret)
         default:
             Section {
                 if let folder = s.localPath, !folder.isEmpty {
@@ -249,66 +205,6 @@ struct BackupSetupWizardContent: View {
                 Text(L10n.prefItemAutomaticBackupsFolderAccessHelp)
             }
         }
-    }
-
-    @ViewBuilder
-    private var s3Sections: some View {
-        Section {
-            s3Field(
-                L10n.s3SettingsEndpointTitle, text: $s3.endpoint, field: .s3Endpoint, next: .s3Region,
-                prompt: KeyguardUrls.shared.PLACEHOLDER_S3_ENDPOINT, url: true)
-            s3Field(
-                L10n.s3SettingsRegionTitle, text: $s3.region, field: .s3Region, next: .s3Bucket,
-                prompt: KeyguardUrls.shared.PLACEHOLDER_S3_REGION)
-            s3Field(
-                L10n.s3SettingsBucketTitle, text: $s3.bucket, field: .s3Bucket, next: .s3Prefix,
-                prompt: KeyguardUrls.shared.PLACEHOLDER_S3_BUCKET)
-            s3Field(
-                L10n.s3SettingsPrefixTitle, text: $s3.prefix, field: .s3Prefix, next: .s3AccessKeyId,
-                prompt: KeyguardUrls.shared.PLACEHOLDER_S3_PREFIX)
-        } header: {
-            Text(L10n.prefItemAutomaticBackupsS3Title)
-        } footer: {
-            Text(L10n.s3SettingsEndpointNote)
-        }
-        Section {
-            s3Field(L10n.s3SettingsAccessKeyIdTitle, text: $s3.accessKeyId, field: .s3AccessKeyId, next: .s3Secret)
-            SecureField(L10n.s3SettingsSecretAccessKeyTitle, text: $s3.secretAccessKey)
-                .focused($focusedField, equals: .s3Secret)
-                .privacySensitive()
-            Toggle(isOn: $s3.pathStyle) {
-                Text(L10n.s3SettingsPathStyleTitle)
-                Text(L10n.s3SettingsPathStyleText)
-            }
-        } footer: {
-            if !s3.bucket.isEmpty, let error = s3ErrorMessage(currentS3ErrorKind) {
-                Label(error, systemImage: "exclamationmark.circle")
-                    .foregroundStyle(.red)
-            } else if keepsSavedS3Secret {
-                Text(L10n.prefItemAutomaticBackupsS3KeepSecret)
-            } else {
-                Text(L10n.s3SettingsAuthNote)
-            }
-        }
-    }
-
-    private func s3Field(
-        _ title: String,
-        text: Binding<String>,
-        field: Field,
-        next: Field,
-        prompt: String? = nil,
-        url: Bool = false
-    ) -> some View {
-        TextField(title, text: text, prompt: prompt.map { Text(verbatim: $0) })
-            .focused($focusedField, equals: field)
-            .submitLabel(.next)
-            .onSubmit { focusedField = next }
-            #if os(iOS)
-        .keyboardType(url ? .URL : .asciiCapable)
-        .textInputAutocapitalization(.never)
-            #endif
-            .autocorrectionDisabled()
     }
 
     /// The saved secret is kept while the endpoint, bucket and access key are unchanged.
@@ -327,31 +223,16 @@ struct BackupSetupWizardContent: View {
     }
 
     private func destinationChoice(kind: String, title: String, detail: String, symbol: String) -> some View {
-        Button {
+        WizardChoiceRow(
+            title: title,
+            detail: detail,
+            systemImage: symbol,
+            selected: s.storeKind == kind
+        ) {
             applyRemoteFields()
             setStoreKind(kind)
             hasEdits = true
-        } label: {
-            HStack(spacing: 12) {
-                Image(systemName: symbol)
-                    .font(.title2)
-                    .foregroundStyle(.tint)
-                    .frame(width: 36)
-                    .accessibilityHidden(true)
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(title).font(.headline).foregroundStyle(.primary)
-                    Text(detail).font(.subheadline).foregroundStyle(.secondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                Image(systemName: s.storeKind == kind ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(s.storeKind == kind ? AnyShapeStyle(.tint) : AnyShapeStyle(.tertiary))
-                    .accessibilityHidden(true)
-            }
-            .padding(.vertical, 8)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
-        .accessibilityAddTraits(s.storeKind == kind ? .isSelected : [])
     }
 
     private var protectionSection: some View {
@@ -464,6 +345,7 @@ struct BackupSetupWizardContent: View {
     private func advance(from step: BackupSetupStep) {
         guard canAdvance(from: step), !s.isTestingLocation else { return }
         focusedField = nil
+        locationField = nil
         switch step {
         case .destination:
             applyRemoteFields()

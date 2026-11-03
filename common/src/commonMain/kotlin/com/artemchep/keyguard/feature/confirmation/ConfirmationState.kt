@@ -46,6 +46,7 @@ data class ConfirmationState(
             val monospace: Boolean,
             val password: Boolean,
             val generator: Generator?,
+            val ephemeral: Boolean = false,
         ) : Item {
             override val valid: Boolean
                 get() = state.error == null

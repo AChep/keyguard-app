@@ -1,0 +1,53 @@
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient;
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType;
+import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType;
+import kotlin.time.Instant;
+
+CREATE TABLE cliAgentUsageHistory (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  cipherId TEXT,
+  sessionId TEXT NOT NULL,
+  client INTEGER AS CliAgentUsageHistoryClient NOT NULL,
+  caller TEXT,
+  clientName TEXT,
+  request INTEGER AS CliAgentUsageHistoryRequestType NOT NULL,
+  response INTEGER AS CliAgentUsageHistoryResponseType NOT NULL,
+  errorCode TEXT,
+  command TEXT,
+  path TEXT,
+  createdAt INTEGER AS Instant NOT NULL,
+  eventId TEXT,
+  FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
+);
+
+CREATE INDEX idx_cliAgentUsageHistory_client_createdAt ON cliAgentUsageHistory(client, createdAt DESC);
+CREATE INDEX idx_cliAgentUsageHistory_cipherId_createdAt ON cliAgentUsageHistory(cipherId, createdAt DESC);
+CREATE UNIQUE INDEX idx_cliAgentUsageHistory_eventId ON cliAgentUsageHistory(eventId);
+
+insert:
+INSERT OR IGNORE INTO cliAgentUsageHistory(cipherId, sessionId, client, caller, clientName, request, response, errorCode, command, path, createdAt, eventId)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+getRecentByClient:
+SELECT *
+FROM cliAgentUsageHistory
+WHERE client = :client
+ORDER BY createdAt DESC
+LIMIT :limit;
+
+getByCipherId:
+SELECT *
+FROM cliAgentUsageHistory
+WHERE cipherId = :cipherId
+ORDER BY createdAt DESC
+LIMIT :limit;
+
+getCountByClient:
+SELECT
+    COUNT(*) AS count
+FROM cliAgentUsageHistory
+WHERE client = :client;
+
+deleteByClient:
+DELETE FROM cliAgentUsageHistory
+WHERE client = :client;

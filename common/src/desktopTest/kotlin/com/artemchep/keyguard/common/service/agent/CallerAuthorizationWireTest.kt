@@ -1,7 +1,5 @@
 package com.artemchep.keyguard.common.service.agent
 
-import com.artemchep.keyguard.common.service.gpgagent.GpgAgentMessages
-import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
@@ -44,7 +42,7 @@ class CallerAuthorizationWireTest {
     }
 
     @Test
-    fun `SSH and GPG callers serialize shared authorization identically`() {
+    fun `caller identity round-trips shared authorization`() {
         val authorization =
             CallerAuthorization(
                 connectionFingerprint = ByteArray(32) { 1 },
@@ -58,23 +56,14 @@ class CallerAuthorizationWireTest {
                     ),
                 authorizationContextFingerprint = ByteArray(32) { 3 },
             )
-        val sshBytes =
+        val bytes =
             ProtoBuf.encodeToByteArray(
-                SshAgentMessages.CallerIdentity(authorization = authorization),
-            )
-        val gpgBytes =
-            ProtoBuf.encodeToByteArray(
-                GpgAgentMessages.CallerIdentity(authorization = authorization),
+                CallerIdentity(authorization = authorization),
             )
 
-        assertContentEquals(sshBytes, gpgBytes)
         assertEquals(
             authorization,
-            ProtoBuf.decodeFromByteArray<SshAgentMessages.CallerIdentity>(sshBytes).authorization,
-        )
-        assertEquals(
-            authorization,
-            ProtoBuf.decodeFromByteArray<GpgAgentMessages.CallerIdentity>(gpgBytes).authorization,
+            ProtoBuf.decodeFromByteArray<CallerIdentity>(bytes).authorization,
         )
     }
 }

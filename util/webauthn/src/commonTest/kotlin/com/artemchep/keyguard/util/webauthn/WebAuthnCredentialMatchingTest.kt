@@ -6,6 +6,7 @@ import com.artemchep.keyguard.util.webauthn.entity.CreatePasskeyRelyingParty
 import com.artemchep.keyguard.util.webauthn.entity.CreatePasskeyUser
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
+import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
@@ -22,6 +23,7 @@ class WebAuthnCredentialMatchingTest {
         keyValue = "AQID",
         rpId = "example.com",
         discoverable = true,
+        userHandle = "dXNlcg",
     )
     private val encodedId = PasskeyBase64.encodeToString(PasskeyCredentialId.encode(credential.credentialId))
 
@@ -48,6 +50,26 @@ class WebAuthnCredentialMatchingTest {
             assertFalse(allowed.isAllowCredentialsSupplied)
             assertTrue(allowed.allows(credential))
             assertFalse(allowed.allows(credential.copy(discoverable = false)))
+            // Without an allow list, the relying party identifies the account by its user handle.
+            assertTrue(allowed.allows(credential.copy(userHandle = "dXNlcg==")))
+            for (userHandle in listOf(null, "", "%%%")) {
+                assertFalse(allowed.allows(credential.copy(userHandle = userHandle)), "user handle $userHandle")
+            }
+        }
+    }
+
+    @Test
+    fun `user handles are read in any Base64 form within the WebAuthn limit`() {
+        for (stored in listOf("dXNlcg", "dXNlcg==")) {
+            assertContentEquals("user".encodeToByteArray(), PasskeyBase64.decodeUserHandleOrNull(stored))
+        }
+        for (stored in listOf("-_8Q", "+/8Q")) {
+            assertContentEquals(byteArrayOf(-5, -1, 16), PasskeyBase64.decodeUserHandleOrNull(stored))
+        }
+        assertEquals(64, PasskeyBase64.decodeUserHandleOrNull("A".repeat(86))?.size)
+        // Empty, unreadable, 66 bytes, and longer than any 64-byte encoding.
+        for (stored in listOf("", "%%%", "A".repeat(88), "A".repeat(89))) {
+            assertNull(PasskeyBase64.decodeUserHandleOrNull(stored), "user handle $stored")
         }
     }
 
@@ -60,6 +82,8 @@ class WebAuthnCredentialMatchingTest {
         assertTrue(allowed.isAllowCredentialsSupplied)
         assertEquals(1, allowed.descriptors.size)
         assertTrue(allowed.allows(credential.copy(discoverable = false)))
+        // The relying party already knows the account, so the user handle is optional.
+        assertTrue(allowed.allows(credential.copy(userHandle = null)))
         assertFalse(allowed.allows(credential.copy(keyType = "password")))
         assertFalse(allowed.allows(credential.copy(credentialId = "YQ")))
     }
@@ -110,6 +134,25 @@ class WebAuthnCredentialMatchingTest {
     fun `credential ids round trip UUID and arbitrary byte identifiers`() {
         for (id in listOf(credential.credentialId, "YQ")) {
             assertEquals(id, PasskeyCredentialId.decode(PasskeyCredentialId.encode(id)))
+        }
+        // Neither a UUID nor Base64url, or no bytes at all.
+        for (id in listOf("%%%", "")) {
+            assertNull(PasskeyCredentialId.encodeOrNull(id), "credential id $id")
+        }
+    }
+
+    @Test
+    fun `an index lists only credentials that answer any request for their relying party`() {
+        assertTrue(credential.isIndexable())
+        val excluded = listOf(
+            credential.copy(rpId = " "),
+            credential.copy(discoverable = false),
+            credential.copy(userHandle = null),
+            credential.copy(keyValue = " "),
+            credential.copy(credentialId = "%%%"),
+        )
+        for (stored in excluded) {
+            assertFalse(stored.isIndexable(), "$stored")
         }
     }
 

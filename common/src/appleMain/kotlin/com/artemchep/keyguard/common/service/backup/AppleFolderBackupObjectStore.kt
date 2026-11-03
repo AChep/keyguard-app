@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.backup.ffi.keyguard_backup_openat
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.crypto.createPrivateTemporaryStorage
 import com.artemchep.keyguard.util.io.InternalKeyguardIoApi
 import com.artemchep.keyguard.util.io.LocalPath
@@ -66,6 +67,7 @@ import kotlin.coroutines.CoroutineContext
 @OptIn(ExperimentalForeignApi::class, InternalKeyguardIoApi::class)
 class AppleFolderBackupObjectStore internal constructor(
     private val access: AppleBackupFolderAccess,
+    private val temporaryDirProvider: PrivateTemporaryDirProvider,
 ) : BackupObjectStore {
     override val capabilities = BackupObjectStoreCapabilities(
         atomicWholeObjectWrite = true,
@@ -86,7 +88,7 @@ class AppleFolderBackupObjectStore internal constructor(
         try {
             return withContext(Dispatchers.IO) {
                 val context = currentCoroutineContext()
-                val storage = createPrivateTemporaryStorage()
+                val storage = createPrivateTemporaryStorage(temporaryDirProvider.get())
                 acquired = storage
                 storage.sink().buffered().use { output ->
                     withObjectParent(key, BackupObjectStoreOperation.Read) { root, parent, name ->
@@ -120,7 +122,7 @@ class AppleFolderBackupObjectStore internal constructor(
     ): BackupObjectInfo = withContext(Dispatchers.IO) {
         val context = currentCoroutineContext()
         try {
-            PrivateTemporarySpillStorage(createPrivateTemporaryStorage())
+            PrivateTemporarySpillStorage(createPrivateTemporaryStorage(temporaryDirProvider.get()))
                 .buildSnapshot { write(it) }
                 .use { snapshot ->
                     context.ensureActive()
@@ -335,6 +337,7 @@ class AppleFolderBackupObjectStore internal constructor(
 }
 
 class AppleFolderBackupObjectStoreFactory(
+    private val temporaryDirProvider: PrivateTemporaryDirProvider = PrivateTemporaryDirProvider.Default,
     private val onAccessRefreshed: suspend (BackupStoreConfig.Local, BackupStoreConfig.Local) -> Unit = { _, _ -> },
 ) : BackupObjectStoreFactory {
     override suspend fun open(store: BackupStoreConfig): BackupObjectStore {
@@ -345,7 +348,7 @@ class AppleFolderBackupObjectStoreFactory(
                 val access = AppleBackupFolderAccess.open(store)
                 acquired = access
                 access.refreshedConfig?.let { onAccessRefreshed(store, it) }
-                AppleFolderBackupObjectStore(access)
+                AppleFolderBackupObjectStore(access, temporaryDirProvider)
             }
         } catch (e: Throwable) {
             acquired?.close()

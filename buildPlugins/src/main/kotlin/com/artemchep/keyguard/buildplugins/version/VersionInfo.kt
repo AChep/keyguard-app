@@ -59,6 +59,16 @@ internal fun parseVersionCode(value: String): Int =
             "Gradle property 'versionCode' must be a positive integer, but was '$value'.",
         )
 
+private val appVersionNamePattern = Regex("""(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)\.(?:0|[1-9][0-9]*)""")
+
+/** Apple marketing versions and Cargo package versions both need a plain major.minor.patch. */
+fun requireAppVersionName(version: String): String {
+    require(appVersionNamePattern.matches(version)) {
+        "appVersionName must use major.minor.patch without leading zeros; got '$version'."
+    }
+    return version
+}
+
 /**
  * Today's UTC date. The configuration cache re-checks a value source each time it reuses an
  * entry, so a cached configuration from yesterday can not keep yesterday's date.

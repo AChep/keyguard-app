@@ -10,6 +10,7 @@ keyguardE2e {
 }
 
 dependencies {
+    webdavE2eTestImplementation(project(":integration:testProcess"))
     webdavE2eTestImplementation(project(":util:webdav"))
     webdavE2eTestImplementation(libs.kotlinx.coroutines.test)
     webdavE2eTestImplementation(libs.ktor.ktor.client.cio)

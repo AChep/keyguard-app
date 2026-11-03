@@ -9,10 +9,16 @@ object PasskeyCredentialId {
      * Storage may spell a wire ID as a UUID in either case or as Base64url.
      * [canonicalId] must be in [decode] form, as every parsed descriptor ID is.
      */
-    internal fun matches(canonicalId: String, storedId: String): Boolean = canonicalId == storedId || try {
-        canonicalId == decode(encode(storedId))
+    internal fun matches(canonicalId: String, storedId: String): Boolean = canonicalId == storedId ||
+        encodeOrNull(storedId)?.let(::decode) == canonicalId
+
+    /** The wire bytes of a stored ID, or `null` if storage holds neither a UUID nor Base64url bytes. */
+    fun encodeOrNull(
+        credentialId: String,
+    ): ByteArray? = try {
+        encode(credentialId).takeIf { it.isNotEmpty() }
     } catch (_: IllegalArgumentException) {
-        false
+        null
     }
 
     fun encode(

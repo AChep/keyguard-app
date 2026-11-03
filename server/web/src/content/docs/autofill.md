@@ -1,61 +1,51 @@
 ---
-title: Autofill & passkeys on Android
-description: Set up the Android autofill service and the Android 14+ credential provider for passkeys.
-category: guides
-order: 2
+title: Autofill
+description: "Fill logins in other apps and browsers with Keyguard: turn it on, allow it in browsers, and adjust its options."
+section: autofill
+type: feature
+order: 10
+platforms: [android]
+related: [url-matching, troubleshoot-autofill, passkey-provider, totp]
 ---
 
-On Android, Keyguard can fill usernames and passwords into other apps and
-browsers, and act as the system **passkey provider**. Both are set up from
-**Settings → Autofill** inside Keyguard.
+Keyguard fills usernames and passwords in other apps and browsers. It suggests
+the logins whose URLs match the app or website you're on.
 
-> Autofill is available only on Android for now.
+## Turn on autofill
 
-## Enable the autofill service
+### Android
 
-Turn on **Autofill service** to let Keyguard use the Android Autofill
-Framework to assist in filling login information into other apps on the
-device. Keyguard sends you to the system screen where you pick it as the
-provider.
+1. In Keyguard, open **Settings > Autofill**.
+2. Turn on **Autofill service**. Android opens its autofill settings.
+3. Select **Keyguard**.
+4. Confirm the choice. Back in Keyguard, **Autofill service** is on.
 
-With the service active you can fine-tune the behavior on the same settings
-screen:
+Chrome and some other browsers use their own autofill until you
+allow a third-party service. Under **Autofill service**, Keyguard lists the
+installed browsers that have this setting, marked **Enabled** or **Disabled**.
 
-- **Inline suggestions** — on Android 11 and newer, suggestions appear
-  directly in your keyboard;
-- **Manual selection** — adds an option to manually search the vault for an
-  entry when nothing matches;
-- **Default URI match detection** — controls which items are suggested for
-  a given site or app; see [URL matching](/docs/url-matching/);
-- **Auto-copy one-time passwords** — copies the OTP after you fill a login,
-  ready to paste into the next field;
-- **Ask to save data** — offers to update your vault when you finish filling
-  a form;
-- **Block autofill** — disables autofill for specific URIs you list.
+1. In **Settings > Autofill**, select a browser marked **Disabled**. The
+   browser opens its autofill settings.
+2. Choose to autofill using another service. In Chrome, select
+   **Autofill using another service**.
+3. Restart the browser.
 
-## Passkeys (Android 14+)
+## Verify
 
-On Android 14 and newer, open **Settings → Autofill → Credential provider**
-to register Keyguard in the system's credential manager. Once selected, you
-can **sign in with passkeys** stored in your vault and **create new
-passkeys** when a website or app offers them. Separate toggles control
-whether Keyguard serves passkeys, passwords, or both.
+In another app or a browser, select a username field. Keyguard suggests
+matching logins. On Android, they appear in the keyboard or under the field.
 
-Creating a passkey writes a new credential into your vault, so — like other
-vault edits — it requires a premium license. Signing in with existing
-passkeys is free.
+## Options
 
-## Browser notes
+These options are in **Settings > Autofill**.
 
-- **Chrome** supports third-party autofill services natively, but you have to
-  opt in: open Chrome's *Settings → Autofill Services*, choose *Autofill
-  using another service*, then restart Chrome.
-- Some websites disable autofill on password fields, and some browsers ignore
-  that flag — the **Respect the autofill-disabled flag** setting controls how
-  Keyguard treats them.
-
-## Device quirks
-
-Some Xiaomi devices require you to manually allow the **"Display pop-up
-windows while running in the background"** permission before autofill
-dialogs can appear.
+| Option | What it does | Default | Platforms |
+| --- | --- | --- | --- |
+| **Default match detection** | Sets how the URLs on your items match a website or app. See [URL matching](/docs/url-matching/). | Base domain | Android |
+| **Inline suggestions** | Shows suggestions in compatible keyboards | On | Android 11 and later |
+| **Manual selection** | Adds an option to search the vault next to the suggested items | On | Android |
+| **Respect Autofill disabled flag** | Skips browser fields that have autofill turned off | Off | Android |
+| **Auto-copy one-time passwords** | Copies the item's one-time password after you fill a login | On | Android |
+| **Ask to save data** | Offers to update your vault after you fill in a form | On | Android |
+| **Auto-save app or website info** | Adds the app or website to the item you fill | Off | Android |
+| **Block autofill** | Turns off autofill for the URIs you list. See [Blocked URIs](/docs/blocked-uris/). | None blocked | Android |

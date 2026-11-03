@@ -2,6 +2,8 @@ package com.artemchep.keyguard.android
 
 import androidx.credentials.exceptions.domerrors.EncodingError
 import androidx.credentials.exceptions.domerrors.NotAllowedError
+import androidx.credentials.exceptions.domerrors.NotSupportedError
+import androidx.credentials.exceptions.domerrors.SyntaxError
 import androidx.credentials.exceptions.publickeycredential.GetPublicKeyCredentialDomException
 import com.artemchep.keyguard.util.webauthn.WebAuthnAllowedCredentialDescriptors
 import com.artemchep.keyguard.util.webauthn.WebAuthnAssertionRequest
@@ -11,6 +13,8 @@ import com.artemchep.keyguard.util.webauthn.WebAuthnCallerContext
 import com.artemchep.keyguard.util.webauthn.WebAuthnCredential
 import com.artemchep.keyguard.util.webauthn.WebAuthnEncodingException
 import com.artemchep.keyguard.util.webauthn.WebAuthnNotAllowedException
+import com.artemchep.keyguard.util.webauthn.WebAuthnNotSupportedException
+import com.artemchep.keyguard.util.webauthn.WebAuthnSyntaxException
 import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -76,6 +80,28 @@ class PasskeyProviderGetRequestTest {
             mapGetWebAuthnExceptions { throw cause }
         }
         assertIs<EncodingError>(error.domError)
+        assertEquals(cause.message, error.message)
+        assertSame(cause, error.cause)
+    }
+
+    @Test
+    fun `maps NotSupported errors to credential manager`() {
+        val cause = WebAuthnNotSupportedException("test message")
+        val error = assertFailsWith<GetPublicKeyCredentialDomException> {
+            mapGetWebAuthnExceptions { throw cause }
+        }
+        assertIs<NotSupportedError>(error.domError)
+        assertEquals(cause.message, error.message)
+        assertSame(cause, error.cause)
+    }
+
+    @Test
+    fun `maps Syntax errors to credential manager`() {
+        val cause = WebAuthnSyntaxException("test message")
+        val error = assertFailsWith<GetPublicKeyCredentialDomException> {
+            mapGetWebAuthnExceptions { throw cause }
+        }
+        assertIs<SyntaxError>(error.domError)
         assertEquals(cause.message, error.message)
         assertSame(cause, error.cause)
     }

@@ -51,6 +51,7 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.encrypted
 import com.artemchep.keyguard.provider.bitwarden.crypto.transform
 import com.artemchep.keyguard.provider.bitwarden.entity.CipherTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.ProfileEntity
+import com.artemchep.keyguard.provider.bitwarden.entity.SendTypeEntity
 import com.artemchep.keyguard.provider.bitwarden.entity.SyncEntity
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.CipherSyncOps
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.ops.CollectionSyncOps
@@ -74,7 +75,7 @@ import com.artemchep.keyguard.provider.bitwarden.sync.v2.requireFolderSyncComple
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadCoordinator
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.withRefreshableAccessToken
-import io.ktor.client.HttpClient
+import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientProvider
 import io.ktor.http.HttpStatusCode
 import kotlin.coroutines.coroutineContext
 import kotlin.time.Clock
@@ -128,7 +129,7 @@ class SyncByBitwardenTokenV2Impl(
     private val base64Service: Base64Service,
     private val getPasswordStrength: GetPasswordStrength,
     private val json: Json,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenHttpClientProvider,
     private val db: VaultDatabaseManager,
     private val dbSyncer: DatabaseSyncer,
     private val pendingUploadCoordinator: PendingUploadCoordinator,
@@ -160,7 +161,7 @@ class SyncByBitwardenTokenV2Impl(
                     }
                 withRefreshableAccessToken(
                     base64Service = base64Service,
-                    httpClient = httpClient,
+                    httpClient = httpClientProvider.client(user.env.back()),
                     json = json,
                     db = db,
                     user = user,
@@ -252,6 +253,7 @@ class SyncByBitwardenTokenV2Impl(
         entityTypesToSync: Set<SyncEntityType>? = null,
     ) {
         val env = user.env.back()
+        val httpClient = httpClientProvider.client(env)
         val api = env.api
         val token = requireNotNull(user.token).accessToken
         val database = db.get().bind()
@@ -462,6 +464,7 @@ class SyncByBitwardenTokenV2Impl(
                     gpgKeyMetadataResolver = gpgKeyMetadataResolver,
                     logRepository = logRepository,
                     httpClient = httpClient,
+                    httpClientProvider = httpClientProvider,
                     env = env,
                     token = token,
                     ciphersApi = api.ciphers,
@@ -557,6 +560,43 @@ class SyncByBitwardenTokenV2Impl(
                     .executeAsList()
                     .map { it.data_ }
                     .filterByAccountId(user.id) { it.accountId }
+            val serverSends = response.sends.orEmpty()
+
+            // Filter-out the send of the type from the future
+            // that we do not know about.
+            val unknownSendRemoteIds = serverSends
+                .asSequence()
+                .filter { it.type == SendTypeEntity.Unknown }
+                .map { it.id }
+                .toSet()
+            if (unknownSendRemoteIds.isNotEmpty()) {
+                diagnostics.unknownSendTypesSkipped(
+                    accountId = user.id,
+                    remoteIds = unknownSendRemoteIds.sorted(),
+                )
+            }
+
+            val existingSendsToSync = kotlin.run {
+                if (unknownSendRemoteIds.isEmpty()) {
+                    return@run existingSends
+                }
+
+                existingSends.filter { send ->
+                    val remoteId = send.service.remote?.id
+                    remoteId !in unknownSendRemoteIds
+                }
+            }
+            val serverSendsToSync = kotlin.run {
+                if (unknownSendRemoteIds.isEmpty()) {
+                    return@run serverSends
+                }
+
+                serverSends.filter { send ->
+                    val remoteId = send.id
+                    remoteId !in unknownSendRemoteIds
+                }
+            }
+
             val sendOps =
                 SendSyncOps(
                     accountId = user.id,
@@ -565,6 +605,7 @@ class SyncByBitwardenTokenV2Impl(
                     cryptoGenerator = cryptoGenerator,
                     base64Service = base64Service,
                     httpClient = httpClient,
+                    httpClientProvider = httpClientProvider,
                     env = env,
                     token = token,
                     sendsApi = api.sends,
@@ -576,8 +617,8 @@ class SyncByBitwardenTokenV2Impl(
                     EntitySyncConfig(
                         name = "sends",
                         strategy = SendSyncStrategy(),
-                        localEntities = existingSends,
-                        serverEntities = response.sends.orEmpty(),
+                        localEntities = existingSendsToSync,
+                        serverEntities = serverSendsToSync,
                         ops = sendOps,
                     ),
                 )

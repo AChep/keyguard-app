@@ -60,12 +60,12 @@ struct FormFieldsPreview: View {
         ConfirmationStringField(
             item: ConfirmationItemSnapshot(
                 removable: false, key: id, kind: .string, enabled: true, title: title,
-                text: nil, booleanValue: false, stringValue: value.wrappedValue, stringRevision: 0,
+                text: nil, booleanValue: false, stringValue: value.wrappedValue, ephemeral: false, stringRevision: 0,
                 descriptionText: nil, hint: nil,
                 error: showError ? "Synthetic validation message that can appear while editing." : nil,
                 sensitive: false, monospace: monospace, password: false,
                 enumValue: "", options: [], docText: nil, docHasLink: false,
-                fileName: nil, hasFile: false
+                fileName: nil, hasFile: false, tags: nil
             ),
             onChange: { value.wrappedValue = $0 }
         )

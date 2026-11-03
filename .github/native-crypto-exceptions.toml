@@ -7,3 +7,11 @@ expires = "2027-01-01"
 tracking-issue = "https://github.com/RustCrypto/RSA/issues/626"
 scope = "OpenPGP read/write, mutation, and agent operations through the AWS-LC private-RSA boundary"
 rationale = "Private RSA exponentiation uses AWS-LC; OpenPGP supplies its existing factors without Keyguard factor recovery. rPGP/RustCrypto still parse and prepare secret integers, including variable-time arithmetic and incompletely erased intermediates; this exception does not establish constant-time preparation or complete memory erasure."
+
+[[exceptions]]
+advisory = "RUSTSEC-2026-0387"
+owner = "Keyguard"
+expires = "2027-01-01"
+tracking-issue = "https://github.com/rpgp/rpgp/pull/573"
+scope = "P-256 passkey signing, OpenPGP and agent ECDSA/ECDH on P-256, P-384, P-521 and secp256k1, and rPGP X448/Ed448 through the RustCrypto elliptic-curve 0.13 stack"
+rationale = "The fix is only in crypto-bigint 0.7.6, which needs elliptic-curve 0.14; rPGP 0.21 still requires the 0.13 curves, and no 0.5 release is fixed. Their scalar arithmetic, including secret signing and agreement scalars, runs on crypto-bigint 0.5; this exception does not establish constant-time behavior for it. SSH signing uses AWS-LC and is outside this exception."

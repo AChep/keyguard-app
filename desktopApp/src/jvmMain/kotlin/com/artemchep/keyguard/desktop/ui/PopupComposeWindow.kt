@@ -21,6 +21,7 @@ import com.artemchep.keyguard.platform.LocalWindowRev
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.WindowRev
 import java.awt.Dialog.ModalityType
+import java.awt.Window
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Suppress("LongMethod") // Keep the platform dispatch and forwarded window options together.
@@ -41,6 +42,7 @@ internal fun PopupComposeWindow(
     focusRequestId: Any? = focusRequestKey,
     onFocusAcquired: () -> Unit = {},
     alwaysOnTop: Boolean = false,
+    type: Window.Type = Window.Type.POPUP,
     onPreviewKeyEvent: (KeyEvent) -> Boolean = { false },
     onKeyEvent: (KeyEvent) -> Boolean = { false },
     content: @Composable DialogWindowScope.() -> Unit,
@@ -95,6 +97,7 @@ internal fun PopupComposeWindow(
                 enabled = enabled,
                 focusable = focusable,
                 alwaysOnTop = alwaysOnTop,
+                type = type,
             )
         },
     ) {

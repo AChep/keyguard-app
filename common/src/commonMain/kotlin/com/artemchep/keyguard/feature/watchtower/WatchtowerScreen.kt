@@ -423,6 +423,12 @@ fun WatchtowerScreen2(
                 }
 
                 state.content.RenderCard(
+                    transform = { unusableSshCertificates },
+                ) { unusableSshCertificates ->
+                    CardUnusableSshCertificates(unusableSshCertificates)
+                }
+
+                state.content.RenderCard(
                     transform = { unusableGpgKeys },
                 ) { unusableGpgKeys ->
                     CardUnusableGpgKeys(unusableGpgKeys)
@@ -866,6 +872,26 @@ private fun CardWeakSshKeys(
             )
         },
         text = stringResource(Res.string.watchtower_item_weak_ssh_keys_text),
+        imageVector = Icons.Outlined.KeyguardSshKey,
+        onClick = state.onClick,
+    )
+}
+
+@Composable
+private fun CardUnusableSshCertificates(
+    state: WatchtowerState.Content.UnusableSshCertificates,
+) {
+    Card(
+        number = state.count,
+        new = state.new,
+        title = {
+            ContentCardsContentTitle(
+                icon = WatchtowerStatusIcon.INFO.takeIf { state.count > 0 }
+                    ?: WatchtowerStatusIcon.OK,
+                title = stringResource(Res.string.watchtower_item_unusable_ssh_certificates_title),
+            )
+        },
+        text = stringResource(Res.string.watchtower_item_unusable_ssh_certificates_text),
         imageVector = Icons.Outlined.KeyguardSshKey,
         onClick = state.onClick,
     )

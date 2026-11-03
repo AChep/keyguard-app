@@ -64,7 +64,7 @@ impl ArchiveWriter {
         let options: SimpleFileOptions = SimpleFileOptions::default()
             .compression_method(CompressionMethod::Deflated)
             .large_file(true);
-        let options: FileOptions<'_, ()> = match self.password.as_deref() {
+        let options: FileOptions<'_, '_, ()> = match self.password.as_deref() {
             Some(password) => options.with_aes_encryption(AesMode::Aes256, password),
             None => options,
         };

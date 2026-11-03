@@ -48,6 +48,8 @@ package_name = "com.artemchep.keyguard"
 
 language_base = "base"
 language_mapping = {
+    'af-ZA': 'af',
+    'sr-SP': 'sr',
     'uk-UA': 'uk',
     'ca-ES': 'ca',
     'vi-VN': 'vi',

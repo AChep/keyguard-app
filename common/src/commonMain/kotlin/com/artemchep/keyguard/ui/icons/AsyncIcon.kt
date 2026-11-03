@@ -28,6 +28,7 @@ fun <T> AsyncIcon(
     modifier: Modifier = Modifier,
     contentDescription: String?,
     errorImageVector: ImageVector,
+    onError: (() -> Unit)? = null,
 ) {
     val surfaceColor = MaterialTheme.colorScheme
         .surfaceColorAtElevation(LocalAbsoluteTonalElevation.current + 16.dp)
@@ -75,6 +76,9 @@ fun <T> AsyncIcon(
         },
         onState = { state ->
             isLoading = state is AsyncImagePainter.State.Loading
+            if (state is AsyncImagePainter.State.Error) {
+                onError?.invoke()
+            }
         },
     )
 }

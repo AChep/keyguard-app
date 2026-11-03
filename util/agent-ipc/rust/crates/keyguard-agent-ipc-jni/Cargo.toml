@@ -1,0 +1,21 @@
+[package]
+name = "keyguard-agent-ipc-jni"
+description = "JNI adapter for the Keyguard agent IPC transport"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+jni.workspace = true
+keyguard-agent-ipc-core = { path = "../keyguard-agent-ipc-core" }
+keyguard-ffi = { workspace = true, features = ["jni"] }
+zeroize.workspace = true
+
+[lints]
+workspace = true

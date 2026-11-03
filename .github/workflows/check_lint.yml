@@ -10,7 +10,7 @@ on:
         type: boolean
   # Skip changes that no linter here reads: docs, store assets, packaging
   # manifests, Swift and Rust sources, unrelated CI files, translations
-  # and bundled data. Keep the inputs of checkAppleConfiguration.
+  # and bundled data. Keep the inputs of checkAppVersions.
   push:
     branches:
       - master
@@ -106,8 +106,8 @@ jobs:
           echo "" >> gradle.properties
         env:
           VARS_GOOGLE_SERVICES: ${{ vars.GOOGLE_SERVICES }}
-      - name: "Check generated Apple configuration"
-        run: ./gradlew --no-parallel --max-workers=2 checkAppleConfiguration
+      - name: "Check generated Apple configuration and Rust versions"
+        run: ./gradlew --no-parallel --max-workers=2 checkAppVersions
       - name: "Check Android lint"
         run: ./gradlew --continue --no-parallel --max-workers=2 lint
       - name: "Check Detekt"

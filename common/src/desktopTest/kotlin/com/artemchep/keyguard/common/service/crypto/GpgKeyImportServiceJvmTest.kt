@@ -54,7 +54,7 @@ class GpgKeyImportServiceJvmTest {
 
         val result = service.import(
             GpgKeyImportRequest(
-                content = publicKeyArmored,
+                content = publicKeyArmored.encodeToByteArray(),
                 fileName = "public.asc",
             ),
         )
@@ -98,7 +98,7 @@ class GpgKeyImportServiceJvmTest {
             GpgKeyImportResult.Error(GpgKeyImportError.MultipleKeys),
             service.import(
                 GpgKeyImportRequest(
-                    content = document,
+                    content = document.encodeToByteArray(),
                     fileName = "multiple-public.asc",
                 ),
             ),
@@ -110,7 +110,7 @@ class GpgKeyImportServiceJvmTest {
         GpgLegacyKeyFixtures.versions.forEach { version ->
             val result = service.import(
                 GpgKeyImportRequest(
-                    content = GpgLegacyKeyFixtures.publicRing(version).armored(),
+                    content = GpgLegacyKeyFixtures.publicRing(version).armored().encodeToByteArray(),
                     fileName = "legacy-public.asc",
                 ),
             )
@@ -156,7 +156,7 @@ class GpgKeyImportServiceJvmTest {
             GpgKeyImportResult.Error(GpgKeyImportError.MultipleKeys),
             service.import(
                 GpgKeyImportRequest(
-                    content = document,
+                    content = document.encodeToByteArray(),
                     fileName = "mixed-public.asc",
                 ),
             ),
@@ -167,7 +167,7 @@ class GpgKeyImportServiceJvmTest {
     fun `garbage private key remains malformed`() {
         val result = service.import(
             GpgKeyImportRequest(
-                content = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\ntruncated",
+                content = "-----BEGIN PGP PRIVATE KEY BLOCK-----\n\ntruncated".encodeToByteArray(),
                 fileName = "malformed-private.asc",
             ),
         )
@@ -182,7 +182,7 @@ class GpgKeyImportServiceJvmTest {
     fun `imports unencrypted private key with derived public key`() {
         val result = service.import(
             GpgKeyImportRequest(
-                content = GpgTestKeyFixtures.CV25519,
+                content = GpgTestKeyFixtures.CV25519.encodeToByteArray(),
                 fileName = "private.asc",
             ),
         )
@@ -209,7 +209,7 @@ class GpgKeyImportServiceJvmTest {
             val privateKeyArmored = GpgLegacyKeyFixtures.secretRing(version).armored()
             val result = service.import(
                 GpgKeyImportRequest(
-                    content = privateKeyArmored,
+                    content = privateKeyArmored.encodeToByteArray(),
                     fileName = "legacy-private.asc",
                 ),
             )
@@ -223,11 +223,11 @@ class GpgKeyImportServiceJvmTest {
 
     @Test
     fun `encrypted private key asks for passphrase`() {
-        val encrypted = encryptSecretRing(GpgTestKeyFixtures.CV25519, PASSPHRASE)
+        val encrypted = encryptGpgImportTestSecretRing(GpgTestKeyFixtures.CV25519, PASSPHRASE)
 
         val result = service.import(
             GpgKeyImportRequest(
-                content = encrypted,
+                content = encrypted.encodeToByteArray(),
                 fileName = "private.asc",
             ),
         )
@@ -240,11 +240,11 @@ class GpgKeyImportServiceJvmTest {
 
     @Test
     fun `encrypted private key rejects invalid passphrase`() {
-        val encrypted = encryptSecretRing(GpgTestKeyFixtures.CV25519, PASSPHRASE)
+        val encrypted = encryptGpgImportTestSecretRing(GpgTestKeyFixtures.CV25519, PASSPHRASE)
 
         val result = service.import(
             GpgKeyImportRequest(
-                content = encrypted,
+                content = encrypted.encodeToByteArray(),
                 fileName = "private.asc",
                 passphrase = "wrong-passphrase",
             ),
@@ -258,11 +258,11 @@ class GpgKeyImportServiceJvmTest {
 
     @Test
     fun `encrypted private key imports as passwordless key after passphrase`() {
-        val encrypted = encryptSecretRing(GpgTestKeyFixtures.CV25519, PASSPHRASE)
+        val encrypted = encryptGpgImportTestSecretRing(GpgTestKeyFixtures.CV25519, PASSPHRASE)
 
         val result = service.import(
             GpgKeyImportRequest(
-                content = encrypted,
+                content = encrypted.encodeToByteArray(),
                 fileName = "private.asc",
                 passphrase = PASSPHRASE,
             ),
@@ -282,7 +282,7 @@ class GpgKeyImportServiceJvmTest {
 
 private const val PASSPHRASE = "correct horse battery staple"
 
-private fun encryptSecretRing(
+internal fun encryptGpgImportTestSecretRing(
     armored: String,
     passphrase: String,
 ): String {

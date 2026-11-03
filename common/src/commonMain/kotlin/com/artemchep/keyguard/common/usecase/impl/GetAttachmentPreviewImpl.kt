@@ -12,13 +12,13 @@ import com.artemchep.keyguard.common.model.DownloadAttachmentRequest
 import com.artemchep.keyguard.common.model.DownloadAttachmentRequestData
 import com.artemchep.keyguard.common.service.crypto.FileEncryptionCodec
 import com.artemchep.keyguard.common.service.download.DownloadAttachmentSourceLoader
+import com.artemchep.keyguard.common.service.download.BitwardenAttachmentHttpClientProvider
 import com.artemchep.keyguard.common.service.download.DownloadWriter
 import com.artemchep.keyguard.common.service.download.awaitCompleteResult
 import com.artemchep.keyguard.common.service.download.util.downloadToByteArray
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.usecase.DownloadAttachmentMetadata
 import com.artemchep.keyguard.common.usecase.GetAttachmentPreview
-import io.ktor.client.HttpClient
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.io.Buffer
@@ -32,7 +32,7 @@ class GetAttachmentPreviewImpl(
     private val downloadAttachmentMetadata: DownloadAttachmentMetadata,
     private val fileEncryptionCodec: FileEncryptionCodec,
     private val fileService: FileService,
-    private val httpClient: HttpClient,
+    private val httpClientProvider: BitwardenAttachmentHttpClientProvider,
     private val downloadAttachmentSourceLoader: DownloadAttachmentSourceLoader,
 ) : GetAttachmentPreview {
     override fun invoke(
@@ -62,7 +62,7 @@ class GetAttachmentPreviewImpl(
                 ensureWithinLimit(size = it.size.toLong())
             }
 
-            is DownloadAttachmentRequestData.UrlSource -> downloadUrlToByteArray(source.url)
+            is DownloadAttachmentRequestData.UrlSource -> downloadUrlToByteArray(metadata.localCipherId, source.url)
 
             is DownloadAttachmentRequestData.KeePassSource -> {
                 source.expectedSize?.let(::ensureWithinLimit)
@@ -135,13 +135,16 @@ class GetAttachmentPreviewImpl(
     }
 
     private suspend fun downloadUrlToByteArray(
+        localCipherId: String,
         url: String,
     ): ByteArray = try {
-        httpClient.downloadToByteArray(
-            url = url,
-            bufferSize = PREVIEW_BUFFER_SIZE,
-            validateSize = ::ensureWithinLimit,
-        )
+        httpClientProvider(localCipherId, url).request(url) { httpClient, target ->
+            httpClient.downloadToByteArray(
+                url = target,
+                bufferSize = PREVIEW_BUFFER_SIZE,
+                validateSize = ::ensureWithinLimit,
+            )
+        }
     } catch (e: AttachmentPreviewException) {
         throw e
     } catch (e: Throwable) {

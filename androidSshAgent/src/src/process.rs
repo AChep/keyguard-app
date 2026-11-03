@@ -1,6 +1,9 @@
 use anyhow::{bail, Context, Result};
+#[cfg(any(target_os = "linux", target_os = "android"))]
+use keyguard_android_agent_bridge::process::close_fd;
+use keyguard_android_agent_bridge::process::{render_export, shell_quote};
 use libc::{self, SIGTERM};
-use std::ffi::{CString, OsString};
+use std::ffi::OsString;
 use std::fs;
 use std::io::{self, ErrorKind};
 #[cfg(any(target_os = "linux", target_os = "android"))]
@@ -84,21 +87,6 @@ pub(crate) fn print_auth_socket_export(is_csh: bool, socket_file: &Path) {
     println!("{}", render_auth_socket_export(is_csh, socket_file));
 }
 
-pub(crate) fn redirect_null(fd: i32, write: bool) -> Result<()> {
-    let path = CString::new("/dev/null").context("Invalid /dev/null path")?;
-    let null_fd = open_null_fd(&path, write)?;
-    if null_fd == fd {
-        return Ok(());
-    }
-
-    if let Err(err) = duplicate_fd(null_fd, fd) {
-        close_fd(null_fd);
-        return Err(err).context("Failed to redirect file descriptor");
-    }
-    close_fd(null_fd);
-    Ok(())
-}
-
 pub(crate) fn terminate_pid(pid: i32) -> io::Result<()> {
     libc_kill(pid, SIGTERM)
 }
@@ -124,32 +112,6 @@ fn render_auth_socket_export(is_csh: bool, socket_file: &Path) -> String {
         AUTH_SOCK_ENV,
         &shell_quote(&socket_file.to_string_lossy()),
     )
-}
-
-fn render_export(is_csh: bool, name: &str, quoted_value: &str) -> String {
-    if is_csh {
-        format!("setenv {name} {quoted_value};")
-    } else {
-        format!("{name}={quoted_value}; export {name};")
-    }
-}
-
-fn shell_quote(value: &str) -> String {
-    if value.is_empty() {
-        return "''".to_string();
-    }
-
-    let mut quoted = String::with_capacity(value.len() + 2);
-    quoted.push('\'');
-    for ch in value.chars() {
-        if ch == '\'' {
-            quoted.push_str("'\"'\"'");
-        } else {
-            quoted.push(ch);
-        }
-    }
-    quoted.push('\'');
-    quoted
 }
 
 fn resolve_kill_target_from_env() -> Result<AgentTarget> {
@@ -329,37 +291,6 @@ fn pidfd_send_signal(fd: RawFd, signal: i32) -> io::Result<()> {
         return Err(io::Error::last_os_error());
     }
     Ok(())
-}
-
-fn open_null_fd(path: &CString, write: bool) -> Result<i32> {
-    // SAFETY: `path` is a valid NUL-terminated C string for the lifetime of the call, and the
-    // flags are valid `open(2)` flags selecting read-only or read-write access to `/dev/null`.
-    let fd = unsafe {
-        libc::open(
-            path.as_ptr(),
-            if write { libc::O_RDWR } else { libc::O_RDONLY },
-        )
-    };
-    if fd == -1 {
-        bail!("Failed to open /dev/null: {}", io::Error::last_os_error());
-    }
-    Ok(fd)
-}
-
-fn duplicate_fd(src: i32, dst: i32) -> io::Result<()> {
-    // SAFETY: `src` is an open file descriptor returned by `open(2)` and `dst` is one of the
-    // standard file descriptor numbers being redirected. `dup2` performs the atomic replacement.
-    let result = unsafe { libc::dup2(src, dst) };
-    if result == -1 {
-        return Err(io::Error::last_os_error());
-    }
-    Ok(())
-}
-
-fn close_fd(fd: i32) {
-    // SAFETY: `fd` is either an owned descriptor opened by this module or a best-effort close on
-    // teardown. `close(2)` does not require additional invariants beyond passing an integer fd.
-    let _ = unsafe { libc::close(fd) };
 }
 
 fn libc_kill(pid: i32, signal: i32) -> io::Result<()> {

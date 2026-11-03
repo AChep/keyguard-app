@@ -1,19 +1,13 @@
 package com.artemchep.keyguard.feature.sshagent.history
 
-import com.artemchep.keyguard.common.service.sshagent.SshAgentMessages
-import com.artemchep.keyguard.feature.agent.AgentUsageHistoryCallerInfo
-import com.artemchep.keyguard.feature.agent.toAgentUsageHistoryCallerInfo
-import kotlinx.serialization.json.Json
-
-internal fun buildSshUsageHistoryCallerInfo(
+internal fun buildSshUsageHistoryDescription(
+    request: String,
+    key: String?,
+    fingerprint: String?,
     caller: String?,
-    json: Json,
-): AgentUsageHistoryCallerInfo? {
-    caller ?: return null
-
-    return runCatching {
-        json.decodeFromString<SshAgentMessages.CallerIdentity>(caller)
-    }
-        .getOrNull()
-        ?.toAgentUsageHistoryCallerInfo()
-}
+): String = buildList {
+    add(request)
+    key?.let(::add)
+    fingerprint?.takeIf { it != key }?.let(::add)
+    caller?.let(::add)
+}.joinToString(separator = " • ")

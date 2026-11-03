@@ -128,7 +128,7 @@ struct DetailRowsPreview: View {
         } else {
             DetailForm(items: items, invoke: invoke) {
                 DetailIdentityHeader(title: "Обліковий запис — 開発用アカウント — حساب العمل") { size in
-                    FaviconView(url: nil, placeholder: "GH", size: size)
+                    FaviconView(iconKey: nil, placeholder: "GH", size: size)
                 }
             }
         }

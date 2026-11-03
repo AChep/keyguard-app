@@ -43,6 +43,7 @@ internal object VaultActionSymbols {
         "cipher.edit" to "pencil",
         "cipher.viewPasswordHistory" to "clock.arrow.circlepath",
         "cipher.viewSshAgentHistory" to "terminal",
+        "cipher.viewCliAgentHistory" to "list.bullet.rectangle",
         "cipher.changeName" to "character.cursor.ibeam",
         "cipher.changeTags" to "tag",
         "cipher.changePassword" to "key",
@@ -66,6 +67,7 @@ internal object VaultActionSymbols {
         "vaultList.create.SecureNote" to "note.text",
         "vaultList.create.SshKey" to "terminal",
         "vaultList.create.GpgKey" to "lock.shield",
+        "vaultList.create.Environment" to "terminal",
         "vaultList.subscriptions" to "star.circle",
     )
 

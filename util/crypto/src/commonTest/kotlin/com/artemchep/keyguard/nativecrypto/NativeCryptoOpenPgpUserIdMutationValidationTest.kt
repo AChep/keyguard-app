@@ -8,6 +8,98 @@ import kotlin.test.assertTrue
 
 class NativeCryptoOpenPgpUserIdMutationValidationTest {
     @Test
+    fun newUserIdsRejectUnicodeLineSeparators() {
+        for (separator in listOf('\n', '\r', '\u0085', '\u2028', '\u2029')) {
+            assertEquals(false, "Alice${separator}Injected".isValidOpenPgpUserId())
+        }
+        assertTrue("Аліса <alice@example.test>".isValidOpenPgpUserId())
+    }
+
+    @Test
+    fun nativeBridgePreservesRetryTimestampAndSharedRevocationReason() {
+        val created = 1_700_000_000L
+        val material = NativeCrypto.openPgp.generateKey(
+            kind = NativeOpenPgpKeyKind.LEGACY_ED25519_X25519,
+            userId = "First <first@example.test>",
+            creationTimeEpochSeconds = created,
+        )
+        try {
+            val parsed = assertIs<NativeOpenPgpPublicKeyParseResult.Success>(
+                NativeCrypto.openPgp.parsePublicKeys(material.publicKeyArmored, created),
+            ).keys.single()
+            val retry = assertIs<NativeOpenPgpUserIdUpdateResult.Error>(
+                NativeCrypto.openPgp.updateUserId(
+                    material.privateKeyArmored, material.publicKeyArmored, material.fingerprint,
+                    NativeOpenPgpUserIdChange.Add("Second <second@example.test>"), emptyList(), created,
+                ),
+            )
+            assertEquals(NativeOpenPgpUserIdMutationError.TIME_CONFLICT, retry.reason)
+            assertEquals(created + 1, retry.retryAtEpochSeconds)
+            val lastIdentity = assertIs<NativeOpenPgpUserIdRevocationResult.Error>(
+                NativeCrypto.openPgp.revokeUserId(
+                    material.privateKeyArmored, material.publicKeyArmored, material.fingerprint,
+                    parsed.userIdDetails.single().identityId, emptyList(), created + 1,
+                ),
+            )
+            assertEquals(NativeOpenPgpUserIdMutationError.LAST_USER_ID, lastIdentity.reason)
+            assertEquals(null, lastIdentity.retryAtEpochSeconds)
+        } finally {
+            material.privateKeyArmored.fill(0)
+            material.publicKeyArmored.fill(0)
+        }
+    }
+
+    @Test
+    fun mutationErrorsCarryExactRetryTimeAcrossAllOperations() {
+        val error = OpenPgpUserIdMutationErrorProto(OpenPgpUserIdMutationErrorReasonProto.TIME_CONFLICT, 123L)
+        val update = OpenPgpUserIdUpdateResultProto(OpenPgpUserIdUpdateErrorOutcomeProto(error))
+            .toPublicUserIdUpdateResult("update", FINGERPRINT)
+        val replace = OpenPgpUserIdReplacementResultProto(OpenPgpUserIdReplacementErrorOutcomeProto(error))
+            .toPublicUserIdReplacementResult(REPLACEMENT_OPERATION, FINGERPRINT)
+        val revoke = OpenPgpUserIdRevocationResultProto(OpenPgpUserIdRevocationErrorOutcomeProto(error))
+            .toPublicUserIdRevocationResult(REVOCATION_OPERATION, FINGERPRINT)
+        assertEquals(123L, assertIs<NativeOpenPgpUserIdUpdateResult.Error>(update).retryAtEpochSeconds)
+        assertEquals(123L, assertIs<NativeOpenPgpUserIdReplacementResult.Error>(replace).retryAtEpochSeconds)
+        assertEquals(123L, assertIs<NativeOpenPgpUserIdRevocationResult.Error>(revoke).retryAtEpochSeconds)
+    }
+
+    @Test
+    fun rejectsRetryTimesOnPermanentErrorsAndOutsideSignatureTimestampRange() {
+        val errors = listOf(
+            OpenPgpUserIdMutationErrorProto(OpenPgpUserIdMutationErrorReasonProto.POLICY_CONFLICT, 123L),
+            OpenPgpUserIdMutationErrorProto(OpenPgpUserIdMutationErrorReasonProto.TIME_CONFLICT, -1L),
+            OpenPgpUserIdMutationErrorProto(OpenPgpUserIdMutationErrorReasonProto.TIME_CONFLICT, 0L),
+            OpenPgpUserIdMutationErrorProto(OpenPgpUserIdMutationErrorReasonProto.TIME_CONFLICT, 0x1_0000_0000L),
+        )
+        errors.forEach { error ->
+            assertFailsWith<NativeCryptoException> {
+                OpenPgpUserIdUpdateResultProto(OpenPgpUserIdUpdateErrorOutcomeProto(error))
+                    .toPublicUserIdUpdateResult("update", FINGERPRINT)
+            }
+        }
+    }
+
+    @Test
+    fun updateResultRejectsMismatchedFingerprintAndErasesOwnedBuffers() {
+        val privateKey = byteArrayOf(1, 2)
+        val publicKey = byteArrayOf(3, 4)
+        val proto = OpenPgpUserIdUpdateResultProto(
+            OpenPgpUserIdUpdateSuccessOutcomeProto(
+                OpenPgpUserIdUpdateSuccessProto(
+                    keyMaterial = keyMaterial(privateKey, publicKey),
+                    certificateIndex = validCertificateIndex(),
+                    changed = true,
+                ),
+            ),
+        )
+        assertFailsWith<NativeCryptoException> {
+            proto.toPublicUserIdUpdateResult("open_pgp_user_id_update", "00".repeat(20))
+        }
+        assertTrue(privateKey.all { it == 0.toByte() })
+        assertTrue(publicKey.all { it == 0.toByte() })
+    }
+
+    @Test
     fun revocationResultUsesCertificateIndexAndTransfersOwnedBuffers() {
         val privateKey = byteArrayOf(1)
         val publicKey = byteArrayOf(2)
@@ -229,26 +321,26 @@ class NativeCryptoOpenPgpUserIdMutationValidationTest {
         val revocation =
             OpenPgpUserIdRevocationResultProto(
                 OpenPgpUserIdRevocationErrorOutcomeProto(
-                    OpenPgpUserIdRevocationErrorProto(
-                        OpenPgpUserIdRevocationErrorReasonProto.CERTIFICATE_REVOKED,
+                    OpenPgpUserIdMutationErrorProto(
+                        OpenPgpUserIdMutationErrorReasonProto.CERTIFICATE_REVOKED,
                     ),
                 ),
             ).toPublicUserIdRevocationResult(REVOCATION_OPERATION, FINGERPRINT)
         val replacement =
             OpenPgpUserIdReplacementResultProto(
                 OpenPgpUserIdReplacementErrorOutcomeProto(
-                    OpenPgpUserIdReplacementErrorProto(
-                        OpenPgpUserIdReplacementErrorReasonProto.UNSUPPORTED_SIGNING_HASH,
+                    OpenPgpUserIdMutationErrorProto(
+                        OpenPgpUserIdMutationErrorReasonProto.UNSUPPORTED_SIGNING_HASH,
                     ),
                 ),
             ).toPublicUserIdReplacementResult(REPLACEMENT_OPERATION, FINGERPRINT)
 
         assertEquals(
-            NativeOpenPgpUserIdRevocationError.CERTIFICATE_REVOKED,
+            NativeOpenPgpUserIdMutationError.CERTIFICATE_REVOKED,
             assertIs<NativeOpenPgpUserIdRevocationResult.Error>(revocation).reason,
         )
         assertEquals(
-            NativeOpenPgpUserIdReplacementError.UNSUPPORTED_SIGNING_HASH,
+            NativeOpenPgpUserIdMutationError.UNSUPPORTED_SIGNING_HASH,
             assertIs<NativeOpenPgpUserIdReplacementResult.Error>(replacement).reason,
         )
     }
@@ -258,14 +350,14 @@ class NativeCryptoOpenPgpUserIdMutationValidationTest {
         val replacement =
             OpenPgpUserIdReplacementResultProto(
                 OpenPgpUserIdReplacementErrorOutcomeProto(
-                    OpenPgpUserIdReplacementErrorProto(
-                        OpenPgpUserIdReplacementErrorReasonProto.POLICY_CONFLICT,
+                    OpenPgpUserIdMutationErrorProto(
+                        OpenPgpUserIdMutationErrorReasonProto.POLICY_CONFLICT,
                     ),
                 ),
             ).toPublicUserIdReplacementResult(REPLACEMENT_OPERATION, FINGERPRINT)
 
         assertEquals(
-            NativeOpenPgpUserIdReplacementError.POLICY_CONFLICT,
+            NativeOpenPgpUserIdMutationError.POLICY_CONFLICT,
             assertIs<NativeOpenPgpUserIdReplacementResult.Error>(replacement).reason,
         )
     }

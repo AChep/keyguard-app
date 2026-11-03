@@ -28,6 +28,7 @@ import com.artemchep.keyguard.provider.bitwarden.model.PasswordResult
 import com.artemchep.keyguard.provider.bitwarden.model.PreLogin
 import com.artemchep.keyguard.provider.bitwarden.model.TwoFactorProviderType
 import io.ktor.client.HttpClient
+import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.header
 import io.ktor.client.request.post
@@ -35,6 +36,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
+import io.ktor.http.ParametersBuilder
 import io.ktor.http.contentType
 import io.ktor.utils.io.InternalAPI
 import kotlinx.serialization.json.Json
@@ -78,7 +80,6 @@ suspend fun login(
     secrets to token
 }
 
-@OptIn(InternalAPI::class)
 private suspend fun internalLogin(
     base64Service: Base64Service,
     httpClient: HttpClient,
@@ -90,61 +91,101 @@ private suspend fun internalLogin(
     email: String,
     passwordKey: ByteArray,
 ): Login = httpClient
-    .post(env.identity.connect.token) {
-        val persona = CurrentPlatform
-            .let(BitwardenPersona::of)
+    .postConnectToken(
+        json = json,
+        env = env,
+        deviceId = deviceId,
+        twoFactorToken = twoFactorToken,
+        route = "get-token",
+        configure = {
+            // Official Bitwarden backend specifically checks for this header,
+            // which is just a base-64 string of an email.
+            val emailBase64 = base64Service
+                .encodeToString(email)
+                .let(base64Service::url)
+            header("Auth-Email", emailBase64)
+        },
+    ) { persona ->
+        val passwordBase64 = base64Service
+            .encodeToString(passwordKey)
+        append("grant_type", "password")
+        append("username", email)
+        append("password", passwordBase64)
+        append("client_id", persona.clientId)
+        // As per
+        // https://github.com/bitwarden/cli/issues/383#issuecomment-937819752
+        // the backdoor to a captcha is a client secret.
+        if (clientSecret != null) {
+            append("captchaResponse", clientSecret)
+        }
+    }
+    .toDomain()
 
+/**
+ * Exchanges the [grant] for a token, as this device and
+ * with the [twoFactorToken].
+ */
+internal suspend fun HttpClient.postConnectToken(
+    json: Json,
+    env: ServerEnv,
+    deviceId: String,
+    twoFactorToken: ServerTwoFactorToken?,
+    route: String,
+    configure: HttpRequestBuilder.() -> Unit = {},
+    grant: ParametersBuilder.(BitwardenPersona) -> Unit,
+): ConnectTokenResponse {
+    val persona = CurrentPlatform
+        .let(BitwardenPersona::of)
+    return post(env.identity.connect.token) {
         headers(env)
         header("device-type", persona.deviceType)
         header("cache-control", "no-store")
-        // Official Bitwarden backend specifically checks for this header,
-        // which is just a base-64 string of an email.
-        val emailBase64 = base64Service
-            .encodeToString(email)
-            .let(base64Service::url)
-        header("Auth-Email", emailBase64)
-        val passwordBase64 = base64Service
-            .encodeToString(passwordKey)
-        body = FormDataContent(
-            Parameters.build {
-                append("grant_type", "password")
-                append("username", email)
-                append("password", passwordBase64)
-                append("scope", "api offline_access")
-                append("client_id", persona.clientId)
-                // As per
-                // https://github.com/bitwarden/cli/issues/383#issuecomment-937819752
-                // the backdoor to a captcha is a client secret.
-                if (clientSecret != null) {
-                    append("captchaResponse", clientSecret)
-                }
-                append("deviceIdentifier", deviceId)
-                append("deviceType", persona.deviceType)
-                append("deviceName", persona.deviceName)
-
-                if (twoFactorToken?.provider == TwoFactorProviderType.EmailNewDevice) {
-                    append("newDeviceOtp", twoFactorToken.token)
-                } else if (twoFactorToken != null) {
-                    val providerEntity = TwoFactorProviderTypeEntity.of(twoFactorToken.provider)
-                    val providerId = json
-                        .encodeToString(providerEntity)
-                        .removeSurrounding("\"")
-                    // None of the 2FA methods should use the leading / trailing
-                    // whitespaces, so it's safe to trim them.
-                    //
-                    // https://github.com/AChep/keyguard-app/issues/99
-                    val token = twoFactorToken.token.trim()
-                    append("twoFactorProvider", providerId)
-                    append("twoFactorToken", token)
-                    append("twoFactorRemember", twoFactorToken.remember.int.toString())
-                }
-            },
+        configure()
+        setBody(
+            FormDataContent(
+                Parameters.build {
+                    grant(persona)
+                    append("scope", "api offline_access")
+                    appendDevice(persona, deviceId)
+                    appendTwoFactor(json, twoFactorToken)
+                },
+            ),
         )
 
-        attributes.put(routeAttribute, "get-token")
+        attributes.put(routeAttribute, route)
+    }.bodyOrApiException<ConnectTokenResponse>()
+}
+
+private fun ParametersBuilder.appendDevice(
+    persona: BitwardenPersona,
+    deviceId: String,
+) {
+    append("deviceIdentifier", deviceId)
+    append("deviceType", persona.deviceType)
+    append("deviceName", persona.deviceName)
+}
+
+private fun ParametersBuilder.appendTwoFactor(
+    json: Json,
+    twoFactorToken: ServerTwoFactorToken?,
+) {
+    if (twoFactorToken?.provider == TwoFactorProviderType.EmailNewDevice) {
+        append("newDeviceOtp", twoFactorToken.token)
+    } else if (twoFactorToken != null) {
+        val providerEntity = TwoFactorProviderTypeEntity.of(twoFactorToken.provider)
+        val providerId = json
+            .encodeToString(providerEntity)
+            .removeSurrounding("\"")
+        // None of the 2FA methods should use the leading / trailing
+        // whitespaces, so it's safe to trim them.
+        //
+        // https://github.com/AChep/keyguard-app/issues/99
+        val token = twoFactorToken.token.trim()
+        append("twoFactorProvider", providerId)
+        append("twoFactorToken", token)
+        append("twoFactorRemember", twoFactorToken.remember.int.toString())
     }
-    .bodyOrApiException<ConnectTokenResponse>()
-    .toDomain()
+}
 
 @OptIn(InternalAPI::class)
 suspend fun refresh(
@@ -277,7 +318,7 @@ private suspend fun preloginAt(
     .bodyOrApiException<AccountPreLoginResponse>()
     .toDomain(email)
 
-private fun generateSecrets(
+internal fun generateSecrets(
     cryptoGenerator: CryptoGenerator,
     password: String,
     hashConfig: PreLogin.Hash,
@@ -316,6 +357,23 @@ private fun generateSecrets(
     return PasswordResult(
         masterKey = masterKey,
         passwordKey = passwordKey,
+        encryptionKey = encryptionKey,
+        macKey = macKey,
+    )
+}
+
+/** A Key Connector stores the master key itself, so there is no password hash. */
+internal fun generateKeyConnectorSecrets(
+    cryptoGenerator: CryptoGenerator,
+    masterKey: ByteArray,
+): PasswordResult {
+    val (encryptionKey, macKey) = stretchMasterKey(
+        cryptoGenerator = cryptoGenerator,
+        key = masterKey,
+    )
+    return PasswordResult(
+        masterKey = masterKey,
+        passwordKey = ByteArray(0),
         encryptionKey = encryptionKey,
         macKey = macKey,
     )

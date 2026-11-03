@@ -1,0 +1,51 @@
+---
+interface Props {
+  href: string;
+}
+
+const { href } = Astro.props;
+---
+
+<div class="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm" data-pagefind-ignore data-agent-ignore>
+  <a href={href} class="text-primary hover:underline">View Markdown</a>
+  <button
+    type="button"
+    data-copy-markdown={href}
+    class="cursor-pointer text-primary hover:underline disabled:cursor-wait disabled:opacity-50"
+    hidden
+  >
+    Copy Markdown
+  </button>
+  <span role="status" class="text-on-surface-variant"></span>
+</div>
+
+<script>
+  async function loadMarkdown(href: string) {
+    const response = await fetch(href);
+    if (!response.ok || response.headers.get('content-type')?.includes('text/html')) {
+      throw new Error(`Markdown request failed: ${response.status}`);
+    }
+    return new Blob([await response.text()], { type: 'text/plain' });
+  }
+
+  for (const button of document.querySelectorAll<HTMLButtonElement>('[data-copy-markdown]')) {
+    if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') continue;
+    button.hidden = false;
+    button.addEventListener('click', async () => {
+      const status = button.parentElement!.querySelector('[role="status"]')!;
+      button.disabled = true;
+      status.textContent = '';
+      try {
+        // Start the write during the click: Safari requires user activation even
+        // when the clipboard data must first be fetched asynchronously.
+        const item = new ClipboardItem({ 'text/plain': loadMarkdown(button.dataset.copyMarkdown!) });
+        await navigator.clipboard.write([item]);
+        status.textContent = 'Markdown copied.';
+      } catch {
+        status.textContent = 'Copy failed. Open Markdown to copy it.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+  }
+</script>

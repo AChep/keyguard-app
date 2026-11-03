@@ -1,5 +1,6 @@
+use super::worker::Generation;
 use super::{
-    with_restartable_thread, CallbackDispatcher, CallbackRegistration, UnregisterResponse,
+    with_restartable_thread, CallbackDispatcher, CallbackRegistration,
     REGISTER_STATUS_INTERNAL_ERROR, REGISTER_STATUS_INVALID_SHORTCUT, REGISTER_STATUS_UNAVAILABLE,
 };
 use crate::ffi::HotKeyPressedCallback;
@@ -23,6 +24,9 @@ const MOD_NOREPEAT: Uint = 0x4000;
 const WM_APP: Uint = 0x8000;
 const WM_HOTKEY: Uint = 0x0312;
 const WM_KEYGUARD_HOTKEY: Uint = WM_APP + 1;
+// RegisterHotKey accepts application ids in 0x0000..=0xBFFF. Native ids are
+// reused once released; the registry id handed to the JVM never is.
+const MAX_NATIVE_ID: i32 = 0xBFFF;
 
 #[repr(C)]
 #[derive(Clone, Copy, Default)]
@@ -68,7 +72,7 @@ enum Command {
     },
     Unregister {
         id: i32,
-        response_tx: mpsc::Sender<UnregisterResponse>,
+        response_tx: mpsc::Sender<bool>,
     },
 }
 
@@ -109,8 +113,22 @@ impl<T> PendingQueue<T> {
 struct HotKeyThread {
     thread_id: Dword,
     commands: Arc<Mutex<PendingQueue<Command>>>,
-    callback_dispatcher: CallbackDispatcher,
+    generation: Arc<Generation>,
 }
+
+impl PartialEq for HotKeyThread {
+    fn eq(&self, other: &Self) -> bool {
+        Arc::ptr_eq(&self.generation, &other.generation)
+    }
+}
+
+struct RegisteredHotKey {
+    id: i32,
+    callback: CallbackRegistration,
+}
+
+/// Keyed by native id, which WM_HOTKEY carries in wParam.
+type Registrations = HashMap<i32, RegisteredHotKey>;
 
 static HOTKEY_THREAD: OnceLock<Mutex<Option<HotKeyThread>>> = OnceLock::new();
 
@@ -125,8 +143,11 @@ pub(crate) fn register(key_code: u32, modifiers: u32, callback: HotKeyPressedCal
     .unwrap_or(REGISTER_STATUS_INTERNAL_ERROR)
 }
 
-pub(crate) fn unregister(id: i32) -> bool {
+pub(crate) fn unregister(id: i32, owner: &Arc<Generation>) -> bool {
     with_restartable_thread(hotkey_thread_slot(), HotKeyThread::start, |thread| {
+        if !Arc::ptr_eq(owner, &thread.generation) {
+            return Some(false);
+        }
         thread.unregister(id)
     })
     .unwrap_or(false)
@@ -138,7 +159,8 @@ impl HotKeyThread {
         let commands_worker = Arc::clone(&commands);
         let callback_dispatcher = CallbackDispatcher::start("keyguard-hotkey-windows-callback")
             .ok_or(REGISTER_STATUS_INTERNAL_ERROR)?;
-        let callback_dispatcher_worker = callback_dispatcher.clone();
+        let generation = Generation::new(callback_dispatcher);
+        let worker_generation = generation.clone();
         let (ready_tx, ready_rx) = mpsc::sync_channel(1);
 
         thread::Builder::new()
@@ -159,8 +181,7 @@ impl HotKeyThread {
                     return;
                 }
 
-                let mut next_id = 1;
-                let mut callbacks = HashMap::<i32, CallbackRegistration>::new();
+                let mut registrations = Registrations::new();
                 loop {
                     // SAFETY: msg remains valid writable storage for the whole
                     // call. A null HWND selects this thread's messages, and the
@@ -173,14 +194,19 @@ impl HotKeyThread {
 
                     match msg.message {
                         WM_HOTKEY => {
-                            let id = msg.wParam as i32;
-                            if let Some(callback) = callbacks.get(&id) {
-                                let _ = callback_dispatcher_worker.dispatch(callback, id);
+                            if let Some(registered) = registrations.get(&(msg.wParam as i32)) {
+                                let _ = worker_generation
+                                    .dispatcher()
+                                    .dispatch(&registered.callback, registered.id);
                             }
                         }
 
                         WM_KEYGUARD_HOTKEY => {
-                            drain_commands(&commands_worker, &mut callbacks, &mut next_id);
+                            drain_commands(
+                                &commands_worker,
+                                &mut registrations,
+                                &worker_generation,
+                            );
                         }
 
                         _ => {}
@@ -190,14 +216,15 @@ impl HotKeyThread {
                 // Worker shutdown does not report a successful unregister to
                 // any foreign owner, so callbacks remain retained while queued
                 // invocations drain.
-                for id in callbacks.into_keys() {
-                    // SAFETY: Each id is still registered by this worker with a
-                    // null HWND, which denotes a thread-associated hotkey. The
-                    // call receives no Rust memory and the id is removed once.
+                for native_id in registrations.into_keys() {
+                    // SAFETY: Each native id is still registered by this worker
+                    // with a null HWND, which denotes a thread-associated
+                    // hotkey. The call receives no Rust memory.
                     unsafe {
-                        UnregisterHotKey(ptr::null_mut(), id);
+                        UnregisterHotKey(ptr::null_mut(), native_id);
                     }
                 }
+                worker_generation.stopped();
             })
             .map_err(|_| REGISTER_STATUS_INTERNAL_ERROR)?;
 
@@ -207,7 +234,7 @@ impl HotKeyThread {
         Ok(Self {
             thread_id,
             commands,
-            callback_dispatcher,
+            generation,
         })
     }
 
@@ -236,8 +263,7 @@ impl HotKeyThread {
             return None;
         }
 
-        let response = response_rx.recv().ok()?;
-        Some(self.callback_dispatcher.complete_unregister(response))
+        response_rx.recv().ok()
     }
 
     fn enqueue(&self, command: Command) -> bool {
@@ -259,8 +285,8 @@ impl HotKeyThread {
 
 fn drain_commands(
     commands: &Mutex<PendingQueue<Command>>,
-    callbacks: &mut HashMap<i32, CallbackRegistration>,
-    next_id: &mut i32,
+    registrations: &mut Registrations,
+    generation: &Arc<Generation>,
 ) {
     loop {
         let command = {
@@ -280,7 +306,6 @@ fn drain_commands(
                 callback,
                 response_tx,
             } => {
-                let id = *next_id;
                 if key_code == 0 {
                     let _ = response_tx.send(REGISTER_STATUS_INVALID_SHORTCUT);
                     continue;
@@ -290,48 +315,63 @@ fn drain_commands(
                     let _ = response_tx.send(REGISTER_STATUS_INTERNAL_ERROR);
                     continue;
                 };
-                if id <= 0 {
+                let Some(native_id) = free_native_id(registrations) else {
                     let _ = response_tx.send(REGISTER_STATUS_INTERNAL_ERROR);
+                    continue;
+                };
+                let id = match generation.allocate_id() {
+                    Ok(id) => id,
+                    Err(error) => {
+                        let _ = response_tx.send(error);
+                        continue;
+                    }
+                };
+
+                // SAFETY: native_id is in RegisterHotKey's application range and
+                // unused by this worker, key_code was checked nonzero, and a
+                // null HWND requests a hotkey owned by the current message-loop
+                // thread. All inputs are scalars.
+                let ok = unsafe {
+                    RegisterHotKey(
+                        ptr::null_mut(),
+                        native_id,
+                        register_modifiers(modifiers),
+                        key_code,
+                    ) != 0
+                };
+                if !ok {
+                    let _ = response_tx.send(REGISTER_STATUS_UNAVAILABLE);
                     continue;
                 }
 
-                // SAFETY: id is positive and unique in this worker, key_code
-                // was checked nonzero, and a null HWND requests a hotkey owned
-                // by the current message-loop thread. All inputs are scalars.
-                let ok = unsafe {
-                    RegisterHotKey(ptr::null_mut(), id, register_modifiers(modifiers), key_code)
-                        != 0
-                };
-                if ok {
-                    callbacks.insert(id, callback);
-                    *next_id += 1;
-                    let _ = response_tx.send(id);
-                } else {
-                    let _ = response_tx.send(REGISTER_STATUS_UNAVAILABLE);
-                }
+                generation.insert(id, callback.clone());
+                registrations.insert(native_id, RegisteredHotKey { id, callback });
+                let _ = response_tx.send(id);
             }
 
             Command::Unregister { id, response_tx } => {
-                let Some(callback) = callbacks.get(&id).cloned() else {
-                    let _ = response_tx.send(UnregisterResponse::Unchanged);
+                let Some((&native_id, _)) = registrations
+                    .iter()
+                    .find(|(_, registered)| registered.id == id)
+                else {
+                    let _ = response_tx.send(false);
                     continue;
                 };
 
-                // SAFETY: The callbacks map proves id is currently registered
-                // by this worker with a null HWND; it is removed only when this
-                // matching UnregisterHotKey call succeeds.
-                let ok = unsafe { UnregisterHotKey(ptr::null_mut(), id) != 0 };
+                // SAFETY: The registrations map proves native_id is currently
+                // registered by this worker with a null HWND; it is removed only
+                // when this matching UnregisterHotKey call succeeds.
+                let ok = unsafe { UnregisterHotKey(ptr::null_mut(), native_id) != 0 };
                 if ok {
-                    callbacks.remove(&id);
                     // Retire before reporting success so queued invocations
                     // skip this callback. The caller waits for an active
-                    // invocation after receiving the response, leaving this
-                    // worker free to process commands submitted reentrantly.
-                    callback.retire();
-                    let _ = response_tx.send(UnregisterResponse::Removed(callback));
-                } else {
-                    let _ = response_tx.send(UnregisterResponse::Unchanged);
+                    // invocation, leaving this worker free to process commands
+                    // submitted reentrantly.
+                    if let Some(registered) = registrations.remove(&native_id) {
+                        registered.callback.retire();
+                    }
                 }
+                let _ = response_tx.send(ok);
             }
         }
     }
@@ -341,9 +381,14 @@ fn register_modifiers(modifiers: u32) -> Uint {
     modifiers | MOD_NOREPEAT
 }
 
+fn free_native_id<T>(used: &HashMap<i32, T>) -> Option<i32> {
+    (1..=MAX_NATIVE_ID).find(|id| !used.contains_key(id))
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{register_modifiers, PendingQueue, MOD_NOREPEAT};
+    use super::{free_native_id, register_modifiers, PendingQueue, MAX_NATIVE_ID, MOD_NOREPEAT};
+    use std::collections::HashMap;
 
     #[test]
     fn register_modifiers_adds_no_repeat_flag() {
@@ -351,6 +396,14 @@ mod tests {
             0x0002 | 0x0004 | MOD_NOREPEAT,
             register_modifiers(0x0002 | 0x0004)
         );
+    }
+
+    #[test]
+    fn native_ids_reuse_released_slots_within_the_api_range() {
+        assert_eq!(Some(1), free_native_id(&HashMap::<i32, ()>::new()));
+        assert_eq!(Some(2), free_native_id(&HashMap::from([(1, 10), (3, 11)])));
+        let full = (1..=MAX_NATIVE_ID).map(|id| (id, id)).collect();
+        assert_eq!(None, free_native_id(&full));
     }
 
     #[test]

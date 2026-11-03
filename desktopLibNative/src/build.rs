@@ -2,12 +2,14 @@ fn main() {
     println!("cargo:rerun-if-changed=build.rs");
     println!("cargo:rerun-if-changed=objc/desktop_lib.m");
     println!("cargo:rerun-if-changed=objc/autotype.m");
+    println!("cargo:rerun-if-changed=objc/file_promise.m");
     println!("cargo:rerun-if-changed=objc/main_thread.h");
 
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("macos") {
         cc::Build::new()
             .file("objc/desktop_lib.m")
             .file("objc/autotype.m")
+            .file("objc/file_promise.m")
             .flag("-x")
             .flag("objective-c")
             .flag("-fobjc-arc")
@@ -21,6 +23,7 @@ fn main() {
         println!("cargo:rustc-link-lib=framework=LocalAuthentication");
         println!("cargo:rustc-link-lib=framework=Security");
         println!("cargo:rustc-link-lib=framework=UserNotifications");
+        println!("cargo:rustc-link-lib=framework=UniformTypeIdentifiers");
         println!("cargo:rustc-link-lib=objc");
     }
 }

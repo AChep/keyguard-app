@@ -5,7 +5,7 @@
 //! independently authenticated chunks under a fresh, memory-only key.
 
 use super::{AwsLcRng, OPENPGP_PARTIAL_PACKET_BYTES, OpenPgpWriteError};
-use crate::{primitives::chacha20_poly1305_in_place, protocol::CipherDirection};
+use crate::primitives::{CipherOperation, chacha20_poly1305_in_place};
 use rand::RngCore;
 use std::{
     fs::File,
@@ -108,7 +108,7 @@ impl EncryptedSpill {
         let mut encrypted = Zeroizing::new(Vec::with_capacity(bytes.len() + TAG_BYTES));
         encrypted.extend_from_slice(bytes);
         chacha20_poly1305_in_place(
-            CipherDirection::Encrypt,
+            CipherOperation::Encrypt,
             self.key.as_ref(),
             &nonce(self.chunks),
             DOMAIN,
@@ -187,7 +187,7 @@ impl Read for AuthenticatedReplay {
                     buffer.resize(length + TAG_BYTES, 0);
                     spill.file.read_exact(buffer)?;
                     chacha20_poly1305_in_place(
-                        CipherDirection::Decrypt,
+                        CipherOperation::Decrypt,
                         spill.key.as_ref(),
                         &nonce(*index),
                         DOMAIN,

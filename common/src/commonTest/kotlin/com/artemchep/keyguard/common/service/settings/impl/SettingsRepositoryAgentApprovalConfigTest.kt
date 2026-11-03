@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.settings.impl
 
 import com.artemchep.keyguard.common.io.bind
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_WINDOW_NEVER_ASK
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
@@ -53,8 +54,21 @@ class SettingsRepositoryAgentApprovalConfigTest {
         assertEquals(initial.revision + 2L, restored.revision)
     }
 
-    private fun createRepository() = SettingsRepositoryImpl(
-        store = JsonKeyValueStore(),
+    @Test
+    fun `never ask window is persisted`() = runTest {
+        val store = JsonKeyValueStore()
+        createRepository(store)
+            .setSshAgentApprovalWindow(AGENT_APPROVAL_WINDOW_NEVER_ASK)
+            .bind()
+
+        val reloaded = createRepository(store).getSshAgentApprovalCacheConfig().get()
+        assertEquals(AGENT_APPROVAL_WINDOW_NEVER_ASK, reloaded.approvalWindow)
+    }
+
+    private fun createRepository(
+        store: JsonKeyValueStore = JsonKeyValueStore(),
+    ) = SettingsRepositoryImpl(
+        store = store,
         json = Json,
         base64Service = Base64ServiceImpl(),
     )

@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.ShapeState
+import com.artemchep.keyguard.feature.agent.history.AgentHistoryDetails
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
@@ -25,12 +26,14 @@ sealed interface CliAgentHistoryItem {
         val caller: String,
         val description: String,
         /** The command line and its directory, or the path of a local `.env` file. */
-        val details: String?,
+        val commandText: String?,
         val formattedDate: String,
         val responseText: String,
         val request: CliAgentUsageHistoryRequestType,
         val response: CliAgentUsageHistoryResponseType,
         val createdAt: Instant,
+        val details: AgentHistoryDetails,
+        val onClick: (() -> Unit)? = null,
         val shapeState: Int = ShapeState.ALL,
     ) : CliAgentHistoryItem, GroupableShapeItem<Value> {
         override fun withShape(shape: Int) = copy(shapeState = shape)

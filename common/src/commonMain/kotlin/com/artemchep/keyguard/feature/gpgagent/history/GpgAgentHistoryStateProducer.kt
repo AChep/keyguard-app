@@ -16,6 +16,8 @@ import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveGpgUsageHistory
 import com.artemchep.keyguard.feature.agent.decodeAgentUsageHistoryCallerInfo
+import com.artemchep.keyguard.feature.agent.history.AgentHistoryDetails
+import com.artemchep.keyguard.feature.agent.history.navigateToAgentHistoryDetails
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.decorator.ItemDecoratorDate
@@ -168,6 +170,7 @@ suspend fun RememberStateFlowScope.gpgAgentHistoryStateProducer(
                     ciphersById = ciphersById,
                     dateFormatter = dateFormatter,
                     json = json,
+                    onClick = { navigateToAgentHistoryDetails(it) },
                 )
             }
 
@@ -214,6 +217,7 @@ private suspend fun TranslatorScope.toItem(
     ciphersById: Map<String, DSecret>,
     dateFormatter: DateFormatter,
     json: Json,
+    onClick: (AgentHistoryDetails) -> Unit,
 ): GpgAgentHistoryItem.Value {
     val cipher = event.cipherId?.let(ciphersById::get)
     val requestText = title(event.request)
@@ -245,8 +249,18 @@ private suspend fun TranslatorScope.toItem(
             ?.let(::add)
     }.joinToString(separator = " • ")
 
+    val id = "gpg_history.${event.id.orEmpty()}"
+    val historyDetails = gpgAgentHistoryDetails(
+        id = id,
+        event = event,
+        cipher = cipher,
+        requestText = requestText,
+        responseText = responseText,
+        formattedDate = formattedDate,
+        json = json,
+    )
     return GpgAgentHistoryItem.Value(
-        id = "gpg_history.${event.id.orEmpty()}",
+        id = id,
         caller = callerText,
         description = details,
         formattedDate = formattedDate,
@@ -254,6 +268,10 @@ private suspend fun TranslatorScope.toItem(
         request = event.request,
         response = event.response,
         createdAt = event.instant,
+        details = historyDetails,
+        onClick = {
+            onClick(historyDetails)
+        },
     )
 }
 

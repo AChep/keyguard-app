@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.apple.gpgagent
 
+import com.artemchep.keyguard.apple.lists.testAgentHistoryDetails
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.feature.gpgagent.history.GpgAgentHistoryItem
@@ -33,6 +34,8 @@ class GpgAgentHistorySnapshotTest {
         assertEquals("AGENT_DECRYPT", snapshot.items[2].request)
         assertEquals("USER_DENIED", snapshot.items[2].response)
         assertEquals("VAULT_LOCKED", snapshot.items[3].response)
+        assertNull(snapshot.items[0].details)
+        assertEquals("Request", snapshot.items[1].details?.title)
         assertFalse(snapshot.canClear)
         assertEquals(GpgAgentHistorySnapshot.empty, null.toHistorySnapshot())
     }
@@ -47,5 +50,6 @@ class GpgAgentHistorySnapshotTest {
             request = request,
             response = response,
             createdAt = Instant.fromEpochMilliseconds(0),
+            details = testAgentHistoryDetails(id),
         )
 }

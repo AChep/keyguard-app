@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.apple.gpgagent
 
+import com.artemchep.keyguard.apple.lists.AgentHistoryDetailsSnapshot
 import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
 import com.artemchep.keyguard.apple.model.VaultFilterItemSnapshot
 
@@ -77,6 +78,8 @@ data class GpgAgentHistoryItemSnapshot(
     val responseText: String,
     val request: String?,
     val response: String?,
+    /** The details sheet of a VALUE row. */
+    val details: AgentHistoryDetailsSnapshot? = null,
 )
 
 data class GpgAgentHistorySnapshot(

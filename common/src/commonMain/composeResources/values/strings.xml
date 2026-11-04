@@ -1358,6 +1358,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Unknown caller</string>
     <string name="agent_history_unknown_key">Unknown key</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">All accessible keys</string>
     <string name="agent_history_clear_history_title">Clear history</string>
     <string name="agent_history_clear_history_confirmation_title">Clear <xliff:g id="protocol" example="SSH">%1$s</xliff:g> agent history?</string>

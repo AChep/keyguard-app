@@ -99,6 +99,7 @@ internal class ReadOnlyListsController(
                     date = item.formattedDate,
                     responseText = item.responseText,
                     response = item.response.name,
+                    details = item.details.toSnapshot(),
                 )
             }
         }
@@ -595,7 +596,7 @@ internal fun CliAgentHistoryState?.toHistorySnapshot(): CliAgentHistorySnapshot 
                 kind = CliAgentHistoryItemKind.SECTION,
                 caller = item.text.orEmpty(),
                 description = "",
-                details = null,
+                commandText = null,
                 date = null,
                 responseText = "",
                 response = null,
@@ -606,10 +607,11 @@ internal fun CliAgentHistoryState?.toHistorySnapshot(): CliAgentHistorySnapshot 
                 kind = CliAgentHistoryItemKind.VALUE,
                 caller = item.caller,
                 description = item.description,
-                details = item.details,
+                commandText = item.commandText,
                 date = item.formattedDate,
                 responseText = item.responseText,
                 response = item.response.name,
+                details = item.details.toSnapshot(),
             )
         }
     }

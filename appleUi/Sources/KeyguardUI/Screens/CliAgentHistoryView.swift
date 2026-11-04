@@ -7,6 +7,7 @@ struct CliAgentHistoryView: View {
     let clear: () -> Void
 
     @State private var confirmingClear = false
+    @State private var presentedItem: ListDetailSheetItem?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -35,6 +36,17 @@ struct CliAgentHistoryView: View {
         } message: {
             Text(L10n.cliAgentHistoryClearHistoryConfirmationText)
         }
+        .sheet(item: $presentedItem) { presented in
+            if let details = snapshot.items.first(where: { $0.id == presented.id })?.details {
+                AgentHistoryDetailSheet(details: details)
+            }
+        }
+        .onChange(of: snapshot.items.map(\.id)) { _, ids in
+            // The row is gone, e.g. the log was cleared.
+            if let presentedItem, !ids.contains(presentedItem.id) {
+                self.presentedItem = nil
+            }
+        }
     }
 
     private var list: some View {
@@ -49,12 +61,27 @@ struct CliAgentHistoryView: View {
             ) { section in
                 if let title = section.title {
                     Section(title) {
-                        ForEach(section.items, id: \.id) { row($0) }
+                        ForEach(section.items, id: \.id) { rowEntry($0) }
                     }
                 } else {
-                    ForEach(section.items, id: \.id) { row($0) }
+                    ForEach(section.items, id: \.id) { rowEntry($0) }
                 }
             }
+        }
+    }
+
+    @ViewBuilder
+    private func rowEntry(_ item: CliAgentHistoryItemSnapshot) -> some View {
+        if item.details != nil {
+            Button {
+                presentedItem = ListDetailSheetItem(id: item.id)
+            } label: {
+                row(item)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+        } else {
+            row(item)
         }
     }
 
@@ -76,8 +103,8 @@ struct CliAgentHistoryView: View {
                         .lineLimit(2)
                 }
                 // The command line and its directory, or the path of a local .env file.
-                if let details = item.details, !details.isEmpty {
-                    Text(details)
+                if let commandText = item.commandText, !commandText.isEmpty {
+                    Text(commandText)
                         .font(.caption.monospaced())
                         .foregroundStyle(.secondary)
                         .lineLimit(4)

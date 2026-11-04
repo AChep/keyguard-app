@@ -3,6 +3,9 @@ package com.artemchep.keyguard.apple.lists
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
+import com.artemchep.keyguard.feature.agent.history.AgentHistoryDetails
+import com.artemchep.keyguard.feature.agent.history.AgentHistoryDetailsIcon
+import com.artemchep.keyguard.feature.agent.history.AgentHistoryOutcome
 import com.artemchep.keyguard.feature.cliagent.history.CliAgentHistoryItem
 import com.artemchep.keyguard.feature.cliagent.history.CliAgentHistoryState
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -27,7 +30,7 @@ class CliAgentHistorySnapshotTest {
                     id = "run",
                     request = CliAgentUsageHistoryRequestType.RUN,
                     response = CliAgentUsageHistoryResponseType.SUCCESS,
-                    details = "npm test\nIn /home/user/project",
+                    commandText = "npm test\nIn /home/user/project",
                 ),
                 item(
                     id = "list",
@@ -38,7 +41,7 @@ class CliAgentHistorySnapshotTest {
                     id = "read",
                     request = CliAgentUsageHistoryRequestType.READ_LOCAL_ENV_FILE,
                     response = CliAgentUsageHistoryResponseType.CANCELLED,
-                    details = "/home/user/project/.env",
+                    commandText = "/home/user/project/.env",
                 ),
             ),
         )
@@ -47,15 +50,17 @@ class CliAgentHistorySnapshotTest {
         assertEquals("Command line", snapshot.subtitle)
         assertEquals(CliAgentHistoryItemKind.SECTION, snapshot.items[0].kind)
         assertEquals("Today", snapshot.items[0].caller)
-        assertNull(snapshot.items[0].details)
+        assertNull(snapshot.items[0].commandText)
         assertNull(snapshot.items[0].response)
         assertEquals(CliAgentHistoryItemKind.VALUE, snapshot.items[1].kind)
         assertEquals("SUCCESS", snapshot.items[1].response)
-        assertEquals("npm test\nIn /home/user/project", snapshot.items[1].details)
+        assertEquals("npm test\nIn /home/user/project", snapshot.items[1].commandText)
         assertEquals("USER_DENIED", snapshot.items[2].response)
-        assertNull(snapshot.items[2].details)
+        assertNull(snapshot.items[2].commandText)
         assertEquals("CANCELLED", snapshot.items[3].response)
-        assertEquals("/home/user/project/.env", snapshot.items[3].details)
+        assertEquals("/home/user/project/.env", snapshot.items[3].commandText)
+        assertNull(snapshot.items[0].details)
+        assertEquals("Request", snapshot.items[1].details?.title)
         assertFalse(snapshot.canClear)
         assertEquals(CliAgentHistorySnapshot.empty, null.toHistorySnapshot())
     }
@@ -94,16 +99,28 @@ class CliAgentHistorySnapshotTest {
         id: String,
         request: CliAgentUsageHistoryRequestType,
         response: CliAgentUsageHistoryResponseType,
-        details: String? = null,
+        commandText: String? = null,
     ) = CliAgentHistoryItem.Value(
         id = id,
         caller = "Terminal",
         description = "Run a command • Production",
-        details = details,
+        commandText = commandText,
         formattedDate = "12:00",
         responseText = response.name,
         request = request,
         response = response,
         createdAt = Instant.fromEpochMilliseconds(0),
+        details = testAgentHistoryDetails(id),
     )
 }
+
+internal fun testAgentHistoryDetails(id: String) = AgentHistoryDetails(
+    id = id,
+    icon = AgentHistoryDetailsIcon.UNKNOWN,
+    title = "Request",
+    outcome = AgentHistoryOutcome.NEUTRAL,
+    outcomeText = "Unknown",
+    formattedDate = "12:00",
+    sections = emptyList(),
+)
+

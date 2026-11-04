@@ -9,6 +9,7 @@ import com.artemchep.keyguard.common.model.CliAgentUsageHistoryMode
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.DCliAgentUsageHistory
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.agent.MAX_AGENT_CALLER_NAME_LENGTH
 import com.artemchep.keyguard.common.service.agent.sanitizedAgentDisplayValue
@@ -17,6 +18,8 @@ import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveCliAgentUsageHistory
 import com.artemchep.keyguard.feature.agent.decodeAgentUsageHistoryCallerInfo
+import com.artemchep.keyguard.feature.agent.history.AgentHistoryDetails
+import com.artemchep.keyguard.feature.agent.history.navigateToAgentHistoryDetails
 import com.artemchep.keyguard.feature.cli.MAX_CLI_COMMAND_DISPLAY_LENGTH
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
@@ -113,11 +116,13 @@ suspend fun RememberStateFlowScope.cliAgentHistoryStateProducer(
         ?: CliAgentUsageHistoryMode.Recent(client ?: CliAgentUsageHistoryClient.UNKNOWN)
     val historyFlow = getCliAgentUsageHistory(mode)
         .shareInScreenScope()
-    // The rows show only the names of the environments, so a change of
-    // anything else in the vault does not rebuild them.
-    val cipherNamesFlow = getCiphers()
+    // The rows show only environments, so a change of any
+    // other item in the vault does not rebuild them.
+    val environmentsFlow = getCiphers()
         .map { ciphers ->
-            ciphers.associate { it.id to it.name }
+            ciphers
+                .filter { it.type == DSecret.Type.Environment }
+                .associateBy { it.id }
         }
         .distinctUntilChanged()
         .shareInScreenScope()
@@ -158,8 +163,8 @@ suspend fun RememberStateFlowScope.cliAgentHistoryStateProducer(
         .distinctUntilChanged()
 
     val subtitleFlow = when (mode) {
-        is CliAgentUsageHistoryMode.Cipher -> cipherNamesFlow
-            .map { cipherNames -> cipherNames[mode.cipherId] }
+        is CliAgentUsageHistoryMode.Cipher -> environmentsFlow
+            .map { environments -> environments[mode.cipherId]?.name }
             .distinctUntilChanged()
 
         is CliAgentUsageHistoryMode.Recent -> flowOf(title(mode.client))
@@ -170,9 +175,10 @@ suspend fun RememberStateFlowScope.cliAgentHistoryStateProducer(
         optionsFlow,
         itemsFlow(
             historyFlow = historyFlow,
-            cipherNamesFlow = cipherNamesFlow,
+            environmentsFlow = environmentsFlow,
             dateFormatter = dateFormatter,
             json = json,
+            onClick = { navigateToAgentHistoryDetails(it) },
         ),
     ) { subtitle, options, items ->
         val state = CliAgentHistoryState(
@@ -187,20 +193,22 @@ suspend fun RememberStateFlowScope.cliAgentHistoryStateProducer(
 /** The rows of the [historyFlow], newest first, under a header for each day. */
 private fun TranslatorScope.itemsFlow(
     historyFlow: Flow<List<DCliAgentUsageHistory>>,
-    cipherNamesFlow: Flow<Map<String, String>>,
+    environmentsFlow: Flow<Map<String, DSecret>>,
     dateFormatter: DateFormatter,
     json: Json,
+    onClick: (AgentHistoryDetails) -> Unit,
 ): Flow<ImmutableList<CliAgentHistoryItem>> = combine(
     historyFlow,
-    cipherNamesFlow,
-) { history, cipherNames ->
+    environmentsFlow,
+) { history, environments ->
     val values = history
         .map { event ->
             toItem(
                 event = event,
-                cipherNames = cipherNames,
+                environments = environments,
                 dateFormatter = dateFormatter,
                 json = json,
+                onClick = onClick,
             )
         }
 
@@ -230,10 +238,12 @@ private fun TranslatorScope.itemsFlow(
 
 private suspend fun TranslatorScope.toItem(
     event: DCliAgentUsageHistory,
-    cipherNames: Map<String, String>,
+    environments: Map<String, DSecret>,
     dateFormatter: DateFormatter,
     json: Json,
+    onClick: (AgentHistoryDetails) -> Unit,
 ): CliAgentHistoryItem.Value {
+    val environment = event.cipherId?.let(environments::get)
     val callerInfo = decodeAgentUsageHistoryCallerInfo(
         caller = event.caller,
         json = json,
@@ -247,17 +257,51 @@ private suspend fun TranslatorScope.toItem(
     val clientNameText = event.clientName
         .sanitizedAgentDisplayValue(MAX_AGENT_CALLER_NAME_LENGTH)
         ?.let { translate(Res.string.environments_approval_client, it) }
+    val requestText = title(event.request)
     val description = buildCliAgentUsageHistoryDescription(
-        request = title(event.request),
-        environment = event.cipherId?.let(cipherNames::get),
+        request = requestText,
+        environment = environment?.name,
         clientName = clientNameText,
         caller = callerInfo?.secondaryLabel,
         errorCode = event.errorCode
             .sanitizedAgentDisplayValue(MAX_AGENT_CALLER_NAME_LENGTH),
     )
+    val id = "cli_agent_history.${event.id.orEmpty()}"
+    val responseText = title(event.response)
+    val formattedDate = dateFormatter.formatDateTime(event.instant)
+    val historyDetails = cliAgentHistoryDetails(
+        id = id,
+        event = event,
+        cipher = environment,
+        requestText = requestText,
+        responseText = responseText,
+        formattedDate = formattedDate,
+        json = json,
+    )
+    return CliAgentHistoryItem.Value(
+        id = id,
+        caller = callerText,
+        description = description,
+        commandText = commandText(event),
+        formattedDate = formattedDate,
+        responseText = responseText,
+        request = event.request,
+        response = event.response,
+        createdAt = event.instant,
+        details = historyDetails,
+        onClick = {
+            onClick(historyDetails)
+        },
+    )
+}
+
+/** The command line and its directory, or the path of a local `.env` file. */
+private suspend fun TranslatorScope.commandText(
+    event: DCliAgentUsageHistory,
+): String? {
     val path = event.path
         .sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH)
-    val details = buildCliAgentUsageHistoryDetails(
+    return buildCliAgentUsageHistoryDetails(
         command = event.command
             .sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH),
         path = when (event.request) {
@@ -266,17 +310,6 @@ private suspend fun TranslatorScope.toItem(
 
             else -> path
         },
-    )
-    return CliAgentHistoryItem.Value(
-        id = "cli_agent_history.${event.id.orEmpty()}",
-        caller = callerText,
-        description = description,
-        details = details,
-        formattedDate = dateFormatter.formatDateTime(event.instant),
-        responseText = title(event.response),
-        request = event.request,
-        response = event.response,
-        createdAt = event.instant,
     )
 }
 

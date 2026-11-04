@@ -17,11 +17,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
-import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptyView
+import com.artemchep.keyguard.feature.agent.history.contentColor
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -38,7 +38,6 @@ import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.skeleton.SkeletonSection
 import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import kotlinx.collections.immutable.ImmutableList
@@ -247,19 +246,12 @@ private fun GpgAgentHistoryValueItem(
                 overflow = TextOverflow.Ellipsis,
             )
         },
+        onClick = item.onClick,
         enabled = true,
     )
 }
 
 @Composable
-private fun GpgAgentHistoryItem.Value.responseColor() = when (response) {
-    GpgUsageHistoryResponseType.SUCCESS -> MaterialTheme.colorScheme.ok
-    GpgUsageHistoryResponseType.USER_DENIED,
-    GpgUsageHistoryResponseType.KEY_NOT_FOUND,
-    GpgUsageHistoryResponseType.VAULT_LOCKED,
-    GpgUsageHistoryResponseType.UNSUPPORTED,
-    GpgUsageHistoryResponseType.FAILURE,
-        -> MaterialTheme.colorScheme.error
-
-    GpgUsageHistoryResponseType.UNKNOWN -> MaterialTheme.colorScheme.onSurface
-}
+private fun GpgAgentHistoryItem.Value.responseColor() = response
+    .outcome()
+    .contentColor()

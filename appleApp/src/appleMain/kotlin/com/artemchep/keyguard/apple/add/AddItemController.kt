@@ -490,7 +490,9 @@ internal class AddItemController(
                     switches = switchHandlers,
                     actions = actionHandlers,
                     totpScan = totpScanHandlers,
-                    formFileDrop = model.fileDrag?.onFileDrop.takeUnless { saving },
+                    formFileDrop = model.fileDrag?.onFilesDrop
+                        ?.let { onFilesDrop -> { file: FilePickerResult -> onFilesDrop(listOf(file)) } }
+                        .takeUnless { saving },
                     itemFileDrop = fileDropHandlers.takeUnless { saving }.orEmpty(),
                     keyTargets = targets.takeUnless { saving }.orEmpty(),
                     save = model.onSave.takeUnless { saving },

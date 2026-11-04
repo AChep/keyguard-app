@@ -19,10 +19,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
-import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptyView
+import com.artemchep.keyguard.feature.agent.history.contentColor
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -37,7 +37,6 @@ import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.skeleton.SkeletonSection
 import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import com.artemchep.keyguard.ui.theme.ok
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import kotlinx.collections.immutable.ImmutableList
@@ -245,18 +244,12 @@ private fun SshAgentHistoryValueItem(
                 overflow = TextOverflow.Ellipsis,
             )
         },
+        onClick = item.onClick,
         enabled = true,
     )
 }
 
 @Composable
-private fun SshAgentHistoryItem.Value.responseColor() = when (response) {
-    SshUsageHistoryResponseType.SUCCESS -> MaterialTheme.colorScheme.ok
-    SshUsageHistoryResponseType.USER_DENIED,
-    SshUsageHistoryResponseType.KEY_NOT_FOUND,
-    SshUsageHistoryResponseType.FAILURE,
-    SshUsageHistoryResponseType.VAULT_LOCKED,
-        -> MaterialTheme.colorScheme.error
-
-    SshUsageHistoryResponseType.UNKNOWN -> MaterialTheme.colorScheme.onSurface
-}
+private fun SshAgentHistoryItem.Value.responseColor() = response
+    .outcome()
+    .contentColor()

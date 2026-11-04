@@ -233,6 +233,11 @@ final class NavigationModel: SnapshotObserving {
         core.pushAccountDetail(accountId: accountId)
     }
 
+    /// Opens a `keyguard://` deep link, switching to the section it belongs to.
+    func openDeepLink(_ url: String) {
+        core.handleDeepLink(url: url)
+    }
+
     func setEntryFeedbackMessage(instanceId: Int64, text: String) {
         core.setEntryFeedbackMessage(instanceId: instanceId, text: text)
     }

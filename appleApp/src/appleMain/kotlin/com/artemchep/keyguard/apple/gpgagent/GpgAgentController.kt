@@ -5,6 +5,7 @@ import com.artemchep.keyguard.apple.core.AgentFiltersSession
 import com.artemchep.keyguard.apple.core.AgentFiltersSnapshot
 import com.artemchep.keyguard.apple.core.agentFiltersFrame
 import com.artemchep.keyguard.apple.core.CoreContext
+import com.artemchep.keyguard.apple.lists.toSnapshot
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.completeOnPop
@@ -434,6 +435,7 @@ internal fun GpgAgentHistoryState?.toHistorySnapshot(): GpgAgentHistorySnapshot 
                 responseText = item.responseText,
                 request = item.request.name,
                 response = item.response.name,
+                details = item.details.toSnapshot(),
             )
         }
     }

@@ -88,6 +88,8 @@ data class SshAgentHistoryItemSnapshot(
     val date: String?,
     val responseText: String,
     val response: String?,
+    /** The details sheet of a VALUE row. */
+    val details: AgentHistoryDetailsSnapshot? = null,
 )
 
 data class SshAgentHistorySnapshot(
@@ -107,7 +109,7 @@ enum class CliAgentHistoryItemKind {
 
 /**
  * For SECTION headers only [caller] (the date label) is set. For VALUE rows [caller] is the requesting client,
- * [description] the request details line, [details] the command line and its directory or the path of a
+ * [description] the request details line, [commandText] the command line and its directory or the path of a
  * local `.env` file (may span lines), and [response] the uppercase
  * [com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType] name.
  */
@@ -116,10 +118,12 @@ data class CliAgentHistoryItemSnapshot(
     val kind: CliAgentHistoryItemKind,
     val caller: String,
     val description: String,
-    val details: String?,
+    val commandText: String?,
     val date: String?,
     val responseText: String,
     val response: String?,
+    /** The details sheet of a VALUE row. */
+    val details: AgentHistoryDetailsSnapshot? = null,
 )
 
 /** [canClear] is true only for a client's log that has rows. */

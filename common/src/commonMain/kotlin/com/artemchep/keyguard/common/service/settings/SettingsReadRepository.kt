@@ -168,6 +168,8 @@ interface SettingsReadRepository {
 
     fun getGpgKeyserverLastRefresh(): Flow<Instant?>
 
+    fun getAgentHistoryRetention(): Flow<Duration>
+
     fun getAppVersionLog(): Flow<List<AppVersionLog>>
 
     fun getNavAnimation(): Flow<NavAnimation?>

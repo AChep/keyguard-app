@@ -97,6 +97,18 @@ class SshUsageHistoryRepositoryImplTest {
     }
 
     @Test
+    fun `remove older than keeps the history created at or after the cutoff`() = runTest {
+        val repository = createRepository()
+
+        repository.put(model(sessionId = "old", instant = Instant.fromEpochMilliseconds(1)))()
+        repository.put(model(sessionId = "cutoff", instant = Instant.fromEpochMilliseconds(2)))()
+        repository.put(model(sessionId = "new", instant = Instant.fromEpochMilliseconds(3)))()
+        repository.removeOlderThan(Instant.fromEpochMilliseconds(2))()
+
+        assertEquals(listOf("new", "cutoff"), repository.getRecent().first().map { it.sessionId })
+    }
+
+    @Test
     fun `get recent assigns distinct ids to identical events`() = runTest {
         val repository = createRepository()
         val instant = Instant.fromEpochMilliseconds(1)

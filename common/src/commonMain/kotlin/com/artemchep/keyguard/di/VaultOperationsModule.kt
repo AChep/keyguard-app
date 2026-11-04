@@ -11,6 +11,8 @@ import com.artemchep.keyguard.common.service.filter.impl.AddCipherFilterImpl
 import com.artemchep.keyguard.common.service.filter.impl.GetCipherFiltersImpl
 import com.artemchep.keyguard.common.service.filter.impl.RemoveCipherFilterByIdImpl
 import com.artemchep.keyguard.common.service.filter.impl.RenameCipherFilterImpl
+import com.artemchep.keyguard.common.service.agenthistory.AgentHistoryRetentionWorker
+import com.artemchep.keyguard.common.service.agenthistory.impl.AgentHistoryRetentionWorkerImpl
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
 import com.artemchep.keyguard.common.service.gpgkeyserver.impl.GpgKeyserverRefreshWorkerImpl
 import com.artemchep.keyguard.common.service.keyvalue.VaultSettingsKeyValueStore
@@ -330,6 +332,14 @@ internal class VaultOperationsModule {
                     logRepository = get(),
                 )
             } bind GpgKeyserverRefreshWorker::class
+
+            scoped<AgentHistoryRetentionWorkerImpl> {
+                AgentHistoryRetentionWorkerImpl(
+                    getAgentHistoryRetention = get(),
+                    removeAgentHistoryOlderThan = get(),
+                    logRepository = get(),
+                )
+            } bind AgentHistoryRetentionWorker::class
 
             scoped<VerifyGpgPublicKeyImpl>() bind VerifyGpgPublicKey::class
             scoped<GetGpgKeyserverStateImpl>() bind GetGpgKeyserverState::class

@@ -51,3 +51,7 @@ WHERE client = :client;
 deleteByClient:
 DELETE FROM cliAgentUsageHistory
 WHERE client = :client;
+
+deleteOlderThan:
+DELETE FROM cliAgentUsageHistory
+WHERE createdAt < :cutoff;

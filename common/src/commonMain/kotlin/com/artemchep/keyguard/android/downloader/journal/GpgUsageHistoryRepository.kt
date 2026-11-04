@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.DGpgUsageHistory
 import com.artemchep.keyguard.provider.bitwarden.repository.BaseRepository
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.Instant
 
 interface GpgUsageHistoryRepository : BaseRepository<DGpgUsageHistory> {
     fun getRecent(
@@ -18,4 +19,9 @@ interface GpgUsageHistoryRepository : BaseRepository<DGpgUsageHistory> {
     fun getCount(): Flow<Long>
 
     fun removeAll(): IO<Unit>
+
+    /** Removes the entries created before the [cutoff]. */
+    fun removeOlderThan(
+        cutoff: Instant,
+    ): IO<Unit>
 }

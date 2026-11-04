@@ -46,6 +46,7 @@ import com.artemchep.keyguard.common.usecase.GetSshUsageHistoryCount
 import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
 import com.artemchep.keyguard.common.usecase.GetWordlists
 import com.artemchep.keyguard.common.usecase.PutBarcodeUsageHistory
+import com.artemchep.keyguard.common.usecase.RemoveAgentHistoryOlderThan
 import com.artemchep.keyguard.common.usecase.RemoveCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveEmailRelayById
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
@@ -80,6 +81,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.GetSshUsageHistoryCount
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetSshUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetWordlistPrimitiveImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetWordlistsImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveAgentHistoryOlderThanImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveCliAgentUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveEmailRelayByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.RemoveGpgUsageHistoryImpl
@@ -170,6 +172,8 @@ internal class VaultHistoryModule {
             scoped<GetCliAgentUsageHistoryCountImpl>() bind GetCliAgentUsageHistoryCount::class
 
             scoped<RemoveCliAgentUsageHistoryImpl>() bind RemoveCliAgentUsageHistory::class
+
+            scoped<RemoveAgentHistoryOlderThanImpl>() bind RemoveAgentHistoryOlderThan::class
 
             scoped<GetCipherOpenedHistoryImpl>() bind GetCipherOpenedHistory::class
 

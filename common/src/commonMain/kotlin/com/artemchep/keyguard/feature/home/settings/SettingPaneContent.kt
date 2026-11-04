@@ -78,6 +78,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingGpgAgentSet
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverAutoRefreshProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverProtocolProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverRefreshIntervalProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAgentHistoryRetentionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverSearchProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingGpgKeyserverUrlProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsCreateProvider
@@ -294,6 +295,7 @@ object Setting {
     const val GPG_KEYSERVER_PROTOCOL = "gpg_keyserver_protocol"
     const val GPG_KEYSERVER_AUTO_REFRESH = "gpg_keyserver_auto_refresh"
     const val GPG_KEYSERVER_REFRESH_INTERVAL = "gpg_keyserver_refresh_interval"
+    const val AGENT_HISTORY_RETENTION = "agent_history_retention"
     const val RATE_APP = "rate_app"
     const val CONCEAL = "conceal"
     const val MARKDOWN = "markdown"
@@ -449,6 +451,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.GPG_KEYSERVER_PROTOCOL to ::settingGpgKeyserverProtocolProvider,
     Setting.GPG_KEYSERVER_AUTO_REFRESH to ::settingGpgKeyserverAutoRefreshProvider,
     Setting.GPG_KEYSERVER_REFRESH_INTERVAL to ::settingGpgKeyserverRefreshIntervalProvider,
+    Setting.AGENT_HISTORY_RETENTION to ::settingAgentHistoryRetentionProvider,
     Setting.RATE_APP to ::settingRateAppProvider,
     Setting.DIVIDER to ::settingSectionProvider,
     Setting.CONCEAL to ::settingConcealFieldsProvider,

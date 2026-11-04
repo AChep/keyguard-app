@@ -47,6 +47,8 @@ import com.artemchep.keyguard.common.usecase.GetCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.GetCheckTwoFA
 import com.artemchep.keyguard.common.usecase.GetCliApprovalTimeout
 import com.artemchep.keyguard.common.usecase.GetCliApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetAgentHistoryRetention
+import com.artemchep.keyguard.common.usecase.GetAgentHistoryRetentionVariants
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoClearVariants
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefresh
@@ -129,6 +131,7 @@ import com.artemchep.keyguard.common.usecase.PutCheckPwnedServices
 import com.artemchep.keyguard.common.usecase.PutCheckTwoFA
 import com.artemchep.keyguard.common.usecase.PutCliApprovalTimeout
 import com.artemchep.keyguard.common.usecase.PutCliApprovalWindow
+import com.artemchep.keyguard.common.usecase.PutAgentHistoryRetention
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.PutCloseToTray
@@ -193,6 +196,8 @@ import com.artemchep.keyguard.common.usecase.impl.GetCheckPwnedServicesImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCheckTwoFAImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCliApprovalTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCliApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAgentHistoryRetentionImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAgentHistoryRetentionVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoClearImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoClearVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoRefreshImpl
@@ -275,6 +280,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutCheckPwnedServicesImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCheckTwoFAImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCliApprovalTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCliApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.PutAgentHistoryRetentionImpl
 import com.artemchep.keyguard.common.usecase.impl.PutClipboardAutoClearImpl
 import com.artemchep.keyguard.common.usecase.impl.PutClipboardAutoRefreshImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCloseToTrayImpl
@@ -547,6 +553,12 @@ internal class ApplicationSettingsModule {
         single<GetClipboardAutoClearImpl>() bind GetClipboardAutoClear::class
 
         single<GetClipboardAutoClearVariantsImpl>() bind GetClipboardAutoClearVariants::class
+
+        single<GetAgentHistoryRetentionImpl>() bind GetAgentHistoryRetention::class
+
+        single<GetAgentHistoryRetentionVariantsImpl>() bind GetAgentHistoryRetentionVariants::class
+
+        single<PutAgentHistoryRetentionImpl>() bind PutAgentHistoryRetention::class
 
         single<GetClipboardAutoRefreshImpl>() bind GetClipboardAutoRefresh::class
 

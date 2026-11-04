@@ -2190,6 +2190,8 @@
     <string name="pref_item_agent_filters_summary_all">All keys accessible</string>
     <string name="pref_item_agent_filters_summary_active">Filters active</string>
     <string name="pref_item_agent_history_title">Request log</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Enable SSH agent</string>
     <string name="pref_item_ssh_agent_description">Keyguard serves your vault's SSH keys to ssh/git. Each signature requires your approval.</string>
     <string name="pref_item_license_key_title">Link existing entitlement token</string>

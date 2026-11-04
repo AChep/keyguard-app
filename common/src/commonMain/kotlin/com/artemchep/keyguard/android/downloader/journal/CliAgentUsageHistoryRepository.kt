@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.DCliAgentUsageHistory
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.Instant
 
 interface CliAgentUsageHistoryRepository {
     fun getRecent(
@@ -24,5 +25,10 @@ interface CliAgentUsageHistoryRepository {
 
     fun removeByClient(
         client: CliAgentUsageHistoryClient,
+    ): IO<Unit>
+
+    /** Removes the entries of every client created before the [cutoff]. */
+    fun removeOlderThan(
+        cutoff: Instant,
     ): IO<Unit>
 }

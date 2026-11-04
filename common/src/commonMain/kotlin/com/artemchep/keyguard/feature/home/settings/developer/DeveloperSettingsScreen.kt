@@ -35,6 +35,12 @@ fun rememberSettingsDeveloperItems(
                 ),
             ),
             SettingPaneItem.Group(
+                key = "request_log",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.AGENT_HISTORY_RETENTION),
+                ),
+            ),
+            SettingPaneItem.Group(
                 key = "connected_apps",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.CONNECTED_APPS),

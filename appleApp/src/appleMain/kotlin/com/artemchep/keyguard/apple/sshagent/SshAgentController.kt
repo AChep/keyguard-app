@@ -13,6 +13,8 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeyRepositor
 import com.artemchep.keyguard.common.service.sshagent.SshAgentRequestProcessorImpl
 import com.artemchep.keyguard.common.service.sshagent.SshAgentStatusService
 import com.artemchep.keyguard.common.usecase.GetAgentApprovalTimeoutVariants
+import com.artemchep.keyguard.common.usecase.GetAgentHistoryRetention
+import com.artemchep.keyguard.common.usecase.GetAgentHistoryRetentionVariants
 import com.artemchep.keyguard.common.usecase.GetSshAgent
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalTimeout
 import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
@@ -21,6 +23,7 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentDisplayKeyNames
 import com.artemchep.keyguard.common.usecase.GetSshAgentFilter
 import com.artemchep.keyguard.common.usecase.GetSshAgentStatus
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.usecase.PutAgentHistoryRetention
 import com.artemchep.keyguard.common.usecase.PutSshAgent
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalTimeout
 import com.artemchep.keyguard.common.usecase.PutSshAgentApprovalWindow
@@ -45,6 +48,7 @@ import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.model.SettingOptionSnapshot
 import com.artemchep.keyguard.feature.home.settings.component.agentApprovalTimeoutTitle
 import com.artemchep.keyguard.feature.home.settings.component.agentApprovalWindowTitle
+import com.artemchep.keyguard.feature.home.settings.component.formatAgentHistoryRetention
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.res.*
 import kotlin.time.Duration
@@ -83,6 +87,11 @@ internal class SshAgentController(
     private val getSshAgentDisplayKeyNames: GetSshAgentDisplayKeyNames by lazy { ctx.koin.get() }
     private val putSshAgentDisplayKeyNames: PutSshAgentDisplayKeyNames by lazy { ctx.koin.get() }
     private val getSshAgentFilter: GetSshAgentFilter by lazy { ctx.koin.get() }
+    private val getAgentHistoryRetention: GetAgentHistoryRetention by lazy { ctx.koin.get() }
+    private val getAgentHistoryRetentionVariants: GetAgentHistoryRetentionVariants by lazy {
+        ctx.koin.get()
+    }
+    private val putAgentHistoryRetention: PutAgentHistoryRetention by lazy { ctx.koin.get() }
     private val getSshAgentStatus: GetSshAgentStatus by lazy { ctx.koin.get() }
     private val sshAgentStatusService: SshAgentStatusService by lazy { ctx.koin.get() }
     private val sshAgentPublicKeyRepository: SshAgentPublicKeyRepository by lazy { ctx.koin.get() }
@@ -102,6 +111,7 @@ internal class SshAgentController(
 
     private var latestSshApprovalWindowVariants: List<Duration> = emptyList()
     private var latestSshApprovalTimeoutVariants: List<Duration> = emptyList()
+    private var latestAgentHistoryRetentionVariants: List<Duration> = emptyList()
 
     fun startSshAgentApplier() {
         if (sshAgentApplierJob != null) return
@@ -241,16 +251,22 @@ internal class SshAgentController(
             getSshAgentApprovalTimeout(),
             getAgentApprovalTimeoutVariants(),
         ) { current, variants -> current to variants }
+        val filterAndHistoryRetentionFlow = combine(
+            getSshAgentFilter(),
+            getAgentHistoryRetention(),
+            getAgentHistoryRetentionVariants(),
+        ) { filter, current, variants -> filter to (current to variants) }
         val job = ctx.scope.launch {
             combine(
                 getSshAgent(),
                 approvalWindowFlow,
                 approvalTimeoutFlow,
                 getSshAgentDisplayKeyNames(),
-                getSshAgentFilter(),
-            ) { enabled, approvalWindow, approvalTimeout, displayKeyNames, filter ->
+                filterAndHistoryRetentionFlow,
+            ) { enabled, approvalWindow, approvalTimeout, displayKeyNames, (filter, historyRetention) ->
                 latestSshApprovalWindowVariants = approvalWindow.second
                 latestSshApprovalTimeoutVariants = approvalTimeout.second
+                latestAgentHistoryRetentionVariants = historyRetention.second
                 SshAgentSettingsSnapshot(
                     loaded = true,
                     enabled = enabled,
@@ -272,6 +288,14 @@ internal class SshAgentController(
                     },
                     displayKeyNames = displayKeyNames,
                     filterActive = filter.normalize().isActive,
+                    historyRetentionTitle = formatAgentHistoryRetention(historyRetention.first, leContext),
+                    historyRetentionOptions = historyRetention.second.map { duration ->
+                        SettingOptionSnapshot(
+                            id = duration.inWholeMilliseconds.toString(),
+                            title = formatAgentHistoryRetention(duration, leContext),
+                            selected = duration == historyRetention.first,
+                        )
+                    },
                 )
             }.collect { onChange(it) }
         }
@@ -290,6 +314,13 @@ internal class SshAgentController(
             .firstOrNull { it.inWholeMilliseconds.toString() == optionId }
             ?: return
         putSshAgentApprovalTimeout(duration).launchIn(ctx.scope)
+    }
+
+    fun setAgentHistoryRetention(optionId: String) {
+        val duration = latestAgentHistoryRetentionVariants
+            .firstOrNull { it.inWholeMilliseconds.toString() == optionId }
+            ?: return
+        putAgentHistoryRetention(duration).launchIn(ctx.scope)
     }
 
     fun setSshAgentDisplayKeyNames(value: Boolean) {

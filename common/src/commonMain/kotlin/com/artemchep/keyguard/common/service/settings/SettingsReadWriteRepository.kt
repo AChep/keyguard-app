@@ -253,6 +253,10 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         duration: Duration,
     ): IO<Unit>
 
+    fun setAgentHistoryRetention(
+        duration: Duration,
+    ): IO<Unit>
+
     fun setGpgKeyserverLastRefresh(
         instant: Instant?,
     ): IO<Unit>

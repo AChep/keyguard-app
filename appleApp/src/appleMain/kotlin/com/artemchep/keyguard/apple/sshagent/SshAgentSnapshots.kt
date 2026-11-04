@@ -50,6 +50,9 @@ data class SshAgentSettingsSnapshot(
     val approvalTimeoutOptions: List<SettingOptionSnapshot>,
     val displayKeyNames: Boolean,
     val filterActive: Boolean,
+    /** Shared by the SSH, GPG and CLI request logs. */
+    val historyRetentionTitle: String,
+    val historyRetentionOptions: List<SettingOptionSnapshot>,
 ) {
     companion object {
         val empty = SshAgentSettingsSnapshot(
@@ -61,6 +64,8 @@ data class SshAgentSettingsSnapshot(
             approvalTimeoutOptions = emptyList(),
             displayKeyNames = false,
             filterActive = false,
+            historyRetentionTitle = "",
+            historyRetentionOptions = emptyList(),
         )
     }
 }

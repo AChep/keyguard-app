@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.DSshUsageHistory
 import com.artemchep.keyguard.provider.bitwarden.repository.BaseRepository
 import kotlinx.coroutines.flow.Flow
+import kotlin.time.Instant
 
 interface SshUsageHistoryRepository : BaseRepository<DSshUsageHistory> {
     fun getRecent(
@@ -18,4 +19,9 @@ interface SshUsageHistoryRepository : BaseRepository<DSshUsageHistory> {
     fun getCount(): Flow<Long>
 
     fun removeAll(): IO<Unit>
+
+    /** Removes the entries created before the [cutoff]. */
+    fun removeOlderThan(
+        cutoff: Instant,
+    ): IO<Unit>
 }

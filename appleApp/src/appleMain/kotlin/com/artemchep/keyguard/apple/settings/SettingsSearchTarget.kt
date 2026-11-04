@@ -368,6 +368,13 @@ enum class SettingsSearchTarget(
         section = Res.string.protocol_mcp,
         availability = Availability.MACOS,
     ),
+    AGENT_HISTORY_RETENTION(
+        SettingsDestination.DEVELOPER.id,
+        Res.string.pref_item_agent_history_retention_title,
+        section = Res.string.pref_item_agent_history_title,
+        description = Res.string.pref_item_agent_history_retention_note,
+        availability = Availability.MACOS,
+    ),
     PWNED_PASSWORDS(
         SettingsDestination.WATCHTOWER.id,
         Res.string.pref_item_check_pwned_passwords_title,

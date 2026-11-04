@@ -50,6 +50,7 @@ class DomainSessionAccessModule {
                         sshAgentPublicKeySyncer = get(),
                         gpgPublicKeySyncer = get(),
                         gpgKeyserverRefreshWorker = get(),
+                        agentHistoryRetentionWorker = get(),
                         licenseSyncer = get(),
                     )
                 }

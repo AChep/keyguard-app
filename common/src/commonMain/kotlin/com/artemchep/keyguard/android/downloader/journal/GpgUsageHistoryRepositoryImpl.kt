@@ -12,6 +12,7 @@ import com.artemchep.keyguard.data.GpgUsageHistoryQueries
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlin.time.Instant
 
 class GpgUsageHistoryRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
@@ -74,6 +75,14 @@ class GpgUsageHistoryRepositoryImpl(
     override fun removeAll(): IO<Unit> =
         databaseManager.mutate(TAG) { db ->
             db.gpgUsageHistoryQueries.deleteAll()
+            Unit
+        }
+
+    override fun removeOlderThan(
+        cutoff: Instant,
+    ): IO<Unit> =
+        databaseManager.mutate(TAG) { db ->
+            db.gpgUsageHistoryQueries.deleteOlderThan(cutoff = cutoff)
             Unit
         }
 

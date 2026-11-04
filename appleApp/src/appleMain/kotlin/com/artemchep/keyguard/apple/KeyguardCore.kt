@@ -1403,6 +1403,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun setSshAgentApprovalTimeout(optionId: String) = sshAgentController.setSshAgentApprovalTimeout(optionId)
 
+    fun setAgentHistoryRetention(optionId: String) = sshAgentController.setAgentHistoryRetention(optionId)
+
     fun setSshAgentDisplayKeyNames(value: Boolean) = sshAgentController.setSshAgentDisplayKeyNames(value)
 
     fun makeSshAgentFiltersSession(): AgentFiltersSession =

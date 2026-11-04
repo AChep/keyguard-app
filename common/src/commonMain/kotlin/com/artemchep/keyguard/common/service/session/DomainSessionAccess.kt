@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgKeyMetadataResolver
 import com.artemchep.keyguard.common.service.download.KeePassAttachmentSourceLoader
 import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountSyncer
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySyncer
+import com.artemchep.keyguard.common.service.agenthistory.AgentHistoryRetentionWorker
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
 import com.artemchep.keyguard.common.service.icon.AccountIconServers
 import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
@@ -36,6 +37,7 @@ class AppWorkerSessionDependencies(
     val sshAgentPublicKeySyncer: SshAgentPublicKeySyncer,
     val gpgPublicKeySyncer: GpgPublicKeySyncer,
     val gpgKeyserverRefreshWorker: GpgKeyserverRefreshWorker,
+    val agentHistoryRetentionWorker: AgentHistoryRetentionWorker,
     val licenseSyncer: LicenseSyncer,
 )
 

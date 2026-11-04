@@ -44,3 +44,7 @@ FROM gpgUsageHistory;
 
 deleteAll:
 DELETE FROM gpgUsageHistory;
+
+deleteOlderThan:
+DELETE FROM gpgUsageHistory
+WHERE createdAt < :cutoff;

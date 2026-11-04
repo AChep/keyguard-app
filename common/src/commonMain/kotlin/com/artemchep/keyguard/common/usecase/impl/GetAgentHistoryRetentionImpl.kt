@@ -1,0 +1,14 @@
+package com.artemchep.keyguard.common.usecase.impl
+
+import com.artemchep.keyguard.common.service.settings.SettingsReadRepository
+import com.artemchep.keyguard.common.usecase.GetAgentHistoryRetention
+import kotlinx.coroutines.flow.distinctUntilChanged
+
+class GetAgentHistoryRetentionImpl(
+    settingsReadRepository: SettingsReadRepository,
+) : GetAgentHistoryRetention {
+    private val sharedFlow = settingsReadRepository.getAgentHistoryRetention()
+        .distinctUntilChanged()
+
+    override fun invoke() = sharedFlow
+}

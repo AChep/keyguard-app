@@ -75,6 +75,22 @@ class CliAgentUsageHistoryRepositoryImplTest {
     }
 
     @Test
+    fun `remove older than removes the old history of every client`() = runTest {
+        val repository = createRepository()
+        repository.put(model(client = CliAgentUsageHistoryClient.CLI, sessionId = "cli-old", millis = 1))()
+        repository.put(model(client = CliAgentUsageHistoryClient.MCP, sessionId = "mcp-old", millis = 1))()
+        repository.put(model(client = CliAgentUsageHistoryClient.ENV, sessionId = "env-old", millis = 1))()
+        repository.put(model(client = CliAgentUsageHistoryClient.CLI, sessionId = "cli-new", millis = 3))()
+
+        repository.removeOlderThan(Instant.fromEpochMilliseconds(2))()
+
+        val cliHistory = repository.getRecent(CliAgentUsageHistoryClient.CLI).first()
+        assertEquals(listOf("cli-new"), cliHistory.map { it.sessionId })
+        assertEquals(0L, repository.getCount(CliAgentUsageHistoryClient.MCP).first())
+        assertEquals(0L, repository.getCount(CliAgentUsageHistoryClient.ENV).first())
+    }
+
+    @Test
     fun `put stores every field`() = runTest {
         val repository = createRepository(cipherIds = listOf("env-a"))
         val model = model(

@@ -12,6 +12,7 @@ import com.artemchep.keyguard.data.SshUsageHistoryQueries
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlin.time.Instant
 
 class SshUsageHistoryRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
@@ -73,6 +74,14 @@ class SshUsageHistoryRepositoryImpl(
     override fun removeAll(): IO<Unit> =
         databaseManager.mutate(TAG) { db ->
             db.sshUsageHistoryQueries.deleteAll()
+            Unit
+        }
+
+    override fun removeOlderThan(
+        cutoff: Instant,
+    ): IO<Unit> =
+        databaseManager.mutate(TAG) { db ->
+            db.sshUsageHistoryQueries.deleteOlderThan(cutoff = cutoff)
             Unit
         }
 

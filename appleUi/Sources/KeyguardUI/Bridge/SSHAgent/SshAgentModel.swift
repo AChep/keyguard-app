@@ -62,6 +62,10 @@ final class SshAgentModel: SnapshotObserving {
         core.setSshAgentApprovalTimeout(optionId: optionId)
     }
 
+    func setAgentHistoryRetention(optionId: String) {
+        core.setAgentHistoryRetention(optionId: optionId)
+    }
+
     func setSshAgentDisplayKeyNames(_ value: Bool) {
         core.setSshAgentDisplayKeyNames(value: value)
     }

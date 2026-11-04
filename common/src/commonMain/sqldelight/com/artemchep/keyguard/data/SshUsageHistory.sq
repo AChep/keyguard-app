@@ -43,3 +43,7 @@ FROM sshUsageHistory;
 
 deleteAll:
 DELETE FROM sshUsageHistory;
+
+deleteOlderThan:
+DELETE FROM sshUsageHistory
+WHERE createdAt < :cutoff;

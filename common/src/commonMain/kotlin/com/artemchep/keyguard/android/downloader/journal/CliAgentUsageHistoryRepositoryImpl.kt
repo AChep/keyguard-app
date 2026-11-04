@@ -13,6 +13,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlin.time.Instant
 
 // Every client shares one table, so a write re-runs the queries of
 // the other clients too; their unchanged results are not emitted.
@@ -88,6 +89,14 @@ class CliAgentUsageHistoryRepositoryImpl(
     ): IO<Unit> =
         databaseManager.mutate(TAG) { db ->
             db.cliAgentUsageHistoryQueries.deleteByClient(client = client)
+        }
+
+    override fun removeOlderThan(
+        cutoff: Instant,
+    ): IO<Unit> =
+        databaseManager.mutate(TAG) { db ->
+            db.cliAgentUsageHistoryQueries.deleteOlderThan(cutoff = cutoff)
+            Unit
         }
 
     private inline fun <T> daoEffect(

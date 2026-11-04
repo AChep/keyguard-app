@@ -56,6 +56,7 @@ class AppWorkerIm(
                 launchSyncSshAgentWhenAvailable(this)
                 launchSyncGpgAgentWhenAvailable(this)
                 launchRefreshGpgKeyserverWhenAvailable(this)
+                launchAgentHistoryRetentionWhenAvailable(this)
                 launchSyncLicenseWhenAvailable(this)
 
                 launchPendingUsageHistoryFlushWhenAvailable(
@@ -181,6 +182,23 @@ class AppWorkerIm(
 
             // Launch the worker forever until the
             // worker changes.
+            coroutineScope {
+                worker.launch(this)
+            }
+        }
+        .launchIn(scope)
+
+    private fun launchAgentHistoryRetentionWhenAvailable(scope: CoroutineScope) = getVaultSession()
+        .map { session ->
+            val key = session as? MasterSession.Key
+            key?.let(appWorkerSessionAccess::invoke)?.agentHistoryRetentionWorker
+        }
+        .distinctUntilChanged { old, new -> old === new }
+        .mapLatest { worker ->
+            if (worker == null) {
+                return@mapLatest
+            }
+
             coroutineScope {
                 worker.launch(this)
             }

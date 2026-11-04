@@ -451,6 +451,19 @@ struct DeveloperSettingsView: View {
                     .settingsSearchTarget(.envHistory)
                 Text(L10n.environmentsDescription).foregroundStyle(.secondary)
             }
+            Section {
+                durationPicker(
+                    L10n.prefItemAgentHistoryRetentionTitle,
+                    options: s.historyRetentionOptions,
+                    currentTitle: s.historyRetentionTitle,
+                    set: { sshAgentModel.setAgentHistoryRetention(optionId: $0) }
+                )
+                .settingsSearchTarget(.agentHistoryRetention)
+            } header: {
+                Text(L10n.prefItemAgentHistoryTitle)
+            } footer: {
+                Text(L10n.prefItemAgentHistoryRetentionNote)
+            }
             #else
             Section(L10n.agentTitle(L10n.protocolSsh)) {
                 Label(L10n.agentBinaryUnavailableText, systemImage: "xmark.circle")

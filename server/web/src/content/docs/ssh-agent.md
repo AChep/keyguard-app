@@ -188,6 +188,16 @@ public keys are not encrypted.
 `~/.ssh/config`. A pinned host doesn't get the default keys from `~/.ssh`, so
 its key login fails while Keyguard isn't running.
 
+Bookmarks don't set a `HostName`. To pin a host that you reach through an
+alias, bookmark the alias, such as `ssh://deploy@build`, and define it in
+`~/.ssh/config` after the `Include` line:
+
+```sshconfig
+Host build
+  HostName 10.0.0.5
+  Port 2222
+```
+
 ## Review request history
 
 In **Settings > Developer > SSH agent**, select **Request log**. Each entry

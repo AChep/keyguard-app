@@ -63,7 +63,7 @@ jobs:
           python3 scripts/verify_native_bundle.py desktop "$RUNNER_TEMP/keyguard-tarball" \
             --platform linux --arch "$LINUX_ARCH"
       - name: 'Upload .tar'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: app-linux-${{ matrix.arch }}
           path: ${{ steps.linux-package.outputs.tarball }}
@@ -76,7 +76,7 @@ jobs:
           arch: ${{ matrix.arch }}
           version: ${{ steps.linux-package.outputs.version }}
       - name: 'Upload .flatpak'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: app-linux-flatpak-${{ matrix.arch }}
           path: ${{ steps.flatpak.outputs.path }}

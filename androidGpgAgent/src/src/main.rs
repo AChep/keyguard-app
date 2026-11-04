@@ -10,7 +10,7 @@ use clap::Parser;
 use daemon::run_blocking;
 use home::{user_home, ManagedHome};
 use keyguard_android_agent_bridge::bridge::{BridgeConfig, DEFAULT_CONNECT_TIMEOUT_MS};
-use keyguard_android_agent_bridge::broadcast::{BridgeContract, LegacyAcknowledgement};
+use keyguard_android_agent_bridge::broadcast::BridgeContract;
 use keyguard_android_agent_bridge::process::{
     exit_with, fork_daemon, prefers_csh, render_export, shell_quote,
 };
@@ -34,9 +34,6 @@ pub(crate) const GPG_AGENT_CONTRACT: BridgeContract = BridgeContract {
     extra_session_id: "com.artemchep.keyguard.extra.GPG_AGENT_SESSION_ID",
     extra_session_secret: "com.artemchep.keyguard.extra.GPG_AGENT_SESSION_SECRET",
     result_prefix: "keyguard.gpg-agent.broadcast.v1:",
-    // Unlike SSH, no Keyguard release handles the GPG agent without
-    // acknowledging it, so a missing answer means no receiver.
-    legacy_acknowledgement: LegacyAcknowledgement::Reject,
 };
 
 /// Starts the agent for the managed GnuPG home unless it is already running,

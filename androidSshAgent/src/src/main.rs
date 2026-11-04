@@ -7,7 +7,7 @@ use anyhow::{Context, Result};
 use clap::Parser;
 use daemon::{run_blocking, Config};
 use keyguard_android_agent_bridge::bridge::{BridgeConfig, DEFAULT_CONNECT_TIMEOUT_MS};
-use keyguard_android_agent_bridge::broadcast::{BridgeContract, LegacyAcknowledgement};
+use keyguard_android_agent_bridge::broadcast::BridgeContract;
 use keyguard_android_agent_bridge::process::{exit_with, fork_daemon, prefers_csh};
 use keyguard_android_agent_bridge::socket_guard::{EnsureSocket, SocketGuard};
 use process::{kill_existing_agent, print_auth_socket_export, print_env_exports};
@@ -26,8 +26,6 @@ pub(crate) const SSH_AGENT_CONTRACT: BridgeContract = BridgeContract {
     extra_session_id: "com.artemchep.keyguard.extra.SSH_AGENT_SESSION_ID",
     extra_session_secret: "com.artemchep.keyguard.extra.SSH_AGENT_SESSION_SECRET",
     result_prefix: "keyguard.ssh-agent.broadcast.v1:",
-    // Older Keyguard releases handled the SSH broadcast without acknowledging it.
-    legacy_acknowledgement: LegacyAcknowledgement::Tolerate,
 };
 
 #[derive(Parser, Debug)]

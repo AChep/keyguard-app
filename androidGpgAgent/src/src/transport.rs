@@ -5,7 +5,6 @@ use common_gpg_agent_rust::messages::{ipc_request, ipc_response, IpcRequest, Ipc
 use keyguard_android_agent_bridge::bridge::{
     exchange_message, open_bridge, BridgeConfig, OpenBridgeError,
 };
-use keyguard_android_agent_bridge::broadcast::BroadcastOutcome;
 use keyguard_android_agent_bridge::log_debug;
 use keyguard_android_agent_bridge::secure_transport::SecureTransport;
 use keyguard_gpg_agent_assuan::ipc::{BoxFuture, IpcTransport};
@@ -67,10 +66,6 @@ impl BridgeTransport {
                 OpenBridgeError::Broadcast(error) => {
                     Err(error).context("Failed to send Android GPG agent broadcast")
                 }
-                OpenBridgeError::Rejected(BroadcastOutcome::LegacyNoAcknowledgement) => bail!(
-                    "Keyguard didn't answer the GPG agent broadcast. \
-                     Update Keyguard, or check --android-component"
-                ),
                 OpenBridgeError::Rejected(outcome) => {
                     bail!("Keyguard rejected Android bridge activation: {outcome:?}")
                 }

@@ -26,19 +26,6 @@ pub struct BridgeContract {
     pub extra_session_secret: &'static str,
     /// Prefix of the receiver's result data, followed by the outcome name.
     pub result_prefix: &'static str,
-    /// How the helper treats a receiver that handled the broadcast without
-    /// acknowledging it.
-    pub legacy_acknowledgement: LegacyAcknowledgement,
-}
-
-/// How a helper treats a receiver that handled its broadcast without
-/// acknowledging it.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub enum LegacyAcknowledgement {
-    /// Older releases handled the broadcast that way: connect anyway.
-    Tolerate,
-    /// No release handles the broadcast that way: there is no receiver.
-    Reject,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -50,7 +37,9 @@ pub enum BroadcastOutcome {
     Invalid,
     StartFailed,
     InternalError,
-    LegacyNoAcknowledgement,
+    /// No result was returned, as with Termux's `am` on Android 14+ or
+    /// an older Keyguard SSH receiver. The app may still connect back.
+    NoAcknowledgement,
 }
 
 #[derive(Clone, Debug)]
@@ -158,10 +147,10 @@ fn parse_broadcast_outcome(
         .rev()
         .find(|line| line.contains("Broadcast completed:"));
     let Some(completion_line) = completion_line else {
-        return Ok(BroadcastOutcome::LegacyNoAcknowledgement);
+        return Ok(BroadcastOutcome::NoAcknowledgement);
     };
     let Some(prefix_index) = completion_line.find(contract.result_prefix) else {
-        return Ok(BroadcastOutcome::LegacyNoAcknowledgement);
+        return Ok(BroadcastOutcome::NoAcknowledgement);
     };
 
     let value = &completion_line[prefix_index + contract.result_prefix.len()..];
@@ -248,7 +237,6 @@ mod tests {
         extra_session_id: "com.artemchep.keyguard.extra.TEST_AGENT_SESSION_ID",
         extra_session_secret: "com.artemchep.keyguard.extra.TEST_AGENT_SESSION_SECRET",
         result_prefix: BROADCAST_RESULT_PREFIX,
-        legacy_acknowledgement: LegacyAcknowledgement::Tolerate,
     };
 
     #[test]
@@ -275,15 +263,17 @@ mod tests {
     }
 
     #[test]
-    fn missing_keyguard_outcome_preserves_legacy_behavior() {
-        assert_eq!(
-            parse_broadcast_outcome(&CONTRACT, "Broadcast completed: result=0\n").unwrap(),
-            BroadcastOutcome::LegacyNoAcknowledgement,
-        );
-        assert_eq!(
-            parse_broadcast_outcome(&CONTRACT, "").unwrap(),
-            BroadcastOutcome::LegacyNoAcknowledgement,
-        );
+    fn missing_keyguard_outcome_does_not_imply_rejection() {
+        for stdout in [
+            "Broadcasting: Intent { ... }\nBroadcast sent without waiting for result\n",
+            "Broadcast completed: result=0\n",
+            "",
+        ] {
+            assert_eq!(
+                parse_broadcast_outcome(&CONTRACT, stdout).unwrap(),
+                BroadcastOutcome::NoAcknowledgement,
+            );
+        }
     }
 
     #[test]

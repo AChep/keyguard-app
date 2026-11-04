@@ -9,7 +9,6 @@ use zeroize::Zeroize;
 
 use crate::broadcast::{
     AndroidBroadcastLauncher, BridgeContract, BroadcastCommandSpec, BroadcastOutcome,
-    LegacyAcknowledgement,
 };
 use crate::log_debug;
 use crate::secure_transport::{SecureTransport, SESSION_ID_LEN, SESSION_SECRET_LEN};
@@ -159,13 +158,13 @@ pub async fn open_bridge(
         .map_err(OpenBridgeError::Broadcast)?;
     match outcome {
         BroadcastOutcome::Accepted | BroadcastOutcome::Deferred => {}
-        BroadcastOutcome::LegacyNoAcknowledgement => match contract.legacy_acknowledgement {
-            LegacyAcknowledgement::Tolerate => log_debug(
-                config.debug,
-                "Keyguard returned no broadcast acknowledgement; using legacy behavior",
-            ),
-            LegacyAcknowledgement::Reject => return Err(OpenBridgeError::Rejected(outcome)),
-        },
+        // Termux's `am` on Android 14+ sends the broadcast without waiting
+        // for a result. Keep the listener until the app authenticates or the
+        // activation deadline expires, just as for older SSH receivers.
+        BroadcastOutcome::NoAcknowledgement => log_debug(
+            config.debug,
+            "No broadcast acknowledgement; waiting for the Keyguard app to connect",
+        ),
         BroadcastOutcome::Busy
         | BroadcastOutcome::Disabled
         | BroadcastOutcome::Invalid
@@ -223,7 +222,6 @@ mod tests {
         extra_session_id: "test.session_id",
         extra_session_secret: "test.session_secret",
         result_prefix: "test.bridge.v1:",
-        legacy_acknowledgement: LegacyAcknowledgement::Tolerate,
     };
 
     /// A bridge whose broadcast runs `answer` in place of `am`.
@@ -262,39 +260,16 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn an_unacknowledged_broadcast_fails_at_once_where_no_release_ignores_it() {
-        // What `am` prints when no receiver handles the broadcast.
+    async fn an_unacknowledged_broadcast_waits_until_the_connection_deadline() {
         let config = config(
-            "echo 'Broadcast completed: result=0'",
-            Duration::from_secs(60),
-        );
-        let result = tokio::time::timeout(
-            Duration::from_secs(10),
-            open_bridge(
-                &config,
-                &BridgeContract {
-                    legacy_acknowledgement: LegacyAcknowledgement::Reject,
-                    ..CONTRACT
-                },
-            ),
-        )
-        .await
-        .expect("waited for an app that never answered");
-        assert!(matches!(
-            result,
-            Err(OpenBridgeError::Rejected(
-                BroadcastOutcome::LegacyNoAcknowledgement
-            ))
-        ));
-    }
-
-    #[tokio::test]
-    async fn an_unacknowledged_broadcast_waits_for_the_app_where_tolerated() {
-        let config = config(
-            "echo 'Broadcast completed: result=0'",
+            "echo 'Broadcast sent without waiting for result'",
             Duration::from_millis(200),
         );
-        let result = open_bridge(&config, &CONTRACT).await;
+        let started = Instant::now();
+        let result = timeout(Duration::from_secs(5), open_bridge(&config, &CONTRACT))
+            .await
+            .expect("ignored the connection deadline");
+        assert!(started.elapsed() >= config.connect_timeout);
         let Err(OpenBridgeError::Failed(error)) = result else {
             panic!("expected the wait for the app to time out");
         };

@@ -143,19 +143,26 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn an_unanswered_broadcast_fails_without_waiting_for_the_app() {
+    async fn an_unacknowledged_broadcast_waits_for_the_app_before_failing() {
         let directory = tempfile::tempdir().unwrap();
         let marker = directory.path().join("broadcast");
 
-        // What `am` prints when no receiver handles the broadcast.
-        let config = config_recording_broadcasts(&marker, "echo 'Broadcast completed: result=0'");
+        // Termux's `am` on Android 14+ returns before the app connects back.
+        let mut config = config_recording_broadcasts(
+            &marker,
+            "echo 'Broadcast sent without waiting for result'",
+        );
+        let connect_timeout = Duration::from_millis(200);
+        Arc::make_mut(&mut config).connect_timeout = connect_timeout;
+        let started = tokio::time::Instant::now();
         let response = tokio::time::timeout(
-            Duration::from_secs(10),
+            Duration::from_secs(5),
             transcript(config, "HAVEKEY --list\nKEYINFO --list\nBYE\n"),
         )
         .await
-        .expect("waited for an app that never answered");
+        .expect("ignored the connection deadline");
 
+        assert!(started.elapsed() >= connect_timeout);
         assert_eq!(std::fs::read_to_string(&marker).unwrap(), "x");
         assert_eq!(response.matches("ERR 1 key listing failed\n").count(), 2);
     }

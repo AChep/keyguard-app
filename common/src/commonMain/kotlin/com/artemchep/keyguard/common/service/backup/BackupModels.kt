@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.s3.normalizeS3Endpoint
 import com.artemchep.keyguard.common.service.s3.normalizeS3Prefix
 import kotlin.time.Duration.Companion.hours
+import kotlin.jvm.JvmInline
 import kotlin.time.Instant
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -166,12 +167,29 @@ data class BackupRepositoryMetadata(
     ),
     val crypto: BackupRepositoryCrypto = BackupRepositoryCrypto(),
     val layout: BackupRepositoryLayout = BackupRepositoryLayout(),
+    /** Keys of an age repository; only ever stored inside encrypted metadata. */
+    val keys: BackupRepositoryKeys? = null,
 )
+
+@Serializable
+data class BackupRepositoryKeys(
+    /** The age X25519 identity, `AGE-SECRET-KEY-1…`, that indexes are encrypted to. */
+    val index: BackupSecretKey,
+)
+
+/** A secret key that is never printed. */
+@Serializable
+@JvmInline
+value class BackupSecretKey(val value: String) {
+    override fun toString() = "BackupSecretKey(redacted)"
+}
 
 @Serializable
 data class BackupRepositoryCrypto(
     val archive: String = "zip-aes-256",
     val objectArchive: String = "zip-aes-256",
+    /** How indexes are encrypted, when that differs from [archive]. */
+    val indexArchive: String? = null,
     val attachmentFingerprint: String = "hmac-sha256",
 )
 
@@ -318,17 +336,65 @@ data class BackupStatus(
     val lastChangedAt: Instant? = null,
     val lastSuccessfulBackupAt: Instant? = null,
     val lastSuccessfulBackupChangeGeneration: Long = 0L,
+    /**
+     * The encryption of the configured repository, as the last run that
+     * opened it saw it; `null` until a run does, and after the store or
+     * password changes.
+     */
+    val repositoryEncryption: BackupRepositoryEncryption? = null,
     val currentRun: BackupRunProgress? = null,
 ) {
     val isDirty: Boolean
         get() = changeGeneration > lastSuccessfulBackupChangeGeneration
 }
 
+@Serializable
+enum class BackupRepositoryEncryption {
+    @SerialName("none")
+    None,
+
+    /** Format 1: ZIP AES-256 with the password; upgradeable to age. */
+    @SerialName("zip_aes")
+    ZipAes,
+
+    @SerialName("age")
+    Age,
+
+    /** An interrupted upgrade blocks writes until it is resumed. */
+    @SerialName("upgrade_pending")
+    UpgradePending,
+}
+
+/**
+ * Whether the last run failed on an interrupted encryption upgrade, which only
+ * the upgrade action resolves.
+ */
+val BackupStatus.failedOnPendingEncryptionUpgrade: Boolean
+    get() = lastErrorMessage != null &&
+        repositoryEncryption == BackupRepositoryEncryption.UpgradePending
+
+/** Whether the repository needs, or is in the middle of, an encryption upgrade. */
+fun BackupStatus.canUpgradeEncryption(
+    config: BackupConfig,
+): Boolean = !config.password?.value.isNullOrEmpty() &&
+    when (repositoryEncryption) {
+        BackupRepositoryEncryption.ZipAes,
+        BackupRepositoryEncryption.UpgradePending,
+        -> true
+
+        BackupRepositoryEncryption.None,
+        BackupRepositoryEncryption.Age,
+        null,
+        -> false
+    }
+
 data class BackupRunResult(
     val snapshotId: String?,
     val skipped: Boolean,
     val reason: String? = null,
     val stats: BackupSnapshotStats? = null,
+    /** `null` when the run did not open the repository. */
+    val repositoryEncryption: BackupRepositoryEncryption? = null,
 )
 
 @Serializable
@@ -347,6 +413,9 @@ enum class BackupStep {
 
     @SerialName("opening_repository")
     OpeningRepository,
+
+    @SerialName("upgrading_encryption")
+    UpgradingEncryption,
 
     @SerialName("exporting_vault")
     ExportingVault,

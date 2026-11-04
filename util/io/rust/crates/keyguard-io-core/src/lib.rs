@@ -36,7 +36,6 @@ pub mod error;
 pub mod fsops;
 pub mod naming;
 mod parent;
-pub mod registry;
 pub mod scratch;
 pub mod sweep;
 pub mod txn;
@@ -57,7 +56,6 @@ pub use directory::{AtomicDirectory, RelativeDestination};
 pub use durability::{AchievedSyncLevel, SyncLevel, SyncPolicy, SyncPolicyError};
 pub use error::{ErrorDomain, FailureKind, FileSystemFailure, Operation, TxnError};
 pub use naming::TemporaryFileRole;
-pub use registry::{Registry, RegistryError, RegistryKind};
 pub use scratch::ScratchFile;
 pub use sweep::{SweepOptions, SweepReport, SweepStatus, sweep_orphans};
 pub use txn::{

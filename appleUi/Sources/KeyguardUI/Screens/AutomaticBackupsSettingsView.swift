@@ -107,7 +107,10 @@ struct AutomaticBackupsSettingsView: View {
             if let step = s.runningStep {
                 LabeledContent(L10n.statusRunning, value: backupStepTitle(step))
             }
-            if let error = s.lastErrorMessage, !error.isEmpty {
+            if s.failedOnPendingEncryptionUpgrade {
+                Label(L10n.prefItemAutomaticBackupsStatusUpgradePendingText, systemImage: "exclamationmark.triangle")
+                    .font(.subheadline).foregroundStyle(.orange)
+            } else if let error = s.lastErrorMessage, !error.isEmpty {
                 Label(error, systemImage: "exclamationmark.triangle")
                     .font(.subheadline).foregroundStyle(.orange)
             }
@@ -148,6 +151,10 @@ struct AutomaticBackupsSettingsView: View {
             .settingsSearchTarget(.backupRetention)
             Button(L10n.prefItemAutomaticBackupsChangeConfigurationAction, action: configure)
                 .settingsSearchTarget(.backupConfig)
+            if s.canUpgradeEncryption {
+                Button(L10n.prefItemAutomaticBackupsUpgradeTitle, action: backupsModel.upgradeBackupEncryption)
+                    .disabled(s.isRunning)
+            }
             Button(L10n.prefItemAutomaticBackupsImportTitle) { backupsModel.importFromBackup() }
             Button(L10n.prefItemAutomaticBackupsDisableAction, role: .destructive) { confirmingDisable = true }
                 .settingsSearchTarget(.backupDisable)
@@ -157,6 +164,7 @@ struct AutomaticBackupsSettingsView: View {
     private func backupStepTitle(_ step: String) -> String {
         switch step {
         case "OpeningRepository": L10n.backupStepOpeningRepository
+        case "UpgradingEncryption": L10n.backupStepUpgradingEncryption
         case "ExportingVault": L10n.backupStepExportingVault
         case "ScanningAttachments": L10n.backupStepScanningAttachments
         case "BackingUpAttachments": L10n.backupStepBackingUpAttachments

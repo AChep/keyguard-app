@@ -364,7 +364,7 @@ jobs:
           KEYGUARD_REQUIRED_SHELLS: bash,zsh,fish
         run: |
           # One module at a time, so features never unify across modules.
-          for module in ffi io instance zip zxcvbn yubikey fido2 windows-passkeys agent-ipc; do
+          for module in ffi io age instance zip zxcvbn yubikey fido2 windows-passkeys agent-ipc; do
             packages=()
             for crate in util/"$module"/rust/crates/*/; do
               packages+=(-p "$(basename "$crate")")
@@ -620,6 +620,7 @@ jobs:
           :util:webauthn:macosArm64Test
           :util:zip:macosArm64Test
           :util:zxcvbn:macosArm64Test
+          :util:age:macosArm64Test
           :common:macosArm64Test
           :appleApp:macosArm64Test
           :common:desktopTest --tests 'com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsNetworkTest'
@@ -740,8 +741,8 @@ jobs:
           archives=()
           while IFS= read -r -d '' archive; do
             archives+=("$archive")
-          done < <(find util/crypto/build util/io/build util/zip/build util/zxcvbn/build util/agent-ipc/build -type f -name 'libkeyguard_*.a' -print0)
-          test "${#archives[@]}" -ge 5
+          done < <(find util/crypto/build util/io/build util/age/build util/zip/build util/zxcvbn/build util/agent-ipc/build -type f -name 'libkeyguard_*.a' -print0)
+          test "${#archives[@]}" -ge 6
           python3 scripts/verify_native_bundle.py apple --arch aarch64 \
             appleApp/build/bin/iosArm64/debugTest/test.kexe \
             appleApp/build/bin/iosSimulatorArm64/debugTest/test.kexe \
@@ -764,7 +765,9 @@ jobs:
             util/zip/build/reports/tests/
             util/zip/build/test-results/
             util/zxcvbn/build/reports/tests/
+            util/age/build/reports/tests/
             util/zxcvbn/build/test-results/
+            util/age/build/test-results/
             util/io/build/reports/tests/
             util/io/build/test-results/
             util/instance/build/reports/tests/

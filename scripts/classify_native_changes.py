@@ -98,7 +98,7 @@ def classify(paths, *, full=False, all_checks=False):
                     continue
             enable("io", "instance", "agent_ipc", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
             continue
-        module = re.match(r"util/(crypto|dns|io|zxcvbn|zip|instance|webauthn|yubikey|fido2|windows-passkeys|agent-ipc)/(.+)", path)
+        module = re.match(r"util/(age|crypto|dns|io|zxcvbn|zip|instance|webauthn|yubikey|fido2|windows-passkeys|agent-ipc)/(.+)", path)
         if module:
             name, relative = module.groups()
             if name in {"yubikey", "fido2"}:

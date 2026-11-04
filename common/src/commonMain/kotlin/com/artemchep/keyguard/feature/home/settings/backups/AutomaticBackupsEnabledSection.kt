@@ -74,6 +74,16 @@ internal fun LazyListScope.AutomaticBackupsEnabledContent(
         )
     }
 
+    if (state.canUpgradeEncryption) {
+        item("management.upgrade") {
+            components.KgAction(
+                icon = null,
+                title = stringResource(Res.string.pref_item_automatic_backups_upgrade_title),
+                onClick = state.onUpgradeEncryption,
+            )
+        }
+    }
+
     item("management.turn_off") {
         DisableAutomaticBackupsAction(
             onDisableClick = state.onDisableClick,

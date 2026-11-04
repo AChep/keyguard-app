@@ -204,6 +204,7 @@ class NativeChangeClassificationTest(unittest.TestCase):
 
     def test_native_dependencies_are_not_silently_omitted(self):
         cases = {
+            "util/age/rust/crates/keyguard-age-core/Cargo.toml": (True, True, True),
             "util/zxcvbn/rust/crates/keyguard-zxcvbn-core/Cargo.toml": (True, True, True),
             "util/zip/rust/crates/keyguard-zip-core/Cargo.toml": (False, False, True),
             "util/instance/rust/crates/keyguard-instance-core/Cargo.toml": (True, False, False),

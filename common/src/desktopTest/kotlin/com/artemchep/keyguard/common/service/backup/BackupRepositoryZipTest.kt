@@ -40,6 +40,27 @@ abstract class BackupRepositoryZipTestBase {
         zipService = createZipService(),
     )
 
+    /**
+     * The metadata the runner would pass to index calls: the repository's
+     * own, or a plain one for tests of the index layer alone.
+     */
+    protected suspend fun indexMetadata(
+        store: BackupObjectStore,
+        password: Password?,
+    ): BackupRepositoryMetadata = repository.readMetadata(store, password)
+        ?: BackupRepositoryMetadata(repoId = "index-test", createdAt = Instant.fromEpochMilliseconds(0L))
+
+    protected suspend fun BackupRepository.readIndexes(
+        store: BackupObjectStore,
+        password: Password?,
+    ): List<BackupIndex> = readIndexes(store, indexMetadata(store, password), password)
+
+    protected suspend fun BackupRepository.writeIndex(
+        store: BackupObjectStore,
+        password: Password?,
+        index: BackupIndex,
+    ) = writeIndex(store, indexMetadata(store, password), password, index)
+
     protected fun manifest(
         snapshotId: String,
         vaultSize: Long = 2L,

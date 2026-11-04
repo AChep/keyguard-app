@@ -1,5 +1,8 @@
 package com.artemchep.keyguard.common.service.imports.impl
 
+import com.artemchep.keyguard.util.age.AgePassword
+import com.artemchep.keyguard.common.service.archive.isAgeArchive
+import com.artemchep.keyguard.common.service.archive.readAgeArchive
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.imports.ImportAttachmentSink
 import com.artemchep.keyguard.common.service.imports.ImportInput
@@ -74,11 +77,12 @@ internal fun ImportInput.isZipArchive(): Boolean = open().use { source ->
  */
 internal fun ImportInput.readArchive(
     password: Password?,
+    allowAge: Boolean = false,
     accept: (String) -> Boolean,
 ): ImportArchive {
     val names = mutableListOf<String>()
     val entries = mutableMapOf<String, ByteArray>()
-    walkArchive(password, maxEntryBytes = IMPORT_TEXT_MAX_BYTES) { entry ->
+    walkArchive(password, allowAge = allowAge, maxEntryBytes = IMPORT_TEXT_MAX_BYTES) { entry ->
         names += entry.name
         if (accept(entry.name)) {
             entries[entry.name] = entry.source.readByteArray()
@@ -115,9 +119,10 @@ internal suspend fun <T> ImportInput.extractArchiveEntries(
     password: Password?,
     refs: Set<String>,
     sink: ImportAttachmentSink<T>,
+    allowAge: Boolean = false,
 ): Map<String, T> {
     val files = mutableMapOf<String, T>()
-    walkArchive(password) { entry ->
+    walkArchive(password, allowAge = allowAge) { entry ->
         // A second entry of the same name would be a second read of a ref
         // the sink has already consumed.
         if (entry.name in refs && entry.name !in files) {
@@ -141,20 +146,23 @@ internal suspend fun <T> ImportInput.extractArchiveEntries(
  */
 private inline fun ImportInput.walkArchive(
     password: Password?,
+    allowAge: Boolean = false,
     maxEntryBytes: Long = Long.MAX_VALUE,
     block: (ZipReaderEntry) -> Unit,
 ) {
     try {
-        ZipReader(
-            source = open(),
-            password = password?.value,
-            maxEntries = MAX_ARCHIVE_ENTRIES,
-            maxEntryBytes = maxEntryBytes,
-        ).use { reader ->
-            while (true) {
-                val entry = reader.nextEntry()
-                    ?: break
-                block(entry)
+        open().use { source ->
+            val reader = if (allowAge && source.isAgeArchive()) {
+                readAgeArchive(source, password?.value?.let(::AgePassword), maxEntryBytes = maxEntryBytes)
+            } else {
+                ZipReader(source, password?.value, MAX_ARCHIVE_ENTRIES, maxEntryBytes)
+            }
+            reader.use { reader ->
+                while (true) {
+                    val entry = reader.nextEntry()
+                        ?: break
+                    block(entry)
+                }
             }
         }
     } catch (_: ZipPasswordException) {

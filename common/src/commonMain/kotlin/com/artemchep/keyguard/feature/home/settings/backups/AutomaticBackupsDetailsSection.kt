@@ -35,18 +35,19 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
 import org.jetbrains.compose.resources.stringResource
 
-private const val AutomaticBackupsRepositoryTreeSample = "Keyguard Backups/\n" +
+private const val AUTOMATIC_BACKUPS_REPOSITORY_TREE_SAMPLE = "Keyguard Backups/\n" +
+        "├─ repo.zip.age\n" +
         "├─ repo.zip\n" +
         "├─ indexes/\n" +
-        "│  ├─ 000000000001-a1b2.zip\n" +
-        "│  └─ 000000000002-c3d4.zip\n" +
+        "│  ├─ 00000000000000000001-<ID>.zip.age\n" +
+        "│  └─ 00000000000000000002-<ID>.zip.age\n" +
         "├─ snapshots/\n" +
-        "│  ├─ 2026-05-28T10-42-11Z-a1b2.zip\n" +
-        "│  └─ 2026-05-28T12-18-04Z-c3d4.zip\n" +
+        "│  ├─ 20260528104211-<ID>.zip\n" +
+        "│  └─ 20260528121804-<ID>.zip\n" +
         "└─ blobs/\n" +
         "   └─ 4f/\n" +
         "      └─ 9a/\n" +
-        "         └─ 4f9a...e7.zip"
+        "         └─ 4f9a<...>.zip"
 
 @Composable
 internal fun AutomaticBackupsDetailsSection(
@@ -201,7 +202,7 @@ private fun AutomaticBackupsRepositoryTree() {
                 Text(
                     modifier = Modifier
                         .horizontalScroll(rememberScrollState()),
-                    text = AutomaticBackupsRepositoryTreeSample,
+                    text = AUTOMATIC_BACKUPS_REPOSITORY_TREE_SAMPLE,
                     style = MaterialTheme.typography.bodySmall,
                     fontFamily = monoFontFamily,
                     softWrap = false,

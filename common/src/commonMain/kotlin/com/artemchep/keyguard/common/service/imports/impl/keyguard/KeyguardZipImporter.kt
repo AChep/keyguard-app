@@ -26,7 +26,7 @@ private const val IMPORT_EXTENSION_ZIP = "zip"
 internal val keyguardImportFormat = ImportFormat(
     id = ImportFormatId.KeyguardZip,
     title = "Keyguard",
-    extensions = listOf(IMPORT_EXTENSION_ZIP),
+    extensions = listOf(IMPORT_EXTENSION_ZIP, "zip.age"),
 )
 
 /**
@@ -59,7 +59,7 @@ internal class KeyguardZipImporter(
         password: Password?,
         now: Instant,
     ): ImportResult {
-        val archive = input.readArchive(password) { it == VAULT_ENTRY }
+        val archive = input.readArchive(password, allowAge = true) { it == VAULT_ENTRY }
         val vault = archive.entries[VAULT_ENTRY]
             ?: return ImportResult.Failure(ImportError.Parse)
         val attachmentEntries = archive.namesByKey(
@@ -81,5 +81,5 @@ internal class KeyguardZipImporter(
         password: Password?,
         refs: Set<String>,
         sink: ImportAttachmentSink<T>,
-    ): Map<String, T> = input.extractArchiveEntries(password, refs, sink)
+    ): Map<String, T> = input.extractArchiveEntries(password, refs, sink, allowAge = true)
 }

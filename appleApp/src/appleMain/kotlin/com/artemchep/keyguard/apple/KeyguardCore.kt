@@ -1517,6 +1517,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun triggerBackupNow() = backupsController.triggerBackupNow()
 
+    fun upgradeBackupEncryption() = backupsController.upgradeBackupEncryption()
+
     fun setBackupRetention(maxSnapshots: Int) = backupsController.setBackupRetention(maxSnapshots)
 
     fun disableBackup() = backupsController.disableBackup()

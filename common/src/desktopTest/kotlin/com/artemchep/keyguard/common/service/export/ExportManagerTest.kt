@@ -19,6 +19,8 @@ import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenService
+import com.artemchep.keyguard.util.age.AgePassword
+import com.artemchep.keyguard.util.age.AgeZipReader
 import com.artemchep.keyguard.util.zip.ZipReader
 import com.artemchep.keyguard.util.zip.createZipService
 import java.lang.reflect.Proxy
@@ -95,6 +97,51 @@ class ExportManagerTest {
             assertNull(manager.getProgressFlowByExportId(result.exportId).first())
             // A late subscriber still sees completion after the pool entry is removed.
             assertEquals("file:///export.zip", result.flow.awaitCompleteResult().getOrNull())
+        } finally {
+            windowJob.cancelAndJoin()
+        }
+    }
+
+    @Test
+    fun ageExportPreservesFilterAttachmentsAndReleasesItsScope() = runBlocking {
+        val windowJob = Job()
+        val window = object : WindowCoroutineScope {
+            override val coroutineContext = windowJob + Dispatchers.Default
+        }
+        val output = Buffer()
+        var receivedFilter: DFilter? = null
+        val manager = manager(window, object : DirsService {
+            override fun saveToDownloads(fileName: String, write: suspend (Sink) -> Unit) = ioEffect {
+                assertEquals("keyguard_export_test.zip.age", fileName)
+                write(output)
+                "file:///export.zip.age"
+            }
+        }) { receivedFilter = it }
+        val existingJobs = windowJob.children.toSet()
+        try {
+            val request = ExportRequest(DFilter.All, "secret", true, format = ExportFormat.ZipAge)
+            val result = manager.queue(request)
+            assertEquals("file:///export.zip.age", withTimeout(30000) { result.flow.awaitCompleteResult() }.getOrNull())
+            assertEquals(request.filter, receivedFilter)
+            val bytes = output.readByteArray()
+            AgeZipReader(Buffer().apply { write(bytes) }, AgePassword("secret")).use { reader ->
+                val entry = assertNotNull(reader.nextEntry())
+                assertEquals("vault.json", entry.name)
+                assertEquals("{\"items\":[]}", entry.source.readString())
+                val attachment = assertNotNull(reader.nextEntry())
+                assertEquals("attachments/attachment/file.txt", attachment.name)
+                assertEquals("attachment bytes", attachment.source.readString())
+                assertNull(reader.nextEntry())
+            }
+            assertFails {
+                AgeZipReader(Buffer().apply { write(bytes) }, AgePassword("wrong")).use { reader ->
+                    reader.nextEntry()?.source?.readByteArray()
+                }
+            }
+            withTimeout(30000) { windowJob.children.filter { it !in existingJobs }.toList().forEach { it.join() } }
+            assertNull(manager.getProgressFlowByExportId(result.exportId).first())
+            // A late subscriber still sees completion after the pool entry is removed.
+            assertEquals("file:///export.zip.age", result.flow.awaitCompleteResult().getOrNull())
         } finally {
             windowJob.cancelAndJoin()
         }

@@ -24,7 +24,7 @@ use [Credential Exchange](/docs/credential-exchange/).
    - The account's screen: **Export individual vault** or **Export vault**.
    - An item's menu: **Export…**.
 2. Confirm access with your app password or biometrics.
-3. Select **ZIP archive** or **KeePass database (KDBX)**.
+3. Select **ZIP archive**, **ZIP archive + age** or **KeePass database (KDBX)**.
 4. Select **Continue**.
 5. To export only some of the items, narrow them with the filters.
 6. To include attached files, turn on **Export attachments**.
@@ -44,6 +44,16 @@ organization, and also exports the organization's items.
 
 Open `keyguard_export_<DATE>.zip` with a ZIP tool that
 supports AES-256 encryption. Enter the archive password.
+
+For **ZIP archive + age**, import the file with Keyguard.
+To open it elsewhere, decrypt it with [age](https://age-encryption.org/), then extract the ZIP:
+
+```sh
+age --decrypt --output export.zip keyguard_export_<DATE>.zip.age
+```
+
+Enter the export password when prompted. The decrypted `export.zip` contains plaintext vault data; remove it after use.
+Both archive formats contain the same entries. The age format uses scrypt to make password guessing more expensive.
 
 | Entry | Contents |
 | --- | --- |

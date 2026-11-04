@@ -207,6 +207,7 @@ jobs:
               :util:xml:desktopTest
               :util:zip:desktopTest
               :util:zxcvbn:desktopTest
+              :util:age:desktopTest
           - id: util-android-host
             name: Util Android Host
             max_workers: 2
@@ -230,6 +231,7 @@ jobs:
               :util:xml:testAndroidHostTest
               :util:zip:testAndroidHostTest
               :util:zxcvbn:testAndroidHostTest
+              :util:age:testAndroidHostTest
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:

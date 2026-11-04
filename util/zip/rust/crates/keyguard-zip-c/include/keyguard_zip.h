@@ -33,8 +33,9 @@ extern "C" {
  * open, then next_entry / read... until next_entry returns -1, then close.
  * next_entry discards whatever is left of the previous entry. finish, abort,
  * and close consume the handle whatever they return; close never removes the
- * file. Handles come from one counter, are never reused, and a handle of the
- * wrong kind reports KEYGUARD_ZIP_BRIDGE_INVALID_HANDLE.
+ * file. Handles are never reused, and a handle of the wrong kind reports
+ * KEYGUARD_ZIP_BRIDGE_INVALID_HANDLE. A handle whose earlier call panicked
+ * reports KEYGUARD_ZIP_BRIDGE_PANIC until it is consumed.
  *
  * A pointer may be NULL only when its length is zero, and must stay valid for
  * the duration of the call. Paths, entry names, and passwords never travel
@@ -150,7 +151,7 @@ int64_t keyguard_zip_writer_end_entry(uint64_t handle);
 
 /*
  * Writes the central directory, fsyncs, and closes the file. A failed finish
- * leaves the incomplete file for the caller to remove.
+ * removes the incomplete file, as does a handle dropped after a panic.
  */
 int64_t keyguard_zip_writer_finish(uint64_t handle);
 

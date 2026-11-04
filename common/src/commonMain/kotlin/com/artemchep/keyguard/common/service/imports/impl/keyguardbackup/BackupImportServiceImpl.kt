@@ -99,9 +99,9 @@ class BackupImportServiceImpl(
     ): ImportOpenResult {
         // Read first: it fails on a wrong password, while reading the indexes
         // without one would answer an empty repository.
-        backupRepository.readMetadata(store, password)
+        val metadata = backupRepository.readMetadata(store, password)
             ?: return ImportOpenResult.Failure(BackupImportError.NotFound)
-        val indexes = backupRepository.readIndexes(store, password)
+        val indexes = backupRepository.readIndexes(store, metadata, password)
         val index = mergeBackupIndexes(indexes).index
         val snapshots = index.snapshots
             .map { (id, snapshot) ->

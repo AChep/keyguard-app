@@ -10,8 +10,10 @@ import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.backup.BackupConfig
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepository
+import com.artemchep.keyguard.common.service.backup.canUpgradeEncryption
 import com.artemchep.keyguard.common.service.backup.sanitized
 import com.artemchep.keyguard.common.usecase.GetAccounts
+import com.artemchep.keyguard.common.usecase.UpgradeBackupEncryption
 import com.artemchep.keyguard.common.usecase.RunBackupNow
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
@@ -38,6 +40,7 @@ fun produceAutomaticBackupsSettingsScreenState(): Loadable<AutomaticBackupsSetti
         produceAutomaticBackupsSettingsScreenState(
             backupConfigRepository = get(),
             runBackupNow = get(),
+            upgradeBackupEncryption = get(),
             getAccounts = get(),
         )
     }
@@ -46,6 +49,7 @@ fun produceAutomaticBackupsSettingsScreenState(): Loadable<AutomaticBackupsSetti
 fun produceAutomaticBackupsSettingsScreenState(
     backupConfigRepository: BackupConfigRepository,
     runBackupNow: RunBackupNow,
+    upgradeBackupEncryption: UpgradeBackupEncryption,
     getAccounts: GetAccounts,
 ): Loadable<AutomaticBackupsSettingsState> = produceScreenState(
     key = "settings_automatic_backups",
@@ -53,12 +57,14 @@ fun produceAutomaticBackupsSettingsScreenState(
     args = arrayOf(
         backupConfigRepository,
         runBackupNow,
+        upgradeBackupEncryption,
         getAccounts,
     ),
 ) {
     automaticBackupsSettingsStateProducer(
         backupConfigRepository = backupConfigRepository,
         runBackupNow = runBackupNow,
+        upgradeBackupEncryption = upgradeBackupEncryption,
         getAccounts = getAccounts,
     )
 }
@@ -66,6 +72,7 @@ fun produceAutomaticBackupsSettingsScreenState(
 suspend fun RememberStateFlowScope.automaticBackupsSettingsStateProducer(
     backupConfigRepository: BackupConfigRepository,
     runBackupNow: RunBackupNow,
+    upgradeBackupEncryption: UpgradeBackupEncryption,
     getAccounts: GetAccounts,
 ): Flow<Loadable<AutomaticBackupsSettingsState>> {
     fun putConfig(
@@ -82,6 +89,22 @@ suspend fun RememberStateFlowScope.automaticBackupsSettingsStateProducer(
                 .bind()
         }
         io.launchIn(appScope)
+    }
+
+    suspend fun confirmUpgradeEncryption() {
+        val route = registerRouteResultReceiver(
+            route = ConfirmationRoute(
+                args = ConfirmationRoute.Args(
+                    title = translate(Res.string.pref_item_automatic_backups_upgrade_title),
+                    message = translate(Res.string.pref_item_automatic_backups_upgrade_message),
+                ),
+            ),
+        ) { result ->
+            if (result is ConfirmationResult.Confirm) {
+                upgradeBackupEncryption().launchIn(appScope)
+            }
+        }
+        navigate(NavigationIntent.NavigateToRoute(route))
     }
 
     suspend fun confirmDisable() {
@@ -157,6 +180,7 @@ suspend fun RememberStateFlowScope.automaticBackupsSettingsStateProducer(
             .launchIn(appScope)
     }
     val onImport = onClick(::importFromBackup)
+    val onUpgradeEncryption = onClick(::confirmUpgradeEncryption)
     val onDisableClick = onClick(::confirmDisable)
     return combine(
         backupConfigRepository.getConfig(),
@@ -169,6 +193,8 @@ suspend fun RememberStateFlowScope.automaticBackupsSettingsStateProducer(
             onRetentionChange = onRetentionChange,
             onRunNow = onRunNow,
             onImport = onImport,
+            canUpgradeEncryption = status.canUpgradeEncryption(config),
+            onUpgradeEncryption = onUpgradeEncryption.takeIf { status.currentRun == null },
             onDisableClick = onDisableClick,
         )
     }

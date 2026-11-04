@@ -1,0 +1,3 @@
+headers = keyguard_age.h
+headerFilter = keyguard_age.h
+staticLibraries = libkeyguard_age_c.a

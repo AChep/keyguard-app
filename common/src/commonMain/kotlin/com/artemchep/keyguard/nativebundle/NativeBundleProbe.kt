@@ -1,5 +1,9 @@
 package com.artemchep.keyguard.nativebundle
 
+import com.artemchep.keyguard.util.age.AgePassword
+import com.artemchep.keyguard.util.age.AgeZipWriter
+import com.artemchep.keyguard.util.age.AgeZipReader
+import kotlinx.io.Buffer
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.util.io.LocalPath
 import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
@@ -24,6 +28,11 @@ object NativeBundleProbe {
     fun run(root: LocalPath) {
         nativeProbe("crypto") { verifyCrypto() }
         nativeProbe("io") { verifyAtomicIo(root) }
+        nativeProbe("age") {
+            val ciphertext = Buffer()
+            AgeZipWriter(ciphertext, AgePassword("native bundle probe")).use { it.finish() }
+            AgeZipReader(ciphertext, AgePassword("native bundle probe")).use { check(it.nextEntry() == null) }
+        }
         nativeProbe("zxcvbn") {
             val estimate = Zxcvbn.estimate("native bundle probe")
             check(estimate.guesses > 0 && estimate.score in 0..MAX_ZXCVBN_SCORE) {

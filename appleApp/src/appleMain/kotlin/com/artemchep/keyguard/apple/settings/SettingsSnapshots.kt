@@ -157,10 +157,14 @@ data class BackupSettingsSnapshot(
     /** The host of a custom S3 endpoint, or null for Amazon S3. */
     val s3EndpointHost: String? = null,
     val hasPassword: Boolean = false,
+    /** Whether the repository needs, or is in the middle of, an encryption upgrade. */
+    val canUpgradeEncryption: Boolean = false,
     val includeAttachments: Boolean = true,
     val retentionMaxSnapshots: Int = 30,
     val lastSuccessfulBackupAtMs: Long? = null,
     val lastErrorMessage: String? = null,
+    /** The last run failed on an interrupted encryption upgrade; show the localized hint instead. */
+    val failedOnPendingEncryptionUpgrade: Boolean = false,
     val isDirty: Boolean = false,
     val runningStep: String? = null,
     val isRunning: Boolean = false,

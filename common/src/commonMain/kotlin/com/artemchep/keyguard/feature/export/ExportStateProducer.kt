@@ -533,31 +533,33 @@ suspend fun RememberStateFlowScope.exportScreenStateProducer(
 }
 
 internal fun ExportFormat.icon(): ImageVector = when (this) {
-    ExportFormat.Zip -> Icons.Outlined.FolderZip
+    ExportFormat.Zip, ExportFormat.ZipAge -> Icons.Outlined.FolderZip
     ExportFormat.Kdbx -> Icons.Outlined.Key
 }
 
 internal fun ExportFormat.titleRes(): StringResource = when (this) {
     ExportFormat.Zip -> Res.string.exportaccount_format_zip
+    ExportFormat.ZipAge -> Res.string.exportaccount_format_zip_age
     ExportFormat.Kdbx -> Res.string.exportaccount_format_kdbx
 }
 
 internal fun ExportFormat.noteRes(): StringResource = when (this) {
     ExportFormat.Zip -> Res.string.exportaccount_format_note
+    ExportFormat.ZipAge -> Res.string.exportaccount_format_zip_age_note
     ExportFormat.Kdbx -> Res.string.exportaccount_format_kdbx_note
 }
 
 internal fun ExportFormat.attachmentsNoteRes(): StringResource = when (this) {
-    ExportFormat.Zip -> Res.string.exportaccount_attachments_note
+    ExportFormat.Zip, ExportFormat.ZipAge -> Res.string.exportaccount_attachments_note
     ExportFormat.Kdbx -> Res.string.exportaccount_kdbx_attachments_note
 }
 
 internal fun ExportFormat.passwordLabelRes(): StringResource = when (this) {
-    ExportFormat.Zip -> Res.string.exportaccount_password_label
+    ExportFormat.Zip, ExportFormat.ZipAge -> Res.string.exportaccount_password_label
     ExportFormat.Kdbx -> Res.string.exportaccount_kdbx_password_label
 }
 
 internal fun ExportFormat.confirmPasswordLabelRes(): StringResource = when (this) {
-    ExportFormat.Zip -> Res.string.exportaccount_confirm_password_label
+    ExportFormat.Zip, ExportFormat.ZipAge -> Res.string.exportaccount_confirm_password_label
     ExportFormat.Kdbx -> Res.string.exportaccount_kdbx_confirm_password_label
 }

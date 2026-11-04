@@ -168,8 +168,8 @@ class AppleFolderBackupObjectStoreTest {
                 val metadata = repository.getOrCreateMetadata(store, password, { now }, { "repo-1" })
                 assertEquals(metadata, repository.getOrCreateMetadata(store, password, { now }, { "repo-2" }))
                 val index = BackupIndex(indexId = "index-1", generation = 1, updatedAt = now)
-                repository.writeIndex(store, password, index)
-                assertEquals(listOf(index), repository.readIndexes(store, password))
+                repository.writeIndex(store, metadata, password, index)
+                assertEquals(listOf(index), repository.readIndexes(store, metadata, password))
                 val blobPath = "blobs/ab/attachment.zip"
                 val bytes = ByteArray(128 * 1024 + 5) { (it % 251).toByte() }
                 repository.writeBlob(store, password, blobPath) { it.write(bytes) }

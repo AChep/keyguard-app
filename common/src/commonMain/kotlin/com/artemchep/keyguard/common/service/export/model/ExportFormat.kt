@@ -11,6 +11,11 @@ enum class ExportFormat(
         extension = "zip",
     ),
 
+    /** An ordinary ZIP protected by age password encryption. */
+    ZipAge(
+        extension = "zip.age",
+    ),
+
     /**
      * A KeePass database.
      */

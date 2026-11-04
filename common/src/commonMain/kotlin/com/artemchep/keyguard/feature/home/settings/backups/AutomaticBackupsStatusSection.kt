@@ -34,6 +34,7 @@ import com.artemchep.keyguard.common.service.backup.BackupConfig
 import com.artemchep.keyguard.common.service.backup.BackupRunProgress
 import com.artemchep.keyguard.common.service.backup.BackupRunProgressDetails
 import com.artemchep.keyguard.common.service.backup.BackupStatus
+import com.artemchep.keyguard.common.service.backup.failedOnPendingEncryptionUpgrade
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
@@ -367,6 +368,10 @@ private fun backupStatusText(
     dateFormatter: DateFormatter,
 ): String = when {
     status.currentRun != null -> backupRunProgressText(status.currentRun)
+
+    status.failedOnPendingEncryptionUpgrade -> stringResource(
+        Res.string.pref_item_automatic_backups_status_upgrade_pending_text,
+    )
 
     status.lastErrorMessage != null -> stringResource(
         Res.string.pref_item_automatic_backups_status_error_text,

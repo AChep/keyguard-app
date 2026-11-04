@@ -79,12 +79,14 @@ import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.common.usecase.PutLaunchAtLogin
 import com.artemchep.keyguard.common.usecase.PutLocale
+import com.artemchep.keyguard.common.usecase.UpgradeBackupEncryption
 import com.artemchep.keyguard.common.usecase.RunBackupNow
 import com.artemchep.keyguard.common.usecase.TestBackupLocation
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.common.usecase.impl.CheckWebDavConnectionImpl
 import com.artemchep.keyguard.common.usecase.impl.GetLocaleImpl
 import com.artemchep.keyguard.common.usecase.impl.PutLocaleImpl
+import com.artemchep.keyguard.common.usecase.impl.UpgradeBackupEncryptionImpl
 import com.artemchep.keyguard.common.usecase.impl.RunBackupNowImpl
 import com.artemchep.keyguard.common.usecase.impl.TestBackupLocationImpl
 import com.artemchep.keyguard.common.worker.WorkerRegistry
@@ -344,6 +346,12 @@ internal class MacosPlatformModule {
 
         single<RunBackupNow> {
             RunBackupNowImpl(
+                backupRunService = get(),
+            )
+        }
+
+        single<UpgradeBackupEncryption> {
+            UpgradeBackupEncryptionImpl(
                 backupRunService = get(),
             )
         }

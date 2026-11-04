@@ -30,10 +30,12 @@ import com.artemchep.keyguard.common.usecase.GetSshAgentApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.ListWebDavDirectory
 import com.artemchep.keyguard.common.usecase.NumberFormatter
+import com.artemchep.keyguard.common.usecase.UpgradeBackupEncryption
 import com.artemchep.keyguard.common.usecase.RunBackupNow
 import com.artemchep.keyguard.common.usecase.TestBackupLocation
 import com.artemchep.keyguard.common.usecase.impl.CheckWebDavConnectionImpl
 import com.artemchep.keyguard.common.usecase.impl.ListWebDavDirectoryImpl
+import com.artemchep.keyguard.common.usecase.impl.UpgradeBackupEncryptionImpl
 import com.artemchep.keyguard.common.usecase.impl.RunBackupNowImpl
 import com.artemchep.keyguard.common.usecase.impl.TestBackupLocationImpl
 import com.artemchep.keyguard.copy.Base32ServiceJvm
@@ -134,6 +136,12 @@ class GlobalModuleJvm {
         }
         single<RunBackupNow> {
             RunBackupNowImpl(
+                backupRunService = get(),
+            )
+        }
+
+        single<UpgradeBackupEncryption> {
+            UpgradeBackupEncryptionImpl(
                 backupRunService = get(),
             )
         }

@@ -66,9 +66,11 @@ import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.common.usecase.PutLocale
+import com.artemchep.keyguard.common.usecase.UpgradeBackupEncryption
 import com.artemchep.keyguard.common.usecase.RunBackupNow
 import com.artemchep.keyguard.common.usecase.TestBackupLocation
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
+import com.artemchep.keyguard.common.usecase.impl.UpgradeBackupEncryptionImpl
 import com.artemchep.keyguard.common.usecase.impl.RunBackupNowImpl
 import com.artemchep.keyguard.common.usecase.impl.TestBackupLocationImpl
 import com.artemchep.keyguard.common.usecase.impl.CheckWebDavConnectionImpl
@@ -312,6 +314,12 @@ internal class IosPlatformModule {
 
         single<RunBackupNow> {
             RunBackupNowImpl(
+                backupRunService = get(),
+            )
+        }
+
+        single<UpgradeBackupEncryption> {
+            UpgradeBackupEncryptionImpl(
                 backupRunService = get(),
             )
         }

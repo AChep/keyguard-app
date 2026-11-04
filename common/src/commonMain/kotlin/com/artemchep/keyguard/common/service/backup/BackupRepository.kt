@@ -7,6 +7,12 @@ import kotlinx.io.Source
 
 @Suppress("TooManyFunctions") // One per object operation, for the runner and the import.
 interface BackupRepository {
+    /**
+     * Upgrades repository metadata and future index writes; preserves existing archives.
+     * Callers must exclude other writers.
+     */
+    suspend fun upgradeEncryption(store: BackupObjectStore, password: Password)
+
     suspend fun getOrCreateMetadata(
         store: BackupObjectStore,
         password: Password?,
@@ -31,18 +37,25 @@ interface BackupRepository {
 
     /**
      * Returns the newest generation that has at least one readable index.
+     * [metadata] is what [getOrCreateMetadata] or [readMetadata] returned
+     * for [store]; it is trusted and not read again.
      * Multiple readable indexes in that generation are returned for merge.
+     * Both ZIP and age indexes are supported; age wins for the same index
+     * identity, even if that age copy cannot be read.
      *
-     * With a [password], throws instead of falling back when an index is not
-     * AES-encrypted, or when indexes exist but none of them can be read.
+     * With a [password], throws instead of falling back when a ZIP index is
+     * unencrypted, or when indexes exist but none of them can be read.
      */
     suspend fun readIndexes(
         store: BackupObjectStore,
+        metadata: BackupRepositoryMetadata,
         password: Password?,
     ): List<BackupIndex>
 
+    /** Writes [index] in the format [metadata] selects; see [readIndexes]. */
     suspend fun writeIndex(
         store: BackupObjectStore,
+        metadata: BackupRepositoryMetadata,
         password: Password?,
         index: BackupIndex,
     )

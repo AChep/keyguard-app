@@ -219,6 +219,61 @@ class BackupConfigRepositoryTest {
     }
 
     @Test
+    fun `repository encryption survives runs that did not open the repository`() = runTest {
+        val repository = BackupConfigRepositoryImpl(JsonKeyValueStore(), json)
+        repository.setStatus(BackupStatus(repositoryEncryption = BackupRepositoryEncryption.ZipAes)).bind()
+
+        repository.setStatus(BackupStatus(lastErrorMessage = "network")).bind()
+        assertEquals(BackupRepositoryEncryption.ZipAes, repository.getStatus().first().repositoryEncryption)
+
+        repository.setStatus(BackupStatus(repositoryEncryption = BackupRepositoryEncryption.Age)).bind()
+        assertEquals(BackupRepositoryEncryption.Age, repository.getStatus().first().repositoryEncryption)
+    }
+
+    @Test
+    fun `changing the store or password forgets the repository encryption`() = runTest {
+        val repository = BackupConfigRepositoryImpl(JsonKeyValueStore(), json)
+        val config = BackupConfig(
+            enabled = true,
+            store = BackupStoreConfig.Local("/folder"),
+            password = com.artemchep.keyguard.common.model.Password("password"),
+        )
+        repository.setConfig(config).bind()
+        suspend fun recordAndChange(updated: BackupConfig): BackupRepositoryEncryption? {
+            repository.setStatus(BackupStatus(repositoryEncryption = BackupRepositoryEncryption.ZipAes)).bind()
+            repository.setConfig(updated).bind()
+            return repository.getStatus().first().repositoryEncryption
+        }
+
+        assertEquals(
+            BackupRepositoryEncryption.ZipAes,
+            recordAndChange(config.copy(includeAttachments = false)),
+        )
+        assertEquals(
+            null,
+            recordAndChange(config.copy(password = com.artemchep.keyguard.common.model.Password("other"))),
+        )
+        assertEquals(
+            null,
+            recordAndChange(config.copy(store = BackupStoreConfig.Local("/other"))),
+        )
+    }
+
+    @Test
+    fun `encryption upgrade is offered only for legacy or interrupted repositories`() {
+        val config = BackupConfig(password = com.artemchep.keyguard.common.model.Password("password"))
+        fun offered(encryption: BackupRepositoryEncryption?, config: BackupConfig) =
+            BackupStatus(repositoryEncryption = encryption).canUpgradeEncryption(config)
+
+        assertTrue(offered(BackupRepositoryEncryption.ZipAes, config))
+        assertTrue(offered(BackupRepositoryEncryption.UpgradePending, config))
+        assertFalse(offered(BackupRepositoryEncryption.Age, config))
+        assertFalse(offered(BackupRepositoryEncryption.None, config))
+        assertFalse(offered(null, config))
+        assertFalse(offered(BackupRepositoryEncryption.ZipAes, config.copy(password = null)))
+    }
+
+    @Test
     fun `set config marks dirty only when backups can run`() = runTest {
         val repository = BackupConfigRepositoryImpl(
             store = JsonKeyValueStore(),

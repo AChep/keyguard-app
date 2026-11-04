@@ -49,11 +49,15 @@ class ExportSnapshotTest {
             onFormat = { selected += it },
         ).toSnapshot("Export") { (it as TextHolder.Value).data }
 
-        assertEquals(listOf("export:format:zip", "export:format:kdbx"), snapshot.formats.map { it.id })
+        assertEquals(
+            listOf("export:format:zip", "export:format:zip.age", "export:format:kdbx"),
+            snapshot.formats.map { it.id },
+        )
         assertEquals("ZIP archive", snapshot.formatTitle)
         assertEquals("Attachments note", snapshot.attachmentsNote)
+        handlers.getValue("export:format:zip.age").invoke()
         handlers.getValue("export:format:kdbx").invoke()
-        assertEquals(listOf("kdbx"), selected)
+        assertEquals(listOf("zip.age", "kdbx"), selected)
     }
 
     @Test
@@ -102,7 +106,7 @@ class ExportSnapshotTest {
             attachmentsNote = "Attachments note",
             passwordLabel = "Archive password",
             confirmPasswordLabel = "Confirm archive password",
-            options = listOf("zip", "kdbx").map { id ->
+            options = listOf("zip", "zip.age", "kdbx").map { id ->
                 FlatItemAction(
                     id = id,
                     title = TextHolder.Value(id),

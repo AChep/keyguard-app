@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.LockReason
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.service.vault.SessionReadRepository
@@ -97,6 +98,68 @@ class BackupRunServiceTest {
         }
     }
 
+    @Test
+    fun `encryption upgrade ends with a successful backup status`() = runTest {
+        val repository = configuredRepository()
+        val backups = MemoryBackupRepository()
+        repository.setStatus(BackupStatus(repositoryEncryption = BackupRepositoryEncryption.ZipAes)).bind()
+
+        val status = service(repository, backgroundScope, session(repository, backups)).upgradeEncryption()
+
+        assertEquals(1, backups.upgradeCalls)
+        assertNotNull(status.lastSnapshotId)
+        assertNotNull(status.lastStats)
+        assertEquals(null, status.lastErrorMessage)
+        assertEquals(BackupRepositoryEncryption.Age, status.repositoryEncryption)
+        assertEquals(false, status.isDirty)
+        assertEquals(false, status.canUpgradeEncryption(repository.getConfig().first()))
+    }
+
+    @Test
+    fun `backup failure after the upgrade still records age encryption`() = runTest {
+        val repository = configuredRepository()
+        val backups = MemoryBackupRepository().apply {
+            failWriteSnapshot = IllegalStateException("snapshot")
+        }
+        repository.setStatus(BackupStatus(repositoryEncryption = BackupRepositoryEncryption.ZipAes)).bind()
+
+        val status = service(repository, backgroundScope, session(repository, backups)).upgradeEncryption()
+
+        assertEquals("snapshot", status.lastErrorMessage)
+        assertEquals(BackupRepositoryEncryption.Age, status.repositoryEncryption)
+    }
+
+    @Test
+    fun `interrupted upgrade is recorded so it can be resumed`() = runTest {
+        val repository = configuredRepository()
+        val backups = MemoryBackupRepository().apply {
+            age = true
+            upgradePending = true
+        }
+        repository.setStatus(BackupStatus(repositoryEncryption = BackupRepositoryEncryption.Age)).bind()
+        val service = service(repository, backgroundScope, session(repository, backups))
+
+        val failed = service.runManual()
+        assertEquals(BackupRepositoryEncryption.UpgradePending, failed.repositoryEncryption)
+        assertEquals(true, failed.canUpgradeEncryption(repository.getConfig().first()))
+        assertEquals(true, failed.failedOnPendingEncryptionUpgrade)
+
+        val resumed = service.upgradeEncryption()
+        assertNotNull(resumed.lastSnapshotId)
+        assertEquals(BackupRepositoryEncryption.Age, resumed.repositoryEncryption)
+        assertEquals(false, resumed.failedOnPendingEncryptionUpgrade)
+    }
+
+    private suspend fun configuredRepository() = BackupConfigRepositoryImpl(JsonKeyValueStore(), json).apply {
+        setConfig(
+            BackupConfig(
+                enabled = true,
+                store = BackupStoreConfig.Local("/unused-backup-directory"),
+                password = Password("password"),
+            ),
+        ).bind()
+    }
+
     private fun service(
         repository: BackupConfigRepository,
         scope: CoroutineScope,
@@ -118,6 +181,7 @@ class BackupRunServiceTest {
 
     private fun session(
         repository: BackupConfigRepository,
+        backups: BackupRepository? = null,
     ) = MasterSession.Key(
         masterKey = MasterKey(
             version = MasterKdfVersion.V0,
@@ -126,6 +190,11 @@ class BackupRunServiceTest {
         session = testVaultSession {
             scoped<BackupConfigRepository> {
                 repository
+            }
+            if (backups != null) {
+                scoped<BackupRunner> {
+                    testBackupRunner(backups)
+                }
             }
         },
         origin = MasterSession.Key.Authenticated,

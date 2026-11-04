@@ -46,7 +46,7 @@ pub const MAX_MEMORY_ARCHIVE_BYTES: usize = 8 * 1024 * 1024;
 /// Returns a packed [`Operation::Open`] failure.
 pub fn open(path: &str, password: Option<&str>) -> Result<u64, i64> {
     let writer = ArchiveWriter::open(path, password)?;
-    Ok(registry::insert_writer(writer))
+    registry::insert_writer(writer)
 }
 
 /// Starts an entry named `name` in the archive behind `handle`.
@@ -103,7 +103,7 @@ pub fn abort(handle: u64) -> Result<(), i64> {
 /// Returns a packed [`Operation::ReaderOpen`] failure.
 pub fn reader_open(path: &str, password: Option<&str>) -> Result<u64, i64> {
     let reader = ArchiveReader::open(path, password)?;
-    Ok(registry::insert_reader(reader))
+    registry::insert_reader(reader)
 }
 
 /// Advances the reader behind `handle` to its next entry, copying the name
@@ -310,6 +310,27 @@ mod tests {
         assert_eq!(abort(handle), Err(pack_bridge_invalid_handle()));
     }
 
+    /// A panic mid-write poisons the handle; the session table then drops the
+    /// writer instead of returning it to abort, and the drop must still
+    /// remove the partial archive.
+    #[test]
+    fn a_panicked_write_leaves_no_partial_archive() {
+        let path = temp_path("panic");
+        let handle = open(path.to_str().expect("UTF-8 path"), None).expect("open must succeed");
+        begin_entry(handle, "partial.bin").expect("begin must succeed");
+        write(handle, &[0_u8; 1024]).expect("write must succeed");
+
+        let panicked = std::panic::catch_unwind(|| {
+            registry::with_writer_mut(handle, |_| -> Result<(), i64> {
+                panic!("simulated failure")
+            })
+        });
+        assert!(panicked.is_err());
+
+        assert_eq!(abort(handle), Err(pack_bridge_error(BridgeError::Panic)));
+        assert!(!path.exists(), "the partial archive must be removed");
+    }
+
     #[test]
     fn an_encrypted_archive_is_written_through_the_handle_api() {
         let path = temp_path("aes");
@@ -344,9 +365,9 @@ mod tests {
         begin_entry(handle, "a.txt").expect("begin must succeed");
         assert_eq!(begin_entry(handle, "b.txt"), Err(invalid_state));
         assert_eq!(finish(handle), Err(invalid_state));
-        // A failed finish still consumed the handle.
+        // A failed finish still consumed the handle, and removed the file.
         assert_eq!(end_entry(handle), Err(pack_bridge_invalid_handle()));
-        fs::remove_file(&path).expect("cleanup must succeed");
+        assert!(!path.exists(), "a failed finish must remove the file");
     }
 
     #[test]

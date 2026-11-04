@@ -55,17 +55,20 @@ A snapshot holds every account, and all its items go to the one account.
 Items in the trash return to the trash. An environment's references to other
 items are unset; set them again after the import.
 
-To read the files by hand instead, use a ZIP tool that supports AES-256
-encryption. Without a backup password, skip the passwords: every file is a
-regular ZIP archive.
+To read the files by hand, decrypt `.zip.age` files with [age](https://age-encryption.org/), then extract the ZIP.
+Use an AES-256 ZIP tool for snapshots, attachments and older `.zip` files.
+Without a backup password, every file is a regular ZIP archive.
 
-1. In `indexes/`, open the archive with the highest number, using the backup
-   password. It holds `index.json`.
-2. In `index.json`, under `snapshots`, find the snapshot to recover. Note its
+1. Decrypt `repo.zip.age` with the backup password and open `repo.json`. Save
+   its `keys.index` value to a file, such as `key.txt`.
+2. In `indexes/`, take the archive with the highest number. Decrypt a
+   `.zip.age` index with `age -d -i key.txt`. Open an older `.zip` index with
+   the backup password. It holds `index.json`.
+3. In `index.json`, under `snapshots`, find the snapshot to recover. Note its
    `path` and `encryption.keyBase64` values.
-3. Open the snapshot archive at that `path`. Enter the `keyBase64` value as
+4. Open the snapshot archive at that `path`. Enter the `keyBase64` value as
    the password.
-4. Open `vault.json`. It has the format described in
+5. Open `vault.json`. It has the format described in
    [Export your vault](/docs/export/).
 
 To recover an attachment:
@@ -103,7 +106,9 @@ Sends aren't included.
 
 The backup password is optional.
 
-- With a password, every file in the repository is encrypted with AES-256.
+- New password-protected repositories encrypt metadata with age, using scrypt and the backup password.
+  Indexes use age with a random key stored in that metadata, so a backup derives a key from the password once.
+  Snapshots and attachments use AES-256 ZIP encryption with separate random passwords.
 - Without a password, backups are stored unencrypted.
 
 :::caution
@@ -114,6 +119,21 @@ files. Set a backup password for backups in a shared folder or in the cloud.
 The backup password is separate from your app and account passwords. If you
 lose it, the backup can't be decrypted. Every device that shares a repository
 must use the same password.
+
+Older encrypted repositories keep their ZIP format until you select **Upgrade backup encryption** in **Settings > Backups**.
+The action appears once a backup run finds an older repository.
+Stop backups on other devices and update Keyguard everywhere first.
+
+The upgrade creates and verifies `repo.zip.age`, then replaces `repo.zip` with a compatibility marker containing no keys or password verifier.
+A backup runs right after.
+Existing indexes, snapshots and attachments stay unchanged. Future indexes use `.zip.age`.
+
+Keyguard reads both index formats.
+If interrupted, run the action again. Older Keyguard versions cannot use the upgraded repository.
+
+Kept encrypted ZIP indexes retain weaker password protection.
+Anyone who cracks their password can also decrypt the new age archives using that password.
+Storage providers may also retain the old `repo.zip` in version history or trash.
 
 The encryption mode is fixed when the repository is created. To switch between
 encrypted and unencrypted, start over with a new backup location.
@@ -142,13 +162,14 @@ month of history.
 
 ## Repository structure
 
-A backup location holds a repository of ZIP files:
+A new encrypted backup location holds these files. Upgraded repositories can also contain older `.zip` indexes. Unencrypted repositories use `.zip` throughout:
 
 ```text
+├─ repo.zip.age
 ├─ repo.zip
 ├─ indexes/
-│  ├─ 00000000000000000001-<ID>.zip
-│  └─ 00000000000000000002-<ID>.zip
+│  ├─ 00000000000000000001-<ID>.zip.age
+│  └─ 00000000000000000002-<ID>.zip.age
 ├─ snapshots/
 │  ├─ 20260528104211-<ID>.zip
 │  └─ 20260528121804-<ID>.zip
@@ -160,12 +181,16 @@ A backup location holds a repository of ZIP files:
 
 | Path | Contents |
 | --- | --- |
-| `repo.zip` | Repository metadata |
+| `repo.zip.age` | Encrypted repository metadata, including the index key |
+| `repo.zip` | Compatibility marker with no keys or password verifier; prevents older clients from treating the folder as empty |
 | `indexes/` | Numbered indexes that list the snapshots and blobs, with the password of each one. The highest number is the newest. |
 | `snapshots/` | One archive per snapshot, named by its local date and time, holding `vault.json` and `manifest.json` |
 | `blobs/` | One archive per attachment, under a random ID, holding `attachment.bin` |
 
+When both `.zip` and `.zip.age` exist for the same index, Keyguard uses the `.zip.age` copy.
+An unreadable `.zip.age` copy never causes a fallback to its `.zip` twin.
+
 An attachment is stored once as a blob and shared by every snapshot that
-references it. With a backup password, the metadata and indexes use the
-backup password, and each snapshot and blob has its own password, kept in the
-encrypted index.
+references it. With a backup password, the metadata uses the backup password, the indexes
+use the index key stored in the metadata, and each snapshot and blob has its
+own password, kept in the encrypted index.

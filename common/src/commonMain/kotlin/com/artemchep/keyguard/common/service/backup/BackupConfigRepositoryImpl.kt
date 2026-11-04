@@ -52,6 +52,16 @@ class BackupConfigRepositoryImpl(
             this@BackupConfigRepositoryImpl.config
                 .setAndCommit(config)
                 .bind()
+            // A different store or password is a different repository, or
+            // the same one opened differently: its encryption is unknown.
+            val repositoryChanged = config.store != previousConfig.store ||
+                config.password != previousConfig.password
+            if (repositoryChanged) {
+                val current = persistedStatus()
+                if (current.repositoryEncryption != null) {
+                    persistStatus(current.copy(repositoryEncryption = null))
+                }
+            }
             if (config.canRun() && config != previousConfig) {
                 markDirtyLocked(Clock.System.now())
             }
@@ -161,6 +171,9 @@ class BackupConfigRepositoryImpl(
         lastChangedAt = current.lastChangedAt,
         lastSuccessfulBackupAt = current.lastSuccessfulBackupAt,
         lastSuccessfulBackupChangeGeneration = current.lastSuccessfulBackupChangeGeneration,
+        // A fact about the repository, not the attempt: a run that did not
+        // open it keeps what an earlier run saw.
+        repositoryEncryption = repositoryEncryption ?: current.repositoryEncryption,
         currentRun = null,
     )
 }

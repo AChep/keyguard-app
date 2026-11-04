@@ -7,7 +7,8 @@
 //!   points; headers, cinterop definitions and bundle checks name them.
 //! - It owns no state that must be per-library. Static libraries built without
 //!   LTO share this crate's objects once linked into one Apple binary, so a
-//!   bridge owns its [`OperationRegistry`] as its own `static`.
+//!   bridge owns its [`OperationRegistry`] and [`SessionTable`]s as its own
+//!   `static`s.
 //! - Failures cross the boundary as stable codes, never as messages.
 
 #![deny(unsafe_code)]
@@ -18,6 +19,7 @@ mod java;
 mod operation;
 mod panic;
 mod raw;
+mod sessions;
 
 pub use failure::{
     BRIDGE_ERROR_INTERNAL, BRIDGE_ERROR_INVALID_ARGUMENT, BRIDGE_ERROR_PANIC, BRIDGE_INTERNAL,
@@ -34,3 +36,4 @@ pub use operation::{
 };
 pub use panic::{PanicHook, contained, flatten, install_redacting_panic_hook};
 pub use raw::{bytes_from_raw, bytes_from_raw_mut, string_from_raw};
+pub use sessions::{SessionError, SessionTable, SessionTag};

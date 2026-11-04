@@ -5,6 +5,7 @@ import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import com.artemchep.keyguard.common.service.export.model.ExportFormat
 import com.artemchep.keyguard.ui.wizard.renderScene
 import javax.swing.SwingUtilities
 import kotlin.test.Test
@@ -119,7 +120,7 @@ class ExportWizardScreenTest {
 
     private fun assertFormatChoices(nodes: List<SemanticsNode>) {
         val choices = nodes.filter { it.config.getOrNull(SemanticsProperties.Selected) != null }
-        assertEquals(2, choices.size)
+        assertEquals(ExportFormat.entries.size, choices.size)
         choices.forEach { choice ->
             assertTrue(choice.config.getOrNull(SemanticsActions.OnClick)?.action != null)
             assertTrue(!choice.config.getOrNull(SemanticsProperties.Text).isNullOrEmpty())

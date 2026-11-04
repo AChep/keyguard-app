@@ -117,6 +117,10 @@ gradlePlugin {
             id = "keyguard.native-io-consumer"
             implementationClass = "com.artemchep.keyguard.buildplugins.cargo.NativeIoConsumerPlugin"
         }
+        register("nativeAgeConsumer") {
+            id = "keyguard.native-age-consumer"
+            implementationClass = "com.artemchep.keyguard.buildplugins.cargo.NativeAgeConsumerPlugin"
+        }
         register("nativeZxcvbnConsumer") {
             id = "keyguard.native-zxcvbn-consumer"
             implementationClass =

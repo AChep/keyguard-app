@@ -4,7 +4,9 @@
 //! return the packed `i64` unchanged — keeping the two ABIs mechanically
 //! identical and the packing logic in exactly one place.
 
-use std::{mem::size_of, path::Path, sync::OnceLock, time::Duration};
+use std::{mem::size_of, path::Path, time::Duration};
+
+use keyguard_ffi::{SessionError, SessionTable, SessionTag};
 
 use crate::{
     abi::{
@@ -15,7 +17,6 @@ use crate::{
     durability::{SyncLevel, SyncPolicy},
     error::{FailureKind, FileSystemFailure, Operation, TxnError},
     fsops::{FsOps, RealFs},
-    registry::{Registry, RegistryError, RegistryKind},
     scratch::ScratchFile,
     sweep::{SweepOptions, SweepReport, sweep_orphans},
     txn::{
@@ -27,31 +28,30 @@ use crate::{
 /// All currently defined temporary-artifact role-mask bits.
 pub const SWEEP_ROLE_MASK_ALL: u32 = 0x7;
 
-fn txns() -> &'static Registry<AtomicWriteTxn<RealFs>> {
-    static TXNS: OnceLock<Registry<AtomicWriteTxn<RealFs>>> = OnceLock::new();
-    TXNS.get_or_init(|| Registry::new(RegistryKind::Transaction))
-}
+// Distinct tags reject a handle passed to the wrong kind of function: without
+// them the handle `1` would resolve in all three tables, and a misused scratch
+// handle could abort an unrelated live transaction.
+static TXNS: SessionTable<AtomicWriteTxn<RealFs>> =
+    SessionTable::new(SessionTag::new(1), usize::MAX);
 
 type NativeAtomicDirectory = AtomicDirectory<<RealFs as FsOps>::Dir>;
 
-fn directories() -> &'static Registry<NativeAtomicDirectory> {
-    static DIRECTORIES: OnceLock<Registry<NativeAtomicDirectory>> = OnceLock::new();
-    DIRECTORIES.get_or_init(|| Registry::new(RegistryKind::Directory))
-}
+static DIRECTORIES: SessionTable<NativeAtomicDirectory> =
+    SessionTable::new(SessionTag::new(2), usize::MAX);
 
-fn scratches() -> &'static Registry<ScratchFile> {
-    static SCRATCHES: OnceLock<Registry<ScratchFile>> = OnceLock::new();
-    SCRATCHES.get_or_init(|| Registry::new(RegistryKind::Scratch))
-}
+static SCRATCHES: SessionTable<ScratchFile> = SessionTable::new(SessionTag::new(3), usize::MAX);
 
-fn registry_error(error: RegistryError) -> i64 {
+fn registry_error(error: SessionError) -> i64 {
     let failure = match error {
-        RegistryError::UnknownHandle => TxnError::bridge_unknown_handle(),
-        RegistryError::Busy => TxnError::new(
+        SessionError::Unknown => TxnError::bridge_unknown_handle(),
+        SessionError::Busy => TxnError::new(
             Operation::Bridge,
             FileSystemFailure::semantic(FailureKind::ResourceBusy),
         ),
-        RegistryError::Exhausted => TxnError::bridge_internal(),
+        // An earlier call on the handle panicked; the object was dropped
+        // instead of reused, which removes a transaction's staged artifact.
+        SessionError::Poisoned => TxnError::bridge_panic(),
+        SessionError::Limit | SessionError::Exhausted => TxnError::bridge_internal(),
     };
     pack_txn_error(failure)
 }
@@ -70,7 +70,7 @@ pub fn txn_begin(destination: &str, wire: TxnOptionsWire) -> i64 {
         return pack_txn_error(TxnError::bridge_invalid_argument());
     };
     match AtomicWriteTxn::begin(RealFs, Path::new(destination), options) {
-        Ok(txn) => txns()
+        Ok(txn) => TXNS
             .insert(txn)
             .map_or_else(registry_error, |handle| handle as i64),
         Err(error) => pack_txn_error(error),
@@ -82,7 +82,7 @@ pub fn txn_begin(destination: &str, wire: TxnOptionsWire) -> i64 {
 #[must_use]
 pub fn directory_open(directory: &str) -> i64 {
     match AtomicDirectory::open(&RealFs, Path::new(directory)) {
-        Ok(directory) => directories()
+        Ok(directory) => DIRECTORIES
             .insert(directory)
             .map_or_else(registry_error, |handle| handle as i64),
         Err(error) => pack_txn_error(error),
@@ -94,7 +94,7 @@ pub fn directory_open(directory: &str) -> i64 {
 /// Transactions that already cloned the capability remain valid.
 #[must_use]
 pub fn directory_close(handle: u64) -> i64 {
-    match directories().remove(handle) {
+    match DIRECTORIES.take(handle) {
         Ok(directory) => {
             drop(directory);
             0
@@ -123,12 +123,12 @@ pub fn txn_begin_at_directory(
     if options.existing_parent_links != ExistingParentLinkPolicy::Reject {
         return pack_txn_error(TxnError::bridge_invalid_argument());
     }
-    let directory = match directories().with(directory_handle, |directory| directory.clone()) {
+    let directory = match DIRECTORIES.with(directory_handle, |directory| directory.clone()) {
         Ok(directory) => directory,
         Err(error) => return registry_error(error),
     };
     match AtomicWriteTxn::begin_at_directory(RealFs, &directory, destination, options) {
-        Ok(txn) => txns()
+        Ok(txn) => TXNS
             .insert(txn)
             .map_or_else(registry_error, |handle| handle as i64),
         Err(error) => pack_txn_error(error),
@@ -194,11 +194,11 @@ fn decode_txn_options(wire: TxnOptionsWire) -> Result<AtomicWriteOptions, ()> {
 /// performs cleanup only, and returns the original write failure.
 #[must_use]
 pub fn txn_write(handle: u64, bytes: &[u8]) -> i64 {
-    txn_write_in(txns(), handle, bytes)
+    txn_write_in(&TXNS, handle, bytes)
 }
 
 fn txn_write_in<F: FsOps>(
-    registry: &Registry<AtomicWriteTxn<F>>,
+    registry: &SessionTable<AtomicWriteTxn<F>>,
     handle: u64,
     bytes: &[u8],
 ) -> i64 {
@@ -212,11 +212,11 @@ fn txn_write_in<F: FsOps>(
 /// Commits a transaction, consuming its handle on every result.
 #[must_use]
 pub fn txn_commit(handle: u64) -> i64 {
-    txn_commit_in(txns(), handle)
+    txn_commit_in(&TXNS, handle)
 }
 
-fn txn_commit_in<F: FsOps>(registry: &Registry<AtomicWriteTxn<F>>, handle: u64) -> i64 {
-    match registry.remove(handle) {
+fn txn_commit_in<F: FsOps>(registry: &SessionTable<AtomicWriteTxn<F>>, handle: u64) -> i64 {
+    match registry.take(handle) {
         Ok(txn) => match txn.commit() {
             Ok(success) => pack_commit_success(success),
             Err(error) => pack_txn_error(error),
@@ -233,11 +233,11 @@ fn txn_commit_in<F: FsOps>(registry: &Registry<AtomicWriteTxn<F>>, handle: u64) 
 /// temporary behind.
 #[must_use]
 pub fn txn_abort(handle: u64) -> i64 {
-    txn_abort_in(txns(), handle)
+    txn_abort_in(&TXNS, handle)
 }
 
-fn txn_abort_in<F: FsOps>(registry: &Registry<AtomicWriteTxn<F>>, handle: u64) -> i64 {
-    match registry.remove(handle) {
+fn txn_abort_in<F: FsOps>(registry: &SessionTable<AtomicWriteTxn<F>>, handle: u64) -> i64 {
+    match registry.take(handle) {
         Ok(txn) => txn.abort().map_or_else(pack_txn_error, |()| 0),
         Err(error) => registry_error(error),
     }
@@ -247,7 +247,7 @@ fn txn_abort_in<F: FsOps>(registry: &Registry<AtomicWriteTxn<F>>, handle: u64) -
 #[must_use]
 pub fn scratch_open(directory: &str) -> i64 {
     match ScratchFile::open(Path::new(directory)) {
-        Ok(scratch) => scratches()
+        Ok(scratch) => SCRATCHES
             .insert(scratch)
             .map_or_else(registry_error, |handle| handle as i64),
         Err(error) => io_failure(Operation::CreateStaged, &error),
@@ -257,7 +257,7 @@ pub fn scratch_open(directory: &str) -> i64 {
 /// Appends bytes to scratch storage; returns the byte count.
 #[must_use]
 pub fn scratch_write(handle: u64, bytes: &[u8]) -> i64 {
-    match scratches().with(handle, |scratch| scratch.write(bytes)) {
+    match SCRATCHES.with(handle, |scratch| scratch.write(bytes)) {
         Ok(Ok(written)) => written as i64,
         Ok(Err(error)) => io_failure(Operation::Write, &error),
         Err(error) => registry_error(error),
@@ -267,7 +267,7 @@ pub fn scratch_write(handle: u64, bytes: &[u8]) -> i64 {
 /// Seals scratch storage for reading; returns zero.
 #[must_use]
 pub fn scratch_seal(handle: u64) -> i64 {
-    match scratches().with(handle, ScratchFile::seal) {
+    match SCRATCHES.with(handle, ScratchFile::seal) {
         Ok(Ok(())) => 0,
         Ok(Err(error)) => io_failure(Operation::Write, &error),
         Err(error) => registry_error(error),
@@ -277,7 +277,7 @@ pub fn scratch_seal(handle: u64) -> i64 {
 /// Returns the sealed or in-progress scratch length in bytes.
 #[must_use]
 pub fn scratch_length(handle: u64) -> i64 {
-    match scratches().with(handle, |scratch| scratch.length()) {
+    match SCRATCHES.with(handle, |scratch| scratch.length()) {
         Ok(Ok(length)) => length.min(i64::MAX as u64) as i64,
         Ok(Err(error)) => io_failure(Operation::Metadata, &error),
         Err(error) => registry_error(error),
@@ -288,7 +288,7 @@ pub fn scratch_length(handle: u64) -> i64 {
 /// end-of-file.
 #[must_use]
 pub fn scratch_read_at(handle: u64, position: u64, buffer: &mut [u8]) -> i64 {
-    match scratches().with(handle, |scratch| scratch.read_at(position, buffer)) {
+    match SCRATCHES.with(handle, |scratch| scratch.read_at(position, buffer)) {
         Ok(Ok(0)) => -1,
         Ok(Ok(read)) => read as i64,
         Ok(Err(error)) => io_failure(Operation::Read, &error),
@@ -299,7 +299,7 @@ pub fn scratch_read_at(handle: u64, position: u64, buffer: &mut [u8]) -> i64 {
 /// Closes scratch storage, consuming its handle; returns zero.
 #[must_use]
 pub fn scratch_close(handle: u64) -> i64 {
-    match scratches().remove(handle) {
+    match SCRATCHES.take(handle) {
         Ok(scratch) => {
             drop(scratch);
             0
@@ -458,24 +458,35 @@ mod tests {
         let directory = unique_test_directory("close-errors");
         std::fs::create_dir_all(&directory).expect("test root must be created");
         let handle = directory_open(directory.to_str().expect("test path must be UTF-8")) as u64;
-        let held = directories().clone_entry_for_tests(handle);
+        let (entered, wait_entered) = std::sync::mpsc::channel();
+        let (release, wait_release) = std::sync::mpsc::channel::<()>();
+        let holder = std::thread::spawn(move || {
+            DIRECTORIES
+                .with(handle, |_| {
+                    entered.send(()).expect("test must be waiting");
+                    wait_release.recv().expect("test must release");
+                })
+                .expect("known handle must resolve");
+        });
+        wait_entered.recv().expect("holder must enter");
 
         // A busy close consumes the handle: the capability is destroyed by the
         // concurrent user's last reference, so the caller must not — and cannot
         // — close it again.
-        assert_eq!(directory_close(handle), registry_error(RegistryError::Busy));
+        assert_eq!(directory_close(handle), registry_error(SessionError::Busy));
         assert_eq!(
             directory_close(handle),
-            registry_error(RegistryError::UnknownHandle)
+            registry_error(SessionError::Unknown)
         );
-        drop(held);
+        release.send(()).expect("holder must be waiting");
+        holder.join().expect("holder must not panic");
         assert_eq!(
             directory_close(handle),
-            registry_error(RegistryError::UnknownHandle)
+            registry_error(SessionError::Unknown)
         );
         assert_eq!(
             directory_close(u64::MAX),
-            registry_error(RegistryError::UnknownHandle)
+            registry_error(SessionError::Unknown)
         );
 
         std::fs::remove_dir_all(directory).expect("test root must be removed");
@@ -489,7 +500,7 @@ mod tests {
         );
         assert_eq!(
             txn_begin_at_directory(u64::MAX, "valid.bin", valid_wire()),
-            registry_error(RegistryError::UnknownHandle)
+            registry_error(SessionError::Unknown)
         );
 
         let follow_wire = TxnOptionsWire {
@@ -507,7 +518,7 @@ mod tests {
         let fs = SimFsBuilder::new()
             .partial_write_fault(0, 3, std::io::ErrorKind::StorageFull)
             .build();
-        let registry = Registry::new(RegistryKind::Transaction);
+        let registry = SessionTable::new(SessionTag::new(1), usize::MAX);
         let options = decode_txn_options(valid_wire()).expect("wire options must decode");
         let txn = AtomicWriteTxn::begin(
             fs.clone(),
@@ -529,7 +540,7 @@ mod tests {
         assert_eq!(txn_commit_in(&registry, handle), first);
         assert_eq!(
             txn_abort_in(&registry, handle),
-            registry_error(RegistryError::UnknownHandle)
+            registry_error(SessionError::Unknown)
         );
         assert!(fs.final_snapshot().live_listing().is_empty());
     }
@@ -537,7 +548,7 @@ mod tests {
     #[test]
     fn contained_write_panic_leaves_registered_transaction_unpublishable() {
         let fs = SimFsBuilder::new().partial_write_panic(0, 2).build();
-        let registry = Registry::new(RegistryKind::Transaction);
+        let registry = SessionTable::new(SessionTag::new(1), usize::MAX);
         let mut options = decode_txn_options(valid_wire()).expect("wire options must decode");
         options.synchronization = SyncPolicy::Required(SyncLevel::ProcessAtomic);
         let txn = AtomicWriteTxn::begin(

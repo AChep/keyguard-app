@@ -1,80 +1,58 @@
-//! Process-wide registry mapping opaque `u64` handles to archive writers and
+//! Process-wide tables mapping opaque `u64` handles to archive writers and
 //! readers.
 //!
 //! Handles rather than raw pointers cross the FFI boundary so a Kotlin-side
-//! lifecycle bug is a structured error instead of undefined behavior. Ids start
-//! at one, increase monotonically, and are never reused; writers and readers
-//! share one counter, and a handle of the wrong kind reads as unknown.
-//!
-//! The lock is held for the whole call, file I/O included. Archive work is
-//! one export or one import at a time, so the serialization costs nothing and
-//! the ABI needs no "busy" outcome.
+//! lifecycle bug is a structured error instead of undefined behavior. Each
+//! kind has its own tagged table: ids are never reused, and a handle of the
+//! wrong kind reads as unknown. A call holds only its own archive, so an
+//! export and an import run in parallel, and a contained panic retires only
+//! the archive it happened in.
 
-use std::{
-    collections::HashMap,
-    sync::{LazyLock, Mutex, MutexGuard, PoisonError},
-};
+use keyguard_ffi::{SessionError, SessionTable, SessionTag};
 
 use crate::{
     error::{BridgeError, pack_bridge_error},
+    memory_reader::MemoryReader,
     reader::ArchiveReader,
     writer::ArchiveWriter,
 };
 
-/// One live archive. The writer is boxed because its deflate state is two
-/// orders of magnitude larger than a reader.
-enum Entry {
-    Writer(Box<ArchiveWriter>),
-    Reader(ArchiveReader),
-    MemoryReader(crate::memory_reader::MemoryReader),
-}
+/// Boxed because its deflate state is two orders of magnitude larger than a
+/// reader.
+static WRITERS: SessionTable<Box<ArchiveWriter>> =
+    SessionTable::new(SessionTag::new(1), usize::MAX);
+static READERS: SessionTable<ArchiveReader> = SessionTable::new(SessionTag::new(2), usize::MAX);
+static MEMORY_READERS: SessionTable<MemoryReader> =
+    SessionTable::new(SessionTag::new(3), usize::MAX);
 
-struct Registry {
-    next_handle: u64,
-    entries: HashMap<u64, Entry>,
-}
-
-static REGISTRY: LazyLock<Mutex<Registry>> = LazyLock::new(|| {
-    Mutex::new(Registry {
-        next_handle: 1,
-        entries: HashMap::new(),
+fn packed(error: SessionError) -> i64 {
+    pack_bridge_error(match error {
+        // A busy take consumed the handle too; the caller must not retry it.
+        SessionError::Unknown | SessionError::Busy => BridgeError::InvalidHandle,
+        // An earlier call on this archive panicked; it was dropped, not reused.
+        SessionError::Poisoned => BridgeError::Panic,
+        SessionError::Limit | SessionError::Exhausted => BridgeError::Internal,
     })
-});
-
-/// Locks the registry. A poisoned lock is recovered: the map stays consistent
-/// after a contained panic, and refusing every later call would break the
-/// bridge for good.
-fn lock() -> MutexGuard<'static, Registry> {
-    REGISTRY.lock().unwrap_or_else(PoisonError::into_inner)
-}
-
-/// Registers `entry` and returns its positive handle.
-///
-/// # Panics
-///
-/// Panics if the handle space is exhausted rather than reuse an id.
-fn insert(entry: Entry) -> u64 {
-    let mut registry = lock();
-    let handle = registry.next_handle;
-    registry.next_handle = handle
-        .checked_add(1)
-        .expect("the archive handle space must not be exhausted");
-    registry.entries.insert(handle, entry);
-    handle
-}
-
-fn invalid_handle() -> i64 {
-    pack_bridge_error(BridgeError::InvalidHandle)
 }
 
 /// Registers `writer` and returns its positive handle.
-pub fn insert_writer(writer: ArchiveWriter) -> u64 {
-    insert(Entry::Writer(Box::new(writer)))
+///
+/// # Errors
+///
+/// Returns a packed [`BridgeError::Internal`] once the handle space is
+/// exhausted.
+pub fn insert_writer(writer: ArchiveWriter) -> Result<u64, i64> {
+    WRITERS.insert(Box::new(writer)).map_err(packed)
 }
 
 /// Registers `reader` and returns its positive handle.
-pub fn insert_reader(reader: ArchiveReader) -> u64 {
-    insert(Entry::Reader(reader))
+///
+/// # Errors
+///
+/// Returns a packed [`BridgeError::Internal`] once the handle space is
+/// exhausted.
+pub fn insert_reader(reader: ArchiveReader) -> Result<u64, i64> {
+    READERS.insert(reader).map_err(packed)
 }
 
 /// Runs `operation` with exclusive access to the writer behind `handle`.
@@ -82,16 +60,15 @@ pub fn insert_reader(reader: ArchiveReader) -> u64 {
 /// # Errors
 ///
 /// Returns a packed [`BridgeError::InvalidHandle`] for an unknown, consumed, or
-/// reader handle, otherwise `operation`'s own result.
+/// reader handle, [`BridgeError::Panic`] after a contained panic, otherwise
+/// `operation`'s own result.
 pub fn with_writer_mut<R>(
     handle: u64,
     operation: impl FnOnce(&mut ArchiveWriter) -> Result<R, i64>,
 ) -> Result<R, i64> {
-    let mut registry = lock();
-    match registry.entries.get_mut(&handle) {
-        Some(Entry::Writer(writer)) => operation(writer),
-        _ => Err(invalid_handle()),
-    }
+    WRITERS
+        .with(handle, |writer| operation(writer))
+        .map_err(packed)?
 }
 
 /// Runs `operation` with exclusive access to the reader behind `handle`.
@@ -99,59 +76,43 @@ pub fn with_writer_mut<R>(
 /// # Errors
 ///
 /// Returns a packed [`BridgeError::InvalidHandle`] for an unknown, consumed, or
-/// writer handle, otherwise `operation`'s own result.
+/// writer handle, [`BridgeError::Panic`] after a contained panic, otherwise
+/// `operation`'s own result.
 pub fn with_reader_mut<R>(
     handle: u64,
     operation: impl FnOnce(&mut ArchiveReader) -> Result<R, i64>,
 ) -> Result<R, i64> {
-    let mut registry = lock();
-    match registry.entries.get_mut(&handle) {
-        Some(Entry::Reader(reader)) => operation(reader),
-        _ => Err(invalid_handle()),
-    }
+    READERS.with(handle, operation).map_err(packed)?
 }
 
-/// Removes the writer behind `handle`, consuming it. A reader handle is left
-/// in place.
+/// Removes the writer behind `handle`, consuming it.
 ///
 /// # Errors
 ///
 /// Returns a packed [`BridgeError::InvalidHandle`] for an unknown, consumed, or
-/// reader handle.
+/// reader handle, and [`BridgeError::Panic`] after a contained panic.
 pub fn take_writer(handle: u64) -> Result<ArchiveWriter, i64> {
-    let mut registry = lock();
-    match registry.entries.remove(&handle) {
-        Some(Entry::Writer(writer)) => Ok(*writer),
-        Some(reader) => {
-            registry.entries.insert(handle, reader);
-            Err(invalid_handle())
-        }
-        None => Err(invalid_handle()),
-    }
+    WRITERS.take(handle).map(|writer| *writer).map_err(packed)
 }
 
-/// Removes the reader behind `handle`, consuming it. A writer handle is left
-/// in place.
+/// Removes the reader behind `handle`, consuming it.
 ///
 /// # Errors
 ///
 /// Returns a packed [`BridgeError::InvalidHandle`] for an unknown, consumed, or
-/// writer handle.
+/// writer handle, and [`BridgeError::Panic`] after a contained panic.
 pub fn take_reader(handle: u64) -> Result<ArchiveReader, i64> {
-    let mut registry = lock();
-    match registry.entries.remove(&handle) {
-        Some(Entry::Reader(reader)) => Ok(reader),
-        Some(writer) => {
-            registry.entries.insert(handle, writer);
-            Err(invalid_handle())
-        }
-        None => Err(invalid_handle()),
-    }
+    READERS.take(handle).map_err(packed)
 }
 
 /// Registers an in-memory entry reader.
-pub fn insert_memory_reader(reader: crate::memory_reader::MemoryReader) -> u64 {
-    insert(Entry::MemoryReader(reader))
+///
+/// # Errors
+///
+/// Returns a packed [`BridgeError::Internal`] once the handle space is
+/// exhausted.
+pub fn insert_memory_reader(reader: MemoryReader) -> Result<u64, i64> {
+    MEMORY_READERS.insert(reader).map_err(packed)
 }
 
 /// Reads one chunk of an in-memory entry.
@@ -159,10 +120,9 @@ pub fn insert_memory_reader(reader: crate::memory_reader::MemoryReader) -> u64 {
 /// # Errors
 /// Returns an invalid-handle or archive read failure.
 pub fn memory_read(handle: u64, output: &mut [u8]) -> Result<usize, i64> {
-    match lock().entries.get_mut(&handle) {
-        Some(Entry::MemoryReader(reader)) => reader.read(output),
-        _ => Err(invalid_handle()),
-    }
+    MEMORY_READERS
+        .with(handle, |reader| reader.read(output))
+        .map_err(packed)?
 }
 
 /// Closes an in-memory entry, releasing its bytes.
@@ -170,10 +130,5 @@ pub fn memory_read(handle: u64, output: &mut [u8]) -> Result<usize, i64> {
 /// # Errors
 /// Returns an invalid-handle failure for unknown or other kinds of handle.
 pub fn memory_close(handle: u64) -> Result<(), i64> {
-    let mut registry = lock();
-    if !matches!(registry.entries.get(&handle), Some(Entry::MemoryReader(_))) {
-        return Err(invalid_handle());
-    }
-    registry.entries.remove(&handle);
-    Ok(())
+    MEMORY_READERS.take(handle).map(drop).map_err(packed)
 }

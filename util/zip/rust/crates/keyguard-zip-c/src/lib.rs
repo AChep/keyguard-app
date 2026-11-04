@@ -273,7 +273,7 @@ pub unsafe extern "C" fn keyguard_zip_memory_open(
             local_header_offset,
             Some(password),
         )?;
-        i64::try_from(keyguard_zip_core::registry::insert_memory_reader(reader))
+        i64::try_from(keyguard_zip_core::registry::insert_memory_reader(reader)?)
             .map_err(|_| pack_bridge_internal())
     }))
 }
@@ -620,7 +620,7 @@ mod tests {
             pack_bridge_invalid_handle(),
             "a failed finish still consumes the handle"
         );
-        fs::remove_file(&path).expect("cleanup must succeed");
+        assert!(!path.exists(), "a failed finish must remove the file");
     }
 
     fn open_reader(path: &Path, password: Option<&str>) -> i64 {

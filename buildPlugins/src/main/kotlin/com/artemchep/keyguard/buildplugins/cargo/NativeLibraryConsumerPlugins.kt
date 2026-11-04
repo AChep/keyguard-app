@@ -16,4 +16,6 @@ class NativeCryptoConsumerPlugin : NativeLibraryConsumerPlugin(":util:crypto")
 
 class NativeIoConsumerPlugin : NativeLibraryConsumerPlugin(":util:io")
 
+class NativeAgeConsumerPlugin : NativeLibraryConsumerPlugin(":util:age")
+
 class NativeZxcvbnConsumerPlugin : NativeLibraryConsumerPlugin(":util:zxcvbn")

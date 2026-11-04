@@ -56,7 +56,7 @@ internal fun runNativePackagedSmoke() {
         nativeProbe("koin") { verifyPackagedKoinGraph() }
         nativeProbe("sshHelperIpc") { verifyPackagedSshHelperIpc() }
         val tls = nativeProbe("tls") { verifyPackagedDesktopTls() }
-        val success = "native packaged smoke passed: crypto=PASS io=PASS zxcvbn=PASS " +
+        val success = "native packaged smoke passed: crypto=PASS io=PASS age=PASS zxcvbn=PASS " +
             "instance=PASS windowsPasskeys=PASS fido2=PASS desktopBridge=PASS agentIpc=PASS sshHelper=PASS " +
             "gpgHelper=PASS koin=PASS sshHelperIpc=PASS tls=PASS tlsRuntime=$tls"
         publishResult(success)
@@ -68,7 +68,7 @@ internal fun runNativePackagedSmoke() {
 }
 
 private fun rejectDevelopmentLibraries() {
-    listOf("Crypto", "Io", "Zxcvbn", "Instance", "WindowsPasskeys", "Fido2", "AgentIpc").forEach { module ->
+    listOf("Crypto", "Io", "Age", "Zxcvbn", "Instance", "WindowsPasskeys", "Fido2", "AgentIpc").forEach { module ->
         val property = "keyguard.native$module.libraryPath"
         check(System.getProperty(property).isNullOrBlank()) {
             "Packaged smoke rejects the development override $property"

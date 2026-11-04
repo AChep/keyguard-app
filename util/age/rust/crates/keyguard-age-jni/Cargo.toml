@@ -1,0 +1,17 @@
+[package]
+name = "keyguard-age-jni"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+keyguard-age-core = { path = "../keyguard-age-core" }
+keyguard-ffi = { workspace = true, features = ["jni"] }
+jni.workspace = true
+
+[lints]
+workspace = true

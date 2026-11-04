@@ -32,6 +32,7 @@ internal fun retentionText(
 internal fun BackupStep.titleRes(): StringResource = when (this) {
     BackupStep.Preparing -> Res.string.backup_step_preparing
     BackupStep.OpeningRepository -> Res.string.backup_step_opening_repository
+    BackupStep.UpgradingEncryption -> Res.string.backup_step_upgrading_encryption
     BackupStep.ExportingVault -> Res.string.backup_step_exporting_vault
     BackupStep.ScanningAttachments -> Res.string.backup_step_scanning_attachments
     BackupStep.BackingUpAttachments -> Res.string.backup_step_backing_up_attachments

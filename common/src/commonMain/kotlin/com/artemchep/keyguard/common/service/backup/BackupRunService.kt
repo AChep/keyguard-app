@@ -34,6 +34,7 @@ class BackupRunService(
     companion object {
         const val TRIGGER_MANUAL = "manual"
         const val TRIGGER_AUTOMATIC = "automatic"
+        const val TRIGGER_ENCRYPTION_UPGRADE = "encryption_upgrade"
 
         private const val REASON_BACKUP_NOT_CONFIGURED = "backup_not_configured"
         private const val REASON_VAULT_LOCKED = "vault_locked"
@@ -49,6 +50,19 @@ class BackupRunService(
         requireDirty = false,
         keepSessionAlive = true,
         progressReporter = progressReporter,
+    )
+
+    /**
+     * Upgrades the repository's encryption, then backs up into it so the
+     * status reports a snapshot in the new format.
+     */
+    suspend fun upgradeEncryption(): BackupStatus = run(
+        trigger = TRIGGER_ENCRYPTION_UPGRADE,
+        sessionPolicy = SessionPolicy.AnyUnlocked,
+        requireDirty = false,
+        keepSessionAlive = true,
+        progressReporter = BackupProgressReporter.NoOp,
+        upgradeEncryption = true,
     )
 
     suspend fun runAutomatic(
@@ -67,6 +81,7 @@ class BackupRunService(
         requireDirty: Boolean,
         keepSessionAlive: Boolean,
         progressReporter: BackupProgressReporter,
+        upgradeEncryption: Boolean = false,
     ): BackupStatus = mutex.withLock {
         val startedAt = Clock.System.now()
         val session = sessionPolicy.getSession()
@@ -125,6 +140,9 @@ class BackupRunService(
                 return@withLock backupConfigRepository.getStatus().first()
             }
 
+            // Set once the upgrade is done, so a failure in the backup
+            // that follows still records the new encryption.
+            var upgraded = false
             try {
                 val result = runWithSessionKeepAlive(
                     keepSessionAlive = keepSessionAlive,
@@ -135,10 +153,11 @@ class BackupRunService(
                             skipped = true,
                             reason = REASON_VAULT_LOCKED,
                         )
-                    backupRunner.run(
-                        config = config,
-                        progress = progress,
-                    )
+                    if (upgradeEncryption) {
+                        backupRunner.upgradeEncryption(config, progress)
+                        upgraded = true
+                    }
+                    backupRunner.run(config = config, progress = progress)
                 }
                 val status = result.toStatus(
                     startedAt = startedAt,
@@ -169,6 +188,11 @@ class BackupRunService(
                     lastStartedAt = startedAt,
                     lastFinishedAt = Clock.System.now(),
                     lastErrorMessage = e.message ?: e::class.simpleName,
+                    repositoryEncryption = when {
+                        e is BackupEncryptionUpgradePendingException -> BackupRepositoryEncryption.UpgradePending
+                        upgraded -> BackupRepositoryEncryption.Age
+                        else -> null
+                    },
                 )
                 backupConfigRepository.setStatus(status).bind()
                 backupConfigRepository.getStatus().first()

@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.backup.BackupConfig
 import com.artemchep.keyguard.common.service.backup.BackupConfigRepository
 import com.artemchep.keyguard.common.service.backup.BackupStoreConfig
+import com.artemchep.keyguard.common.service.backup.failedOnPendingEncryptionUpgrade
 import com.artemchep.keyguard.feature.s3.s3EndpointHostOrNull
 import com.artemchep.keyguard.feature.s3.locationUriOrNull
 import com.artemchep.keyguard.common.service.logging.LogLevel
@@ -74,6 +75,7 @@ internal class BackupsController(
                     .automaticBackupsSettingsStateProducer(
                         backupConfigRepository = sessionKoin.get(),
                         runBackupNow = sessionKoin.get(),
+                        upgradeBackupEncryption = sessionKoin.get(),
                         getAccounts = sessionKoin.get(),
                     )
             } catch (e: CancellationException) {
@@ -120,10 +122,12 @@ internal class BackupsController(
             s3Location = (savedStore as? BackupStoreConfig.S3)?.locationUriOrNull(),
             s3EndpointHost = (savedStore as? BackupStoreConfig.S3)?.let { s3EndpointHostOrNull(it.endpoint) },
             hasPassword = config.password != null,
+            canUpgradeEncryption = state.canUpgradeEncryption,
             includeAttachments = config.includeAttachments,
             retentionMaxSnapshots = config.retention.maxSnapshots,
             lastSuccessfulBackupAtMs = state.status.lastSuccessfulBackupAt?.toEpochMilliseconds(),
             lastErrorMessage = state.status.lastErrorMessage,
+            failedOnPendingEncryptionUpgrade = state.status.failedOnPendingEncryptionUpgrade,
             isDirty = state.status.isDirty,
             runningStep = state.status.currentRun?.step?.name,
             isRunning = state.status.currentRun != null || manualRun?.isActive == true,
@@ -186,6 +190,10 @@ internal class BackupsController(
 
     fun importFromBackup() {
         latestBackupState?.onImport?.invoke()
+    }
+
+    fun upgradeBackupEncryption() {
+        latestBackupState?.onUpgradeEncryption?.invoke()
     }
 
     fun triggerBackupNow() {

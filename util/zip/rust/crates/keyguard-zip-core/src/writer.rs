@@ -19,13 +19,43 @@ use crate::{
     error::{BridgeError, Operation, pack_bridge_error, pack_io_error, pack_zip_error},
 };
 
-/// A ZIP archive being written to a freshly created file. The path is kept
-/// only so [`ArchiveWriter::abort`] can remove a half-written archive.
+/// A ZIP archive being written to a freshly created file.
+///
+/// Only a successful [`ArchiveWriter::finish`] keeps the file. Any other end
+/// removes it: an abort, a failed finish, or a drop, such as the session
+/// table discarding a writer whose call panicked.
 pub struct ArchiveWriter {
     writer: ZipWriter<File>,
-    path: PathBuf,
     password: Option<Zeroizing<String>>,
     in_entry: bool,
+    // Declared last so the file closes before it is removed: Windows cannot
+    // remove an open file.
+    partial: PartialFile,
+}
+
+/// Removes the archive file on drop, unless it is kept.
+struct PartialFile {
+    path: PathBuf,
+    keep: bool,
+}
+
+impl PartialFile {
+    /// Removes the file now, reporting the failure a drop would swallow.
+    fn remove(mut self) -> std::io::Result<()> {
+        self.keep = true;
+        match fs::remove_file(&self.path) {
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
+            result => result,
+        }
+    }
+}
+
+impl Drop for PartialFile {
+    fn drop(&mut self) {
+        if !self.keep {
+            let _ = fs::remove_file(&self.path);
+        }
+    }
 }
 
 impl ArchiveWriter {
@@ -40,9 +70,12 @@ impl ArchiveWriter {
         let file = File::create(path).map_err(|error| pack_io_error(Operation::Open, &error))?;
         Ok(Self {
             writer: ZipWriter::new(file),
-            path: PathBuf::from(path),
             password: password.map(|password| Zeroizing::new(password.to_owned())),
             in_entry: false,
+            partial: PartialFile {
+                path: PathBuf::from(path),
+                keep: false,
+            },
         })
     }
 
@@ -105,22 +138,30 @@ impl ArchiveWriter {
     }
 
     /// Writes the central directory and flushes the archive to stable storage.
-    /// The writer is consumed either way; a failed finish leaves the file.
+    /// The writer is consumed either way; a failed finish removes the file.
     ///
     /// # Errors
     ///
     /// Returns [`BridgeError::InvalidState`] when an entry is still open, or a
     /// packed [`Operation::Finish`] failure.
     pub fn finish(self) -> Result<(), i64> {
-        if self.in_entry {
+        let Self {
+            writer,
+            in_entry,
+            mut partial,
+            ..
+        } = self;
+        if in_entry {
             return Err(pack_bridge_error(BridgeError::InvalidState));
         }
-        let file = self
-            .writer
+        let file = writer
             .finish()
             .map_err(|error| pack_zip_error(Operation::Finish, &error))?;
         file.sync_all()
-            .map_err(|error| pack_io_error(Operation::Finish, &error))
+            .map_err(|error| pack_io_error(Operation::Finish, &error))?;
+        drop(file);
+        partial.keep = true;
+        Ok(())
     }
 
     /// Drops the archive and removes the file it was writing. A file that is
@@ -131,13 +172,13 @@ impl ArchiveWriter {
     /// Returns a packed [`Operation::Abort`] failure when the file cannot be
     /// removed.
     pub fn abort(self) -> Result<(), i64> {
-        let Self { writer, path, .. } = self;
+        let Self {
+            writer, partial, ..
+        } = self;
         drop(writer);
-        match fs::remove_file(&path) {
-            Ok(()) => Ok(()),
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-            Err(error) => Err(pack_io_error(Operation::Abort, &error)),
-        }
+        partial
+            .remove()
+            .map_err(|error| pack_io_error(Operation::Abort, &error))
     }
 }
 
@@ -344,6 +385,44 @@ mod tests {
         assert!(temp.path.exists(), "the file must exist before the abort");
         writer.abort().expect("abort must succeed");
         assert!(!temp.path.exists(), "the file must be gone after the abort");
+    }
+
+    /// The session table drops a writer whose call panicked without calling
+    /// abort; the partial, possibly unencrypted, file must not stay behind.
+    #[test]
+    fn dropping_an_unfinished_writer_removes_the_archive() {
+        let temp = TempArchive::new("drop");
+        let mut writer = ArchiveWriter::open(temp.as_str(), None).expect("open must succeed");
+        writer.begin_entry("partial.bin").expect("begin must work");
+        writer.write(&[0_u8; 1024]).expect("write must succeed");
+        drop(writer);
+        assert!(!temp.path.exists(), "the file must be gone after the drop");
+    }
+
+    #[test]
+    fn a_failed_finish_removes_the_archive() {
+        let temp = TempArchive::new("finish-open-entry");
+        let mut writer = ArchiveWriter::open(temp.as_str(), None).expect("open must succeed");
+        writer.begin_entry("open.bin").expect("begin must work");
+        assert_eq!(
+            writer.finish(),
+            Err(pack_bridge_error(BridgeError::InvalidState))
+        );
+        assert!(
+            !temp.path.exists(),
+            "the file must be gone after the failure"
+        );
+    }
+
+    #[test]
+    fn a_finished_archive_is_kept() {
+        let temp = TempArchive::new("finish-keep");
+        let mut writer = ArchiveWriter::open(temp.as_str(), None).expect("open must succeed");
+        writer.begin_entry("kept.txt").expect("begin must work");
+        writer.write(b"kept").expect("write must succeed");
+        writer.end_entry().expect("end must work");
+        writer.finish().expect("finish must succeed");
+        assert!(temp.path.exists(), "a finished archive must stay");
     }
 
     #[test]

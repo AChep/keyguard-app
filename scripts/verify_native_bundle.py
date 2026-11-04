@@ -65,6 +65,9 @@ MODULES = {
         "txn_write", "txn_commit", "txn_abort", "scratch_open", "scratch_write", "scratch_seal",
         "scratch_length", "scratch_read_at", "scratch_close", "sweep_orphans",
     )),
+    "age": NativeModule("age", "com_artemchep_keyguard_util_age_NativeAgeJni",
+                        ("abiVersion", "create", "execute", "close"),
+                        ("abi_version", "create", "execute", "close")),
     "zxcvbn": NativeModule("zxcvbn", "com_artemchep_keyguard_util_zxcvbn_NativeZxcvbnJni",
                           ("abiVersion", "estimate"), ("abi_version", "estimate")),
     "instance": NativeModule("instance", "com_artemchep_keyguard_util_instance_NativeInstanceJni",
@@ -89,11 +92,11 @@ MODULES = {
         "peer_pid", "read", "write", "await_input", "close",
     )),
 }
-DESKTOP_MODULES = ("crypto", "io", "zxcvbn", "instance", "yubikey", "fido2", "agent_ipc")
+DESKTOP_MODULES = ("crypto", "io", "age", "zxcvbn", "instance", "yubikey", "fido2", "agent_ipc")
 # The passkey provider exists only on Windows; other desktop packages do not bundle it.
 WINDOWS_DESKTOP_MODULES = DESKTOP_MODULES + ("windows_passkeys",)
-ANDROID_MODULES = ("crypto", "io", "zxcvbn")
-APPLE_APP_MODULES = ("crypto", "io", "zxcvbn", "zip")
+ANDROID_MODULES = ("crypto", "io", "age", "zxcvbn")
+APPLE_APP_MODULES = ("crypto", "io", "age", "zxcvbn", "zip")
 BRIDGE_EXPORTS = frozenset((
     "autoTypeCaptureTarget", "autoTypePermission", "autoTypeLogin",
     "getSystemAccentColor", "biometricsIsSupported", "biometricsVerify",

@@ -4,8 +4,7 @@ import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.util.RetryPolicy
 import com.artemchep.keyguard.common.util.retryWithPolicy
-import com.artemchep.keyguard.util.io.toSource
-import com.artemchep.keyguard.util.zip.ZipConfig
+import com.artemchep.keyguard.util.age.AgeSecret
 import com.artemchep.keyguard.util.zip.ZipEntry
 import com.artemchep.keyguard.util.zip.ZipEncryptionRequiredException
 import com.artemchep.keyguard.util.zip.ZipReader
@@ -24,11 +23,9 @@ class BackupRepositoryZipImpl(
     private val zipService: ZipService,
 ) : BackupRepository {
     companion object {
-        private const val REPO_FILE = "repo.zip"
         private const val INDEXES_DIR = "indexes"
         private const val SNAPSHOTS_DIR = "snapshots"
 
-        private const val REPO_ENTRY = "repo.json"
         private const val INDEX_ENTRY = "index.json"
         private const val MANIFEST_ENTRY = "manifest.json"
         private const val VAULT_ENTRY = "vault.json"
@@ -49,17 +46,16 @@ class BackupRepositoryZipImpl(
         nowProvider: () -> Instant,
         repoIdProvider: () -> String,
     ): BackupRepositoryMetadata {
-        val existing = readZipJsonOrNull<BackupRepositoryMetadata>(
-            store = store,
-            key = objectKey(REPO_FILE),
-            password = password,
-            entryName = REPO_ENTRY,
-        )
+        requireNoPendingEncryptionUpgrade(store)
+        val existing = readMetadata(store, password)
         if (existing != null) {
             validateBackupRepositoryMetadata(
                 metadata = existing,
                 password = password,
             )
+            if (existing.isAge) {
+                writeCompatibilityMarker(store, existing)
+            }
             return existing
         }
 
@@ -70,33 +66,30 @@ class BackupRepositoryZipImpl(
             createdAt = now,
             features = backupRepositoryFeatures(password),
             crypto = backupRepositoryCrypto(password),
-        )
+        ).let { if (password.isNullOrEmpty()) it else it.withAgeEncryption(newBackupIndexKey()) }
         try {
             writeZip(
                 store = store,
-                key = objectKey(REPO_FILE),
+                key = objectKey(metadata.layout.repo),
                 mode = BackupWriteMode.Create,
                 password = password,
                 entries = listOf(
                     textEntry(
-                        name = REPO_ENTRY,
+                        name = BACKUP_REPO_ENTRY,
                         text = json.encodeToString(metadata),
                     ),
                 ),
             )
         } catch (e: BackupObjectStoreException.AlreadyExists) {
-            val raced = readZipJsonOrNull<BackupRepositoryMetadata>(
-                store = store,
-                key = objectKey(REPO_FILE),
-                password = password,
-                entryName = REPO_ENTRY,
-            ) ?: throw e
+            val raced = readMetadata(store, password) ?: throw e
             validateBackupRepositoryMetadata(
                 metadata = raced,
                 password = password,
             )
             return raced
         }
+        require(readMetadata(store, password) == metadata) { "Failed to verify backup metadata." }
+        if (metadata.isAge) writeCompatibilityMarker(store, metadata)
         return metadata
     }
 
@@ -104,12 +97,30 @@ class BackupRepositoryZipImpl(
         store: BackupObjectStore,
         password: Password?,
     ): BackupRepositoryMetadata? {
-        val metadata = readZipJsonOrNull<BackupRepositoryMetadata>(
+        // Read each candidate without a lookup first: a missing object reads
+        // as null. An existing repo.zip.age is authoritative; a damaged one,
+        // or one without metadata, fails instead of falling back to repo.zip.
+        val ageText = readZipTextOrNull(
             store = store,
-            key = objectKey(REPO_FILE),
+            key = objectKey(BACKUP_AGE_REPO_FILE),
             password = password,
-            entryName = REPO_ENTRY,
+            ageSecret = password.toAgeSecret(),
+            entryName = BACKUP_REPO_ENTRY,
+            stat = false,
+            requireEntry = true,
+        )
+        val text = ageText ?: readZipTextOrNull(
+            store = store,
+            key = objectKey(BACKUP_REPO_FILE),
+            password = password,
+            ageSecret = null,
+            entryName = BACKUP_REPO_ENTRY,
+            stat = false,
         ) ?: return null
+        val metadata = json.decodeFromString<BackupRepositoryMetadata>(text)
+        check((ageText != null) == metadata.isAge) {
+            "Backup metadata format does not match its archive."
+        }
         // No password-mode check: the archive has already opened with this
         // password, which is all a reader needs.
         validateBackupRepositoryFormat(metadata)
@@ -118,6 +129,7 @@ class BackupRepositoryZipImpl(
 
     override suspend fun readIndexes(
         store: BackupObjectStore,
+        metadata: BackupRepositoryMetadata,
         password: Password?,
     ): List<BackupIndex> {
         val keysByGeneration = listIndexGenerationKeys(store)
@@ -137,12 +149,14 @@ class BackupRepositoryZipImpl(
          * - Multi-writer conflict resolution is best-effort; generation order is
          *   the authority.
          */
+        val indexIdentity = metadata.indexIdentity
         keysByGeneration.values.forEach { generationKeys ->
             val indexes = generationKeys
                 .mapNotNull { generationKey ->
                     readIndexAtKey(
                         store = store,
                         password = password,
+                        indexIdentity = indexIdentity,
                         key = generationKey.key,
                     )?.takeIf { index ->
                         index.generation == generationKey.generation && index.indexId == generationKey.indexId
@@ -160,6 +174,7 @@ class BackupRepositoryZipImpl(
 
     override suspend fun writeIndex(
         store: BackupObjectStore,
+        metadata: BackupRepositoryMetadata,
         password: Password?,
         index: BackupIndex,
     ) {
@@ -169,12 +184,15 @@ class BackupRepositoryZipImpl(
         require(index.indexId.isNotBlank()) {
             "Backup index id must not be blank."
         }
-        val key = indexGenerationKey(index)
+        requireNoPendingEncryptionUpgrade(store)
+        val key = indexGenerationKey(index, metadata.isAge)
+        val indexIdentity = metadata.indexIdentity
         writeZip(
             store = store,
             key = key,
             mode = BackupWriteMode.Create,
             password = password,
+            ageSecret = indexIdentity,
             entries = listOf(
                 textEntry(
                     name = INDEX_ENTRY,
@@ -182,7 +200,7 @@ class BackupRepositoryZipImpl(
                 ),
             ),
         )
-        require(readIndexAtKey(store, password, key) == index) {
+        require(readIndexAtKey(store, password, indexIdentity, key) == index) {
             "Failed to verify backup index '${key.value}' after writing."
         }
     }
@@ -394,30 +412,43 @@ class BackupRepositoryZipImpl(
         key: BackupObjectKey,
         password: Password?,
         entryName: String,
+        ageSecret: AgeSecret? = password.toAgeSecret(),
+        stat: Boolean = true,
     ): T? {
         val text = readZipTextOrNull(
             store = store,
             key = key,
             password = password,
+            ageSecret = ageSecret,
             entryName = entryName,
+            stat = stat,
         ) ?: return null
         return json.decodeFromString(text)
     }
 
+    @Suppress("LongParameterList")
     private suspend fun readZipTextOrNull(
         store: BackupObjectStore,
         key: BackupObjectKey,
         password: Password?,
+        ageSecret: AgeSecret?,
         entryName: String,
+        stat: Boolean = true,
+        /** Whether an existing archive without [entryName] is an error rather than `null`. */
+        requireEntry: Boolean = false,
     ): String? = readZipOrNull(
         store = store,
         key = key,
         password = password,
+        ageSecret = ageSecret,
+        stat = stat,
     ) { entries ->
-        entries
+        val text = entries
             .firstOrNull { entry -> entry.name == entryName }
             ?.source
             ?.readString()
+        check(text != null || !requireEntry) { "The backup metadata entry '$entryName' is missing." }
+        text
     }
 
     /**
@@ -428,6 +459,7 @@ class BackupRepositoryZipImpl(
         store: BackupObjectStore,
         key: BackupObjectKey,
         password: Password?,
+        ageSecret: AgeSecret? = password.toAgeSecret(),
         /**
          * Whether to look the object up before reading it. Not needed to
          * find a missing one: [BackupObjectStore.read] reports that too.
@@ -446,7 +478,7 @@ class BackupRepositoryZipImpl(
             } catch (_: BackupObjectStoreException.NotFound) {
                 return@retryTransientObjectRead null
             }
-            ZipReader(source, password?.value).use { reader ->
+            openBackupArchive(key, source, password, ageSecret).use { reader ->
                 block(reader.entries())
             }
         }
@@ -466,11 +498,13 @@ class BackupRepositoryZipImpl(
     private suspend fun readIndexAtKey(
         store: BackupObjectStore,
         password: Password?,
+        indexIdentity: AgeSecret?,
         key: BackupObjectKey,
     ): BackupIndex? = readZipJsonOrNullCatching(
         store = store,
         key = key,
         password = password,
+        ageSecret = indexIdentity,
         entryName = INDEX_ENTRY,
     )
 
@@ -483,7 +517,7 @@ class BackupRepositoryZipImpl(
             if (relative.contains('/')) {
                 return@mapNotNull null
             }
-            val match = INDEX_GENERATION_FILE_REGEX.matchEntire(relative)
+            val match = INDEX_GENERATION_FILE_REGEX.matchEntire(relative.removeSuffix(AGE_SUFFIX))
                 ?: return@mapNotNull null
             val generation = match.groupValues[1].toLongOrNull()
                 ?: return@mapNotNull null
@@ -495,19 +529,25 @@ class BackupRepositoryZipImpl(
         }
         .sortedWith(
             compareByDescending<IndexGenerationKey> { it.generation }
-                .thenByDescending { it.key.value },
+                .thenByDescending { it.key.value.removeSuffix(AGE_SUFFIX) }
+                .thenByDescending { it.key.isAge },
         )
+        // Select the authoritative copy before reading. A corrupt age copy
+        // must never cause a downgrade to its legacy ZIP twin.
+        .distinctBy { it.generation to it.indexId }
 
     private suspend inline fun <reified T> readZipJsonOrNullCatching(
         store: BackupObjectStore,
         key: BackupObjectKey,
         password: Password?,
+        ageSecret: AgeSecret?,
         entryName: String,
     ): T? = try {
         readZipJsonOrNull(
             store = store,
             key = key,
             password = password,
+            ageSecret = ageSecret,
             entryName = entryName,
         )
     } catch (e: ZipEncryptionRequiredException) {
@@ -529,18 +569,8 @@ class BackupRepositoryZipImpl(
         mode: BackupWriteMode,
         password: Password?,
         entries: List<ZipEntry>,
-    ): BackupObjectInfo = store
-        .write(
-            key = key,
-            mode = mode,
-        ) { sink ->
-            zipService.zip(
-                outputStream = sink,
-                config = zipConfig(password),
-                entries = entries,
-            )
-        }
-        .requireAtomicCleanupComplete()
+        ageSecret: AgeSecret? = password.toAgeSecret(),
+    ): BackupObjectInfo = store.writeBackupArchive(zipService, key, mode, password, entries, ageSecret)
 
     private suspend fun readBlobInfoOrNull(
         store: BackupObjectStore,
@@ -609,11 +639,56 @@ class BackupRepositoryZipImpl(
 
     private fun indexGenerationKey(
         index: BackupIndex,
+        age: Boolean,
     ): BackupObjectKey {
         val generation = index.generation
             .toString()
             .padStart(20, '0')
-        return objectKey("$INDEXES_DIR/$generation-${index.indexId}.zip")
+        return objectKey("$INDEXES_DIR/$generation-${index.indexId}.zip" + if (age) AGE_SUFFIX else "")
+    }
+
+    override suspend fun upgradeEncryption(store: BackupObjectStore, password: Password) {
+        BackupAgeMigration(json, zipService) { store, metadata ->
+            writeCompatibilityMarker(store, metadata, replace = true)
+        }.run(store, password)
+    }
+
+    /**
+     * Publishes the keyless `repo.zip` marker of age [metadata] and verifies
+     * it. Without [replace], an existing `repo.zip` is never overwritten: if
+     * an older client wrote legacy metadata there, the check fails instead.
+     */
+    private suspend fun writeCompatibilityMarker(
+        store: BackupObjectStore,
+        metadata: BackupRepositoryMetadata,
+        replace: Boolean = false,
+    ) {
+        val marker = metadata.compatibilityMarker()
+        if (replace || store.stat(objectKey(BACKUP_REPO_FILE)) == null) {
+            val mode = if (replace) BackupWriteMode.CreateOrReplace else BackupWriteMode.Create
+            try {
+                writeZip(store, objectKey(BACKUP_REPO_FILE), mode, null, listOf(
+                    textEntry(BACKUP_REPO_ENTRY, json.encodeToString(marker)),
+                ))
+            } catch (_: BackupObjectStoreException.AlreadyExists) {
+                // Verify a concurrent publication below.
+            }
+        }
+        val published = readZipJsonOrNull<BackupRepositoryMetadata>(
+            store = store,
+            key = objectKey(BACKUP_REPO_FILE),
+            password = null,
+            entryName = BACKUP_REPO_ENTRY,
+            // Just looked up or written; a missing one reads as null anyway.
+            stat = false,
+        )
+        check(published == marker) {
+            if (replace) {
+                "Failed to verify the backup compatibility marker."
+            } else {
+                "Legacy backup metadata must be upgraded before writing."
+            }
+        }
     }
 
     private fun objectKey(
@@ -626,24 +701,6 @@ class BackupRepositoryZipImpl(
         val indexId: String,
     )
 }
-
-/** The archive options an object of this repository is written with. */
-private fun zipConfig(
-    password: Password?,
-): ZipConfig = ZipConfig(
-    encryption = password?.value
-        ?.takeIf { it.isNotEmpty() }
-        ?.let(ZipConfig::Encryption),
-)
-
-/** An entry holding a short, already materialised text payload. */
-private fun textEntry(
-    name: String,
-    text: String,
-): ZipEntry = ZipEntry(
-    name = name,
-    data = ZipEntry.Data.In { text.toSource() },
-)
 
 /**
  * The archive's entries, in the order they were written.
@@ -673,13 +730,13 @@ private fun backupRepositoryFeatures(
     )
 }
 
-private fun backupRepositoryCrypto(
+internal fun backupRepositoryCrypto(
     password: Password?,
 ): BackupRepositoryCrypto {
     val archive = if (password.isNullOrEmpty()) {
         "zip-none"
     } else {
-        "zip-aes-256"
+        BACKUP_AES_CRYPTO
     }
     return BackupRepositoryCrypto(
         archive = archive,
@@ -691,6 +748,11 @@ private fun validateBackupRepositoryCrypto(
     metadata: BackupRepositoryMetadata,
     password: Password?,
 ) {
+    if (metadata.isAge) {
+        // validateBackupRepositoryFormat has already checked the age crypto.
+        check(!password.isNullOrEmpty()) { "Encrypted backup requires a password." }
+        return
+    }
     val expected = backupRepositoryCrypto(password)
     val matches =
         metadata.crypto.archive == expected.archive &&
@@ -711,17 +773,27 @@ private fun validateBackupRepositoryMetadata(
     )
 }
 
-private fun validateBackupRepositoryFormat(
+internal fun validateBackupRepositoryFormat(
     metadata: BackupRepositoryMetadata,
 ) {
+    check(metadata.formatVersion in setOf(1, BACKUP_AGE_VERSION)) {
+        "Backup repository format is not supported by this version."
+    }
     val hasCurrentFeatures = CURRENT_REPOSITORY_FEATURES.all { it in metadata.features }
     val hasCurrentLayout = metadata.layout == BackupRepositoryLayout(
-        repo = "repo.zip",
+        repo = if (metadata.isAge) BACKUP_AGE_REPO_FILE else BACKUP_REPO_FILE,
         indexes = "indexes/",
         snapshots = "snapshots/",
         blobs = "blobs/",
     )
-    check(hasCurrentFeatures && hasCurrentLayout) {
+    val validAge = !metadata.isAge || (
+        metadata.crypto.archive == BACKUP_AGE_CRYPTO &&
+            metadata.crypto.indexArchive == BACKUP_AGE_INDEX_CRYPTO &&
+            metadata.crypto.objectArchive == BACKUP_AES_CRYPTO &&
+            BACKUP_AGE_INDEX_FEATURE in metadata.features &&
+            metadata.keys != null
+        )
+    check(hasCurrentFeatures && hasCurrentLayout && validAge) {
         "Backup repository format is not supported by this version."
     }
 }

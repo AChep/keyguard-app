@@ -188,6 +188,7 @@ jobs:
           :util:xml:iosSimulatorArm64Test
           :util:zip:iosSimulatorArm64Test
           :util:zxcvbn:iosSimulatorArm64Test
+          :util:age:iosSimulatorArm64Test
       - name: "Upload test reports"
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: always()

@@ -92,6 +92,7 @@ val bundledAppResources = bundledAppResourcesFrom(
         ":util:crypto",
         ":util:io",
         ":util:zxcvbn",
+        ":util:age",
     ).toTypedArray(),
 )
 

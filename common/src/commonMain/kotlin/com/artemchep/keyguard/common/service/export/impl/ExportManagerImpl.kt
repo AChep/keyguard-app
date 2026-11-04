@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.export.impl
 
+import com.artemchep.keyguard.util.age.AgePassword
+import com.artemchep.keyguard.common.service.archive.writeAgeArchive
 import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.common.io.bind
@@ -201,7 +203,8 @@ open class ExportManagerBase(
             val onDownloadUpdated: () -> Unit = { eventFlow.emit(Unit) }
             val uri = dirsService.saveToDownloads(fileName) { os ->
                 when (format) {
-                    ExportFormat.Zip -> writeZip(
+                    ExportFormat.Zip, ExportFormat.ZipAge -> writeZip(
+                        useAge = format == ExportFormat.ZipAge,
                         sink = os,
                         data = data,
                         password = password,
@@ -228,6 +231,7 @@ open class ExportManagerBase(
     }
 
     private suspend fun writeZip(
+        useAge: Boolean,
         sink: Sink,
         data: ExportVaultData,
         password: String,
@@ -253,6 +257,10 @@ open class ExportManagerBase(
                 },
             ),
         ) + entriesAttachments
+        if (useAge) {
+            writeAgeArchive(sink, AgePassword(password), entries)
+            return
+        }
         zipService.zip(
             outputStream = sink,
             config = ZipConfig(

@@ -41,6 +41,12 @@ class PrefetchNativeTest(unittest.TestCase):
         self.assertEqual(calls.count("fetch --manifest-path Cargo.toml --locked"), 1)
         self.assertIn("fetch --manifest-path thirdParty/rust/Cargo.toml --locked", calls)
 
+    def test_relay_workspace_prefetches_on_its_own(self):
+        # Check Relay passes the relay manifest alone; the profiles never fetch it.
+        result, calls = self.run_prefetch("", "server/relay/Cargo.toml")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(calls, ["fetch --manifest-path server/relay/Cargo.toml --locked"])
+
     def test_missing_manifest_fails_before_any_fetch(self):
         result, calls = self.run_prefetch("desktop", "missing/Cargo.toml")
         self.assertNotEqual(result.returncode, 0)

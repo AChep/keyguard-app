@@ -1,0 +1,85 @@
+# Keyguard relay plus a coturn TURN server. Put the variables in a .env file
+# next to this file; README.md lists them.
+name: keyguard-relay
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: "3"
+
+services:
+  relay:
+    build: .
+    image: keyguard-relay:local
+    restart: unless-stopped
+    # For a reverse proxy on this host. TLS terminates at the proxy.
+    ports:
+      - "127.0.0.1:7400:7400"
+      # Inactive unless RELAY_METRICS_BIND=0.0.0.0:7401; never proxy this port publicly.
+      - "127.0.0.1:7401:7401"
+    # Every relay variable but RELAY_BIND, which must match the port above. An
+    # empty value counts as unset, so the relay uses its own default.
+    environment:
+      RELAY_METRICS_BIND: ${RELAY_METRICS_BIND:-}
+      RELAY_TOKEN: ${RELAY_TOKEN:-}
+      RELAY_MAX_ROOM_PEERS: ${RELAY_MAX_ROOM_PEERS:-}
+      RELAY_MSGS_PER_SEC: ${RELAY_MSGS_PER_SEC:-}
+      RELAY_BYTES_PER_SEC: ${RELAY_BYTES_PER_SEC:-}
+      RELAY_MAX_CONNS_PER_IP: ${RELAY_MAX_CONNS_PER_IP:-}
+      RELAY_MAX_CONNS: ${RELAY_MAX_CONNS:-}
+      RELAY_EGRESS_BYTES_PER_SEC: ${RELAY_EGRESS_BYTES_PER_SEC:-}
+      RELAY_IDLE_SECS: ${RELAY_IDLE_SECS:-}
+      RELAY_MAX_ROOMS: ${RELAY_MAX_ROOMS:-}
+      ICE_REQUESTS_PER_MINUTE: ${ICE_REQUESTS_PER_MINUTE:-}
+      ICE_TICKETLESS_PER_MINUTE: ${ICE_TICKETLESS_PER_MINUTE:-}
+      ICE_TOTAL_PER_MINUTE: ${ICE_TOTAL_PER_MINUTE:-}
+      STUN_URLS: ${STUN_URLS:?set STUN_URLS in .env}
+      TURN_URLS: ${TURN_URLS:?set TURN_URLS in .env}
+      TURN_SECRET: ${TURN_SECRET:?set TURN_SECRET in .env}
+      TURN_TTL_SECONDS: ${TURN_TTL_SECONDS:-}
+      TRUST_PROXY: ${TRUST_PROXY:-}
+      RUST_LOG: ${RUST_LOG:-info}
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    logging: *logging
+
+  coturn:
+    image: coturn/coturn:4.18.0@sha256:bbefd3e1fdfdc0d58770fe01b581fd8b00d9f3a5580d00acb77cf719a6bc78e3
+    restart: unless-stopped
+    # TURN hands out ports from a whole range; host networking avoids mapping
+    # it and lets coturn see the addresses it relays from.
+    network_mode: host
+    environment:
+      TURN_SECRET: ${TURN_SECRET:?set TURN_SECRET in .env}
+      TURN_REALM: ${TURN_REALM:?set TURN_REALM in .env}
+      TURN_EXTERNAL_IP: ${TURN_EXTERNAL_IP:-}
+    volumes:
+      - ./coturn/turnserver.conf.template:/etc/coturn/turnserver.conf.template:ro
+    # Renders the template inside the container, so the secret stays out of
+    # the command line. `$$` is a literal `$` for Compose.
+    entrypoint: ["/bin/bash", "-ec"]
+    command:
+      - |
+        if [[ $${#TURN_SECRET} -lt 16 || $${#TURN_SECRET} -gt 256 ||
+              $$TURN_SECRET == *[!ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=._~-]* ]]; then
+          printf '%s\n' "coturn: TURN_SECRET must be 16 to 256 characters from A-Z, a-z, 0-9, '+', '/', '=', '-', '.', '_', '~'" >&2
+          exit 2
+        fi
+        umask 077
+        conf=$$(< /etc/coturn/turnserver.conf.template)
+        conf=$${conf//'$${TURN_SECRET}'/"$$TURN_SECRET"}
+        conf=$${conf//'$${TURN_REALM}'/"$$TURN_REALM"}
+        # The host's own addresses, which the firewall doesn't guard against
+        # traffic from the host itself, and the public one behind 1:1 NAT.
+        for ip in $$(hostname -I) $${TURN_EXTERNAL_IP%%/*}; do
+          conf+=$$'\n'"denied-peer-ip=$$ip"
+        done
+        printf '%s\n' "$$conf" > /var/tmp/turnserver.conf
+        exec turnserver -c /var/tmp/turnserver.conf $${TURN_EXTERNAL_IP:+"--external-ip=$$TURN_EXTERNAL_IP"}
+    # turnserver carries this file capability; without it (or under
+    # no-new-privileges) the kernel refuses to run the binary.
+    cap_drop: [ALL]
+    cap_add: [NET_BIND_SERVICE]
+    logging: *logging

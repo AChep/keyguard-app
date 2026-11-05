@@ -1,0 +1,77 @@
+# coturn configuration for the Keyguard relay.
+#
+# docker-compose.yml replaces ${TURN_SECRET} and ${TURN_REALM} when the
+# container starts, and appends a denied-peer-ip line for each of the host's
+# own addresses. To run coturn without Compose, do both yourself.
+
+# Ports. Open 3478/udp, 3478/tcp and the relay range below in the firewall.
+listening-port=3478
+min-port=49152
+max-port=49999
+
+# Credentials: time-limited usernames signed by the relay with the shared secret.
+use-auth-secret
+static-auth-secret="${TURN_SECRET}"
+realm=${TURN_REALM}
+fingerprint
+
+# TLS on 5349 (turns:). To enable it, mount a certificate, set cert and pkey,
+# and remove no-tls.
+#tls-listening-port=5349
+#cert=/etc/coturn/certs/fullchain.pem
+#pkey=/etc/coturn/certs/privkey.pem
+no-tls
+
+# WebRTC only needs UDP relaying to peers on the internet. The host's own public
+# addresses are denied too, at the end of the file.
+no-tcp-relay
+no-multicast-peers
+denied-peer-ip=0.0.0.0-0.255.255.255
+denied-peer-ip=10.0.0.0-10.255.255.255
+denied-peer-ip=100.64.0.0-100.127.255.255
+denied-peer-ip=127.0.0.0-127.255.255.255
+denied-peer-ip=169.254.0.0-169.254.255.255
+denied-peer-ip=172.16.0.0-172.31.255.255
+denied-peer-ip=192.0.0.0-192.0.0.255
+denied-peer-ip=192.0.2.0-192.0.2.255
+denied-peer-ip=192.88.99.0-192.88.99.255
+denied-peer-ip=192.168.0.0-192.168.255.255
+denied-peer-ip=198.18.0.0-198.19.255.255
+denied-peer-ip=198.51.100.0-198.51.100.255
+denied-peer-ip=203.0.113.0-203.0.113.255
+denied-peer-ip=224.0.0.0-255.255.255.255
+denied-peer-ip=::-::ffff
+denied-peer-ip=::ffff:0.0.0.0-::ffff:255.255.255.255
+denied-peer-ip=64:ff9b::-64:ff9b::ffff:ffff
+denied-peer-ip=64:ff9b:1::-64:ff9b:1:ffff:ffff:ffff:ffff:ffff
+denied-peer-ip=2001::-2001:1ff:ffff:ffff:ffff:ffff:ffff:ffff
+denied-peer-ip=2001:db8::-2001:db8:ffff:ffff:ffff:ffff:ffff:ffff
+denied-peer-ip=2002::-2002:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+denied-peer-ip=fc00::-fdff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+denied-peer-ip=fe80::-febf:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+denied-peer-ip=ff00::-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
+
+# Quotas. Every credential the relay mints for one client address has the same
+# user, so user-quota counts allocations per address. max-bps caps each
+# allocation, in bytes per second. coturn reserves max-bps for every allocation
+# out of bps-capacity, so bps-capacity would cap allocations at
+# bps-capacity / max-bps; it is left unset.
+user-quota=32
+total-quota=800
+max-bps=2500000
+stale-nonce=600
+
+# Metrics are private to the host, even though coturn uses host networking.
+prometheus
+prometheus-address=127.0.0.1
+prometheus-port=9641
+# Keep prometheus-username-labels disabled: TURN usernames are ephemeral.
+
+# coturn 4.18 already defaults to the hardened settings: the admin CLI, DTLS,
+# RFC 5780 NAT discovery, MAPPED-ADDRESS and the SOFTWARE attribute are off.
+# Their old no-* options (no-cli, no-dtls, ...) are deprecated and log errors.
+
+# Logs go to stdout. They contain client IP addresses; see README.md.
+log-file=stdout
+simple-log
+pidfile=/var/tmp/turnserver.pid

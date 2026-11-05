@@ -1,0 +1,85 @@
+name: "✔️ Check relay"
+
+on:
+  workflow_dispatch:
+  # The relay server is its own Cargo workspace; only it, the shared Rust
+  # toolchain and this workflow affect the result.
+  push:
+    branches:
+      - master
+    paths:
+      - 'server/relay/**'
+      - 'rust-toolchain.toml'
+      - '.github/actions/prefetch_native/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_relay.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'server/relay/**'
+      - 'rust-toolchain.toml'
+      - '.github/actions/prefetch_native/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_relay.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-relay:
+    name: Check relay
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: server/relay
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          cache-key: relay
+      - uses: ./.github/actions/prefetch_native
+        with:
+          manifests: server/relay/Cargo.toml
+      - name: "Check formatting"
+        run: cargo fmt --all -- --check
+      - name: "Run Clippy"
+        run: cargo clippy --all-targets --locked --offline -- -D warnings
+      - name: "Run tests"
+        run: cargo test --locked --offline
+      - name: "Build image"
+        env:
+          DOCKER_BUILDKIT: "1"
+        run: docker build --tag keyguard-relay:ci .
+      - name: "Smoke test image"
+        run: |
+          docker run --detach --name keyguard-relay \
+            --publish 127.0.0.1:7400:7400 \
+            --publish 127.0.0.1:7401:7401 \
+            --env RELAY_METRICS_BIND=0.0.0.0:7401 \
+            --read-only --cap-drop ALL --security-opt no-new-privileges:true \
+            keyguard-relay:ci
+          for _ in $(seq 30); do
+            if body="$(curl --silent --show-error --fail http://127.0.0.1:7400/healthz)"; then
+              echo "$body"
+              test "$body" = '{"status":"ok"}'
+              test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:7400/metrics)" = 404
+              curl --silent --show-error --fail http://127.0.0.1:7401/metrics > /tmp/relay-metrics.txt
+              grep --quiet '^keyguard_relay_rooms 0$' /tmp/relay-metrics.txt
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "The relay did not answer /healthz within 30 seconds." >&2
+          exit 1
+      - name: "Print relay logs"
+        if: failure()
+        run: docker logs keyguard-relay || true

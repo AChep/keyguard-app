@@ -32,6 +32,7 @@ members = [
 # Separate workspaces with their own lockfiles: the reviewed native crypto graph
 # and the neutral test workspace of the reviewed third-party forks.
 exclude = [
+    "server/relay",
     "thirdParty/rust",
     "util/crypto",
 ]

@@ -1,0 +1,55 @@
+# The relay is its own workspace with its own lockfile, so its server
+# dependencies never reach the native app crates of the root workspace.
+[workspace]
+resolver = "3"
+members = ["."]
+
+[package]
+name = "keyguard-relay"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.94.0"
+repository = "https://github.com/AChep/keyguard-app"
+description = "Signaling relay and TURN credential service for Keyguard device-to-device sync."
+publish = false
+
+[dependencies]
+axum = { version = "0.8.9", default-features = false, features = ["http1", "json", "tokio", "ws"] }
+base64 = "0.22.1"
+bytes = "1.12.1"
+hmac = "0.12.1"
+hyper = { version = "1.12.0", default-features = false, features = ["http1", "server"] }
+hyper-util = { version = "0.1.21", default-features = false, features = ["service", "tokio"] }
+rand = "0.9.5"
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+sha1 = "0.10.7"
+tokio = { version = "1.54.1", features = ["macros", "net", "rt-multi-thread", "signal", "sync", "time"] }
+tower-http = { version = "0.7.1", features = ["limit", "trace"] }
+tracing = "0.1.44"
+tracing-subscriber = { version = "0.3.23", default-features = false, features = ["ansi", "env-filter", "fmt"] }
+
+[dev-dependencies]
+futures-util = { version = "0.3.34", default-features = false, features = ["sink"] }
+tokio-tungstenite = "0.29.0"
+
+[lints.rust]
+missing_docs = "deny"
+unsafe_code = "deny"
+unsafe_op_in_unsafe_fn = "deny"
+unused_lifetimes = "deny"
+unused_qualifications = "warn"
+
+[lints.clippy]
+correctness = { level = "deny", priority = -1 }
+suspicious = { level = "warn", priority = -1 }
+complexity = { level = "warn", priority = -1 }
+perf = { level = "warn", priority = -1 }
+style = { level = "warn", priority = -1 }
+undocumented_unsafe_blocks = "deny"
+
+[profile.release]
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+strip = true

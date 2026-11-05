@@ -95,10 +95,6 @@ jobs:
     needs: changes
     if: needs.changes.outputs.crypto == 'true'
     runs-on: ubuntu-24.04
-    env:
-      CARGO_ABOUT_VERSION: "0.9.1"
-      CARGO_DENY_VERSION: "0.20.2"
-      CARGO_SBOM_VERSION: "0.10.0"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -201,18 +197,10 @@ jobs:
           --no-run
           --locked
           --offline
-      - name: "Cache pinned supply-chain tools"
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      - name: "Setup pinned supply-chain tools"
+        uses: ./.github/actions/setup_cargo_tools
         with:
-          path: ~/.cargo/native-ci-tools
-          key: native-crypto-tools-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('rust-toolchain.toml', '.github/actions/setup_rust/action.yml') }}-${{ env.CARGO_ABOUT_VERSION }}-${{ env.CARGO_DENY_VERSION }}-${{ env.CARGO_SBOM_VERSION }}
-      - name: "Expose supply-chain tools"
-        run: echo "$HOME/.cargo/native-ci-tools/bin" >> "$GITHUB_PATH"
-      - name: "Install pinned supply-chain tools"
-        run: |
-          cargo install --root "$HOME/.cargo/native-ci-tools" --locked --features cli cargo-about --version "$CARGO_ABOUT_VERSION"
-          cargo install --root "$HOME/.cargo/native-ci-tools" --locked cargo-deny --version "$CARGO_DENY_VERSION"
-          cargo install --root "$HOME/.cargo/native-ci-tools" --locked cargo-sbom --version "$CARGO_SBOM_VERSION"
+          tools: cargo-about cargo-deny cargo-sbom
       - name: "Check Rust licenses, bans, and sources"
         working-directory: util/crypto/rust
         run: >-
@@ -252,7 +240,6 @@ jobs:
     if: needs.changes.outputs.fuzz == 'true'
     runs-on: ubuntu-24.04
     env:
-      CARGO_FUZZ_VERSION: "0.13.2"
       # LLVM sanitizer coverage used by cargo-fuzz
       # is incompatible with fat LTO.
       CARGO_PROFILE_RELEASE_LTO: "false"
@@ -270,15 +257,10 @@ jobs:
         run: |
           rustup show active-toolchain
           rustup show active-toolchain | grep -q "^${RUSTUP_TOOLCHAIN}-"
-      - name: "Cache pinned cargo-fuzz"
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      - name: "Setup pinned cargo-fuzz"
+        uses: ./.github/actions/setup_cargo_tools
         with:
-          path: ~/.cargo/native-fuzz-tools
-          key: native-fuzz-tools-${{ runner.os }}-${{ runner.arch }}-${{ env.RUSTUP_TOOLCHAIN }}-${{ env.CARGO_FUZZ_VERSION }}
-      - name: "Expose cargo-fuzz"
-        run: echo "$HOME/.cargo/native-fuzz-tools/bin" >> "$GITHUB_PATH"
-      - name: "Install pinned cargo-fuzz"
-        run: cargo install --root "$HOME/.cargo/native-fuzz-tools" --locked cargo-fuzz --version "$CARGO_FUZZ_VERSION"
+          tools: cargo-fuzz
       - name: "Compile all fuzz targets"
         working-directory: util/crypto/rust
         run: cargo check --manifest-path fuzz/Cargo.toml --all-targets --locked

@@ -85,6 +85,10 @@ def classify(paths, *, full=False, all_checks=False):
         if path.startswith(".github/native-crypto-"):
             enable("crypto", "desktop", "android", "apple")
             continue
+        # The pinned cargo-about, cargo-deny, cargo-sbom and cargo-fuzz.
+        if path.startswith(".github/actions/setup_cargo_tools/"):
+            enable("crypto", "fuzz")
+            continue
         # The protocol generator ships in no bridge; the protocol drift checks run it.
         if path.startswith("util/ffi/tools/"):
             enable("crypto", "native_quality")

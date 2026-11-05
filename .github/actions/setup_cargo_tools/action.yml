@@ -1,0 +1,56 @@
+name: "Setup Cargo Tools"
+description: "Install pinned Cargo tools from a cache and add them to the PATH; run after setup_rust"
+inputs:
+  tools:
+    description: "Space-separated tools: cargo-about, cargo-deny, cargo-fuzz or cargo-sbom"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: "Resolve pinned Cargo tools"
+      id: resolve
+      shell: bash
+      env:
+        TOOLS: ${{ inputs.tools }}
+      run: |
+        # The binaries depend on the compiler that builds them.
+        rustc="$(rustc --version | tr -cs 'A-Za-z0-9.' '-')"
+        key="cargo-tools-$RUNNER_OS-$RUNNER_ARCH-${rustc%-}"
+        install=""
+        for tool in $TOOLS; do
+          features=""
+          # The one place that pins each tool.
+          case "$tool" in
+            cargo-about) version=0.9.1 features=cli ;;
+            cargo-deny) version=0.20.2 ;;
+            cargo-fuzz) version=0.13.2 ;;
+            cargo-sbom) version=0.10.0 ;;
+            *) echo "No pinned version for $tool" >&2; exit 1 ;;
+          esac
+          # Features change the binary; a cache key can't hold commas.
+          key+="-$tool-$version${features:+-${features//,/+}}"
+          install+="$tool $version $features"$'\n'
+        done
+        # The runner doesn't enforce required inputs of a composite action.
+        if [ -z "$install" ]; then
+          echo "No Cargo tools requested" >&2
+          exit 1
+        fi
+        echo "key=$key" >> "$GITHUB_OUTPUT"
+        printf 'install<<EOF\n%sEOF\n' "$install" >> "$GITHUB_OUTPUT"
+    - name: "Cache pinned Cargo tools"
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
+      with:
+        path: ~/.cargo/ci-tools
+        key: ${{ steps.resolve.outputs.key }}
+    - name: "Install pinned Cargo tools"
+      shell: bash
+      env:
+        INSTALL: ${{ steps.resolve.outputs.install }}
+      run: |
+        echo "$HOME/.cargo/ci-tools/bin" >> "$GITHUB_PATH"
+        # A cached tool of the same version is kept as is.
+        while read -r tool version features; do
+          cargo install --root "$HOME/.cargo/ci-tools" --locked \
+            ${features:+--features "$features"} "$tool" --version "$version"
+        done <<< "$INSTALL"

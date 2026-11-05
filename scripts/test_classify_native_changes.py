@@ -217,6 +217,13 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 self.assertEqual(tuple(result[flag] for flag in ("desktop", "android", "apple")), expected)
                 self.assertTrue(result["native_quality"])
 
+    def test_cargo_tools_select_their_consuming_jobs(self):
+        result = classify([".github/actions/setup_cargo_tools/action.yml"])
+        for flag in FLAGS:
+            self.assertEqual(result[flag], flag in {"crypto", "fuzz"}, flag)
+        self.assertFalse(result["desktop_run"])
+        self.assertFalse(result["android_run"])
+
     def test_jni_source_sets_select_only_their_consuming_platforms(self):
         cases = {
             "util/crypto/src/androidMain/kotlin/NativeCryptoLibraryLoader.android.kt": (False, True, False),

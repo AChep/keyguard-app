@@ -62,10 +62,18 @@ fun KeePassDatabase.removeGroup(
     return modifyContent {
         copy(
             group = group.removeChildGroup(uuid),
-            deletedObjects = deletedUuids
+            deletedObjects = (deletedObjects + deletedUuids).latestPerId()
         )
     }
 }
+
+/**
+ * Keeps one [DeletedObject] per id, the one deleted last, in the order
+ * the ids first appear.
+ */
+private fun List<DeletedObject>.latestPerId(): List<DeletedObject> =
+    groupBy(DeletedObject::id)
+        .map { (_, deletions) -> deletions.maxBy(DeletedObject::deletionTime) }
 
 /**
  * Finds all UUIDs of a given group and its direct and indirect

@@ -16,6 +16,11 @@ kotlin {
     }
 
     sourceSets {
+        getByName("commonMain") {
+            dependencies {
+                implementation(project(":util:ffi"))
+            }
+        }
         getByName("commonTest") {
             dependencies {
                 implementation(libs.kotlinx.coroutines.core)
@@ -26,9 +31,7 @@ kotlin {
             }
         }
 
-        sharedJvmMain().dependencies {
-            implementation(project(":util:ffi"))
-        }
+        sharedJvmMain()
         sharedAppleMain()
         sharedIosTest()
     }

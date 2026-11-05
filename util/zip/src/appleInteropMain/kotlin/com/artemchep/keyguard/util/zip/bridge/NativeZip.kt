@@ -2,6 +2,9 @@
 
 package com.artemchep.keyguard.util.zip.bridge
 
+import com.artemchep.keyguard.util.ffi.encodeToStrictUtf8OrNull
+import com.artemchep.keyguard.util.ffi.hasRange
+import com.artemchep.keyguard.util.ffi.withNativePointer
 import com.artemchep.keyguard.util.zip.ffi.keyguard_zip_memory_open
 import com.artemchep.keyguard.util.zip.ffi.keyguard_zip_memory_read
 import com.artemchep.keyguard.util.zip.ffi.keyguard_zip_memory_close
@@ -19,16 +22,12 @@ import com.artemchep.keyguard.util.zip.ffi.keyguard_zip_writer_write
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.UByteVar
-import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.convert
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.usePinned
-import kotlin.text.CharacterCodingException
 
 @Suppress("TooManyFunctions") // One entry point per native ABI operation.
 internal actual object NativeZip {
     actual fun memoryOpen(bytes: ByteArray, index: Int, offset: Int, password: String): Long {
-        val secret = password.strictUtf8OrNull() ?: return NATIVE_ZIP_BRIDGE_INVALID_ARGUMENT
+        val secret = password.encodeToStrictUtf8OrNull() ?: return NATIVE_ZIP_BRIDGE_INVALID_ARGUMENT
         return try {
             bytes.withNativePointer { data, size ->
                 secret.withNativePointer { pass, passSize ->
@@ -53,7 +52,7 @@ internal actual object NativeZip {
         }
 
     actual fun beginEntry(handle: Long, name: String): Long {
-        val nameBytes = name.strictUtf8OrNull()
+        val nameBytes = name.encodeToStrictUtf8OrNull()
             ?: return NATIVE_ZIP_BRIDGE_INVALID_ARGUMENT
         return nameBytes.withNativePointer { pointer, size ->
             keyguard_zip_writer_begin_entry(
@@ -107,8 +106,8 @@ private inline fun openWith(
     password: String,
     open: (CPointer<UByteVar>?, ULong, CPointer<UByteVar>?, ULong) -> Long,
 ): Long {
-    val pathBytes = path.strictUtf8OrNull()
-    val passwordBytes = password.strictUtf8OrNull()
+    val pathBytes = path.encodeToStrictUtf8OrNull()
+    val passwordBytes = password.encodeToStrictUtf8OrNull()
     if (pathBytes == null || passwordBytes == null) {
         return NATIVE_ZIP_BRIDGE_INVALID_ARGUMENT
     }
@@ -116,26 +115,6 @@ private inline fun openWith(
         passwordBytes.withNativePointer { passwordPointer, passwordSize ->
             open(pathPointer, pathSize, passwordPointer, passwordSize)
         }
-    }
-}
-
-/** `null` for an unpaired surrogate, which the C side would reject anyway. */
-private fun String.strictUtf8OrNull(): ByteArray? = try {
-    encodeToByteArray(throwOnInvalidSequence = true)
-} catch (_: CharacterCodingException) {
-    null
-}
-
-private inline fun <T> ByteArray.withNativePointer(
-    block: (CPointer<UByteVar>?, ULong) -> T,
-): T = if (isEmpty()) {
-    block(null, 0uL)
-} else {
-    usePinned { pinned ->
-        block(
-            pinned.addressOf(0).reinterpret(),
-            size.convert(),
-        )
     }
 }
 
@@ -147,18 +126,8 @@ private inline fun ByteArray.withNativeRange(
     offset: Int,
     count: Int,
     block: (CPointer<UByteVar>?, ULong) -> Long,
-): Long {
-    if (offset < 0 || count < 0 || offset > size - count) {
-        return NATIVE_ZIP_BRIDGE_INVALID_ARGUMENT
-    }
-    return if (count == 0) {
-        block(null, 0uL)
-    } else {
-        usePinned { pinned ->
-            block(
-                pinned.addressOf(offset).reinterpret(),
-                count.convert(),
-            )
-        }
-    }
+): Long = if (hasRange(offset, count)) {
+    withNativePointer(offset, count, block)
+} else {
+    NATIVE_ZIP_BRIDGE_INVALID_ARGUMENT
 }

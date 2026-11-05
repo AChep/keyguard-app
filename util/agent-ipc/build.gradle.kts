@@ -19,5 +19,8 @@ kotlin {
         getByName("desktopMain").dependencies {
             implementation(project(":util:ffi"))
         }
+        getByName("macosArm64Main").dependencies {
+            implementation(project(":util:ffi"))
+        }
     }
 }

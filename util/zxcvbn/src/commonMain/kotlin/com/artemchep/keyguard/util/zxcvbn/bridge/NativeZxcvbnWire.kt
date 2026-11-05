@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.util.zxcvbn.bridge
 
+import com.artemchep.keyguard.util.ffi.PackedFailure
 import com.artemchep.keyguard.util.zxcvbn.ZxcvbnCrackTimes
 import com.artemchep.keyguard.util.zxcvbn.ZxcvbnException
 import com.artemchep.keyguard.util.zxcvbn.ZxcvbnResult
@@ -48,23 +49,8 @@ internal const val NATIVE_ZXCVBN_BRIDGE_CODE_PANIC: Int = 2
 internal const val NATIVE_ZXCVBN_BRIDGE_CODE_INTERNAL: Int = 3
 internal const val NATIVE_ZXCVBN_BRIDGE_CODE_INPUT_TOO_LONG: Int = 4
 
-// Failure layout (bit 63 set): bits 0..7 operation, 8..15 failure kind,
-// 16..23 error domain, 24..55 bridge code, and 56..62 reserved zero. Only the
-// bridge operation and the bridge error domain occur, because the estimator
-// performs no I/O; the layout is nevertheless the one of `util/io` so a shared
-// inspector can decode either module's scalars.
-private const val FAILURE_KIND_SHIFT: Int = 8
-private const val ERROR_DOMAIN_SHIFT: Int = 16
-private const val BRIDGE_CODE_SHIFT: Int = 24
-private const val RESERVED_SHIFT: Int = 56
-private const val RESERVED_MASK: Long = 0x7fL
-private const val BYTE_MASK: Long = 0xffL
+/** The largest value of the unsigned 32 bit suggestion mask. */
 private const val UINT32_MASK: Long = 0xffffffffL
-
-private const val OPERATION_BRIDGE: Int = 0
-private const val DOMAIN_BRIDGE: Int = 3
-private const val KIND_INVALID_INPUT: Int = 8
-private const val KIND_INTERNAL: Int = 12
 
 /** Set of every defined suggestion bit; anything else is an ABI break. */
 private val KNOWN_SUGGESTION_BITS: Int = ZxcvbnSuggestion.entries
@@ -98,18 +84,14 @@ internal data class NativeZxcvbnFailure(
  * scalar for identical input and the ordinary decode path produces the
  * platform-independent exception.
  */
-internal const val NATIVE_ZXCVBN_BRIDGE_INVALID_ARGUMENT: Long =
-    (1L shl 63) or
-        (NATIVE_ZXCVBN_BRIDGE_CODE_INVALID_ARGUMENT.toLong() shl BRIDGE_CODE_SHIFT) or
-        (DOMAIN_BRIDGE.toLong() shl ERROR_DOMAIN_SHIFT) or
-        (KIND_INVALID_INPUT.toLong() shl FAILURE_KIND_SHIFT) or
-        OPERATION_BRIDGE.toLong()
+internal const val NATIVE_ZXCVBN_BRIDGE_INVALID_ARGUMENT: Long = PackedFailure.BRIDGE_INVALID_ARGUMENT
 
 /** Whether [packedResult] carries a failure rather than a success status. */
 internal fun isNativeZxcvbnFailure(packedResult: Long): Boolean = packedResult < 0L
 
 /**
- * Decodes a packed bridge failure.
+ * Decodes a packed bridge failure. Only the bridge operation and the bridge
+ * error domain occur, because the estimator performs no I/O.
  *
  * @throws ZxcvbnException when the scalar violates the failure layout.
  */
@@ -117,26 +99,20 @@ internal fun decodeNativeZxcvbnFailure(packedResult: Long): NativeZxcvbnFailure 
     requireNativeZxcvbnWire(packedResult < 0L) {
         "Native zxcvbn result does not contain a failure"
     }
-    requireNativeZxcvbnWire(((packedResult ushr RESERVED_SHIFT) and RESERVED_MASK) == 0L) {
-        "Native zxcvbn returned non-zero reserved failure bits"
+    val failure = PackedFailure.decode(packedResult)
+        ?: throw ZxcvbnException("Native zxcvbn returned non-zero reserved failure bits")
+    requireNativeZxcvbnWire(failure.operation == PackedFailure.OPERATION_BRIDGE) {
+        "Native zxcvbn returned unknown failure operation ${failure.operation}"
     }
-    val operation = packedResult.byteAt(shift = 0)
-    requireNativeZxcvbnWire(operation == OPERATION_BRIDGE) {
-        "Native zxcvbn returned unknown failure operation $operation"
+    requireNativeZxcvbnWire(failure.domain == PackedFailure.DOMAIN_BRIDGE) {
+        "Native zxcvbn returned unknown error domain ${failure.domain}"
     }
-    val domain = packedResult.byteAt(shift = ERROR_DOMAIN_SHIFT)
-    requireNativeZxcvbnWire(domain == DOMAIN_BRIDGE) {
-        "Native zxcvbn returned unknown error domain $domain"
-    }
-    val kind = when (packedResult.byteAt(shift = FAILURE_KIND_SHIFT)) {
-        KIND_INVALID_INPUT -> NativeZxcvbnFailureKind.InvalidInput
-        KIND_INTERNAL -> NativeZxcvbnFailureKind.Internal
+    val kind = when (failure.kind) {
+        PackedFailure.KIND_INVALID_INPUT -> NativeZxcvbnFailureKind.InvalidInput
+        PackedFailure.KIND_INTERNAL -> NativeZxcvbnFailureKind.Internal
         else -> NativeZxcvbnFailureKind.Other
     }
-    return NativeZxcvbnFailure(
-        kind = kind,
-        bridgeCode = ((packedResult ushr BRIDGE_CODE_SHIFT) and UINT32_MASK).toInt(),
-    )
+    return NativeZxcvbnFailure(kind = kind, bridgeCode = failure.rawCode)
 }
 
 /**
@@ -229,5 +205,3 @@ private fun decodeNativeZxcvbnSuggestions(wireMask: Long): Set<ZxcvbnSuggestion>
 }
 
 private fun LongArray.doubleAt(index: Int): Double = Double.fromBits(this[index])
-
-private fun Long.byteAt(shift: Int): Int = ((this ushr shift) and BYTE_MASK).toInt()

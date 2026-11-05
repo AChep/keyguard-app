@@ -2,6 +2,9 @@
 
 package com.artemchep.keyguard.util.zxcvbn.bridge
 
+import com.artemchep.keyguard.util.ffi.StaticLibrary
+import com.artemchep.keyguard.util.ffi.encodeToStrictUtf8OrNull
+import com.artemchep.keyguard.util.ffi.withNativePointer
 import com.artemchep.keyguard.util.zxcvbn.ZxcvbnException
 import com.artemchep.keyguard.util.zxcvbn.ffi.keyguard_zxcvbn_abi_version
 import com.artemchep.keyguard.util.zxcvbn.ffi.keyguard_zxcvbn_estimate
@@ -10,30 +13,31 @@ import com.artemchep.keyguard.util.zxcvbn.ffi.keyguard_zxcvbn_str_v1
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.MemScope
 import kotlinx.cinterop.UByteVar
-import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.allocArray
 import kotlinx.cinterop.convert
 import kotlinx.cinterop.get
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
-import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.set
 import kotlinx.cinterop.sizeOf
-import kotlinx.cinterop.usePinned
-import kotlin.concurrent.Volatile
-import kotlin.text.CharacterCodingException
 
 internal actual object NativeZxcvbn {
-    @Volatile
-    private var abiVerified = false
+    private val library = StaticLibrary {
+        val actual = keyguard_zxcvbn_abi_version().toInt()
+        if (actual != NATIVE_ZXCVBN_ABI_VERSION) {
+            throw ZxcvbnException(
+                "Unsupported native zxcvbn ABI $actual; expected $NATIVE_ZXCVBN_ABI_VERSION",
+            )
+        }
+    }
 
     actual fun estimate(
         password: String,
         userInputs: List<String>,
         out: LongArray,
     ): Long {
-        ensureCompatibleAbi()
+        library.ensureVerified()
         val arguments = encodeArguments(password, userInputs, out)
             // The C ABI would reject these too, but rejecting them here keeps
             // the scalar identical to the JNI bridge's.
@@ -42,6 +46,7 @@ internal actual object NativeZxcvbn {
             val result = alloc<keyguard_zxcvbn_result_v1>()
             result.size = sizeOf<keyguard_zxcvbn_result_v1>().convert()
             val inputs = allocUserInputs(arguments.userInputs)
+            // An empty password is a valid estimate.
             val status = arguments.password.withNativePointer { pointer, size ->
                 keyguard_zxcvbn_estimate(
                     pointer,
@@ -73,9 +78,9 @@ internal actual object NativeZxcvbn {
         ) {
             return null
         }
-        val encodedPassword = password.strictUtf8OrNull()
+        val encodedPassword = password.encodeToStrictUtf8OrNull()
         val encodedUserInputs = userInputs.mapNotNull { userInput ->
-            userInput.strictUtf8OrNull()
+            userInput.encodeToStrictUtf8OrNull()
         }
         return if (
             encodedPassword != null &&
@@ -88,17 +93,6 @@ internal actual object NativeZxcvbn {
         } else {
             null
         }
-    }
-
-    private fun ensureCompatibleAbi() {
-        if (abiVerified) return
-        val actual = keyguard_zxcvbn_abi_version().toInt()
-        if (actual != NATIVE_ZXCVBN_ABI_VERSION) {
-            throw ZxcvbnException(
-                "Unsupported native zxcvbn ABI $actual; expected $NATIVE_ZXCVBN_ABI_VERSION",
-            )
-        }
-        abiVerified = true
     }
 
     /**
@@ -129,38 +123,6 @@ internal actual object NativeZxcvbn {
             }
         }
         return array
-    }
-
-    /**
-     * Encodes a string for the C ABI, or reports `null` when it is not
-     * representable as UTF-8.
-     *
-     * A string containing an unpaired surrogate cannot be encoded, and the C
-     * ABI validates its input with `str::from_utf8`. The caller turns `null`
-     * into [NATIVE_ZXCVBN_BRIDGE_INVALID_ARGUMENT] — the very scalar the JNI
-     * bridge returns for the same input — instead of throwing, so both
-     * bridges fail identically and the caller's decode path decides the
-     * exception type.
-     */
-    private fun String.strictUtf8OrNull(): ByteArray? = try {
-        encodeToByteArray(throwOnInvalidSequence = true)
-    } catch (_: CharacterCodingException) {
-        null
-    }
-
-    private inline fun <T> ByteArray.withNativePointer(
-        block: (CPointer<UByteVar>?, ULong) -> T,
-    ): T = if (isEmpty()) {
-        // The ABI allows a null pointer when the length is zero, and an empty
-        // password is a valid estimate.
-        block(null, 0uL)
-    } else {
-        usePinned { pinned ->
-            block(
-                pinned.addressOf(0).reinterpret(),
-                size.convert(),
-            )
-        }
     }
 
     private fun keyguard_zxcvbn_result_v1.copyInto(out: LongArray) {

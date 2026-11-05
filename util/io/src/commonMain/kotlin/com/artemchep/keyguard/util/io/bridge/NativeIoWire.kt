@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.util.io.bridge
 
+import com.artemchep.keyguard.util.ffi.PackedFailure
 import com.artemchep.keyguard.util.io.FileSystemFailure
 import com.artemchep.keyguard.util.io.FileSystemFailureKind
 import com.artemchep.keyguard.util.io.FileSystemOperationException
@@ -8,19 +9,12 @@ import com.artemchep.keyguard.util.io.NativeErrorDomain
 
 internal const val NATIVE_IO_ABI_VERSION: Int = 1
 
-// Failure layout (bit 63 set): bits 0..7 operation, 8..15 kind, 16..23
-// domain, 24..55 raw native error, bit 56 cleanup-incomplete, and 57..62
-// reserved zero. The reserved bits
-// make -1 unrepresentable as a failure, keeping it free as the end-of-file
-// marker of read operations.
-private const val FAILURE_KIND_SHIFT: Int = 8
-private const val ERROR_DOMAIN_SHIFT: Int = 16
-private const val RAW_CODE_SHIFT: Int = 24
-private const val CLEANUP_INCOMPLETE_SHIFT: Int = 56
-private const val RESERVED_SHIFT: Int = 57
-private const val RESERVED_MASK: Long = 0x3fL
-private const val BYTE_MASK: Long = 0xffL
-private const val RAW_CODE_MASK: Long = 0xffffffffL
+// Failures are `keyguard_ffi` packed scalars that assign reserved bit 56 to
+// cleanup-incomplete; bits 57..62 stay zero. The reserved bits make -1
+// unrepresentable as a failure, keeping it free as the end-of-file marker of
+// read operations.
+private const val CLEANUP_INCOMPLETE_BIT: Long = 1L shl 56
+private const val RESERVED_BITS: Long = PackedFailure.RESERVED_BITS and CLEANUP_INCOMPLETE_BIT.inv()
 private const val NATIVE_IO_NO_FAILURE_KIND: Int = 0
 private const val OPERATION_BRIDGE = 0
 private const val OPERATION_BEGIN = 1
@@ -37,11 +31,6 @@ private const val OPERATION_SWEEP = 11
 private const val OPERATION_PREPARE_PARENT = 12
 private const val OPERATION_FLUSH_PARENT = 13
 private const val OPERATION_HARD_LINK = 14
-
-// Wire codes of the reserved bridge invalid-argument failure.
-private const val KIND_INVALID_INPUT = 8
-private const val DOMAIN_BRIDGE = 3
-private const val BRIDGE_ERROR_INVALID_ARGUMENT = 1
 
 // Indexes are native ABI wire codes. Index zero is reserved for "no kind".
 private val FAILURE_KINDS_BY_WIRE_CODE = listOf(
@@ -110,12 +99,7 @@ internal data class NativeIoFailure(
  * `pack_bridge_invalid_argument()`; [NativeIoWireTest] pins it against the
  * golden vector.
  */
-internal const val NATIVE_IO_BRIDGE_INVALID_ARGUMENT: Long =
-    (1L shl 63) or
-        (BRIDGE_ERROR_INVALID_ARGUMENT.toLong() shl RAW_CODE_SHIFT) or
-        (DOMAIN_BRIDGE.toLong() shl ERROR_DOMAIN_SHIFT) or
-        (KIND_INVALID_INPUT.toLong() shl FAILURE_KIND_SHIFT) or
-        OPERATION_BRIDGE.toLong()
+internal const val NATIVE_IO_BRIDGE_INVALID_ARGUMENT: Long = PackedFailure.BRIDGE_INVALID_ARGUMENT
 
 internal fun isNativeIoFailure(packedResult: Long): Boolean =
     packedResult < 0L && packedResult != -1L
@@ -129,23 +113,20 @@ internal fun decodeNativeIoFailure(packedResult: Long): NativeIoFailure {
     require(packedResult < 0L) {
         "Native IO result does not contain a failure"
     }
-    require(((packedResult ushr RESERVED_SHIFT) and RESERVED_MASK) == 0L) {
+    val packed = requireNotNull(PackedFailure.decode(packedResult, RESERVED_BITS)) {
         "Native IO returned non-zero reserved failure bits"
     }
-    val operationCode = packedResult.byteAt(shift = 0)
     val operation = NativeIoOperation.entries.firstOrNull {
-        it.wireCode == operationCode
+        it.wireCode == packed.operation
     } ?: throw IllegalArgumentException(
-        "Native IO returned unknown failure operation $operationCode",
+        "Native IO returned unknown failure operation ${packed.operation}",
     )
-    val kind = requireNotNull(
-        decodeNativeIoFailureKind(packedResult.byteAt(shift = FAILURE_KIND_SHIFT)),
-    ) {
+    val kind = requireNotNull(decodeNativeIoFailureKind(packed.kind)) {
         "Native IO returned a failure without a failure kind"
     }
     val diagnostic = decodeNativeErrorDiagnostic(
-        domainCode = packedResult.byteAt(shift = ERROR_DOMAIN_SHIFT),
-        nativeErrorCode = ((packedResult ushr RAW_CODE_SHIFT) and RAW_CODE_MASK).toUInt(),
+        domainCode = packed.domain,
+        nativeErrorCode = packed.rawCode.toUInt(),
     )
     return NativeIoFailure(
         operation = operation,
@@ -153,9 +134,7 @@ internal fun decodeNativeIoFailure(packedResult: Long): NativeIoFailure {
             kind = kind,
             diagnostic = diagnostic,
         ),
-        cleanupIncomplete = (
-            (packedResult ushr CLEANUP_INCOMPLETE_SHIFT) and 1L
-            ) != 0L,
+        cleanupIncomplete = (packedResult and CLEANUP_INCOMPLETE_BIT) != 0L,
     )
 }
 
@@ -231,7 +210,3 @@ internal fun nativeIoFailureMessage(
 } else {
     "$prefix (native error domain=${diagnostic.domain}, code=${diagnostic.code})"
 }
-
-private fun Long.byteAt(
-    shift: Int,
-): Int = ((this ushr shift) and BYTE_MASK).toInt()

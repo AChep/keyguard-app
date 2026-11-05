@@ -2,6 +2,8 @@
 
 package com.artemchep.keyguard.util.instance
 
+import com.artemchep.keyguard.util.ffi.withNativePointer
+import com.artemchep.keyguard.util.ffi.withStrictUtf8
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_abi_version
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_acquire
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_acquire_or_activate
@@ -12,10 +14,6 @@ import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_stop
 import com.artemchep.keyguard.util.instance.ffi.keyguard_instance_wait_event
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.UByteVar
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.usePinned
-import kotlin.text.CharacterCodingException
 
 private const val MAX_ARGUMENT_LENGTH = 65_536
 
@@ -24,8 +22,8 @@ internal actual object NativeInstance {
         // Native diagnostics contain only fixed labels and numeric codes. Read on the
         // calling thread before any subsequent bridge operation can replace them.
         val bytes = ByteArray(512)
-        val size = bytes.usePinned { pinned ->
-            keyguard_instance_last_error(pinned.addressOf(0).reinterpret(), bytes.size.toULong())
+        val size = bytes.withNativePointer { pointer, capacity ->
+            keyguard_instance_last_error(pointer, capacity)
         }
         return if (size > 0uL && size <= bytes.size.toULong()) {
             bytes.decodeToString(endIndex = size.toInt())
@@ -110,19 +108,5 @@ internal actual object NativeInstance {
 
     private inline fun String.withUtf8(
         block: (CPointer<UByteVar>?, ULong) -> Long,
-    ): Long {
-        if (length > MAX_ARGUMENT_LENGTH) return -1L
-        val bytes = try {
-            encodeToByteArray(throwOnInvalidSequence = true)
-        } catch (_: CharacterCodingException) {
-            null
-        }
-        return when {
-            bytes == null -> -1L
-            bytes.isEmpty() -> block(null, 0uL)
-            else -> bytes.usePinned { pinned ->
-                block(pinned.addressOf(0).reinterpret(), bytes.size.toULong())
-            }
-        }
-    }
+    ): Long = if (length > MAX_ARGUMENT_LENGTH) -1L else withStrictUtf8(invalid = -1L, block)
 }

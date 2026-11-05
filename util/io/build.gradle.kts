@@ -19,6 +19,7 @@ kotlin {
         getByName("commonMain") {
             dependencies {
                 api(libs.kotlinx.io.core)
+                implementation(project(":util:ffi"))
             }
         }
         getByName("commonTest") {
@@ -27,9 +28,7 @@ kotlin {
             }
         }
 
-        sharedJvmMain().dependencies {
-            implementation(project(":util:ffi"))
-        }
+        sharedJvmMain()
         sharedAppleMain()
         sharedIosTest()
     }

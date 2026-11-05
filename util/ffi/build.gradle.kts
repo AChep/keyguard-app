@@ -1,3 +1,4 @@
+import com.artemchep.keyguard.buildplugins.kotlin.sharedAppleMain
 import com.artemchep.keyguard.buildplugins.kotlin.sharedJvmMain
 import com.artemchep.keyguard.buildplugins.kotlin.sharedJvmTest
 
@@ -16,5 +17,7 @@ kotlin {
         commonTest.dependencies { implementation(libs.kotlinx.coroutines.test) }
         sharedJvmMain()
         sharedJvmTest()
+        // The cinterop helpers of the Apple bridges.
+        sharedAppleMain()
     }
 }

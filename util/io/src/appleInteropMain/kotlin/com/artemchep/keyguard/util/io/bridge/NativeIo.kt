@@ -2,6 +2,9 @@
 
 package com.artemchep.keyguard.util.io.bridge
 
+import com.artemchep.keyguard.util.ffi.StaticLibrary
+import com.artemchep.keyguard.util.ffi.withNativePointer
+import com.artemchep.keyguard.util.ffi.withStrictUtf8
 import com.artemchep.keyguard.util.io.FileSystemFailure
 import com.artemchep.keyguard.util.io.FileSystemFailureKind
 import com.artemchep.keyguard.util.io.FileSystemOperationException
@@ -22,30 +25,31 @@ import com.artemchep.keyguard.util.io.ffi.keyguard_io_txn_begin_at_directory
 import com.artemchep.keyguard.util.io.ffi.keyguard_io_txn_commit
 import com.artemchep.keyguard.util.io.ffi.keyguard_io_txn_options_v1
 import com.artemchep.keyguard.util.io.ffi.keyguard_io_txn_write
-import kotlinx.cinterop.CPointer
-import kotlinx.cinterop.UByteVar
-import kotlinx.cinterop.addressOf
 import kotlinx.cinterop.alloc
-import kotlinx.cinterop.convert
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
-import kotlinx.cinterop.reinterpret
 import kotlinx.cinterop.set
 import kotlinx.cinterop.sizeOf
-import kotlinx.cinterop.usePinned
-import kotlin.concurrent.Volatile
-import kotlin.text.CharacterCodingException
 
 // The cohesive actual object mirrors the fixed native ABI surface; splitting it would obscure
 // expect/actual parity and move ABI calls away from the compatibility checks guarding them.
 @Suppress("TooManyFunctions")
 internal actual object NativeIo {
-    @Volatile
-    private var abiVerified = false
+    private val library = StaticLibrary {
+        val actual = keyguard_io_abi_version().toInt()
+        if (actual != NATIVE_IO_ABI_VERSION) {
+            throw FileSystemOperationException(
+                message = "Unsupported native IO ABI $actual; expected $NATIVE_IO_ABI_VERSION",
+                failure = FileSystemFailure(
+                    kind = FileSystemFailureKind.Internal,
+                ),
+            )
+        }
+    }
 
     actual fun directoryOpen(directory: String): Long {
         ensureCompatibleAbi()
-        return directory.withStrictUtf8NativePointer { pointer, size ->
+        return directory.withStrictUtf8(NATIVE_IO_BRIDGE_INVALID_ARGUMENT) { pointer, size ->
             keyguard_io_directory_open(pointer, size)
         }
     }
@@ -79,7 +83,7 @@ internal actual object NativeIo {
             wire.reserved[2] = options.reserved2.toUInt()
             wire.reserved[TXN_RESERVED_3_INDEX] = options.reserved3.toUInt()
             wire.reserved[TXN_RESERVED_4_INDEX] = options.reserved4.toUInt()
-            destination.withStrictUtf8NativePointer { pointer, size ->
+            destination.withStrictUtf8(NATIVE_IO_BRIDGE_INVALID_ARGUMENT) { pointer, size ->
                 keyguard_io_txn_begin(
                     pointer,
                     size,
@@ -100,18 +104,8 @@ internal actual object NativeIo {
             NATIVE_IO_BRIDGE_INVALID_ARGUMENT
         } else {
             checkArrayRange(input.size, offset, length)
-            if (length == 0) {
-                withNullPointer { pointer ->
-                    keyguard_io_txn_write(handle.toULong(), pointer, 0u.convert())
-                }
-            } else {
-                input.usePinned { pinned ->
-                    keyguard_io_txn_write(
-                        handle.toULong(),
-                        pinned.addressOf(offset).reinterpret(),
-                        length.convert(),
-                    )
-                }
+            input.withNativePointer(offset, length) { pointer, size ->
+                keyguard_io_txn_write(handle.toULong(), pointer, size)
             }
         }
     }
@@ -141,7 +135,7 @@ internal actual object NativeIo {
             wire.reserved[2] = options.reserved2.toUInt()
             wire.reserved[TXN_RESERVED_3_INDEX] = options.reserved3.toUInt()
             wire.reserved[TXN_RESERVED_4_INDEX] = options.reserved4.toUInt()
-            relativeDestination.withStrictUtf8NativePointer { pointer, size ->
+            relativeDestination.withStrictUtf8(NATIVE_IO_BRIDGE_INVALID_ARGUMENT) { pointer, size ->
                 keyguard_io_txn_begin_at_directory(
                     directoryHandle.toULong(),
                     pointer,
@@ -166,7 +160,7 @@ internal actual object NativeIo {
 
     actual fun scratchOpen(directory: String): Long {
         ensureCompatibleAbi()
-        return directory.withStrictUtf8NativePointer { pointer, size ->
+        return directory.withStrictUtf8(NATIVE_IO_BRIDGE_INVALID_ARGUMENT) { pointer, size ->
             keyguard_io_scratch_open(pointer, size)
         }
     }
@@ -182,18 +176,8 @@ internal actual object NativeIo {
             NATIVE_IO_BRIDGE_INVALID_ARGUMENT
         } else {
             checkArrayRange(input.size, offset, length)
-            if (length == 0) {
-                withNullPointer { pointer ->
-                    keyguard_io_scratch_write(handle.toULong(), pointer, 0u.convert())
-                }
-            } else {
-                input.usePinned { pinned ->
-                    keyguard_io_scratch_write(
-                        handle.toULong(),
-                        pinned.addressOf(offset).reinterpret(),
-                        length.convert(),
-                    )
-                }
+            input.withNativePointer(offset, length) { pointer, size ->
+                keyguard_io_scratch_write(handle.toULong(), pointer, size)
             }
         }
     }
@@ -224,22 +208,8 @@ internal actual object NativeIo {
             NATIVE_IO_BRIDGE_INVALID_ARGUMENT
         } else {
             checkArrayRange(output.size, offset, length)
-            if (length == 0) {
-                keyguard_io_scratch_read_at(
-                    handle.toULong(),
-                    position.toULong(),
-                    null,
-                    0u.convert(),
-                )
-            } else {
-                output.usePinned { pinned ->
-                    keyguard_io_scratch_read_at(
-                        handle.toULong(),
-                        position.toULong(),
-                        pinned.addressOf(offset).reinterpret(),
-                        length.convert(),
-                    )
-                }
+            output.withNativePointer(offset, length) { pointer, size ->
+                keyguard_io_scratch_read_at(handle.toULong(), position.toULong(), pointer, size)
             }
         }
     }
@@ -266,7 +236,7 @@ internal actual object NativeIo {
         return memScoped {
             val report = alloc<keyguard_io_sweep_report_v1>()
             report.size = sizeOf<keyguard_io_sweep_report_v1>().toUInt()
-            val result = directory.withStrictUtf8NativePointer { pointer, size ->
+            val result = directory.withStrictUtf8(NATIVE_IO_BRIDGE_INVALID_ARGUMENT) { pointer, size ->
                 keyguard_io_sweep_orphans(
                     pointer,
                     size,
@@ -311,29 +281,18 @@ internal actual object NativeIo {
      */
     private fun isNegativeHandle(handle: Long): Boolean = handle < 0L
 
-    private fun ensureCompatibleAbi() {
-        if (abiVerified) return
-        val actual = keyguard_io_abi_version().toInt()
-        if (actual != NATIVE_IO_ABI_VERSION) {
-            throw FileSystemOperationException(
-                message = "Unsupported native IO ABI $actual; expected $NATIVE_IO_ABI_VERSION",
-                failure = FileSystemFailure(
-                    kind = FileSystemFailureKind.Internal,
-                ),
-            )
-        }
-        abiVerified = true
-    }
+    private fun ensureCompatibleAbi() = library.ensureVerified()
 
     /**
      * Validates a caller-selected `[offset, offset + length)` window before it
      * reaches the C ABI.
      *
-     * This is the only bounds check on the Apple path: `bytes_from_raw` and
-     * `bytes_from_raw_mut` reject just null and lengths above `isize::MAX`,
-     * and otherwise trust the pointer/length pair by contract. Passing an
-     * unvalidated window therefore reads — or, through `scratchReadAt`,
-     * writes — past the end of a pinned [ByteArray].
+     * The C ABI trusts the window: `bytes_from_raw` and `bytes_from_raw_mut`
+     * reject just null and lengths above `isize::MAX`, so an unvalidated
+     * window reads — or, through `scratchReadAt`, writes — past the end of a
+     * pinned [ByteArray]. This check runs first, so a bad window fails as a
+     * [FileSystemOperationException]; the range check of `withNativePointer`
+     * is only a backstop.
      *
      * The comparison is written as `length > arraySize - offset` rather than
      * `offset + length > arraySize` because the latter overflows: with
@@ -353,45 +312,6 @@ internal actual object NativeIo {
             )
         }
     }
-
-    private inline fun <T> ByteArray.withNativePointer(
-        block: (CPointer<UByteVar>?, ULong) -> T,
-    ): T = if (isEmpty()) {
-        block(null, 0uL)
-    } else {
-        usePinned { pinned ->
-            block(
-                pinned.addressOf(0).reinterpret(),
-                size.convert(),
-            )
-        }
-    }
-
-    /**
-     * Encodes a path for the C ABI, or reports the ABI's own
-     * invalid-argument failure when it is not representable.
-     *
-     * A path containing an unpaired surrogate cannot be encoded as UTF-8, and
-     * the C ABI validates its input with `str::from_utf8`, so the JNI bridge
-     * returns [NATIVE_IO_BRIDGE_INVALID_ARGUMENT] for the same input. This
-     * returns the identical scalar instead of throwing so that both bridges
-     * fail the same way and the caller's decode path — not this function —
-     * decides the exception type.
-     */
-    private inline fun String.withStrictUtf8NativePointer(
-        block: (CPointer<UByteVar>?, ULong) -> Long,
-    ): Long {
-        val encoded = try {
-            encodeToByteArray(throwOnInvalidSequence = true)
-        } catch (_: CharacterCodingException) {
-            return NATIVE_IO_BRIDGE_INVALID_ARGUMENT
-        }
-        return encoded.withNativePointer(block)
-    }
-
-    private inline fun withNullPointer(
-        block: (CPointer<UByteVar>?) -> Long,
-    ): Long = block(null)
 }
 
 private const val TXN_RESERVED_3_INDEX = 3

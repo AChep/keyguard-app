@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.util.zip.bridge
 
+import com.artemchep.keyguard.util.ffi.PackedFailure
 import com.artemchep.keyguard.util.zip.ZipException
 import com.artemchep.keyguard.util.zip.ZipEncryptionRequiredException
 import com.artemchep.keyguard.util.zip.ZipPasswordException
@@ -65,27 +66,12 @@ internal const val NATIVE_ZIP_MAX_ENTRY_NAME_BYTES: Int = 4096
 
 internal const val NATIVE_ZIP_MAX_PATH_BYTES: Int = 4096
 
-// Failure layout (bit 63 set): bits 0..7 operation, 8..15 failure kind,
-// 16..23 error domain, 24..55 raw code, 56..62 reserved zero. Same as `util/io`.
-private const val FAILURE_KIND_SHIFT: Int = 8
-private const val ERROR_DOMAIN_SHIFT: Int = 16
-private const val RAW_CODE_SHIFT: Int = 24
-private const val RESERVED_SHIFT: Int = 56
-private const val RESERVED_MASK: Long = 0x7fL
-private const val BYTE_MASK: Long = 0xffL
-private const val UINT32_MASK: Long = 0xffffffffL
-
 /**
  * The packed `INVALID_ARGUMENT` scalar. A bridge that rejects an argument
  * before dispatching returns this, so both sides of the boundary produce the
  * same exception.
  */
-internal const val NATIVE_ZIP_BRIDGE_INVALID_ARGUMENT: Long =
-    (1L shl 63) or
-        (NATIVE_ZIP_BRIDGE_CODE_INVALID_ARGUMENT.toLong() shl RAW_CODE_SHIFT) or
-        (NATIVE_ZIP_DOMAIN_BRIDGE.toLong() shl ERROR_DOMAIN_SHIFT) or
-        (NATIVE_ZIP_FAILURE_INVALID_INPUT.toLong() shl FAILURE_KIND_SHIFT) or
-        NATIVE_ZIP_OP_BRIDGE.toLong()
+internal const val NATIVE_ZIP_BRIDGE_INVALID_ARGUMENT: Long = PackedFailure.BRIDGE_INVALID_ARGUMENT
 
 /** `keyguard_zip_failure_kind`, plus [Unknown] for kinds a future ABI adds. */
 internal enum class NativeZipFailureKind {
@@ -124,14 +110,13 @@ internal fun decodeNativeZipFailure(packedResult: Long): NativeZipFailure {
     if (!isNativeZipFailure(packedResult)) {
         throw ZipException("Native zip result does not contain a failure")
     }
-    if (((packedResult ushr RESERVED_SHIFT) and RESERVED_MASK) != 0L) {
-        throw ZipException("Native zip returned non-zero reserved failure bits")
-    }
+    val failure = PackedFailure.decode(packedResult)
+        ?: throw ZipException("Native zip returned non-zero reserved failure bits")
     return NativeZipFailure(
-        operation = packedResult.byteAt(shift = 0),
-        kind = decodeNativeZipFailureKind(packedResult.byteAt(shift = FAILURE_KIND_SHIFT)),
-        domain = packedResult.byteAt(shift = ERROR_DOMAIN_SHIFT),
-        rawCode = ((packedResult ushr RAW_CODE_SHIFT) and UINT32_MASK).toInt(),
+        operation = failure.operation,
+        kind = decodeNativeZipFailureKind(failure.kind),
+        domain = failure.domain,
+        rawCode = failure.rawCode,
     )
 }
 
@@ -253,5 +238,3 @@ private val NATIVE_ZIP_FAILURE_KINDS: Map<Int, NativeZipFailureKind> = mapOf(
 
 private fun decodeNativeZipFailureKind(wireCode: Int): NativeZipFailureKind =
     NATIVE_ZIP_FAILURE_KINDS[wireCode] ?: NativeZipFailureKind.Unknown
-
-private fun Long.byteAt(shift: Int): Int = ((this ushr shift) and BYTE_MASK).toInt()

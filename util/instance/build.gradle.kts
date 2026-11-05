@@ -15,6 +15,9 @@ kotlin {
     sourceSets.getByName("desktopMain").dependencies {
         implementation(project(":util:ffi"))
     }
+    sourceSets.getByName("macosArm64Main").dependencies {
+        implementation(project(":util:ffi"))
+    }
 }
 
 val hostPlatform = detectHostPlatform()

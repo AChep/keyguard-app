@@ -13,6 +13,7 @@ kotlin {
         getByName("commonMain") {
             dependencies {
                 api(libs.kotlinx.io.core)
+                implementation(project(":util:ffi"))
             }
         }
         getByName("commonTest") {

@@ -14,12 +14,11 @@ import com.artemchep.keyguard.util.agent_ipc.ffi.keyguard_agent_ipc_listen
 import com.artemchep.keyguard.util.agent_ipc.ffi.keyguard_agent_ipc_peer_pid
 import com.artemchep.keyguard.util.agent_ipc.ffi.keyguard_agent_ipc_read
 import com.artemchep.keyguard.util.agent_ipc.ffi.keyguard_agent_ipc_write
+import com.artemchep.keyguard.util.ffi.hasRange
+import com.artemchep.keyguard.util.ffi.withNativePointer
+import com.artemchep.keyguard.util.ffi.withStrictUtf8
 import kotlinx.cinterop.CPointer
 import kotlinx.cinterop.UByteVar
-import kotlinx.cinterop.addressOf
-import kotlinx.cinterop.reinterpret
-import kotlinx.cinterop.usePinned
-import kotlin.text.CharacterCodingException
 
 private const val MAX_ARGUMENT_LENGTH = 65_536
 
@@ -36,8 +35,8 @@ internal actual object NativeAgentIpc {
         // Native diagnostics are ASCII labels and numeric codes, at most 128 bytes. Read
         // them on the calling thread before another bridge call can replace them.
         val bytes = ByteArray(512)
-        val size = bytes.usePinned { pinned ->
-            keyguard_agent_ipc_last_error(pinned.addressOf(0).reinterpret(), bytes.size.toULong())
+        val size = bytes.withNativePointer { pointer, capacity ->
+            keyguard_agent_ipc_last_error(pointer, capacity)
         }
         return if (size > 0uL && size <= bytes.size.toULong()) {
             bytes.decodeToString(endIndex = size.toInt())
@@ -97,34 +96,18 @@ internal actual object NativeAgentIpc {
 
     actual fun read(connection: Long, buffer: ByteArray, offset: Int, length: Int): Long {
         ensureCompatibleAbi()
-        return when {
-            connection < 0L || !buffer.hasRange(offset, length) -> -1L
-            // Passed on, so the native side rejects the empty buffer with its diagnostic.
-            length == 0 -> keyguard_agent_ipc_read(connection.toULong(), null, 0uL)
-            // Pinned only for the call; the array is never retained.
-            else -> buffer.usePinned { pinned ->
-                keyguard_agent_ipc_read(
-                    connection.toULong(),
-                    pinned.addressOf(offset).reinterpret(),
-                    length.toULong(),
-                )
-            }
+        if (connection < 0L || !buffer.hasRange(offset, length)) return -1L
+        // An empty buffer is passed on, so the native side rejects it with its diagnostic.
+        return buffer.withNativePointer(offset, length) { pointer, size ->
+            keyguard_agent_ipc_read(connection.toULong(), pointer, size)
         }
     }
 
     actual fun write(connection: Long, buffer: ByteArray, offset: Int, length: Int): Long {
         ensureCompatibleAbi()
-        return when {
-            connection < 0L || !buffer.hasRange(offset, length) -> -1L
-            length == 0 -> keyguard_agent_ipc_write(connection.toULong(), null, 0uL)
-            // Pinned only for the call; the array is never retained.
-            else -> buffer.usePinned { pinned ->
-                keyguard_agent_ipc_write(
-                    connection.toULong(),
-                    pinned.addressOf(offset).reinterpret(),
-                    length.toULong(),
-                )
-            }
+        if (connection < 0L || !buffer.hasRange(offset, length)) return -1L
+        return buffer.withNativePointer(offset, length) { pointer, size ->
+            keyguard_agent_ipc_write(connection.toULong(), pointer, size)
         }
     }
 
@@ -146,31 +129,11 @@ private fun ensureCompatibleAbi() {
     }
 }
 
-private fun copyEndpoint(listener: Long, bytes: ByteArray): Long = bytes.usePinned { pinned ->
-    keyguard_agent_ipc_endpoint(
-        listener.toULong(),
-        pinned.addressOf(0).reinterpret(),
-        bytes.size.toULong(),
-    )
-}
-
-private fun ByteArray.hasRange(offset: Int, length: Int): Boolean =
-    offset >= 0 && length >= 0 && offset <= size - length
+private fun copyEndpoint(listener: Long, bytes: ByteArray): Long =
+    bytes.withNativePointer { pointer, capacity ->
+        keyguard_agent_ipc_endpoint(listener.toULong(), pointer, capacity)
+    }
 
 private inline fun String.withUtf8(
     block: (CPointer<UByteVar>?, ULong) -> Long,
-): Long {
-    if (length > MAX_ARGUMENT_LENGTH) return -1L
-    val bytes = try {
-        encodeToByteArray(throwOnInvalidSequence = true)
-    } catch (_: CharacterCodingException) {
-        null
-    }
-    return when {
-        bytes == null -> -1L
-        bytes.isEmpty() -> block(null, 0uL)
-        else -> bytes.usePinned { pinned ->
-            block(pinned.addressOf(0).reinterpret(), bytes.size.toULong())
-        }
-    }
-}
+): Long = if (length > MAX_ARGUMENT_LENGTH) -1L else withStrictUtf8(invalid = -1L, block)

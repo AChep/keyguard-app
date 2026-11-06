@@ -49,6 +49,7 @@ deny = [
     { crate = "ssh-encoding", wrappers = ["ssh-cipher", "ssh-key"], reason = "The reviewed ssh-encoding fork is consumed only by the reviewed SSH crates" },
     { crate = "aws-lc-rs", wrappers = ["keyguard-crypto-core"], reason = "The safe core is the only high-level AWS-LC consumer" },
     { crate = "aws-lc-sys", wrappers = ["aws-lc-rs", "keyguard-crypto-sensitive"], reason = "Low-level AWS-LC access is limited to the reviewed high-level and sensitive boundaries" },
+    { crate = "snow", wrappers = ["keyguard-crypto-core"], reason = "The Noise state machine runs only inside the production core, over its reviewed primitives" },
 ]
 
 # Exact resolved feature sets lock the security-relevant consumer graph. The
@@ -59,6 +60,12 @@ crate = "pgp"
 allow = []
 exact = true
 reason = "rPGP defaults and optional private-key backends must stay disabled"
+
+[[bans.features]]
+crate = "snow"
+allow = []
+exact = true
+reason = "snow's own primitives and its std feature (which enables ring) must stay disabled; the core supplies the primitives"
 
 [[bans.features]]
 crate = "rsa"

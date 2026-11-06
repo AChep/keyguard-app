@@ -1271,6 +1271,7 @@ dependencies = [
  "rc2",
  "salsa20",
  "sec1",
+ "snow",
  "ssh-key",
  "syn 2.0.119",
  "tempfile",
@@ -2195,6 +2196,16 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
+]
+
+[[package]]
+name = "snow"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "599b506ccc4aff8cf7844bc42cf783009a434c1e26c964432560fb6d6ad02d82"
+dependencies = [
+ "rustc_version",
+ "subtle",
 ]
 
 [[package]]

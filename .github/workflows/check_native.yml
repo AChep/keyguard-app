@@ -279,6 +279,12 @@ jobs:
       - name: "Fuzz OpenPGP write path"
         working-directory: util/crypto/rust/fuzz
         run: cargo fuzz run openpgp_write -- -max_total_time=30
+      - name: "Fuzz Ed25519 verification"
+        working-directory: util/crypto/rust/fuzz
+        run: cargo fuzz run ed25519_verify -- -max_total_time=30
+      - name: "Fuzz Noise sessions"
+        working-directory: util/crypto/rust/fuzz
+        run: cargo fuzz run noise_session -- -max_total_time=30
 
   fixed-host-performance:
     name: "Fixed-host Criterion measurements"

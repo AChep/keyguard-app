@@ -49,6 +49,10 @@ rand = { version = "=0.8.8", default-features = false }
 sec1 = { version = "=0.7.3", default-features = false, features = ["alloc", "der"] }
 rc2 = { version = "=0.8.1", features = ["zeroize"] }
 salsa20 = { version = "=0.10.2", default-features = false, features = ["zeroize"] }
+# Every feature stays off: snow's own primitives would add a second crypto
+# stack, and its `std` feature enables `ring`. The Noise resolver supplies the
+# primitives of this workspace instead.
+snow = { version = "=0.10.0", default-features = false }
 thiserror = "=2.0.21"
 twofish = { version = "=0.7.1", default-features = false, features = ["zeroize"] }
 x25519-dalek = { version = "=2.0.1", default-features = false, features = ["alloc", "precomputed-tables", "static_secrets", "zeroize"] }

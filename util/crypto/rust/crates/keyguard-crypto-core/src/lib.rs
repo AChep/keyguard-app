@@ -6,9 +6,11 @@
 
 mod argon2_compat;
 mod ctap_prf;
+mod ed25519;
 pub mod fast;
 mod hybrid;
 mod legacy_pem;
+mod noise;
 mod openpgp;
 mod padding;
 mod passkeys;
@@ -119,6 +121,10 @@ pub const CAPABILITY_PKCS12: u64 = 1 << 36;
 pub const CAPABILITY_HYBRID: u64 = 1 << 37;
 /// CTAP hmac-secret key agreement, authenticated salts, and result encryption.
 pub const CAPABILITY_CTAP_PRF: u64 = 1 << 38;
+/// RFC 8032 Ed25519 key generation, signing, and strict verification.
+pub const CAPABILITY_ED25519: u64 = 1 << 39;
+/// Noise XXpsk3 and KK handshakes and transports over generation-tagged sessions.
+pub const CAPABILITY_NOISE: u64 = 1 << 40;
 /// Complete capability set provided by this native library revision.
 pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_PBKDF2_SHA256
@@ -157,7 +163,9 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_OPENPGP_V6_GENERATION_MUTATION
     | CAPABILITY_PKCS12
     | CAPABILITY_HYBRID
-    | CAPABILITY_CTAP_PRF;
+    | CAPABILITY_CTAP_PRF
+    | CAPABILITY_ED25519
+    | CAPABILITY_NOISE;
 
 static PANIC_HOOK: Once = Once::new();
 
@@ -189,17 +197,9 @@ pub fn call(request_bytes: &[u8]) -> Vec<u8> {
         None => return error_response("", NativeErrorCode::InvalidRequest),
     };
     let operation_name = one_shot_operation_name(&operation);
-    if let native_request::Operation::OpenPgpStreamDrain(request) = operation {
-        return match sessions::drain_openpgp(request.handle) {
-            Ok(output) => {
-                success_response(operation_name, native_response::Result::BytesValue(output))
-            }
-            Err(error) => error_response(operation_name, session_error_code(error)),
-        };
-    }
     match execute_one_shot(operation) {
         Ok(result) => success_response(operation_name, result),
-        Err(error) => error_response(operation_name, primitive_error_code(error)),
+        Err(code) => error_response(operation_name, code),
     }
 }
 
@@ -321,6 +321,9 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
             operation_name,
             sessions::open_openpgp(openpgp::adapter::OpenPgpSession::decrypt(request)),
         ),
+        native_stream_open_request::Operation::NoiseHandshake(request) => {
+            stream_open_response(operation_name, sessions::open_noise_handshake(request))
+        }
     }
 }
 
@@ -382,7 +385,7 @@ pub fn resource_limit_response(operation: &'static str) -> Vec<u8> {
 
 fn execute_one_shot(
     operation: native_request::Operation,
-) -> Result<native_response::Result, PrimitiveError> {
+) -> Result<native_response::Result, NativeErrorCode> {
     let result = match operation {
         native_request::Operation::HkdfSha256(mut request) => {
             let seed = std::mem::take(&mut request.seed);
@@ -551,6 +554,19 @@ fn execute_one_shot(
                 request.public_key_openssh.take(),
             )?
         }
+        native_request::Operation::Ed25519KeyGenerate(_) => ed25519::generate()?,
+        native_request::Operation::Ed25519Sign(mut request) => ed25519::sign(
+            std::mem::take(&mut request.private_key),
+            std::mem::take(&mut request.data),
+        )?,
+        native_request::Operation::Ed25519Verify(mut request) => ed25519::verify(
+            std::mem::take(&mut request.public_key),
+            std::mem::take(&mut request.data),
+            std::mem::take(&mut request.signature),
+        )?,
+        native_request::Operation::NoiseKeyPair(mut request) => {
+            noise::key_pair(std::mem::take(&mut request.private_key))?
+        }
         native_request::Operation::PasskeyKeyGenerate(request) => {
             passkeys::generate(request.algorithm)?
         }
@@ -581,9 +597,35 @@ fn execute_one_shot(
         native_request::Operation::OpenPgpSign(request) => openpgp::adapter::sign(request)?,
         native_request::Operation::OpenPgpEncrypt(request) => openpgp::adapter::encrypt(request)?,
         native_request::Operation::OpenPgpDecrypt(request) => openpgp::adapter::decrypt(request)?,
-        // Session operations are dispatched by call() to preserve InvalidSession.
-        native_request::Operation::OpenPgpStreamDrain(_) => {
-            return Err(PrimitiveError::InvalidArgument);
+        native_request::Operation::OpenPgpStreamDrain(request) => {
+            sessions::drain_openpgp(request.handle)?
+        }
+        native_request::Operation::NoiseHandshakeWrite(request) => {
+            sessions::with_noise_handshake(request.handle, |handshake| {
+                handshake.write(&request.payload)
+            })?
+        }
+        native_request::Operation::NoiseHandshakeRead(request) => {
+            sessions::with_noise_handshake(request.handle, |handshake| {
+                handshake.read(&request.message)
+            })?
+        }
+        native_request::Operation::NoiseHandshakeStatus(request) => {
+            sessions::with_noise_handshake(request.handle, noise::Handshake::status)?
+        }
+        native_request::Operation::NoiseIntoTransport(request) => {
+            let transport = sessions::noise_into_transport(request.handle)?;
+            return Ok(native_response::Result::Uint64Value(transport));
+        }
+        native_request::Operation::NoiseTransportWrite(request) => {
+            sessions::with_noise_transport(request.handle, |transport| {
+                transport.write(&request.payload)
+            })?
+        }
+        native_request::Operation::NoiseTransportRead(request) => {
+            sessions::with_noise_transport(request.handle, |transport| {
+                transport.read(&request.message)
+            })?
         }
         native_request::Operation::OpenPgpExpirationUpdate(request) => {
             openpgp::adapter::update_expiration(request)?
@@ -649,6 +691,16 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::CtapPrfKeyGenerate(_) => "ctap_prf_key_generate",
         native_request::Operation::CtapPrfSaltsOpen(_) => "ctap_prf_salts_open",
         native_request::Operation::CtapPrfOutputSeal(_) => "ctap_prf_output_seal",
+        native_request::Operation::Ed25519KeyGenerate(_) => "ed25519_key_generate",
+        native_request::Operation::Ed25519Sign(_) => "ed25519_sign",
+        native_request::Operation::Ed25519Verify(_) => "ed25519_verify",
+        native_request::Operation::NoiseKeyPair(_) => "noise_key_pair",
+        native_request::Operation::NoiseHandshakeWrite(_) => "noise_handshake_write",
+        native_request::Operation::NoiseHandshakeRead(_) => "noise_handshake_read",
+        native_request::Operation::NoiseHandshakeStatus(_) => "noise_handshake_status",
+        native_request::Operation::NoiseIntoTransport(_) => "noise_into_transport",
+        native_request::Operation::NoiseTransportWrite(_) => "noise_transport_write",
+        native_request::Operation::NoiseTransportRead(_) => "noise_transport_read",
         native_request::Operation::PasskeyKeyGenerate(_) => "passkey_key_generate",
         native_request::Operation::PasskeyKeyInspect(_) => "passkey_key_inspect",
         native_request::Operation::PasskeySign(_) => "passkey_sign",
@@ -704,6 +756,7 @@ fn stream_open_operation_name(operation: &native_stream_open_request::Operation)
         native_stream_open_request::Operation::AesCbcPkcs7HmacSha256Decrypt(_) => {
             "aes_cbc_pkcs7_hmac_sha256_decrypt.stream_open"
         }
+        native_stream_open_request::Operation::NoiseHandshake(_) => "noise_handshake.stream_open",
     }
 }
 
@@ -774,6 +827,18 @@ fn primitive_error_code(error: PrimitiveError) -> NativeErrorCode {
         PrimitiveError::UnsupportedKeyVersion => NativeErrorCode::UnsupportedKeyVersion,
         PrimitiveError::NoUsableKey => NativeErrorCode::NoUsableKey,
         PrimitiveError::Panic => NativeErrorCode::Panic,
+    }
+}
+
+impl From<PrimitiveError> for NativeErrorCode {
+    fn from(error: PrimitiveError) -> Self {
+        primitive_error_code(error)
+    }
+}
+
+impl From<SessionError> for NativeErrorCode {
+    fn from(error: SessionError) -> Self {
+        session_error_code(error)
     }
 }
 
@@ -1308,7 +1373,7 @@ mod tests {
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
         assert_eq!(PROTOCOL_VERSION, 3);
-        assert_eq!(CAPABILITIES, 0x7f7fffffff);
+        assert_eq!(CAPABILITIES, 0x1ff7fffffff);
         assert_eq!(CAPABILITIES & (1 << 31), 0, "bit 31 is retired");
         assert_eq!(CAPABILITY_OPENPGP_V6_GENERATION_MUTATION, 1 << 35);
         assert_eq!(CAPABILITY_HYBRID, 1 << 37);
@@ -1329,6 +1394,8 @@ mod tests {
             1 << 32
         );
         assert_eq!(CAPABILITY_OPENPGP_USER_ID_CERTIFICATION, 1 << 33);
+        assert_eq!(CAPABILITY_ED25519, 1 << 39);
+        assert_eq!(CAPABILITY_NOISE, 1 << 40);
     }
 
     #[test]

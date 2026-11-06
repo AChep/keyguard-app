@@ -8,7 +8,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67"
+        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -122,6 +122,26 @@ pub mod native_request {
         CtapPrfSaltsOpen(super::CtapPrfSaltsOpenRequest),
         #[prost(message, tag = "67")]
         CtapPrfOutputSeal(super::CtapPrfOutputSealRequest),
+        #[prost(message, tag = "68")]
+        Ed25519KeyGenerate(super::Ed25519KeyGenerateRequest),
+        #[prost(message, tag = "69")]
+        Ed25519Sign(super::Ed25519SignRequest),
+        #[prost(message, tag = "70")]
+        Ed25519Verify(super::Ed25519VerifyRequest),
+        #[prost(message, tag = "71")]
+        NoiseKeyPair(super::NoiseKeyPairRequest),
+        #[prost(message, tag = "72")]
+        NoiseHandshakeWrite(super::NoiseHandshakeWriteRequest),
+        #[prost(message, tag = "73")]
+        NoiseHandshakeRead(super::NoiseHandshakeReadRequest),
+        #[prost(message, tag = "74")]
+        NoiseHandshakeStatus(super::NoiseHandshakeStatusRequest),
+        #[prost(message, tag = "75")]
+        NoiseIntoTransport(super::NoiseIntoTransportRequest),
+        #[prost(message, tag = "76")]
+        NoiseTransportWrite(super::NoiseTransportWriteRequest),
+        #[prost(message, tag = "77")]
+        NoiseTransportRead(super::NoiseTransportReadRequest),
     }
 }
 /// FIDO CTAP 2.2 section 11.5: QR Noise responder handshake.
@@ -188,7 +208,7 @@ pub struct NativeStreamOpenRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_stream_open_request::Operation",
-        tags = "11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22"
+        tags = "11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23"
     )]
     pub operation: ::core::option::Option<native_stream_open_request::Operation>,
 }
@@ -224,6 +244,8 @@ pub mod native_stream_open_request {
         OpenPgpClearSign(super::OpenPgpClearSignStreamOpenRequest),
         #[prost(message, tag = "22")]
         OpenPgpClearVerify(super::OpenPgpClearVerifyStreamOpenRequest),
+        #[prost(message, tag = "23")]
+        NoiseHandshake(super::NoiseHandshakeStreamOpenRequest),
     }
 }
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
@@ -538,6 +560,142 @@ pub struct SshPrivateKeyImportRequest {
     /// Kotlin callers can erase the owned passphrase buffer after the call.
     #[prost(bytes = "vec", optional, tag = "2")]
     pub passphrase_utf8: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
+}
+/// RFC 8032 Ed25519. A private key is the 32-byte seed; a public key is the
+/// 32-byte encoded point.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Ed25519KeyGenerateRequest {}
+/// Domain payload returned inside NativeResponse.bytes_value.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Ed25519KeyGenerateResult {
+    #[prost(bytes = "vec", tag = "1")]
+    pub private_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub public_key: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Ed25519SignRequest {
+    #[prost(bytes = "vec", tag = "1")]
+    pub private_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+}
+/// Domain payload returned inside NativeResponse.bytes_value.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Ed25519SignResult {
+    #[prost(bytes = "vec", tag = "1")]
+    pub signature: ::prost::alloc::vec::Vec<u8>,
+}
+/// Verification is strict: small-order public keys and non-canonical
+/// signatures are invalid. A signature that is not 64 bytes is invalid; a
+/// public key that is not 32 bytes is an invalid argument.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Ed25519VerifyRequest {
+    #[prost(bytes = "vec", tag = "1")]
+    pub public_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "3")]
+    pub signature: ::prost::alloc::vec::Vec<u8>,
+}
+/// Domain payload returned inside NativeResponse.bytes_value.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct Ed25519VerifyResult {
+    #[prost(bool, tag = "1")]
+    pub valid: bool,
+}
+/// Generates a Curve25519 static key pair, or derives the public key of a
+/// 32-byte private_key.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct NoiseKeyPairRequest {
+    #[prost(bytes = "vec", tag = "1")]
+    pub private_key: ::prost::alloc::vec::Vec<u8>,
+}
+/// Domain payload returned inside NativeResponse.bytes_value.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct NoiseKeyPairResult {
+    #[prost(bytes = "vec", tag = "1")]
+    pub private_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub public_key: ::prost::alloc::vec::Vec<u8>,
+}
+/// XX_PSK3 takes a 32-byte psk and no remote_public_key. KK takes the pinned
+/// 32-byte remote_public_key and no psk. Both sides pass the same prologue, at
+/// most 65535 bytes.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct NoiseHandshakeStreamOpenRequest {
+    #[prost(enumeration = "NoisePattern", tag = "1")]
+    pub pattern: i32,
+    #[prost(bool, tag = "2")]
+    pub initiator: bool,
+    #[prost(bytes = "vec", tag = "3")]
+    pub local_private_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "4")]
+    pub remote_public_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "5")]
+    pub psk: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "6")]
+    pub prologue: ::prost::alloc::vec::Vec<u8>,
+}
+/// Writes the next handshake message; bytes_value holds it. The payload is at
+/// most 65439 bytes.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct NoiseHandshakeWriteRequest {
+    #[prost(uint64, tag = "1")]
+    pub handle: u64,
+    #[prost(bytes = "vec", tag = "2")]
+    pub payload: ::prost::alloc::vec::Vec<u8>,
+}
+/// Reads the next handshake message, at most 65535 bytes; bytes_value holds
+/// its payload.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct NoiseHandshakeReadRequest {
+    #[prost(uint64, tag = "1")]
+    pub handle: u64,
+    #[prost(bytes = "vec", tag = "2")]
+    pub message: ::prost::alloc::vec::Vec<u8>,
+}
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct NoiseHandshakeStatusRequest {
+    #[prost(uint64, tag = "1")]
+    pub handle: u64,
+}
+/// Domain payload returned inside NativeResponse.bytes_value. The remote static
+/// key is empty while unknown, and the handshake hash until the handshake is
+/// finished.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct NoiseHandshakeStatusResult {
+    #[prost(bool, tag = "1")]
+    pub finished: bool,
+    #[prost(bytes = "vec", tag = "2")]
+    pub remote_static_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "3")]
+    pub handshake_hash: ::prost::alloc::vec::Vec<u8>,
+}
+/// Turns a finished handshake into a transport; uint64_value holds the
+/// transport's handle. The handshake handle is spent whatever the outcome.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct NoiseIntoTransportRequest {
+    #[prost(uint64, tag = "1")]
+    pub handle: u64,
+}
+/// Encrypts one transport message; bytes_value holds it. The payload is at most
+/// 65519 bytes.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct NoiseTransportWriteRequest {
+    #[prost(uint64, tag = "1")]
+    pub handle: u64,
+    #[prost(bytes = "vec", tag = "2")]
+    pub payload: ::prost::alloc::vec::Vec<u8>,
+}
+/// Decrypts the next transport message, at most 65535 bytes; bytes_value holds
+/// its payload. Messages must arrive in the order they were written.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct NoiseTransportReadRequest {
+    #[prost(uint64, tag = "1")]
+    pub handle: u64,
+    #[prost(bytes = "vec", tag = "2")]
+    pub message: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PasskeyKeyGenerateRequest {
@@ -2001,6 +2159,43 @@ impl SshKeyType {
             "SSH_KEY_TYPE_UNSPECIFIED" => Some(Self::Unspecified),
             "SSH_KEY_TYPE_RSA" => Some(Self::Rsa),
             "SSH_KEY_TYPE_ED25519" => Some(Self::Ed25519),
+            _ => None,
+        }
+    }
+}
+/// Noise handshakes and transports of device-to-device sync. Both patterns use
+/// Curve25519, ChaCha20-Poly1305 and SHA-256. A handshake is a stream session:
+/// stream_open starts it, the requests below that take its handle drive it,
+/// and stream_close releases it and wipes its keys.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
+#[repr(i32)]
+pub enum NoisePattern {
+    Unspecified = 0,
+    /// Noise_XXpsk3_25519_ChaChaPoly_SHA256: pairing. Each side learns the
+    /// other's static key, and a pre-shared key authenticates the exchange.
+    XxPsk3 = 1,
+    /// Noise_KK_25519_ChaChaPoly_SHA256: sessions between paired devices. Each
+    /// side pins the other's static key.
+    Kk = 2,
+}
+impl NoisePattern {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "NOISE_PATTERN_UNSPECIFIED",
+            Self::XxPsk3 => "NOISE_PATTERN_XX_PSK3",
+            Self::Kk => "NOISE_PATTERN_KK",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "NOISE_PATTERN_UNSPECIFIED" => Some(Self::Unspecified),
+            "NOISE_PATTERN_XX_PSK3" => Some(Self::XxPsk3),
+            "NOISE_PATTERN_KK" => Some(Self::Kk),
             _ => None,
         }
     }

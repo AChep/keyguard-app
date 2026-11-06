@@ -6,11 +6,13 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.protobuf.ProtoBuf
 import kotlinx.serialization.protobuf.ProtoIntegerType
 import kotlinx.serialization.protobuf.ProtoNumber
 import kotlinx.serialization.protobuf.ProtoOneOf
@@ -204,6 +206,76 @@ internal data class SshCertificateDescribeOperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
+@SerialName("ed25519_key_generate")
+internal data class Ed25519KeyGenerateOperationProto(
+    @ProtoNumber(68)
+    val value: Ed25519KeyGenerateRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("ed25519_sign")
+internal data class Ed25519SignOperationProto(
+    @ProtoNumber(69)
+    val value: Ed25519SignRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("ed25519_verify")
+internal data class Ed25519VerifyOperationProto(
+    @ProtoNumber(70)
+    val value: Ed25519VerifyRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("noise_key_pair")
+internal data class NoiseKeyPairOperationProto(
+    @ProtoNumber(71)
+    val value: NoiseKeyPairRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("noise_handshake_write")
+internal data class NoiseHandshakeWriteOperationProto(
+    @ProtoNumber(72)
+    val value: NoiseHandshakeWriteRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("noise_handshake_read")
+internal data class NoiseHandshakeReadOperationProto(
+    @ProtoNumber(73)
+    val value: NoiseHandshakeReadRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("noise_handshake_status")
+internal data class NoiseHandshakeStatusOperationProto(
+    @ProtoNumber(74)
+    val value: NoiseHandshakeStatusRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("noise_into_transport")
+internal data class NoiseIntoTransportOperationProto(
+    @ProtoNumber(75)
+    val value: NoiseIntoTransportRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("noise_transport_write")
+internal data class NoiseTransportWriteOperationProto(
+    @ProtoNumber(76)
+    val value: NoiseTransportWriteRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("noise_transport_read")
+internal data class NoiseTransportReadOperationProto(
+    @ProtoNumber(77)
+    val value: NoiseTransportReadRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
 @SerialName("passkey_key_generate")
 internal data class PasskeyKeyGenerateOperationProto(
     @ProtoNumber(48)
@@ -345,6 +417,13 @@ internal data class NativeStreamOpenRequestProto(
 
 @Serializable
 internal sealed interface NativeStreamOpenOperationProto
+
+@Serializable
+@SerialName("noise_handshake")
+internal data class NoiseHandshakeStreamOpenOperationProto(
+    @ProtoNumber(23)
+    val value: NoiseHandshakeStreamOpenRequestProto,
+) : NativeStreamOpenOperationProto
 
 @Serializable
 @SerialName("digest")
@@ -889,6 +968,144 @@ internal data class SshCertificateDescriptionProto(
     val extensions: List<SshCertificateOptionProto> = emptyList(),
     @ProtoNumber(10)
     val publicKeyMatches: Boolean = false,
+)
+
+@Serializable
+internal class Ed25519KeyGenerateRequestProto
+
+@Serializable
+internal data class Ed25519KeyGenerateResultProto(
+    @ProtoNumber(1)
+    val privateKey: ByteArray = byteArrayOf(),
+    @ProtoNumber(2)
+    val publicKey: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class Ed25519SignRequestProto(
+    @ProtoNumber(1)
+    val privateKey: ByteArray,
+    @ProtoNumber(2)
+    val data: ByteArray,
+)
+
+@Serializable
+internal data class Ed25519SignResultProto(
+    @ProtoNumber(1)
+    val signature: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class Ed25519VerifyRequestProto(
+    @ProtoNumber(1)
+    val publicKey: ByteArray,
+    @ProtoNumber(2)
+    val data: ByteArray,
+    @ProtoNumber(3)
+    val signature: ByteArray,
+)
+
+@Serializable
+internal data class Ed25519VerifyResultProto(
+    @ProtoNumber(1)
+    val valid: Boolean = false,
+)
+
+@Serializable
+internal enum class NoisePatternProto {
+    @ProtoNumber(0)
+    UNSPECIFIED,
+
+    @ProtoNumber(1)
+    XX_PSK3,
+
+    @ProtoNumber(2)
+    KK,
+}
+
+/** An empty private key asks for a generated key pair. */
+@Serializable
+internal data class NoiseKeyPairRequestProto(
+    @ProtoNumber(1)
+    val privateKey: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class NoiseKeyPairResultProto(
+    @ProtoNumber(1)
+    val privateKey: ByteArray = byteArrayOf(),
+    @ProtoNumber(2)
+    val publicKey: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class NoiseHandshakeStreamOpenRequestProto(
+    @ProtoNumber(1)
+    val pattern: NoisePatternProto,
+    @ProtoNumber(2)
+    val initiator: Boolean,
+    @ProtoNumber(3)
+    val localPrivateKey: ByteArray,
+    @ProtoNumber(4)
+    val remotePublicKey: ByteArray = byteArrayOf(),
+    @ProtoNumber(5)
+    val psk: ByteArray = byteArrayOf(),
+    @ProtoNumber(6)
+    val prologue: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class NoiseHandshakeWriteRequestProto(
+    @ProtoNumber(1)
+    val handle: Long,
+    @ProtoNumber(2)
+    val payload: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class NoiseHandshakeReadRequestProto(
+    @ProtoNumber(1)
+    val handle: Long,
+    @ProtoNumber(2)
+    val message: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class NoiseHandshakeStatusRequestProto(
+    @ProtoNumber(1)
+    val handle: Long,
+)
+
+@Serializable
+internal data class NoiseIntoTransportRequestProto(
+    @ProtoNumber(1)
+    val handle: Long,
+)
+
+@Serializable
+internal data class NoiseTransportWriteRequestProto(
+    @ProtoNumber(1)
+    val handle: Long,
+    @ProtoNumber(2)
+    val payload: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class NoiseTransportReadRequestProto(
+    @ProtoNumber(1)
+    val handle: Long,
+    @ProtoNumber(2)
+    val message: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class NoiseHandshakeStatusResultProto(
+    @ProtoNumber(1)
+    val finished: Boolean = false,
+    @ProtoNumber(2)
+    val remoteStaticKey: ByteArray = byteArrayOf(),
+    @ProtoNumber(3)
+    val handshakeHash: ByteArray = byteArrayOf(),
 )
 
 @Serializable
@@ -2493,6 +2710,25 @@ internal data class NativeStatusProto(
     @ProtoNumber(2)
     val operation: String = "",
 )
+
+/**
+ * Decodes a domain payload returned inside `bytes_value`, then wipes [payload].
+ * A payload that does not decode is a malformed response.
+ */
+internal inline fun <reified T> decodeNativeCryptoPayload(
+    operation: String,
+    payload: ByteArray,
+): T = try {
+    ProtoBuf.decodeFromByteArray<T>(payload)
+} catch (_: IllegalArgumentException) {
+    // Also covers SerializationException, which extends IllegalArgumentException.
+    throw NativeCryptoException(
+        operation = operation,
+        code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
+    )
+} finally {
+    payload.fill(0)
+}
 
 internal fun NativeResponseResultProto.requireBytes(operation: String): ByteArray =
     (this as? BytesResultProto)?.value

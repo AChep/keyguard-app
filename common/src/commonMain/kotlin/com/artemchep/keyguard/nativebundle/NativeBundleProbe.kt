@@ -5,6 +5,8 @@ import com.artemchep.keyguard.util.age.AgeZipWriter
 import com.artemchep.keyguard.util.age.AgeZipReader
 import kotlinx.io.Buffer
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
+import com.artemchep.keyguard.nativecrypto.NativeCryptoNoise
+import com.artemchep.keyguard.nativecrypto.NativeNoiseHandshake
 import com.artemchep.keyguard.util.io.LocalPath
 import com.artemchep.keyguard.util.io.atomic.AtomicFileDestination
 import com.artemchep.keyguard.util.io.atomic.AtomicFilePermissions
@@ -23,10 +25,13 @@ import kotlinx.io.write
 
 private const val MAX_ZXCVBN_SCORE = 4
 
-/** Checks native loading and one real operation per library in a caller-owned temporary root. */
+/** Checks that each native library loads and does real work, in a caller-owned temporary root. */
 object NativeBundleProbe {
     fun run(root: LocalPath) {
-        nativeProbe("crypto") { verifyCrypto() }
+        nativeProbe("crypto") {
+            verifyCrypto()
+            verifyNoise()
+        }
         nativeProbe("io") { verifyAtomicIo(root) }
         nativeProbe("age") {
             val ciphertext = Buffer()
@@ -49,6 +54,39 @@ object NativeBundleProbe {
             .toByteArray()
         check(NativeCrypto.primitives.sha256("abc".encodeToByteArray()).contentEquals(expectedDigest)) {
             "Native crypto SHA-256 result mismatch"
+        }
+    }
+
+    /** Runs an in-process XXpsk3 handshake, then one transport message. */
+    private fun verifyNoise() {
+        val noise = NativeCrypto.noise
+        val psk = ByteArray(NativeCryptoNoise.PSK_SIZE) { it.toByte() }
+        val keys = List(2) { noise.generateKeyPair() }
+        try {
+            noise.xxPsk3(initiator = true, localPrivateKey = keys[0].privateKey, psk = psk).use { initiator ->
+                noise.xxPsk3(initiator = false, localPrivateKey = keys[1].privateKey, psk = psk).use { responder ->
+                    verifyNoiseSession(initiator, responder)
+                }
+            }
+        } finally {
+            keys.forEach { it.privateKey.fill(0) }
+        }
+    }
+
+    private fun verifyNoiseSession(initiator: NativeNoiseHandshake, responder: NativeNoiseHandshake) {
+        responder.readMessage(initiator.writeMessage())
+        initiator.readMessage(responder.writeMessage())
+        responder.readMessage(initiator.writeMessage())
+        check(initiator.handshakeHash().contentEquals(responder.handshakeHash())) {
+            "Native noise handshake hash mismatch"
+        }
+        initiator.intoTransport().use { sender ->
+            responder.intoTransport().use { receiver ->
+                val payload = "native bundle probe".encodeToByteArray()
+                check(receiver.readMessage(sender.writeMessage(payload)).contentEquals(payload)) {
+                    "Native noise round trip mismatch"
+                }
+            }
         }
     }
 

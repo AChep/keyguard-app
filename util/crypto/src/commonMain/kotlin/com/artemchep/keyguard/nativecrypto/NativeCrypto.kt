@@ -55,6 +55,12 @@ public enum class NativeCryptoCapability(
     PKCS12(bit = 1L shl 36),
     HYBRID(bit = 1L shl 37),
     CTAP_PRF(bit = 1L shl 38),
+
+    /** RFC 8032 Ed25519 key generation, signing, and strict verification. */
+    ED25519(bit = 1L shl 39),
+
+    /** Noise XXpsk3 and KK handshakes and transports. */
+    NOISE(bit = 1L shl 40),
 }
 
 public object NativeCrypto {
@@ -78,6 +84,9 @@ public object NativeCrypto {
     public val passkeys: NativeCryptoPasskeys
         get() = NativeCryptoPasskeys
 
+    public val noise: NativeCryptoNoise
+        get() = NativeCryptoNoise
+
     public val abiVersion: Int
         get() = client.abiVersion
 
@@ -98,6 +107,12 @@ public object NativeCrypto {
         operationName: String,
         operation: NativeRequestOperationProto,
     ): Int = client.callInt32(operationName, operation)
+
+    /** Calls an operation that answers with a new session handle. */
+    internal fun callHandle(
+        operationName: String,
+        operation: NativeRequestOperationProto,
+    ): Long = client.callHandle(operationName, operation)
 
     internal fun randomInt(exclusiveUpperBound: Int): Int =
         client.randomInt(exclusiveUpperBound)
@@ -138,6 +153,17 @@ public object NativeCrypto {
         operationName: String,
         operation: NativeStreamOpenOperationProto,
     ): NativeCryptoSession = client.openSession(operationName, operation)
+
+    /** Opens a session whose requests go through [call] with its handle. */
+    internal fun openHandle(
+        operationName: String,
+        operation: NativeStreamOpenOperationProto,
+    ): Long = client.openHandle(operationName, operation)
+
+    /** Releases a session [openHandle] returned. This operation is idempotent. */
+    internal fun closeHandle(handle: Long) {
+        client.streamClose(handle)
+    }
 }
 
 internal class NativeCryptoClient(
@@ -220,6 +246,14 @@ internal class NativeCryptoClient(
         operation = operationName,
         result = call(operationName, operation),
     ).value
+
+    fun callHandle(
+        operationName: String,
+        operation: NativeRequestOperationProto,
+    ): Long = requireHandle(
+        operation = operationName,
+        result = call(operationName, operation),
+    )
 
     fun randomInt(exclusiveUpperBound: Int): Int {
         ensureReady()
@@ -306,7 +340,15 @@ internal class NativeCryptoClient(
     fun openSession(
         operationName: String,
         operation: NativeStreamOpenOperationProto,
-    ): NativeCryptoSession {
+    ): NativeCryptoSession = NativeCryptoSessionImpl(
+        client = this,
+        handle = openHandle(operationName, operation),
+    )
+
+    fun openHandle(
+        operationName: String,
+        operation: NativeStreamOpenOperationProto,
+    ): Long {
         ensureReady()
         val request = encodeEnvelope(
             operation = operationName,
@@ -322,20 +364,13 @@ internal class NativeCryptoClient(
                 request.fill(0)
             }
         }
-        val handle = requireResultType<UInt64ResultProto>(
+        return requireHandle(
             operation = operationName,
             result = decodeResponse(
                 expectedOperation = operationName,
                 response = response,
                 requireResult = true,
             ),
-        ).value
-        if (handle == 0L) {
-            throw malformedResponse(operationName)
-        }
-        return NativeCryptoSessionImpl(
-            client = this,
-            handle = handle,
         )
     }
 
@@ -478,6 +513,17 @@ internal class NativeCryptoClient(
         if (result is T) return result
         clearDiscardedResult(result)
         throw malformedResponse(operation)
+    }
+
+    private fun requireHandle(
+        operation: String,
+        result: NativeResponseResultProto?,
+    ): Long {
+        val handle = requireResultType<UInt64ResultProto>(operation, result).value
+        if (handle == 0L) {
+            throw malformedResponse(operation)
+        }
+        return handle
     }
 
     private fun clearDiscardedResult(result: NativeResponseResultProto?) {

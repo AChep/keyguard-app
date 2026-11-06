@@ -39,6 +39,14 @@ public data class NativeAesCbcHmacSha256Result(
     val mac: ByteArray,
 )
 
+/** An RFC 8032 Ed25519 key pair. */
+public class NativeEd25519KeyPair(
+    /** The 32-byte private key: the RFC 8032 seed. */
+    val privateKey: ByteArray,
+    /** The 32-byte encoded public key. */
+    val publicKey: ByteArray,
+)
+
 public interface NativeAesCbcPkcs7HmacSha256EncryptSession : AutoCloseable {
     /** Encrypts and authenticates the next plaintext chunk. */
     public fun update(
@@ -597,6 +605,83 @@ public object NativeCryptoPrimitives {
         ).requireBytes("rsa_pkcs8_to_spki")
     }
 
+    /** Generates a random RFC 8032 Ed25519 key pair. */
+    public fun ed25519Generate(): NativeEd25519KeyPair {
+        val payload = NativeCrypto.call(
+            operationName = ED25519_KEY_GENERATE_OPERATION,
+            operation = Ed25519KeyGenerateOperationProto(Ed25519KeyGenerateRequestProto()),
+        ).requireBytes(ED25519_KEY_GENERATE_OPERATION)
+        val result = decodeNativeCryptoPayload<Ed25519KeyGenerateResultProto>(
+            operation = ED25519_KEY_GENERATE_OPERATION,
+            payload = payload,
+        )
+        requireNativeCryptoKeyPairSizes(
+            operation = ED25519_KEY_GENERATE_OPERATION,
+            privateKey = result.privateKey,
+            privateKeySize = ED25519_PRIVATE_KEY_BYTES,
+            publicKey = result.publicKey,
+            publicKeySize = ED25519_PUBLIC_KEY_BYTES,
+        )
+        return NativeEd25519KeyPair(
+            privateKey = result.privateKey,
+            publicKey = result.publicKey,
+        )
+    }
+
+    /**
+     * Signs [data] with an RFC 8032 Ed25519 private key, the 32-byte seed, and
+     * returns the 64-byte signature. Signatures are deterministic.
+     */
+    public fun ed25519Sign(
+        privateKey: ByteArray,
+        data: ByteArray,
+    ): ByteArray {
+        require(privateKey.size == ED25519_PRIVATE_KEY_BYTES) {
+            "Ed25519 private key must contain $ED25519_PRIVATE_KEY_BYTES bytes"
+        }
+        val payload = NativeCrypto.call(
+            operationName = ED25519_SIGN_OPERATION,
+            operation = Ed25519SignOperationProto(
+                Ed25519SignRequestProto(
+                    privateKey = privateKey,
+                    data = data,
+                ),
+            ),
+        ).requireBytes(ED25519_SIGN_OPERATION)
+        return decodeNativeCryptoPayload<Ed25519SignResultProto>(ED25519_SIGN_OPERATION, payload)
+            .signature
+            .requireNativeCryptoOutputSize(ED25519_SIGN_OPERATION, ED25519_SIGNATURE_BYTES)
+    }
+
+    /**
+     * Verifies an RFC 8032 Ed25519 [signature] of [data] under a 32-byte public key.
+     *
+     * Verification is strict: small-order public keys and non-canonical signatures
+     * do not verify. Returns `false` for any signature that does not verify,
+     * including one that is not 64 bytes long.
+     */
+    public fun ed25519Verify(
+        publicKey: ByteArray,
+        data: ByteArray,
+        signature: ByteArray,
+    ): Boolean {
+        require(publicKey.size == ED25519_PUBLIC_KEY_BYTES) {
+            "Ed25519 public key must contain $ED25519_PUBLIC_KEY_BYTES bytes"
+        }
+        val payload = NativeCrypto.call(
+            operationName = ED25519_VERIFY_OPERATION,
+            operation = Ed25519VerifyOperationProto(
+                Ed25519VerifyRequestProto(
+                    publicKey = publicKey,
+                    data = data,
+                    signature = signature,
+                ),
+            ),
+        ).requireBytes(ED25519_VERIFY_OPERATION)
+        return decodeNativeCryptoPayload<Ed25519VerifyResultProto>(ED25519_VERIFY_OPERATION, payload)
+            .valid
+    }
+
     public fun sshAgentTcpChaCha20Poly1305Encrypt(
         key: ByteArray,
         nonce: ByteArray,
@@ -990,6 +1075,9 @@ public object NativeCryptoPrimitives {
     private const val SALSA20_NONCE_BYTES: Int = 8
     private const val CHACHA20_NONCE_BYTES: Int = 12
     private const val HMAC_SHA256_BYTES: Int = 32
+    private const val ED25519_PRIVATE_KEY_BYTES: Int = 32
+    private const val ED25519_PUBLIC_KEY_BYTES: Int = 32
+    private const val ED25519_SIGNATURE_BYTES: Int = 64
     private const val CHACHA20_POLY1305_KEY_BYTES: Int = 32
     private const val CHACHA20_POLY1305_NONCE_BYTES: Int = 12
     private const val CHACHA20_POLY1305_TAG_BYTES: Int = 16
@@ -1007,6 +1095,9 @@ public object NativeCryptoPrimitives {
         "aes_cbc_pkcs7_hmac_sha256_encrypt"
     private const val AES_CBC_HMAC_SHA256_DECRYPT_OPERATION: String =
         "aes_cbc_pkcs7_hmac_sha256_decrypt"
+    private const val ED25519_KEY_GENERATE_OPERATION: String = "ed25519_key_generate"
+    private const val ED25519_SIGN_OPERATION: String = "ed25519_sign"
+    private const val ED25519_VERIFY_OPERATION: String = "ed25519_verify"
 
     private class NativeAesCbcPkcs7HmacSha256EncryptSessionImpl(
         private val delegate: NativeCryptoSession,

@@ -1,6 +1,9 @@
 //! Generation-tagged streaming-session registry.
 
-use std::sync::{Arc, Mutex, OnceLock};
+use std::{
+    panic::{AssertUnwindSafe, catch_unwind},
+    sync::{Arc, Mutex, OnceLock},
+};
 
 use aes::{Aes128, Aes192, Aes256};
 use aws_lc_rs::constant_time;
@@ -18,10 +21,14 @@ use thiserror::Error;
 use twofish::Twofish;
 use zeroize::{Zeroize, Zeroizing};
 
+use crate::noise;
 use crate::openpgp::adapter::OpenPgpSession;
 use crate::padding::pkcs7_unpadded_block_length;
 use crate::primitives::{HMAC_SHA256_BYTES, PrimitiveError};
-use crate::protocol::{AesCbcPkcs7HmacSha256EncryptResult, CipherDirection, HashAlgorithm};
+use crate::protocol::{
+    AesCbcPkcs7HmacSha256EncryptResult, CipherDirection, HashAlgorithm,
+    NoiseHandshakeStreamOpenRequest,
+};
 
 const AES_BLOCK_BYTES: usize = 16;
 const MAX_SESSION_SLOTS: usize = 1024;
@@ -68,6 +75,8 @@ enum Session {
     AesCbcHmacSha256Encrypt(Box<AesCbcHmacSha256EncryptSession>),
     AesCbcHmacSha256Decrypt(Box<AesCbcHmacSha256DecryptSession>),
     OpenPgp(Box<OpenPgpSession>),
+    NoiseHandshake(Box<noise::Handshake>),
+    NoiseTransport(Box<noise::Transport>),
 }
 
 enum CbcCipher {
@@ -166,28 +175,97 @@ pub(crate) fn open_openpgp(
     insert(Session::OpenPgp(Box::new(session.map_err(openpgp_error)?)))
 }
 
-pub(crate) fn update(handle: u64, data: &[u8]) -> Result<Vec<u8>, SessionError> {
+/// Runs `step` under the lock of the session behind `handle`. The slot it
+/// gets is empty once the session has ended.
+fn with_session<T>(
+    handle: u64,
+    step: impl FnOnce(&mut Option<Session>) -> Result<T, SessionError>,
+) -> Result<T, SessionError> {
     let session = {
         let registry = registry().lock().map_err(|_| SessionError::Internal)?;
         registry.active_session_cell(handle)?
     };
     let mut session = session.lock().map_err(|_| SessionError::Internal)?;
-    session
-        .as_mut()
-        .ok_or(SessionError::InvalidSession)?
-        .update(data)
+    step(&mut session)
+}
+
+pub(crate) fn update(handle: u64, data: &[u8]) -> Result<Vec<u8>, SessionError> {
+    with_session(handle, |session| {
+        session
+            .as_mut()
+            .ok_or(SessionError::InvalidSession)?
+            .update(data)
+    })
 }
 
 pub(crate) fn drain_openpgp(handle: u64) -> Result<Vec<u8>, SessionError> {
-    let session = {
-        let registry = registry().lock().map_err(|_| SessionError::Internal)?;
-        registry.active_session_cell(handle)?
-    };
-    let mut session = session.lock().map_err(|_| SessionError::Internal)?;
-    match session.as_mut().ok_or(SessionError::InvalidSession)? {
-        Session::OpenPgp(session) => session.drain().map_err(openpgp_error),
-        _ => Err(SessionError::InvalidArgument),
-    }
+    with_session(handle, |session| {
+        match session.as_mut().ok_or(SessionError::InvalidSession)? {
+            Session::OpenPgp(session) => session.drain().map_err(openpgp_error),
+            _ => Err(SessionError::InvalidArgument),
+        }
+    })
+}
+
+pub(crate) fn open_noise_handshake(
+    request: NoiseHandshakeStreamOpenRequest,
+) -> Result<u64, SessionError> {
+    let handshake = noise::open_handshake(request)?;
+    insert(Session::NoiseHandshake(Box::new(handshake)))
+}
+
+/// Runs one step of the handshake behind `handle`; see [`with_noise_session`].
+pub(crate) fn with_noise_handshake<T>(
+    handle: u64,
+    step: impl FnOnce(&mut noise::Handshake) -> Result<T, noise::Failure>,
+) -> Result<T, SessionError> {
+    with_noise_session(handle, |session| match session {
+        Session::NoiseHandshake(handshake) => step(handshake),
+        _ => Err(noise::Failure::Rejected(SessionError::InvalidArgument)),
+    })
+}
+
+/// Runs one step of the transport behind `handle`; see [`with_noise_session`].
+pub(crate) fn with_noise_transport<T>(
+    handle: u64,
+    step: impl FnOnce(&mut noise::Transport) -> Result<T, noise::Failure>,
+) -> Result<T, SessionError> {
+    with_noise_session(handle, |session| match session {
+        Session::NoiseTransport(transport) => step(transport),
+        _ => Err(noise::Failure::Rejected(SessionError::InvalidArgument)),
+    })
+}
+
+/// Turns a finished handshake into a transport and returns the transport's
+/// handle. The handshake handle is spent whatever the outcome; closing it
+/// again is a no-op.
+pub(crate) fn noise_into_transport(handle: u64) -> Result<u64, SessionError> {
+    let transport = with_noise_handshake(handle, |handshake| Ok(handshake.take_transport()))?;
+    close(handle)?;
+    insert(Session::NoiseTransport(Box::new(transport?)))
+}
+
+/// Runs one Noise step under the session's lock. A step that fails past
+/// argument validation drops the session, which wipes its keys; the handle
+/// then reads as invalid until it is closed.
+fn with_noise_session<T>(
+    handle: u64,
+    step: impl FnOnce(&mut Session) -> Result<T, noise::Failure>,
+) -> Result<T, SessionError> {
+    with_session(handle, |session| {
+        let active = session.as_mut().ok_or(SessionError::InvalidSession)?;
+        // Catch inside the lock so a backend panic cannot poison it. The state
+        // may be partially mutated, so discard it before returning the failure.
+        let result = catch_unwind(AssertUnwindSafe(|| step(active)))
+            .unwrap_or(Err(noise::Failure::Ended(SessionError::Panic)));
+        result.map_err(|failure| match failure {
+            noise::Failure::Rejected(error) => error,
+            noise::Failure::Ended(error) => {
+                session.take();
+                error
+            }
+        })
+    })
 }
 
 pub(crate) fn finish(handle: u64) -> Result<Vec<u8>, SessionError> {
@@ -238,6 +316,8 @@ impl Session {
             Self::AesCbcHmacSha256Encrypt(session) => session.update(data),
             Self::AesCbcHmacSha256Decrypt(session) => session.update(data),
             Self::OpenPgp(session) => session.update(data).map_err(openpgp_error),
+            // Noise sessions take their own requests, not raw chunks.
+            Self::NoiseHandshake(_) | Self::NoiseTransport(_) => Err(SessionError::InvalidArgument),
         }
     }
 
@@ -261,6 +341,10 @@ impl Session {
             Self::AesCbcHmacSha256Encrypt(session) => return (*session).finish(),
             Self::AesCbcHmacSha256Decrypt(session) => return (*session).finish(),
             Self::OpenPgp(session) => return (*session).finish().map_err(openpgp_error),
+            // Nothing to finish: the dropped session is wiped, as a close does.
+            Self::NoiseHandshake(_) | Self::NoiseTransport(_) => {
+                return Err(SessionError::InvalidArgument);
+            }
         };
         Ok(output)
     }
@@ -737,6 +821,43 @@ fn decode_handle(handle: u64) -> Result<(usize, u32), SessionError> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_panicking_noise_step_drops_state_without_poisoning_its_lock() {
+        let handle = open_noise_handshake(NoiseHandshakeStreamOpenRequest {
+            pattern: crate::protocol::NoisePattern::XxPsk3 as i32,
+            initiator: true,
+            local_private_key: vec![0x11; 32],
+            remote_public_key: Vec::new(),
+            psk: vec![0x42; 32],
+            prologue: Vec::new(),
+        })
+        .expect("handshake must open");
+        let cell = registry()
+            .lock()
+            .expect("registry lock must succeed")
+            .active_session_cell(handle)
+            .expect("handshake must be registered");
+
+        let result = with_noise_session::<()>(handle, |_| panic!("injected backend failure"));
+
+        assert_eq!(result, Err(SessionError::Panic));
+        assert!(
+            cell.lock()
+                .expect("session lock must not be poisoned")
+                .is_none()
+        );
+        assert_eq!(
+            with_noise_handshake(handle, noise::Handshake::status),
+            Err(SessionError::InvalidSession)
+        );
+        assert_eq!(
+            with_noise_handshake(handle, |handshake| handshake.write(b"reuse")),
+            Err(SessionError::InvalidSession)
+        );
+        close(handle).expect("ended handshake must close");
+        close(handle).expect("repeated close must remain idempotent");
+    }
 
     #[test]
     fn openpgp_missing_key_retains_its_classification() {

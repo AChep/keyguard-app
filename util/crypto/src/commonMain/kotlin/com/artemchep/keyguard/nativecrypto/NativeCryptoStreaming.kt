@@ -27,6 +27,23 @@ internal fun ByteArray.requireNativeCryptoOutputSize(
     return this
 }
 
+/** Wipes [privateKey] and throws unless both keys of a key pair have the expected sizes. */
+internal fun requireNativeCryptoKeyPairSizes(
+    operation: String,
+    privateKey: ByteArray,
+    privateKeySize: Int,
+    publicKey: ByteArray,
+    publicKeySize: Int,
+) {
+    if (privateKey.size != privateKeySize || publicKey.size != publicKeySize) {
+        privateKey.fill(0)
+        throw NativeCryptoException(
+            operation = operation,
+            code = NativeCryptoErrorCode.MALFORMED_RESPONSE,
+        )
+    }
+}
+
 internal fun NativeCryptoSession.withExpectedFinalOutputSize(
     operation: String,
     expectedSize: Int,

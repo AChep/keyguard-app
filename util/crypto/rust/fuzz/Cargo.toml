@@ -49,6 +49,20 @@ doc = false
 bench = false
 
 [[bin]]
+name = "ed25519_verify"
+path = "fuzz_targets/ed25519_verify.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "noise_session"
+path = "fuzz_targets/noise_session.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
 name = "openpgp_read"
 path = "fuzz_targets/openpgp_read.rs"
 test = false

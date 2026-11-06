@@ -60,6 +60,16 @@ message NativeRequest {
     CtapPrfKeyGenerateRequest ctap_prf_key_generate = 65;
     CtapPrfSaltsOpenRequest ctap_prf_salts_open = 66;
     CtapPrfOutputSealRequest ctap_prf_output_seal = 67;
+    Ed25519KeyGenerateRequest ed25519_key_generate = 68;
+    Ed25519SignRequest ed25519_sign = 69;
+    Ed25519VerifyRequest ed25519_verify = 70;
+    NoiseKeyPairRequest noise_key_pair = 71;
+    NoiseHandshakeWriteRequest noise_handshake_write = 72;
+    NoiseHandshakeReadRequest noise_handshake_read = 73;
+    NoiseHandshakeStatusRequest noise_handshake_status = 74;
+    NoiseIntoTransportRequest noise_into_transport = 75;
+    NoiseTransportWriteRequest noise_transport_write = 76;
+    NoiseTransportReadRequest noise_transport_read = 77;
   }
 }
 
@@ -123,6 +133,7 @@ message NativeStreamOpenRequest {
     AesCbcPkcs7HmacSha256DecryptStreamOpenRequest aes_cbc_pkcs7_hmac_sha256_decrypt = 20;
     OpenPgpClearSignStreamOpenRequest open_pgp_clear_sign = 21;
     OpenPgpClearVerifyStreamOpenRequest open_pgp_clear_verify = 22;
+    NoiseHandshakeStreamOpenRequest noise_handshake = 23;
   }
 }
 
@@ -378,6 +389,125 @@ message SshPrivateKeyImportRequest {
   // UTF-8 bytes are used instead of a protobuf string so both native and
   // Kotlin callers can erase the owned passphrase buffer after the call.
   optional bytes passphrase_utf8 = 2;
+}
+
+// RFC 8032 Ed25519. A private key is the 32-byte seed; a public key is the
+// 32-byte encoded point.
+message Ed25519KeyGenerateRequest {}
+
+// Domain payload returned inside NativeResponse.bytes_value.
+message Ed25519KeyGenerateResult {
+  bytes private_key = 1;
+  bytes public_key = 2;
+}
+
+message Ed25519SignRequest {
+  bytes private_key = 1;
+  bytes data = 2;
+}
+
+// Domain payload returned inside NativeResponse.bytes_value.
+message Ed25519SignResult {
+  bytes signature = 1;
+}
+
+// Verification is strict: small-order public keys and non-canonical
+// signatures are invalid. A signature that is not 64 bytes is invalid; a
+// public key that is not 32 bytes is an invalid argument.
+message Ed25519VerifyRequest {
+  bytes public_key = 1;
+  bytes data = 2;
+  bytes signature = 3;
+}
+
+// Domain payload returned inside NativeResponse.bytes_value.
+message Ed25519VerifyResult {
+  bool valid = 1;
+}
+
+// Noise handshakes and transports of device-to-device sync. Both patterns use
+// Curve25519, ChaCha20-Poly1305 and SHA-256. A handshake is a stream session:
+// stream_open starts it, the requests below that take its handle drive it,
+// and stream_close releases it and wipes its keys.
+enum NoisePattern {
+  NOISE_PATTERN_UNSPECIFIED = 0;
+  // Noise_XXpsk3_25519_ChaChaPoly_SHA256: pairing. Each side learns the
+  // other's static key, and a pre-shared key authenticates the exchange.
+  NOISE_PATTERN_XX_PSK3 = 1;
+  // Noise_KK_25519_ChaChaPoly_SHA256: sessions between paired devices. Each
+  // side pins the other's static key.
+  NOISE_PATTERN_KK = 2;
+}
+
+// Generates a Curve25519 static key pair, or derives the public key of a
+// 32-byte private_key.
+message NoiseKeyPairRequest {
+  bytes private_key = 1;
+}
+
+// Domain payload returned inside NativeResponse.bytes_value.
+message NoiseKeyPairResult {
+  bytes private_key = 1;
+  bytes public_key = 2;
+}
+
+// XX_PSK3 takes a 32-byte psk and no remote_public_key. KK takes the pinned
+// 32-byte remote_public_key and no psk. Both sides pass the same prologue, at
+// most 65535 bytes.
+message NoiseHandshakeStreamOpenRequest {
+  NoisePattern pattern = 1;
+  bool initiator = 2;
+  bytes local_private_key = 3;
+  bytes remote_public_key = 4;
+  bytes psk = 5;
+  bytes prologue = 6;
+}
+
+// Writes the next handshake message; bytes_value holds it. The payload is at
+// most 65439 bytes.
+message NoiseHandshakeWriteRequest {
+  uint64 handle = 1;
+  bytes payload = 2;
+}
+
+// Reads the next handshake message, at most 65535 bytes; bytes_value holds
+// its payload.
+message NoiseHandshakeReadRequest {
+  uint64 handle = 1;
+  bytes message = 2;
+}
+
+message NoiseHandshakeStatusRequest {
+  uint64 handle = 1;
+}
+
+// Domain payload returned inside NativeResponse.bytes_value. The remote static
+// key is empty while unknown, and the handshake hash until the handshake is
+// finished.
+message NoiseHandshakeStatusResult {
+  bool finished = 1;
+  bytes remote_static_key = 2;
+  bytes handshake_hash = 3;
+}
+
+// Turns a finished handshake into a transport; uint64_value holds the
+// transport's handle. The handshake handle is spent whatever the outcome.
+message NoiseIntoTransportRequest {
+  uint64 handle = 1;
+}
+
+// Encrypts one transport message; bytes_value holds it. The payload is at most
+// 65519 bytes.
+message NoiseTransportWriteRequest {
+  uint64 handle = 1;
+  bytes payload = 2;
+}
+
+// Decrypts the next transport message, at most 65535 bytes; bytes_value holds
+// its payload. Messages must arrive in the order they were written.
+message NoiseTransportReadRequest {
+  uint64 handle = 1;
+  bytes message = 2;
 }
 
 enum PasskeyAlgorithm {

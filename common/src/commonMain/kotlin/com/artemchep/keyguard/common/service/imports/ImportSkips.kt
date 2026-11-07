@@ -29,8 +29,9 @@ fun importSkips(vararg entries: Pair<ImportSkipReason, Int>): ImportSkips =
 enum class ImportSkipReason {
     /**
      * A passkey that could not be reconstructed: an empty or undecodable
-     * credential id or private key, an undecodable user handle, or a blank
-     * relying-party id. Its item still imports if anything else in it did.
+     * credential id or private key, a key algorithm Keyguard cannot sign with,
+     * an undecodable user handle, or a blank relying-party id. Its item still
+     * imports if anything else in it did.
      *
      * An *empty* user handle is deliberately not one of these: CXF makes the
      * member required with no way to spell "absent", so an empty value is read

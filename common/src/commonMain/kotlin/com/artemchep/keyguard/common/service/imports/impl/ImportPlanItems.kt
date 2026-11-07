@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.service.imports.mapping.importedSshKeyFallb
 import com.artemchep.keyguard.common.service.imports.mapping.importedSshKeyOrNull
 import com.artemchep.keyguard.common.service.imports.mapping.importedTotp
 import com.artemchep.keyguard.common.service.imports.mapping.mismatchedSourceFields
+import kotlinx.collections.immutable.toPersistentList
 
 /**
  * Plans an item of [type] that [meta] describes. [content] fills in the
@@ -43,6 +44,7 @@ internal fun ImportPlanBuilder.login(
     totp: String? = null,
     fields: List<DSecret.Field> = emptyList(),
     attachments: List<ImportPlan.Attachment> = emptyList(),
+    fido2Credentials: List<DSecret.Login.Fido2Credentials> = emptyList(),
 ) {
     val login = importedLogin(
         username = username,
@@ -50,7 +52,10 @@ internal fun ImportPlanBuilder.login(
         totp = importedTotpOrCount(totp, meta.title),
     )
     item(meta, DSecret.Type.Login, fields, attachments) {
-        copy(login = login)
+        copy(
+            login = login,
+            fido2Credentials = fido2Credentials.toPersistentList(),
+        )
     }
 }
 

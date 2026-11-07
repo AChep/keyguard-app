@@ -208,6 +208,7 @@ kotlin {
                 api(project(":feature:agent-setup"))
                 implementation(project(":util:csv"))
                 implementation(project(":util:gzip"))
+                implementation(project(":util:messagepack"))
                 api(project(":feature:cli"))
                 api(project(":feature:environments"))
                 api(project(":util:dns"))

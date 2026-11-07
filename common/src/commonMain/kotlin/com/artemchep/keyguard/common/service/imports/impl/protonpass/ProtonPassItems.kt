@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.service.imports.mapping.ImportFieldBag
 import com.artemchep.keyguard.common.service.imports.mapping.ImportedItemMeta
 import com.artemchep.keyguard.common.service.imports.mapping.importedCard
 import com.artemchep.keyguard.common.service.imports.mapping.importedFieldOrNull
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonArray
@@ -105,6 +106,7 @@ internal fun mapProtonPassItem(
     folderKey: String?,
     plan: ImportPlanBuilder,
     sshKeyImportService: SshKeyImportService,
+    passkeyCrypto: PasskeyCrypto,
 ) {
     val data = item.data ?: ProtonPassItem.Data()
     val meta = ImportedItemMeta(
@@ -121,7 +123,7 @@ internal fun mapProtonPassItem(
     )
     plan.skip(ImportSkipReason.Attachment, meta.title, count = item.files.size)
     when (data.type) {
-        TYPE_LOGIN, TYPE_ALIAS -> mapLogin(meta, source, item.aliasEmail, plan)
+        TYPE_LOGIN, TYPE_ALIAS -> mapLogin(meta, source, item.aliasEmail, plan, passkeyCrypto)
         TYPE_CARD -> mapCard(meta, source, plan)
         TYPE_IDENTITY -> mapIdentity(meta, source, plan)
         TYPE_SSH_KEY -> mapSshKey(meta, source, plan, sshKeyImportService)
@@ -140,6 +142,7 @@ private fun mapLogin(
     source: ProtonPassContent,
     aliasEmail: String?,
     plan: ImportPlanBuilder,
+    passkeyCrypto: PasskeyCrypto,
 ) {
     val content = source.content
     val username = protonPassUsername(
@@ -147,10 +150,14 @@ private fun mapLogin(
         email = content.protonText("itemEmail"),
         aliasEmail = aliasEmail,
     )
-    // Proton Pass stores a passkey in its own form, not as a key.
-    (content["passkeys"] as? JsonArray)
-        ?.size
-        ?.let { plan.skip(ImportSkipReason.Passkey, meta.title, count = it) }
+    val passkeys = (content["passkeys"] as? JsonArray)
+        .orEmpty()
+        .protonPasskeys(
+            title = meta.title,
+            now = meta.now,
+            plan = plan,
+            passkeyCrypto = passkeyCrypto,
+        )
     val extraTotp = source.extraFields
         .firstOrNull { it.type == PROTON_FIELD_TYPE_TOTP }
         .takeIf { content.protonText("totpUri") == null }
@@ -160,6 +167,7 @@ private fun mapLogin(
         password = content.protonRawText("password"),
         totp = content.protonText("totpUri") ?: extraTotp?.protonValue(),
         fields = username.fields + source.extraFields.filter { it !== extraTotp }.protonFields(),
+        fido2Credentials = passkeys,
     )
 }
 

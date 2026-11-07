@@ -38,6 +38,19 @@ object MessagePackCodec {
         deserializer = MsgPackNullableDynamicSerializer,
         bytes = bytes,
     )
+
+    /**
+     * Whether [bytes] hold exactly one MessagePack value, with containers
+     * nested at most [maxDepth] deep and every length within the input.
+     *
+     * The decoders size a collection from its header before reading it, and
+     * recurse into nested ones, so a few bytes can ask for gigabytes or
+     * overflow the stack. Check untrusted input with this before decoding it.
+     */
+    fun isWellFormed(
+        bytes: ByteArray,
+        maxDepth: Int,
+    ): Boolean = MessagePackScanner(bytes, maxDepth).scan()
 }
 
 fun Any?.toJsonElement(): JsonElement = when (this) {

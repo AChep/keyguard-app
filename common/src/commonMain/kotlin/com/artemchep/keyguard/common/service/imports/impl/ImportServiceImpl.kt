@@ -27,6 +27,7 @@ import com.artemchep.keyguard.common.service.imports.impl.nordpass.NordPassCsvIm
 import com.artemchep.keyguard.common.service.imports.impl.onepassword.OnePasswordImporter
 import com.artemchep.keyguard.common.service.imports.impl.protonpass.ProtonPassImporter
 import com.artemchep.keyguard.common.service.imports.impl.safari.SafariCsvImporter
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import kotlin.time.Instant
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
@@ -40,11 +41,13 @@ class ImportServiceImpl(
     cryptoGenerator: CryptoGenerator,
     cipherEncryptor: CipherEncryptor,
     sshKeyImportService: SshKeyImportService,
+    passkeyCrypto: PasskeyCrypto,
 ) : ImportService by ImporterImportService(
     importers = defaultImporters(
         cryptoGenerator = cryptoGenerator,
         cipherEncryptor = cipherEncryptor,
         sshKeyImportService = sshKeyImportService,
+        passkeyCrypto = passkeyCrypto,
     ),
 )
 
@@ -153,6 +156,7 @@ private fun defaultImporters(
     cryptoGenerator: CryptoGenerator,
     cipherEncryptor: CipherEncryptor,
     sshKeyImportService: SshKeyImportService,
+    passkeyCrypto: PasskeyCrypto,
 ): List<Importer> = listOf(
     ChromiumCsvImporter(),
     FirefoxCsvImporter(),
@@ -176,6 +180,7 @@ private fun defaultImporters(
     NordPassCsvImporter(),
     ProtonPassImporter(
         sshKeyImportService = sshKeyImportService,
+        passkeyCrypto = passkeyCrypto,
     ),
     KeyguardZipImporter(
         cryptoGenerator = cryptoGenerator,

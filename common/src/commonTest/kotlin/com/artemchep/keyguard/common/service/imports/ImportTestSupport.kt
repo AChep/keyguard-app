@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.crypto.NativeCipherEncryptor
 import com.artemchep.keyguard.crypto.NativeCryptoGenerator
 import com.artemchep.keyguard.feature.environments.isWritable
+import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
@@ -44,6 +45,7 @@ internal fun importTestService(
         base64Service = Base64ServiceImpl(),
     ),
     sshKeyImportService = sshKeyImportService,
+    passkeyCrypto = NativePasskeyCrypto,
 )
 
 /**

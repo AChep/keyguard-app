@@ -20,6 +20,7 @@ import com.artemchep.keyguard.common.service.imports.impl.isZipArchive
 import com.artemchep.keyguard.common.service.imports.impl.readUnencryptedArchiveEntries
 import com.artemchep.keyguard.common.service.imports.impl.readText
 import com.artemchep.keyguard.util.io.decodeTextDetectingEncoding
+import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
 import kotlin.time.Instant
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonElement
@@ -34,11 +35,13 @@ import kotlinx.serialization.json.JsonObject
  *   every other item type only as its note.
  *
  * Each vault becomes a folder, with the vault's own folders nested in it.
+ * The JSON carries each passkey with its private key, so passkeys import too.
  * A PGP-encrypted export — `Proton Pass/data.pgp` inside the archive, or a
  * whole archive armored as one message — cannot be read here.
  */
 internal class ProtonPassImporter(
     private val sshKeyImportService: SshKeyImportService,
+    private val passkeyCrypto: PasskeyCrypto,
 ) : Importer {
     companion object {
         private const val DATA_JSON = "data.json"
@@ -167,7 +170,14 @@ internal class ProtonPassImporter(
                         }
                         .orEmpty()
                     val folderKey = plan.folder(listOfNotNull(vault.name) + folderPath)
-                    mapProtonPassItem(item, now, folderKey, plan, sshKeyImportService)
+                    mapProtonPassItem(
+                        item = item,
+                        now = now,
+                        folderKey = folderKey,
+                        plan = plan,
+                        sshKeyImportService = sshKeyImportService,
+                        passkeyCrypto = passkeyCrypto,
+                    )
                 }
             }
         }

@@ -150,6 +150,9 @@
     <string name="expiring_soon">Expiră în curând</string>
     <string name="item_incomplete_title">Date incomplete</string>
     <string name="item_incomplete_text">Acestui element îi lipsesc unele informații importante.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Element</string>
     <string name="items">Elemente</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> elemente</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">Selectează un tip</string>
     <string name="select_file">Selectează un fișier</string>
     <string name="additem_attachments_drop_here">Trage un fișier aici pentru a-l adăuga ca atașament</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">Trage un fișier pentru a înlocui fișierul selectat</string>
     <string name="autofill">Completare automată</string>
     <string name="autofill_and_save_uri">Completează automat și salvează informațiile site-ului/aplicației</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">Câmpul cheii secrete pentru OTP nu trebuie să fie gol</string>
     <string name="error_otp_key_is_invalid">Cheia secretă a parolei cu o singură utilizare este nevalidă</string>
     <string name="error_failed_file_already_exists">Eroare la crearea fișierului. Înlocuirea unui fișier existent nu este permisă</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">Acest cont este deja adăugat în Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Eroare la crearea cheii: memorie insuficientă. Verifică setările serverului KDF.</string>
     <string name="error_failed_generate_otp_code">Eroare la generarea codului OTP</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Apelant necunoscut</string>
     <string name="agent_history_unknown_key">Cheie necunoscută</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">Toate cheile accesibile</string>
     <string name="agent_history_clear_history_title">Șterge istoricul</string>
     <string name="agent_history_clear_history_confirmation_title">Ștergi istoricul agentului <xliff:g id="protocol" example="SSH">%1$s</xliff:g>?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">Ajustează linkurile pentru a direcționa prin protocol HTTPS în loc de HTTP simplu, beneficiind de un grad avansat de criptare.</string>
     <string name="watchtower_item_inactive_2fa_title">Autentificarea 2FA e inactivă</string>
     <string name="watchtower_item_inactive_2fa_text">Servicii și aplicații unde ai posibilitatea securizării duble (2FA), dar nu o ai setată.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Chei de acces (passkey) neutilizate</string>
     <string name="watchtower_item_inactive_passkey_text">Servicii cu suport dovedit pentru securizarea cu chei de acces (passkey) pe care nu le folosești. Metoda e mai curată, fluentă și vizibil mai sigură decât banala parolă.</string>
     <string name="watchtower_item_incomplete_items_title">Intrări cu date incomplete</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">Exportă seiful ca arhivă ZIP criptată.</string>
     <string name="exportaccount_format_title">Format</string>
     <string name="exportaccount_format_zip">Arhivă ZIP</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">Bază de date KeePass (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">Parola bazei de date</string>
     <string name="exportaccount_format_kdbx_note">Exportă seiful ca bază de date KeePass. Dosarele devin grupuri. Organizațiile și colecțiile nu sunt exportate.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> – <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">Se pregătește copia de rezervă</string>
     <string name="backup_step_opening_repository">Se deschide depozitul copiilor de rezervă</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">Se exportă datele din seif</string>
     <string name="backup_step_scanning_attachments">Se scanează atașamentele</string>
     <string name="backup_step_backing_up_attachments">Se salvează atașamentele în copia de rezervă</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">Finalizată la %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">Ultima copie de rezervă a eșuat</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">Ultima copie de rezervă a fost omisă</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">Nicio copie de rezervă până acum</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">Dezactivează copiile de rezervă automate</string>
     <string name="pref_item_automatic_backups_disable_message">Această acțiune dezactivează doar viitoarele copii de rezervă automate. Șterge din Keyguard calea dosarului local, parola și opțiunea de includere a atașamentelor. Depozitul de copii de rezervă existent și fișierele din acel dosar nu sunt șterse.</string>
     <string name="pref_item_automatic_backups_disable_action">Dezactivează…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">Elemente de navigare</string>
     <string name="pref_item_nav_label_title">Afișează etichetele pe butoanele de navigare</string>
     <string name="pref_item_nav_label_short_title">Afișează etichetele de navigare</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">Toate cheile sunt accesibile</string>
     <string name="pref_item_agent_filters_summary_active">Filtre active</string>
     <string name="pref_item_agent_history_title">Jurnalul cererilor</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Activează agentul SSH</string>
     <string name="pref_item_ssh_agent_description">Keyguard pune cheile SSH din seiful tău la dispoziția ssh/git. Fiecare semnătură necesită aprobarea ta.</string>
     <string name="pref_item_license_key_title">Asociază un cod de drept de acces existent</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

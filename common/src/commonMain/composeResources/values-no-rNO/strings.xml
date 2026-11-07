@@ -150,6 +150,9 @@
     <string name="expiring_soon">Utløper snart</string>
     <string name="item_incomplete_title">Ufullstendige data</string>
     <string name="item_incomplete_text">Dette elementet mangler viktig informasjon.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Element</string>
     <string name="items">Elementer</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> elementer</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">Velg en type</string>
     <string name="select_file">Velg en fil</string>
     <string name="additem_attachments_drop_here">Slipp en fil her for å legge den til som vedlegg</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">Slipp en fil for å erstatte den valgte filen</string>
     <string name="autofill">Autofyll</string>
     <string name="autofill_and_save_uri">Fyll ut automatisk og lagre app- eller nettstedsinformasjon</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">Den hemmelige nøkkelen for engangspassord kan ikke være tom</string>
     <string name="error_otp_key_is_invalid">Den hemmelige nøkkelen for engangspassord er ugyldig</string>
     <string name="error_failed_file_already_exists">Kunne ikke opprette filen. Det er ikke tillatt å erstatte en eksisterende fil</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">Denne kontoen er allerede lagt til i Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Kunne ikke opprette en nøkkel på grunn av for lite minne. Kontroller KDF-innstillingene på serveren.</string>
     <string name="error_failed_generate_otp_code">Kunne ikke generere engangspassord</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Ukjent app</string>
     <string name="agent_history_unknown_key">Ukjent nøkkel</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">Alle tilgjengelige nøkler</string>
     <string name="agent_history_clear_history_title">Tøm historikken</string>
     <string name="agent_history_clear_history_confirmation_title">Tømme historikken for <xliff:g id="protocol" example="SSH">%1$s</xliff:g>-agenten?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">Endre nettadresser som bruker HTTP-protokollen, til å bruke HTTPS-protokollen, siden sistnevnte bruker den mest avanserte krypteringen som er tilgjengelig.</string>
     <string name="watchtower_item_inactive_2fa_title">Inaktiv tofaktorautentisering</string>
     <string name="watchtower_item_inactive_2fa_text">Nettsteder som tilbyr tofaktorautentisering, men der du ikke har satt det opp ennå.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Tilgjengelige tilgangsnøkler</string>
     <string name="watchtower_item_inactive_passkey_text">Nettsteder som tilbyr tilgangsnøkler, men der du ikke har satt det opp ennå. Det er enklere og sikrere enn et passord.</string>
     <string name="watchtower_item_incomplete_items_title">Ufullstendige elementer</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">Eksporter hvelvet som et kryptert ZIP-arkiv.</string>
     <string name="exportaccount_format_title">Format</string>
     <string name="exportaccount_format_zip">ZIP-arkiv</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">KeePass-database (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">Databasepassord</string>
     <string name="exportaccount_format_kdbx_note">Eksporter hvelvet som en KeePass-database. Mapper blir til grupper. Organisasjoner og samlinger eksporteres ikke.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> – <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">Klargjør sikkerhetskopi</string>
     <string name="backup_step_opening_repository">Åpner sikkerhetskopilageret</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">Eksporterer hvelvdata</string>
     <string name="backup_step_scanning_attachments">Søker gjennom vedlegg</string>
     <string name="backup_step_backing_up_attachments">Sikkerhetskopierer vedlegg</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">Fullført %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">Siste sikkerhetskopiering mislyktes</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">Siste sikkerhetskopiering hoppet over</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">Ingen sikkerhetskopi ennå</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">Slå av automatisk sikkerhetskopiering</string>
     <string name="pref_item_automatic_backups_disable_message">Dette slår bare av fremtidig automatisk sikkerhetskopiering. Valget av lokal mappe, passordet og innstillingen for vedlegg fjernes fra Keyguard. Det eksisterende sikkerhetskopilageret og filene i mappen slettes ikke.</string>
     <string name="pref_item_automatic_backups_disable_action">Deaktiver…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">Navigasjonselementer</string>
     <string name="pref_item_nav_label_title">Vis etiketter på navigasjonsknapper</string>
     <string name="pref_item_nav_label_short_title">Vis navigasjonsetiketter</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">Tilgang til alle nøkler</string>
     <string name="pref_item_agent_filters_summary_active">Filtre er aktive</string>
     <string name="pref_item_agent_history_title">Forespørselslogg</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Aktiver SSH-agent</string>
     <string name="pref_item_ssh_agent_description">Keyguard gjør SSH-nøklene i hvelvet ditt tilgjengelige for ssh/git. Hver signering krever din godkjenning.</string>
     <string name="pref_item_license_key_title">Koble til eksisterende rettighetskode</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

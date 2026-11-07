@@ -150,6 +150,9 @@
     <string name="expiring_soon">Hamarosan lejár</string>
     <string name="item_incomplete_title">Hiányos adatok</string>
     <string name="item_incomplete_text">Ebből az elemből hiányzik néhány fontos információ.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Elem</string>
     <string name="items">Elemek</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> elem</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">Típus kiválasztása</string>
     <string name="select_file">Fájl kiválasztása</string>
     <string name="additem_attachments_drop_here">Húzzon ide egy fájlt a mellékletként való hozzáadáshoz</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">Húzzon ide egy fájlt a kiválasztott fájl cseréjéhez</string>
     <string name="autofill">Automatikus kitöltés</string>
     <string name="autofill_and_save_uri">Kitöltés és app vagy weboldal infó mentése</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">Az egyszeri jelszó titkos kulcsa nem lehet üres</string>
     <string name="error_otp_key_is_invalid">Az egyszeri jelszó titkos kulcsa érvénytelen</string>
     <string name="error_failed_file_already_exists">Nem sikerült létrehozni a fájlt. A meglévő fájl cseréje nem engedélyezett</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">Ez a fiók már hozzá van adva a Keyguardhoz</string>
     <string name="error_failed_generate_kdf_hash_oom">Nem sikerült létrehozni a kulcsot, nincs elég memória. Kérjük, ellenőrizze a KDF szerver beállításait.</string>
     <string name="error_failed_generate_otp_code">Nem sikerült legenerálni az OTP-kódot</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Ismeretlen hívó</string>
     <string name="agent_history_unknown_key">Ismeretlen kulcs</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">Összes elérhető kulcs</string>
     <string name="agent_history_clear_history_title">Előzmények törlése</string>
     <string name="agent_history_clear_history_confirmation_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g>-ügynök előzményeinek törlése?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">Módosítsa a HTTP protokollt használó URL-címeket HTTPS protokoll használatára, mivel az utóbbi az elérhető legfejlettebb titkosítást használja.</string>
     <string name="watchtower_item_inactive_2fa_title">Inaktív kétlépcsős hitelesítés</string>
     <string name="watchtower_item_inactive_2fa_text">Olyan webhelyek, amelyeken elérhető a kétlépcsős hitelesítés, de Ön még nem állította be.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Elérhető Hozzáférési kulcsok</string>
     <string name="watchtower_item_inactive_passkey_text">Olyan webhelyek, amelyek rendelkeznek hozzáférési kulcsal, de Ön még nem állította be. Ez egyszerűbb és biztonságosabb, mint egy jelszó.</string>
     <string name="watchtower_item_incomplete_items_title">Hiányos elemek</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">Széf exportálása titkosított ZIP archívumként.</string>
     <string name="exportaccount_format_title">Formátum</string>
     <string name="exportaccount_format_zip">ZIP-archívum</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">KeePass-adatbázis (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">Adatbázis jelszava</string>
     <string name="exportaccount_format_kdbx_note">A széf exportálása KeePass-adatbázisként. A mappák csoportokká alakulnak. A szervezetek és gyűjtemények nem kerülnek exportálásra.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> – <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">Biztonsági mentés előkészítése</string>
     <string name="backup_step_opening_repository">Biztonsági mentési adattár megnyitása</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">A széf adatainak exportálása</string>
     <string name="backup_step_scanning_attachments">Mellékletek keresése</string>
     <string name="backup_step_backing_up_attachments">Mellékletek biztonsági mentése</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">Befejezve: %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">Utolsó mentés sikertelen</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">Utolsó mentés kihagyva</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">Nincs még mentés</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">Automatikus mentések kikapcsolása</string>
     <string name="pref_item_automatic_backups_disable_message">Ez csak a jövőbeli automatikus mentéseket kapcsolja ki. Törli a helyi mappát, a jelszót és a melléklet választását a Keyguardból. A meglévő mentési tároló és az abban lévő fájlok nem törlődnek.</string>
     <string name="pref_item_automatic_backups_disable_action">Kikapcsolás…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">Navigációs elemek</string>
     <string name="pref_item_nav_label_title">Címkék megjelenítése a navigációs gombokon</string>
     <string name="pref_item_nav_label_short_title">Navigációs címkék megjelenítése</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">Minden kulcs elérhető</string>
     <string name="pref_item_agent_filters_summary_active">Szűrők aktívak</string>
     <string name="pref_item_agent_history_title">Kérések naplója</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">SSH-ügynök engedélyezése</string>
     <string name="pref_item_ssh_agent_description">A Keyguard a széf SSH-kulcsait biztosítja az ssh/git számára. Minden aláíráshoz az Ön jóváhagyása szükséges.</string>
     <string name="pref_item_license_key_title">Meglévő jogosultsági token összekapcsolása</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

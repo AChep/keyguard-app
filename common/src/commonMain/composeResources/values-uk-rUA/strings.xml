@@ -150,6 +150,9 @@
     <string name="expiring_soon">Незабаром закінчується термін дії</string>
     <string name="item_incomplete_title">Неповні дані</string>
     <string name="item_incomplete_text">Цей запис не має певної важливої інформації.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Запис</string>
     <string name="items">Записи</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> записів</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">Оберіть тип</string>
     <string name="select_file">Виберіть файл</string>
     <string name="additem_attachments_drop_here">Перетягніть файл сюди, щоб додати його як вкладення</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">Перетягніть файл сюди, щоб замінити вибраний файл</string>
     <string name="autofill">Автозаповнити</string>
     <string name="autofill_and_save_uri">Автоматично заповнити та зберегти інформацію про застосунок або вебсайт</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">Секретний ключ одноразового пароля не може бути порожнім</string>
     <string name="error_otp_key_is_invalid">Секретний ключ одноразового пароля недійсний</string>
     <string name="error_failed_file_already_exists">Не вдалося створити файл. Заміна наявного файлу заборонена</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">Цей обліковий запис уже додано до Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Не вдалося створити ключ, не вистачає пам'яті. Перевірте KDF налаштування сервера.</string>
     <string name="error_failed_generate_otp_code">Помилка генерації одноразового коду</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Невідомий запитувач</string>
     <string name="agent_history_unknown_key">Невідомий ключ</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">Усі доступні ключі</string>
     <string name="agent_history_clear_history_title">Очистити історію</string>
     <string name="agent_history_clear_history_confirmation_title">Очистити історію <xliff:g id="protocol" example="SSH">%1$s</xliff:g>-агента?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">Змініть протокол URL-адрес з HTTP на HTTPS, оскільки останній використовує найкраще шифрування з доступного.</string>
     <string name="watchtower_item_inactive_2fa_title">Неактивна двофакторна автентифікація</string>
     <string name="watchtower_item_inactive_2fa_text">Сайти, які мають доступну, але ще не налаштовану двофакторну автентифікацію.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Наявні ключі доступу</string>
     <string name="watchtower_item_inactive_passkey_text">Сайти, які мають наявну, але ще не налаштовану підтримку ключів доступу - простішу та більш безпечну альтернативу паролям.</string>
     <string name="watchtower_item_incomplete_items_title">Незавершені записи</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">Експортувати сховище як зашифрований ZIP-архів.</string>
     <string name="exportaccount_format_title">Формат</string>
     <string name="exportaccount_format_zip">ZIP-архів</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">База даних KeePass (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">Пароль бази даних</string>
     <string name="exportaccount_format_kdbx_note">Експортуйте сховище як базу даних KeePass. Папки стануть групами. Організації та колекції не експортуються.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">Підготовка резервної копії</string>
     <string name="backup_step_opening_repository">Відкриття репозиторію резервних копій</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">Експорт даних сховища</string>
     <string name="backup_step_scanning_attachments">Сканування вкладень</string>
     <string name="backup_step_backing_up_attachments">Резервне копіювання вкладень</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">Завершено %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">Останнє резервне копіювання не вдалося</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">Останнє резервне копіювання пропущено</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">Резервних копій ще немає</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">Вимкнути автоматичне резервне копіювання</string>
     <string name="pref_item_automatic_backups_disable_message">Це лише вимикає майбутні автоматичні резервні копії. Воно очищає локальну теку, пароль та вибір вкладень із Keyguard. Наявний репозиторій резервних копій і файли в тій теці не видаляються.</string>
     <string name="pref_item_automatic_backups_disable_action">Вимкнути…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">Елементи навігації</string>
     <string name="pref_item_nav_label_title">Показувати підписи на кнопках навігації</string>
     <string name="pref_item_nav_label_short_title">Показувати підписи навігації</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">Всі ключі доступні</string>
     <string name="pref_item_agent_filters_summary_active">Фільтри активні</string>
     <string name="pref_item_agent_history_title">Журнал запитів</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Увімкнути SSH-агент</string>
     <string name="pref_item_ssh_agent_description">Keyguard надає ssh/git SSH-ключі зі сховища. Кожен підпис потребує вашого схвалення.</string>
     <string name="pref_item_license_key_title">Прив'язати наявний код підтвердження права доступу</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

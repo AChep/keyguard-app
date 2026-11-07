@@ -150,6 +150,9 @@
     <string name="expiring_soon">Süresi yakında doluyor</string>
     <string name="item_incomplete_title">Eksik bilgi</string>
     <string name="item_incomplete_text">Bu öğede bazı önemli bilgiler eksik görünüyor.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Öğe</string>
     <string name="items">Öğe</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> öğe</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">Bir tür seçin</string>
     <string name="select_file">Dosya seç</string>
     <string name="additem_attachments_drop_here">Eklemek istediğiniz dosyayı buraya sürükleyip bırakın</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">Seçili dosyayı değiştirmek için yenisini buraya bırakın</string>
     <string name="autofill">Otomatik doldur</string>
     <string name="autofill_and_save_uri">Otomatik doldur ve giriş bilgilerini kaydet</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">Tek kullanımlık parolanın gizli anahtarı boş olamaz</string>
     <string name="error_otp_key_is_invalid">Tek kullanımlık parolanın gizli anahtarı geçersiz</string>
     <string name="error_failed_file_already_exists">Dosya oluşturulamadı. Mevcut dosyanın üzerine yazılamaz</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">Bu hesap Keyguard'a zaten eklenmiş</string>
     <string name="error_failed_generate_kdf_hash_oom">Yetersiz bellek nedeniyle anahtar üretilemedi. KDF sunucu ayarlarınızı kontrol edin.</string>
     <string name="error_failed_generate_otp_code">Kod üretilemedi</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Bilinmeyen çağıran</string>
     <string name="agent_history_unknown_key">Bilinmeyen anahtar</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">Erişilebilir tüm anahtarlar</string>
     <string name="agent_history_clear_history_title">Geçmişi temizle</string>
     <string name="agent_history_clear_history_confirmation_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> istemci geçmişi temizlensin mi?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">HTTP protokolü kullanan adresleri gelişmiş şifreleme sunan HTTPS ile güncelleyin.</string>
     <string name="watchtower_item_inactive_2fa_title">Kullanılmayan 2FA Desteği</string>
     <string name="watchtower_item_inactive_2fa_text">İki adımlı doğrulama imkânı sunan ancak henüz kurmadığınız hesaplar.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Kullanılabilir Geçiş Anahtarları</string>
     <string name="watchtower_item_inactive_passkey_text">Geçiş anahtarı desteği olan siteler. Parolalara kıyasla hem çok daha güvenli hem de zahmetsizdir.</string>
     <string name="watchtower_item_incomplete_items_title">Eksik Bilgili Öğeler</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">Kasanızı şifreli bir ZIP arşivi olarak dışa aktarın.</string>
     <string name="exportaccount_format_title">Biçim</string>
     <string name="exportaccount_format_zip">ZIP arşivi</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">KeePass veritabanı (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">Veritabanı parolası</string>
     <string name="exportaccount_format_kdbx_note">Kasayı KeePass veritabanı olarak dışa aktarın. Klasörler gruplara dönüştürülür. Organizasyonlar ve koleksiyonlar dışa aktarılmaz.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">Yedekleme hazırlanıyor</string>
     <string name="backup_step_opening_repository">Yedekleme deposu açılıyor</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">Kasa verisi dışa aktarılıyor</string>
     <string name="backup_step_scanning_attachments">Ekler taranıyor</string>
     <string name="backup_step_backing_up_attachments">Ekler yedekleniyor</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">Bitiş: %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">Son yedekleme başarısız oldu</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">Son yedekleme atlandı</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">Henüz yedekleme yok</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">Otomatik yedeklemeyi kapat</string>
     <string name="pref_item_automatic_backups_disable_message">Bu işlem yalnızca gelecekteki otomatik yedeklemeleri durdurur. Keyguard'daki yerel klasör, parola ve ek seçimini sıfırlar. Klasördeki mevcut yedek dosyaları silinmez.</string>
     <string name="pref_item_automatic_backups_disable_action">Kapat…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">Gezinme öğeleri</string>
     <string name="pref_item_nav_label_title">Gezinme düğmelerinde etiketleri göster</string>
     <string name="pref_item_nav_label_short_title">Etiketleri göster</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">Tüm anahtarlar erişilebilir</string>
     <string name="pref_item_agent_filters_summary_active">Filtreler etkin</string>
     <string name="pref_item_agent_history_title">İstek günlüğü</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">SSH aracısını etkinleştir</string>
     <string name="pref_item_ssh_agent_description">Keyguard, kasanızdaki SSH anahtarlarını ssh/git için kullanıma sunar. Her imzalama sizin onayınızı gerektirir.</string>
     <string name="pref_item_license_key_title">Mevcut lisans belirtecini bağla</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

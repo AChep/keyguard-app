@@ -150,6 +150,9 @@
     <string name="expiring_soon">Brzy expiruje</string>
     <string name="item_incomplete_title">Neúplné údaje</string>
     <string name="item_incomplete_text">Této položce chybí některé důležité informace.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Položka</string>
     <string name="items">Položky</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> položek</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">Vybrat typ</string>
     <string name="select_file">Vybrat soubor</string>
     <string name="additem_attachments_drop_here">Přetažením souboru sem jej přidáte jako přílohu</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">Přetažením souboru nahradíte vybraný soubor</string>
     <string name="autofill">Automatické vyplňování</string>
     <string name="autofill_and_save_uri">Automaticky vyplnit a uložit informace o aplikaci nebo webu</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">Tajný klíč OTP kódu nesmí být prázdný</string>
     <string name="error_otp_key_is_invalid">Tajný klíč jednorázového hesla je neplatný</string>
     <string name="error_failed_file_already_exists">Soubor nelze vytvořit. Přepisování existujícího souboru není povoleno</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">Tento účet je již přidaný do Keyguardu</string>
     <string name="error_failed_generate_kdf_hash_oom">Nepodařilo se vytvořit klíč, nedostatek paměti. Zkontrolujte prosím nastavení vašeho serveru KDF.</string>
     <string name="error_failed_generate_otp_code">Nepodařilo se vygenerovat OTP kód</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Neznámý volající</string>
     <string name="agent_history_unknown_key">Neznámý klíč</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">Všechny dostupné klíče</string>
     <string name="agent_history_clear_history_title">Vymazat historii</string>
     <string name="agent_history_clear_history_confirmation_title">Vymazat historii agenta <xliff:g id="protocol" example="SSH">%1$s</xliff:g>?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">Změňte adresy používající protokol HTTP tak, aby používaly protokol HTTPS, který používá nejpokročilejší dostupné šifrování.</string>
     <string name="watchtower_item_inactive_2fa_title">Neaktivní dvoufaktorové ověřování</string>
     <string name="watchtower_item_inactive_2fa_text">Weby, které mají dostupné dvoufaktorové ověřování, ale na kterých jste jej zatím nenastavili.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Dostupné přístupové klíče</string>
     <string name="watchtower_item_inactive_passkey_text">Weby, které mají dostupné přístupové klíče, ale na kterých jste jej zatím nenastavili. Jsou jednodušší a bezpečnější než heslo.</string>
     <string name="watchtower_item_incomplete_items_title">Nekompletní položky</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">Exportovat trezor jako šifrovaný ZIP archiv.</string>
     <string name="exportaccount_format_title">Formát</string>
     <string name="exportaccount_format_zip">Archiv ZIP</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">Databáze KeePass (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">Heslo databáze</string>
     <string name="exportaccount_format_kdbx_note">Exportovat trezor jako databázi KeePass. Složky se převedou na skupiny. Organizace a kolekce se neexportují.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> – <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">Příprava zálohy</string>
     <string name="backup_step_opening_repository">Otevírání úložiště záloh</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">Export dat trezoru</string>
     <string name="backup_step_scanning_attachments">Prohledávání příloh</string>
     <string name="backup_step_backing_up_attachments">Zálohování příloh</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">Dokončeno: %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">Poslední záloha selhala</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">Poslední záloha přeskočena</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">Zatím žádná záloha</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">Vypnout automatické zálohování</string>
     <string name="pref_item_automatic_backups_disable_message">Tímto vypnete pouze budoucí automatické zálohování. Z aplikace Keyguard se odstraní nastavení místní složky, heslo a volba zahrnutí příloh. Stávající úložiště záloh ani soubory v této složce se nesmažou.</string>
     <string name="pref_item_automatic_backups_disable_action">Vypnout…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">Položky navigace</string>
     <string name="pref_item_nav_label_title">Zobrazit popisky na navigačních tlačítkách</string>
     <string name="pref_item_nav_label_short_title">Zobrazovat popisky navigace</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">Přístup ke všem klíčům</string>
     <string name="pref_item_agent_filters_summary_active">Filtry jsou aktivní</string>
     <string name="pref_item_agent_history_title">Protokol žádostí</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Zapnout SSH agenta</string>
     <string name="pref_item_ssh_agent_description">Keyguard poskytuje klíče SSH z vašeho trezoru nástrojům ssh/git. Každý podpis vyžaduje vaše schválení.</string>
     <string name="pref_item_license_key_title">Propojit existující licenční token</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

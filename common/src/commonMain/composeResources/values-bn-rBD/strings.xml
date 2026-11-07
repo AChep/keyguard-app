@@ -150,6 +150,9 @@
     <string name="expiring_soon">মেয়াদ শেষ হতে চলেছে</string>
     <string name="item_incomplete_title">অসম্পূর্ণ তথ্য</string>
     <string name="item_incomplete_text">এই ভল্ট আইটেমটিতে কিছু গুরুত্বপূর্ণ তথ্য অনুপস্থিত।</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">আইটেম</string>
     <string name="items">আইটেমগুলো</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> আইটেম</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">একটি ধরন নির্বাচন করুন</string>
     <string name="select_file">একটি ফাইল নির্বাচন করুন</string>
     <string name="additem_attachments_drop_here">সংযুক্তি হিসেবে যুক্ত করতে এখানে একটি ফাইল ড্রপ করুন</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">সিলেক্টেড ফাইলটি প্রতিস্থাপন করতে একটি ফাইল ড্রপ করুন</string>
     <string name="autofill">অটোফিল</string>
     <string name="autofill_and_save_uri">অটোফিল ও অ্যাপ কিংবা ওয়েবসাইটের তথ্য সংরক্ষণ করুন</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">ওয়ান টাইম পাসওয়ার্ডের গোপন চাবি খালি রাখা যাবে না</string>
     <string name="error_otp_key_is_invalid">একবার ব্যবহারযোগ্য পাসওয়ার্ডের গোপন চাবিটি সঠিক নয়</string>
     <string name="error_failed_file_already_exists">ফাইল তৈরি করা যায়নি। বিদ্যমান ফাইল প্রতিস্থাপন করার অনুমতি নেই</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">এই অ্যাকাউন্টটি ইতিমধ্যেই Keyguard-এ যোগ করা আছে</string>
     <string name="error_failed_generate_kdf_hash_oom">পর্যাপ্ত মেমরি না থাকায় কী তৈরি করা যায়নি। আপনার সার্ভারের KDF সেটিংস পরীক্ষা করুন।</string>
     <string name="error_failed_generate_otp_code">OTP কোড তৈরি করা যায়নি</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">অজানা অনুরোধকারী</string>
     <string name="agent_history_unknown_key">অজানা চাবি</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">ব্যবহারের অনুমতি আছে এমন সব চাবি</string>
     <string name="agent_history_clear_history_title">ইতিহাস মুছুন</string>
     <string name="agent_history_clear_history_confirmation_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> এজেন্টের ইতিহাস মুছবেন?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">যেসব ইউআরএলে HTTP প্রোটোকল ব্যবহৃত হয়, সেগুলোতে HTTPS প্রোটোকল ব্যবহার করুন, কারণ এটি সবচেয়ে উন্নত এনক্রিপশন ব্যবহার করে।</string>
     <string name="watchtower_item_inactive_2fa_title">নিষ্ক্রিয় দুই-ধাপের যাচাইকরণ</string>
     <string name="watchtower_item_inactive_2fa_text">যেসব সাইটে দুই-ধাপের যাচাইকরণের সুবিধা আছে, কিন্তু আপনি এখনো তা চালু করেননি।</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">উপলভ্য পাসকী</string>
     <string name="watchtower_item_inactive_passkey_text">যেসব সাইটে পাসকী ব্যবহার করা যায়, কিন্তু আপনি এখনো সেটি সেট আপ করেননি। এটি পাসওয়ার্ডের চেয়ে সহজ ও বেশি নিরাপদ।</string>
     <string name="watchtower_item_incomplete_items_title">অসম্পূর্ণ আইটেমগুলো</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">এনক্রিপ্ট করা ZIP আর্কাইভ হিসেবে ভল্ট এক্সপোর্ট করুন।</string>
     <string name="exportaccount_format_title">ফরম্যাট</string>
     <string name="exportaccount_format_zip">ZIP আর্কাইভ</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">KeePass ডেটাবেস (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">ডেটাবেসের পাসওয়ার্ড</string>
     <string name="exportaccount_format_kdbx_note">KeePass ডেটাবেস হিসেবে ভল্ট এক্সপোর্ট করুন। ফোল্ডারগুলো গ্রুপে পরিণত হবে। সংগঠন ও সংগ্রহ এক্সপোর্ট করা হবে না।</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">ব্যাকআপ প্রস্তুত করা হচ্ছে</string>
     <string name="backup_step_opening_repository">ব্যাকআপ রিপোজিটরি খোলা হচ্ছে</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">ভল্টের ডেটা এক্সপোর্ট করা হচ্ছে</string>
     <string name="backup_step_scanning_attachments">সংযুক্তি স্ক্যান করা হচ্ছে</string>
     <string name="backup_step_backing_up_attachments">সংযুক্তিগুলোর ব্যাকআপ নেওয়া হচ্ছে</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">%1$s-এ শেষ হয়েছে।</string>
     <string name="pref_item_automatic_backups_status_error_title">সর্বশেষ ব্যাকআপ ব্যর্থ হয়েছে</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">সর্বশেষ ব্যাকআপ বাদ দেওয়া হয়েছে</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">এখনও কোনো ব্যাকআপ নেই</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">স্বয়ংক্রিয় ব্যাকআপ বন্ধ করুন</string>
     <string name="pref_item_automatic_backups_disable_message">এতে শুধু ভবিষ্যতের স্বয়ংক্রিয় ব্যাকআপ বন্ধ হবে। Keyguard থেকে স্থানীয় ফোল্ডার, পাসওয়ার্ড এবং সংযুক্তি অন্তর্ভুক্ত করার পছন্দ মুছে যাবে। ওই ফোল্ডারের বিদ্যমান ব্যাকআপ রিপোজিটরি ও ফাইলগুলো মুছে যাবে না।</string>
     <string name="pref_item_automatic_backups_disable_action">বন্ধ করুন…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">নেভিগেশনের আইটেম</string>
     <string name="pref_item_nav_label_title">নেভিগেশন বোতামে লেবেল দেখান</string>
     <string name="pref_item_nav_label_short_title">নেভিগেশন লেবেল দেখান</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">সব চাবি ব্যবহারযোগ্য</string>
     <string name="pref_item_agent_filters_summary_active">ফিল্টার চালু</string>
     <string name="pref_item_agent_history_title">অনুরোধের লগ</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">SSH এজেন্ট চালু করুন</string>
     <string name="pref_item_ssh_agent_description">Keyguard আপনার ভল্টের SSH চাবিগুলো ssh/git-কে ব্যবহার করতে দেয়। প্রতিবার স্বাক্ষর করতে আপনার অনুমোদন প্রয়োজন।</string>
     <string name="pref_item_license_key_title">বিদ্যমান ব্যবহারাধিকারের টোকেন যুক্ত করুন</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

@@ -150,6 +150,9 @@
     <string name="expiring_soon">Expiring soon</string>
     <string name="item_incomplete_title">Incomplete data</string>
     <string name="item_incomplete_text">This item is missing some of the important information.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Item</string>
     <string name="items">Items</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> items</string>
@@ -220,7 +223,8 @@
     <string name="expiration_date_never">Never</string>
     <string name="select_linked_type">Select a type</string>
     <string name="select_file">Select a file</string>
-    <string name="additem_attachments_drop_here">Drop a file here to add it as an attachment</string>
+    <string name="additem_attachments_drop_here">Drop files here to add them as attachments</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Autofill</string>
     <string name="autofill_and_save_uri">Autofill and save app or website info</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">One-time password's secret key must not be empty</string>
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">This account is already added to Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Unknown caller</string>
     <string name="agent_history_unknown_key">Unknown key</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">All accessible keys</string>
     <string name="agent_history_clear_history_title">Clear history</string>
     <string name="agent_history_clear_history_confirmation_title">Clear <xliff:g id="protocol" example="SSH">%1$s</xliff:g> agent history?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">Change the URLs that use HTTP protocol to use HTTPS protocol, as the latter utilizes the most advanced encryption available.</string>
     <string name="watchtower_item_inactive_2fa_title">Inactive two-factor authentication</string>
     <string name="watchtower_item_inactive_2fa_text">Sites that have two-factor authentication available but you haven't set it up yet.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Available Passkeys</string>
     <string name="watchtower_item_inactive_passkey_text">Sites that have passkeys available but you haven't set it up yet. It's simpler and more secure than a password.</string>
     <string name="watchtower_item_incomplete_items_title">Incomplete Items</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">Export vault as an encrypted ZIP archive.</string>
     <string name="exportaccount_format_title">Format</string>
     <string name="exportaccount_format_zip">ZIP archive</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">KeePass database (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">Database password</string>
     <string name="exportaccount_format_kdbx_note">Export vault as a KeePass database. Folders become groups. Organizations and collections are not exported.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">Preparing backup</string>
     <string name="backup_step_opening_repository">Opening backup repository</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">Exporting vault data</string>
     <string name="backup_step_scanning_attachments">Scanning attachments</string>
     <string name="backup_step_backing_up_attachments">Backing up attachments</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">Finished %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">Last backup failed</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">Last backup skipped</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">No backup yet</string>
@@ -1862,7 +1889,7 @@
     <string name="pref_item_automatic_backups_details_321_two">Two independent places or storage types</string>
     <string name="pref_item_automatic_backups_details_321_one">One copy off-device or off-site</string>
     <string name="pref_item_automatic_backups_details_repository_structure_title">Repository structure</string>
-    <string name="pref_item_automatic_backups_details_repository_structure_text">Encrypted repositories use ZIP AES-256. Open repo.zip and the latest readable indexes/*.zip with the backup password; the index points to each snapshots/*.zip and blobs/**/*.zip archive and stores its ZIP password as encryption.keyBase64. If no backup password was set, these files are regular ZIP archives.</string>
+    <string name="pref_item_automatic_backups_details_repository_structure_text">Encrypted repositories use age for metadata and indexes, and ZIP AES-256 for snapshots and blobs. Decrypt repo.zip.age with the backup password using any age tool, then unzip it; repo.json stores the index key as keys.index. Decrypt the latest indexes/*.zip.age with that key. The index points to each snapshots/*.zip and blobs/**/*.zip archive and stores its ZIP password as encryption.keyBase64. repo.zip is a marker with no keys. Older repositories use ZIP AES-256 throughout: open repo.zip and indexes/*.zip with the backup password. If no backup password was set, these files are regular ZIP archives.</string>
     <string name="pref_item_automatic_backups_details_retention_title">Snapshot retention</string>
     <string name="pref_item_automatic_backups_details_retention_text">Retention is bucketed, so the history is not just the last snapshots in order. Keyguard keeps the newest snapshot, then prefers daily checkpoints from the last week and weekly checkpoints across the last month; any remaining slots go to the newest available snapshots.</string>
     <string name="pref_item_automatic_backups_details_sync_title">Cloud sync</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">Turn off automatic backups</string>
     <string name="pref_item_automatic_backups_disable_message">This only turns off future automatic backups. It clears the local folder, password, and attachment choice from Keyguard. The existing backup repository and files in that folder are not deleted.</string>
     <string name="pref_item_automatic_backups_disable_action">Disable…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">Navigation items</string>
     <string name="pref_item_nav_label_title">Show labels on navigation buttons</string>
     <string name="pref_item_nav_label_short_title">Show navigation labels</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">All keys accessible</string>
     <string name="pref_item_agent_filters_summary_active">Filters active</string>
     <string name="pref_item_agent_history_title">Request log</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Enable SSH agent</string>
     <string name="pref_item_ssh_agent_description">Keyguard serves your vault's SSH keys to ssh/git. Each signature requires your approval.</string>
     <string name="pref_item_license_key_title">Link existing entitlement token</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

@@ -150,6 +150,9 @@
     <string name="expiring_soon">تنتهي قريبا</string>
     <string name="item_incomplete_title">بيانات غير كاملة</string>
     <string name="item_incomplete_text">يفتقد هذا العنصر بعض المعلومات المهمة.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">غرض</string>
     <string name="items">أغراض</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> عناصر</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">حدد النوع</string>
     <string name="select_file">حدد ملفًا</string>
     <string name="additem_attachments_drop_here">اسحب ملفاً وأفلته هنا لإضافته كمرفق</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">اسحب ملفاً وأفلته لاستبدال الملف المحدد</string>
     <string name="autofill">الملء التلقائي</string>
     <string name="autofill_and_save_uri">الملء التلقائي وحفظ معلومات التطبيق أو موقع الويب</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">يجب ألا يكون المفتاح السري لكلمة المرور لمرة واحدة فارغًا</string>
     <string name="error_otp_key_is_invalid">المفتاح السري لكلمة المرور لمرة واحدة غير صالح</string>
     <string name="error_failed_file_already_exists">فشل إنشاء ملف. استبدال ملف موجود غير مسموح به</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">هذا الحساب مضاف بالفعل إلى Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">فشل في إنشاء مفتاح، لا توجد ذاكرة كافية. يرجى التحقق من إعدادات خادم KDF الخاص بك.</string>
     <string name="error_failed_generate_otp_code">فشل في إنشاء رمز OTP</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">الجهة الطالبة غير معروفة</string>
     <string name="agent_history_unknown_key">مفتاح غير معروف</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">جميع المفاتيح المتاحة</string>
     <string name="agent_history_clear_history_title">مسح السجل</string>
     <string name="agent_history_clear_history_confirmation_title">هل تريد مسح سجل وكيل <xliff:g id="protocol" example="SSH">%1$s</xliff:g>؟</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">قم بتغيير عناوين URL التي تستخدم بروتوكول HTTP لاستخدام بروتوكول HTTPS، حيث يستخدم الأخير التشفير الأكثر تقدمًا المتاح.</string>
     <string name="watchtower_item_inactive_2fa_title">المصادقة الثنائية غير النشطة</string>
     <string name="watchtower_item_inactive_2fa_text">المواقع التي تتوفر بها المصادقة الثنائية ولكنك لم تقم بإعدادها بعد.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">مفاتيح المرور المتاحة</string>
     <string name="watchtower_item_inactive_passkey_text">المواقع التي يتوفر بها مفتاح مرور ولكنك لم تقم بإعداده بعد. إنها أبسط وأكثر أمانًا من كلمة المرور.</string>
     <string name="watchtower_item_incomplete_items_title">العناصر غير المكتملة</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">تصدير القبو كأرشيف ZIP مشفر.</string>
     <string name="exportaccount_format_title">الصيغة</string>
     <string name="exportaccount_format_zip">أرشيف ZIP</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">قاعدة بيانات KeePass ‏(KDBX)</string>
     <string name="exportaccount_kdbx_password_label">كلمة مرور قاعدة البيانات</string>
     <string name="exportaccount_format_kdbx_note">تصدير الخزنة كقاعدة بيانات KeePass. تتحول المجلدات إلى مجموعات. لا تُصدَّر المنظمات والمجموعات المشتركة.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">جارٍ إعداد النسخة الاحتياطية</string>
     <string name="backup_step_opening_repository">جارٍ فتح مستودع النسخ الاحتياطي</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">جارٍ تصدير بيانات الخزنة</string>
     <string name="backup_step_scanning_attachments">جارٍ فحص المرفقات</string>
     <string name="backup_step_backing_up_attachments">جارٍ نسخ المرفقات احتياطيًا</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">انتهى %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">فشلت آخر نسخة احتياطية</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">تم تخطي آخر نسخة احتياطية</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">لا توجد نسخة احتياطية بعد</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">إيقاف النسخ الاحتياطي التلقائي</string>
     <string name="pref_item_automatic_backups_disable_message">يؤدي هذا فقط إلى إيقاف النسخ الاحتياطي التلقائي المستقبلي. يمسح المجلد المحلي وكلمة المرور وخيار المرفقات من Keyguard. لا يُحذف مستودع النسخ الاحتياطي الحالي والملفات الموجودة في ذلك المجلد.</string>
     <string name="pref_item_automatic_backups_disable_action">تعطيل...</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">عناصر التنقل</string>
     <string name="pref_item_nav_label_title">إظهار التسميات على أزرار التنقل</string>
     <string name="pref_item_nav_label_short_title">إظهار عناوين التنقل</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">كل المفاتيح متاحة</string>
     <string name="pref_item_agent_filters_summary_active">عوامل التصفية مفعّلة</string>
     <string name="pref_item_agent_history_title">سجل الطلبات</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">تفعيل وكيل SSH</string>
     <string name="pref_item_ssh_agent_description">يوفّر Keyguard مفاتيح SSH من خزنتك لـ ssh/git. يتطلب كل توقيع موافقتك.</string>
     <string name="pref_item_license_key_title">ربط رمز استحقاق موجود</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

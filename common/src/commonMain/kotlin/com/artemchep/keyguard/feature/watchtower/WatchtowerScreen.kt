@@ -423,6 +423,12 @@ fun WatchtowerScreen2(
                 }
 
                 state.content.RenderCard(
+                    transform = { unusableTwoFactorAuth },
+                ) { unusableTwoFactorAuth ->
+                    CardUnusableTwoFactorAuth(unusableTwoFactorAuth)
+                }
+
+                state.content.RenderCard(
                     transform = { unusableSshCertificates },
                 ) { unusableSshCertificates ->
                     CardUnusableSshCertificates(unusableSshCertificates)
@@ -873,6 +879,26 @@ private fun CardWeakSshKeys(
         },
         text = stringResource(Res.string.watchtower_item_weak_ssh_keys_text),
         imageVector = Icons.Outlined.KeyguardSshKey,
+        onClick = state.onClick,
+    )
+}
+
+@Composable
+private fun CardUnusableTwoFactorAuth(
+    state: WatchtowerState.Content.UnusableTwoFactorAuth,
+) {
+    Card(
+        number = state.count,
+        new = state.new,
+        title = {
+            ContentCardsContentTitle(
+                icon = WatchtowerStatusIcon.WARNING.takeIf { state.count > 0 }
+                    ?: WatchtowerStatusIcon.OK,
+                title = stringResource(Res.string.watchtower_item_unusable_2fa_title),
+            )
+        },
+        text = stringResource(Res.string.watchtower_item_unusable_2fa_text),
+        imageVector = Icons.Outlined.KeyguardTwoFa,
         onClick = state.onClick,
     )
 }

@@ -585,7 +585,7 @@ fun RememberStateFlowScope.cipherSendAction(
         ).let { yield(it) }
         createSendItemOrNull(
             name = TextHolder.Res(Res.string.one_time_password_authenticator_key),
-            value = login.totp?.raw.orEmpty(),
+            value = login.totpRaw.orEmpty(),
         ).let { yield(it) }
     }
 

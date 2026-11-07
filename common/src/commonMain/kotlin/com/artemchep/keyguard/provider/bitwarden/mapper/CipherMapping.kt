@@ -176,6 +176,7 @@ fun BitwardenCipher.IgnoreAlertType.toDomain() = when (this) {
     BitwardenCipher.IgnoreAlertType.PWNED_WEBSITE -> DWatchtowerAlertType.PWNED_WEBSITE
     BitwardenCipher.IgnoreAlertType.UNSECURE_WEBSITE -> DWatchtowerAlertType.UNSECURE_WEBSITE
     BitwardenCipher.IgnoreAlertType.TWO_FA_WEBSITE -> DWatchtowerAlertType.TWO_FA_WEBSITE
+    BitwardenCipher.IgnoreAlertType.TWO_FA_UNUSABLE -> DWatchtowerAlertType.TWO_FA_UNUSABLE
     BitwardenCipher.IgnoreAlertType.PASSKEY_WEBSITE -> DWatchtowerAlertType.PASSKEY_WEBSITE
     BitwardenCipher.IgnoreAlertType.DUPLICATE -> DWatchtowerAlertType.DUPLICATE
     BitwardenCipher.IgnoreAlertType.DUPLICATE_URIS -> DWatchtowerAlertType.DUPLICATE_URIS
@@ -310,14 +311,10 @@ fun BitwardenCipher.Attachment.Local.toDomain() = DSecret.Attachment.Local(
 
 suspend fun BitwardenCipher.Login.toDomain(
     getPasswordStrength: GetPasswordStrength,
-) = DSecret.Login(
-    username = username,
-    password = password,
-    passwordStrength = passwordStrength?.toDomain() ?: password?.let {
-        getPasswordStrength(it).attempt().bind().getOrNull()
-    },
-    passwordRevisionDate = passwordRevisionDate,
-    totp = totp
+): DSecret.Login {
+    val totpRaw = totp
+        ?.takeIf { it.isNotBlank() }
+    val totp = totpRaw
         ?.let { raw ->
             TotpToken
                 .parse(raw)
@@ -328,12 +325,25 @@ suspend fun BitwardenCipher.Login.toDomain(
                     )
                 }
                 .getOrNull()
+        }
+    return DSecret.Login(
+        username = username,
+        password = password,
+        passwordStrength = passwordStrength?.toDomain() ?: password?.let {
+            getPasswordStrength(it).attempt().bind().getOrNull()
         },
-    fido2Credentials = fido2Credentials
-        .map { credentials ->
-            credentials.toDomain()
-        },
-)
+        passwordRevisionDate = passwordRevisionDate,
+        totp = totp,
+        // Keep the value we can not parse, so that editing
+        // the item does not remove it.
+        totpUnsupported = totpRaw
+            .takeIf { totp == null },
+        fido2Credentials = fido2Credentials
+            .map { credentials ->
+                credentials.toDomain()
+            },
+    )
+}
 
 fun BitwardenCipher.Login.Fido2Credentials.toDomain() = kotlin.run {
     val counter = counter

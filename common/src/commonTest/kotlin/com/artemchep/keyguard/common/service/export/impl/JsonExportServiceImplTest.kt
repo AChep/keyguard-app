@@ -277,6 +277,24 @@ class JsonExportServiceImplTest {
     }
 
     @Test
+    fun `exports a one-time password that Keyguard can not parse`() {
+        val cipher = createSecret(
+            id = "cipher",
+            login = DSecret.Login(
+                totpUnsupported = UNSUPPORTED_TOTP,
+            ),
+        )
+
+        val totp = exportedItem(cipher)
+            .getValue("login")
+            .jsonObject
+            .getValue("totp")
+            .jsonPrimitive
+            .content
+        assertEquals(UNSUPPORTED_TOTP, totp)
+    }
+
+    @Test
     fun `exports null fields when there are no user fields or links`() {
         assertEquals(
             JsonNull,
@@ -284,7 +302,10 @@ class JsonExportServiceImplTest {
         )
     }
 
-    private fun exportedFields(cipher: DSecret) = json
+    private fun exportedFields(cipher: DSecret) = exportedItem(cipher)
+        .getValue("fields")
+
+    private fun exportedItem(cipher: DSecret) = json
         .parseToJsonElement(
             service.export(
                 organizations = emptyList(),
@@ -298,7 +319,6 @@ class JsonExportServiceImplTest {
         .jsonArray
         .single()
         .jsonObject
-        .getValue("fields")
 
     private fun passkey(
         credentialId: String,
@@ -339,3 +359,5 @@ private const val PRIVATE_KEY_ARMORED = "-----BEGIN PGP PRIVATE KEY BLOCK-----"
 private const val PUBLIC_KEY_ARMORED = "-----BEGIN PGP PUBLIC KEY BLOCK-----"
 private const val FINGERPRINT = "0123456789ABCDEF"
 private const val CERTIFICATE = "ssh-ed25519-cert-v01@openssh.com AAAA user@example.com"
+
+private const val UNSUPPORTED_TOTP = "otpauth://totp/Example?secret=JBSWY3DPEHPK3PXP&digits=10"

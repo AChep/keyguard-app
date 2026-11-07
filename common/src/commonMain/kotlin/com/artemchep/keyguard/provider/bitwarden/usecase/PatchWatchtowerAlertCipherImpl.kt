@@ -46,6 +46,7 @@ class PatchWatchtowerAlertCipherImpl(
                     DWatchtowerAlertType.PWNED_WEBSITE -> BitwardenCipher.IgnoreAlertType.PWNED_WEBSITE
                     DWatchtowerAlertType.UNSECURE_WEBSITE -> BitwardenCipher.IgnoreAlertType.UNSECURE_WEBSITE
                     DWatchtowerAlertType.TWO_FA_WEBSITE -> BitwardenCipher.IgnoreAlertType.TWO_FA_WEBSITE
+                    DWatchtowerAlertType.TWO_FA_UNUSABLE -> BitwardenCipher.IgnoreAlertType.TWO_FA_UNUSABLE
                     DWatchtowerAlertType.PASSKEY_WEBSITE -> BitwardenCipher.IgnoreAlertType.PASSKEY_WEBSITE
                     DWatchtowerAlertType.DUPLICATE -> BitwardenCipher.IgnoreAlertType.DUPLICATE
                     DWatchtowerAlertType.DUPLICATE_URIS -> BitwardenCipher.IgnoreAlertType.DUPLICATE_URIS

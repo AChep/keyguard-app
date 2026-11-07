@@ -341,8 +341,21 @@ data class DSecret(
         val passwordRevisionDate: Instant? = null,
         val fido2Credentials: List<Fido2Credentials> = emptyList(),
         val totp: Totp? = null,
+        /**
+         * The stored one-time password value that Keyguard can not
+         * parse, `null` if there is none or it parses into [totp].
+         * Kept so that saving the item does not drop the value.
+         */
+        val totpUnsupported: String? = null,
     ) {
         companion object;
+
+        /**
+         * The stored one-time password value, whether Keyguard
+         * can generate codes from it or not.
+         */
+        val totpRaw: String?
+            get() = totp?.raw ?: totpUnsupported
 
         @optics
         data class PasswordHistory(

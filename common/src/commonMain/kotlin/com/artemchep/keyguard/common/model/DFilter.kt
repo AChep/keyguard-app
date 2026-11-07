@@ -1297,6 +1297,39 @@ sealed interface DFilter {
     }
 
     @Serializable
+    @SerialName("by_unusable_tfa")
+    data object ByUnusableTfa : PrimitiveSimple {
+        @Transient
+        override val key: String = "unusable_tfa"
+
+        @Transient
+        override val content = PrimitiveSimple.Content(
+            title = Res.string.watchtower_item_unusable_2fa_title
+                .let(TextHolder::Res),
+            icon = Icons.Outlined.KeyguardTwoFa,
+        )
+
+        override suspend fun prepare(
+            context: CipherFilterContext,
+            ciphers: List<DSecret>,
+        ) = kotlin.run {
+            val ids = filterWatchtowerAlert(
+                context = context,
+                ciphers = ciphers,
+                type = DWatchtowerAlertType.TWO_FA_UNUSABLE,
+            )
+                .map { it.id }
+                .toSet()
+            ::predicate.partially1(ids)
+        }
+
+        private fun predicate(
+            ids: Set<String>,
+            cipher: DSecret,
+        ) = cipher.id in ids
+    }
+
+    @Serializable
     @SerialName("by_passkey_websites")
     data object ByPasskeyWebsites : PrimitiveSimple {
         @Transient

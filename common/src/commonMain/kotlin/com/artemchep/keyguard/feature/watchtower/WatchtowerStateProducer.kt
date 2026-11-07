@@ -1050,6 +1050,49 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
         },
     )
 
+    suspend fun onClickUnusableTfa(
+        filter: DFilter,
+    ) {
+        val intent = NavigationIntent.NavigateToRoute(
+            vaultRouteFactory.watchtower(
+                title = translate(Res.string.watchtower_item_unusable_2fa_title),
+                subtitle = translate(Res.string.watchtower_header_title),
+                filter = DFilter.And(
+                    filters = listOfNotNull(
+                        DFilter.ByUnusableTfa,
+                        filter,
+                        args.filter,
+                    ),
+                ),
+            ),
+        )
+        navigate(intent)
+    }
+
+    val unusableTwoFactorAuthFlow = createCipherAlertStateFlow(
+        key = DFilter.ByUnusableTfa.key,
+        type = DWatchtowerAlertType.TWO_FA_UNUSABLE,
+        onCreate = { holder, count, new ->
+            val onClick = if (count > 0) {
+                val filter = holder?.filterConfig?.filter
+                    ?: DFilter.All
+                onClick {
+                    onClickUnusableTfa(
+                        filter = filter,
+                    )
+                }
+            } else {
+                null
+            }
+            WatchtowerState.Content.UnusableTwoFactorAuth(
+                revision = holder?.filterConfig?.id ?: 0,
+                count = count,
+                new = new,
+                onClick = onClick,
+            )
+        },
+    )
+
     suspend fun onClickUnusableSshCertificates(
         filter: DFilter,
     ) {
@@ -1538,6 +1581,7 @@ suspend fun RememberStateFlowScope.watchtowerStateProducer(
         duplicateWebsites = duplicateWebsitesFlow,
         broadWebsites = broadWebsitesFlow,
         inactiveTwoFactorAuth = inactiveTwoFactorAuthFlow,
+        unusableTwoFactorAuth = unusableTwoFactorAuthFlow,
         inactivePasskey = inactivePasskeyFlow,
         accountCompromised = accountCompromisedFlow,
         pwned = passwordPwnedFlow,

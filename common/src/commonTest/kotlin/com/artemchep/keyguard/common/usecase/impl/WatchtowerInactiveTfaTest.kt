@@ -2,7 +2,10 @@ package com.artemchep.keyguard.common.usecase.impl
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
+import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomains
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilder
+import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.service.twofa.TwoFaServiceInfo
 import kotlinx.coroutines.flow.toList
@@ -79,6 +82,38 @@ class WatchtowerInactiveTfaTest {
 
         assertEquals(listOf(equivalent), result)
         assertEquals(1, tldService.callCount)
+    }
+
+    @Test
+    fun `an unsupported one-time password counts as set up`() = runTest {
+        val tldService = RecordingTfaTldService("example.com")
+        val cipher = domainLoginSecret("https://login.example.com/path")
+            .let { secret ->
+                secret.copy(
+                    login = DSecret.Login(totpUnsupported = "otpauth://totp/Example?secret=JBSWY3DP&digits=10"),
+                )
+            }
+        val equivalentDomainsBuilder = EquivalentDomainsBuilder(
+            logRepository = LogRepositoryBridge(emptyList()),
+            sharedAllEquivalentDomains = { emptyList() },
+        )
+
+        val tfaLibrary = listOf(service(name = "direct", domain = "login.example.com"))
+
+        val (withoutTotp, withUnsupportedTotp) = with(tldService) {
+            WatchtowerInactiveTfa.hasAlert(
+                cipher = cipher.copy(login = DSecret.Login()),
+                tfaLibrary = tfaLibrary,
+                equivalentDomainsBuilder = equivalentDomainsBuilder,
+            ) to WatchtowerInactiveTfa.hasAlert(
+                cipher = cipher,
+                tfaLibrary = tfaLibrary,
+                equivalentDomainsBuilder = equivalentDomainsBuilder,
+            )
+        }
+
+        assertEquals("login.example.com", withoutTotp)
+        assertNull(withUnsupportedTotp)
     }
 
     @Test

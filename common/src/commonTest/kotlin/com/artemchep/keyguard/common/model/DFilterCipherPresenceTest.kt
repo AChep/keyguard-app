@@ -217,6 +217,7 @@ class DFilterCipherPresenceTest {
         assertNull(DFilter.ByExpiring.existsIn(presence))
         assertNull(DFilter.ByUnsecureWebsites.existsIn(presence))
         assertNull(DFilter.ByTfaWebsites.existsIn(presence))
+        assertNull(DFilter.ByUnusableTfa.existsIn(presence))
         assertNull(DFilter.ByPasskeyWebsites.existsIn(presence))
         assertNull(DFilter.ByDuplicateWebsites.existsIn(presence))
         assertNull(DFilter.ByBroadWebsites.existsIn(presence))

@@ -389,8 +389,8 @@ class CipherDuplicatesCheckImpl(
                 weight = 1f,
             ).let { result.add(it, type = "password") }
             compareStringsFuzzy(
-                a = aLogin.totp?.raw,
-                b = bLogin.totp?.raw,
+                a = aLogin.totpRaw,
+                b = bLogin.totpRaw,
                 min = -4f,
                 strategy = ComparisonStrategy.Exact,
                 weight = 5f,

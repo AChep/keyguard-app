@@ -74,6 +74,7 @@ import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordPwned
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerPasswordStrength
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSshCertificateUnusable
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSshKeyStrength
+import com.artemchep.keyguard.common.usecase.impl.WatchtowerTwoFaUnusable
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerUnsecureWebsite
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerWeakGpgKey
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerWebsitePwned
@@ -132,6 +133,7 @@ internal class WatchtowerBenchmarkFixtures(
         DWatchtowerAlertType.SSH_CERTIFICATE_UNUSABLE to WatchtowerSshCertificateUnusable(
             sshCertificateParser = BenchmarkSshCertificateParser,
         ),
+        DWatchtowerAlertType.TWO_FA_UNUSABLE to WatchtowerTwoFaUnusable(),
         DWatchtowerAlertType.GPG_KEY_UNUSABLE to WatchtowerGpgKeyUnusable(
             policy = GpgWatchtowerPolicy(BenchmarkGpgParser),
         ),
@@ -210,6 +212,7 @@ internal class WatchtowerBenchmarkFixtures(
         clientCase("password-strength", DWatchtowerAlertType.WEAK_PASSWORD),
         clientCase("ssh-key-strength", DWatchtowerAlertType.WEAK_SSH_KEY),
         clientCase("ssh-certificate-unusable", DWatchtowerAlertType.SSH_CERTIFICATE_UNUSABLE),
+        clientCase("two-fa-unusable", DWatchtowerAlertType.TWO_FA_UNUSABLE),
         clientCase("gpg-key-unusable", DWatchtowerAlertType.GPG_KEY_UNUSABLE),
         clientCase("gpg-key-strength", DWatchtowerAlertType.WEAK_GPG_KEY),
         clientCase("gpg-key-publishing", DWatchtowerAlertType.GPG_KEY_PUBLISHING),
@@ -394,6 +397,8 @@ private fun createSecret(
                 version = 1L,
             ),
             passwordRevisionDate = FIXED_INSTANT,
+            totpUnsupported = "otpauth://totp/benchmark-$index?secret=JBSWY3DPEHPK3PXP&digits=10"
+                .takeIf { index % 41 == 5 },
         )
     } else {
         null

@@ -150,6 +150,9 @@
     <string name="expiring_soon">Expiring soon</string>
     <string name="item_incomplete_title">Incomplete data</string>
     <string name="item_incomplete_text">This item is missing some of the important information.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Item</string>
     <string name="items">Items</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> items</string>
@@ -1712,6 +1715,8 @@
     <string name="watchtower_item_unsecure_websites_text">Change the URLs that use HTTP protocol to use HTTPS protocol, as the latter utilizes the most advanced encryption available.</string>
     <string name="watchtower_item_inactive_2fa_title">Inactive two-factor authentication</string>
     <string name="watchtower_item_inactive_2fa_text">Sites that have two-factor authentication available but you haven't set it up yet.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Available Passkeys</string>
     <string name="watchtower_item_inactive_passkey_text">Sites that have passkeys available but you haven't set it up yet. It's simpler and more secure than a password.</string>
     <string name="watchtower_item_incomplete_items_title">Incomplete Items</string>

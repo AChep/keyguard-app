@@ -136,6 +136,7 @@ fun DFilter.Primitive.existsIn(
     is DFilter.ByPasswordValue,
     is DFilter.ByWeakSshKeys,
     is DFilter.ByUnusableSshCertificates,
+    is DFilter.ByUnusableTfa,
     is DFilter.ByUnusableGpgKeys,
     is DFilter.ByWeakGpgKeys,
     is DFilter.ByGpgKeyPublishing,

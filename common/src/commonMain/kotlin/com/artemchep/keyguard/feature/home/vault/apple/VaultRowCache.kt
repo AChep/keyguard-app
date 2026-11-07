@@ -120,7 +120,7 @@ internal val vaultRowFingerprintInputs: List<Pair<String, (DSecret) -> Any?>> = 
     "login.password" to { it.login?.password },
     "login.passwordStrength" to { it.login?.passwordStrength },
     "login.passwordRevisionDate" to { it.login?.passwordRevisionDate },
-    "login.totp" to { it.login?.totp?.raw },
+    "login.totp" to { it.login?.totpRaw },
     "login.fido2Credentials" to { secret ->
         secret.login?.fido2Credentials
             ?.map { "${it.credentialId}|${it.rpId}|${it.userDisplayName}|${it.userName}" }

@@ -40,6 +40,7 @@ import com.artemchep.keyguard.common.model.state
 import com.artemchep.keyguard.common.model.tags
 import com.artemchep.keyguard.common.model.title
 import com.artemchep.keyguard.common.model.totp
+import com.artemchep.keyguard.common.model.totpUnsupported
 import com.artemchep.keyguard.common.model.type
 import com.artemchep.keyguard.common.model.uris
 import com.artemchep.keyguard.common.model.username
@@ -103,6 +104,7 @@ class CipherMergeImpl : CipherMerge {
                     Node.Leaf(DSecret.Login.username),
                     Node.Leaf(DSecret.Login.password),
                     Node.Leaf(DSecret.Login.totp),
+                    Node.Leaf(DSecret.Login.totpUnsupported),
                     Node.Leaf(
                         lens = DSecret.Login.fido2Credentials,
                         strategy = PickPasskeyStrategy(),

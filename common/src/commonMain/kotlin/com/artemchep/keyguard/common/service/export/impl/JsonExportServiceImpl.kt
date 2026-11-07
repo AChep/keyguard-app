@@ -278,7 +278,7 @@ class JsonExportServiceImpl(
                 username = login.username,
                 password = login.password,
                 passwordRevisionDate = login.passwordRevisionDate,
-                totp = login.totp?.raw,
+                totp = login.totpRaw,
                 fido2Credentials = credentialsEntity,
             )
             val value = json.encodeToJsonElement(entity)

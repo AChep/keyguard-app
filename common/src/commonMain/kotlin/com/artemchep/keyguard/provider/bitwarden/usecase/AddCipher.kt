@@ -704,7 +704,7 @@ private suspend fun BitwardenCipher.Companion.of(
 
             val originTokens = originCiphers
                 .asSequence()
-                .mapNotNull { it.login?.totp?.raw }
+                .mapNotNull { it.login?.totpRaw }
             yieldAll(originTokens)
         }
             .distinct()

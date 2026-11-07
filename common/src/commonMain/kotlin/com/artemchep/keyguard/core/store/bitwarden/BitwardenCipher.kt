@@ -224,6 +224,8 @@ data class BitwardenCipher(
         UNSECURE_WEBSITE,
         @SerialName("twoFaWebsite")
         TWO_FA_WEBSITE,
+        @SerialName("twoFaUnusable")
+        TWO_FA_UNUSABLE,
         @SerialName("passkeyWebsite")
         PASSKEY_WEBSITE,
         @SerialName("duplicate")

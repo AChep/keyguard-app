@@ -133,6 +133,7 @@ private fun DFilter?.canPersist(): Boolean = when (this) {
     DFilter.ByExpiring,
     DFilter.ByUnsecureWebsites,
     DFilter.ByTfaWebsites,
+    DFilter.ByUnusableTfa,
     DFilter.ByPasskeyWebsites,
     DFilter.ByDuplicateWebsites,
     DFilter.ByBroadWebsites,

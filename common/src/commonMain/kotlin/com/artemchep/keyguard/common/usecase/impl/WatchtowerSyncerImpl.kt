@@ -1348,7 +1348,9 @@ class WatchtowerInactiveTfa(
             cipher: DSecret,
         ) = !shouldIgnore(cipher) &&
             cipher.uris.isNotEmpty() &&
-            cipher.login?.totp == null &&
+            // An unsupported one-time password still means that the
+            // two-factor authentication is set up.
+            cipher.login?.totpRaw == null &&
             (
                 cipher.login?.fido2Credentials.isNullOrEmpty() ||
                     !cipher.login?.password.isNullOrEmpty()
@@ -1367,7 +1369,7 @@ class WatchtowerInactiveTfa(
             .map {
                 it.int.toString()
             },
-        version = "2",
+        version = "3",
     )
 
     override suspend fun process(

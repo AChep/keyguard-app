@@ -65,6 +65,11 @@ enum class DWatchtowerAlertType(
         title = Res.string.watchtower_item_inactive_2fa_title,
         level = Level.WARNING,
     ),
+    TWO_FA_UNUSABLE(
+        value = 18L,
+        title = Res.string.watchtower_item_unusable_2fa_title,
+        level = Level.WARNING,
+    ),
     PASSKEY_WEBSITE(
         value = 2L,
         title = Res.string.watchtower_item_inactive_passkey_title,

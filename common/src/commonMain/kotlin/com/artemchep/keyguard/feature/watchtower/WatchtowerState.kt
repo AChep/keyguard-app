@@ -23,6 +23,7 @@ data class WatchtowerState(
         val duplicateWebsites: StateFlow<Loadable<DuplicateWebsites?>>,
         val broadWebsites: StateFlow<Loadable<BroadWebsites?>>,
         val inactiveTwoFactorAuth: StateFlow<Loadable<InactiveTwoFactorAuth?>>,
+        val unusableTwoFactorAuth: StateFlow<Loadable<UnusableTwoFactorAuth?>>,
         val inactivePasskey: StateFlow<Loadable<InactivePasskey?>>,
         val accountCompromised: StateFlow<Loadable<CompromisedAccounts?>>,
         val pwned: StateFlow<Loadable<PwnedPasswords?>>,
@@ -111,6 +112,13 @@ data class WatchtowerState(
         )
 
         data class UnusableSshCertificates(
+            val revision: Int,
+            val count: Int,
+            val new: Int,
+            val onClick: (() -> Unit)? = null,
+        )
+
+        data class UnusableTwoFactorAuth(
             val revision: Int,
             val count: Int,
             val new: Int,

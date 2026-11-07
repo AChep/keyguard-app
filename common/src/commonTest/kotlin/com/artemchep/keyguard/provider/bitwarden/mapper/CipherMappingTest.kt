@@ -16,6 +16,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertIs
+import kotlin.test.assertNull
 import kotlin.time.Instant
 import kotlinx.coroutines.test.runTest
 
@@ -29,6 +30,35 @@ class CipherMappingTest {
         // A document this version does not read stays read-only.
         val document = """{"version":2}"""
         assertEquals(EnvironmentPayload.Unsupported(document), BitwardenCipher.Environment(document).toDomain())
+    }
+
+    @Test
+    fun `a one-time password that does not parse is kept as unsupported`() = runTest {
+        val login = BitwardenCipher.Login(uris = emptyList(), totp = UNSUPPORTED_TOTP)
+            .toDomain(getPasswordStrength = fakeGetPasswordStrength)
+
+        assertNull(login.totp)
+        assertEquals(UNSUPPORTED_TOTP, login.totpUnsupported)
+        assertEquals(UNSUPPORTED_TOTP, login.totpRaw)
+    }
+
+    @Test
+    fun `a one-time password that parses is not unsupported`() = runTest {
+        val login = BitwardenCipher.Login(uris = emptyList(), totp = SUPPORTED_TOTP)
+            .toDomain(getPasswordStrength = fakeGetPasswordStrength)
+
+        assertEquals(SUPPORTED_TOTP, login.totp?.raw)
+        assertNull(login.totpUnsupported)
+        assertEquals(SUPPORTED_TOTP, login.totpRaw)
+    }
+
+    @Test
+    fun `a blank one-time password is not unsupported`() = runTest {
+        val login = BitwardenCipher.Login(uris = emptyList(), totp = " ")
+            .toDomain(getPasswordStrength = fakeGetPasswordStrength)
+
+        assertNull(login.totp)
+        assertNull(login.totpUnsupported)
     }
 
     @Test
@@ -161,6 +191,8 @@ class CipherMappingTest {
 }
 
 private val TEST_INSTANT = Instant.parse("2024-01-01T00:00:00Z")
+private const val SUPPORTED_TOTP = "otpauth://totp/Example?secret=JBSWY3DPEHPK3PXP"
+private const val UNSUPPORTED_TOTP = "otpauth://totp/Example?secret=JBSWY3DPEHPK3PXP&digits=10"
 private const val TARGET_REMOTE_ID = "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12"
 private const val OTHER_REMOTE_ID = "c0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13"
 

@@ -2866,35 +2866,29 @@ private suspend fun RememberStateFlowScope.produceLoginState(
     val totpState = kotlin.run {
         val handle = textFieldHandle(
             key = "totp",
-            initial = args.initialValue?.login?.totp?.raw.orEmpty(),
+            initial = args.initialValue?.login?.totpRaw.orEmpty(),
         )
+        val unsupportedText = translate(Res.string.item_totp_unsupported_text)
         val totpFlow = handle.sink
             .map { it.text }
             .debounce(80L)
-            .map { raw ->
-                val token = if (raw.isBlank()) {
-                    null
-                } else {
-                    TotpToken.parse(raw).getOrNull()
-                }
-                token
-            }
+            .map(TotpFieldParse::of)
             .onStart {
-                val initialState = null
+                val initialState = TotpFieldParse(raw = null)
                 emit(initialState)
             }
         val flow = combine(
-            handle.sink
-                .map { cell ->
-                    TextFieldModel(
-                        text = cell.text,
-                        textRevision = cell.revision,
-                        onChange = handle::onChange,
-                        onSetText = handle::setText,
-                    )
-                },
+            handle.sink,
             totpFlow,
-        ) { value, totp ->
+        ) { cell, totpParse ->
+            val value = TextFieldModel(
+                text = cell.text,
+                textRevision = cell.revision,
+                error = unsupportedText.takeIf { totpParse.isUnsupported(cell.text) },
+                onChange = handle::onChange,
+                onSetText = handle::setText,
+            )
+            val totp = totpParse.token
             AddStateItem.Totp.State(
                 value = value,
                 copyText = copyText,
@@ -2936,7 +2930,7 @@ private suspend fun RememberStateFlowScope.produceLoginState(
         prefix = prefix,
         key = "totp",
         args = args,
-        getSuggestion = { it.login?.totp?.raw },
+        getSuggestion = { it.login?.totpRaw },
         selectedFlow = totp.state.flow.map { it.value.text },
         concealed = true,
         onClick = {
@@ -5031,4 +5025,26 @@ private suspend fun RememberStateFlowScope.createItem2(
             flow = flow,
         ),
     )
+}
+
+private data class TotpFieldParse(
+    val raw: String?,
+    val token: TotpToken? = null,
+) {
+    companion object {
+        fun of(raw: String) = TotpFieldParse(
+            raw = raw,
+            token = raw
+                .takeIf { it.isNotBlank() }
+                ?.let { TotpToken.parse(it).getOrNull() },
+        )
+    }
+
+    /**
+     * Only reports the [text] that was parsed, so a pending
+     * edit does not flash the error.
+     */
+    fun isUnsupported(text: String) = token == null &&
+            !raw.isNullOrBlank() &&
+            raw == text
 }

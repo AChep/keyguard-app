@@ -320,6 +320,7 @@ import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.IconBoxContainer
+import com.artemchep.keyguard.ui.icons.KeyguardTwoFa
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.icons.iconSmall
 import com.artemchep.keyguard.ui.markdown.MarkdownParser
@@ -2561,6 +2562,43 @@ private fun RememberStateFlowScope.oh(
                 copy = copy,
                 totp = cipherLoginTotp.token,
                 localStateFlow = localStateFlow,
+            )
+            emit(model)
+        } else if (cipherLogin.totpUnsupported != null) {
+            // Show the value Keyguard can not generate codes
+            // from, so the user knows it is there.
+            if (!cipher.ignores(DWatchtowerAlertType.TWO_FA_UNUSABLE)) {
+                val info = VaultViewItem.Info(
+                    id = "info.totp.unsupported",
+                    name = translate(Res.string.item_totp_unsupported_title),
+                    message = translate(Res.string.item_totp_unsupported_text),
+                )
+                emit(info)
+            }
+            val model = create(
+                copy = copy,
+                cryptoGenerator = cryptoGenerator,
+                cipherLocalId = cipher.id,
+                id = "login.totp",
+                accountId = account.id,
+                title = translate(Res.string.one_time_password),
+                value = cipherLogin.totpUnsupported,
+                verify = verify.takeIf { concealFields },
+                visibility = Visibility(
+                    concealed = concealFields,
+                    hidden = hasCanNotSeePassword,
+                    transformUserEvent = visibilityGlobalUserTransform,
+                    globalConfig = visibilityGlobalConfig,
+                ),
+                monospace = true,
+                elevated = true,
+                badge = VaultViewItem.Value.Badge(
+                    text = translate(Res.string.item_totp_unsupported_badge),
+                    score = 0.5f,
+                ),
+                leading = {
+                    IconBox(main = Icons.Outlined.KeyguardTwoFa)
+                },
             )
             emit(model)
         } else {

@@ -148,6 +148,7 @@ internal class WatchtowerController(
                             content.reused,
                             content.weakSshKeys,
                             content.weakGpgKeys,
+                            content.unusableTwoFactorAuth,
                             content.unusableSshCertificates,
                             content.unusableGpgKeys,
                             content.gpgKeyPublishing,
@@ -382,6 +383,18 @@ internal class WatchtowerController(
                 it.count,
                 it.new,
                 infoStatus(it.count),
+                it.onClick,
+            )
+        }
+        content.unusableTwoFactorAuth.value.getOrNull()?.let {
+            card(
+                maintenance,
+                "unusableTwoFactorAuth",
+                Res.string.watchtower_item_unusable_2fa_title,
+                Res.string.watchtower_item_unusable_2fa_text,
+                it.count,
+                it.new,
+                warnStatus(it.count),
                 it.onClick,
             )
         }

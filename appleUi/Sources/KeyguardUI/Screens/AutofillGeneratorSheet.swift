@@ -62,7 +62,13 @@ struct AutofillGeneratorSheet: View {
 
     private var content: some View {
         Form {
-            Section { GeneratorTypePicker(types: generator.types, actions: actions) }
+            Section {
+                // The default menu picker doesn't open in this nested iOS sheet.
+                GeneratorTypePicker(types: generator.types, actions: actions)
+                    #if os(iOS)
+                .pickerStyle(.navigationLink)
+                    #endif
+            }
             // Generation also runs while typing options. Preserve the output
             // section and form rows so their buffers and keyboard focus survive.
             valueSection(generator.value)

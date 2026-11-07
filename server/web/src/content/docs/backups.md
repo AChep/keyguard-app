@@ -33,8 +33,8 @@ snapshot right away.
 
 ## Turn off backups
 
-1. In **Settings > Backups**, select **Turn off automatic backups**.
-2. Select **OK**. Keyguard stops future backups and forgets the destination,
+1. In **Settings > Backups**, select **Disable…** or **Turn off automatic backups**.
+2. Confirm. Keyguard stops future backups and forgets the destination,
    password and attachment choice. The existing backup files stay in place.
 
 ## Recover data from a backup
@@ -54,6 +54,7 @@ Keyguard imports a snapshot of a backup into one account.
 A snapshot holds every account, and all its items go to the one account.
 Items in the trash return to the trash. An environment's references to other
 items are unset; set them again after the import.
+Password history is not restored.
 
 To read the files by hand, decrypt `.zip.age` files with [age](https://age-encryption.org/), then extract the ZIP.
 Use an AES-256 ZIP tool for snapshots, attachments and older `.zip` files.
@@ -140,8 +141,8 @@ encrypted and unencrypted, start over with a new backup location.
 
 ## Snapshot retention
 
-**Keep snapshots** sets how many snapshots Keyguard keeps: 5, 10, 30, 60, 90,
-or **Never clear**. The default is 30. Keyguard prunes older snapshots beyond
+**Keep snapshots** sets how many snapshots Keyguard keeps. The default is 30.
+Zero or **Never clear** keeps all snapshots. Keyguard prunes older snapshots beyond
 the limit, and removes attachments that no kept snapshot uses.
 
 Keyguard spreads the kept snapshots over time, so a burst of edits doesn't push

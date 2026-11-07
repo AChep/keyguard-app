@@ -20,24 +20,25 @@ public struct KeyguardRootiOS: View {
                     ) {
                         navSectionDetail(section)
                             .toolbar(overflow.isEmpty ? .automatic : .hidden, for: .tabBar)
+                            // Each navigation container must reserve the custom bar's space.
+                            .safeAreaInset(edge: horizontalSizeClass == .regular ? .top : .bottom, spacing: 0) {
+                                if !overflow.isEmpty {
+                                    NavigationOverflowBar(
+                                        tabs: tabs,
+                                        selection: selection,
+                                        showLabels: preferencesModel.appPreferences.navLabel
+                                    )
+                                    .frame(maxWidth: 600)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 8)
+                                }
+                            }
                     }
                     // A selected tab must be visible, including when a deep link
                     // selects a destination that was previously in overflow.
                     .hidden(tab.isHidden(selectedKey: selection.wrappedValue))
                     // Keep the spoken title separate from the visible tab title.
                     .accessibilityLabel(Text(section.title))
-                }
-            }
-            .safeAreaInset(edge: horizontalSizeClass == .regular ? .top : .bottom, spacing: 0) {
-                if !overflow.isEmpty {
-                    NavigationOverflowBar(
-                        tabs: tabs,
-                        selection: selection,
-                        showLabels: preferencesModel.appPreferences.navLabel
-                    )
-                    .frame(maxWidth: 600)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
                 }
             }
         }

@@ -17,6 +17,7 @@ import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewRoute
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.collections.CollectionsRoute
 import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
+import com.artemchep.keyguard.feature.home.vault.folders.toFoldersRouteArgs
 import com.artemchep.keyguard.feature.home.vault.organizations.OrganizationsRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultListRoute
 import com.artemchep.keyguard.feature.home.vault.screen.VaultViewPasswordHistoryRoute
@@ -90,7 +91,7 @@ fun RouteDescriptor.toRoute(): Route? = when (this) {
         EquivalentDomainsRoute(EquivalentDomainsRoute.Args(accountId = AccountId(accountId)))
 
     is RouteDescriptor.Folders ->
-        FoldersRoute(FoldersRoute.Args(filter = filter, empty = empty))
+        FoldersRoute(toFoldersRouteArgs())
 
     is RouteDescriptor.Duplicates ->
         DuplicatesRoute(DuplicatesRoute.Args(filter = filter))

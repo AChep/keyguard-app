@@ -35,6 +35,8 @@ import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountType
 import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.add.AddRouteImpl
+import com.artemchep.keyguard.feature.home.vault.folders.FoldersRoute
+import com.artemchep.keyguard.feature.home.vault.folders.toFoldersRouteArgs
 import com.artemchep.keyguard.feature.home.vault.search.sort.Sort
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationStackPersistence
@@ -222,14 +224,10 @@ internal sealed interface ScreenKind {
     }
 
     data class FoldersList(
-        // Null for the watchtower "empty folders" maintenance list (no account scope).
-        val accountId: String?,
-        val title: String,
-        // Lists only the empty folders.
-        val empty: Boolean = false,
+        val args: FoldersRoute.Args,
     ) : ScreenKind {
         override val entryKind get() = ScreenEntryKind.FOLDERS_LIST
-        override val defaultTitle get() = title
+        override val defaultTitle get() = "Folders"
     }
 
     data class AccountClientCertificate(val accountId: String) : ScreenKind {
@@ -1307,10 +1305,7 @@ internal class NavigationStackController(
             ScreenKind.ServiceDirectoryList(DIRECTORY_KIND_DELETE_ACCOUNT, "")
 
         is RouteDescriptor.Folders -> {
-            val accountId = DFilter.findOne<DFilter.ById>(descriptor.filter ?: DFilter.All) {
-                it.what == DFilter.ById.What.ACCOUNT
-            }?.id
-            ScreenKind.FoldersList(accountId = accountId, title = "Folders", empty = descriptor.empty)
+            ScreenKind.FoldersList(args = descriptor.toFoldersRouteArgs())
         }
 
         is RouteDescriptor.Duplicates ->
@@ -1493,8 +1488,7 @@ internal class NavigationStackController(
                     foldersController.produceFoldersInto(
                         scope = this,
                         sessionKoin = di,
-                        accountId = kind.accountId,
-                        empty = kind.empty,
+                        args = kind.args,
                         interceptor = entryInterceptor(di, entry),
                     ) { snapshot, handlers ->
                         entry.folders = snapshot

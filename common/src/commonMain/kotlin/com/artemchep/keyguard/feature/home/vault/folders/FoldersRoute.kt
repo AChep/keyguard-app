@@ -19,7 +19,13 @@ data class FoldersRoute(
         )
     }
 
-    override val descriptor get() = RouteDescriptor.Folders(args.filter, args.empty)
+    override val descriptor get() = RouteDescriptor.Folders(
+        filter = args.filter,
+        empty = args.empty,
+        parent = args.parent?.let {
+            RouteDescriptor.Folders.Parent(accountId = it.accountId, folderId = it.folderId)
+        },
+    )
 
     @Composable
     override fun Content() {
@@ -28,3 +34,11 @@ data class FoldersRoute(
         )
     }
 }
+
+fun RouteDescriptor.Folders.toFoldersRouteArgs() = FoldersRoute.Args(
+    filter = filter,
+    empty = empty,
+    parent = parent?.let {
+        FoldersRoute.Args.Parent(accountId = it.accountId, folderId = it.folderId)
+    },
+)

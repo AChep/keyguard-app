@@ -136,7 +136,14 @@ sealed interface RouteDescriptor {
     data class Folders(
         val filter: DFilter? = null,
         val empty: Boolean = false,
-    ) : RouteDescriptor
+        val parent: Parent? = null,
+    ) : RouteDescriptor {
+        @Serializable
+        data class Parent(
+            val accountId: String,
+            val folderId: String,
+        )
+    }
 
     @Serializable
     @SerialName("vault.duplicates")

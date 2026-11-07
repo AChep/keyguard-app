@@ -262,12 +262,12 @@ struct FoldersListView: View {
         entry.folders ?? FoldersSnapshot.companion.empty
     }
 
-    private var canAdd: Bool { snapshot.accountId != nil }
+    private var canAdd: Bool { snapshot.addActionId != nil }
 
     private var selecting: Bool { snapshot.selectionCount >= 1 }
 
     var body: some View {
-        SnapshotContent(loaded: snapshot.loaded, isEmpty: snapshot.items.isEmpty) {
+        SnapshotContent(loaded: snapshot.loaded, isEmpty: snapshot.items.isEmpty && snapshot.itemsCount == 0) {
             ContentUnavailableView {
                 Label(L10n.foldersEmptyLabel, systemImage: "folder")
             } description: {
@@ -276,7 +276,7 @@ struct FoldersListView: View {
         } content: {
             list
         }
-        .navigationTitle(L10n.folders)
+        .navigationTitle(snapshot.title ?? L10n.folders)
         #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
         #endif
@@ -292,13 +292,24 @@ struct FoldersListView: View {
                 guard let accountId = snapshot.accountId else { return }
                 try await vaultActionsModel.addFolder(accountId: accountId, name: name)
             }
-
         }
 
     }
 
     private var list: some View {
         List {
+            if let actionId = snapshot.itemsActionId, snapshot.itemsCount > 0 {
+                Button {
+                    invoke(actionId)
+                } label: {
+                    HStack {
+                        Label(L10n.items, systemImage: "list.bullet")
+                        Spacer()
+                        CountBadge(count: Int(snapshot.itemsCount))
+                        DisclosureChevron()
+                    }
+                }
+            }
             ForEach(snapshot.items, id: \.id) { item in
                 row(item)
             }
@@ -310,7 +321,7 @@ struct FoldersListView: View {
         Button {
             if item.selecting {
                 toggle(item)
-            } else if let actionId = item.itemsActionId {
+            } else if let actionId = item.navigationActionId {
                 navigationModel.invokeEntryAction(instanceId: entry.instanceId, actionId: actionId)
             }
         } label: {
@@ -337,7 +348,7 @@ struct FoldersListView: View {
                 }
                 Spacer(minLength: 8)
                 CountBadge(count: Int(item.ciphers))
-                if !item.selecting && item.itemsActionId != nil {
+                if !item.selecting && item.navigationActionId != nil {
                     DisclosureChevron()
                 }
             }
@@ -412,7 +423,11 @@ struct FoldersListView: View {
     private var addToolbar: some ToolbarContent {
         ToolbarItem {
             Button {
-                addingFolder = true
+                if snapshot.parentId != nil, let actionId = snapshot.addActionId {
+                    invoke(actionId)
+                } else {
+                    addingFolder = true
+                }
             } label: {
                 Label(L10n.folderAddAction, systemImage: "plus")
             }

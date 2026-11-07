@@ -79,8 +79,13 @@ data class CollectionListItemSnapshot(
 
 data class FoldersSnapshot(
     val loaded: Boolean,
+    val title: String?,
     /** The account these folders belong to; null disables "add folder". */
     val accountId: String?,
+    val parentId: String?,
+    val addActionId: String?,
+    val itemsCount: Int,
+    val itemsActionId: String?,
     val items: List<FolderListItemSnapshot>,
     /** Number of selected folders in the active multi-selection; `0` when none. */
     val selectionCount: Int,
@@ -90,7 +95,12 @@ data class FoldersSnapshot(
     companion object {
         val empty = FoldersSnapshot(
             loaded = false,
+            title = null,
             accountId = null,
+            parentId = null,
+            addActionId = null,
+            itemsCount = 0,
+            itemsActionId = null,
             items = emptyList(),
             selectionCount = 0,
             selectionActions = emptyList(),
@@ -107,6 +117,8 @@ data class FolderListItemSnapshot(
     val synced: Boolean,
     val failed: Boolean,
     val itemsActionId: String?,
+    /** Opens folder contents, including the action to create its first child. */
+    val navigationActionId: String?,
     /** `true` while a multi-selection is active (the row shows a checkmark). */
     val selecting: Boolean,
     /** `true` when this folder is part of the active multi-selection. */
@@ -266,28 +278,54 @@ internal class CollectionsController(
     }
 }
 
+internal fun FoldersState.Content.Item.Folder.toFolderListItemSnapshot(
+    handlers: MutableMap<String, () -> Unit>,
+): FolderListItemSnapshot {
+    fun register(suffix: String, action: (() -> Unit)?): String? = action?.let {
+        val id = "$key:$suffix"
+        handlers[id] = it
+        id
+    }
+    fun registerAction(suffix: String): String? {
+        val action = actions.filterIsInstance<FlatItemAction>()
+            .firstOrNull { it.id == "folder.$key.$suffix" }
+        return register(suffix, action?.onClick)
+    }
+    val itemsActionId = register("items", onViewItemsClick)
+    return FolderListItemSnapshot(
+        renameActionId = registerAction("rename"),
+        deleteActionId = registerAction("delete"),
+        id = key,
+        title = title,
+        ciphers = ciphers,
+        synced = synced,
+        failed = failed,
+        itemsActionId = itemsActionId,
+        navigationActionId = register("open", onClick),
+        selecting = selecting,
+        selected = selected,
+        toggleActionId = register("toggle", onLongClick ?: onClick),
+    )
+}
+
 internal class FoldersController(
     private val ctx: CoreContext,
 ) {
     suspend fun produceFoldersInto(
         scope: CoroutineScope,
         sessionKoin: Scope,
-        // Null for the watchtower "empty folders" maintenance case: there is no
-        // account scope, so the producer lists folders across every account and the
-        // Swift screen hides "add folder" (FoldersSnapshot.accountId == null).
-        accountId: String?,
-        // When set, scope the list to empty folders only (the watchtower card).
-        empty: Boolean = false,
+        args: FoldersRoute.Args,
         interceptor: (NavigationIntent) -> Boolean,
         publish: suspend (FoldersSnapshot, Map<String, () -> Unit>) -> Unit,
     ) {
         val leContext = ctx.koin.get<LeContext>()
-        val filter = accountId
-            ?.let { DFilter.ById(id = it, what = DFilter.ById.What.ACCOUNT) }
+        val accountId = args.parent?.accountId ?: DFilter.findOne<DFilter.ById>(args.filter ?: DFilter.All) {
+            it.what == DFilter.ById.What.ACCOUNT
+        }?.id
         val producerFlow = with(sessionKoin) {
             ctx.koin.newHeadlessStateFlowScope("folders", scope, interceptor)
                 .foldersScreenStateProducer(
-                    args = FoldersRoute.Args(filter = filter, empty = empty),
+                    args = args,
                     filterContext = get(),
                     confirmationRouteFactory = get(),
                     getFolders = get(),
@@ -309,42 +347,11 @@ internal class FoldersController(
                 val content = state.content.getOrNull()
                 val items = content?.items.orEmpty()
                     .filterIsInstance<FoldersState.Content.Item.Folder>()
-                    .map { item ->
-                        val itemsActionId = item.onViewItemsClick?.let { onClick ->
-                            val id = "${item.key}:items"
-                            handlers[id] = onClick
-                            id
-                        }
-                        // The per-row tap (while selecting) / long-press (to start a
-                        // selection) both toggle this folder's membership; register both
-                        // under one id so the Swift checkmark drives the producer selection.
-                        val toggleActionId = (item.onLongClick ?: item.onClick)?.let { onClick ->
-                            val id = "${item.key}:toggle"
-                            handlers[id] = onClick
-                            id
-                        }
-                        fun registerAction(suffix: String): String? {
-                            val action = item.actions.filterIsInstance<FlatItemAction>()
-                                .firstOrNull { it.id == "folder.${item.key}.$suffix" }
-                            val onClick = action?.onClick ?: return null
-                            val id = "${item.key}:$suffix"
-                            handlers[id] = onClick
-                            return id
-                        }
-                        FolderListItemSnapshot(
-                            renameActionId = registerAction("rename"),
-                            deleteActionId = registerAction("delete"),
-                            id = item.key,
-                            title = item.title,
-                            ciphers = item.ciphers,
-                            synced = item.synced,
-                            failed = item.failed,
-                            itemsActionId = itemsActionId,
-                            selecting = item.selecting,
-                            selected = item.selected,
-                            toggleActionId = toggleActionId,
-                        )
-                    }
+                    .map { it.toFolderListItemSnapshot(handlers) }
+                val itemsActionId = content?.ciphers?.onClick?.let {
+                    handlers["folder:items"] = it
+                    "folder:items"
+                }
                 val selection = state.selection
                 val selectionActions =
                     buildSelectionActionSnapshots(selection?.actions, leContext, handlers)
@@ -352,7 +359,15 @@ internal class FoldersController(
                 selection?.onClear?.let { handlers["selection:clear"] = it }
                 val snapshot = FoldersSnapshot(
                     loaded = content != null,
+                    title = state.title,
                     accountId = accountId,
+                    parentId = args.parent?.folderId,
+                    addActionId = state.onAdd?.let {
+                        handlers["folder:add"] = it
+                        "folder:add"
+                    },
+                    itemsCount = content?.ciphers?.count ?: 0,
+                    itemsActionId = itemsActionId,
                     items = items,
                     selectionCount = selection?.count ?: 0,
                     selectionActions = selectionActions,

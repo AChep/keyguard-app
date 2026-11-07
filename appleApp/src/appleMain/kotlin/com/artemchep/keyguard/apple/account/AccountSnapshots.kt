@@ -93,6 +93,8 @@ data class AccountDetailSnapshot(
     val openLocalVaultActionId: String?,
     val items: List<VaultItemSnapshot>,
     val actions: List<VaultActionSnapshot>,
+    /** The shared recovery action, such as signing in again after a sync failure. */
+    val primaryAction: VaultActionSnapshot?,
 ) {
     companion object {
         val empty = AccountDetailSnapshot(
@@ -106,6 +108,7 @@ data class AccountDetailSnapshot(
             openLocalVaultActionId = null,
             items = emptyList(),
             actions = emptyList(),
+            primaryAction = null,
         )
     }
 }

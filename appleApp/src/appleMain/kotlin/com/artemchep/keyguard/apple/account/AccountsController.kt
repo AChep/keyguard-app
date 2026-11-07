@@ -307,6 +307,7 @@ internal class AccountsController(
                     openLocalVaultActionId = openLocalVaultActionId,
                     items = items,
                     actions = headerActions,
+                    primaryAction = buildAccountPrimaryActionSnapshot(content.primaryAction, actionHandlers),
                 )
             }
 
@@ -317,4 +318,14 @@ internal class AccountsController(
                 AccountDetailSnapshot.empty
         }
     }
+}
+
+private fun buildAccountPrimaryActionSnapshot(
+    primary: AccountViewState.Content.Data.PrimaryAction?,
+    actionHandlers: MutableMap<String, () -> Unit>,
+): VaultActionSnapshot? {
+    val onClick = primary?.onClick ?: return null
+    val actionId = "account:primary"
+    actionHandlers[actionId] = onClick
+    return VaultActionSnapshot(id = actionId, title = primary.text, isCopy = false)
 }

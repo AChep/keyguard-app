@@ -63,6 +63,12 @@ struct AccountDetailView: View {
 
     @ViewBuilder
     private var headerActions: some View {
+        if let action = detail.primaryAction {
+            Button(action.title) {
+                invoke(action.id)
+            }
+            .buttonStyle(.borderedProminent)
+        }
         // The web vault is for a Bitwarden account; the local vault reveals a
         // KeePass account's database file.
         if let actionId = detail.openWebVaultActionId {

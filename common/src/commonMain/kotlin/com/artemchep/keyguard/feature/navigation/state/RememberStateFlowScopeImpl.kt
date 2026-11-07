@@ -129,8 +129,15 @@ class RememberStateFlowScopeImpl(
     override fun message(
         message: ToastMessage,
     ) {
+        // Show the message in the window of the screen, even
+        // if another window is focused.
+        val value = if (message.windowId != null) {
+            message
+        } else {
+            message.copy(windowId = windowIdState.value)
+        }
         showMessage.copy(
-            value = message,
+            value = value,
             target = key,
         )
     }

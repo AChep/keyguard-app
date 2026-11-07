@@ -89,6 +89,8 @@ class RememberStateFlowScopeImplTest {
             assertEquals(ToastMessage.Type.ERROR, message.type)
             assertEquals("Cannot open vault", message.title)
             assertEquals("Database unavailable", message.text)
+            // The toast belongs to the window of the screen that failed.
+            assertEquals(windowId, message.windowId)
             assertFalse(executor.isExecutingFlow.value)
         } finally {
             screenScope.cancel()

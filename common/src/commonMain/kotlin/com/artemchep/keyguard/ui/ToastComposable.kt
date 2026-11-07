@@ -108,18 +108,16 @@ fun ToastMessageHost(
     val nav = navigationNodeStack()
     val scope = rememberCoroutineScope()
 
-    val windowIsFocused = LocalWindowInfo.current.isWindowFocused
+    // If the window is not focused then we do not want it to intercept
+    // the toast messages that do not name their window.
+    val windowIsFocusedState = rememberUpdatedState(LocalWindowInfo.current.isWindowFocused)
     val windowId = LocalWindowId.current
-    DisposableEffect(hub, scope, windowId, windowIsFocused) {
-        // If the window is not focused then we do not want it
-        // to intercept the toast messages.
-        if (!windowIsFocused) {
-            return@DisposableEffect onDispose {
-                // Do nothing
-            }
-        }
-
-        val unregister = hub.register(key = nav, windowId = windowId) { message ->
+    DisposableEffect(hub, scope, windowId) {
+        val unregister = hub.register(
+            key = nav,
+            windowId = windowId,
+            isFocused = { windowIsFocusedState.value },
+        ) { message ->
             messagesState.update { existingMessages ->
                 val out = existingMessages.toMutableList()
                 val index =

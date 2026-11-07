@@ -147,7 +147,9 @@ internal class SecurityController(
                 SecuritySettingsSnapshot(
                     loaded = true,
                     vaultPersist = persist,
-                    lockAfterRebootVisible = persist,
+                    // The shared session persister does not enforce this policy.
+                    // Do not offer an unenforced security setting in native apps.
+                    lockAfterRebootVisible = false,
                     lockAfterReboot = lockAfterReboot,
                     lockTimeoutTitle = lockAfterTimeoutTitle(lock.first, leContext),
                     lockTimeoutOptions = lock.second.map { duration ->

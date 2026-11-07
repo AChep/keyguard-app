@@ -76,6 +76,7 @@ enum class SettingsSearchTarget(
         SettingsDestination.SECURITY.id,
         Res.string.pref_item_lock_vault_after_reboot_text,
         section = Res.string.home_vault_label,
+        availability = Availability.NONE,
     ),
     LOCK(
         SettingsDestination.SECURITY.id,
@@ -522,9 +523,10 @@ enum class SettingsSearchTarget(
     );
 
     internal enum class Availability {
-        ALL, MACOS, IOS, BIOMETRIC, FIDO2, YUBIKEY, STORE, BUILD_DATE, BUILD_REF, CHANGELOG;
+        NONE, ALL, MACOS, IOS, BIOMETRIC, FIDO2, YUBIKEY, STORE, BUILD_DATE, BUILD_REF, CHANGELOG;
 
         fun supported(capabilities: SettingsSearchCapabilities): Boolean = when (this) {
+            NONE -> false
             ALL -> true
             MACOS -> capabilities.macOS
             IOS -> !capabilities.macOS

@@ -35,8 +35,8 @@ data class DebugSettingsSnapshot(
 }
 
 /**
- * [lockAfterRebootVisible] mirrors the common rule that the lock-after-reboot toggle only applies when the vault
- * persists to disk.
+ * [lockAfterRebootVisible] remains false until the session persister can enforce
+ * the reboot policy. Persisting the vault alone does not provide that guarantee.
  */
 data class SecuritySettingsSnapshot(
     val loaded: Boolean = false,

@@ -64,7 +64,11 @@ class SettingsSearchTest {
         assertTrue(mac.any { it.target == SettingsSearchTarget.GPG_SCOPE })
         assertFalse(mac.any { it.target == SettingsSearchTarget.KEEP_AWAKE })
         val allTargets = (ios + mac).mapNotNull { it.target }.toSet()
-        assertEquals(SettingsSearchTarget.entries.toSet(), allTargets)
+        assertFalse(SettingsSearchTarget.LOCK_REBOOT in allTargets)
+        assertEquals(
+            SettingsSearchTarget.entries.filter { it.availability != SettingsSearchTarget.Availability.NONE }.toSet(),
+            allTargets,
+        )
         assertEquals(mac.size, mac.map { it.id }.distinct().size)
     }
 

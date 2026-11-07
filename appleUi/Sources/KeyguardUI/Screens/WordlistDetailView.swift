@@ -2,7 +2,8 @@ import SwiftUI
 import KeyguardShared
 
 struct WordlistDetailView: View {
-    @Environment(NavigationModel.self) private var navigationModel
+    // Retained by navigation bars while a Generator stack is detached; see StackCipherDetailView.
+    let navigationModel: NavigationModel
     @Environment(WordlistsModel.self) private var wordlistsModel
     @Environment(\.dismiss) private var dismiss
 

@@ -2,7 +2,9 @@ import SwiftUI
 import KeyguardShared
 
 struct StackCipherDetailView: View {
-    @Environment(NavigationModel.self) private var navigationModel
+    // Navigation bars can retain this destination while its stack is detached.
+    // Retain the action target without another environment lookup during teardown.
+    let navigationModel: NavigationModel
     let entry: ScreenEntrySnapshot
 
     var body: some View {

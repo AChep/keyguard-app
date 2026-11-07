@@ -136,7 +136,7 @@ struct NavStackContainer<Content: View>: View {
                 EnvironmentsScreen(environmentId: entry.environmentId, create: entry.createEnvironment)
                     .id(entry.instanceId)
             } else if entry.kind == ScreenEntryKind.cipherDetail {
-                StackCipherDetailView(entry: entry)
+                StackCipherDetailView(navigationModel: navigationModel, entry: entry)
             } else if entry.kind == ScreenEntryKind.vaultList {
                 if usesPanels {
                     StackVaultListContent(model: listSessions.models[id])
@@ -155,11 +155,11 @@ struct NavStackContainer<Content: View>: View {
             } else if entry.kind == ScreenEntryKind.generatorHistory {
                 GeneratorHistoryScreen(makeSession: sessions.makeGeneratorHistorySession)
             } else if entry.kind == ScreenEntryKind.emailRelayList {
-                EmailForwardersView(entry: entry)
+                EmailForwardersView(navigationModel: navigationModel, entry: entry)
             } else if entry.kind == ScreenEntryKind.wordlistList {
-                WordlistsView(entry: entry)
+                WordlistsView(navigationModel: navigationModel, entry: entry)
             } else if entry.kind == ScreenEntryKind.wordlistDetail {
-                WordlistDetailView(entry: entry)
+                WordlistDetailView(navigationModel: navigationModel, entry: entry)
             } else if entry.kind == ScreenEntryKind.passwordHistory {
                 PasswordHistoryScreen(
                     itemId: entry.passwordHistoryItemId ?? "", makeSession: vaultActionsModel.makePasswordHistorySession

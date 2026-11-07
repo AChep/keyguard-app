@@ -3,7 +3,8 @@ import KeyguardShared
 
 struct EmailForwardersView: View {
     @Environment(EmailRelayModel.self) private var emailRelayModel
-    @Environment(NavigationModel.self) private var navigationModel
+    // Retained by navigation bars while a Generator stack is detached; see StackCipherDetailView.
+    let navigationModel: NavigationModel
 
     let entry: ScreenEntrySnapshot
 

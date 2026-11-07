@@ -70,6 +70,7 @@ struct BitwardenSsoView: View {
         .navigationTitle(L10n.ssoLogin)
         .navigationDestination(isPresented: $loginModel.twofaActive) {
             BitwardenTwofaView()
+                .environment(loginModel)
         }
         // Pushed from the sign-in form, the form closes the sheet.
         .onChange(of: loginModel.loginDidSucceed) { _, succeeded in

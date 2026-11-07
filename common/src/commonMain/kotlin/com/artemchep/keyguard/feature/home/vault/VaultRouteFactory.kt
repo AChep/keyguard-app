@@ -250,6 +250,7 @@ fun VaultRouteFactory.watchtower(
         filter = filter,
         sort = sort,
         trash = trash,
+        archive = if (trash == true) null else false,
         searchBy = searchBy,
         preselect = false,
         canAddSecrets = false,

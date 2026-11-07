@@ -137,6 +137,7 @@ internal fun RememberStateFlowScope.vaultListToolbarFlow(
                     title = translate(Res.string.trash),
                 ),
                 trash = true,
+                archive = null,
                 preselect = false,
                 canAddSecrets = false,
             )

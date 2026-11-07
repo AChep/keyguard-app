@@ -90,7 +90,6 @@ fun settingSshAgentBookmarksConfigProvider(
     ) {
         SettingSshAgentBookmarksConfig(
             checked = enabled,
-            include = include,
             summary = summary.takeIf { enabled },
             onCheckedChange = rememberSshAgentBookmarksConfigChange(
                 include = include,
@@ -147,7 +146,6 @@ private fun rememberSshAgentBookmarksConfigChange(
 @Composable
 private fun SettingSshAgentBookmarksConfig(
     checked: Boolean,
-    include: String,
     summary: SshBookmarksSummary?,
     onCheckedChange: ((Boolean) -> Unit)?,
 ) {

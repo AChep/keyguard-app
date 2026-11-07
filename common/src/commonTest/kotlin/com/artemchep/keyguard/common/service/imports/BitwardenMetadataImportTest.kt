@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.export.impl.JsonExportServiceImpl
 import com.artemchep.keyguard.common.service.export.impl.transportFieldSecrets
 import com.artemchep.keyguard.common.service.sshagent.TEST_ED25519_BOUNDED_USER_CERTIFICATE
+import com.artemchep.keyguard.common.service.sshagent.TEST_ED25519_FINGERPRINT
 import com.artemchep.keyguard.common.service.sshagent.TEST_ED25519_PRIVATE_KEY
 import com.artemchep.keyguard.common.service.sshagent.TEST_ED25519_PUBLIC_KEY
 import com.artemchep.keyguard.common.service.sshagent.TEST_ED25519_USER_CERTIFICATE
@@ -266,6 +267,7 @@ internal fun metadataExport(): String = exportMetadataSecrets(
             sshKey = DSecret.SshKey(
                 privateKey = TEST_ED25519_PRIVATE_KEY,
                 publicKey = TEST_ED25519_PUBLIC_KEY,
+                fingerprint = TEST_ED25519_FINGERPRINT,
                 certificate = TEST_ED25519_USER_CERTIFICATE,
             ),
             tags = listOf("native"),

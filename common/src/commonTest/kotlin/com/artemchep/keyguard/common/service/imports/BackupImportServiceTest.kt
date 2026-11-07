@@ -25,6 +25,7 @@ import com.artemchep.keyguard.common.service.imports.impl.keyguardbackup.BackupI
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.crypto.NativeCipherEncryptor
 import com.artemchep.keyguard.crypto.NativeCryptoGenerator
+import com.artemchep.keyguard.test.FakeSshKeyImportService
 import com.artemchep.keyguard.util.zip.createZipService
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -68,6 +69,7 @@ class BackupImportServiceTest {
             cryptoGenerator = NativeCryptoGenerator(),
             base64Service = Base64ServiceImpl(),
         ),
+        sshKeyImportService = FakeSshKeyImportService(),
     )
 
     @Test
@@ -193,6 +195,7 @@ class BackupImportServiceTest {
                 cryptoGenerator = NativeCryptoGenerator(),
                 base64Service = Base64ServiceImpl(),
             ),
+            sshKeyImportService = FakeSshKeyImportService(),
         )
 
         val job = launch {
@@ -232,6 +235,7 @@ class BackupImportServiceTest {
                 cryptoGenerator = NativeCryptoGenerator(),
                 base64Service = Base64ServiceImpl(),
             ),
+            sshKeyImportService = FakeSshKeyImportService(),
         )
 
         assertEquals(

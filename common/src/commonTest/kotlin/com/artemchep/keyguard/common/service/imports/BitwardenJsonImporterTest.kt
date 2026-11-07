@@ -3,12 +3,18 @@ package com.artemchep.keyguard.common.service.imports
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
+import com.artemchep.keyguard.common.service.crypto.SshKeyImportError
+import com.artemchep.keyguard.common.service.crypto.SshKeyImportResult
 import com.artemchep.keyguard.common.service.export.impl.JsonExportServiceImpl
 import com.artemchep.keyguard.common.service.imports.impl.bitwarden.deriveBitwardenExportKey
+import com.artemchep.keyguard.common.service.sshagent.TEST_ED25519_FINGERPRINT
+import com.artemchep.keyguard.common.service.sshagent.TEST_ED25519_PRIVATE_KEY
+import com.artemchep.keyguard.common.service.sshagent.TEST_ED25519_PUBLIC_KEY
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.core.store.bitwarden.BitwardenCipher
 import com.artemchep.keyguard.crypto.NativeCipherEncryptor
 import com.artemchep.keyguard.crypto.NativeCryptoGenerator
+import com.artemchep.keyguard.crypto.NativeSshKeyImportService
 import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
 import com.artemchep.keyguard.feature.environments.EnvironmentFormat
 import com.artemchep.keyguard.feature.environments.EnvironmentValueSource
@@ -18,6 +24,7 @@ import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenGpgKeyFieldCode
 import com.artemchep.keyguard.provider.bitwarden.model.PreLogin
 import com.artemchep.keyguard.test.FakeSshKeyImportService
 import com.artemchep.keyguard.test.createSecret
+import com.artemchep.keyguard.test.fakeSshKeyPair
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -343,6 +350,7 @@ class BitwardenJsonImporterTest {
                     sshKey = DSecret.SshKey(
                         privateKey = "private",
                         publicKey = "ssh-ed25519 AAAA",
+                        fingerprint = "SHA256:abc",
                         certificate = certificate,
                         bookmarks = bookmarks,
                     ),
@@ -360,7 +368,7 @@ class BitwardenJsonImporterTest {
     }
 
     @Test
-    fun `ssh keys are copied as they are, never converted`() = runTest {
+    fun `complete ssh keys, and items without one, are copied as they are`() = runTest {
         // The source is a vault whose items are already SSH keys: keep them as
         // they were, even a key this version cannot read.
         val service = FakeSshKeyImportService(error = IllegalStateException("Must not convert"))
@@ -370,8 +378,6 @@ class BitwardenJsonImporterTest {
                 {"encrypted": false, "items": [
                   {"type": 5, "name": "Unreadable", "sshKey": {"privateKey": "not a key",
                     "publicKey": "ssh-ed25519 AAAA comment", "keyFingerprint": "SHA256:abc"}},
-                  {"type": 5, "name": "Private only", "sshKey": {"privateKey":
-                    "-----BEGIN OPENSSH PRIVATE KEY-----\nAAAA\n-----END OPENSSH PRIVATE KEY-----\n"}},
                   {"type": 5, "name": "Empty"}
                 ]}
             """.trimIndent(),
@@ -387,15 +393,121 @@ class BitwardenJsonImporterTest {
                     publicKey = "ssh-ed25519 AAAA comment",
                     fingerprint = "SHA256:abc",
                 ),
-                "Private only" to CreateRequest.SshKey(
-                    privateKey = "-----BEGIN OPENSSH PRIVATE KEY-----\nAAAA\n-----END OPENSSH PRIVATE KEY-----\n",
-                ),
                 "Empty" to CreateRequest.SshKey(),
             ),
             plan.items.map { it.request.title to it.request.sshKey },
         )
         assertTrue(plan.items.all { it.request.type == DSecret.Type.SshKey })
         assertTrue(plan.items.all { it.request.fields.isEmpty() })
+    }
+
+    @Test
+    fun `an incomplete ssh key is derived from its private key`() = runTest {
+        // Vaultwarden drops an SSH key without its public key or fingerprint.
+        val keyPair = fakeSshKeyPair()
+        val plan = parseImportPlan(
+            format = ImportFormatId.Bitwarden,
+            text = """
+                {"encrypted": false, "items": [
+                  {"type": 5, "name": "Private only", "sshKey": {"privateKey": "source key"}},
+                  {"type": 5, "name": "Other public key", "sshKey": {"privateKey": "source key",
+                    "publicKey": "ssh-ed25519 BBBB"}}
+                ]}
+            """.trimIndent(),
+        )
+        plan.assertVaultStorable()
+        assertTrue(plan.skips.isEmpty, plan.skips.toString())
+        // The private key stays as written.
+        val derived = CreateRequest.SshKey(
+            privateKey = "source key",
+            publicKey = keyPair.publicKey.ssh,
+            fingerprint = keyPair.publicKey.fingerprint,
+        )
+        val byTitle = plan.items.associateBy { it.request.title }
+        val privateOnly = byTitle.getValue("Private only").request
+        assertEquals(DSecret.Type.SshKey, privateOnly.type)
+        assertEquals(derived, privateOnly.sshKey)
+        assertEquals(emptyList(), privateOnly.fields)
+
+        // A public key that disagrees with the private one is kept as a field.
+        val otherPublicKey = byTitle.getValue("Other public key").request
+        assertEquals(DSecret.Type.SshKey, otherPublicKey.type)
+        assertEquals(derived, otherPublicKey.sshKey)
+        assertEquals(
+            listOf(DSecret.Field("Public key", "ssh-ed25519 BBBB", type = DSecret.Field.Type.Text)),
+            otherPublicKey.fields,
+        )
+    }
+
+    @Test
+    fun `a key without its fingerprint gets the one of its public key`() = runTest {
+        val plan = parseImportPlan(
+            format = ImportFormatId.Bitwarden,
+            text = buildJsonObject {
+                put("encrypted", false)
+                put(
+                    "items",
+                    buildJsonArray {
+                        add(
+                            buildJsonObject {
+                                put("type", 5)
+                                put("name", "Server")
+                                put(
+                                    "sshKey",
+                                    buildJsonObject {
+                                        put("privateKey", TEST_ED25519_PRIVATE_KEY)
+                                        put("publicKey", TEST_ED25519_PUBLIC_KEY)
+                                    },
+                                )
+                            },
+                        )
+                    },
+                )
+            }.toString(),
+            sshKeyImportService = NativeSshKeyImportService,
+        )
+        plan.assertVaultStorable()
+        assertTrue(plan.skips.isEmpty, plan.skips.toString())
+        val request = plan.items.single().request
+        assertEquals(DSecret.Type.SshKey, request.type)
+        assertEquals(
+            CreateRequest.SshKey(
+                privateKey = TEST_ED25519_PRIVATE_KEY,
+                publicKey = TEST_ED25519_PUBLIC_KEY,
+                fingerprint = TEST_ED25519_FINGERPRINT,
+            ),
+            request.sshKey,
+        )
+        assertEquals(emptyList(), request.fields)
+    }
+
+    @Test
+    fun `an incomplete ssh key that does not convert becomes a note`() = runTest {
+        val plan = parseImportPlan(
+            format = ImportFormatId.Bitwarden,
+            text = """
+                {"encrypted": false, "items": [
+                  {"type": 5, "name": "Unreadable", "sshKey": {"privateKey": "not a key",
+                    "keyFingerprint": "SHA256:abc"}, "fields": [{"name": "Host", "value": "example.com", "type": 0}]}
+                ]}
+            """.trimIndent(),
+            sshKeyImportService = FakeSshKeyImportService(
+                result = SshKeyImportResult.Error(SshKeyImportError.UnsupportedFormat),
+            ),
+        )
+        plan.assertVaultStorable()
+        assertEquals(mapOf("Unreadable" to 1), plan.skips.titlesOf(ImportSkipReason.SshKey))
+        val request = plan.items.single().request
+        assertEquals(DSecret.Type.SecureNote, request.type)
+        assertEquals(CreateRequest.SshKey(), request.sshKey)
+        assertEquals(
+            listOf(
+                DSecret.Field("Private key", "not a key", type = DSecret.Field.Type.Hidden),
+                DSecret.Field("Fingerprint", "SHA256:abc", type = DSecret.Field.Type.Text),
+                DSecret.Field("Host", "example.com", type = DSecret.Field.Type.Text),
+            ),
+            request.fields,
+        )
     }
 
     @Test

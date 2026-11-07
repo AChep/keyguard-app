@@ -16,6 +16,8 @@ internal const val TEST_ED25519_PUBLIC_KEY =
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILM+rvN+ot98qgEN796jTiQfZfG1KaT0PtFDJ/XFSqti user@example.co" +
     "m"
 
+internal const val TEST_ED25519_FINGERPRINT = "SHA256:UCUiLr7Pjs9wFFJMDByLgc3NrtdU344OgUM45wZPcIQ"
+
 /** `ed25519-user-forever-cert.pub`: a user certificate that never expires. */
 internal const val TEST_ED25519_USER_CERTIFICATE =
     "ssh-ed25519-cert-v01@openssh.com AAAAIHNzaC1lZDI1NTE5LWNlcnQtdjAxQG9wZW5zc2guY29tAAAAIPOmlVBAtxv" +

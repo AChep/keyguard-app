@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.export.entity.ItemCardExportEntity
 import com.artemchep.keyguard.common.service.export.entity.ItemIdentityExportEntity
 import com.artemchep.keyguard.common.service.export.entity.ItemSshKeyExportEntity
@@ -71,6 +72,7 @@ internal class BitwardenJsonImporter(
     override val format: ImportFormat,
     private val cryptoGenerator: CryptoGenerator,
     private val cipherEncryptor: CipherEncryptor,
+    private val sshKeyImportService: SshKeyImportService,
 ) : Importer {
     override fun parse(
         input: ImportInput,
@@ -289,14 +291,15 @@ internal class BitwardenJsonImporter(
         val credentials = transport.credentials
             ?: loginCredentials
             ?: passkeys(item, now, plan)
+        val sshKey = plan.importedBitwardenSshKey(item.sshKey, title, keyguard.type, transport, sshKeyImportService)
         plan.item(
             meta = item.importedMeta(
                 now = now,
                 tags = item.tags.orEmpty() + transport.tags,
                 folderKey = folderKey,
             ),
-            type = keyguard.type,
-            fields = keyguard.fields.map(BitwardenCipher.Field::toDomain),
+            type = sshKey.type,
+            fields = sshKey.fields + keyguard.fields.map(BitwardenCipher.Field::toDomain),
             attachments = plannedAttachments(item, plan, attachments),
         ) {
             copy(
@@ -309,7 +312,7 @@ internal class BitwardenJsonImporter(
                 ),
                 card = item.card?.toCreateRequest() ?: CreateRequest.Card(),
                 identity = item.identity?.toCreateRequest() ?: CreateRequest.Identity(),
-                sshKey = item.sshKey.toCreateRequest(transport),
+                sshKey = sshKey.sshKey,
                 gpgKey = keyguard.gpgKey,
                 environment = keyguard.environment,
             )
@@ -408,18 +411,6 @@ private fun ItemCardExportEntity.toCreateRequest() = CreateRequest.Card(
     expMonth = expMonth,
     expYear = expYear,
     code = code,
-)
-
-private fun ItemSshKeyExportEntity?.toCreateRequest(
-    transport: BitwardenTransportFields.Decoded,
-) = CreateRequest.SshKey(
-    privateKey = this?.privateKey,
-    publicKey = this?.publicKey,
-    fingerprint = this?.keyFingerprint,
-    certificate = transport.certificate,
-    bookmarks = transport.bookmarks.map { bookmark ->
-        DSecret.SshKey.Bookmark(name = bookmark.name, url = bookmark.url)
-    }.toPersistentList(),
 )
 
 /**

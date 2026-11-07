@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.service.backup.mergeBackupIndexes
 import com.artemchep.keyguard.common.service.backup.toPassword
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.imports.BackupImportError
 import com.artemchep.keyguard.common.service.imports.BackupImportService
 import com.artemchep.keyguard.common.service.imports.ImportAttachmentSink
@@ -54,11 +55,13 @@ class BackupImportServiceImpl(
     private val backupRepository: BackupRepository,
     cryptoGenerator: CryptoGenerator,
     cipherEncryptor: CipherEncryptor,
+    sshKeyImportService: SshKeyImportService,
 ) : BackupImportService {
     private val json = BitwardenJsonImporter(
         format = keyguardImportFormat,
         cryptoGenerator = cryptoGenerator,
         cipherEncryptor = cipherEncryptor,
+        sshKeyImportService = sshKeyImportService,
     )
 
     // Every call reads the backup location — a folder, or a server — so it

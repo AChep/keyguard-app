@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.imports.impl.bitwarden
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.imports.ImportFormat
 import com.artemchep.keyguard.common.service.imports.ImportFormatId
 import com.artemchep.keyguard.common.service.imports.ImportInput
@@ -21,6 +22,7 @@ import kotlin.time.Instant
 internal class BitwardenImporter(
     cryptoGenerator: CryptoGenerator,
     cipherEncryptor: CipherEncryptor,
+    sshKeyImportService: SshKeyImportService,
 ) : Importer {
     override val format = ImportFormat(
         id = ImportFormatId.Bitwarden,
@@ -32,6 +34,7 @@ internal class BitwardenImporter(
         format = format,
         cryptoGenerator = cryptoGenerator,
         cipherEncryptor = cipherEncryptor,
+        sshKeyImportService = sshKeyImportService,
     )
 
     private val csv = BitwardenCsvImporter(

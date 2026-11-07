@@ -164,6 +164,7 @@ private fun defaultImporters(
     BitwardenImporter(
         cryptoGenerator = cryptoGenerator,
         cipherEncryptor = cipherEncryptor,
+        sshKeyImportService = sshKeyImportService,
     ),
     KeePassXcCsvImporter(),
     OnePasswordImporter(
@@ -185,5 +186,6 @@ private fun defaultImporters(
     KeyguardZipImporter(
         cryptoGenerator = cryptoGenerator,
         cipherEncryptor = cipherEncryptor,
+        sshKeyImportService = sshKeyImportService,
     ),
 )

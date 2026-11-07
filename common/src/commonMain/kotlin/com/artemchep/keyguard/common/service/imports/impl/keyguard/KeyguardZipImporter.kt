@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.imports.impl.keyguard
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
+import com.artemchep.keyguard.common.service.crypto.SshKeyImportService
 import com.artemchep.keyguard.common.service.imports.ImportAttachmentSink
 import com.artemchep.keyguard.common.service.imports.ImportError
 import com.artemchep.keyguard.common.service.imports.ImportFormat
@@ -40,6 +41,7 @@ internal val keyguardImportFormat = ImportFormat(
 internal class KeyguardZipImporter(
     cryptoGenerator: CryptoGenerator,
     cipherEncryptor: CipherEncryptor,
+    sshKeyImportService: SshKeyImportService,
 ) : Importer, ImportAttachmentExtractor {
     companion object {
         private const val VAULT_ENTRY = "vault.json"
@@ -52,6 +54,7 @@ internal class KeyguardZipImporter(
         format = format,
         cryptoGenerator = cryptoGenerator,
         cipherEncryptor = cipherEncryptor,
+        sshKeyImportService = sshKeyImportService,
     )
 
     override fun parse(

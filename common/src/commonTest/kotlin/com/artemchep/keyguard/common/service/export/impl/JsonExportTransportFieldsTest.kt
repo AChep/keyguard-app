@@ -93,6 +93,7 @@ private fun sshSecret() = createSecret(
     sshKey = DSecret.SshKey(
         privateKey = "PRIVATE",
         publicKey = "ssh-ed25519 AAAA",
+        fingerprint = "SHA256:abc",
         certificate = "ssh-ed25519-cert-v01@openssh.com AAAA user@example.com",
     ),
 ).copy(customIcon = KeePassIcon.TerminalEncrypted)
@@ -219,7 +220,8 @@ private val EXPECTED_EXPORT =
     """{"type":0,"name":"keyguard.ssh.certificate",""" +
     """"value":"ssh-ed25519-cert-v01@openssh.com AAAA user@example.com"}],""" +
     """"passwordHistory":null,"sshKey":{"privateKey":"PRIVATE",""" +
-    """"publicKey":"ssh-ed25519 AAAA"}},{"id":"login","folderId":null,""" +
+    """"publicKey":"ssh-ed25519 AAAA","keyFingerprint":"SHA256:abc"}},""" +
+    """{"id":"login","folderId":null,""" +
     """"organizationId":null,"collectionIds":null,"name":"login",""" +
     """"notes":"","favorite":false,"reprompt":0,"revisionDate":"2024-01-01T00:00:00Z",""" +
     """"creationDate":"2024-01-01T00:00:00Z","archivedDate":null,""" +

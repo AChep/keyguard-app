@@ -14,7 +14,23 @@ class NumberFormatterApple : NumberFormatter {
         }
     }
 
+    private val compactFormatter = LocaleCache { locale ->
+        NSNumberFormatter().apply {
+            setLocale(locale)
+            setNumberStyle(NSNumberFormatterDecimalStyle)
+            setMinimumFractionDigits(0u)
+            setMaximumFractionDigits(1u)
+        }
+    }
+
     override fun formatNumber(number: Int): String = formatter.get()
         .stringFromNumber(NSNumber(int = number))
         ?: number.toString()
+
+    override suspend fun formatCompactNumber(number: Long): String {
+        val format = compactFormatter.get()
+        return formatCompactNumber(number) {
+            format.stringFromNumber(NSNumber(double = it)) ?: it.toString()
+        }
+    }
 }

@@ -2968,4 +2968,11 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
+    <string name="number_compact_thousand" translatable="false">%1$sK</string>
+    <string name="number_compact_million" translatable="false">%1$sM</string>
+    <string name="number_compact_billion" translatable="false">%1$sB</string>
+    <string name="number_compact_trillion" translatable="false">%1$sT</string>
+    <string name="number_compact_quadrillion" translatable="false">%1$sQ</string>
+    <string name="number_compact_quintillion" translatable="false">%1$sE</string>
 </resources>

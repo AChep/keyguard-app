@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.common.usecase.GetSshUsageHistoryCount
+import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -25,10 +26,12 @@ fun settingSshAgentHistoryProvider(
     koinScope: Scope,
 ) = settingSshAgentHistoryProvider(
     getSshUsageHistoryCount = koinScope.get(),
+    numberFormatter = koinScope.get(),
 )
 
 fun settingSshAgentHistoryProvider(
     getSshUsageHistoryCount: GetSshUsageHistoryCount,
+    numberFormatter: NumberFormatter,
 ): SettingComponent = getSshUsageHistoryCount().map { count ->
     // I can not imagine many people running the
     // SSH agent on their watch.
@@ -36,6 +39,7 @@ fun settingSshAgentHistoryProvider(
         return@map null
     }
 
+    val badge = numberFormatter.formatCompactNumber(count)
     SettingIi(
         platformClasses = listOf(
             Platform.Mobile.Android::class,
@@ -58,7 +62,7 @@ fun settingSshAgentHistoryProvider(
     ) {
         val navigationController by rememberUpdatedState(LocalNavigationController.current)
         SettingSshAgentHistory(
-            count = count,
+            badge = badge,
             onClick = {
                 val intent = NavigationIntent.NavigateToRoute(
                     route = SshAgentHistoryRoute(),
@@ -71,12 +75,12 @@ fun settingSshAgentHistoryProvider(
 
 @Composable
 private fun SettingSshAgentHistory(
-    count: Long,
+    badge: String,
     onClick: (() -> Unit)?,
 ) {
     LocalSettingPaneComponents.current.KgAction(
         icon = Icons.Outlined.History,
-        badge = count.toString(),
+        badge = badge,
         title = {
             Text(
                 text = stringResource(Res.string.pref_item_agent_history_title),

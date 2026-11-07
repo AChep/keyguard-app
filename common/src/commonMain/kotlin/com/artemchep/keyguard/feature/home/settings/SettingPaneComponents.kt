@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
 import arrow.core.partially1
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
@@ -116,6 +117,7 @@ object SettingPaneComponentsDefault : SettingPaneComponents {
 
                     if (badge != null) {
                         BadgedBox(
+                            modifier = Modifier.zIndex(1f),
                             badge = {
                                 Badge(
                                     containerColor = MaterialTheme.colorScheme.badgeContainer,

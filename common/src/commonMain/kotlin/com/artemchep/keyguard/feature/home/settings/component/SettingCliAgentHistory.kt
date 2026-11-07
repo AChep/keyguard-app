@@ -8,6 +8,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.usecase.GetCliAgentUsageHistoryCount
+import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.feature.cliagent.history.CliAgentHistoryRoute
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -25,6 +26,7 @@ fun settingCliHistoryProvider(
     settingCliAgentHistoryProvider(
         client = CliAgentUsageHistoryClient.CLI,
         getCliAgentUsageHistoryCount = koinScope.get(),
+        numberFormatter = koinScope.get(),
     )
 }
 
@@ -34,6 +36,7 @@ fun settingEnvironmentsMcpHistoryProvider(
     settingCliAgentHistoryProvider(
         client = CliAgentUsageHistoryClient.MCP,
         getCliAgentUsageHistoryCount = koinScope.get(),
+        numberFormatter = koinScope.get(),
     )
 }
 
@@ -43,6 +46,7 @@ fun settingEnvironmentsHistoryProvider(
     settingCliAgentHistoryProvider(
         client = CliAgentUsageHistoryClient.ENV,
         getCliAgentUsageHistoryCount = koinScope.get(),
+        numberFormatter = koinScope.get(),
     )
 }
 
@@ -50,7 +54,9 @@ fun settingEnvironmentsHistoryProvider(
 fun settingCliAgentHistoryProvider(
     client: CliAgentUsageHistoryClient,
     getCliAgentUsageHistoryCount: GetCliAgentUsageHistoryCount,
+    numberFormatter: NumberFormatter,
 ): SettingComponent = getCliAgentUsageHistoryCount(client).map { count ->
+    val badge = numberFormatter.formatCompactNumber(count)
     SettingIi(
         platformClasses = cliPlatformClasses,
         search = SettingIi.Search(
@@ -67,7 +73,7 @@ fun settingCliAgentHistoryProvider(
     ) {
         val navigationController by rememberUpdatedState(LocalNavigationController.current)
         SettingCliAgentHistory(
-            count = count,
+            badge = badge,
             onClick = {
                 val intent = NavigationIntent.NavigateToRoute(
                     route = CliAgentHistoryRoute(client = client),
@@ -80,12 +86,12 @@ fun settingCliAgentHistoryProvider(
 
 @Composable
 private fun SettingCliAgentHistory(
-    count: Long,
+    badge: String,
     onClick: (() -> Unit)?,
 ) {
     LocalSettingPaneComponents.current.KgAction(
         icon = Icons.Outlined.History,
-        badge = count.toString(),
+        badge = badge,
         title = {
             Text(
                 text = stringResource(Res.string.pref_item_agent_history_title),

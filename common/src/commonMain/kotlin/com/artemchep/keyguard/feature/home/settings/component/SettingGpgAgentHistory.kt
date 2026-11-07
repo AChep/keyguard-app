@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import com.artemchep.keyguard.common.usecase.GetGpgUsageHistoryCount
+import com.artemchep.keyguard.common.usecase.NumberFormatter
 import com.artemchep.keyguard.feature.gpgagent.history.GpgAgentHistoryRoute
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -23,11 +24,14 @@ fun settingGpgAgentHistoryProvider(
     koinScope: Scope,
 ) = settingGpgAgentHistoryProvider(
     getGpgUsageHistoryCount = koinScope.get(),
+    numberFormatter = koinScope.get(),
 )
 
 fun settingGpgAgentHistoryProvider(
     getGpgUsageHistoryCount: GetGpgUsageHistoryCount,
+    numberFormatter: NumberFormatter,
 ): SettingComponent = getGpgUsageHistoryCount().map { count ->
+    val badge = numberFormatter.formatCompactNumber(count)
     SettingIi(
         platformClasses = listOf(
             Platform.Mobile.Android::class,
@@ -51,7 +55,7 @@ fun settingGpgAgentHistoryProvider(
     ) {
         val navigationController by rememberUpdatedState(LocalNavigationController.current)
         SettingGpgAgentHistory(
-            count = count,
+            badge = badge,
             onClick = {
                 val intent = NavigationIntent.NavigateToRoute(
                     route = GpgAgentHistoryRoute(),
@@ -64,12 +68,12 @@ fun settingGpgAgentHistoryProvider(
 
 @Composable
 private fun SettingGpgAgentHistory(
-    count: Long,
+    badge: String,
     onClick: (() -> Unit)?,
 ) {
     LocalSettingPaneComponents.current.KgAction(
         icon = Icons.Outlined.History,
-        badge = count.toString(),
+        badge = badge,
         title = {
             Text(
                 text = stringResource(Res.string.pref_item_agent_history_title),

@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 import XCTest
 import KeyguardShared
 @testable import KeyguardUI
@@ -135,6 +136,80 @@ final class FilePickerSessionTests: XCTestCase {
         picker.enqueue(pending)
         picker.resolve(result: .success([original]), requestID: pending.id)
         XCTAssertEqual(resolved, original.absoluteString)
+    }
+
+    @MainActor
+    func testCertificateResolutionIsReadyWhenDismissalIsObserved() {
+        let picker = FilePickerSession()
+        let original = URL(fileURLWithPath: #filePath)
+        var resolutions: [String] = []
+        let pending = PendingFilePicker(
+            requestId: "certificate", kind: .openDocument, mimeTypes: [], persistent: true,
+            resolveAfterDismissal: true,
+            resolve: { _, uri, _, _, _ in resolutions.append(uri) },
+            cancel: { _ in XCTFail("Expected the selected certificate") }
+        )
+        picker.enqueue(pending)
+        withObservationTracking {
+            _ = picker.pendingFilePicker
+        } onChange: {
+            MainActor.assumeIsolated { picker.pickerDismissed() }
+        }
+
+        picker.resolve(result: .success([original]), requestID: pending.id)
+
+        XCTAssertEqual(resolutions, [original.absoluteString])
+        picker.pickerDismissed()
+        XCTAssertEqual(resolutions.count, 1)
+    }
+
+    @MainActor
+    func testCertificateSelectedAfterDismissalResolvesOnce() {
+        let picker = FilePickerSession()
+        let original = URL(fileURLWithPath: #filePath)
+        var resolutions: [String] = []
+        let pending = PendingFilePicker(
+            requestId: "certificate", kind: .openDocument, mimeTypes: [], persistent: true,
+            resolveAfterDismissal: true,
+            resolve: { _, uri, _, _, _ in resolutions.append(uri) },
+            cancel: { _ in XCTFail("Expected the selected certificate") }
+        )
+        picker.enqueue(pending)
+        picker.pickerDismissed()
+
+        picker.resolve(result: .success([original]), requestID: pending.id)
+
+        XCTAssertEqual(resolutions, [original.absoluteString])
+        picker.pickerDismissed()
+        XCTAssertEqual(resolutions.count, 1)
+    }
+
+    @MainActor
+    func testCancelledDismissedCertificateDoesNotCompleteItsReplacementEarly() {
+        let picker = FilePickerSession()
+        var cancellations = 0
+        var resolutions = 0
+        func pending() -> PendingFilePicker {
+            PendingFilePicker(
+                requestId: "certificate", kind: .openDocument, mimeTypes: [], persistent: true,
+                resolveAfterDismissal: true,
+                resolve: { _, _, _, _, _ in resolutions += 1 },
+                cancel: { _ in cancellations += 1 }
+            )
+        }
+        let old = pending()
+        picker.enqueue(old)
+        picker.pickerDismissed()
+        let replacement = pending()
+        picker.enqueue(replacement)
+        let selection = Result<[URL], Error>.success([URL(fileURLWithPath: #filePath)])
+        picker.resolve(result: selection, requestID: old.id)
+        picker.resolve(result: selection, requestID: replacement.id)
+
+        XCTAssertEqual(cancellations, 1)
+        XCTAssertEqual(resolutions, 0)
+        picker.pickerDismissed()
+        XCTAssertEqual(resolutions, 1)
     }
 
     @MainActor

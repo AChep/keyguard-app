@@ -116,3 +116,9 @@ val Emails = setOf(
     "126.com",
     "hey.com",
 )
+
+/**
+ * Returns `true` if the domain belongs to a public email
+ * provider, ignoring case and surrounding whitespace.
+ */
+fun isPublicEmailDomain(domain: String): Boolean = domain.trim().lowercase() in Emails

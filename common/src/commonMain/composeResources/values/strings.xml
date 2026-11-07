@@ -856,6 +856,10 @@
     <string name="error_must_be_number">Must be a number</string>
     <string name="error_must_be_less_than_days">Must be less than <xliff:g id="days" example="15">%1$d</xliff:g> days from now</string>
     <string name="error_must_contain_only_us_ascii_chars">Must contain only US-ASCII characters</string>
+    <!--
+        The placeholder is a space-separated list of the
+        characters that are not allowed, e.g. "< > ( )" -->
+    <string name="error_must_not_contain_chars">Must not contain <xliff:g id="chars" example="&lt; &gt; ( )">%1$s</xliff:g></string>
     <string name="error_must_have_at_least_n_symbols">Must be at least <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
     <string name="error_must_have_exactly_n_symbols">Must be <xliff:g id="length" example="15">%1$d</xliff:g> symbols long</string>
     <string name="error_invalid_domain">Invalid domain</string>

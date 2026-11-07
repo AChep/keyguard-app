@@ -31,7 +31,6 @@ import arrow.core.getOrElse
 import arrow.core.partially1
 import arrow.core.right
 import com.artemchep.keyguard.AppMode
-import com.artemchep.keyguard.Emails
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -54,10 +53,16 @@ import com.artemchep.keyguard.common.model.GpgKeyExpiry
 import com.artemchep.keyguard.common.model.KeyPair
 import com.artemchep.keyguard.common.model.KeyPairConfig
 import com.artemchep.keyguard.common.model.Loadable
+import com.artemchep.keyguard.common.model.GeneratorInputError
+import com.artemchep.keyguard.common.model.GPG_KEY_NAME_RESERVED_CHARS
 import com.artemchep.keyguard.common.model.PasswordGeneratorConfigBuilder2
 import com.artemchep.keyguard.common.model.build
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.model.isExpensive
+import com.artemchep.keyguard.common.model.isValid
+import com.artemchep.keyguard.common.model.validateDomain
+import com.artemchep.keyguard.common.model.validateEmail
+import com.artemchep.keyguard.common.model.validateName
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.KeyPairGenerator
@@ -87,8 +92,6 @@ import com.artemchep.keyguard.feature.auth.common.IntFieldModel
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.auth.common.toModel
-import com.artemchep.keyguard.feature.auth.common.util.REGEX_DOMAIN
-import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
 import com.artemchep.keyguard.feature.auth.common.util.ValidationUri
 import com.artemchep.keyguard.feature.auth.common.util.validateUri
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
@@ -119,6 +122,7 @@ import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.generatorTarget
+import com.artemchep.keyguard.isPublicEmailDomain
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
@@ -474,7 +478,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                 ?.takeUnless { domain ->
                     // Catch-all email can not be setup for a
                     // public email server.
-                    domain in Emails
+                    isPublicEmailDomain(domain)
                 }
         }
         .shared("getUserDomainDefaultIo")
@@ -771,7 +775,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
         emailSubdomainAddressingEmailHandle.setText(
             getUserEmailDefaultIo.attempt().bind().getOrNull().orEmpty()
                 .takeIf { email ->
-                    email.substringAfterLast('@', "") !in Emails
+                    !isPublicEmailDomain(email.substringAfterLast('@', ""))
                 }
                 .orEmpty(),
         )
@@ -1344,6 +1348,29 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
         navigate(intent)
     }
 
+    suspend fun translateInputError(
+        error: GeneratorInputError?,
+    ): String? = when (error) {
+        null -> null
+        GeneratorInputError.EMPTY ->
+            translate(Res.string.error_must_not_be_empty)
+
+        GeneratorInputError.PUBLIC_DOMAIN ->
+            translate(Res.string.error_must_be_custom_domain)
+
+        GeneratorInputError.INVALID_DOMAIN ->
+            translate(Res.string.error_invalid_domain)
+
+        GeneratorInputError.INVALID_EMAIL ->
+            translate(Res.string.error_invalid_email)
+
+        GeneratorInputError.RESERVED_CHARS ->
+            translate(
+                Res.string.error_must_not_contain_chars,
+                GPG_KEY_NAME_RESERVED_CHARS.toList().joinToString(separator = " "),
+            )
+    }
+
     suspend fun createFilter(
         config: PasswordGeneratorConfigBuilder2.EmailCatchAll,
     ): GeneratorState.Filter {
@@ -1354,18 +1381,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                 icon = Icons.Outlined.Domain,
                 model = emailCatchAllDomainHandle.toModel(
                     hint = "example.com",
-                    error = when {
-                        config.domain.isEmpty() ->
-                            translate(Res.string.error_must_not_be_empty)
-
-                        config.domain in Emails ->
-                            translate(Res.string.error_must_be_custom_domain)
-
-                        !REGEX_DOMAIN.matches(config.domain.trim()) ->
-                            translate(Res.string.error_invalid_domain)
-
-                        else -> null
-                    },
+                    error = translateInputError(config.validateDomain()),
                 ),
             ),
         )
@@ -1406,15 +1422,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                 icon = Icons.Outlined.Email,
                 model = emailPlusAddressingEmailHandle.toModel(
                     hint = PLACEHOLDER_EMAIL,
-                    error = when {
-                        config.email.isEmpty() ->
-                            translate(Res.string.error_must_not_be_empty)
-
-                        !REGEX_EMAIL.matches(config.email.trim()) ->
-                            translate(Res.string.error_invalid_email)
-
-                        else -> null
-                    },
+                    error = translateInputError(config.validateEmail()),
                 ),
             ),
         )
@@ -1455,18 +1463,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                 icon = Icons.Outlined.Email,
                 model = emailSubdomainAddressingEmailHandle.toModel(
                     hint = PLACEHOLDER_EMAIL,
-                    error = when {
-                        config.email.isEmpty() ->
-                            translate(Res.string.error_must_not_be_empty)
-
-                        config.email.substringAfterLast('@', "") in Emails ->
-                            translate(Res.string.error_must_be_custom_domain)
-
-                        !REGEX_EMAIL.matches(config.email.trim()) ->
-                            translate(Res.string.error_invalid_email)
-
-                        else -> null
-                    },
+                    error = translateInputError(config.validateEmail()),
                 ),
             ),
         )
@@ -1579,11 +1576,6 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
     suspend fun createFilter(
         config: PasswordGeneratorConfigBuilder2.GpgKey,
     ): GeneratorState.Filter {
-        val userId = config.config.userId
-        val rawName = userId.substringBefore('<').trim()
-        val rawEmail = userId.substringAfter('<', "")
-            .substringBefore('>', "")
-            .trim()
         val tip = when (config.config) {
             is GpgKeyConfig.Modern -> gpgKeyModernFilterTip
             is GpgKeyConfig.Rsa -> gpgKeyRsaFilterTip
@@ -1619,12 +1611,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                 title = translate(Res.string.generator_gpg_key_name_title),
                 icon = Icons.Outlined.AccountBox,
                 model = gpgKeyNameHandle.toModel(
-                    error = when {
-                        rawName.isEmpty() ->
-                            translate(Res.string.error_must_not_be_empty)
-
-                        else -> null
-                    },
+                    error = translateInputError(config.validateName()),
                 ),
             ),
             GeneratorState.Filter.Item.Text(
@@ -1633,12 +1620,7 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                 icon = Icons.Outlined.Email,
                 model = gpgKeyEmailHandle.toModel(
                     hint = PLACEHOLDER_EMAIL,
-                    error = when {
-                        rawEmail.isNotEmpty() && !REGEX_EMAIL.matches(rawEmail) ->
-                            translate(Res.string.error_invalid_email)
-
-                        else -> null
-                    },
+                    error = translateInputError(config.validateEmail()),
                 ),
             ),
         )
@@ -1942,6 +1924,8 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                                             rawCustomDate = rawCustomExpiryDate,
                                         ),
                                     ),
+                                    name = name.text,
+                                    email = email.text,
                                 )
                             }
 
@@ -1967,6 +1951,8 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
                                             rawCustomDate = rawCustomExpiryDate,
                                         ),
                                     ),
+                                    name = name.text,
+                                    email = email.text,
                                 )
                             }
                         }
@@ -1997,11 +1983,27 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
         .map { (configBuilder, type) ->
             val config = configBuilder.build()
             val factory = getPassword(generatorContext, config)
+                // Do not generate a value while the screen
+                // shows a validation error.
+                .takeIf { configBuilder.isValid() }
             Triple(config, factory, type)
         }
         .flatMapLatest { (config, factory, type) ->
             val generateOnInit = !config.isExpensive()
             flow {
+                if (factory == null) {
+                    val data = ValueGenerationEvent.Data(
+                        result = null.right(),
+                        type = type,
+                    )
+                    val event = ValueGenerationEvent(
+                        id = "",
+                        data = Loadable.Ok(data),
+                    )
+                    emit(event)
+                    return@flow
+                }
+
                 kotlin.run {
                     val result = GetPasswordResult.Value("")
                         .right()

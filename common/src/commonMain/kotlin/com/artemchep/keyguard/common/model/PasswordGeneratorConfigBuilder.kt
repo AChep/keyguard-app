@@ -2,6 +2,13 @@ package com.artemchep.keyguard.common.model
 
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_DOMAIN
 import com.artemchep.keyguard.feature.auth.common.util.REGEX_EMAIL
+import com.artemchep.keyguard.isPublicEmailDomain
+
+/**
+ * Characters that a name may not contain, as they would
+ * change the structure of a `Name <email>` GPG User ID.
+ */
+const val GPG_KEY_NAME_RESERVED_CHARS = "<>()"
 
 sealed interface PasswordGeneratorConfigBuilder2 {
     data class Value(
@@ -82,9 +89,94 @@ sealed interface PasswordGeneratorConfigBuilder2 {
         val config: KeyPairConfig,
     ) : PasswordGeneratorConfigBuilder2
 
+    /**
+     * @param name the raw name the [GpgKeyConfig.userId] is built from
+     * @param email the raw email the [GpgKeyConfig.userId] is built from
+     */
     data class GpgKey(
         val config: GpgKeyConfig,
+        val name: String,
+        val email: String,
     ) : PasswordGeneratorConfigBuilder2
+}
+
+enum class GeneratorInputError {
+    EMPTY,
+    PUBLIC_DOMAIN,
+    INVALID_DOMAIN,
+    INVALID_EMAIL,
+    RESERVED_CHARS,
+}
+
+fun PasswordGeneratorConfigBuilder2.EmailCatchAll.validateDomain(): GeneratorInputError? {
+    val value = domain.trim()
+    return when {
+        value.isEmpty() -> GeneratorInputError.EMPTY
+        isPublicEmailDomain(value) -> GeneratorInputError.PUBLIC_DOMAIN
+        !REGEX_DOMAIN.matches(value) -> GeneratorInputError.INVALID_DOMAIN
+        else -> null
+    }
+}
+
+fun PasswordGeneratorConfigBuilder2.EmailPlusAddressing.validateEmail(): GeneratorInputError? {
+    val value = email.trim()
+    return when {
+        value.isEmpty() -> GeneratorInputError.EMPTY
+        !REGEX_EMAIL.matches(value) -> GeneratorInputError.INVALID_EMAIL
+        else -> null
+    }
+}
+
+fun PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing.validateEmail(): GeneratorInputError? {
+    val value = email.trim()
+    return when {
+        value.isEmpty() -> GeneratorInputError.EMPTY
+        isPublicEmailDomain(value.substringAfterLast('@', "")) ->
+            GeneratorInputError.PUBLIC_DOMAIN
+
+        !REGEX_EMAIL.matches(value) -> GeneratorInputError.INVALID_EMAIL
+        else -> null
+    }
+}
+
+fun PasswordGeneratorConfigBuilder2.GpgKey.validateName(): GeneratorInputError? {
+    val value = name.trim()
+    return when {
+        value.isEmpty() -> GeneratorInputError.EMPTY
+        value.any { it in GPG_KEY_NAME_RESERVED_CHARS } -> GeneratorInputError.RESERVED_CHARS
+        else -> null
+    }
+}
+
+/** The email is optional, so an empty value is valid. */
+fun PasswordGeneratorConfigBuilder2.GpgKey.validateEmail(): GeneratorInputError? {
+    val value = email.trim()
+    return when {
+        value.isEmpty() -> null
+        !REGEX_EMAIL.matches(value) -> GeneratorInputError.INVALID_EMAIL
+        else -> null
+    }
+}
+
+/**
+ * Returns `false` if any of the inputs has a validation error,
+ * so the generator must not produce a value.
+ */
+fun PasswordGeneratorConfigBuilder2.isValid(): Boolean = when (this) {
+    is PasswordGeneratorConfigBuilder2.EmailCatchAll -> validateDomain() == null
+    is PasswordGeneratorConfigBuilder2.EmailPlusAddressing -> validateEmail() == null
+    is PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing -> validateEmail() == null
+    is PasswordGeneratorConfigBuilder2.GpgKey ->
+        validateName() == null && validateEmail() == null
+
+    is PasswordGeneratorConfigBuilder2.Value,
+    is PasswordGeneratorConfigBuilder2.Password,
+    is PasswordGeneratorConfigBuilder2.Passphrase,
+    is PasswordGeneratorConfigBuilder2.PinCode,
+    is PasswordGeneratorConfigBuilder2.Username,
+    is PasswordGeneratorConfigBuilder2.EmailRelay,
+    is PasswordGeneratorConfigBuilder2.KeyPair,
+    -> true
 }
 
 fun PasswordGeneratorConfigBuilder2.build(): PasswordGeneratorConfig = when (this) {
@@ -190,8 +282,8 @@ fun PasswordGeneratorConfigBuilder2.EmailCatchAll.build(): PasswordGeneratorConf
     val config = buildEmailFriendlyGeneratorConfig(
         payload = payload,
     )
-    val domain = domain
-        .takeIf { REGEX_DOMAIN.matches(it) }
+    val domain = domain.trim()
+        .takeIf { validateDomain() == null }
     return PasswordGeneratorConfig.Composite(
         config = config,
         transform = { pwd ->
@@ -208,8 +300,8 @@ fun PasswordGeneratorConfigBuilder2.EmailPlusAddressing.build(): PasswordGenerat
     val config = buildEmailFriendlyGeneratorConfig(
         payload = payload,
     )
-    val email = email
-        .takeIf { REGEX_EMAIL.matches(it) }
+    val email = email.trim()
+        .takeIf { validateEmail() == null }
         ?.let(::parseEmail)
     return PasswordGeneratorConfig.Composite(
         config = config,
@@ -227,8 +319,8 @@ fun PasswordGeneratorConfigBuilder2.EmailSubdomainAddressing.build(): PasswordGe
     val config = buildEmailFriendlyGeneratorConfig(
         payload = payload,
     )
-    val email = email
-        .takeIf { REGEX_EMAIL.matches(it) }
+    val email = email.trim()
+        .takeIf { validateEmail() == null }
         ?.let(::parseEmail)
     return PasswordGeneratorConfig.Composite(
         config = config,

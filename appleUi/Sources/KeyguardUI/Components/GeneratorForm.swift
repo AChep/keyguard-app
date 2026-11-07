@@ -326,8 +326,11 @@ private func generatorEnumRow(
             set: { actions.invoke($0) }
         )
     ) {
+        // The selected option shows the producer's current label, which can
+        // carry extra context, e.g. the chosen custom expiry date.
         ForEach(filter.enumOptions, id: \.id) { option in
-            Text(option.title).tag(option.id)
+            Text(option.selected && !filter.enumValue.isEmpty ? filter.enumValue : option.title)
+                .tag(option.id)
         }
     }
 }

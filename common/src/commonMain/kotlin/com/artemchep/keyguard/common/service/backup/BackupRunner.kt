@@ -25,6 +25,10 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.io.Buffer
+import kotlinx.io.RawSink
+import kotlinx.io.Sink
+import kotlinx.io.buffered
 
 /**
  * Creates backup snapshots from exported vault data,
@@ -403,14 +407,20 @@ class BackupRunner(
             val cipher = candidate.cipher
             val remoteAttachment = candidate.attachment
             val blobAlreadyWritten = candidate.blobId in writtenBlobIds
+            val previousBlob = indexBlobs[candidate.blobId]
+            // The remote attachment size is not the plaintext size: for
+            // Bitwarden it is the size of the encrypted file. Measure the
+            // bytes written into the blob instead.
+            var plainSize = previousBlob?.plainSize
             val encryptedSize = if (candidate.cached || blobAlreadyWritten) {
                 reusedBlobCount += 1
-                val size = indexBlobs[candidate.blobId]?.encryptedSize
+                val size = previousBlob?.encryptedSize
                 diagnostics.backupAttachmentBlobReused(
                     localCipherId = cipher.id,
                     remoteCipherId = remoteAttachment.remoteCipherId,
                     attachmentId = remoteAttachment.id,
-                    plainSize = remoteAttachment.size,
+                    remoteSize = remoteAttachment.size,
+                    plainSize = plainSize,
                     encryptedSize = size,
                 )
                 size
@@ -422,7 +432,8 @@ class BackupRunner(
                     objectPassword = candidate.encryption.toPassword(),
                     blobPath = candidate.blobPath,
                 ) { sink ->
-                    writeAttachment(
+                    // Assign, do not add: the repository may run the write again.
+                    plainSize = writeAttachment(
                         sink = sink,
                         cipher = cipher,
                         attachment = remoteAttachment,
@@ -447,12 +458,11 @@ class BackupRunner(
             val previousAttachment = indexAttachments[candidate.fingerprint]
             indexAttachments[candidate.fingerprint] = BackupIndexAttachment(
                 blobId = candidate.blobId,
-                plainSize = remoteAttachment.size,
+                plainSize = plainSize,
                 createdAt = previousAttachment?.createdAt ?: now,
                 lastSeenAt = now,
             )
 
-            val previousBlob = indexBlobs[candidate.blobId]
             val lastValidatedAt = if (candidate.cached) {
                 candidate.lastValidatedAt
             } else {
@@ -460,7 +470,7 @@ class BackupRunner(
             }
             indexBlobs[candidate.blobId] = BackupIndexBlob(
                 path = candidate.blobPath,
-                plainSize = remoteAttachment.size,
+                plainSize = plainSize,
                 encryptedSize = encryptedSize ?: previousBlob?.encryptedSize,
                 createdAt = previousBlob?.createdAt ?: now,
                 lastSeenAt = now,
@@ -474,7 +484,7 @@ class BackupRunner(
                 remoteCipherId = remoteAttachment.remoteCipherId,
                 attachmentId = remoteAttachment.id,
                 fileName = remoteAttachment.fileName,
-                plainSize = remoteAttachment.size,
+                plainSize = plainSize,
                 fingerprint = candidate.fingerprint,
                 blobId = candidate.blobId,
                 blobPath = candidate.blobPath,
@@ -605,15 +615,21 @@ class BackupRunner(
         return cryptoGenerator.random(0..99) < 30
     }
 
+    /**
+     * Downloads the [attachment] into the [sink] and returns the number of
+     * plaintext bytes written.
+     */
     private suspend fun writeAttachment(
-        sink: kotlinx.io.Sink,
+        sink: Sink,
         cipher: DSecret,
         attachment: DSecret.Attachment.Remote,
         onProgress: suspend (DownloadProgress.Loading) -> Unit = {},
-    ) {
+    ): Long {
         var sourceType: String? = null
         try {
-            val writer = DownloadWriter.SinkWriter(sink)
+            val counter = CountingSink(sink)
+            val output = counter.buffered()
+            val writer = DownloadWriter.SinkWriter(output)
             val request = DownloadAttachmentRequest.ByLocalCipherAttachment(
                 localCipherId = cipher.id,
                 remoteCipherId = attachment.remoteCipherId,
@@ -632,7 +648,7 @@ class BackupRunner(
                 attachmentId = attachment.id,
                 attachmentName = attachment.fileName,
                 sourceType = sourceType,
-                plainSize = attachment.size,
+                remoteSize = attachment.size,
             )
             val flow = downloadSourceLoader.fileLoader(
                 request = meta,
@@ -656,13 +672,15 @@ class BackupRunner(
                 },
                 ifRight = { },
             )
+            output.flush()
             diagnostics.backupAttachmentDownloadCompleted(
                 localCipherId = cipher.id,
                 remoteCipherId = attachment.remoteCipherId,
                 attachmentId = attachment.id,
                 sourceType = sourceType,
-                plainSize = attachment.size,
+                plainSize = counter.bytesWritten,
             )
+            return counter.bytesWritten
         } catch (e: Exception) {
             e.throwIfFatalOrCancellation()
             diagnostics.backupAttachmentDownloadFailed(
@@ -970,3 +988,26 @@ fun BackupRunResult.toStatus(
     lastStats = stats,
     repositoryEncryption = repositoryEncryption,
 )
+
+/**
+ * Counts the bytes written to the [delegate]. Closing it leaves the
+ * [delegate] open.
+ */
+private class CountingSink(
+    private val delegate: Sink,
+) : RawSink {
+    var bytesWritten: Long = 0L
+        private set
+
+    override fun write(
+        source: Buffer,
+        byteCount: Long,
+    ) {
+        delegate.write(source, byteCount)
+        bytesWritten += byteCount
+    }
+
+    override fun flush() = delegate.flush()
+
+    override fun close() = Unit
+}

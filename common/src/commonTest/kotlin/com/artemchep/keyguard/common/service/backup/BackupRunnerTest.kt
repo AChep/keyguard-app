@@ -124,6 +124,33 @@ class BackupRunnerTest {
     }
 
     @Test
+    fun `plain size is the size of the written payload, not the remote size`() = runTest {
+        val repository = MemoryBackupRepository()
+        // A Bitwarden attachment reports the size of the encrypted file,
+        // while the download writes the 7 decrypted bytes of "payload".
+        val runner = runner(
+            repository = repository,
+            downloadTask = CountingDownloadTask(),
+            exportVaultDataService = StaticExportVaultDataService(
+                ciphers = listOf(testCipher(attachmentSize = 64L)),
+            ),
+        )
+        val config = config()
+
+        runner.run(config)
+        // The second run reuses the blob and keeps the measured size.
+        runner.run(config)
+
+        val index = repository.index
+        assertEquals(7L, index.attachments.values.single().plainSize)
+        assertEquals(7L, index.blobs.values.single().plainSize)
+        assertEquals(2, repository.snapshots.size)
+        repository.snapshots.values.forEach { manifest ->
+            assertEquals(7L, manifest.attachments.single().plainSize)
+        }
+    }
+
+    @Test
     fun `attachment key change reuses blob without redownloading`() = runTest {
         val repository = MemoryBackupRepository()
         val downloadTask = CountingDownloadTask()
@@ -1513,6 +1540,7 @@ internal fun testCipher(
     remoteCipherId: String = "remote-cipher-1",
     attachmentId: String = "attachment-1",
     attachmentKeyBase64: String = "key-1",
+    attachmentSize: Long = 7L,
 ) = createSecret(
     id = id,
     name = "Cipher",
@@ -1532,7 +1560,7 @@ internal fun testCipher(
             remoteCipherId = remoteCipherId,
             fileName = "file.txt",
             keyBase64 = attachmentKeyBase64,
-            size = 7L,
+            size = attachmentSize,
         ),
     ),
     revisionDate = Instant.fromEpochMilliseconds(1L),

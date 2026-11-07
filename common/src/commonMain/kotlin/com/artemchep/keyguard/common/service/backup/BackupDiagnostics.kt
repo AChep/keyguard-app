@@ -137,12 +137,13 @@ class BackupDiagnostics(
         localCipherId: String,
         remoteCipherId: String,
         attachmentId: String,
+        remoteSize: Long?,
         plainSize: Long?,
         encryptedSize: Long?,
     ) = debug {
         "backup_attachment_blob_reused local_cipher_id=$localCipherId " +
                 "remote_cipher_id=$remoteCipherId attachment_id=$attachmentId " +
-                "plain_size=$plainSize encrypted_size=$encryptedSize"
+                "remote_size=$remoteSize plain_size=$plainSize encrypted_size=$encryptedSize"
     }
 
     suspend fun backupAttachmentDownloadStarted(
@@ -151,11 +152,11 @@ class BackupDiagnostics(
         attachmentId: String,
         attachmentName: String,
         sourceType: String?,
-        plainSize: Long?,
+        remoteSize: Long?,
     ) = debug {
         "backup_attachment_download_started local_cipher_id=$localCipherId " +
                 "remote_cipher_id=$remoteCipherId attachment_id=$attachmentId " +
-                "attachment_name=$attachmentName source_type=$sourceType plain_size=$plainSize"
+                "attachment_name=$attachmentName source_type=$sourceType remote_size=$remoteSize"
     }
 
     suspend fun backupAttachmentDownloadCompleted(

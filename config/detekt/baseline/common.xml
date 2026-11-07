@@ -429,7 +429,7 @@
     <ID>LongMethod:BackupRunService.kt:BackupRunService$private suspend fun run: BackupStatus</ID>
     <ID>LongMethod:BackupRunner.kt:BackupRunner$private suspend fun applyRetention</ID>
     <ID>LongMethod:BackupRunner.kt:BackupRunner$private suspend fun backupAttachments: BackupAttachmentResult</ID>
-    <ID>LongMethod:BackupRunner.kt:BackupRunner$private suspend fun writeAttachment</ID>
+    <ID>LongMethod:BackupRunner.kt:BackupRunner$private suspend fun writeAttachment: Long</ID>
     <ID>LongMethod:BackupRunner.kt:BackupRunner$suspend fun run: BackupRunResult</ID>
     <ID>LongMethod:BarcodeTypeScreen.kt:@Composable private fun BarcodeTypeContent</ID>
     <ID>LongMethod:BarcodeTypeStateProducer.kt:suspend fun RememberStateFlowScope.barcodeTypeStateProducer: Flow&lt;Loadable&lt;BarcodeTypeState&gt;&gt;</ID>

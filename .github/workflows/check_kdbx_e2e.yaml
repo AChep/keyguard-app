@@ -81,7 +81,7 @@ jobs:
           :integration:kdbxE2eTest:kdbxE2eTest
           -PkdbxE2ePython=python
       - name: "Upload KDBX E2E test reports"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: always()
         with:
           name: kdbx-e2e-test-reports
@@ -91,7 +91,7 @@ jobs:
           if-no-files-found: ignore
           retention-days: 21
       - name: "Upload failed KDBX interoperability artifacts"
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         if: failure()
         with:
           name: kdbx-e2e-failure-artifacts

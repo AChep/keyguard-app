@@ -148,7 +148,7 @@ struct TagTokenField: View {
                 CubicKeyframe(0, duration: 0.14)
             }
         }
-        .matchedGeometryEffect(id: tag.lowercased(), in: namespace)
+        .matchedGeometryEffect(id: tag, in: namespace)
         .transition(.scale(scale: 0.8).combined(with: .opacity))
     }
 
@@ -259,7 +259,9 @@ struct TagTokenField: View {
         .buttonStyle(.plain)
         .accessibilityLabel(suggestion.name)
         .accessibilityValue(L10n.tagItemsCountPlural(Int(suggestion.usage)))
-        .matchedGeometryEffect(id: suggestion.name.lowercased(), in: namespace)
+        // Case-sensitive: the vault can have both "work" and "Work", and
+        // a shared id would draw both suggestions in one place.
+        .matchedGeometryEffect(id: suggestion.name, in: namespace)
     }
 
     /// The suggestion's name with the part that matches the draft in bold.

@@ -150,6 +150,9 @@
     <string name="expiring_soon">곧 만료</string>
     <string name="item_incomplete_title">불완전한 데이터</string>
     <string name="item_incomplete_text">중요한 정보가 비어 있는 항목입니다.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">항목</string>
     <string name="items">항목</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g>개 항목</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">유형 선택</string>
     <string name="select_file">파일 선택</string>
     <string name="additem_attachments_drop_here">파일을 여기에 놓아 첨부 파일로 추가하세요</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">선택한 파일을 바꾸려면 파일을 가져다 놓으세요</string>
     <string name="autofill">자동 완성</string>
     <string name="autofill_and_save_uri">자동 완성하고 앱 또는 웹사이트 정보 저장</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">OTP 비밀 키는 비워둘 수 없습니다.</string>
     <string name="error_otp_key_is_invalid">OTP 비밀 키가 올바르지 않습니다</string>
     <string name="error_failed_file_already_exists">파일을 만들지 못했습니다. 이미 존재하는 파일은 교체할 수 없습니다.</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">이미 Keyguard에 추가된 계정입니다</string>
     <string name="error_failed_generate_kdf_hash_oom">메모리가 부족하여 키를 생성하지 못했습니다. KDF 서버 설정을 확인해 보세요.</string>
     <string name="error_failed_generate_otp_code">OTP 코드를 생성하지 못했습니다.</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">알 수 없는 호출자</string>
     <string name="agent_history_unknown_key">알 수 없는 키</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">접근 가능한 모든 키</string>
     <string name="agent_history_clear_history_title">기록 삭제</string>
     <string name="agent_history_clear_history_confirmation_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> 에이전트 기록을 삭제할까요?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">HTTP 프로토콜을 사용하는 URL을 HTTPS로 변경하세요. HTTPS 프로토콜은 가장 강력한 암호화를 사용할 수 있습니다.</string>
     <string name="watchtower_item_inactive_2fa_title">2단계 인증 꺼짐</string>
     <string name="watchtower_item_inactive_2fa_text">2단계 인증을 지원하지만 아직 설정하지 않은 사이트입니다.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">패스키 사용 가능</string>
     <string name="watchtower_item_inactive_passkey_text">패스키를 지원하지만 아직 설정하지 않은 사이트입니다. 패스키는 비밀번호보다 간단하고 더 안전합니다.</string>
     <string name="watchtower_item_incomplete_items_title">불완전한 항목</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">보관함을 암호화한 ZIP 파일로 내보냅니다.</string>
     <string name="exportaccount_format_title">형식</string>
     <string name="exportaccount_format_zip">ZIP 압축 파일</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">KeePass 데이터베이스 (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">데이터베이스 비밀번호</string>
     <string name="exportaccount_format_kdbx_note">보관함을 KeePass 데이터베이스로 내보냅니다. 폴더는 그룹으로 변환됩니다. 조직과 컬렉션은 내보내지 않습니다.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">백업 준비 중</string>
     <string name="backup_step_opening_repository">백업 저장소 여는 중</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">보관함 데이터 내보내는 중</string>
     <string name="backup_step_scanning_attachments">첨부 파일 검사 중</string>
     <string name="backup_step_backing_up_attachments">첨부 파일 백업 중</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">%1$s에 완료했습니다.</string>
     <string name="pref_item_automatic_backups_status_error_title">최근 백업 실패</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">최근 백업 건너뜀</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">아직 백업 없음</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">자동 백업 사용 중지</string>
     <string name="pref_item_automatic_backups_disable_message">앞으로 실행될 자동 백업을 사용 중지합니다. Keyguard 백업 설정에서 로컬 폴더, 비밀번호, 첨부 파일 포함 여부를 초기화합니다. 기존 백업 저장소와 해당 폴더의 파일은 삭제하지 않습니다.</string>
     <string name="pref_item_automatic_backups_disable_action">사용 중지…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">탐색 항목</string>
     <string name="pref_item_nav_label_title">내비게이션 버튼에 라벨 표시</string>
     <string name="pref_item_nav_label_short_title">탐색 라벨 표시</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">모든 키 사용 가능</string>
     <string name="pref_item_agent_filters_summary_active">필터 적용 중</string>
     <string name="pref_item_agent_history_title">요청 기록</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">SSH 에이전트 사용 설정</string>
     <string name="pref_item_ssh_agent_description">Keyguard가 보관함의 SSH 키를 ssh/git에 제공합니다. 각 서명에는 승인이 필요합니다.</string>
     <string name="pref_item_license_key_title">기존 이용 권한 코드 연결</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

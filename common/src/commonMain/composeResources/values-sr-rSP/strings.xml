@@ -150,6 +150,9 @@
     <string name="expiring_soon">Ускоро истиче</string>
     <string name="item_incomplete_title">Непотпуни подаци</string>
     <string name="item_incomplete_text">Овој ставци недостају неки важни подаци.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Ставка</string>
     <string name="items">Ставке</string>
     <string name="items_n">Ставке: <xliff:g id="size" example="15">%1$s</xliff:g></string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">Изабери тип</string>
     <string name="select_file">Изабери датотеку</string>
     <string name="additem_attachments_drop_here">Отпустите датотеку овде да бисте је додали као прилог</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">Отпустите датотеку да бисте заменили изабрану датотеку</string>
     <string name="autofill">Аутоматско попуњавање</string>
     <string name="autofill_and_save_uri">Аутоматски попуни и сачувај податке о апликацији или веб-сајту</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">Тајни кључ за једнократну лозинку не сме бити празан</string>
     <string name="error_otp_key_is_invalid">Тајни кључ за једнократну лозинку није исправан</string>
     <string name="error_failed_file_already_exists">Прављење датотеке није успело. Замена постојеће датотеке није дозвољена</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">Овај налог је већ додат у Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Кључ није направљен јер нема довољно меморије. Проверите KDF подешавања на серверу.</string>
     <string name="error_failed_generate_otp_code">Генерисање једнократне лозинке није успело</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Непознат позивалац</string>
     <string name="agent_history_unknown_key">Непознат кључ</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">Сви доступни кључеви</string>
     <string name="agent_history_clear_history_title">Обриши историју</string>
     <string name="agent_history_clear_history_confirmation_title">Обрисати историју <xliff:g id="protocol" example="SSH">%1$s</xliff:g> агента?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">Замените URL адресе које користе HTTP протокол адресама које користе HTTPS протокол, јер он користи најсавременије доступно шифровање.</string>
     <string name="watchtower_item_inactive_2fa_title">Неактивна двофакторска аутентификација</string>
     <string name="watchtower_item_inactive_2fa_text">Сајтови на којима је доступна двофакторска аутентификација, али је још нисте подесили.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Доступни приступни кључеви</string>
     <string name="watchtower_item_inactive_passkey_text">Сајтови који подржавају приступне кључеве, али их још нисте подесили. Они су једноставнији и безбеднији од лозинке.</string>
     <string name="watchtower_item_incomplete_items_title">Непотпуне ставке</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">Извезите трезор као шифровану ZIP архиву.</string>
     <string name="exportaccount_format_title">Формат</string>
     <string name="exportaccount_format_zip">ZIP архива</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">KeePass база података (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">Лозинка базе података</string>
     <string name="exportaccount_format_kdbx_note">Извезите трезор као KeePass базу података. Фасцикле постају групе. Организације и колекције се не извозе.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> — <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">Припрема резервне копије</string>
     <string name="backup_step_opening_repository">Отварање репозиторијума резервних копија</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">Извоз података из трезора</string>
     <string name="backup_step_scanning_attachments">Прегледање прилога</string>
     <string name="backup_step_backing_up_attachments">Копирање прилога у резервну копију</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">Завршено: %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">Прављење последње резервне копије није успело</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">Последње прављење резервне копије је прескочено</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">Још нема резервне копије</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">Искључи аутоматске резервне копије</string>
     <string name="pref_item_automatic_backups_disable_message">Овим се искључује само будуће аутоматско прављење резервних копија. Из Keyguard-а се уклањају подешавања локалне фасцикле, лозинке и укључивања прилога. Постојећи репозиторијум резервних копија и датотеке у тој фасцикли се не бришу.</string>
     <string name="pref_item_automatic_backups_disable_action">Онемогући…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">Навигационе ставке</string>
     <string name="pref_item_nav_label_title">Прикажи ознаке навигационих дугмади</string>
     <string name="pref_item_nav_label_short_title">Прикажи ознаке навигације</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">Сви кључеви су доступни</string>
     <string name="pref_item_agent_filters_summary_active">Филтери су активни</string>
     <string name="pref_item_agent_history_title">Дневник захтева</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Омогући SSH агент</string>
     <string name="pref_item_ssh_agent_description">Keyguard пружа SSH кључеве из вашег трезора алатима ssh/git. За свако потписивање потребно је ваше одобрење.</string>
     <string name="pref_item_license_key_title">Повежи постојећи код за потврду права</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

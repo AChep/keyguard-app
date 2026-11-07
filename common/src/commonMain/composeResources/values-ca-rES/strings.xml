@@ -150,6 +150,9 @@
     <string name="expiring_soon">Expira prompte</string>
     <string name="item_incomplete_title">Dades incompletes</string>
     <string name="item_incomplete_text">A aquest element li falta informació important.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Element</string>
     <string name="items">Elements</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> elements</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">Seleccioneu tipus</string>
     <string name="select_file">Seleccionar fitxer</string>
     <string name="additem_attachments_drop_here">Deixa anar un fitxer aquí per afegir-lo com a fitxer adjunt</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">Deixa anar un fitxer per substituir el fitxer seleccionat</string>
     <string name="autofill">Emplenament automàtic</string>
     <string name="autofill_and_save_uri">Emplena i desa les dades d'apps i llocs web automàticament</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">La clau secreta de la contrasenya d'un sol ús no pot estar buida</string>
     <string name="error_otp_key_is_invalid">La clau secreta de la contrasenya d'un sol ús no és vàlida</string>
     <string name="error_failed_file_already_exists">No s'ha pogut crear el fitxer. No es permet substituir un fitxer existent</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">Aquest compte ja s'ha afegit a Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">No s'ha pogut crear la clau, no hi ha prou memòria. Per favor, configura la configuració del teu servidor KDF.</string>
     <string name="error_failed_generate_otp_code">No s'ha pogut generar el codi OTP</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Sol·licitant desconegut</string>
     <string name="agent_history_unknown_key">Clau desconeguda</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">Totes les claus accessibles</string>
     <string name="agent_history_clear_history_title">Esborra l'historial</string>
     <string name="agent_history_clear_history_confirmation_title">Vols esborrar l'historial de l'agent <xliff:g id="protocol" example="SSH">%1$s</xliff:g>?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">Canvia les URL que fan servir HTTP en comptes d'HTTPS, ja que aquest últim fa servir els algoritmes d'encriptació més segurs possibles.</string>
     <string name="watchtower_item_inactive_2fa_title">Autenticació de dos factors inactiva</string>
     <string name="watchtower_item_inactive_2fa_text">Llocs que tenen autenticació de dos factors disponible, però als quals no l'has activada.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Passkeys Disponibles</string>
     <string name="watchtower_item_inactive_passkey_text">Llocs web que tenen disponibilitat per a passkeys però els quals encara no has configurat. És més simple i segur que una contrasenya.</string>
     <string name="watchtower_item_incomplete_items_title">Elements incomplets</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">Exporta la caixa forta com un arxiu ZIP comprimit.</string>
     <string name="exportaccount_format_title">Format</string>
     <string name="exportaccount_format_zip">Arxiu ZIP</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">Base de dades KeePass (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">Contrasenya de la base de dades</string>
     <string name="exportaccount_format_kdbx_note">Exporta la caixa forta com a base de dades KeePass. Les carpetes es converteixen en grups. Les organitzacions i les col·leccions no s'exporten.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">S'està preparant la còpia de seguretat</string>
     <string name="backup_step_opening_repository">S'està obrint el repositori de còpies de seguretat</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">S'estan exportant les dades de la caixa forta</string>
     <string name="backup_step_scanning_attachments">S'estan cercant els adjunts</string>
     <string name="backup_step_backing_up_attachments">S'estan fent còpies de seguretat dels adjunts</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">Completada: %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">La darrera còpia de seguretat ha fallat</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">Darrera còpia de seguretat omesa</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">Encara no hi ha cap còpia de seguretat</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">Desactiva les còpies de seguretat automàtiques</string>
     <string name="pref_item_automatic_backups_disable_message">Això només desactiva les còpies de seguretat automàtiques futures. S'esborren de Keyguard la carpeta local, la contrasenya i l'opció d'incloure adjunts. No s'eliminen el repositori de còpies de seguretat existent ni els fitxers d'aquesta carpeta.</string>
     <string name="pref_item_automatic_backups_disable_action">Desactiva…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">Elements de navegació</string>
     <string name="pref_item_nav_label_title">Mostra etiquetes als botons de navegació</string>
     <string name="pref_item_nav_label_short_title">Mostra les etiquetes de navegació</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">Totes les claus són accessibles</string>
     <string name="pref_item_agent_filters_summary_active">Filtres actius</string>
     <string name="pref_item_agent_history_title">Registre de sol·licituds</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Activa l'agent SSH</string>
     <string name="pref_item_ssh_agent_description">Keyguard proporciona les claus SSH de la teva caixa forta a ssh/git. Cada signatura requereix la teva aprovació.</string>
     <string name="pref_item_license_key_title">Vincula un testimoni de dret d'ús existent</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

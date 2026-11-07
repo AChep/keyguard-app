@@ -150,6 +150,9 @@
     <string name="expiring_soon">Λήγει σύντομα</string>
     <string name="item_incomplete_title">Ελλιπή δεδομένα</string>
     <string name="item_incomplete_text">Από αυτό το στοιχείο λείπουν ορισμένες σημαντικές πληροφορίες.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Στοιχείο</string>
     <string name="items">Στοιχεία</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> στοιχεία</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">Επιλέξτε τύπο</string>
     <string name="select_file">Επιλογή αρχείου</string>
     <string name="additem_attachments_drop_here">Αποθέστε ένα αρχείο εδώ για να το προσθέσετε ως συνημμένο</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">Αποθέστε ένα αρχείο για να αντικαταστήσετε το επιλεγμένο αρχείο</string>
     <string name="autofill">Αυτόματη συμπλήρωση</string>
     <string name="autofill_and_save_uri">Αυτόματη συμπλήρωση και αποθήκευση στοιχείων εφαρμογής ή ιστοτόπου</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">Το μυστικό κλειδί του κωδικού μίας χρήσης δεν μπορεί να είναι κενό</string>
     <string name="error_otp_key_is_invalid">Το μυστικό κλειδί του κωδικού μίας χρήσης δεν είναι έγκυρο</string>
     <string name="error_failed_file_already_exists">Αποτυχία δημιουργίας αρχείου. Δεν επιτρέπεται η αντικατάσταση υπάρχοντος αρχείου</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">Αυτός ο λογαριασμός έχει ήδη προστεθεί στο Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Αποτυχία δημιουργίας κλειδιού λόγω ανεπαρκούς μνήμης. Ελέγξτε τις ρυθμίσεις KDF στον διακομιστή σας.</string>
     <string name="error_failed_generate_otp_code">Αποτυχία δημιουργίας κωδικού OTP</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Άγνωστη εφαρμογή</string>
     <string name="agent_history_unknown_key">Άγνωστο κλειδί</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">Όλα τα προσβάσιμα κλειδιά</string>
     <string name="agent_history_clear_history_title">Εκκαθάριση ιστορικού</string>
     <string name="agent_history_clear_history_confirmation_title">Εκκαθάριση ιστορικού πράκτορα <xliff:g id="protocol" example="SSH">%1$s</xliff:g>;</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">Αλλάξτε τις διευθύνσεις URL που χρησιμοποιούν το πρωτόκολλο HTTP ώστε να χρησιμοποιούν HTTPS, καθώς το τελευταίο χρησιμοποιεί την πιο προηγμένη διαθέσιμη κρυπτογράφηση.</string>
     <string name="watchtower_item_inactive_2fa_title">Ανενεργός έλεγχος ταυτότητας δύο παραγόντων</string>
     <string name="watchtower_item_inactive_2fa_text">Ιστότοποι που υποστηρίζουν έλεγχο ταυτότητας δύο παραγόντων, αλλά δεν τον έχετε ρυθμίσει ακόμη.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Διαθέσιμα κλειδιά πρόσβασης</string>
     <string name="watchtower_item_inactive_passkey_text">Ιστότοποι που υποστηρίζουν κλειδιά πρόσβασης, αλλά δεν έχετε ρυθμίσει ακόμη κάποιο. Είναι πιο απλά και ασφαλή στη χρήση από έναν κωδικό πρόσβασης.</string>
     <string name="watchtower_item_incomplete_items_title">Ελλιπή στοιχεία</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">Εξαγωγή θησαυροφυλακίου ως κρυπτογραφημένου συμπιεσμένου αρχείου ZIP.</string>
     <string name="exportaccount_format_title">Μορφή</string>
     <string name="exportaccount_format_zip">Συμπιεσμένο αρχείο ZIP</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">Βάση δεδομένων KeePass (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">Κωδικός πρόσβασης βάσης δεδομένων</string>
     <string name="exportaccount_format_kdbx_note">Εξαγωγή θησαυροφυλακίου ως βάσης δεδομένων KeePass. Οι φάκελοι μετατρέπονται σε ομάδες. Οι οργανισμοί και οι συλλογές δεν εξάγονται.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">Προετοιμασία αντιγράφου ασφαλείας</string>
     <string name="backup_step_opening_repository">Άνοιγμα αποθετηρίου αντιγράφων ασφαλείας</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">Εξαγωγή δεδομένων θησαυροφυλακίου</string>
     <string name="backup_step_scanning_attachments">Σάρωση συνημμένων</string>
     <string name="backup_step_backing_up_attachments">Δημιουργία αντιγράφων ασφαλείας συνημμένων</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">Ολοκληρώθηκε: %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">Απέτυχε το τελευταίο αντίγραφο ασφαλείας</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">Παραλείφθηκε το τελευταίο αντίγραφο ασφαλείας</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">Δεν υπάρχει ακόμη αντίγραφο ασφαλείας</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">Απενεργοποίηση αυτόματων αντιγράφων ασφαλείας</string>
     <string name="pref_item_automatic_backups_disable_message">Απενεργοποιεί μόνο τη μελλοντική αυτόματη δημιουργία αντιγράφων ασφαλείας. Καταργεί από το Keyguard τις αποθηκευμένες ρυθμίσεις για τον τοπικό φάκελο, τον κωδικό πρόσβασης και τη συμπερίληψη συνημμένων. Το υπάρχον αποθετήριο αντιγράφων ασφαλείας και τα αρχεία σε αυτόν τον φάκελο δεν διαγράφονται.</string>
     <string name="pref_item_automatic_backups_disable_action">Απενεργοποίηση…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">Στοιχεία πλοήγησης</string>
     <string name="pref_item_nav_label_title">Εμφάνιση ετικετών στα κουμπιά πλοήγησης</string>
     <string name="pref_item_nav_label_short_title">Εμφάνιση ετικετών πλοήγησης</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">Πρόσβαση σε όλα τα κλειδιά</string>
     <string name="pref_item_agent_filters_summary_active">Τα φίλτρα είναι ενεργά</string>
     <string name="pref_item_agent_history_title">Καταγραφή αιτημάτων</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Ενεργοποίηση πράκτορα SSH</string>
     <string name="pref_item_ssh_agent_description">Το Keyguard διαθέτει τα κλειδιά SSH του θησαυροφυλακίου σας στο ssh/git. Κάθε υπογραφή απαιτεί την έγκρισή σας.</string>
     <string name="pref_item_license_key_title">Σύνδεση υπάρχοντος διακριτικού δικαιώματος χρήσης</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

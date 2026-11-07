@@ -150,6 +150,9 @@
     <string name="expiring_soon">התוקף עומד לפוג</string>
     <string name="item_incomplete_title">מידע חסר</string>
     <string name="item_incomplete_text">בפריט זה חסרים כמה פרטים חשובים.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">פריט</string>
     <string name="items">פריטים</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> פריטים</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">בחירת סוג</string>
     <string name="select_file">בחירת קובץ</string>
     <string name="additem_attachments_drop_here">יש לשחרר כאן קובץ כדי להוסיף אותו כקובץ מצורף</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">יש לשחרר קובץ כדי להחליף את הקובץ שנבחר</string>
     <string name="autofill">מילוי אוטומטי</string>
     <string name="autofill_and_save_uri">מילוי אוטומטי ושמירת פרטי היישום או האתר</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">המפתח הסודי של הסיסמה החד־פעמית אינו יכול להיות ריק</string>
     <string name="error_otp_key_is_invalid">המפתח הסודי של הסיסמה החד־פעמית אינו תקין</string>
     <string name="error_failed_file_already_exists">יצירת הקובץ נכשלה. אסור להחליף קובץ קיים</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">החשבון הזה כבר נוסף ל־Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">יצירת המפתח נכשלה עקב מחסור בזיכרון. יש לבדוק את הגדרות ה־KDF בשרת.</string>
     <string name="error_failed_generate_otp_code">יצירת קוד OTP נכשלה</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">לקוח לא מזוהה</string>
     <string name="agent_history_unknown_key">מפתח לא מוכר</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">כל המפתחות הנגישים</string>
     <string name="agent_history_clear_history_title">מחיקת ההיסטוריה</string>
     <string name="agent_history_clear_history_confirmation_title">למחוק את היסטוריית סוכן <xliff:g id="protocol" example="SSH">%1$s</xliff:g>?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">יש לשנות כתובות URL מפרוטוקול HTTP לפרוטוקול HTTPS, המשתמש בהצפנה המתקדמת ביותר הזמינה.</string>
     <string name="watchtower_item_inactive_2fa_title">אימות דו־שלבי לא פעיל</string>
     <string name="watchtower_item_inactive_2fa_text">אתרים שבהם זמין אימות דו־שלבי שטרם הוגדר.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">מפתחות גישה זמינים</string>
     <string name="watchtower_item_inactive_passkey_text">אתרים שתומכים במפתחות גישה אך טרם הוגדר בהם מפתח גישה. השימוש במפתח גישה פשוט ובטוח יותר משימוש בסיסמה.</string>
     <string name="watchtower_item_incomplete_items_title">פריטים עם מידע חסר</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">ייצוא הכספת כארכיון ZIP מוצפן.</string>
     <string name="exportaccount_format_title">פורמט</string>
     <string name="exportaccount_format_zip">ארכיון ZIP</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">מסד נתונים של KeePass (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">סיסמת מסד הנתונים</string>
     <string name="exportaccount_format_kdbx_note">ייצוא הכספת כמסד נתונים של KeePass. התיקיות הופכות לקבוצות. ארגונים ואוספים אינם מיוצאים.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">הכנת הגיבוי</string>
     <string name="backup_step_opening_repository">פתיחת מאגר הגיבויים</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">ייצוא נתוני הכספת</string>
     <string name="backup_step_scanning_attachments">סריקת הקבצים המצורפים</string>
     <string name="backup_step_backing_up_attachments">גיבוי הקבצים המצורפים</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">הסתיים ב־%1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">הגיבוי האחרון נכשל</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">בוצע דילוג על הגיבוי האחרון</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">עדיין אין גיבוי</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">כיבוי הגיבויים האוטומטיים</string>
     <string name="pref_item_automatic_backups_disable_message">פעולה זו מכבה רק גיבויים אוטומטיים עתידיים. היא מסירה מ־Keyguard את הגדרת התיקייה המקומית, הסיסמה והבחירה אם לכלול קבצים מצורפים. מאגר הגיבויים הקיים והקבצים שבתיקייה אינם נמחקים.</string>
     <string name="pref_item_automatic_backups_disable_action">השבתה…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">פריטי ניווט</string>
     <string name="pref_item_nav_label_title">הצגת תוויות על כפתורי הניווט</string>
     <string name="pref_item_nav_label_short_title">הצגת תוויות ניווט</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">כל המפתחות זמינים</string>
     <string name="pref_item_agent_filters_summary_active">המסננים פעילים</string>
     <string name="pref_item_agent_history_title">יומן בקשות</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">הפעלת סוכן SSH</string>
     <string name="pref_item_ssh_agent_description">Keyguard מספק את מפתחות ה־SSH שבכספת לכלי ssh/git. כל חתימה דורשת אישור ממך.</string>
     <string name="pref_item_license_key_title">קישור אסימון זכאות קיים</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

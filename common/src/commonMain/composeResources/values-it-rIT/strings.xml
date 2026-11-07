@@ -150,6 +150,9 @@
     <string name="expiring_soon">In scadenza</string>
     <string name="item_incomplete_title">Dati incompleti</string>
     <string name="item_incomplete_text">Questo elemento manca di alcune delle informazioni importanti.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Elemento</string>
     <string name="items">Elementi</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> elementi</string>
@@ -221,6 +224,7 @@
     <string name="select_linked_type">Seleziona un tipo</string>
     <string name="select_file">Seleziona un file</string>
     <string name="additem_attachments_drop_here">Trascina qui un file per aggiungerlo come allegato</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
     <string name="addsend_drop_file_to_replace">Trascina un file per sostituire quello selezionato</string>
     <string name="autofill">Riempimento automatico</string>
     <string name="autofill_and_save_uri">Salvataggio automatico dell'app o informazioni del sito</string>
@@ -843,6 +847,7 @@
     <string name="error_otp_key_must_not_be_empty">La chiave segreta della password monouso non può essere vuota</string>
     <string name="error_otp_key_is_invalid">La chiave segreta della password monouso non è valida</string>
     <string name="error_failed_file_already_exists">Impossibile creare il file. La sostituzione del file esistente non è consentita</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">Questo account è già stato aggiunto a Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Creazione di una chiave non riuscita, memoria insufficiente. Controlla le impostazioni del server KDF.</string>
     <string name="error_failed_generate_otp_code">Impossibile generare il codice OTP</string>
@@ -1272,6 +1277,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">Chiamante sconosciuto</string>
     <string name="agent_history_unknown_key">Chiave sconosciuta</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">Tutte le chiavi accessibili</string>
     <string name="agent_history_clear_history_title">Cancella cronologia</string>
     <string name="agent_history_clear_history_confirmation_title">Cancellare la cronologia dell'agente <xliff:g id="protocol" example="SSH">%1$s</xliff:g>?</string>
@@ -1588,6 +1609,8 @@
     <string name="watchtower_item_unsecure_websites_text">Modifica gli URL che utilizzano il protocollo HTTP per utilizzare HTTPS, in quanto quest'ultimo utilizza la crittografia più avanzata disponibile.</string>
     <string name="watchtower_item_inactive_2fa_title">Autenticazione a due fattori non attivata</string>
     <string name="watchtower_item_inactive_2fa_text">Siti che supportano l'autenticazione a due fattori ma non l'hai ancora impostato.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Passkey Disponibili</string>
     <string name="watchtower_item_inactive_passkey_text">Siti che hanno la chiave di accesso disponibile, ma non l'hai ancora impostata. È più semplice e più sicura di una password.</string>
     <string name="watchtower_item_incomplete_items_title">Elementi incompleti</string>
@@ -1628,6 +1651,8 @@
     <string name="exportaccount_format_note">Esporta il caveau come archivio ZIP crittografato.</string>
     <string name="exportaccount_format_title">Formato</string>
     <string name="exportaccount_format_zip">Archivio ZIP</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">Database KeePass (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">Password del database</string>
     <string name="exportaccount_format_kdbx_note">Esporta la cassaforte come database KeePass. Le cartelle diventano gruppi. Le organizzazioni e le collezioni non vengono esportate.</string>
@@ -1813,6 +1838,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">Preparazione del backup</string>
     <string name="backup_step_opening_repository">Apertura del repository di backup</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">Esportazione dei dati della cassaforte</string>
     <string name="backup_step_scanning_attachments">Scansione degli allegati</string>
     <string name="backup_step_backing_up_attachments">Salvataggio degli allegati nel backup</string>
@@ -1826,6 +1852,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">Completato il %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">Ultimo backup non riuscito</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">Ultimo backup saltato</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">Nessun backup finora</string>
@@ -1886,6 +1913,8 @@
     <string name="pref_item_automatic_backups_disable_title">Disattiva i backup automatici</string>
     <string name="pref_item_automatic_backups_disable_message">Questa operazione disattiva solo i backup automatici futuri. Rimuove da Keyguard la configurazione della cartella locale, la password e la scelta relativa agli allegati. Il repository di backup esistente e i file in quella cartella non vengono eliminati.</string>
     <string name="pref_item_automatic_backups_disable_action">Disattiva…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">Elementi di navigazione</string>
     <string name="pref_item_nav_label_title">Mostra etichette sui pulsanti di navigazione</string>
     <string name="pref_item_nav_label_short_title">Mostra le etichette di navigazione</string>
@@ -2050,6 +2079,8 @@
     <string name="pref_item_agent_filters_summary_all">Tutte le chiavi accessibili</string>
     <string name="pref_item_agent_filters_summary_active">Filtri attivi</string>
     <string name="pref_item_agent_history_title">Cronologia delle richieste</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Abilita l’agente SSH</string>
     <string name="pref_item_ssh_agent_description">Keyguard rende disponibili a ssh/git le chiavi SSH della tua cassaforte. Ogni firma richiede la tua approvazione.</string>
     <string name="pref_item_license_key_title">Collega un codice di licenza esistente</string>
@@ -2793,4 +2824,5 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
 </resources>

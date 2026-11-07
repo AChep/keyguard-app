@@ -162,6 +162,11 @@ export const PLATFORMS: DownloadPlatform[] = [
         command: 'yay -S keyguard-bin',
       },
       {
+        name: 'AM',
+        description: 'Updates the AppImage. Use appman for a rootless install.',
+        command: 'am -i keyguard',
+      },
+      {
         name: 'AppImage',
         href: RELEASES_URL,
       },

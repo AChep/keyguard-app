@@ -104,6 +104,13 @@ You can find the `.flatpak` and `.AppImage` binaries on the [releases page](http
 yay -S keyguard-bin
 ```
 
+##### [AM](https://github.com/ivan-hc/AM) Keyguard [script](https://github.com/ivan-hc/AM/blob/main/programs/x86_64/keyguard)
+```sh
+am -i keyguard
+# or, without root:
+appman -i keyguard
+```
+
 ### macOS
 You can find the `.dmg` binaries for Apple and Intel processors on the [releases page](https://github.com/AChep/keyguard-app/releases/latest).
 

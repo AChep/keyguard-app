@@ -1,0 +1,71 @@
+name: KeyguardNativeE2e
+options:
+  deploymentTarget:
+    iOS: '18.5'
+settings:
+  base:
+    ARCHS: arm64
+    SWIFT_VERSION: '5.0'
+    CODE_SIGN_IDENTITY: '-'
+    DEVELOPMENT_TEAM: ''
+    GENERATE_INFOPLIST_FILE: YES
+packages:
+  KeyguardUI:
+    path: ../../appleUi
+targets:
+  Fixtures:
+    type: application
+    platform: iOS
+    sources: [Host]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.artemchep.keyguard.e2e.fixtures
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+  NativeE2e:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: Tests
+      - path: ../../xcode/Keyguard.storekit
+        buildPhase: resources
+    dependencies:
+      - target: Fixtures
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.artemchep.keyguard.e2e.runner
+        TEST_TARGET_NAME: Fixtures
+  SwiftBridgeTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - ../../appleUi/Tests/KeyguardUITests/FilePickerSessionTests.swift
+      - ../../appleUi/Tests/KeyguardUITests/AccountClientCertificateModelTests.swift
+    dependencies:
+      - target: Fixtures
+      - package: KeyguardUI
+        product: KeyguardUI
+      - sdk: libsqlite3.tbd
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.artemchep.keyguard.e2e.swiftbridge.tests
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/Fixtures.app/Fixtures
+        BUNDLE_LOADER: $(TEST_HOST)
+schemes:
+  NativeE2e:
+    build:
+      targets:
+        Fixtures: all
+        NativeE2e: [test]
+    test:
+      targets:
+        - name: NativeE2e
+          parallelizable: false
+  SwiftBridgeTests:
+    build:
+      targets:
+        Fixtures: all
+        SwiftBridgeTests: [test]
+    test:
+      targets:
+        - name: SwiftBridgeTests
+          parallelizable: false

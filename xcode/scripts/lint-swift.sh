@@ -23,6 +23,9 @@ appleUi/Tests \
 appleAutofill \
 iosApp/iosApp \
 macosApp/macosApp \
+integration/iosNativeE2eTest/Host \
+integration/iosNativeE2eTest/SSHReceiver \
+integration/iosNativeE2eTest/Tests \
 xcode/BillingTests \
 xcode/PrivacyTests"
 

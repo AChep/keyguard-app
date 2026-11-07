@@ -33,6 +33,7 @@ Server options:
                   0.0.0.0 lets an Android emulator use 10.0.2.2.
   --domain URL    Public base URL (default: http://127.0.0.1:<port>).
   --web-vault     Enable the web vault, to register accounts in a browser.
+  --env KEY=VALUE Set a server setting; overrides vaultwarden.env. Repeatable.
 
 Account commands, run through Gradle:
   register --email E --password P [--name N] [--argon2] [--pbkdf2-iterations N]
@@ -107,12 +108,13 @@ probe_alive() {
   curl -s -o /dev/null -w '%{http_code}' --max-time 2 "$1/alive" || true
 }
 
-# Sets port, bind, domain, web_vault and name from the run/start options.
+# Sets port, bind, domain, web_vault, extra_env and name from the run/start options.
 parse_server_options() {
   port=8000
   bind=127.0.0.1
   domain=
   web_vault=false
+  extra_env=()
   while [ $# -gt 0 ]; do
     case "$1" in
       --port)
@@ -133,6 +135,15 @@ parse_server_options() {
       --web-vault)
         web_vault=true
         shift
+        ;;
+      --env)
+        need_value "$@"
+        case "$2" in
+          [A-Za-z_]*=*) ;;
+          *) fail_usage "--env needs KEY=VALUE: $2" ;;
+        esac
+        extra_env+=(-e "$2")
+        shift 2
         ;;
       -h | --help)
         usage
@@ -158,6 +169,7 @@ build_docker_args() {
   if [ "$web_vault" = true ]; then
     env_args+=(-e WEB_VAULT_ENABLED=true)
   fi
+  env_args+=(${extra_env[@]+"${extra_env[@]}"})
 
   docker_args=(
     --rm

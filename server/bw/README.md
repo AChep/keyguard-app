@@ -46,6 +46,7 @@ Server options for `run` and `start`:
 | `--bind ADDR`  | `127.0.0.1`               | Host address. `0.0.0.0` lets an Android emulator use `10.0.2.2`. |
 | `--domain URL` | `http://127.0.0.1:<port>` | Public base URL, passed as `DOMAIN`.                             |
 | `--web-vault`  | off                       | Enables the web vault.                                           |
+| `--env K=V`    |                           | Sets a server setting over `vaultwarden.env`. Repeatable.        |
 
 For an Android emulator:
 

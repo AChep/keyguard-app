@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""Run a native iOS E2E harness command: e2e <command> [options].
+
+Commands are the scripts in core/, servers/, fixtures/ and oracles/. Runs with
+the harness virtualenv that `e2e bootstrap` creates, when it exists.
+"""
+
+import ast
+import os
+import runpy
+import sys
+from pathlib import Path
+
+HARNESS = Path(__file__).resolve().parent
+FOLDERS = ("core", "servers", "fixtures", "oracles")
+VENV = HARNESS.parents[1] / "build" / "ios-native-e2e" / "venv"
+
+
+def commands():
+    return {
+        script.stem: (folder, script)
+        for folder in FOLDERS
+        for script in sorted((HARNESS / folder).glob("*.py"))
+        if not script.stem.startswith("_")
+    }
+
+
+def summary(script):
+    doc = ast.get_docstring(ast.parse(script.read_text())) or ""
+    return doc.split("\n", 1)[0]
+
+
+def usage():
+    print(__doc__.strip(), end="\n\n")
+    current = None
+    for name, (folder, script) in commands().items():
+        if folder != current:
+            print(f"{folder}:")
+            current = folder
+        print(f"  {name:<36} {summary(script)}")
+
+
+def main():
+    python = VENV / "bin" / "python"
+    if python.exists() and Path(sys.prefix).resolve() != VENV.resolve():
+        os.execv(python, [str(python), "-I", __file__, *sys.argv[1:]])
+    if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help", "help"):
+        usage()
+        return
+    name = sys.argv[1].replace("-", "_")
+    found = commands().get(name)
+    if found is None:
+        raise SystemExit(f"e2e: unknown command {sys.argv[1]!r}. Run `e2e help`.")
+    folder, script = found
+    sys.path.insert(0, str(HARNESS))
+    sys.argv = [f"e2e {name}", *sys.argv[2:]]
+    runpy.run_module(f"{folder}.{script.stem}", run_name="__main__")
+
+
+if __name__ == "__main__":
+    main()

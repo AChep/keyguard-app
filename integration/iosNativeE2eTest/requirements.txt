@@ -1,0 +1,4 @@
+# Third-party oracle dependencies, installed by `e2e bootstrap` into build/ios-native-e2e/venv.
+# Only direct dependencies are pinned, so the set also installs on CI's Python 3.10.
+pycryptodomex==3.24.1
+pykeepass==4.2.0

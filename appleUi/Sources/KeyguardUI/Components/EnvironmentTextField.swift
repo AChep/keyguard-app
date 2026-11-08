@@ -10,7 +10,7 @@ struct EnvironmentTextField: View {
 
     var body: some View {
         Group {
-            if concealed { SecureField(title, text: $text) } else { TextField(title, text: $text, axis: .vertical) }
+            if concealed { concealedField } else { TextField(title, text: $text, axis: .vertical) }
         }
         .onAppear { text = value }
         .onChange(of: value) { _, value in
@@ -23,5 +23,25 @@ struct EnvironmentTextField: View {
                 onChange(value)
             }
         }
+    }
+
+    @ViewBuilder
+    private var concealedField: some View {
+        #if os(iOS)
+        // UIKit's secure field is single-line: it turns pasted line
+        // breaks into spaces, and a keystroke after refocusing erases
+        // the value. A concealed value is read-only until revealed.
+        LabeledContent(title) {
+            if !text.isEmpty {
+                // A fixed-length mask, so it does not leak the length.
+                Text(verbatim: "••••••••")
+                    .font(.body.monospaced())
+                    .accessibilityLabel(L10n.hidden)
+            }
+        }
+        #else
+        // AppKit's secure field keeps pasted line breaks.
+        SecureField(title, text: $text)
+        #endif
     }
 }

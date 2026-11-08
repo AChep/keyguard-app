@@ -10,6 +10,7 @@ struct EnvironmentEditorView: View {
     let editor: EnvironmentEditorSnapshot
     let importFile: () -> Void
     @State private var showTrashConfirmation = false
+    @State private var revealImportText = false
 
     var body: some View {
         Section {
@@ -58,9 +59,26 @@ struct EnvironmentEditorView: View {
         Section(L10n.environmentsImport) {
             Text(L10n.environmentsImportNote).foregroundStyle(.secondary)
             Button(L10n.environmentsImportFile, action: importFile)
-            EnvironmentTextField(
-                title: L10n.environmentsImportText, value: editor.importText, concealed: true,
-                onChange: model.session.setImportText)
+            HStack(alignment: .top) {
+                EnvironmentTextField(
+                    title: L10n.environmentsImportText, value: editor.importText,
+                    concealed: !revealImportText,
+                    onChange: model.session.setImportText)
+                DetailIconButton(
+                    title: revealImportText ? L10n.hide : L10n.fileActionRevealTitle,
+                    systemImage: revealImportText ? "eye.slash" : "eye"
+                ) {
+                    revealImportText.toggle()
+                }
+            }
+            #if os(iOS)
+            // The concealed text is read-only on iOS: paste
+            // without revealing it.
+            PasteButton(payloadType: String.self) { strings in
+                guard let text = strings.first else { return }
+                Task { @MainActor in model.session.setImportText(value: text) }
+            }
+            #endif
             Button(L10n.environmentsImportPreview) { model.session.previewImport() }
             if let names = editor.importNames {
                 Text(names.joined(separator: "\n")).font(.system(.body, design: .monospaced))

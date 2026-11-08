@@ -258,6 +258,7 @@
     <string name="passkey_discoverable">Discoverable</string>
     <string name="passkey_user_username">Username</string>
     <string name="passkey_user_display_name">Display name</string>
+    <string name="passkey_unknown_username">Unknown username</string>
     <string name="ignored_alerts">Ignored alerts</string>
     <string name="api_key">API key</string>
     <string name="api_token">API token</string>

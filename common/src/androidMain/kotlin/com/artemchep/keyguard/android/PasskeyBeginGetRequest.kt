@@ -38,6 +38,8 @@ import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PasskeyTarget
 import com.artemchep.keyguard.common.usecase.PasskeyTargetCheck
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.passkey_unknown_username
 import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import com.artemchep.keyguard.util.webauthn.WebAuthnEncodingException
 import com.artemchep.keyguard.util.webauthn.WebAuthnNotAllowedException
@@ -47,6 +49,7 @@ import io.ktor.http.Url
 import kotlinx.serialization.json.Json
 import kotlin.time.Instant
 import kotlin.time.toJavaInstant
+import org.jetbrains.compose.resources.getString as getComposeString
 
 @SuppressLint("RestrictedApi")
 @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
@@ -225,10 +228,16 @@ class PasskeyBeginGetRequest(
                     requestOptions.userVerification == GetPasskey.UserVerification.PREFERRED ||
                     requestOptions.userVerification == GetPasskey.UserVerification.REQUIRED
 
-                val username = credential.userDisplayName
-                    // Normally the username should never be empty,
-                    // be i've seen coinbase do that.
-                    ?: "Unknown username"
+                val username = sequenceOf(
+                    credential.userName,
+                    credential.userDisplayName,
+                    cipher.login?.username,
+                    cipher.name,
+                )
+                    .filterNotNull()
+                    .map(String::trim)
+                    .firstOrNull { it.isNotEmpty() }
+                    ?: getComposeString(Res.string.passkey_unknown_username)
                 PublicKeyCredentialEntry.Builder(
                     context = context,
                     username = username,

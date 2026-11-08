@@ -5,17 +5,35 @@ import AppKit
 #endif
 
 struct LogsView: View {
-    @Environment(AppInformationModel.self) private var appInformationModel
+    @State private var model: DetailSessionModel<Bool, LogsSnapshot, LogsSession>
     @Environment(\.accessibilityDifferentiateWithoutColor) private var differentiateWithoutColor
 
-    private var snapshot: LogsSnapshot { appInformationModel.logs }
+    init(makeSession: @escaping () -> LogsSession) {
+        _model = State(
+            wrappedValue: DetailSessionModel(
+                makeSession: makeSession,
+                subscribe: { BridgeObservation($0.observe(onChange: $1)) }
+            ))
+    }
 
     var body: some View {
+        DetailSessionContent(model: model) { snapshot, perform in
+            content(snapshot, perform: perform)
+        }
+        .navigationTitle(L10n.logsHeaderTitle)
+    }
+
+    private func content(_ snapshot: LogsSnapshot, perform: SessionActions<LogsSession>) -> some View {
         SnapshotContent(loaded: snapshot.loaded, isEmpty: snapshot.items.isEmpty) {
             ContentUnavailableView {
                 Label(L10n.logsEmptyTitle, systemImage: "doc.text.magnifyingglass")
             } description: {
                 Text(L10n.logsEmptyNote)
+            } actions: {
+                if !snapshot.recording {
+                    recordingButton(snapshot, perform: perform)
+                        .buttonStyle(.borderedProminent)
+                }
             }
         } content: {
             List {
@@ -35,11 +53,35 @@ struct LogsView: View {
             .alternatingRowBackgrounds()
             #endif
         }
-        .navigationTitle(L10n.logsHeaderTitle)
-        .observing(
-            start: { appInformationModel.startLogsObservation() },
-            stop: { appInformationModel.stopLogsObservation() }
-        )
+        .toolbar {
+            if snapshot.loaded {
+                ToolbarItem(placement: .primaryAction) {
+                    recordingButton(snapshot, perform: perform)
+                }
+                ToolbarItem {
+                    Button {
+                        perform { $0.export() }
+                    } label: {
+                        Label(L10n.logsExportButton, systemImage: "square.and.arrow.down")
+                    }
+                    .disabled(!snapshot.canExport)
+                }
+            }
+        }
+    }
+
+    /// Starts or stops keeping new logs in memory.
+    private func recordingButton(_ snapshot: LogsSnapshot, perform: SessionActions<LogsSession>) -> some View {
+        Button {
+            perform { $0.toggleRecording() }
+        } label: {
+            if snapshot.recording {
+                Label(L10n.logsStopRecordingFabTitle, systemImage: "stop.circle")
+            } else {
+                Label(L10n.logsStartRecordingFabTitle, systemImage: "record.circle")
+            }
+        }
+        .disabled(!snapshot.canToggleRecording)
     }
 
     private func row(_ item: LogsItemSnapshot) -> some View {

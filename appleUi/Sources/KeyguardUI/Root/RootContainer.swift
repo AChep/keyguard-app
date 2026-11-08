@@ -179,6 +179,23 @@ public struct RootContainer<Main: View>: View {
     }
 }
 
+private extension View {
+    /// The banner sits outside any navigation chrome, so in an iPadOS window its
+    /// leading edge would otherwise lie under the window controls.
+    @ViewBuilder
+    func avoidingWindowControls() -> some View {
+        #if os(iOS)
+        if #available(iOS 26, *) {
+            containerCornerOffset(.horizontal, sizeToFit: true)
+        } else {
+            self
+        }
+        #else
+        self
+        #endif
+    }
+}
+
 private struct OnboardingBanner: View {
     let onTap: () -> Void
 
@@ -200,6 +217,7 @@ private struct OnboardingBanner: View {
                 .padding(.horizontal, 16)
                 .padding(.vertical, 10)
                 .frame(maxWidth: .infinity)
+                .avoidingWindowControls()
                 .touchTarget()
                 .contentShape(Rectangle())
             }

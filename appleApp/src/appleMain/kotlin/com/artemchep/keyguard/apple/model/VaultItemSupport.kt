@@ -8,6 +8,7 @@ import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.Selection
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
@@ -35,6 +36,19 @@ internal suspend fun buildSelectionActionSnapshots(
 ): List<VaultActionSnapshot> = actions.orEmpty()
     .filterIsInstance<FlatItemAction>()
     .toHeaderActionSnapshots("selection", leContext, handlers)
+
+internal const val SELECTION_SELECT_ALL_ACTION_ID = "selection:select_all"
+
+/**
+ * Registers the selection's "Select all" in [handlers] and returns its id; null when there is no
+ * selection or everything is already selected (the producer's `onSelectAll` is null).
+ */
+internal fun Selection?.registerSelectAllAction(
+    handlers: MutableMap<String, () -> Unit>,
+): String? = this?.onSelectAll?.let { onSelectAll ->
+    handlers[SELECTION_SELECT_ALL_ACTION_ID] = onSelectAll
+    SELECTION_SELECT_ALL_ACTION_ID
+}
 
 /**
  * Fingerprints rendered inputs for Recents, Quick Search and Duplicates, which

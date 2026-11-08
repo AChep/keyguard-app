@@ -44,7 +44,11 @@ import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.RouteDescriptor
 import com.artemchep.keyguard.feature.navigation.RouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.routeDescriptorFromDeepLink
+import com.artemchep.keyguard.feature.navigation.toRoute
+import com.artemchep.keyguard.feature.send.SendRoute
 import com.artemchep.keyguard.feature.send.add.SendAddRoute
+import com.artemchep.keyguard.apple.send.SendListController
+import com.artemchep.keyguard.apple.send.SendListSession
 import com.artemchep.keyguard.apple.add.AddItemController
 import com.artemchep.keyguard.apple.dialog.DialogController
 import com.artemchep.keyguard.apple.filter.CipherFilterDetailSnapshot
@@ -206,6 +210,15 @@ internal sealed interface ScreenKind {
         override val defaultTitle get() = ""
     }
 
+    /** A filtered Send list, such as an account's Sends; the unfiltered list is the Send section root. */
+    data class SendList(
+        val args: SendRoute.Args,
+        val title: String,
+    ) : ScreenKind {
+        override val entryKind get() = ScreenEntryKind.SEND_LIST
+        override val defaultTitle get() = title
+    }
+
     data class OrganizationsList(
         val accountId: String,
         val title: String,
@@ -324,6 +337,7 @@ enum class ScreenEntryKind {
     SSH_AGENT_HISTORY,
     CLI_AGENT_HISTORY,
     SEND_DETAIL,
+    SEND_LIST,
     ORGANIZATIONS_LIST,
     COLLECTIONS_LIST,
     FOLDERS_LIST,
@@ -413,6 +427,7 @@ internal class NavigationStackController(
     private val downloadsController: DownloadsController,
     private val feedbackController: FeedbackController,
     private val addItemController: AddItemController,
+    private val sendListController: SendListController,
 ) {
     private inner class ScreenEntry(
         val instanceId: Long,
@@ -1003,6 +1018,21 @@ internal class NavigationStackController(
         entry.emailRelayListSession?.clearSelection()
     }
 
+    /**
+     * A new session for a [ScreenKind.SendList] entry; Swift observes and drops it like the root Send list.
+     * A popped entry gets a session that never publishes. Main-confined.
+     */
+    fun makeEntrySendListSession(instanceId: Long): SendListSession {
+        val entry = entry(instanceId)
+        val kind = entry?.kind as? ScreenKind.SendList
+            ?: return SendListSession { KeyguardCancellable {} }
+        return sendListController.makeSession(
+            args = kind.args,
+            persistenceScope = stackedSendListScope(kind),
+            interceptorProvider = { sessionKoin -> entryInterceptor(sessionKoin, entry) },
+        )
+    }
+
     fun selectAllEntryListItems(instanceId: Long) = onMain {
         val entry = entry(instanceId) ?: return@onMain
         entry.wordlistListSession?.selectAll()
@@ -1246,6 +1276,8 @@ internal class NavigationStackController(
         is RouteDescriptor.SendView ->
             ScreenKind.SendDetail(sendId = descriptor.sendId, accountId = descriptor.accountId)
 
+        is RouteDescriptor.SendList -> descriptor.toStackedSendList()
+
         is RouteDescriptor.PasswordHistory ->
             ScreenKind.PasswordHistory(itemId = descriptor.itemId)
 
@@ -1327,7 +1359,6 @@ internal class NavigationStackController(
 
         // Root nav sections, not stack entries: SwiftUI owns the section switch, so there
         // is nothing to push; null records the attempt instead of pushing a duplicate root.
-        is RouteDescriptor.SendList,
         is RouteDescriptor.Generator,
 
         RouteDescriptor.GpgTools,
@@ -1358,6 +1389,17 @@ internal class NavigationStackController(
             append('|').append(args.appBar?.title.orEmpty())
         }
         return "vaultlist.stacked." + discriminator.hashCode().toUInt().toString(HEXADECIMAL_RADIX)
+    }
+
+    /** Per-stacked-Send-list persistence namespace, derived from the route identity. */
+    private fun stackedSendListScope(kind: ScreenKind.SendList): String {
+        val args = kind.args
+        val discriminator = buildString {
+            append(args.filter?.toString().orEmpty())
+            append('|').append(args.trash)
+            append('|').append(args.appBar?.title.orEmpty())
+        }
+        return "sendlist.stacked." + discriminator.hashCode().toUInt().toString(HEXADECIMAL_RADIX)
     }
 
     private fun startEntry(entry: ScreenEntry) {
@@ -1677,6 +1719,7 @@ internal class NavigationStackController(
             is ScreenKind.SshAgentHistory,
             is ScreenKind.CliAgentHistory,
             is ScreenKind.SendDetail,
+            is ScreenKind.SendList,
             is ScreenKind.AccountClientCertificate,
             is ScreenKind.AccountDetail,
             -> Unit
@@ -1746,3 +1789,12 @@ internal class NavigationStackController(
 }
 
 private const val HEXADECIMAL_RADIX = 16
+
+/**
+ * Pushes a filtered Send list (an account's Sends). The unfiltered list is the Send section
+ * root that SwiftUI owns, so it maps to null instead of pushing a duplicate root.
+ */
+internal fun RouteDescriptor.SendList.toStackedSendList(): ScreenKind.SendList? =
+    (toRoute() as? SendRoute)
+        ?.takeIf { filter != null || title != null }
+        ?.let { route -> ScreenKind.SendList(args = route.args, title = title.orEmpty()) }

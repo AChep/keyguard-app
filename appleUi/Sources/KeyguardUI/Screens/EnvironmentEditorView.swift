@@ -44,15 +44,13 @@ struct EnvironmentEditorView: View {
                 EnvironmentVariableRow(model: model, index: Int32(index), variable: variable, editable: editor.editable)
                     .disabled(snapshot.busy)
             }
-            Menu {
+            RowMenu(title: L10n.environmentsAddVariable, systemImage: "plus") {
                 Button(L10n.environmentsVariableTypeValue, systemImage: "textformat") {
                     model.session.addValueVariable()
                 }
                 Button(L10n.environmentsVariableTypeReference, systemImage: "link") {
                     model.session.addReferenceVariable()
                 }
-            } label: {
-                Label(L10n.environmentsAddVariable, systemImage: "plus")
             }
             .disabled(!editor.editable || snapshot.busy)
         }

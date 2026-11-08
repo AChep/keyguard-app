@@ -190,6 +190,8 @@ data class GeneratorHistorySnapshot(
     val options: List<VaultActionSnapshot> = emptyList(),
     val selectionCount: Int = 0,
     val selectionActions: List<VaultActionSnapshot> = emptyList(),
+    /** Handler id of "Select all"; null when nothing or everything is selected. */
+    val selectionSelectAllActionId: String? = null,
 ) {
     companion object {
         val empty = GeneratorHistorySnapshot(

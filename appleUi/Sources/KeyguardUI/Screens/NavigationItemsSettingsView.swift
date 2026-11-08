@@ -52,7 +52,7 @@ struct NavigationItemsSettingsView: View {
             }
             if !s.availableItems.isEmpty {
                 Section {
-                    Menu {
+                    RowMenu(title: L10n.navigationItemsAddItemTitle, systemImage: "plus") {
                         ForEach(s.availableItems, id: \.key) { row in
                             Button {
                                 navigationSettingsModel.addNavItem(key: row.key)
@@ -60,8 +60,6 @@ struct NavigationItemsSettingsView: View {
                                 Label(row.title, systemImage: symbol(for: row))
                             }
                         }
-                    } label: {
-                        Label(L10n.navigationItemsAddItemTitle, systemImage: "plus")
                     }
                 }
             }

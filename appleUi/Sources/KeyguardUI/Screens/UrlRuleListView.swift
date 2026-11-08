@@ -76,6 +76,7 @@ struct UrlRuleListView: View {
         .selectionBar(
             count: snapshot.selectionCount,
             actions: snapshot.selectionActions,
+            selectAllActionId: snapshot.selectionSelectAllActionId,
             invoke: { invokeSelectionAction($0) },
             clear: { clearSelection() }
         )
@@ -160,7 +161,7 @@ struct UrlRuleListView: View {
     private func rowSwipeActions(_ item: UrlRuleItemSnapshot) -> some View {
         if !editing {
             ForEach(item.actions, id: \.id) { action in
-                ListItemActionButton(action: action, invoke: invokeItemAction)
+                ListItemActionButton(action: action, swipeAction: true, invoke: invokeItemAction)
             }
         }
     }

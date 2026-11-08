@@ -14,6 +14,7 @@ import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.dialog.DialogController
 import com.artemchep.keyguard.apple.model.buildMenuActionSnapshots
 import com.artemchep.keyguard.apple.model.buildSelectionActionSnapshots
+import com.artemchep.keyguard.apple.model.registerSelectAllAction
 import com.artemchep.keyguard.platform.LeContext
 import kotlinx.coroutines.flow.map
 
@@ -62,95 +63,97 @@ internal class GeneratorHistoryController(
                 .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
         }
     }
+}
 
-    private suspend fun projectGeneratorHistory(
-        state: GeneratorHistoryState?,
-        leContext: LeContext,
-    ): Pair<GeneratorHistorySnapshot, ListSessionActions> {
-        val itemHandlers = LinkedHashMap<String, () -> Unit>()
-        val optionHandlers = LinkedHashMap<String, () -> Unit>()
-        val selectionHandlers = LinkedHashMap<String, () -> Unit>()
-        val snapshot = buildGeneratorHistorySnapshot(
-            state = state,
-            leContext = leContext,
-            itemHandlers = itemHandlers,
-            optionHandlers = optionHandlers,
-            selectionHandlers = selectionHandlers,
-        )
-        val items = state?.items.orEmpty()
-        return snapshot to ListSessionActions(
-            items = itemHandlers,
-            screen = optionHandlers,
-            selection = selectionHandlers,
-            toggleSelection = { id ->
-                items.firstNotNullOfOrNull { (it as? GeneratorHistoryItem.Value)?.takeIf { item -> item.id == id } }
-                    ?.selectableState?.value?.toggle()
-            },
-            clearSelection = state?.selection?.onClear,
-        )
-    }
+internal suspend fun projectGeneratorHistory(
+    state: GeneratorHistoryState?,
+    leContext: LeContext,
+): Pair<GeneratorHistorySnapshot, ListSessionActions> {
+    val itemHandlers = LinkedHashMap<String, () -> Unit>()
+    val optionHandlers = LinkedHashMap<String, () -> Unit>()
+    val selectionHandlers = LinkedHashMap<String, () -> Unit>()
+    val snapshot = buildGeneratorHistorySnapshot(
+        state = state,
+        leContext = leContext,
+        itemHandlers = itemHandlers,
+        optionHandlers = optionHandlers,
+        selectionHandlers = selectionHandlers,
+    )
+    val items = state?.items.orEmpty()
+    return snapshot to ListSessionActions(
+        items = itemHandlers,
+        screen = optionHandlers,
+        selection = selectionHandlers,
+        toggleSelection = { id ->
+            items.firstNotNullOfOrNull { (it as? GeneratorHistoryItem.Value)?.takeIf { item -> item.id == id } }
+                ?.selectableState?.value?.toggle()
+        },
+        clearSelection = state?.selection?.onClear,
+    )
+}
 
-    private suspend fun buildGeneratorHistorySnapshot(
-        state: GeneratorHistoryState?,
-        leContext: LeContext,
-        itemHandlers: LinkedHashMap<String, () -> Unit>,
-        optionHandlers: LinkedHashMap<String, () -> Unit>,
-        selectionHandlers: LinkedHashMap<String, () -> Unit>,
-    ): GeneratorHistorySnapshot {
-        state ?: return GeneratorHistorySnapshot.empty
-        val items = state.items.map { item ->
-            when (item) {
-                is GeneratorHistoryItem.Section -> GeneratorHistoryItemSnapshot(
-                    id = item.id,
-                    kind = GeneratorHistoryItemKind.SECTION,
-                    title = item.text.orEmpty(),
-                    date = null,
-                    type = null,
+private suspend fun buildGeneratorHistorySnapshot(
+    state: GeneratorHistoryState?,
+    leContext: LeContext,
+    itemHandlers: LinkedHashMap<String, () -> Unit>,
+    optionHandlers: LinkedHashMap<String, () -> Unit>,
+    selectionHandlers: LinkedHashMap<String, () -> Unit>,
+): GeneratorHistorySnapshot {
+    state ?: return GeneratorHistorySnapshot.empty
+    val items = state.items.map { item ->
+        when (item) {
+            is GeneratorHistoryItem.Section -> GeneratorHistoryItemSnapshot(
+                id = item.id,
+                kind = GeneratorHistoryItemKind.SECTION,
+                title = item.text.orEmpty(),
+                date = null,
+                type = null,
+            )
+
+            is GeneratorHistoryItem.Value -> {
+                val selectable = item.selectableState.value
+                // Reuse the options-menu projection so the dropdown keeps its section dividers;
+                // the ids are namespaced by the item id so they cannot collide.
+                val actions = buildMenuActionSnapshots(
+                    actions = item.dropdown,
+                    idPrefix = "item:${item.id}",
+                    leContext = leContext,
+                    handlers = itemHandlers,
                 )
-
-                is GeneratorHistoryItem.Value -> {
-                    val selectable = item.selectableState.value
-                    // Reuse the options-menu projection so the dropdown keeps its section dividers;
-                    // the ids are namespaced by the item id so they cannot collide.
-                    val actions = buildMenuActionSnapshots(
-                        actions = item.dropdown,
-                        idPrefix = "item:${item.id}",
-                        leContext = leContext,
-                        handlers = itemHandlers,
-                    )
-                    GeneratorHistoryItemSnapshot(
-                        id = item.id,
-                        kind = GeneratorHistoryItemKind.VALUE,
-                        title = item.title,
-                        date = item.text,
-                        type = item.type?.name,
-                        actions = actions,
-                        selected = selectable.selected,
-                        selecting = selectable.selecting,
-                    )
-                }
+                GeneratorHistoryItemSnapshot(
+                    id = item.id,
+                    kind = GeneratorHistoryItemKind.VALUE,
+                    title = item.title,
+                    date = item.text,
+                    type = item.type?.name,
+                    actions = actions,
+                    selected = selectable.selected,
+                    selecting = selectable.selecting,
+                )
             }
         }
-
-        val options = buildMenuActionSnapshots(
-            actions = state.options,
-            idPrefix = "option",
-            leContext = leContext,
-            handlers = optionHandlers,
-        )
-        val selection = state.selection
-        val selectionActions = buildSelectionActionSnapshots(
-            actions = selection?.actions,
-            leContext = leContext,
-            handlers = selectionHandlers,
-        )
-
-        return GeneratorHistorySnapshot(
-            loaded = true,
-            items = items,
-            options = options,
-            selectionCount = selection?.count ?: 0,
-            selectionActions = selectionActions,
-        )
     }
+
+    val options = buildMenuActionSnapshots(
+        actions = state.options,
+        idPrefix = "option",
+        leContext = leContext,
+        handlers = optionHandlers,
+    )
+    val selection = state.selection
+    val selectionActions = buildSelectionActionSnapshots(
+        actions = selection?.actions,
+        leContext = leContext,
+        handlers = selectionHandlers,
+    )
+    val selectionSelectAllActionId = selection.registerSelectAllAction(selectionHandlers)
+
+    return GeneratorHistorySnapshot(
+        loaded = true,
+        items = items,
+        options = options,
+        selectionCount = selection?.count ?: 0,
+        selectionActions = selectionActions,
+        selectionSelectAllActionId = selectionSelectAllActionId,
+    )
 }

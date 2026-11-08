@@ -7,6 +7,21 @@ struct DetailUriRow: View {
     let invoke: (String) -> Void
 
     var body: some View {
+        if item.uriOverrides.isEmpty {
+            uriRow
+        } else {
+            VStack(alignment: .leading, spacing: 8) {
+                uriRow
+                ForEach(Array(item.uriOverrides.enumerated()), id: \.offset) { _, override in
+                    // Aligns with the URI's title, past its 20 pt icon.
+                    DetailUriOverrideRow(override: override, invoke: invoke)
+                        .padding(.leading, 32)
+                }
+            }
+        }
+    }
+
+    private var uriRow: some View {
         row
             .modifier(DetailUriDrag(url: item.dragUrl.flatMap(URL.init(string:))))
     }
@@ -50,6 +65,58 @@ struct DetailUriRow: View {
         case .app: "app"
         default: "link"
         }
+    }
+}
+
+/// A URL override that matches the URI: its name and the expanded URL, or the
+/// reason the URL could not be built.
+private struct DetailUriOverrideRow: View {
+    let override: VaultUriOverrideSnapshot
+    let invoke: (String) -> Void
+
+    var body: some View {
+        if override.actions.isEmpty {
+            label
+        } else {
+            Menu {
+                listActionMenuItems(actions: override.actions) { invoke($0) }
+            } label: {
+                label
+            }
+            .menuStyle(.button)
+            .buttonStyle(.plain)
+            .menuIndicator(.hidden)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .help(L10n.moreActions)
+        }
+    }
+
+    private var label: some View {
+        HStack(spacing: 12) {
+            Image(systemName: override.error ? "exclamationmark.triangle" : "terminal")
+                .foregroundStyle(override.error ? Color.red : Color.secondary)
+                .frame(width: 20)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(override.title)
+                    .font(.subheadline)
+                Text(override.text)
+                    .font(.caption.monospaced())
+                    .foregroundStyle(override.error ? Color.red : Color.secondary)
+            }
+            .fixedSize(horizontal: false, vertical: true)
+            Spacer(minLength: 0)
+            if !override.actions.isEmpty {
+                Image(systemName: "ellipsis")
+                    .font(.footnote)
+                    .foregroundStyle(.tertiary)
+                    .accessibilityHidden(true)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .touchTarget()
+        .contentShape(Rectangle())
+        .accessibilityElement(children: .combine)
     }
 }
 

@@ -71,6 +71,7 @@ struct BitwardenSsoView: View {
         .navigationDestination(isPresented: $loginModel.twofaActive) {
             BitwardenTwofaView()
                 .environment(loginModel)
+                .reservesNavigationOverflowBarSpace()
         }
         // Pushed from the sign-in form, the form closes the sheet.
         .onChange(of: loginModel.loginDidSucceed) { _, succeeded in

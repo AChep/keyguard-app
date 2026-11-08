@@ -283,7 +283,8 @@ final class HistorySessionModelTests: XCTestCase {
                     id: "row", value: value, date: nil, monospace: false, actions: [],
                     selected: selected, selecting: selected)
             ],
-            selectionCount: selected ? 1 : 0, selectionActions: [], actions: [])
+            selectionCount: selected ? 1 : 0, selectionActions: [], actions: [],
+            selectionSelectAllActionId: nil)
     }
 
     private func ssh(_ title: String) -> SshAgentHistorySnapshot {
@@ -312,7 +313,8 @@ final class HistorySessionModelTests: XCTestCase {
                     id: "row", kind: .value, title: value, date: nil, type: "PASSWORD", actions: [],
                     selected: selected, selecting: selected)
             ],
-            options: [], selectionCount: selected ? 1 : 0, selectionActions: [])
+            options: [], selectionCount: selected ? 1 : 0, selectionActions: [],
+            selectionSelectAllActionId: nil)
     }
 
     private func urlRules(_ value: String, selected: Bool = false) -> UrlRuleListSnapshot {
@@ -323,7 +325,8 @@ final class HistorySessionModelTests: XCTestCase {
                     id: "row", title: value, subtitle: "", detail: "", active: true, actions: [],
                     selected: selected, selecting: selected)
             ],
-            hasPrimaryAction: true, selectionCount: selected ? 1 : 0, selectionActions: [])
+            hasPrimaryAction: true, selectionCount: selected ? 1 : 0, selectionActions: [],
+            selectionSelectAllActionId: nil)
     }
 
     private func settle() async throws {

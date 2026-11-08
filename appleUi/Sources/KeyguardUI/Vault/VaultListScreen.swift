@@ -222,6 +222,7 @@ struct VaultListScreen: View {
                 .toolbar { iosToolbar }
                 .navigationDestination(item: $pendingLogin) { kind in
                     AddAccountDestination(kind: kind, presentation: accountLogin)
+                        .reservesNavigationOverflowBarSpace()
                 }
                 .environment(\.editMode, $editMode)
         }

@@ -33,11 +33,18 @@ final class SessionFactory {
 
     func makeSendListSession() -> SendListSession { core.makeSendListSession() }
 
+    /// A filtered Send list pushed onto a navigation stack, such as an account's Sends.
+    func makeEntrySendListSession(instanceId: Int64) -> SendListSession {
+        core.makeEntrySendListSession(instanceId: instanceId)
+    }
+
     func makeSendDetailSession(target: ItemDetailTarget) -> SendDetailSession {
         core.makeSendDetailSession(itemId: target.itemId, accountId: target.accountId)
     }
 
     func makeUrlOverrideListSession() -> ListSession<UrlRuleListSnapshot> { core.makeUrlOverrideListSession() }
+
+    func makeLogsSession() -> LogsSession { core.makeLogsSession() }
 
     func makeChangePasswordSession() -> ChangePasswordSession { core.makeChangePasswordSession() }
 

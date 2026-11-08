@@ -59,6 +59,7 @@ struct VaultViewPasswordHistoryView: View {
         .selectionBar(
             count: snapshot.selectionCount,
             actions: snapshot.selectionActions,
+            selectAllActionId: snapshot.selectionSelectAllActionId,
             invoke: invokeSelection,
             clear: clearSelection
         )

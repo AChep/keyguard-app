@@ -4,6 +4,9 @@ import KeyguardShared
 struct SendListView: View {
     let snapshot: SendListSnapshot
     let actions: SendListActions
+    /// Non-nil for a filtered list pushed onto another section's navigation stack, such as an
+    /// account's Sends: the view then joins that stack instead of hosting the Send section's own.
+    var stackedTitle: String?
     @State private var addForm = AddFormPresentation()
     @Environment(NavigationModel.self) private var navigationModel
     @Environment(SessionFactory.self) private var sessions
@@ -15,8 +18,16 @@ struct SendListView: View {
     @State private var filterSidebarShown = FilterSidebarMemory.mainWide
     #endif
 
+    private var isStacked: Bool { stackedTitle != nil }
+
+    private var title: String {
+        if let stackedTitle, !stackedTitle.isEmpty { return stackedTitle }
+        return L10n.send
+    }
+
     #if os(iOS)
-    private var usesPanels: Bool { ListDetailNavigation.usesPanels }
+    /// A stacked list pushes its details onto the enclosing stack; panels belong to the section root.
+    private var usesPanels: Bool { !isStacked && ListDetailNavigation.usesPanels }
     private var listOrigin: ListNavigationOrigin { ListNavigationOrigin(scope: "send", listEntryId: nil) }
     private var browseDetail: ScreenEntrySnapshot? {
         guard usesPanels, let entry = navigationModel.navStack("send").first, entry.kind == .sendDetail else {
@@ -80,27 +91,36 @@ struct SendListView: View {
     // MARK: - macOS body
 
     #if os(macOS)
+    @ViewBuilder
     private var macBody: some View {
-        NavStackContainer(scope: "send") {
-            Group {
-                if snapshot.needsAccount {
-                    emptyState
-                } else {
-                    twoPane
-                }
+        if isStacked {
+            macRoot
+        } else {
+            NavStackContainer(scope: "send") {
+                macRoot
             }
-            .navigationTitle(L10n.send)
-            .searchable(text: $query, placement: .toolbar, prompt: Text(L10n.sendMainSearchPlaceholder))
-            .bridgedText(
-                $query,
-                remote: snapshot.query,
-                remoteRevision: snapshot.queryRevision,
-                send: actions.setQuery
-            )
-            .toolbar { macToolbar }
-            .sheet(isPresented: $showingAddItem, onDismiss: addForm.close) {
-                AddItemSheet(presentation: addForm, mode: .send, canCreateFileSend: snapshot.canCreateFileSend)
+        }
+    }
+
+    private var macRoot: some View {
+        Group {
+            if snapshot.needsAccount {
+                emptyState
+            } else {
+                twoPane
             }
+        }
+        .navigationTitle(title)
+        .searchable(text: $query, placement: .toolbar, prompt: Text(L10n.sendMainSearchPlaceholder))
+        .bridgedText(
+            $query,
+            remote: snapshot.query,
+            remoteRevision: snapshot.queryRevision,
+            send: actions.setQuery
+        )
+        .toolbar { macToolbar }
+        .sheet(isPresented: $showingAddItem, onDismiss: addForm.close) {
+            AddItemSheet(presentation: addForm, mode: .send, canCreateFileSend: snapshot.canCreateFileSend)
         }
     }
 
@@ -183,19 +203,16 @@ struct SendListView: View {
 
     #if os(iOS)
     private var iosBody: some View {
-        NavStackContainer(scope: "send", rootList: .send) {
-            sidebarColumn
-                .navigationTitle(L10n.send)
-                .navigationBarTitleDisplayMode(.large)
-                .listSearchable(text: $query, prompt: Text(L10n.sendMainSearchPlaceholder))
-                .bridgedText(
-                    $query,
-                    remote: snapshot.query,
-                    remoteRevision: snapshot.queryRevision,
-                    send: actions.setQuery
-                )
-                .toolbar { iosToolbar }
-                .environment(\.editMode, $selection.editMode)
+        Group {
+            if isStacked {
+                iosRoot
+                    .navigationBarTitleDisplayMode(.inline)
+            } else {
+                NavStackContainer(scope: "send", rootList: .send) {
+                    iosRoot
+                        .navigationBarTitleDisplayMode(.large)
+                }
+            }
         }
         .sheet(isPresented: $showingAddItem, onDismiss: addForm.close) {
             AddItemSheet(presentation: addForm, mode: .send, canCreateFileSend: snapshot.canCreateFileSend)
@@ -204,6 +221,20 @@ struct SendListView: View {
             handleEditModeChange(mode)
         }
         .clearsMissingBrowseSelection(browseSelectionInput) { clearBrowseSelection() }
+    }
+
+    private var iosRoot: some View {
+        sidebarColumn
+            .navigationTitle(title)
+            .listSearchable(text: $query, prompt: Text(L10n.sendMainSearchPlaceholder))
+            .bridgedText(
+                $query,
+                remote: snapshot.query,
+                remoteRevision: snapshot.queryRevision,
+                send: actions.setQuery
+            )
+            .toolbar { iosToolbar }
+            .environment(\.editMode, $selection.editMode)
     }
 
     @ViewBuilder

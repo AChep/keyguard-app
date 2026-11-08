@@ -16,6 +16,7 @@ struct VaultListRepresentable: View {
     let colorScheme: ColorScheme
 
     @Environment(\.vaultListBottomBarHeight) private var bottomBarHeight
+    @Environment(\.navigationOverflowBarHeight) private var navigationBarHeight
     @Environment(\.navigationListContext) private var navigationContext
     @Environment(NavigationModel.self) private var navigationModel
 
@@ -59,7 +60,7 @@ struct VaultListRepresentable: View {
                 config: browseConfig,
                 colorScheme: colorScheme,
                 editing: editing,
-                additionalBottomInset: extendsUnderChrome ? bottomBarHeight : 0
+                additionalBottomInset: extendsUnderChrome ? bottomBarHeight + navigationBarHeight : 0
             )
             // Extend only under container chrome; keep SwiftUI keyboard avoidance.
             .ignoresSafeArea(.container, edges: extendsUnderChrome ? .vertical : [])

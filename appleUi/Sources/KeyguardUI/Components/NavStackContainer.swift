@@ -85,6 +85,7 @@ struct NavStackContainer<Content: View>: View {
     private var stackBody: some View {
         NavigationStack(path: navPath) {
             content()
+                .reservesNavigationOverflowBarSpace()
                 .navigationDestination(for: Int64.self) { id in
                     screenView(for: id)
                 }
@@ -109,7 +110,11 @@ struct NavStackContainer<Content: View>: View {
             projection: projection,
             popTo: { navigationModel.popToScreen(scope: scope, instanceId: $0) },
             clearDetail: { navigationModel.clearListDetail(listContext(for: projection.listEntryId)) },
-            sidebar: { content().environment(\.navigationListContext, listContext(for: nil)) },
+            sidebar: {
+                content()
+                    .reservesNavigationOverflowBarSpace()
+                    .environment(\.navigationListContext, listContext(for: nil))
+            },
             sidebarDestination: { id in
                 screenView(for: id).environment(\.navigationListContext, listContext(for: id))
             },
@@ -126,6 +131,7 @@ struct NavStackContainer<Content: View>: View {
         if let entry = entries.first(where: { $0.instanceId == id }) {
             entryView(for: id)
                 .remoteSettingsSheets(for: entry)
+                .reservesNavigationOverflowBarSpace()
         }
     }
 
@@ -184,6 +190,11 @@ struct NavStackContainer<Content: View>: View {
                     showsNavigationTitle: true,
                     makeSession: sessions.makeSendDetailSession
                 )
+                .id(entry.instanceId)
+            } else if entry.kind == ScreenEntryKind.sendList {
+                SendListScreen(stackedTitle: entry.title) {
+                    sessions.makeEntrySendListSession(instanceId: entry.instanceId)
+                }
                 .id(entry.instanceId)
             } else if entry.kind == ScreenEntryKind.organizationsList {
                 OrganizationsListView(entry: entry)

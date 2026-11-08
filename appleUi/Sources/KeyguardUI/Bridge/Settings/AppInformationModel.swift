@@ -46,9 +46,6 @@ final class AppInformationModel: SnapshotObserving {
     private(set) var localizationContributors: LocalizationContributorsSnapshot = LocalizationContributorsSnapshot
         .companion.empty
 
-    /// In-memory app logs.
-    private(set) var logs: LogsSnapshot = LogsSnapshot.companion.empty
-
     @ObservationIgnored private let licenseObservation = SharedObservation()
 
     @ObservationIgnored private var licenseSubscription: BridgeObservation?
@@ -56,10 +53,6 @@ final class AppInformationModel: SnapshotObserving {
     @ObservationIgnored private let localizationContributorsObservation = SharedObservation()
 
     @ObservationIgnored private var localizationContributorsSubscription: BridgeObservation?
-
-    @ObservationIgnored private let logsObservation = SharedObservation()
-
-    @ObservationIgnored private var logsSubscription: BridgeObservation?
 
     func startLicenseObservation() {
         licenseObservation.acquire {
@@ -84,18 +77,6 @@ final class AppInformationModel: SnapshotObserving {
 
     func stopLocalizationContributorsObservation() {
         localizationContributorsObservation.release()
-    }
-
-    func startLogsObservation() {
-        logsObservation.acquire {
-            sharedSnapshotObservation(
-                \.logsSubscription, into: \.logs, empty: LogsSnapshot.companion.empty,
-                observe: core.observeLogs)
-        }
-    }
-
-    func stopLogsObservation() {
-        logsObservation.release()
     }
 
     func loadAboutTeam() async -> AboutTeamSnapshot? {

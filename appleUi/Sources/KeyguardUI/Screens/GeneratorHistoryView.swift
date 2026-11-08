@@ -75,6 +75,7 @@ struct GeneratorHistoryView: View {
         .selectionBar(
             count: snapshot.selectionCount,
             actions: snapshot.selectionActions,
+            selectAllActionId: snapshot.selectionSelectAllActionId,
             invoke: { invokeSelectionAction($0) },
             clear: { clearSelection() }
         )

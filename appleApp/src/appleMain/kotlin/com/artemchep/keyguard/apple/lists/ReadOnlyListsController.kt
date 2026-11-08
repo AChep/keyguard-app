@@ -36,9 +36,11 @@ import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.dialog.DialogController
 import com.artemchep.keyguard.apple.model.buildMenuActionSnapshots
 import com.artemchep.keyguard.apple.model.buildSelectionActionSnapshots
+import com.artemchep.keyguard.apple.model.registerSelectAllAction
 import com.artemchep.keyguard.platform.LeContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -251,6 +253,7 @@ internal class ReadOnlyListsController(
                     leContext = leContext,
                     handlers = selectionHandlers,
                 )
+                val selectionSelectAllActionId = selection.registerSelectAllAction(selectionHandlers)
                 val topActions = buildMenuActionSnapshots(
                     actions = content.actions,
                     idPrefix = "screen",
@@ -264,6 +267,7 @@ internal class ReadOnlyListsController(
                     selectionCount = selection?.count ?: 0,
                     selectionActions = selectionActions,
                     actions = topActions,
+                    selectionSelectAllActionId = selectionSelectAllActionId,
                 )
             }
 
@@ -343,13 +347,12 @@ internal class ReadOnlyListsController(
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun observeLogs(
-        onChange: (LogsSnapshot) -> Unit,
-    ): KeyguardCancellable {
+    fun makeLogsSession(): LogsSession = LogsSession { publish ->
         // ExportLogs belongs to the unlocked session graph. Resolving it from
         // global DI throws before the producer can publish its first snapshot.
-        return ctx.launchSessionObserver(
-            onLocked = { onChange(LogsSnapshot.empty) },
+        ctx.launchSessionObserver(
+            onLocked = { publish(LogsSnapshot.empty, LogsSessionActions()) },
+            onTeardown = { publish(LogsSnapshot.empty, LogsSessionActions()) },
         ) { state ->
             val producerScope = this
             val producerFlow = with(state.sessionKoin) {
@@ -364,24 +367,32 @@ internal class ReadOnlyListsController(
                         exportLogs = get(),
                     )
             }
-            // The top-level LogsState rarely re-emits; its live entries flow
-            // through the inner contentFlow it does NOT re-emit for, so switch
-            // to that inner flow.
+            // The top-level LogsState rarely re-emits; its live entries, the
+            // recording switch and the export action flow through inner flows
+            // it does NOT re-emit for, so switch to those inner flows.
             producerFlow
                 .map { it.getOrNull() }
                 .flatMapLatest { st ->
                     if (st == null) {
-                        flowOf(LogsSnapshot.empty)
+                        flowOf(LogsSnapshot.empty to LogsSessionActions())
                     } else {
-                        st.contentFlow.map { content -> buildLogsSnapshot(content) }
+                        combine(st.contentFlow, st.switchFlow, st.exportFlow) { content, switch, export ->
+                            val actions = LogsSessionActions(
+                                toggleRecording = switch.onToggle,
+                                export = export.onExportClick,
+                            )
+                            buildLogsSnapshot(content, switch, export) to actions
+                        }
                     }
                 }
-                .collectOnMain { onChange(it) }
+                .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
         }
     }
 
     private fun buildLogsSnapshot(
         content: LogsState.Content,
+        switch: LogsState.Switch,
+        export: LogsState.Export,
     ): LogsSnapshot {
         val items = content.items.map { item ->
             when (item) {
@@ -402,7 +413,13 @@ internal class ReadOnlyListsController(
                 )
             }
         }
-        return LogsSnapshot(loaded = true, items = items)
+        return LogsSnapshot(
+            loaded = true,
+            items = items,
+            recording = switch.checked,
+            canToggleRecording = switch.onToggle != null,
+            canExport = export.onExportClick != null,
+        )
     }
 
     fun makeUrlBlockListSession(): ListSession<UrlRuleListSnapshot> = ListSession { publish ->
@@ -492,6 +509,7 @@ internal class ReadOnlyListsController(
             hasPrimaryAction = content.primaryAction != null,
             selectionCount = selection?.count ?: 0,
             selectionActions = selectionActions,
+            selectionSelectAllActionId = selection.registerSelectAllAction(selectionHandlers),
         )
     }
 
@@ -583,6 +601,7 @@ internal class ReadOnlyListsController(
             hasPrimaryAction = content.primaryAction != null,
             selectionCount = selection?.count ?: 0,
             selectionActions = selectionActions,
+            selectionSelectAllActionId = selection.registerSelectAllAction(selectionHandlers),
         )
     }
 }

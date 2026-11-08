@@ -15,7 +15,7 @@ enum DetailRowsPreviewFixtures {
         totp: TotpFieldSnapshot? = nil, attachment: AttachmentFieldSnapshot? = nil,
         dragUrl: String? = nil, url: String? = nil, markdown: Bool = false, monospace: Bool = false,
         severity: VaultAlertSeverity? = nil, colorize: Bool = false, uriIcon: UriIconSnapshot? = nil,
-        reference: VaultReferenceSnapshot? = nil, label: String? = nil
+        uriOverrides: [VaultUriOverrideSnapshot] = [], reference: VaultReferenceSnapshot? = nil, label: String? = nil
     ) -> VaultItemSnapshot {
         VaultItemSnapshot(
             id: id, kind: kind, title: title, text: text, concealed: concealed, monospace: monospace,
@@ -26,7 +26,7 @@ enum DetailRowsPreviewFixtures {
             cardNumberFormatted: kind == .card && visible ? "4111 1111 1111 1111" : nil,
             cardNumberObscured: kind == .card ? "•••• •••• •••• 1111" : nil,
             isVisible: visible, revealActionId: reveal, revealLocked: locked, alertSeverity: severity,
-            colorize: colorize, uriIcon: uriIcon, reference: reference, label: label
+            colorize: colorize, uriIcon: uriIcon, uriOverrides: uriOverrides, reference: reference, label: label
         )
     }
 
@@ -55,6 +55,16 @@ enum DetailRowsPreviewFixtures {
                 "regex", .uri, title: "^https://example\\.com/[0-9]+$", actions: actions,
                 colorize: true, uriIcon: UriIconSnapshot(kind: .link, iconKey: nil)),
             item("no-actions", .uri, title: "custom:unavailable", uriIcon: UriIconSnapshot(kind: .link, iconKey: nil)),
+            item(
+                "overrides", .uri, title: "https://example.org", actions: actions,
+                uriIcon: UriIconSnapshot(kind: .website, iconKey: nil),
+                uriOverrides: [
+                    VaultUriOverrideSnapshot(
+                        title: "Open in Firefox", text: "firefox https://example.org", error: false,
+                        actions: [action("copy-override", "Copy URL", copy: true)]),
+                    VaultUriOverrideSnapshot(
+                        title: "Broken rule", text: "Failed to format a placeholder", error: true, actions: []),
+                ]),
             item("credentials", .section, title: "Credentials"),
             item("passkey", .passkey, title: "demo@example.com", text: "example.com", click: "preview-passkey"),
             item("attachment", .attachment, title: "Recovery codes.txt", text: "2 KB", click: "preview-attachment"),

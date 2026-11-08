@@ -94,6 +94,7 @@ struct BitwardenLoginView: View {
         .navigationDestination(isPresented: $loginModel.ssoActive) {
             BitwardenSsoView()
                 .environment(loginModel)
+                .reservesNavigationOverflowBarSpace()
         }
         // The SSO step keeps running under its 2FA screen, so it
         // stops only once its own screen is popped.
@@ -103,6 +104,7 @@ struct BitwardenLoginView: View {
         .navigationDestination(isPresented: loginTwofaActive) {
             BitwardenTwofaView()
                 .environment(loginModel)
+                .reservesNavigationOverflowBarSpace()
         }
         .onChange(of: loginModel.loginDidSucceed) { _, succeeded in
             if succeeded { dismiss() }

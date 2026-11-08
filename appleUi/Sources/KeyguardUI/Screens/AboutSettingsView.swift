@@ -64,7 +64,8 @@ struct AboutSettingsView: View {
             }
             Section(L10n.settingsDiagnosticsHeaderTitle) {
                 NavigationLink {
-                    LogsView()
+                    LogsView(makeSession: sessions.makeLogsSession)
+                        .reservesNavigationOverflowBarSpace()
                 } label: {
                     Label(L10n.logsHeaderTitle, systemImage: "doc.text.magnifyingglass")
                 }
@@ -77,6 +78,7 @@ struct AboutSettingsView: View {
                         detailLabel: L10n.command,
                         makeSession: sessions.makeUrlOverrideListSession
                     )
+                    .reservesNavigationOverflowBarSpace()
                 } label: {
                     Label(L10n.prefItemUrlOverrideTitle, systemImage: "arrow.triangle.branch")
                 }

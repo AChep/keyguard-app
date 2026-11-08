@@ -91,7 +91,7 @@ import com.artemchep.keyguard.apple.lists.PasskeyIdentitySnapshot
 import com.artemchep.keyguard.apple.lists.PasskeyRegistrationSnapshot
 import com.artemchep.keyguard.apple.lists.LicenseListSnapshot
 import com.artemchep.keyguard.apple.lists.LocalizationContributorsSnapshot
-import com.artemchep.keyguard.apple.lists.LogsSnapshot
+import com.artemchep.keyguard.apple.lists.LogsSession
 import com.artemchep.keyguard.apple.lists.ReadOnlyListsController
 import com.artemchep.keyguard.apple.lists.SshAgentHistorySession
 import com.artemchep.keyguard.apple.onboarding.OnboardingController
@@ -921,6 +921,10 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun makeSendListSession(): SendListSession = sendListController.makeSession()
 
+    /** A session for a filtered Send list pushed onto a navigation stack, such as an account's Sends. */
+    fun makeEntrySendListSession(instanceId: Long): SendListSession =
+        navigationStackController.makeEntrySendListSession(instanceId)
+
     fun makeSendDetailSession(itemId: String, accountId: String): SendDetailSession =
         sendDetailController.makeSession(itemId, accountId)
 
@@ -1046,6 +1050,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
             downloadsController,
             feedbackController,
             addItemController,
+            sendListController,
         )
     }
 
@@ -1227,9 +1232,7 @@ class KeyguardCore(runtime: KeyguardRuntime) {
         onChange: (LocalizationContributorsSnapshot) -> Unit,
     ): KeyguardCancellable = readOnlyListsController.observeLocalizationContributors(onChange)
 
-    fun observeLogs(
-        onChange: (LogsSnapshot) -> Unit,
-    ): KeyguardCancellable = readOnlyListsController.observeLogs(onChange)
+    fun makeLogsSession(): LogsSession = readOnlyListsController.makeLogsSession()
 
     fun makeUrlBlockListSession(): ListSession<UrlRuleListSnapshot> =
         readOnlyListsController.makeUrlBlockListSession()

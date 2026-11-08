@@ -28,6 +28,7 @@ import com.artemchep.keyguard.apple.core.collectOnMain
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.model.VaultActionSnapshot
 import com.artemchep.keyguard.apple.model.buildSelectionActionSnapshots
+import com.artemchep.keyguard.apple.model.registerSelectAllAction
 import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -91,6 +92,8 @@ data class FoldersSnapshot(
     val selectionCount: Int,
     /** Empty unless [selectionCount] > 0. */
     val selectionActions: List<VaultActionSnapshot>,
+    /** Handler id of "Select all"; null when nothing or everything is selected. */
+    val selectionSelectAllActionId: String? = null,
 ) {
     companion object {
         val empty = FoldersSnapshot(
@@ -308,6 +311,43 @@ internal fun FoldersState.Content.Item.Folder.toFolderListItemSnapshot(
     )
 }
 
+internal suspend fun FoldersState.toFoldersSnapshot(
+    accountId: String?,
+    parentId: String?,
+    leContext: LeContext,
+    handlers: LinkedHashMap<String, () -> Unit>,
+): FoldersSnapshot {
+    val content = this.content.getOrNull()
+    val items = content?.items.orEmpty()
+        .filterIsInstance<FoldersState.Content.Item.Folder>()
+        .map { it.toFolderListItemSnapshot(handlers) }
+    val itemsActionId = content?.ciphers?.onClick?.let {
+        handlers["folder:items"] = it
+        "folder:items"
+    }
+    val selectionActions =
+        buildSelectionActionSnapshots(selection?.actions, leContext, handlers)
+    val selectionSelectAllActionId = selection.registerSelectAllAction(handlers)
+    // The "clear selection" affordance (the bulk bar's x button).
+    selection?.onClear?.let { handlers["selection:clear"] = it }
+    return FoldersSnapshot(
+        loaded = content != null,
+        title = title,
+        accountId = accountId,
+        parentId = parentId,
+        addActionId = onAdd?.let {
+            handlers["folder:add"] = it
+            "folder:add"
+        },
+        itemsCount = content?.ciphers?.count ?: 0,
+        itemsActionId = itemsActionId,
+        items = items,
+        selectionCount = selection?.count ?: 0,
+        selectionActions = selectionActions,
+        selectionSelectAllActionId = selectionSelectAllActionId,
+    )
+}
+
 internal class FoldersController(
     private val ctx: CoreContext,
 ) {
@@ -344,33 +384,11 @@ internal class FoldersController(
         producerFlow
             .map { state ->
                 val handlers = LinkedHashMap<String, () -> Unit>()
-                val content = state.content.getOrNull()
-                val items = content?.items.orEmpty()
-                    .filterIsInstance<FoldersState.Content.Item.Folder>()
-                    .map { it.toFolderListItemSnapshot(handlers) }
-                val itemsActionId = content?.ciphers?.onClick?.let {
-                    handlers["folder:items"] = it
-                    "folder:items"
-                }
-                val selection = state.selection
-                val selectionActions =
-                    buildSelectionActionSnapshots(selection?.actions, leContext, handlers)
-                // The "clear selection" affordance (the bulk bar's x button).
-                selection?.onClear?.let { handlers["selection:clear"] = it }
-                val snapshot = FoldersSnapshot(
-                    loaded = content != null,
-                    title = state.title,
+                val snapshot = state.toFoldersSnapshot(
                     accountId = accountId,
                     parentId = args.parent?.folderId,
-                    addActionId = state.onAdd?.let {
-                        handlers["folder:add"] = it
-                        "folder:add"
-                    },
-                    itemsCount = content?.ciphers?.count ?: 0,
-                    itemsActionId = itemsActionId,
-                    items = items,
-                    selectionCount = selection?.count ?: 0,
-                    selectionActions = selectionActions,
+                    leContext = leContext,
+                    handlers = handlers,
                 )
                 snapshot to handlers
             }

@@ -53,17 +53,9 @@ struct KeePassLoginView: View {
             .ignoresSafeArea()
             .interactiveDismissDisabled()
         }
-        .sheet(
-            item: Binding(
-                get: { keepassModel.filePicker.pendingFileExport },
-                // The document picker delegate consumes Save and Cancel results.
-                set: { _ in }
-            )
-        ) { export in
-            DocumentExportPicker(export: export)
-            .ignoresSafeArea()
-            .interactiveDismissDisabled()
-        }
+        // The save picker is presented by SwiftUI, not embedded in a sheet: an
+        // embedded one lays out without its Filename footer.
+        .pendingFileExporter(keepassModel.filePicker.pendingFileExport)
         #endif
         .onChange(of: keepassModel.keepassDidSucceed) { _, succeeded in
             if succeeded { dismiss() }

@@ -441,13 +441,13 @@ struct DeveloperSettingsView: View {
             if cli.model?.snapshot?.path != nil {
                 Section(L10n.cliTitle) {
                     // Search reveals the row that opens the page with the request log.
-                    NavigationLink(L10n.cliTitle) { CliScreen() }
+                    NavigationLink(L10n.cliTitle) { CliScreen().reservesNavigationOverflowBarSpace() }
                         .settingsSearchTarget(.cliHistory)
                     Text(L10n.cliNote).foregroundStyle(.secondary)
                 }
             }
             Section(L10n.environmentsTitle) {
-                NavigationLink(L10n.environmentsTitle) { EnvironmentsScreen() }
+                NavigationLink(L10n.environmentsTitle) { EnvironmentsScreen().reservesNavigationOverflowBarSpace() }
                     .settingsSearchTarget(.envHistory)
                 Text(L10n.environmentsDescription).foregroundStyle(.secondary)
             }
@@ -905,6 +905,7 @@ struct DisplaySettingsView: View {
             Section(L10n.settingsNavigationHeaderTitle) {
                 NavigationLink {
                     NavigationItemsSettingsView()
+                        .reservesNavigationOverflowBarSpace()
                 } label: {
                     Label(L10n.settingsNavigationItemsHeaderTitle, systemImage: "list.bullet.rectangle")
                 }

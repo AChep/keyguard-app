@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.apple.vault
 
 import com.artemchep.keyguard.apple.core.sessionKoin
+import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.attachments.AttachmentsState
 import com.artemchep.keyguard.feature.attachments.attachmentsScreenStateProducer
@@ -13,6 +14,12 @@ import com.artemchep.keyguard.apple.model.VaultActionSnapshot
 import com.artemchep.keyguard.apple.model.buildMenuActionSnapshots
 import com.artemchep.keyguard.platform.LeContext
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import org.koin.core.scope.Scope
 
@@ -40,9 +47,9 @@ data class DownloadItemSnapshot(
 )
 
 /**
- * The per-row status / actions are persisted [kotlinx.coroutines.flow.StateFlow]s that
- * are frozen headless, so the snapshot reads `.value` at projection time — progress
- * refreshes when the outer list re-emits, not on every byte.
+ * The per-row status / actions live on their own [kotlinx.coroutines.flow.StateFlow]s,
+ * which the outer list does not re-emit for. The projection reads their `.value`, and
+ * [withLiveAttachmentRows] re-runs it whenever any of them changes.
  */
 internal class DownloadsController(
     private val ctx: CoreContext,
@@ -78,6 +85,9 @@ internal class DownloadsController(
                 )
         }
         producerFlow
+            .withLiveAttachmentRows()
+            // Progress ticks can outpace the projection; only the latest matters.
+            .conflate()
             .map { loadable ->
                 val state = loadable.getOrNull()
                 val handlers = LinkedHashMap<String, () -> Unit>()
@@ -135,3 +145,22 @@ internal class DownloadsController(
             .collectOnMain { (snapshot, handlers) -> publish(snapshot, handlers) }
     }
 }
+
+/**
+ * Re-emits the state whenever an attachment row's status or actions change, so a
+ * download that finishes elsewhere updates the row.
+ */
+@OptIn(ExperimentalCoroutinesApi::class)
+internal fun Flow<Loadable<AttachmentsState>>.withLiveAttachmentRows(): Flow<Loadable<AttachmentsState>> =
+    flatMapLatest { loadable ->
+        // Invalidation triggers only: the projection samples `.value`.
+        val triggers = loadable.getOrNull()?.items.orEmpty()
+            .filterIsInstance<AttachmentsState.Item.Attachment>()
+            .flatMap { listOf<Flow<Any>>(it.item.statusState, it.item.actionsState) }
+        if (triggers.isEmpty()) {
+            // combine() of no flows never emits.
+            flowOf(loadable)
+        } else {
+            combine(triggers) { loadable }
+        }
+    }

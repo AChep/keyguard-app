@@ -166,6 +166,8 @@ enum BarcodeRenderer {
     /// faithfully show PDF417 symbols that exceed 320 source modules.
     private static let displayWidth: CGFloat = 320
     private static let context = CIContext()
+    /// Single-module-tall strips that get a fixed bar height.
+    private static let oneDimensionalFormats: Set<String> = ["CODE_128", "CODE_39", "CODE_93"]
 
     static func image(data: String, format: String, displayScale: CGFloat = 1) -> CGImage? {
         guard !data.isEmpty, let output = ciImage(data: data, format: format) else {
@@ -185,7 +187,7 @@ enum BarcodeRenderer {
         // 1D barcodes are a single-module-tall strip; give them a fixed bar height
         // instead of preserving their (near-zero) aspect ratio.
         let scaleY: CGFloat =
-            format == "CODE_128"
+            oneDimensionalFormats.contains(format)
             ? (targetWidth / 3) / extent.height
             : scaleX
         let scaled = output.transformed(by: CGAffineTransform(scaleX: scaleX, y: scaleY))
@@ -215,9 +217,38 @@ enum BarcodeRenderer {
                 message: data.data(using: .isoLatin1),
                 extra: ["inputQuietSpace": 8]
             )
+        case "CODE_39":
+            return bars(OneDimensionalBarcodeEncoder.code39(data))
+        case "CODE_93":
+            return bars(OneDimensionalBarcodeEncoder.code93(data))
         default:
             return nil
         }
+    }
+
+    /// A one-pixel-tall strip, one pixel per module, with a quiet zone as wide
+    /// as ZXing's default margin on Android and desktop.
+    private static func bars(_ modules: [Bool]?) -> CIImage? {
+        guard let modules, !modules.isEmpty else { return nil }
+        let quietZone = [UInt8](repeating: 255, count: 10)
+        let pixels = quietZone + modules.map { $0 ? 0 : 255 } + quietZone
+        guard let provider = CGDataProvider(data: Data(pixels) as CFData),
+            let image = CGImage(
+                width: pixels.count,
+                height: 1,
+                bitsPerComponent: 8,
+                bitsPerPixel: 8,
+                bytesPerRow: pixels.count,
+                space: CGColorSpaceCreateDeviceGray(),
+                bitmapInfo: CGBitmapInfo(rawValue: CGImageAlphaInfo.none.rawValue),
+                provider: provider,
+                decode: nil,
+                shouldInterpolate: false,
+                intent: .defaultIntent
+            )
+        else { return nil }
+        // Linear sampling would blur bar edges when the strip is scaled up.
+        return CIImage(cgImage: image).samplingNearest()
     }
 
     private static func generate(

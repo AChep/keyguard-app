@@ -3,6 +3,9 @@ import KeyguardShared
 
 struct ListItemActionButton: View {
     let action: VaultActionSnapshot
+    /// Swipe actions show danger as a tint: the destructive role animates the
+    /// row out before the producer's confirmation dialog appears.
+    var swipeAction = false
     let invoke: (String) -> Void
 
     // These list producers supply stable semantic action ids; the last component
@@ -23,14 +26,28 @@ struct ListItemActionButton: View {
     }
 
     var body: some View {
-        Button(role: action.danger ? .destructive : nil) {
-            invoke(action.id)
-        } label: {
-            if let iconName {
-                Label(action.title, systemImage: iconName)
-            } else {
-                Text(action.title)
+        if swipeAction {
+            Button {
+                invoke(action.id)
+            } label: {
+                label
             }
+            .tint(action.danger ? Color(platform: .platformDanger) : nil)
+        } else {
+            Button(role: action.danger ? .destructive : nil) {
+                invoke(action.id)
+            } label: {
+                label
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var label: some View {
+        if let iconName {
+            Label(action.title, systemImage: iconName)
+        } else {
+            Text(action.title)
         }
     }
 }

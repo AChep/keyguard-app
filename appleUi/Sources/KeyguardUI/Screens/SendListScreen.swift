@@ -3,8 +3,11 @@ import KeyguardShared
 
 struct SendListScreen: View {
     @State private var model: DetailSessionModel<Bool, SendListSnapshot, SendListSession>
+    /// Non-nil for a filtered list pushed onto a navigation stack.
+    private let stackedTitle: String?
 
-    init(makeSession: @escaping () -> SendListSession) {
+    init(stackedTitle: String? = nil, makeSession: @escaping () -> SendListSession) {
+        self.stackedTitle = stackedTitle
         _model = State(
             wrappedValue: DetailSessionModel(
                 makeSession: makeSession,
@@ -32,7 +35,8 @@ struct SendListScreen: View {
                             session.dropFile(uri: url.absoluteString, name: file.name, size: file.size)
                         }
                     }
-                )
+                ),
+                stackedTitle: stackedTitle
             )
         }
     }

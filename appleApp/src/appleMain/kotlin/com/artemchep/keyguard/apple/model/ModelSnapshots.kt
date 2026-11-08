@@ -290,6 +290,16 @@ internal suspend fun buildVaultItemSnapshots(
                 actions = item.dropdown.toActionSnapshots(item.id),
                 shapeState = item.shapeState,
                 uriIcon = item.iconSource.toUriIconSnapshot(),
+                uriOverrides = item.overrides.mapIndexed { index, override ->
+                    VaultUriOverrideSnapshot(
+                        title = override.title,
+                        text = override.text,
+                        error = override.error,
+                        // Each override has its own menu; prefix its ids so they
+                        // never collide with the URI's own actions.
+                        actions = override.dropdown.toActionSnapshots("${item.id}:override:$index"),
+                    )
+                },
                 dragUrl = item.drag?.url,
             )
 
@@ -1088,10 +1098,24 @@ data class VaultItemSnapshot(
     val colorize: Boolean = false,
     // URI only: resolved artwork and its loading/disabled/failure placeholder.
     val uriIcon: UriIconSnapshot? = null,
+    // URI only: the enabled URL overrides that match this URI.
+    val uriOverrides: List<VaultUriOverrideSnapshot> = emptyList(),
     // VALUE only: the item and the field the value is read from.
     val reference: VaultReferenceSnapshot? = null,
     // VALUE only: a short label shown next to the value, such as "Primary".
     val label: String? = null,
+)
+
+/**
+ * A URL override that matches a URI: its [title] and the expanded URL as [text].
+ * When [error] is true, [text] is the reason the URL could not be built and
+ * [actions] is empty.
+ */
+data class VaultUriOverrideSnapshot(
+    val title: String,
+    val text: String,
+    val error: Boolean,
+    val actions: List<VaultActionSnapshot>,
 )
 
 /**

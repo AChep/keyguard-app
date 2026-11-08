@@ -24,7 +24,8 @@ struct NavigationOverflowBar: View {
                             showTitle: showLabels
                         )
                         .frame(maxWidth: .infinity)
-                        .foregroundStyle(selection == tab.id ? Color.accentColor : .primary)
+                        // `Color.accentColor` ignores the app's tint color setting.
+                        .foregroundStyle(selection == tab.id ? AnyShapeStyle(.tint) : AnyShapeStyle(.primary))
                         .background {
                             if selection == tab.id {
                                 Capsule().fill(.primary.opacity(0.08))
@@ -40,7 +41,7 @@ struct NavigationOverflowBar: View {
             .glassCapsule()
 
             NavigationOverflowMenu(sections: overflow, selection: $selection, showLabels: showLabels)
-                .foregroundStyle(selectedOverflow == nil ? Color.primary : .accentColor)
+                .foregroundStyle(selectedOverflow == nil ? AnyShapeStyle(.primary) : AnyShapeStyle(.tint))
                 .background {
                     if selectedOverflow != nil {
                         Capsule().fill(.primary.opacity(0.08))
@@ -53,4 +54,41 @@ struct NavigationOverflowBar: View {
         }
     }
 }
+
+private struct NavigationOverflowBarSpaceModifier: ViewModifier {
+    @Environment(\.navigationOverflowBarHeight) private var height
+
+    func body(content: Content) -> some View {
+        content.safeAreaInset(edge: .bottom, spacing: 0) {
+            Color.clear
+                .frame(height: height)
+                .accessibilityHidden(true)
+        }
+    }
+}
 #endif
+
+private struct NavigationOverflowBarHeightKey: EnvironmentKey {
+    static let defaultValue: CGFloat = 0
+}
+
+extension EnvironmentValues {
+    /// The height of the floating navigation bar over the bottom of a section, or 0.
+    var navigationOverflowBarHeight: CGFloat {
+        get { self[NavigationOverflowBarHeightKey.self] }
+        set { self[NavigationOverflowBarHeightKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Keeps a navigation page's content and bottom controls above the floating
+    /// navigation bar. A safe-area inset outside a navigation stack does not reach
+    /// its pages, so every page of a section's stack applies this itself.
+    func reservesNavigationOverflowBarSpace() -> some View {
+        #if os(iOS)
+        modifier(NavigationOverflowBarSpaceModifier())
+        #else
+        self
+        #endif
+    }
+}

@@ -163,6 +163,8 @@ data class PasswordHistorySnapshot(
     val selectionCount: Int = 0,
     val selectionActions: List<VaultActionSnapshot> = emptyList(),
     val actions: List<VaultActionSnapshot> = emptyList(),
+    /** Handler id of "Select all"; null when nothing or everything is selected. */
+    val selectionSelectAllActionId: String? = null,
 ) {
     companion object {
         val empty = PasswordHistorySnapshot(
@@ -226,9 +228,16 @@ data class LogsItemSnapshot(
     val time: String?,
 )
 
+/**
+ * [recording] is whether new logs are kept in memory. [canToggleRecording] and [canExport]
+ * tell whether [LogsSession.toggleRecording] and [LogsSession.export] do anything.
+ */
 data class LogsSnapshot(
     val loaded: Boolean,
     val items: List<LogsItemSnapshot>,
+    val recording: Boolean = false,
+    val canToggleRecording: Boolean = false,
+    val canExport: Boolean = false,
 ) {
     companion object {
         val empty = LogsSnapshot(loaded = false, items = emptyList())
@@ -261,6 +270,8 @@ data class UrlRuleListSnapshot(
     val hasPrimaryAction: Boolean = false,
     val selectionCount: Int = 0,
     val selectionActions: List<VaultActionSnapshot> = emptyList(),
+    /** Handler id of "Select all"; null when nothing or everything is selected. */
+    val selectionSelectAllActionId: String? = null,
 ) {
     companion object {
         val empty = UrlRuleListSnapshot(

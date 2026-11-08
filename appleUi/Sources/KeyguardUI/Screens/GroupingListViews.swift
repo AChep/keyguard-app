@@ -284,6 +284,7 @@ struct FoldersListView: View {
         .selectionBar(
             count: snapshot.selectionCount,
             actions: snapshot.selectionActions,
+            selectAllActionId: snapshot.selectionSelectAllActionId,
             invoke: { invoke($0) },
             clear: { invoke("selection:clear") }
         )
@@ -364,11 +365,14 @@ struct FoldersListView: View {
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
             if !item.selecting {
                 if let actionId = item.deleteActionId {
-                    Button(role: .destructive) {
+                    // Danger is a tint, not the destructive role: that role animates
+                    // the row out before the producer's confirmation dialog appears.
+                    Button {
                         invoke(actionId)
                     } label: {
                         Label(L10n.delete, systemImage: "trash")
                     }
+                    .tint(Color(platform: .platformDanger))
                 }
                 if let actionId = item.renameActionId {
                     Button {

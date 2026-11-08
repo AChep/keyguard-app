@@ -39,17 +39,25 @@ internal class SendListController(
     var navigationInterceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean)? =
         { _ -> null }
 
-    fun makeSession(): SendListSession = SendListSession { publish ->
+    /**
+     * The default arguments are the Send section root; a stacked, filtered list passes its route
+     * [args], its own [persistenceScope] and the owning stack entry's [interceptorProvider].
+     */
+    fun makeSession(
+        args: SendRoute.Args = SendRoute.Args(),
+        persistenceScope: String = "sendlist",
+        interceptorProvider: (Scope) -> ((NavigationIntent) -> Boolean)? = navigationInterceptorProvider,
+    ): SendListSession = SendListSession { publish ->
         val leContext = ctx.koin.get<LeContext>()
         ctx.launchSessionObserver(
             onLocked = { publish(SendListSnapshot.empty, SendListSessionActions()) },
             onTeardown = { publish(SendListSnapshot.empty, SendListSessionActions()) },
         ) { state ->
-            val interceptor = navigationInterceptorProvider(state.sessionKoin)
+            val interceptor = interceptorProvider(state.sessionKoin)
             val producerFlow = with(state.sessionKoin) {
-                ctx.koin.newHeadlessStateFlowScope("sendlist", this@launchSessionObserver, interceptor)
+                ctx.koin.newHeadlessStateFlowScope(persistenceScope, this@launchSessionObserver, interceptor)
                     .sendListScreenStateProducer(
-                        args = SendRoute.Args(),
+                        args = args,
                         highlightBackgroundColor = Color.Transparent,
                         highlightContentColor = Color.Transparent,
                         mode = AppMode.Main,

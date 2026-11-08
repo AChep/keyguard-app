@@ -81,7 +81,7 @@ struct WatchtowerAlertsView: View {
                 .overlay(alignment: .topTrailing) {
                     if !item.read {
                         Circle()
-                            .fill(Color.accentColor)
+                            .fill(.tint)
                             .frame(width: 8, height: 8)
                             .offset(x: 4, y: -4)
                     }

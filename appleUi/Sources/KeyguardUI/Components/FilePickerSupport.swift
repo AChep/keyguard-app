@@ -156,49 +156,75 @@ struct DocumentOpenPicker: UIViewControllerRepresentable {
     }
 }
 
-struct DocumentExportPicker: UIViewControllerRepresentable {
-    let export: PendingFileExport
+extension View {
+    /// Presents a pending export as the system save picker. The picker moves an
+    /// empty placeholder with the suggested name to the chosen location, and the
+    /// shared code later writes there through the returned bookmark.
+    func pendingFileExporter(_ export: PendingFileExport?) -> some View {
+        modifier(PendingFileExporterModifier(export: export))
+    }
+}
 
-    func makeCoordinator() -> Coordinator {
-        Coordinator(export: export)
+private struct PendingFileExporterModifier: ViewModifier {
+    let export: PendingFileExport?
+
+    @State private var placeholder: Placeholder?
+
+    private struct Placeholder {
+        let exportID: UUID
+        let url: URL
     }
 
-    func makeUIViewController(context: Context) -> UIDocumentPickerViewController {
-        let tempDir = FileManager.default.temporaryDirectory
+    func body(content: Content) -> some View {
+        let export = export
+        let placeholder = placeholder.flatMap { $0.exportID == export?.id ? $0 : nil }
+        // Only the callbacks may consume the export: SwiftUI resets the binding
+        // before either of them arrives.
+        content
+            .onChange(of: export?.id, initial: true) {
+                guard let export else {
+                    self.placeholder = nil
+                    return
+                }
+                guard let url = Self.makePlaceholder(for: export) else {
+                    self.placeholder = nil
+                    export.cancel(export.requestId)
+                    return
+                }
+                self.placeholder = Placeholder(exportID: export.id, url: url)
+            }
+            .fileMover(
+                isPresented: Binding(get: { placeholder != nil }, set: { _ in }),
+                file: placeholder?.url,
+                onCompletion: { result in
+                    guard let export else { return }
+                    guard case let .success(url) = result else {
+                        export.cancel(export.requestId)
+                        return
+                    }
+                    let didAccess = url.startAccessingSecurityScopedResource()
+                    defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
+                    let token = url.securityScopedBookmarkToken()
+                    export.resolve(export.requestId, url.absoluteString, url.lastPathComponent, 0, token)
+                },
+                onCancellation: {
+                    guard let export else { return }
+                    export.cancel(export.requestId)
+                }
+            )
+    }
+
+    private static func makePlaceholder(for export: PendingFileExport) -> URL? {
+        let directory = FileManager.default.temporaryDirectory
             .appendingPathComponent("keyguard-export", isDirectory: true)
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
-        let source = tempDir.appendingPathComponent(export.suggestedName)
-        try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
-        FileManager.default.createFile(atPath: source.path, contents: Data())
-
-        let picker = UIDocumentPickerViewController(forExporting: [source], asCopy: false)
-        picker.delegate = context.coordinator
-        return picker
-    }
-
-    func updateUIViewController(_ uiViewController: UIDocumentPickerViewController, context: Context) {}
-
-    final class Coordinator: NSObject, UIDocumentPickerDelegate {
-        private let export: PendingFileExport
-
-        init(export: PendingFileExport) {
-            self.export = export
+        let url = directory.appendingPathComponent(export.suggestedName)
+        do {
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        } catch {
+            return nil
         }
-
-        func documentPicker(_ controller: UIDocumentPickerViewController, didPickDocumentsAt urls: [URL]) {
-            guard let url = urls.first else {
-                export.cancel(export.requestId)
-                return
-            }
-            let didAccess = url.startAccessingSecurityScopedResource()
-            defer { if didAccess { url.stopAccessingSecurityScopedResource() } }
-            let token = url.securityScopedBookmarkToken()
-            export.resolve(export.requestId, url.absoluteString, url.lastPathComponent, 0, token)
-        }
-
-        func documentPickerWasCancelled(_ controller: UIDocumentPickerViewController) {
-            export.cancel(export.requestId)
-        }
+        return FileManager.default.createFile(atPath: url.path, contents: Data()) ? url : nil
     }
 }
 #endif

@@ -58,11 +58,21 @@ struct SelectionBarChrome<Actions: View>: View {
 struct SelectionActionBar: View {
     let count: Int
     let actions: [VaultActionSnapshot]
+    /// Run through `invoke`; nil hides "Select all".
+    var selectAllActionId: String?
     let invoke: @MainActor @Sendable (String) -> Void
     let clear: @MainActor @Sendable () -> Void
 
     var body: some View {
-        SelectionBarChrome(count: count, clear: clear, hasActions: !actions.isEmpty) {
+        SelectionBarChrome(count: count, clear: clear, hasActions: selectAllActionId != nil || !actions.isEmpty) {
+            if let selectAllActionId {
+                Button(L10n.selectionSelectAllAction) {
+                    invoke(selectAllActionId)
+                }
+                if !actions.isEmpty {
+                    Divider()
+                }
+            }
             listActionMenuItems(actions: actions, invoke: invoke)
         }
     }

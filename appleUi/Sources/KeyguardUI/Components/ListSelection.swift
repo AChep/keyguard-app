@@ -112,13 +112,19 @@ extension View {
 
     /// The floating bulk-action bar of an active multi-selection, and its entry /
     /// exit transition. Shown whenever anything is selected.
+    ///
+    /// `selectAllActionId`, when present, adds "Select all" to the menu and is run
+    /// through `invoke`; producers omit it once everything is selected.
     func selectionBar(
         count: Int32,
         actions: [VaultActionSnapshot],
+        selectAllActionId: String? = nil,
         invoke: @escaping @MainActor @Sendable (String) -> Void,
         clear: @escaping @MainActor @Sendable () -> Void
     ) -> some View {
-        selectionBar(count: count, visible: count >= 1, actions: actions, invoke: invoke, clear: clear)
+        selectionBar(
+            count: count, visible: count >= 1, actions: actions, selectAllActionId: selectAllActionId,
+            invoke: invoke, clear: clear)
     }
 
     /// The bulk-action bar with an explicit visibility gate, for surfaces whose bar
@@ -128,6 +134,7 @@ extension View {
         count: Int32,
         visible: Bool,
         actions: [VaultActionSnapshot],
+        selectAllActionId: String? = nil,
         invoke: @escaping @MainActor @Sendable (String) -> Void,
         clear: @escaping @MainActor @Sendable () -> Void
     ) -> some View {
@@ -136,6 +143,7 @@ extension View {
                 count: count,
                 visible: visible,
                 actions: actions,
+                selectAllActionId: selectAllActionId,
                 invoke: invoke,
                 clear: clear
             ))

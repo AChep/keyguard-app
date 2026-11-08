@@ -6,6 +6,7 @@ struct SettingsView: View {
     @Environment(NavigationModel.self) private var navigationModel
     @Environment(SettingsModel.self) private var settingsModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.navigationOverflowBarHeight) private var navigationBarHeight
     @State private var selectedId: String?
     @State private var query = ""
     @State private var searchSelection: String?
@@ -80,7 +81,8 @@ struct SettingsView: View {
                             snapshot: accountsModel.accountList,
                             invoke: { invokeAccountListAction($0) }
                         )
-                        .padding(.bottom, 12)
+                        // This inset is outside the navigation stack, under the floating navigation bar.
+                        .padding(.bottom, 12 + navigationBarHeight)
                         .transition(reduceMotion ? .opacity : .move(edge: .bottom).combined(with: .opacity))
                     }
                 }
@@ -212,6 +214,7 @@ struct SettingsView: View {
                 List(results, id: \.id) { entry in
                     NavigationLink {
                         SettingsSearchDestination(entry: entry)
+                            .reservesNavigationOverflowBarSpace()
                     } label: {
                         SettingsCategoryLabel(title: entry.title, id: entry.categoryId, subtitle: entry.path)
                     }
@@ -267,6 +270,7 @@ struct SettingsView: View {
                     ForEach(group.items, id: \.id) { item in
                         NavigationLink {
                             SettingsSubroute(item: item)
+                                .reservesNavigationOverflowBarSpace()
                         } label: {
                             SettingsCategoryLabel(title: item.title, id: item.id)
                         }

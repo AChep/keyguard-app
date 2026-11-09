@@ -28,9 +28,15 @@ services:
       RELAY_BYTES_PER_SEC: ${RELAY_BYTES_PER_SEC:-}
       RELAY_MAX_CONNS_PER_IP: ${RELAY_MAX_CONNS_PER_IP:-}
       RELAY_MAX_CONNS: ${RELAY_MAX_CONNS:-}
+      RELAY_WS_REQUESTS_PER_SEC: ${RELAY_WS_REQUESTS_PER_SEC:-}
+      RELAY_WS_TOTAL_PER_SEC: ${RELAY_WS_TOTAL_PER_SEC:-}
+      RELAY_ICE_REQUESTS_PER_SEC: ${RELAY_ICE_REQUESTS_PER_SEC:-}
+      RELAY_ICE_TOTAL_PER_SEC: ${RELAY_ICE_TOTAL_PER_SEC:-}
       RELAY_EGRESS_BYTES_PER_SEC: ${RELAY_EGRESS_BYTES_PER_SEC:-}
       RELAY_IDLE_SECS: ${RELAY_IDLE_SECS:-}
       RELAY_MAX_ROOMS: ${RELAY_MAX_ROOMS:-}
+      RELAY_MAX_ROOMS_PER_CONN: ${RELAY_MAX_ROOMS_PER_CONN:-}
+      RELAY_MAX_ROOMS_PER_IP: ${RELAY_MAX_ROOMS_PER_IP:-}
       ICE_REQUESTS_PER_MINUTE: ${ICE_REQUESTS_PER_MINUTE:-}
       ICE_TICKETLESS_PER_MINUTE: ${ICE_TICKETLESS_PER_MINUTE:-}
       ICE_TOTAL_PER_MINUTE: ${ICE_TOTAL_PER_MINUTE:-}
@@ -39,8 +45,21 @@ services:
       TURN_SECRET: ${TURN_SECRET:?set TURN_SECRET in .env}
       TURN_TTL_SECONDS: ${TURN_TTL_SECONDS:-}
       TRUST_PROXY: ${TRUST_PROXY:-}
+      # Relay storage, on the volume below. An empty value in .env turns it off.
+      RELAY_MAILBOX_DIR: ${RELAY_MAILBOX_DIR-/data}
+      RELAY_MAILBOX_MAX_BYTES: ${RELAY_MAILBOX_MAX_BYTES:-}
+      RELAY_MAILBOX_MIN_FREE_BYTES: ${RELAY_MAILBOX_MIN_FREE_BYTES:-}
+      RELAY_MAILBOX_MAX_ITEMS: ${RELAY_MAILBOX_MAX_ITEMS:-}
+      RELAY_MAILBOX_TTL_SECONDS: ${RELAY_MAILBOX_TTL_SECONDS:-}
+      RELAY_MAILBOX_BYTES_PER_IP: ${RELAY_MAILBOX_BYTES_PER_IP:-}
+      RELAY_MAILBOX_ITEMS_PER_IP: ${RELAY_MAILBOX_ITEMS_PER_IP:-}
+      RELAY_MAILBOX_REQUESTS_PER_MINUTE: ${RELAY_MAILBOX_REQUESTS_PER_MINUTE:-}
+      RELAY_MAILBOX_UPLOAD_BYTES_PER_MINUTE: ${RELAY_MAILBOX_UPLOAD_BYTES_PER_MINUTE:-}
       RUST_LOG: ${RUST_LOG:-info}
+    # The image is read-only; only the storage volume is writable.
     read_only: true
+    volumes:
+      - mailbox:/data
     cap_drop: [ALL]
     security_opt: [no-new-privileges:true]
     logging: *logging
@@ -55,6 +74,10 @@ services:
       TURN_SECRET: ${TURN_SECRET:?set TURN_SECRET in .env}
       TURN_REALM: ${TURN_REALM:?set TURN_REALM in .env}
       TURN_EXTERNAL_IP: ${TURN_EXTERNAL_IP:-}
+      TURN_USER_QUOTA: ${TURN_USER_QUOTA:-32}
+      TURN_TOTAL_QUOTA: ${TURN_TOTAL_QUOTA:-800}
+      TURN_MAX_BPS: ${TURN_MAX_BPS:-2500000}
+      TURN_BPS_CAPACITY: ${TURN_BPS_CAPACITY:-0}
     volumes:
       - ./coturn/turnserver.conf.template:/etc/coturn/turnserver.conf.template:ro
     # Renders the template inside the container, so the secret stays out of
@@ -62,20 +85,34 @@ services:
     entrypoint: ["/bin/bash", "-ec"]
     command:
       - |
-        if [[ $${#TURN_SECRET} -lt 16 || $${#TURN_SECRET} -gt 256 ||
+        if [[ $${#TURN_SECRET} -lt 32 || $${#TURN_SECRET} -gt 256 ||
               $$TURN_SECRET == *[!ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=._~-]* ]]; then
-          printf '%s\n' "coturn: TURN_SECRET must be 16 to 256 characters from A-Z, a-z, 0-9, '+', '/', '=', '-', '.', '_', '~'" >&2
+          printf '%s\n' "coturn: TURN_SECRET must be 32 to 256 characters from A-Z, a-z, 0-9, '+', '/', '=', '-', '.', '_', '~'" >&2
+          exit 2
+        fi
+        validate_number() {
+          local value="$${!1}"
+          if [[ ! $$value =~ ^(0|[1-9][0-9]{0,12})$$ ]] || (( value < $$2 || value > $$3 )); then
+            printf 'coturn: %s must be an integer from %s to %s\n' "$$1" "$$2" "$$3" >&2
+            exit 2
+          fi
+        }
+        validate_number TURN_USER_QUOTA 1 1000000
+        validate_number TURN_TOTAL_QUOTA 1 1000000
+        validate_number TURN_MAX_BPS 1 1073741824
+        validate_number TURN_BPS_CAPACITY 0 1099511627776
+        if (( TURN_BPS_CAPACITY != 0 && TURN_BPS_CAPACITY < TURN_MAX_BPS )); then
+          printf '%s\n' 'coturn: TURN_BPS_CAPACITY must be 0 or at least TURN_MAX_BPS' >&2
           exit 2
         fi
         umask 077
         conf=$$(< /etc/coturn/turnserver.conf.template)
         conf=$${conf//'$${TURN_SECRET}'/"$$TURN_SECRET"}
         conf=$${conf//'$${TURN_REALM}'/"$$TURN_REALM"}
-        # The host's own addresses, which the firewall doesn't guard against
-        # traffic from the host itself, and the public one behind 1:1 NAT.
-        for ip in $$(hostname -I) $${TURN_EXTERNAL_IP%%/*}; do
-          conf+=$$'\n'"denied-peer-ip=$$ip"
-        done
+        conf=$${conf//'$${TURN_USER_QUOTA}'/"$$TURN_USER_QUOTA"}
+        conf=$${conf//'$${TURN_TOTAL_QUOTA}'/"$$TURN_TOTAL_QUOTA"}
+        conf=$${conf//'$${TURN_MAX_BPS}'/"$$TURN_MAX_BPS"}
+        conf=$${conf//'$${TURN_BPS_CAPACITY}'/"$$TURN_BPS_CAPACITY"}
         printf '%s\n' "$$conf" > /var/tmp/turnserver.conf
         exec turnserver -c /var/tmp/turnserver.conf $${TURN_EXTERNAL_IP:+"--external-ip=$$TURN_EXTERNAL_IP"}
     # turnserver carries this file capability; without it (or under
@@ -83,3 +120,6 @@ services:
     cap_drop: [ALL]
     cap_add: [NET_BIND_SERVICE]
     logging: *logging
+
+volumes:
+  mailbox:

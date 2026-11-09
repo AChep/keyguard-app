@@ -35,7 +35,11 @@ import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PutVaultSession
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
 import com.artemchep.keyguard.core.session.usecase.AuthMasterKeyUseCase
+import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.platform.LeBiometricCipher
+import com.artemchep.keyguard.provider.keyguard.KeyguardAuthorityReseal
+import com.artemchep.keyguard.provider.keyguard.KeyguardAuthorityResealer
+import com.artemchep.keyguard.provider.keyguard.KeyguardAuthorityReseals
 import java.lang.reflect.Proxy
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.test.Test
@@ -45,6 +49,7 @@ import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertSame
+import kotlin.test.assertTrue
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -65,6 +70,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.withTimeoutOrNull
 
+@Suppress("TooManyFunctions")
 class UnlockUseCaseImplTest {
     @Test
     fun `password creation preserves setup until the unlocked session is delivered`() =
@@ -190,6 +196,60 @@ class UnlockUseCaseImplTest {
         assertEquals(LockReason.TIMEOUT, state.lockInfo?.type)
     }
 
+    @Test
+    fun `a password change re-seals before the re-key and reports the keys it did not`() =
+        checkPasswordChange(biometric = false)
+
+    @Test
+    fun `a biometric password change seals the new key before the re-key`() =
+        checkPasswordChange(biometric = true)
+
+    private fun checkPasswordChange(biometric: Boolean) = withFixture(biometric) {
+        val change = startPasswordChange(biometric)
+        generating.complete(Unit)
+        opening.await()
+        opened.complete(vaultSession)
+
+        val report = assertIs<Either.Right<VaultState.Main.ChangePassword.Report>>(change.await()).value
+        // One key did not open with the old password, and another one changed meanwhile.
+        assertEquals(2, report.authoritiesNotResealed)
+        val encrypt = if (biometric) listOf("encrypt") else emptyList()
+        assertEquals(listOf("prepare") + encrypt + listOf("rekey", "commit", "put"), events.toList())
+        assertEquals(biometric, savedFingerprint?.biometric != null)
+        assertNotNull(published.await())
+    }
+
+    @Test
+    fun `a failed re-seal preparation leaves the vault as it was`() = withFixture {
+        prepareFailure = IllegalStateException("Cannot read the sync groups")
+        val change = startPasswordChange()
+        generating.complete(Unit)
+
+        val reported = assertIs<IllegalStateException>(assertIs<Either.Left<Throwable>>(change.await()).value)
+        assertEquals(prepareFailure?.message, reported.message)
+        assertEquals(listOf("prepare"), events.toList())
+        assertNull(savedFingerprint)
+        assertFalse(rekeyed.isCompleted)
+    }
+
+    @Test
+    fun `a password change cancelled after the re-key still saves the new fingerprint`() = withFixture {
+        rekeyGate = CompletableDeferred()
+        val change = startPasswordChange()
+        generating.complete(Unit)
+        rekeyed.await()
+        change.cancel()
+        rekeyGate.complete(Unit)
+        opening.await()
+        opened.complete(vaultSession)
+        published.await()
+
+        change.join()
+        assertTrue(change.isCancelled)
+        assertEquals(listOf("prepare", "rekey", "commit", "put"), events.toList())
+        assertNotNull(savedFingerprint)
+    }
+
     private fun withFixture(
         biometric: Boolean = false,
         block: suspend Fixture.() -> Unit,
@@ -219,6 +279,10 @@ class UnlockUseCaseImplTest {
         var writeFailure: Throwable? = null
         var deferFingerprintDelivery = false
         var savedFingerprint: Fingerprint? = null
+        val events = ConcurrentLinkedQueue<String>()
+        var prepareFailure: Throwable? = null
+        val rekeyed = CompletableDeferred<Unit>()
+        var rekeyGate = CompletableDeferred(Unit)
         private lateinit var initialCreateState: VaultState.Create
         private val auth = AuthResult(
             version = MasterKdfVersion.LATEST,
@@ -228,7 +292,16 @@ class UnlockUseCaseImplTest {
                 salt = MasterPasswordSalt(byteArrayOf(3)),
             ),
         )
-        private val databaseManager = unused<VaultDatabaseManager>()
+        private val databaseManager = object : VaultDatabaseManager {
+            override fun get(): IO<Database> = error("Unexpected database read")
+            override fun <T> mutate(tag: String, block: suspend (Database) -> T): IO<T> =
+                error("Unexpected database write")
+            override fun changePassword(newMasterKey: MasterKey): IO<Unit> = ioEffect {
+                events += "rekey"
+                rekeyed.complete(Unit)
+                rekeyGate.await()
+            }
+        }
         private val useCase = UnlockUseCaseImpl(
             sessionFactory = object : VaultSessionFactory {
                 override fun create(masterKey: MasterKey): VaultSession = error("Unexpected restoration")
@@ -245,6 +318,7 @@ class UnlockUseCaseImplTest {
                         object : LeBiometricCipher {
                             override val iv = byteArrayOf(4)
                             override fun encode(data: ByteArray) = byteArrayOf(5)
+                                .also { events += "encrypt" }
                         }
                     } else BiometricStatus.Unavailable,
                 )
@@ -271,6 +345,7 @@ class UnlockUseCaseImplTest {
                 override fun get() = fingerprints
                 override fun put(key: Fingerprint?): IO<Unit> = ioEffect {
                     writeFailure?.let { throw it }
+                    events += "put"
                     savedFingerprint = key
                     if (!deferFingerprintDelivery) fingerprints.value = key
                 }
@@ -309,6 +384,26 @@ class UnlockUseCaseImplTest {
             fido2UnlockAvailability = com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability { false },
             fido2UnlockService = Fido2UnlockService(unused(), unused(), unused(), unused(), unused()),
             base64Service = unused(),
+            authorityResealer = object : KeyguardAuthorityResealer {
+                override suspend fun prepare(
+                    db: VaultDatabaseManager,
+                    oldPassword: String,
+                    newPassword: String,
+                ): KeyguardAuthorityReseals {
+                    events += "prepare"
+                    prepareFailure?.let { throw it }
+                    return KeyguardAuthorityReseals(reseals = emptyList(), stale = listOf("stale"))
+                }
+
+                override suspend fun commit(
+                    db: VaultDatabaseManager,
+                    reseals: List<KeyguardAuthorityReseal>,
+                    onError: suspend (Throwable) -> Unit,
+                ): List<String> {
+                    events += "commit"
+                    return listOf("changed")
+                }
+            },
         )
 
         init {
@@ -325,6 +420,30 @@ class UnlockUseCaseImplTest {
                 assertNotNull(createState.createWithMasterPasswordAndBiometric).getCreateIo("1234")
             } else {
                 createState.createWithMasterPassword.getCreateIo("1234")
+            }
+            scope.async { action.attempt().bind() }.also {
+                generationStarted.await()
+            }
+        }
+
+        /** Opens the vault, then starts to change its password. */
+        suspend fun startPasswordChange(biometric: Boolean = false) = run {
+            fingerprints.value = Fingerprint(
+                version = auth.version,
+                master = auth.token,
+                biometric = null,
+            )
+            sessions.value = MasterSession.Key(
+                masterKey = auth.key,
+                session = vaultSession,
+                origin = MasterSession.Key.Authenticated,
+                createdAt = Instant.DISTANT_PAST,
+            )
+            val changePassword = awaitState<VaultState.Main>().changePassword
+            val action = if (biometric) {
+                assertNotNull(changePassword.withMasterPasswordAndBiometric).getCreateIo("1234", "5678")
+            } else {
+                changePassword.withMasterPassword.getCreateIo("1234", "5678")
             }
             scope.async { action.attempt().bind() }.also {
                 generationStarted.await()

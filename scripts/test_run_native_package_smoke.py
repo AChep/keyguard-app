@@ -64,6 +64,16 @@ class DesktopPackageSmokeTest(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError, "completion record"):
             smoke.validate_smoke_evidence(evidence() + "extra\n", "nonce")
 
+    def test_desktop_smoke_prints_every_required_marker(self) -> None:
+        self.assertNotIn("noise=PASS", smoke.REQUIRED_MARKERS)
+        self.assertIn("webrtc=PASS", smoke.REQUIRED_MARKERS)
+        source = Path(__file__).resolve().parent.parent.joinpath(
+            "desktopApp/src/jvmMain/kotlin/com/artemchep/keyguard/desktop/nativebundle/NativeBundleSmoke.kt",
+        ).read_text(encoding="utf-8")
+        for marker in smoke.REQUIRED_MARKERS:
+            with self.subTest(marker=marker):
+                self.assertIn(marker, source)
+
     def run_python(self, code: str, directory: Path, timeout: float = 5) -> str:
         return smoke._run([sys.executable, "-c", code], directory, os.environ.copy(), "nonce", timeout, None)
 

@@ -197,6 +197,8 @@ private val forbiddenWearProjectPaths = setOf(
     ":feature:qr-scanner-android",
     ":feature:android-ipc-android",
     ":feature:android-ipc-presentation",
+    // Wear never ships WebRTC.
+    ":util:webrtc",
 )
 
 private const val openKeychainGroup = "com.github.open-keychain.open-keychain"

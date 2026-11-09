@@ -159,6 +159,10 @@ jobs:
               :feature:environments:checkComposeFree
               :feature:environments:checkEnvironmentLimits
               :feature:environments:desktopTest
+              :feature:p2p-sync:checkComposeFree
+              :feature:p2p-sync:desktopTest
+              :feature:p2p-webrtc:checkComposeFree
+              :feature:p2p-webrtc:desktopTest
               :standard:presentation:checkComposeFree
               :standard:presentation:desktopTest
               :desktopApp:jvmTest
@@ -171,6 +175,8 @@ jobs:
               :feature:android-ipc-presentation:testAndroidHostTest
               :feature:passkey-hybrid-presentation:testAndroidHostTest
               :feature:passkey-hybrid-android:testDebugUnitTest
+              :feature:p2p-sync:testAndroidHostTest
+              :feature:p2p-webrtc:testAndroidHostTest
               :standard:presentation:testAndroidHostTest
           - id: util-desktop
             name: Util Desktop
@@ -211,6 +217,8 @@ jobs:
               :util:fido-hybrid:checkBouncyCastleProductionDependencies
               :util:fido-hybrid:desktopTest
               :util:webdav:desktopTest
+              :util:webrtc:checkComposeFree
+              :util:webrtc:desktopTest
               :util:xml:desktopTest
               :util:zip:desktopTest
               :util:zxcvbn:desktopTest
@@ -236,6 +244,7 @@ jobs:
               :util:webauthn:testAndroidHostTest
               :util:fido-hybrid:testAndroidHostTest
               :util:webdav:testAndroidHostTest
+              :util:webrtc:testAndroidHostTest
               :util:xml:testAndroidHostTest
               :util:zip:testAndroidHostTest
               :util:zxcvbn:testAndroidHostTest

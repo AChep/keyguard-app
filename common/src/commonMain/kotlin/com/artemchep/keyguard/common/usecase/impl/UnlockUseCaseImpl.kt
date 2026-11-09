@@ -4,6 +4,8 @@ import arrow.core.Either
 import arrow.core.compose
 import arrow.core.getOrElse
 import arrow.core.partially1
+import com.artemchep.keyguard.provider.keyguard.KeyguardAuthorityKeys
+import com.artemchep.keyguard.provider.keyguard.KeyguardAuthorityResealer
 import com.artemchep.keyguard.common.exception.YubiKeyUnlockDecryptException
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyDecryptException
 import com.artemchep.keyguard.common.exception.crypto.BiometricKeyEncryptException
@@ -78,7 +80,11 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.take
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.withContext
 
+// Creating, unlocking and changing the password of the vault share the fingerprint flow.
+@Suppress("TooManyFunctions")
 class UnlockUseCaseImpl(
     private val sessionFactory: VaultSessionFactory,
     private val vaultDatabaseSessionAccess: VaultDatabaseSessionAccess,
@@ -102,6 +108,13 @@ class UnlockUseCaseImpl(
     private val fido2UnlockAvailability: com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability,
     private val fido2UnlockService: Fido2UnlockService,
     private val base64Service: com.artemchep.keyguard.common.service.text.Base64Service,
+    /** Re-seals the authority keys of linked devices as the master password changes. */
+    private val authorityResealer: KeyguardAuthorityResealer = KeyguardAuthorityResealer(
+        keys = KeyguardAuthorityKeys(
+            cryptoGenerator = cryptoGenerator,
+            cipherEncryptor = cipherEncryptor,
+        ),
+    ),
     private val scope: CoroutineScope = GlobalScope,
 ) : UnlockUseCase {
     companion object {
@@ -501,32 +514,14 @@ class UnlockUseCaseImpl(
             .compose { password: String ->
                 MasterPassword.of(password)
             }
-        val getCreateIo: (String, String) -> IO<Unit> = { currentPassword, newPassword ->
-            unlockMasterKey(currentPassword) // verify current password is valid
-                .flatMap {
-                    generateMasterKeyWithLatestVersion(newPassword)
-                }
-                .flatMap { result ->
-                    val newMasterKey = result.key
-                    databaseManager
-                        .changePassword(newMasterKey)
-                        .map {
-                            result
-                        }
-                }
-                .flatMap { result ->
-                    create(
-                        result = result,
-                        biometricTokens = null,
-                    )
-                }
-                .flatTap {
-                    writeLastPasswordUseTimestamp()
-                }
-                .handleErrorTap {
-                    it.printStackTrace()
-                }
-                .dispatchOn(Dispatchers.Default)
+        val getCreateIo = { currentPassword: String, newPassword: String ->
+            changeMasterPassword(
+                databaseManager = databaseManager,
+                unlockMasterKey = unlockMasterKey,
+                currentPassword = currentPassword,
+                newPassword = newPassword,
+                getBiometricTokens = null,
+            )
         }
         val changePassword = VaultState.Main.ChangePassword(
             key = tokens.master,
@@ -550,50 +545,33 @@ class UnlockUseCaseImpl(
                 VaultState.Main.ChangePassword.WithBiometric(
                     getCipher = getCipherForEncryption,
                     getCreateIo = { currentPassword, newPassword ->
-                        unlockMasterKey(currentPassword) // verify current password is valid
-                            .flatMap {
-                                generateMasterKeyWithLatestVersion(newPassword)
-                            }
-                            .flatMap { result ->
-                                val newMasterKey = result.key
-                                databaseManager
-                                    .changePassword(newMasterKey)
-                                    .map {
-                                        result
+                        changeMasterPassword(
+                            databaseManager = databaseManager,
+                            unlockMasterKey = unlockMasterKey,
+                            currentPassword = currentPassword,
+                            newPassword = newPassword,
+                        ) { newMasterKey ->
+                            val cipherIo = ioEffect {
+                                getCipherForEncryption()
+                                    .getOrElse { e ->
+                                        throw e
                                     }
                             }
-                            .flatMap { result ->
-                                val newMasterKey = result.key
-                                val cipherIo = ioEffect {
-                                    getCipherForEncryption()
-                                        .getOrElse { e ->
-                                            throw e
-                                        }
+                            val encryptedNewMasterKey = biometricKeyEncryptUseCase(cipherIo, newMasterKey)
+                                .handleErrorWith { e ->
+                                    val newException = BiometricKeyEncryptException(e)
+                                    ioRaise(newException)
                                 }
-                                biometricKeyEncryptUseCase(cipherIo, newMasterKey)
-                                    .handleErrorWith { e ->
-                                        val newException = BiometricKeyEncryptException(e)
-                                        ioRaise(newException)
-                                    }
-                                    .effectMap { encryptedNewMasterKey ->
-                                        val cipher = getCipherForEncryption()
-                                            .getOrElse { e ->
-                                                throw e
-                                            }
-                                        create(
-                                            result = result,
-                                            biometricTokens = FingerprintBiometric(
-                                                iv = cipher.iv,
-                                                encryptedMasterKey = encryptedNewMasterKey,
-                                            ),
-                                        )
-                                    }
-                                    .flatten()
-                            }
-                            .flatTap {
-                                writeLastPasswordUseTimestamp()
-                            }
-                            .dispatchOn(Dispatchers.Default)
+                                .bind()
+                            val cipher = getCipherForEncryption()
+                                .getOrElse { e ->
+                                    throw e
+                                }
+                            FingerprintBiometric(
+                                iv = cipher.iv,
+                                encryptedMasterKey = encryptedNewMasterKey,
+                            )
+                        }
                     },
                 )
             } else {
@@ -606,6 +584,59 @@ class UnlockUseCaseImpl(
             session = session,
         )
     }
+
+    /**
+     * Changes the master password from [currentPassword] to [newPassword].
+     *
+     * The slow and fallible work runs before the database is re-keyed, so a failure there
+     * changes nothing. From the re-key on, the vault opens only with the new fingerprint:
+     * nothing may stop its writing, or neither password would open the vault.
+     *
+     * @param getBiometricTokens seals the new master key for the biometric unlock, or `null`
+     *   to turn the biometric unlock off.
+     */
+    private fun changeMasterPassword(
+        databaseManager: VaultDatabaseManager,
+        unlockMasterKey: (String) -> IO<AuthResult>,
+        currentPassword: String,
+        newPassword: String,
+        getBiometricTokens: (suspend (MasterKey) -> FingerprintBiometric)?,
+    ): IO<VaultState.Main.ChangePassword.Report> = ioEffect {
+        // Verify that the current password is valid.
+        unlockMasterKey(currentPassword).bind()
+        val result = generateMasterKeyWithLatestVersion(newPassword).bind()
+        // The key derivations are slow: re-seal the authority keys in memory first.
+        val prepared = authorityResealer.prepare(databaseManager, currentPassword, newPassword)
+        val biometricTokens = getBiometricTokens?.invoke(result.key)
+        val skipped = withContext(NonCancellable) {
+            databaseManager
+                .changePassword(result.key)
+                .bind()
+            val skipped = authorityResealer.commit(databaseManager, prepared.reseals) { e ->
+                val msg = "Failed to write the re-sealed authority key of a linked device: ${e.message}"
+                logRepository.post(TAG, msg, level = LogLevel.WARNING)
+            }
+            create(
+                result = result,
+                biometricTokens = biometricTokens,
+            ).bind()
+            skipped
+        }
+        val notResealed = prepared.stale.size + skipped.size
+        if (notResealed > 0) {
+            val msg = "The authority keys of $notResealed linked device groups stay sealed " +
+                    "under another password: ${prepared.stale.size} did not open, ${skipped.size} changed."
+            logRepository.post(TAG, msg, level = LogLevel.WARNING)
+        }
+        writeLastPasswordUseTimestamp().bind()
+        VaultState.Main.ChangePassword.Report(
+            authoritiesNotResealed = notResealed,
+        )
+    }
+        .handleErrorTap {
+            it.printStackTrace()
+        }
+        .dispatchOn(Dispatchers.Default)
 
     /**
      * `true` if there is a saved biometric binding and the platform

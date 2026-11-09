@@ -4,7 +4,7 @@ private val EMPTY = ByteArray(0)
 
 /**
  * The Noise handshake patterns of device-to-device sync. Both use Curve25519,
- * ChaCha20-Poly1305 and SHA-256.
+ * ChaCha20-Poly1305 and SHA-256; [KK_HFS] adds ML-KEM-1024.
  */
 public enum class NativeNoisePattern(
     internal val proto: NoisePatternProto,
@@ -28,12 +28,14 @@ public enum class NativeNoisePattern(
     XX_PSK3(NoisePatternProto.XX_PSK3),
 
     /**
-     * `Noise_KK_25519_ChaChaPoly_SHA256`, for sessions between paired devices:
-     * each side already knows the other's static key. The first message's
-     * payload can be replayed, and leaks if the responder's static key does, so
-     * send it without one.
+     * `Noise_KKhfs_25519+Kyber1024_ChaChaPoly_SHA256`, for sessions between
+     * paired devices: each side already knows the other's static key. The `hfs`
+     * modifier adds an ephemeral ML-KEM-1024 exchange (snow names it
+     * Kyber1024), so a recorded session stays sealed against a quantum
+     * computer. The first message's payload can be replayed, and leaks if the
+     * responder's static key does, so send it without one.
      */
-    KK(NoisePatternProto.KK),
+    KK_HFS(NoisePatternProto.KK_HFS),
 }
 
 /** A Curve25519 static key pair. The arrays are used as given, not copied. */
@@ -87,12 +89,15 @@ public object NativeCryptoNoise {
     /** Length of a ChaCha20-Poly1305 tag. */
     private const val TAG_SIZE: Int = 16
 
+    /** Length of an ML-KEM-1024 encapsulation key, and of its ciphertext. */
+    private const val KEM_SIZE: Int = 1568
+
     /**
      * Largest payload of one handshake message, which also carries an
-     * ephemeral key, an encrypted static key and two tags.
+     * ephemeral key, an encrypted ML-KEM key or ciphertext, and two tags.
      */
     public const val MAX_HANDSHAKE_PAYLOAD_SIZE: Int =
-        MAX_MESSAGE_SIZE - 2 * NativeNoiseKeyPair.KEY_SIZE - 2 * TAG_SIZE
+        MAX_MESSAGE_SIZE - NativeNoiseKeyPair.KEY_SIZE - KEM_SIZE - 2 * TAG_SIZE
 
     /** Largest payload of one transport message. */
     public const val MAX_TRANSPORT_PAYLOAD_SIZE: Int = MAX_MESSAGE_SIZE - TAG_SIZE
@@ -131,16 +136,16 @@ public object NativeCryptoNoise {
     )
 
     /**
-     * Starts a [NativeNoisePattern.KK] handshake with the paired device whose
+     * Starts a [NativeNoisePattern.KK_HFS] handshake with the paired device whose
      * static key is [remotePublicKey]. Both sides pass the same [prologue].
      */
-    public fun kk(
+    public fun kkHfs(
         initiator: Boolean,
         localPrivateKey: ByteArray,
         remotePublicKey: ByteArray,
         prologue: ByteArray = EMPTY,
     ): NativeNoiseHandshake = open(
-        pattern = NativeNoisePattern.KK,
+        pattern = NativeNoisePattern.KK_HFS,
         initiator = initiator,
         localPrivateKey = localPrivateKey,
         remotePublicKey = remotePublicKey,
@@ -242,7 +247,7 @@ public class NativeNoiseHandshake internal constructor(
 
     /**
      * The remote side's static public key, or `null` while it is not known yet.
-     * A [NativeNoisePattern.KK] handshake knows it from the start. A finished
+     * A [NativeNoisePattern.KK_HFS] handshake knows it from the start. A finished
      * [NativeNoisePattern.XX_PSK3] initiator has it before the responder proved
      * it knows the pre-shared key.
      */

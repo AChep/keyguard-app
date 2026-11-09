@@ -156,6 +156,10 @@
 -keepclassmembers class * implements com.artemchep.desktop.MacFilePromiseReader { <methods>; }
 -keepclassmembers class * implements com.artemchep.desktop.WindowsVirtualFileReader { <methods>; }
 -keepclassmembers class com.artemchep.desktop.WindowsVirtualFileEntry { <methods>; }
+# The native library of device-to-device sync binds to NativeWebrtcJni by
+# name, and WebRTC calls block, poll and close across threads. Keep its method
+# bodies as written, as for agent IPC above.
+-keep,allowshrinking,allowobfuscation class com.artemchep.keyguard.util.webrtc.** { *; }
 
 # OkHttp supports optional TLS providers and GraalVM native-image integrations
 # that are not part of the Desktop application runtime.

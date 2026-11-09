@@ -63,9 +63,9 @@ reason = "rPGP defaults and optional private-key backends must stay disabled"
 
 [[bans.features]]
 crate = "snow"
-allow = []
+allow = ["hfs"]
 exact = true
-reason = "snow's own primitives and its std feature (which enables ring) must stay disabled; the core supplies the primitives"
+reason = "snow's own primitives and its std feature (which enables ring) must stay disabled; the core supplies the primitives, ML-KEM for hfs included"
 
 [[bans.features]]
 crate = "rsa"

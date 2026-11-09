@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.confirmation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.DialogRouteForResult
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
@@ -10,7 +11,6 @@ import com.artemchep.keyguard.platform.parcelize.LeParcelable
 import com.artemchep.keyguard.platform.parcelize.LeParcelize
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.serialization.Serializable
-import org.jetbrains.compose.resources.StringResource
 
 class ConfirmationRoute(
     val args: Args,
@@ -22,8 +22,11 @@ class ConfirmationRoute(
         val message: String? = null,
         val items: List<Item<Any?>> = emptyList(),
         val docUrl: String? = null,
-        /** Cross-field errors keyed by string item key, evaluated on every form change. */
-        val validate: ((Map<String, Any?>) -> Map<String, StringResource>)? = null,
+        /**
+         * Cross-field errors keyed by string item key, evaluated on every form change. An
+         * error is a resource, or text formatted up front when the resource takes arguments.
+         */
+        val validate: ((Map<String, Any?>) -> Map<String, TextHolder>)? = null,
     ) {
         sealed interface Item<out T> {
             val key: String
@@ -141,6 +144,7 @@ inline fun <reified T> RememberStateFlowScope.createConfirmationDialogIntent(
     noinline icon: (@Composable () -> Unit)? = null,
     title: String? = null,
     message: String? = null,
+    noinline validate: ((Map<String, Any?>) -> Map<String, TextHolder>)? = null,
     noinline onSuccess: (T) -> Unit,
 ): NavigationIntent {
     val route = confirmationRouteFactory.registerRouteResultReceiver(
@@ -149,6 +153,7 @@ inline fun <reified T> RememberStateFlowScope.createConfirmationDialogIntent(
             title = title,
             message = message,
             items = listOf(item),
+            validate = validate,
         ),
     ) { result ->
         if (result is ConfirmationResult.Confirm) {
@@ -162,6 +167,21 @@ inline fun <reified T> RememberStateFlowScope.createConfirmationDialogIntent(
     return NavigationIntent.NavigateToRoute(route)
 }
 
+/** Shows a confirmation dialog with the [args] and suspends until it closes. */
+suspend fun RememberStateFlowScope.awaitConfirmation(
+    confirmationRouteFactory: ConfirmationRouteFactory,
+    args: ConfirmationRoute.Args,
+): ConfirmationResult {
+    val deferred = CompletableDeferred<ConfirmationResult>()
+    val route = confirmationRouteFactory.registerRouteResultReceiver(
+        args = args,
+    ) { result ->
+        deferred.complete(result)
+    }
+    navigate(NavigationIntent.NavigateToRoute(route))
+    return deferred.await()
+}
+
 /**
  * Shows a single-item confirmation dialog and suspends until it closes.
  * Returns `null` if the dialog was denied or dismissed.
@@ -173,18 +193,14 @@ suspend inline fun <reified T> RememberStateFlowScope.awaitConfirmationDialog(
     title: String? = null,
     message: String? = null,
 ): T? {
-    val deferred = CompletableDeferred<ConfirmationResult>()
-    val route = confirmationRouteFactory.registerRouteResultReceiver(
+    val result = awaitConfirmation(
+        confirmationRouteFactory = confirmationRouteFactory,
         args = ConfirmationRoute.Args(
             icon = icon,
             title = title,
             message = message,
             items = listOf(item),
         ),
-    ) { result ->
-        deferred.complete(result)
-    }
-    navigate(NavigationIntent.NavigateToRoute(route))
-    val result = deferred.await() as? ConfirmationResult.Confirm
+    ) as? ConfirmationResult.Confirm
     return result?.data?.get(item.key) as? T
 }

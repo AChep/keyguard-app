@@ -52,7 +52,9 @@ class NotificationRepositoryAndroid(
         notification: DNotification,
     ): Notification {
         val icon = when (notification.channel) {
-            DNotificationChannel.WATCHTOWER -> R.drawable.ic_security
+            DNotificationChannel.WATCHTOWER,
+            DNotificationChannel.KEYGUARD_DEVICES,
+            -> R.drawable.ic_security
         }
         val number = notification.number?.coerceAtLeast(0) ?: 0
 
@@ -74,16 +76,23 @@ class NotificationRepositoryAndroid(
     private fun createNotificationChannel(
         channel: DNotificationChannel,
     ) = when (channel) {
-        DNotificationChannel.WATCHTOWER -> createNotificationChannelWatchtower()
+        DNotificationChannel.WATCHTOWER -> createNotificationChannel(
+            id = R.string.notification_watchtower_channel_id,
+            name = R.string.notification_watchtower_channel_name,
+        )
+
+        DNotificationChannel.KEYGUARD_DEVICES -> createNotificationChannel(
+            id = R.string.notification_keyguard_devices_channel_id,
+            name = R.string.notification_keyguard_devices_channel_name,
+        )
     }
 
-    private fun createNotificationChannelWatchtower(): String {
+    private fun createNotificationChannel(
+        id: Int,
+        name: Int,
+    ): String {
         val channelImportance = NotificationManager.IMPORTANCE_HIGH
-        val channel = kotlin.run {
-            val id = context.getString(R.string.notification_watchtower_channel_id)
-            val name = context.getString(R.string.notification_watchtower_channel_name)
-            NotificationChannel(id, name, channelImportance)
-        }
+        val channel = NotificationChannel(context.getString(id), context.getString(name), channelImportance)
         val nm = context.getSystemService<NotificationManager>()!!
         nm.createNotificationChannel(channel)
         return channel.id

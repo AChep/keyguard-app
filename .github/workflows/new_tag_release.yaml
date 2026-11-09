@@ -796,7 +796,7 @@ jobs:
           else
             artifact="wearApp/build/outputs/bundle/${variant}Release/wearApp-$variant-release.aab"
           fi
-          python scripts/verify_native_bundle.py android "$artifact"
+          python scripts/verify_native_bundle.py wear "$artifact"
       - name: 'Upload .apk'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         if: matrix.config.build-type == 'assemble'

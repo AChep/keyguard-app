@@ -1,6 +1,10 @@
 package com.artemchep.keyguard.common.io
 
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitCancellation
+import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -123,8 +127,37 @@ class RunCatchingGuardsTest {
     }
 
     @Test
-    fun `both guards pass a success straight through`() {
+    fun `the coroutine guard turns a foreign cancellation into a value`() = runTest {
+        val result = runCatchingUnlessCancelled { throw CancellationException("closed by a library") }
+        assertIs<CancellationException>(result.exceptionOrNull())
+    }
+
+    @Test
+    fun `the coroutine guard never swallows the cancellation of its caller`() = runTest {
+        val started = CompletableDeferred<Unit>()
+        val caller = async {
+            runCatchingUnlessCancelled {
+                started.complete(Unit)
+                awaitCancellation()
+            }
+            "recovered"
+        }
+        started.await()
+        caller.cancel()
+        assertFailsWith<CancellationException> { caller.await() }
+    }
+
+    @Test
+    fun `the coroutine guard never swallows a fatal error`() = runTest {
+        assertFailsWith<LinkageError> {
+            runCatchingUnlessCancelled { throw LinkageError("no such class") }
+        }
+    }
+
+    @Test
+    fun `both guards pass a success straight through`() = runTest {
         assertTrue(runCatchingNonFatal { 1 }.isSuccess)
         assertTrue(runCatchingUntrustedInput { 1 }.isSuccess)
+        assertTrue(runCatchingUnlessCancelled { 1 }.isSuccess)
     }
 }

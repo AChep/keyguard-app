@@ -24,14 +24,15 @@ const SHARD_COUNT: usize = 16;
 /// The tag and a 60-bit sequence both fit below the sign bit, so every handle
 /// is a positive Java `long`.
 const TAG_SHIFT: u32 = 60;
-const SEQUENCE_MASK: u64 = (1_u64 << TAG_SHIFT) - 1;
+pub(crate) const SEQUENCE_MASK: u64 = (1_u64 << TAG_SHIFT) - 1;
 
 /// Distinguishes the handles of one table from those of other tables in the
-/// same library.
+/// same library. [`SessionTable`] and [`SharedTable`](crate::SharedTable)
+/// both tag their handles this way.
 ///
 /// Every table counts from 1, so without a tag the handle `1` would resolve in
 /// all of them, and a handle passed to the wrong function would act on an
-/// unrelated live session instead of reporting [`SessionError::Unknown`].
+/// unrelated live object instead of failing.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct SessionTag(u8);
 
@@ -45,6 +46,16 @@ impl SessionTag {
     pub const fn new(tag: u8) -> Self {
         assert!(matches!(tag, 1..=7), "a session tag must be 1..=7");
         Self(tag)
+    }
+
+    /// The handle of `sequence` under this tag.
+    pub(crate) fn handle(self, sequence: u64) -> u64 {
+        (u64::from(self.0) << TAG_SHIFT) | sequence
+    }
+
+    /// Whether `handle` carries this tag and a sequence other than 0.
+    pub(crate) fn matches(self, handle: u64) -> bool {
+        handle >> TAG_SHIFT == u64::from(self.0) && handle & SEQUENCE_MASK != 0
     }
 }
 
@@ -119,7 +130,7 @@ impl<T> SessionTable<T> {
             self.live.fetch_sub(1, Ordering::AcqRel);
             return Err(SessionError::Exhausted);
         };
-        let handle = (u64::from(self.tag.0) << TAG_SHIFT) | sequence;
+        let handle = self.tag.handle(sequence);
         self.shard(handle)
             .insert(handle, Arc::new(Mutex::new(Some(value))));
         Ok(handle)
@@ -198,7 +209,7 @@ impl<T> SessionTable<T> {
 
     /// Whether `handle` was minted by this table.
     fn owns(&self, handle: u64) -> bool {
-        handle >> TAG_SHIFT == u64::from(self.tag.0) && handle & SEQUENCE_MASK != 0
+        self.tag.matches(handle)
     }
 
     /// Locks the shard of `handle`. A poisoned map is recovered: no caller code

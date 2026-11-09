@@ -227,6 +227,7 @@ internal class VaultHistoryModule {
                     databaseManager = get(),
                     json = get(),
                     dispatcher = databaseDispatcher(),
+                    recorder = get(),
                 )
             }
 
@@ -234,6 +235,7 @@ internal class VaultHistoryModule {
                 GeneratorWordlistRepositoryImpl(
                     databaseManager = get(),
                     dispatcher = databaseDispatcher(),
+                    recorder = get(),
                 )
             }
 

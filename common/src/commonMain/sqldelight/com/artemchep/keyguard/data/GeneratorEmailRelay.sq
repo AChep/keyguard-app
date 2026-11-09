@@ -1,11 +1,14 @@
 import kotlin.time.Instant;
 
+-- The email forwarders of the password generator. The syncId is the
+-- forwarder's id on every linked app; the id is local to this database.
 CREATE TABLE generatorEmailRelay (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   type TEXT NOT NULL,
   data TEXT NOT NULL,
-  createdAt INTEGER AS Instant NOT NULL
+  createdAt INTEGER AS Instant NOT NULL,
+  syncId TEXT NOT NULL UNIQUE
 );
 
 CREATE INDEX idx_generatorEmailRelay_createdAt ON generatorEmailRelay(createdAt DESC);
@@ -21,9 +24,19 @@ update {
     id = :id;
 }
 
+updateBySyncId {
+  UPDATE generatorEmailRelay
+  SET
+    name = :name,
+    type = :type,
+    data = :data
+  WHERE
+    syncId = :syncId;
+}
+
 insert {
-  INSERT OR IGNORE INTO generatorEmailRelay(name, type, data, createdAt)
-  VALUES (:name, :type, :data, :createdAt);
+  INSERT OR IGNORE INTO generatorEmailRelay(name, type, data, createdAt, syncId)
+  VALUES (:name, :type, :data, :createdAt, :syncId);
 }
 
 get:
@@ -32,9 +45,45 @@ FROM generatorEmailRelay
 ORDER BY createdAt DESC
 LIMIT :limit;
 
+getAll:
+SELECT *
+FROM generatorEmailRelay;
+
+getSyncIds:
+SELECT syncId
+FROM generatorEmailRelay;
+
+getSyncIdsByIds:
+SELECT syncId
+FROM generatorEmailRelay
+WHERE id IN :ids;
+
+getBySyncId:
+SELECT *
+FROM generatorEmailRelay
+WHERE
+    syncId = :syncId;
+
+getById:
+SELECT *
+FROM generatorEmailRelay
+WHERE
+    id = :id;
+
+updateSyncId:
+UPDATE generatorEmailRelay
+SET
+  syncId = :newSyncId
+WHERE
+  syncId = :syncId;
+
 deleteAll:
 DELETE FROM generatorEmailRelay;
 
 deleteByIds:
 DELETE FROM generatorEmailRelay
-WHERE id IN (:ids);
+WHERE id IN :ids;
+
+deleteBySyncId:
+DELETE FROM generatorEmailRelay
+WHERE syncId = :syncId;

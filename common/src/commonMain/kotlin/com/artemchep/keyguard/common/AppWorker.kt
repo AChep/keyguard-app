@@ -4,12 +4,14 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.service.agenthistory.AgentHistoryRetentionWorker
 import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountSyncer
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySyncer
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
 import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlushRunner
 import com.artemchep.keyguard.common.service.session.AppWorkerSessionAccess
+import com.artemchep.keyguard.common.service.session.AppWorkerSessionDependencies
 import com.artemchep.keyguard.common.service.session.PendingUsageHistorySessionAccess
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.usecase.GetVaultSession
@@ -19,6 +21,7 @@ import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.platform.lifecycle.LeLifecycleState
 import com.artemchep.keyguard.platform.lifecycle.onState
 import com.artemchep.keyguard.platform.util.hasWatch
+import com.artemchep.keyguard.provider.keyguard.applink.AppLinkWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.coroutineScope
@@ -51,13 +54,14 @@ class AppWorkerIm(
         // while it is visible to a user.
         flow
             .onState(LeLifecycleState.STARTED) {
-                launchSyncManagerWhenAvailable(this)
-                launchSyncExposedAccountsWhenAvailable(this)
-                launchSyncSshAgentWhenAvailable(this)
-                launchSyncGpgAgentWhenAvailable(this)
-                launchRefreshGpgKeyserverWhenAvailable(this)
-                launchAgentHistoryRetentionWhenAvailable(this)
-                launchSyncLicenseWhenAvailable(this)
+                launchWhenAvailable(this, { it.notificationsWorker }, NotificationsWorker::launch)
+                launchWhenAvailable(this, { it.exposedAccountSyncer }, ExposedAccountSyncer::launch)
+                launchWhenAvailable(this, { it.sshAgentPublicKeySyncer }, SshAgentPublicKeySyncer::launch)
+                launchWhenAvailable(this, { it.gpgPublicKeySyncer }, GpgPublicKeySyncer::launch)
+                launchWhenAvailable(this, { it.gpgKeyserverRefreshWorker }, GpgKeyserverRefreshWorker::launch)
+                launchWhenAvailable(this, { it.agentHistoryRetentionWorker }, AgentHistoryRetentionWorker::launch)
+                launchWhenAvailable(this, { it.licenseSyncer }, LicenseSyncer::launch)
+                launchWhenAvailable(this, { it.appLinkWorker }, AppLinkWorker::launch)
 
                 launchPendingUsageHistoryFlushWhenAvailable(
                     scope = this,
@@ -93,86 +97,18 @@ class AppWorkerIm(
             .launchIn(this)
     }
 
-    private fun launchSyncManagerWhenAvailable(scope: CoroutineScope) = getVaultSession()
+    /**
+     * Launches the worker that [select] picks from the dependencies of the vault session
+     * while the vault is unlocked, until the worker changes.
+     */
+    private fun <T : Any> launchWhenAvailable(
+        scope: CoroutineScope,
+        select: (AppWorkerSessionDependencies) -> T,
+        start: (T, CoroutineScope) -> Job,
+    ) = getVaultSession()
         .map { session ->
             val key = session as? MasterSession.Key
-            key?.let(appWorkerSessionAccess::invoke)?.notificationsWorker
-        }
-        .distinctUntilChanged { old, new -> old === new }
-        .mapLatest { syncManager ->
-            if (syncManager == null) {
-                return@mapLatest
-            }
-
-            // Launch the sync manager forever until the
-            // sync manager changes.
-            coroutineScope {
-                syncManager.launch(this)
-            }
-        }
-        .launchIn(scope)
-
-    private fun launchSyncExposedAccountsWhenAvailable(scope: CoroutineScope) = getVaultSession()
-        .map { session ->
-            val key = session as? MasterSession.Key
-            key?.let(appWorkerSessionAccess::invoke)?.exposedAccountSyncer
-        }
-        .distinctUntilChanged { old, new -> old === new }
-        .mapLatest { syncManager ->
-            if (syncManager == null) {
-                return@mapLatest
-            }
-
-            // Launch the sync manager forever until the
-            // sync manager changes.
-            coroutineScope {
-                syncManager.launch(this)
-            }
-        }
-        .launchIn(scope)
-
-    private fun launchSyncSshAgentWhenAvailable(scope: CoroutineScope) = getVaultSession()
-        .map { session ->
-            val key = session as? MasterSession.Key
-            key?.let(appWorkerSessionAccess::invoke)?.sshAgentPublicKeySyncer
-        }
-        .distinctUntilChanged { old, new -> old === new }
-        .mapLatest { syncManager ->
-            if (syncManager == null) {
-                return@mapLatest
-            }
-
-            // Launch the sync manager forever until the
-            // sync manager changes.
-            coroutineScope {
-                syncManager.launch(this)
-            }
-        }
-        .launchIn(scope)
-
-    private fun launchSyncGpgAgentWhenAvailable(scope: CoroutineScope) = getVaultSession()
-        .map { session ->
-            val key = session as? MasterSession.Key
-            key?.let(appWorkerSessionAccess::invoke)?.gpgPublicKeySyncer
-        }
-        .distinctUntilChanged { old, new -> old === new }
-        .mapLatest { syncManager ->
-            if (syncManager == null) {
-                return@mapLatest
-            }
-
-            // Launch the sync manager forever until the
-            // sync manager changes.
-            coroutineScope {
-                syncManager.launch(this)
-            }
-        }
-        .launchIn(scope)
-
-    private fun launchRefreshGpgKeyserverWhenAvailable(scope: CoroutineScope) = getVaultSession()
-        .map { session ->
-            val key = session as? MasterSession.Key
-            key?.let(appWorkerSessionAccess::invoke)?.gpgKeyserverRefreshWorker
+            key?.let(appWorkerSessionAccess::invoke)?.let(select)
         }
         .distinctUntilChanged { old, new -> old === new }
         .mapLatest { worker ->
@@ -183,43 +119,7 @@ class AppWorkerIm(
             // Launch the worker forever until the
             // worker changes.
             coroutineScope {
-                worker.launch(this)
-            }
-        }
-        .launchIn(scope)
-
-    private fun launchAgentHistoryRetentionWhenAvailable(scope: CoroutineScope) = getVaultSession()
-        .map { session ->
-            val key = session as? MasterSession.Key
-            key?.let(appWorkerSessionAccess::invoke)?.agentHistoryRetentionWorker
-        }
-        .distinctUntilChanged { old, new -> old === new }
-        .mapLatest { worker ->
-            if (worker == null) {
-                return@mapLatest
-            }
-
-            coroutineScope {
-                worker.launch(this)
-            }
-        }
-        .launchIn(scope)
-
-    private fun launchSyncLicenseWhenAvailable(
-        scope: CoroutineScope,
-    ) = getVaultSession()
-        .map { session ->
-            val key = session as? MasterSession.Key
-            key?.let(appWorkerSessionAccess::invoke)?.licenseSyncer
-        }
-        .distinctUntilChanged { old, new -> old === new }
-        .mapLatest { worker ->
-            if (worker == null) {
-                return@mapLatest
-            }
-
-            coroutineScope {
-                worker.launch(this)
+                start(worker, this)
             }
         }
         .launchIn(scope)

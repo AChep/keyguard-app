@@ -5,8 +5,12 @@
 //!
 //! - `Noise_XXpsk3_25519_ChaChaPoly_SHA256` pairs two devices. Each side learns
 //!   the other's static key, and a pre-shared key authenticates the exchange.
-//! - `Noise_KK_25519_ChaChaPoly_SHA256` runs sessions between paired devices.
-//!   Each side pins the other's static key.
+//! - `Noise_KKhfs_25519+Kyber1024_ChaChaPoly_SHA256` runs sessions between
+//!   paired devices. Each side pins the other's static key. The `hfs` modifier
+//!   adds an ephemeral ML-KEM-1024 exchange to the Diffie-Hellman ones (snow
+//!   names it Kyber1024, see [`resolver`]), so the session keys hold as long as
+//!   either X25519 or ML-KEM does: a recorded session stays sealed against a
+//!   quantum computer.
 //!
 //! Handshakes and transports live in the generation-tagged session registry,
 //! at most [`MAX_LIVE_SESSIONS`] at once, so a misbehaving peer cannot crowd
@@ -42,6 +46,8 @@ use crate::{
 
 /// Length of a Curve25519 key and of a ChaCha20-Poly1305 key.
 const KEY_BYTES: usize = 32;
+/// Length of an ML-KEM-1024 encapsulation key, and of its ciphertext.
+const KEM_BYTES: usize = crate::ml_kem::PUBLIC_KEY_BYTES;
 /// Length of a pre-shared key.
 const PSK_BYTES: usize = 32;
 /// Length of a ChaCha20-Poly1305 tag.
@@ -49,8 +55,9 @@ const TAG_BYTES: usize = 16;
 /// Largest Noise message.
 const MAX_MESSAGE_BYTES: usize = 65_535;
 /// Largest number of bytes a handshake message of either pattern adds to its
-/// payload: an ephemeral key, an encrypted static key, and two tags.
-const HANDSHAKE_OVERHEAD_BYTES: usize = KEY_BYTES + KEY_BYTES + TAG_BYTES + TAG_BYTES;
+/// payload: an ephemeral key, an encrypted ML-KEM key or ciphertext, and two
+/// tags. An encrypted static key of XXpsk3 is shorter than the ML-KEM part.
+const HANDSHAKE_OVERHEAD_BYTES: usize = KEY_BYTES + KEM_BYTES + TAG_BYTES + TAG_BYTES;
 /// Largest payload of a handshake message.
 const MAX_HANDSHAKE_PAYLOAD_BYTES: usize = MAX_MESSAGE_BYTES - HANDSHAKE_OVERHEAD_BYTES;
 /// Largest payload of a transport message.
@@ -167,7 +174,7 @@ pub(crate) fn key_pair(private_key: Vec<u8>) -> Result<Vec<u8>, PrimitiveError> 
 fn protocol_name(pattern: NoisePattern) -> Option<&'static str> {
     match pattern {
         NoisePattern::XxPsk3 => Some("Noise_XXpsk3_25519_ChaChaPoly_SHA256"),
-        NoisePattern::Kk => Some("Noise_KK_25519_ChaChaPoly_SHA256"),
+        NoisePattern::KkHfs => Some("Noise_KKhfs_25519+Kyber1024_ChaChaPoly_SHA256"),
         NoisePattern::Unspecified => None,
     }
 }
@@ -183,8 +190,8 @@ pub(crate) struct Handshake {
 
 /// Starts a handshake.
 ///
-/// XXpsk3 takes a PSK and no remote key; KK takes the pinned remote key and no
-/// PSK. An empty key counts as absent.
+/// XXpsk3 takes a PSK and no remote key; KKhfs takes the pinned remote key and
+/// no PSK. An empty key counts as absent.
 pub(crate) fn open_handshake(
     mut request: NoiseHandshakeStreamOpenRequest,
 ) -> Result<Handshake, SessionError> {
@@ -204,7 +211,7 @@ pub(crate) fn open_handshake(
                 .try_into()
                 .map_err(|_| SessionError::InvalidArgument)?,
         ),
-        NoisePattern::Kk if remote_public_key.len() == KEY_BYTES && psk_bytes.is_empty() => None,
+        NoisePattern::KkHfs if remote_public_key.len() == KEY_BYTES && psk_bytes.is_empty() => None,
         _ => return Err(SessionError::InvalidArgument),
     };
     let live = LiveSession::acquire(&LIVE_SESSIONS)?;

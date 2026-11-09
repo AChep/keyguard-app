@@ -8,6 +8,10 @@
 //!   HMAC and HKDF replace snow's generic versions, which leave the padded key
 //!   and the HKDF temporary key on snow's stack.
 //! - X25519 comes from `x25519-dalek`, whose secrets zeroize on drop.
+//! - ML-KEM-1024 comes from AWS-LC, see [`crate::ml_kem`]. snow 0.10 names
+//!   one KEM, `Kyber1024`: the round-3 Kyber that FIPS 203 standardized as
+//!   ML-KEM-1024, with the same sizes. The protocol name keeps snow's
+//!   spelling; the primitive is ML-KEM-1024.
 //! - Random bytes come from AWS-LC.
 //!
 //! What stays out of reach is snow's own state: the chaining key and the
@@ -25,22 +29,26 @@ use aws_lc_rs::rand::{SecureRandom, SystemRandom};
 use keyguard_crypto_sensitive::{DigestAlgorithm, DigestContext, HmacContext};
 use snow::{
     Error,
-    params::{CipherChoice, DHChoice, HashChoice},
+    params::{CipherChoice, DHChoice, HashChoice, KemChoice},
     resolvers::CryptoResolver,
-    types::{Cipher, Dh, Hash, Random},
+    types::{Cipher, Dh, Hash, Kem, Random},
 };
 use x25519_dalek::{PublicKey, StaticSecret};
 use zeroize::Zeroizing;
 
 use super::{KEY_BYTES, TAG_BYTES};
-use crate::primitives::{self, CipherOperation, HMAC_SHA256_BYTES as HASH_BYTES};
+use crate::{
+    ml_kem,
+    primitives::{self, CipherOperation, HMAC_SHA256_BYTES as HASH_BYTES},
+};
 
 /// Length of a SHA-256 block.
 const HASH_BLOCK_BYTES: usize = 64;
 /// Length of a ChaCha20-Poly1305 nonce.
 const NONCE_BYTES: usize = 12;
 
-/// Resolves the primitives of `Noise_*_25519_ChaChaPoly_SHA256`, and nothing else.
+/// Resolves the primitives of `Noise_*_25519_ChaChaPoly_SHA256` and
+/// `Noise_*hfs_25519+Kyber1024_ChaChaPoly_SHA256`, and nothing else.
 pub(super) struct Resolver;
 
 impl CryptoResolver for Resolver {
@@ -66,6 +74,12 @@ impl CryptoResolver for Resolver {
         match choice {
             CipherChoice::ChaChaPoly => Some(Box::new(ChaChaPoly::new())),
             _ => None,
+        }
+    }
+
+    fn resolve_kem(&self, choice: &KemChoice) -> Option<Box<dyn Kem>> {
+        match choice {
+            KemChoice::Kyber1024 => Some(Box::new(MlKem1024::default())),
         }
     }
 }
@@ -142,6 +156,69 @@ impl Dh for X25519 {
             .ok_or(Error::Dh)?
             .copy_from_slice(shared.as_bytes());
         Ok(())
+    }
+}
+
+/// The ML-KEM-1024 key pair of an `e1` token, see [`ml_kem`].
+#[derive(Default)]
+struct MlKem1024 {
+    pair: Option<ml_kem::KeyPair>,
+}
+
+impl Kem for MlKem1024 {
+    fn name(&self) -> &'static str {
+        "Kyber1024"
+    }
+
+    fn pub_len(&self) -> usize {
+        ml_kem::PUBLIC_KEY_BYTES
+    }
+
+    fn ciphertext_len(&self) -> usize {
+        ml_kem::CIPHERTEXT_BYTES
+    }
+
+    fn shared_secret_len(&self) -> usize {
+        ml_kem::SHARED_SECRET_BYTES
+    }
+
+    fn generate(&mut self, _rng: &mut dyn Random) {
+        // AWS-LC draws the key from its own random source, the one `Rng` uses.
+        self.pair = Some(
+            ml_kem::KeyPair::generate().expect("AWS-LC must generate an ML-KEM-1024 key pair"),
+        );
+    }
+
+    fn pubkey(&self) -> &[u8] {
+        self.pair.as_ref().map_or(&[], ml_kem::KeyPair::public_key)
+    }
+
+    fn encapsulate(
+        &self,
+        pubkey: &[u8],
+        shared_secret_out: &mut [u8],
+        ciphertext_out: &mut [u8],
+    ) -> Result<(usize, usize), Error> {
+        let (ciphertext, secret) = ml_kem::encapsulate(pubkey).map_err(|_| Error::Kem)?;
+        shared_secret_out
+            .get_mut(..ml_kem::SHARED_SECRET_BYTES)
+            .ok_or(Error::Kem)?
+            .copy_from_slice(secret.as_ref());
+        ciphertext_out
+            .get_mut(..ml_kem::CIPHERTEXT_BYTES)
+            .ok_or(Error::Kem)?
+            .copy_from_slice(&ciphertext);
+        Ok((ml_kem::SHARED_SECRET_BYTES, ml_kem::CIPHERTEXT_BYTES))
+    }
+
+    fn decapsulate(&self, ciphertext: &[u8], shared_secret_out: &mut [u8]) -> Result<usize, Error> {
+        let pair = self.pair.as_ref().ok_or(Error::Kem)?;
+        let secret = pair.decapsulate(ciphertext).map_err(|_| Error::Kem)?;
+        shared_secret_out
+            .get_mut(..ml_kem::SHARED_SECRET_BYTES)
+            .ok_or(Error::Kem)?
+            .copy_from_slice(secret.as_ref());
+        Ok(ml_kem::SHARED_SECRET_BYTES)
     }
 }
 

@@ -69,6 +69,7 @@ jobs:
           scripts/test_verify_native_bundle.py
           scripts/test_check_bouncycastle_policy.py
           scripts/test_run_native_package_smoke.py
+          scripts/test_native_deny_policies.py
       - name: "Select checks from changed paths"
         id: select
         env:
@@ -352,7 +353,7 @@ jobs:
           KEYGUARD_REQUIRED_SHELLS: bash,zsh,fish
         run: |
           # One module at a time, so features never unify across modules.
-          for module in ffi io age instance zip zxcvbn yubikey fido2 windows-passkeys agent-ipc; do
+          for module in ffi io age instance zip zxcvbn yubikey fido2 windows-passkeys agent-ipc webrtc; do
             packages=()
             for crate in util/"$module"/rust/crates/*/; do
               packages+=(-p "$(basename "$crate")")
@@ -379,6 +380,20 @@ jobs:
           cargo test -p keyguard-agent-setup -p keyguard-agent-ipc -p keyguard-cli-protocol -p keyguard-cli -p keyguard-cli-agent --locked
           # zip consumes keyguard-ffi without its jni feature.
           cargo clippy -p keyguard-ffi --all-targets --locked --no-deps -- -D warnings
+      - name: "Setup pinned cargo-deny"
+        uses: ./.github/actions/setup_cargo_tools
+        with:
+          tools: cargo-deny
+      - name: "Check device sync licenses, bans, and sources"
+        shell: bash
+        run: |
+          # One graph per shipped crate, so the rest of the workspace never counts.
+          for package in keyguard-webrtc-core keyguard-webrtc-jni keyguard-webrtc-c; do
+            cargo deny \
+              --manifest-path "util/webrtc/rust/crates/$package/Cargo.toml" --locked \
+              --config .github/native-p2p-deny.toml \
+              check advisories bans licenses sources
+          done
       - name: "Test reviewed authenticator fork"
         working-directory: thirdParty/rust
         run: |
@@ -537,6 +552,12 @@ jobs:
           ${{ matrix.gradle }} --max-workers=1
           "-Pkeyguard.nativeCargo.cargoOffline=true"
           :util:yubikey:desktopTest :util:fido2:desktopTest
+      - name: "Run device sync JVM regressions"
+        if: needs.changes.outputs.desktop == 'true'
+        run: >-
+          ${{ matrix.gradle }} --max-workers=1
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          :util:webrtc:desktopTest
       - name: "Run Windows passkey JVM regressions"
         if: needs.changes.outputs.desktop == 'true' || needs.changes.outputs.desktop_regressions == 'true'
         run: >-
@@ -604,6 +625,7 @@ jobs:
           :util:ffi:macosArm64Test
           :util:io:macosArm64Test
           :util:instance:macosArm64Test
+          :util:webrtc:macosArm64Test
           :util:yubikey:macosArm64Test :util:fido2:macosArm64Test
           :util:webauthn:macosArm64Test
           :util:zip:macosArm64Test
@@ -729,8 +751,8 @@ jobs:
           archives=()
           while IFS= read -r -d '' archive; do
             archives+=("$archive")
-          done < <(find util/crypto/build util/io/build util/age/build util/zip/build util/zxcvbn/build util/agent-ipc/build -type f -name 'libkeyguard_*.a' -print0)
-          test "${#archives[@]}" -ge 6
+          done < <(find util/crypto/build util/io/build util/age/build util/zip/build util/zxcvbn/build util/agent-ipc/build util/webrtc/build -type f -name 'libkeyguard_*.a' -print0)
+          test "${#archives[@]}" -ge 7
           python3 scripts/verify_native_bundle.py apple --arch aarch64 \
             appleApp/build/bin/iosArm64/debugTest/test.kexe \
             appleApp/build/bin/iosSimulatorArm64/debugTest/test.kexe \
@@ -762,6 +784,8 @@ jobs:
             util/instance/build/test-results/
             util/agent-ipc/build/reports/tests/
             util/agent-ipc/build/test-results/
+            util/webrtc/build/reports/tests/
+            util/webrtc/build/test-results/
             common/build/reports/tests/
             common/build/test-results/
             desktopApp/build/reports/tests/
@@ -832,7 +856,9 @@ jobs:
           wear_apks=(wearApp/build/outputs/apk/none/debug/*.apk)
           test "${#android_apks[@]}" -eq 1
           test "${#wear_apks[@]}" -eq 1
-          python3 scripts/verify_native_bundle.py android "${android_apks[@]}" "${wear_apks[@]}"
+          python3 scripts/verify_native_bundle.py android "${android_apks[@]}"
+          # The watch bundles Noise and never WebRTC.
+          python3 scripts/verify_native_bundle.py wear "${wear_apks[@]}"
       - name: "Upload Android native reports"
         if: always()
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

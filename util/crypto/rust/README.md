@@ -77,15 +77,19 @@ active verification policy produces `INVALID` with `SIGNATURE_EXPIRED` or
 
 Noise handshakes and transports of device-to-device sync run in the same
 session registry, at most 256 at once. `snow` 0.10 provides only the state
-machine: every snow feature is off, and the core resolves
-`Noise_XXpsk3_25519_ChaChaPoly_SHA256` and `Noise_KK_25519_ChaChaPoly_SHA256`
-to its own primitives. ChaCha20-Poly1305 and random bytes come from AWS-LC,
-SHA-256 and HMAC run in the cleansed AWS-LC contexts, and X25519 comes from
-`x25519-dalek`. Cipher keys live in zeroizing buffers, and a low-order peer key
-fails authentication. snow's chaining key, handshake hash and stack copies stay
-out of reach and are freed without a wipe. A read or write that fails past
-argument validation ends its session. The Cacophony vectors check both
-patterns byte for byte.
+machine: only its `hfs` feature is on, and the core resolves
+`Noise_XXpsk3_25519_ChaChaPoly_SHA256` and
+`Noise_KKhfs_25519+Kyber1024_ChaChaPoly_SHA256` to its own primitives.
+ChaCha20-Poly1305, ML-KEM-1024 and random bytes come from AWS-LC, SHA-256 and
+HMAC run in the cleansed AWS-LC contexts, and X25519 comes from
+`x25519-dalek`. snow names its one KEM `Kyber1024`; the core backs it with
+ML-KEM-1024, the FIPS 203 standard of that Kyber, with the same sizes. Cipher
+keys live in zeroizing buffers, and a low-order peer key fails
+authentication. snow's chaining key, handshake hash and stack copies stay out
+of reach and are freed without a wipe. A read or write that fails past
+argument validation ends its session. The Cacophony vectors check the
+primitives byte for byte, through the XXpsk3 and KK patterns; Cacophony has no
+ML-KEM vectors.
 
 Streaming digest, HMAC, AES-CBC-PKCS#7, and fused AES-CBC/HMAC sessions accept
 raw chunks of at most 64 KiB. Registry lookup is short-lived and each handle

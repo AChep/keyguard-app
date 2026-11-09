@@ -49,6 +49,7 @@ import com.artemchep.keyguard.common.usecase.GetAccountStatus
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetAccountsHasError
 import com.artemchep.keyguard.common.usecase.GetCanAddAccount
+import com.artemchep.keyguard.common.usecase.GetDefaultDeviceLabel
 import com.artemchep.keyguard.common.usecase.GetCipherOpenedCount
 import com.artemchep.keyguard.common.usecase.GetCipherSnapshots
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -110,6 +111,7 @@ import com.artemchep.keyguard.common.usecase.impl.AddUrlOverrideImpl
 import com.artemchep.keyguard.common.usecase.impl.CheckHibpApiTokenImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAccountStatusImpl
 import com.artemchep.keyguard.common.usecase.impl.GetCanAddAccountImpl
+import com.artemchep.keyguard.common.usecase.impl.GetDefaultDeviceLabelImpl
 import com.artemchep.keyguard.common.usecase.impl.GetEnvSendUrlImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGpgKeyserverStateImpl
 import com.artemchep.keyguard.common.usecase.impl.GetHibpApiTokenImpl
@@ -225,6 +227,37 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanio
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionBitwardenAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.ImportCompanionKeePassAccountUseCase
+import com.artemchep.keyguard.common.usecase.GetKeyguardDevices
+import com.artemchep.keyguard.common.usecase.GetKeyguardNetworkSettings
+import com.artemchep.keyguard.common.usecase.GetKeyguardSyncStatus
+import com.artemchep.keyguard.common.usecase.LeaveKeyguardGroup
+import com.artemchep.keyguard.common.usecase.PutKeyguardDeviceLabel
+import com.artemchep.keyguard.common.usecase.PutKeyguardNetworkSettings
+import com.artemchep.keyguard.common.usecase.RevokeKeyguardDevice
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetKeyguardDevicesImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetKeyguardNetworkSettingsImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetKeyguardSyncStatusImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.LeaveKeyguardGroupImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeyguardDeviceLabelImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.PutKeyguardNetworkSettingsImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.RevokeKeyguardDeviceImpl
+import com.artemchep.keyguard.common.usecase.GetAppLinkState
+import com.artemchep.keyguard.common.usecase.GetAppLinkSyncCategories
+import com.artemchep.keyguard.common.usecase.GetAppLinkThisDevice
+import com.artemchep.keyguard.common.usecase.PutAppLinkDeviceLabel
+import com.artemchep.keyguard.common.usecase.PutAppLinkNetwork
+import com.artemchep.keyguard.common.usecase.PutAppLinkSyncCategory
+import com.artemchep.keyguard.provider.keyguard.P2pGroupHosts
+import com.artemchep.keyguard.provider.keyguard.P2pMembershipStore
+import com.artemchep.keyguard.provider.keyguard.applink.AppLinkSync
+import com.artemchep.keyguard.provider.keyguard.applink.GetAppLinkStateImpl
+import com.artemchep.keyguard.provider.keyguard.applink.GetAppLinkSyncCategoriesImpl
+import com.artemchep.keyguard.provider.keyguard.applink.GetAppLinkThisDeviceImpl
+import com.artemchep.keyguard.provider.keyguard.applink.PutAppLinkDeviceLabelImpl
+import com.artemchep.keyguard.provider.keyguard.applink.PutAppLinkNetworkImpl
+import com.artemchep.keyguard.provider.keyguard.applink.PutAppLinkSyncCategoryImpl
+import com.artemchep.keyguard.provider.keyguard.session.KeyguardSessionLauncher
+import com.artemchep.keyguard.provider.keyguard.session.KeyguardSessionRegistry
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SaveBitwardenAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SaveBitwardenAccountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.util.ModifyCipherById
@@ -524,6 +557,71 @@ internal class VaultOperationsModule {
             scoped<ImportCompanionKeePassAccountUseCase> {
                 ImportCompanionKeePassAccountImpl(
                     addKeePassAccount = get(),
+                )
+            }
+
+            scoped<GetDefaultDeviceLabelImpl>() bind GetDefaultDeviceLabel::class
+
+            scoped<P2pMembershipStore>()
+
+            scoped<GetKeyguardDevicesImpl>() bind GetKeyguardDevices::class
+
+            scoped<GetKeyguardSyncStatusImpl>() bind GetKeyguardSyncStatus::class
+
+            scoped<GetKeyguardNetworkSettingsImpl>() bind GetKeyguardNetworkSettings::class
+
+            scoped<PutKeyguardNetworkSettingsImpl>() bind PutKeyguardNetworkSettings::class
+
+            scoped<PutKeyguardDeviceLabel> {
+                PutKeyguardDeviceLabelImpl(
+                    db = get(),
+                    membershipStore = get(),
+                    crypto = get(),
+                    queueSync = get(),
+                    windowCoroutineScope = get(),
+                )
+            }
+
+            scoped<RevokeKeyguardDevice> {
+                RevokeKeyguardDeviceImpl(
+                    db = get(),
+                    crypto = get(),
+                    authorityKeys = get(),
+                    queueSync = get(),
+                    windowCoroutineScope = get(),
+                )
+            }
+
+            scoped<GetAppLinkStateImpl>() bind GetAppLinkState::class
+
+            scoped<GetAppLinkSyncCategoriesImpl>() bind GetAppLinkSyncCategories::class
+
+            scoped<GetAppLinkThisDeviceImpl>() bind GetAppLinkThisDevice::class
+
+            scoped<PutAppLinkDeviceLabelImpl>() bind PutAppLinkDeviceLabel::class
+
+            scoped<PutAppLinkNetworkImpl>() bind PutAppLinkNetwork::class
+
+            scoped<PutAppLinkSyncCategory> {
+                val scope = this
+                PutAppLinkSyncCategoryImpl(
+                    switches = get(),
+                    queueSync = { scope.get<AppLinkSync>().queueSync() },
+                    sessions = { scope.get<KeyguardSessionLauncher>() },
+                )
+            }
+
+            scoped<LeaveKeyguardGroup> {
+                val registry = get<KeyguardSessionRegistry>()
+                val hosts = get<P2pGroupHosts>()
+                LeaveKeyguardGroupImpl(
+                    db = get(),
+                    crypto = get(),
+                    authorityKeys = get(),
+                    dissolve = { groupId ->
+                        hosts.forGroup(groupId).dissolve(groupId)
+                    },
+                    retainLive = registry::retainForPublication,
                 )
             }
 

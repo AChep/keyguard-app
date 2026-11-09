@@ -6,5 +6,7 @@
     <string>$(KEYGUARD_DISTRIBUTION)</string>
     <key>KeyguardAppGroupIdentifier</key>
     <string>$(KEYGUARD_APP_GROUP_ID)</string>
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>Used to sync with your other devices and to connect to self-hosted Bitwarden, WebDAV, S3, and SFTP servers on your local network</string>
 </dict>
 </plist>

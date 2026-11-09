@@ -46,6 +46,9 @@ kotlin {
             dependencies {
                 implementation(libs.koin.core)
                 implementation(project(":common"))
+                // Device-to-device sync over WebRTC; `common` stays without it for Wear OS.
+                implementation(project(":util:webrtc"))
+                implementation(project(":feature:p2p-webrtc"))
                 implementation(libs.jetbrains.compose.runtime)
                 implementation(libs.jetbrains.compose.material3)
                 implementation(libs.jetbrains.compose.components.resources)

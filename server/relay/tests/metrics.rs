@@ -18,11 +18,12 @@ async fn metrics_are_separate_from_public_routes_and_health_is_minimal() {
         ..test_config()
     })
     .await;
-    let mut socket = relay
+    let socket = relay
         .try_connect("", Some("private-relay-token"))
         .await
         .unwrap();
-    let ticket = join_ticket(&mut socket, &room_id(1), &peer_id(1)).await;
+    let mut socket = Client::welcomed(socket).await;
+    let ticket = join_ticket(&mut socket, &room_id(1)).await;
     assert_eq!(relay.health().await, json!({"status": "ok"}));
     for headers in [
         vec![],
@@ -42,7 +43,7 @@ async fn metrics_are_separate_from_public_routes_and_health_is_minimal() {
     for private in [
         "private-relay-token",
         &room_id(1),
-        &peer_id(1),
+        &socket.peer,
         &ticket,
         "127.0.0.1",
     ] {
@@ -80,9 +81,9 @@ async fn traffic_counts_writes_per_recipient_and_excludes_missing_targets() {
     let mut a = relay.connect().await;
     let mut b = relay.connect().await;
     let mut c = relay.connect().await;
-    join(&mut a, &room_id(1), &peer_id(1)).await;
-    join(&mut b, &room_id(1), &peer_id(2)).await;
-    join(&mut c, &room_id(1), &peer_id(3)).await;
+    join(&mut a, &room_id(1)).await;
+    join(&mut b, &room_id(1)).await;
+    join(&mut c, &room_id(1)).await;
     recv_json(&mut a).await;
     recv_json(&mut a).await;
     recv_json(&mut b).await;
@@ -103,15 +104,16 @@ async fn traffic_counts_writes_per_recipient_and_excludes_missing_targets() {
         publication.to_string().len() as f64
     );
 
-    let frame = forward_frame(2, b"encrypted bytes");
+    let frame = forward_frame(1, &b.peer, b"encrypted bytes");
     send_binary(&mut a, frame.clone()).await;
     assert_eq!(
         recv_binary(&mut b).await,
-        forward_frame(1, b"encrypted bytes")
+        forward_frame(1, &a.peer, b"encrypted bytes")
     );
     // An absent destination and the sender itself must not count as outgoing bytes.
-    send_binary(&mut a, forward_frame(9, b"missing")).await;
-    send_binary(&mut a, forward_frame(1, b"self")).await;
+    send_binary(&mut a, forward_frame(1, &peer_id(9), b"missing")).await;
+    let to_self = forward_frame(1, &a.peer, b"self");
+    send_binary(&mut a, to_self).await;
     send_json(&mut a, json!({"t":"ping"})).await;
     assert_eq!(recv_json(&mut a).await, json!({"t":"pong"}));
     let metrics = relay.metrics().await;
@@ -174,13 +176,14 @@ async fn credential_metrics_distinguish_allowance_and_live_tickets() {
             urls: vec!["turn:turn.example.com".to_owned()],
             secret: "test-turn-secret".to_owned(),
         }),
+        ice_ticketless_per_minute: 1,
         ..test_config()
     })
     .await;
     relay.ice_servers(&[]).await;
     relay.ice_servers(&[]).await;
     let mut socket = relay.connect().await;
-    let ticket = join_ticket(&mut socket, &room_id(1), &peer_id(1)).await;
+    let ticket = join_ticket(&mut socket, &room_id(1)).await;
     relay.ice_servers_with_ticket(&ticket).await;
     let metrics = relay.metrics().await;
     for (result, ticketed) in [

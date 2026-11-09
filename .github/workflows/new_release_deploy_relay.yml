@@ -9,8 +9,10 @@ on:
 permissions:
   contents: read
 
+# One group for every tag: a release waits for the one before it, so `latest`
+# ends on the newest image.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}
   cancel-in-progress: false
 
 jobs:

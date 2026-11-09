@@ -47,6 +47,20 @@ public class NativeEd25519KeyPair(
     val publicKey: ByteArray,
 )
 
+/** A FIPS 203 ML-KEM-1024 key pair. */
+public class NativeMlKemKeyPair(
+    /** The 3168-byte decapsulation key. */
+    val privateKey: ByteArray,
+    /** The 1568-byte encapsulation key. */
+    val publicKey: ByteArray,
+)
+
+/** A secret encapsulated with ML-KEM-1024: its 1568-byte [ciphertext] and the 32-byte [sharedSecret]. */
+public class NativeMlKemEncapsulation(
+    val ciphertext: ByteArray,
+    val sharedSecret: ByteArray,
+)
+
 public interface NativeAesCbcPkcs7HmacSha256EncryptSession : AutoCloseable {
     /** Encrypts and authenticates the next plaintext chunk. */
     public fun update(
@@ -682,6 +696,101 @@ public object NativeCryptoPrimitives {
             .valid
     }
 
+    /**
+     * RFC 7748 X25519: the 32-byte shared secret of a 32-byte private key and a 32-byte public key.
+     * The private key is a raw scalar, as in a [NativeNoiseKeyPair].
+     *
+     * Throws [NativeCryptoException] with [NativeCryptoErrorCode.INVALID_ARGUMENT] for keys of
+     * the wrong size, and with [NativeCryptoErrorCode.AUTHENTICATION_FAILED] for a low-order
+     * public key, whose shared secret is all zeros.
+     */
+    public fun x25519(
+        privateKey: ByteArray,
+        publicKey: ByteArray,
+    ): ByteArray {
+        val payload = NativeCrypto.call(
+            operationName = X25519_AGREE_OPERATION,
+            operation = X25519AgreeOperationProto(
+                X25519AgreeRequestProto(
+                    privateKey = privateKey,
+                    publicKey = publicKey,
+                ),
+            ),
+        ).requireBytes(X25519_AGREE_OPERATION)
+        return decodeNativeCryptoPayload<X25519AgreeResultProto>(X25519_AGREE_OPERATION, payload)
+            .sharedSecret
+            .requireNativeCryptoOutputSize(X25519_AGREE_OPERATION, X25519_SHARED_SECRET_BYTES)
+    }
+
+    /** Generates a random FIPS 203 ML-KEM-1024 key pair. */
+    public fun mlKemGenerate(): NativeMlKemKeyPair {
+        val payload = NativeCrypto.call(
+            operationName = ML_KEM_KEY_GENERATE_OPERATION,
+            operation = MlKemKeyGenerateOperationProto(MlKemKeyGenerateRequestProto()),
+        ).requireBytes(ML_KEM_KEY_GENERATE_OPERATION)
+        val result = decodeNativeCryptoPayload<MlKemKeyGenerateResultProto>(
+            operation = ML_KEM_KEY_GENERATE_OPERATION,
+            payload = payload,
+        )
+        requireNativeCryptoKeyPairSizes(
+            operation = ML_KEM_KEY_GENERATE_OPERATION,
+            privateKey = result.privateKey,
+            privateKeySize = ML_KEM_PRIVATE_KEY_BYTES,
+            publicKey = result.publicKey,
+            publicKeySize = ML_KEM_PUBLIC_KEY_BYTES,
+        )
+        return NativeMlKemKeyPair(
+            privateKey = result.privateKey,
+            publicKey = result.publicKey,
+        )
+    }
+
+    /**
+     * Encapsulates a fresh secret to the ML-KEM-1024 [publicKey].
+     *
+     * Throws [NativeCryptoException] with [NativeCryptoErrorCode.INVALID_ARGUMENT] for a key of
+     * the wrong size, or one that fails the FIPS 203 modulus check.
+     */
+    public fun mlKemEncapsulate(publicKey: ByteArray): NativeMlKemEncapsulation {
+        val payload = NativeCrypto.call(
+            operationName = ML_KEM_ENCAPSULATE_OPERATION,
+            operation = MlKemEncapsulateOperationProto(MlKemEncapsulateRequestProto(publicKey)),
+        ).requireBytes(ML_KEM_ENCAPSULATE_OPERATION)
+        val result = decodeNativeCryptoPayload<MlKemEncapsulateResultProto>(ML_KEM_ENCAPSULATE_OPERATION, payload)
+        return NativeMlKemEncapsulation(
+            ciphertext = result.ciphertext
+                .requireNativeCryptoOutputSize(ML_KEM_ENCAPSULATE_OPERATION, ML_KEM_CIPHERTEXT_BYTES),
+            sharedSecret = result.sharedSecret
+                .requireNativeCryptoOutputSize(ML_KEM_ENCAPSULATE_OPERATION, ML_KEM_SHARED_SECRET_BYTES),
+        )
+    }
+
+    /**
+     * Returns the 32-byte secret the [ciphertext] encapsulates to the ML-KEM-1024 [privateKey].
+     * A forged ciphertext yields a pseudorandom secret: ML-KEM rejects it implicitly, so what
+     * the secret keys does not open.
+     *
+     * Throws [NativeCryptoException] with [NativeCryptoErrorCode.INVALID_ARGUMENT] for a key or
+     * ciphertext of the wrong size, or a key that fails the FIPS 203 hash check.
+     */
+    public fun mlKemDecapsulate(
+        privateKey: ByteArray,
+        ciphertext: ByteArray,
+    ): ByteArray {
+        val payload = NativeCrypto.call(
+            operationName = ML_KEM_DECAPSULATE_OPERATION,
+            operation = MlKemDecapsulateOperationProto(
+                MlKemDecapsulateRequestProto(
+                    privateKey = privateKey,
+                    ciphertext = ciphertext,
+                ),
+            ),
+        ).requireBytes(ML_KEM_DECAPSULATE_OPERATION)
+        return decodeNativeCryptoPayload<MlKemDecapsulateResultProto>(ML_KEM_DECAPSULATE_OPERATION, payload)
+            .sharedSecret
+            .requireNativeCryptoOutputSize(ML_KEM_DECAPSULATE_OPERATION, ML_KEM_SHARED_SECRET_BYTES)
+    }
+
     public fun sshAgentTcpChaCha20Poly1305Encrypt(
         key: ByteArray,
         nonce: ByteArray,
@@ -1078,6 +1187,11 @@ public object NativeCryptoPrimitives {
     private const val ED25519_PRIVATE_KEY_BYTES: Int = 32
     private const val ED25519_PUBLIC_KEY_BYTES: Int = 32
     private const val ED25519_SIGNATURE_BYTES: Int = 64
+    private const val X25519_SHARED_SECRET_BYTES: Int = 32
+    private const val ML_KEM_PRIVATE_KEY_BYTES: Int = 3168
+    private const val ML_KEM_PUBLIC_KEY_BYTES: Int = 1568
+    private const val ML_KEM_CIPHERTEXT_BYTES: Int = 1568
+    private const val ML_KEM_SHARED_SECRET_BYTES: Int = 32
     private const val CHACHA20_POLY1305_KEY_BYTES: Int = 32
     private const val CHACHA20_POLY1305_NONCE_BYTES: Int = 12
     private const val CHACHA20_POLY1305_TAG_BYTES: Int = 16
@@ -1098,6 +1212,10 @@ public object NativeCryptoPrimitives {
     private const val ED25519_KEY_GENERATE_OPERATION: String = "ed25519_key_generate"
     private const val ED25519_SIGN_OPERATION: String = "ed25519_sign"
     private const val ED25519_VERIFY_OPERATION: String = "ed25519_verify"
+    private const val X25519_AGREE_OPERATION: String = "x25519_agree"
+    private const val ML_KEM_KEY_GENERATE_OPERATION: String = "ml_kem_key_generate"
+    private const val ML_KEM_ENCAPSULATE_OPERATION: String = "ml_kem_encapsulate"
+    private const val ML_KEM_DECAPSULATE_OPERATION: String = "ml_kem_decapsulate"
 
     private class NativeAesCbcPkcs7HmacSha256EncryptSessionImpl(
         private val delegate: NativeCryptoSession,

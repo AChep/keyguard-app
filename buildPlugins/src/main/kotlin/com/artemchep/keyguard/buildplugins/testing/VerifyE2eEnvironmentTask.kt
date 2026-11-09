@@ -21,7 +21,13 @@ enum class E2eToolchain {
     WEBDAV,
     VERSITYGW,
     DOCKER,
+
+    /** Builds `server/relay` with Cargo; TURN runs coturn in Docker, see [P2P_E2E_TURN_PROPERTY]. */
+    RELAY,
 }
+
+/** The Gradle property that adds the TURN suite, and its Docker requirement, to the P2P E2E tests. */
+const val P2P_E2E_TURN_PROPERTY = "keyguard.p2pE2e.turn"
 
 /** Checks the host tools only when its associated E2E suite is requested. */
 @DisableCachingByDefault(because = "Checks external tools installed on the current host")
@@ -57,6 +63,10 @@ abstract class VerifyE2eEnvironmentTask : DefaultTask() {
     @get:Input
     abstract val windows: Property<Boolean>
 
+    /** [E2eToolchain.RELAY] also needs Docker, for coturn. */
+    @get:Input
+    abstract val relayTurn: Property<Boolean>
+
     init {
         group = "verification"
         description = "Checks the external tools required by this E2E suite."
@@ -71,6 +81,11 @@ abstract class VerifyE2eEnvironmentTask : DefaultTask() {
             providers.systemProperty("os.name").map {
                 it.startsWith("Windows", ignoreCase = true)
             },
+        )
+        relayTurn.convention(
+            providers.gradleProperty(P2P_E2E_TURN_PROPERTY)
+                .map(String::toBooleanStrict)
+                .orElse(false),
         )
         outputs.upToDateWhen { false }
     }
@@ -121,13 +136,47 @@ abstract class VerifyE2eEnvironmentTask : DefaultTask() {
                 )
                 requireVersityGw1(output)
             }
-            // `docker version` exits non-zero when the daemon does not answer.
-            E2eToolchain.DOCKER -> runner.requireRuns(
-                command = listOf("docker", "version", "--format", "{{.Server.Version}}"),
-                timeout = Duration.ofSeconds(15),
-                requirement = "Bitwarden E2E tests require a running Docker daemon " +
-                    "('docker' on PATH, or DOCKER_HOST pointing at the daemon)",
+            E2eToolchain.DOCKER -> runner.require(
+                dockerCheck(requirement = "Bitwarden E2E tests require a running Docker daemon"),
             )
+            E2eToolchain.RELAY -> relayChecks(turn = relayTurn.get()).forEach(runner::require)
         }
+    }
+}
+
+/** A command that must exit with 0 within [timeout] for an E2E suite to run. */
+internal data class E2eHostCheck(
+    val command: List<String>,
+    val timeout: Duration,
+    val requirement: String,
+)
+
+internal fun E2eCommandRunner.require(check: E2eHostCheck) {
+    requireRuns(
+        command = check.command,
+        timeout = check.timeout,
+        requirement = check.requirement,
+    )
+}
+
+// `docker version` exits non-zero when the daemon does not answer.
+internal fun dockerCheck(requirement: String) = E2eHostCheck(
+    command = listOf("docker", "version", "--format", "{{.Server.Version}}"),
+    timeout = Duration.ofSeconds(15),
+    requirement = "$requirement ('docker' on PATH, or DOCKER_HOST pointing at the daemon)",
+)
+
+/** Cargo builds the relay; the TURN suite starts coturn in Docker. */
+internal fun relayChecks(turn: Boolean): List<E2eHostCheck> = buildList {
+    add(
+        E2eHostCheck(
+            command = listOf("cargo", "--version"),
+            timeout = Duration.ofSeconds(15),
+            requirement = "P2P E2E tests require 'cargo' on PATH to build server/relay",
+        ),
+    )
+    if (turn) {
+        val requirement = "P2P E2E tests with -P$P2P_E2E_TURN_PROPERTY=true require a running Docker daemon"
+        add(dockerCheck(requirement = requirement))
     }
 }

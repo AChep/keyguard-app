@@ -2,16 +2,16 @@
 layout: ../layouts/LegalLayout.astro
 title: Privacy policy
 description: "How Keyguard, its website and license service process and retain personal information."
-updated: "2026-10-25"
+updated: "2026-11-09"
 ---
 
-Effective date: October 25, 2026
+Effective date: November 9, 2026
 
 Artem Chepurnyi (the "operator") provides Keyguard, a commercial password manager. The operator is the data controller for personal information received through Keyguard-controlled services.
 
-This Privacy Policy explains what information is processed, why it is processed, who receives it, how long it is kept, and what rights may apply. It covers the official Keyguard applications, their bundled components, the website at `keyguard.dev`, and the Keyguard license service at `license.keyguard.dev`.
+This Privacy Policy explains what information is processed, why it is processed, who receives it, how long it is kept, and what rights may apply. It covers the official Keyguard applications, their bundled components, the website at `keyguard.dev`, the Keyguard license service at `license.keyguard.dev`, and the Keyguard relay service at `relay.keyguard.dev`.
 
-Most information is processed on your device. When a network feature is used, information may be sent directly to a service you configure or to a provider described below. Keyguard does not operate a vault synchronization service and the operator does not receive your vault synchronization traffic.
+Most information is processed on your device. When a network feature is used, information may be sent directly to a service you configure or to a provider described below. The operator does not store your vault and does not receive its contents. Device sync uses a relay described in Services You Choose. The relay receives connection metadata and, while relay storage is on, encrypted sync data it cannot read.
 
 Features and data handling may vary by platform, distribution, and configuration.
 
@@ -38,6 +38,7 @@ Keyguard also supports the following network features:
 - An icon provider or saved website may receive a domain or URL stored in your vault.
 - Services you configure for email relay, public keys, application information, or related sites receive the credentials, identifiers, and request content required for the requested operation.
 - Platform services may receive device, network, service, and account information required for paired-device, credential-provider, and AutoFill features.
+- Linked devices sync between your devices through a relay and, when devices cannot connect directly, a TURN server. Unless you configure your own in the relay settings of the link, the operator runs them. They receive IP addresses, connection times, the sizes of encrypted messages, a room identifier for each pair of linked devices, which rooms each connection joins, and a random identifier for each connection. One connection of a device joins the rooms of all its pairs, so the relay can tell which rooms belong to one device. Devices encrypt sync traffic end to end, so the relay and the TURN server do not receive synced data, device names, or account information. This information is used only to connect your devices and to prevent abuse. The relay keeps this information in memory only. Relay storage is on by default, and you can turn it off in the relay settings of the link. While it is on, the relay also stores encrypted sync data on disk, so that a device that is offline can collect it later. Until every linked device has it on, this data is limited to the list of linked devices. Each stored item is encrypted so that only your linked devices can read it: the relay cannot read or change it, and stored items contain no IP addresses. The relay deletes stored items after at most 7 days, or earlier when it needs disk space. IP-based abuse-prevention records can remain after a connection closes, until later cleanup or a relay restart. The TURN server records IP addresses in operational logs, which follow the configured hosting retention settings.
 
 Password-breach checks, avatars, and website icons are enabled by default where supported. You can manage these features in Keyguard's settings. Disabling a feature stops future requests but does not delete information already retained by a recipient.
 
@@ -53,7 +54,7 @@ Other configured or self-hosted services are governed by the policies of their o
 
 ## Information Received by the Operator
 
-Keyguard-controlled services receive personal information for purchases and license validation, website and service operation, optional crash reporting, and messages you send to the operator.
+Keyguard-controlled services receive personal information for purchases and license validation, website and service operation, device sync connections as described in Services You Choose, optional crash reporting, and messages you send to the operator.
 
 ### License Data
 

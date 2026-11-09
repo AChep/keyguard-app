@@ -217,10 +217,59 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 self.assertEqual(tuple(result[flag] for flag in ("desktop", "android", "apple")), expected)
                 self.assertTrue(result["native_quality"])
 
+    def test_device_sync_modules_select_their_consumers(self):
+        # WebRTC ships on desktop, Android and Apple; Wear is covered by the
+        # full manual matrix, as for the other modules. Noise runs in util/crypto.
+        for module in ("webrtc",):
+            cases = {
+                f"util/{module}/rust/crates/keyguard-{module}-core/src/lib.rs": (True, True, True, True),
+                f"util/{module}/rust/crates/keyguard-{module}-core/tests/round_trip.rs": (True, False, False, False),
+                f"util/{module}/src/commonMain/kotlin/Native.kt": (False, True, True, True),
+                f"util/{module}/src/jvmMain/kotlin/NativeJni.kt": (False, True, True, False),
+                f"util/{module}/src/appleInteropMain/kotlin/Native.kt": (False, False, False, True),
+                f"util/{module}/src/commonTest/kotlin/LoopbackTest.kt": (False, False, False, False),
+            }
+            for path, expected in cases.items():
+                with self.subTest(path=path):
+                    result = classify([path])
+                    self.assertEqual(
+                        tuple(result[flag] for flag in ("native_quality", "desktop", "android", "apple")),
+                        expected,
+                    )
+                    self.assertFalse(result["wear"])
+
+    def test_sync_protocol_transport_relay_server_and_e2e_select_no_native_jobs(self):
+        result = classify([
+            "feature/p2p-sync/build.gradle.kts",
+            "feature/p2p-sync/src/commonMain/kotlin/com/artemchep/keyguard/feature/p2psync/Hlc.kt",
+            "feature/p2p-sync/src/commonTest/kotlin/com/artemchep/keyguard/feature/p2psync/HlcTest.kt",
+            "server/relay/Cargo.toml",
+            "server/relay/Cargo.lock",
+            "server/relay/Dockerfile",
+            "server/relay/src/main.rs",
+            "server/relay/tests/rooms.rs",
+            ".github/workflows/check_relay.yml",
+            ".github/workflows/new_release_deploy_relay.yml",
+            "feature/p2p-webrtc/build.gradle.kts",
+            "feature/p2p-webrtc/src/commonMain/kotlin/com/artemchep/keyguard/feature/p2pwebrtc/WebRtcTransport.kt",
+            "feature/p2p-webrtc/src/commonTest/kotlin/com/artemchep/keyguard/feature/p2pwebrtc/WebRtcTransportTest.kt",
+            "integration/p2pE2eTest/build.gradle.kts",
+            "integration/p2pE2eTest/src/p2pE2eTest/kotlin/com/artemchep/keyguard/integration/p2p/RelayServer.kt",
+            ".github/workflows/check_p2p_e2e.yaml",
+        ])
+        self.assertFalse(any(result[flag] for flag in FLAGS))
+        self.assertFalse(result["desktop_run"])
+        self.assertFalse(result["android_run"])
+
+    def test_device_sync_supply_chain_policy_selects_rust_quality(self):
+        result = classify([".github/native-p2p-deny.toml"])
+        for flag in FLAGS:
+            self.assertEqual(result[flag], flag == "native_quality", flag)
+
     def test_cargo_tools_select_their_consuming_jobs(self):
         result = classify([".github/actions/setup_cargo_tools/action.yml"])
         for flag in FLAGS:
-            self.assertEqual(result[flag], flag in {"crypto", "fuzz"}, flag)
+            self.assertEqual(result[flag], flag in {"crypto", "fuzz", "native_quality"}, flag)
         self.assertFalse(result["desktop_run"])
         self.assertFalse(result["android_run"])
 

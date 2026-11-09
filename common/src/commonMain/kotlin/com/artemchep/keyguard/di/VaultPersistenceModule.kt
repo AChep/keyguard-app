@@ -79,6 +79,7 @@ internal class VaultPersistenceModule {
                 UrlOverrideRepositoryImpl(
                     databaseManager = get(),
                     dispatcher = databaseDispatcher(),
+                    recorder = get(),
                 )
             }
 

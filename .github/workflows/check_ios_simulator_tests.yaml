@@ -169,6 +169,8 @@ jobs:
           :common:iosSimulatorArm64SqlCipherTest
           :common:iosSimulatorArm64Test
           :feature:android-ipc-presentation:iosSimulatorArm64Test
+          :feature:p2p-sync:iosSimulatorArm64Test
+          :feature:p2p-webrtc:iosSimulatorArm64Test
           :standard:presentation:iosSimulatorArm64Test
           :appleApp:iosSimulatorArm64Test
           :util:crypto:iosSimulatorArm64Test
@@ -185,6 +187,7 @@ jobs:
           :util:signalr:iosSimulatorArm64Test
           :util:webauthn:iosSimulatorArm64Test
           :util:webdav:iosSimulatorArm64Test
+          :util:webrtc:iosSimulatorArm64Test
           :util:xml:iosSimulatorArm64Test
           :util:zip:iosSimulatorArm64Test
           :util:zxcvbn:iosSimulatorArm64Test

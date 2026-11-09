@@ -5,6 +5,9 @@ import com.artemchep.keyguard.ui.icons.generateAccentColors
 import kotlinx.collections.immutable.ImmutableMap
 import kotlin.time.Instant
 
+/**
+ * @property id the local database id of the forwarder; `null` for a new one.
+ */
 data class DGeneratorEmailRelay(
     val id: String? = null,
     val name: String,

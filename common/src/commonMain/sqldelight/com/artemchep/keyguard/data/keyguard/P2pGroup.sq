@@ -1,0 +1,54 @@
+-- A device-to-device sync group: it owns the entries, clock and peers
+-- below, and keeps this device's membership and the roster here. The scope,
+-- the wire name of a SyncScope, says what the group syncs and which host runs
+-- it. The roster is its JSON, NULL until the group has one.
+--
+-- Never replace a row with INSERT OR REPLACE: that deletes it first, and
+-- the delete cascades to everything the group owns.
+CREATE TABLE p2pGroup (
+  groupId TEXT NOT NULL PRIMARY KEY,
+  scope TEXT NOT NULL,
+  membership TEXT NOT NULL,
+  roster TEXT
+);
+
+insert {
+  UPDATE p2pGroup
+  SET
+    scope = :scope,
+    membership = :membership
+  WHERE
+    groupId = :groupId;
+
+  INSERT OR IGNORE INTO p2pGroup(groupId, scope, membership)
+  VALUES (:groupId, :scope, :membership);
+}
+
+updateMembership:
+UPDATE p2pGroup
+SET
+    membership = :membership
+WHERE
+    groupId = :groupId;
+
+updateRoster:
+UPDATE p2pGroup
+SET
+    roster = :roster
+WHERE
+    groupId = :groupId;
+
+getByGroupId:
+SELECT *
+FROM p2pGroup
+WHERE
+    groupId == :groupId;
+
+getAll:
+SELECT *
+FROM p2pGroup;
+
+deleteByGroupId:
+DELETE FROM p2pGroup
+WHERE
+    groupId == :groupId;

@@ -24,6 +24,7 @@ members = [
     "util/fido2/rust/crates/*",
     "util/instance/rust/crates/*",
     "util/io/rust/crates/*",
+    "util/webrtc/rust/crates/*",
     "util/windows-passkeys/rust/crates/*",
     "util/yubikey/rust/crates/*",
     "util/zip/rust/crates/*",
@@ -80,6 +81,9 @@ hex = "0.4"
 hidapi = { version = "2.6.7", default-features = false }
 hkdf = "0.12"
 jni = { version = "0.22.4", default-features = false }
+# Cargo.lock holds libc at 0.2.189 on purpose: newer releases break the `net`
+# feature of nix 0.31 on iOS, which util/webrtc pulls in through rtc-shared.
+# After `cargo update`, restore it with `cargo update -p libc --precise 0.2.189`.
 libc = "0.2.186"
 # Keep runtime and code generation aligned with the crypto workspace and native-protocol.
 prost = "=0.14.4"
@@ -100,6 +104,7 @@ tempfile = "3"
 thiserror = "2"
 tokio = "1"
 tokio-stream = "0.1"
+webrtc = { version = "0.21", default-features = false, features = ["runtime-tokio", "crypto-ring"] }
 tracing = "0.1"
 tracing-subscriber = "0.3"
 windows = "0.62.2"

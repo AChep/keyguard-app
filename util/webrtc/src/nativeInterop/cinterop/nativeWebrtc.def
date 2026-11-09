@@ -1,0 +1,3 @@
+headers = keyguard_webrtc.h
+headerFilter = keyguard_webrtc.h
+staticLibraries = libkeyguard_webrtc_c.a

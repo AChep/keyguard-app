@@ -23,6 +23,10 @@ import com.artemchep.keyguard.apple.add.AddItemFormSnapshot
 import com.artemchep.keyguard.apple.auth.AuthController
 import com.artemchep.keyguard.apple.auth.AuthPromptHost
 import com.artemchep.keyguard.apple.auth.KeePassLoginSession
+import com.artemchep.keyguard.apple.auth.KeyguardPairingSession
+import com.artemchep.keyguard.apple.applink.AppLinkConnectionSession
+import com.artemchep.keyguard.apple.applink.AppLinkSession
+import com.artemchep.keyguard.apple.keyguardsync.KeyguardDevicesSession
 import com.artemchep.keyguard.apple.auth.BitwardenLoginSession
 import com.artemchep.keyguard.apple.auth.MessageSnapshot
 import com.artemchep.keyguard.apple.auth.MessagesController
@@ -629,6 +633,30 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     }
 
     fun makeKeePassLoginSession(): KeePassLoginSession = KeePassLoginSession(context)
+
+    /**
+     * Pairs this app with the app of another device; this device [scan]s the code of the
+     * other one, or shows its own.
+     */
+    fun makeAppLinkPairingSession(scan: Boolean): KeyguardPairingSession =
+        KeyguardPairingSession(context, scan).apply {
+            navigationInterceptorProvider = { navigationStackController.interceptor(it) }
+        }
+
+    /** The devices of the link of this app. */
+    fun makeAppLinkDevicesSession(): KeyguardDevicesSession =
+        KeyguardDevicesSession(context, KeyguardDevicesSession.Target.AppLink).apply {
+            navigationInterceptorProvider = { navigationStackController.interceptor(it) }
+        }
+
+    fun makeAppLinkSession(): AppLinkSession = AppLinkSession(context).apply {
+        navigationInterceptorProvider = { navigationStackController.interceptor(it) }
+    }
+
+    /** How this device reaches its linked apps. */
+    fun makeAppLinkConnectionSession(): AppLinkConnectionSession = AppLinkConnectionSession(context).apply {
+        navigationInterceptorProvider = { navigationStackController.interceptor(it) }
+    }
 
     private val cipherDetailController by lazy { CipherDetailController(context, dialogController) }
 

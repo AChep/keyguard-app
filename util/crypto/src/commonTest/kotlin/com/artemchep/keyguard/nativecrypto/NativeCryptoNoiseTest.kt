@@ -40,9 +40,9 @@ class NativeCryptoNoiseTest {
     fun kkHandshakeAndTransportRoundTrip() {
         val alice = noise.generateKeyPair()
         val bob = noise.generateKeyPair()
-        noise.kk(true, alice.privateKey, bob.publicKey, PROLOGUE).use { initiator ->
-            noise.kk(false, bob.privateKey, alice.publicKey, PROLOGUE).use { responder ->
-                assertEquals(NativeNoisePattern.KK, initiator.pattern)
+        noise.kkHfs(true, alice.privateKey, bob.publicKey, PROLOGUE).use { initiator ->
+            noise.kkHfs(false, bob.privateKey, alice.publicKey, PROLOGUE).use { responder ->
+                assertEquals(NativeNoisePattern.KK_HFS, initiator.pattern)
                 assertContentEquals(bob.publicKey, initiator.remoteStaticKey())
 
                 assertContentEquals(HELLO, responder.readMessage(initiator.writeMessage(HELLO)))
@@ -103,8 +103,8 @@ class NativeCryptoNoiseTest {
         val alice = noise.generateKeyPair()
         val bob = noise.generateKeyPair()
         val mallory = noise.generateKeyPair()
-        noise.kk(true, alice.privateKey, mallory.publicKey, PROLOGUE).use { initiator ->
-            noise.kk(false, bob.privateKey, alice.publicKey, PROLOGUE).use { responder ->
+        noise.kkHfs(true, alice.privateKey, mallory.publicKey, PROLOGUE).use { initiator ->
+            noise.kkHfs(false, bob.privateKey, alice.publicKey, PROLOGUE).use { responder ->
                 val failure = assertFailsWith<NativeCryptoException> {
                     responder.readMessage(initiator.writeMessage(HELLO))
                 }
@@ -117,8 +117,8 @@ class NativeCryptoNoiseTest {
     fun aDifferentPrologueFailsTheHandshake() {
         val alice = noise.generateKeyPair()
         val bob = noise.generateKeyPair()
-        noise.kk(true, alice.privateKey, bob.publicKey, PROLOGUE).use { initiator ->
-            noise.kk(false, bob.privateKey, alice.publicKey).use { responder ->
+        noise.kkHfs(true, alice.privateKey, bob.publicKey, PROLOGUE).use { initiator ->
+            noise.kkHfs(false, bob.privateKey, alice.publicKey).use { responder ->
                 val failure = assertFailsWith<NativeCryptoException> {
                     responder.readMessage(initiator.writeMessage())
                 }
@@ -134,9 +134,9 @@ class NativeCryptoNoiseTest {
             noise.xxPsk3(true, alice.privateKey, ByteArray(NativeCryptoNoise.PSK_SIZE - 1))
         }
         assertEquals(NativeCryptoErrorCode.INVALID_ARGUMENT, failure.code)
-        // An empty pinned key is absent, which KK does not allow.
+        // An empty pinned key is absent, which KKhfs does not allow.
         val absent = assertFailsWith<NativeCryptoException> {
-            noise.kk(true, alice.privateKey, ByteArray(0))
+            noise.kkHfs(true, alice.privateKey, ByteArray(0))
         }
         assertEquals(NativeCryptoErrorCode.INVALID_ARGUMENT, absent.code)
     }
@@ -145,7 +145,7 @@ class NativeCryptoNoiseTest {
     fun theHashOfAnUnfinishedHandshakeIsRefusedWithoutEndingIt() {
         val alice = noise.generateKeyPair()
         val bob = noise.generateKeyPair()
-        noise.kk(true, alice.privateKey, bob.publicKey).use { initiator ->
+        noise.kkHfs(true, alice.privateKey, bob.publicKey).use { initiator ->
             val failure = assertFailsWith<NativeCryptoException> {
                 initiator.handshakeHash()
             }
@@ -158,8 +158,8 @@ class NativeCryptoNoiseTest {
     fun closedHandshakesAndTransportsAreGone() {
         val alice = noise.generateKeyPair()
         val bob = noise.generateKeyPair()
-        val initiator = noise.kk(true, alice.privateKey, bob.publicKey)
-        val responder = noise.kk(false, bob.privateKey, alice.publicKey)
+        val initiator = noise.kkHfs(true, alice.privateKey, bob.publicKey)
+        val responder = noise.kkHfs(false, bob.privateKey, alice.publicKey)
         responder.readMessage(initiator.writeMessage())
         initiator.readMessage(responder.writeMessage())
         val transport = initiator.intoTransport()

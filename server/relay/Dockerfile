@@ -18,9 +18,13 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/src/target \
     cargo build --release --locked --bin keyguard-relay --target "$(cat /target)" \
  && cp "target/$(cat /target)/release/keyguard-relay" /keyguard-relay
+# The final image has no shell: make the data directory here.
+RUN mkdir /data
 
 FROM gcr.io/distroless/static-debian13:nonroot@sha256:18f4cc26c9ffa7f20a359298be7deadac5c607c8e03a02b8119f1a5fc2f82c99
 COPY --from=build /keyguard-relay /usr/local/bin/keyguard-relay
+# For RELAY_MAILBOX_DIR=/data. A new named volume copies the owner from here.
+COPY --from=build --chown=nonroot:nonroot /data /data
 USER nonroot:nonroot
 EXPOSE 7400
 ENTRYPOINT ["/usr/local/bin/keyguard-relay"]

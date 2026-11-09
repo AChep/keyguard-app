@@ -70,6 +70,12 @@ private fun RouteDescriptor.canPersist(): Boolean = when (this) {
     // The picked file and the review live only in memory, so a restored
     // import could only start over; leave it closed instead.
     is RouteDescriptor.Import -> false
+    // Linking a device is a one-off flow; a restored one would
+    // start a new pairing.
+    is RouteDescriptor.AppLinkPair -> false
+    RouteDescriptor.AppLink,
+    RouteDescriptor.AppLinkConnection,
+    -> true
     is RouteDescriptor.VaultList -> filter.canPersist()
     is RouteDescriptor.Folders -> filter.canPersist()
     is RouteDescriptor.Duplicates -> filter.canPersist()

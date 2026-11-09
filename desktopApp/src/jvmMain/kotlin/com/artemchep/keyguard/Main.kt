@@ -31,6 +31,8 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.isTraySupported
 import coil3.SingletonImageLoader
+import com.artemchep.keyguard.feature.p2pwebrtc.WebRtcTransportFactory
+import com.artemchep.keyguard.provider.keyguard.transport.KeyguardTransportFactory
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.di.ImageLoadingModule
 import com.artemchep.keyguard.common.di.setFromKoin
@@ -239,6 +241,8 @@ private class DesktopApplicationModule {
             )
         } bind GlobalShortcutController::class
         single<PutGlobalShortcutImpl>() bind PutGlobalShortcut::class
+        // Linked devices sync over WebRTC, falling back to the relay.
+        single<KeyguardTransportFactory> { KeyguardTransportFactory.preferring(WebRtcTransportFactory()) }
         single<KeychainRepository> { KeychainRepositoryNative() }
         single<AutotypeService> { AutotypeServiceNative(get()) }
         single<NotificationRepository> { NotificationRepositoryNative(get()) }

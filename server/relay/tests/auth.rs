@@ -26,6 +26,7 @@ async fn sockets_without_the_token_are_refused() {
         "?token=",
         "?other=relay-token-0123456789",
     ] {
+        // Refused before the welcome, which would tell the peer id and the limits.
         let mut socket = relay.try_connect(query, None).await.unwrap();
         expect_error(&mut socket, "unauthorized").await;
         assert_eq!(expect_closed(&mut socket).await, Some(1008), "{query}");
@@ -42,22 +43,23 @@ async fn sockets_without_the_token_are_refused() {
 async fn sockets_with_the_token_are_accepted() {
     let relay = private_relay().await;
 
-    let mut by_query = relay
+    let socket = relay
         .try_connect(&format!("?token={TOKEN}"), None)
         .await
         .unwrap();
-    assert!(
-        join(&mut by_query, &room_id(1), &peer_id(1))
-            .await
-            .is_empty()
-    );
+    let mut by_query = Client::welcomed(socket).await;
+    assert!(join(&mut by_query, &room_id(1)).await.is_empty());
 
-    let mut by_header = relay.try_connect("", Some(TOKEN)).await.unwrap();
+    let socket = relay.try_connect("", Some(TOKEN)).await.unwrap();
+    let mut by_header = Client::welcomed(socket).await;
     assert_eq!(
-        join(&mut by_header, &room_id(1), &peer_id(2)).await,
-        [peer_id(1)]
+        join(&mut by_header, &room_id(1)).await,
+        [by_query.peer.clone()]
     );
-    assert_eq!(recv_json(&mut by_query).await, presence(2, "join"));
+    assert_eq!(
+        recv_json(&mut by_query).await,
+        presence(1, &by_header.peer, "join")
+    );
 }
 
 #[tokio::test]
@@ -95,7 +97,7 @@ async fn ice_servers_need_the_token() {
 }
 
 #[tokio::test]
-async fn repeated_failures_lock_the_address_out() {
+async fn repeated_failures_throttle_wrong_tokens_without_locking_out_valid_tokens() {
     let relay = Relay::start(Config {
         token: Some(TOKEN.to_owned()),
         trust_proxy: loopback_proxy(),
@@ -119,14 +121,15 @@ async fn repeated_failures_lock_the_address_out() {
     assert_eq!(locked.json(), json!({ "error": "rate_limited" }));
     assert_eq!(locked.header("retry-after"), Some("6"));
 
-    // Even the right token waits, on both endpoints.
+    // Another client sharing the address can still use a valid token.
     let bearer = format!("Bearer {TOKEN}");
     let right = [("Authorization", bearer.as_str())];
-    assert_eq!(relay.ice_servers(&right).await.status, 429);
-    assert_eq!(
-        refused_status(relay.try_connect("", Some(TOKEN)).await),
-        429
-    );
+    assert_eq!(relay.ice_servers(&right).await.status, 200);
+    let mut client = Client::welcomed(relay.try_connect("", Some(TOKEN)).await.unwrap()).await;
+    join(&mut client, &room_id(1)).await;
+    // Success must not reset the failed-attempt budget on either endpoint.
+    assert_eq!(relay.ice_servers(&wrong).await.status, 429);
+    assert_eq!(refused_status(relay.try_connect("", None).await), 429);
 
     // Other addresses are not affected.
     let elsewhere = [right[0], ("X-Forwarded-For", "203.0.113.9")];
@@ -146,6 +149,6 @@ async fn repeated_failures_lock_the_address_out() {
 async fn open_relay_needs_no_token() {
     let relay = Relay::start(test_config()).await;
     let mut socket = relay.connect().await;
-    assert!(join(&mut socket, &room_id(1), &peer_id(1)).await.is_empty());
+    assert!(join(&mut socket, &room_id(1)).await.is_empty());
     assert_eq!(relay.ice_servers(&[]).await.status, 200);
 }

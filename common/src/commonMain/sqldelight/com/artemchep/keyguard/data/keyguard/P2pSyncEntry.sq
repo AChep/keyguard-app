@@ -1,0 +1,29 @@
+-- The synced state of each entry of a sync group, by kind and id: the signed versions and
+-- deletes of its devices, as received. Kinds of newer builds are kept too.
+CREATE TABLE p2pSyncEntry (
+  groupId TEXT NOT NULL,
+  entryId TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  versions TEXT NOT NULL,
+  deletes TEXT NOT NULL,
+  PRIMARY KEY (groupId, kind, entryId),
+  FOREIGN KEY (groupId) REFERENCES p2pGroup(groupId) ON DELETE CASCADE
+);
+
+upsert:
+INSERT OR REPLACE INTO p2pSyncEntry(groupId, entryId, kind, versions, deletes)
+VALUES (?, ?, ?, ?, ?);
+
+getByGroupId:
+SELECT *
+FROM p2pSyncEntry
+WHERE
+    groupId == :groupId;
+
+getByEntryId:
+SELECT *
+FROM p2pSyncEntry
+WHERE
+    groupId == :groupId AND
+    kind == :kind AND
+    entryId == :entryId;

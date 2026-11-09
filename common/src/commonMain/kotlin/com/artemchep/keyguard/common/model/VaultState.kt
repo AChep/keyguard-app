@@ -74,12 +74,23 @@ sealed interface VaultState {
             val withMasterPasswordAndBiometric: WithBiometric?,
         ) {
             class WithPassword(
-                val getCreateIo: (String, String) -> IO<Unit>,
+                val getCreateIo: (String, String) -> IO<Report>,
             )
 
             class WithBiometric(
                 val getCipher: suspend () -> Either<Throwable, LeBiometricCipher>,
-                val getCreateIo: (String, String) -> IO<Unit>,
+                val getCreateIo: (String, String) -> IO<Report>,
+            )
+
+            /**
+             * What a completed password change did not carry over.
+             *
+             * @property authoritiesNotResealed the number of linked device groups whose
+             *   authority key of this device the new password does not open: this device
+             *   can no longer add or remove devices there.
+             */
+            data class Report(
+                val authoritiesNotResealed: Int = 0,
             )
 
             override fun equals(other: Any?): Boolean {

@@ -4,13 +4,15 @@
 #![allow(dead_code)]
 
 use std::net::SocketAddr;
+use std::ops::{Deref, DerefMut};
+use std::path::Path;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use futures_util::{SinkExt, StreamExt};
 use keyguard_relay::Config;
-use keyguard_relay::config::IpNet;
+use keyguard_relay::config::{IpNet, MailboxConfig};
 use serde_json::{Value, json};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
@@ -22,6 +24,56 @@ use tokio_tungstenite::tungstenite::{self, Message};
 use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
 
 pub type Socket = WebSocketStream<MaybeTlsStream<TcpStream>>;
+
+/// A connection the relay welcomed, and the peer id it assigned. Derefs to its socket.
+pub struct Client {
+    pub socket: Socket,
+    /// The assigned peer id, in hex.
+    pub peer: String,
+    /// The `welcome` frame.
+    pub welcome: Value,
+}
+
+impl Client {
+    /// Reads the `welcome` frame, which comes first on an authorized connection.
+    pub async fn welcomed(mut socket: Socket) -> Self {
+        let welcome = recv_json(&mut socket).await;
+        assert_eq!(welcome["t"], "welcome", "{welcome}");
+        let peer = welcome["peer"].as_str().expect("welcome names the peer id");
+        assert!(is_lower_hex(peer, 16), "{peer}");
+        Self {
+            socket,
+            peer: peer.to_owned(),
+            welcome,
+        }
+    }
+}
+
+impl Deref for Client {
+    type Target = Socket;
+
+    fn deref(&self) -> &Socket {
+        &self.socket
+    }
+}
+
+impl DerefMut for Client {
+    fn deref_mut(&mut self) -> &mut Socket {
+        &mut self.socket
+    }
+}
+
+/// Whether `text` is `len` bytes in lowercase hex.
+pub fn is_lower_hex(text: &str, len: usize) -> bool {
+    text.len() == len * 2 && text.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f'))
+}
+
+/// The peer ids of `clients`, sorted like [`join`] sorts them.
+pub fn peers(clients: &[&Client]) -> Vec<String> {
+    let mut peers: Vec<String> = clients.iter().map(|client| client.peer.clone()).collect();
+    peers.sort();
+    peers
+}
 
 /// Upper bound for anything the tests wait for.
 pub const TIMEOUT: Duration = Duration::from_secs(5);
@@ -42,6 +94,18 @@ pub fn test_config() -> Config {
         bind: SocketAddr::from(([127, 0, 0, 1], 0)),
         metrics_bind: Some(SocketAddr::from(([127, 0, 0, 1], 0))),
         ..Config::default()
+    }
+}
+
+/// [`test_config`] with relay storage in `dir`, which may not exist yet. Free space on
+/// the volume isn't held back.
+pub fn mailbox_config(dir: &Path) -> Config {
+    Config {
+        mailbox: Some(MailboxConfig {
+            min_free_bytes: 0,
+            ..MailboxConfig::new(dir)
+        }),
+        ..test_config()
     }
 }
 
@@ -88,10 +152,13 @@ impl Relay {
             .unwrap();
     }
 
-    pub async fn connect(&self) -> Socket {
-        self.try_connect("", None)
+    /// Connects and reads the `welcome` frame.
+    pub async fn connect(&self) -> Client {
+        let socket = self
+            .try_connect("", None)
             .await
-            .expect("WebSocket connects")
+            .expect("WebSocket connects");
+        Client::welcomed(socket).await
     }
 
     pub async fn try_connect(
@@ -102,11 +169,14 @@ impl Relay {
         self.try_connect_with(query, bearer, &[]).await
     }
 
-    /// Connects as `ip`, through a relay that trusts loopback as its proxy.
-    pub async fn connect_from(&self, ip: &str) -> Socket {
-        self.try_connect_with("", None, &[("x-forwarded-for", ip)])
+    /// Connects as `ip`, through a relay that trusts loopback as its proxy, and reads the
+    /// `welcome` frame.
+    pub async fn connect_from(&self, ip: &str) -> Client {
+        let socket = self
+            .try_connect_with("", None, &[("x-forwarded-for", ip)])
             .await
-            .expect("WebSocket connects")
+            .expect("WebSocket connects");
+        Client::welcomed(socket).await
     }
 
     pub async fn try_connect_with(
@@ -163,7 +233,6 @@ impl Relay {
         headers: &[(&str, &str)],
         body: &str,
     ) -> HttpResponse {
-        let mut stream = TcpStream::connect(addr).await.unwrap();
         let mut request = format!(
             "{method} {path} HTTP/1.1\r\nHost: {}\r\nConnection: close\r\nContent-Length: {}\r\n",
             addr,
@@ -174,6 +243,17 @@ impl Relay {
         }
         request += "\r\n";
         request += body;
+        Self::raw_http_at(addr, &request).await
+    }
+
+    /// Sends `request` as is, which must ask to close the connection, and reads the
+    /// answer.
+    pub async fn raw_http(&self, request: &str) -> HttpResponse {
+        Self::raw_http_at(self.addr, request).await
+    }
+
+    async fn raw_http_at(addr: SocketAddr, request: &str) -> HttpResponse {
+        let mut stream = TcpStream::connect(addr).await.unwrap();
         stream.write_all(request.as_bytes()).await.unwrap();
         let mut raw = Vec::new();
         timeout(TIMEOUT, stream.read_to_end(&mut raw))
@@ -234,6 +314,22 @@ impl Relay {
             "",
         )
         .await
+    }
+
+    /// Polls private metrics until the sample `name` is `value`.
+    pub async fn wait_for_metric(&self, name: &str, value: f64) {
+        let deadline = Instant::now() + TIMEOUT;
+        loop {
+            let actual = self.metrics().await.metric(name);
+            if actual == value {
+                return;
+            }
+            assert!(
+                Instant::now() < deadline,
+                "{name} is {actual}, expected {value}"
+            );
+            tokio::time::sleep(Duration::from_millis(20)).await;
+        }
     }
 
     /// Polls private metrics until it reports `rooms` and `connections`.
@@ -339,30 +435,46 @@ pub async fn flood_non_reading_client(
     (reader, task)
 }
 
+/// Unix seconds.
+pub fn unix_now() -> u64 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_secs()
+}
+
 /// 64 hex characters.
 pub fn room_id(n: u8) -> String {
     format!("{n:02x}").repeat(32)
 }
 
-/// 32 hex characters.
+/// 32 hex characters: a peer id the relay never assigned.
 pub fn peer_id(n: u8) -> String {
     format!("{n:02x}").repeat(16)
 }
 
-pub fn peer_bytes(n: u8) -> [u8; 16] {
-    [n; 16]
-}
-
-/// A relay-forward binary frame: `0x02 | peer id | payload`.
-pub fn forward_frame(peer: u8, payload: &[u8]) -> Vec<u8> {
-    let mut frame = vec![0x02];
-    frame.extend_from_slice(&peer_bytes(peer));
+/// A relay-forward binary frame in `room`: `0x03 | room id | peer id | payload`, with
+/// `peer` in hex.
+pub fn forward_frame(room: u8, peer: &str, payload: &[u8]) -> Vec<u8> {
+    assert!(is_lower_hex(peer, 16), "{peer}");
+    let mut frame = vec![0x03];
+    frame.extend_from_slice(&[room; 32]);
+    for pair in peer.as_bytes().chunks(2) {
+        let pair = std::str::from_utf8(pair).unwrap();
+        frame.push(u8::from_str_radix(pair, 16).unwrap());
+    }
     frame.extend_from_slice(payload);
     frame
 }
 
-pub fn presence(n: u8, state: &str) -> Value {
-    json!({ "t": "presence", "peer": peer_id(n), "state": state })
+/// A `presence` frame for `peer` in `room`.
+pub fn presence(room: u8, peer: &str, state: &str) -> Value {
+    json!({ "t": "presence", "room": room_id(room), "peer": peer, "state": state })
+}
+
+/// A `msg` frame from `from` in `room`.
+pub fn msg(room: u8, from: &str, data: &str) -> Value {
+    json!({ "t": "msg", "room": room_id(room), "from": from, "data": data })
 }
 
 /// A received data frame, or the end of the connection with its close code.
@@ -409,6 +521,14 @@ pub async fn expect_error(socket: &mut Socket, code: &str) {
     assert_eq!(recv_json(socket).await, json!({ "t": "err", "code": code }));
 }
 
+/// An error that refused a join of `room`.
+pub async fn expect_join_error(socket: &mut Socket, code: &str, room: &str) {
+    assert_eq!(
+        recv_json(socket).await,
+        json!({ "t": "err", "code": code, "room": room })
+    );
+}
+
 /// The connection ends; returns the close code if a close frame came.
 pub async fn expect_closed(socket: &mut Socket) -> Option<u16> {
     match next_frame(socket).await {
@@ -441,27 +561,27 @@ pub async fn send_binary(socket: &mut Socket, data: Vec<u8>) {
 }
 
 /// Sends a `join` frame without reading the answer.
-pub async fn send_join(socket: &mut Socket, room: &str, peer: &str) {
-    send_json(socket, json!({ "t": "join", "room": room, "peer": peer })).await;
+pub async fn send_join(socket: &mut Socket, room: &str) {
+    send_json(socket, json!({ "t": "join", "room": room })).await;
 }
 
 /// Joins and returns the `joined` answer.
-pub async fn join_frame(socket: &mut Socket, room: &str, peer: &str) -> Value {
-    send_join(socket, room, peer).await;
+pub async fn join_frame(socket: &mut Socket, room: &str) -> Value {
+    send_join(socket, room).await;
     let joined = recv_json(socket).await;
     assert_eq!(joined["t"], "joined", "{joined}");
     joined
 }
 
 /// Joins and returns the connection's ticket.
-pub async fn join_ticket(socket: &mut Socket, room: &str, peer: &str) -> String {
-    let joined = join_frame(socket, room, peer).await;
+pub async fn join_ticket(socket: &mut Socket, room: &str) -> String {
+    let joined = join_frame(socket, room).await;
     joined["ticket"].as_str().unwrap().to_owned()
 }
 
 /// Joins and returns the `peers` of the `joined` answer, sorted.
-pub async fn join(socket: &mut Socket, room: &str, peer: &str) -> Vec<String> {
-    let joined = join_frame(socket, room, peer).await;
+pub async fn join(socket: &mut Socket, room: &str) -> Vec<String> {
+    let joined = join_frame(socket, room).await;
     let mut peers: Vec<String> = joined["peers"]
         .as_array()
         .unwrap()

@@ -7,9 +7,15 @@
 //!   points; headers, cinterop definitions and bundle checks name them.
 //! - It owns no state that must be per-library. Static libraries built without
 //!   LTO share this crate's objects once linked into one Apple binary, so a
-//!   bridge owns its [`OperationRegistry`] and [`SessionTable`]s as its own
-//!   `static`s.
+//!   bridge owns its [`OperationRegistry`], [`SessionTable`]s and
+//!   [`SharedTable`]s as its own `static`s.
 //! - Failures cross the boundary as stable codes, never as messages.
+//!
+//! Use a [`SessionTable`] when each call needs its object to itself: a call
+//! gets `&mut T`, and a panic drops only that object. Use a [`SharedTable`]
+//! when the object locks itself and calls overlap, such as a blocking poll
+//! next to sends: a call gets an `Arc<T>`. Both tag their handles with a
+//! [`SessionTag`] in one layout.
 
 #![deny(unsafe_code)]
 
@@ -20,6 +26,7 @@ mod operation;
 mod panic;
 mod raw;
 mod sessions;
+mod shared;
 
 pub use failure::{
     BRIDGE_ERROR_INTERNAL, BRIDGE_ERROR_INVALID_ARGUMENT, BRIDGE_ERROR_PANIC, BRIDGE_INTERNAL,
@@ -37,3 +44,4 @@ pub use operation::{
 pub use panic::{PanicHook, contained, flatten, install_redacting_panic_hook};
 pub use raw::{bytes_from_raw, bytes_from_raw_mut, string_from_raw};
 pub use sessions::{SessionError, SessionTable, SessionTag};
+pub use shared::{SharedError, SharedTable};

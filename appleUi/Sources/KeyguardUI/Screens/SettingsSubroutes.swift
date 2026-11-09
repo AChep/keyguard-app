@@ -20,6 +20,7 @@ private func poweredByFooter(_ provider: String, url: String) -> Text {
 }
 
 struct SettingsSubroute: View {
+    @Environment(SessionFactory.self) private var sessions
     let item: SettingsItemSnapshot
 
     var body: some View {
@@ -27,6 +28,7 @@ struct SettingsSubroute: View {
         case "subscription": SubscriptionsSettingsView(title: item.title)
         case "autofill": AutofillSettingsView(item: item)
         case "automatic_backups": AutomaticBackupsSettingsView(item: item)
+        case "app_link": AppLinkSettingsView(title: item.title, sessions: sessions)
         case "security": SecuritySettingsView(item: item)
         case "developer": DeveloperSettingsView(item: item)
         case "watchtower": WatchtowerSettingsView(item: item)

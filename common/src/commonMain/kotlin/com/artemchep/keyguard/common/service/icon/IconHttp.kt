@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.icon
 
 import com.artemchep.keyguard.common.exception.HttpException
+import com.artemchep.keyguard.common.util.readBodyAtMostOrNull
 import com.artemchep.keyguard.feature.auth.common.util.verifyIsLocalUrl
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.api.SendingRequest
@@ -10,7 +11,6 @@ import io.ktor.client.request.prepareGet
 import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.HttpHeaders
 import io.ktor.http.Url
-import io.ktor.http.contentLength
 import io.ktor.http.isSuccess
 import io.ktor.util.AttributeKey
 import io.ktor.utils.io.readBuffer
@@ -73,15 +73,13 @@ suspend fun HttpClient.readIconResponse(
             e = null,
         )
     }
-    val contentLength = response.contentLength()
-    if (!truncate && contentLength != null && contentLength > maxBytes) {
-        throw IconResponseTooLargeException(maxBytes)
-    }
-    val bytes = response.bodyAsChannel()
-        .readBuffer(if (truncate) maxBytes else maxBytes + 1)
-        .readByteArray()
-    if (bytes.size > maxBytes) {
-        throw IconResponseTooLargeException(maxBytes)
+    val bytes = if (truncate) {
+        response.bodyAsChannel()
+            .readBuffer(maxBytes)
+            .readByteArray()
+    } else {
+        response.readBodyAtMostOrNull(maxBytes)
+            ?: throw IconResponseTooLargeException(maxBytes)
     }
     IconResponse(
         url = response.call.request.url,

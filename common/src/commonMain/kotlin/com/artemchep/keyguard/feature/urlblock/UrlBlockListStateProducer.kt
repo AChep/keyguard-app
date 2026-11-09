@@ -193,9 +193,9 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
                     if (uri != null && mode != null && !isUrlBlockUriValid(uri, mode)) {
                         mapOf(
                             uriKey to if (uri.isBlank()) {
-                                Res.string.error_must_not_be_blank
+                                Res.string.error_must_not_be_blank.wrap()
                             } else {
-                                Res.string.error_invalid_regex
+                                Res.string.error_invalid_regex.wrap()
                             },
                         )
                     } else {

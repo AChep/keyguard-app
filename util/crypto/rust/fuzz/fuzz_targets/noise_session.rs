@@ -317,13 +317,13 @@ fuzz_target!(|data: &[u8]| {
         };
         (
             open(
-                NoisePattern::Kk,
+                NoisePattern::KkHfs,
                 true,
                 &INITIATOR_KEY,
                 responder_public,
                 &[],
             ),
-            open(NoisePattern::Kk, false, &RESPONDER_KEY, pinned, &[]),
+            open(NoisePattern::KkHfs, false, &RESPONDER_KEY, pinned, &[]),
         )
     } else {
         let mut psk = PSK;

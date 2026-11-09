@@ -53,6 +53,7 @@ class DomainSessionAccessModule {
                         gpgKeyserverRefreshWorker = get(),
                         agentHistoryRetentionWorker = get(),
                         licenseSyncer = get(),
+                        appLinkWorker = get(),
                     )
                 }
             }

@@ -14,5 +14,6 @@ internal fun appleKoinModules(): List<Module> = listOf(
     VaultModuleCommon().module,
     PlatformVaultModule().module,
     applePlatformModule(),
+    AppleKeyguardSyncModule().module,
     NavigationModule().module,
 )

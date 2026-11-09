@@ -6,6 +6,7 @@ import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.ColorLens
 import androidx.compose.material.icons.outlined.DeveloperBoard
+import androidx.compose.material.icons.outlined.Devices
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material.icons.outlined.Notifications
@@ -14,6 +15,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
+import com.artemchep.keyguard.feature.applink.AppLinkRoute
 import com.artemchep.keyguard.feature.home.settings.backups.AutomaticBackupsSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.debug.DebugSettingsRoute
 import com.artemchep.keyguard.feature.home.settings.developer.DeveloperSettingsRoute
@@ -99,6 +101,7 @@ private fun SettingsDestination.icon(): ImageVector? = when (this) {
     SettingsDestination.AUTOFILL -> Icons.Outlined.AutoAwesome
     SettingsDestination.SECURITY -> Icons.Outlined.Lock
     SettingsDestination.AUTOMATIC_BACKUPS -> Icons.Outlined.Backup
+    SettingsDestination.APP_LINK -> Icons.Outlined.Devices
     SettingsDestination.DEVELOPER -> Icons.Outlined.Code
     SettingsDestination.WATCHTOWER -> Icons.Outlined.Security
     SettingsDestination.NOTIFICATIONS -> Icons.Outlined.Notifications
@@ -117,6 +120,7 @@ private fun SettingsDestination.route(
     SettingsDestination.AUTOFILL -> autofillRoute
     SettingsDestination.SECURITY -> securityRoute
     SettingsDestination.AUTOMATIC_BACKUPS -> AutomaticBackupsSettingsRoute
+    SettingsDestination.APP_LINK -> AppLinkRoute
     SettingsDestination.DEVELOPER -> DeveloperSettingsRoute
     SettingsDestination.WATCHTOWER -> WatchtowerSettingsRoute
     SettingsDestination.NOTIFICATIONS -> NotificationsSettingsRoute

@@ -2,8 +2,6 @@
 
 mod common;
 
-use std::time::{SystemTime, UNIX_EPOCH};
-
 use common::*;
 use keyguard_relay::Config;
 use keyguard_relay::config::TurnConfig;
@@ -27,13 +25,6 @@ fn credential_is_base64_hmac_sha1() {
         turn_credential(SECRET, &username),
         "bASz32XsE/qo7SbZ+QQ2onxcTJA="
     );
-}
-
-fn unix_now() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs()
 }
 
 fn turn_config() -> Config {
@@ -70,11 +61,7 @@ fn check_turn_entry(entry: &serde_json::Value) -> String {
         expiry.abs_diff(expected) <= 5,
         "expiry {expiry}, expected about {expected}"
     );
-    assert_eq!(tag.len(), 16);
-    assert!(
-        tag.bytes().all(|b| matches!(b, b'0'..=b'9' | b'a'..=b'f')),
-        "{tag}"
-    );
+    assert!(is_lower_hex(tag, 8), "{tag}");
     assert_eq!(entry["credential"], turn_credential(SECRET, username));
     username.to_owned()
 }
@@ -172,7 +159,7 @@ async fn omits_turn_when_unconfigured() {
         body,
         json!({
             "iceServers": [{ "urls": ["stun:stun.example.com:3478", "stuns:stun.example.com:5349"] }],
-            "ttlSeconds": 43_200
+            "ttlSeconds": 7_200
         })
     );
 
@@ -185,7 +172,7 @@ async fn omits_turn_when_unconfigured() {
     .await;
     for _ in 0..3 {
         let body = relay.ice_servers(&[]).await.json();
-        assert_eq!(body, json!({ "iceServers": [], "ttlSeconds": 43_200 }));
+        assert_eq!(body, json!({ "iceServers": [], "ttlSeconds": 7_200 }));
     }
 }
 
@@ -202,6 +189,23 @@ async fn a_spent_allowance_answers_with_stun_only() {
 }
 
 #[tokio::test]
+async fn by_default_only_live_tickets_get_turn_for_two_hours() {
+    let relay = Relay::start(Config {
+        turn_ttl_seconds: Config::default().turn_ttl_seconds,
+        ice_ticketless_per_minute: Config::default().ice_ticketless_per_minute,
+        ..turn_config()
+    })
+    .await;
+    expect_stun_only(&relay.ice_servers(&[]).await);
+
+    let mut socket = relay.connect().await;
+    let ticket = join_ticket(&mut socket, &room_id(1)).await;
+    let body = relay.ice_servers_with_ticket(&ticket).await.json();
+    assert_eq!(body["ttlSeconds"], 7_200);
+    assert!(body["iceServers"][1]["username"].is_string(), "{body}");
+}
+
+#[tokio::test]
 async fn live_tickets_get_the_larger_allowance() {
     let relay = Relay::start(Config {
         ice_requests_per_minute: 3,
@@ -213,7 +217,7 @@ async fn live_tickets_get_the_larger_allowance() {
     expect_stun_only(&relay.ice_servers(&[]).await);
 
     let mut socket = relay.connect().await;
-    let ticket = join_ticket(&mut socket, &room_id(1), &peer_id(1)).await;
+    let ticket = join_ticket(&mut socket, &room_id(1)).await;
     assert!(has_turn(&relay.ice_servers_with_ticket(&ticket).await));
     assert!(has_turn(&relay.ice_servers_with_ticket(&ticket).await));
     // The ticket spends the same per-address allowance.
@@ -231,7 +235,7 @@ async fn tickets_live_only_while_their_socket_is_in_a_room() {
     expect_stun_only(&relay.ice_servers(&[]).await);
 
     let mut socket = relay.connect().await;
-    let ticket = join_ticket(&mut socket, &room_id(1), &peer_id(1)).await;
+    let ticket = join_ticket(&mut socket, &room_id(1)).await;
     assert!(has_turn(&relay.ice_servers_with_ticket(&ticket).await));
     // Unknown, malformed and misplaced tickets count as none.
     expect_stun_only(&relay.ice_servers_with_ticket(&"0".repeat(32)).await);
@@ -250,14 +254,32 @@ async fn tickets_live_only_while_their_socket_is_in_a_room() {
     expect_stun_only(&relay.ice_servers_with_ticket(&ticket).await);
 
     // One ticket per connection, live again after a new join.
-    assert_eq!(
-        join_ticket(&mut socket, &room_id(2), &peer_id(1)).await,
-        ticket
-    );
+    assert_eq!(join_ticket(&mut socket, &room_id(2)).await, ticket);
     assert!(has_turn(&relay.ice_servers_with_ticket(&ticket).await));
 
     drop(socket);
     relay.wait_for_metrics(0, 0).await;
+    expect_stun_only(&relay.ice_servers_with_ticket(&ticket).await);
+}
+
+#[tokio::test]
+async fn a_ticket_lives_while_its_socket_is_in_any_room() {
+    let relay = Relay::start(Config {
+        ice_requests_per_minute: 100,
+        ice_ticketless_per_minute: 0,
+        ..turn_config()
+    })
+    .await;
+    let mut socket = relay.connect().await;
+    let ticket = join_ticket(&mut socket, &room_id(1)).await;
+    assert_eq!(join_ticket(&mut socket, &room_id(2)).await, ticket);
+
+    send_json(&mut socket, json!({ "t": "leave", "room": room_id(1) })).await;
+    relay.wait_for_metrics(1, 1).await;
+    assert!(has_turn(&relay.ice_servers_with_ticket(&ticket).await));
+
+    send_json(&mut socket, json!({ "t": "leave", "room": room_id(2) })).await;
+    relay.wait_for_metrics(0, 1).await;
     expect_stun_only(&relay.ice_servers_with_ticket(&ticket).await);
 }
 
@@ -298,7 +320,7 @@ async fn the_relay_wide_allowance_keeps_half_for_tickets() {
     })
     .await;
     let mut socket = relay.connect().await;
-    let ticket = join_ticket(&mut socket, &room_id(1), &peer_id(1)).await;
+    let ticket = join_ticket(&mut socket, &room_id(1)).await;
     let ask = |ip: &'static str, ticket: Option<&str>| {
         let body = ticket.map_or_else(String::new, |ticket| {
             json!({ "ticket": ticket }).to_string()

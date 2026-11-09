@@ -50,6 +50,8 @@ kotlin {
                 implementation(libs.squareup.okhttp)
                 implementation(project(":util:crypto"))
                 implementation(project(":util:instance"))
+                implementation(project(":util:webrtc"))
+                implementation(project(":feature:p2p-webrtc"))
                 implementation(project(":util:windows-passkeys"))
                 implementation(project(":common"))
             }
@@ -93,6 +95,8 @@ val bundledAppResources = bundledAppResourcesFrom(
         ":util:io",
         ":util:zxcvbn",
         ":util:age",
+        // Device-to-device sync.
+        ":util:webrtc",
     ).toTypedArray(),
 )
 

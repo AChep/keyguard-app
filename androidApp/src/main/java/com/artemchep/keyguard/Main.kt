@@ -29,6 +29,8 @@ import com.artemchep.keyguard.android.worker.BackupWorker
 import com.artemchep.keyguard.billing.BillingManager
 import com.artemchep.keyguard.billing.BillingManagerImpl
 import com.artemchep.keyguard.common.di.ImageLoadingModule
+import com.artemchep.keyguard.feature.p2pwebrtc.WebRtcTransportFactory
+import com.artemchep.keyguard.provider.keyguard.transport.KeyguardTransportFactory
 import com.artemchep.keyguard.common.di.setFromKoin
 import com.artemchep.keyguard.common.io.*
 import com.artemchep.keyguard.common.model.MasterSession
@@ -120,6 +122,8 @@ private class PhoneApplicationModule(
         single { FlavorConfig(isFreeAsBeer = BuildConfig.FLAVOR == "none") }
         factory<ScanQrRouteFactory> { ScanQrRouteFactoryAndroid }
         factory<PasskeyHybridRouteFactory> { AndroidPasskeyHybridRouteFactory }
+        // Linked devices sync over WebRTC, falling back to the relay.
+        single<KeyguardTransportFactory> { KeyguardTransportFactory.preferring(WebRtcTransportFactory()) }
     }
 }
 

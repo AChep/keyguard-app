@@ -64,6 +64,9 @@
   </Applications>
 
   <Capabilities>
+    <!-- Linked devices sync: the relay and other devices, also on the local network. -->
+    <Capability Name="internetClientServer" />
+    <Capability Name="privateNetworkClientServer" />
     <rescap:Capability Name="runFullTrust" />
     <rescap:Capability Name="unvirtualizedResources" />
   </Capabilities>

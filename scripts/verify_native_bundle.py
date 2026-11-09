@@ -51,7 +51,8 @@ class NativeModule:
 
 
 # These are reviewed ABI contracts, not symbols inferred from the artifact being
-# checked. ZIP is native on Apple only; instance and agent IPC are desktop/macOS only.
+# checked. ZIP is native on Apple only; instance and agent IPC are desktop/macOS only;
+# WebRTC is everywhere except Wear OS.
 MODULES = {
     "windows_passkeys": NativeModule("windows_passkeys", "com_artemchep_keyguard_util_windowspasskeys_NativeWindowsPasskeys",
                                       ("abiVersion", "create", "execute", "cancel", "close"), ()),
@@ -83,6 +84,7 @@ MODULES = {
     "zip": NativeModule("zip", None, (), (
         "abi_version", "writer_open", "writer_begin_entry", "writer_write", "writer_end_entry",
         "writer_finish", "writer_abort", "reader_open", "reader_next_entry", "reader_read", "reader_close",
+        "memory_open", "memory_read", "memory_close",
     )),
     "agent_ipc": NativeModule("agent_ipc", "com_artemchep_keyguard_util_agentipc_NativeAgentIpcJni", (
         "abiVersion", "lastError", "listen", "endpoint", "accept", "closeListener", "peerPid",
@@ -91,12 +93,24 @@ MODULES = {
         "abi_version", "last_error", "clear_error", "listen", "endpoint", "accept", "close_listener",
         "peer_pid", "read", "write", "await_input", "close",
     )),
+    "webrtc": NativeModule("webrtc", "com_artemchep_keyguard_util_webrtc_NativeWebrtcJni", (
+        "abiVersion", "runtimeNew", "runtimeShutdown", "peerNew", "peerCreateOffer", "peerCreateAnswer",
+        "peerSetRemote", "peerAddIceCandidate", "peerCreateChannel", "channelSend", "channelBufferedAmount",
+        "peerNextEvent", "peerClose",
+    ), (
+        "abi_version", "runtime_new", "runtime_shutdown", "peer_new", "peer_create_offer", "peer_create_answer",
+        "peer_set_remote", "peer_add_ice_candidate", "peer_create_channel", "channel_send", "channel_buffered_amount",
+        "peer_next_event", "peer_close",
+    )),
 }
-DESKTOP_MODULES = ("crypto", "io", "age", "zxcvbn", "instance", "yubikey", "fido2", "agent_ipc")
+DESKTOP_MODULES = ("crypto", "io", "age", "zxcvbn", "webrtc", "instance", "yubikey", "fido2", "agent_ipc")
 # The passkey provider exists only on Windows; other desktop packages do not bundle it.
 WINDOWS_DESKTOP_MODULES = DESKTOP_MODULES + ("windows_passkeys",)
-ANDROID_MODULES = ("crypto", "io", "age", "zxcvbn")
-APPLE_APP_MODULES = ("crypto", "io", "age", "zxcvbn", "zip")
+ANDROID_MODULES = ("crypto", "io", "age", "zxcvbn", "webrtc")
+# Wear does not ship WebRTC, so Wear packages must not bundle WebRTC.
+WEAR_MODULES = ("crypto", "io", "age", "zxcvbn")
+WEAR_FORBIDDEN_MODULES = ("webrtc",)
+APPLE_APP_MODULES = ("crypto", "io", "age", "zxcvbn", "zip", "webrtc")
 BRIDGE_EXPORTS = frozenset((
     "autoTypeCaptureTarget", "autoTypePermission", "autoTypeLogin",
     "getSystemAccentColor", "biometricsIsSupported", "biometricsVerify",
@@ -231,12 +245,17 @@ def inspect_msix_passkey_provider(root: Path) -> None:
     print(f"OK {root} (passkey COM activation and identity)")
 
 
-def inspect_android(paths: Sequence[Path], expected_abis: Sequence[str], split_package: bool = False) -> None:
+def inspect_android(paths: Sequence[Path], expected_abis: Sequence[str], split_package: bool = False,
+                    wear: bool = False) -> None:
     if split_package and any(path.suffix.lower() != ".apk" for path in paths):
         raise InspectionError("--split-package requires APK inputs from one package")
     groups = [paths] if split_package else [[path] for path in paths]
+    modules, forbidden = (WEAR_MODULES, WEAR_FORBIDDEN_MODULES) if wear else (ANDROID_MODULES, ())
     for group in groups:
-        for name in ANDROID_MODULES:
+        for name in forbidden:
+            if android.collect_libraries(group, f"libkeyguard_{name}_jni.so"):
+                raise InspectionError(f"{', '.join(map(str, group))}: Wear package bundles {name}")
+        for name in modules:
             module = MODULES[name]
             libraries = android.collect_libraries(group, f"libkeyguard_{name}_jni.so")
             found = {library.abi for library in libraries}
@@ -326,10 +345,11 @@ def parse_arguments(argv: Sequence[str]) -> argparse.Namespace:
     launch = desktop.add_mutually_exclusive_group()
     launch.add_argument("--launcher", type=Path)
     launch.add_argument("--flatpak-app-id")
-    mobile = modes.add_parser("android", help="inspect each final Android/Wear package independently")
-    mobile.add_argument("artifacts", type=Path, nargs="+")
-    mobile.add_argument("--expected-abi", choices=android.DEFAULT_ABIS, action="append")
-    mobile.add_argument("--split-package", action="store_true", help="treat APK inputs as splits of one package")
+    for mode, description in (("android", "phone"), ("wear", "Wear OS")):
+        mobile = modes.add_parser(mode, help=f"inspect each final {description} package independently")
+        mobile.add_argument("artifacts", type=Path, nargs="+")
+        mobile.add_argument("--expected-abi", choices=android.DEFAULT_ABIS, action="append")
+        mobile.add_argument("--split-package", action="store_true", help="treat APK inputs as splits of one package")
     apple = modes.add_parser("apple", help="inspect linked Apple app tests or native static archives")
     apple.add_argument("artifacts", type=Path, nargs="+")
     apple.add_argument("--arch", choices=("aarch64",), required=True)
@@ -344,8 +364,9 @@ def main(argv: Sequence[str] | None = None) -> int:
             inspect_desktop(args.root, args.platform, args.arch)
             inspect_dependency_policy([args.root])
             run_smoke(args.root, args.platform, args.launcher, args.flatpak_app_id)
-        elif args.mode == "android":
-            inspect_android(args.artifacts, args.expected_abi or android.DEFAULT_ABIS, args.split_package)
+        elif args.mode in {"android", "wear"}:
+            inspect_android(args.artifacts, args.expected_abi or android.DEFAULT_ABIS, args.split_package,
+                            wear=args.mode == "wear")
             inspect_dependency_policy(args.artifacts)
         else:
             inspect_apple(args.artifacts, args.arch, args.require_crypto_exports)

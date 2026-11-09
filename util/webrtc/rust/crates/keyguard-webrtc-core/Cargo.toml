@@ -1,0 +1,25 @@
+[package]
+name = "keyguard-webrtc-core"
+description = "WebRTC data channels for the Keyguard native bridges"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[dependencies]
+async-trait.workspace = true
+bytes.workspace = true
+keyguard-ffi.workspace = true
+# The sans-IO core under `webrtc`, named only for the mDNS mode and the
+# candidate parser that `webrtc` does not re-export. Its features unify with
+# the ones `webrtc` selects (`crypto-ring`); never enable `crypto-aws-lc-rs`.
+rtc = { version = "0.21.1", default-features = false }
+serde = { workspace = true, features = ["derive"] }
+serde_json.workspace = true
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "sync", "time"] }
+webrtc.workspace = true
+
+[lints]
+workspace = true

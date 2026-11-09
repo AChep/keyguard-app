@@ -127,6 +127,30 @@ class WearDependencyCheckPluginTest {
     }
 
     @Test
+    fun rejectsWebRtcPulledThroughCommon() {
+        val root = fixture("add('playStoreReleaseRuntimeClasspath', project(':common'))")
+        root.resolve("settings.gradle").appendText("\ninclude ':common', ':util:crypto', ':util:webrtc'\n")
+        root.resolve("common").apply { mkdirs() }.resolve("build.gradle").writeText(
+            """
+            plugins { id 'java-library' }
+            dependencies {
+                api project(':util:crypto')
+                api project(':util:webrtc')
+            }
+            """.trimIndent(),
+        )
+        listOf("crypto", "webrtc").forEach { module ->
+            root.resolve("util/$module").apply { mkdirs() }.resolve("build.gradle")
+                .writeText("plugins { id 'java-library' }\n")
+        }
+
+        val result = fixtureGradleRunner(root, checkTask).buildAndFail()
+        assertTrue(result.output, result.output.contains("playStoreReleaseRuntimeClasspath -> project :util:webrtc"))
+        // Noise ships on Wear inside util/crypto: the watch runs the sync handshakes itself.
+        assertTrue(result.output, !result.output.contains("-> project :util:crypto"))
+    }
+
+    @Test
     fun rejectsBothOpenKeychainArtifactsFromTheirExactResolvedGroup() {
         val root = fixture(
             """

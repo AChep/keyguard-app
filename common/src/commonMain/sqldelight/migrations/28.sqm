@@ -1,0 +1,108 @@
+-- Linked apps sync their records device to device. A sync group owns its
+-- entries, clock and peers, and keeps its membership and roster itself.
+CREATE TABLE p2pGroup (
+  groupId TEXT NOT NULL PRIMARY KEY,
+  scope TEXT NOT NULL,
+  membership TEXT NOT NULL,
+  roster TEXT
+);
+
+CREATE TABLE p2pSyncEntry (
+  groupId TEXT NOT NULL,
+  entryId TEXT NOT NULL,
+  kind TEXT NOT NULL,
+  versions TEXT NOT NULL,
+  deletes TEXT NOT NULL,
+  PRIMARY KEY (groupId, kind, entryId),
+  FOREIGN KEY (groupId) REFERENCES p2pGroup(groupId) ON DELETE CASCADE
+);
+
+CREATE TABLE p2pPeerState (
+  groupId TEXT NOT NULL,
+  deviceId TEXT NOT NULL,
+  lastSeenAt INTEGER,
+  lastTransport TEXT,
+  PRIMARY KEY (groupId, deviceId),
+  FOREIGN KEY (groupId) REFERENCES p2pGroup(groupId) ON DELETE CASCADE
+);
+
+CREATE TABLE p2pClock (
+  groupId TEXT NOT NULL PRIMARY KEY,
+  wall INTEGER NOT NULL,
+  counter INTEGER NOT NULL,
+  FOREIGN KEY (groupId) REFERENCES p2pGroup(groupId) ON DELETE CASCADE
+);
+
+-- Every email forwarder gets a stable id, the same on every linked app.
+-- SQLite can't add a NOT NULL column without a default, so the table is
+-- rebuilt and each existing forwarder gets a random UUIDv4.
+CREATE TABLE generatorEmailRelay_new (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  name TEXT NOT NULL,
+  type TEXT NOT NULL,
+  data TEXT NOT NULL,
+  createdAt INTEGER NOT NULL,
+  syncId TEXT NOT NULL UNIQUE
+);
+
+INSERT INTO generatorEmailRelay_new(id, name, type, data, createdAt, syncId)
+SELECT
+  id,
+  name,
+  type,
+  data,
+  createdAt,
+  lower(
+    hex(randomblob(4)) || '-' ||
+    hex(randomblob(2)) || '-' ||
+    '4' || substr(hex(randomblob(2)), 2) || '-' ||
+    substr('89ab', 1 + (abs(random()) % 4), 1) || substr(hex(randomblob(2)), 2) || '-' ||
+    hex(randomblob(6))
+  )
+FROM generatorEmailRelay;
+
+DROP TABLE generatorEmailRelay;
+
+ALTER TABLE generatorEmailRelay_new RENAME TO generatorEmailRelay;
+
+CREATE INDEX idx_generatorEmailRelay_createdAt ON generatorEmailRelay(createdAt DESC);
+
+-- Every wordlist gets a stable id, the same on every linked app. The table
+-- is not rebuilt: dropping it would delete the words, which cascade from it.
+ALTER TABLE generatorWordlist ADD COLUMN syncId TEXT NOT NULL DEFAULT '';
+
+ALTER TABLE generatorWordlist ADD COLUMN wordsHash TEXT;
+
+UPDATE generatorWordlist
+SET syncId = lower(
+  hex(randomblob(4)) || '-' ||
+  hex(randomblob(2)) || '-' ||
+  '4' || substr(hex(randomblob(2)), 2) || '-' ||
+  substr('89ab', 1 + (abs(random()) % 4), 1) || substr(hex(randomblob(2)), 2) || '-' ||
+  hex(randomblob(6))
+);
+
+CREATE UNIQUE INDEX idx_generatorWordlist_syncId ON generatorWordlist(syncId);
+
+CREATE INDEX idx_generatorWordlist_wordsHash ON generatorWordlist(wordsHash);
+
+-- Every URL override gets a stable id, the same on every linked app, except
+-- the built-in one: each app adds its own, so it stays local, with no id. It
+-- is the first override with its rule, even if renamed or turned off.
+ALTER TABLE urlOverride ADD COLUMN syncId TEXT;
+
+UPDATE urlOverride
+SET syncId = lower(
+  hex(randomblob(4)) || '-' ||
+  hex(randomblob(2)) || '-' ||
+  '4' || substr(hex(randomblob(2)), 2) || '-' ||
+  substr('89ab', 1 + (abs(random()) % 4), 1) || substr(hex(randomblob(2)), 2) || '-' ||
+  hex(randomblob(6))
+)
+WHERE id IS NOT (
+  SELECT MIN(id)
+  FROM urlOverride
+  WHERE regex = '^http:.*' AND command = 'https://{url:rmvscm}'
+);
+
+CREATE UNIQUE INDEX idx_urlOverride_syncId ON urlOverride(syncId);

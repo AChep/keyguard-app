@@ -32,6 +32,8 @@
 	<string>public.app-category.productivity</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Used to scan QR codes</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>Used to sync with your other devices and to connect to self-hosted Bitwarden, WebDAV, S3, and SFTP servers on your local network</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

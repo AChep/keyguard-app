@@ -3,6 +3,7 @@ package com.artemchep.keyguard
 import com.artemchep.keyguard.nativebundle.NativeBundleProbe
 import com.artemchep.keyguard.nativebundle.nativeProbe
 import com.artemchep.keyguard.util.io.LocalPath
+import com.artemchep.keyguard.util.webrtc.WebRtcRuntime
 import com.artemchep.keyguard.util.zip.ZipConfig
 import com.artemchep.keyguard.util.zip.ZipEntry
 import com.artemchep.keyguard.util.zip.ZipReader
@@ -28,6 +29,8 @@ class NativeBundleSmokeTest {
         SystemFileSystem.createDirectories(directory)
         try {
             NativeBundleProbe.run(LocalPath(directory.toString()))
+            // Also keeps keyguard_webrtc_abi_version in the linked binary.
+            nativeProbe("webrtc") { WebRtcRuntime.ensureAvailable() }
             nativeProbe("zip") {
                 val payload = "native zip probe".encodeToByteArray()
                 val archive = Buffer()

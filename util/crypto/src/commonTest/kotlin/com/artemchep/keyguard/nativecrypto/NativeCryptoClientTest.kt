@@ -76,6 +76,8 @@ class NativeCryptoClientTest {
             NativeCryptoCapability.PKCS12,
             NativeCryptoCapability.ED25519,
             NativeCryptoCapability.NOISE,
+            NativeCryptoCapability.X25519,
+            NativeCryptoCapability.ML_KEM,
             NativeCryptoCapability.SSH_PUBLIC_KEY_DECODE,
             NativeCryptoCapability.OPENPGP_CLEAR_VERIFY,
             NativeCryptoCapability.OPENPGP_EXTERNAL_REVOCATION_POLICY,
@@ -1295,7 +1297,7 @@ class NativeCryptoClientTest {
             )
         }
         assertEquals(1L shl 35, NativeCryptoCapability.OPENPGP_V6_GENERATION_MUTATION.bit)
-        assertEquals(0x1FF_7FFF_FFFFL, allNativeCryptoCapabilitiesMask)
+        assertEquals(0x7FF_7FFF_FFFFL, allNativeCryptoCapabilitiesMask)
     }
 
     private fun openPgpProtocolExtensions(): List<

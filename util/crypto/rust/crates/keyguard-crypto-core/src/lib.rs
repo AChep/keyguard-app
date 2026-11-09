@@ -10,6 +10,7 @@ mod ed25519;
 pub mod fast;
 mod hybrid;
 mod legacy_pem;
+mod ml_kem;
 mod noise;
 mod openpgp;
 mod padding;
@@ -22,6 +23,7 @@ mod sessions;
 mod ssh_certificates;
 mod ssh_import;
 mod ssh_keys;
+mod x25519;
 
 use prost::Message;
 use std::sync::Once;
@@ -123,8 +125,12 @@ pub const CAPABILITY_HYBRID: u64 = 1 << 37;
 pub const CAPABILITY_CTAP_PRF: u64 = 1 << 38;
 /// RFC 8032 Ed25519 key generation, signing, and strict verification.
 pub const CAPABILITY_ED25519: u64 = 1 << 39;
-/// Noise XXpsk3 and KK handshakes and transports over generation-tagged sessions.
+/// Noise XXpsk3 and KKhfs handshakes and transports over generation-tagged sessions.
 pub const CAPABILITY_NOISE: u64 = 1 << 40;
+/// RFC 7748 X25519 key agreement that rejects low-order public keys.
+pub const CAPABILITY_X25519: u64 = 1 << 41;
+/// FIPS 203 ML-KEM-1024 key generation, encapsulation and decapsulation.
+pub const CAPABILITY_ML_KEM: u64 = 1 << 42;
 /// Complete capability set provided by this native library revision.
 pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_PBKDF2_SHA256
@@ -165,7 +171,9 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_HYBRID
     | CAPABILITY_CTAP_PRF
     | CAPABILITY_ED25519
-    | CAPABILITY_NOISE;
+    | CAPABILITY_NOISE
+    | CAPABILITY_X25519
+    | CAPABILITY_ML_KEM;
 
 static PANIC_HOOK: Once = Once::new();
 
@@ -567,6 +575,18 @@ fn execute_one_shot(
         native_request::Operation::NoiseKeyPair(mut request) => {
             noise::key_pair(std::mem::take(&mut request.private_key))?
         }
+        native_request::Operation::X25519Agree(mut request) => x25519::agree(
+            std::mem::take(&mut request.private_key),
+            std::mem::take(&mut request.public_key),
+        )?,
+        native_request::Operation::MlKemKeyGenerate(_) => ml_kem::key_generate()?,
+        native_request::Operation::MlKemEncapsulate(request) => {
+            ml_kem::encapsulate_op(&request.public_key)?
+        }
+        native_request::Operation::MlKemDecapsulate(mut request) => ml_kem::decapsulate_op(
+            std::mem::take(&mut request.private_key),
+            &request.ciphertext,
+        )?,
         native_request::Operation::PasskeyKeyGenerate(request) => {
             passkeys::generate(request.algorithm)?
         }
@@ -701,6 +721,10 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::NoiseIntoTransport(_) => "noise_into_transport",
         native_request::Operation::NoiseTransportWrite(_) => "noise_transport_write",
         native_request::Operation::NoiseTransportRead(_) => "noise_transport_read",
+        native_request::Operation::X25519Agree(_) => "x25519_agree",
+        native_request::Operation::MlKemKeyGenerate(_) => "ml_kem_key_generate",
+        native_request::Operation::MlKemEncapsulate(_) => "ml_kem_encapsulate",
+        native_request::Operation::MlKemDecapsulate(_) => "ml_kem_decapsulate",
         native_request::Operation::PasskeyKeyGenerate(_) => "passkey_key_generate",
         native_request::Operation::PasskeyKeyInspect(_) => "passkey_key_inspect",
         native_request::Operation::PasskeySign(_) => "passkey_sign",
@@ -1373,7 +1397,7 @@ mod tests {
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
         assert_eq!(PROTOCOL_VERSION, 3);
-        assert_eq!(CAPABILITIES, 0x1ff7fffffff);
+        assert_eq!(CAPABILITIES, 0x7ff7fffffff);
         assert_eq!(CAPABILITIES & (1 << 31), 0, "bit 31 is retired");
         assert_eq!(CAPABILITY_OPENPGP_V6_GENERATION_MUTATION, 1 << 35);
         assert_eq!(CAPABILITY_HYBRID, 1 << 37);
@@ -1396,6 +1420,8 @@ mod tests {
         assert_eq!(CAPABILITY_OPENPGP_USER_ID_CERTIFICATION, 1 << 33);
         assert_eq!(CAPABILITY_ED25519, 1 << 39);
         assert_eq!(CAPABILITY_NOISE, 1 << 40);
+        assert_eq!(CAPABILITY_X25519, 1 << 41);
+        assert_eq!(CAPABILITY_ML_KEM, 1 << 42);
     }
 
     #[test]

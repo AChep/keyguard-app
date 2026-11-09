@@ -1,0 +1,21 @@
+[package]
+name = "keyguard-webrtc-jni"
+description = "JNI bridge for Keyguard WebRTC data channels"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license-file.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+jni.workspace = true
+keyguard-ffi = { workspace = true, features = ["jni"] }
+keyguard-webrtc-core = { path = "../keyguard-webrtc-core" }
+zeroize.workspace = true
+
+[lints]
+workspace = true

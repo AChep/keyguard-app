@@ -49,4 +49,18 @@ final class SessionFactory {
     func makeChangePasswordSession() -> ChangePasswordSession { core.makeChangePasswordSession() }
 
     func makeFeedbackSession() -> FeedbackSession { core.makeFeedbackSession() }
+
+    func makeAppLinkSession() -> AppLinkSession { core.makeAppLinkSession() }
+
+    /// How this device reaches its linked apps.
+    func makeAppLinkConnectionSession() -> AppLinkConnectionSession { core.makeAppLinkConnectionSession() }
+
+    /// The devices of the link of this app.
+    func makeAppLinkDevicesSession() -> KeyguardDevicesSession { core.makeAppLinkDevicesSession() }
+
+    /// Pairs this app with the app of another device; this device scans the code of the other one,
+    /// if `scan`, or shows its own.
+    func makeAppLinkPairingSession(scan: Bool) -> KeyguardPairingSession {
+        core.makeAppLinkPairingSession(scan: scan)
+    }
 }

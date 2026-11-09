@@ -1,8 +1,9 @@
 //! Tickets: proof that an ICE request comes from a device that signals on this relay.
 //!
-//! Every connection draws a random ticket and gets it in `joined`. The ticket is live
-//! while the connection is in a room and has sent a frame within [`TICKET_ACTIVE`], and
-//! a live ticket raises the TURN allowance of the ICE request that carries it.
+//! Every connection draws a random ticket and gets it in every `joined`. The ticket is
+//! live while the connection is in at least one room and has sent a frame within
+//! [`TICKET_ACTIVE`], and a live ticket raises the TURN allowance of the ICE request that
+//! carries it.
 
 use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};

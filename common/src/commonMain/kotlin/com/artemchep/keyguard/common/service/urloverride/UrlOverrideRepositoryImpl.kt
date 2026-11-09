@@ -3,22 +3,30 @@ package com.artemchep.keyguard.common.service.urloverride
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DGlobalUrlOverride
-import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.appsync.AppSyncRecorder
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
-import com.artemchep.keyguard.data.UrlOverrideQueries
+import com.artemchep.keyguard.data.Database
+import com.artemchep.keyguard.feature.p2psync.model.EntryKind
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlin.uuid.Uuid
 
+/**
+ * The URL overrides. Every write records the change for linked apps, in the same
+ * transaction, see [AppSyncRecorder]. The built-in override has no sync id, so its
+ * changes stay on this device.
+ */
 class UrlOverrideRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
+    private val recorder: AppSyncRecorder = AppSyncRecorder.None,
 ) : UrlOverrideRepository {
     override fun get(): Flow<List<DGlobalUrlOverride>> =
-        daoEffect { dao ->
-            dao.get(1000)
+        databaseEffect { db ->
+            db.urlOverrideQueries.get(1000)
         }
             .flatMapQueryToList(dispatcher)
             .map { entities ->
@@ -37,52 +45,61 @@ class UrlOverrideRepositoryImpl(
             }
 
     override fun put(model: DGlobalUrlOverride): IO<Unit> =
-        daoEffect { dao ->
-            val id = model.id
-                ?.toLongOrNull()
+        databaseEffect { db ->
+            val dao = db.urlOverrideQueries
             val regex = model.regex.toString()
-            if (id != null) {
-                dao.update(
-                    id = id,
-                    name = model.name,
-                    regex = regex,
-                    command = model.command,
-                    createdAt = model.createdDate,
-                    enabled = model.enabled.int.toLong(),
-                )
-            } else {
-                dao.insert(
-                    name = model.name,
-                    regex = regex,
-                    command = model.command,
-                    createdAt = model.createdDate,
-                    enabled = model.enabled.int.toLong(),
-                )
-            }
-        }
-
-    override fun removeAll(): IO<Unit> =
-        daoEffect { dao ->
-            dao.deleteAll()
-        }
-
-    override fun removeByIds(ids: Set<String>): IO<Unit> =
-        daoEffect { dao ->
-            dao.transaction {
-                ids.forEach {
-                    val id = it.toLongOrNull()
-                        ?: return@forEach
-                    dao.deleteByIds(id)
+            val enabled = model.enabled.int.toLong()
+            db.transaction {
+                val existing = model.id
+                    ?.toLongOrNull()
+                    ?.let { id -> dao.getById(id).executeAsOneOrNull() }
+                val syncId = if (existing != null) existing.syncId else Uuid.random().toString()
+                recorder.record(db, EntryKind.URL_OVERRIDE, ids = { listOfNotNull(syncId) }) {
+                    if (existing != null) {
+                        dao.update(
+                            id = existing.id,
+                            name = model.name,
+                            regex = regex,
+                            command = model.command,
+                            createdAt = model.createdDate,
+                            enabled = enabled,
+                        )
+                    } else {
+                        dao.insert(
+                            name = model.name,
+                            regex = regex,
+                            command = model.command,
+                            createdAt = model.createdDate,
+                            enabled = enabled,
+                            syncId = syncId,
+                        )
+                    }
                 }
             }
         }
 
-    private inline fun <T> daoEffect(
-        crossinline block: suspend (UrlOverrideQueries) -> T,
+    override fun removeAll(): IO<Unit> =
+        databaseEffect { db ->
+            val dao = db.urlOverrideQueries
+            recorder.record(db, EntryKind.URL_OVERRIDE, ids = { dao.getSyncIds().executeAsList() }) {
+                dao.deleteAll()
+            }
+        }
+
+    override fun removeByIds(ids: Set<String>): IO<Unit> =
+        databaseEffect { db ->
+            val dao = db.urlOverrideQueries
+            val localIds = ids.mapNotNull { it.toLongOrNull() }
+            recorder.record(db, EntryKind.URL_OVERRIDE, ids = { dao.getSyncIdsByIds(localIds).executeAsList() }) {
+                dao.deleteByIds(localIds)
+            }
+        }
+
+    private inline fun <T> databaseEffect(
+        crossinline block: suspend (Database) -> T,
     ): IO<T> = databaseManager
         .get()
         .effectMap(dispatcher) { db ->
-            val dao = db.urlOverrideQueries
-            block(dao)
+            block(db)
         }
 }

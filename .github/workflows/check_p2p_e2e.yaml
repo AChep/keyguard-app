@@ -1,0 +1,136 @@
+name: "✔️ Check P2P E2E"
+
+on:
+  workflow_dispatch:
+    inputs:
+      cache-write-only:
+        description: 'Cache write only'
+        required: false
+        default: false
+        type: boolean
+  push:
+    branches:
+      - master
+    paths:
+      - '.github/actions/prefetch_native/**'
+      - '.github/actions/setup_gradle/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_p2p_e2e.yaml'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
+      - 'build.gradle.kts'
+      - 'buildPlugins/**'
+      - 'common/build.gradle.kts'
+      - 'common/src/commonMain/kotlin/com/artemchep/keyguard/provider/keyguard/**'
+      - 'common/src/commonMain/sqldelight/**'
+      - 'common/src/desktopMain/**'
+      - 'common/src/jvmMain/**'
+      - 'feature/p2p-sync/**'
+      - 'feature/p2p-webrtc/**'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'integration/p2pE2eTest/**'
+      - 'integration/testProcess/**'
+      - 'rust-toolchain.toml'
+      - 'server/relay/**'
+      - 'settings.gradle'
+      - 'util/crypto/**'
+      - 'util/ffi/**'
+      - 'util/webrtc/**'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - '.github/actions/prefetch_native/**'
+      - '.github/actions/setup_gradle/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_p2p_e2e.yaml'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
+      - 'build.gradle.kts'
+      - 'buildPlugins/**'
+      - 'common/build.gradle.kts'
+      - 'common/src/commonMain/kotlin/com/artemchep/keyguard/provider/keyguard/**'
+      - 'common/src/commonMain/sqldelight/**'
+      - 'common/src/desktopMain/**'
+      - 'common/src/jvmMain/**'
+      - 'feature/p2p-sync/**'
+      - 'feature/p2p-webrtc/**'
+      - 'gradle.properties'
+      - 'gradle/**'
+      - 'gradlew'
+      - 'gradlew.bat'
+      - 'integration/p2pE2eTest/**'
+      - 'integration/testProcess/**'
+      - 'rust-toolchain.toml'
+      - 'server/relay/**'
+      - 'settings.gradle'
+      - 'util/crypto/**'
+      - 'util/ffi/**'
+      - 'util/webrtc/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-p2p-e2e:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Check P2P E2E
+            gradle-args: ":integration:p2pE2eTest:p2pE2eTest"
+            reports: p2p-e2e-test-reports
+          # Only the TURN suite, which the entry above skips.
+          - name: Check P2P E2E (TURN)
+            gradle-args: >-
+              "-Pkeyguard.p2pE2e.turn=true"
+              :integration:p2pE2eTest:p2pE2eTest --tests '*TurnSyncE2eTest'
+            reports: p2p-e2e-turn-test-reports
+    env:
+      # Only the TURN suite starts containers.
+      # Skips the Testcontainers environment check, which pulls `alpine`.
+      TESTCONTAINERS_CHECKS_DISABLE: "true"
+      # The runner is ephemeral, so the Ryuk cleanup sidecar (a Docker Hub pull) adds nothing.
+      TESTCONTAINERS_RYUK_DISABLED: "true"
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_gradle
+        with:
+          cache-write-only: ${{ inputs.cache-write-only || false }}
+      - name: "Setup Rust toolchain"
+        uses: ./.github/actions/setup_rust
+        with:
+          targets: "x86_64-unknown-linux-gnu"
+          cache-key: p2p-e2e
+      # The native libraries of the linked-device sessions, and the relay's own workspace.
+      - uses: ./.github/actions/prefetch_native
+        with:
+          profile: desktop
+          manifests: server/relay/Cargo.toml
+      - name: "Run P2P E2E tests"
+        run: >-
+          ./gradlew --continue
+          "-Pkeyguard.nativeCargo.cargoOffline=true"
+          ${{ matrix.gradle-args }}
+      - name: "Upload test reports"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        if: always()
+        with:
+          name: ${{ matrix.reports }}
+          path: |
+            integration/p2pE2eTest/build/test-results/**
+            integration/p2pE2eTest/build/reports/tests/**
+          if-no-files-found: ignore
+          retention-days: 21

@@ -3,7 +3,9 @@ package com.artemchep.keyguard.feature.changepassword
 import androidx.compose.runtime.Composable
 import arrow.core.identity
 import arrow.core.partially1
+import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectTap
+import com.artemchep.keyguard.common.io.finally
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.Loadable
@@ -23,6 +25,7 @@ import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -76,6 +79,10 @@ suspend fun RememberStateFlowScope.changePasswordStateProducer(
     val passwordOldHandle = textFieldHandle(KEY_PASSWORD_OLD)
     val passwordNewHandle = textFieldHandle(KEY_PASSWORD_NEW)
 
+    // A password change runs one at a time: a second one would race the
+    // re-key of the vault with the first one.
+    val loadingSink = MutableStateFlow(false)
+
     val fn = unlockUseCase()
         .map { vaultState ->
             when (vaultState) {
@@ -87,6 +94,7 @@ suspend fun RememberStateFlowScope.changePasswordStateProducer(
                         requireConfirmation = requireConfirmation,
                         biometricPromptSink = biometricPromptSink,
                         windowCoroutineScope = windowCoroutineScope,
+                        loadingSink = loadingSink,
                     )
                 }
 
@@ -138,7 +146,8 @@ suspend fun RememberStateFlowScope.changePasswordStateProducer(
         passwordFlow,
         biometricFlow,
         fn,
-    ) { password, biometric, f ->
+        loadingSink,
+    ) { password, biometric, f, isLoading ->
         val isValid = password.current.error == null &&
                 password.current.text.isNotEmpty() &&
                 password.new.error == null &&
@@ -160,6 +169,7 @@ suspend fun RememberStateFlowScope.changePasswordStateProducer(
             ),
             password = password,
             biometric = biometric,
+            isLoading = isLoading,
             onConfirm = onConfirm,
         )
         Loadable.Ok(state)
@@ -171,23 +181,19 @@ private fun RememberStateFlowScope.createChangePasswordActions(
     requireConfirmation: Boolean,
     biometricPromptSink: EventFlow<BiometricAuthPrompt>,
     windowCoroutineScope: WindowCoroutineScope,
+    loadingSink: MutableStateFlow<Boolean>,
 ) = Fn(
     changePassword = { currentPassword, newPassword ->
-        val io = state.changePassword.withMasterPassword
-            .getCreateIo(currentPassword, newPassword)
-            .effectTap {
-                val msg = ToastMessage(
-                    title = translate(Res.string.changepassword_password_changed_successfully),
-                    type = ToastMessage.Type.SUCCESS,
-                )
-                message(msg)
-                // Pop the screen
-                navigatePopSelf()
-            }
-        io.launchIn(windowCoroutineScope)
+        launchChangePassword(
+            io = state.changePassword.withMasterPassword
+                .getCreateIo(currentPassword, newPassword),
+            windowCoroutineScope = windowCoroutineScope,
+            loadingSink = loadingSink,
+        )
     },
     changePasswordWithBiometric = if (state.changePassword.withMasterPasswordAndBiometric != null) {
         lambda@{ currentPassword, newPassword ->
+            if (loadingSink.value) return@lambda
             screenScope.launch {
                 val cipher = state.changePassword.withMasterPasswordAndBiometric.getCipher()
                     .fold(
@@ -208,19 +214,13 @@ private fun RememberStateFlowScope.createChangePasswordActions(
                                 message(e)
                             },
                             ifRight = {
-                                val io = state
-                                    .changePassword.withMasterPasswordAndBiometric
-                                    .getCreateIo(currentPassword, newPassword)
-                                    .effectTap {
-                                        val msg = ToastMessage(
-                                            title = translate(Res.string.changepassword_password_changed_successfully),
-                                            type = ToastMessage.Type.SUCCESS,
-                                        )
-                                        message(msg)
-                                        // Pop the screen
-                                        navigatePopSelf()
-                                    }
-                                io.launchIn(windowCoroutineScope)
+                                launchChangePassword(
+                                    io = state
+                                        .changePassword.withMasterPasswordAndBiometric
+                                        .getCreateIo(currentPassword, newPassword),
+                                    windowCoroutineScope = windowCoroutineScope,
+                                    loadingSink = loadingSink,
+                                )
                             },
                         )
                     },
@@ -232,6 +232,47 @@ private fun RememberStateFlowScope.createChangePasswordActions(
         null
     },
 )
+
+/**
+ * Runs the password change [io], unless one runs already: a second one is ignored. Shows
+ * the [loadingSink] meanwhile. Once the password changes, closes the screen and tells what
+ * the change did not carry over.
+ */
+private fun RememberStateFlowScope.launchChangePassword(
+    io: IO<VaultState.Main.ChangePassword.Report>,
+    windowCoroutineScope: WindowCoroutineScope,
+    loadingSink: MutableStateFlow<Boolean>,
+) {
+    if (!loadingSink.compareAndSet(expect = false, update = true)) {
+        return
+    }
+    io
+        .effectTap { report ->
+            val msg = ToastMessage(
+                title = translate(Res.string.changepassword_password_changed_successfully),
+                type = ToastMessage.Type.SUCCESS,
+            )
+            message(msg)
+            val notResealed = report.authoritiesNotResealed
+            if (notResealed > 0) {
+                val warning = ToastMessage(
+                    title = translate(
+                        Res.plurals.changepassword_authority_not_resealed_plural,
+                        notResealed,
+                        notResealed,
+                    ),
+                    type = ToastMessage.Type.ERROR,
+                )
+                message(warning)
+            }
+            // Pop the screen
+            navigatePopSelf()
+        }
+        .finally {
+            loadingSink.value = false
+        }
+        .launchIn(windowCoroutineScope)
+}
 
 private data class Fn(
     val changePassword: (String, String) -> Unit,

@@ -36,7 +36,7 @@ async fn incomplete_http_headers_time_out_while_serving() {
 async fn partial_http_headers_cannot_hold_shutdown_open() {
     let relay = Relay::start(test_config()).await;
     let mut socket = relay.connect().await;
-    join(&mut socket, &room_id(1), &peer_id(1)).await;
+    join(&mut socket, &room_id(1)).await;
     let mut partial = relay.open_http_connection().await;
     // A later request establishes that the accept loop has passed this client.
     relay.health().await;
@@ -81,8 +81,8 @@ async fn shutdown_cancels_a_blocked_control_reply() {
         ..test_config()
     })
     .await;
-    let socket = relay.connect().await;
-    let (mut reader, writer) = flood_non_reading_client(socket).await;
+    let client = relay.connect().await;
+    let (mut reader, writer) = flood_non_reading_client(client.socket).await;
     relay.shutdown().await;
     writer.abort();
     _ = writer.await;

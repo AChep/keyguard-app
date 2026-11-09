@@ -16,16 +16,36 @@ import com.artemchep.keyguard.common.usecase.Watchdog
 import com.artemchep.keyguard.common.usecase.WatchdogImpl
 import com.artemchep.keyguard.common.usecase.impl.GetSshAgentCiphersImpl
 import com.artemchep.keyguard.core.store.DatabaseSyncer
+import com.artemchep.keyguard.feature.p2psync.crypto.P2pCrypto
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.SyncByBitwardenTokenV2Impl
 import com.artemchep.keyguard.provider.bitwarden.usecase.SyncAllImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.SyncByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByBitwardenToken
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByKeePassToken
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByKeePassTokenImpl
+import com.artemchep.keyguard.common.service.appsync.AppSyncRecorder
+import com.artemchep.keyguard.provider.keyguard.KeyguardAuthorityKeys
+import com.artemchep.keyguard.provider.keyguard.KeyguardRosterAlertsImpl
+import com.artemchep.keyguard.provider.keyguard.P2pGroupHosts
+import com.artemchep.keyguard.provider.keyguard.QueueP2pSync
+import com.artemchep.keyguard.provider.keyguard.applink.AppLinkComponents
+import com.artemchep.keyguard.provider.keyguard.applink.AppLinkLauncher
+import com.artemchep.keyguard.provider.keyguard.applink.AppLinkService
+import com.artemchep.keyguard.provider.keyguard.applink.AppLinkSync
+import com.artemchep.keyguard.provider.keyguard.applink.AppLinkWorker
+import com.artemchep.keyguard.provider.keyguard.applink.AppLinkDeviceSettings
+import com.artemchep.keyguard.provider.keyguard.applink.AppSyncSwitches
+import com.artemchep.keyguard.provider.keyguard.crypto.NativeP2pCrypto
+import com.artemchep.keyguard.provider.keyguard.enroll.KeyguardEnrollmentCoordinator
+import com.artemchep.keyguard.provider.keyguard.session.KeyguardSessionLauncher
+import com.artemchep.keyguard.provider.keyguard.session.KeyguardSessionRegistry
+import com.artemchep.keyguard.provider.keyguard.sync.KeyguardSyncExchange
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByToken
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.SyncByTokenImpl
 import org.koin.dsl.bind
+import org.koin.dsl.binds
 import org.koin.dsl.module
+import org.koin.dsl.onClose
 import org.koin.plugin.module.dsl.scoped
 
 internal class VaultSyncModule {
@@ -133,6 +153,75 @@ internal class VaultSyncModule {
                     watchdog = get(),
                 )
             }
+
+            scoped<NativeP2pCrypto>() bind P2pCrypto::class
+
+            scoped<KeyguardAuthorityKeys> {
+                KeyguardAuthorityKeys(
+                    cryptoGenerator = get(),
+                    cipherEncryptor = get(),
+                )
+            }
+
+            // Linked apps, wired once.
+            scoped<AppLinkComponents> {
+                AppLinkComponents(
+                    db = get(),
+                    crypto = get(),
+                    cryptoGenerator = get(),
+                    authorityKeys = get(),
+                    settings = get(),
+                    getPurchased = get(),
+                    roomConnector = get(),
+                    compressor = get(),
+                    connectivityService = get(),
+                    logRepository = get(),
+                    rosterAlerts = KeyguardRosterAlertsImpl(
+                        crypto = get(),
+                        context = get(),
+                        showNotification = get(),
+                    ),
+                    relayMailboxes = get(),
+                )
+            } onClose { it?.close() }
+
+            scoped<AppSyncSwitches> {
+                get<AppLinkComponents>().switches
+            }
+
+            scoped<AppLinkDeviceSettings> {
+                get<AppLinkComponents>().deviceSettings
+            }
+
+            scoped<AppSyncRecorder> {
+                get<AppLinkComponents>().recorder
+            }
+
+            scoped<AppLinkService> {
+                get<AppLinkComponents>().service
+            }
+
+            scoped<P2pGroupHosts> {
+                get<AppLinkComponents>().hosts
+            } bind QueueP2pSync::class
+
+            scoped<AppLinkSync> {
+                get<AppLinkComponents>().sync
+            } bind AppLinkLauncher::class
+
+            // The one owner of the connections of the sync groups.
+            scoped<KeyguardSessionRegistry> {
+                get<AppLinkComponents>().registry
+            } binds arrayOf(
+                KeyguardSessionLauncher::class,
+                KeyguardSyncExchange::class,
+            )
+
+            scoped<KeyguardEnrollmentCoordinator> {
+                get<AppLinkComponents>().enrollment
+            }
+
+            scoped<AppLinkWorker>()
 
             scoped<WatchdogImpl>()
 

@@ -286,10 +286,10 @@ suspend fun RememberStateFlowScope.organizationConfirmationStateProducer(
                 )
             } + accounts
             .mapNotNull { account ->
-                // KeePass doesn't have a concept of organizations,
-                // therefore we do not want to show any if such account
-                // is selected.
-                if (account.accountType == AccountType.KEEPASS) {
+                // Only Bitwarden has a concept of organizations,
+                // therefore we do not want to show any if another
+                // account is selected.
+                if (account.accountType != AccountType.BITWARDEN) {
                     return@mapNotNull null
                 }
 

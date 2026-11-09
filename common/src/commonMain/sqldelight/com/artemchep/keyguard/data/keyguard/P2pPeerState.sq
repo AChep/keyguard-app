@@ -1,0 +1,26 @@
+-- What this device knows about each peer of a sync group.
+CREATE TABLE p2pPeerState (
+  groupId TEXT NOT NULL,
+  deviceId TEXT NOT NULL,
+  lastSeenAt INTEGER,
+  lastTransport TEXT,
+  PRIMARY KEY (groupId, deviceId),
+  FOREIGN KEY (groupId) REFERENCES p2pGroup(groupId) ON DELETE CASCADE
+);
+
+upsert:
+INSERT OR REPLACE INTO p2pPeerState(groupId, deviceId, lastSeenAt, lastTransport)
+VALUES (?, ?, ?, ?);
+
+getByGroupId:
+SELECT *
+FROM p2pPeerState
+WHERE
+    groupId == :groupId;
+
+getByDeviceId:
+SELECT *
+FROM p2pPeerState
+WHERE
+    groupId == :groupId AND
+    deviceId == :deviceId;

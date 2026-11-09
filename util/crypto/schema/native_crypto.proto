@@ -70,6 +70,10 @@ message NativeRequest {
     NoiseIntoTransportRequest noise_into_transport = 75;
     NoiseTransportWriteRequest noise_transport_write = 76;
     NoiseTransportReadRequest noise_transport_read = 77;
+    X25519AgreeRequest x25519_agree = 78;
+    MlKemKeyGenerateRequest ml_kem_key_generate = 79;
+    MlKemEncapsulateRequest ml_kem_encapsulate = 80;
+    MlKemDecapsulateRequest ml_kem_decapsulate = 81;
   }
 }
 
@@ -426,7 +430,8 @@ message Ed25519VerifyResult {
 }
 
 // Noise handshakes and transports of device-to-device sync. Both patterns use
-// Curve25519, ChaCha20-Poly1305 and SHA-256. A handshake is a stream session:
+// Curve25519, ChaCha20-Poly1305 and SHA-256; KK_HFS adds ML-KEM-1024, which
+// snow names Kyber1024. A handshake is a stream session:
 // stream_open starts it, the requests below that take its handle drive it,
 // and stream_close releases it and wipes its keys.
 enum NoisePattern {
@@ -434,9 +439,11 @@ enum NoisePattern {
   // Noise_XXpsk3_25519_ChaChaPoly_SHA256: pairing. Each side learns the
   // other's static key, and a pre-shared key authenticates the exchange.
   NOISE_PATTERN_XX_PSK3 = 1;
-  // Noise_KK_25519_ChaChaPoly_SHA256: sessions between paired devices. Each
-  // side pins the other's static key.
-  NOISE_PATTERN_KK = 2;
+  // Noise_KKhfs_25519+Kyber1024_ChaChaPoly_SHA256: sessions between paired
+  // devices. Each side pins the other's static key, and an ephemeral
+  // ML-KEM-1024 exchange joins the Diffie-Hellman ones, so a recorded session
+  // stays sealed against a quantum computer.
+  NOISE_PATTERN_KK_HFS = 2;
 }
 
 // Generates a Curve25519 static key pair, or derives the public key of a
@@ -451,7 +458,7 @@ message NoiseKeyPairResult {
   bytes public_key = 2;
 }
 
-// XX_PSK3 takes a 32-byte psk and no remote_public_key. KK takes the pinned
+// XX_PSK3 takes a 32-byte psk and no remote_public_key. KK_HFS takes the pinned
 // 32-byte remote_public_key and no psk. Both sides pass the same prologue, at
 // most 65535 bytes.
 message NoiseHandshakeStreamOpenRequest {
@@ -508,6 +515,56 @@ message NoiseTransportWriteRequest {
 message NoiseTransportReadRequest {
   uint64 handle = 1;
   bytes message = 2;
+}
+
+// RFC 7748 X25519. private_key is a raw 32-byte scalar, as in a Noise key
+// pair; public_key is a 32-byte u-coordinate. A key of another size is an
+// invalid argument. A low-order public_key, whose shared secret is all zeros,
+// fails authentication.
+message X25519AgreeRequest {
+  bytes private_key = 1;
+  bytes public_key = 2;
+}
+
+// Domain payload returned inside NativeResponse.bytes_value.
+message X25519AgreeResult {
+  bytes shared_secret = 1;
+}
+
+// FIPS 203 ML-KEM-1024. A private key is the 3168-byte decapsulation key, a
+// public key the 1568-byte encapsulation key.
+message MlKemKeyGenerateRequest {}
+
+// Domain payload returned inside NativeResponse.bytes_value.
+message MlKemKeyGenerateResult {
+  bytes private_key = 1;
+  bytes public_key = 2;
+}
+
+// A public_key of the wrong size, or one that fails the FIPS 203 modulus
+// check, is an invalid argument.
+message MlKemEncapsulateRequest {
+  bytes public_key = 1;
+}
+
+// Domain payload returned inside NativeResponse.bytes_value: the 1568-byte
+// ciphertext and the 32-byte shared secret.
+message MlKemEncapsulateResult {
+  bytes ciphertext = 1;
+  bytes shared_secret = 2;
+}
+
+// A private_key or ciphertext of the wrong size, or a private key that fails
+// the FIPS 203 hash check, is an invalid argument. A forged ciphertext yields
+// a pseudorandom shared secret, as ML-KEM rejects it implicitly.
+message MlKemDecapsulateRequest {
+  bytes private_key = 1;
+  bytes ciphertext = 2;
+}
+
+// Domain payload returned inside NativeResponse.bytes_value.
+message MlKemDecapsulateResult {
+  bytes shared_secret = 1;
 }
 
 enum PasskeyAlgorithm {

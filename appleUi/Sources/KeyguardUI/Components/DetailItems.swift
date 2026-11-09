@@ -536,7 +536,7 @@ struct DetailRow: View {
     private func qrRow(_ item: VaultItemSnapshot) -> some View {
         HStack {
             Spacer(minLength: 0)
-            DetailQRCode(text: item.text ?? "")
+            QRCodeCard(text: item.text ?? "")
             Spacer(minLength: 0)
         }
         .padding(.vertical, 8)

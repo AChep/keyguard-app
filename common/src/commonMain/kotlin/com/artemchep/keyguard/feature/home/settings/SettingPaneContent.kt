@@ -141,6 +141,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentHis
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentLocalStorageInfoProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshAgentSetupProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAppLinkProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSshSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsDebug
 import com.artemchep.keyguard.feature.home.settings.component.settingSubscriptionsPlayStoreProvider
@@ -253,6 +254,7 @@ object Setting {
     const val KEYBOARD_SHORTCUTS = "keyboard_shortcuts"
     const val CONNECTED_APPS = "connected_apps"
     const val SSH_SETTINGS = "ssh_settings"
+    const val APP_LINK = "app_link"
     const val SSH_AGENT = "ssh_agent"
     const val SSH_AGENT_APPROVAL_WINDOW = "ssh_agent_approval_window"
     const val SSH_AGENT_APPROVAL_TIMEOUT = "ssh_agent_approval_timeout"
@@ -409,6 +411,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.KEYBOARD_SHORTCUTS to ::settingKeyboardShortcutsProvider,
     Setting.CONNECTED_APPS to ::settingConnectedAppsProvider,
     Setting.SSH_SETTINGS to ::settingSshSettingsProvider,
+    Setting.APP_LINK to ::settingAppLinkProvider,
     Setting.SSH_AGENT to ::settingSshAgentProvider,
     Setting.SSH_AGENT_APPROVAL_WINDOW to ::settingSshAgentApprovalWindowProvider,
     Setting.SSH_AGENT_APPROVAL_TIMEOUT to ::settingSshAgentApprovalTimeoutProvider,

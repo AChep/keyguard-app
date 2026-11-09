@@ -453,6 +453,7 @@ enum SettingsIcon {
         case "autofill": return "wand.and.stars"
         case "security": return "lock"
         case "automatic_backups": return "externaldrive.badge.timemachine"
+        case "app_link": return "laptopcomputer.and.iphone"
         case "developer": return "chevron.left.forwardslash.chevron.right"
         case "watchtower": return "checkmark.shield"
         case "notifications": return "bell"
@@ -471,6 +472,7 @@ enum SettingsIcon {
         case "autofill": return .blue
         case "security": return .gray
         case "automatic_backups": return .green
+        case "app_link": return .teal
         case "developer": return .indigo
         case "watchtower": return .orange
         case "notifications": return .red

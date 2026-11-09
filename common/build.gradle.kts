@@ -206,6 +206,7 @@ kotlin {
                 api(project(":util:age"))
                 api(project(":util:kdbx"))
                 api(project(":util:crypto"))
+                api(project(":feature:p2p-sync"))
                 api(project(":feature:agent-setup"))
                 implementation(project(":util:csv"))
                 implementation(project(":util:gzip"))

@@ -10,6 +10,8 @@ import com.artemchep.keyguard.platform.util.hasWebPurchase
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.passkeys
+import com.artemchep.keyguard.res.pref_item_app_link_text
+import com.artemchep.keyguard.res.pref_item_app_link_title
 import com.artemchep.keyguard.res.pref_item_appearance_text
 import com.artemchep.keyguard.res.pref_item_appearance_title
 import com.artemchep.keyguard.res.pref_item_autofill_text
@@ -40,6 +42,7 @@ enum class SettingsDestination(val id: String) {
     AUTOFILL("autofill"),
     SECURITY("security"),
     AUTOMATIC_BACKUPS("automatic_backups"),
+    APP_LINK("app_link"),
     DEVELOPER("developer"),
     WATCHTOWER("watchtower"),
     NOTIFICATIONS("notifications"),
@@ -67,6 +70,8 @@ sealed interface SettingsCatalogItem {
 }
 
 /** Ordering and visibility shared by the Compose and native settings lists. */
+// One entry per destination.
+@Suppress("LongMethod")
 fun settingsCatalog(
     config: FlavorConfig,
     platform: Platform = CurrentPlatform,
@@ -80,6 +85,8 @@ fun settingsCatalog(
     includeDebug: Boolean = !release,
     includeAutomaticBackups: Boolean = (platform is Platform.Desktop || platform is Platform.Mobile.Android) &&
         (!platform.hasWatch() || !release),
+    // A watch never links its app.
+    includeAppLink: Boolean = !platform.hasWatch(),
 ): List<SettingsCatalogItem> = listOfNotNull(
     SettingsCatalogItem.Section(
         id = "section.premium",
@@ -110,6 +117,11 @@ fun settingsCatalog(
         title = Res.string.pref_item_automatic_backups_title,
         text = Res.string.pref_item_automatic_backups_text,
     ).takeIf { includeAutomaticBackups },
+    SettingsCatalogItem.Action(
+        destination = SettingsDestination.APP_LINK,
+        title = Res.string.pref_item_app_link_title,
+        text = Res.string.pref_item_app_link_text,
+    ).takeIf { includeAppLink },
     SettingsCatalogItem.Action(
         destination = SettingsDestination.DEVELOPER,
         title = Res.string.pref_item_developer_title,

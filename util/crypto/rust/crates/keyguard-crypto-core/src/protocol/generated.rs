@@ -8,7 +8,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77"
+        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -142,6 +142,14 @@ pub mod native_request {
         NoiseTransportWrite(super::NoiseTransportWriteRequest),
         #[prost(message, tag = "77")]
         NoiseTransportRead(super::NoiseTransportReadRequest),
+        #[prost(message, tag = "78")]
+        X25519Agree(super::X25519AgreeRequest),
+        #[prost(message, tag = "79")]
+        MlKemKeyGenerate(super::MlKemKeyGenerateRequest),
+        #[prost(message, tag = "80")]
+        MlKemEncapsulate(super::MlKemEncapsulateRequest),
+        #[prost(message, tag = "81")]
+        MlKemDecapsulate(super::MlKemDecapsulateRequest),
     }
 }
 /// FIDO CTAP 2.2 section 11.5: QR Noise responder handshake.
@@ -619,7 +627,7 @@ pub struct NoiseKeyPairResult {
     #[prost(bytes = "vec", tag = "2")]
     pub public_key: ::prost::alloc::vec::Vec<u8>,
 }
-/// XX_PSK3 takes a 32-byte psk and no remote_public_key. KK takes the pinned
+/// XX_PSK3 takes a 32-byte psk and no remote_public_key. KK_HFS takes the pinned
 /// 32-byte remote_public_key and no psk. Both sides pass the same prologue, at
 /// most 65535 bytes.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
@@ -696,6 +704,67 @@ pub struct NoiseTransportReadRequest {
     pub handle: u64,
     #[prost(bytes = "vec", tag = "2")]
     pub message: ::prost::alloc::vec::Vec<u8>,
+}
+/// RFC 7748 X25519. private_key is a raw 32-byte scalar, as in a Noise key
+/// pair; public_key is a 32-byte u-coordinate. A key of another size is an
+/// invalid argument. A low-order public_key, whose shared secret is all zeros,
+/// fails authentication.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct X25519AgreeRequest {
+    #[prost(bytes = "vec", tag = "1")]
+    pub private_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub public_key: ::prost::alloc::vec::Vec<u8>,
+}
+/// Domain payload returned inside NativeResponse.bytes_value.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct X25519AgreeResult {
+    #[prost(bytes = "vec", tag = "1")]
+    pub shared_secret: ::prost::alloc::vec::Vec<u8>,
+}
+/// FIPS 203 ML-KEM-1024. A private key is the 3168-byte decapsulation key, a
+/// public key the 1568-byte encapsulation key.
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct MlKemKeyGenerateRequest {}
+/// Domain payload returned inside NativeResponse.bytes_value.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct MlKemKeyGenerateResult {
+    #[prost(bytes = "vec", tag = "1")]
+    pub private_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub public_key: ::prost::alloc::vec::Vec<u8>,
+}
+/// A public_key of the wrong size, or one that fails the FIPS 203 modulus
+/// check, is an invalid argument.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct MlKemEncapsulateRequest {
+    #[prost(bytes = "vec", tag = "1")]
+    pub public_key: ::prost::alloc::vec::Vec<u8>,
+}
+/// Domain payload returned inside NativeResponse.bytes_value: the 1568-byte
+/// ciphertext and the 32-byte shared secret.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct MlKemEncapsulateResult {
+    #[prost(bytes = "vec", tag = "1")]
+    pub ciphertext: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub shared_secret: ::prost::alloc::vec::Vec<u8>,
+}
+/// A private_key or ciphertext of the wrong size, or a private key that fails
+/// the FIPS 203 hash check, is an invalid argument. A forged ciphertext yields
+/// a pseudorandom shared secret, as ML-KEM rejects it implicitly.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct MlKemDecapsulateRequest {
+    #[prost(bytes = "vec", tag = "1")]
+    pub private_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub ciphertext: ::prost::alloc::vec::Vec<u8>,
+}
+/// Domain payload returned inside NativeResponse.bytes_value.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct MlKemDecapsulateResult {
+    #[prost(bytes = "vec", tag = "1")]
+    pub shared_secret: ::prost::alloc::vec::Vec<u8>,
 }
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct PasskeyKeyGenerateRequest {
@@ -2164,7 +2233,8 @@ impl SshKeyType {
     }
 }
 /// Noise handshakes and transports of device-to-device sync. Both patterns use
-/// Curve25519, ChaCha20-Poly1305 and SHA-256. A handshake is a stream session:
+/// Curve25519, ChaCha20-Poly1305 and SHA-256; KK_HFS adds ML-KEM-1024, which
+/// snow names Kyber1024. A handshake is a stream session:
 /// stream_open starts it, the requests below that take its handle drive it,
 /// and stream_close releases it and wipes its keys.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -2174,9 +2244,11 @@ pub enum NoisePattern {
     /// Noise_XXpsk3_25519_ChaChaPoly_SHA256: pairing. Each side learns the
     /// other's static key, and a pre-shared key authenticates the exchange.
     XxPsk3 = 1,
-    /// Noise_KK_25519_ChaChaPoly_SHA256: sessions between paired devices. Each
-    /// side pins the other's static key.
-    Kk = 2,
+    /// Noise_KKhfs_25519+Kyber1024_ChaChaPoly_SHA256: sessions between paired
+    /// devices. Each side pins the other's static key, and an ephemeral
+    /// ML-KEM-1024 exchange joins the Diffie-Hellman ones, so a recorded session
+    /// stays sealed against a quantum computer.
+    KkHfs = 2,
 }
 impl NoisePattern {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -2187,7 +2259,7 @@ impl NoisePattern {
         match self {
             Self::Unspecified => "NOISE_PATTERN_UNSPECIFIED",
             Self::XxPsk3 => "NOISE_PATTERN_XX_PSK3",
-            Self::Kk => "NOISE_PATTERN_KK",
+            Self::KkHfs => "NOISE_PATTERN_KK_HFS",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2195,7 +2267,7 @@ impl NoisePattern {
         match value {
             "NOISE_PATTERN_UNSPECIFIED" => Some(Self::Unspecified),
             "NOISE_PATTERN_XX_PSK3" => Some(Self::XxPsk3),
-            "NOISE_PATTERN_KK" => Some(Self::Kk),
+            "NOISE_PATTERN_KK_HFS" => Some(Self::KkHfs),
             _ => None,
         }
     }

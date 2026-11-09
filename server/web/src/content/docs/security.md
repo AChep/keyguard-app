@@ -20,6 +20,7 @@ protection.
 | --- | --- |
 | Someone copies Keyguard's files, or takes the device while the vault is locked | Protected. They need the app password or another unlock method you set up. |
 | Your Bitwarden server or your KeePass storage is breached | Protected by your account's own encryption. See [Account encryption](#account-encryption). |
+| The relay or TURN server of your linked devices is breached | Protected. They forward end-to-end encrypted traffic and see connection metadata. With relay storage, the relay also keeps encrypted items. See [Data the relay sees](/docs/linked-devices/#data-the-relay-sees). |
 | Someone uses the device while the vault is unlocked | Not protected. They can see what you can. |
 | Malware runs as your user while the vault is unlocked | Not protected. It can read Keyguard's memory, the screen and the clipboard. |
 | An attacker controls the operating system, or the device is rooted | Not protected. They can capture the app password as you enter it. |
@@ -111,7 +112,7 @@ Keyguard asks for an Android permission when a feature first needs it.
 | --- | --- |
 | **Camera** | Scan QR codes |
 | **Post notifications** | Show download progress. Android 13 and later. |
-| **Local network** | Reach self-hosted Bitwarden, WebDAV and S3 servers on your local network |
+| **Local network** | Sync linked devices on the same network, and reach self-hosted Bitwarden, WebDAV and S3 servers on your local network |
 | **Write external storage** | Save exports to the Downloads folder. Android 10 and earlier. |
 
 The screen also lists the other permissions the app holds.

@@ -1,30 +1,35 @@
 //! Keyguard relay: WebSocket rooms that let Keyguard devices find each other and
-//! exchange opaque, end-to-end encrypted frames, plus short-lived TURN credentials.
+//! exchange opaque, end-to-end encrypted frames, plus short-lived TURN credentials and
+//! optional storage of sealed items that devices collect later.
 //!
-//! The relay keeps everything in memory. It sees room ids, per-connection peer ids,
-//! frame sizes and timing; never synced content, device identities or keys.
+//! The relay keeps rooms in memory and stored items on disk. It sees room ids, the peer
+//! ids it assigns to connections, item sizes, frame sizes and timing; never synced
+//! content, device identities or keys.
 
 mod auth;
 pub mod config;
 pub mod ice;
 mod limits;
+mod mailbox;
 mod metrics;
 mod protocol;
 mod room;
+mod store;
 mod ticket;
 mod ws;
 
-use std::net::SocketAddr;
+use std::net::{IpAddr, SocketAddr};
 use std::sync::atomic::AtomicU64;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
-use std::time::Duration;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use axum::body::Body;
 use axum::extract::ConnectInfo;
-use axum::http::{Request, StatusCode};
+use axum::http::{HeaderValue, Request, StatusCode, header::RETRY_AFTER};
+use axum::middleware::{self, Next};
 use axum::response::{IntoResponse, Response};
-use axum::routing::{get, post};
-use axum::{Json, Router};
+use axum::routing::{any, get, post};
+use axum::{Json, Router, extract::State};
 use hyper::body::Incoming;
 use hyper::server::conn::http1;
 use hyper::service::{Service as _, service_fn};
@@ -41,11 +46,15 @@ use tracing::Level;
 
 pub use config::{Config, ConfigError};
 
+use crate::config::Timeouts;
 use crate::ice::TurnUsers;
 use crate::limits::{
-    AuthGuard, ConnectionLimiter, ConnectionPermit, TurnAllowance, client_key, is_trusted_proxy,
+    AuthGuard, ConnectionLimiter, ConnectionPermit, MeteredStream, RequestAllowance, TurnAllowance,
+    client_ip, client_key, is_trusted_proxy,
 };
-use crate::protocol::ErrorCode;
+use crate::mailbox::Mailbox;
+use crate::metrics::Endpoint;
+use crate::protocol::{ErrorCode, MAX_CLIENT_FRAME_HEADER};
 use crate::room::Rooms;
 use crate::ticket::Tickets;
 
@@ -54,7 +63,13 @@ use crate::ticket::Tickets;
 /// lower limit would break it.
 pub const MAX_FRAME_BYTES: usize = 65_536;
 
-/// Only the ICE endpoint reads a body, and only a ticket.
+/// The largest mailbox state item, in bytes. Part of the protocol, not a setting.
+pub const MAILBOX_MAX_STATE_BYTES: u64 = 1_048_576;
+/// The largest mailbox blob item, in bytes: a 16 MiB blob, sealed and padded. Part of
+/// the protocol, not a setting.
+pub const MAILBOX_MAX_BLOB_BYTES: u64 = 17_825_792;
+
+/// The ICE endpoint reads a ticket at most. Mailbox uploads check their own size.
 pub(crate) const MAX_BODY_BYTES: usize = 4096;
 /// How long HTTP connections and open sockets get to finish on shutdown.
 const SHUTDOWN_GRACE: Duration = Duration::from_secs(2);
@@ -68,10 +83,14 @@ pub(crate) struct AppState {
     pub(crate) connections: Arc<ConnectionLimiter>,
     /// HTTP connections, until they become WebSockets.
     pub(crate) http_connections: Arc<ConnectionLimiter>,
+    pub(crate) ws_requests: RequestAllowance,
+    pub(crate) ice_requests: RequestAllowance,
     pub(crate) turn_allowance: TurnAllowance,
     pub(crate) turn_users: TurnUsers,
     pub(crate) tickets: Arc<Tickets>,
     pub(crate) auth_guard: AuthGuard,
+    /// Relay storage, when configured.
+    pub(crate) mailbox: Option<Mailbox>,
     pub(crate) next_connection_id: AtomicU64,
     pub(crate) shutdown: watch::Receiver<Option<Instant>>,
 }
@@ -79,6 +98,18 @@ pub(crate) struct AppState {
 /// Locks `mutex`, ignoring poison.
 pub(crate) fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
     mutex.lock().unwrap_or_else(PoisonError::into_inner)
+}
+
+/// Unix seconds.
+pub(crate) fn unix_now() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map_or(0, |since| since.as_secs())
+}
+
+/// Completes once shutdown starts.
+pub(crate) async fn stopping(shutdown: &mut watch::Receiver<Option<Instant>>) {
+    _ = shutdown.wait_for(Option::is_some).await;
 }
 
 /// Serves the relay on `listener` until `shutdown` completes.
@@ -96,12 +127,17 @@ pub async fn serve<F>(
 {
     let (stop, stopped) = watch::channel(None);
     let now = Instant::now();
+    let mailbox = config
+        .mailbox
+        .as_ref()
+        .map(|mailbox| Mailbox::new(mailbox, now));
     let state = Arc::new(AppState {
         started: now,
         metrics: metrics::Metrics::default(),
         rooms: Arc::new(Rooms::new(
             config.max_rooms,
             config.max_room_peers,
+            config.max_rooms_per_ip,
             config.egress_bytes_per_sec,
             now,
         )),
@@ -113,6 +149,16 @@ pub async fn serve<F>(
             config.max_conns_per_ip,
             config.max_conns,
         )),
+        ws_requests: RequestAllowance::new(
+            config.ws_requests_per_sec,
+            config.ws_total_per_sec,
+            now,
+        ),
+        ice_requests: RequestAllowance::new(
+            config.ice_requests_per_sec,
+            config.ice_total_per_sec,
+            now,
+        ),
         turn_allowance: TurnAllowance::new(
             config.ice_requests_per_minute,
             config.ice_ticketless_per_minute,
@@ -122,6 +168,7 @@ pub async fn serve<F>(
         turn_users: TurnUsers::new(),
         tickets: Arc::new(Tickets::new(now)),
         auth_guard: AuthGuard::new(now),
+        mailbox,
         next_connection_id: AtomicU64::new(0),
         shutdown: stopped,
         config,
@@ -130,7 +177,17 @@ pub async fn serve<F>(
     let metrics_app = metrics::router(Arc::clone(&state));
     // Monitoring has its own small cap so relay saturation cannot consume its slots.
     let metrics_connections = Arc::new(ConnectionLimiter::new(4, 16));
+    // The message budget of a connection, with room for the framing of its messages.
+    // Reading stops past it, even for bytes that never become a message.
+    let read_bytes_per_sec =
+        state.config.bytes_per_sec + u64::from(state.config.msgs_per_sec) * MAX_CLIENT_FRAME_HEADER;
     let mut connections = JoinSet::new();
+    let maintenance = state.mailbox.as_ref().map(|mailbox| {
+        tokio::spawn(mailbox::maintain(
+            Arc::clone(&mailbox.store),
+            state.shutdown.clone(),
+        ))
+    });
     tokio::pin!(shutdown);
     loop {
         tokio::select! {
@@ -154,7 +211,8 @@ pub async fn serve<F>(
                     stream,
                     peer,
                     app.clone(),
-                    state.config.timeouts.http_header,
+                    read_bytes_per_sec,
+                    state.config.timeouts,
                     state.shutdown.clone(),
                     permit,
                 ));
@@ -168,11 +226,13 @@ pub async fn serve<F>(
                 let Ok(permit) = metrics_connections.acquire(Some(client_key(peer.ip()))) else {
                     continue;
                 };
+                // A scraper that stops reading can't hold its slot either.
                 connections.spawn(serve_http(
                     stream,
                     peer,
                     metrics_app.clone(),
-                    state.config.timeouts.http_header,
+                    read_bytes_per_sec,
+                    state.config.timeouts,
                     state.shutdown.clone(),
                     permit,
                 ));
@@ -185,9 +245,19 @@ pub async fn serve<F>(
 
     let deadline = Instant::now() + SHUTDOWN_GRACE;
     _ = stop.send(Some(deadline));
+    // The storage work in flight ends too, so a new relay on the same directory doesn't
+    // race it. Nothing, a disk that hangs included, holds shutdown past the deadline.
     _ = timeout_at(deadline, async {
-        while connections.join_next().await.is_some() {}
-        state.connections.wait_until_empty().await;
+        let drained = async {
+            while connections.join_next().await.is_some() {}
+            state.connections.wait_until_empty().await;
+        };
+        let maintained = async {
+            if let Some(maintenance) = maintenance {
+                _ = maintenance.await;
+            }
+        };
+        tokio::join!(drained, maintained);
     })
     .await;
 
@@ -198,16 +268,23 @@ pub async fn serve<F>(
     state.connections.wait_until_empty().await;
 }
 
-/// Serves one connection from `peer` until it closes or becomes a WebSocket, which
-/// releases `_permit`.
+/// Serves one connection from `peer`, metered to `read_bytes_per_sec`, until it closes
+/// or becomes a WebSocket, which releases `_permit`.
 async fn serve_http(
     stream: TcpStream,
     peer: SocketAddr,
     app: Router,
-    header_timeout: Duration,
+    read_bytes_per_sec: u64,
+    timeouts: Timeouts,
     mut shutdown: watch::Receiver<Option<Instant>>,
     _permit: ConnectionPermit,
 ) {
+    let stream = MeteredStream::new(
+        stream,
+        read_bytes_per_sec,
+        timeouts.write_stall,
+        Instant::now(),
+    );
     let app = TowerToHyperService::new(app);
     let service = service_fn(move |mut request: Request<Incoming>| {
         request.extensions_mut().insert(ConnectInfo(peer));
@@ -216,14 +293,14 @@ async fn serve_http(
     let mut builder = http1::Builder::new();
     builder
         .timer(TokioTimer::new())
-        .header_read_timeout(header_timeout);
+        .header_read_timeout(timeouts.http_header);
     let connection = builder
         .serve_connection(TokioIo::new(stream), service)
         .with_upgrades();
     tokio::pin!(connection);
     tokio::select! {
         _ = &mut connection => {}
-        () = async { _ = shutdown.wait_for(Option::is_some).await; } => {
+        () = stopping(&mut shutdown) => {
             connection.as_mut().graceful_shutdown();
             _ = connection.await;
         }
@@ -237,15 +314,64 @@ fn router(state: Arc<AppState>) -> Router {
         .make_span_with(|request: &Request<Body>| {
             tracing::debug_span!("http", method = %request.method(), path = %request.uri().path())
         })
-        // The only 5xx is the 503 at `RELAY_MAX_CONNS`: expected under load, not an error.
+        // Capacity and admission refusals return 503: expected under load.
         .on_failure(DefaultOnFailure::new().level(Level::DEBUG));
     Router::new()
         .route("/healthz", get(healthz))
         .route("/v1/ws", get(ws::upgrade))
         .route("/v1/ice-servers", post(ice::ice_servers))
         .layer(RequestBodyLimitLayer::new(MAX_BODY_BYTES))
+        // Added after the body limit: an upload checks its `Content-Length` against the
+        // cap of its kind, and reads no more.
+        .route("/v1/mailbox/", any(mailbox::handle))
+        .route("/v1/mailbox/{*kind}", any(mailbox::handle))
+        // Before body-size rejection and handler extractors, including malformed
+        // WebSocket upgrade requests. The middleware leaves health probes unmetered.
+        .route_layer(middleware::from_fn_with_state(
+            Arc::clone(&state),
+            admit_request,
+        ))
         .layer(trace)
         .with_state(state)
+}
+
+/// The client key of a request to an endpoint, which [`admit_request`] works out once.
+#[derive(Debug, Clone, Copy)]
+pub(crate) struct ClientKey(pub(crate) IpAddr);
+
+/// Bounds endpoint work before authentication, upgrade extraction or body reads, and
+/// hands endpoints the [`ClientKey`]. The health probe and the separate metrics listener
+/// do not use these allowances.
+async fn admit_request(
+    State(state): State<Arc<AppState>>,
+    ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    mut request: Request<Body>,
+    next: Next,
+) -> Response {
+    let metered = match request.uri().path() {
+        "/v1/ws" => Some((&state.ws_requests, Endpoint::WebSocket)),
+        "/v1/ice-servers" => Some((&state.ice_requests, Endpoint::Ice)),
+        // Without storage, the mailbox answers `404` unmetered.
+        path if path.starts_with(mailbox::PATH_PREFIX) => state
+            .mailbox
+            .as_ref()
+            .map(|mailbox| (&mailbox.requests, Endpoint::Mailbox)),
+        _ => return next.run(request).await,
+    };
+    let key = client_key(client_ip(
+        peer,
+        request.headers(),
+        &state.config.trust_proxy,
+    ));
+    if let Some((allowance, endpoint)) = metered
+        && let Err(reason) = allowance.try_take(key, Instant::now())
+    {
+        state.metrics.request_rate_limits[endpoint as usize][reason as usize].inc();
+        let response = http_error(reason.status(), ErrorCode::RateLimited);
+        return with_retry_after(response, allowance.retry_after());
+    }
+    request.extensions_mut().insert(ClientKey(key));
+    next.run(request).await
 }
 
 #[derive(Serialize)]
@@ -258,7 +384,20 @@ async fn healthz() -> Json<Health> {
     Json(Health { status: "ok" })
 }
 
+#[derive(Serialize)]
+struct ErrorBody {
+    error: ErrorCode,
+}
+
 /// An HTTP error with the body `{"error":"<code>"}`.
 pub(crate) fn http_error(status: StatusCode, code: ErrorCode) -> Response {
-    (status, Json(serde_json::json!({ "error": code }))).into_response()
+    (status, Json(ErrorBody { error: code })).into_response()
+}
+
+/// `response` with `Retry-After: <seconds>`, at least one.
+pub(crate) fn with_retry_after(mut response: Response, seconds: u64) -> Response {
+    response
+        .headers_mut()
+        .insert(RETRY_AFTER, HeaderValue::from(seconds.max(1)));
+    response
 }

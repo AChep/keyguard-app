@@ -59,8 +59,14 @@ public enum class NativeCryptoCapability(
     /** RFC 8032 Ed25519 key generation, signing, and strict verification. */
     ED25519(bit = 1L shl 39),
 
-    /** Noise XXpsk3 and KK handshakes and transports. */
+    /** Noise XXpsk3 and KKhfs handshakes and transports. */
     NOISE(bit = 1L shl 40),
+
+    /** RFC 7748 X25519 key agreement that rejects low-order public keys. */
+    X25519(bit = 1L shl 41),
+
+    /** FIPS 203 ML-KEM-1024 key generation, encapsulation and decapsulation. */
+    ML_KEM(bit = 1L shl 42),
 }
 
 public object NativeCrypto {

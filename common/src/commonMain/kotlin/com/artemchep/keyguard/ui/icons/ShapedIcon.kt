@@ -16,12 +16,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.graphics.shapes.RoundedPolygon
 
 val ShapedIconSize = 56.dp
 
 /**
- * A hero icon on a cookie-shaped container. The colors
+ * A hero icon on a Material [shape], a cookie by default. The colors
  * animate when the state the icon conveys changes.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -31,6 +33,8 @@ fun ShapedIcon(
     containerColor: Color,
     contentColor: Color,
     modifier: Modifier = Modifier,
+    shape: RoundedPolygon = MaterialShapes.Cookie9Sided,
+    size: Dp = ShapedIconSize,
 ) {
     val container by animateColorAsState(
         targetValue = containerColor,
@@ -42,8 +46,8 @@ fun ShapedIcon(
     )
     Box(
         modifier = modifier
-            .size(ShapedIconSize)
-            .clip(MaterialShapes.Cookie9Sided.toShape())
+            .size(size)
+            .clip(shape.toShape())
             .background(container),
         contentAlignment = Alignment.Center,
     ) {

@@ -6,6 +6,7 @@ import android.os.Build
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import coil3.SingletonImageLoader
+import com.artemchep.keyguard.provider.keyguard.transport.KeyguardTransportFactory
 import com.artemchep.keyguard.android.AndroidCredentialCapabilitiesModule
 import com.artemchep.keyguard.android.BaseApp
 import com.artemchep.keyguard.android.CredentialProviderPlatformConfig
@@ -92,6 +93,8 @@ private class WearApplicationModule(
         single<BillingManager> { BillingManagerImpl(application()) }
         single { FlavorConfig(isFreeAsBeer = true) }
         single<AndroidIpcRegistrationService> { AndroidIpcRegistrationServiceNone }
+        // The watch never links WebRTC: it only talks to the relay.
+        single<KeyguardTransportFactory> { KeyguardTransportFactory.RelayOnly }
     }
 }
 

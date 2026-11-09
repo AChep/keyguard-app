@@ -51,6 +51,11 @@ def classify(paths, *, full=False, all_checks=False):
         # Kotlin/build-plugin suites; only actual platform regressions live here.
         if path.startswith(("buildPlugins/src/test/", "scripts/test_")):
             continue
+        # Pure Kotlin sync protocol and its WebRTC transport (Check Tests), the relay
+        # server's own Cargo workspace (Check Relay) and the device sync E2E suite
+        # (Check P2P E2E): none of them links an app native library.
+        if path.startswith(("feature/p2p-sync/", "feature/p2p-webrtc/", "server/relay/", "integration/p2pE2eTest/")):
+            continue
         if path.startswith("docs/security/native-crypto-"):
             enable("crypto")
             continue
@@ -85,9 +90,13 @@ def classify(paths, *, full=False, all_checks=False):
         if path.startswith(".github/native-crypto-"):
             enable("crypto", "desktop", "android", "apple")
             continue
+        # Rust quality runs the supply-chain policy of util/webrtc.
+        if path == ".github/native-p2p-deny.toml":
+            enable("native_quality")
+            continue
         # The pinned cargo-about, cargo-deny, cargo-sbom and cargo-fuzz.
         if path.startswith(".github/actions/setup_cargo_tools/"):
-            enable("crypto", "fuzz")
+            enable("crypto", "fuzz", "native_quality")
             continue
         # The protocol generator ships in no bridge; the protocol drift checks run it.
         if path.startswith("util/ffi/tools/"):
@@ -102,7 +111,7 @@ def classify(paths, *, full=False, all_checks=False):
                     continue
             enable("io", "instance", "agent_ipc", "desktop", "desktop_regressions", "android", "apple", "apple_regressions")
             continue
-        module = re.match(r"util/(age|crypto|dns|io|zxcvbn|zip|instance|webauthn|yubikey|fido2|windows-passkeys|agent-ipc)/(.+)", path)
+        module = re.match(r"util/(age|crypto|dns|io|zxcvbn|zip|instance|webauthn|yubikey|fido2|windows-passkeys|agent-ipc|webrtc)/(.+)", path)
         if module:
             name, relative = module.groups()
             if name in {"yubikey", "fido2"}:

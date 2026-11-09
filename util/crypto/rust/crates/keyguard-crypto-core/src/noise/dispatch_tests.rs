@@ -118,14 +118,14 @@ fn xx(initiator: bool, keys: &Keys, psk: &[u8]) -> u64 {
 
 fn kk(initiator: bool, keys: &Keys, remote: &[u8]) -> u64 {
     open(
-        NoisePattern::Kk,
+        NoisePattern::KkHfs,
         initiator,
         &keys.private,
         remote,
         &[],
         PROLOGUE,
     )
-    .expect("KK")
+    .expect("KKhfs")
 }
 
 fn write(handle: u64, payload: &[u8]) -> Result<Vec<u8>, NativeErrorCode> {
@@ -269,6 +269,49 @@ fn kk_round_trips_between_pinned_keys() {
 }
 
 #[test]
+fn kk_hfs_carries_an_ml_kem_key_and_ciphertext() {
+    let (alice, bob) = (keys(), keys());
+    let initiator = kk(true, &alice, &bob.public);
+    let responder = kk(false, &bob, &alice.public);
+    // An ephemeral key, an encrypted ML-KEM-1024 key or ciphertext, and the
+    // tag of the empty payload.
+    let expected = KEY_BYTES + crate::ml_kem::PUBLIC_KEY_BYTES + TAG_BYTES + TAG_BYTES;
+    let first = write(initiator, b"").unwrap();
+    assert_eq!(first.len(), expected);
+    read(responder, &first).unwrap();
+    let second = write(responder, b"").unwrap();
+    assert_eq!(second.len(), expected);
+    read(initiator, &second).unwrap();
+    let (initiator, responder) = into_transports(initiator, responder);
+    assert_transports_talk(initiator, responder);
+    close(initiator);
+    close(responder);
+}
+
+#[test]
+fn a_changed_ml_kem_part_fails_the_handshake() {
+    // The first message carries the encapsulation key, the second the
+    // ciphertext; both right after the 32-byte ephemeral key.
+    for tamper_first in [true, false] {
+        let (alice, bob) = (keys(), keys());
+        let initiator = kk(true, &alice, &bob.public);
+        let responder = kk(false, &bob, &alice.public);
+        let mut first = write(initiator, b"").unwrap();
+        if tamper_first {
+            first[KEY_BYTES + 7] ^= 1;
+            assert_eq!(read(responder, &first), Err(AuthenticationFailed));
+        } else {
+            read(responder, &first).unwrap();
+            let mut second = write(responder, b"").unwrap();
+            second[KEY_BYTES + 7] ^= 1;
+            assert_eq!(read(initiator, &second), Err(AuthenticationFailed));
+        }
+        close(initiator);
+        close(responder);
+    }
+}
+
+#[test]
 fn a_wrong_psk_fails_and_ends_the_session() {
     let (alice, bob) = (keys(), keys());
     let initiator = xx(true, &alice, &PSK);
@@ -393,11 +436,11 @@ fn invalid_arguments_leave_the_session_usable() {
         (NoisePattern::XxPsk3, key, remote, &PSK[..], PROLOGUE),
         (NoisePattern::XxPsk3, key, &[][..], &[][..], PROLOGUE),
         (NoisePattern::XxPsk3, key, &[][..], &PSK[..31], PROLOGUE),
-        (NoisePattern::Kk, key, remote, &PSK[..], PROLOGUE),
-        (NoisePattern::Kk, key, &[][..], &[][..], PROLOGUE),
-        (NoisePattern::Kk, key, &remote[..31], &[][..], PROLOGUE),
+        (NoisePattern::KkHfs, key, remote, &PSK[..], PROLOGUE),
+        (NoisePattern::KkHfs, key, &[][..], &[][..], PROLOGUE),
+        (NoisePattern::KkHfs, key, &remote[..31], &[][..], PROLOGUE),
         (
-            NoisePattern::Kk,
+            NoisePattern::KkHfs,
             key,
             remote,
             &[][..],

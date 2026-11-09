@@ -1,0 +1,63 @@
+# cargo-deny policy for the device-to-device sync crates of the root workspace:
+# util/webrtc. Noise runs in util/crypto, under native-crypto-deny.toml. CI
+# checks it once per shipped crate (core, jni, c), so each graph holds only what
+# that crate links.
+#
+# cargo-deny has no includes, and an ignored advisory applies to every graph a
+# policy checks. So this file repeats native-crypto-deny.toml without its
+# advisory exceptions and per-crate bans; scripts/test_native_deny_policies.py
+# keeps the rest equal.
+[graph]
+all-features = true
+
+[advisories]
+version = 2
+yanked = "deny"
+
+[licenses]
+version = 2
+confidence-threshold = 0.8
+allow = [
+    "0BSD",
+    "Apache-2.0",
+    "BSD-1-Clause",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "CC0-1.0",
+    "ISC",
+    "MIT",
+    "MIT-0",
+    "NCSA",
+    "Unicode-3.0",
+    "Unlicense",
+    "Zlib",
+]
+
+[licenses.private]
+# Workspace crates are application-internal and are never published.
+ignore = true
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+highlight = "all"
+
+# util/crypto links AWS-LC into the same Apple binaries, and a second copy
+# collides at the link. WebRTC uses ring, whose symbols carry a version prefix.
+deny = [
+    { crate = "aws-lc-rs", reason = "util/webrtc must use crypto-ring; AWS-LC belongs to util/crypto" },
+    { crate = "aws-lc-sys", reason = "util/webrtc must use crypto-ring; AWS-LC belongs to util/crypto" },
+]
+
+[[bans.features]]
+crate = "webrtc"
+allow = ["crypto-ring", "runtime-tokio"]
+exact = true
+reason = "Keep WebRTC on tokio and ring, without defaults"
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

@@ -109,10 +109,11 @@ def pe_exports(
 
 
 def apk(path: Path, abis: tuple[str, ...] = ("arm64-v8a",),
-        omit: str | None = None, compressed: bool = False, aligned: bool = True) -> None:
+        omit: str | None = None, compressed: bool = False, aligned: bool = True,
+        modules: tuple[str, ...] = verify.ANDROID_MODULES) -> None:
     with zipfile.ZipFile(path, "w") as package:
         for abi in abis:
-            for name in verify.ANDROID_MODULES:
+            for name in modules:
                 if name == omit:
                     continue
                 info = zipfile.ZipInfo(f"lib/{abi}/libkeyguard_{name}_jni.so")
@@ -152,6 +153,44 @@ class NativeBundleTest(unittest.TestCase):
             verify.inspect_android([complete], ["arm64-v8a"])
             with self.assertRaisesRegex(verify.InspectionError, "zxcvbn ABI coverage"):
                 verify.inspect_android([complete, missing], ["arm64-v8a"])
+
+    def test_device_sync_libraries_ship_everywhere_but_webrtc_on_wear(self) -> None:
+        # Noise runs in the crypto library, which every package bundles.
+        self.assertNotIn("noise", verify.MODULES)
+        for modules in (verify.DESKTOP_MODULES, verify.ANDROID_MODULES, verify.APPLE_APP_MODULES):
+            self.assertIn("webrtc", modules)
+        self.assertIn("crypto", verify.WEAR_MODULES)
+        self.assertNotIn("webrtc", verify.WEAR_MODULES)
+        self.assertEqual(("webrtc",), verify.WEAR_FORBIDDEN_MODULES)
+        self.assertEqual((13, 13), (len(verify.MODULES["webrtc"].exports("jni")), len(verify.MODULES["webrtc"].exports("c"))))
+
+    def test_wear_requires_crypto_and_rejects_webrtc(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            watch, phone = Path(tmp, "wear.apk"), Path(tmp, "phone.apk")
+            apk(watch, modules=verify.WEAR_MODULES)
+            apk(phone)
+            verify.inspect_android([watch], ["arm64-v8a"], wear=True)
+            self.assertEqual(0, verify.main(["wear", str(watch), "--expected-abi", "arm64-v8a"]))
+            with self.assertRaisesRegex(verify.InspectionError, "Wear package bundles webrtc"):
+                verify.inspect_android([phone], ["arm64-v8a"], wear=True)
+            with self.assertRaisesRegex(verify.InspectionError, "webrtc ABI coverage"):
+                verify.inspect_android([watch], ["arm64-v8a"])
+            apk(watch, modules=verify.WEAR_MODULES, omit="crypto")
+            with self.assertRaisesRegex(verify.InspectionError, "crypto ABI coverage"):
+                verify.inspect_android([watch], ["arm64-v8a"], wear=True)
+
+    def test_device_sync_archives_hold_exactly_the_reviewed_c_abi(self) -> None:
+        for name in ("webrtc",):
+            module = verify.MODULES[name]
+            with self.subTest(module=name), tempfile.TemporaryDirectory() as tmp:
+                path = Path(tmp, f"libkeyguard_{name}_c.a")
+                path.write_bytes(archive(macho()))
+                with patch.object(verify, "read_exports", return_value=set(module.exports("c"))):
+                    verify.inspect_apple([path], "aarch64", False)
+                unreviewed = f"keyguard_{name}_unreviewed"
+                with patch.object(verify, "read_exports", return_value=set(module.exports("c")) | {unreviewed}):
+                    with self.assertRaisesRegex(verify.InspectionError, f"unreviewed API exports: {unreviewed}"):
+                        verify.inspect_apple([path], "aarch64", False)
 
     def test_android_default_contract_covers_all_four_abis(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:

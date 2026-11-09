@@ -19,6 +19,7 @@ class GlobalModuleCommon {
             ApplicationSettingsModule().module,
             ApplicationEnvironmentsModule().module,
             ApplicationCliModule().module,
+            ApplicationKeyguardSyncModule().module,
         )
     }
 }

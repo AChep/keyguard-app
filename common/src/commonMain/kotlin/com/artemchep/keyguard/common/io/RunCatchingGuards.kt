@@ -1,6 +1,9 @@
 package com.artemchep.keyguard.common.io
 
+import arrow.core.throwIfFatal
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 /**
  * [runCatching] minus the two throwables that must never be swallowed: a
@@ -11,6 +14,18 @@ import kotlinx.coroutines.CancellationException
  */
 inline fun <R> runCatchingNonFatal(block: () -> R): Result<R> =
     runCatching(block).onFailure(Throwable::throwIfFatalOrCancellation)
+
+/**
+ * [runCatching] for suspending work that may end with a [CancellationException] of
+ * its own, such as a network library ending a broken connection: that one becomes
+ * a failure like any other. The cancellation of the caller, and a fatal error,
+ * still propagate.
+ */
+suspend inline fun <R> runCatchingUnlessCancelled(block: () -> R): Result<R> =
+    runCatching(block).onFailure { e ->
+        currentCoroutineContext().ensureActive()
+        if (e !is CancellationException) e.throwIfFatal()
+    }
 
 /**
  * [runCatchingNonFatal] with exactly two deliberate exceptions: a

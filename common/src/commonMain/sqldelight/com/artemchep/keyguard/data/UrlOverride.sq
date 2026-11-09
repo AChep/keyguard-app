@@ -1,15 +1,21 @@
 import kotlin.time.Instant;
 
+-- The URL overrides. The syncId is the override's id on every linked app;
+-- the id is local to this database. The built-in override has no syncId:
+-- every app adds its own, so it never syncs.
 CREATE TABLE urlOverride (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   regex TEXT NOT NULL,
   command TEXT NOT NULL,
   createdAt INTEGER AS Instant NOT NULL,
-  enabled INTEGER NOT NULL
+  enabled INTEGER NOT NULL,
+  syncId TEXT
 );
 
 CREATE INDEX idx_urlOverride_createdAt ON urlOverride(createdAt DESC);
+
+CREATE UNIQUE INDEX idx_urlOverride_syncId ON urlOverride(syncId);
 
 INSERT INTO urlOverride(name, regex, command, createdAt, enabled)
 VALUES (
@@ -32,9 +38,20 @@ update {
     id = :id;
 }
 
+updateBySyncId {
+  UPDATE urlOverride
+  SET
+    name = :name,
+    regex = :regex,
+    command = :command,
+    enabled = :enabled
+  WHERE
+    syncId = :syncId;
+}
+
 insert {
-  INSERT OR IGNORE INTO urlOverride(name, regex, command, createdAt, enabled)
-  VALUES (:name, :regex, :command, :createdAt, :enabled);
+  INSERT OR IGNORE INTO urlOverride(name, regex, command, createdAt, enabled, syncId)
+  VALUES (:name, :regex, :command, :createdAt, :enabled, :syncId);
 }
 
 get:
@@ -43,9 +60,42 @@ FROM urlOverride
 ORDER BY createdAt DESC
 LIMIT :limit;
 
+getSyncIds:
+SELECT syncId
+FROM urlOverride
+WHERE syncId IS NOT NULL;
+
+getSyncIdsByIds:
+SELECT syncId
+FROM urlOverride
+WHERE id IN :ids AND syncId IS NOT NULL;
+
+getBySyncId:
+SELECT *
+FROM urlOverride
+WHERE
+    syncId = :syncId;
+
+getById:
+SELECT *
+FROM urlOverride
+WHERE
+    id = :id;
+
+updateSyncId:
+UPDATE urlOverride
+SET
+  syncId = :newSyncId
+WHERE
+  syncId = :syncId;
+
 deleteAll:
 DELETE FROM urlOverride;
 
 deleteByIds:
 DELETE FROM urlOverride
-WHERE id IN (:ids);
+WHERE id IN :ids;
+
+deleteBySyncId:
+DELETE FROM urlOverride
+WHERE syncId = :syncId;

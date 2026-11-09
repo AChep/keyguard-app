@@ -2,17 +2,18 @@
 
 use std::net::IpAddr;
 
-use axum::http::header::{AUTHORIZATION, RETRY_AFTER};
+use axum::http::header::{AUTHORIZATION, WWW_AUTHENTICATE};
 use axum::http::{HeaderMap, HeaderValue, StatusCode};
 use axum::response::Response;
 use tokio::time::Instant;
 
-use crate::limits::{AuthGuard, AuthOutcome};
+use crate::limits::{AUTH_RETRY_AFTER_SECS, AuthOutcome};
 use crate::protocol::ErrorCode;
-use crate::{AppState, http_error};
+use crate::{AppState, http_error, with_retry_after};
 
 /// Checks the token of a request from the client key `key`. A key that failed too often
-/// is locked out for a while, even with the right token. Without a configured token,
+/// must wait before another wrong token is checked. A valid token is always accepted
+/// by this guard; HTTP admission still applies. Without a configured token,
 /// every request is allowed.
 pub(crate) fn check(
     state: &AppState,
@@ -33,14 +34,19 @@ pub(crate) fn check(
     outcome
 }
 
+/// The answer to a wrong or missing token: `401 {"error":"unauthorized"}`.
+pub(crate) fn unauthorized() -> Response {
+    let mut response = http_error(StatusCode::UNAUTHORIZED, ErrorCode::Unauthorized);
+    response
+        .headers_mut()
+        .insert(WWW_AUTHENTICATE, HeaderValue::from_static("Bearer"));
+    response
+}
+
 /// The answer to a locked-out key: `429 {"error":"rate_limited"}` with `Retry-After`.
 pub(crate) fn locked() -> Response {
-    let mut response = http_error(StatusCode::TOO_MANY_REQUESTS, ErrorCode::RateLimited);
-    response.headers_mut().insert(
-        RETRY_AFTER,
-        HeaderValue::from(AuthGuard::retry_after_secs()),
-    );
-    response
+    let response = http_error(StatusCode::TOO_MANY_REQUESTS, ErrorCode::RateLimited);
+    with_retry_after(response, AUTH_RETRY_AFTER_SECS)
 }
 
 /// Whether the request carries `expected` as `Authorization: Bearer <token>` or as

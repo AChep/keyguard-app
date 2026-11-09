@@ -62,6 +62,9 @@ dependencies {
     implementation(project(":feature:android-ipc-android"))
     implementation(project(":feature:qr-scanner-android"))
     implementation(project(":feature:passkey-hybrid-android"))
+    // Device-to-device sync over WebRTC. Never on Wear.
+    implementation(project(":util:webrtc"))
+    implementation(project(":feature:p2p-webrtc"))
     baselineProfile(project(":androidBenchmark"))
 
     // Credential exchange (CXF/CXP) export registration relies on the

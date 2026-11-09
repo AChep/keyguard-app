@@ -119,7 +119,7 @@ jobs:
           -Pkeyguard.nativeCargo.cargoOffline=true
       - name: "Verify native bundle"
         run: >-
-          python scripts/verify_native_bundle.py android
+          python scripts/verify_native_bundle.py wear
           wearApp/build/outputs/bundle/playStoreRelease/wearApp-playStore-release.aab
       - name: 'Upload WearOS .aab'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a

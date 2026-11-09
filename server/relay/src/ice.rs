@@ -7,16 +7,15 @@
 //! Each client address gets a TURN allowance, larger for requests that carry the
 //! ticket of a live WebSocket. Past it, the answer still succeeds with STUN only.
 
-use std::net::{IpAddr, SocketAddr};
+use std::net::IpAddr;
 use std::sync::Arc;
-use std::time::{SystemTime, UNIX_EPOCH};
 
-use axum::Json;
 use axum::body::Body;
-use axum::extract::{ConnectInfo, State};
-use axum::http::header::{CACHE_CONTROL, WWW_AUTHENTICATE};
+use axum::extract::State;
+use axum::http::header::CACHE_CONTROL;
 use axum::http::{HeaderMap, HeaderValue, StatusCode, Uri};
 use axum::response::{IntoResponse, Response};
+use axum::{Extension, Json};
 use base64::Engine;
 use base64::engine::general_purpose::STANDARD;
 use hmac::{Hmac, Mac};
@@ -25,10 +24,10 @@ use sha1::Sha1;
 use tokio::time::{Instant, timeout};
 
 use crate::config::TurnConfig;
-use crate::limits::{AuthOutcome, client_ip, client_key};
-use crate::protocol::{ErrorCode, decode_hex, encode_hex};
+use crate::limits::AuthOutcome;
+use crate::protocol::{decode_hex, encode_hex};
 use crate::ticket::{TICKET_LEN, Ticket};
-use crate::{AppState, MAX_BODY_BYTES, auth, http_error};
+use crate::{AppState, ClientKey, MAX_BODY_BYTES, auth, unix_now};
 
 /// `ttlSeconds` of an answer without TURN while TURN is configured: clients ask again
 /// within a minute instead of going without TURN for a whole credential lifetime.
@@ -89,14 +88,14 @@ fn ticket_of(body: &[u8]) -> Option<Ticket> {
 
 #[derive(Serialize)]
 #[serde(rename_all = "camelCase")]
-struct IceServersResponse {
-    ice_servers: Vec<IceServer>,
+struct IceServersResponse<'a> {
+    ice_servers: Vec<IceServer<'a>>,
     ttl_seconds: u64,
 }
 
 #[derive(Serialize)]
-struct IceServer {
-    urls: Vec<String>,
+struct IceServer<'a> {
+    urls: &'a [String],
     #[serde(skip_serializing_if = "Option::is_none")]
     username: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -106,23 +105,16 @@ struct IceServer {
 /// `POST /v1/ice-servers`.
 pub(crate) async fn ice_servers(
     State(state): State<Arc<AppState>>,
-    ConnectInfo(peer): ConnectInfo<SocketAddr>,
+    Extension(ClientKey(key)): Extension<ClientKey>,
     headers: HeaderMap,
     uri: Uri,
     body: Body,
 ) -> Response {
     let config = &state.config;
-    let key = client_key(client_ip(peer, &headers, &config.trust_proxy));
     // Before the body is read, so an unauthorized request can't hold the connection.
     match auth::check(&state, key, &headers, uri.query()) {
         AuthOutcome::Allowed => {}
-        AuthOutcome::Unauthorized => {
-            let mut response = http_error(StatusCode::UNAUTHORIZED, ErrorCode::Unauthorized);
-            response
-                .headers_mut()
-                .insert(WWW_AUTHENTICATE, HeaderValue::from_static("Bearer"));
-            return response;
-        }
+        AuthOutcome::Unauthorized => return auth::unauthorized(),
         AuthOutcome::Locked => return auth::locked(),
     }
     let body = match timeout(
@@ -139,7 +131,7 @@ pub(crate) async fn ice_servers(
     let mut ice_servers = Vec::with_capacity(2);
     if !config.stun_urls.is_empty() {
         ice_servers.push(IceServer {
-            urls: config.stun_urls.clone(),
+            urls: &config.stun_urls,
             username: None,
             credential: None,
         });
@@ -170,14 +162,11 @@ pub(crate) async fn ice_servers(
 }
 
 /// A fresh TURN credential for `turn` and the user `tag`, valid for `ttl_seconds`.
-fn mint(turn: &TurnConfig, ttl_seconds: u64, tag: &str) -> IceServer {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map_or(0, |since| since.as_secs());
-    let username = turn_username(now + ttl_seconds, tag);
+fn mint<'a>(turn: &'a TurnConfig, ttl_seconds: u64, tag: &str) -> IceServer<'a> {
+    let username = turn_username(unix_now() + ttl_seconds, tag);
     let credential = turn_credential(&turn.secret, &username);
     IceServer {
-        urls: turn.urls.clone(),
+        urls: &turn.urls,
         username: Some(username),
         credential: Some(credential),
     }

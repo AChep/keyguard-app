@@ -4,11 +4,13 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import androidx.test.platform.app.InstrumentationRegistry
 import com.artemchep.keyguard.nativebundle.NativeBundleProbe
+import com.artemchep.keyguard.nativebundle.nativeProbe
 import com.artemchep.keyguard.nativecrypto.NativeCrypto
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyKind
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyVersion
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpVerificationStatus
 import com.artemchep.keyguard.util.io.LocalPath
+import com.artemchep.keyguard.util.webrtc.WebRtcRuntime
 import org.junit.Test
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
@@ -66,5 +68,7 @@ class NativeBundleSmokeTest {
         } finally {
             directory.toFile().deleteRecursively()
         }
+        // The phone app links WebRTC; common, which Wear OS shares, does not.
+        nativeProbe("webrtc") { WebRtcRuntime.ensureAvailable() }
     }
 }

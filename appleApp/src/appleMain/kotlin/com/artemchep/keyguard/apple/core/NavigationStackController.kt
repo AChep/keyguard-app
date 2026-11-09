@@ -1369,6 +1369,13 @@ internal class NavigationStackController(
         // password, so there is nothing to reconstruct it from.
         RouteDescriptor.PasswordMemory -> null
 
+        // Linked devices is a settings section, and its pairing flows are
+        // native screens it opens itself.
+        RouteDescriptor.AppLink,
+        is RouteDescriptor.AppLinkPair,
+        RouteDescriptor.AppLinkConnection,
+        -> null
+
         is RouteDescriptor.Unmapped -> null
     }
 

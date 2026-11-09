@@ -12,6 +12,7 @@ catalog = json.loads(source.read_text(encoding="utf-8"))
 permissions = {
     "NSCameraUsageDescription": "pref_item_permission_camera_text",
     "NSFaceIDUsageDescription": "unlock_biometric_auth_confirm_text",
+    "NSLocalNetworkUsageDescription": "pref_item_permission_local_network_text",
 }
 missing = [key for key in permissions.values() if key not in catalog["strings"]]
 if missing:

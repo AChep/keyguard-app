@@ -22,7 +22,11 @@ import com.artemchep.keyguard.common.service.logging.PlatformLogSinkRegistry
 import com.artemchep.keyguard.common.service.logging.kotlin.LogRepositoryKotlin
 import com.artemchep.keyguard.common.service.text.Base32Service
 import com.artemchep.keyguard.common.service.vault.VaultSessionFactory
+import com.artemchep.keyguard.common.usecase.GetAppLinkState
+import com.artemchep.keyguard.common.usecase.GetAppLinkSyncCategories
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.GetPurchased
+import com.artemchep.keyguard.common.usecase.PutAppLinkSyncCategory
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.worker.WorkerRegistry
 import com.artemchep.keyguard.copy.FileWatcherServiceApple
@@ -36,6 +40,13 @@ import com.artemchep.keyguard.provider.bitwarden.transport.BitwardenHttpClientPr
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountMutualTls
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsService
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
+import com.artemchep.keyguard.provider.keyguard.P2pMembershipStore
+import com.artemchep.keyguard.provider.keyguard.applink.AppLinkWorker
+import com.artemchep.keyguard.provider.keyguard.enroll.KeyguardEnrollmentCoordinator
+import com.artemchep.keyguard.provider.keyguard.session.KeyguardRoomConnector
+import com.artemchep.keyguard.provider.keyguard.session.KeyguardSessionRegistry
+import com.artemchep.keyguard.provider.keyguard.sync.KeyguardSyncExchange
+import com.artemchep.keyguard.provider.keyguard.transport.KeyguardTransportFactory
 import com.artemchep.keyguard.util.webauthn.WebAuthnAuthenticator
 import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
 import com.artemchep.keyguard.util.webauthn.crypto.PasskeyCrypto
@@ -125,6 +136,30 @@ class IosKoinGraphTest {
             assertFalse(secondWindow.coroutineContext[Job]!!.isActive)
         } finally {
             application.close()
+        }
+    }
+
+    @Test
+    fun `Linked devices and P2P sync services resolve in a vault scope`() = runTest {
+        withTestAppleStorage { directories ->
+            directories.withKoin { koin ->
+                val masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+                koin.withVaultSession(masterKey) { session ->
+                    assertNotNull(session.resolve { get<KeyguardSessionRegistry>() })
+                    assertNotNull(session.resolve { get<KeyguardSyncExchange>() })
+                    assertNotNull(session.resolve { get<AppLinkWorker>() })
+                    assertNotNull(session.resolve { get<KeyguardEnrollmentCoordinator>() })
+                    assertNotNull(session.resolve { get<P2pMembershipStore>() })
+                    // The linked devices settings.
+                    assertNotNull(session.resolve { get<GetAppLinkState>() })
+                    assertNotNull(session.resolve { get<GetAppLinkSyncCategories>() })
+                    assertNotNull(session.resolve { get<PutAppLinkSyncCategory>() })
+                    assertNotNull(session.resolve { get<GetPurchased>() })
+                    // The app prefers WebRTC; only the AutoFill extension relays only.
+                    assertNotSame(KeyguardTransportFactory.RelayOnly, koin.get<KeyguardTransportFactory>())
+                    assertNotNull(koin.get<KeyguardRoomConnector>())
+                }
+            }
         }
     }
 

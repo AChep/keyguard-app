@@ -28,3 +28,16 @@ ORDER BY word ASC;
 
 deleteAll:
 DELETE FROM generatorWordlistWord;
+
+deleteByWordlistId:
+DELETE FROM generatorWordlistWord
+WHERE wordlistId = :wordlistId;
+
+count:
+SELECT COUNT(*)
+FROM generatorWordlistWord;
+
+countByWordlistId:
+SELECT COUNT(*)
+FROM generatorWordlistWord
+WHERE wordlistId = :wordlistId;

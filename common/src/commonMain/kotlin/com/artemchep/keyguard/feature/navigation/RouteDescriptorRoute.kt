@@ -4,6 +4,9 @@ import com.artemchep.keyguard.feature.auth.certificate.AccountClientCertificateR
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.feature.attachments.AttachmentsRoute
 import com.artemchep.keyguard.feature.cliagent.history.CliAgentHistoryRoute
+import com.artemchep.keyguard.feature.applink.AppLinkConnectionRoute
+import com.artemchep.keyguard.feature.applink.AppLinkPairRoute
+import com.artemchep.keyguard.feature.applink.AppLinkRoute
 import com.artemchep.keyguard.feature.duplicates.DuplicatesRoute
 import com.artemchep.keyguard.feature.equivalentdomains.EquivalentDomainsRoute
 import com.artemchep.keyguard.feature.export.ExportRoute
@@ -153,6 +156,10 @@ fun RouteDescriptor.toRoute(): Route? = when (this) {
     RouteDescriptor.JustDeleteMeServices -> JustDeleteMeServicesRoute
 
     is RouteDescriptor.CipherFilterView -> null
+
+    RouteDescriptor.AppLink -> AppLinkRoute
+    is RouteDescriptor.AppLinkPair -> AppLinkPairRoute(scan = scan)
+    RouteDescriptor.AppLinkConnection -> AppLinkConnectionRoute
 
     // The descriptor intentionally carries no password, so the route can not
     // be reconstructed from it.

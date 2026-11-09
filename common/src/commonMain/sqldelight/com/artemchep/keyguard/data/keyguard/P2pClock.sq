@@ -1,0 +1,18 @@
+-- The last stamp the hybrid logical clock of a sync group issued, so
+-- that a restarted clock never issues a stamp twice.
+CREATE TABLE p2pClock (
+  groupId TEXT NOT NULL PRIMARY KEY,
+  wall INTEGER NOT NULL,
+  counter INTEGER NOT NULL,
+  FOREIGN KEY (groupId) REFERENCES p2pGroup(groupId) ON DELETE CASCADE
+);
+
+upsert:
+INSERT OR REPLACE INTO p2pClock(groupId, wall, counter)
+VALUES (?, ?, ?);
+
+getByGroupId:
+SELECT *
+FROM p2pClock
+WHERE
+    groupId == :groupId;

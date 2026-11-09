@@ -1,12 +1,23 @@
 import kotlin.time.Instant;
 
+-- The wordlists of the password generator. The syncId is the wordlist's
+-- id on every linked app; the id is local to this database. SQLite adds a
+-- NOT NULL column only with a default, so the syncId has one; every row
+-- gets its own. The wordsHash caches the id of the blob of the words, see
+-- WordlistsSyncCategory; it is filled when the wordlist is first synced.
 CREATE TABLE generatorWordlist (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
-  createdAt INTEGER AS Instant NOT NULL
+  createdAt INTEGER AS Instant NOT NULL,
+  syncId TEXT NOT NULL DEFAULT '',
+  wordsHash TEXT
 );
 
 CREATE INDEX idx_generatorWordlist_createdAt ON generatorWordlist(createdAt DESC);
+
+CREATE UNIQUE INDEX idx_generatorWordlist_syncId ON generatorWordlist(syncId);
+
+CREATE INDEX idx_generatorWordlist_wordsHash ON generatorWordlist(wordsHash);
 
 update {
   UPDATE generatorWordlist
@@ -16,27 +27,82 @@ update {
     id = :id;
 }
 
+updateBySyncId {
+  UPDATE generatorWordlist
+  SET
+    name = :name
+  WHERE
+    syncId = :syncId;
+}
+
+updateWordsHash {
+  UPDATE generatorWordlist
+  SET
+    wordsHash = :wordsHash
+  WHERE
+    id = :id;
+}
+
 insert:
-INSERT OR IGNORE INTO generatorWordlist(name, createdAt)
-VALUES (:name, :createdAt);
+INSERT OR IGNORE INTO generatorWordlist(name, createdAt, syncId, wordsHash)
+VALUES (:name, :createdAt, :syncId, :wordsHash);
 
 getLastInsertRowId:
 SELECT last_insert_rowid();
 
 get:
-SELECT
-  generatorWordlist.*,
-  IFNULL(COUNT(generatorWordlistWord.id), 0) AS wordCount
-FROM
-  generatorWordlist
+SELECT generatorWordlist.*, IFNULL(COUNT(generatorWordlistWord.id), 0) AS wordCount
+FROM generatorWordlist
 LEFT JOIN generatorWordlistWord ON generatorWordlistWord.wordlistId = generatorWordlist.id
 GROUP BY generatorWordlist.id
-ORDER BY
-  generatorWordlist.createdAt DESC;
+ORDER BY generatorWordlist.createdAt DESC;
+
+getAll:
+SELECT *
+FROM generatorWordlist;
+
+getSyncIds:
+SELECT syncId
+FROM generatorWordlist;
+
+getSyncIdsByIds:
+SELECT syncId
+FROM generatorWordlist
+WHERE id IN :ids;
+
+getBySyncId:
+SELECT *
+FROM generatorWordlist
+WHERE
+    syncId = :syncId;
+
+getById:
+SELECT *
+FROM generatorWordlist
+WHERE
+    id = :id;
+
+getByWordsHash:
+SELECT *
+FROM generatorWordlist
+WHERE
+    wordsHash = :wordsHash
+LIMIT 1;
+
+updateSyncId:
+UPDATE generatorWordlist
+SET
+  syncId = :newSyncId
+WHERE
+  syncId = :syncId;
 
 deleteAll:
 DELETE FROM generatorWordlist;
 
 deleteByIds:
 DELETE FROM generatorWordlist
-WHERE id IN (:ids);
+WHERE id IN :ids;
+
+deleteBySyncId:
+DELETE FROM generatorWordlist
+WHERE syncId = :syncId;

@@ -1,8 +1,7 @@
 # coturn configuration for the Keyguard relay.
 #
-# docker-compose.yml replaces ${TURN_SECRET} and ${TURN_REALM} when the
-# container starts, and appends a denied-peer-ip line for each of the host's
-# own addresses. To run coturn without Compose, do both yourself.
+# docker-compose.yml replaces the environment placeholders when the container starts.
+# To run coturn without Compose, render them yourself.
 
 # Ports. Open 3478/udp, 3478/tcp and the relay range below in the firewall.
 listening-port=3478
@@ -23,7 +22,8 @@ fingerprint
 no-tls
 
 # WebRTC only needs UDP relaying to peers on the internet. The host's own public
-# addresses are denied too, at the end of the file.
+# addresses stay allowed: two devices that both relay through this server reach each
+# other's relay ports there, and coturn has no per-port peer filter.
 no-tcp-relay
 no-multicast-peers
 denied-peer-ip=0.0.0.0-0.255.255.255
@@ -55,10 +55,11 @@ denied-peer-ip=ff00::-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff
 # user, so user-quota counts allocations per address. max-bps caps each
 # allocation, in bytes per second. coturn reserves max-bps for every allocation
 # out of bps-capacity, so bps-capacity would cap allocations at
-# bps-capacity / max-bps; it is left unset.
-user-quota=32
-total-quota=800
-max-bps=2500000
+# bps-capacity / max-bps. A capacity of 0 preserves coturn's unlimited aggregate default.
+user-quota=${TURN_USER_QUOTA}
+total-quota=${TURN_TOTAL_QUOTA}
+max-bps=${TURN_MAX_BPS}
+bps-capacity=${TURN_BPS_CAPACITY}
 stale-nonce=600
 
 # Metrics are private to the host, even though coturn uses host networking.

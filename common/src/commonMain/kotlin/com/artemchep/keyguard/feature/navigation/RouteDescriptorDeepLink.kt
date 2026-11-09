@@ -58,6 +58,9 @@ fun RouteDescriptor.toDeepLink(): String? {
         is RouteDescriptor.Duplicates,
         is RouteDescriptor.Export,
         is RouteDescriptor.Import,
+        RouteDescriptor.AppLink,
+        is RouteDescriptor.AppLinkPair,
+        RouteDescriptor.AppLinkConnection,
         is RouteDescriptor.Unmapped,
         -> null
     }

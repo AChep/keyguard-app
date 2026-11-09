@@ -22,7 +22,7 @@ class SettingsCatalogTest {
         assertEquals(
             listOf(
                 "section.premium", "subscription", "section.options", "autofill", "security",
-                "automatic_backups", "watchtower", "display", "about",
+                "automatic_backups", "app_link", "watchtower", "display", "about",
             ),
             items.map { it.id },
         )
@@ -45,6 +45,9 @@ class SettingsCatalogTest {
         assertFalse("debug" in releaseIds)
         val debugIds = ids(false)
         assertTrue(debugIds.containsAll(listOf("autofill", "automatic_backups", "debug", "notifications")))
+        // A watch never links its app.
+        assertFalse("app_link" in releaseIds)
+        assertFalse("app_link" in debugIds)
     }
 
     @Test
@@ -88,6 +91,7 @@ class SettingsCatalogTest {
             includeWatchtower = false,
             includeDeveloper = false,
             includeAutomaticBackups = false,
+            includeAppLink = false,
         )
         assertEquals(listOf("section.options", "security", "display", "about"), items.map { it.id })
     }

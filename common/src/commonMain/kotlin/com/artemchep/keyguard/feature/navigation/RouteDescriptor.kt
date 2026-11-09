@@ -235,6 +235,26 @@ sealed interface RouteDescriptor {
     @SerialName("directory.delete_me")
     data object JustDeleteMeServices : RouteDescriptor
 
+    /** Links this app with the apps on the user's other devices. */
+    @Serializable
+    @SerialName("settings.app_link")
+    data object AppLink : RouteDescriptor
+
+    /**
+     * Pairs this app with the app on another device, and [scan]s the code of the other one
+     * or shows one.
+     */
+    @Serializable
+    @SerialName("settings.app_link.pair")
+    data class AppLinkPair(
+        val scan: Boolean = false,
+    ) : RouteDescriptor
+
+    /** How this device reaches its linked apps: the relay and the local network. */
+    @Serializable
+    @SerialName("settings.app_link.connection")
+    data object AppLinkConnection : RouteDescriptor
+
     @Serializable
     @SerialName("unmapped")
     data class Unmapped(

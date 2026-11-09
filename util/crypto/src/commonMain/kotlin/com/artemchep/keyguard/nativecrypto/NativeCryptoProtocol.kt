@@ -276,6 +276,34 @@ internal data class NoiseTransportReadOperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
+@SerialName("x25519_agree")
+internal data class X25519AgreeOperationProto(
+    @ProtoNumber(78)
+    val value: X25519AgreeRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("ml_kem_key_generate")
+internal data class MlKemKeyGenerateOperationProto(
+    @ProtoNumber(79)
+    val value: MlKemKeyGenerateRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("ml_kem_encapsulate")
+internal data class MlKemEncapsulateOperationProto(
+    @ProtoNumber(80)
+    val value: MlKemEncapsulateRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
+@SerialName("ml_kem_decapsulate")
+internal data class MlKemDecapsulateOperationProto(
+    @ProtoNumber(81)
+    val value: MlKemDecapsulateRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
 @SerialName("passkey_key_generate")
 internal data class PasskeyKeyGenerateOperationProto(
     @ProtoNumber(48)
@@ -1020,7 +1048,7 @@ internal enum class NoisePatternProto {
     XX_PSK3,
 
     @ProtoNumber(2)
-    KK,
+    KK_HFS,
 }
 
 /** An empty private key asks for a generated key pair. */
@@ -1106,6 +1134,59 @@ internal data class NoiseHandshakeStatusResultProto(
     val remoteStaticKey: ByteArray = byteArrayOf(),
     @ProtoNumber(3)
     val handshakeHash: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class X25519AgreeRequestProto(
+    @ProtoNumber(1)
+    val privateKey: ByteArray,
+    @ProtoNumber(2)
+    val publicKey: ByteArray,
+)
+
+@Serializable
+internal data class X25519AgreeResultProto(
+    @ProtoNumber(1)
+    val sharedSecret: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal class MlKemKeyGenerateRequestProto
+
+@Serializable
+internal data class MlKemKeyGenerateResultProto(
+    @ProtoNumber(1)
+    val privateKey: ByteArray = byteArrayOf(),
+    @ProtoNumber(2)
+    val publicKey: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class MlKemEncapsulateRequestProto(
+    @ProtoNumber(1)
+    val publicKey: ByteArray,
+)
+
+@Serializable
+internal data class MlKemEncapsulateResultProto(
+    @ProtoNumber(1)
+    val ciphertext: ByteArray = byteArrayOf(),
+    @ProtoNumber(2)
+    val sharedSecret: ByteArray = byteArrayOf(),
+)
+
+@Serializable
+internal data class MlKemDecapsulateRequestProto(
+    @ProtoNumber(1)
+    val privateKey: ByteArray,
+    @ProtoNumber(2)
+    val ciphertext: ByteArray,
+)
+
+@Serializable
+internal data class MlKemDecapsulateResultProto(
+    @ProtoNumber(1)
+    val sharedSecret: ByteArray = byteArrayOf(),
 )
 
 @Serializable

@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import com.artemchep.keyguard.common.usecase.GetAccounts
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetLicensePremium
+import com.artemchep.keyguard.provider.keyguard.applink.AppLinkWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 
@@ -39,6 +40,7 @@ class AppWorkerSessionDependencies(
     val gpgKeyserverRefreshWorker: GpgKeyserverRefreshWorker,
     val agentHistoryRetentionWorker: AgentHistoryRetentionWorker,
     val licenseSyncer: LicenseSyncer,
+    val appLinkWorker: AppLinkWorker,
 )
 
 fun interface PendingUsageHistorySessionAccess {

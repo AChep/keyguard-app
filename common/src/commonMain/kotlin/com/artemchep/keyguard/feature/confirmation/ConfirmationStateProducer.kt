@@ -20,6 +20,7 @@ import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.navigation.state.translate
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import kotlinx.coroutines.flow.MutableStateFlow

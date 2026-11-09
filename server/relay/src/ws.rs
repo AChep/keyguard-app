@@ -36,6 +36,8 @@ const PING_INTERVAL: Duration = Duration::from_secs(25);
 /// How long a frame may wait for the relay's egress budget before it is dropped. The
 /// sender's socket isn't read meanwhile, so the sender slows down instead of losing frames.
 const EGRESS_MAX_WAIT: Duration = Duration::from_secs(5);
+/// How long a client has to answer the relay's close frame before its socket is dropped.
+const CLOSE_GRACE: Duration = Duration::from_secs(1);
 
 /// `GET /v1/ws`.
 pub(crate) async fn upgrade(
@@ -365,12 +367,21 @@ impl Connection {
         }
     }
 
+    /// Sends a close frame and waits up to [`CLOSE_GRACE`] for the client's answer.
+    /// Dropping the socket at once would answer the frames the client still sends, such
+    /// as pongs, with a TCP reset: its next write then fails before it reads the close.
     async fn close(&mut self, code: u16, reason: &'static str) {
         let frame = CloseFrame {
             code,
             reason: Utf8Bytes::from(reason),
         };
-        _ = self.send(Message::Close(Some(frame))).await;
+        if let Flow::Continue = self.send(Message::Close(Some(frame))).await {
+            // Other peers see the leave now, not after the wait.
+            self.joined = None;
+            // Frames before the answer are dropped; the stream ends with it.
+            let answered = async { while let Some(Ok(_)) = self.socket.recv().await {} };
+            _ = time::timeout(CLOSE_GRACE, answered).await;
+        }
     }
 
     /// Sends an `err` frame and decides whether the connection goes on.

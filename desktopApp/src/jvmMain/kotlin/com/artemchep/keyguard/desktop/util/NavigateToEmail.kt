@@ -33,5 +33,5 @@ fun navigateToEmail(
         if (subject != null) addQueryParam("subject", subject)
         if (body != null) addQueryParam("body", body)
     }.let(::URI)
-    Desktop.getDesktop().mail(uri)
+    openUri(uri, Desktop.Action.MAIL) { mail(it) }
 }

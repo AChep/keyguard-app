@@ -14,8 +14,10 @@ RUN case "$TARGETARCH" in \
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
 ENV RUSTFLAGS="-C linker=rust-lld -C target-feature=+crt-static"
-RUN --mount=type=cache,target=/usr/local/cargo/registry \
-    --mount=type=cache,target=/src/target \
+# The platform builds run at once and share these caches, but Cargo's package
+# lock is outside the mount: lock the caches, so they take turns.
+RUN --mount=type=cache,target=/usr/local/cargo/registry,sharing=locked \
+    --mount=type=cache,target=/src/target,sharing=locked \
     cargo build --release --locked --bin keyguard-relay --target "$(cat /target)" \
  && cp "target/$(cat /target)/release/keyguard-relay" /keyguard-relay
 # The final image has no shell: make the data directory here.

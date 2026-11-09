@@ -168,6 +168,7 @@ kotlin {
         getByName("commonMain") {
             dependencies {
                 implementation(project(":standard:presentation"))
+                implementation(project(":feature:passkey-hybrid-presentation"))
                 implementation(libs.jetbrains.compose.runtime)
                 implementation(libs.jetbrains.compose.foundation)
                 implementation(libs.jetbrains.compose.material)

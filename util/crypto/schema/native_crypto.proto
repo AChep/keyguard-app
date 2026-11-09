@@ -55,7 +55,48 @@ message NativeRequest {
     OpenPgpUserIdUpdateRequest open_pgp_user_id_update = 60;
     SshCertificateDescribeRequest ssh_certificate_describe = 61;
     Pkcs12Request pkcs12 = 62;
+    HybridHandshakeRequest hybrid_handshake = 63;
+    HybridTrafficRequest hybrid_traffic = 64;
+    CtapPrfKeyGenerateRequest ctap_prf_key_generate = 65;
+    CtapPrfSaltsOpenRequest ctap_prf_salts_open = 66;
+    CtapPrfOutputSealRequest ctap_prf_output_seal = 67;
   }
+}
+
+// FIDO CTAP 2.2 section 11.5: QR Noise responder handshake.
+// Returns message2 (81 bytes), receive key (32), send key (32).
+message HybridHandshakeRequest {
+  bytes psk = 1;
+  bytes peer_identity = 2;
+  bytes message = 3;
+}
+
+// Encrypts or decrypts one padded hybrid frame using a per-direction counter.
+message HybridTrafficRequest {
+  CipherDirection direction = 1;
+  bytes key = 2;
+  uint32 counter = 3;
+  bytes data = 4;
+}
+
+// CTAP PIN/UV protocols 1 and 2, used only for hmac-secret key agreement.
+// Returns private scalar (32) || public point (65).
+message CtapPrfKeyGenerateRequest {}
+
+// Authenticates and decrypts salts; returns HMAC key (32) || AES key (32) || salts.
+message CtapPrfSaltsOpenRequest {
+  uint32 protocol = 1;
+  bytes private_key = 2;
+  bytes peer_public_key = 3;
+  bytes salt_enc = 4;
+  bytes salt_auth = 5;
+}
+
+// Encrypts PRF results for the platform.
+message CtapPrfOutputSealRequest {
+  uint32 protocol = 1;
+  bytes shared_secret = 2;
+  bytes results = 3;
 }
 
 // Ends a decryption session's input and returns one bounded output chunk.

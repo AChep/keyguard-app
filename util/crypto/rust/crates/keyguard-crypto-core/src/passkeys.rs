@@ -39,18 +39,20 @@ enum KeyIssue {
 
 pub(crate) fn generate(algorithm: i32) -> Result<Vec<u8>, PrimitiveError> {
     require_es256(algorithm)?;
+    encode_material(&random_p256_secret_key()?).map(|material| material.encode_to_vec())
+}
 
+/// A uniformly random P-256 private key; out-of-range scalars are redrawn.
+pub(crate) fn random_p256_secret_key() -> Result<SecretKey, PrimitiveError> {
     let rng = SystemRandom::new();
     let mut scalar = Zeroizing::new([0_u8; PRIVATE_SCALAR_BYTES]);
-    let secret_key = loop {
+    loop {
         rng.fill(scalar.as_mut())
             .map_err(|_| PrimitiveError::CryptoFailure)?;
         if let Ok(secret_key) = SecretKey::from_slice(scalar.as_ref()) {
-            break secret_key;
+            return Ok(secret_key);
         }
-    };
-
-    encode_material(&secret_key).map(|material| material.encode_to_vec())
+    }
 }
 
 pub(crate) fn inspect(private_key_pkcs8: Vec<u8>) -> Result<Vec<u8>, PrimitiveError> {

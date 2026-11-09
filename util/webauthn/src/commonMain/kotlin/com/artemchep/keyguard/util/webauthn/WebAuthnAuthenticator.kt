@@ -33,6 +33,9 @@ class WebAuthnAuthenticator(
     },
     private val randomBytes: (Int) -> ByteArray = NativeCrypto.primitives::randomBytes,
 ) {
+    /** A copy of the AAGUID in this authenticator's attested credential data. */
+    fun aaguid(): ByteArray = authenticatorDataFactory.aaguid()
+
     fun createCredential(
         data: CreatePasskey,
         context: WebAuthnCallerContext,
@@ -63,7 +66,7 @@ class WebAuthnAuthenticator(
                 credential = result.credential,
             )
         } finally {
-            result.prfResults?.clear()
+            result.clear()
         }
     }
 
@@ -71,6 +74,7 @@ class WebAuthnAuthenticator(
         request: WebAuthnRegistrationRequest,
         userVerified: Boolean,
         credentials: List<WebAuthnCredential> = emptyList(),
+        authenticatorExtensions: ((WebAuthnPrfValues?) -> ByteArray?)? = null,
     ): WebAuthnCredentialCreationResult {
         val algorithm = requirePasskeyAlgorithm(
             pubKeyCredParams = request.pubKeyCredParams,
@@ -89,19 +93,23 @@ class WebAuthnAuthenticator(
             requirement = request.userVerification,
             userVerified = userVerified,
         )
-        val authData = authenticatorDataFactory.encodeAuthenticatorData(
-            rpId = request.rpId,
-            signCount = 0,
-            credentialId = credentialIdBytes,
-            credentialPublicKey = key.cosePublicKey,
-            attestation = request.attestation,
-            userVerified = userVerifiedFlag,
-            userPresent = true,
-        )
         // Keep the PRF secret stable across devices even if a site
         // first requests the extension after registration.
         val prfSecret = randomBytes(WEBAUTHN_PRF_SECRET_BYTES)
+        var results: WebAuthnPrfValues? = null
+        var succeeded = false
         return try {
+            results = request.prf?.let { prf -> evaluatePrf(prfSecret, prf.eval, prf.salted) }
+            val authData = authenticatorDataFactory.encodeAuthenticatorData(
+                rpId = request.rpId,
+                signCount = 0,
+                credentialId = credentialIdBytes,
+                credentialPublicKey = key.cosePublicKey,
+                attestation = request.attestation,
+                userVerified = userVerifiedFlag,
+                userPresent = true,
+                extensions = authenticatorExtensions?.invoke(results),
+            )
             WebAuthnCredentialCreationResult(
                 credential = key.toCredential(
                     request = request,
@@ -114,12 +122,11 @@ class WebAuthnAuthenticator(
                 publicKeyAlgorithm = algorithm.coseValue,
                 publicKey = key.spkiPublicKey,
                 prfEnabled = request.prf != null,
-                prfResults = request.prf?.let { prf ->
-                    evaluatePrf(prfSecret, prf.eval, prf.salted)
-                },
-            )
+                prfResults = results,
+            ).also { succeeded = true }
         } finally {
             prfSecret.fill(0)
+            if (!succeeded) results?.clear()
         }
     }
 
@@ -174,8 +181,7 @@ class WebAuthnAuthenticator(
             }
             json.encodeToString(credentialResponseJson(result.credentialId, response, clientExtensionResults))
         } finally {
-            result.signature.fill(0)
-            result.prfResults?.clear()
+            result.clear()
         }
     }
 
@@ -183,6 +189,8 @@ class WebAuthnAuthenticator(
         request: WebAuthnAssertionHashRequest,
         credential: WebAuthnCredential,
         userVerified: Boolean,
+        authenticatorExtensions: ((WebAuthnPrfValues?) -> ByteArray?)? = null,
+        userPresent: Boolean = true,
     ): WebAuthnAssertionResult {
         requireCredentialRpIdMatchesRequest(credential, request.rpId)
         requireCredentialAllowed(credential, request.allowedCredentials)
@@ -199,42 +207,47 @@ class WebAuthnAuthenticator(
             requirement = request.userVerification,
             userVerified = userVerified,
         )
-        val authData = authenticatorDataFactory.encodeAuthenticatorData(
-            rpId = request.rpId,
-            signCount = counter,
-            credentialId = credentialIdBytes,
-            credentialPublicKey = null,
-            userVerified = userVerifiedFlag,
-            userPresent = true,
-        )
-
-        // Sign first: unlike the PRF outputs, the signature is not a secret.
-        val signature = signAssertion(credential, authData, request.clientDataHash)
-        // The caller wipes the signature it receives, so wipe it here if it never does.
+        // Evaluate PRF first: authenticator extension outputs are part of the signed data.
+        val results = assertionPrf(credential, request)
         var succeeded = false
-        try {
-            val prfResults = credential.prfSecret
-                ?.takeIf { request.prf != null }
-                ?.let(PasskeyBase64::decodePrfSecretOrNull)
-                ?.let { secret ->
-                    try {
-                        evaluatePrf(secret, request.prf, request.prfSalted)
-                    } finally {
-                        secret.fill(0)
-                    }
-                }
-            return WebAuthnAssertionResult(
+        return try {
+            val authData = authenticatorDataFactory.encodeAuthenticatorData(
+                rpId = request.rpId,
+                signCount = counter,
+                credentialId = credentialIdBytes,
+                credentialPublicKey = null,
+                userVerified = userVerifiedFlag,
+                userPresent = userPresent,
+                extensions = authenticatorExtensions?.invoke(results),
+            )
+            WebAuthnAssertionResult(
                 credentialId = credentialIdBytes,
                 authenticatorData = authData,
-                signature = signature,
+                signature = signAssertion(credential, authData, request.clientDataHash),
                 // Readable whenever there is no allow list: requireCredentialAllowed checked it.
                 userHandle = credential.userHandleBytes(),
-                prfResults = prfResults,
+                prfResults = results,
+                userName = if (userVerifiedFlag) credential.userName.orEmpty() else null,
+                userDisplayName = if (userVerifiedFlag) credential.userDisplayName.orEmpty() else null,
             ).also { succeeded = true }
         } finally {
-            if (!succeeded) signature.fill(0)
+            if (!succeeded) results?.clear()
         }
     }
+
+    private fun assertionPrf(
+        credential: WebAuthnCredential,
+        request: WebAuthnAssertionHashRequest,
+    ): WebAuthnPrfValues? = credential.prfSecret
+        ?.takeIf { request.prf != null }
+        ?.let(PasskeyBase64::decodePrfSecretOrNull)
+        ?.let { secret ->
+            try {
+                evaluatePrf(secret, request.prf, request.prfSalted)
+            } finally {
+                secret.fill(0)
+            }
+        }
 
     /**
      * A credential has a single PRF, which "MUST be independent of the state

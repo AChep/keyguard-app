@@ -61,6 +61,10 @@ macro_rules! erase_on_drop {
 erase_on_drop! {
     record_zeroized_secret_request_drop;
     Pkcs12Request { data, password_utf8, output_password_utf8 },
+    HybridHandshakeRequest { psk },
+    HybridTrafficRequest { key, data },
+    CtapPrfSaltsOpenRequest { private_key, salt_enc, salt_auth },
+    CtapPrfOutputSealRequest { shared_secret, results },
     HmacStreamOpenRequest { key },
     AesCbcPkcs7StreamOpenRequest { key, iv },
     AesCbcPkcs7HmacSha256EncryptStreamOpenRequest { encryption_key, mac_key, iv },

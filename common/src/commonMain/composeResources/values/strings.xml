@@ -2986,4 +2986,42 @@
     <string name="number_compact_trillion" translatable="false">%1$sT</string>
     <string name="number_compact_quadrillion" translatable="false">%1$sQ</string>
     <string name="number_compact_quintillion" translatable="false">%1$sE</string>
+    <string name="passkey_hybrid_title">Use passkeys on another device</string>
+    <string name="passkey_hybrid_intro_title">Sign in on a nearby computer</string>
+    <string name="passkey_hybrid_intro_text">Sign in or create a passkey in a browser on another device. Keyguard doesn’t need to be installed there.</string>
+    <string name="passkey_hybrid_step_1_title">Choose another device</string>
+    <string name="passkey_hybrid_step_1_text">In the computer’s passkey prompt, choose “Use another device”.</string>
+    <string name="passkey_hybrid_step_2_title">Scan the QR code</string>
+    <string name="passkey_hybrid_step_2_text">Tap Scan QR code and point the camera at the code on the computer.</string>
+    <string name="passkey_hybrid_step_3_title">Confirm on this phone</string>
+    <string name="passkey_hybrid_step_3_text">Choose a passkey or where to save a new one, then verify it’s you.</string>
+    <string name="passkey_hybrid_requirements">Keep Bluetooth on and this phone near the computer. Both devices need internet access.</string>
+    <string name="passkey_hybrid_relay">Connects through Google’s FIDO relay. Requests are encrypted between the two devices. The relay sees connection times and IP addresses.</string>
+    <string name="passkey_hybrid_permission_title">Allow Nearby devices</string>
+    <string name="passkey_hybrid_permission_text">Bluetooth shows the computer that this phone is nearby.</string>
+    <string name="passkey_hybrid_connecting">Connecting…</string>
+    <string name="passkey_hybrid_connecting_text">Setting up an encrypted connection with the computer.</string>
+    <string name="passkey_hybrid_waiting">Waiting for the computer</string>
+    <string name="passkey_hybrid_waiting_text">Keep its passkey prompt open.</string>
+    <string name="passkey_hybrid_sending">Sending passkey…</string>
+    <string name="passkey_hybrid_sending_text">Keep this screen open until it finishes.</string>
+    <string name="passkey_hybrid_request_sign_in">Sign-in request</string>
+    <string name="passkey_hybrid_choose">Choose a passkey</string>
+    <string name="passkey_hybrid_save">Create passkey for %1$s</string>
+    <string name="passkey_hybrid_success_sign_in">Passkey sent</string>
+    <string name="passkey_hybrid_success_create">Passkey created</string>
+    <string name="passkey_hybrid_success_text">Continue on the computer.</string>
+    <string name="passkey_hybrid_scan_again">Scan again</string>
+    <string name="passkey_hybrid_error_qr_title">Not a passkey QR code</string>
+    <string name="passkey_hybrid_error_qr">Start again with a new code from the computer.</string>
+    <string name="passkey_hybrid_error_permission_title">Nearby devices access needed</string>
+    <string name="passkey_hybrid_error_permission">Allow Nearby devices in the app settings, then scan again.</string>
+    <string name="passkey_hybrid_error_credentials_title">No matching passkeys</string>
+    <string name="passkey_hybrid_error_credentials">None of your visible vault accounts has a passkey for this website.</string>
+    <string name="passkey_hybrid_error_write_title">Can’t save to this item</string>
+    <string name="passkey_hybrid_error_write">Choose an editable login in a writable account or collection.</string>
+    <string name="passkey_hybrid_error_excluded_title">Passkey already exists</string>
+    <string name="passkey_hybrid_error_excluded">The vault already has a passkey for this account.</string>
+    <string name="passkey_hybrid_error_connection_title">Connection ended</string>
+    <string name="passkey_hybrid_error_connection">Check internet access and Bluetooth on both devices, then scan a new QR code.</string>
 </resources>

@@ -30,7 +30,9 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -40,6 +42,8 @@ import androidx.compose.ui.semantics.semantics
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.FabScope
+import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.scaffoldContentWindowInsets
@@ -52,7 +56,8 @@ import org.jetbrains.compose.resources.stringResource
 /**
  * A screen that shows one step of a multi-step flow at a time.
  * The [content] of a step starts with a [WizardHeader]; a `null`
- * [step] shows a loading indicator.
+ * [step] shows a loading indicator. The primary action is either
+ * a [bottomBar] or a floating action button.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -60,7 +65,9 @@ fun <T : Any> WizardScaffold(
     title: String,
     step: T?,
     navigationIcon: @Composable () -> Unit,
-    bottomBar: @Composable () -> Unit,
+    bottomBar: @Composable () -> Unit = {},
+    floatingActionState: State<FabState?> = rememberUpdatedState(newValue = null),
+    floatingActionButton: @Composable FabScope.() -> Unit = {},
     content: @Composable ColumnScope.(T) -> Unit,
 ) {
     val scrollBehavior = ToolbarBehavior.behavior()
@@ -78,6 +85,8 @@ fun <T : Any> WizardScaffold(
             )
         },
         bottomBar = bottomBar,
+        floatingActionState = floatingActionState,
+        floatingActionButton = floatingActionButton,
     ) {
         item("wizard") {
             WizardColumn {

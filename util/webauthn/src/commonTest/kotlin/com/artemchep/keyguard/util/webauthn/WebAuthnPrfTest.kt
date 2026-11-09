@@ -317,7 +317,7 @@ class WebAuthnPrfTest {
     }
 
     @Test
-    fun `a failed PRF evaluation wipes the signature`() {
+    fun `a failed PRF evaluation prevents signing`() {
         val signatures = mutableListOf<ByteArray>()
         val fixture = Fixture(
             onSign = signatures::add,
@@ -326,7 +326,49 @@ class WebAuthnPrfTest {
         assertFailsWith<IllegalStateException> {
             fixture.assertion(prf = WebAuthnPrfAssertionInputs(eval = WebAuthnPrfValues(PasskeyBase64.decode(INPUT_A))))
         }
-        assertTrue(signatures.single().all { it == 0.toByte() })
+        assertTrue(signatures.isEmpty())
+    }
+
+    @Test
+    fun `extension encoding failures wipe evaluated PRF outputs`() {
+        val fixture = Fixture()
+        var outputs: WebAuthnPrfValues? = null
+        val encode: (WebAuthnPrfValues?) -> ByteArray? = {
+            outputs = it
+            error("Extension encoding failed")
+        }
+        val values = WebAuthnPrfValues(PasskeyBase64.decode(INPUT_A))
+        assertFailsWith<IllegalStateException> {
+            fixture.authenticator.getAssertion(
+                request = WebAuthnAssertionHashRequest(
+                    rpId = "example.com",
+                    clientDataHash = ByteArray(32),
+                    userVerification = "required",
+                    allowedCredentials = WebAuthnAllowedCredentialDescriptors.NONE,
+                    prf = values,
+                ),
+                credential = credential(),
+                userVerified = true,
+                authenticatorExtensions = encode,
+            )
+        }
+        assertTrue(assertNotNull(outputs).first.all { it == 0.toByte() })
+        outputs = null
+        assertFailsWith<IllegalStateException> {
+            fixture.authenticator.createCredential(
+                request = WebAuthnRegistrationRequest(
+                    rpId = "example.com",
+                    userHandle = "dXNlcg",
+                    pubKeyCredParams = listOf(CreatePasskeyPubKeyCredParams(-7.0, "public-key")),
+                    discoverable = true,
+                    prf = WebAuthnPrfRegistrationInput(values),
+                ),
+                userVerified = true,
+                authenticatorExtensions = encode,
+            )
+        }
+        assertTrue(assertNotNull(outputs).first.all { it == 0.toByte() })
+        assertTrue(fixture.generatedSecrets.single().all { it == 0.toByte() })
     }
 
     // WebAuthn L3 §10.1.4, client extension processing (authentication).

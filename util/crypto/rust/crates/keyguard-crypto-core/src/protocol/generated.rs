@@ -8,7 +8,7 @@ pub struct NativeRequest {
     pub protocol_version: u32,
     #[prost(
         oneof = "native_request::Operation",
-        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60, 61, 62"
+        tags = "10, 11, 12, 13, 15, 16, 17, 18, 20, 21, 23, 24, 25, 26, 27, 28, 29, 30, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 48, 49, 50, 51, 52, 54, 55, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67"
     )]
     pub operation: ::core::option::Option<native_request::Operation>,
 }
@@ -112,7 +112,68 @@ pub mod native_request {
         SshCertificateDescribe(super::SshCertificateDescribeRequest),
         #[prost(message, tag = "62")]
         Pkcs12(super::Pkcs12Request),
+        #[prost(message, tag = "63")]
+        HybridHandshake(super::HybridHandshakeRequest),
+        #[prost(message, tag = "64")]
+        HybridTraffic(super::HybridTrafficRequest),
+        #[prost(message, tag = "65")]
+        CtapPrfKeyGenerate(super::CtapPrfKeyGenerateRequest),
+        #[prost(message, tag = "66")]
+        CtapPrfSaltsOpen(super::CtapPrfSaltsOpenRequest),
+        #[prost(message, tag = "67")]
+        CtapPrfOutputSeal(super::CtapPrfOutputSealRequest),
     }
+}
+/// FIDO CTAP 2.2 section 11.5: QR Noise responder handshake.
+/// Returns message2 (81 bytes), receive key (32), send key (32).
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct HybridHandshakeRequest {
+    #[prost(bytes = "vec", tag = "1")]
+    pub psk: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "2")]
+    pub peer_identity: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "3")]
+    pub message: ::prost::alloc::vec::Vec<u8>,
+}
+/// Encrypts or decrypts one padded hybrid frame using a per-direction counter.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct HybridTrafficRequest {
+    #[prost(enumeration = "CipherDirection", tag = "1")]
+    pub direction: i32,
+    #[prost(bytes = "vec", tag = "2")]
+    pub key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(uint32, tag = "3")]
+    pub counter: u32,
+    #[prost(bytes = "vec", tag = "4")]
+    pub data: ::prost::alloc::vec::Vec<u8>,
+}
+/// CTAP PIN/UV protocols 1 and 2, used only for hmac-secret key agreement.
+/// Returns private scalar (32) || public point (65).
+#[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CtapPrfKeyGenerateRequest {}
+/// Authenticates and decrypts salts; returns HMAC key (32) || AES key (32) || salts.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CtapPrfSaltsOpenRequest {
+    #[prost(uint32, tag = "1")]
+    pub protocol: u32,
+    #[prost(bytes = "vec", tag = "2")]
+    pub private_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "3")]
+    pub peer_public_key: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "4")]
+    pub salt_enc: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "5")]
+    pub salt_auth: ::prost::alloc::vec::Vec<u8>,
+}
+/// Encrypts PRF results for the platform.
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CtapPrfOutputSealRequest {
+    #[prost(uint32, tag = "1")]
+    pub protocol: u32,
+    #[prost(bytes = "vec", tag = "2")]
+    pub shared_secret: ::prost::alloc::vec::Vec<u8>,
+    #[prost(bytes = "vec", tag = "3")]
+    pub results: ::prost::alloc::vec::Vec<u8>,
 }
 /// Ends a decryption session's input and returns one bounded output chunk.
 /// Repeat until bytes_value is empty, then stream_finish returns final metadata.

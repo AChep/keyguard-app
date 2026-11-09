@@ -4,7 +4,6 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,15 +23,11 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
@@ -52,6 +47,7 @@ import com.artemchep.keyguard.res.client_certificate_unsaved
 import com.artemchep.keyguard.res.expires
 import com.artemchep.keyguard.res.valid_from
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.icons.ShapedIcon
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.ok
@@ -61,8 +57,6 @@ import com.artemchep.keyguard.ui.theme.onWarningContainer
 import com.artemchep.keyguard.ui.theme.warning
 import com.artemchep.keyguard.ui.theme.warningContainer
 import org.jetbrains.compose.resources.stringResource
-
-private val ClientCertificateIconSize = 56.dp
 
 private const val CLIENT_CERTIFICATE_TRACK_ALPHA = 0.24f
 
@@ -98,7 +92,7 @@ fun ClientCertificateHeader(
             Row(
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                ClientCertificateIcon(
+                ShapedIcon(
                     icon = appearance.icon,
                     containerColor = appearance.container,
                     contentColor = appearance.onContainer,
@@ -259,7 +253,7 @@ fun ClientCertificateEmptyCard(
                 vertical = 20.dp,
             ),
     ) {
-        ClientCertificateIcon(
+        ShapedIcon(
             icon = Icons.Outlined.Shield,
             containerColor = MaterialTheme.colorScheme.primaryContainer,
             contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
@@ -331,36 +325,6 @@ private fun ClientCertificateAddButton(
         )
         Text(
             text = stringResource(Res.string.client_certificate_add),
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun ClientCertificateIcon(
-    icon: ImageVector,
-    containerColor: Color,
-    contentColor: Color,
-) {
-    val container by animateColorAsState(
-        targetValue = containerColor,
-        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-    )
-    val content by animateColorAsState(
-        targetValue = contentColor,
-        animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),
-    )
-    Box(
-        modifier = Modifier
-            .size(ClientCertificateIconSize)
-            .clip(MaterialShapes.Cookie9Sided.toShape())
-            .background(container),
-        contentAlignment = Alignment.Center,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = content,
         )
     }
 }

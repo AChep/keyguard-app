@@ -53,6 +53,8 @@ import com.artemchep.keyguard.feature.auth.companion.CompanionAuthBridgeAndroid
 import com.artemchep.keyguard.feature.navigation.NavigationModule
 import com.artemchep.keyguard.feature.qr.ScanQrRouteFactory
 import com.artemchep.keyguard.feature.qr.ScanQrRouteFactoryAndroid
+import com.artemchep.keyguard.feature.passkeys.PasskeyHybridRouteFactory
+import com.artemchep.keyguard.feature.passkeyhybrid.AndroidPasskeyHybridRouteFactory
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import java.util.*
@@ -117,6 +119,7 @@ private class PhoneApplicationModule(
         single<BillingManager> { BillingManagerImpl(application()) }
         single { FlavorConfig(isFreeAsBeer = BuildConfig.FLAVOR == "none") }
         factory<ScanQrRouteFactory> { ScanQrRouteFactoryAndroid }
+        factory<PasskeyHybridRouteFactory> { AndroidPasskeyHybridRouteFactory }
     }
 }
 

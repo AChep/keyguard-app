@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.home.vault.screen
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import arrow.core.identity
@@ -80,6 +81,7 @@ import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.PersistedStorage
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
+import com.artemchep.keyguard.feature.passkeys.PasskeyHybridRouteFactory
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRouteFactory
 import com.artemchep.keyguard.leof
 import com.artemchep.keyguard.platform.parcelize.LeParcelable
@@ -203,6 +205,8 @@ internal fun vaultListScreenState(
         clipboardService = get(),
         bitwardenLoginRouteFactory = get(),
         passkeysCredentialViewRouteFactory = get(),
+        // Bound only on some platforms. Resolve once: Koin reports a missing binding by throwing.
+        passkeyHybridRouteFactory = remember(this) { getOrNull<PasskeyHybridRouteFactory>() },
     )
 }
 
@@ -247,6 +251,7 @@ internal fun vaultListScreenState(
     clipboardService: ClipboardService,
     bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
     passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
+    passkeyHybridRouteFactory: PasskeyHybridRouteFactory?,
 ): VaultListState = produceScreenState(
     key = VaultListPersistence.SCREEN_COMPOSE,
     initial = VaultListState(),
@@ -298,6 +303,7 @@ internal fun vaultListScreenState(
         clipboardService = clipboardService,
         bitwardenLoginRouteFactory = bitwardenLoginRouteFactory,
         passkeysCredentialViewRouteFactory = passkeysCredentialViewRouteFactory,
+        passkeyHybridRouteFactory = passkeyHybridRouteFactory,
     )
 }
 
@@ -341,6 +347,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
     clipboardService: ClipboardService,
     bitwardenLoginRouteFactory: BitwardenLoginRouteFactory,
     passkeysCredentialViewRouteFactory: PasskeysCredentialViewRouteFactory,
+    passkeyHybridRouteFactory: PasskeyHybridRouteFactory? = null,
 ): Flow<VaultListState> {
     // Start all repository-backed session sources before the disk restore. The
     // hub invokes each use case once and owns replay only for this screen/session
@@ -632,6 +639,7 @@ internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer(
         foldersFlow = foldersFlow,
         queueSyncAll = queueSyncAll,
         clearVaultSession = clearVaultSession,
+        passkeyHybridRouteFactory = passkeyHybridRouteFactory.takeIf { mode == AppMode.Main && args.main },
         onRename = { folders ->
             vaultRenameFoldersAction(
                 folders = folders,

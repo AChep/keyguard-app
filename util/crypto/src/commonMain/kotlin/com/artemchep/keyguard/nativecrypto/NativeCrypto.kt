@@ -53,6 +53,8 @@ public enum class NativeCryptoCapability(
     /** Native OpenPGP generation and certificate mutations support V4 and V6. */
     OPENPGP_V6_GENERATION_MUTATION(bit = 1L shl 35),
     PKCS12(bit = 1L shl 36),
+    HYBRID(bit = 1L shl 37),
+    CTAP_PRF(bit = 1L shl 38),
 }
 
 public object NativeCrypto {

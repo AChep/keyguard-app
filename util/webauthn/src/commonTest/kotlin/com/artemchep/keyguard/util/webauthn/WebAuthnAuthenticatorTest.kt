@@ -23,6 +23,7 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class WebAuthnAuthenticatorTest {
@@ -77,6 +78,23 @@ class WebAuthnAuthenticatorTest {
         assertTrue(fixture.crypto.signedKey.all { it == 0.toByte() })
         assertTrue(fixture.crypto.signedData.all { it == 0.toByte() })
         assertContentEquals(byteArrayOf(0x30, 0), binary.signature)
+    }
+
+    @Test
+    fun `binary assertion names the account only after user verification`() {
+        val request = WebAuthnAssertionHashRequest(
+            caller.rpId,
+            ByteArray(32),
+            "preferred",
+            WebAuthnAllowedCredentialDescriptors.fromCredentialIds(emptyList()),
+        )
+        val stored = credential().copy(userName = "alice", userDisplayName = null)
+        val verified = Fixture().authenticator.getAssertion(request, stored, userVerified = true)
+        assertEquals("alice", verified.userName)
+        assertEquals("", verified.userDisplayName)
+        val unverified = Fixture().authenticator.getAssertion(request, stored, userVerified = false)
+        assertNull(unverified.userName)
+        assertNull(unverified.userDisplayName)
     }
 
     @Test

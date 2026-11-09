@@ -30,6 +30,9 @@ class WebAuthnAuthenticatorDataFactory(
         require(it.size == AAGUID_SIZE_BYTES) { "WebAuthn AAGUID must contain 16 bytes." }
     }
 
+    /** A copy of the AAGUID this factory writes into attested credential data. */
+    fun aaguid(): ByteArray = aaguid.copyOf()
+
     fun encodeAuthenticatorData(
         rpId: String,
         signCount: Int,
@@ -38,6 +41,7 @@ class WebAuthnAuthenticatorDataFactory(
         attestation: CreatePasskeyAttestation? = null,
         userVerified: Boolean,
         userPresent: Boolean,
+        extensions: ByteArray? = null,
     ): ByteArray {
         val rpIdHash = hashSha256(rpId.encodeToByteArray())
         val attestedCredentialData = credentialPublicKey?.let {
@@ -59,11 +63,11 @@ class WebAuthnAuthenticatorDataFactory(
                 backupEligibility = true,
                 backupState = true,
                 attestedCredentialData = attestedCredentialData != null,
-                extensionData = false,
+                extensionData = extensions != null,
             ),
             signCount = signCount,
             attestedCredentialData = attestedCredentialData,
-            extensions = null,
+            extensions = extensions,
         ).encode()
     }
 

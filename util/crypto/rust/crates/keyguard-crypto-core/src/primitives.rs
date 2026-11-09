@@ -7,7 +7,7 @@ use salsa20::Salsa20;
 use std::num::NonZeroU32;
 
 use aws_lc_rs::{
-    aead::{Aad, CHACHA20_POLY1305, LessSafeKey, Nonce, UnboundKey},
+    aead::{Aad, Algorithm as AeadAlgorithm, CHACHA20_POLY1305, LessSafeKey, Nonce, UnboundKey},
     constant_time,
     encoding::{AsDer, PublicKeyX509Der},
     rsa::{
@@ -306,8 +306,28 @@ pub(crate) fn chacha20_poly1305_in_place(
     associated_data: &[u8],
     payload: &mut Vec<u8>,
 ) -> Result<(), PrimitiveError> {
+    aead_in_place(
+        &CHACHA20_POLY1305,
+        operation,
+        key,
+        nonce,
+        associated_data,
+        payload,
+    )
+}
+
+/// Seals by appending the tag, or opens and truncates it, without leaving
+/// plaintext in a retired allocation. Reserve the tag up front to avoid copies.
+pub(crate) fn aead_in_place(
+    algorithm: &'static AeadAlgorithm,
+    operation: CipherOperation,
+    key: &[u8],
+    nonce: &[u8],
+    associated_data: &[u8],
+    payload: &mut Vec<u8>,
+) -> Result<(), PrimitiveError> {
     let unbound_key =
-        UnboundKey::new(&CHACHA20_POLY1305, key).map_err(|_| PrimitiveError::InvalidArgument)?;
+        UnboundKey::new(algorithm, key).map_err(|_| PrimitiveError::InvalidArgument)?;
     let cipher = LessSafeKey::new(unbound_key);
     let nonce =
         Nonce::try_assume_unique_for_key(nonce).map_err(|_| PrimitiveError::InvalidArgument)?;
@@ -912,13 +932,13 @@ mod tests {
     /// frees an unwiped plaintext copy. Reading a freed block needs the unsafe
     /// code this crate forbids, so pin the call to the source text instead.
     #[test]
-    fn secret_buffer_chacha20_poly1305_seals_before_appending_the_tag() {
+    fn secret_buffer_aead_seals_before_appending_the_tag() {
         let source = include_str!("primitives.rs").replace("\r\n", "\n");
         let body = source
-            .split_once("pub(crate) fn chacha20_poly1305_in_place(")
+            .split_once("pub(crate) fn aead_in_place(")
             .and_then(|(_, source)| source.split_once("\n}\n"))
             .map(|(body, _)| body)
-            .expect("chacha20_poly1305_in_place body");
+            .expect("aead_in_place body");
         assert!(body.contains(".seal_in_place_separate_tag("));
         assert!(!body.contains("seal_in_place_append_tag"));
     }

@@ -55,6 +55,14 @@ set which requests Keyguard answers. Both are on by default.
 2. In the system prompt, select a passkey from Keyguard.
 3. If Keyguard is locked, unlock it.
 
+On Android, you can also use passkeys on a nearby computer without installing
+Keyguard there. Open the vault menu and select **Use passkeys on another device**. Choose
+**Use another device** in the computer's passkey prompt, scan its QR code in
+Keyguard, select a passkey or choose where to save a new one, and verify your
+identity. Both devices need internet access and Bluetooth. This uses Google's FIDO relay; requests are encrypted
+between the phone and computer, while the relay can see connection times and IP
+addresses. This flow supports sign-in, passkey creation, and PRF.
+
 ## Verify
 
 Open the login in Keyguard. The item shows the new passkey.

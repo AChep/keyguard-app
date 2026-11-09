@@ -5,7 +5,9 @@
 #![forbid(unsafe_code)]
 
 mod argon2_compat;
+mod ctap_prf;
 pub mod fast;
+mod hybrid;
 mod legacy_pem;
 mod openpgp;
 mod padding;
@@ -113,6 +115,10 @@ pub const CAPABILITY_OPENPGP_STREAM_DRAIN: u64 = 1 << 34;
 pub const CAPABILITY_OPENPGP_V6_GENERATION_MUTATION: u64 = 1 << 35;
 /// PKCS#12 client-identity import and metadata.
 pub const CAPABILITY_PKCS12: u64 = 1 << 36;
+/// FIDO hybrid QR handshakes and authenticated traffic encryption.
+pub const CAPABILITY_HYBRID: u64 = 1 << 37;
+/// CTAP hmac-secret key agreement, authenticated salts, and result encryption.
+pub const CAPABILITY_CTAP_PRF: u64 = 1 << 38;
 /// Complete capability set provided by this native library revision.
 pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_PBKDF2_SHA256
@@ -149,7 +155,9 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_OPENPGP_USER_ID_CERTIFICATION
     | CAPABILITY_OPENPGP_STREAM_DRAIN
     | CAPABILITY_OPENPGP_V6_GENERATION_MUTATION
-    | CAPABILITY_PKCS12;
+    | CAPABILITY_PKCS12
+    | CAPABILITY_HYBRID
+    | CAPABILITY_CTAP_PRF;
 
 static PANIC_HOOK: Once = Once::new();
 
@@ -530,6 +538,13 @@ fn execute_one_shot(
             ssh_keys::public_key_decode(std::mem::take(&mut request.public_key_openssh))?
         }
         native_request::Operation::Pkcs12(request) => pkcs12::process(request),
+        native_request::Operation::HybridHandshake(request) => hybrid::handshake(&request)?,
+        native_request::Operation::HybridTraffic(request) => {
+            hybrid::traffic(parse_cipher_direction(request.direction)?, &request)?
+        }
+        native_request::Operation::CtapPrfKeyGenerate(_) => ctap_prf::generate()?,
+        native_request::Operation::CtapPrfSaltsOpen(request) => ctap_prf::open(&request)?,
+        native_request::Operation::CtapPrfOutputSeal(request) => ctap_prf::seal(&request)?,
         native_request::Operation::SshCertificateDescribe(mut request) => {
             ssh_certificates::describe(
                 std::mem::take(&mut request.certificate_openssh),
@@ -629,6 +644,11 @@ fn one_shot_operation_name(operation: &native_request::Operation) -> &'static st
         native_request::Operation::SshPublicKeyDecode(_) => "ssh_public_key_decode",
         native_request::Operation::SshCertificateDescribe(_) => "ssh_certificate_describe",
         native_request::Operation::Pkcs12(_) => "pkcs12",
+        native_request::Operation::HybridHandshake(_) => "hybrid_handshake",
+        native_request::Operation::HybridTraffic(_) => "hybrid_traffic",
+        native_request::Operation::CtapPrfKeyGenerate(_) => "ctap_prf_key_generate",
+        native_request::Operation::CtapPrfSaltsOpen(_) => "ctap_prf_salts_open",
+        native_request::Operation::CtapPrfOutputSeal(_) => "ctap_prf_output_seal",
         native_request::Operation::PasskeyKeyGenerate(_) => "passkey_key_generate",
         native_request::Operation::PasskeyKeyInspect(_) => "passkey_key_inspect",
         native_request::Operation::PasskeySign(_) => "passkey_sign",
@@ -1288,9 +1308,11 @@ mod tests {
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
         assert_eq!(PROTOCOL_VERSION, 3);
-        assert_eq!(CAPABILITIES, 0x1f7fffffff);
+        assert_eq!(CAPABILITIES, 0x7f7fffffff);
         assert_eq!(CAPABILITIES & (1 << 31), 0, "bit 31 is retired");
         assert_eq!(CAPABILITY_OPENPGP_V6_GENERATION_MUTATION, 1 << 35);
+        assert_eq!(CAPABILITY_HYBRID, 1 << 37);
+        assert_eq!(CAPABILITY_CTAP_PRF, 1 << 38);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256, 1 << 20);
         assert_eq!(CAPABILITY_AES_CBC_HMAC_SHA256_FAST_PATH, 1 << 21);
         assert_eq!(CAPABILITY_RANDOM_FAST_PATH, 1 << 23);

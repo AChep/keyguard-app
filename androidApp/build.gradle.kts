@@ -61,6 +61,7 @@ dependencies {
     implementation(project(":common"))
     implementation(project(":feature:android-ipc-android"))
     implementation(project(":feature:qr-scanner-android"))
+    implementation(project(":feature:passkey-hybrid-android"))
     baselineProfile(project(":androidBenchmark"))
 
     // Credential exchange (CXF/CXP) export registration relies on the

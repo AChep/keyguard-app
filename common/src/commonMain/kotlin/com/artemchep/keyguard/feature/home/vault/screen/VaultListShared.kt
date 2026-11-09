@@ -9,6 +9,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.Keyboard
 import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.QrCodeScanner
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.SortByAlpha
 import androidx.compose.material3.Icon
@@ -59,6 +60,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRoute
+import com.artemchep.keyguard.feature.passkeys.PasskeyHybridRouteFactory
 import com.artemchep.keyguard.feature.passkeys.PasskeysCredentialViewRouteFactory
 import com.artemchep.keyguard.feature.passkeys.passkeyPickAction
 import com.artemchep.keyguard.leof
@@ -93,6 +95,7 @@ internal fun RememberStateFlowScope.vaultListToolbarFlow(
     foldersFlow: Flow<List<DFolder>> = getFolders(),
     clearVaultSession: ClearVaultSession,
     onRename: (List<DFolder>) -> Unit,
+    passkeyHybridRouteFactory: PasskeyHybridRouteFactory? = null,
 ): Flow<List<ContextItem>> {
     val actionArchiveItem = FlatItemAction(
         id = "vaultList.archive",
@@ -277,6 +280,27 @@ internal fun RememberStateFlowScope.vaultListToolbarFlow(
             }
         }
     }
+    // Its own section, first in the menu: unlike the other actions,
+    // it works with a device other than this one.
+    val actionHybridFlow = flowOf(
+        buildContextItems {
+            this += passkeyHybridRouteFactory?.let { factory ->
+                FlatItemAction(
+                    id = "vaultList.hybridPasskey",
+                    leading = {
+                        Icon(Icons.Outlined.QrCodeScanner, null)
+                    },
+                    title = Res.string.passkey_hybrid_title.wrap(),
+                    trailing = {
+                        ChevronIcon()
+                    },
+                    onClick = {
+                        navigate(NavigationIntent.NavigateToRoute(factory.create()))
+                    },
+                )
+            }
+        },
+    )
     val actionFolderRenameFlow = foldersFlow
         .map { folders ->
             val folder = folders.firstOrNull { it.id == folderId }
@@ -302,6 +326,7 @@ internal fun RememberStateFlowScope.vaultListToolbarFlow(
         }
     return if (args.canAlwaysShowKeyboard) {
         combine(
+            actionHybridFlow,
             actionFolderRenameFlow,
             actionGroupFlow,
             actionGroup2Flow,

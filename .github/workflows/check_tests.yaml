@@ -152,6 +152,8 @@ jobs:
               :feature:agent-setup:desktopTest
               :feature:android-ipc-presentation:checkComposeFree
               :feature:android-ipc-presentation:desktopTest
+              :feature:passkey-hybrid-presentation:checkComposeFree
+              :feature:passkey-hybrid-presentation:desktopTest
               :feature:cli:checkComposeFree
               :feature:cli:desktopTest
               :feature:environments:checkComposeFree
@@ -167,6 +169,8 @@ jobs:
             tasks: >-
               :common:testAndroidHostTest
               :feature:android-ipc-presentation:testAndroidHostTest
+              :feature:passkey-hybrid-presentation:testAndroidHostTest
+              :feature:passkey-hybrid-android:testDebugUnitTest
               :standard:presentation:testAndroidHostTest
           - id: util-desktop
             name: Util Desktop
@@ -203,6 +207,9 @@ jobs:
               :util:webauthn:checkComposeFree
               :util:webauthn:checkBouncyCastleProductionDependencies
               :util:webauthn:desktopTest
+              :util:fido-hybrid:checkComposeFree
+              :util:fido-hybrid:checkBouncyCastleProductionDependencies
+              :util:fido-hybrid:desktopTest
               :util:webdav:desktopTest
               :util:xml:desktopTest
               :util:zip:desktopTest
@@ -227,6 +234,7 @@ jobs:
               :util:s3:testAndroidHostTest
               :util:signalr:testAndroidHostTest
               :util:webauthn:testAndroidHostTest
+              :util:fido-hybrid:testAndroidHostTest
               :util:webdav:testAndroidHostTest
               :util:xml:testAndroidHostTest
               :util:zip:testAndroidHostTest

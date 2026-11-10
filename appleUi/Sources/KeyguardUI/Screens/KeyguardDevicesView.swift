@@ -205,7 +205,9 @@ func keyguardPlatformSymbol(_ platform: String) -> String {
     case "android": "smartphone"
     case "ios": "iphone"
     case "wear": "applewatch"
-    case "macos", "windows", "linux", "desktop": "desktopcomputer"
+    case "macos": "laptopcomputer"
+    case "windows": "pc"
+    case "linux", "desktop": "desktopcomputer"
     default: "laptopcomputer.and.iphone"
     }
 }

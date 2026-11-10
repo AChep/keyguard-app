@@ -8,7 +8,9 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Computer
+import androidx.compose.material.icons.outlined.DesktopWindows
 import androidx.compose.material.icons.outlined.Devices
+import androidx.compose.material.icons.outlined.LaptopMac
 import androidx.compose.material.icons.outlined.PhoneAndroid
 import androidx.compose.material.icons.outlined.PhoneIphone
 import androidx.compose.material.icons.outlined.Watch
@@ -55,8 +57,9 @@ internal fun keyguardPlatformIcon(platform: String): ImageVector = when (platfor
     "android" -> Icons.Outlined.PhoneAndroid
     "wear" -> Icons.Outlined.Watch
     "ios" -> Icons.Outlined.PhoneIphone
-    "macos",
-    "windows",
+    "macos" -> Icons.Outlined.LaptopMac
+    "windows" -> Icons.Outlined.DesktopWindows
+    // Material has no icon of its own for Linux.
     "linux",
     "desktop",
     -> Icons.Outlined.Computer

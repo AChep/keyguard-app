@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.model.EditWordlistRequest
 import com.artemchep.keyguard.common.usecase.AddWordlist
 import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.RemoveWordlistById
+import com.artemchep.keyguard.common.util.fileNameStem
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
@@ -71,15 +72,20 @@ object WordlistUtil {
         navigate(intent)
     }
 
+    /**
+     * Asks for a name and a file, then adds the wordlist. The dialog
+     * starts with [initialFile] selected, if there's one.
+     */
     context(stateScope: RememberStateFlowScope)
     suspend fun onNewFromFile(
         confirmationRouteFactory: ConfirmationRouteFactory,
         addWordlist: AddWordlist,
+        initialFile: ConfirmationRoute.Args.Item.FileItem.File? = null,
     ) = with(stateScope) {
         val nameKey = "name"
         val nameItem = ConfirmationRoute.Args.Item.StringItem(
             key = nameKey,
-            value = "",
+            value = defaultWordlistName(initialFile?.name),
             title = translate(Res.string.generic_name),
             type = ConfirmationRoute.Args.Item.StringItem.Type.Text,
             canBeEmpty = false,
@@ -88,7 +94,7 @@ object WordlistUtil {
         val fileKey = "file"
         val fileItem = ConfirmationRoute.Args.Item.FileItem(
             key = fileKey,
-            value = null,
+            value = initialFile,
             title = translate(Res.string.wordlist),
         )
 
@@ -215,3 +221,13 @@ object WordlistUtil {
         navigate(intent)
     }
 }
+
+/**
+ * The file name without its extension, so `eff_large_wordlist.txt`
+ * becomes `eff_large_wordlist`.
+ */
+internal fun defaultWordlistName(
+    fileName: String?,
+): String = fileName?.trim()
+    .orEmpty()
+    .fileNameStem()

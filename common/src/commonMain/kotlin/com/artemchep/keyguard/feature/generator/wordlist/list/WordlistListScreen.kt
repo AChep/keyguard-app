@@ -44,6 +44,7 @@ import com.artemchep.keyguard.common.model.flatMap
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.ErrorView
+import com.artemchep.keyguard.feature.filepicker.ContentFileDropTarget
 import com.artemchep.keyguard.feature.generator.wordlist.view.WordlistViewRoute
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
@@ -92,8 +93,8 @@ fun WordlistListScreen(
 ) {
     val scrollBehavior = ToolbarBehavior.behavior()
 
-    val listRevision =
-        loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.revision
+    val contentOrNull = loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()
+    val listRevision = contentOrNull?.revision
     val listState = remember {
         LazyListState(
             firstVisibleItemIndex = 0,
@@ -142,15 +143,13 @@ fun WordlistListScreen(
             )
         },
         bottomBar = {
-            val selectionOrNull =
-                loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.selection
+            val selectionOrNull = contentOrNull?.selection
             DefaultSelection(
                 state = selectionOrNull,
             )
         },
         floatingActionState = run {
-            val actions = loadableState.getOrNull()?.content?.getOrNull()
-                ?.getOrNull()?.primaryActions.orEmpty()
+            val actions = contentOrNull?.primaryActions.orEmpty()
             val onClick = if (actions.isNotEmpty()) {
                 // lambda
                 {
@@ -182,8 +181,7 @@ fun WordlistListScreen(
                         expanded = primaryActionsDropdownVisibleState.value,
                         onDismissRequest = onDismissRequest,
                     ) {
-                        val actions = loadableState.getOrNull()?.content?.getOrNull()
-                            ?.getOrNull()?.primaryActions.orEmpty()
+                        val actions = contentOrNull?.primaryActions.orEmpty()
                         actions.forEachIndexed { index, action ->
                             DropdownMenuItemFlat(
                                 action = action,
@@ -196,6 +194,12 @@ fun WordlistListScreen(
                         text = stringResource(Res.string.add),
                     )
                 },
+            )
+        },
+        overlay = {
+            ContentFileDropTarget(
+                text = stringResource(Res.string.wordlist_drop_file_here),
+                onFileDrop = contentOrNull?.onFileDrop,
             )
         },
         listState = listState,

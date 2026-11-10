@@ -191,15 +191,13 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
                                     )
                                 ) { info ->
                                     if (info != null) {
-                                        val file = ConfirmationRoute.Args.Item.FileItem.File(
-                                            uri = info.uri.toString(),
-                                            name = info.name,
-                                            size = info.size,
-                                        )
-                                        sink.value = file
+                                        sink.value = info.toConfirmationFile()
                                     }
                                 }
                                 filePickerIntentSink.emit(intent)
+                            },
+                            onFileDrop = { info ->
+                                sink.value = info.toConfirmationFile()
                             },
                             onClear = if (value != null) {
                                 // lambda

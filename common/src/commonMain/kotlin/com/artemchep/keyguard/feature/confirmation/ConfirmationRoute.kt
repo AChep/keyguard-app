@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.confirmation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.DialogRouteForResult
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -116,6 +117,12 @@ class ConfirmationRoute(
         )
     }
 }
+
+fun FilePickerResult.toConfirmationFile() = ConfirmationRoute.Args.Item.FileItem.File(
+    uri = uri.toString(),
+    name = name,
+    size = size,
+)
 
 fun RememberStateFlowScope.createConfirmationDialogIntent(
     confirmationRouteFactory: ConfirmationRouteFactory,

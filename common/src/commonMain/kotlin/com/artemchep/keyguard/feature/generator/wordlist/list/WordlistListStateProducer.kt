@@ -18,7 +18,9 @@ import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
 import com.artemchep.keyguard.feature.attachments.SelectableItemStateRaw
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
+import com.artemchep.keyguard.feature.confirmation.toConfirmationFile
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsAttempt
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.generator.emailrelay.EmailRelayListState
 import com.artemchep.keyguard.feature.generator.wordlist.WordlistsRoute
 import com.artemchep.keyguard.feature.generator.wordlist.util.WordlistUtil
@@ -114,6 +116,14 @@ suspend fun RememberStateFlowScope.wordlistListStateProducer(
             ),
         )
         navigate(intent)
+    }
+
+    fun onFileDrop(file: FilePickerResult) = action {
+        WordlistUtil.onNewFromFile(
+            confirmationRouteFactory = confirmationRouteFactory,
+            addWordlist = addWordlist,
+            initialFile = file.toConfirmationFile(),
+        )
     }
 
     val itemsRawFlow = getWordlists()
@@ -295,6 +305,10 @@ suspend fun RememberStateFlowScope.wordlistListStateProducer(
                     items = items,
                     selection = selection,
                     primaryActions = primaryActions,
+                    // Like the Send list, a drop does nothing
+                    // while you select items.
+                    onFileDrop = ::onFileDrop
+                        .takeIf { selection == null },
                 )
             }
         Loadable.Ok(contentOrException)

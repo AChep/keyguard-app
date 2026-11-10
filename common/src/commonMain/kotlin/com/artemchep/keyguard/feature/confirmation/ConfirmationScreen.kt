@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -41,6 +42,8 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
+import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
 import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -57,6 +60,7 @@ import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PasswordStrengthBadge
+import com.artemchep.keyguard.ui.flatItemLayoutPaddingValues
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -217,7 +221,7 @@ private val commonConfirmationItemRenderers = ConfirmationItemRenderers(
         )
     },
     fileItem = { modifier, item ->
-        ConfirmationFileItem(
+        ConfirmationFileItemDropTarget(
             modifier = modifier,
             item = item,
         )
@@ -466,6 +470,33 @@ private fun ConfirmationEnumItemItem(
         title = item.title,
         text = item.text,
         onClick = item.onClick,
+    )
+}
+
+@Composable
+private fun ConfirmationFileItemDropTarget(
+    modifier: Modifier = Modifier,
+    item: ConfirmationState.Item.FileItem,
+) {
+    FileDropTargetBox(
+        modifier = modifier,
+        enabled = item.enabled,
+        onFileDrop = item.onFileDrop,
+        content = {
+            ConfirmationFileItem(
+                item = item,
+            )
+        },
+        overlay = {
+            FileDropOverlay(
+                modifier = Modifier
+                    .matchParentSize()
+                    // Cover the item's background, not its outer padding.
+                    .padding(flatItemLayoutPaddingValues),
+                text = stringResource(Res.string.file_drop_here),
+                textPadding = PaddingValues(horizontal = 16.dp),
+            )
+        },
     )
 }
 

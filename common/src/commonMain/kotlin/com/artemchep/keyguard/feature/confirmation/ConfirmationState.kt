@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.model.BiometricAuthPrompt
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.emptyFlow
 
@@ -89,6 +90,7 @@ data class ConfirmationState(
             val title: String,
             val error: String?,
             val onSelect: () -> Unit,
+            val onFileDrop: (FilePickerResult) -> Unit,
             val onClear: (() -> Unit)?,
         ) : Item {
             override val valid: Boolean

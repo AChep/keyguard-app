@@ -4,7 +4,6 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -23,15 +22,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.getOrNull
-import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
-import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
+import com.artemchep.keyguard.feature.filepicker.ContentFileDropTarget
 import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
@@ -76,7 +73,6 @@ fun AccountClientCertificateScreen(accountId: String) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountClientCertificateContent(state: AccountClientCertificateState?) {
-    val onFileDrop by rememberUpdatedState(state?.onFileDrop)
     val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldLazyColumn(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -110,20 +106,9 @@ fun AccountClientCertificateContent(state: AccountClientCertificateState?) {
         },
         overlay = {
             DefaultProgressBar(visible = state == null || state.busy)
-            FileDropTargetBox(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(contentPadding.value),
-                enabled = onFileDrop != null,
-                onFileDrop = { file -> onFileDrop?.invoke(file) },
-                overlay = {
-                    FileDropOverlay(
-                        modifier = Modifier
-                            .matchParentSize()
-                            .padding(horizontal = Dimens.contentPadding),
-                        text = stringResource(Res.string.client_certificate_drop_here),
-                    )
-                },
+            ContentFileDropTarget(
+                text = stringResource(Res.string.client_certificate_drop_here),
+                onFileDrop = state?.onFileDrop,
             )
         },
     ) {

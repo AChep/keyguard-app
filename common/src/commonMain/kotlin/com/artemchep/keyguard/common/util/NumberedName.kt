@@ -20,9 +20,8 @@ internal fun MutableSet<String>.claimNumberedName(
         return true
     }
     if (claim(name)) return name
-    val dot = name.lastIndexOf('.')
-    val stem = if (dot > 0) name.substring(0, dot) else name
-    val extension = if (dot > 0) name.substring(dot) else ""
+    val stem = name.fileNameStem()
+    val extension = name.substring(stem.length)
     return generateSequence(firstNumber) { it + 1 }
         .map { number -> "$stem ($number)$extension" }
         .first(::claim)

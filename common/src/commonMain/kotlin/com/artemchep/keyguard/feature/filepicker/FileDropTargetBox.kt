@@ -4,6 +4,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
@@ -12,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -23,6 +26,8 @@ import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.file_drop_single_file_only
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
+import com.artemchep.keyguard.ui.OverlayScope
+import com.artemchep.keyguard.ui.theme.Dimens
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
 
@@ -126,6 +131,36 @@ internal fun FileDropTargetBox(
     )
 }
 
+/**
+ * Accepts a single dropped file over the scaffold's content, below the
+ * toolbar, showing [text] while a file hovers it. A `null` [onFileDrop]
+ * disables it.
+ */
+@Composable
+internal fun OverlayScope.ContentFileDropTarget(
+    text: String,
+    onFileDrop: ((FilePickerResult) -> Unit)?,
+) {
+    val updatedOnFileDrop by rememberUpdatedState(onFileDrop)
+    FileDropTargetBox(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding.value),
+        enabled = onFileDrop != null,
+        onFileDrop = { file ->
+            updatedOnFileDrop?.invoke(file)
+        },
+        overlay = {
+            FileDropOverlay(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(horizontal = Dimens.contentPadding),
+                text = text,
+            )
+        },
+    )
+}
+
 @Composable
 internal fun FileDropOverlay(
     modifier: Modifier = Modifier,
@@ -157,6 +192,7 @@ internal fun FileDropOverlay(
 internal fun FileDropOverlay(
     text: String,
     modifier: Modifier = Modifier,
+    textPadding: PaddingValues = PaddingValues(24.dp),
 ) {
     FileDropOverlay(
         modifier = modifier,
@@ -164,7 +200,7 @@ internal fun FileDropOverlay(
         Text(
             modifier = Modifier
                 .widthIn(max = 280.dp)
-                .padding(24.dp),
+                .padding(textPadding),
             text = text,
             color = MaterialTheme.colorScheme.onPrimaryContainer,
             style = MaterialTheme.typography.labelMedium,

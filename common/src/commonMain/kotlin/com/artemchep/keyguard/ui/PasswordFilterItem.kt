@@ -85,7 +85,8 @@ private val flatItemSmallCornerSize = CornerSize(flatItemSmallCornerSizeDp)
 
 private val flatItemSmallShape = RoundedCornerShape(flatItemSmallCornerSizeDp)
 
-private val defaultPaddingValues: PaddingValues = PaddingValues(
+/** The default outer padding of [FlatItemLayout]. */
+internal val flatItemLayoutPaddingValues: PaddingValues = PaddingValues(
     horizontal = 8.dp,
     vertical = 2.dp,
 )
@@ -246,7 +247,7 @@ fun FlatDropdown(
     actions: List<FlatItemAction> = emptyList(),
     leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
-    paddingValues: PaddingValues = defaultPaddingValues,
+    paddingValues: PaddingValues = flatItemLayoutPaddingValues,
     contentPadding: PaddingValues = defaultContentPadding,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
@@ -290,7 +291,7 @@ fun FlatDropdownLayout(
     actions: List<FlatItemAction> = emptyList(),
     leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
-    paddingValues: PaddingValues = defaultPaddingValues,
+    paddingValues: PaddingValues = flatItemLayoutPaddingValues,
     contentPadding: PaddingValues = defaultContentPadding,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
@@ -400,7 +401,7 @@ fun FlatItem(
     actions: List<FlatItemAction> = emptyList(),
     leading: (@Composable RowScope.() -> Unit)? = null,
     trailing: (@Composable RowScope.() -> Unit)? = null,
-    paddingValues: PaddingValues = defaultPaddingValues,
+    paddingValues: PaddingValues = flatItemLayoutPaddingValues,
     contentPadding: PaddingValues = defaultContentPadding,
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
@@ -474,7 +475,7 @@ val DisabledEmphasisAlpha = 0.38f
 @Composable
 fun FlatItemLayout(
     modifier: Modifier = Modifier,
-    paddingValues: PaddingValues = defaultPaddingValues,
+    paddingValues: PaddingValues = flatItemLayoutPaddingValues,
     contentPadding: PaddingValues = defaultContentPadding,
     elevation: Dp = 0.dp,
     backgroundColor: Color = Color.Unspecified,

@@ -229,6 +229,7 @@
     <string name="select_file">Select a file</string>
     <string name="additem_attachments_drop_here">Drop files here to add them as attachments</string>
     <string name="file_drop_single_file_only">Drop one file at a time</string>
+    <string name="file_drop_here">Drop a file here</string>
     <string name="addsend_drop_file_to_replace">Drop a file to replace the selected file</string>
     <string name="autofill">Autofill</string>
     <string name="autofill_and_save_uri">Autofill and save app or website info</string>
@@ -1067,6 +1068,7 @@
     <string name="wordlist_add_wordlist_title">Add a wordlist</string>
     <string name="wordlist_add_wordlist_via_file_title">Load from a file</string>
     <string name="wordlist_add_wordlist_via_url_title">Load from a URL</string>
+    <string name="wordlist_drop_file_here">Drop a file to add a wordlist</string>
     <string name="wordlist_empty_label">No wordlists</string>
     <string name="wordlist_word_search_placeholder">Search words</string>
     <string name="wordlist_rename_action">Rename wordlist</string>

@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.Selection
@@ -24,6 +25,8 @@ data class WordlistListState(
         val items: ImmutableList<Item>,
         val selection: Selection?,
         val primaryActions: ImmutableList<ContextItem>,
+        /** Opens the add dialog with the dropped file selected. */
+        val onFileDrop: ((FilePickerResult) -> Unit)? = null,
     ) {
         companion object
     }

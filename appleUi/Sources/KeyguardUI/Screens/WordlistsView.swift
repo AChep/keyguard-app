@@ -40,6 +40,11 @@ struct WordlistsView: View {
                 }
             }
         }
+        // The text stays set: switching the drop target off would rebuild
+        // the list and lose its scroll position.
+        .fileDropTarget(text: L10n.wordlistDropFileHere) { url in
+            if canDropFile { sheet = .fromFile(url: url) }
+        }
         .navigationTitle(L10n.wordlistListSectionTitle)
         .toolbar { toolbar }
         .listSelection(
@@ -171,6 +176,11 @@ struct WordlistsView: View {
 
     private var editing: Bool {
         selection.isEditing(selectionCount: snapshot.selectionCount)
+    }
+
+    /// Like the Send list, a drop does nothing while you select items.
+    private var canDropFile: Bool {
+        snapshot.status == WordlistLoadStatus.ready && !editing && sheet == nil
     }
 
     private func row(_ item: WordlistListItemSnapshot) -> some View {
@@ -309,11 +319,16 @@ struct WordlistFromFileView: View {
     @Environment(WordlistsModel.self) private var wordlistsModel
     @Environment(\.dismiss) private var dismiss
 
-    let fileURL: URL
+    @State private var fileURL: URL
 
-    @State private var name: String = ""
+    @State private var name: String
     @State private var isSaving = false
     @State private var errorText: String?
+
+    init(fileURL: URL) {
+        _fileURL = State(initialValue: fileURL)
+        _name = State(initialValue: fileURL.deletingPathExtension().lastPathComponent)
+    }
 
     private var canSave: Bool {
         !name.trimmingCharacters(in: .whitespaces).isEmpty && !isSaving
@@ -331,6 +346,9 @@ struct WordlistFromFileView: View {
                 Section {
                     TextField(L10n.genericName, text: $name)
                     LabeledContent(L10n.file, value: fileURL.lastPathComponent)
+                        .fileDropTarget(text: isSaving ? nil : L10n.fileDropHere) { url in
+                            fileURL = url
+                        }
                 } footer: {
                     if let errorText {
                         Text(errorText).foregroundStyle(.red)
@@ -343,7 +361,6 @@ struct WordlistFromFileView: View {
                 .keyboardShortcut(.defaultAction)
                 .disabled(!canSave)
         }
-        .onAppear { name = fileURL.deletingPathExtension().lastPathComponent }
     }
 
     private func save() {

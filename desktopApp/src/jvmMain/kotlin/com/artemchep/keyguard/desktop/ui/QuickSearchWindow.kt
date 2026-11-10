@@ -31,10 +31,8 @@ import com.artemchep.keyguard.feature.home.vault.quicksearch.LocalQuickSearchAut
 import com.artemchep.keyguard.feature.home.vault.quicksearch.LocalQuickSearchDismiss
 import com.artemchep.keyguard.feature.home.vault.quicksearch.QuickSearchAppRoute
 import com.artemchep.keyguard.feature.home.vault.quicksearch.QuickSearchAutotypePayload
-import com.artemchep.keyguard.feature.navigation.LocalNavigationRouterNode
 import com.artemchep.keyguard.feature.navigation.LocalNavigationStore
 import com.artemchep.keyguard.feature.navigation.NavigationNode
-import com.artemchep.keyguard.feature.navigation.NavigationRouterNode
 import com.artemchep.keyguard.feature.navigation.NavigationStore
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
@@ -149,17 +147,10 @@ private fun QuickSearchWindowContent(
     activationRevision: Int,
     onDismissRequest: () -> Unit,
 ) {
-    // Create separate navigation store and router
-    // so it can independently recover the navigation
-    // state.
+    // Create a separate navigation store so it can
+    // independently recover the navigation state.
     val navigationStore = remember {
         NavigationStore()
-    }
-    val navigationRouter = remember {
-        NavigationRouterNode(
-            id = "root",
-            parent = null,
-        )
     }
 
     CompositionLocalProvider(
@@ -168,7 +159,6 @@ private fun QuickSearchWindowContent(
         LocalQuickSearchActivationRevision provides activationRevision,
         // navigation
         LocalNavigationStore provides navigationStore,
-        LocalNavigationRouterNode provides navigationRouter,
     ) {
         NavigationNode(
             id = "App:QuickSearch",

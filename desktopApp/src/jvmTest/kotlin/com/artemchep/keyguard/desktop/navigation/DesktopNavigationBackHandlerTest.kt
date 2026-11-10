@@ -17,9 +17,7 @@ import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import com.artemchep.keyguard.feature.navigation.BackHandler
-import com.artemchep.keyguard.feature.navigation.NavigationController
-import com.artemchep.keyguard.feature.navigation.NavigationIntent
+import com.artemchep.keyguard.feature.navigation.NavigationHost
 import com.artemchep.keyguard.ui.LeMOdelBottomSheet
 import java.awt.Component
 import java.awt.Container
@@ -32,9 +30,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.flowOf
 import org.junit.Assume.assumeFalse
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -46,14 +41,14 @@ class DesktopNavigationBackHandlerTest {
         var renderedDraft = ""
         var editDraft: (String) -> Unit = {}
         var editorVisible by mutableStateOf(true)
-        val handler = BackHandler()
+        val host = NavigationHost()
         var pops = 0
-        handler.register(controller {
+        host.registerBackTarget(canPop = { editorVisible }) {
             pops++
             editorVisible = false
-        }, emptyList()) { editorVisible }
+        }
 
-        withWindow(handler) {
+        withWindow(host) {
             if (editorVisible) {
                 var draft by remember { mutableStateOf("search default") }
                 SideEffect {
@@ -108,13 +103,13 @@ class DesktopNavigationBackHandlerTest {
 
     @Test
     fun `nested popups dismiss one layer per Escape`() {
-        val handler = BackHandler()
+        val host = NavigationHost()
         var pops = 0
         var outerVisible by mutableStateOf(true)
         var innerVisible by mutableStateOf(true)
         var innerReady = false
-        handler.register(controller { pops++ }, emptyList()) { true }
-        withWindow(handler) {
+        host.registerBackTarget(canPop = { true }) { pops++ }
+        withWindow(host) {
             if (outerVisible) {
                 Popup(
                     onDismissRequest = { outerVisible = false },
@@ -152,11 +147,11 @@ class DesktopNavigationBackHandlerTest {
 
     @Test
     fun `modified Escape other keys and consumed shortcuts do not navigate`() {
-        val handler = BackHandler()
+        val host = NavigationHost()
         var pops = 0
         var consumeShortcut = false
-        handler.register(controller { pops++ }, emptyList()) { true }
-        withWindow(handler, onKeyEvent = { consumeShortcut }) { Text("Editor") }.use { window ->
+        host.registerBackTarget(canPop = { true }) { pops++ }
+        withWindow(host, onKeyEvent = { consumeShortcut }) { Text("Editor") }.use { window ->
             for (modifier in listOf(
                 InputEvent.CTRL_DOWN_MASK,
                 InputEvent.META_DOWN_MASK,
@@ -180,17 +175,8 @@ class DesktopNavigationBackHandlerTest {
         }
     }
 
-    private fun controller(onBack: () -> Unit) = object : NavigationController {
-        override val scope = CoroutineScope(Dispatchers.Unconfined)
-        override fun canPop() = flowOf(true)
-        override fun queue(intent: NavigationIntent) {
-            assertEquals(NavigationIntent.Pop, intent)
-            onBack()
-        }
-    }
-
     private fun withWindow(
-        handler: BackHandler,
+        host: NavigationHost,
         onKeyEvent: (KeyEvent) -> Boolean = { false },
         content: @Composable () -> Unit,
     ): TestWindow {
@@ -200,7 +186,7 @@ class DesktopNavigationBackHandlerTest {
             ComposeWindow().apply {
                 setSize(640, 480)
                 setContent(onKeyEvent = onKeyEvent) {
-                    DesktopNavigationBackHandler(handler)
+                    DesktopNavigationBackHandler(host)
                     MaterialTheme {
                         Column { content() }
                     }

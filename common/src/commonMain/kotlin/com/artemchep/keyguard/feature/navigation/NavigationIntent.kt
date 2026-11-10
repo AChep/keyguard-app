@@ -1,7 +1,5 @@
 package com.artemchep.keyguard.feature.navigation
 
-typealias NavigationEntryFactory = (String?, Route) -> NavigationEntry
-
 /**
  * Commands passed through the controller chain.
  *
@@ -91,10 +89,24 @@ sealed interface NavigationIntent {
     }
 
     /**
-     * Replaces the active stack with already-created entries.
+     * Makes the stack [id] of the router the active one.
+     *
+     * The stack keeps its entries if its root route has the same
+     * [Route.descriptor] as the [root]. Otherwise, or if there is no
+     * such stack, the stack becomes a single new entry for the [root].
      */
     data class NavigateToStack(
-        val stack: List<NavigationEntry>,
+        val id: String,
+        val root: Route,
+    ) : NavigationIntent
+
+    /**
+     * Replaces the root entry of the active stack with an entry for the
+     * [route]. The new entry keeps the id of the old one, the entries
+     * above the root stay.
+     */
+    data class ReplaceRoot(
+        val route: Route,
     ) : NavigationIntent
 
     /**
@@ -116,14 +128,5 @@ sealed interface NavigationIntent {
     data class PopById(
         val id: String,
         val exclusive: Boolean = true,
-    ) : NavigationIntent
-
-    // manual
-
-    /**
-     * Gives callers direct access to transform the active stack.
-     */
-    data class Manual(
-        val handle: NavigationIntentScope.(NavigationEntryFactory) -> NavigationBackStack,
     ) : NavigationIntent
 }

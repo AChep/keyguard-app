@@ -9,11 +9,11 @@ import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.navigationevent.NavigationEventInfo
 import androidx.navigationevent.compose.NavigationBackHandler
 import androidx.navigationevent.compose.rememberNavigationEventState
-import com.artemchep.keyguard.feature.navigation.BackHandler
+import com.artemchep.keyguard.feature.navigation.NavigationHost
 
 /** Register once before the window content, so subsequently opened popups handle Back first. */
 @Composable
-internal fun DesktopNavigationBackHandler(handler: BackHandler) {
+internal fun DesktopNavigationBackHandler(host: NavigationHost) {
     val windowInfo = LocalWindowInfo.current
     NavigationBackHandler(
         state = rememberNavigationEventState(NavigationEventInfo.None),
@@ -26,7 +26,7 @@ internal fun DesktopNavigationBackHandler(handler: BackHandler) {
             val hasModifier = modifiers.isCtrlPressed || modifiers.isMetaPressed ||
                 modifiers.isAltPressed || modifiers.isShiftPressed
             if (!hasModifier) {
-                handler.handleBack()
+                host.handleBack()
             }
         },
     )

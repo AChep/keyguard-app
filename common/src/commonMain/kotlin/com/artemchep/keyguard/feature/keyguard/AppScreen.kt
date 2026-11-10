@@ -32,12 +32,9 @@ import com.artemchep.keyguard.feature.keyguard.setup.SetupRoute
 import com.artemchep.keyguard.feature.keyguard.unlock.UnlockRoute
 import com.artemchep.keyguard.feature.loading.LoadingScreen
 import com.artemchep.keyguard.feature.localization.TextHolder
-import com.artemchep.keyguard.feature.navigation.LocalNavigationRouterNode
+import com.artemchep.keyguard.feature.navigation.LocalNavigationHost
 import com.artemchep.keyguard.feature.navigation.LocalNavigationStore
 import com.artemchep.keyguard.feature.navigation.NavigationNode
-import com.artemchep.keyguard.feature.navigation.NavigationPile
-import com.artemchep.keyguard.feature.navigation.NavigationRouterNode
-import com.artemchep.keyguard.feature.navigation.NavigationStore
 import com.artemchep.keyguard.platform.leIme
 import com.artemchep.keyguard.platform.leNavigationBars
 import com.artemchep.keyguard.platform.lifecycle.LocalLifecycleStateFlow
@@ -69,7 +66,7 @@ data class AuthScreen(
 fun AppScreen() {
     ManualAppScreen { vaultState ->
         val updatedNavStore by rememberUpdatedState(LocalNavigationStore.current)
-        val updatedNavNode by rememberUpdatedState(LocalNavigationRouterNode.current)
+        val updatedNavHost by rememberUpdatedState(LocalNavigationHost.current)
 
         val vaultStateClassIsMain = vaultState is VaultState.Main
         remember(vaultStateClassIsMain) {
@@ -77,9 +74,8 @@ fun AppScreen() {
                 return@remember
             }
 
-            saveNavigationRouter(
+            updatedNavHost.saveRouters(
                 store = updatedNavStore,
-                node = updatedNavNode,
             )
         }
 
@@ -89,56 +85,6 @@ fun AppScreen() {
             is VaultState.Loading -> ManualAppScreenOnLoading(vaultState)
             is VaultState.Main -> ManualAppScreenOnMain(vaultState)
         }
-    }
-}
-
-fun saveNavigationRouter(
-    store: NavigationStore,
-    node: NavigationRouterNode,
-) {
-    val navPileSeq = generateNavigationRouterNodeSequence(node)
-        .flatMap { childNavNode ->
-            childNavNode.entryState
-                .value
-                ?.subStacks
-                ?.values
-                .orEmpty()
-        }
-        .flatMap { navPile ->
-            generateNavigationPileSequence(navPile)
-        }
-    navPileSeq.forEach { pile ->
-        store.save(pile.id, pile)
-    }
-}
-
-private fun generateNavigationPileSequence(
-    navPile: NavigationPile,
-): Sequence<NavigationPile> = sequence {
-    yield(navPile)
-
-    navPile.value.forEach { navStack ->
-        navStack.value.forEach { navEntry ->
-            val seq = navEntry.subStacks.values
-                .asSequence()
-                .flatMap { childNavPile ->
-                    generateNavigationPileSequence(childNavPile)
-                }
-            yieldAll(seq)
-        }
-    }
-}
-
-private fun generateNavigationRouterNodeSequence(
-    navNode: NavigationRouterNode,
-): Sequence<NavigationRouterNode> = sequence {
-    yield(navNode)
-
-    // Also emit all of the children of the
-    // router node.
-    navNode.childrenState.forEach { childNavNode ->
-        val seq = generateNavigationRouterNodeSequence(childNavNode)
-        yieldAll(seq)
     }
 }
 

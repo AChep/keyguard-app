@@ -24,6 +24,7 @@ import com.artemchep.keyguard.feature.home.vault.VaultRoute
 import com.artemchep.keyguard.feature.home.vault.search.filter.FilterHolder
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationEntry
+import com.artemchep.keyguard.feature.navigation.NavigationStack
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.send.SendRoute
 import com.artemchep.keyguard.feature.watchtower.WatchtowerRoute
@@ -48,9 +49,9 @@ const val HOME_NAV_GPG_TOOLS_TEST_TAG = "nav_bar:gpg_tools"
 const val HOME_NAV_WATCHTOWER_TEST_TAG = "nav_bar:watchtower"
 const val HOME_NAV_SETTINGS_TEST_TAG = "nav_bar:settings"
 
-private const val STACK_ID_VAULT = "vault"
+const val STACK_ID_VAULT = "vault"
 private const val STACK_ID_SENDS = "sends"
-private const val STACK_ID_GENERATOR = "generator"
+const val STACK_ID_GENERATOR = "generator"
 private const val STACK_ID_GPG_TOOLS = "gpg_tools"
 private const val STACK_ID_WATCHTOWER = "watchtower"
 private const val STACK_ID_SETTINGS = "settings"
@@ -99,7 +100,7 @@ data class HomeNavigationItem(
         return matchesRootRoute(rootRoute)
     }
 
-    private fun matchesRootRoute(
+    internal fun matchesRootRoute(
         rootRoute: Route,
     ): Boolean = when (spec.ref) {
         is NavItemRef.CipherFilter -> {
@@ -109,6 +110,29 @@ data class HomeNavigationItem(
         }
 
         else -> rootRoute.descriptor == route.descriptor
+    }
+}
+
+/**
+ * Finds the item whose route should replace the [rootRoute] of the stack
+ * [stackId] of the router [routerId]. That is the item that owns the stack,
+ * if the root still matches it but has another descriptor, for example
+ * after the user renames a cipher filter. Otherwise returns `null`.
+ */
+fun List<HomeNavigationItem>.findRootRefreshItem(
+    routerId: String,
+    stackId: String,
+    rootRoute: Route,
+): HomeNavigationItem? {
+    val item = firstOrNull { candidate ->
+        NavigationStack.createId(
+            prefix = routerId,
+            suffix = candidate.stackId,
+        ) == stackId
+    } ?: return null
+    return item.takeIf {
+        it.matchesRootRoute(rootRoute) &&
+            rootRoute.descriptor != it.route.descriptor
     }
 }
 

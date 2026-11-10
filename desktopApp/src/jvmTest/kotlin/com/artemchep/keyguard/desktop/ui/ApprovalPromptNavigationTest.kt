@@ -19,13 +19,12 @@ import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceHost
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
 import com.artemchep.keyguard.common.usecase.GetNavAnimation
-import com.artemchep.keyguard.feature.navigation.BackHandler
 import com.artemchep.keyguard.feature.navigation.DialogRoute
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationController
+import com.artemchep.keyguard.feature.navigation.NavigationHost
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationRestoreRepository
-import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.feature.navigation.NavigationStackPersistence
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.platform.WindowId
@@ -75,7 +74,7 @@ class ApprovalPromptNavigationTest {
         val koin = Koin().apply {
             loadModules(listOf(TestModule(scope).module))
         }
-        val backHandler = BackHandler()
+        val host = NavigationHost()
         var navigation: NavigationController? = null
         val onNavigation = { controller: NavigationController -> navigation = controller }
         var request by mutableStateOf<Pair<String, Route>?>(
@@ -87,7 +86,7 @@ class ApprovalPromptNavigationTest {
                 height = 420,
                 density = Density(1f),
                 content = {
-                    ApprovalContent(koin, scope, backHandler, request)
+                    ApprovalContent(koin, scope, host, request)
                 },
             ).use { scene ->
                 scene.render(0).close()
@@ -143,12 +142,12 @@ class ApprovalPromptNavigationTest {
     private fun ApprovalContent(
         koin: Koin,
         scope: CoroutineScope,
-        backHandler: BackHandler,
+        host: NavigationHost,
         request: Pair<String, Route>?,
     ) {
         KoinContext(koin) {
             MaterialTheme {
-                NavigationRouterBackHandler(handler = backHandler) {
+                NavigationHost(host) {
                     NavigationController(scope = scope, canPop = flowOf(false), handle = { it }) {
                         request?.let { (id, route) ->
                             ApprovalPromptNavigation(requestId = id, route = route)

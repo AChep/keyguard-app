@@ -109,6 +109,7 @@ Keep module holders as `val module = module { ... }` referenced directly from `m
 #### Navigation + screens
 
 - Navigation is route-driven (`Route`, `NavigationIntent`, `NavigationNode`) and hosts screen content in a stack-based router.
+- A router keeps its stacks in a `NavigationPile`. A pure reducer (`NavigationReducer.kt`) turns an intent into a new stack state, then the pile creates and destroys entries to match it.
 - Screen state is usually produced via `produceScreenState(...)`, which connects a feature state flow to navigation lifecycle and persisted screen state.
 - `RememberScreenStateFlow` and `RememberStateFlowScopeImpl` provide:
     - lifecycle-aware flow sharing,

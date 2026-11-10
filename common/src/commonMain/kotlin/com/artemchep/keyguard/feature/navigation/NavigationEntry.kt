@@ -11,16 +11,11 @@ import com.artemchep.keyguard.feature.navigation.state.FlowHolderViewModel
 import kotlinx.collections.immutable.ImmutableMap
 import kotlinx.collections.immutable.persistentMapOf
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.plus
-import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.withContext
 import kotlin.uuid.Uuid
 
 /**
@@ -56,9 +51,12 @@ interface NavigationEntry : BackPressInterceptorHost, KeyEventInterceptorHost {
 
     fun getOrCreate(
         id: String,
-        create: () -> NavigationStack,
+        create: () -> NavigationPile,
     ): NavigationPile
 
+    /**
+     * Destroys the entry. Calling it again does nothing.
+     */
     fun destroy()
 }
 
@@ -69,12 +67,33 @@ val LocalNavigationEntry = staticCompositionLocalOf<NavigationEntry> {
 /**
  * Default route entry implementation used by routers and root nodes.
  */
-data class NavigationEntryImpl(
+class NavigationEntryImpl internal constructor(
     private val source: String,
-    private val parent: CoroutineScope,
-    override val id: String,
-    override val route: Route,
+    parent: CoroutineScope,
+    /**
+     * The configuration this entry was created for. A router
+     * keeps the entry for as long as it keeps the configuration.
+     */
+    internal val config: NavigationEntryConfig,
 ) : NavigationEntry {
+    constructor(
+        source: String,
+        parent: CoroutineScope,
+        id: String,
+        route: Route,
+    ) : this(
+        source = source,
+        parent = parent,
+        config = NavigationEntryConfig(
+            id = id,
+            route = route,
+        ),
+    )
+
+    override val id: String get() = config.id
+
+    override val route: Route get() = config.route
+
     override val type: String = route::class.simpleName.orEmpty()
 
     private val job = Job(parent = parent.job)
@@ -102,16 +121,6 @@ data class NavigationEntryImpl(
     init {
         require('/' !in id)
         require('/' !in type)
-
-        parent.launch {
-            try {
-                suspendCancellableCoroutine<Unit> { }
-            } finally {
-                withContext(NonCancellable + Dispatchers.Main) {
-                    destroy()
-                }
-            }
-        }
     }
 
     override fun interceptBackPress(
@@ -154,15 +163,13 @@ data class NavigationEntryImpl(
 
     override fun getOrCreate(
         id: String,
-        create: () -> NavigationStack,
-    ): NavigationPile = subStacks
-        .getOrPut(id) {
-            val navStack = create()
-            NavigationPile(id, navStack)
-        }
+        create: () -> NavigationPile,
+    ): NavigationPile = subStacks.getOrPut(id, create)
 
     override fun destroy() {
         vm.destroy()
         job.cancel()
     }
+
+    override fun toString(): String = "NavigationEntryImpl(id=$id, route=$route, source=$source)"
 }

@@ -121,12 +121,10 @@ import com.artemchep.keyguard.desktop.util.requestFocusWithRetry
 import com.artemchep.keyguard.di.GlobalModuleCommon
 import com.artemchep.keyguard.di.VaultModuleCommon
 import com.artemchep.keyguard.feature.keyguard.AppRoute
-import com.artemchep.keyguard.feature.navigation.BackHandler
-import com.artemchep.keyguard.feature.navigation.LocalNavigationBackHandler
 import com.artemchep.keyguard.feature.navigation.NavigationController
+import com.artemchep.keyguard.feature.navigation.NavigationHost
 import com.artemchep.keyguard.feature.navigation.NavigationModule
 import com.artemchep.keyguard.feature.navigation.NavigationNode
-import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.LeContext
@@ -629,7 +627,7 @@ private fun ApplicationScope.KeyguardMainWindow(
     onReopenRequest: () -> Unit,
     onCloseRequest: () -> Unit,
 ) {
-    val navigationBackHandler = remember { BackHandler() }
+    val navigationHost = remember { NavigationHost() }
     KeyguardMainWindow(
         processLifecycleProvider = processLifecycleProvider,
         stateManager = stateManager,
@@ -645,7 +643,7 @@ private fun ApplicationScope.KeyguardMainWindow(
         }
 
         KeyguardTheme {
-            KeyguardWindowScaffold(navigationBackHandler = navigationBackHandler) {
+            KeyguardWindowScaffold(navigationHost = navigationHost) {
                 Content()
             }
         }
@@ -815,11 +813,11 @@ private fun KeyguardWindowEssentialsProvider(
 
 @Composable
 internal fun ApplicationScope.KeyguardWindowScaffold(
-    navigationBackHandler: BackHandler,
+    navigationHost: NavigationHost,
     onRootPop: () -> Unit = ::exitApplication,
     content: @Composable () -> Unit,
 ) {
-    DesktopNavigationBackHandler(navigationBackHandler)
+    DesktopNavigationBackHandler(navigationHost)
     val containerColor = LocalBackgroundManager.current.colorHighest
     val containerColorAnimatedState = animateColorAsState(containerColor)
     val contentColor = contentColorFor(containerColor)
@@ -834,7 +832,7 @@ internal fun ApplicationScope.KeyguardWindowScaffold(
             Navigation(
                 exitApplication = ::exitApplication,
                 popRoot = onRootPop,
-                handler = navigationBackHandler,
+                host = navigationHost,
             ) {
                 content()
             }
@@ -892,10 +890,10 @@ private fun Content() {
 private fun Navigation(
     exitApplication: () -> Unit,
     popRoot: () -> Unit = exitApplication,
-    handler: BackHandler = remember { BackHandler() },
+    host: NavigationHost = remember { NavigationHost() },
     block: @Composable () -> Unit,
-) = NavigationRouterBackHandler(
-    handler = handler,
+) = NavigationHost(
+    host = host,
 ) {
     val showMessage = koinInject<ShowMessage>()
     val logRepository = koinInject<LogRepository>()
@@ -917,19 +915,7 @@ private fun Navigation(
                 scope = GlobalScope,
             )
         },
-    ) { controller ->
-        val backHandler = LocalNavigationBackHandler.current
-
-        DisposableEffect(
-            controller,
-            backHandler,
-        ) {
-            val registration = backHandler.register(controller, emptyList())
-            onDispose {
-                registration()
-            }
-        }
-
+    ) {
         block()
     }
 }

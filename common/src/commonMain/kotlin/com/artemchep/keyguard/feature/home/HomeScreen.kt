@@ -96,6 +96,9 @@ import com.artemchep.keyguard.common.usecase.GetWatchtowerUnreadCount
 import com.artemchep.keyguard.common.usecase.PutAllowScreenshots
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.feature.home.navigation.HomeNavigationItem
+import com.artemchep.keyguard.feature.home.navigation.STACK_ID_GENERATOR
+import com.artemchep.keyguard.feature.home.navigation.STACK_ID_VAULT
+import com.artemchep.keyguard.feature.home.navigation.findRootRefreshItem
 import com.artemchep.keyguard.feature.home.navigation.homeGeneratorRoute
 import com.artemchep.keyguard.feature.home.navigation.homeVaultRoute
 import com.artemchep.keyguard.feature.home.navigation.resolveHomeNavigationItems
@@ -104,6 +107,7 @@ import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.LocalNavigationNodeVisualStack
+import com.artemchep.keyguard.feature.navigation.LocalNavigationRouter
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationEntry
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -161,11 +165,11 @@ fun HomeScreen(
     navBarVisible: Boolean = true,
 ) {
     val deeplinkService = koinInject<DeeplinkService>()
-    val defaultRoute = remember {
+    val (defaultRoute, defaultStackId) = remember {
         val defaultHome = deeplinkService.get(DeeplinkService.CUSTOM_HOME)
         when (defaultHome) {
-            "generator" -> homeGeneratorRoute
-            else -> homeVaultRoute
+            "generator" -> homeGeneratorRoute to STACK_ID_GENERATOR
+            else -> homeVaultRoute to STACK_ID_VAULT
         }
     }
 
@@ -201,6 +205,8 @@ fun HomeScreen(
     NavigationRouter(
         id = ROUTE_NAME,
         initial = defaultRoute,
+        // The tab of the default route switches to the initial stack.
+        initialStackId = defaultStackId,
     ) { backStack ->
         HomeScreenContent(
             backStack = backStack,
@@ -601,9 +607,9 @@ fun HomeScreenContent(
 }
 
 /**
- * Keeps the selected home navigation stack aligned with dynamically resolved
- * items by refreshing its root route when the item still matches the stack but
- * now resolves to a different route get.
+ * Keeps the active home navigation stack aligned with the dynamically resolved
+ * item that owns it, by refreshing its root route when the item still matches
+ * the root but now resolves to a different route.
  *
  * TL/DR: When a selected home tab now points to a different screen, replace
  * the stale root screen with the current one.
@@ -614,35 +620,25 @@ private fun HomeNavigationDynamicRootEffect(
     routes: ImmutableList<HomeNavigationItem>,
 ) {
     val controller = LocalNavigationController.current
+    val stackId = LocalNavigationRouter.current.id
     LaunchedEffect(
+        stackId,
         backStack,
         routes,
     ) {
         val rootRoute = backStack.firstOrNull()?.route
             ?: return@LaunchedEffect
-        val item = routes.firstOrNull { item ->
-            item.isSelected(backStack) &&
-                    rootRoute.descriptor != item.route.descriptor
-        } ?: return@LaunchedEffect
+        // Only the item that owns the stack may refresh its root, so
+        // two items with equal filters do not take turns replacing it.
+        val item = routes.findRootRefreshItem(
+            routerId = ROUTE_NAME,
+            stackId = stackId,
+            rootRoute = rootRoute,
+        ) ?: return@LaunchedEffect
 
-        val intent = NavigationIntent.Manual { factory ->
-            val navStack = getStack(
-                id = item.stackId,
-            )
-            val rootEntry = navStack.entries.firstOrNull()
-                ?: return@Manual navStack
-            val shouldRefreshRoot =
-                item.isSelected(navStack.entries) &&
-                        rootEntry.route.descriptor != item.route.descriptor
-            if (!shouldRefreshRoot) {
-                return@Manual navStack
-            }
-
-            val refreshedRootEntry = factory(rootEntry.id, item.route)
-            navStack.copy(
-                entries = navStack.entries.set(0, refreshedRootEntry),
-            )
-        }
+        val intent = NavigationIntent.ReplaceRoot(
+            route = item.route,
+        )
         controller.queue(intent)
     }
 }
@@ -1244,26 +1240,13 @@ private fun navigateOnClick(
     controller: NavigationController,
     item: HomeNavigationItem,
 ) {
-    val intent = NavigationIntent.Manual { factory ->
-        val navStack = getStack(
-            id = item.stackId,
-        )
-        val rootRoute = navStack.entries.firstOrNull()?.route
-        // Dynamic home items can reuse a stack id while their resolved route
-        // changes, so restore the stack only when its root still represents
-        // the clicked item.
-        val navEntries = if (
-            rootRoute != null &&
-            item.isSelected(navStack.entries) &&
-            rootRoute.descriptor == item.route.descriptor
-        ) {
-            navStack.entries
-        } else {
-            val entry = factory(ROUTE_NAME, item.route)
-            persistentListOf(entry)
-        }
-        navStack.copy(entries = navEntries)
-    }
+    // Dynamic home items can reuse a stack id while their resolved route
+    // changes, so the router keeps the stack only when its root still
+    // represents the clicked item.
+    val intent = NavigationIntent.NavigateToStack(
+        id = item.stackId,
+        root = item.route,
+    )
     controller.queue(intent)
 }
 

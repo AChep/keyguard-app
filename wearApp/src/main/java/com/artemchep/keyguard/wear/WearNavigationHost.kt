@@ -4,16 +4,14 @@ import android.content.Context
 import android.content.Intent
 import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.net.toUri
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.usecase.ShowMessage
-import com.artemchep.keyguard.feature.navigation.LocalNavigationBackHandler
 import com.artemchep.keyguard.feature.navigation.NavigationController
+import com.artemchep.keyguard.feature.navigation.NavigationHost
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
-import com.artemchep.keyguard.feature.navigation.NavigationRouterBackHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.flowOf
 import org.koin.compose.koinInject
@@ -21,7 +19,7 @@ import org.koin.compose.koinInject
 /**
  * Shared navigation host for Wear activities.
  *
- * Sets up [NavigationRouterBackHandler] and [NavigationController] with
+ * Sets up [NavigationHost] and [NavigationController] with
  * browser-intent handling, reducing boilerplate duplicated across
  * [WearActivity] and [WearCredentialProviderActivity].
  */
@@ -30,7 +28,7 @@ fun WearNavigationHost(
     onBackPressedDispatcher: OnBackPressedDispatcher,
     scope: CoroutineScope,
     content: @Composable () -> Unit,
-) = NavigationRouterBackHandler(
+) = NavigationHost(
     onBackPressedDispatcher = onBackPressedDispatcher,
 ) {
     val context = LocalContext.current
@@ -45,19 +43,7 @@ fun WearNavigationHost(
                 showMessage = showMessage,
             )
         },
-    ) { controller ->
-        val backHandler = LocalNavigationBackHandler.current
-
-        DisposableEffect(
-            controller,
-            backHandler,
-        ) {
-            val registration = backHandler.register(controller, emptyList())
-            onDispose {
-                registration()
-            }
-        }
-
+    ) {
         content()
     }
 }

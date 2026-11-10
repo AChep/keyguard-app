@@ -10,8 +10,7 @@ import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnCreate
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnLoading
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnUnlock
-import com.artemchep.keyguard.feature.keyguard.saveNavigationRouter
-import com.artemchep.keyguard.feature.navigation.LocalNavigationRouterNode
+import com.artemchep.keyguard.feature.navigation.LocalNavigationHost
 import com.artemchep.keyguard.feature.navigation.LocalNavigationStore
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationRouter
@@ -20,7 +19,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationRouter
 fun QuickSearchAppScreen() {
     ManualAppScreen { vaultState ->
         val updatedNavStore by rememberUpdatedState(LocalNavigationStore.current)
-        val updatedNavNode by rememberUpdatedState(LocalNavigationRouterNode.current)
+        val updatedNavHost by rememberUpdatedState(LocalNavigationHost.current)
 
         val vaultStateClassIsMain = vaultState is VaultState.Main
         remember(vaultStateClassIsMain) {
@@ -28,9 +27,8 @@ fun QuickSearchAppScreen() {
                 return@remember
             }
 
-            saveNavigationRouter(
+            updatedNavHost.saveRouters(
                 store = updatedNavStore,
-                node = updatedNavNode,
             )
         }
 

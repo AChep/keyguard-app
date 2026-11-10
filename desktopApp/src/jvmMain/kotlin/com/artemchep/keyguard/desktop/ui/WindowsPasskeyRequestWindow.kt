@@ -27,10 +27,8 @@ import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnLoading
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnMain
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnUnlock
 import com.artemchep.keyguard.feature.localization.TextHolder
-import com.artemchep.keyguard.feature.navigation.BackHandler
-import com.artemchep.keyguard.feature.navigation.LocalNavigationRouterNode
 import com.artemchep.keyguard.feature.navigation.LocalNavigationStore
-import com.artemchep.keyguard.feature.navigation.NavigationRouterNode
+import com.artemchep.keyguard.feature.navigation.NavigationHost
 import com.artemchep.keyguard.feature.navigation.NavigationStore
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
@@ -63,9 +61,8 @@ private fun ApplicationScope.WindowsPasskeyRequestWindow(
     processLifecycleProvider: LePlatformLifecycleProvider,
     onCancel: () -> Unit,
 ) {
-    val navigationBackHandler = remember(state.request.id) { BackHandler() }
+    val navigationHost = remember(state.request.id) { NavigationHost() }
     val navigationStore = remember(state.request.id) { NavigationStore() }
-    val navigationRouter = remember(state.request.id) { NavigationRouterNode(id = "root", parent = null) }
     PopupComposeWindow(
         title = stringResource(Res.string.passkeys),
         onCloseRequest = onCancel,
@@ -76,13 +73,12 @@ private fun ApplicationScope.WindowsPasskeyRequestWindow(
         icon = painterResource(Res.drawable.ic_keyguard),
         focusRequestKey = state.request.id,
         focusTag = "WindowsPasskeys",
-        onKeyEvent = navigationBackHandler::handleKeyEvent,
+        onKeyEvent = navigationHost::handleKeyEvent,
     ) {
         KeyguardWindowEssentials(processLifecycleProvider = processLifecycleProvider, onMinimizeRequest = {}) {
             KeyguardTheme {
                 CompositionLocalProvider(
                     LocalNavigationStore provides navigationStore,
-                    LocalNavigationRouterNode provides navigationRouter,
                     LocalAuthScreen provides AuthScreen(
                         reason = TextHolder.Value(state.request.rpId),
                         style = AuthScreen.Style.DIALOG,
@@ -91,7 +87,7 @@ private fun ApplicationScope.WindowsPasskeyRequestWindow(
                     ),
                 ) {
                     KeyguardWindowScaffold(
-                        navigationBackHandler = navigationBackHandler,
+                        navigationHost = navigationHost,
                         onRootPop = onCancel,
                     ) {
                         WindowsPasskeyAppScreen(state)

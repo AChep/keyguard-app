@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.feature.twopane
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,10 +22,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -36,14 +33,12 @@ import androidx.compose.ui.unit.coerceAtMost
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.usecase.GetAllowTwoPanelLayoutInLandscape
 import com.artemchep.keyguard.common.usecase.GetAllowTwoPanelLayoutInPortrait
-import com.artemchep.keyguard.common.usecase.GetNavAnimation
 import com.artemchep.keyguard.feature.home.HomeLayout
 import com.artemchep.keyguard.feature.home.LocalHomeLayout
 import com.artemchep.keyguard.feature.keyguard.setup.keyguardSpan
-import com.artemchep.keyguard.feature.navigation.NavigationAnimation
+import com.artemchep.keyguard.feature.navigation.NavigationAnimatedContent
 import com.artemchep.keyguard.feature.navigation.NavigationAnimationType
-import com.artemchep.keyguard.feature.navigation.transform
-import com.artemchep.keyguard.platform.LocalAnimationFactor
+import com.artemchep.keyguard.feature.navigation.NavigationBackGesture
 import com.artemchep.keyguard.ui.scaffoldContentWindowInsets
 import com.artemchep.keyguard.ui.screenMaxWidth
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
@@ -120,13 +115,17 @@ private data class TwoPaneScaffoldScopeImpl(
     override val maxHeight: Dp,
 ) : TwoPaneScaffoldScope, BoxScope by parent
 
+/**
+ * @param detailPaneBack the Back gesture that closes the [detailPane], or
+ *   `null`. The movable pane follows it.
+ */
 @Composable
 fun TwoPaneScaffoldScope.TwoPaneLayout(
     detailPane: (@Composable BoxScope.() -> Unit)? = null,
+    detailPaneBack: NavigationBackGesture? = null,
     masterPane: @Composable BoxScope.() -> Unit,
 ) {
     val surfaceElevation = LocalSurfaceElevation.current
-    val getNavAnimation = koinInject<GetNavAnimation>()
     Row(
         modifier = Modifier
             .background(surfaceElevationColor(surfaceElevation.from)),
@@ -169,36 +168,33 @@ fun TwoPaneScaffoldScope.TwoPaneLayout(
                         .background(surfaceElevation.color),
                 ) {
                     val pane = detailPane ?: masterPane.takeUnless { this@TwoPaneLayout.tabletUi }
-                    val updatedAnimationScale by rememberUpdatedState(LocalAnimationFactor)
-                    AnimatedContent(
+                    // Closing the detail pane shows the master pane
+                    // on a phone and the placeholder on a tablet.
+                    val backPane = if (detailPaneBack != null) {
+                        masterPane.takeUnless { this@TwoPaneLayout.tabletUi }
+                    } else {
+                        pane
+                    }
+                    NavigationAnimatedContent(
                         modifier = Modifier
                             .fillMaxSize(),
                         targetState = pane,
-                        transitionSpec = {
-                            val animationType = getNavAnimation().value
-                            val transitionType = kotlin.run {
-                                if (
-                                    initialState == null ||
-                                    targetState == null
-                                ) {
-                                    return@run NavigationAnimationType.SWITCH
-                                }
+                        back = detailPaneBack,
+                        backState = backPane,
+                        transitionType = { initialState, targetState ->
+                            when {
+                                initialState == null ||
+                                    targetState == null -> NavigationAnimationType.SWITCH
 
-                                val isForward = targetState === detailPane
-                                if (isForward) {
-                                    NavigationAnimationType.GO_FORWARD
-                                } else {
-                                    NavigationAnimationType.GO_BACKWARD
-                                }
+                                targetState === detailPane -> NavigationAnimationType.GO_FORWARD
+                                else -> NavigationAnimationType.GO_BACKWARD
                             }
-
-                            NavigationAnimation.transform(
-                                scale = updatedAnimationScale,
-                                animationType = animationType,
-                                transitionType = transitionType,
-                            )
                         },
-                        label = "",
+                        // The detail pane draws above the master pane
+                        // and the placeholder, also while it leaves.
+                        zIndex = { state ->
+                            if (state != null && state === detailPane) 1f else 0f
+                        },
                     ) { foo ->
                         Box(
                             modifier = Modifier

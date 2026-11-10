@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.navigation
 
+import androidx.activity.BackEventCompat
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.OnBackPressedDispatcher
 import androidx.compose.runtime.Composable
@@ -31,13 +32,26 @@ fun NavigationHost(
 
 /**
  * Adds a callback that is enabled while the [host] can handle Back
- * and gives Back to it. Returns a function that removes the callback.
+ * and gives Back and the Back gestures to it. Returns a function that
+ * removes the callback.
  */
 internal fun OnBackPressedDispatcher.addNavigationHostCallback(
     host: NavigationHost,
 ): () -> Unit {
     val dispatcher = this
     val callback = object : OnBackPressedCallback(host.isBackEnabled) {
+        override fun handleOnBackStarted(backEvent: BackEventCompat) {
+            host.startBack(backEvent.toNavigationBackEvent())
+        }
+
+        override fun handleOnBackProgressed(backEvent: BackEventCompat) {
+            host.progressBack(backEvent.toNavigationBackEvent())
+        }
+
+        override fun handleOnBackCancelled() {
+            host.cancelBack()
+        }
+
         override fun handleOnBackPressed() {
             if (host.handleBack()) {
                 return
@@ -59,3 +73,14 @@ internal fun OnBackPressedDispatcher.addNavigationHostCallback(
         callback.remove()
     }
 }
+
+private fun BackEventCompat.toNavigationBackEvent() = NavigationBackEvent(
+    progress = progress,
+    swipeEdge = when (swipeEdge) {
+        BackEventCompat.EDGE_LEFT -> NavigationBackEdge.LEFT
+        BackEventCompat.EDGE_RIGHT -> NavigationBackEdge.RIGHT
+        else -> NavigationBackEdge.NONE
+    },
+    touchX = touchX,
+    touchY = touchY,
+)

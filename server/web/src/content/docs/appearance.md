@@ -91,7 +91,8 @@ Renders Markdown in notes instead of the raw text.
 ### Transition animation
 
 Sets the animation between screens: **Disabled**, **Crossfade** or
-**Dynamic**.
+**Dynamic**. On Android 14 or later, the back gesture previews the previous
+screen with this animation.
 
 ## Navigation
 

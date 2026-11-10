@@ -385,6 +385,9 @@ kotlin {
                 api(libs.firebase.crashlytics)
                 api(libs.achep.bindin)
                 api(libs.androidx.activity.compose)
+                // Activity and Compose bring 1.1, which crashes if a popup
+                // closes during a Back gesture. 1.2 ignores a removed input.
+                implementation(libs.androidx.navigationevent.compose)
                 api(libs.androidx.appcompat)
                 api(libs.androidx.autofill)
                 api(libs.androidx.biometric)

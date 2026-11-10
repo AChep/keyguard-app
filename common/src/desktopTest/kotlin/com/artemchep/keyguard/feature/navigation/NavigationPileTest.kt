@@ -29,6 +29,7 @@ import kotlin.test.BeforeTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNotSame
 import kotlin.test.assertNull
@@ -212,6 +213,166 @@ class NavigationPileTest {
         assertEquals("saved", restored.entry(ROUTER_ID).query().value)
     }
 
+    //
+    // Back gesture
+    //
+
+    @Test
+    fun `a Back gesture previews the stack under the top entry with the live entries`() {
+        val pile = pile()
+        assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(ItemRoute("a"))))
+        assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(ItemRoute("b"))))
+        val from = pile.value.last()
+        val before = liveChildren
+
+        pile.startBack(backEvent(0.25f, NavigationBackEdge.RIGHT))
+
+        val gesture = assertNotNull(pile.backGesture)
+        assertSame(from, gesture.from)
+        assertEquals(from.id, gesture.to.id)
+        assertEquals(2, gesture.to.value.size)
+        gesture.to.value.zip(from.value).forEach { (preview, live) -> assertSame(live, preview) }
+        assertEquals(NavigationBackEdge.RIGHT, gesture.swipeEdge)
+        assertEquals(0.25f, gesture.progress)
+        // The pile itself does not change.
+        assertSame(from, pile.value.last())
+        assertEquals(before, liveChildren)
+        from.value.forEach { entry -> assertFalse(entry.isDestroyed) }
+    }
+
+    @Test
+    fun `a Back gesture on a second stack previews the previous stack`() {
+        val pile = pile()
+        val root = pile.entry(ROUTER_ID)
+        val firstStackId = pile.value.single().id
+        assertNull(pile.dispatch(NavigationIntent.NavigateToStack("x", ItemRoute("x"))))
+        val from = pile.value.last()
+
+        pile.startBack(backEvent())
+
+        val gesture = assertNotNull(pile.backGesture)
+        assertSame(from, gesture.from)
+        assertEquals(firstStackId, gesture.to.id)
+        assertNotEquals(gesture.from.id, gesture.to.id)
+        assertSame(root, gesture.to.value.single())
+    }
+
+    @Test
+    fun `a Back gesture does not preview a top entry with a Back interceptor`() {
+        val pile = pile()
+        assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(ItemRoute("a"))))
+        pile.value.last().value.last().interceptBackPress {}
+
+        pile.startBack(backEvent())
+
+        assertNull(pile.backGesture)
+        assertTrue(pile.endBack())
+    }
+
+    @Test
+    fun `a Back gesture does not preview a route dialog on top`() {
+        val pile = pile()
+        assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(DialogItemRoute)))
+
+        pile.startBack(backEvent())
+
+        assertNull(pile.backGesture)
+    }
+
+    @Test
+    fun `a Back gesture does not preview the root of the router`() {
+        val pile = pile()
+        val value = pile.value
+
+        pile.startBack(backEvent())
+
+        assertNull(pile.backGesture)
+        assertSame(value, pile.value)
+    }
+
+    @Test
+    fun `the progress of a Back gesture updates its preview`() {
+        val pile = pile()
+        assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(ItemRoute("a"))))
+        pile.startBack(backEvent(0f))
+        val gesture = assertNotNull(pile.backGesture)
+
+        pile.progressBack(backEvent(0.5f))
+
+        assertSame(gesture, pile.backGesture)
+        assertEquals(0.5f, gesture.progress)
+    }
+
+    @Test
+    fun `a cancelled Back gesture clears its preview and is forgotten`() {
+        val pile = pile()
+        assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(ItemRoute("a"))))
+        pile.startBack(backEvent())
+
+        pile.cancelBack()
+
+        assertNull(pile.backGesture)
+        // A commit after the cancel belongs to no gesture.
+        assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(ItemRoute("b"))))
+        assertTrue(pile.endBack())
+    }
+
+    @Test
+    fun `a push during a Back gesture clears the preview and fails its end once`() {
+        val pile = pile()
+        assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(ItemRoute("a"))))
+        pile.startBack(backEvent())
+
+        assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(ItemRoute("b"))))
+
+        assertNull(pile.backGesture)
+        pile.progressBack(backEvent(0.5f))
+        assertNull(pile.backGesture)
+        assertFalse(pile.endBack())
+        assertTrue(pile.endBack())
+    }
+
+    @Test
+    fun `a pop by id during a Back gesture clears the preview and fails its end once`() {
+        val pile = pile()
+        assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(ItemRoute("a"))))
+        assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(ItemRoute("b"))))
+        val b = pile.value.last().value.last()
+        pile.startBack(backEvent())
+
+        // The toolbar arrow of the top entry.
+        assertNull(pile.dispatch(NavigationIntent.PopById(b.id, exclusive = false)))
+
+        assertTrue(b.isDestroyed)
+        assertNull(pile.backGesture)
+        assertFalse(pile.endBack())
+        assertTrue(pile.endBack())
+    }
+
+    @Test
+    fun `the end of a Back gesture on an unchanged pile clears the preview`() {
+        val pile = pile()
+        assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(ItemRoute("a"))))
+        val value = pile.value
+        pile.startBack(backEvent())
+        assertNotNull(pile.backGesture)
+
+        assertTrue(pile.endBack())
+
+        assertNull(pile.backGesture)
+        assertSame(value, pile.value)
+    }
+
+    private fun backEvent(
+        progress: Float = 0f,
+        swipeEdge: NavigationBackEdge = NavigationBackEdge.LEFT,
+    ) = NavigationBackEvent(
+        progress = progress,
+        swipeEdge = swipeEdge,
+        touchX = 0f,
+        touchY = 0f,
+    )
+
     private fun pile(): NavigationPile = NavigationPile(
         id = "pile",
         routerId = ROUTER_ID,
@@ -282,6 +443,11 @@ class NavigationPileTest {
     }
 
     private data class ItemRoute(val name: String) : Route {
+        @Composable
+        override fun Content() = Unit
+    }
+
+    private object DialogItemRoute : DialogRoute {
         @Composable
         override fun Content() = Unit
     }

@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.feature.navigation
 
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Transition
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.tween
@@ -16,23 +15,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEach
-import com.artemchep.keyguard.common.usecase.GetNavAnimation
-import com.artemchep.keyguard.platform.LocalAnimationFactor
 import kotlinx.collections.immutable.PersistentList
 import kotlinx.collections.immutable.persistentListOf
-import org.koin.compose.koinInject
 
 /**
  * Renders one root entry and adds it to the logical navigation stack.
@@ -66,23 +60,93 @@ private data class NodeRenderState(
 }
 
 /**
+ * The entries of the stack that a node with the [offset] renders.
+ */
+private fun nodeVisualEntries(
+    entries: PersistentList<NavigationEntry>,
+    offset: Int,
+): List<NavigationEntry> {
+    if (offset < 0 || offset >= entries.size) {
+        // If the offset is illegal then we just
+        // render empty stack.
+        return persistentListOf()
+    }
+    return entries.subList(offset, entries.size)
+}
+
+/**
+ * The screen layer of a node that renders the [entries]: the last
+ * fullscreen entry, or [NodeRenderState.empty] if there is none.
+ */
+private fun nodeScreenRenderState(
+    logicalStack: PersistentList<NavigationEntry>,
+    visualStack: PersistentList<NavigationEntry>,
+    entries: PersistentList<NavigationEntry>,
+    offset: Int,
+): NodeRenderState {
+    val newVisualEntries = nodeVisualEntries(entries, offset)
+    val lastFullscreenEntryIndex = newVisualEntries.indexOfLast { it.route !is DialogRoute }
+    // There are no screens in the stack.
+    if (lastFullscreenEntryIndex == -1) {
+        return NodeRenderState.empty
+    }
+
+    val newLogicalStack = kotlin.run {
+        val items = entries
+            .subList(fromIndex = 0, toIndex = lastFullscreenEntryIndex + 1 + offset)
+        logicalStack.addAll(items)
+    }
+    val newVisualStack = kotlin.run {
+        val items = newVisualEntries
+            .subList(fromIndex = 0, toIndex = lastFullscreenEntryIndex + 1)
+        visualStack.addAll(items)
+    }
+    return NodeRenderState(
+        logicalStack = newLogicalStack,
+        visualStack = newVisualStack,
+        entry = newVisualStack.last(),
+    )
+}
+
+private fun nodeTransitionType(
+    initialState: NodeRenderState,
+    targetState: NodeRenderState,
+): NavigationAnimationType {
+    if (targetState.visualStack.size == initialState.visualStack.size) {
+        return NavigationAnimationType.SWITCH
+    }
+
+    val isForward = when {
+        initialState.visualStack.size == 0 -> true
+        initialState.visualStack.size < targetState.visualStack.size -> true
+
+        else -> false
+    }
+    return if (isForward) {
+        NavigationAnimationType.GO_FORWARD
+    } else {
+        NavigationAnimationType.GO_BACKWARD
+    }
+}
+
+/**
  * Renders a stack as one active fullscreen route plus optional dialog routes.
+ *
+ * @param back the Back gesture to preview. The node previews it only if
+ *   it renders the stack the gesture started on. A caller that renders
+ *   the node inside a subcomposition, for example `BoxWithConstraints`,
+ *   reads the gesture where it reads the stack and passes it in, so both
+ *   arrive in the same recomposition.
  */
 @Composable
 fun NavigationNode(
     entries: PersistentList<NavigationEntry>,
     offset: Int = 0,
     modifier: Modifier = Modifier,
+    back: NavigationBackGesture? = LocalNavigationBackGesture.current,
 ) {
-    val getNavAnimation = koinInject<GetNavAnimation>()
-
     val newVisualEntries = remember(entries, offset) {
-        if (offset < 0 || offset >= entries.size) {
-            // If the offset is illegal then we just
-            // render empty stack.
-            return@remember persistentListOf<NavigationEntry>()
-        }
-        entries.subList(offset, entries.size)
+        nodeVisualEntries(entries, offset)
     }
 
     val lastFullscreenEntryIndex = newVisualEntries.indexOfLast { it.route !is DialogRoute }
@@ -108,28 +172,13 @@ fun NavigationNode(
             logicalStack,
             visualStack,
             entries,
-            newVisualEntries,
-            lastFullscreenEntryIndex,
+            offset,
         ) {
-            // There are no screens in the stack.
-            if (lastFullscreenEntryIndex == -1) {
-                return@remember NodeRenderState.empty
-            }
-
-            val newLogicalStack = kotlin.run {
-                val items = entries
-                    .subList(fromIndex = 0, toIndex = lastFullscreenEntryIndex + 1 + offset)
-                logicalStack.addAll(items)
-            }
-            val newVisualStack = kotlin.run {
-                val items = newVisualEntries
-                    .subList(fromIndex = 0, toIndex = lastFullscreenEntryIndex + 1)
-                visualStack.addAll(items)
-            }
-            NodeRenderState(
-                logicalStack = newLogicalStack,
-                visualStack = newVisualStack,
-                entry = newVisualStack.last(),
+            nodeScreenRenderState(
+                logicalStack = logicalStack,
+                visualStack = visualStack,
+                entries = entries,
+                offset = offset,
             )
         }
         remember(screenRenderState) {
@@ -138,41 +187,35 @@ fun NavigationNode(
             1
         }
 
-        val updatedAnimationScale by rememberUpdatedState(LocalAnimationFactor)
-        AnimatedContent(
+        // A node that renders a list derived from the
+        // stack of the router ignores its gesture.
+        val gesture = back?.takeIf { it.from.value === entries }
+        val previewRenderState = remember(
+            logicalStack,
+            visualStack,
+            gesture,
+            offset,
+        ) {
+            gesture?.let {
+                nodeScreenRenderState(
+                    logicalStack = logicalStack,
+                    visualStack = visualStack,
+                    entries = it.to.value,
+                    offset = offset,
+                )
+            }
+        }
+
+        NavigationAnimatedContent(
             modifier = Modifier
                 .fillMaxSize(),
             targetState = screenRenderState,
-            transitionSpec = {
-                val animationType = getNavAnimation().value
-                val transitionType = kotlin.run {
-                    if (
-                        this.targetState.visualStack.size ==
-                        this.initialState.visualStack.size
-                    ) {
-                        return@run NavigationAnimationType.SWITCH
-                    }
-
-                    val isForward = when {
-                        initialState.visualStack.size == 0 -> true
-                        initialState.visualStack.size < targetState.visualStack.size -> true
-
-                        else -> false
-                    }
-                    if (isForward) {
-                        NavigationAnimationType.GO_FORWARD
-                    } else {
-                        NavigationAnimationType.GO_BACKWARD
-                    }
-                }
-
-                NavigationAnimation.transform(
-                    scale = updatedAnimationScale,
-                    animationType = animationType,
-                    transitionType = transitionType,
-                )
-            },
-            label = "",
+            back = gesture,
+            backState = previewRenderState ?: screenRenderState,
+            transitionType = ::nodeTransitionType,
+            // By depth: a screen keeps the z-index it entered with,
+            // so a constant would go stale.
+            zIndex = { it.visualStack.size.toFloat() },
         ) { renderState ->
             val entry = renderState.entry
             key(entry?.id) {
@@ -180,7 +223,6 @@ fun NavigationNode(
                     CompositionLocalProvider(
                         LocalNavigationNodeLogicalStack provides renderState.logicalStack,
                         LocalNavigationNodeVisualStack provides renderState.visualStack,
-                        LocalNavigationNodeFinishing provides (parentFinishing || renderState != screenRenderState),
                     ) {
                         NavigationRoute(
                             entry = entry,
@@ -328,6 +370,11 @@ internal val LocalNavigationNodeVisualStack = compositionLocalOf<PersistentList<
     persistentListOf()
 }
 
+/**
+ * `true` for content that is not the live content of its node: content
+ * that is leaving, or that a Back gesture previews. Such content must not
+ * take Back or focus, and its dialogs stay collapsed.
+ */
 internal val LocalNavigationNodeFinishing = compositionLocalOf<Boolean> {
     false
 }

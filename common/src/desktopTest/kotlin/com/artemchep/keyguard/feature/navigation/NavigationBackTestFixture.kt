@@ -66,17 +66,54 @@ abstract class NavigationBackTestFixture {
     /**
      * Registers a router the way [NavigationRouter] does: its depth is the
      * size of the [backStack], and Back queues a pop on the [controller].
+     * The [gesture] follows a Back gesture the router is picked for.
      */
     protected fun NavigationHost.registerRouter(
         controller: NavigationController,
         backStack: List<NavigationEntry>,
+        gesture: NavigationBackGestureListener?,
         canPop: () -> Boolean,
     ): () -> Unit = registerBackTarget(
         depth = { backStack.size },
         canPop = canPop,
+        gesture = gesture,
         onBack = {
             controller.queue(NavigationIntent.Pop)
         },
+    )
+
+    /** Registers a router with no gesture listener, see the overload above. */
+    protected fun NavigationHost.registerRouter(
+        controller: NavigationController,
+        backStack: List<NavigationEntry>,
+        canPop: () -> Boolean,
+    ): () -> Unit = registerRouter(
+        controller = controller,
+        backStack = backStack,
+        gesture = null,
+        canPop = canPop,
+    )
+
+    /**
+     * Registers the [pile] with the Back target that [NavigationRouter]
+     * uses: the pile previews a Back gesture, and Back queues a pop on the
+     * [controller] unless the pile committed during the gesture. Its depth
+     * is the size of the active stack.
+     */
+    protected fun NavigationHost.registerPile(
+        controller: NavigationController,
+        pile: NavigationPile,
+    ): () -> Unit = registerPileBackTarget(
+        pile = pile,
+        queue = controller::queue,
+        depth = { pile.value.lastOrNull()?.value?.size ?: 0 },
+    )
+
+    protected fun backEvent(progress: Float = 0f) = NavigationBackEvent(
+        progress = progress,
+        swipeEdge = NavigationBackEdge.LEFT,
+        touchX = 0f,
+        touchY = 0f,
     )
 
     protected class RecordingController(

@@ -7,6 +7,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.snapshotFlow
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceHost
 import com.artemchep.keyguard.platform.LeBundle
@@ -182,22 +183,28 @@ fun NavigationRouter(
         // receive Back, so it stays registered only while it is the live content.
         val finishing = LocalNavigationNodeFinishing.current
 
+        // The registration outlives a new controller or depth. Registering
+        // again during a Back gesture would look like the router leaving,
+        // which cancels the gesture and drops its release.
+        val updatedController = rememberUpdatedState(controller)
+        val updatedHostDepth = rememberUpdatedState(hostDepth)
         DisposableEffect(
             host,
-            controller,
             navPile,
-            hostDepth,
             finishing,
         ) {
             if (finishing) {
                 return@DisposableEffect onDispose { }
             }
-            val unregister = host.registerBackTarget(
+            val unregister = host.registerPileBackTarget(
+                pile = navPile,
+                queue = { intent ->
+                    updatedController.value.queue(intent)
+                },
                 // The deepest router that can pop gets Back.
-                depth = { hostDepth + (navPile.value.lastOrNull()?.value?.size ?: 0) },
-                canPop = navPile::canPop,
-                onBack = {
-                    controller.queue(NavigationIntent.Pop)
+                depth = {
+                    val size = navPile.value.lastOrNull()?.value?.size ?: 0
+                    updatedHostDepth.value + size
                 },
             )
             // A commit changes what the router can pop
@@ -213,12 +220,48 @@ fun NavigationRouter(
 
         CompositionLocalProvider(
             LocalNavigationRouter provides navStack,
+            // Provided when null too, so the content
+            // never sees the gesture of a parent router.
+            LocalNavigationBackGesture provides navPile.backGesture,
         ) {
             content(localBackStack)
         }
     }
 }
 
+/**
+ * Adds the Back target of a router with the [pile]. The pile follows a
+ * Back gesture the target is picked for, and Back passes a pop to the
+ * [queue] of the router's controller.
+ *
+ * If the pile commits during a gesture, for example on a tap of the
+ * toolbar arrow, the release pops nothing. Another pop would go one
+ * screen too far or reach the parent router.
+ */
+internal fun NavigationHost.registerPileBackTarget(
+    pile: NavigationPile,
+    queue: (NavigationIntent) -> Unit,
+    depth: () -> Int,
+): () -> Unit = registerBackTarget(
+    depth = depth,
+    canPop = pile::canPop,
+    gesture = NavigationPileBackGestureListener(pile),
+    onBack = {
+        if (pile.endBack()) {
+            queue(NavigationIntent.Pop)
+        }
+    },
+)
+
+private class NavigationPileBackGestureListener(
+    private val pile: NavigationPile,
+) : NavigationBackGestureListener {
+    override fun onBackStarted(event: NavigationBackEvent) = pile.startBack(event)
+
+    override fun onBackProgressed(event: NavigationBackEvent) = pile.progressBack(event)
+
+    override fun onBackCancelled() = pile.cancelBack()
+}
 
 internal fun NavigationPile.canPop(): Boolean {
     val stack = value.lastOrNull()?.value.orEmpty()
@@ -349,8 +392,63 @@ class NavigationPile internal constructor(
 
     private val changeListeners = mutableListOf<() -> Unit>()
 
+    private val _backGesture = mutableStateOf<NavigationBackGesture?>(null)
+
+    /**
+     * The committed state a Back gesture started on, compared by identity
+     * when the gesture ends. A commit keeps it, so the end can tell.
+     */
+    private var backGestureStart: Committed? = null
+
     val value: PersistentList<NavigationStack>
         get() = _state.value.stacks
+
+    /**
+     * The Back gesture this pile previews, or `null` if there is none
+     * or Back would not change the stacks.
+     */
+    val backGesture: NavigationBackGesture?
+        get() = _backGesture.value
+
+    /**
+     * Starts a Back gesture on the current stacks. It previews where a
+     * pop leads, unless the top entry handles Back itself. It creates
+     * and destroys no entries.
+     */
+    internal fun startBack(event: NavigationBackEvent) {
+        val old = _state.value
+        backGestureStart = old
+        _backGesture.value = old.stacks.lastOrNull()?.let { from ->
+            previewBack(
+                routerId = routerId,
+                state = old.state,
+                entries = old.entries,
+                from = from,
+                event = event,
+            )
+        }
+    }
+
+    internal fun progressBack(event: NavigationBackEvent) {
+        _backGesture.value?.progress = event.progress
+    }
+
+    internal fun cancelBack() {
+        backGestureStart = null
+        _backGesture.value = null
+    }
+
+    /**
+     * Ends the Back gesture and clears its preview. Returns `false` if the
+     * pile committed since the gesture started, so the release must not
+     * pop. Returns `true` if it did not, or if no gesture started.
+     */
+    internal fun endBack(): Boolean {
+        val start = backGestureStart
+        backGestureStart = null
+        _backGesture.value = null
+        return start == null || start === _state.value
+    }
 
     /**
      * Adds a [listener] that is called at the end of every commit, after
@@ -419,6 +517,9 @@ class NavigationPile internal constructor(
             state = state,
             entries = entries,
         )
+        // The preview showed the old stacks. The start of the
+        // gesture stays, so its end sees the commit.
+        _backGesture.value = null
 
         // Destroy the entries that left, later entries first.
         old.state.stacks.asReversed().forEach { stack ->
@@ -481,6 +582,53 @@ class NavigationPile internal constructor(
     override fun toString(): String {
         return "NavigationPile(id=$id, value=$value)"
     }
+}
+
+/**
+ * The preview of a Back gesture that starts on the [from] stack, the
+ * active stack of the [state], or `null` if Back would not change the
+ * stacks of the router. The stacks reuse the live [entries].
+ *
+ * Top level, so the pile stays within the detekt function limit.
+ */
+private fun previewBack(
+    routerId: String,
+    state: NavigationPileState,
+    entries: Map<NavigationEntryConfig, NavigationEntry>,
+    from: NavigationStack,
+    event: NavigationBackEvent,
+): NavigationBackGesture? {
+    val top = from.value.lastOrNull()
+    val reduction = when {
+        top == null -> null
+        // Back goes to the interceptor.
+        top.activeBackPressInterceptorsStateFlow.value.isNotEmpty() -> null
+        // A route dialog takes Back in its own popup.
+        top.route is DialogRoute -> null
+        else -> state.reduce(
+            routerId = routerId,
+            intent = NavigationIntent.Pop,
+            newId = {
+                error("A pop creates no entries")
+            },
+        )
+    }
+    // A router at its root pops nothing itself, the parent
+    // router previews instead.
+    val toState = (reduction as? NavigationReduction.Handled)?.pile?.stacks?.last()
+        ?: return null
+    val to = NavigationStack(
+        id = toState.id,
+        value = toState.entries
+            .map { config -> entries.getValue(config) }
+            .toPersistentList(),
+    )
+    return NavigationBackGesture(
+        from = from,
+        to = to,
+        swipeEdge = event.swipeEdge,
+        progress = event.progress,
+    )
 }
 
 /**

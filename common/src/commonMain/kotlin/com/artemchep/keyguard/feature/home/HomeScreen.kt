@@ -105,6 +105,7 @@ import com.artemchep.keyguard.feature.home.navigation.resolveHomeNavigationItems
 import com.artemchep.keyguard.feature.home.navigation.splitHomeNavigationItemsByMinSize
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.textResource
+import com.artemchep.keyguard.feature.navigation.LocalNavigationBackGesture
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.LocalNavigationNodeVisualStack
 import com.artemchep.keyguard.feature.navigation.LocalNavigationRouter
@@ -223,6 +224,9 @@ fun HomeScreenContent(
     routes: ImmutableList<HomeNavigationItem>,
     navBarVisible: Boolean = true,
 ) {
+    // Read next to the back stack, so the node inside the
+    // layout gets both of them in the same recomposition.
+    val back = LocalNavigationBackGesture.current
     HomeNavigationDynamicRootEffect(
         backStack = backStack,
         routes = routes,
@@ -421,6 +425,7 @@ fun HomeScreenContent(
                             .weight(1f)
                             .background(defaultContainerColor),
                         entries = backStack,
+                        back = back,
                     )
                 }
 

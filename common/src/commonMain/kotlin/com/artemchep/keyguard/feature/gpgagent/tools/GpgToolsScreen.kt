@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.gpgagent.tools
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -45,10 +46,12 @@ import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
 import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.Section
+import com.artemchep.keyguard.feature.home.vault.component.defaultFlatItemPaddingValues
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.LocalNavigationNodeVisualStack
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -59,6 +62,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.choose_file
 import com.artemchep.keyguard.res.contactus_english_note
 import com.artemchep.keyguard.res.contactus_thanks_note
+import com.artemchep.keyguard.res.file_drop_here
 import com.artemchep.keyguard.res.gpg_tools_add_recipients
 import com.artemchep.keyguard.res.gpg_tools_armor_label
 import com.artemchep.keyguard.res.gpg_tools_choose_signing_key
@@ -280,6 +284,7 @@ private fun LazyListScope.populateGpgToolsContent(
                 title = stringResource(Res.string.gpg_tools_select_input_file),
                 file = state.inputFile,
                 onSelect = state.onSelectInputFile,
+                onFileDrop = state.onDropInputFile,
                 onClear = state.onClearInputFile,
             )
         }
@@ -289,6 +294,7 @@ private fun LazyListScope.populateGpgToolsContent(
                     title = stringResource(Res.string.gpg_tools_select_signature_file),
                     file = state.signatureFile,
                     onSelect = state.onSelectSignatureFile,
+                    onFileDrop = state.onDropSignatureFile,
                     onClear = state.onClearSignatureFile,
                 )
             }
@@ -647,49 +653,58 @@ private fun GpgFileRefRow(
     title: String,
     file: GpgToolsState.FileRef?,
     onSelect: () -> Unit,
+    onFileDrop: (FilePickerResult) -> Unit,
     onClear: () -> Unit,
 ) {
-    FlatItemLayoutExpressive(
-        leading = {
-            Icon(
-                imageVector = Icons.Outlined.Description,
-                contentDescription = null,
-            )
-        },
-        content = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-            )
-            file?.let {
+    FileDropTargetBox(
+        text = stringResource(Res.string.file_drop_here),
+        onFileDrop = onFileDrop,
+        // Cover the item's background, not its outer padding.
+        overlayPadding = defaultFlatItemPaddingValues(),
+        textPadding = PaddingValues(horizontal = 16.dp),
+    ) {
+        FlatItemLayoutExpressive(
+            leading = {
+                Icon(
+                    imageVector = Icons.Outlined.Description,
+                    contentDescription = null,
+                )
+            },
+            content = {
                 Text(
-                    text = it.name ?: it.uri,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = LocalContentColor.current.combineAlpha(MediumEmphasisAlpha),
-                    maxLines = 2,
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                 )
-            }
-        },
-        trailing = {
-            TextButton(
-                onClick = if (file == null) onSelect else onClear,
-            ) {
-                Text(
-                    text = stringResource(
-                        if (file == null) {
-                            Res.string.choose_file
-                        } else {
-                            Res.string.gpg_tools_clear_file
-                        },
-                    ),
-                )
-            }
-        },
-        onClick = onSelect,
-    )
+                file?.let {
+                    Text(
+                        text = it.name ?: it.uri,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = LocalContentColor.current.combineAlpha(MediumEmphasisAlpha),
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            },
+            trailing = {
+                TextButton(
+                    onClick = if (file == null) onSelect else onClear,
+                ) {
+                    Text(
+                        text = stringResource(
+                            if (file == null) {
+                                Res.string.choose_file
+                            } else {
+                                Res.string.gpg_tools_clear_file
+                            },
+                        ),
+                    )
+                }
+            },
+            onClick = onSelect,
+        )
+    }
 }
 
 @Composable

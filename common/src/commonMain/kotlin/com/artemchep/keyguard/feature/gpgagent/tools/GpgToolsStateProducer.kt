@@ -908,11 +908,17 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
             onSelectInputFile = {
                 selectFile(inputFileSink)
             },
+            onDropInputFile = { file ->
+                inputFileSink.value = file.toFileRef()
+            },
             onClearInputFile = {
                 inputFileSink.value = null
             },
             onSelectSignatureFile = {
                 selectFile(signatureFileSink)
+            },
+            onDropSignatureFile = { file ->
+                signatureFileSink.value = file.toFileRef()
             },
             onClearSignatureFile = {
                 signatureFileSink.value = null

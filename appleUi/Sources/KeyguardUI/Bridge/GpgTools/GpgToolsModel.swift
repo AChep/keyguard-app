@@ -383,6 +383,12 @@ final class GpgToolsModel {
         source.selectGpgToolsInputFile()
     }
 
+    func dropGpgToolsInputFile(url: URL) {
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        let file = url.fileNameAndSize
+        source.dropGpgToolsInputFile(uri: url.absoluteString, name: file.name, size: file.size)
+    }
+
     func clearGpgToolsInputFile() {
         guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
         source.clearGpgToolsInputFile()
@@ -393,6 +399,12 @@ final class GpgToolsModel {
         gpgToolsAwaitingFileRequest = true
         refreshGpgToolsNativeBusy()
         source.selectGpgToolsSignatureFile()
+    }
+
+    func dropGpgToolsSignatureFile(url: URL) {
+        guard !closed, !gpgToolsNativeBusy, !gpgTools.busy else { return }
+        let file = url.fileNameAndSize
+        source.dropGpgToolsSignatureFile(uri: url.absoluteString, name: file.name, size: file.size)
     }
 
     func clearGpgToolsSignatureFile() {

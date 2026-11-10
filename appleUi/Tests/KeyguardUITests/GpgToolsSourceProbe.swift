@@ -71,8 +71,12 @@ final class GpgToolsSourceProbe: GpgToolsSource {
     func selectGpgToolsKeyPickerNone(id: String) { actions.append("keyPickerNone") }
     func finishGpgToolsKeyPicker(id: String, confirm: Bool) { finishedKeyPickers.append((id, confirm)) }
     func selectGpgToolsInputFile() { actions.append("selectGpgToolsInputFile") }
+    func dropGpgToolsInputFile(uri: String, name: String?, size: Int64) { actions.append("dropGpgToolsInputFile") }
     func clearGpgToolsInputFile() { actions.append("clearGpgToolsInputFile") }
     func selectGpgToolsSignatureFile() { actions.append("selectGpgToolsSignatureFile") }
+    func dropGpgToolsSignatureFile(uri: String, name: String?, size: Int64) {
+        actions.append("dropGpgToolsSignatureFile")
+    }
     func clearGpgToolsSignatureFile() { actions.append("clearGpgToolsSignatureFile") }
     func runGpgTools() { actions.append("run") }
     func invokeGpgToolsResultCopy() { actions.append("invokeGpgToolsResultCopy") }

@@ -539,8 +539,14 @@ class GpgToolsSession internal constructor(private val ctx: CoreContext) {
     fun selectGpgToolsEncryptSigningKey(id: String?) { current?.onSelectEncryptSigningKey?.invoke(id) }
     fun toggleGpgToolsRecipient(id: String) { current?.onToggleRecipient?.invoke(id) }
     fun selectGpgToolsInputFile() { current?.takeUnless { it.busy }?.onSelectInputFile?.invoke() }
+    fun dropGpgToolsInputFile(uri: String, name: String?, size: Long) {
+        current?.takeUnless { it.busy }?.onDropInputFile?.invoke(filePickerResultOf(uri, name, size))
+    }
     fun clearGpgToolsInputFile() { current?.takeUnless { it.busy }?.onClearInputFile?.invoke() }
     fun selectGpgToolsSignatureFile() { current?.takeUnless { it.busy }?.onSelectSignatureFile?.invoke() }
+    fun dropGpgToolsSignatureFile(uri: String, name: String?, size: Long) {
+        current?.takeUnless { it.busy }?.onDropSignatureFile?.invoke(filePickerResultOf(uri, name, size))
+    }
     fun clearGpgToolsSignatureFile() { current?.takeUnless { it.busy }?.onClearSignatureFile?.invoke() }
     fun runGpgTools() { current?.onRun?.invoke() }
     fun invokeGpgToolsResultCopy() { active?.result?.output?.onCopy?.invoke() }

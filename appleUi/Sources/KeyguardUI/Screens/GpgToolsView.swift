@@ -283,11 +283,13 @@ struct GpgToolsView: View {
             if gpgTools.scope == "file" {
                 fileInput(
                     label: L10n.gpgToolsSelectInputFile, file: gpgTools.inputFile,
-                    choose: gpgToolsModel.selectGpgToolsInputFile, clear: gpgToolsModel.clearGpgToolsInputFile)
+                    choose: gpgToolsModel.selectGpgToolsInputFile, drop: gpgToolsModel.dropGpgToolsInputFile,
+                    clear: gpgToolsModel.clearGpgToolsInputFile)
                 if operation == "verify" {
                     fileInput(
                         label: L10n.gpgToolsSelectSignatureFile, file: gpgTools.signatureFile,
                         choose: gpgToolsModel.selectGpgToolsSignatureFile,
+                        drop: gpgToolsModel.dropGpgToolsSignatureFile,
                         clear: gpgToolsModel.clearGpgToolsSignatureFile)
                 }
             } else {
@@ -306,7 +308,7 @@ struct GpgToolsView: View {
 
     private func fileInput(
         label: String, file: GpgToolsFileSnapshot?, choose: @escaping () -> Void,
-        clear: @escaping () -> Void
+        drop: @escaping (URL) -> Void, clear: @escaping () -> Void
     ) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(label).font(.headline)
@@ -328,6 +330,7 @@ struct GpgToolsView: View {
             }
         }
         .buttonStyle(.borderless)
+        .fileDropTarget(text: gpgTools.busy ? nil : L10n.fileDropHere, onDrop: drop)
     }
 
     private func editor(label: String, text: String, revision: Int32, send: @escaping (String) -> Void) -> some View {

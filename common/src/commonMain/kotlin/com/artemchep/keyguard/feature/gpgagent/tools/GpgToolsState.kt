@@ -5,6 +5,7 @@ import androidx.compose.runtime.Immutable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.decrypt
@@ -56,8 +57,10 @@ data class GpgToolsState(
     val onSelectEncryptSigningKey: (String?) -> Unit,
     val onToggleRecipient: (String) -> Unit,
     val onSelectInputFile: () -> Unit,
+    val onDropInputFile: (FilePickerResult) -> Unit,
     val onClearInputFile: () -> Unit,
     val onSelectSignatureFile: () -> Unit,
+    val onDropSignatureFile: (FilePickerResult) -> Unit,
     val onClearSignatureFile: () -> Unit,
     val onAddPublicKey: () -> Unit,
     val onRemovePublicKey: (String) -> Unit,

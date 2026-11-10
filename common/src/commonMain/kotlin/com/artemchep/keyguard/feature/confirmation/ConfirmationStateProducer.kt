@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.confirmation
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
@@ -11,6 +12,7 @@ import com.artemchep.keyguard.feature.auth.common.TextFieldHandle
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
+import com.artemchep.keyguard.feature.filepicker.droppedFileCopies
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.add.AddState
 import com.artemchep.keyguard.feature.home.vault.add.attachment.SkeletonAttachment
@@ -39,6 +41,7 @@ fun confirmationState(
         args = args,
         transmitter = transmitter,
         windowCoroutineScope = get(),
+        fileService = get(),
     )
 }
 
@@ -47,6 +50,7 @@ fun confirmationState(
     args: ConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<ConfirmationResult>,
     windowCoroutineScope: WindowCoroutineScope,
+    fileService: FileService,
 ): ConfirmationState = produceScreenState(
     key = "confirmation",
     initial = ConfirmationState(
@@ -62,6 +66,7 @@ fun confirmationState(
     confirmationStateProducer(
         args = args,
         transmitter = transmitter,
+        fileService = fileService,
     )
 }
 
@@ -70,8 +75,12 @@ fun confirmationState(
 suspend fun RememberStateFlowScope.confirmationStateProducer(
     args: ConfirmationRoute.Args,
     transmitter: RouteResultTransmitter<ConfirmationResult>,
+    fileService: FileService,
 ): Flow<ConfirmationState> {
     val resultHandler = RouteResultHandler(transmitter)
+    // A dropped copy goes once the dialog no longer holds it,
+    // unless the dialog confirms it to the caller.
+    val droppedFiles = droppedFileCopies(fileService)
     screenScope.coroutineContext.job.invokeOnCompletion {
         resultHandler.complete(ConfirmationResult.Deny)
     }
@@ -175,6 +184,17 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
                     val sink = mutablePersistedFlow(createItemKey(item.key)) {
                         item.value
                     }
+                    sink.value?.let { droppedFiles.hold(it.uri) }
+
+                    fun setFile(file: ConfirmationRoute.Args.Item.FileItem.File?) {
+                        val old = sink.value
+                        sink.value = file
+                        file?.let { droppedFiles.hold(it.uri) }
+                        if (old != null && old.uri != file?.uri) {
+                            droppedFiles.release(old.uri)
+                        }
+                    }
+
                     sink.map { value ->
                         val error = if (value != null) null else "Must pick a file"
                         ConfirmationState.Item.FileItem(
@@ -191,18 +211,18 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
                                     )
                                 ) { info ->
                                     if (info != null) {
-                                        sink.value = info.toConfirmationFile()
+                                        setFile(info.toConfirmationFile())
                                     }
                                 }
                                 filePickerIntentSink.emit(intent)
                             },
                             onFileDrop = { info ->
-                                sink.value = info.toConfirmationFile()
+                                setFile(info.toConfirmationFile())
                             },
                             onClear = if (value != null) {
                                 // lambda
                                 {
-                                    sink.value = null
+                                    setFile(null)
                                 }
                             } else {
                                 null
@@ -242,6 +262,11 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
                     {
                         val data = items
                             .associate { it.key to it.value }
+                        // The caller owns the confirmed files.
+                        items.forEach { item ->
+                            val file = (item as? ConfirmationState.Item.FileItem)?.value
+                            file?.let { droppedFiles.handOff(it.uri) }
+                        }
                         val result = ConfirmationResult.Confirm(data)
                         resultHandler.complete(result) {
                             navigatePopSelf()

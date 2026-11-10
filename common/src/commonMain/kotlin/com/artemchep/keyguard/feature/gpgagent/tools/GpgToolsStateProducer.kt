@@ -43,6 +43,7 @@ import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.textFieldHandle
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
+import com.artemchep.keyguard.feature.filepicker.droppedFileCopies
 import com.artemchep.keyguard.feature.gpgagent.gpgKeyDescription
 import com.artemchep.keyguard.feature.gpgagent.tools.keypicker.GpgToolsKeyPickerRoute
 import com.artemchep.keyguard.feature.gpgagent.tools.publickey.GpgToolsPublicKeyRoute
@@ -198,6 +199,16 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
     var customPublicKeyCounter = 0
     val inputFileSink = MutableStateFlow<GpgToolsState.FileRef?>(inputFile?.toFileRef())
     val signatureFileSink = MutableStateFlow<GpgToolsState.FileRef?>(null)
+    // A dropped copy goes once its field no longer holds it.
+    val droppedFiles = droppedFileCopies(fileService)
+    fun syncDroppedFiles() {
+        val uris = setOfNotNull(
+            inputFileSink.value?.uri,
+            signatureFileSink.value?.uri,
+        )
+        droppedFiles.sync(uris)
+    }
+    syncDroppedFiles()
     val selectedPrivateKeyIdSink = mutablePersistedFlow<String?>("selected_private_key_id") {
         null
     }
@@ -218,6 +229,8 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
             return
         }
         busySink.value = true
+        // A run reads its files after the screen may have closed.
+        val releaseFiles = droppedFiles.lease()
         val work: suspend () -> Unit = {
             try {
                 if (outputCoordinator != null) {
@@ -245,6 +258,7 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
                 }
             } finally {
                 busySink.value = false
+                releaseFiles()
             }
         }
         if (operationScope != null) {
@@ -262,6 +276,7 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
             ) { result ->
                 if (result != null) {
                     target.value = result.toFileRef()
+                    syncDroppedFiles()
                 }
             },
         )
@@ -910,18 +925,22 @@ suspend fun RememberStateFlowScope.gpgToolsStateProducer(
             },
             onDropInputFile = { file ->
                 inputFileSink.value = file.toFileRef()
+                syncDroppedFiles()
             },
             onClearInputFile = {
                 inputFileSink.value = null
+                syncDroppedFiles()
             },
             onSelectSignatureFile = {
                 selectFile(signatureFileSink)
             },
             onDropSignatureFile = { file ->
                 signatureFileSink.value = file.toFileRef()
+                syncDroppedFiles()
             },
             onClearSignatureFile = {
                 signatureFileSink.value = null
+                syncDroppedFiles()
             },
             onAddPublicKey = {
                 val intent = createGpgToolsPublicKeyDialogIntent(

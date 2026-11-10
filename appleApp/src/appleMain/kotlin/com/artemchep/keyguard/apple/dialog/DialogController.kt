@@ -909,6 +909,7 @@ internal class DialogController(
                 .confirmationStateProducer(
                     args = args,
                     transmitter = transmitter,
+                    fileService = ctx.koin.get(),
                 )
                 .collect { state ->
                     // The file-picker side-effect flow is the same instance across

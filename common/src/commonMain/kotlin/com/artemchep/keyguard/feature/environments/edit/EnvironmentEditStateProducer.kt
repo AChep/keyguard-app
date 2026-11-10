@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.service.environment.EnvironmentMounts
 import com.artemchep.keyguard.common.service.environment.EnvironmentRepository
 import com.artemchep.keyguard.common.service.environment.environmentReferenceTargets
 import com.artemchep.keyguard.common.service.environment.referencedCipherIds
+import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.usecase.GetAppIcons
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetCollections
@@ -37,6 +38,7 @@ import com.artemchep.keyguard.feature.environments.ui.EnvironmentsState
 import com.artemchep.keyguard.feature.environments.ui.environmentsStateProducer
 import com.artemchep.keyguard.feature.environments.ui.verifyEnvironmentAccess
 import com.artemchep.keyguard.feature.filepicker.FileDrop
+import com.artemchep.keyguard.feature.filepicker.droppedFileCopies
 import com.artemchep.keyguard.feature.home.vault.link.field.CipherFieldPickerResult
 import com.artemchep.keyguard.feature.home.vault.link.field.CipherFieldPickerRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
@@ -103,6 +105,7 @@ fun produceEnvironmentEditState(
         getFolders = get(),
         getAppIcons = get(),
         getWebsiteIcons = get(),
+        fileService = get(),
     )
 }
 
@@ -121,6 +124,7 @@ fun produceEnvironmentEditState(
     getFolders: GetFolders,
     getAppIcons: GetAppIcons,
     getWebsiteIcons: GetWebsiteIcons,
+    fileService: FileService,
 ): Loadable<EnvironmentEditState> = produceScreenState(
     key = "environment_edit",
     initial = Loadable.Loading,
@@ -142,6 +146,7 @@ fun produceEnvironmentEditState(
         getFolders = getFolders,
         getAppIcons = getAppIcons,
         getWebsiteIcons = getWebsiteIcons,
+        fileService = fileService,
     )
 }
 
@@ -173,7 +178,10 @@ suspend fun RememberStateFlowScope.environmentEditStateProducer(
     getFolders: GetFolders,
     getAppIcons: GetAppIcons,
     getWebsiteIcons: GetWebsiteIcons,
+    fileService: FileService,
 ): Flow<Loadable<EnvironmentEditState>> {
+    // A dropped `.env` copy goes once its import ends or the editor closes.
+    val droppedFiles = droppedFileCopies(fileService)
     val strings = EnvironmentEditStrings(
         title = translate(Res.string.cipher_type_environment),
         createTitle = translate(Res.string.environments_create),
@@ -295,12 +303,16 @@ suspend fun RememberStateFlowScope.environmentEditStateProducer(
         // The vault might be locked while the dialog
         // is open: the actions of the draft then do nothing.
         val editor = latestEditor()
-            ?: return
+        if (editor == null) {
+            fileUri?.let(droppedFiles::release)
+            return
+        }
         val route = registerRouteResultReceiver(
             route = EnvironmentImportRoute(
                 fileUri = fileUri,
             ),
         ) { text ->
+            fileUri?.let(droppedFiles::release)
             editor.onImportTextChange?.invoke(text)
             editor.onPreviewImport?.invoke()
             editor.onApplyImport?.invoke()
@@ -610,7 +622,10 @@ suspend fun RememberStateFlowScope.environmentEditStateProducer(
                 FileDrop(
                     text = strings.dropHere,
                     onFileDrop = { info ->
-                        onImport(fileUri = info.uri.toString())
+                        val uri = info.uri.toString()
+                        // Holding only the latest drop releases an earlier one.
+                        droppedFiles.sync(setOf(uri))
+                        onImport(fileUri = uri)
                     },
                 )
             } else {

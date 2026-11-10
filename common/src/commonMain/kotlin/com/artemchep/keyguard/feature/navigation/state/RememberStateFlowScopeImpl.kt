@@ -70,6 +70,7 @@ class RememberStateFlowScopeImpl(
     private val windowIdState: State<WindowId>,
     override val screenName: String,
     override val context: LeContext,
+    private val isNavigationEntryDestroyed: () -> Boolean = { true },
 ) : RememberStateFlowScopeZygote,
     TranslatorScope by TranslatorScope.of(context),
     CoroutineScope by scope {
@@ -90,6 +91,9 @@ class RememberStateFlowScopeImpl(
 
     override val screenScope: CoroutineScope
         get() = scope
+
+    override val isScreenClosed: Boolean
+        get() = isNavigationEntryDestroyed()
 
     override val screenId: String
         get() = screen

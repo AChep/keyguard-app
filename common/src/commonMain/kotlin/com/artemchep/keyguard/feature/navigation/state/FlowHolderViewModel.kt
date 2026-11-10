@@ -171,6 +171,9 @@ class FlowHolderViewModel(
             colorSchemeState = colorSchemeState,
             windowIdState = windowIdState,
             context = context,
+            // A retired producer's fields come back after the vault unlocks,
+            // so only the end of the navigation entry closes the screen.
+            isNavigationEntryDestroyed = { navigationEntry.isDestroyed },
         )
         var initialized = false
         val value = try {

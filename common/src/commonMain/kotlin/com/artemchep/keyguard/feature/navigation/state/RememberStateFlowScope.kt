@@ -63,6 +63,14 @@ interface RememberStateFlowScope : RememberStateFlowScopeSub, CoroutineScope, Tr
 
     val screenScope: CoroutineScope
 
+    /**
+     * Whether the screen has closed, rather than only its work stopped
+     * while the screen stays, for example when the vault locks. Read it
+     * once [screenScope] has ended.
+     */
+    val isScreenClosed: Boolean
+        get() = true
+
     val screenId: String
 
     val screenName: String

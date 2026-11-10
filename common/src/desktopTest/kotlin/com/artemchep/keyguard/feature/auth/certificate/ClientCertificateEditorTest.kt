@@ -215,6 +215,7 @@ class ClientCertificateEditorTest {
                 transmitter = object : RouteResultTransmitter<ConfirmationResult> {
                     override fun invoke(unit: ConfirmationResult) { result = unit }
                 },
+                fileService = fixture.files,
             ).stateIn(fixture.scope, SharingStarted.Eagerly, null)
             fun ConfirmationState.field() = items.getOrNull()?.single() as? ConfirmationState.Item.StringItem
             val initial = withTimeout(5_000) { states.filterNotNull().first { it.field() != null } }
@@ -273,6 +274,7 @@ class ClientCertificateEditorTest {
                 "copier" -> CopyText(fake<ClipboardService> { _, _ -> Unit }, screen, onMessage = {})
                 "translate" -> "Test"
                 "message" -> Unit
+                "isScreenClosed" -> true
                 "navigate" -> {
                     val intent = args[0]
                     if (intent is NavigationIntent.NavigateToRoute) {

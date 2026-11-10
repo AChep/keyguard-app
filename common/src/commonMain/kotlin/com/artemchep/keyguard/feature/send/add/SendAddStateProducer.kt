@@ -14,6 +14,7 @@ import arrow.core.partially1
 import arrow.core.partially2
 import arrow.optics.Lens
 import com.artemchep.keyguard.common.io.effectTap
+import com.artemchep.keyguard.common.io.finally
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.AccountId
 import com.artemchep.keyguard.common.model.DSend
@@ -37,6 +38,7 @@ import com.artemchep.keyguard.common.model.firstOrNull
 import com.artemchep.keyguard.common.model.requiresPremium
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
+import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.usecase.AddSend
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.usecase.GetAccounts
@@ -72,9 +74,11 @@ import com.artemchep.keyguard.feature.auth.common.util.validatedInteger
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationRoute
+import com.artemchep.keyguard.feature.filepicker.DroppedFileCopies
 import com.artemchep.keyguard.feature.filepicker.FileDrop
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
+import com.artemchep.keyguard.feature.filepicker.droppedFileCopies
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountBin
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.fileupload.BITWARDEN_FILE_UPLOAD_MAX_BYTES
@@ -254,6 +258,7 @@ fun produceSendAddScreenState(
         dateFormatter = get(),
         addSend = get(),
         sendViewRouteFactory = get(),
+        fileService = get(),
     )
 }
 
@@ -274,6 +279,7 @@ fun produceSendAddScreenState(
     dateFormatter: DateFormatter,
     addSend: AddSend,
     sendViewRouteFactory: SendViewRouteFactory,
+    fileService: FileService,
 ): Loadable<SendAddState> = produceScreenState(
     key = "send_add",
     initial = Loadable.Loading,
@@ -303,6 +309,7 @@ fun produceSendAddScreenState(
         dateFormatter = dateFormatter,
         addSend = addSend,
         sendViewRouteFactory = sendViewRouteFactory,
+        fileService = fileService,
     )
 }
 
@@ -322,6 +329,7 @@ suspend fun RememberStateFlowScope.sendAddStateProducer(
     dateFormatter: DateFormatter,
     addSend: AddSend,
     sendViewRouteFactory: SendViewRouteFactory,
+    fileService: FileService,
 ): Flow<Loadable<SendAddState>> {
     val markdown = getMarkdown().first()
     val filePickerEvents = EventFlow<FilePickerIntent<*>>()
@@ -359,9 +367,13 @@ suspend fun RememberStateFlowScope.sendAddStateProducer(
     val textHolder = produceTextState(
         args = args,
     )
+    // A dropped copy goes once the send no longer holds it or the screen
+    // closes; a save stages the file it uploads and deletes it.
+    val droppedFiles = droppedFileCopies(fileService)
     val fileHolder = produceFileState(
         args = args,
         filePickerIntentSink = filePickerEvents,
+        droppedFiles = droppedFiles,
     )
     val optionsHolder = produceOptionsState(
         args = args,
@@ -567,6 +579,8 @@ suspend fun RememberStateFlowScope.sendAddStateProducer(
                     val sendIdToRequestMap = mapOf(
                         args.initialValue?.id?.takeIf { args.ownershipRo } to request,
                     )
+                    // The save reads the file after the screen may have closed.
+                    val releaseFiles = droppedFiles.lease()
                     addSend(sendIdToRequestMap)
                         .effectTap {
                             val intent = kotlin.run {
@@ -586,6 +600,9 @@ suspend fun RememberStateFlowScope.sendAddStateProducer(
                                 )
                             }
                             navigate(intent)
+                        }
+                        .finally {
+                            releaseFiles()
                         }
                         .launchIn(appScope)
                 }
@@ -766,6 +783,7 @@ private suspend fun RememberStateFlowScope.produceTextState(
 private suspend fun RememberStateFlowScope.produceFileState(
     args: SendAddRoute.Args,
     filePickerIntentSink: EventFlow<FilePickerIntent<*>>,
+    droppedFiles: DroppedFileCopies,
 ): TmpFile {
     val prefix = "file"
     val attachmentKey = "$prefix.attachment"
@@ -820,6 +838,12 @@ private suspend fun RememberStateFlowScope.produceFileState(
     val sizeSink = mutablePersistedFlow<Long?>("$prefix.size") {
         selectedFile.size
     }
+    fun syncDroppedFile() {
+        droppedFiles.sync(setOfNotNull(uriSink.value))
+    }
+    syncDroppedFile()
+    // A file that was too large never made it into the send.
+    args.selectedFile?.let { droppedFiles.discard(it.uri.toString()) }
     val upperSizeLimitError = translate(
         Res.string.error_file_must_be_n_or_smaller,
         humanReadableByteCountSI(BITWARDEN_FILE_UPLOAD_MAX_BYTES),
@@ -829,6 +853,7 @@ private suspend fun RememberStateFlowScope.produceFileState(
         uriSink.value = null
         nameHandle.setText("")
         sizeSink.value = null
+        syncDroppedFile()
     }
 
     fun applySelectedFile(
@@ -840,7 +865,10 @@ private suspend fun RememberStateFlowScope.produceFileState(
             nameHandle = nameHandle,
             sizeSink = sizeSink,
         )
-        if (!applied) {
+        if (applied) {
+            syncDroppedFile()
+        } else {
+            droppedFiles.discard(result.uri.toString())
             message(
                 ToastMessage(
                     type = ToastMessage.Type.ERROR,

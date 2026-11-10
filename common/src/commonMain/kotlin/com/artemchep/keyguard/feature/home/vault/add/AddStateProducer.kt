@@ -29,6 +29,7 @@ import arrow.core.partially2
 import arrow.core.widen
 import arrow.optics.Lens
 import com.artemchep.keyguard.common.io.effectTap
+import com.artemchep.keyguard.common.io.finally
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
@@ -115,6 +116,9 @@ import com.artemchep.keyguard.common.service.crypto.isSshCertificateFile
 import com.artemchep.keyguard.common.service.crypto.parsePrimaryKeyInfo
 import com.artemchep.keyguard.common.service.crypto.problemAt
 import com.artemchep.keyguard.common.service.crypto.toGpgRevocationKeyCandidates
+import com.artemchep.keyguard.common.service.file.FileService
+import com.artemchep.keyguard.common.service.file.deleteDroppedCopy
+import com.artemchep.keyguard.common.service.file.useDroppedCopy
 import com.artemchep.keyguard.common.service.googleauthenticator.OtpMigrationService
 import com.artemchep.keyguard.common.service.gpgagent.isCanonical
 import com.artemchep.keyguard.common.service.logging.LogRepository
@@ -170,6 +174,7 @@ import com.artemchep.keyguard.feature.datepicker.DatePickerRoute
 import com.artemchep.keyguard.feature.filepicker.FileDrop
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
+import com.artemchep.keyguard.feature.filepicker.droppedFileCopies
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.gpgkey.expiration.createLocalizedGpgKeyExpirationFailureToast
 import com.artemchep.keyguard.feature.gpgkey.expiration.requestGpgKeyExpirationChange
@@ -271,6 +276,7 @@ fun produceAddScreenState(
         getGravatarUrl = get(),
         getMarkdown = get(),
         textService = get(),
+        fileService = get(),
         dateFormatter = get(),
         sshKeyImportService = get(),
         sshCertificateParser = get(),
@@ -316,6 +322,7 @@ fun produceAddScreenState(
     getGravatarUrl: GetGravatarUrl,
     getMarkdown: GetMarkdown,
     textService: TextService,
+    fileService: FileService,
     dateFormatter: DateFormatter,
     sshKeyImportService: SshKeyImportService,
     sshCertificateParser: SshCertificateParser,
@@ -363,6 +370,7 @@ fun produceAddScreenState(
         getGravatarUrl = getGravatarUrl,
         getMarkdown = getMarkdown,
         textService = textService,
+        fileService = fileService,
         dateFormatter = dateFormatter,
         sshKeyImportService = sshKeyImportService,
         sshCertificateParser = sshCertificateParser,
@@ -398,6 +406,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     getGravatarUrl: GetGravatarUrl,
     getMarkdown: GetMarkdown,
     textService: TextService,
+    fileService: FileService,
     dateFormatter: DateFormatter,
     sshKeyImportService: SshKeyImportService,
     sshCertificateParser: SshCertificateParser,
@@ -494,6 +503,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     val sshKeyHolder = produceSshKeyState(
         args = args,
         textService = textService,
+        fileService = fileService,
         sshKeyImportService = sshKeyImportService,
         sshCertificateParser = sshCertificateParser,
         dateFormatter = dateFormatter,
@@ -505,6 +515,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
         args = args,
         getCiphers = getCiphers,
         textService = textService,
+        fileService = fileService,
         dateFormatter = dateFormatter,
         gpgKeyImportService = gpgKeyImportService,
         gpgKeyEditorImportReconciler = gpgKeyEditorImportReconciler,
@@ -644,6 +655,9 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
     )
 
     val attachmentsFileDragFlow = MutableStateFlow<AddState.FileDrag?>(null)
+    // A dropped copy goes once its attachment is removed or the screen
+    // closes; a save stages the attachments it uploads and deletes them.
+    val attachmentCopies = droppedFileCopies(fileService)
     val attachmentsFactories = kotlin.run {
         val attachmentFactory = SkeletonAttachmentItemFactory()
         listOf(
@@ -704,6 +718,7 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                 info: FilePickerResult,
                 accountType: AccountType?,
             ) {
+                var added = false
                 handleVaultAttachmentSelection(
                     result = info,
                     accountType = accountType,
@@ -715,12 +730,16 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                     },
                     showMessage = showMessage::copy,
                     addAttachment = { attachment ->
+                        added = true
                         add(
                             type = "attachment",
                             arg = attachment,
                         )
                     },
                 )
+                if (!added) {
+                    attachmentCopies.discard(info.uri.toString())
+                }
             }
 
             accountTypeFlow.map { accountType ->
@@ -1216,6 +1235,13 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
             ) { y, x -> x(y) }
         }
         .distinctUntilChanged()
+        .onEach { request ->
+            val uris = request.attachments
+                .mapNotNullTo(mutableSetOf()) { attachment ->
+                    (attachment as? CreateRequest.Attachment.Local)?.uri?.toString()
+                }
+            attachmentCopies.sync(uris)
+        }
     val f = combine(
         actions,
         favouriteFlow,
@@ -1240,6 +1266,8 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                 val cipherIdToRequestMap = mapOf(
                     args.initialValue?.id?.takeIf { args.ownershipRo } to request,
                 )
+                // The save reads the attachments after the screen may have closed.
+                val releaseFiles = attachmentCopies.lease()
                 addCipher(cipherIdToRequestMap)
                     .effectTap {
                         val intent = kotlin.run {
@@ -1259,6 +1287,9 @@ suspend fun RememberStateFlowScope.addCipherStateProducer(
                             )
                         }
                         navigate(intent)
+                    }
+                    .finally {
+                        releaseFiles()
                     }
                     .launchIn(appScope)
             },
@@ -3869,6 +3900,7 @@ data class GpgKeyDecor2Brr(
 private suspend fun RememberStateFlowScope.produceSshKeyState(
     args: AddRoute.Args,
     textService: TextService,
+    fileService: FileService,
     sshKeyImportService: SshKeyImportService,
     sshCertificateParser: SshCertificateParser,
     dateFormatter: DateFormatter,
@@ -3974,9 +4006,10 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
             )
         }
 
+        // A dropped key arrives as a copy only this import needs.
         suspend fun onImportKey(
             info: FilePickerResult,
-        ) {
+        ) = fileService.useDroppedCopy(info.uri.toString()) {
             handleSshKeyFileImport(
                 info = info,
                 readBytes = textService::readFromFileAsBytes,
@@ -4168,6 +4201,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
     args: AddRoute.Args,
     getCiphers: GetCiphers,
     textService: TextService,
+    fileService: FileService,
     dateFormatter: DateFormatter,
     gpgKeyImportService: GpgKeyImportService,
     gpgKeyEditorImportReconciler: GpgKeyEditorImportReconciler,
@@ -4356,9 +4390,10 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             )
         }
 
+        // A dropped key arrives as a copy only this import needs.
         suspend fun onImportKey(
             info: FilePickerResult,
-        ) {
+        ) = fileService.useDroppedCopy(info.uri.toString()) {
             val snapshot = keyMutations.snapshot()
             handleGpgKeyFileImport(
                 info = info,
@@ -4617,6 +4652,10 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
                     if (!keyMutationCoordinator.inProgress.value) {
                         screenScope.launch {
                             onImportKey(info)
+                        }
+                    } else {
+                        appScope.launch {
+                            fileService.deleteDroppedCopy(info.uri.toString())
                         }
                     }
                 },

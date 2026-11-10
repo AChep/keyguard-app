@@ -1,17 +1,16 @@
 package com.artemchep.keyguard.feature.auth.certificate
 
-import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.file.FileAccessToken
 import com.artemchep.keyguard.common.service.file.FileService
+import com.artemchep.keyguard.common.service.file.deleteDroppedCopy
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.awaitConfirmationDialog
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.nativecrypto.NativeCryptoPkcs12
-import com.artemchep.keyguard.platform.recordException
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsImportResult
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsService
 import com.artemchep.keyguard.res.Res
@@ -25,7 +24,6 @@ import com.artemchep.keyguard.util.io.SourceTooLargeException
 import com.artemchep.keyguard.util.io.limitedTo
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import kotlinx.io.readByteArray
 
@@ -82,11 +80,7 @@ suspend fun RememberStateFlowScope.importClientCertificate(
         bytes?.fill(0)
         // iOS drops arrive as managed copies. They must not survive the import,
         // including cancellation while waiting for the bundle's password.
-        withContext(NonCancellable + Dispatchers.IO) {
-            runCatchingNonFatal {
-                fileService.deleteManagedSourceFile(info.uri.toString())
-            }.onFailure(::recordException)
-        }
+        fileService.deleteDroppedCopy(info.uri.toString())
     }
 }
 

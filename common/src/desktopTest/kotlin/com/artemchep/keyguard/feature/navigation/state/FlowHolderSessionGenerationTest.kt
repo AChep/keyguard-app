@@ -117,6 +117,24 @@ class FlowHolderSessionGenerationTest {
         }
     }
 
+    @Test
+    fun `a retired producer keeps its screen open, a destroyed entry closes it`() = withFixture { fixture ->
+        val window = fixture.window()
+        val first = fixture.producer("first", window)
+        window.cancel()
+        assertFalse(first.scope.coroutineContext[Job]!!.isActive)
+        assertFalse(first.scope.isScreenClosed)
+
+        val second = fixture.producer("second", fixture.window())
+        val third = fixture.producer("third", fixture.window())
+        assertFalse(second.scope.coroutineContext[Job]!!.isActive)
+        assertFalse(second.scope.isScreenClosed)
+
+        fixture.entry.destroy()
+        assertFalse(third.scope.coroutineContext[Job]!!.isActive)
+        assertTrue(third.scope.isScreenClosed)
+    }
+
     private fun withFixture(block: (Fixture) -> Unit) {
         Dispatchers.setMain(Dispatchers.Unconfined)
         val fixture = Fixture()

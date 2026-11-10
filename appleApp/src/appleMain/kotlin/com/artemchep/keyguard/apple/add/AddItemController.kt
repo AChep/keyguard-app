@@ -302,6 +302,7 @@ internal class AddItemController(
                         getGravatarUrl = get(),
                         getMarkdown = get(),
                         textService = get(),
+                        fileService = get(),
                         dateFormatter = get(),
                         sshKeyImportService = get(),
                         sshCertificateParser = get(),
@@ -414,6 +415,7 @@ internal class AddItemController(
                             }
                         },
                         sendViewRouteFactory = get(),
+                        fileService = get(),
                     )
             }
             observeAddForm(

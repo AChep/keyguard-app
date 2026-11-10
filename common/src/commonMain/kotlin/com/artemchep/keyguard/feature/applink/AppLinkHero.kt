@@ -3,6 +3,8 @@
 package com.artemchep.keyguard.feature.applink
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.GenericShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -19,16 +23,25 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Matrix
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.auth.keyguard.pairing.LinkGeometry
@@ -42,9 +55,17 @@ import com.artemchep.keyguard.feature.auth.keyguard.pairing.rememberLoop
 import com.artemchep.keyguard.feature.auth.keyguard.pairing.rememberMotionEnabled
 import com.artemchep.keyguard.feature.auth.keyguard.pairing.toUnitPath
 import com.artemchep.keyguard.feature.keyguardsync.devices.KeyguardDevicesState
+import com.artemchep.keyguard.feature.keyguardsync.devices.keyguardDeviceStatusText
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.app_link_hero_text
 import com.artemchep.keyguard.res.app_link_hero_title
+import com.artemchep.keyguard.res.app_link_this_device
+import com.artemchep.keyguard.ui.ContextItem
+import com.artemchep.keyguard.ui.DropdownMenuItemFlat
+import com.artemchep.keyguard.ui.DropdownMinWidth
+import com.artemchep.keyguard.ui.DropdownScope
+import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -54,6 +75,7 @@ import com.artemchep.keyguard.ui.theme.onOkContainer
 import com.artemchep.keyguard.ui.theme.onWarningContainer
 import com.artemchep.keyguard.ui.theme.warning
 import com.artemchep.keyguard.ui.theme.warningContainer
+import com.artemchep.keyguard.ui.util.HorizontalDivider
 import org.jetbrains.compose.resources.stringResource
 import kotlin.math.PI
 import kotlin.math.cos
@@ -92,23 +114,24 @@ internal fun AppLinkUnlinkedHero() {
 
 private val MeshHeight = 208.dp
 
-private val MeshCenterSize = 68.dp
+/** The size of a device on the mesh, and of its icon. */
+private class MeshNodeSize(
+    val node: Dp,
+    val icon: Dp,
+)
 
-private val MeshPeerSize = 50.dp
+private val MeshCenterNode = MeshNodeSize(node = 68.dp, icon = 30.dp)
 
-private val MeshPairSize = 72.dp
+private val MeshPeerNode = MeshNodeSize(node = 50.dp, icon = 22.dp)
+
+/** Both devices, while one peer sits beside this device. */
+private val MeshPairNode = MeshNodeSize(node = 72.dp, icon = 32.dp)
 
 private val MeshMaxHalfDistance = 112.dp
 
 private val MeshRadiusX = 148.dp
 
 private val MeshRadiusY = 72.dp
-
-private val MeshPairIconSize = 32.dp
-
-private val MeshCenterIconSize = 30.dp
-
-private val MeshPeerIconSize = 22.dp
 
 private const val MESH_MAX_PEERS = 6
 
@@ -164,12 +187,13 @@ private fun KeyguardDevicesState.Health?.meshLook(): MeshLook {
 /**
  * The linked devices as a mesh: this device in the middle, the [peers] around it. A link
  * is solid and busy while the devices have a session, and dashed while they have none.
- * One peer sits beside this device, as on the pairing stage. Decoration: the list says
- * the same in words.
+ * One peer sits beside this device, as on the pairing stage. A click on a device opens
+ * a menu with its name and the actions of its row; on this device, the actions of its
+ * section. Screen readers skip the mesh: the list says and does the same.
  */
 @Composable
 internal fun AppLinkMesh(
-    thisPlatform: String,
+    thisDevice: AppLinkState.ThisDevice,
     peers: List<KeyguardDevicesState.Device>,
     modifier: Modifier = Modifier,
 ) {
@@ -204,8 +228,8 @@ internal fun AppLinkMesh(
             count = looks.size,
             shown = shown.size,
             looks = looks,
-            centerPx = with(density) { (if (single) MeshPairSize else MeshCenterSize).toPx() },
-            peerPx = with(density) { (if (single) MeshPairSize else MeshPeerSize).toPx() },
+            centerNode = if (single) MeshPairNode else MeshCenterNode,
+            peerNode = if (single) MeshPairNode else MeshPeerNode,
             halfDistancePx = min(
                 constraints.maxWidth * MESH_HALF_DISTANCE_RATIO,
                 with(density) { MeshMaxHalfDistance.toPx() },
@@ -225,41 +249,52 @@ internal fun AppLinkMesh(
         ) {
             drawMesh(scene)
         }
-        AppLinkMeshIcons(
+        AppLinkMeshNodes(
             scene = scene,
-            thisPlatform = thisPlatform,
+            thisDevice = thisDevice,
             shown = shown,
             overflow = overflow,
         )
     }
 }
 
-/** The icons of the devices on the mesh, and a count of the rest. */
+/** The devices on the mesh, each with its menu, and a count of the rest. */
 @Composable
-private fun AppLinkMeshIcons(
+private fun AppLinkMeshNodes(
     scene: MeshScene,
-    thisPlatform: String,
+    thisDevice: AppLinkState.ThisDevice,
     shown: List<KeyguardDevicesState.Device>,
     overflow: Int,
 ) {
-    val single = scene.count == 1
-    Icon(
-        modifier = Modifier
-            .size(if (single) MeshPairIconSize else MeshCenterIconSize)
-            .offset { scene.thisOffset().round() },
-        imageVector = keyguardPlatformIcon(thisPlatform),
-        contentDescription = null,
+    AppLinkMeshNode(
+        offset = scene::thisOffset,
+        rotation = scene::spinDegrees,
+        outline = scene.shapes.thisOutline,
+        size = scene.centerNode,
+        icon = keyguardPlatformIcon(thisDevice.platform),
         tint = scene.colors.thisContent,
-    )
-    shown.forEachIndexed { index, device ->
-        Icon(
-            modifier = Modifier
-                .size(if (single) MeshPairIconSize else MeshPeerIconSize)
-                .offset { scene.peerOffset(index).round() },
-            imageVector = keyguardPlatformIcon(device.platform),
-            contentDescription = null,
-            tint = scene.looks[index].content,
+    ) {
+        AppLinkMeshMenu(
+            title = thisDevice.label,
+            text = stringResource(Res.string.app_link_this_device),
+            actions = thisDevice.dropdown,
         )
+    }
+    shown.forEachIndexed { index, device ->
+        AppLinkMeshNode(
+            offset = { scene.peerOffset(index) },
+            rotation = { -scene.spinDegrees() },
+            outline = scene.shapes.peerOutline,
+            size = scene.peerNode,
+            icon = keyguardPlatformIcon(device.platform),
+            tint = scene.looks[index].content,
+        ) {
+            AppLinkMeshMenu(
+                title = device.label,
+                text = keyguardDeviceStatusText(device),
+                actions = device.dropdown,
+            )
+        }
     }
     if (overflow > 0) {
         Text(
@@ -269,6 +304,117 @@ private fun AppLinkMeshIcons(
             text = "+$overflow",
             style = MaterialTheme.typography.labelLarge,
             color = scene.looks.last().content,
+        )
+    }
+}
+
+/**
+ * A device on the mesh; a click opens its [menu]. The click shows in the [outline] the
+ * mesh draws the device with, turned by the [rotation] in degrees.
+ */
+@Suppress("LongParameterList") // The looks of a node.
+@Composable
+private fun AppLinkMeshNode(
+    offset: () -> Offset,
+    rotation: () -> Float,
+    outline: Shape,
+    size: MeshNodeSize,
+    icon: ImageVector,
+    tint: Color,
+    menu: @Composable DropdownScope.() -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    // The node drifts; its menu stays where it opened, so that
+    // the popup window does not move with every frame.
+    var anchor by remember { mutableStateOf(Offset.Zero) }
+    Box(
+        modifier = Modifier
+            .offset { offset().round() }
+            .size(size.node),
+        contentAlignment = Alignment.Center,
+    ) {
+        // Turns with the outline; the icon on top of it does not.
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .graphicsLayer {
+                    rotationZ = rotation()
+                    shape = outline
+                    clip = true
+                }
+                .clickable {
+                    anchor = offset()
+                    expanded = true
+                },
+        )
+        Icon(
+            modifier = Modifier
+                .size(size.icon),
+            imageVector = icon,
+            contentDescription = null,
+            tint = tint,
+        )
+    }
+    Box(
+        modifier = Modifier
+            .offset { anchor.round() }
+            .size(size.node),
+    ) {
+        KeyguardDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = {
+                expanded = false
+            },
+            content = menu,
+        )
+    }
+}
+
+/** The menu of a device on the mesh: its name, which the mesh does not show, then its [actions]. */
+@Composable
+private fun DropdownScope.AppLinkMeshMenu(
+    title: String,
+    text: String?,
+    actions: List<ContextItem>,
+) {
+    Column(
+        modifier = Modifier
+            .widthIn(max = DropdownMinWidth)
+            .padding(
+                horizontal = Dimens.horizontalPadding,
+                vertical = 8.dp,
+            ),
+    ) {
+        FlatItemTextContent(
+            title = {
+                Text(
+                    text = title,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            },
+            text = if (text != null) {
+                // composable
+                {
+                    Text(
+                        text = text,
+                    )
+                }
+            } else {
+                null
+            },
+            compact = true,
+        )
+    }
+    if (actions.isNotEmpty()) {
+        HorizontalDivider(
+            modifier = Modifier
+                .padding(bottom = 4.dp),
+        )
+    }
+    actions.forEach { action ->
+        DropdownMenuItemFlat(
+            action = action,
         )
     }
 }
@@ -310,6 +456,20 @@ private class MeshShapes {
     val peerNode = MaterialShapes.Cookie7Sided.toUnitPath()
     val moreNode = MaterialShapes.Circle.toUnitPath()
     val linkPath = Path()
+
+    /** [thisNode] and [peerNode] as shapes, that a click on a device shows. */
+    val thisOutline = thisNode.toUnitShape()
+    val peerOutline = peerNode.toUnitShape()
+
+    /** Returns this outline in its unit square, see [toUnitPath], as a shape that fills its bounds. */
+    private fun Path.toUnitShape(): Shape = GenericShape { size, _ ->
+        addPath(this@toUnitShape)
+        transform(
+            Matrix().apply {
+                scale(x = size.width, y = size.height)
+            },
+        )
+    }
 }
 
 /**
@@ -323,8 +483,8 @@ private class MeshScene(
     val count: Int,
     val shown: Int,
     val looks: List<MeshLook>,
-    val centerPx: Float,
-    val peerPx: Float,
+    val centerNode: MeshNodeSize,
+    val peerNode: MeshNodeSize,
     val halfDistancePx: Float,
     val radiusXPx: Float,
     val radiusYPx: Float,
@@ -371,7 +531,7 @@ private fun DrawScope.drawMesh(
         drawUnitPath(
             path = if (more) scene.shapes.moreNode else scene.shapes.peerNode,
             center = center + scene.peerOffset(i),
-            size = scene.peerPx,
+            size = scene.peerNode.node.toPx(),
             color = scene.looks[i].container,
             rotation = if (more) 0f else -scene.spinDegrees(),
         )
@@ -379,7 +539,7 @@ private fun DrawScope.drawMesh(
     drawUnitPath(
         path = scene.shapes.thisNode,
         center = me,
-        size = scene.centerPx,
+        size = scene.centerNode.node.toPx(),
         color = scene.colors.thisContainer,
         rotation = scene.spinDegrees(),
     )
@@ -398,8 +558,8 @@ private fun DrawScope.drawMeshLink(
     val distance = hypot(dx, dy).coerceAtLeast(1f)
     val direction = Offset(dx / distance, dy / distance)
     val link = LinkGeometry(
-        start = me + direction * (scene.centerPx * MESH_EDGE),
-        end = peer - direction * (scene.peerPx * MESH_EDGE),
+        start = me + direction * (scene.centerNode.node.toPx() * MESH_EDGE),
+        end = peer - direction * (scene.peerNode.node.toPx() * MESH_EDGE),
     )
     drawLink(
         link = link,

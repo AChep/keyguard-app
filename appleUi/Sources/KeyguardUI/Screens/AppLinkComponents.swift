@@ -68,10 +68,16 @@ struct AppLinkInfoSection: View {
 
 /// The linked devices as a mesh: this device in the middle, the `peers` around it. A link
 /// is solid and busy while the devices have a session, and dashed while they have none.
-/// One peer sits beside this device, as on the pairing stage. Decoration: the list says
-/// the same in words.
+/// One peer sits beside this device, as on the pairing stage. A click on a device opens
+/// a menu with its name and the actions of its row; on this device, the actions of its
+/// section. VoiceOver skips the mesh: the list says and does the same.
 struct AppLinkMeshView: View {
     let peers: [KeyguardDevicesSnapshot.Device]
+    /// Removes a peer, after asking.
+    let model: KeyguardDevicesModel
+    let thisDeviceLabel: String
+    let rename: @MainActor () -> Void
+    let openConnection: @MainActor () -> Void
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -81,33 +87,69 @@ struct AppLinkMeshView: View {
         if peers.isEmpty {
             PairingStageView(phase: .idle, height: 160)
         } else {
-            TimelineView(.animation(paused: reduceMotion)) { context in
-                let time = reduceMotion ? 0 : context.date.timeIntervalSinceReferenceDate
-                Canvas { context, size in
-                    draw(in: &context, size: size, time: time)
-                } symbols: {
-                    Image(systemName: PairingStageView.thisDeviceSymbol)
-                        .font(.system(size: 24, weight: .medium))
-                        .foregroundStyle(Color.accentColor)
-                        .tag(-1)
-                    ForEach(Array(shown.enumerated()), id: \.offset) { index, device in
-                        Image(systemName: keyguardPlatformSymbol(device.platform))
-                            .font(.system(size: single ? 24 : 16, weight: .medium))
-                            .foregroundStyle(color(device.status))
-                            .tag(index)
-                    }
-                    if overflow > 0 {
-                        // A count, as on a badge.
-                        Text(verbatim: "+\(overflow)")
-                            .font(.caption.weight(.semibold))
-                            .foregroundStyle(.secondary)
-                            .tag(shown.count)
+            // Built once per change of the peers, not once per frame.
+            let nodes = Array(shown.enumerated())
+            GeometryReader { proxy in
+                TimelineView(.animation(paused: reduceMotion)) { context in
+                    let time = reduceMotion ? 0 : context.date.timeIntervalSinceReferenceDate
+                    let geometry = MeshGeometry(size: proxy.size, time: time, count: count)
+                    ZStack {
+                        Canvas { context, _ in
+                            draw(in: &context, geometry: geometry, time: time)
+                        } symbols: {
+                            Image(systemName: PairingStageView.thisDeviceSymbol)
+                                .font(.system(size: 24, weight: .medium))
+                                .foregroundStyle(Color.accentColor)
+                                .tag(-1)
+                            ForEach(nodes, id: \.offset) { index, device in
+                                Image(systemName: keyguardPlatformSymbol(device.platform))
+                                    .font(.system(size: single ? 24 : 16, weight: .medium))
+                                    .foregroundStyle(color(device.status))
+                                    .tag(index)
+                            }
+                            if overflow > 0 {
+                                // A count, as on a badge.
+                                Text(verbatim: "+\(overflow)")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.secondary)
+                                    .tag(shown.count)
+                            }
+                        }
+                        menus(geometry: geometry, nodes: nodes, now: context.date)
                     }
                 }
             }
             .frame(height: 200)
             .frame(maxWidth: .infinity)
             .accessibilityHidden(true)
+        }
+    }
+
+    /// A menu over each device, the `+N` count aside.
+    @ViewBuilder
+    private func menus(
+        geometry: MeshGeometry,
+        nodes: [EnumeratedSequence<[KeyguardDevicesSnapshot.Device]>.Element],
+        now: Date
+    ) -> some View {
+        // The menus show the time since a device was last seen; a new minute is enough
+        // to update it, and spares the frames in between.
+        let minute = Date(timeIntervalSinceReferenceDate: (now.timeIntervalSinceReferenceDate / 60).rounded(.down) * 60)
+        AppLinkMeshNodeMenu(diameter: geometry.centerRadius * 2) {
+            Section(thisDeviceLabel) {
+                Button(L10n.rename, systemImage: "pencil", action: rename)
+                Button(L10n.appLinkConnectionTitle, systemImage: "server.rack", action: openConnection)
+            }
+        }
+        .position(geometry.me)
+        ForEach(nodes, id: \.element.id) { index, device in
+            AppLinkMeshPeerMenu(
+                device: device,
+                model: model,
+                now: minute,
+                diameter: geometry.peerRadius * 2
+            )
+            .position(geometry.peerPoint(index))
         }
     }
 
@@ -129,38 +171,26 @@ struct AppLinkMeshView: View {
         status == .ok || status == .warning
     }
 
-    private func draw(in context: inout GraphicsContext, size: CGSize, time: TimeInterval) {
-        let center = CGPoint(x: size.width / 2, y: size.height / 2)
+    private func draw(in context: inout GraphicsContext, geometry: MeshGeometry, time: TimeInterval) {
         let loop = (time / 2.6).truncatingRemainder(dividingBy: 1)
-        let drift = time / 14
         let spin = Angle.radians(time / 36 * 2 * .pi)
-        let centerRadius: CGFloat = single ? 36 : 32
-        let peerRadius: CGFloat = single ? 36 : 24
-        let halfDistance = min(size.width * 0.27, 112)
-        let radiusX = min(size.width * 0.36, 148)
-        let radiusY: CGFloat = 70
-
-        let me = single ? CGPoint(x: center.x - halfDistance, y: center.y) : center
-        func peerPoint(_ index: Int) -> CGPoint {
-            if single { return CGPoint(x: center.x + halfDistance, y: center.y) }
-            let wobble = 0.07 * sin(2 * .pi * (drift + Double(index) / Double(count)))
-            let angle = -Double.pi / 2 + 2 * .pi * Double(index) / Double(count) + wobble
-            return CGPoint(x: center.x + radiusX * cos(angle), y: center.y + radiusY * sin(angle))
-        }
+        let centerRadius = geometry.centerRadius
+        let peerRadius = geometry.peerRadius
+        let me = geometry.me
 
         // Every device syncs with every other one.
         if count > 2 {
             var mesh = Path()
             for index in 0..<count {
-                mesh.move(to: peerPoint(index))
-                mesh.addLine(to: peerPoint((index + 1) % count))
+                mesh.move(to: geometry.peerPoint(index))
+                mesh.addLine(to: geometry.peerPoint((index + 1) % count))
             }
             context.stroke(mesh, with: .color(.secondary.opacity(0.25)), lineWidth: 1)
         }
 
         for index in 0..<count {
             let status = index < shown.count ? shown[index].status : nil
-            let peer = peerPoint(index)
+            let peer = geometry.peerPoint(index)
             let dx = peer.x - me.x
             let dy = peer.y - me.y
             let distance = max(1, (dx * dx + dy * dy).squareRoot())
@@ -197,5 +227,85 @@ struct AppLinkMeshView: View {
         if let symbol = context.resolveSymbol(id: -1) {
             context.draw(symbol, at: me)
         }
+    }
+}
+
+/// Where the mesh puts its devices at a time: the drawing and the menus over it share it.
+private struct MeshGeometry {
+    let centerRadius: CGFloat
+    let peerRadius: CGFloat
+    /// This device: in the middle, or beside the one peer.
+    let me: CGPoint
+    private let center: CGPoint
+    private let count: Int
+    private let drift: Double
+    private let halfDistance: CGFloat
+    private let radiusX: CGFloat
+    private let radiusY: CGFloat = 70
+
+    /// - Parameter count: the peers on the mesh, with the one that stands for the rest.
+    init(size: CGSize, time: TimeInterval, count: Int) {
+        let single = count == 1
+        self.count = count
+        center = CGPoint(x: size.width / 2, y: size.height / 2)
+        drift = time / 14
+        centerRadius = single ? 36 : 32
+        peerRadius = single ? 36 : 24
+        halfDistance = min(size.width * 0.27, 112)
+        radiusX = min(size.width * 0.36, 148)
+        me = single ? CGPoint(x: center.x - halfDistance, y: center.y) : center
+    }
+
+    func peerPoint(_ index: Int) -> CGPoint {
+        if count == 1 { return CGPoint(x: center.x + halfDistance, y: center.y) }
+        let wobble = 0.07 * sin(2 * .pi * (drift + Double(index) / Double(count)))
+        let angle = -Double.pi / 2 + 2 * .pi * Double(index) / Double(count) + wobble
+        return CGPoint(x: center.x + radiusX * cos(angle), y: center.y + radiusY * sin(angle))
+    }
+}
+
+/// A peer on the mesh: its name, how it is, and the actions of its row.
+///
+/// Its inputs compare by identity, so the frames of the mesh skip its body; `now` is
+/// the minute the status line is up to.
+private struct AppLinkMeshPeerMenu: View {
+    let device: KeyguardDevicesSnapshot.Device
+    let model: KeyguardDevicesModel
+    let now: Date
+    let diameter: CGFloat
+
+    @Environment(\.locale) private var locale
+
+    var body: some View {
+        AppLinkMeshNodeMenu(diameter: diameter) {
+            Section(device.label) {
+                if let status = device.statusLine(now: now, locale: locale) {
+                    Text(status)
+                }
+            }
+            // A section of its own: the menu divides it from the device.
+            Section {
+                KeyguardDeviceActions(device: device) {
+                    model.remove(id: device.id)
+                }
+            }
+        }
+    }
+}
+
+/// An invisible button over a device of the mesh that opens its menu.
+private struct AppLinkMeshNodeMenu<Content: View>: View {
+    let diameter: CGFloat
+    @ViewBuilder let content: () -> Content
+
+    var body: some View {
+        Menu(content: content) {
+            Color.clear
+                .frame(width: diameter, height: diameter)
+                .contentShape(Circle())
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
     }
 }

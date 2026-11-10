@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.applink
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Dns
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.model.DAppLinkState
@@ -28,6 +29,7 @@ import com.artemchep.keyguard.feature.keyguardsync.devices.KeyguardDevicesUseCas
 import com.artemchep.keyguard.feature.keyguardsync.devices.keyguardDevicesStateProducer
 import com.artemchep.keyguard.feature.keyguardsync.devices.keyguardDevicesUseCases
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.onClick
@@ -38,6 +40,7 @@ import com.artemchep.keyguard.provider.keyguard.applink.canLinkApps
 import com.artemchep.keyguard.provider.keyguard.keyguardPlatformName
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.app_link_connection_lan_off
+import com.artemchep.keyguard.res.app_link_connection_title
 import com.artemchep.keyguard.res.app_link_device_name_error_invalid
 import com.artemchep.keyguard.res.app_link_device_name_label
 import com.artemchep.keyguard.res.app_link_device_name_rename_text
@@ -50,6 +53,8 @@ import com.artemchep.keyguard.res.emailrelay_list_header_title
 import com.artemchep.keyguard.res.rename
 import com.artemchep.keyguard.res.urloverride_list_header_title
 import com.artemchep.keyguard.res.wordlist_list_header_title
+import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -192,6 +197,25 @@ private fun appLinkCategoriesFlow(
         .toPersistentList()
 }
 
+/** What this device's section does, as a menu. */
+private fun appLinkThisDeviceDropdown(
+    onRename: () -> Unit,
+    onConnection: () -> Unit,
+) = buildContextItems {
+    this += FlatItemAction(
+        id = "rename",
+        icon = Icons.Outlined.Edit,
+        title = Res.string.rename.wrap(),
+        onClick = onRename,
+    )
+    this += FlatItemAction(
+        id = "connection",
+        icon = Icons.Outlined.Dns,
+        title = Res.string.app_link_connection_title.wrap(),
+        onClick = onConnection,
+    )
+}
+
 fun RememberStateFlowScope.appLinkStateProducer(
     useCases: AppLinkUseCases,
     confirmationRouteFactory: ConfirmationRouteFactory,
@@ -230,14 +254,19 @@ fun RememberStateFlowScope.appLinkStateProducer(
     val platform = CurrentPlatform.keyguardPlatformName()
     val thisDeviceFlow = appLinkThisDeviceFlow
         .map { device ->
+            val onRenameClick = onClick { onRename(device.label) }
             AppLinkState.ThisDevice(
                 label = device.label,
                 platform = platform,
                 relayText = translateKeyguardRelayName(device.network),
                 lanText = translate(Res.string.app_link_connection_lan_off)
                     .takeUnless { device.network.allowLan },
-                onRename = onClick { onRename(device.label) },
+                onRename = onRenameClick,
                 onConnection = ::onConnection,
+                dropdown = appLinkThisDeviceDropdown(
+                    onRename = onRenameClick,
+                    onConnection = ::onConnection,
+                ),
             )
         }
     val categoriesFlow = appLinkCategoriesFlow(

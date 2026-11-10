@@ -46,6 +46,8 @@ data class AppLinkState(
         val onRename: () -> Unit,
         /** Opens the network settings. */
         val onConnection: () -> Unit,
+        /** [onRename] and [onConnection] as menu items. */
+        val dropdown: ImmutableList<ContextItem>,
     )
 
     /** What this device syncs with its linked apps. */

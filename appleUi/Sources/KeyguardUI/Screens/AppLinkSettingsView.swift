@@ -32,7 +32,9 @@ struct AppLinkSettingsView: View {
                     makeDevicesSession: { [sessions] in sessions.makeAppLinkDevicesSession() },
                     thisDevice: { thisDeviceSection },
                     categories: { categoriesSection },
-                    addDevice: { scan in destination = .pair(scan: scan) }
+                    addDevice: { scan in destination = .pair(scan: scan) },
+                    rename: model.rename,
+                    openConnection: { destination = .connection }
                 )
             } else {
                 unlinkedForm
@@ -168,6 +170,10 @@ private struct AppLinkLinkedView<ThisDevice: View, Categories: View>: View {
     @ViewBuilder let categories: () -> Categories
     /// Links another device, scanning its code if `true`, or showing one.
     let addDevice: @MainActor (_ scan: Bool) -> Void
+    /// Renames this device; the mesh offers it, as the this device section does.
+    let rename: @MainActor () -> Void
+    /// Opens the relay settings of this device.
+    let openConnection: @MainActor () -> Void
     @State private var devicesModel: KeyguardDevicesModel
 
     init(
@@ -175,12 +181,16 @@ private struct AppLinkLinkedView<ThisDevice: View, Categories: View>: View {
         makeDevicesSession: @escaping () -> KeyguardDevicesSession,
         @ViewBuilder thisDevice: @escaping () -> ThisDevice,
         @ViewBuilder categories: @escaping () -> Categories,
-        addDevice: @escaping @MainActor (_ scan: Bool) -> Void
+        addDevice: @escaping @MainActor (_ scan: Bool) -> Void,
+        rename: @escaping @MainActor () -> Void,
+        openConnection: @escaping @MainActor () -> Void
     ) {
         self.snapshot = snapshot
         self.thisDevice = thisDevice
         self.categories = categories
         self.addDevice = addDevice
+        self.rename = rename
+        self.openConnection = openConnection
         _devicesModel = State(wrappedValue: KeyguardDevicesModel(makeSource: { makeDevicesSession() }))
     }
 
@@ -192,7 +202,13 @@ private struct AppLinkLinkedView<ThisDevice: View, Categories: View>: View {
                 SettingsForm {
                     Section {
                         VStack(spacing: 8) {
-                            AppLinkMeshView(peers: devices.devices.filter { !$0.isThisDevice })
+                            AppLinkMeshView(
+                                peers: devices.devices.filter { !$0.isThisDevice },
+                                model: devicesModel,
+                                thisDeviceLabel: snapshot.deviceLabel,
+                                rename: rename,
+                                openConnection: openConnection
+                            )
                             KeyguardDevicesHeaderRow(header: devices.header)
                         }
                         .frame(maxWidth: .infinity)

@@ -146,7 +146,7 @@ private fun KeyguardDeviceText(
 
 /** Returns how this device reaches the [device], or `null` for this device. */
 @Composable
-private fun keyguardDeviceStatusText(
+internal fun keyguardDeviceStatusText(
     device: KeyguardDevicesState.Device,
 ): String? = device.statusText
     ?: device.lastSeen?.let { lastSeen ->

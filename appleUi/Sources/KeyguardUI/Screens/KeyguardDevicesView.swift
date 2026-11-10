@@ -136,7 +136,7 @@ private struct KeyguardDeviceRow: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
                 TimelineView(.periodic(from: .now, by: 60)) { context in
-                    if let text = statusText(now: context.date) {
+                    if let text = device.statusLine(now: context.date, locale: locale) {
                         Text(text)
                             .font(.caption)
                             .foregroundStyle(.secondary)
@@ -164,19 +164,32 @@ private struct KeyguardDeviceRow: View {
         }
     }
 
-    @ViewBuilder
     private var actions: some View {
+        KeyguardDeviceActions(device: device, remove: remove)
+    }
+
+    private var platformSymbol: String { keyguardPlatformSymbol(device.platform) }
+}
+
+/// What a device offers in its menus: removing it, if this device may.
+struct KeyguardDeviceActions: View {
+    let device: KeyguardDevicesSnapshot.Device
+    let remove: () -> Void
+
+    var body: some View {
         if device.canRemove {
             Button(role: .destructive, action: remove) {
                 Label(L10n.remove, systemImage: "trash")
             }
         }
     }
+}
 
+extension KeyguardDevicesSnapshot.Device {
     /// "Last seen 5 min. ago via relay" for a device seen before; otherwise how it is connected.
-    private func statusText(now: Date) -> String? {
-        guard let lastSeenAtMs = device.lastSeenAtMs?.int64Value, let transport = device.lastTransportText else {
-            return device.statusText
+    func statusLine(now: Date, locale: Locale) -> String? {
+        guard let lastSeenAtMs = lastSeenAtMs?.int64Value, let transport = lastTransportText else {
+            return statusText
         }
         let lastSeenAt = Date(timeIntervalSince1970: TimeInterval(lastSeenAtMs) / 1000)
         let formatter = RelativeDateTimeFormatter()
@@ -184,8 +197,6 @@ private struct KeyguardDeviceRow: View {
         formatter.unitsStyle = .abbreviated
         return L10n.appLinkDeviceLastSeen(formatter.localizedString(for: lastSeenAt, relativeTo: now), transport)
     }
-
-    private var platformSymbol: String { keyguardPlatformSymbol(device.platform) }
 }
 
 /// The SF Symbol of the platform a device record names.

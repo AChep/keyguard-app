@@ -170,7 +170,7 @@ private fun AppLinkLinked(
             val thisDevice = devices.devices.firstOrNull { it.isThisDevice }
             val otherDevices = devices.devices.filterNot { it.isThisDevice }
             AppLinkMesh(
-                thisPlatform = state.thisDevice.platform,
+                thisDevice = state.thisDevice,
                 peers = otherDevices,
             )
             Box(

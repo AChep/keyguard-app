@@ -98,7 +98,7 @@ class BouncyCastlePolicyTest(unittest.TestCase):
         self.assertEqual(0, result)
 
     def test_artifact_scan_allows_only_exact_okhttp_optional_bc_entries(self) -> None:
-        package = self.repository / "okhttp-jvm-5.5.0-deadbeef.jar"
+        package = self.repository / "okhttp-jvm-5.5.1-deadbeef.jar"
         with zipfile.ZipFile(package, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             archive.writestr(
                 "META-INF/MANIFEST.MF",
@@ -135,7 +135,7 @@ class BouncyCastlePolicyTest(unittest.TestCase):
         self.assertEqual(["app.jsa (org/bouncycastle)"], findings)
 
     def test_okhttp_exception_still_rejects_real_shaded_and_registered_bc(self) -> None:
-        package = self.repository / "okhttp-jvm-5.5.0-deadbeef.jar"
+        package = self.repository / "okhttp-jvm-5.5.1-deadbeef.jar"
         with zipfile.ZipFile(package, "w", compression=zipfile.ZIP_DEFLATED) as archive:
             archive.writestr(
                 "okhttp3/internal/platform/BouncyCastlePlatform.class",

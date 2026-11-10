@@ -150,6 +150,9 @@
     <string name="expiring_soon">Expira em breve</string>
     <string name="item_incomplete_title">Dados incompletos</string>
     <string name="item_incomplete_text">Nesta entrada está em falta informação importante.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">Entrada</string>
     <string name="items">Entradas</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g> itens</string>
@@ -221,6 +224,8 @@
     <string name="select_linked_type">Selecionar tipo</string>
     <string name="select_file">Selecionar ficheiro</string>
     <string name="additem_attachments_drop_here">Arraste e largue um ficheiro aqui para o adicionar como anexo</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
+    <string name="file_drop_here">Drop a file here</string>
     <string name="addsend_drop_file_to_replace">Arraste e largue um ficheiro para substituir o ficheiro selecionado</string>
     <string name="autofill">Preenchimento automático</string>
     <string name="autofill_and_save_uri">Preencher automaticamente e guardar dados da app ou informações do site</string>
@@ -250,6 +255,7 @@
     <string name="passkey_discoverable">Detectável</string>
     <string name="passkey_user_username">Nome de utilizador</string>
     <string name="passkey_user_display_name">Nome a exibir</string>
+    <string name="passkey_unknown_username">Unknown username</string>
     <string name="ignored_alerts">Alertas ignorados</string>
     <string name="api_key">Chave API</string>
     <string name="api_token">Token da API</string>
@@ -442,7 +448,7 @@
     <string name="ciphers_action_change_passwords_title">Alterar palavras-passe</string>
     <string name="ciphers_action_view_password_history_title">Ver histórico de palavras-passe</string>
     <string name="ciphers_action_view_ssh_agent_history_title">Visualizar histórico do agente SSH</string>
-    <string name="ciphers_action_view_request_log_title">View request log</string>
+    <string name="ciphers_action_view_request_log_title">Visualizar registo de solicitações</string>
     <string name="ciphers_action_upload_gpg_public_key_title">Enviar chave pública GPG</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_title">Enviar a chave pública para o servidor?</string>
     <string name="ciphers_action_upload_gpg_public_key_confirmation_text">O Keyguard enviará a chave pública GPG protegida deste item para o seu servidor de chaves configurado. A chave pública pode incluir impressões digitais, IDs de utilizador como nomes e endereços de e-mail, sub-chaves, datas e estado de revogação. O servidor de chaves pode armazenar e redistribuir estes dados públicos. Este envio não solicita e-mails de verificação.</string>
@@ -695,12 +701,12 @@
     <string name="ssh_certificate_problem_key_mismatch">Este certificado pertence a outra chave.</string>
     <string name="ssh_certificate_problem_not_yet_valid">Este certificado é válido a partir de <xliff:g id="date" example="Jan 1, 2027">%1$s</xliff:g>.</string>
     <string name="ssh_certificate_problem_expired">Este certificado expirou em <xliff:g id="date" example="Jan 1, 2026">%1$s</xliff:g>.</string>
-    <string name="ssh_bookmark">SSH bookmark</string>
-    <string name="ssh_bookmarks">SSH bookmarks</string>
-    <string name="ssh_bookmark_invalid">Not a valid SSH bookmark</string>
-    <string name="ssh_bookmark_placeholder">ssh://user@host:port</string>
-    <string name="ssh_bookmark_copy_command">Copy SSH command</string>
-    <string name="ssh_bookmark_connect">Connect</string>
+    <string name="ssh_bookmark">Marcador SSH</string>
+    <string name="ssh_bookmarks">Marcadores SSH</string>
+    <string name="ssh_bookmark_invalid">Não é um marcador SSH válido</string>
+    <string name="ssh_bookmark_placeholder">ssh://utilizador@máquina:porto</string>
+    <string name="ssh_bookmark_copy_command">Copiar comando SSH</string>
+    <string name="ssh_bookmark_connect">Ligar</string>
     <string name="selection_n_selected"><xliff:g id="size" example="15">%1$d</xliff:g> selecionado</string>
     <string name="selection_clear_action">Limpar seleção</string>
     <string name="selection_select_all_action">Seleccionar tudo</string>
@@ -816,6 +822,10 @@
     <string name="error_must_be_number">Deve ser um número</string>
     <string name="error_must_be_less_than_days">Deve ser menor que <xliff:g id="days" example="15">%1$d</xliff:g> dias a partir da data atual</string>
     <string name="error_must_contain_only_us_ascii_chars">Deve conter apenas caracteres US-ASCII</string>
+    <!--
+        The placeholder is a space-separated list of the
+        characters that are not allowed, e.g. "< > ( )" -->
+    <string name="error_must_not_contain_chars">Must not contain <xliff:g id="chars" example="&lt; &gt; ( )">%1$s</xliff:g></string>
     <string name="error_must_have_at_least_n_symbols">Mínimo <xliff:g id="length" example="15">%1$d</xliff:g> caracteres de comprimento</string>
     <string name="error_must_have_exactly_n_symbols">Deve ter <xliff:g id="length" example="15">%1$d</xliff:g> símbolos de comprimento</string>
     <string name="error_invalid_domain">Domínio inválido</string>
@@ -843,6 +853,7 @@
     <string name="error_otp_key_must_not_be_empty">A chave secreta da palavra-passe única não pode estar vazia</string>
     <string name="error_otp_key_is_invalid">A chave secreta da palavra-passe de utilização única é inválida</string>
     <string name="error_failed_file_already_exists">Falha ao criar o ficheiro. Não é permitido substituir um ficheiro existente</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">Esta conta já foi adicionada ao Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Falha ao criar chave, sem memória. Por favor, verifique as configurações do seu servidor KDF.</string>
     <string name="error_failed_generate_otp_code">Falha ao gerar código OTP</string>
@@ -1007,6 +1018,7 @@
     <string name="wordlist_add_wordlist_title">Adicionar lista de palavras</string>
     <string name="wordlist_add_wordlist_via_file_title">Carregar a partir de um ficheiro</string>
     <string name="wordlist_add_wordlist_via_url_title">Carregar a partir de uma ligação web</string>
+    <string name="wordlist_drop_file_here">Drop a file to add a wordlist</string>
     <string name="wordlist_empty_label">Nenhuma lista de palavras</string>
     <string name="wordlist_word_search_placeholder">Pesquisar palavras</string>
     <string name="wordlist_rename_action">Renomear lista de palavras</string>
@@ -1268,20 +1280,36 @@
     <string name="agent_history_response_key_not_found">Chave não encontrada</string>
     <string name="agent_history_response_failure">Falha</string>
     <string name="agent_history_response_vault_locked">Cofre bloqueado</string>
-    <string name="agent_history_response_timed_out">Timed out</string>
+    <string name="agent_history_response_timed_out">Tempo limite excedido</string>
     <!-- The client left before Keyguard answered its request -->
-    <string name="agent_history_response_cancelled">Cancelled</string>
+    <string name="agent_history_response_cancelled">Cancelado</string>
     <string name="agent_history_unknown_caller">Aplicação desconhecida</string>
     <string name="agent_history_unknown_key">Chave desconhecida</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">Todas as chaves acessíveis</string>
     <string name="agent_history_clear_history_title">Limpar histórico</string>
     <string name="agent_history_clear_history_confirmation_title">Limpar o histórico do agente <xliff:g id="protocol" example="SSH">%1$s</xliff:g>?</string>
     <string name="agent_history_clear_history_confirmation_text">Esta ação irá remover todo o histórico de utilização do agente <xliff:g id="protocol" example="SSH">%1$s</xliff:g>.</string>
     <string name="ssh_agent_history_empty_text">As chaves fornecidas e as assinaturas pedidas por ssh/git aparecem aqui.</string>
-    <string name="cli_agent_history_request_run">Run a command</string>
-    <string name="cli_agent_history_request_read_local_env_file">Read a local .env file</string>
-    <string name="cli_agent_history_clear_history_confirmation_title">Clear request log?</string>
-    <string name="cli_agent_history_clear_history_confirmation_text">This will remove all requests in this log.</string>
+    <string name="cli_agent_history_request_run">Executar um comando</string>
+    <string name="cli_agent_history_request_read_local_env_file">Ler um ficheiro .env local</string>
+    <string name="cli_agent_history_clear_history_confirmation_title">Limpar o registo de pedidos?</string>
+    <string name="cli_agent_history_clear_history_confirmation_text">Isto removerá todas as solicitações deste registo.</string>
     <string name="agent_setup_title">Configuração do cliente <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="ssh_agent_setup_intro">Configure um cliente SSH para se ligar ao agente SSH do Keyguard, permitindo-lhe executar a autenticação ou a assinatura com as suas chaves aprovadas sem expor o material da chave privada.</string>
     <string name="ssh_agent_setup_intro_text">Autentique os seus clientes Git e SSH com as chaves SSH guardadas no seu cofre.</string>
@@ -1589,6 +1617,8 @@
     <string name="watchtower_item_unsecure_websites_text">Alterar os endereços que usam o protocolo HTTP para usar o protocolo HTTPS, já que este utiliza a mais avançada criptografia disponível.</string>
     <string name="watchtower_item_inactive_2fa_title">Autenticações de 2 fatores inativas (2FA)</string>
     <string name="watchtower_item_inactive_2fa_text">Sites com autenticação de dois fatores disponíveis, mas ainda não foram configurados.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">Chaves de acesso disponíveis</string>
     <string name="watchtower_item_inactive_passkey_text">Sites que têm chaves de acesso disponíveis, mas ainda não foram configuradas. É mais simples e mais seguro que uma palavra-passe.</string>
     <string name="watchtower_item_incomplete_items_title">Dados incompletos</string>
@@ -1629,6 +1659,8 @@
     <string name="exportaccount_format_note">Exportar cofre como um arquivo ZIP encriptado.</string>
     <string name="exportaccount_format_title">Formato</string>
     <string name="exportaccount_format_zip">Arquivo ZIP</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">Base de dados KeePass (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">Palavra-passe da base de dados</string>
     <string name="exportaccount_format_kdbx_note">Exportar o cofre como uma base de dados KeePass. As pastas tornam-se grupos. As organizações e as coleções não são exportadas.</string>
@@ -1796,6 +1828,8 @@
     <string name="pref_item_watchtower_text">Serviços comprometidos, palavras-passe vulneráveis</string>
     <string name="pref_item_automatic_backups_title">Cópias de segurança</string>
     <string name="pref_item_automatic_backups_text">Cópias de segurança do cofre automáticas e encriptadas</string>
+    <string name="pref_item_app_link_title">Linked devices</string>
+    <string name="pref_item_app_link_text">Sync app settings, such as email forwarders and wordlists, with your other devices</string>
     <string name="pref_item_notifications_title">Notificações</string>
     <string name="pref_item_notifications_text">Alertas</string>
     <string name="pref_item_appearance_title">Aparência</string>
@@ -1814,6 +1848,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">A preparar a cópia de segurança</string>
     <string name="backup_step_opening_repository">A abrir o repositório da cópia de segurança</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">A exportar os dados do cofre</string>
     <string name="backup_step_scanning_attachments">A procurar anexos</string>
     <string name="backup_step_backing_up_attachments">A guardar os anexos na cópia de segurança</string>
@@ -1827,6 +1862,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">Terminado %1$s.</string>
     <string name="pref_item_automatic_backups_status_error_title">Última cópia de segurança falhou</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">Última cópia de segurança ignorada</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">Ainda sem cópias de segurança</string>
@@ -1887,6 +1923,8 @@
     <string name="pref_item_automatic_backups_disable_title">Desativar cópias de segurança automáticas</string>
     <string name="pref_item_automatic_backups_disable_message">Isto desativa apenas as cópias de segurança foturas. Remove a pasta local, a palavra-passe e a opção de anexo do Keyguard. O repositório de cópia de segurança existente e os ficheiros nessa pasta não são eliminados.</string>
     <string name="pref_item_automatic_backups_disable_action">Desativar...</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">Itens de navegação</string>
     <string name="pref_item_nav_label_title">Mostrar rótulos nos botões de navegação</string>
     <string name="pref_item_nav_label_short_title">Mostrar rótulos de navegação</string>
@@ -1928,10 +1966,10 @@
     <string name="pref_item_close_to_menu_bar_title">Junto à barra de menu</string>
     <string name="pref_item_minimize_on_copy_title">Minimizar ao copiar</string>
     <string name="pref_item_ui_scale_title">Interface scale</string>
-    <string name="pref_item_ui_scale_decrease">Decrease interface scale</string>
-    <string name="pref_item_ui_scale_increase">Increase interface scale</string>
-    <string name="pref_item_ui_scale_preview_default">Default</string>
-    <string name="pref_item_ui_scale_preview_selected">Selected</string>
+    <string name="pref_item_ui_scale_decrease">Diminuir escala da interface</string>
+    <string name="pref_item_ui_scale_increase">Aumentar escala da interface</string>
+    <string name="pref_item_ui_scale_preview_default">Padrão</string>
+    <string name="pref_item_ui_scale_preview_selected">Selecionado</string>
     <string name="pref_item_check_pwned_passwords_title">Verificar por palavras-passe comprometidas</string>
     <string name="pref_item_check_pwned_services_title">Verificar se existe violação de dados</string>
     <string name="pref_item_hibp_api_token_title">Token da API Have I Been Pwned</string>
@@ -2034,10 +2072,10 @@
     <string name="pref_item_agent_local_storage_text">Quando o agente <xliff:g id="protocol" example="SSH">%1$s</xliff:g> está ativo, o Keyguard mantém uma cópia não encriptada das chaves públicas no disco para que os clientes possam listar as chaves mesmo com o cofre bloqueado. As chaves privadas nunca são expostas; os nomes das chaves só são guardados se ativar a opção correspondente.</string>
     <string name="pref_item_agent_display_key_names_title">Apresentar os nomes das chaves antes de desbloquear o cofre</string>
     <string name="pref_item_agent_display_key_names_note">Uma cópia não encriptada do título do item será guardada localmente</string>
-    <string name="pref_item_ssh_agent_bookmarks_config_title">Generate SSH config for bookmarked hosts</string>
-    <string name="pref_item_ssh_agent_bookmarks_config_text">Pins each host from an ssh:// field of an SSH key item to that key, so ssh offers only that key</string>
-    <string name="pref_item_ssh_agent_bookmarks_config_note">Host names and public keys are stored unencrypted on disk.</string>
-    <string name="pref_item_ssh_agent_bookmarks_config_include_title">Include the config in ~/.ssh/config</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_title">Gerar configuração SSH para os hosts favoritos</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_text">Fixa cada host de um campo ssh:// de um item de chave SSH a essa chave, de modo a que o SSH ofereça apenas essa chave</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_note">Os nomes dos servidores e as chaves públicas são armazenadas sem encriptação no disco.</string>
+    <string name="pref_item_ssh_agent_bookmarks_config_include_title">Inclua a configuração em ~/.ssh/config</string>
     <string name="pref_item_ssh_agent_bookmarks_config_include_text">SSH ignores the bookmarks until ~/.ssh/config includes the generated config. Run SSH client setup, or add this line to the top of the file:</string>
     <string name="pref_item_ssh_agent_bookmarks_config_include_retry">Then turn the setting on again.</string>
     <string name="pref_item_ssh_agent_bookmarks_config_include_setup_action">Run SSH client setup</string>
@@ -2051,6 +2089,8 @@
     <string name="pref_item_agent_filters_summary_all">Todas as chaves acessíveis</string>
     <string name="pref_item_agent_filters_summary_active">Filtros ativos</string>
     <string name="pref_item_agent_history_title">Registo de pedidos</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Ativar o agente SSH</string>
     <string name="pref_item_ssh_agent_description">O Keyguard fornece as chaves SSH do seu cofre para ssh/git. Cada assinatura requer a sua aprovação.</string>
     <string name="pref_item_license_key_title">Vincular o token de autorização existente</string>
@@ -2794,4 +2834,162 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
+    <string name="passkey_hybrid_title">Use passkeys on another device</string>
+    <string name="passkey_hybrid_intro_title">Sign in on a nearby computer</string>
+    <string name="passkey_hybrid_intro_text">Sign in or create a passkey in a browser on another device. Keyguard doesn’t need to be installed there.</string>
+    <string name="passkey_hybrid_step_1_title">Choose another device</string>
+    <string name="passkey_hybrid_step_1_text">In the computer’s passkey prompt, choose “Use another device”.</string>
+    <string name="passkey_hybrid_step_2_title">Scan the QR code</string>
+    <string name="passkey_hybrid_step_2_text">Tap Scan QR code and point the camera at the code on the computer.</string>
+    <string name="passkey_hybrid_step_3_title">Confirm on this phone</string>
+    <string name="passkey_hybrid_step_3_text">Choose a passkey or where to save a new one, then verify it’s you.</string>
+    <string name="passkey_hybrid_requirements">Keep Bluetooth on and this phone near the computer. Both devices need internet access.</string>
+    <string name="passkey_hybrid_relay">Connects through Google’s FIDO relay. Requests are encrypted between the two devices. The relay sees connection times and IP addresses.</string>
+    <string name="passkey_hybrid_permission_title">Allow Nearby devices</string>
+    <string name="passkey_hybrid_permission_text">Bluetooth shows the computer that this phone is nearby.</string>
+    <string name="passkey_hybrid_connecting">Connecting…</string>
+    <string name="passkey_hybrid_connecting_text">Setting up an encrypted connection with the computer.</string>
+    <string name="passkey_hybrid_waiting">Waiting for the computer</string>
+    <string name="passkey_hybrid_waiting_text">Keep its passkey prompt open.</string>
+    <string name="passkey_hybrid_sending">Sending passkey…</string>
+    <string name="passkey_hybrid_sending_text">Keep this screen open until it finishes.</string>
+    <string name="passkey_hybrid_request_sign_in">Sign-in request</string>
+    <string name="passkey_hybrid_choose">Choose a passkey</string>
+    <string name="passkey_hybrid_save">Create passkey for %1$s</string>
+    <string name="passkey_hybrid_success_sign_in">Passkey sent</string>
+    <string name="passkey_hybrid_success_create">Passkey created</string>
+    <string name="passkey_hybrid_success_text">Continue on the computer.</string>
+    <string name="passkey_hybrid_scan_again">Scan again</string>
+    <string name="passkey_hybrid_error_qr_title">Not a passkey QR code</string>
+    <string name="passkey_hybrid_error_qr">Start again with a new code from the computer.</string>
+    <string name="passkey_hybrid_error_permission_title">Nearby devices access needed</string>
+    <string name="passkey_hybrid_error_permission">Allow Nearby devices in the app settings, then scan again.</string>
+    <string name="passkey_hybrid_error_credentials_title">No matching passkeys</string>
+    <string name="passkey_hybrid_error_credentials">None of your visible vault accounts has a passkey for this website.</string>
+    <string name="passkey_hybrid_error_write_title">Can’t save to this item</string>
+    <string name="passkey_hybrid_error_write">Choose an editable login in a writable account or collection.</string>
+    <string name="passkey_hybrid_error_excluded_title">Passkey already exists</string>
+    <string name="passkey_hybrid_error_excluded">The vault already has a passkey for this account.</string>
+    <string name="passkey_hybrid_error_connection_title">Connection ended</string>
+    <string name="passkey_hybrid_error_connection">Check internet access and Bluetooth on both devices, then scan a new QR code.</string>
+    <string name="app_link_hero_title">Sync between your devices</string>
+    <string name="app_link_hero_text">Link Keyguard on your devices to sync app settings, such as email forwarders and wordlists, between them.</string>
+    <string name="app_link_premium_note">To link devices, purchase Premium or self-host a relay server.</string>
+    <string name="app_link_link_device_title">Link a device</string>
+    <string name="app_link_link_device_text">Show a code here, or scan the code of the other device.</string>
+    <string name="app_link_link_another_device">Link another device</string>
+    <string name="app_link_sync_section_title">Sync on this device</string>
+    <string name="app_link_other_devices_section_title">Other devices</string>
+    <string name="app_link_this_device">This device</string>
+    <string name="app_link_device_name_label">Device name</string>
+    <string name="app_link_device_name_error_invalid">Must be <xliff:g id="length" example="64">%1$d</xliff:g> characters or fewer, without line breaks or control characters</string>
+    <string name="app_link_device_name_rename_text">Your other devices show the new name after they sync.</string>
+    <string name="app_link_device_name_default_android">Android device</string>
+    <string name="app_link_device_name_default_wear">Wear OS watch</string>
+    <string name="app_link_device_name_default_desktop">Computer</string>
+    <string name="app_link_device_name_default_ios">iPhone or iPad</string>
+    <string name="app_link_device_name_default_macos">Mac</string>
+    <string name="app_link_device_added_on">Added <xliff:g id="date" example="Oct 29, 2026">%1$s</xliff:g></string>
+    <string name="app_link_device_added_by">Added <xliff:g id="date" example="Oct 29, 2026">%1$s</xliff:g> by <xliff:g id="device" example="Work laptop">%2$s</xliff:g></string>
+    <string name="app_link_device_last_seen">Last seen <xliff:g id="time" example="5m ago">%1$s</xliff:g> via <xliff:g id="transport" example="relay">%2$s</xliff:g></string>
+    <string name="app_link_device_connected_via">Connected via <xliff:g id="transport" example="relay">%1$s</xliff:g></string>
+    <string name="app_link_device_never_seen">Never connected</string>
+    <string name="app_link_transport_lan">local network</string>
+    <string name="app_link_transport_stun">direct connection</string>
+    <string name="app_link_transport_turn">TURN server</string>
+    <string name="app_link_transport_relay">relay</string>
+    <string name="app_link_remove_confirm_title">Remove this device?</string>
+    <string name="app_link_remove_confirm_text"><xliff:g id="device" example="Pixel 9">%1$s</xliff:g> stops syncing with your linked devices. The data already on it stays there.</string>
+    <string name="app_link_remove_confirm_readd_note">To sync it again, add it from another device.</string>
+    <string name="app_link_remove_confirm_added_text"><xliff:g id="device" example="Phone">%1$s</xliff:g> added these devices. Select the ones to remove too.</string>
+    <string name="app_link_unlink_title">Unlink this device</string>
+    <string name="app_link_unlink_text">Keep the data on this device only.</string>
+    <string name="app_link_unlink_confirm_text">This device stops syncing with your linked devices. Its data stays on this device.</string>
+    <string name="app_link_removed_this_device_text">This device was removed. Re-add it from another device.</string>
+    <string name="app_link_authority_password_title">Enter your app password</string>
+    <string name="app_link_authority_password_text">Adding, removing or unlinking a device needs your app password.</string>
+    <string name="app_link_connection_title">Relay server</string>
+    <string name="app_link_connection_default_relay">Keyguard relay</string>
+    <string name="app_link_connection_lan_off">Local network off</string>
+    <string name="app_link_connection_relay_url_label">Relay URL</string>
+    <string name="app_link_connection_relay_url_hint">Leave the relay URL empty to use the default relay. A custom URL starts with wss:// or https://.</string>
+    <string name="app_link_connection_ice_url_label">ICE servers URL</string>
+    <string name="app_link_connection_relay_token_label">Access token</string>
+    <string name="app_link_connection_relay_token_error_invalid">Use only letters, digits, and - . _ ~</string>
+    <string name="app_link_connection_allow_lan_title">Allow local network</string>
+    <string name="app_link_connection_allow_lan_text">Connect directly to your devices on the same network.</string>
+    <string name="app_link_connection_relay_storage_title">Relay storage</string>
+    <string name="app_link_connection_relay_storage_text">The relay holds encrypted changes for offline devices, up to 7 days. Every linked device must turn it on.</string>
+    <string name="app_link_relay_how_title">How devices use it</string>
+    <string name="app_link_relay_how_text">Devices meet on the relay and connect directly when they can. Otherwise, the relay forwards their encrypted traffic. Use the same relay on every device.</string>
+    <string name="app_link_relay_sees_title">What it sees</string>
+    <string name="app_link_relay_sees_text">Your devices' IP addresses, when they connect, and the size of their encrypted messages. With relay storage on, it keeps encrypted changes for up to 7 days.</string>
+    <string name="app_link_status_relay_offline">Not connected to the relay</string>
+    <string name="app_link_status_relay_connecting">Connecting to the relay</string>
+    <string name="app_link_status_relay_connected">Connected to the relay</string>
+    <string name="app_link_status_relay_failed">Can't reach the relay</string>
+    <string name="app_link_status_relay_incompatible">The relay doesn't support this version of Keyguard</string>
+    <string name="app_link_status_relay_storage_active">Relay storage is on</string>
+    <string name="app_link_status_relay_storage_unsupported">The relay doesn't support relay storage</string>
+    <string name="app_link_status_relay_storage_starting">Turning on relay storage…</string>
+    <string name="app_link_status_relay_storage_waiting">Relay storage is off on <xliff:g id="device" example="Phone">%1$s</xliff:g></string>
+    <string name="app_link_status_relay_storage_paused">Relay storage is paused until <xliff:g id="time" example="Nov 8, 2026, 14:05">%1$s</xliff:g></string>
+    <string name="app_link_status_relay_storage_too_large">Too much data for relay storage. Devices sync while online together.</string>
+    <string name="app_link_how_pair_title">Pairing</string>
+    <string name="app_link_how_pair_text">Show a code on one device and scan it with the other. Then check that both show the same 6 digits.</string>
+    <string name="app_link_how_sync_title">Syncing</string>
+    <string name="app_link_how_sync_text">Devices sync while Keyguard is open and unlocked on both, or through relay storage. Each device picks what it syncs, and what is off stays on that device.</string>
+    <string name="app_link_how_privacy_title">Privacy</string>
+    <string name="app_link_how_privacy_text">Everything is end-to-end encrypted, so only your devices can read it.</string>
+    <string name="app_link_how_security_title">Security</string>
+    <string name="app_link_how_security_text">Adding or removing a device asks for your app password.</string>
+    <string name="app_link_pairing_method_scan_title">Scan a code</string>
+    <string name="app_link_pairing_method_scan_text">Use the camera, or paste the code as text.</string>
+    <string name="app_link_pairing_method_show_title">Show a code</string>
+    <string name="app_link_pairing_method_show_text">The other device scans it with its camera.</string>
+    <string name="app_link_pairing_as">Pairing as <xliff:g id="device" example="Pixel 9">%1$s</xliff:g> via <xliff:g id="relay" example="Keyguard relay">%2$s</xliff:g></string>
+    <string name="app_link_pairing_starting_text">Getting ready…</string>
+    <string name="app_link_pairing_show_code_text">Scan this code with the other device, or copy it there.</string>
+    <string name="app_link_pairing_code_sensitive_note">Show this code only to your own device. You approve each device before it joins.</string>
+    <string name="app_link_pairing_expires_in">Expires in <xliff:g id="time" example="2:59">%1$s</xliff:g></string>
+    <string name="app_link_pairing_new_code">New code</string>
+    <string name="app_link_pairing_copy_code">Copy code</string>
+    <string name="app_link_pairing_scan_text">Scan the code shown on the other device, or paste it.</string>
+    <string name="app_link_pairing_paste_code_label">Pairing code</string>
+    <string name="app_link_pairing_connecting_text">Connecting to the other device…</string>
+    <string name="app_link_pairing_transferring_text">Copying the data…</string>
+    <string name="app_link_pairing_sas_title">Enter these digits on the other device</string>
+    <string name="app_link_pairing_sas_compare_text">Once the other device shows the same digits, select Yes, they match.</string>
+    <string name="app_link_pairing_sas_match_yes">Yes, they match</string>
+    <string name="app_link_pairing_sas_enter_title">Enter the digits shown on the other device</string>
+    <string name="app_link_pairing_sas_enter_label">Digits</string>
+    <string name="app_link_pairing_sas_enter_error_wrong">These digits don't match. Check the other device and try again.</string>
+    <string name="app_link_pairing_sas_matched_title">The digits match</string>
+    <string name="app_link_pairing_sas_matched_text">Now select Yes, they match on the other device.</string>
+    <string name="app_link_pairing_sas_waiting_text">Waiting for the other device…</string>
+    <string name="app_link_pairing_done_title">Devices linked</string>
+    <string name="app_link_pairing_failed_title">Failed to link the devices</string>
+    <string name="app_link_pairing_error_expired">The code expired.</string>
+    <string name="app_link_pairing_error_rejected">The other device rejected the pairing.</string>
+    <string name="app_link_pairing_error_mismatch">The digits didn't match. Nothing was shared.</string>
+    <string name="app_link_pairing_error_update_required">Update Keyguard on this device, then pair again.</string>
+    <string name="app_link_pairing_error_peer_update_required">Update Keyguard on the other device, then pair again.</string>
+    <string name="app_link_pairing_error_network">The devices couldn't reach each other.</string>
+    <string name="app_link_pairing_error_cancelled">The pairing was cancelled.</string>
+    <string name="app_link_pairing_error_invalid_code">This is not a Keyguard pairing code.</string>
+    <string name="app_link_pairing_error_wrong_kind">This code is for a different kind of pairing. Use the same option on both devices.</string>
+    <string name="app_link_pairing_error_already_linked">Both devices are linked to other devices. Unlink one of them first.</string>
+    <string name="app_link_pairing_error_linked_together">These devices are linked already.</string>
+    <string name="app_link_pairing_error_too_large">The synced data is too large to send to a new device.</string>
+    <string name="app_link_pairing_error_failed">Couldn't save the data on this device.</string>
+    <string name="app_link_alert_added_title">New linked device</string>
+    <string name="app_link_alert_added_text"><xliff:g id="by" example="Work laptop">%2$s</xliff:g> added <xliff:g id="device" example="Phone">%1$s</xliff:g>.</string>
+    <string name="app_link_alert_removed_title">Linked device removed</string>
+    <string name="app_link_alert_removed_text"><xliff:g id="by" example="Work laptop">%2$s</xliff:g> removed <xliff:g id="device" example="Phone">%1$s</xliff:g>.</string>
+    <string name="app_link_alert_removed_this_text"><xliff:g id="by" example="Work laptop">%1$s</xliff:g> removed this device.</string>
+    <string name="app_link_alert_removed_by_former_text">A device that is no longer linked removed <xliff:g id="device" example="Phone">%1$s</xliff:g>. If you didn't do this, link your devices again.</string>
+    <string name="app_link_alert_removed_this_by_former_text">A device that is no longer linked removed this device. If you didn't do this, link your devices again.</string>
+    <string name="app_link_alert_removed_with_text"><xliff:g id="device" example="Phone">%1$s</xliff:g> was removed with the device that added it.</string>
+    <string name="app_link_alert_left_text"><xliff:g id="device" example="Phone">%1$s</xliff:g> left.</string>
 </resources>

@@ -150,6 +150,9 @@
     <string name="expiring_soon">곧 만료</string>
     <string name="item_incomplete_title">불완전한 데이터</string>
     <string name="item_incomplete_text">중요한 정보가 비어 있는 항목입니다.</string>
+    <string name="item_totp_unsupported_title">Unsupported one-time password</string>
+    <string name="item_totp_unsupported_text">Keyguard can't generate codes from this one-time password. The value is kept as is.</string>
+    <string name="item_totp_unsupported_badge">Unsupported</string>
     <string name="item">항목</string>
     <string name="items">항목</string>
     <string name="items_n"><xliff:g id="size" example="15">%1$s</xliff:g>개 항목</string>
@@ -221,6 +224,8 @@
     <string name="select_linked_type">유형 선택</string>
     <string name="select_file">파일 선택</string>
     <string name="additem_attachments_drop_here">파일을 여기에 놓아 첨부 파일로 추가하세요</string>
+    <string name="file_drop_single_file_only">Drop one file at a time</string>
+    <string name="file_drop_here">Drop a file here</string>
     <string name="addsend_drop_file_to_replace">선택한 파일을 바꾸려면 파일을 가져다 놓으세요</string>
     <string name="autofill">자동 완성</string>
     <string name="autofill_and_save_uri">자동 완성하고 앱 또는 웹사이트 정보 저장</string>
@@ -250,6 +255,7 @@
     <string name="passkey_discoverable">검색 가능</string>
     <string name="passkey_user_username">사용자 이름</string>
     <string name="passkey_user_display_name">표시할 이름</string>
+    <string name="passkey_unknown_username">Unknown username</string>
     <string name="ignored_alerts">무시한 경고</string>
     <string name="api_key">API 키</string>
     <string name="api_token">API 토큰</string>
@@ -816,6 +822,10 @@
     <string name="error_must_be_number">숫자만 가능합니다.</string>
     <string name="error_must_be_less_than_days">현재 시간으로부터 <xliff:g id="days" example="15">%1$d</xliff:g>일 이내여야 합니다.</string>
     <string name="error_must_contain_only_us_ascii_chars">US-ASCII 문자만 사용할 수 있습니다.</string>
+    <!--
+        The placeholder is a space-separated list of the
+        characters that are not allowed, e.g. "< > ( )" -->
+    <string name="error_must_not_contain_chars">Must not contain <xliff:g id="chars" example="&lt; &gt; ( )">%1$s</xliff:g></string>
     <string name="error_must_have_at_least_n_symbols">최소 <xliff:g id="length" example="15">%1$d</xliff:g>글자 이상이어야 합니다.</string>
     <string name="error_must_have_exactly_n_symbols">정확히 <xliff:g id="length" example="15">%1$d</xliff:g>글자여야 합니다.</string>
     <string name="error_invalid_domain">잘못된 도메인입니다.</string>
@@ -843,6 +853,7 @@
     <string name="error_otp_key_must_not_be_empty">OTP 비밀 키는 비워둘 수 없습니다.</string>
     <string name="error_otp_key_is_invalid">OTP 비밀 키가 올바르지 않습니다</string>
     <string name="error_failed_file_already_exists">파일을 만들지 못했습니다. 이미 존재하는 파일은 교체할 수 없습니다.</string>
+    <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
     <string name="error_account_already_exists">이미 Keyguard에 추가된 계정입니다</string>
     <string name="error_failed_generate_kdf_hash_oom">메모리가 부족하여 키를 생성하지 못했습니다. KDF 서버 설정을 확인해 보세요.</string>
     <string name="error_failed_generate_otp_code">OTP 코드를 생성하지 못했습니다.</string>
@@ -1006,6 +1017,7 @@
     <string name="wordlist_add_wordlist_title">단어 목록 추가</string>
     <string name="wordlist_add_wordlist_via_file_title">파일에서 불러오기</string>
     <string name="wordlist_add_wordlist_via_url_title">URL에서 불러오기</string>
+    <string name="wordlist_drop_file_here">Drop a file to add a wordlist</string>
     <string name="wordlist_empty_label">단어 목록 없음</string>
     <string name="wordlist_word_search_placeholder">단어 검색</string>
     <string name="wordlist_rename_action">단어 목록 이름 바꾸기</string>
@@ -1272,6 +1284,22 @@
     <string name="agent_history_response_cancelled">Cancelled</string>
     <string name="agent_history_unknown_caller">알 수 없는 호출자</string>
     <string name="agent_history_unknown_key">알 수 없는 키</string>
+    <!-- The section of a request log entry about the program that sent the request -->
+    <string name="agent_history_details_caller">Caller</string>
+    <string name="agent_history_details_application">Application</string>
+    <string name="agent_history_details_application_path">Application path</string>
+    <string name="agent_history_details_process">Process</string>
+    <string name="agent_history_details_executable">Executable</string>
+    <string name="agent_history_details_process_id">Process ID</string>
+    <!-- The vault item with the key that a request used -->
+    <string name="agent_history_details_key">Key</string>
+    <!-- How a request reached Keyguard: the command-line tool, an MCP client or a local .env file -->
+    <string name="agent_history_details_client">Client</string>
+    <!-- The name an MCP client reports for itself; Keyguard can not check it -->
+    <string name="agent_history_details_client_name">Client name (unverified)</string>
+    <string name="agent_history_details_working_directory">Working directory</string>
+    <string name="agent_history_details_error">Error</string>
+    <string name="agent_history_details_error_code">Error code</string>
     <string name="ssh_agent_history_all_accessible_keys">접근 가능한 모든 키</string>
     <string name="agent_history_clear_history_title">기록 삭제</string>
     <string name="agent_history_clear_history_confirmation_title"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> 에이전트 기록을 삭제할까요?</string>
@@ -1588,6 +1616,8 @@
     <string name="watchtower_item_unsecure_websites_text">HTTP 프로토콜을 사용하는 URL을 HTTPS로 변경하세요. HTTPS 프로토콜은 가장 강력한 암호화를 사용할 수 있습니다.</string>
     <string name="watchtower_item_inactive_2fa_title">2단계 인증 꺼짐</string>
     <string name="watchtower_item_inactive_2fa_text">2단계 인증을 지원하지만 아직 설정하지 않은 사이트입니다.</string>
+    <string name="watchtower_item_unusable_2fa_title">Unusable two-factor authentication</string>
+    <string name="watchtower_item_unusable_2fa_text">Items with a one-time password that Keyguard can't generate codes from.</string>
     <string name="watchtower_item_inactive_passkey_title">패스키 사용 가능</string>
     <string name="watchtower_item_inactive_passkey_text">패스키를 지원하지만 아직 설정하지 않은 사이트입니다. 패스키는 비밀번호보다 간단하고 더 안전합니다.</string>
     <string name="watchtower_item_incomplete_items_title">불완전한 항목</string>
@@ -1628,6 +1658,8 @@
     <string name="exportaccount_format_note">보관함을 암호화한 ZIP 파일로 내보냅니다.</string>
     <string name="exportaccount_format_title">형식</string>
     <string name="exportaccount_format_zip">ZIP 압축 파일</string>
+    <string name="exportaccount_format_zip_age">ZIP archive + age</string>
+    <string name="exportaccount_format_zip_age_note">Export vault as a ZIP archive encrypted with age. Import it into Keyguard, or decrypt it with age and extract the ZIP.</string>
     <string name="exportaccount_format_kdbx">KeePass 데이터베이스 (KDBX)</string>
     <string name="exportaccount_kdbx_password_label">데이터베이스 비밀번호</string>
     <string name="exportaccount_format_kdbx_note">보관함을 KeePass 데이터베이스로 내보냅니다. 폴더는 그룹으로 변환됩니다. 조직과 컬렉션은 내보내지 않습니다.</string>
@@ -1795,6 +1827,8 @@
     <string name="pref_item_watchtower_text">유출된 서비스, 취약한 비밀번호</string>
     <string name="pref_item_automatic_backups_title">백업</string>
     <string name="pref_item_automatic_backups_text">암호화된 보관함 자동 백업</string>
+    <string name="pref_item_app_link_title">Linked devices</string>
+    <string name="pref_item_app_link_text">Sync app settings, such as email forwarders and wordlists, with your other devices</string>
     <string name="pref_item_notifications_title">알림</string>
     <string name="pref_item_notifications_text">경고</string>
     <string name="pref_item_appearance_title">외관</string>
@@ -1813,6 +1847,7 @@
     <string name="backup_step_with_progress"><xliff:g id="step" example="Backing up attachments">%1$s</xliff:g> - <xliff:g id="progress" example="3 MB / 10 MB">%2$s</xliff:g></string>
     <string name="backup_step_preparing">백업 준비 중</string>
     <string name="backup_step_opening_repository">백업 저장소 여는 중</string>
+    <string name="backup_step_upgrading_encryption">Upgrading encryption</string>
     <string name="backup_step_exporting_vault">보관함 데이터 내보내는 중</string>
     <string name="backup_step_scanning_attachments">첨부 파일 검사 중</string>
     <string name="backup_step_backing_up_attachments">첨부 파일 백업 중</string>
@@ -1826,6 +1861,7 @@
     <string name="pref_item_automatic_backups_status_finished_text">%1$s에 완료했습니다.</string>
     <string name="pref_item_automatic_backups_status_error_title">최근 백업 실패</string>
     <string name="pref_item_automatic_backups_status_error_text">%1$s</string>
+    <string name="pref_item_automatic_backups_status_upgrade_pending_text">The backup encryption upgrade was interrupted. Run the upgrade again to finish it.</string>
     <string name="pref_item_automatic_backups_status_skipped_title">최근 백업 건너뜀</string>
     <string name="pref_item_automatic_backups_status_skipped_text">%1$s</string>
     <string name="pref_item_automatic_backups_status_never_title">아직 백업 없음</string>
@@ -1886,6 +1922,8 @@
     <string name="pref_item_automatic_backups_disable_title">자동 백업 사용 중지</string>
     <string name="pref_item_automatic_backups_disable_message">앞으로 실행될 자동 백업을 사용 중지합니다. Keyguard 백업 설정에서 로컬 폴더, 비밀번호, 첨부 파일 포함 여부를 초기화합니다. 기존 백업 저장소와 해당 폴더의 파일은 삭제하지 않습니다.</string>
     <string name="pref_item_automatic_backups_disable_action">사용 중지…</string>
+    <string name="pref_item_automatic_backups_upgrade_title">Upgrade backup encryption</string>
+    <string name="pref_item_automatic_backups_upgrade_message">Stop backups on other devices and update Keyguard on all of them first. Older versions cannot open the upgraded repository. This switches repository metadata and future indexes to age encryption; existing indexes, snapshots and attachments are kept. Old indexes keep their weaker protection, so anyone who cracks the backup password through them can also decrypt the new archives. If interrupted, run the upgrade again.</string>
     <string name="pref_item_nav_items_title">탐색 항목</string>
     <string name="pref_item_nav_label_title">내비게이션 버튼에 라벨 표시</string>
     <string name="pref_item_nav_label_short_title">탐색 라벨 표시</string>
@@ -2050,6 +2088,8 @@
     <string name="pref_item_agent_filters_summary_all">모든 키 사용 가능</string>
     <string name="pref_item_agent_filters_summary_active">필터 적용 중</string>
     <string name="pref_item_agent_history_title">요청 기록</string>
+    <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
+    <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">SSH 에이전트 사용 설정</string>
     <string name="pref_item_ssh_agent_description">Keyguard가 보관함의 SSH 키를 ssh/git에 제공합니다. 각 서명에는 승인이 필요합니다.</string>
     <string name="pref_item_license_key_title">기존 이용 권한 코드 연결</string>
@@ -2793,4 +2833,162 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
+    <string name="passkey_hybrid_title">Use passkeys on another device</string>
+    <string name="passkey_hybrid_intro_title">Sign in on a nearby computer</string>
+    <string name="passkey_hybrid_intro_text">Sign in or create a passkey in a browser on another device. Keyguard doesn’t need to be installed there.</string>
+    <string name="passkey_hybrid_step_1_title">Choose another device</string>
+    <string name="passkey_hybrid_step_1_text">In the computer’s passkey prompt, choose “Use another device”.</string>
+    <string name="passkey_hybrid_step_2_title">Scan the QR code</string>
+    <string name="passkey_hybrid_step_2_text">Tap Scan QR code and point the camera at the code on the computer.</string>
+    <string name="passkey_hybrid_step_3_title">Confirm on this phone</string>
+    <string name="passkey_hybrid_step_3_text">Choose a passkey or where to save a new one, then verify it’s you.</string>
+    <string name="passkey_hybrid_requirements">Keep Bluetooth on and this phone near the computer. Both devices need internet access.</string>
+    <string name="passkey_hybrid_relay">Connects through Google’s FIDO relay. Requests are encrypted between the two devices. The relay sees connection times and IP addresses.</string>
+    <string name="passkey_hybrid_permission_title">Allow Nearby devices</string>
+    <string name="passkey_hybrid_permission_text">Bluetooth shows the computer that this phone is nearby.</string>
+    <string name="passkey_hybrid_connecting">Connecting…</string>
+    <string name="passkey_hybrid_connecting_text">Setting up an encrypted connection with the computer.</string>
+    <string name="passkey_hybrid_waiting">Waiting for the computer</string>
+    <string name="passkey_hybrid_waiting_text">Keep its passkey prompt open.</string>
+    <string name="passkey_hybrid_sending">Sending passkey…</string>
+    <string name="passkey_hybrid_sending_text">Keep this screen open until it finishes.</string>
+    <string name="passkey_hybrid_request_sign_in">Sign-in request</string>
+    <string name="passkey_hybrid_choose">Choose a passkey</string>
+    <string name="passkey_hybrid_save">Create passkey for %1$s</string>
+    <string name="passkey_hybrid_success_sign_in">Passkey sent</string>
+    <string name="passkey_hybrid_success_create">Passkey created</string>
+    <string name="passkey_hybrid_success_text">Continue on the computer.</string>
+    <string name="passkey_hybrid_scan_again">Scan again</string>
+    <string name="passkey_hybrid_error_qr_title">Not a passkey QR code</string>
+    <string name="passkey_hybrid_error_qr">Start again with a new code from the computer.</string>
+    <string name="passkey_hybrid_error_permission_title">Nearby devices access needed</string>
+    <string name="passkey_hybrid_error_permission">Allow Nearby devices in the app settings, then scan again.</string>
+    <string name="passkey_hybrid_error_credentials_title">No matching passkeys</string>
+    <string name="passkey_hybrid_error_credentials">None of your visible vault accounts has a passkey for this website.</string>
+    <string name="passkey_hybrid_error_write_title">Can’t save to this item</string>
+    <string name="passkey_hybrid_error_write">Choose an editable login in a writable account or collection.</string>
+    <string name="passkey_hybrid_error_excluded_title">Passkey already exists</string>
+    <string name="passkey_hybrid_error_excluded">The vault already has a passkey for this account.</string>
+    <string name="passkey_hybrid_error_connection_title">Connection ended</string>
+    <string name="passkey_hybrid_error_connection">Check internet access and Bluetooth on both devices, then scan a new QR code.</string>
+    <string name="app_link_hero_title">Sync between your devices</string>
+    <string name="app_link_hero_text">Link Keyguard on your devices to sync app settings, such as email forwarders and wordlists, between them.</string>
+    <string name="app_link_premium_note">To link devices, purchase Premium or self-host a relay server.</string>
+    <string name="app_link_link_device_title">Link a device</string>
+    <string name="app_link_link_device_text">Show a code here, or scan the code of the other device.</string>
+    <string name="app_link_link_another_device">Link another device</string>
+    <string name="app_link_sync_section_title">Sync on this device</string>
+    <string name="app_link_other_devices_section_title">Other devices</string>
+    <string name="app_link_this_device">This device</string>
+    <string name="app_link_device_name_label">Device name</string>
+    <string name="app_link_device_name_error_invalid">Must be <xliff:g id="length" example="64">%1$d</xliff:g> characters or fewer, without line breaks or control characters</string>
+    <string name="app_link_device_name_rename_text">Your other devices show the new name after they sync.</string>
+    <string name="app_link_device_name_default_android">Android device</string>
+    <string name="app_link_device_name_default_wear">Wear OS watch</string>
+    <string name="app_link_device_name_default_desktop">Computer</string>
+    <string name="app_link_device_name_default_ios">iPhone or iPad</string>
+    <string name="app_link_device_name_default_macos">Mac</string>
+    <string name="app_link_device_added_on">Added <xliff:g id="date" example="Oct 29, 2026">%1$s</xliff:g></string>
+    <string name="app_link_device_added_by">Added <xliff:g id="date" example="Oct 29, 2026">%1$s</xliff:g> by <xliff:g id="device" example="Work laptop">%2$s</xliff:g></string>
+    <string name="app_link_device_last_seen">Last seen <xliff:g id="time" example="5m ago">%1$s</xliff:g> via <xliff:g id="transport" example="relay">%2$s</xliff:g></string>
+    <string name="app_link_device_connected_via">Connected via <xliff:g id="transport" example="relay">%1$s</xliff:g></string>
+    <string name="app_link_device_never_seen">Never connected</string>
+    <string name="app_link_transport_lan">local network</string>
+    <string name="app_link_transport_stun">direct connection</string>
+    <string name="app_link_transport_turn">TURN server</string>
+    <string name="app_link_transport_relay">relay</string>
+    <string name="app_link_remove_confirm_title">Remove this device?</string>
+    <string name="app_link_remove_confirm_text"><xliff:g id="device" example="Pixel 9">%1$s</xliff:g> stops syncing with your linked devices. The data already on it stays there.</string>
+    <string name="app_link_remove_confirm_readd_note">To sync it again, add it from another device.</string>
+    <string name="app_link_remove_confirm_added_text"><xliff:g id="device" example="Phone">%1$s</xliff:g> added these devices. Select the ones to remove too.</string>
+    <string name="app_link_unlink_title">Unlink this device</string>
+    <string name="app_link_unlink_text">Keep the data on this device only.</string>
+    <string name="app_link_unlink_confirm_text">This device stops syncing with your linked devices. Its data stays on this device.</string>
+    <string name="app_link_removed_this_device_text">This device was removed. Re-add it from another device.</string>
+    <string name="app_link_authority_password_title">Enter your app password</string>
+    <string name="app_link_authority_password_text">Adding, removing or unlinking a device needs your app password.</string>
+    <string name="app_link_connection_title">Relay server</string>
+    <string name="app_link_connection_default_relay">Keyguard relay</string>
+    <string name="app_link_connection_lan_off">Local network off</string>
+    <string name="app_link_connection_relay_url_label">Relay URL</string>
+    <string name="app_link_connection_relay_url_hint">Leave the relay URL empty to use the default relay. A custom URL starts with wss:// or https://.</string>
+    <string name="app_link_connection_ice_url_label">ICE servers URL</string>
+    <string name="app_link_connection_relay_token_label">Access token</string>
+    <string name="app_link_connection_relay_token_error_invalid">Use only letters, digits, and - . _ ~</string>
+    <string name="app_link_connection_allow_lan_title">Allow local network</string>
+    <string name="app_link_connection_allow_lan_text">Connect directly to your devices on the same network.</string>
+    <string name="app_link_connection_relay_storage_title">Relay storage</string>
+    <string name="app_link_connection_relay_storage_text">The relay holds encrypted changes for offline devices, up to 7 days. Every linked device must turn it on.</string>
+    <string name="app_link_relay_how_title">How devices use it</string>
+    <string name="app_link_relay_how_text">Devices meet on the relay and connect directly when they can. Otherwise, the relay forwards their encrypted traffic. Use the same relay on every device.</string>
+    <string name="app_link_relay_sees_title">What it sees</string>
+    <string name="app_link_relay_sees_text">Your devices' IP addresses, when they connect, and the size of their encrypted messages. With relay storage on, it keeps encrypted changes for up to 7 days.</string>
+    <string name="app_link_status_relay_offline">Not connected to the relay</string>
+    <string name="app_link_status_relay_connecting">Connecting to the relay</string>
+    <string name="app_link_status_relay_connected">Connected to the relay</string>
+    <string name="app_link_status_relay_failed">Can't reach the relay</string>
+    <string name="app_link_status_relay_incompatible">The relay doesn't support this version of Keyguard</string>
+    <string name="app_link_status_relay_storage_active">Relay storage is on</string>
+    <string name="app_link_status_relay_storage_unsupported">The relay doesn't support relay storage</string>
+    <string name="app_link_status_relay_storage_starting">Turning on relay storage…</string>
+    <string name="app_link_status_relay_storage_waiting">Relay storage is off on <xliff:g id="device" example="Phone">%1$s</xliff:g></string>
+    <string name="app_link_status_relay_storage_paused">Relay storage is paused until <xliff:g id="time" example="Nov 8, 2026, 14:05">%1$s</xliff:g></string>
+    <string name="app_link_status_relay_storage_too_large">Too much data for relay storage. Devices sync while online together.</string>
+    <string name="app_link_how_pair_title">Pairing</string>
+    <string name="app_link_how_pair_text">Show a code on one device and scan it with the other. Then check that both show the same 6 digits.</string>
+    <string name="app_link_how_sync_title">Syncing</string>
+    <string name="app_link_how_sync_text">Devices sync while Keyguard is open and unlocked on both, or through relay storage. Each device picks what it syncs, and what is off stays on that device.</string>
+    <string name="app_link_how_privacy_title">Privacy</string>
+    <string name="app_link_how_privacy_text">Everything is end-to-end encrypted, so only your devices can read it.</string>
+    <string name="app_link_how_security_title">Security</string>
+    <string name="app_link_how_security_text">Adding or removing a device asks for your app password.</string>
+    <string name="app_link_pairing_method_scan_title">Scan a code</string>
+    <string name="app_link_pairing_method_scan_text">Use the camera, or paste the code as text.</string>
+    <string name="app_link_pairing_method_show_title">Show a code</string>
+    <string name="app_link_pairing_method_show_text">The other device scans it with its camera.</string>
+    <string name="app_link_pairing_as">Pairing as <xliff:g id="device" example="Pixel 9">%1$s</xliff:g> via <xliff:g id="relay" example="Keyguard relay">%2$s</xliff:g></string>
+    <string name="app_link_pairing_starting_text">Getting ready…</string>
+    <string name="app_link_pairing_show_code_text">Scan this code with the other device, or copy it there.</string>
+    <string name="app_link_pairing_code_sensitive_note">Show this code only to your own device. You approve each device before it joins.</string>
+    <string name="app_link_pairing_expires_in">Expires in <xliff:g id="time" example="2:59">%1$s</xliff:g></string>
+    <string name="app_link_pairing_new_code">New code</string>
+    <string name="app_link_pairing_copy_code">Copy code</string>
+    <string name="app_link_pairing_scan_text">Scan the code shown on the other device, or paste it.</string>
+    <string name="app_link_pairing_paste_code_label">Pairing code</string>
+    <string name="app_link_pairing_connecting_text">Connecting to the other device…</string>
+    <string name="app_link_pairing_transferring_text">Copying the data…</string>
+    <string name="app_link_pairing_sas_title">Enter these digits on the other device</string>
+    <string name="app_link_pairing_sas_compare_text">Once the other device shows the same digits, select Yes, they match.</string>
+    <string name="app_link_pairing_sas_match_yes">Yes, they match</string>
+    <string name="app_link_pairing_sas_enter_title">Enter the digits shown on the other device</string>
+    <string name="app_link_pairing_sas_enter_label">Digits</string>
+    <string name="app_link_pairing_sas_enter_error_wrong">These digits don't match. Check the other device and try again.</string>
+    <string name="app_link_pairing_sas_matched_title">The digits match</string>
+    <string name="app_link_pairing_sas_matched_text">Now select Yes, they match on the other device.</string>
+    <string name="app_link_pairing_sas_waiting_text">Waiting for the other device…</string>
+    <string name="app_link_pairing_done_title">Devices linked</string>
+    <string name="app_link_pairing_failed_title">Failed to link the devices</string>
+    <string name="app_link_pairing_error_expired">The code expired.</string>
+    <string name="app_link_pairing_error_rejected">The other device rejected the pairing.</string>
+    <string name="app_link_pairing_error_mismatch">The digits didn't match. Nothing was shared.</string>
+    <string name="app_link_pairing_error_update_required">Update Keyguard on this device, then pair again.</string>
+    <string name="app_link_pairing_error_peer_update_required">Update Keyguard on the other device, then pair again.</string>
+    <string name="app_link_pairing_error_network">The devices couldn't reach each other.</string>
+    <string name="app_link_pairing_error_cancelled">The pairing was cancelled.</string>
+    <string name="app_link_pairing_error_invalid_code">This is not a Keyguard pairing code.</string>
+    <string name="app_link_pairing_error_wrong_kind">This code is for a different kind of pairing. Use the same option on both devices.</string>
+    <string name="app_link_pairing_error_already_linked">Both devices are linked to other devices. Unlink one of them first.</string>
+    <string name="app_link_pairing_error_linked_together">These devices are linked already.</string>
+    <string name="app_link_pairing_error_too_large">The synced data is too large to send to a new device.</string>
+    <string name="app_link_pairing_error_failed">Couldn't save the data on this device.</string>
+    <string name="app_link_alert_added_title">New linked device</string>
+    <string name="app_link_alert_added_text"><xliff:g id="by" example="Work laptop">%2$s</xliff:g> added <xliff:g id="device" example="Phone">%1$s</xliff:g>.</string>
+    <string name="app_link_alert_removed_title">Linked device removed</string>
+    <string name="app_link_alert_removed_text"><xliff:g id="by" example="Work laptop">%2$s</xliff:g> removed <xliff:g id="device" example="Phone">%1$s</xliff:g>.</string>
+    <string name="app_link_alert_removed_this_text"><xliff:g id="by" example="Work laptop">%1$s</xliff:g> removed this device.</string>
+    <string name="app_link_alert_removed_by_former_text">A device that is no longer linked removed <xliff:g id="device" example="Phone">%1$s</xliff:g>. If you didn't do this, link your devices again.</string>
+    <string name="app_link_alert_removed_this_by_former_text">A device that is no longer linked removed this device. If you didn't do this, link your devices again.</string>
+    <string name="app_link_alert_removed_with_text"><xliff:g id="device" example="Phone">%1$s</xliff:g> was removed with the device that added it.</string>
+    <string name="app_link_alert_left_text"><xliff:g id="device" example="Phone">%1$s</xliff:g> left.</string>
 </resources>

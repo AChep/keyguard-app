@@ -35,6 +35,11 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
       - uses: ./.github/actions/setup_gradle
+        with:
+          # Baseline profiles compile several modules in parallel in one Kotlin
+          # daemon; :common runs out of the default 4 GB heap.
+          gradle-properties: |
+            kotlin.daemon.jvmargs=-Xmx6g
       - uses: ./.github/actions/setup_android_ndk
       - name: "Setup Rust toolchain"
         uses: ./.github/actions/setup_rust

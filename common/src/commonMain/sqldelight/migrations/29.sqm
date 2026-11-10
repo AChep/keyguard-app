@@ -1,0 +1,15 @@
+-- Every blocked URI gets a stable id, the same on every linked app. The
+-- table is not rebuilt: SQLite adds a NOT NULL column with a default, and
+-- each existing rule then gets a random UUIDv4.
+ALTER TABLE urlBlock ADD COLUMN syncId TEXT NOT NULL DEFAULT '';
+
+UPDATE urlBlock
+SET syncId = lower(
+  hex(randomblob(4)) || '-' ||
+  hex(randomblob(2)) || '-' ||
+  '4' || substr(hex(randomblob(2)), 2) || '-' ||
+  substr('89ab', 1 + (abs(random()) % 4), 1) || substr(hex(randomblob(2)), 2) || '-' ||
+  hex(randomblob(6))
+);
+
+CREATE UNIQUE INDEX idx_urlBlock_syncId ON urlBlock(syncId);

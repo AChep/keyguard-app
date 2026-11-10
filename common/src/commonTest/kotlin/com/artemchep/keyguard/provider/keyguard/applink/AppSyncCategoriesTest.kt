@@ -65,6 +65,7 @@ class AppSyncCategoriesTest {
                 DAppLinkSyncCategory.EMAIL_FORWARDERS to "emailForwarders",
                 DAppLinkSyncCategory.WORDLISTS to "wordlists",
                 DAppLinkSyncCategory.URL_OVERRIDES to "urlOverrides",
+                DAppLinkSyncCategory.URL_BLOCKS to "urlBlocks",
             ),
             DAppLinkSyncCategory.entries.associateWith { it.key },
         )

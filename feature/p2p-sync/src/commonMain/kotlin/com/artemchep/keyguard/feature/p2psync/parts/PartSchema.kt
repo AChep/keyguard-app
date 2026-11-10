@@ -27,6 +27,9 @@ data class JsonPointer(val segments: List<String>) {
  * concurrent versions, the value with the newer part stamp wins.
  *
  * @property key the part key used in [com.artemchep.keyguard.feature.p2psync.model.EntryVersion.parts].
+ *   A part of one path is keyed by that path, see [of]. A part of several paths is keyed by
+ *   the path of its main field, the one the others qualify, so a key never matches the path
+ *   of another part. Signed versions keep the keys, so a released key never changes.
  */
 data class PartSpec(
     val key: String,

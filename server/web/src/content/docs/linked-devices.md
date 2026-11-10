@@ -1,19 +1,20 @@
 ---
 title: Linked devices
-description: Link Keyguard on your devices to sync email forwarders, wordlists and URL overrides between them directly, without a server of your own.
+description: Link Keyguard on your devices to sync email forwarders, wordlists, URL overrides and blocked URIs between them directly, without a server of your own.
 section: accounts
 type: feature
 order: 70
 platforms: [android, linux, macos, windows]
 premium: true
 stage: beta
-related: [email-relays, generator, premium, security, url-overrides]
+related: [blocked-uris, email-relays, generator, premium, security, url-overrides]
 ---
 
 Linked devices syncs data between the Keyguard apps on your devices. It syncs
 your [email forwarders](/docs/email-relays/),
-[Custom wordlists](/docs/generator/#custom-wordlists) and
-[URL overrides](/docs/url-overrides/). Your devices connect to each other
+[Custom wordlists](/docs/generator/#custom-wordlists),
+[URL overrides](/docs/url-overrides/) and
+[Blocked URIs](/docs/blocked-uris/). Your devices connect to each other
 directly, or through a relay when they can't.
 
 ### Before you begin
@@ -45,6 +46,7 @@ device.
 | Email forwarders | Services and their API keys |
 | Wordlists | Lists and their words |
 | URL overrides | All but the built-in **HTTPS-ify** |
+| Blocked URIs | Rules and their switches |
 
 A new wordlist shows up on the other devices once its words arrive.
 
@@ -70,9 +72,9 @@ Keyguard suggests your device's name or model when available.
    device, which then shows **The digits match**.
 5. On the scanning device, select **Yes, they match**. The devices are linked.
 
-Either device can show the code. On a linked device, select **Link another
-device** instead. The new device joins the link of the linked one. If both
-devices are linked to other devices, unlink one of them first.
+On a linked device, select **Link another device** instead. The new device
+joins the link of the linked one. If both devices are linked to other devices,
+unlink one of them first.
 
 A code works once, for 3 minutes. **New code** makes another. Anyone who scans
 the code can ask to join, so show it only to your own devices.

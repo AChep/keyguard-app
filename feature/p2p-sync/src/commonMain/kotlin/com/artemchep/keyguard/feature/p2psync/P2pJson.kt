@@ -5,6 +5,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.booleanOrNull
 
 /**
  * The JSON configuration of every wire and storage format of this module. Unknown keys are
@@ -42,3 +43,8 @@ internal fun JsonElement?.stringOrNull(): String? = (this as? JsonPrimitive)?.ta
 
 /** The string field [name], or `null` if there is none or it is no string. */
 fun JsonObject.string(name: String): String? = get(name).stringOrNull()
+
+/** The boolean field [name], or `null` if there is none or it is no boolean. */
+fun JsonObject.boolean(name: String): Boolean? = (get(name) as? JsonPrimitive)
+    ?.takeUnless { it.isString }
+    ?.booleanOrNull

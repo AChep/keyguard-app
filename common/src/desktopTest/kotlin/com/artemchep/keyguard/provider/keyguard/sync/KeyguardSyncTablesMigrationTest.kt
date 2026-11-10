@@ -1,10 +1,8 @@
 package com.artemchep.keyguard.provider.keyguard.sync
 
-import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
-import java.util.Properties
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -20,8 +18,6 @@ class KeyguardSyncTablesMigrationTest {
 
     private val described = tables +
         listOf("generatorEmailRelay", "generatorWordlist", "generatorWordlistWord", "urlOverride")
-
-    private val uuid = Regex("^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$")
 
     @Test
     fun `migration 28 creates the tables the schema declares`() {
@@ -56,7 +52,7 @@ class KeyguardSyncTablesMigrationTest {
             assertEquals(listOf(1L, 2L, 3L), rows.map { it.id }.sorted())
             assertEquals(listOf("A", "B", "C"), rows.sortedBy { it.id }.map { it.name })
             assertEquals(3, rows.map { it.syncId }.toSet().size)
-            assertTrue(rows.all { uuid.matches(it.syncId) }, rows.map { it.syncId }.toString())
+            assertTrue(rows.all { UUID_REGEX.matches(it.syncId) }, rows.map { it.syncId }.toString())
         }
     }
 
@@ -85,7 +81,7 @@ class KeyguardSyncTablesMigrationTest {
             assertEquals(listOf(1L, 2L, 3L), rows.map { it.id }.sorted())
             assertEquals(listOf("A", "B", "C"), rows.sortedBy { it.id }.map { it.name })
             assertEquals(3, rows.map { it.syncId }.toSet().size)
-            assertTrue(rows.all { uuid.matches(it.syncId) }, rows.map { it.syncId }.toString())
+            assertTrue(rows.all { UUID_REGEX.matches(it.syncId) }, rows.map { it.syncId }.toString())
             assertTrue(rows.all { it.wordsHash == null })
             rows.forEach { row ->
                 val words = database.generatorWordlistWordQueries
@@ -121,7 +117,7 @@ class KeyguardSyncTablesMigrationTest {
             assertNull(syncIds.getValue(2L))
             val synced = listOfNotNull(syncIds.getValue(1L), syncIds.getValue(3L))
             assertEquals(2, synced.toSet().size)
-            assertTrue(synced.all { uuid.matches(it) }, synced.toString())
+            assertTrue(synced.all { UUID_REGEX.matches(it) }, synced.toString())
         }
     }
 
@@ -136,7 +132,7 @@ class KeyguardSyncTablesMigrationTest {
 
             val syncIds = database.urlOverrideQueries.getSyncIds().executeAsList()
             assertEquals(2, syncIds.toSet().size)
-            assertTrue(syncIds.all { uuid.matches(it) }, syncIds.toString())
+            assertTrue(syncIds.all { UUID_REGEX.matches(it) }, syncIds.toString())
         }
     }
 
@@ -209,13 +205,6 @@ class KeyguardSyncTablesMigrationTest {
         }
     }
 
-    private fun openDriver() = JdbcSqliteDriver(
-        url = JdbcSqliteDriver.IN_MEMORY,
-        properties = Properties().apply {
-            setProperty("foreign_keys", "true")
-        },
-    )
-
     /**
      * The schema of version 28: the current one without the sync tables, and with the email
      * forwarders, the wordlists and the URL overrides that had no sync ids yet. The URL
@@ -268,37 +257,10 @@ class KeyguardSyncTablesMigrationTest {
 
     /** The columns, foreign keys and indexes of each described table. */
     private fun describe(driver: JdbcSqliteDriver): Map<String, List<String>> = described.associateWith { table ->
-        pragma(driver, "PRAGMA table_info($table)", columns = TABLE_INFO_COLUMNS) +
-            pragma(driver, "PRAGMA foreign_key_list($table)", columns = FOREIGN_KEY_LIST_COLUMNS) +
-            pragma(driver, "PRAGMA index_list($table)", columns = INDEX_LIST_COLUMNS)
-                // Skip the sequence number, which depends on the order of creation.
-                .map { it.substringAfter('|') }
-                .sorted()
+        describeTable(driver, table)
     }
 
-    private fun pragma(
-        driver: JdbcSqliteDriver,
-        sql: String,
-        columns: Int,
-    ): List<String> = driver.executeQuery(
-        identifier = null,
-        sql = sql,
-        mapper = { cursor ->
-            val rows = mutableListOf<String>()
-            while (cursor.next().value) {
-                rows += (0 until columns)
-                    .joinToString(separator = "|") { index -> cursor.getString(index).orEmpty() }
-            }
-            QueryResult.Value(rows)
-        },
-        parameters = 0,
-    ).value
-
     private companion object {
-        const val TABLE_INFO_COLUMNS = 6
-        const val FOREIGN_KEY_LIST_COLUMNS = 8
-        const val INDEX_LIST_COLUMNS = 5
-
         /** The rule of the built-in URL override. */
         const val BUILT_IN_REGEX = "^http:.*"
         const val BUILT_IN_COMMAND = "https://{url:rmvscm}"

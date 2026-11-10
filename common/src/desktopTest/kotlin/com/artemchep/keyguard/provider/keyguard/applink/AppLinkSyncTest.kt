@@ -582,21 +582,4 @@ class AppLinkSyncTest {
             .validated
             .devices
             .single { it.id == device.deviceId }
-
-    private suspend fun linkedPair(
-        setUp: suspend PairScope.() -> Unit,
-    ): Pair<AppLinkTestDevice, AppLinkTestDevice> {
-        val a = AppLinkTestDevice("A")
-        val b = AppLinkTestDevice("B")
-        PairScope(a, b).setUp()
-        a.link()
-        b.time = a.time + 1
-        b.join(a)
-        return a to b
-    }
-
-    private class PairScope(
-        val a: AppLinkTestDevice,
-        val b: AppLinkTestDevice,
-    )
 }

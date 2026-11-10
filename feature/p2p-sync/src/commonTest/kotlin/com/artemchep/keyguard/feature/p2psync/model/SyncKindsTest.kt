@@ -18,6 +18,7 @@ class SyncKindsTest {
                 EntryKind.EMAIL_FORWARDER to "emailForwarder",
                 EntryKind.WORDLIST to "wordlist",
                 EntryKind.URL_OVERRIDE to "urlOverride",
+                EntryKind.URL_BLOCK to "urlBlock",
                 EntryKind.OBJECT_KEY to "objectKey",
             ),
             EntryKind.entries.associateWith { it.wireName },

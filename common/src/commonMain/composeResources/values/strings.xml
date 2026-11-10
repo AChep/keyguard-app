@@ -1949,7 +1949,7 @@
     <string name="pref_item_automatic_backups_title">Backups</string>
     <string name="pref_item_automatic_backups_text">Automatic encrypted vault backups</string>
     <string name="pref_item_app_link_title">Linked devices</string>
-    <string name="pref_item_app_link_text">Sync email forwarders and wordlists with your other devices</string>
+    <string name="pref_item_app_link_text">Sync app settings, such as email forwarders and wordlists, with your other devices</string>
     <string name="pref_item_notifications_title">Notifications</string>
     <string name="pref_item_notifications_text">Alerts</string>
     <string name="pref_item_appearance_title">Appearance</string>
@@ -3029,7 +3029,7 @@
     <string name="passkey_hybrid_error_connection_title">Connection ended</string>
     <string name="passkey_hybrid_error_connection">Check internet access and Bluetooth on both devices, then scan a new QR code.</string>
     <string name="app_link_hero_title">Sync between your devices</string>
-    <string name="app_link_hero_text">Link Keyguard on your devices to sync email forwarders and wordlists between them.</string>
+    <string name="app_link_hero_text">Link Keyguard on your devices to sync app settings, such as email forwarders and wordlists, between them.</string>
     <string name="app_link_premium_note">To link devices, purchase Premium or self-host a relay server.</string>
     <string name="app_link_link_device_title">Link a device</string>
     <string name="app_link_link_device_text">Show a code here, or scan the code of the other device.</string>

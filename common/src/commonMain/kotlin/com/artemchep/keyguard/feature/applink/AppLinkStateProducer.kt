@@ -51,6 +51,7 @@ import com.artemchep.keyguard.res.app_link_unlink_text
 import com.artemchep.keyguard.res.app_link_unlink_title
 import com.artemchep.keyguard.res.emailrelay_list_header_title
 import com.artemchep.keyguard.res.rename
+import com.artemchep.keyguard.res.urlblock_list_header_title
 import com.artemchep.keyguard.res.urloverride_list_header_title
 import com.artemchep.keyguard.res.wordlist_list_header_title
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -358,4 +359,5 @@ private fun DAppLinkSyncCategory.title(): TextHolder = when (this) {
     DAppLinkSyncCategory.EMAIL_FORWARDERS -> TextHolder.Res(Res.string.emailrelay_list_header_title)
     DAppLinkSyncCategory.WORDLISTS -> TextHolder.Res(Res.string.wordlist_list_header_title)
     DAppLinkSyncCategory.URL_OVERRIDES -> TextHolder.Res(Res.string.urloverride_list_header_title)
+    DAppLinkSyncCategory.URL_BLOCKS -> TextHolder.Res(Res.string.urlblock_list_header_title)
 }

@@ -8,6 +8,8 @@ import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksSource
 import com.artemchep.keyguard.common.service.sshagent.bookmarks.impl.SshBookmarksSourceImpl
 import com.artemchep.keyguard.common.service.sshagent.impl.SshAgentPublicKeySyncerImpl
+import com.artemchep.keyguard.common.service.urlblock.UrlBlockExposedSyncer
+import com.artemchep.keyguard.common.service.urlblock.impl.UrlBlockExposedSyncerImpl
 import com.artemchep.keyguard.common.usecase.GetSshAgentCiphers
 import com.artemchep.keyguard.common.usecase.SupervisorRead
 import com.artemchep.keyguard.common.usecase.SyncAll
@@ -79,6 +81,14 @@ internal class VaultSyncModule {
                     logRepository = get(),
                 )
             } bind SshAgentPublicKeySyncer::class
+
+            scoped<UrlBlockExposedSyncerImpl> {
+                UrlBlockExposedSyncerImpl(
+                    urlBlockRepository = get(),
+                    urlBlockRepositoryExposed = get(),
+                    logRepository = get(),
+                )
+            } bind UrlBlockExposedSyncer::class
 
             scoped<SshBookmarksSourceImpl> {
                 SshBookmarksSourceImpl(

@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.service.session.AppWorkerSessionAccess
 import com.artemchep.keyguard.common.service.session.AppWorkerSessionDependencies
 import com.artemchep.keyguard.common.service.session.PendingUsageHistorySessionAccess
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
+import com.artemchep.keyguard.common.service.urlblock.UrlBlockExposedSyncer
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.UpdateVersionLog
 import com.artemchep.keyguard.platform.CurrentPlatform
@@ -57,6 +58,7 @@ class AppWorkerIm(
                 launchWhenAvailable(this, { it.notificationsWorker }, NotificationsWorker::launch)
                 launchWhenAvailable(this, { it.exposedAccountSyncer }, ExposedAccountSyncer::launch)
                 launchWhenAvailable(this, { it.sshAgentPublicKeySyncer }, SshAgentPublicKeySyncer::launch)
+                launchWhenAvailable(this, { it.urlBlockExposedSyncer }, UrlBlockExposedSyncer::launch)
                 launchWhenAvailable(this, { it.gpgPublicKeySyncer }, GpgPublicKeySyncer::launch)
                 launchWhenAvailable(this, { it.gpgKeyserverRefreshWorker }, GpgKeyserverRefreshWorker::launch)
                 launchWhenAvailable(this, { it.agentHistoryRetentionWorker }, AgentHistoryRetentionWorker::launch)

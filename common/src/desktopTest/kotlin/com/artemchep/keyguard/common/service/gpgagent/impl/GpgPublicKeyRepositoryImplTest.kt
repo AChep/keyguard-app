@@ -3,18 +3,14 @@ package com.artemchep.keyguard.common.service.gpgagent.impl
 import app.cash.sqldelight.Transacter
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
-import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
-import com.artemchep.keyguard.common.io.IO
-import com.artemchep.keyguard.common.model.MasterKey
-import com.artemchep.keyguard.common.service.database.InstantToLongAdapter
-import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
+import com.artemchep.keyguard.common.service.database.exposed.TestExposedDatabaseManager
+import com.artemchep.keyguard.common.service.database.exposed.createExposedTestDatabase
+import com.artemchep.keyguard.common.service.database.exposed.createExposedTestDriver
 import com.artemchep.keyguard.common.service.gpgagent.GpgCertificationAuthorityEntry
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeyEntry
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
-import com.artemchep.keyguard.dataexposed.UrlBlock
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.test.runTest
-import java.util.Properties
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
@@ -178,10 +174,8 @@ class GpgPublicKeyRepositoryImplTest {
 
     @Test
     fun `snapshot read and replacement each use one database transaction`() = runTest {
-        val delegate = createSqlDriver()
-        DatabaseExposed.Schema.create(delegate)
-        val recordingDriver = RecordingSqlDriver(delegate)
-        val database = createExposedDatabase(recordingDriver)
+        val recordingDriver = RecordingSqlDriver(createExposedTestDriver())
+        val database = createExposedTestDatabase(recordingDriver)
         val repository = createRepository(database)
 
         repository.replaceSnapshot(
@@ -203,9 +197,8 @@ class GpgPublicKeyRepositoryImplTest {
 
     @Test
     fun `failed authority replacement rolls back the complete snapshot`() = runTest {
-        val driver = createSqlDriver()
-        DatabaseExposed.Schema.create(driver)
-        val database = createExposedDatabase(driver)
+        val driver = createExposedTestDriver()
+        val database = createExposedTestDatabase(driver)
         val repository = createRepository(database)
         val oldPublicKey = createEntry(
             cipherId = "old-public",
@@ -302,51 +295,5 @@ class GpgPublicKeyRepositoryImplTest {
             transactionCount += 1
             return delegate.newTransaction()
         }
-    }
-
-    private class TestExposedDatabaseManager(
-        private val database: DatabaseExposed = createExposedTestDatabase(),
-    ) : ExposedDatabaseManager {
-
-        override fun get(): IO<DatabaseExposed> = {
-            database
-        }
-
-        override fun <T> mutate(
-            tag: String,
-            block: suspend (DatabaseExposed) -> T,
-        ): IO<T> = {
-            block(database)
-        }
-
-        override fun changePassword(
-            newMasterKey: MasterKey,
-        ): IO<Unit> = {}
-    }
-
-    private companion object {
-        fun createSqlDriver(): JdbcSqliteDriver {
-            // Both production drivers enforce foreign keys — the JVM one
-            // via this same property, the Android one via
-            // setForeignKeyConstraintsEnabled — so the tests must run
-            // under enforcement too.
-            val properties = Properties().apply {
-                put("foreign_keys", "true")
-            }
-            return JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY, properties)
-        }
-
-        fun createExposedTestDatabase(): DatabaseExposed {
-            val driver = createSqlDriver()
-            DatabaseExposed.Schema.create(driver)
-            return createExposedDatabase(driver)
-        }
-
-        fun createExposedDatabase(
-            driver: SqlDriver,
-        ) = DatabaseExposed(
-            driver = driver,
-            urlBlockAdapter = UrlBlock.Adapter(InstantToLongAdapter),
-        )
     }
 }

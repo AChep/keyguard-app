@@ -46,6 +46,13 @@ enum class EntryKind(
         schema = KeyguardPartSchemas.urlOverride,
     ),
 
+    /** A blocked URI of autofill, synced between linked apps. */
+    @SerialName("urlBlock")
+    URL_BLOCK(
+        scope = SyncScope.APP,
+        schema = KeyguardPartSchemas.urlBlock,
+    ),
+
     /** The key of the blobs the group keeps on the relay, see [ObjectKey]. */
     @SerialName("objectKey")
     OBJECT_KEY(

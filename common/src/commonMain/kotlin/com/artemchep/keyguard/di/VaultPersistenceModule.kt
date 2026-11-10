@@ -103,6 +103,7 @@ internal class VaultPersistenceModule {
                     vaultDatabaseManager = get(),
                     exposedDatabaseManager = get(),
                     dispatcher = databaseDispatcher(),
+                    recorder = get(),
                 )
             }
 

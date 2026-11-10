@@ -23,3 +23,7 @@ data class DGlobalUrlBlock(
         return AlphabeticalSort.compareStr(uri, other.uri)
     }
 }
+
+/** Whether the [uri] is not blank and, in the regex [mode], compiles; literal modes accept any URI. */
+internal fun isUrlBlockUriValid(uri: String, mode: MatchDetection): Boolean =
+    uri.isNotBlank() && (mode != MatchDetection.RegularExpression || runCatching { uri.toRegex() }.isSuccess)

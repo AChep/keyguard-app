@@ -5,26 +5,35 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DGlobalUrlBlock
 import com.artemchep.keyguard.common.model.MatchDetection
-import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
+import com.artemchep.keyguard.common.service.appsync.AppSyncRecorder
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.service.urlblock.impl.insert
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
+import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.data.UrlBlock
-import com.artemchep.keyguard.data.UrlBlockQueries
 import com.artemchep.keyguard.dataexposed.UrlBlockQueries as ExposedUrlBlockQueries
+import com.artemchep.keyguard.feature.p2psync.model.EntryKind
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlin.uuid.Uuid
 
+/**
+ * The blocked URIs. Every write to the vault records the change for linked apps, in the
+ * same transaction, see [AppSyncRecorder]. The exposed rules are also copied to the
+ * exposed database, so that autofill blocks them while the vault is locked.
+ */
 class UrlBlockRepositoryImpl(
     private val vaultDatabaseManager: VaultDatabaseManager,
     private val exposedDatabaseManager: ExposedDatabaseManager,
     private val dispatcher: CoroutineDispatcher,
+    private val recorder: AppSyncRecorder = AppSyncRecorder.None,
 ) : UrlBlockRepository {
     override fun get(): Flow<List<DGlobalUrlBlock>> =
-        daoEffect { vaultDao, exposedDao ->
-            vaultDao.get(1000)
+        daoEffect { vaultDb, _ ->
+            vaultDb.urlBlockQueries.get(1000)
         }
             .flatMapQueryToList(dispatcher)
             .map { entities ->
@@ -35,8 +44,7 @@ class UrlBlockRepositoryImpl(
             }
 
     private fun parseEntity(entity: UrlBlock): DGlobalUrlBlock {
-        val mode = MatchDetection.entries
-            .firstOrNull { it.key == entity.mode }
+        val mode = MatchDetection.ofKey(entity.mode)
             ?: MatchDetection.Never
         return DGlobalUrlBlock(
             id = entity.id.toString(),
@@ -56,41 +64,21 @@ class UrlBlockRepositoryImpl(
         val exposedDb = exposedDatabaseManager
             .get().bind()
 
-        val id = model.id
+        val vaultDao = vaultDb.urlBlockQueries
+        val existing = model.id
             ?.toLongOrNull()
-        if (id != null) {
+            ?.let { id -> vaultDao.getById(id).executeAsOneOrNull() }
+        val syncId = existing?.syncId ?: Uuid.random().toString()
+        if (existing != null) {
             // First we want to update the exposed database, as it is
             // just the clone and if the update fails the user will see
             // that the update has failed.
-            if (model.exposed) {
-                exposedDb.urlBlockQueries.insert(
-                    id = id,
-                    name = model.name,
-                    description = model.description,
-                    uri = model.uri,
-                    mode = model.mode.key,
-                    createdAt = model.createdDate,
-                    enabled = model.enabled.int.toLong(),
-                )
-            } else {
-                exposedDb.urlBlockQueries.deleteByIds(
-                    ids = id,
-                )
-            }
-
-            vaultDb.urlBlockQueries.update(
-                id = id,
-                name = model.name,
-                description = model.description,
-                uri = model.uri,
-                mode = model.mode.key,
-                createdAt = model.createdDate,
-                enabled = model.enabled.int.toLong(),
-                exposed = model.exposed.int.toLong(),
-            )
-        } else {
-            val id = vaultDb.urlBlockQueries.transactionWithResult {
-                vaultDb.urlBlockQueries.insert(
+            putExposed(exposedDb.urlBlockQueries, existing.id, model)
+        }
+        recorder.record(vaultDb, EntryKind.URL_BLOCK, ids = { listOf(syncId) }) {
+            if (existing != null) {
+                vaultDao.update(
+                    id = existing.id,
                     name = model.name,
                     description = model.description,
                     uri = model.uri,
@@ -99,53 +87,77 @@ class UrlBlockRepositoryImpl(
                     enabled = model.enabled.int.toLong(),
                     exposed = model.exposed.int.toLong(),
                 )
-                vaultDb.utilQueries
-                    .getLastInsertRowId()
-                    .executeAsOne()
+            } else {
+                vaultDao.insert(
+                    name = model.name,
+                    description = model.description,
+                    uri = model.uri,
+                    mode = model.mode.key,
+                    createdAt = model.createdDate,
+                    enabled = model.enabled.int.toLong(),
+                    exposed = model.exposed.int.toLong(),
+                    syncId = syncId,
+                )
             }
-            exposedDb.urlBlockQueries.insert(
-                id = id,
-                name = model.name,
-                description = model.description,
-                uri = model.uri,
-                mode = model.mode.key,
-                createdAt = model.createdDate,
-                enabled = model.enabled.int.toLong(),
+        }
+        if (existing == null) {
+            // Not the last inserted row: the record of the change may come after it.
+            val id = vaultDao
+                .getBySyncId(syncId)
+                .executeAsOne()
+                .id
+            putExposed(exposedDb.urlBlockQueries, id, model)
+        }
+    }
+
+    /** Copies the rule [id] to the exposed database if it is exposed, or deletes its copy. */
+    private fun putExposed(
+        exposedDao: ExposedUrlBlockQueries,
+        id: Long,
+        model: DGlobalUrlBlock,
+    ) {
+        if (model.exposed) {
+            exposedDao.insert(id = id, rule = model)
+        } else {
+            exposedDao.deleteByIds(
+                ids = id,
             )
         }
     }
 
     override fun removeAll(): IO<Unit> =
-        daoEffect { vaultDao, exposedDao ->
+        daoEffect { vaultDb, exposedDao ->
             exposedDao.deleteAll()
-            vaultDao.deleteAll()
+
+            val vaultDao = vaultDb.urlBlockQueries
+            recorder.record(vaultDb, EntryKind.URL_BLOCK, ids = { vaultDao.getSyncIds().executeAsList() }) {
+                vaultDao.deleteAll()
+            }
         }
 
     override fun removeByIds(ids: Set<String>): IO<Unit> =
-        daoEffect { vaultDao, exposedDao ->
+        daoEffect { vaultDb, exposedDao ->
+            val localIds = ids.mapNotNull { it.toLongOrNull() }
             exposedDao.transaction {
-                ids.forEach {
-                    val id = it.toLongOrNull()
-                        ?: return@forEach
+                localIds.forEach { id ->
                     exposedDao.deleteByIds(id)
                 }
             }
-            vaultDao.transaction {
-                ids.forEach {
-                    val id = it.toLongOrNull()
-                        ?: return@forEach
-                    vaultDao.deleteByIds(id)
-                }
+
+            val vaultDao = vaultDb.urlBlockQueries
+            val syncIds = { vaultDao.getSyncIdsByIds(localIds).executeAsList() }
+            recorder.record(vaultDb, EntryKind.URL_BLOCK, ids = syncIds) {
+                vaultDao.deleteByIds(localIds)
             }
         }
 
     private inline fun <T> daoEffect(
-        crossinline block: suspend (UrlBlockQueries, ExposedUrlBlockQueries) -> T,
+        crossinline block: suspend (Database, ExposedUrlBlockQueries) -> T,
     ): IO<T> = ioEffect(dispatcher) {
         val vaultDb = vaultDatabaseManager
             .get().bind()
         val exposedDb = exposedDatabaseManager
             .get().bind()
-        block(vaultDb.urlBlockQueries, exposedDb.urlBlockQueries)
+        block(vaultDb, exposedDb.urlBlockQueries)
     }
 }

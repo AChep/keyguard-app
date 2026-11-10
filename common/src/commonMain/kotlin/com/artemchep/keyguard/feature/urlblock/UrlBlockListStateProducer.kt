@@ -14,6 +14,7 @@ import com.artemchep.keyguard.common.model.DGlobalUrlBlock
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.MatchDetection
 import com.artemchep.keyguard.common.model.buildDocs
+import com.artemchep.keyguard.common.model.isUrlBlockUriValid
 import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.common.usecase.AddUrlBlock
 import com.artemchep.keyguard.common.usecase.GetUrlBlocks
@@ -451,7 +452,3 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
             Loadable.Ok(state)
         }
 }
-
-/** Literal matching modes must keep accepting regex metacharacters in URLs. */
-internal fun isUrlBlockUriValid(uri: String, mode: MatchDetection): Boolean =
-    uri.isNotBlank() && (mode != MatchDetection.RegularExpression || runCatching { uri.toRegex() }.isSuccess)

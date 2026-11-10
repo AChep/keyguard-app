@@ -4,13 +4,17 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
 import com.artemchep.keyguard.common.model.DGeneratorWordlist
+import com.artemchep.keyguard.common.model.DGlobalUrlBlock
 import com.artemchep.keyguard.common.model.DGlobalUrlOverride
+import com.artemchep.keyguard.common.model.MatchDetection
 import com.artemchep.keyguard.common.model.P2pGroupId
 import com.artemchep.keyguard.common.model.Premium
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
+import com.artemchep.keyguard.common.service.database.exposed.TestExposedDatabaseManager
 import com.artemchep.keyguard.common.service.keyvalue.impl.SqlDelightVaultSettingsKeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
+import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepositoryImpl
 import com.artemchep.keyguard.common.service.urloverride.UrlOverrideRepositoryImpl
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepositoryImpl
 import com.artemchep.keyguard.common.service.wordlist.repo.impl.GeneratorWordlistRepositoryImpl
@@ -33,6 +37,7 @@ import com.artemchep.keyguard.feature.p2psync.model.LocalEnvelope
 import com.artemchep.keyguard.feature.p2psync.model.Roster
 import com.artemchep.keyguard.feature.p2psync.model.RosterDevice
 import com.artemchep.keyguard.feature.p2psync.model.EntryKey
+import com.artemchep.keyguard.feature.p2psync.model.EntryKind
 import com.artemchep.keyguard.feature.p2psync.model.SyncEntry
 import com.artemchep.keyguard.feature.p2psync.roster.RosterSigner
 import com.artemchep.keyguard.feature.p2psync.session.SyncSessionConfig
@@ -66,9 +71,10 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 /**
- * One app on an in-memory database, with the email forwarders, wordlists, URL overrides
- * and linked apps wired as the vault session wires them, see [AppLinkComponents]. A queued sync pass only calls
- * [onQueueSync]: envelopes move between devices by hand, or by the passes of a test.
+ * One app on an in-memory database, with the email forwarders, wordlists, URL overrides,
+ * blocked URIs and linked apps wired as the vault session wires them, see
+ * [AppLinkComponents]. A queued sync pass only calls [onQueueSync]: envelopes move between
+ * devices by hand, or by the passes of a test.
  */
 // One function per thing a test does on the device; every knob has a default.
 @Suppress("TooManyFunctions", "LongParameterList")
@@ -192,6 +198,16 @@ internal class AppLinkTestDevice(
         recorder = components.recorder,
     )
 
+    /** The exposed database of the device, which autofill reads while the vault is locked. */
+    private val exposedDbManager = TestExposedDatabaseManager()
+
+    private val urlBlocks = UrlBlockRepositoryImpl(
+        vaultDatabaseManager = dbManager,
+        exposedDatabaseManager = exposedDbManager,
+        dispatcher = Dispatchers.Unconfined,
+        recorder = components.recorder,
+    )
+
     /** Starts a link here, as the device [name]. */
     suspend fun link() {
         service.prepareLink(name, NETWORK, TEST_MASTER_PASSWORD)
@@ -306,6 +322,9 @@ internal class AppLinkTestDevice(
 
     /** The stored entries of the link, by kind and id. */
     fun entries(): Map<EntryKey, SyncEntry> = KeyguardSyncStore(db, P2pGroupId.APP_LINK_ID).loadEntries()
+
+    /** The stored entries of the link of the [kind]. */
+    fun entriesOf(kind: EntryKind): List<SyncEntry> = entries().values.filter { it.knownKind == kind }
 
     suspend fun addForwarder(
         name: String,
@@ -426,6 +445,68 @@ internal class AppLinkTestDevice(
         return db.urlOverrideQueries.getById(id).executeAsOne().syncId
     }
 
+    suspend fun addUrlBlock(
+        name: String,
+        description: String = "",
+        uri: String = "example.com",
+        mode: MatchDetection = MatchDetection.Domain,
+        enabled: Boolean = true,
+        exposed: Boolean = true,
+    ) = putUrlBlock(
+        DGlobalUrlBlock(
+            name = name,
+            description = description,
+            uri = uri,
+            mode = mode,
+            createdDate = now(),
+            enabled = enabled,
+            exposed = exposed,
+        ),
+    )
+
+    suspend fun editUrlBlock(
+        current: DGlobalUrlBlock,
+        name: String = current.name,
+        description: String = current.description,
+        uri: String = current.uri,
+        mode: MatchDetection = current.mode,
+        enabled: Boolean = current.enabled,
+        exposed: Boolean = current.exposed,
+    ) = putUrlBlock(
+        current.copy(
+            name = name,
+            description = description,
+            uri = uri,
+            mode = mode,
+            enabled = enabled,
+            exposed = exposed,
+        ),
+    )
+
+    private suspend fun putUrlBlock(model: DGlobalUrlBlock) {
+        dbManager.mutate("test") { urlBlocks.put(model).bind() }.bind()
+    }
+
+    suspend fun removeUrlBlock(current: DGlobalUrlBlock) {
+        dbManager.mutate("test") { urlBlocks.removeByIds(setOfNotNull(current.id)).bind() }.bind()
+    }
+
+    suspend fun urlBlockList(): List<DGlobalUrlBlock> = urlBlocks.get().first()
+
+    suspend fun urlBlock(name: String): DGlobalUrlBlock = urlBlockList().single { it.name == name }
+
+    suspend fun urlBlockSyncId(name: String): String {
+        val id = requireNotNull(urlBlock(name).id).toLong()
+        return db.urlBlockQueries.getById(id).executeAsOne().syncId
+    }
+
+    /** The names of the blocked URIs the exposed database holds, by their local ids. */
+    fun exposedUrlBlocks(): Map<String, String> = exposedDbManager.database
+        .urlBlockQueries
+        .get(Long.MAX_VALUE)
+        .executeAsList()
+        .associate { it.id.toString() to it.name }
+
     override fun close() {
         components.close()
     }
@@ -440,6 +521,28 @@ internal class AppLinkTestDevice(
 
 /** TEST ONLY: the master password of every test device. */
 internal const val TEST_MASTER_PASSWORD = "test master password"
+
+/**
+ * TEST ONLY: links two new devices: runs [setUp] on them, then A starts the link and
+ * B joins it.
+ */
+internal suspend fun linkedPair(
+    setUp: suspend PairScope.() -> Unit,
+): Pair<AppLinkTestDevice, AppLinkTestDevice> {
+    val a = AppLinkTestDevice("A")
+    val b = AppLinkTestDevice("B")
+    PairScope(a, b).setUp()
+    a.link()
+    b.time = a.time + 1
+    b.join(a)
+    return a to b
+}
+
+/** TEST ONLY: the devices of [linkedPair], before they link. */
+internal class PairScope(
+    val a: AppLinkTestDevice,
+    val b: AppLinkTestDevice,
+)
 
 /** TEST ONLY: a [P2pCrypto] that counts the signatures it checks. */
 internal class CountingCrypto(

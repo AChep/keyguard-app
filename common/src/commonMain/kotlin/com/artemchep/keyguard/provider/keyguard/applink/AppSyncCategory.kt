@@ -99,6 +99,7 @@ internal class AppSyncCategories(
                     received = received,
                 ),
                 UrlOverridesSyncCategory(),
+                UrlBlocksSyncCategory(),
             ),
         )
     }

@@ -199,6 +199,10 @@ class AppLinkSignedFormatTest {
                 put("command", "https://{url:rmvscm}")
                 put("enabled", "true")
             },
+            EntryKind.URL_BLOCK to urlBlockBody(name = "Bad regex", uri = "(", mode = "regex"),
+            EntryKind.URL_BLOCK to urlBlockBody(name = "Unknown mode", mode = "sometimes"),
+            EntryKind.URL_BLOCK to urlBlockBody(name = "Blank", uri = " "),
+            EntryKind.URL_BLOCK to urlBlockBody(name = "Text switch", exposed = JsonPrimitive("true")),
         )
         val entries = bodies.map { (kind, body) ->
             val id = Uuid.random().toString()
@@ -210,6 +214,7 @@ class AppLinkSignedFormatTest {
         assertEquals(emptyList(), a.forwarderList())
         assertEquals(emptyList(), a.wordlistList())
         assertEquals(listOf("HTTPS-ify"), a.urlOverrideList().map { it.name })
+        assertEquals(emptyList(), a.urlBlockList())
         // Nor wanted: the relay storage would refuse a state that names it missing.
         assertFalse(NONCANONICAL_BLOB_ID in a.components.blobs.wanted())
     }
@@ -284,3 +289,18 @@ class AppLinkSignedFormatTest {
 
 /** 52 base32 characters whose last one carries bits past the 256 of a SHA-256. */
 private val NONCANONICAL_BLOB_ID = "b".repeat(52)
+
+/** The body of a blocked URI; valid, unless a test passes a field the category refuses. */
+private fun urlBlockBody(
+    name: String,
+    uri: String = "example.com",
+    mode: String = "domain",
+    exposed: JsonPrimitive = JsonPrimitive(true),
+): JsonObject = buildJsonObject {
+    put("name", name)
+    put("description", "")
+    put("uri", uri)
+    put("mode", mode)
+    put("enabled", true)
+    put("exposed", exposed)
+}

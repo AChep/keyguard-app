@@ -17,6 +17,7 @@ import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlushRunner
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksSource
+import com.artemchep.keyguard.common.service.urlblock.UrlBlockExposedSyncer
 import com.artemchep.keyguard.common.usecase.AddCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
@@ -36,6 +37,7 @@ class AppWorkerSessionDependencies(
     val notificationsWorker: NotificationsWorker,
     val exposedAccountSyncer: ExposedAccountSyncer,
     val sshAgentPublicKeySyncer: SshAgentPublicKeySyncer,
+    val urlBlockExposedSyncer: UrlBlockExposedSyncer,
     val gpgPublicKeySyncer: GpgPublicKeySyncer,
     val gpgKeyserverRefreshWorker: GpgKeyserverRefreshWorker,
     val agentHistoryRetentionWorker: AgentHistoryRetentionWorker,

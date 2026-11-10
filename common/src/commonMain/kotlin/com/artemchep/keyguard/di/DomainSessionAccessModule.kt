@@ -49,6 +49,7 @@ class DomainSessionAccessModule {
                         notificationsWorker = get(),
                         exposedAccountSyncer = get(),
                         sshAgentPublicKeySyncer = get(),
+                        urlBlockExposedSyncer = get(),
                         gpgPublicKeySyncer = get(),
                         gpgKeyserverRefreshWorker = get(),
                         agentHistoryRetentionWorker = get(),

@@ -24,8 +24,8 @@ class AppLinkUrlOverridesTest {
         assertEquals(listOf(BUILT_IN), a.urlOverrideList().map { it.name })
         assertEquals(listOf(BUILT_IN), b.urlOverrideList().map { it.name })
         assertNull(a.urlOverrideSyncId(BUILT_IN))
-        assertTrue(a.urlOverrideEntries().isEmpty())
-        assertTrue(b.urlOverrideEntries().isEmpty())
+        assertTrue(a.entriesOf(EntryKind.URL_OVERRIDE).isEmpty())
+        assertTrue(b.entriesOf(EntryKind.URL_OVERRIDE).isEmpty())
     }
 
     @Test
@@ -84,8 +84,8 @@ class AppLinkUrlOverridesTest {
         a.exchangeWith(b)
         b.exchangeWith(a)
 
-        assertTrue(a.urlOverrideEntries().isEmpty())
-        assertTrue(b.urlOverrideEntries().isEmpty())
+        assertTrue(a.entriesOf(EntryKind.URL_OVERRIDE).isEmpty())
+        assertTrue(b.entriesOf(EntryKind.URL_OVERRIDE).isEmpty())
         assertEquals(listOf("HTTPS"), a.urlOverrideList().map { it.name })
         assertFalse(a.urlOverride("HTTPS").enabled)
         assertEquals(emptyList(), b.urlOverrideList())
@@ -109,25 +109,4 @@ class AppLinkUrlOverridesTest {
         assertEquals(a.urlOverrideSyncId("Docs"), b.urlOverrideSyncId("Docs"))
         assertEquals(before.id, b.urlOverride("Docs").id)
     }
-
-    private fun AppLinkTestDevice.urlOverrideEntries() = entries()
-        .values
-        .filter { it.knownKind == EntryKind.URL_OVERRIDE }
-
-    private suspend fun linkedPair(
-        setUp: suspend PairScope.() -> Unit,
-    ): Pair<AppLinkTestDevice, AppLinkTestDevice> {
-        val a = AppLinkTestDevice("A")
-        val b = AppLinkTestDevice("B")
-        PairScope(a, b).setUp()
-        a.link()
-        b.time = a.time + 1
-        b.join(a)
-        return a to b
-    }
-
-    private class PairScope(
-        val a: AppLinkTestDevice,
-        val b: AppLinkTestDevice,
-    )
 }

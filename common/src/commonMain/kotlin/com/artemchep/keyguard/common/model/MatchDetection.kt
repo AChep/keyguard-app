@@ -56,6 +56,9 @@ enum class MatchDetection(
             DSecret.Uri.MatchType.RegularExpression -> RegularExpression
             DSecret.Uri.MatchType.Never -> Never
         }
+
+        /** The detection with the [key], or `null` if there is none. */
+        fun ofKey(key: String): MatchDetection? = entries.firstOrNull { it.key == key }
     }
 }
 

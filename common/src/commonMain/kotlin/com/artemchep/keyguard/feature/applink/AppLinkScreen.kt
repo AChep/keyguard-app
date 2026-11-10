@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ForwardToInbox
 import androidx.compose.material.icons.outlined.AddLink
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Book
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -384,4 +385,5 @@ private fun DAppLinkSyncCategory.icon() = when (this) {
     DAppLinkSyncCategory.EMAIL_FORWARDERS -> Icons.AutoMirrored.Outlined.ForwardToInbox
     DAppLinkSyncCategory.WORDLISTS -> Icons.Outlined.Book
     DAppLinkSyncCategory.URL_OVERRIDES -> Icons.Outlined.Link
+    DAppLinkSyncCategory.URL_BLOCKS -> Icons.Outlined.Block
 }

@@ -30,6 +30,24 @@ class PartSchemaTest {
     }
 
     @Test
+    fun `every part is keyed by one of its paths, and no path is in two parts`() {
+        EntryKind.entries.forEach { kind ->
+            val parts = kind.schema.parts
+            parts.forEach { part ->
+                val paths = part.paths.map { it.toString() }
+                assertTrue(part.key in paths, "$kind: part '${part.key}' is not keyed by one of its paths $paths")
+            }
+            parts
+                .flatMap { part -> part.paths.map { it.toString() } }
+                .groupingBy { it }
+                .eachCount()
+                .forEach { (path, count) ->
+                    assertEquals(1, count, "$kind: path '$path' is in $count parts")
+                }
+        }
+    }
+
+    @Test
     fun `a multi-path part reads and writes all its paths`() {
         val spec = KeyguardPartSchemas.emailForwarder.part("/data")!!
         val body = json("""{"name":"n","type":"t","data":{"apiKey":"k"}}""")

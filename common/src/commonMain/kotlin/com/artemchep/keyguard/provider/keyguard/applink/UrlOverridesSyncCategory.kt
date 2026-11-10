@@ -3,11 +3,10 @@ package com.artemchep.keyguard.provider.keyguard.applink
 import com.artemchep.keyguard.common.model.DAppLinkSyncCategory
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.data.Database
+import com.artemchep.keyguard.feature.p2psync.boolean
 import com.artemchep.keyguard.feature.p2psync.model.EntryKind
 import com.artemchep.keyguard.feature.p2psync.string
 import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlin.time.Instant
@@ -53,9 +52,7 @@ internal class UrlOverridesSyncCategory : AppSyncCategory {
     ): Boolean {
         val name = body.string(FIELD_NAME)
         val rule = body.ruleOrNull()
-        val enabled = (body[FIELD_ENABLED] as? JsonPrimitive)
-            ?.takeUnless { it.isString }
-            ?.booleanOrNull
+        val enabled = body.boolean(FIELD_ENABLED)
         if (name == null || rule == null || enabled == null) return false
         val (regex, command) = rule
         val dao = database.urlOverrideQueries

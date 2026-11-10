@@ -18,7 +18,7 @@ commercial app.
 | --- | --- | --- |
 | Accounts | One account | [Multiple accounts](/docs/multi-account/) |
 | Vault changes | View only | Add, edit and delete items, sends and other vault data, including saving from autofill and creating passkeys |
-| Linked devices | Self-host a relay server | Use Keyguard's hosted relay to link devices in **Settings > Linked devices** and sync email forwarders and wordlists |
+| Linked devices | Self-host a relay server | Use Keyguard's hosted relay to link devices in **Settings > Linked devices** and sync app settings, such as email forwarders and wordlists |
 
 Everything else works without premium, including search, autofill, Watchtower,
 backups and export.

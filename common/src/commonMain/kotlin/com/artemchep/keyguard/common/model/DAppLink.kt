@@ -48,4 +48,7 @@ enum class DAppLinkSyncCategory(
 
     /** The URL overrides, except the built-in one, which each device keeps for itself. */
     URL_OVERRIDES(key = "urlOverrides"),
+
+    /** The blocked URIs of autofill. */
+    URL_BLOCKS(key = "urlBlocks"),
 }

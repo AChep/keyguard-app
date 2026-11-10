@@ -1,5 +1,9 @@
 import kotlin.time.Instant;
 
+-- The blocked URIs of autofill. The syncId is the rule's id on every
+-- linked app; the id is local to this database. SQLite adds a NOT NULL
+-- column only with a default, so the syncId has one; every row gets its
+-- own.
 CREATE TABLE urlBlock (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
@@ -8,10 +12,13 @@ CREATE TABLE urlBlock (
   mode TEXT NOT NULL,
   createdAt INTEGER AS Instant NOT NULL,
   enabled INTEGER NOT NULL,
-  exposed INTEGER
+  exposed INTEGER,
+  syncId TEXT NOT NULL DEFAULT ''
 );
 
 CREATE INDEX idx_urlBlock_createdAt ON urlBlock(createdAt DESC);
+
+CREATE UNIQUE INDEX idx_urlBlock_syncId ON urlBlock(syncId);
 
 update {
   UPDATE urlBlock
@@ -27,9 +34,22 @@ update {
     id = :id;
 }
 
+updateBySyncId {
+  UPDATE urlBlock
+  SET
+    name = :name,
+    description = :description,
+    uri = :uri,
+    mode = :mode,
+    enabled = :enabled,
+    exposed = :exposed
+  WHERE
+    syncId = :syncId;
+}
+
 insert {
-  INSERT OR IGNORE INTO urlBlock(name, description, uri, mode, createdAt, enabled, exposed)
-  VALUES (:name, :description, :uri, :mode, :createdAt, :enabled, :exposed);
+  INSERT OR IGNORE INTO urlBlock(name, description, uri, mode, createdAt, enabled, exposed, syncId)
+  VALUES (:name, :description, :uri, :mode, :createdAt, :enabled, :exposed, :syncId);
 }
 
 get:
@@ -38,9 +58,41 @@ FROM urlBlock
 ORDER BY createdAt DESC
 LIMIT :limit;
 
+getSyncIds:
+SELECT syncId
+FROM urlBlock;
+
+getSyncIdsByIds:
+SELECT syncId
+FROM urlBlock
+WHERE id IN :ids;
+
+getBySyncId:
+SELECT *
+FROM urlBlock
+WHERE
+    syncId = :syncId;
+
+getById:
+SELECT *
+FROM urlBlock
+WHERE
+    id = :id;
+
+updateSyncId:
+UPDATE urlBlock
+SET
+  syncId = :newSyncId
+WHERE
+  syncId = :syncId;
+
 deleteAll:
 DELETE FROM urlBlock;
 
 deleteByIds:
 DELETE FROM urlBlock
-WHERE id IN (:ids);
+WHERE id IN :ids;
+
+deleteBySyncId:
+DELETE FROM urlBlock
+WHERE syncId = :syncId;

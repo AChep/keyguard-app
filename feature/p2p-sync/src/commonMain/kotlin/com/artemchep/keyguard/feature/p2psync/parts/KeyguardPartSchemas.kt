@@ -53,6 +53,27 @@ object KeyguardPartSchemas {
         ),
     )
 
+    /** The part of the rule of a blocked URI: the URI, and the mode that matches it. */
+    const val URL_BLOCK_RULE_PART: String = "/uri"
+
+    /**
+     * The parts of a blocked URI: `{"name", "description", "uri", "mode", "enabled",
+     * "exposed"}`. The URI and the mode change as one part, because a URI is written for the
+     * mode that matches it, and the two must never mix from two concurrent edits.
+     */
+    val urlBlock: PartSchema = PartSchema(
+        parts = listOf(
+            PartSpec.of("/name"),
+            PartSpec.of("/description"),
+            PartSpec(
+                key = URL_BLOCK_RULE_PART,
+                paths = listOf("/uri", "/mode").map(JsonPointer::parse),
+            ),
+            PartSpec.of("/enabled"),
+            PartSpec.of("/exposed"),
+        ),
+    )
+
     /** The part of an object key: the key, and the devices it covers. */
     const val OBJECT_KEY_PART: String = "/key"
 

@@ -103,8 +103,9 @@ class SyncWorker(
      * semantics so persisted requests from older versions can still run.
      */
     private val accountIds by lazy {
-        inputData.getStringArray(KEY_ACCOUNT_IDS)
+        inputData.getNullableStringArray(KEY_ACCOUNT_IDS)
             ?.asSequence()
+            ?.filterNotNull()
             ?.map { AccountId(it) }
             ?.toSet().orEmpty()
     }

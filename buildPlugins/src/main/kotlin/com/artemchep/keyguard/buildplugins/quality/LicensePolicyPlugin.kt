@@ -80,6 +80,10 @@ class LicensePolicyPlugin : Plugin<Project> {
             allowDependency("com.mayakapps.compose", "window-styler-jvm", "0.3.2") {
                 because("MIT License, but self-hosted copy of the license")
             }
+            allowDependency("com.github.Kyant0", "m3color", "2026.1") {
+                // https://github.com/Kyant0/m3color/blob/2026.1/LICENSE
+                because("Apache License 2.0, but the JitPack POM declares no license")
+            }
             allowDependency("commons-logging", "commons-logging", "1.0.4") {
                 because("Apache License-2.0, but self-hosted copy of the license")
             }
@@ -93,7 +97,7 @@ class LicensePolicyPlugin : Plugin<Project> {
             allowDependency("com.ibm.icu", "icu4j", "73.1") {
                 because("UNICODE LICENSE V3")
             }
-            allowDependency("com.ibm.icu", "icu4j", "75.1") {
+            allowDependency("com.ibm.icu", "icu4j", "79.1") {
                 because("UNICODE LICENSE V3")
             }
 

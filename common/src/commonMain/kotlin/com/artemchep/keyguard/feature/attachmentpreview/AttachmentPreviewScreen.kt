@@ -948,16 +948,20 @@ private fun AttachmentPreviewCodeViewer(
 
         if (showMinimap && minimapHeight > 0.dp) {
             val containerColor = LocalSurfaceColor.current
+            // Haze compares blur styles by identity, so keep one per color.
+            val minimapBlurStyle = remember(containerColor) {
+                HazeBlurStyle {
+                    blurRadius(24.dp)
+                    backgroundColor(containerColor)
+                }
+            }
             AttachmentPreviewCodeMinimap(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
                     .width(minimapWidth)
                     .hazeBlur(
                         input = HazeInput.Sources(hazeState),
-                        style = HazeBlurStyle {
-                            blurRadius(24.dp)
-                            backgroundColor(containerColor)
-                        },
+                        style = minimapBlurStyle,
                     )
                     .height(minimapHeight)
                     .padding(vertical = 8.dp),

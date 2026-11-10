@@ -6,6 +6,7 @@ plugins {
 dependencies {
     compileOnly(libs.detekt.api)
 
+    testImplementation(platform(libs.junit5.bom))
     testImplementation(kotlin("test-junit5"))
     testImplementation(libs.detekt.api)
     testImplementation(libs.detekt.test.utils)

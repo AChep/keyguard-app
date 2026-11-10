@@ -11,9 +11,3 @@ internal actual fun Modifier.platformFileDropTarget(
     onTooManyFiles: () -> Unit,
     onFilesDrop: (List<FilePickerResult>) -> Unit,
 ): Modifier = this
-
-@Composable
-internal actual fun Modifier.fileDragMonitor(
-    enabled: Boolean,
-    onDragActiveChange: (Boolean) -> Unit,
-): Modifier = this

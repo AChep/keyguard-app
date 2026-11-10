@@ -42,7 +42,6 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.dialog.Dialog
-import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
 import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
 import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
@@ -480,24 +479,16 @@ private fun ConfirmationFileItemDropTarget(
 ) {
     FileDropTargetBox(
         modifier = modifier,
-        enabled = item.enabled,
-        onFileDrop = item.onFileDrop,
-        content = {
-            ConfirmationFileItem(
-                item = item,
-            )
-        },
-        overlay = {
-            FileDropOverlay(
-                modifier = Modifier
-                    .matchParentSize()
-                    // Cover the item's background, not its outer padding.
-                    .padding(flatItemLayoutPaddingValues),
-                text = stringResource(Res.string.file_drop_here),
-                textPadding = PaddingValues(horizontal = 16.dp),
-            )
-        },
-    )
+        text = stringResource(Res.string.file_drop_here),
+        onFileDrop = item.onFileDrop.takeIf { item.enabled },
+        // Cover the item's background, not its outer padding.
+        overlayPadding = flatItemLayoutPaddingValues,
+        textPadding = PaddingValues(horizontal = 16.dp),
+    ) {
+        ConfirmationFileItem(
+            item = item,
+        )
+    }
 }
 
 @OptIn(ExperimentalLayoutApi::class)

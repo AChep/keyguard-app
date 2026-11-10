@@ -5,7 +5,7 @@ import com.artemchep.keyguard.common.model.GroupableShapeItem
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.feature.add.AddStateOwnership
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
-import com.artemchep.keyguard.feature.filepicker.FilePickerResult
+import com.artemchep.keyguard.feature.filepicker.FileDrop
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.SimpleNote
@@ -32,12 +32,6 @@ data class EnvironmentEditState(
     val fileDrop: FileDrop?,
     val busy: Boolean,
 ) {
-    @Immutable
-    data class FileDrop(
-        val text: String,
-        val onFileDrop: (FilePickerResult) -> Unit,
-    )
-
     @Immutable
     data class Content(
         val create: Boolean,

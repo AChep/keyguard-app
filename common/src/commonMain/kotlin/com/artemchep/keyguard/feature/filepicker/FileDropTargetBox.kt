@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
@@ -14,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -47,36 +47,39 @@ internal expect fun Modifier.platformFileDropTarget(
 
 /**
  * Accepts a single dropped file; a drop of several files is
- * rejected with a message.
+ * rejected with a message. A `null` [onFileDrop] disables it.
  */
 @Composable
 internal fun Modifier.fileDropTarget(
-    enabled: Boolean,
     onDragActiveChange: (Boolean) -> Unit,
-    onFileDrop: (FilePickerResult) -> Unit,
+    onFileDrop: ((FilePickerResult) -> Unit)?,
 ): Modifier = platformFileDropTarget(
-    enabled = enabled,
+    enabled = onFileDrop != null,
     multiple = false,
     onDragActiveChange = onDragActiveChange,
     onTooManyFiles = rememberTooManyFilesHandler(),
     onFilesDrop = { files ->
-        onFileDrop(files.single())
+        onFileDrop?.invoke(files.single())
     },
 )
 
+/**
+ * Accepts dropped files. A `null` [onFilesDrop] disables it.
+ */
 @Composable
 internal fun Modifier.filesDropTarget(
-    enabled: Boolean,
     onDragActiveChange: (Boolean) -> Unit,
-    onFilesDrop: (List<FilePickerResult>) -> Unit,
+    onFilesDrop: ((List<FilePickerResult>) -> Unit)?,
 ): Modifier = platformFileDropTarget(
-    enabled = enabled,
+    enabled = onFilesDrop != null,
     multiple = true,
     onDragActiveChange = onDragActiveChange,
     onTooManyFiles = {
         // Do nothing
     },
-    onFilesDrop = onFilesDrop,
+    onFilesDrop = { files ->
+        onFilesDrop?.invoke(files)
+    },
 )
 
 @Composable
@@ -94,20 +97,22 @@ private fun rememberTooManyFilesHandler(): () -> Unit {
     }
 }
 
-@Composable
-internal expect fun Modifier.fileDragMonitor(
-    enabled: Boolean,
-    onDragActiveChange: (Boolean) -> Unit,
-): Modifier
+private val DefaultFileDropTextPadding = PaddingValues(24.dp)
 
+/**
+ * Accepts a single dropped file onto [content], showing [text] over it,
+ * inset by [overlayPadding], while a file hovers it. A `null`
+ * [onFileDrop] disables it.
+ */
 @Composable
 internal fun FileDropTargetBox(
+    text: String,
+    onFileDrop: ((FilePickerResult) -> Unit)?,
     modifier: Modifier = Modifier,
-    enabled: Boolean,
+    overlayPadding: PaddingValues = PaddingValues(0.dp),
+    textPadding: PaddingValues = DefaultFileDropTextPadding,
     propagateMinConstraints: Boolean = false,
-    onFileDrop: (FilePickerResult) -> Unit,
     content: @Composable BoxScope.() -> Unit = {},
-    overlay: @Composable BoxScope.() -> Unit,
 ) {
     var dragActive by remember {
         mutableStateOf(false)
@@ -115,20 +120,24 @@ internal fun FileDropTargetBox(
     Box(
         modifier = modifier
             .fileDropTarget(
-                enabled = enabled,
                 onDragActiveChange = { isActive ->
                     dragActive = isActive
                 },
                 onFileDrop = onFileDrop,
             ),
         propagateMinConstraints = propagateMinConstraints,
-        content = {
-            content()
-            if (enabled && dragActive) {
-                overlay()
-            }
-        },
-    )
+    ) {
+        content()
+        if (onFileDrop != null && dragActive) {
+            FileDropOverlay(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(overlayPadding),
+                text = text,
+                textPadding = textPadding,
+            )
+        }
+    }
 }
 
 /**
@@ -141,23 +150,30 @@ internal fun OverlayScope.ContentFileDropTarget(
     text: String,
     onFileDrop: ((FilePickerResult) -> Unit)?,
 ) {
-    val updatedOnFileDrop by rememberUpdatedState(onFileDrop)
     FileDropTargetBox(
         modifier = Modifier
             .fillMaxSize()
             .padding(contentPadding.value),
-        enabled = onFileDrop != null,
-        onFileDrop = { file ->
-            updatedOnFileDrop?.invoke(file)
-        },
-        overlay = {
-            FileDropOverlay(
-                modifier = Modifier
-                    .matchParentSize()
-                    .padding(horizontal = Dimens.contentPadding),
-                text = text,
-            )
-        },
+        text = text,
+        onFileDrop = onFileDrop,
+        overlayPadding = PaddingValues(horizontal = Dimens.contentPadding),
+    )
+}
+
+/**
+ * A list item that shows where a dropped file lands, while a file
+ * hovers a screen-wide drop target.
+ */
+@Composable
+internal fun FileDropPlaceholder(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    FileDropOverlay(
+        modifier = modifier
+            .padding(horizontal = Dimens.buttonHorizontalPadding)
+            .fillMaxWidth(),
+        text = text,
     )
 }
 
@@ -192,7 +208,7 @@ internal fun FileDropOverlay(
 internal fun FileDropOverlay(
     text: String,
     modifier: Modifier = Modifier,
-    textPadding: PaddingValues = PaddingValues(24.dp),
+    textPadding: PaddingValues = DefaultFileDropTextPadding,
 ) {
     FileDropOverlay(
         modifier = modifier,

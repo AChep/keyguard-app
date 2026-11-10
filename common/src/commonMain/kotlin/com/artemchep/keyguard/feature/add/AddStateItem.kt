@@ -11,7 +11,7 @@ import com.artemchep.keyguard.common.model.UsernameVariation2
 import com.artemchep.keyguard.common.usecase.CopyText
 import com.artemchep.keyguard.feature.auth.common.SwitchFieldModel
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
-import com.artemchep.keyguard.feature.filepicker.FilePickerResult
+import com.artemchep.keyguard.feature.filepicker.FileDrop
 import com.artemchep.keyguard.feature.home.vault.add.GpgKeyDecor2Brr
 import com.artemchep.keyguard.feature.home.vault.add.KeyPairDecor2Brr
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
@@ -24,11 +24,6 @@ import kotlinx.datetime.LocalDateTime
 
 sealed interface AddStateItem {
     val id: String
-
-    data class FileDrop(
-        val text: String,
-        val onFileDrop: (FilePickerResult) -> Unit,
-    )
 
     interface HasOptions<T> {
         val options: ImmutableList<ContextItem>

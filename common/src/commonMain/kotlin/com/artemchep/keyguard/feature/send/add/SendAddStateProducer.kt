@@ -72,6 +72,7 @@ import com.artemchep.keyguard.feature.auth.common.util.validatedInteger
 import com.artemchep.keyguard.feature.auth.common.util.validatedTitle
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.organization.OrganizationConfirmationRoute
+import com.artemchep.keyguard.feature.filepicker.FileDrop
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountBin
@@ -904,7 +905,7 @@ private suspend fun RememberStateFlowScope.produceFileState(
                 )
             }
         },
-        fileDrop = AddStateItem.FileDrop(
+        fileDrop = FileDrop(
             text = translate(Res.string.addsend_drop_file_to_replace),
             onFileDrop = ::applySelectedFile,
         ),

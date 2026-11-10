@@ -30,7 +30,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
 import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.gpgagent.keyserver.search.GpgKeyserverSearchRoute
@@ -225,29 +224,21 @@ private fun GpgOperationCard(
     // The grid stretches the cards of a row to the same
     // height, so pass the min constraints to the card.
     FileDropTargetBox(
-        enabled = true,
-        propagateMinConstraints = true,
+        text = stringResource(operation.dropText),
         onFileDrop = onFileDrop,
-        content = {
-            GpgToolsCard(
-                icon = operation.icon,
-                title = textResource(operation.title),
-                text = stringResource(operation.summary),
-                matchesRoute = { route ->
-                    route is GpgToolsOperationRoute &&
-                            route.args.operation == operation
-                },
-                onClick = onClick,
-            )
-        },
-        overlay = {
-            FileDropOverlay(
-                modifier = Modifier
-                    .matchParentSize(),
-                text = stringResource(operation.dropText),
-            )
-        },
-    )
+        propagateMinConstraints = true,
+    ) {
+        GpgToolsCard(
+            icon = operation.icon,
+            title = textResource(operation.title),
+            text = stringResource(operation.summary),
+            matchesRoute = { route ->
+                route is GpgToolsOperationRoute &&
+                        route.args.operation == operation
+            },
+            onClick = onClick,
+        )
+    }
 }
 
 @Composable

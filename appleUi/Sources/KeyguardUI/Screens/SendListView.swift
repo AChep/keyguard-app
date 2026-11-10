@@ -168,10 +168,10 @@ struct SendListView: View {
             macList
         }
         .contentShape(Rectangle())
-        .dropDestination(for: URL.self) { urls, _ in
-            guard snapshot.canDropFile, let url = urls.first else { return false }
-            actions.dropFile(url)
-            return true
+        // The text stays set: switching the drop target off would rebuild
+        // the list and lose its scroll position and selection.
+        .fileDropTarget(text: L10n.sendMainDropFileToCreate) { url in
+            if snapshot.canDropFile { actions.dropFile(url) }
         }
         .selectionBar(
             count: snapshot.selectionCount,

@@ -88,7 +88,7 @@ import com.artemchep.keyguard.common.model.titleH
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
-import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
+import com.artemchep.keyguard.feature.filepicker.FileDrop
 import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
 import com.artemchep.keyguard.feature.gpgkey.userids.GpgUserIdsDialog
 import com.artemchep.keyguard.feature.home.vault.component.CompactVaultItem
@@ -456,42 +456,21 @@ fun AnyField(
 private fun FileDropField(
     modifier: Modifier = Modifier,
     containerPadding: PaddingValues = PaddingValues(0.dp),
-    fileDrop: AddStateItem.FileDrop?,
+    fileDrop: FileDrop?,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    if (fileDrop == null) {
-        Box(
-            modifier = modifier,
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(containerPadding),
-                content = content,
-            )
-        }
-        return
-    }
-
     FileDropTargetBox(
         modifier = modifier,
-        enabled = true,
-        onFileDrop = fileDrop.onFileDrop,
-        content = {
-            Box(
-                modifier = Modifier
-                    .padding(containerPadding),
-                content = content,
-            )
-        },
-        overlay = {
-            FileDropOverlay(
-                modifier = Modifier
-                    .matchParentSize()
-                    .padding(containerPadding),
-                text = fileDrop.text,
-            )
-        },
-    )
+        text = fileDrop?.text.orEmpty(),
+        onFileDrop = fileDrop?.onFileDrop,
+        overlayPadding = containerPadding,
+    ) {
+        Box(
+            modifier = Modifier
+                .padding(containerPadding),
+            content = content,
+        )
+    }
 }
 
 context(addScope: AddScreenScope)

@@ -73,32 +73,6 @@ internal actual fun Modifier.platformFileDropTarget(
     )
 }
 
-@Composable
-internal actual fun Modifier.fileDragMonitor(
-    enabled: Boolean,
-    onDragActiveChange: (Boolean) -> Unit,
-): Modifier {
-    val target = remember {
-        AndroidFileDragMonitor()
-    }
-
-    SideEffect {
-        target.onDragActiveChange = onDragActiveChange
-        if (!enabled) {
-            target.reset()
-        }
-    }
-
-    if (!enabled) {
-        return this
-    }
-
-    return this.dragAndDropTarget(
-        shouldStartDragAndDrop = target::shouldStartDragAndDrop,
-        target = target,
-    )
-}
-
 private class AndroidFileDropTarget : DragAndDropTarget {
     var activity: Activity? = null
     var context: Context? = null
@@ -184,35 +158,6 @@ private class AndroidFileDropTarget : DragAndDropTarget {
             }
         }
         return true
-    }
-}
-
-private class AndroidFileDragMonitor : DragAndDropTarget {
-    var onDragActiveChange: ((Boolean) -> Unit)? = null
-
-    fun reset() {
-        onDragActiveChange?.invoke(false)
-    }
-
-    fun shouldStartDragAndDrop(
-        event: DragAndDropEvent,
-    ): Boolean = event.mayContainFiles()
-
-    override fun onEntered(event: DragAndDropEvent) {
-        onDragActiveChange?.invoke(true)
-    }
-
-    override fun onExited(event: DragAndDropEvent) {
-        onDragActiveChange?.invoke(false)
-    }
-
-    override fun onEnded(event: DragAndDropEvent) {
-        reset()
-    }
-
-    override fun onDrop(event: DragAndDropEvent): Boolean {
-        onDragActiveChange?.invoke(false)
-        return false
     }
 }
 

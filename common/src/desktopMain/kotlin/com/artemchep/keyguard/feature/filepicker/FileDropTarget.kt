@@ -51,33 +51,6 @@ internal actual fun Modifier.platformFileDropTarget(
 }
 
 @OptIn(ExperimentalComposeUiApi::class)
-@Composable
-internal actual fun Modifier.fileDragMonitor(
-    enabled: Boolean,
-    onDragActiveChange: (Boolean) -> Unit,
-): Modifier {
-    val target = remember {
-        DesktopFileDragMonitor()
-    }
-
-    SideEffect {
-        target.onDragActiveChange = onDragActiveChange
-        if (!enabled) {
-            target.reset()
-        }
-    }
-
-    if (!enabled) {
-        return this
-    }
-
-    return this.dragAndDropTarget(
-        shouldStartDragAndDrop = target::shouldStartDragAndDrop,
-        target = target,
-    )
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
 internal fun droppedFileResults(
     dragData: DragData,
     limit: Int = Int.MAX_VALUE,
@@ -172,46 +145,6 @@ private class DesktopFileDropTarget : DragAndDropTarget {
             onTooManyFiles?.invoke()
         }
         return accepted
-    }
-
-    private fun updateDragActive(
-        event: DragAndDropEvent,
-    ) {
-        onDragActiveChange?.invoke(isFileDragData(event.dragData()))
-    }
-}
-
-@OptIn(ExperimentalComposeUiApi::class)
-private class DesktopFileDragMonitor : DragAndDropTarget {
-    var onDragActiveChange: ((Boolean) -> Unit)? = null
-
-    fun reset() {
-        onDragActiveChange?.invoke(false)
-    }
-
-    fun shouldStartDragAndDrop(
-        event: DragAndDropEvent,
-    ): Boolean = isFileDragData(event.dragData())
-
-    override fun onEntered(event: DragAndDropEvent) {
-        updateDragActive(event)
-    }
-
-    override fun onMoved(event: DragAndDropEvent) {
-        updateDragActive(event)
-    }
-
-    override fun onExited(event: DragAndDropEvent) {
-        reset()
-    }
-
-    override fun onEnded(event: DragAndDropEvent) {
-        reset()
-    }
-
-    override fun onDrop(event: DragAndDropEvent): Boolean {
-        onDragActiveChange?.invoke(false)
-        return false
     }
 
     private fun updateDragActive(

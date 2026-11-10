@@ -35,7 +35,7 @@ import com.artemchep.keyguard.feature.add.AnyField
 import com.artemchep.keyguard.feature.add.ToolbarContent
 import com.artemchep.keyguard.feature.add.ToolbarContentItemErrSkeleton
 import com.artemchep.keyguard.feature.add.getAnyFieldShapeState
-import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
+import com.artemchep.keyguard.feature.filepicker.FileDropPlaceholder
 import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.filepicker.filesDropTarget
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
@@ -58,7 +58,6 @@ import com.artemchep.keyguard.ui.icons.Stub
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
-import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import kotlinx.collections.immutable.toImmutableList
@@ -105,20 +104,16 @@ private fun AddScreenContent(
 ) {
     val scrollBehavior = ToolbarBehavior.behavior()
     val fileDrag = loadableState.getOrNull()?.fileDrag
-    val fileDragState = rememberUpdatedState(fileDrag)
     var fileDragActive by remember(fileDrag) {
         mutableStateOf(false)
     }
     ScaffoldLazyColumn(
         modifier = Modifier
             .filesDropTarget(
-                enabled = fileDrag != null,
                 onDragActiveChange = { isActive ->
                     fileDragActive = isActive
                 },
-                onFilesDrop = { files ->
-                    fileDragState.value?.onFilesDrop?.invoke(files)
-                },
+                onFilesDrop = fileDrag?.onFilesDrop,
             )
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         expressive = true,
@@ -285,8 +280,8 @@ private fun LazyListScope.populateItemsContent(
             fileDrag.anchorItemId == item.id
         ) {
             item("${fileDrag.anchorItemId}.drop") {
-                AddScreenAttachmentFileDropItem(
-                    fileDrag = fileDrag,
+                FileDropPlaceholder(
+                    text = fileDrag.text,
                 )
             }
         }
@@ -305,19 +300,6 @@ private fun LazyListScope.populateItemsContent(
             }
         }
     }
-}
-
-@Composable
-private fun AddScreenAttachmentFileDropItem(
-    modifier: Modifier = Modifier,
-    fileDrag: AddState.FileDrag,
-) {
-    FileDropOverlay(
-        modifier = modifier
-            .padding(horizontal = Dimens.buttonHorizontalPadding)
-            .fillMaxWidth(),
-        text = fileDrag.text,
-    )
 }
 
 @Composable

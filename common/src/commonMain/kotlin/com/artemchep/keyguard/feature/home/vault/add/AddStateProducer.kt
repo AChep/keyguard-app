@@ -167,6 +167,7 @@ import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogInten
 import com.artemchep.keyguard.feature.confirmation.organization.FolderInfo
 import com.artemchep.keyguard.feature.datepicker.DatePickerResult
 import com.artemchep.keyguard.feature.datepicker.DatePickerRoute
+import com.artemchep.keyguard.feature.filepicker.FileDrop
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
@@ -4063,7 +4064,7 @@ private suspend fun RememberStateFlowScope.produceSshKeyState(
         )
         AddStateItem.SshKey(
             id = id,
-            fileDrop = AddStateItem.FileDrop(
+            fileDrop = FileDrop(
                 text = translate(Res.string.ssh_key_import_drop_here),
                 onFileDrop = { info ->
                     appScope.launch {
@@ -4610,7 +4611,7 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
         )
         AddStateItem.GpgKey(
             id = id,
-            fileDrop = AddStateItem.FileDrop(
+            fileDrop = FileDrop(
                 text = translate(Res.string.gpg_key_import_drop_here),
                 onFileDrop = { info ->
                     if (!keyMutationCoordinator.inProgress.value) {

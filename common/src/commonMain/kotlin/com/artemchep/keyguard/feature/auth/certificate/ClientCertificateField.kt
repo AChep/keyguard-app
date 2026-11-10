@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
 import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
 import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.res.Res
@@ -34,36 +33,28 @@ fun ClientCertificateField(
 ) {
     FileDropTargetBox(
         modifier = modifier.padding(horizontal = Dimens.fieldHorizontalPadding),
-        enabled = onFileDrop != null,
-        onFileDrop = onFileDrop ?: {},
-        content = {
-            FakeFlatTextField(
-                label = stringResource(Res.string.addaccount_mutual_tls_file_label),
-                value = {
-                    Column {
-                        Text(displayName ?: stringResource(Res.string.select_file))
-                        if (issuerText != null) Text(
-                            issuerText,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                        if (expiresText != null) Text(
-                            expiresText,
-                            style = MaterialTheme.typography.bodySmall,
-                        )
-                    }
-                },
-                onClick = onPick,
-                onClear = onClear,
-                leading = { IconBox(main = Icons.Outlined.Security) },
-            )
-        },
-        overlay = {
-            FileDropOverlay(
-                modifier = Modifier
-                    .matchParentSize(),
-                text = stringResource(Res.string.client_certificate_drop_here),
-                textPadding = PaddingValues(horizontal = 16.dp),
-            )
-        },
-    )
+        text = stringResource(Res.string.client_certificate_drop_here),
+        onFileDrop = onFileDrop,
+        textPadding = PaddingValues(horizontal = 16.dp),
+    ) {
+        FakeFlatTextField(
+            label = stringResource(Res.string.addaccount_mutual_tls_file_label),
+            value = {
+                Column {
+                    Text(displayName ?: stringResource(Res.string.select_file))
+                    if (issuerText != null) Text(
+                        issuerText,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    if (expiresText != null) Text(
+                        expiresText,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            },
+            onClick = onPick,
+            onClear = onClear,
+            leading = { IconBox(main = Icons.Outlined.Security) },
+        )
+    }
 }

@@ -31,7 +31,8 @@ import com.artemchep.keyguard.feature.ErrorView
 import com.artemchep.keyguard.feature.add.AddStateOwnership
 import com.artemchep.keyguard.feature.add.ToolbarContent
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
-import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
+import com.artemchep.keyguard.feature.filepicker.FileDrop
+import com.artemchep.keyguard.feature.filepicker.FileDropPlaceholder
 import com.artemchep.keyguard.feature.filepicker.fileDropTarget
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -81,11 +82,11 @@ private fun EnvironmentEditScreen(
     }
     ScaffoldLazyColumn(
         modifier = Modifier
-            .environmentFileDropTarget(
-                fileDrop = fileDrop,
+            .fileDropTarget(
                 onDragActiveChange = { isActive ->
                     fileDragActive = isActive
                 },
+                onFileDrop = fileDrop?.onFileDrop,
             )
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         expressive = true,
@@ -133,21 +134,6 @@ private fun EnvironmentEditScreen(
 
 private const val TITLE_SKELETON_WIDTH_FRACTION = 0.4f
 
-@Composable
-private fun Modifier.environmentFileDropTarget(
-    fileDrop: EnvironmentEditState.FileDrop?,
-    onDragActiveChange: (Boolean) -> Unit,
-): Modifier {
-    val fileDropState = rememberUpdatedState(fileDrop)
-    return fileDropTarget(
-        enabled = fileDrop != null,
-        onDragActiveChange = onDragActiveChange,
-        onFileDrop = { info ->
-            fileDropState.value?.onFileDrop?.invoke(info)
-        },
-    )
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun EnvironmentEditToolbar(
@@ -188,7 +174,7 @@ private fun EnvironmentEditTitle(
 
 private fun LazyListScope.populateItems(
     loadableState: Loadable<EnvironmentEditState>,
-    fileDrop: EnvironmentEditState.FileDrop?,
+    fileDrop: FileDrop?,
 ) {
     if (loadableState !is Loadable.Ok) {
         skeletonItems(
@@ -218,7 +204,7 @@ private fun LazyListScope.populateItems(
 
 private fun LazyListScope.populateContent(
     content: EnvironmentEditState.Content,
-    fileDrop: EnvironmentEditState.FileDrop?,
+    fileDrop: FileDrop?,
 ) {
     item("ownership") {
         EnvironmentOwnershipItem(
@@ -258,10 +244,7 @@ private fun LazyListScope.populateContent(
     }
     if (fileDrop != null) {
         item("variables.drop") {
-            FileDropOverlay(
-                modifier = Modifier
-                    .padding(horizontal = Dimens.buttonHorizontalPadding)
-                    .fillMaxWidth(),
+            FileDropPlaceholder(
                 text = fileDrop.text,
             )
         }

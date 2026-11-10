@@ -36,6 +36,7 @@ import com.artemchep.keyguard.feature.environments.ui.EnvironmentsEffect
 import com.artemchep.keyguard.feature.environments.ui.EnvironmentsState
 import com.artemchep.keyguard.feature.environments.ui.environmentsStateProducer
 import com.artemchep.keyguard.feature.environments.ui.verifyEnvironmentAccess
+import com.artemchep.keyguard.feature.filepicker.FileDrop
 import com.artemchep.keyguard.feature.home.vault.link.field.CipherFieldPickerResult
 import com.artemchep.keyguard.feature.home.vault.link.field.CipherFieldPickerRoute
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemPresentation
@@ -606,7 +607,7 @@ suspend fun RememberStateFlowScope.environmentEditStateProducer(
             content = content,
             onSave = if (draft.editable && !draft.unsupported) ::onSave else null,
             fileDrop = if (canEdit) {
-                EnvironmentEditState.FileDrop(
+                FileDrop(
                     text = strings.dropHere,
                     onFileDrop = { info ->
                         onImport(fileUri = info.uri.toString())

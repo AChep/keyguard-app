@@ -6,7 +6,6 @@ import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
@@ -165,14 +164,14 @@ fun WearSettingsListAccountItem(
             if (title != null) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
                     overflow = TextOverflow.Ellipsis,
                     maxLines = 1,
                 )
             } else {
                 Text(
                     text = stringResource(Res.string.empty_value),
-                    style = MaterialTheme.typography.titleMedium,
+                    style = androidx.compose.material3.MaterialTheme.typography.titleMedium,
                     color = LocalContentColor.current
                         .combineAlpha(DisabledEmphasisAlpha),
                 )

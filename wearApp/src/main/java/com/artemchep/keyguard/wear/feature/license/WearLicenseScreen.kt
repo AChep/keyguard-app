@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -111,7 +110,7 @@ private fun WearLicenseItem(
                 maxLines = 3,
                 overflow = TextOverflow.Ellipsis,
                 fontFamily = FontFamily.Monospace,
-                style = MaterialTheme.typography.labelSmall,
+                style = androidx.compose.material3.MaterialTheme.typography.labelSmall,
             )
             if (item.licenseNames.isNotEmpty()) {
                 Spacer(
@@ -124,7 +123,7 @@ private fun WearLicenseItem(
                 ) {
                     item.licenseNames.forEach { licenseName ->
                         FlatTextFieldBadge(
-                            backgroundColor = MaterialTheme.colorScheme.infoContainer,
+                            backgroundColor = androidx.compose.material3.MaterialTheme.colorScheme.infoContainer,
                             text = licenseName,
                         )
                     }

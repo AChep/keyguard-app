@@ -49,7 +49,6 @@ plugins {
 // modules validate the full graph instead.
 koinCompiler {
     strictSafety = false
-    strictSafetyForceOff = true
 }
 
 // `android`/`main` covers commonMain plus androidMain; `desktop`/`main` covers commonMain plus

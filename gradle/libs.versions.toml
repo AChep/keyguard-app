@@ -26,7 +26,7 @@ androidBillingClient = "9.1.0"
 # https://mvnrepository.com/artifact/com.android.tools/desugar_jdk_libs
 androidDesugar = "2.1.5"
 # https://mvnrepository.com/artifact/com.android.tools.build/gradle?repo=google
-androidPlugin = "9.4.1"
+androidPlugin = "9.5.1"
 androidxActivity = "1.13.0"
 androidxAnnotation = "1.11.0"
 androidxAppCompat = "1.8.0"
@@ -87,7 +87,7 @@ coil3 = "3.6.3"
 # https://github.com/NucleusFramework/ComposeNativeTray
 composeNativeTray = "2.1.6"
 conscrypt = "2.6.1"
-crashlyticsPlugin = "3.0.7"
+crashlyticsPlugin = "3.0.8"
 dbusJava = "5.2.0"
 # https://github.com/gmethvin/directory-watcher
 directoryWatcher = "0.19.1"
@@ -117,9 +117,9 @@ m3color = "2025.4"
 # https://github.com/InsertKoinIO/koin
 koin = "4.2.2"
 # https://github.com/InsertKoinIO/koin-compiler-plugin
-koinCompiler = "1.2.1"
+koinCompiler = "1.2.3"
 # https://github.com/JetBrains/kotlin
-kotlin = "2.4.20"
+kotlin = "2.4.21"
 # https://github.com/Kotlin/kotlinx-atomicfu
 atomicfu = "0.33.0"
 # https://github.com/Kotlin/kotlinx.collections.immutable
@@ -138,7 +138,7 @@ kotlinSerializationMsgpack = "0.6.1"
 # @keep
 detekt = "2.0.0-alpha.6"
 # https://github.com/google/ksp/releases
-kspPlugin = "2.3.9"
+kspPlugin = "2.3.12"
 # https://github.com/pinterest/ktlint/releases
 # @keep
 ktlint = "0.50.0"
@@ -192,9 +192,9 @@ filekit = "0.16.0"
 # https://github.com/testcontainers/testcontainers-java
 testcontainers = "2.0.5"
 # https://github.com/littlerobots/version-catalog-update-plugin
-versionCatalogPlugin = "1.1.1"
+versionCatalogPlugin = "1.1.2"
 # https://github.com/ben-manes/gradle-versions-plugin
-versionsPlugin = "0.54.0"
+versionsPlugin = "0.67.0"
 # https://github.com/MayakaApps/ComposeWindowStyler
 windowStyler = "0.3.2"
 # https://github.com/Yubico/yubikit-android
@@ -401,4 +401,4 @@ ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlintPlugin" }
 license-check = { id = "app.cash.licensee", version.ref = "licenseCheckPlugin" }
 sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 version-catalog-update = { id = "nl.littlerobots.version-catalog-update", version.ref = "versionCatalogPlugin" }
-versions = { id = "com.github.ben-manes.versions", version.ref = "versionsPlugin" }
+versions = { id = "io.github.ben-manes.versions", version.ref = "versionsPlugin" }

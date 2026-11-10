@@ -14,10 +14,6 @@ class KoinConventionPlugin : Plugin<Project> {
             unsafeDslChecks.set(true)
             logSeverity.set("info")
             versionCheckSeverity.set("warning")
-            // The compiler plugin enables mandatory strict safety at detected application
-            // roots. Keep that detection enabled so graph edits invalidate root compilation
-            // while library modules retain incremental compilation.
-            strictSafetyForceOff.set(false)
         }
     }
 }

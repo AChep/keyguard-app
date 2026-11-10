@@ -18,8 +18,8 @@ android {
     configureKeyguardApplication(project)
 
     if (providers.gradleProperty("keyguard.mtlsTests").map(String::toBoolean).getOrElse(false)) {
-        sourceSets.getByName("androidTest").kotlin.srcDirs(
-            "src/mtlsTest/kotlin", "../common/src/mtlsTest/kotlin", "../common/src/mtlsJvmTest/kotlin",
+        sourceSets.getByName("androidTest").kotlin.directories.addAll(
+            listOf("src/mtlsTest/kotlin", "../common/src/mtlsTest/kotlin", "../common/src/mtlsJvmTest/kotlin"),
         )
     }
 

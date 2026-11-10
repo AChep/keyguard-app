@@ -18,13 +18,6 @@ plugins {
     alias(libs.plugins.kotlin.plugin.compose)
 }
 
-// On Kotlin/Native the compiler plugin cannot read definitions from other modules' klibs and
-// reports false KOIN-D002 errors for every common binding (koin-compiler-plugin issues #105,
-// #106), so this root relies on IosKoinGraphTest until upstream fixes cross-module hints for Native.
-koinCompiler {
-    compileSafety.set(false)
-}
-
 kotlin {
     val xcframework = XCFramework("KeyguardShared")
     listOf(iosArm64(), iosSimulatorArm64(), macosArm64()).forEach { target ->

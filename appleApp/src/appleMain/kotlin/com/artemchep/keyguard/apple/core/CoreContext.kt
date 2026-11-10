@@ -62,68 +62,8 @@ internal class CoreContext(
             // bound to this kernel's [scope]. `IosKoinGraphTest` validates the
             // override-free platform graph.
             allowOverride(true)
-            modules(appleKoinModules() + kernelModule())
+            modules(appleKoinModules() + appleKernelModule(runtime, scope))
         }.koin
-    }
-
-    private fun kernelModule(): Module = module {
-        single<AppleSessionMode> {
-            when (runtime) {
-                KeyguardRuntime.APP -> AppleSessionMode.APP
-                KeyguardRuntime.AUTOFILL -> AppleSessionMode.AUTOFILL
-            }
-        }
-        // Extension graphs are disposable. Do not retain their session locker
-        // in GlobalScope after a credential request has completed.
-        single<VaultSessionLocker> {
-            VaultSessionLocker(
-                getVaultLockAfterTimeout = get(),
-                clearVaultSession = get(),
-                scope = this@CoreContext.scope,
-            )
-        }
-        if (runtime == KeyguardRuntime.AUTOFILL) {
-            single<GetVaultSession> {
-                GetVaultSessionImpl(
-                    sessionFactory = get(),
-                    sessionReadWriteRepository = get(),
-                    keyReadWriteRepository = get(),
-                    scope = this@CoreContext.scope,
-                )
-            }
-            single<UnlockUseCase> {
-                UnlockUseCaseImpl(
-                    sessionFactory = get(),
-                    vaultDatabaseSessionAccess = get(),
-                    biometricStatusUseCase = get(),
-                    biometricKeyRepository = get(),
-                    getVaultSession = get(),
-                    putVaultSession = get(),
-                    disableBiometric = get(),
-                    logRepository = get(),
-                    keyReadWriteRepository = get(),
-                    sessionMetadataReadWriteRepository = get(),
-                    getBiometricRequireConfirmation = get(),
-                    getBiometricRemainingDuration = get(),
-                    biometricKeyEncryptUseCase = get(),
-                    decryptBiometricKeyUseCase = get(),
-                    authConfirmMasterKeyUseCase = get(),
-                    authGenerateMasterKeyUseCase = get(),
-                    cryptoGenerator = get(),
-                    cipherEncryptor = get(),
-                    yubiKeyUnlockAvailability = get(),
-                    fido2UnlockAvailability = get(),
-                    fido2UnlockService = get(),
-                    base64Service = get(),
-                    scope = this@CoreContext.scope,
-                )
-            }
-            // Never restore the app's persisted master key into an extension request.
-            // Password or biometric verification must happen in the presented UI.
-            single<KeyReadWriteRepository> {
-                AutofillSessionRepository()
-            }
-        }
     }
 
     /**
@@ -199,6 +139,70 @@ internal class CoreContext(
                     onTeardown()
                 }
             }
+        }
+    }
+}
+
+// Top-level: Koin compile safety cannot follow a module built by a member call (KOIN-W003).
+private fun appleKernelModule(
+    runtime: KeyguardRuntime,
+    kernelScope: CoroutineScope,
+): Module = module {
+    single<AppleSessionMode> {
+        when (runtime) {
+            KeyguardRuntime.APP -> AppleSessionMode.APP
+            KeyguardRuntime.AUTOFILL -> AppleSessionMode.AUTOFILL
+        }
+    }
+    // Extension graphs are disposable. Do not retain their session locker
+    // in GlobalScope after a credential request has completed.
+    single<VaultSessionLocker> {
+        VaultSessionLocker(
+            getVaultLockAfterTimeout = get(),
+            clearVaultSession = get(),
+            scope = kernelScope,
+        )
+    }
+    if (runtime == KeyguardRuntime.AUTOFILL) {
+        single<GetVaultSession> {
+            GetVaultSessionImpl(
+                sessionFactory = get(),
+                sessionReadWriteRepository = get(),
+                keyReadWriteRepository = get(),
+                scope = kernelScope,
+            )
+        }
+        single<UnlockUseCase> {
+            UnlockUseCaseImpl(
+                sessionFactory = get(),
+                vaultDatabaseSessionAccess = get(),
+                biometricStatusUseCase = get(),
+                biometricKeyRepository = get(),
+                getVaultSession = get(),
+                putVaultSession = get(),
+                disableBiometric = get(),
+                logRepository = get(),
+                keyReadWriteRepository = get(),
+                sessionMetadataReadWriteRepository = get(),
+                getBiometricRequireConfirmation = get(),
+                getBiometricRemainingDuration = get(),
+                biometricKeyEncryptUseCase = get(),
+                decryptBiometricKeyUseCase = get(),
+                authConfirmMasterKeyUseCase = get(),
+                authGenerateMasterKeyUseCase = get(),
+                cryptoGenerator = get(),
+                cipherEncryptor = get(),
+                yubiKeyUnlockAvailability = get(),
+                fido2UnlockAvailability = get(),
+                fido2UnlockService = get(),
+                base64Service = get(),
+                scope = kernelScope,
+            )
+        }
+        // Never restore the app's persisted master key into an extension request.
+        // Password or biometric verification must happen in the presented UI.
+        single<KeyReadWriteRepository> {
+            AutofillSessionRepository()
         }
     }
 }

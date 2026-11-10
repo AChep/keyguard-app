@@ -35,6 +35,8 @@ import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandImpl
 import com.artemchep.keyguard.common.service.extract.PlatformLinkInfoExtractorRegistry
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
+import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
+import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentStatusServiceImpl
 import com.artemchep.keyguard.common.service.http.KeyguardHttpUserAgent
 import com.artemchep.keyguard.common.service.keychain.KeychainRepository
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
@@ -337,6 +339,9 @@ internal class IosPlatformModule {
         }
         single<SshAgentStatusService> {
             SshAgentStatusServiceImpl()
+        }
+        single<GpgAgentStatusService> {
+            GpgAgentStatusServiceImpl()
         }
 
         single<GetAppBuildDate> {

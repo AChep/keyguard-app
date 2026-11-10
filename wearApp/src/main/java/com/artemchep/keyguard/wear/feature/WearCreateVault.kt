@@ -16,7 +16,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Lock
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.remember
@@ -204,7 +203,7 @@ private fun ColumnScope.SetupScreenCreateVaultTitle() {
         modifier = Modifier
             .fillMaxWidth(),
         text = stringResource(Res.string.setup_header_text),
-        style = MaterialTheme.typography.bodyMedium,
+        style = androidx.compose.material3.MaterialTheme.typography.bodyMedium,
         textAlign = TextAlign.Center,
     )
 }

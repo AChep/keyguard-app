@@ -104,7 +104,7 @@ Platform entrypoints bootstrap DI and platform services:
 
 We use Koin with the compiler plugin. Apply `keyguard.koin` to modules that own DI wiring, group definitions into explicit modules per domain, and prefer the compiler DSL for constructor injection. Keep domain and presentation constructors free of Koin; resolve dependencies at composition boundaries. Vault-scoped definitions live in a typed scope that is created on unlock and closed on lock.
 
-Keep module holders as `val module = module { ... }` referenced directly from `modules(...)`/`includes(...)`, avoid runtime module loading and blanket `@Provided`, and treat `KOIN-W003` as a failed build. Only compiling an application root validates the full graph; the iOS root is covered by `IosKoinGraphTest` instead.
+Keep module holders as `val module = module { ... }` referenced directly from `modules(...)`/`includes(...)`, avoid runtime module loading and blanket `@Provided`, and treat `KOIN-W003` at a production entry point as a failed build. Test fixtures that load caller-supplied override modules can't be verified and may report it. Only compiling an application root validates the full graph, Apple roots included.
 
 #### Navigation + screens
 

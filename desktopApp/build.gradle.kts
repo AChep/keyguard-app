@@ -7,7 +7,6 @@ import com.artemchep.keyguard.buildplugins.resources.ResourcesCommonExtension
 import com.artemchep.keyguard.buildplugins.resources.macBundleLocalizationsPlistXml
 import groovy.xml.XmlUtil
 import java.util.UUID
-import org.apache.tools.ant.filters.ReplaceTokens
 import org.gradle.api.tasks.Exec
 import org.gradle.api.tasks.Sync
 import org.gradle.jvm.toolchain.JavaLanguageVersion
@@ -395,6 +394,13 @@ if (hostPlatform.isWindows) {
     fun msixProperty(name: String): String? = (findProperty(name) as String?)
         ?.takeIf { it.isNotBlank() }
 
+    // Replaces @NAME@ tokens in one pass and keeps unknown ones. Copy filters
+    // call it, so like windowsSdkTool it must not capture the script.
+    fun replaceMsixTokens(line: String, tokens: Map<String, String>): String =
+        Regex("@([A-Za-z0-9_]+)@").replace(line) { match ->
+            tokens[match.groupValues[1]] ?: match.value
+        }
+
     // Task actions call windowsSdkTool, so it must not capture the script:
     // the configuration cache can not store it.
     val msixSdkBinDir = msixProperty("msix_sdk_bin_dir")
@@ -490,12 +496,10 @@ if (hostPlatform.isWindows) {
                     into("Assets")
                 }
                 from(project.file("msix/AppxManifest.xml")) {
-                    filter<ReplaceTokens>(
-                        "tokens" to manifestTokens,
-                    )
+                    filter { line -> replaceMsixTokens(line, manifestTokens) }
                 }
                 from(project.file("msix/keyguard-passkeys.json")) {
-                    filter<ReplaceTokens>("tokens" to mapOf("PASSKEY_CLSID" to passkeyClsid))
+                    filter { line -> replaceMsixTokens(line, mapOf("PASSKEY_CLSID" to passkeyClsid)) }
                 }
                 into(stagingDir)
             }

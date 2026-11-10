@@ -7,6 +7,7 @@ import com.artemchep.keyguard.apple.core.FilePickerBridge
 import com.artemchep.keyguard.apple.core.DetailSession
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
 import com.artemchep.keyguard.apple.core.collectOnMain
+import com.artemchep.keyguard.apple.core.filePickerResultOf
 import com.artemchep.keyguard.apple.core.newHeadlessStateFlowScope
 import com.artemchep.keyguard.apple.core.resultRouteOrNull
 import com.artemchep.keyguard.apple.core.sessionKoin
@@ -36,6 +37,7 @@ import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.TwoFactorState
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.bitwardenLoginTwofaStateProducer
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
@@ -247,7 +249,14 @@ class BitwardenLoginSession internal constructor(
                 .throttleLatest()
                 .map { (login, innerStates) ->
                     val actions = LoginActions(login)
-                    buildLoginSnapshot(login, innerStates, leContext, actions.fields, actions.actions) to actions
+                    buildLoginSnapshot(
+                        login,
+                        innerStates,
+                        leContext,
+                        actions.fields,
+                        actions.actions,
+                        actions.fileDrops,
+                    ) to actions
                 }
                 .collectOnMain { (snapshot, actions) -> publish(snapshot, actions) }
         }
@@ -259,6 +268,7 @@ class BitwardenLoginSession internal constructor(
         leContext: LeContext,
         fieldHandlers: LinkedHashMap<String, (String) -> Unit>,
         actionHandlers: LinkedHashMap<String, () -> Unit>,
+        fileDropHandlers: LinkedHashMap<String, (FilePickerResult) -> Unit>,
     ): LoginSnapshot {
         suspend fun List<FlatItemAction>.toSnapshots(itemId: String): List<LoginActionSnapshot> {
             val keys = ActionKeyAllocator(itemId)
@@ -330,6 +340,10 @@ class BitwardenLoginSession internal constructor(
                             add(LoginActionSnapshot(id, textResource(Res.string.clear_file, leContext)))
                         }
                     }
+                    val dropText = st.onFileDrop?.let { drop ->
+                        fileDropHandlers[item.id] = drop
+                        textResource(Res.string.client_certificate_drop_here, leContext)
+                    }
                     LoginItemSnapshot(
                         id = item.id,
                         kind = LoginItemKind.MUTUAL_TLS,
@@ -338,6 +352,7 @@ class BitwardenLoginSession internal constructor(
                         label = textResource(Res.string.addaccount_mutual_tls_file_label, leContext),
                         text = st.certificateMetadata?.let { "${it.displayName}\n${it.issuerText}\n${it.expiresText}" },
                         actions = actions,
+                        dropText = dropText,
                     )
                 }
 
@@ -395,6 +410,10 @@ class BitwardenLoginSession internal constructor(
     }
 
     fun invokeLoginAction(id: String) = form.withActions { it.actions.invokeAction(id) }
+
+    /** Imports a file dropped onto the login item [id]. */
+    fun dropLoginFile(id: String, uri: String, name: String?, size: Long) =
+        form.withActions { it.fileDrops[id]?.invoke(filePickerResultOf(uri, name, size)) }
 
     fun clickLoginRegister() = form.withActions { it.state.onRegisterClick?.invoke() }
 
@@ -730,6 +749,7 @@ class BitwardenLoginSession internal constructor(
 private class LoginActions(val state: LoginState) {
     val fields = LinkedHashMap<String, (String) -> Unit>()
     val actions = LinkedHashMap<String, () -> Unit>()
+    val fileDrops = LinkedHashMap<String, (FilePickerResult) -> Unit>()
 }
 
 /** The SSO step's callbacks, published atomically with the snapshot built from the same [state]. */

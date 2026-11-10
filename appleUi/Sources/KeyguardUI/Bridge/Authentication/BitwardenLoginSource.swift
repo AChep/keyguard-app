@@ -21,6 +21,7 @@ protocol BitwardenLoginSource: AnyObject {
     func setLoginField(id: String, text: String)
     func selectLoginRegion(key: String)
     func invokeLoginAction(id: String)
+    func dropLoginFile(id: String, uri: String, name: String?, size: Int64)
     func clickLoginRegister()
     func startSso()
     func setSsoField(id: String, text: String)

@@ -371,6 +371,7 @@ private final class BitwardenSourceProbe: BitwardenLoginSource {
     func setTwofaCode(text: String) { actions.append("code:\(text)") }
     func selectLoginRegion(key: String) {}
     func invokeLoginAction(id: String) {}
+    func dropLoginFile(id: String, uri: String, name: String?, size: Int64) {}
     func clickLoginRegister() {}
     func startSso() { actions.append("sso.start") }
     func setSsoField(id: String, text: String) { actions.append("\(id):\(text)") }

@@ -243,6 +243,9 @@ struct BitwardenLoginView: View {
                     }
                 }
             }
+            .fileDropTarget(text: item.dropText) { url in
+                loginModel.dropLoginFile(id: item.id, url: url)
+            }
         } else if item.kind == LoginItemKind.add {
             addButton(item)
         }

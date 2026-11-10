@@ -5,6 +5,7 @@ import arrow.optics.optics
 import com.artemchep.keyguard.feature.auth.bitwarden.sso.BitwardenSsoRoute
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
 import com.artemchep.keyguard.ui.FlatItemAction
@@ -145,6 +146,7 @@ sealed interface LoginStateItem {
             val certificateMetadata: CertificateMetadata? = null,
             val importedPkcs12Base64: String? = null,
             val onPickFile: (() -> Unit)? = null,
+            val onFileDrop: ((FilePickerResult) -> Unit)? = null,
             val onClearFile: (() -> Unit)? = null,
         ) : HasOptions<State> {
             override fun withOptions(options: List<FlatItemAction>) =

@@ -44,6 +44,7 @@ import com.artemchep.keyguard.feature.auth.common.util.validatedPassword
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRouteFactory
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.filepicker.FilePickerIntent
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.localization.wrap
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
@@ -287,29 +288,32 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
         }
     }
 
+    fun importMutualTlsFile(info: FilePickerResult) {
+        mutualTlsImportJob?.cancel()
+        mutualTlsImportJob = screenScope.launch {
+            val result = importClientCertificate(
+                info = info,
+                fileService = fileService,
+                mutualTlsService = mutualTlsService,
+                confirmationRouteFactory = confirmationRouteFactory,
+            ) ?: return@launch
+            mutualTlsImportedPkcs12Base64Sink.value = result.imported.pkcs12Base64
+            message(
+                ToastMessage(
+                    type = ToastMessage.Type.SUCCESS,
+                    title = translate(Res.string.addaccount_mutual_tls_status_imported),
+                    text = result.metadata.displayName,
+                ),
+            )
+        }
+    }
+
     fun onMutualTlsImport() {
         val intent = FilePickerIntent.OpenDocument(
             mimeTypes = FilePickerIntent.mimeTypesPkcs12,
             readUriPermission = false,
         ) { info ->
-            if (info == null) return@OpenDocument
-            mutualTlsImportJob?.cancel()
-            mutualTlsImportJob = screenScope.launch {
-                val result = importClientCertificate(
-                    info = info,
-                    fileService = fileService,
-                    mutualTlsService = mutualTlsService,
-                    confirmationRouteFactory = confirmationRouteFactory,
-                ) ?: return@launch
-                mutualTlsImportedPkcs12Base64Sink.value = result.imported.pkcs12Base64
-                message(
-                    ToastMessage(
-                        type = ToastMessage.Type.SUCCESS,
-                        title = translate(Res.string.addaccount_mutual_tls_status_imported),
-                        text = result.metadata.displayName,
-                    ),
-                )
-            }
+            if (info != null) importMutualTlsFile(info)
         }
         filePickerIntentFlow.emit(intent)
     }
@@ -507,15 +511,14 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
                 envReadOnlyFlow,
             ) { importState, readOnly ->
                 val exists = importState.importedPkcs12Base64.isNotBlank()
+                val canImport = !readOnly && !CurrentPlatform.hasWatch()
                 LoginStateItem.MutualTls.State(
                     certificateMetadata = importState.certificateMetadata,
                     importedPkcs12Base64 = importState.importedPkcs12Base64.takeIf { it.isNotBlank() },
-                    onPickFile = if (readOnly || CurrentPlatform.hasWatch()) {
-                        null
-                    } else {
-                        // lambda
-                        ::onMutualTlsImport
-                    },
+                    onPickFile = ::onMutualTlsImport
+                        .takeIf { canImport },
+                    onFileDrop = ::importMutualTlsFile
+                        .takeIf { canImport },
                     onClearFile = if (readOnly || !exists) {
                         null
                     } else {

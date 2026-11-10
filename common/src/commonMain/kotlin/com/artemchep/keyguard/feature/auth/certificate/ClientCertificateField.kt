@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.auth.certificate
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Security
@@ -8,8 +9,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.feature.filepicker.FileDropOverlay
+import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
+import com.artemchep.keyguard.feature.filepicker.FilePickerResult
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.addaccount_mutual_tls_file_label
+import com.artemchep.keyguard.res.client_certificate_drop_here
 import com.artemchep.keyguard.res.select_file
 import com.artemchep.keyguard.ui.FakeFlatTextField
 import com.artemchep.keyguard.ui.icons.IconBox
@@ -23,26 +29,41 @@ fun ClientCertificateField(
     expiresText: String?,
     onPick: (() -> Unit)?,
     onClear: (() -> Unit)? = null,
+    onFileDrop: ((FilePickerResult) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
-    FakeFlatTextField(
+    FileDropTargetBox(
         modifier = modifier.padding(horizontal = Dimens.fieldHorizontalPadding),
-        label = stringResource(Res.string.addaccount_mutual_tls_file_label),
-        value = {
-            Column {
-                Text(displayName ?: stringResource(Res.string.select_file))
-                if (issuerText != null) Text(
-                    issuerText,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-                if (expiresText != null) Text(
-                    expiresText,
-                    style = MaterialTheme.typography.bodySmall,
-                )
-            }
+        enabled = onFileDrop != null,
+        onFileDrop = onFileDrop ?: {},
+        content = {
+            FakeFlatTextField(
+                label = stringResource(Res.string.addaccount_mutual_tls_file_label),
+                value = {
+                    Column {
+                        Text(displayName ?: stringResource(Res.string.select_file))
+                        if (issuerText != null) Text(
+                            issuerText,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                        if (expiresText != null) Text(
+                            expiresText,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                },
+                onClick = onPick,
+                onClear = onClear,
+                leading = { IconBox(main = Icons.Outlined.Security) },
+            )
         },
-        onClick = onPick,
-        onClear = onClear,
-        leading = { IconBox(main = Icons.Outlined.Security) },
+        overlay = {
+            FileDropOverlay(
+                modifier = Modifier
+                    .matchParentSize(),
+                text = stringResource(Res.string.client_certificate_drop_here),
+                textPadding = PaddingValues(horizontal = 16.dp),
+            )
+        },
     )
 }

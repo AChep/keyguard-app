@@ -118,6 +118,12 @@ final class BitwardenLoginModel: SnapshotObserving {
         source.invokeLoginAction(id: id)
     }
 
+    /// Imports a file dropped onto a custom-environment item, such as the client certificate.
+    func dropLoginFile(id: String, url: URL) {
+        let file = url.fileNameAndSize
+        source.dropLoginFile(id: id, uri: url.absoluteString, name: file.name, size: file.size)
+    }
+
     /// Opens the Bitwarden registration page.
     func clickLoginRegister() {
         source.clickLoginRegister()

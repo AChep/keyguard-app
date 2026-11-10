@@ -130,6 +130,9 @@ enum class LoginItemKind {
  * - [LoginItemKind.HEADER]: [keyField] + [field] (header name + value) and [actions].
  * - [LoginItemKind.SECTION] / [LoginItemKind.LABEL]: [text].
  * - [LoginItemKind.ADD]: [text] (button title) + [actions].
+ * - [LoginItemKind.MUTUAL_TLS]: [label] + [text] (certificate details) + [actions];
+ *   a non-null [dropText] means it accepts a dropped file through
+ *   [BitwardenLoginSession.dropLoginFile].
  */
 data class LoginItemSnapshot(
     val id: String,
@@ -139,6 +142,7 @@ data class LoginItemSnapshot(
     val label: String?,
     val text: String?,
     val actions: List<LoginActionSnapshot>,
+    val dropText: String? = null,
 )
 
 /** The action that runs [BitwardenLoginSession.discoverLoginServer]. */

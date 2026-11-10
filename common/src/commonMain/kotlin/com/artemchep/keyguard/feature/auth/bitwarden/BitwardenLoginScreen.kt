@@ -619,6 +619,7 @@ private fun LoginItemMutualTls(
         expiresText = field.certificateMetadata?.expiresText,
         onPick = field.onPickFile,
         onClear = field.onClearFile,
+        onFileDrop = field.onFileDrop,
     )
 }
 

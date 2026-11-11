@@ -50,11 +50,12 @@ runs:
     - name: "Configure CI Gradle defaults"
       shell: bash
       env:
-        # A runner runs one build at a time, so it keeps the shared Kotlin daemon
-        # and a heap that fits the smallest hosted runners.
+        # Use one shared Kotlin daemon per job. Keep Gradle at 4 GB and leave
+        # room for native tools on macOS runners with 7 GB of RAM.
         CI_GRADLE_PROPERTIES: |
           kotlin.compiler.execution.strategy=daemon
           org.gradle.jvmargs=-Xmx4096m -Dfile.encoding=UTF-8
+          kotlin.daemon.jvmargs=-Xmx${{ runner.os == 'macOS' && '4g' || '6g' }}
       run: bash "$GITHUB_ACTION_PATH/setup_gradle_properties.sh"
     - name: "Configure Gradle daemon JDK (Windows ARM64)"
       if: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' }}

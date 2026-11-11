@@ -18,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Login
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.PhonelinkLock
 import androidx.compose.material.icons.outlined.Security
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -612,15 +613,55 @@ private fun LoginItemMutualTls(
     item: LoginStateItem.MutualTls,
 ) {
     val field by item.state.flow.collectAsState()
-    ClientCertificateField(
+    Column(
         modifier = modifier,
-        displayName = field.certificateMetadata?.displayName,
-        issuerText = field.certificateMetadata?.issuerText,
-        expiresText = field.certificateMetadata?.expiresText,
-        onPick = field.onPickFile,
-        onClear = field.onClearFile,
-        onFileDrop = field.onFileDrop,
-    )
+    ) {
+        ClientCertificateField(
+            displayName = field.certificateMetadata?.displayName,
+            issuerText = field.certificateMetadata?.issuerText,
+            expiresText = field.certificateMetadata?.expiresText,
+            onPick = field.onPickFile,
+            onClear = field.onClearFile,
+            onFileDrop = field.onFileDrop,
+        )
+        if (field.systemStore) {
+            LoginItemMutualTlsChooseSystem(
+                onClick = field.onChooseSystem,
+            )
+        }
+    }
+}
+
+/** Offers the certificates that the system keeps, next to importing a file. */
+@Composable
+private fun LoginItemMutualTlsChooseSystem(
+    onClick: (() -> Unit)?,
+) {
+    Button(
+        modifier = Modifier
+            .padding(top = 8.dp)
+            .padding(horizontal = Dimens.buttonHorizontalPadding),
+        enabled = onClick != null,
+        onClick = {
+            onClick?.invoke()
+        },
+        colors = ButtonDefaults.filledTonalButtonColors(),
+        elevation = ButtonDefaults.filledTonalButtonElevation(),
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(ButtonDefaults.IconSize),
+            imageVector = Icons.Outlined.PhonelinkLock,
+            contentDescription = null,
+        )
+        Spacer(
+            modifier = Modifier
+                .width(ButtonDefaults.IconSpacing),
+        )
+        Text(
+            text = stringResource(Res.string.client_certificate_system_choose),
+        )
+    }
 }
 
 @Composable

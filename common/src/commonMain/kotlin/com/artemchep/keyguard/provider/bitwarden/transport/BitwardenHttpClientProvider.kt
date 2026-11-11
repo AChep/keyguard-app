@@ -99,8 +99,13 @@ class BitwardenHttpClientProviderImpl(
     }
 }
 
-private fun ServerEnv.mutualTlsFingerprintOrNull(): String? =
-    (mutualTls as? ServerEnv.MutualTls.ImportedPkcs12)?.fingerprint
+/** Identifies the certificate among the clients; equal certificates share one. */
+private fun ServerEnv.mutualTlsFingerprintOrNull(): String? = when (val identity = mutualTls) {
+    is ServerEnv.MutualTls.ImportedPkcs12 -> identity.fingerprint
+    // A fingerprint is Base64, which has no colon: the two can not collide.
+    is ServerEnv.MutualTls.SystemStore -> "system_store:${identity.alias}"
+    null -> null
+}
 
 /** Signed storage URLs can point outside the account's configured servers. */
 fun BitwardenHttpClientProvider.clientForUrl(env: ServerEnv, url: String): HttpClient {

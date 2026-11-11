@@ -30,6 +30,9 @@ certificate replacement/removal, missing and untrusted identities, server CA
 and hostname validation, cross-origin redirect rejection, external transfers
 without a client identity, and WSS exchanges on a separate notifications origin.
 Timeouts fail the test; they do not count as successful rejection.
+On Android, a second test runs the same contract for certificates of the system
+store: its RSA and P-256 keys stay in the Android keystore, the kind of key the
+system key chain hands out.
 
 The extra sources are enabled by `-Pkeyguard.mtlsTests=true`, which the runner
 supplies. Enabled tests fail if the fixture is missing. CI runs the suite in the

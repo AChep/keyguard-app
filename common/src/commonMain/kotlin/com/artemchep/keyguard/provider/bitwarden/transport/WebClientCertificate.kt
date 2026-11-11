@@ -8,20 +8,20 @@ import com.artemchep.keyguard.provider.bitwarden.ServerEnv
  * the page embeds, must not get it.
  */
 class WebClientCertificate internal constructor(
-    internal val pkcs12Base64: String,
+    internal val mutualTls: ServerEnv.MutualTls,
     private val origins: Set<String>,
 ) {
     fun permits(host: String, port: Int): Boolean = mutualTlsOrigin(host, port) in origins
 
-    // The certificate bundle includes the private key.
+    // An imported certificate bundle includes the private key.
     override fun toString(): String = "WebClientCertificate(origins=$origins)"
 }
 
 fun ServerEnv.webClientCertificate(): WebClientCertificate? {
-    val identity = mutualTls as? ServerEnv.MutualTls.ImportedPkcs12
+    val identity = mutualTls
         ?: return null
     return WebClientCertificate(
-        pkcs12Base64 = identity.pkcs12Base64,
+        mutualTls = identity,
         origins = mutualTlsOrigins(),
     )
 }

@@ -16,6 +16,7 @@ import androidx.compose.material.icons.outlined.FileOpen
 import androidx.compose.material.icons.outlined.GppBad
 import androidx.compose.material.icons.outlined.GppGood
 import androidx.compose.material.icons.outlined.GppMaybe
+import androidx.compose.material.icons.outlined.PhonelinkLock
 import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -24,6 +25,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,6 +45,7 @@ import com.artemchep.keyguard.res.client_certificate_empty_title
 import com.artemchep.keyguard.res.client_certificate_expired
 import com.artemchep.keyguard.res.client_certificate_file_types
 import com.artemchep.keyguard.res.client_certificate_issuer
+import com.artemchep.keyguard.res.client_certificate_system_choose
 import com.artemchep.keyguard.res.client_certificate_unsaved
 import com.artemchep.keyguard.res.expires
 import com.artemchep.keyguard.res.valid_from
@@ -239,6 +242,9 @@ private fun ClientCertificateDate(
 @Composable
 fun ClientCertificateEmptyCard(
     onAdd: (() -> Unit)?,
+    /** Offers the certificates of the system too. */
+    systemStore: Boolean,
+    onChooseSystem: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -296,6 +302,29 @@ fun ClientCertificateEmptyCard(
                 .combineAlpha(MediumEmphasisAlpha),
             textAlign = TextAlign.Center,
         )
+        if (systemStore) ClientCertificateChooseSystemButton(onClick = onChooseSystem)
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun ClientCertificateChooseSystemButton(
+    onClick: (() -> Unit)?,
+) {
+    OutlinedButton(
+        modifier = Modifier
+            .padding(top = 12.dp)
+            .fillMaxWidth(),
+        shapes = ButtonDefaults.shapes(),
+        enabled = onClick != null,
+        onClick = {
+            onClick?.invoke()
+        },
+    ) {
+        ClientCertificateButtonContent(
+            icon = Icons.Outlined.PhonelinkLock,
+            text = stringResource(Res.string.client_certificate_system_choose),
+        )
     }
 }
 
@@ -313,20 +342,31 @@ private fun ClientCertificateAddButton(
             onClick?.invoke()
         },
     ) {
-        Icon(
-            modifier = Modifier
-                .size(ButtonDefaults.IconSize),
-            imageVector = Icons.Outlined.FileOpen,
-            contentDescription = null,
-        )
-        Spacer(
-            modifier = Modifier
-                .size(ButtonDefaults.IconSpacing),
-        )
-        Text(
+        ClientCertificateButtonContent(
+            icon = Icons.Outlined.FileOpen,
             text = stringResource(Res.string.client_certificate_add),
         )
     }
+}
+
+@Composable
+private fun ClientCertificateButtonContent(
+    icon: ImageVector,
+    text: String,
+) {
+    Icon(
+        modifier = Modifier
+            .size(ButtonDefaults.IconSize),
+        imageVector = icon,
+        contentDescription = null,
+    )
+    Spacer(
+        modifier = Modifier
+            .size(ButtonDefaults.IconSpacing),
+    )
+    Text(
+        text = text,
+    )
 }
 
 private data class ClientCertificateAppearance(

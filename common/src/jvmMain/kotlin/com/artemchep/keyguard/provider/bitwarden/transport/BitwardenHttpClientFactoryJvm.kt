@@ -3,7 +3,10 @@ package com.artemchep.keyguard.provider.bitwarden.transport
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.okhttp.OkHttp
+import java.io.IOException
 import java.security.KeyStore
+import java.security.cert.X509Certificate
+import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import kotlin.io.encoding.Base64
@@ -15,23 +18,35 @@ import okhttp3.OkHttpClient
 class BitwardenHttpClientFactoryJvm(
     private val baseOkHttpClient: OkHttpClient,
     private val json: Json,
+    /** `null` on platforms without a certificate store that apps can use. */
+    private val systemIdentities: MutualTlsSystemIdentities?,
 ) : BitwardenHttpClientFactory {
     override fun create(env: ServerEnv, origins: Set<String>): HttpClient {
-        val identity = requireNotNull(env.mutualTls as? ServerEnv.MutualTls.ImportedPkcs12)
-        val store = loadMutualTlsKeyStore(identity.pkcs12Base64)
-        val keys = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()).apply {
-            init(store, charArrayOf())
-        }.keyManagers
         val trustManager = requireNotNull(baseOkHttpClient.x509TrustManager)
-        val sslContext = SSLContext.getInstance("TLS").apply {
-            init(keys, arrayOf(trustManager), null)
-        }
-        val client = baseOkHttpClient.newBuilder()
+        val builder = baseOkHttpClient.newBuilder()
             .connectionPool(ConnectionPool())
             .dispatcher(Dispatcher())
             // Ktor follows redirects after checking every destination with the shared guard.
             .followRedirects(false)
             .followSslRedirects(false)
+        val keys: Array<KeyManager> = when (val identity = requireNotNull(env.mutualTls)) {
+            is ServerEnv.MutualTls.ImportedPkcs12 -> {
+                val store = loadMutualTlsKeyStore(identity.pkcs12Base64)
+                KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm()).apply {
+                    init(store, charArrayOf())
+                }.keyManagers
+            }
+
+            is ServerEnv.MutualTls.SystemStore -> {
+                val source = SystemStoreIdentitySource(identity, systemIdentities)
+                builder.addInterceptor(SystemStoreIdentityInterceptor(source))
+                arrayOf(SystemStoreKeyManager(source))
+            }
+        }
+        val sslContext = SSLContext.getInstance("TLS").apply {
+            init(keys, arrayOf(trustManager), null)
+        }
+        val client = builder
             .sslSocketFactory(sslContext.socketFactory, trustManager)
             .build()
         return HttpClient(OkHttp) {
@@ -53,9 +68,28 @@ internal fun loadMutualTlsKeyStore(pkcs12Base64: String): KeyStore {
     }
 }
 
-/** The single identity of the imported certificate, for platform web views. */
-internal fun WebClientCertificate.loadPrivateKeyEntry(): KeyStore.PrivateKeyEntry {
+/**
+ * The key and the certificate chain of the certificate, for platform web
+ * views. Blocks. Returns `null` if a certificate of the system's store is
+ * gone, or the platform has no such store.
+ */
+@Throws(IOException::class)
+internal fun ServerEnv.MutualTls.loadIdentity(
+    systemIdentities: MutualTlsSystemIdentities?,
+): MutualTlsIdentity? = when (this) {
+    is ServerEnv.MutualTls.ImportedPkcs12 -> loadIdentity()
+    is ServerEnv.MutualTls.SystemStore -> systemIdentities?.load(this)
+}
+
+/** The single identity of the imported certificate. */
+private fun ServerEnv.MutualTls.ImportedPkcs12.loadIdentity(): MutualTlsIdentity {
     val store = loadMutualTlsKeyStore(pkcs12Base64)
     val alias = store.aliases().toList().single(store::isKeyEntry)
-    return store.getEntry(alias, KeyStore.PasswordProtection(charArrayOf())) as KeyStore.PrivateKeyEntry
+    val entry = store.getEntry(alias, KeyStore.PasswordProtection(charArrayOf())) as KeyStore.PrivateKeyEntry
+    return MutualTlsIdentity(
+        privateKey = entry.privateKey,
+        chain = entry.certificateChain
+            .filterIsInstance<X509Certificate>()
+            .toTypedArray(),
+    )
 }

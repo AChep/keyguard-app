@@ -26,7 +26,7 @@ class BitwardenKeyConnectorMutualTlsTest {
         val ssl = SSLContext.getInstance("TLS").apply { init(null, arrayOf(trustedServer), null) }
         val okHttp = OkHttpClient.Builder().sslSocketFactory(ssl.socketFactory, trustedServer).build()
         val base = HttpClient(OkHttp) { engine { preconfigured = okHttp } }
-        val provider = BitwardenHttpClientProviderImpl(base, BitwardenHttpClientFactoryJvm(okHttp, Json))
+        val provider = BitwardenHttpClientProviderImpl(base, BitwardenHttpClientFactoryJvm(okHttp, Json, null))
         val imported = assertIs<MutualTlsImportResult.Success>(
             service.importPkcs12(identity.bundle(""), null),
         ).imported

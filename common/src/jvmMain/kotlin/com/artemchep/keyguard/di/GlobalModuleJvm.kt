@@ -186,7 +186,8 @@ class GlobalModuleJvm {
         single<GpgOpenPgpVerifier> {
             NativeGpgOpenPgpVerifier
         }
-        single<BitwardenHttpClientFactory> { BitwardenHttpClientFactoryJvm(get(), get()) }
+        // Only some platforms have a certificate store that apps can use.
+        single<BitwardenHttpClientFactory> { BitwardenHttpClientFactoryJvm(get(), get(), getOrNull()) }
         single<HttpClient> {
             val json: Json = get()
             val okHttpClient: OkHttpClient = get()

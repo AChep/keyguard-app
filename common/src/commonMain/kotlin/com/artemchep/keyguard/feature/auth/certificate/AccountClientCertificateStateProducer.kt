@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.feature.auth.certificate
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.artemchep.keyguard.common.io.bind
@@ -28,7 +29,8 @@ import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.isCustom
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsCertificateMetadata
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsService
-import com.artemchep.keyguard.provider.bitwarden.transport.describe
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsSystemStore
+import com.artemchep.keyguard.provider.bitwarden.transport.describeFlow
 import com.artemchep.keyguard.provider.bitwarden.usecase.AccountCertificateConflictException
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountMutualTls
 import com.artemchep.keyguard.res.Res
@@ -40,6 +42,7 @@ import com.artemchep.keyguard.res.client_certificate_removed
 import com.artemchep.keyguard.res.client_certificate_saved
 import com.artemchep.keyguard.res.client_certificate_serial_number
 import com.artemchep.keyguard.res.client_certificate_subject
+import com.artemchep.keyguard.res.client_certificate_system_missing_note
 import com.artemchep.keyguard.res.client_certificate_unavailable
 import com.artemchep.keyguard.res.copy
 import com.artemchep.keyguard.res.error_failed_unknown
@@ -56,9 +59,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -76,8 +79,12 @@ fun produceAccountClientCertificateState(accountId: String): Loadable<AccountCli
         val certificates = get<MutualTlsService>()
         val confirmations = get<ConfirmationRouteFactory>()
         val dates = get<DateFormatter>()
+        // Bound only on some platforms. Resolve once: Koin reports a missing binding by throwing.
+        val systemStore = remember(this) { getOrNull<MutualTlsSystemStore>() }
         produceScreenState(key = "account_client_certificate", initial = Loadable.Loading, args = arrayOf(accountId)) {
-            accountClientCertificateStateProducer(accountId, db, save, files, certificates, confirmations, dates)
+            accountClientCertificateStateProducer(
+                accountId, db, save, files, certificates, confirmations, dates, systemStore,
+            )
         }
     }
 
@@ -90,6 +97,8 @@ suspend fun RememberStateFlowScope.accountClientCertificateStateProducer(
     mutualTlsService: MutualTlsService,
     confirmationRouteFactory: ConfirmationRouteFactory,
     dateFormatter: DateFormatter,
+    /** `null` hides the option to choose a certificate of the system. */
+    mutualTlsSystemStore: MutualTlsSystemStore? = null,
 ): Flow<Loadable<AccountClientCertificateState>> {
     val accounts = db.get().bind().accountQueries.getByAccountId(accountId).asFlow()
         .mapToOneOrNull(Dispatchers.IO)
@@ -102,6 +111,7 @@ suspend fun RememberStateFlowScope.accountClientCertificateStateProducer(
     val copy = copier()
     var closed = false
     var importJob: Job? = null
+    var chooseJob: Job? = null
     fun canEdit() = !closed && screenScope.isActive && status.value.editable
     fun clear() {
         closed = true
@@ -111,6 +121,7 @@ suspend fun RememberStateFlowScope.accountClientCertificateStateProducer(
     fun close() {
         clear()
         importJob?.cancel()
+        chooseJob?.cancel()
         navigatePopSelf()
     }
     screenScope.coroutineContext[Job]?.invokeOnCompletion { clear() }
@@ -160,23 +171,34 @@ suspend fun RememberStateFlowScope.accountClientCertificateStateProducer(
         status.update { it.copy(confirmation = false) }
         if (canEdit() && expected != null) commit(null)
     }
+    // A certificate that arrives after the editor closed or lost its account is dropped.
+    fun stage(certificate: ServerEnv.MutualTls) {
+        val current = status.value
+        if (!closed && current.available && !current.conflict) draft.value = certificate
+    }
     fun importFile(info: FilePickerResult) {
         if (!canEdit()) return
         status.update { it.copy(busy = true) }
         importJob = screenScope.launch {
             try {
-                val imported = importClientCertificate(
-                    info, fileService, mutualTlsService, confirmationRouteFactory,
-                )?.imported
-                if (imported != null) {
-                    val current = status.value
-                    if (!closed && current.available && !current.conflict) draft.value = imported
-                }
+                importClientCertificate(info, fileService, mutualTlsService, confirmationRouteFactory)
+                    ?.imported
+                    ?.let(::stage)
             } finally {
                 status.update { it.copy(busy = false) }
             }
         }
     }
+    // The chooser does not make the editor busy: if the system
+    // never answers, the user can still pick a file or leave.
+    fun chooseSystem(store: MutualTlsSystemStore) {
+        if (!canEdit()) return
+        chooseJob?.cancel()
+        chooseJob = screenScope.launch {
+            chooseSystemClientCertificate(store, draft.value)?.let(::stage)
+        }
+    }
+    val onChooseSystem: (() -> Unit)? = mutualTlsSystemStore?.let { store -> { chooseSystem(store) } }
     fun pick() {
         if (!canEdit()) return
         filePicker.emit(FilePickerIntent.OpenDocument(
@@ -186,19 +208,21 @@ suspend fun RememberStateFlowScope.accountClientCertificateStateProducer(
             if (info != null) importFile(info)
         })
     }
-    val metadata = draft.mapLatest { certificate ->
-        certificate to mutualTlsService.describe(certificate)
+    val metadata = draft.flatMapLatest { certificate ->
+        mutualTlsService.describeFlow(certificate).map { details -> certificate to details }
     }
     return combine(metadata, status) { (certificate, details), statusValue ->
         val error = when {
             !statusValue.available -> Res.string.client_certificate_unavailable
             statusValue.conflict -> Res.string.client_certificate_conflict
+            certificate is ServerEnv.MutualTls.SystemStore && details == null ->
+                Res.string.client_certificate_system_missing_note
             certificate != null && details == null -> Res.string.addaccount_mutual_tls_status_failed
             else -> null
         }
         val editable = !closed && statusValue.editable
         Loadable.Ok(AccountClientCertificateState(
-            certificate = certificate?.let { certificateState(details, copy, dateFormatter) },
+            certificate = certificate?.let { certificateState(it, details, copy, dateFormatter) },
             unsaved = certificate != expected,
             note = error?.let { SimpleNote(translate(it), SimpleNote.Type.ERROR) },
             busy = statusValue.busy,
@@ -210,24 +234,30 @@ suspend fun RememberStateFlowScope.accountClientCertificateStateProducer(
             onConfirmRemoval = ::confirmRemoval,
             onDismissRemoval = { status.update { it.copy(confirmation = false) } },
             filePickerIntents = filePicker,
+            systemStore = onChooseSystem != null,
+            onChooseSystem = onChooseSystem.takeIf { editable },
         ))
     }
 }
 
 private suspend fun RememberStateFlowScope.certificateState(
+    certificate: ServerEnv.MutualTls,
     metadata: MutualTlsCertificateMetadata?,
     copy: CopyText,
     dateFormatter: DateFormatter,
 ): AccountClientCertificateState.Certificate {
+    val system = certificate as? ServerEnv.MutualTls.SystemStore
     if (metadata == null) {
         return AccountClientCertificateState.Certificate(
-            displayName = translate(Res.string.client_certificate),
+            displayName = system?.alias
+                ?: translate(Res.string.client_certificate),
             issuerName = null,
             status = null,
             validFrom = null,
             expiresOn = null,
             progress = null,
             details = emptyList(),
+            system = system != null,
         )
     }
     val now = Clock.System.now()
@@ -239,6 +269,7 @@ private suspend fun RememberStateFlowScope.certificateState(
         expiresOn = dateFormatter.formatDate(metadata.expiresAt),
         progress = metadata.lifetimeProgress(now),
         details = certificateDetails(metadata, copy),
+        system = system != null,
     )
 }
 

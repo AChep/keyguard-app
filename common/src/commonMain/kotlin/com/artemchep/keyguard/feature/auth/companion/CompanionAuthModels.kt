@@ -147,25 +147,34 @@ data class CompanionBitwardenEnvironment(
     )
 
     companion object {
-        fun of(env: ServerEnv) = CompanionBitwardenEnvironment(
-            baseUrl = env.baseUrl,
-            webVaultUrl = env.webVaultUrl,
-            apiUrl = env.apiUrl,
-            identityUrl = env.identityUrl,
-            iconsUrl = env.iconsUrl,
-            notificationsUrl = env.notificationsUrl,
-            mutualTls = env.mutualTls,
-            region = when (env.region) {
-                ServerEnv.Region.US -> Region.US
-                ServerEnv.Region.EU -> Region.EU
-            },
-            headers = env.headers.map { header ->
-                Header(
-                    key = header.key,
-                    value = header.value,
+        fun of(env: ServerEnv): CompanionBitwardenEnvironment {
+            when (env.mutualTls) {
+                is ServerEnv.MutualTls.ImportedPkcs12, null -> Unit
+                // The private key of such a certificate never leaves this device.
+                is ServerEnv.MutualTls.SystemStore -> throw IllegalArgumentException(
+                    "A certificate of the system store can not be sent to another device.",
                 )
-            },
-        )
+            }
+            return CompanionBitwardenEnvironment(
+                baseUrl = env.baseUrl,
+                webVaultUrl = env.webVaultUrl,
+                apiUrl = env.apiUrl,
+                identityUrl = env.identityUrl,
+                iconsUrl = env.iconsUrl,
+                notificationsUrl = env.notificationsUrl,
+                mutualTls = env.mutualTls,
+                region = when (env.region) {
+                    ServerEnv.Region.US -> Region.US
+                    ServerEnv.Region.EU -> Region.EU
+                },
+                headers = env.headers.map { header ->
+                    Header(
+                        key = header.key,
+                        value = header.value,
+                    )
+                },
+            )
+        }
     }
 }
 

@@ -2983,6 +2983,15 @@
     <string name="client_certificate_serial_number">Serial number</string>
     <string name="client_certificate_fingerprint_sha256">SHA-256 fingerprint</string>
     <string name="client_certificate_drop_here">Drop a .p12 or .pfx file to use it</string>
+    <!-- Opens the certificate chooser of the operating system. -->
+    <string name="client_certificate_system_choose">Choose from device</string>
+    <string name="client_certificate_system_choose_text">Certificate installed on this device</string>
+    <string name="client_certificate_system_note">Keyguard presents this certificate when it connects to this server. Its private key stays in the certificate store of this device.</string>
+    <!-- Status of a certificate that was removed from the operating system. -->
+    <string name="client_certificate_system_missing">Not available on this device</string>
+    <string name="client_certificate_system_missing_note">This certificate is no longer available on this device. Choose it again.</string>
+    <string name="client_certificate_system_none">No certificate selected</string>
+    <string name="client_certificate_system_none_text">Install one in the device settings.</string>
     <!-- Compact counts. %1$s is an already localized number with at most one decimal place. -->
     <string name="number_compact_thousand" translatable="false">%1$sK</string>
     <string name="number_compact_million" translatable="false">%1$sM</string>

@@ -22,6 +22,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
@@ -31,18 +32,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import arrow.core.left
 import arrow.core.right
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsSystemIdentities
 import com.artemchep.keyguard.provider.bitwarden.transport.WebClientCertificate
-import com.artemchep.keyguard.provider.bitwarden.transport.loadPrivateKeyEntry
+import com.artemchep.keyguard.provider.bitwarden.transport.loadIdentity
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.util.DividerColor
-import java.security.cert.X509Certificate
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.currentKoinScope
 
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
@@ -172,6 +174,10 @@ actual fun ColumnScope.LoginOtpScreenContentDuoWebView(
 ) {
     val updatedOnComplete by rememberUpdatedState(state.onComplete)
     val clientCertificate = state.clientCertificate
+    // Bound only on some platforms. Resolve once: Koin reports a missing binding by throwing.
+    val systemIdentities = with(currentKoinScope()) {
+        remember(this) { getOrNull<MutualTlsSystemIdentities>() }
+    }
     val scope = rememberCoroutineScope()
     BaseWebView(
         modifier = Modifier
@@ -213,7 +219,7 @@ actual fun ColumnScope.LoginOtpScreenContentDuoWebView(
 
                 override fun onReceivedClientCertRequest(view: WebView?, request: ClientCertRequest) {
                     scope.launch {
-                        request.answer(clientCertificate)
+                        request.answer(clientCertificate, systemIdentities)
                     }
                 }
             }
@@ -226,21 +232,22 @@ actual fun ColumnScope.LoginOtpScreenContentDuoWebView(
  * Presents the account's certificate to the account's servers only;
  * the Duo frame that the connector page embeds must not get it.
  */
-private suspend fun ClientCertRequest.answer(certificate: WebClientCertificate?) {
+private suspend fun ClientCertRequest.answer(
+    certificate: WebClientCertificate?,
+    systemIdentities: MutualTlsSystemIdentities?,
+) {
     var answered = false
     try {
-        val entry = certificate
+        val identity = certificate
             ?.takeIf { it.permits(host, port) }
             ?.let {
-                withContext(Dispatchers.Default) {
-                    runCatching { it.loadPrivateKeyEntry() }.getOrNull()
+                // Reading the system's certificate store blocks.
+                withContext(Dispatchers.IO) {
+                    runCatching { it.mutualTls.loadIdentity(systemIdentities) }.getOrNull()
                 }
             }
-        if (entry != null) {
-            val chain = entry.certificateChain
-                .filterIsInstance<X509Certificate>()
-                .toTypedArray()
-            proceed(entry.privateKey, chain)
+        if (identity != null) {
+            proceed(identity.privateKey, identity.chain)
         } else {
             cancel()
         }

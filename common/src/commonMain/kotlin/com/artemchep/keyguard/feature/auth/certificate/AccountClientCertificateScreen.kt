@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material.icons.outlined.FileOpen
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.PhonelinkLock
 import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -45,6 +46,9 @@ import com.artemchep.keyguard.res.client_certificate_remove
 import com.artemchep.keyguard.res.client_certificate_remove_note
 import com.artemchep.keyguard.res.client_certificate_remove_title
 import com.artemchep.keyguard.res.client_certificate_replace
+import com.artemchep.keyguard.res.client_certificate_system_choose
+import com.artemchep.keyguard.res.client_certificate_system_choose_text
+import com.artemchep.keyguard.res.client_certificate_system_note
 import com.artemchep.keyguard.res.save
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultProgressBar
@@ -132,6 +136,8 @@ private fun LazyListScope.certificateItems(state: AccountClientCertificateState)
             ClientCertificateEmptyCard(
                 modifier = Modifier.animateItem(),
                 onAdd = state.onImport,
+                systemStore = state.systemStore,
+                onChooseSystem = state.onChooseSystem,
             )
         }
     } else {
@@ -140,6 +146,7 @@ private fun LazyListScope.certificateItems(state: AccountClientCertificateState)
     item("footer") {
         ClientCertificateNote(
             modifier = Modifier.animateItem(),
+            system = certificate?.system == true,
         )
     }
 }
@@ -164,6 +171,18 @@ private fun LazyListScope.configuredCertificateItems(
             text = { Text(stringResource(Res.string.client_certificate_file_types)) },
             onClick = state.onImport,
         )
+    }
+    if (state.systemStore) {
+        item("choose_system") {
+            FlatItemSimpleExpressive(
+                modifier = Modifier.animateItem(),
+                shapeState = ShapeState.CENTER,
+                leading = icon<RowScope>(Icons.Outlined.PhonelinkLock),
+                title = { Text(stringResource(Res.string.client_certificate_system_choose)) },
+                text = { Text(stringResource(Res.string.client_certificate_system_choose_text)) },
+                onClick = state.onChooseSystem,
+            )
+        }
     }
     item("remove") {
         FlatItemSimpleExpressive(
@@ -193,6 +212,8 @@ private fun LazyListScope.configuredCertificateItems(
 
 @Composable
 private fun ClientCertificateNote(
+    /** The private key stays in the certificate store of the system. */
+    system: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(
@@ -216,7 +237,10 @@ private fun ClientCertificateNote(
         Text(
             modifier = Modifier
                 .padding(horizontal = Dimens.textHorizontalPadding),
-            text = stringResource(Res.string.client_certificate_note),
+            text = stringResource(
+                if (system) Res.string.client_certificate_system_note
+                else Res.string.client_certificate_note,
+            ),
             style = MaterialTheme.typography.bodyMedium,
             color = LocalContentColor.current.combineAlpha(alpha = MediumEmphasisAlpha),
         )

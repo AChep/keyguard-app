@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.auth.certificate
 
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.model.AccountId
+import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.file.FileService
@@ -22,17 +23,22 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultReceiver
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.nativecrypto.NativeCryptoPkcs12
+import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.platform.leParseUri
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestMarkBackupAsDirty
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
+import com.artemchep.keyguard.provider.bitwarden.transport.FakeMutualTlsSystemStore
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsCertificateMetadata
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsImportResult
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsService
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsSystemStore
 import com.artemchep.keyguard.provider.bitwarden.usecase.PutAccountMutualTls
 import java.lang.reflect.Proxy
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,6 +46,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.filterNotNull
@@ -59,6 +66,7 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
+@Suppress("TooManyFunctions")
 class ClientCertificateEditorTest {
     @Test
     fun `wrong password retries without rereading and clears file bytes after import`() = runBlocking {
@@ -186,7 +194,7 @@ class ClientCertificateEditorTest {
 
     @Test
     fun `dropped file is staged and an unsaved draft is discarded without asking`() = runBlocking {
-        val fixture = Fixture(saved = false)
+        val fixture = Fixture(original = null)
         try {
             val states = fixture.states()
             val empty = states.await { it.certificate == null && it.onFileDrop != null }
@@ -199,6 +207,75 @@ class ClientCertificateEditorTest {
             assertFalse(discarded.confirmRemoval)
             assertFalse(discarded.unsaved)
             assertNull(fixture.current().env.mutualTls)
+        } finally { fixture.scope.cancel() }
+    }
+
+    @Test
+    fun `certificate of the system store is staged and saved as its alias`() = runBlocking {
+        val fixture = Fixture()
+        try {
+            val chosen = ServerEnv.MutualTls.SystemStore("work laptop")
+            fixture.systemStore.answer = chosen
+            val states = fixture.states(fixture.systemStore)
+            val original = states.await { it.certificate?.displayName == "original" }
+            assertTrue(original.systemStore)
+            assertFalse(original.certificate!!.system)
+            original.onChooseSystem!!.invoke()
+            val staged = states.await { it.certificate?.displayName == "work laptop" }
+            assertTrue(staged.certificate!!.system)
+            assertTrue(staged.unsaved)
+            assertEquals(fixture.original, fixture.current().env.mutualTls)
+            staged.onSave!!.invoke()
+            withTimeout(5_000) {
+                while (fixture.current().env.mutualTls != chosen) delay(10)
+            }
+        } finally { fixture.scope.cancel() }
+    }
+
+    @Test
+    fun `choosing the same system certificate again clears the missing note`() = runBlocking {
+        val saved = ServerEnv.MutualTls.SystemStore("work laptop")
+        val fixture = Fixture(original = saved)
+        try {
+            fixture.service.missing += saved.alias
+            fixture.systemStore.answer = saved
+            val states = fixture.states(fixture.systemStore)
+            val missing = states.await { it.certificate != null && it.note != null }
+            assertEquals("work laptop", missing.certificate!!.displayName)
+            assertNull(missing.certificate!!.status)
+            assertNull(missing.onSave)
+            // Choosing the certificate again is how the system grants the access back.
+            fixture.service.missing.clear()
+            missing.onChooseSystem!!.invoke()
+            val restored = states.await { it.note == null && it.certificate?.status != null }
+            assertFalse(restored.unsaved)
+            assertEquals(listOf<ServerEnv.MutualTls.SystemStore?>(saved), fixture.systemStore.preselected)
+        } finally { fixture.scope.cancel() }
+    }
+
+    @Test
+    fun `dismissed chooser keeps the certificate and tells the user`() = runBlocking {
+        val fixture = Fixture()
+        try {
+            val states = fixture.states(fixture.systemStore)
+            states.await { it.certificate?.displayName == "original" }.onChooseSystem!!.invoke()
+            withTimeout(5_000) {
+                while (fixture.messages.isEmpty()) delay(10)
+            }
+            assertEquals(ToastMessage.Type.INFO, fixture.messages.single().type)
+            val state = states.await { it.certificate != null }
+            assertEquals("original", state.certificate!!.displayName)
+            assertFalse(state.unsaved)
+        } finally { fixture.scope.cancel() }
+    }
+
+    @Test
+    fun `system store is not offered where the platform has none`() = runBlocking {
+        val fixture = Fixture()
+        try {
+            val state = fixture.states().await { it.certificate != null }
+            assertFalse(state.systemStore)
+            assertNull(state.onChooseSystem)
         } finally { fixture.scope.cancel() }
     }
 
@@ -229,9 +306,10 @@ class ClientCertificateEditorTest {
         } finally { fixture.scope.cancel() }
     }
 
-    private class Fixture(saved: Boolean = true) {
+    private class Fixture(
+        val original: ServerEnv.MutualTls? = ServerEnv.MutualTls.ImportedPkcs12("original"),
+    ) {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-        val original = ServerEnv.MutualTls.ImportedPkcs12("original").takeIf { saved }
         val imported = ServerEnv.MutualTls.ImportedPkcs12("replacement")
         val database = createUploadTestDatabase().apply { insertUploadTestAccount() }
         val manager = UploadTestVaultDatabaseManager(database)
@@ -260,7 +338,9 @@ class ClientCertificateEditorTest {
                 return true
             }
         }
-        val service = FakeCertificates(imported)
+        val systemStore = FakeMutualTlsSystemStore()
+        val service = FakeCertificates(imported, systemStore)
+        val messages = CopyOnWriteArrayList<ToastMessage>()
         val save = PutAccountMutualTls(
             manager, UploadTestMarkBackupAsDirty,
             object : QueueSyncById { override fun invoke(accountId: AccountId) = io(Unit) },
@@ -271,9 +351,13 @@ class ClientCertificateEditorTest {
                 "getCoroutineContext" -> scope.coroutineContext
                 "getAppScope", "getScreenScope" -> scope
                 "getScreenId" -> "certificate"
+                "getContext" -> LeContext()
                 "copier" -> CopyText(fake<ClipboardService> { _, _ -> Unit }, screen, onMessage = {})
                 "translate" -> "Test"
-                "message" -> Unit
+                "message" -> {
+                    messages += args[0] as ToastMessage
+                    Unit
+                }
                 "isScreenClosed" -> true
                 "navigate" -> {
                     val intent = args[0]
@@ -301,9 +385,12 @@ class ClientCertificateEditorTest {
             info, files, service, ConfirmationRouteFactoryDefault,
         )?.imported
 
-        suspend fun states() = screen.accountClientCertificateStateProducer(
+        suspend fun states(
+            systemStore: MutualTlsSystemStore? = null,
+        ) = screen.accountClientCertificateStateProducer(
             initial.id, manager, save, files, service,
             ConfirmationRouteFactoryDefault, fake<DateFormatter> { _, _ -> "2020-01-01" },
+            systemStore,
         ).map { it.getOrNull() }.stateIn(scope, SharingStarted.Eagerly, null)
 
         suspend fun pick(state: AccountClientCertificateState) {
@@ -322,7 +409,10 @@ class ClientCertificateEditorTest {
         predicate: (AccountClientCertificateState) -> Boolean,
     ) = withTimeout(5_000) { filterNotNull().first(predicate) }
 
-    private class FakeCertificates(imported: ServerEnv.MutualTls.ImportedPkcs12) : MutualTlsService {
+    private class FakeCertificates(
+        imported: ServerEnv.MutualTls.ImportedPkcs12,
+        systemStore: MutualTlsSystemStore,
+    ) : MutualTlsService {
         val attempts = mutableListOf<String?>()
         var bytes: ByteArray? = null
         var result: (String?) -> MutualTlsImportResult = {
@@ -334,6 +424,12 @@ class ClientCertificateEditorTest {
             return result(password)
         }
         override fun describeImportedPkcs12(pkcs12Base64: String) = metadata(pkcs12Base64)
+
+        /** The aliases that are gone from the store of the system. */
+        val missing: MutableSet<String> = ConcurrentHashMap.newKeySet()
+        override suspend fun describeSystemStore(certificate: ServerEnv.MutualTls.SystemStore) =
+            metadata(certificate.alias).takeIf { certificate.alias !in missing }
+        override val systemStoreChanges = systemStore.changes
     }
 }
 

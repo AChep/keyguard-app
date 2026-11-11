@@ -30,6 +30,9 @@ import com.artemchep.keyguard.billing.BillingManager
 import com.artemchep.keyguard.billing.BillingManagerImpl
 import com.artemchep.keyguard.common.di.ImageLoadingModule
 import com.artemchep.keyguard.feature.p2pwebrtc.WebRtcTransportFactory
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsSystemIdentities
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsSystemStore
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsSystemStoreAndroid
 import com.artemchep.keyguard.provider.keyguard.transport.KeyguardTransportFactory
 import com.artemchep.keyguard.common.di.setFromKoin
 import com.artemchep.keyguard.common.io.*
@@ -63,6 +66,7 @@ import java.util.*
 import kotlin.time.ExperimentalTime
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.*
+import org.koin.dsl.binds
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
 
@@ -124,6 +128,9 @@ private class PhoneApplicationModule(
         factory<PasskeyHybridRouteFactory> { AndroidPasskeyHybridRouteFactory }
         // Linked devices sync over WebRTC, falling back to the relay.
         single<KeyguardTransportFactory> { KeyguardTransportFactory.preferring(WebRtcTransportFactory()) }
+        // A watch has no certificate chooser, so only the phone binds the store.
+        single { MutualTlsSystemStoreAndroid(context = application()) } binds
+            arrayOf(MutualTlsSystemStore::class, MutualTlsSystemIdentities::class)
     }
 }
 

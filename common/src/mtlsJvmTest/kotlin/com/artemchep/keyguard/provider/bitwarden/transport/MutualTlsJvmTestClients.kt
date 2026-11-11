@@ -12,7 +12,11 @@ import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
 
-fun mutualTlsJvmTestClients(ca: ByteArray): Pair<HttpClient, BitwardenHttpClientFactory> {
+fun mutualTlsJvmTestClients(
+    ca: ByteArray,
+    /** Stands in for the certificate store of the system. */
+    systemIdentities: MutualTlsSystemIdentities? = null,
+): Pair<HttpClient, BitwardenHttpClientFactory> {
     val store = KeyStore.getInstance(KeyStore.getDefaultType()).apply {
         load(null)
         setCertificateEntry("fixture", CertificateFactory.getInstance("X.509").generateCertificate(ca.inputStream()))
@@ -25,5 +29,5 @@ fun mutualTlsJvmTestClients(ca: ByteArray): Pair<HttpClient, BitwardenHttpClient
         engine { preconfigured = okHttp }
         configureKeyguardHttpClient(Json, KeyguardHttpUserAgent.Bitwarden)
     }
-    return base to BitwardenHttpClientFactoryJvm(okHttp, Json)
+    return base to BitwardenHttpClientFactoryJvm(okHttp, Json, systemIdentities)
 }

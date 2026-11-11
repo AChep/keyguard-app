@@ -9,6 +9,7 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.jsonObject
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
@@ -132,6 +133,58 @@ class BitwardenTokenEnvironmentTest {
         )
         val restored = json.decodeFromString(CompanionBitwardenEnvironment.serializer(), encoded).toServerEnv()
         assertEquals(env, restored)
+    }
+
+    @Test
+    fun `system store certificate round trips as its alias`() {
+        val env = BitwardenToken.Environment.of(
+            ServerEnv(
+                baseUrl = "https://vault.example.com",
+                mutualTls = ServerEnv.MutualTls.SystemStore(alias = "work laptop"),
+            ),
+        )
+
+        val decoded = roundTrip(env)
+
+        assertEquals(env.mutualTls, decoded.mutualTls)
+        assertEquals(env.mutualTls, decoded.back().mutualTls)
+    }
+
+    @Test
+    fun `stored certificates keep their type names`() {
+        // An account saved by one version of the app must stay readable by the next.
+        fun stored(mutualTls: ServerEnv.MutualTls) = json.encodeToJsonElement(
+            BitwardenToken.Environment.serializer(),
+            BitwardenToken.Environment(mutualTls = mutualTls),
+        ).jsonObject.getValue("mutualTls")
+
+        assertEquals(
+            buildJsonObject {
+                put("type", JsonPrimitive("imported_pkcs12"))
+                put("pkcs12Base64", JsonPrimitive("Zm9v"))
+            },
+            stored(ServerEnv.MutualTls.ImportedPkcs12(pkcs12Base64 = "Zm9v")),
+        )
+        assertEquals(
+            buildJsonObject {
+                put("type", JsonPrimitive("system_store"))
+                put("alias", JsonPrimitive("work laptop"))
+            },
+            stored(ServerEnv.MutualTls.SystemStore(alias = "work laptop")),
+        )
+    }
+
+    @Test
+    fun `companion transfer rejects a certificate of the system store`() {
+        // Its private key stays on the phone, so the watch could not use it.
+        val env = ServerEnv(
+            baseUrl = "https://vault.example.test",
+            mutualTls = ServerEnv.MutualTls.SystemStore(alias = "work laptop"),
+        )
+
+        assertFailsWith<IllegalArgumentException> {
+            CompanionBitwardenEnvironment.of(env)
+        }
     }
 
     private fun roundTrip(

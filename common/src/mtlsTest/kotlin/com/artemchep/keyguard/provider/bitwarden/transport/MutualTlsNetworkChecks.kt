@@ -25,18 +25,22 @@ suspend fun verifyMutualTlsTransport(
     port: String?,
     bootstrap: HttpClient,
     clients: (ca: ByteArray) -> Pair<HttpClient, BitwardenHttpClientFactory>,
+    /** How an account refers to the fixture identity [name]; by default, as the imported bundle itself. */
+    certificate: (name: String, imported: ServerEnv.MutualTls.ImportedPkcs12) -> ServerEnv.MutualTls =
+        { _, imported -> imported },
 ) = withTimeout(60_000) {
     assertNotNull(port, "Run this suite with scripts/run_mtls_tests.py")
     val controlUrl = "http://localhost:$port/"
     val fixture = Json.parseToJsonElement(bootstrap.read(controlUrl + "fixture")).jsonObject
     fun field(name: String) = fixture.getValue(name).jsonPrimitive.content
-    fun identity(name: String): ServerEnv.MutualTls.ImportedPkcs12 {
+    fun identity(name: String): ServerEnv.MutualTls {
         val bytes = Base64.decode(field(name))
-        return try {
+        val imported = try {
             assertIs<MutualTlsImportResult.Success>(MutualTlsServiceNative().importPkcs12(bytes, "fixture")).imported
         } finally {
             bytes.fill(0)
         }
+        return certificate(name, imported)
     }
     val env = ServerEnv(
         baseUrl = field("baseUrl"),

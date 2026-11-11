@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.provider.bitwarden.api.builder
 
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsCertificateMissingException
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsOriginException
 import io.ktor.client.network.sockets.ConnectTimeoutException
 import io.ktor.client.network.sockets.SocketTimeoutException
@@ -16,11 +17,12 @@ fun HttpRequestRetryConfig.configureBitwardenHttpRetry(
         response.status == HttpStatusCode.TooManyRequests ||
                 response.status.value in 500..599
     }
-    // Same as the default, except for a request that the client
-    // must not send: it fails the same way every time.
+    // Same as the default, except for a request that the client must not
+    // or can not send: it fails the same way every time.
     retryOnExceptionIf { _, cause ->
         when (cause) {
             is MutualTlsOriginException,
+            is MutualTlsCertificateMissingException,
             is HttpRequestTimeoutException,
             is ConnectTimeoutException,
             is SocketTimeoutException,

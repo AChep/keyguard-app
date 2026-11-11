@@ -6,8 +6,19 @@ import com.artemchep.keyguard.nativecrypto.NativePkcs12Result
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import kotlin.io.encoding.Base64
 import kotlin.time.Instant
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 
-class MutualTlsServiceNative : MutualTlsService {
+class MutualTlsServiceNative(
+    /** `null` on platforms without a certificate store that apps can use. */
+    private val systemStore: MutualTlsSystemStore? = null,
+) : MutualTlsService {
+    override val systemStoreChanges: Flow<Unit> = systemStore?.changes ?: flowOf(Unit)
+
+    override suspend fun describeSystemStore(
+        certificate: ServerEnv.MutualTls.SystemStore,
+    ): MutualTlsCertificateMetadata? = systemStore?.describe(certificate)
+
     override fun importPkcs12(sourcePkcs12: ByteArray, password: String?): MutualTlsImportResult =
         when (val result = NativeCryptoPkcs12.process(sourcePkcs12, password)) {
             is NativePkcs12Result.Success -> try {
@@ -57,4 +68,5 @@ private val ColonHexFormat = HexFormat {
     bytes.byteSeparator = ":"
 }
 
-private fun ByteArray.toColonHex() = toHexString(ColonHexFormat)
+/** Colon-separated uppercase hex, the form [MutualTlsCertificateMetadata] uses. */
+internal fun ByteArray.toColonHex() = toHexString(ColonHexFormat)

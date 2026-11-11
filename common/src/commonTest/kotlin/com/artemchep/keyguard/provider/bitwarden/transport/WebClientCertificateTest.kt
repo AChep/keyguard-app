@@ -30,6 +30,16 @@ class WebClientCertificateTest {
     }
 
     @Test
+    fun `a certificate of the system store follows the same rules`() {
+        val certificate = env
+            .copy(mutualTls = ServerEnv.MutualTls.SystemStore(alias = "work laptop"))
+            .webClientCertificate()!!
+
+        assertTrue(certificate.permits("vault.example.com", 443))
+        assertFalse(certificate.permits("api.duosecurity.com", 443))
+    }
+
+    @Test
     fun `accounts without a certificate have none for web pages`() {
         assertNull(env.copy(mutualTls = null).webClientCertificate())
     }

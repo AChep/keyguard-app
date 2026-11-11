@@ -11,12 +11,15 @@ import com.artemchep.keyguard.feature.loading.LoadingTask
 import com.artemchep.keyguard.feature.navigation.state.DiskHandle
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
+import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerTwoFactorToken
 import com.artemchep.keyguard.provider.bitwarden.model.ServerDiscoveryCandidate
+import com.artemchep.keyguard.provider.bitwarden.transport.FakeMutualTlsSystemStore
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsCertificateMetadata
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsImportResult
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsService
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsSystemStore
 import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServer
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import java.lang.reflect.InvocationHandler
@@ -379,6 +382,52 @@ class BitwardenLoginCertificateTest {
         assertTrue(harness.submittedEnvironments.isEmpty())
     }
 
+    @Test
+    fun `certificate chosen from the system store reaches sign in`() = runTest {
+        val chosen = ServerEnv.MutualTls.SystemStore("work laptop")
+        val store = FakeMutualTlsSystemStore(chosen)
+        val harness = Harness(this, emptyMap(), args = args, systemStore = store)
+        val states = harness.states()
+        runCurrent()
+        assertTrue(states.login().certificate().systemStore)
+
+        assertNotNull(states.login().certificate().onChooseSystem).invoke()
+        runCurrent()
+        assertEquals(chosen, states.login().certificate().certificate)
+        assertNotNull(states.login().certificate().certificateMetadata)
+        assertNotNull(states.login().onLoginClick).invoke()
+        runCurrent()
+
+        assertEquals(chosen, harness.submittedEnvironments.single().mutualTls)
+        // The chooser preselects a system certificate only, never a file.
+        assertEquals(listOf<ServerEnv.MutualTls.SystemStore?>(null), store.preselected)
+        assertTrue(harness.errors.isEmpty())
+    }
+
+    @Test
+    fun `dismissed chooser keeps the selected certificate and tells the user`() = runTest {
+        val harness = Harness(this, emptyMap(), args = args, systemStore = FakeMutualTlsSystemStore())
+        val states = harness.states()
+        runCurrent()
+
+        assertNotNull(states.login().certificate().onChooseSystem).invoke()
+        runCurrent()
+
+        assertEquals(identity, states.login().certificate().certificate)
+        assertEquals(ToastMessage.Type.INFO, harness.messages.single().type)
+        assertTrue(harness.errors.isEmpty())
+    }
+
+    @Test
+    fun `system store is not offered where the platform has none`() = runTest {
+        val harness = Harness(this, emptyMap(), args = args)
+        val states = harness.states()
+        runCurrent()
+
+        assertFalse(states.login().certificate().systemStore)
+        assertNull(states.login().certificate().onChooseSystem)
+    }
+
     private fun LoginState.certificate() = items
         .filterIsInstance<LoginStateItem.MutualTls>()
         .single().state.flow.value
@@ -429,6 +478,7 @@ private class Harness(
     private val failures: Set<String> = emptySet(),
     private val isSsoAvailable: Boolean = false,
     private val certificateReadable: Boolean = true,
+    private val systemStore: MutualTlsSystemStore? = null,
 ) {
     val queries = mutableListOf<String>()
     val messages = mutableListOf<ToastMessage>()
@@ -479,21 +529,30 @@ private class Harness(
                     error("Unexpected certificate import")
 
                 override fun describeImportedPkcs12(pkcs12Base64: String): MutualTlsCertificateMetadata? =
-                    MutualTlsCertificateMetadata(
-                        displayName = "Selected test client",
-                        subject = "CN=Selected test client",
-                        issuer = "CN=Test CA",
-                        issuerName = "Test CA",
-                        validFrom = Instant.parse("2026-11-02T00:00:00Z"),
-                        expiresAt = Instant.parse("2126-11-02T00:00:00Z"),
-                        serialNumber = "01",
-                        sha256Fingerprint = "AB:CD",
-                        keyType = "RSA 2048",
-                    ).takeIf { certificateReadable }
+                    metadata()
+
+                override suspend fun describeSystemStore(
+                    certificate: ServerEnv.MutualTls.SystemStore,
+                ): MutualTlsCertificateMetadata? = metadata()
+
+                override val systemStoreChanges = systemStore?.changes ?: flowOf(Unit)
+
+                private fun metadata() = MutualTlsCertificateMetadata(
+                    displayName = "Selected test client",
+                    subject = "CN=Selected test client",
+                    issuer = "CN=Test CA",
+                    issuerName = "Test CA",
+                    validFrom = Instant.parse("2026-11-02T00:00:00Z"),
+                    expiresAt = Instant.parse("2126-11-02T00:00:00Z"),
+                    serialNumber = "01",
+                    sha256Fingerprint = "AB:CD",
+                    keyType = "RSA 2048",
+                ).takeIf { certificateReadable }
             },
             confirmationRouteFactory = unused(),
             discoverBitwardenServer = discoverBitwardenServer,
             args = args,
+            mutualTlsSystemStore = systemStore,
         )
         .stateIn(scope, SharingStarted.Eagerly, null)
 
@@ -510,6 +569,7 @@ private class Harness(
             when (method) {
                 "getCoroutineContext" -> scope.coroutineContext
                 "getAppScope", "getScreenScope" -> scope
+                "getContext" -> LeContext()
                 "isStartedFlow" -> flowOf(false)
                 "loadDiskHandle" -> disk
                 "translate" -> "Test"

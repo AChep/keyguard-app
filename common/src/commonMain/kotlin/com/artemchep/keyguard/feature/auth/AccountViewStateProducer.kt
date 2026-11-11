@@ -6,7 +6,7 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.Dispatchers
 import kotlin.time.Clock
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsService
-import com.artemchep.keyguard.provider.bitwarden.transport.describe
+import com.artemchep.keyguard.provider.bitwarden.transport.describeFlow
 import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.isCustom
 import com.artemchep.keyguard.feature.auth.certificate.AccountClientCertificateRoute
@@ -144,7 +144,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.toList
 import org.koin.compose.currentKoinScope
@@ -476,15 +478,24 @@ suspend fun RememberStateFlowScope.accountStateProducer(
     val certificateFlow = tokenFlow
         .map { it?.env }
         .distinctUntilChanged()
-        .map { env ->
-            if (env == null || !env.back().isCustom() || CurrentPlatform.hasWatch()) return@map null
-            val metadata = mutualTlsService.describe(env.mutualTls)
+        .flatMapLatest { env ->
+            val shown = env?.takeIf { it.back().isCustom() && !CurrentPlatform.hasWatch() }
+                ?: return@flatMapLatest flowOf(null)
+            // A certificate of the system's store can change while the account stays the same.
+            mutualTlsService.describeFlow(shown.mutualTls).map { metadata -> shown to metadata }
+        }
+        .map { described ->
+            val (env, metadata) = described
+                ?: return@map null
             val status = metadata?.status(Clock.System.now())
             VaultViewItem.Action(
                 id = "client_certificate",
                 title = translate(Res.string.client_certificate),
                 text = when {
                     metadata != null -> metadata.displayName
+                    env.mutualTls is ServerEnv.MutualTls.SystemStore ->
+                        translate(Res.string.client_certificate_system_missing)
+
                     env.mutualTls != null -> translate(Res.string.addaccount_mutual_tls_status_failed)
                     else -> translate(Res.string.client_certificate_not_configured)
                 },

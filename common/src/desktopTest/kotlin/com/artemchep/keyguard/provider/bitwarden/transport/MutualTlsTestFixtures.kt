@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.bitwarden.transport
 
+import com.artemchep.keyguard.platform.LeContext
+import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.sun.net.httpserver.HttpsConfigurator
 import com.sun.net.httpserver.HttpsParameters
 import com.sun.net.httpserver.HttpsServer
@@ -16,7 +18,9 @@ import java.math.BigInteger
 import java.net.InetSocketAddress
 import java.security.KeyPairGenerator
 import java.security.KeyStore
+import java.security.PrivateKey
 import java.security.cert.X509Certificate
+import java.security.spec.ECGenParameterSpec
 import java.util.Date
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.atomic.AtomicInteger
@@ -24,10 +28,19 @@ import javax.net.ssl.KeyManagerFactory
 import javax.net.ssl.SSLContext
 import javax.net.ssl.TrustManagerFactory
 import javax.net.ssl.X509TrustManager
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 
-internal class TestIdentity(name: String) {
+internal class TestIdentity(name: String, elliptic: Boolean = false) {
     private val provider = BouncyCastleProvider()
-    private val keys = KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }.generateKeyPair()
+    private val keys = if (elliptic) {
+        KeyPairGenerator.getInstance("EC").apply { initialize(ECGenParameterSpec("secp256r1")) }.generateKeyPair()
+    } else {
+        KeyPairGenerator.getInstance("RSA").apply { initialize(2048) }.generateKeyPair()
+    }
+    val privateKey: PrivateKey get() = keys.private
     val certificate: X509Certificate = JcaX509CertificateConverter().setProvider(provider).getCertificate(
         JcaX509v3CertificateBuilder(
             X500Name("CN=$name"), BigInteger.valueOf(System.nanoTime()),
@@ -38,7 +51,11 @@ internal class TestIdentity(name: String) {
             false,
             GeneralNames(GeneralName(GeneralName.dNSName, "localhost")),
         )
-            .build(JcaContentSignerBuilder("SHA256withRSA").setProvider(provider).build(keys.private)),
+            .build(
+                JcaContentSignerBuilder(if (elliptic) "SHA256withECDSA" else "SHA256withRSA")
+                    .setProvider(provider)
+                    .build(keys.private),
+            ),
     )
 
     fun store(password: String?, second: TestIdentity? = null): KeyStore = KeyStore.getInstance("PKCS12").apply {
@@ -51,6 +68,29 @@ internal class TestIdentity(name: String) {
         store(password, second).store(it, password?.toCharArray())
         it.toByteArray()
     }
+}
+
+/** Answers the chooser with [answer] and, like a real store, reports a change when it does. */
+internal class FakeMutualTlsSystemStore(
+    @Volatile var answer: ServerEnv.MutualTls.SystemStore? = null,
+) : MutualTlsSystemStore {
+    /** What each call asked the chooser to preselect. */
+    val preselected = CopyOnWriteArrayList<ServerEnv.MutualTls.SystemStore?>()
+    private val version = MutableStateFlow(0)
+
+    override val changes: Flow<Unit> = version.map { }
+
+    override suspend fun choose(
+        context: LeContext,
+        current: ServerEnv.MutualTls.SystemStore?,
+    ): ServerEnv.MutualTls.SystemStore? {
+        preselected += current
+        return answer?.also { version.update { it + 1 } }
+    }
+
+    // The screens describe every certificate through the service.
+    override suspend fun describe(certificate: ServerEnv.MutualTls.SystemStore) =
+        error("Unexpected certificate lookup")
 }
 
 internal fun trust(vararg certificates: X509Certificate): X509TrustManager {

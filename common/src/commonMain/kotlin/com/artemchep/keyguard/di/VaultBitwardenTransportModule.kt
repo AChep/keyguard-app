@@ -41,7 +41,8 @@ internal class VaultBitwardenTransportModule {
                     .launchIn(requireNotNull(getSource<VaultScopeSource>()).coroutineScope)
                 provider
             } onClose { it?.close() }
-            scoped<MutualTlsServiceNative>() bind MutualTlsService::class
+            // Only some platforms have a certificate store that apps can use.
+            scoped<MutualTlsService> { MutualTlsServiceNative(systemStore = getOrNull()) }
             scoped<AccountIconServers> {
                 AccountIconServersImpl(
                     tokenRepository = get(),

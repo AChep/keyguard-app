@@ -144,10 +144,15 @@ sealed interface LoginStateItem {
         data class State(
             override val options: List<FlatItemAction> = emptyList(),
             val certificateMetadata: CertificateMetadata? = null,
-            val importedPkcs12Base64: String? = null,
+            /** An imported file, or a certificate of the system's store. */
+            val certificate: ServerEnv.MutualTls? = null,
             val onPickFile: (() -> Unit)? = null,
             val onFileDrop: ((FilePickerResult) -> Unit)? = null,
             val onClearFile: (() -> Unit)? = null,
+            /** The platform has a certificate store that the app can use. */
+            val systemStore: Boolean = false,
+            /** Opens the certificate chooser of the system. */
+            val onChooseSystem: (() -> Unit)? = null,
         ) : HasOptions<State> {
             override fun withOptions(options: List<FlatItemAction>) =
                 copy(

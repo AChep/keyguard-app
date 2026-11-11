@@ -71,6 +71,9 @@ private fun CompanionBitwardenLoginScreen(
         discoverBitwardenServer = get(),
         args = BitwardenLoginRoute.Args(),
         screenKey = "bitwardenlogin.companion",
+        // The watch can not use a certificate whose
+        // private key stays in the store of this phone.
+        mutualTlsSystemStore = null,
     )
     state.fold(
         ifLoading = {

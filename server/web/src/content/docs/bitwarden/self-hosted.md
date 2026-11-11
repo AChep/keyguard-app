@@ -39,11 +39,13 @@ These fields appear when you select **Custom (self-hosted)**. Usually,
 | **Identity Server URL** | Empty means the **Server URL** plus `identity/`. |
 | **Icons Server URL** | Empty means the **Server URL** plus `icons/`. |
 | **Notifications Server URL** | Empty means the **Server URL** plus `notifications/`. |
-| **Client certificate** | Import a PKCS#12 (`.p12` or `.pfx`) file if your HTTPS server requires mutual TLS. Enter the file password when prompted. |
+| **Client certificate** | Import a PKCS#12 (`.p12` or `.pfx`) file if your HTTPS server requires mutual TLS. Enter the file password when prompted. On Android, **Choose from device** uses an installed certificate. |
 | **HTTP headers** | Headers sent with every request to the server, for a reverse proxy that expects them. Select **Add more** for each header, and enter its **Key** and **Value**. |
 
-The client certificate is saved with the encrypted account. Its import password is
-discarded. For an existing account, open **Settings > Accounts**, select the account,
+An imported certificate is saved with the encrypted account, without its password.
+An installed certificate keeps its private key in Android.
+
+For an existing account, open **Settings > Accounts**, select the account,
 then choose **Security > Client certificate**. Add or replace the certificate, check
 its details, and select **Save**. Removing it asks for confirmation and applies at once.
 You can make changes while offline; Keyguard then queues a sync.

@@ -43,6 +43,16 @@ data class ServerEnv(
             // The certificate bundle includes the private key.
             override fun toString(): String = "ImportedPkcs12(pkcs12Base64=<redacted>)"
         }
+
+        /**
+         * A certificate that stays in the certificate store of the operating
+         * system. The [alias] only means something on the device that chose it.
+         */
+        @Serializable
+        @SerialName("system_store")
+        data class SystemStore(
+            val alias: String,
+        ) : MutualTls
     }
 
     enum class Region(

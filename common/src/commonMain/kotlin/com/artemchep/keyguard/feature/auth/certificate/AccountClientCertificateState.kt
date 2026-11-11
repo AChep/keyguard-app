@@ -22,6 +22,10 @@ data class AccountClientCertificateState(
     val onConfirmRemoval: () -> Unit,
     val onDismissRemoval: () -> Unit,
     val filePickerIntents: Flow<FilePickerIntent<*>>,
+    /** The platform has a certificate store that the app can use. */
+    val systemStore: Boolean = false,
+    /** Opens the certificate chooser of the system. */
+    val onChooseSystem: (() -> Unit)? = null,
 ) {
     data class Certificate(
         val displayName: String,
@@ -34,5 +38,7 @@ data class AccountClientCertificateState(
         val progress: Float?,
         /** Copyable rows: subject, issuer, serial number, fingerprint, key type. */
         val details: List<VaultViewItem>,
+        /** The private key stays in the certificate store of the system. */
+        val system: Boolean = false,
     )
 }

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.auth.bitwarden
 
+import com.artemchep.keyguard.feature.auth.certificate.chooseSystemClientCertificate
 import com.artemchep.keyguard.feature.auth.certificate.importClientCertificate
 import com.artemchep.keyguard.provider.bitwarden.isCustom
 import androidx.compose.material.icons.Icons
@@ -7,6 +8,7 @@ import androidx.compose.material.icons.outlined.ArrowDownward
 import androidx.compose.material.icons.outlined.ArrowUpward
 import androidx.compose.material.icons.outlined.DeleteForever
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import arrow.core.partially1
 import arrow.core.partially2
 import arrow.core.widen
@@ -61,8 +63,10 @@ import com.artemchep.keyguard.provider.bitwarden.ServerEnv
 import com.artemchep.keyguard.provider.bitwarden.ServerHeader
 import com.artemchep.keyguard.provider.bitwarden.api.builder.buildHost
 import com.artemchep.keyguard.provider.bitwarden.model.ServerDiscoveryCandidate
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsCertificateMetadata
 import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsService
-import com.artemchep.keyguard.provider.bitwarden.transport.describe
+import com.artemchep.keyguard.provider.bitwarden.transport.MutualTlsSystemStore
+import com.artemchep.keyguard.provider.bitwarden.transport.describeFlow
 import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServer
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.AddAccount
 import com.artemchep.keyguard.provider.bitwarden.usecase.internal.RequestEmailTfa
@@ -85,6 +89,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
@@ -185,6 +190,8 @@ fun produceBitwardenLoginScreenState(
         discoverBitwardenServer = get(),
         args = args,
         screenKey = screenKey,
+        // Bound only on some platforms. Resolve once: Koin reports a missing binding by throwing.
+        mutualTlsSystemStore = remember(this) { getOrNull<MutualTlsSystemStore>() },
     )
 }
 
@@ -206,6 +213,8 @@ fun produceBitwardenLoginScreenState(
     discoverBitwardenServer: DiscoverBitwardenServer,
     args: BitwardenLoginRoute.Args,
     screenKey: String = DEFAULT_SCREEN_KEY,
+    /** `null` hides the option to choose a certificate of the system. */
+    mutualTlsSystemStore: MutualTlsSystemStore?,
 ): Loadable<LoginState> = produceScreenState(
     initial = Loadable.Loading,
     key = screenKey,
@@ -227,6 +236,7 @@ fun produceBitwardenLoginScreenState(
         confirmationRouteFactory = confirmationRouteFactory,
         discoverBitwardenServer = discoverBitwardenServer,
         args = args,
+        mutualTlsSystemStore = mutualTlsSystemStore,
     )
 }
 
@@ -243,6 +253,8 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
     confirmationRouteFactory: ConfirmationRouteFactory,
     discoverBitwardenServer: DiscoverBitwardenServer,
     args: BitwardenLoginRoute.Args,
+    /** `null` hides the option to choose a certificate of the system. */
+    mutualTlsSystemStore: MutualTlsSystemStore? = null,
 ): Flow<Loadable<LoginState>> {
     val onSuccessFlow = EventFlow<Unit>()
     val onErrorFlow = EventFlow<BitwardenLoginEvent.Error>()
@@ -250,14 +262,10 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
     val onSsoFlow = EventFlow<BitwardenSsoRoute.Args>()
 
     val actionExecutor = screenExecutor()
-    val mutualTlsImportedPkcs12Base64Sink = MutableStateFlow(
-        (args.env.mutualTls as? ServerEnv.MutualTls.ImportedPkcs12)
-            ?.pkcs12Base64
-            .orEmpty(),
-    )
+    val mutualTlsSink = MutableStateFlow(args.env.mutualTls)
 
     data class MutualTlsUiState(
-        val importedPkcs12Base64: String,
+        val certificate: ServerEnv.MutualTls?,
         val certificateMetadata: LoginStateItem.MutualTls.CertificateMetadata?,
     )
 
@@ -265,28 +273,18 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
 
     fun clearMutualTlsImportState() {
         mutualTlsImportJob?.cancel()
-        mutualTlsImportedPkcs12Base64Sink.value = ""
+        mutualTlsSink.value = null
     }
 
-    suspend fun describeMutualTlsCertificate(
-        importedPkcs12Base64: String,
-    ): LoginStateItem.MutualTls.CertificateMetadata? {
-        if (importedPkcs12Base64.isBlank()) {
-            return null
-        }
-
-        val metadata = mutualTlsService.describe(ServerEnv.MutualTls.ImportedPkcs12(importedPkcs12Base64))
-        return metadata?.let {
-            LoginStateItem.MutualTls.CertificateMetadata(
-                displayName = it.displayName,
-                issuerText = translate(Res.string.client_certificate_issuer, it.issuerName),
-                expiresText = translate(
-                    Res.string.client_certificate_expires,
-                    dateFormatter.formatDate(it.expiresAt),
-                ),
-            )
-        }
-    }
+    suspend fun MutualTlsCertificateMetadata.toLoginMetadata() =
+        LoginStateItem.MutualTls.CertificateMetadata(
+            displayName = displayName,
+            issuerText = translate(Res.string.client_certificate_issuer, issuerName),
+            expiresText = translate(
+                Res.string.client_certificate_expires,
+                dateFormatter.formatDate(expiresAt),
+            ),
+        )
 
     fun importMutualTlsFile(info: FilePickerResult) {
         mutualTlsImportJob?.cancel()
@@ -297,7 +295,7 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
                 mutualTlsService = mutualTlsService,
                 confirmationRouteFactory = confirmationRouteFactory,
             ) ?: return@launch
-            mutualTlsImportedPkcs12Base64Sink.value = result.imported.pkcs12Base64
+            mutualTlsSink.value = result.imported
             message(
                 ToastMessage(
                     type = ToastMessage.Type.SUCCESS,
@@ -316,6 +314,17 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
             if (info != null) importMutualTlsFile(info)
         }
         filePickerIntentFlow.emit(intent)
+    }
+
+    val onMutualTlsChooseSystem: (() -> Unit)? = mutualTlsSystemStore?.let { store ->
+        // lambda
+        {
+            mutualTlsImportJob?.cancel()
+            mutualTlsImportJob = screenScope.launch {
+                chooseSystemClientCertificate(store, mutualTlsSink.value)
+                    ?.let { mutualTlsSink.value = it }
+            }
+        }
     }
 
     // SSO signs in with a web-site.
@@ -488,18 +497,19 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
             initialValue = { args.env.notificationsUrl },
         ) { copy(notificationsUrl = it) }
 
-    val mutualTlsUiStateFlow = mutualTlsImportedPkcs12Base64Sink
-        .map { importedPkcs12Base64 ->
-            val metadata = runCatching {
-                describeMutualTlsCertificate(importedPkcs12Base64)
-            }.getOrElse {
-                it.throwIfFatalOrCancellation()
-                null
-            }
-            MutualTlsUiState(
-                importedPkcs12Base64 = importedPkcs12Base64,
-                certificateMetadata = metadata,
-            )
+    val mutualTlsUiStateFlow = mutualTlsSink
+        .flatMapLatest { certificate ->
+            mutualTlsService.describeFlow(certificate)
+                .map { metadata ->
+                    MutualTlsUiState(
+                        certificate = certificate,
+                        certificateMetadata = metadata?.toLoginMetadata(),
+                    )
+                }
+                .catch { e ->
+                    e.throwIfFatalOrCancellation()
+                    emit(MutualTlsUiState(certificate = certificate, certificateMetadata = null))
+                }
         }
         .distinctUntilChanged()
 
@@ -510,14 +520,17 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
                 mutualTlsUiStateFlow,
                 envReadOnlyFlow,
             ) { importState, readOnly ->
-                val exists = importState.importedPkcs12Base64.isNotBlank()
+                val exists = importState.certificate != null
                 val canImport = !readOnly && !CurrentPlatform.hasWatch()
                 LoginStateItem.MutualTls.State(
                     certificateMetadata = importState.certificateMetadata,
-                    importedPkcs12Base64 = importState.importedPkcs12Base64.takeIf { it.isNotBlank() },
+                    certificate = importState.certificate,
                     onPickFile = ::onMutualTlsImport
                         .takeIf { canImport },
                     onFileDrop = ::importMutualTlsFile
+                        .takeIf { canImport },
+                    systemStore = onMutualTlsChooseSystem != null,
+                    onChooseSystem = onMutualTlsChooseSystem
                         .takeIf { canImport },
                     onClearFile = if (readOnly || !exists) {
                         null
@@ -537,12 +550,9 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
                     return@LocalStateItem this
                 }
 
-                val importedPkcs12Base64 = state.importedPkcs12Base64
-                    .orEmpty()
-                if (importedPkcs12Base64.isBlank()) {
+                val certificate = state.certificate
                     // Do nothing
-                    return@LocalStateItem this
-                }
+                    ?: return@LocalStateItem this
 
                 // If the mTLS certificate is added, but we can not read its metadata
                 // then treat is as an error.
@@ -552,10 +562,7 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
                         mutualTls = null,
                     )
                 }
-                val cert = ServerEnv.MutualTls.ImportedPkcs12(
-                    pkcs12Base64 = importedPkcs12Base64,
-                )
-                copy(mutualTls = cert)
+                copy(mutualTls = certificate)
             },
         ),
     )

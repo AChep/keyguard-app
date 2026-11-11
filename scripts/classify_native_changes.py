@@ -98,6 +98,10 @@ def classify(paths, *, full=False, all_checks=False):
         if path.startswith(".github/actions/setup_cargo_tools/"):
             enable("crypto", "fuzz", "native_quality")
             continue
+        # Only the arm64 macOS host selects an Xcode.
+        if path.startswith(".github/actions/setup_xcode/"):
+            enable("apple", "apple_regressions")
+            continue
         # The protocol generator ships in no bridge; the protocol drift checks run it.
         if path.startswith("util/ffi/tools/"):
             enable("crypto", "native_quality")

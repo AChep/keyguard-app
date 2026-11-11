@@ -46,6 +46,7 @@ on:
       - '!wiki/**'
       - '.github/actions/setup_gradle/**'
       - '.github/actions/setup_rust/**'
+      - '.github/actions/setup_xcode/**'
       - '.github/workflows/check_apple_tests.yaml'
   pull_request:
     branches:
@@ -83,6 +84,7 @@ on:
       - '!wiki/**'
       - '.github/actions/setup_gradle/**'
       - '.github/actions/setup_rust/**'
+      - '.github/actions/setup_xcode/**'
       - '.github/workflows/check_apple_tests.yaml'
 
 permissions:
@@ -136,6 +138,8 @@ jobs:
       - uses: ./.github/actions/setup_gradle
         with:
           cache-write-only: ${{ inputs.cache-write-only || false }}
+      # Select it before Gradle, so KeyguardShared and the Swift tests share one SDK.
+      - uses: ./.github/actions/setup_xcode
       - uses: ./.github/actions/setup_rust
         with:
           targets: "aarch64-apple-darwin,aarch64-apple-ios,aarch64-apple-ios-sim"

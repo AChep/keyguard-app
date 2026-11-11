@@ -273,6 +273,13 @@ class NativeChangeClassificationTest(unittest.TestCase):
         self.assertFalse(result["desktop_run"])
         self.assertFalse(result["android_run"])
 
+    def test_xcode_selection_selects_only_the_native_apple_checks(self):
+        result = classify([".github/actions/setup_xcode/action.yml"])
+        for flag in FLAGS:
+            self.assertEqual(result[flag], flag in {"apple", "apple_regressions"}, flag)
+        self.assertEqual([(row["platform"], row["arch"]) for row in result["desktop_matrix"]["include"]], [("macos", "aarch64")])
+        self.assertFalse(result["android_run"])
+
     def test_jni_source_sets_select_only_their_consuming_platforms(self):
         cases = {
             "util/crypto/src/androidMain/kotlin/NativeCryptoLibraryLoader.android.kt": (False, True, False),

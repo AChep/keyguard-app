@@ -427,23 +427,8 @@ jobs:
           python -m unittest
           scripts.test_verify_native_bundle.WindowsRuntimeTest
           scripts.test_run_native_package_smoke
-      - name: "Select latest stable Xcode"
+      - uses: ./.github/actions/setup_xcode
         if: matrix.platform == 'macos' && matrix.arch == 'aarch64' && (needs.changes.outputs.apple == 'true' || needs.changes.outputs.apple_regressions == 'true')
-        shell: bash
-        run: |
-          version="$(
-            printf '%s\n' /Applications/Xcode_[0-9]*.app |
-              sed -En 's|.*/Xcode_([0-9]+(\.[0-9]+){0,2})\.app$|\1|p' |
-              sort -t. -k1,1nr -k2,2nr -k3,3nr |
-              head -n 1
-          )"
-          if [[ -z "$version" ]] || (( ${version%%.*} < 26 )); then
-            echo "Xcode 26 or newer is required; found $version" >&2
-            exit 1
-          fi
-          export DEVELOPER_DIR="/Applications/Xcode_$version.app/Contents/Developer"
-          printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR" >> "$GITHUB_ENV"
-          xcodebuild -version
       - uses: ./.github/actions/setup_rust
         with:
           targets: ${{ matrix.platform == 'macos' && matrix.arch == 'aarch64' && needs.changes.outputs.apple == 'true' && 'aarch64-apple-darwin,aarch64-apple-ios,aarch64-apple-ios-sim' || matrix.target }}

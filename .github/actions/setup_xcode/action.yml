@@ -1,0 +1,23 @@
+name: "Setup Xcode"
+description: "Select the newest stable Xcode installed on a macOS runner"
+runs:
+  using: "composite"
+  steps:
+    # Apple sources need Swift 6.2 (Xcode 26), and macOS images default to an
+    # older Xcode. Beta and release candidate apps do not match the pattern.
+    - name: "Select latest stable Xcode"
+      shell: bash
+      run: |
+        version="$(
+          printf '%s\n' /Applications/Xcode_[0-9]*.app |
+            sed -En 's|.*/Xcode_([0-9]+(\.[0-9]+){0,2})\.app$|\1|p' |
+            sort -t. -k1,1nr -k2,2nr -k3,3nr |
+            head -n 1
+        )"
+        if [[ -z "$version" ]] || (( ${version%%.*} < 26 )); then
+          echo "Xcode 26 or newer is required; found ${version:-none}" >&2
+          exit 1
+        fi
+        export DEVELOPER_DIR="/Applications/Xcode_$version.app/Contents/Developer"
+        printf 'DEVELOPER_DIR=%s\n' "$DEVELOPER_DIR" >> "$GITHUB_ENV"
+        xcodebuild -version

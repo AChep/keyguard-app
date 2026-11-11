@@ -62,9 +62,9 @@ class MembershipSyncE2eTest {
 
     @Test
     fun `unlink tells both connected peers over WebRTC`() = p2pScenario { testbed ->
-        val a = testbed.device("Desktop", Transports.webRtc())
-        val b = testbed.device("Laptop", Transports.webRtc())
-        val c = testbed.device("Phone", Transports.webRtc())
+        val a = testbed.device("Desktop", Transports.webRtcOnly())
+        val b = testbed.device("Laptop", Transports.webRtcOnly())
+        val c = testbed.device("Phone", Transports.webRtcOnly())
         link(member = a, joiner = b)
         link(member = a, joiner = c)
         awaitConverged(a, b, c)

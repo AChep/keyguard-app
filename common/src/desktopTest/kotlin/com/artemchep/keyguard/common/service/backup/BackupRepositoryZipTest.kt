@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.common.model.Password
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.util.io.atomic.AchievedSyncLevel
 import com.artemchep.keyguard.util.io.atomic.AtomicCleanupIncompleteException
 import com.artemchep.keyguard.util.io.atomic.AtomicWriteReceipt
@@ -38,6 +39,7 @@ abstract class BackupRepositoryZipTestBase {
     protected val repository = BackupRepositoryZipImpl(
         json = json,
         zipService = createZipService(),
+        temporaryDirProvider = PrivateTemporaryDirProvider.Default,
     )
 
     /**

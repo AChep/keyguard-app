@@ -5,6 +5,8 @@ import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import com.artemchep.keyguard.common.model.ToastMessage
+import com.artemchep.keyguard.common.usecase.ShowMessage
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.transformShapes
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -17,43 +19,66 @@ import javax.swing.SwingUtilities
 import kotlin.test.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
+import org.koin.compose.KoinContext
+import org.koin.core.Koin
+import org.koin.dsl.module
 
-/** Renders the screen body without app services; PNGs land in `build/reports/client-certificate`. */
+/** Renders with an isolated message sink; PNGs land in `build/reports/client-certificate`. */
 class AccountClientCertificateScreenTest {
     @Test
     fun `screen states render and mark only a change as not saved`() {
-        SwingUtilities.invokeAndWait {
-            variants.forEach { variant ->
-                renderScene(
-                    folder = "build/reports/client-certificate",
-                    name = variant.name,
-                    width = 412,
-                    height = variant.height,
-                    fontScale = variant.fontScale,
-                    rtl = variant.rtl,
-                    content = {
-                        WizardPreview(dark = variant.dark, expressive = variant.expressive) {
-                            AccountClientCertificateContent(variant.state)
-                        }
-                    },
-                ) { nodes ->
-                    val texts = nodes.texts()
-                    val configured = variant.state.certificate != null
-                    assertFalse(texts.any { it.startsWith("Expires in") }, "${variant.name}: no status text")
-                    assertTrue(
-                        texts.any { it == if (configured) "Remove certificate" else "Add certificate" },
-                        "${variant.name}: offers the primary action, got $texts",
-                    )
-                    assertTrue(
-                        texts.any { it == "Not saved" } == variant.state.unsaved,
-                        "${variant.name}: marks only a change as not saved, got $texts",
-                    )
-                    if (configured && variant.state.certificate?.details?.isNotEmpty() == true) {
-                        assertTrue(texts.any { it.contains("12:AB:9F:00") }, "${variant.name}: shows the fingerprint")
-                    }
-                    if (!configured) assertFalse(texts.any { it == "Remove certificate" })
+        val previewModule = module {
+            single<ShowMessage> {
+                object : ShowMessage {
+                    override fun copy(value: ToastMessage, target: String?) = Unit
                 }
             }
+        }
+        // Keep the render fixture isolated from application graph verification.
+        val koin = Koin().apply {
+            loadModules(listOf(previewModule))
+        }
+        try {
+            SwingUtilities.invokeAndWait {
+                variants.forEach { variant ->
+                    renderScene(
+                        folder = "build/reports/client-certificate",
+                        name = variant.name,
+                        width = 412,
+                        height = variant.height,
+                        fontScale = variant.fontScale,
+                        rtl = variant.rtl,
+                        content = {
+                            KoinContext(koin) {
+                                WizardPreview(dark = variant.dark, expressive = variant.expressive) {
+                                    AccountClientCertificateContent(variant.state)
+                                }
+                            }
+                        },
+                    ) { nodes ->
+                        val texts = nodes.texts()
+                        val configured = variant.state.certificate != null
+                        assertFalse(texts.any { it.startsWith("Expires in") }, "${variant.name}: no status text")
+                        assertTrue(
+                            texts.any { it == if (configured) "Remove certificate" else "Add certificate" },
+                            "${variant.name}: offers the primary action, got $texts",
+                        )
+                        assertTrue(
+                            texts.any { it == "Not saved" } == variant.state.unsaved,
+                            "${variant.name}: marks only a change as not saved, got $texts",
+                        )
+                        if (configured && variant.state.certificate?.details?.isNotEmpty() == true) {
+                            assertTrue(
+                                texts.any { it.contains("12:AB:9F:00") },
+                                "${variant.name}: shows the fingerprint",
+                            )
+                        }
+                        if (!configured) assertFalse(texts.any { it == "Remove certificate" })
+                    }
+                }
+            }
+        } finally {
+            koin.close()
         }
     }
 

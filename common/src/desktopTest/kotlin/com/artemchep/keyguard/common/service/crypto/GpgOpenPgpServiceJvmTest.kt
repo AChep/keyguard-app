@@ -848,32 +848,38 @@ class GpgOpenPgpServiceJvmTest {
         if (!GpgCliTestSupport.isGpgAvailable()) {
             return
         }
-        val home = createTempDirectory("keyguard-gpg-decrypt")
-        if (!tryImportPrivateKey(home)) {
-            return
+        val home = GpgCliTestSupport.createHome("keyguard-gpg-decrypt")
+        try {
+            importPrivateKey(home)
+            val encryptedFile = home.resolve("message.asc")
+            val encrypted = service.encryptText(
+                GpgOpenPgpEncryptTextRequest(
+                    candidateRevocationKeys = emptyList(),
+                    text = "gpg decrypt interop",
+                    publicKeys = listOf(publicKey),
+                ),
+            )
+            encryptedFile.writeText(encrypted)
+
+            val result = GpgCliTestSupport.runGpg(
+                home,
+                "--batch",
+                "--yes",
+                "--pinentry-mode",
+                "loopback",
+                "--decrypt",
+                encryptedFile.toString(),
+            )
+
+            assertGpgSuccess(result)
+            assertEquals("gpg decrypt interop", result.stdout.trimEnd())
+        } finally {
+            try {
+                GpgCliTestSupport.killAgent(home)
+            } finally {
+                home.toFile().deleteRecursively()
+            }
         }
-        val encryptedFile = home.resolve("message.asc")
-        val encrypted = service.encryptText(
-            GpgOpenPgpEncryptTextRequest(
-                candidateRevocationKeys = emptyList(),
-                text = "gpg decrypt interop",
-                publicKeys = listOf(publicKey),
-            ),
-        )
-        encryptedFile.writeText(encrypted)
-
-        val result = GpgCliTestSupport.runGpg(
-            home,
-            "--batch",
-            "--yes",
-            "--pinentry-mode",
-            "loopback",
-            "--decrypt",
-            encryptedFile.toString(),
-        )
-
-        assertEquals(0, result.exitCode, result.stderr)
-        assertEquals("gpg decrypt interop", result.stdout.trimEnd())
     }
 
     @Test
@@ -1401,11 +1407,20 @@ class GpgOpenPgpServiceJvmTest {
         return result.exitCode == 0
     }
 
-    private fun tryImportPrivateKey(home: Path): Boolean {
+    private fun importPrivateKey(home: Path) {
         val privateKeyFile = home.resolve("private.asc")
         privateKeyFile.writeText(privateKey.armored)
         val result = GpgCliTestSupport.runGpg(home, "--batch", "--import", privateKeyFile.toString())
-        return result.exitCode == 0
+        assertGpgSuccess(result)
+    }
+
+    private fun assertGpgSuccess(result: GpgCliTestSupport.GpgResult) {
+        val diagnostic = if (result.exitCode == 0) {
+            result.stderr
+        } else {
+            result.stderr + "\n" + GpgCliTestSupport.runGpg(null, "--version").stdout
+        }
+        assertEquals(0, result.exitCode, diagnostic)
     }
 
     companion object {

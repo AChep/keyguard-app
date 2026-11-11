@@ -51,6 +51,7 @@ class BackupImportServiceTest {
             encodeDefaults = true
         },
         zipService = createZipService(),
+        temporaryDirProvider = importTestTemporaryDirProvider(),
     )
 
     private val store = ProbeFakeBackupObjectStore()

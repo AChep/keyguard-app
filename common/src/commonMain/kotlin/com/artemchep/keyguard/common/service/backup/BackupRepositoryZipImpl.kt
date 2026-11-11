@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.util.RetryPolicy
 import com.artemchep.keyguard.common.util.retryWithPolicy
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.util.age.AgeSecret
 import com.artemchep.keyguard.util.zip.ZipEntry
 import com.artemchep.keyguard.util.zip.ZipEncryptionRequiredException
@@ -21,6 +22,7 @@ import kotlinx.serialization.json.Json
 class BackupRepositoryZipImpl(
     private val json: Json,
     private val zipService: ZipService,
+    private val temporaryDirProvider: PrivateTemporaryDirProvider,
 ) : BackupRepository {
     companion object {
         private const val INDEXES_DIR = "indexes"
@@ -478,7 +480,13 @@ class BackupRepositoryZipImpl(
             } catch (_: BackupObjectStoreException.NotFound) {
                 return@retryTransientObjectRead null
             }
-            openBackupArchive(key, source, password, ageSecret).use { reader ->
+            openBackupArchive(
+                key = key,
+                source = source,
+                password = password,
+                temporaryDirProvider = temporaryDirProvider,
+                ageSecret = ageSecret,
+            ).use { reader ->
                 block(reader.entries())
             }
         }
@@ -648,7 +656,7 @@ class BackupRepositoryZipImpl(
     }
 
     override suspend fun upgradeEncryption(store: BackupObjectStore, password: Password) {
-        BackupAgeMigration(json, zipService) { store, metadata ->
+        BackupAgeMigration(json, zipService, temporaryDirProvider) { store, metadata ->
             writeCompatibilityMarker(store, metadata, replace = true)
         }.run(store, password)
     }

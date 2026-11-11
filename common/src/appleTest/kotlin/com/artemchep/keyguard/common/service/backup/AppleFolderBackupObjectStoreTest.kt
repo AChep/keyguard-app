@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.file.FileAccessToken
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.platform.appleBookmarkCreationOptions
 import com.artemchep.keyguard.platform.toSecurityScopedBookmarkToken
 import com.artemchep.keyguard.util.zip.createZipService
@@ -163,6 +164,7 @@ class AppleFolderBackupObjectStoreTest {
                         ignoreUnknownKeys = true
                     },
                     createZipService(),
+                    PrivateTemporaryDirProvider.Default,
                 )
                 val now = Instant.fromEpochMilliseconds(1234)
                 val metadata = repository.getOrCreateMetadata(store, password, { now }, { "repo-1" })

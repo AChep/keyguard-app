@@ -40,7 +40,10 @@ class KeyguardAgeImportTest {
         })
         assertEquals(mapOf("attachments/attachment/file.txt" to "attachment bytes"), files)
         assertFailsWith<ImportArchivePasswordException> {
-            input.readArchive(Password("wrong"), allowAge = true) { true }
+            input.readArchive(
+                password = Password("wrong"),
+                ageTemporaryDirProvider = importTestTemporaryDirProvider(),
+            ) { true }
         }
     }
 }

@@ -9,8 +9,11 @@ import com.artemchep.keyguard.common.service.imports.impl.ImportServiceImpl
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.crypto.NativeCipherEncryptor
 import com.artemchep.keyguard.crypto.NativeCryptoGenerator
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.feature.environments.isWritable
+import com.artemchep.keyguard.util.io.LocalPath
 import com.artemchep.keyguard.util.webauthn.crypto.NativePasskeyCrypto
+import kotlin.io.path.createTempDirectory
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
@@ -36,6 +39,15 @@ internal class BytesImportInput(
     }
 }
 
+/**
+ * A fresh temporary directory, created on first use, so tests do not
+ * depend on the platform's private storage.
+ */
+internal fun importTestTemporaryDirProvider(): PrivateTemporaryDirProvider {
+    val directory by lazy { createTempDirectory("keyguard-import-test") }
+    return PrivateTemporaryDirProvider { LocalPath(directory.toString()) }
+}
+
 internal fun importTestService(
     sshKeyImportService: SshKeyImportService = FakeSshKeyImportService(),
 ) = ImportServiceImpl(
@@ -46,6 +58,7 @@ internal fun importTestService(
     ),
     sshKeyImportService = sshKeyImportService,
     passkeyCrypto = NativePasskeyCrypto,
+    temporaryDirProvider = importTestTemporaryDirProvider(),
 )
 
 /**

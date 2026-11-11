@@ -42,11 +42,13 @@ internal suspend fun writeAgeArchive(output: Sink, secret: AgeSecret, entries: L
 
 /**
  * Adapts age authentication failures to the existing archive/import error contract.
- * Ciphertext spools into the private temporary directory, the root swept for scratch leftovers.
+ * Ciphertext spools into the directory of [temporaryDirProvider], the root
+ * swept for scratch leftovers.
  */
 internal fun readAgeArchive(
     source: Source,
     secret: AgeSecret?,
+    temporaryDirProvider: PrivateTemporaryDirProvider,
     maxEntryBytes: Long = Long.MAX_VALUE,
     checkCancellation: () -> Unit = {},
 ): ZipReader {
@@ -56,7 +58,7 @@ internal fun readAgeArchive(
     }
     val reader = ageArchiveCall {
         // The reader owns the source, so release it if the directory is unavailable.
-        val directory = runCatching { PrivateTemporaryDirProvider.Default.get().value }
+        val directory = runCatching { temporaryDirProvider.get().value }
             .onFailure { source.close() }
             .getOrThrow()
         AgeZipReader(

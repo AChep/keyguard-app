@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.service.archive.readAgeArchive
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.imports.ImportAttachmentSink
 import com.artemchep.keyguard.common.service.imports.ImportInput
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.util.zip.ZipArchiveError
 import com.artemchep.keyguard.util.zip.ZipArchiveException
 import com.artemchep.keyguard.util.zip.ZipPasswordException
@@ -73,16 +74,21 @@ internal fun ImportInput.isZipArchive(): Boolean = open().use { source ->
 /**
  * Reads the entries of an archive whose name [accept]s, each up to
  * [IMPORT_TEXT_MAX_BYTES], and lists the names of all of them. The bytes of
- * every other entry are skipped, not kept.
+ * every other entry are skipped, not kept. An age-encrypted archive is read
+ * only with an [ageTemporaryDirProvider], whose directory spools its ciphertext.
  */
 internal fun ImportInput.readArchive(
     password: Password?,
-    allowAge: Boolean = false,
+    ageTemporaryDirProvider: PrivateTemporaryDirProvider? = null,
     accept: (String) -> Boolean,
 ): ImportArchive {
     val names = mutableListOf<String>()
     val entries = mutableMapOf<String, ByteArray>()
-    walkArchive(password, allowAge = allowAge, maxEntryBytes = IMPORT_TEXT_MAX_BYTES) { entry ->
+    walkArchive(
+        password = password,
+        ageTemporaryDirProvider = ageTemporaryDirProvider,
+        maxEntryBytes = IMPORT_TEXT_MAX_BYTES,
+    ) { entry ->
         names += entry.name
         if (accept(entry.name)) {
             entries[entry.name] = entry.source.readByteArray()
@@ -113,16 +119,17 @@ internal fun ImportInput.readUnencryptedArchiveEntries(
 /**
  * Streams the entries named in [refs] into [sink] in a single walk over the
  * archive, answering what the sink returned per entry name. Throws if the
- * archive no longer holds one of them.
+ * archive no longer holds one of them. An age-encrypted archive is read only
+ * with an [ageTemporaryDirProvider], whose directory spools its ciphertext.
  */
 internal suspend fun <T> ImportInput.extractArchiveEntries(
     password: Password?,
     refs: Set<String>,
     sink: ImportAttachmentSink<T>,
-    allowAge: Boolean = false,
+    ageTemporaryDirProvider: PrivateTemporaryDirProvider? = null,
 ): Map<String, T> {
     val files = mutableMapOf<String, T>()
-    walkArchive(password, allowAge = allowAge) { entry ->
+    walkArchive(password, ageTemporaryDirProvider = ageTemporaryDirProvider) { entry ->
         // A second entry of the same name would be a second read of a ref
         // the sink has already consumed.
         if (entry.name in refs && entry.name !in files) {
@@ -142,18 +149,25 @@ internal suspend fun <T> ImportInput.extractArchiveEntries(
 
 /**
  * Walks the entries of an archive, refusing more than [MAX_ARCHIVE_ENTRIES]
- * of them and an entry that yields more than [maxEntryBytes].
+ * of them and an entry that yields more than [maxEntryBytes]. An age-encrypted
+ * archive is read only with an [ageTemporaryDirProvider], whose directory
+ * spools its ciphertext; without one it is treated as a ZIP.
  */
 private inline fun ImportInput.walkArchive(
     password: Password?,
-    allowAge: Boolean = false,
+    ageTemporaryDirProvider: PrivateTemporaryDirProvider? = null,
     maxEntryBytes: Long = Long.MAX_VALUE,
     block: (ZipReaderEntry) -> Unit,
 ) {
     try {
         open().use { source ->
-            val reader = if (allowAge && source.isAgeArchive()) {
-                readAgeArchive(source, password?.value?.let(::AgePassword), maxEntryBytes = maxEntryBytes)
+            val reader = if (ageTemporaryDirProvider != null && source.isAgeArchive()) {
+                readAgeArchive(
+                    source = source,
+                    secret = password?.value?.let(::AgePassword),
+                    temporaryDirProvider = ageTemporaryDirProvider,
+                    maxEntryBytes = maxEntryBytes,
+                )
             } else {
                 ZipReader(source, password?.value, MAX_ARCHIVE_ENTRIES, maxEntryBytes)
             }

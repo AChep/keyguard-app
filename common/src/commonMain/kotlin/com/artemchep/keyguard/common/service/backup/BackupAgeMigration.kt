@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.backup
 
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
 import com.artemchep.keyguard.common.model.Password
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.util.age.AgeIdentity
 import com.artemchep.keyguard.util.zip.ZipArchiveError
 import com.artemchep.keyguard.util.zip.ZipArchiveException
@@ -81,6 +82,7 @@ private data class AgeUpgradeJournal(
 internal class BackupAgeMigration(
     private val json: Json,
     private val zipService: ZipService,
+    private val temporaryDirProvider: PrivateTemporaryDirProvider,
     /** Replaces `repo.zip` with the verified marker of the given age metadata. */
     private val replaceLegacyWithMarker: suspend (BackupObjectStore, BackupRepositoryMetadata) -> Unit,
 ) {
@@ -193,7 +195,13 @@ internal class BackupAgeMigration(
 
     private suspend fun read(store: BackupObjectStore, path: String, password: Password?, entry: String): String {
         val key = BackupObjectKey(path)
-        return openBackupArchive(key, store.read(key), password, maxEntryBytes = MAX_METADATA_BYTES).use {
+        return openBackupArchive(
+            key = key,
+            source = store.read(key),
+            password = password,
+            temporaryDirProvider = temporaryDirProvider,
+            maxEntryBytes = MAX_METADATA_BYTES,
+        ).use {
             val member = requireNotNull(it.nextEntry()) { "Backup metadata is missing." }
             require(member.name == entry) { "Unexpected backup metadata entry." }
             val text = member.source.readString()

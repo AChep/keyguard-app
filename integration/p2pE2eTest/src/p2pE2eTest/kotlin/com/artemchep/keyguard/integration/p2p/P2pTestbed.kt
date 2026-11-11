@@ -32,8 +32,15 @@ internal object Transports {
     fun relayOnly(): KeyguardTransportFactory = KeyguardTransportFactory.RelayOnly
 
     /** What the phone, desktop and Apple apps use, on loopback host candidates. */
-    fun webRtc(): KeyguardTransportFactory = KeyguardTransportFactory.preferring(
-        WebRtcTransportFactory(WebRtcTransportConfig(bindAddresses = listOf(LOOPBACK))),
+    fun webRtc(): KeyguardTransportFactory = KeyguardTransportFactory.preferring(loopbackWebRtc())
+
+    /** WebRTC only, for scenarios that require a direct connection even on a slow host. */
+    fun webRtcOnly(): KeyguardTransportFactory = KeyguardTransportFactory { context ->
+        loopbackWebRtc().create(context.session)
+    }
+
+    private fun loopbackWebRtc() = WebRtcTransportFactory(
+        WebRtcTransportConfig(bindAddresses = listOf(LOOPBACK)),
     )
 
     /**

@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.imports
 
 import com.artemchep.keyguard.common.model.Password
+import com.artemchep.keyguard.crypto.NativeSshKeyImportService
 import java.nio.file.Path
 import kotlin.test.assertIs
 import kotlinx.io.readString
@@ -21,7 +22,7 @@ internal object ImportCorpus {
 
     private const val ROOT = "import-corpus"
 
-    private val service = importTestService()
+    private val service = importTestService(sshKeyImportService = NativeSshKeyImportService)
 
     fun manifestRows(): List<Map<String, String>> = tsv(MANIFEST)
 

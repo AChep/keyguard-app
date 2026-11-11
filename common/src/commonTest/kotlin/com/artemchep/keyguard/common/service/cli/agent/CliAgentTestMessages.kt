@@ -11,7 +11,10 @@ internal fun CliAgentMessages.Response.Kind.error(): String =
 
 /** The result of an answered management request. */
 internal fun CliAgentMessages.Response.Kind.manageResult(): CliAgentMessages.ManageResponse.Result =
-    assertIs<CliAgentMessages.Response.Kind.Manage>(this).value.result
+    assertIs<CliAgentMessages.Response.Kind.Manage>(
+        this,
+        (this as? CliAgentMessages.Response.Kind.Error)?.value?.code,
+    ).value.result
 
 /** A management request of an MCP client, as the agent sends it. */
 internal fun manageRequest(

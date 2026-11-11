@@ -49,7 +49,12 @@ class DragOutGestureTest {
                 onError = { throw it },
             )
             SwingUtilities.invokeAndWait {
-                scene = ImageComposeScene(width = 120, height = 120) {
+                scene = ImageComposeScene(
+                    width = 120,
+                    height = 120,
+                    // Pointer timeouts and injected events must share the EDT.
+                    coroutineContext = Dispatchers.Swing,
+                ) {
                     val configuration = LocalViewConfiguration.current
                     CompositionLocalProvider(
                         LocalViewConfiguration provides object : ViewConfiguration by configuration {
@@ -101,7 +106,11 @@ class DragOutGestureTest {
                 onError = { throw it },
             )
             SwingUtilities.invokeAndWait {
-                scene = ImageComposeScene(width = 120, height = 120) {
+                scene = ImageComposeScene(
+                    width = 120,
+                    height = 120,
+                    coroutineContext = Dispatchers.Swing,
+                ) {
                     MaterialTheme {
                         Box(Modifier.size(120.dp).combinedClickable(onClick = { clicked.complete(Unit) })) {
                             Box(

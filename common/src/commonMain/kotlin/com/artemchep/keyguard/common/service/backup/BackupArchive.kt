@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.backup
 import com.artemchep.keyguard.common.model.Password
 import com.artemchep.keyguard.common.service.archive.readAgeArchive
 import com.artemchep.keyguard.common.service.archive.writeAgeArchive
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.util.age.AgePassword
 import com.artemchep.keyguard.util.age.AgeSecret
 import com.artemchep.keyguard.util.io.toSource
@@ -21,12 +22,14 @@ internal fun Password?.toAgeSecret(): AgeSecret? = this?.value?.takeIf { it.isNo
 
 /**
  * Opens [source], the object at [key], as a ZIP with [password] or, for an
- * `.age` key, as an age-encrypted ZIP with [ageSecret]. Takes ownership of [source].
+ * `.age` key, as an age-encrypted ZIP with [ageSecret], spooling its ciphertext
+ * into the directory of [temporaryDirProvider]. Takes ownership of [source].
  */
 internal suspend fun openBackupArchive(
     key: BackupObjectKey,
     source: Source,
     password: Password?,
+    temporaryDirProvider: PrivateTemporaryDirProvider,
     ageSecret: AgeSecret? = password.toAgeSecret(),
     maxEntryBytes: Long = Long.MAX_VALUE,
 ): ZipReader {
@@ -34,7 +37,12 @@ internal suspend fun openBackupArchive(
         return ZipReader(source, password?.value, maxEntries = Int.MAX_VALUE, maxEntryBytes = maxEntryBytes)
     }
     val context = currentCoroutineContext()
-    return readAgeArchive(source, ageSecret, maxEntryBytes) { context.ensureActive() }
+    return readAgeArchive(
+        source = source,
+        secret = ageSecret,
+        temporaryDirProvider = temporaryDirProvider,
+        maxEntryBytes = maxEntryBytes,
+    ) { context.ensureActive() }
 }
 
 /**

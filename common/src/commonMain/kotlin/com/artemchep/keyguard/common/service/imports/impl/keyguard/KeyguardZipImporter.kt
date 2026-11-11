@@ -15,6 +15,7 @@ import com.artemchep.keyguard.common.service.imports.impl.Importer
 import com.artemchep.keyguard.common.service.imports.impl.bitwarden.BitwardenJsonImporter
 import com.artemchep.keyguard.common.service.imports.impl.extractArchiveEntries
 import com.artemchep.keyguard.common.service.imports.impl.readArchive
+import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
 import com.artemchep.keyguard.util.io.decodeTextDetectingEncoding
 import kotlin.time.Instant
 
@@ -36,12 +37,14 @@ internal val keyguardImportFormat = ImportFormat(
  * `attachments/<attachment id>/<file name>`.
  *
  * Parsing only lists the attachments; their bytes are read when the import
- * is committed, and only for the selected items.
+ * is committed, and only for the selected items. An age-encrypted backup
+ * spools its ciphertext into the directory of [temporaryDirProvider].
  */
 internal class KeyguardZipImporter(
     cryptoGenerator: CryptoGenerator,
     cipherEncryptor: CipherEncryptor,
     sshKeyImportService: SshKeyImportService,
+    private val temporaryDirProvider: PrivateTemporaryDirProvider,
 ) : Importer, ImportAttachmentExtractor {
     companion object {
         private const val VAULT_ENTRY = "vault.json"
@@ -62,7 +65,10 @@ internal class KeyguardZipImporter(
         password: Password?,
         now: Instant,
     ): ImportResult {
-        val archive = input.readArchive(password, allowAge = true) { it == VAULT_ENTRY }
+        val archive = input.readArchive(
+            password = password,
+            ageTemporaryDirProvider = temporaryDirProvider,
+        ) { it == VAULT_ENTRY }
         val vault = archive.entries[VAULT_ENTRY]
             ?: return ImportResult.Failure(ImportError.Parse)
         val attachmentEntries = archive.namesByKey(
@@ -84,5 +90,10 @@ internal class KeyguardZipImporter(
         password: Password?,
         refs: Set<String>,
         sink: ImportAttachmentSink<T>,
-    ): Map<String, T> = input.extractArchiveEntries(password, refs, sink, allowAge = true)
+    ): Map<String, T> = input.extractArchiveEntries(
+        password = password,
+        refs = refs,
+        sink = sink,
+        ageTemporaryDirProvider = temporaryDirProvider,
+    )
 }

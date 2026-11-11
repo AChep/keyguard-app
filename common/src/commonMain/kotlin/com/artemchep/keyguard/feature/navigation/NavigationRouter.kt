@@ -430,7 +430,10 @@ class NavigationPile internal constructor(
     }
 
     internal fun progressBack(event: NavigationBackEvent) {
-        _backGesture.value?.progress = event.progress
+        _backGesture.value?.let { gesture ->
+            gesture.progress = event.progress
+            gesture.touchY = event.touchY
+        }
     }
 
     internal fun cancelBack() {
@@ -628,6 +631,7 @@ private fun previewBack(
         to = to,
         swipeEdge = event.swipeEdge,
         progress = event.progress,
+        initialTouchY = event.touchY,
     )
 }
 

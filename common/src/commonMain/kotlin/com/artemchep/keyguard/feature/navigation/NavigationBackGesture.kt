@@ -18,10 +18,16 @@ class NavigationBackGesture internal constructor(
     val to: NavigationStack,
     val swipeEdge: NavigationBackEdge,
     progress: Float,
+    private val initialTouchY: Float = 0f,
 ) {
     /** The progress of the gesture, in 0..1. Snapshot state. */
     var progress: Float by mutableFloatStateOf(progress)
         internal set
+
+    internal var touchY: Float by mutableFloatStateOf(initialTouchY)
+
+    internal val touchDeltaY: Float
+        get() = touchY - initialTouchY
 
     override fun toString(): String {
         return "NavigationBackGesture(from=${from.id}, to=${to.id}, swipeEdge=$swipeEdge, progress=$progress)"

@@ -42,7 +42,7 @@ class NavigationAnimationTest {
     }
 
     @Test
-    fun `a back gesture keeps the returning screen in place only with the dynamic animation`() {
+    fun `a dynamic back gesture delegates geometry to the peek layers`() {
         fun enter(
             animationType: NavAnimation,
             backEdge: NavigationBackEdge?,
@@ -59,6 +59,11 @@ class NavigationAnimationTest {
         assertEquals(EnterTransition.None, enter(NavAnimation.DYNAMIC, NavigationBackEdge.NONE))
         assertNotEquals(EnterTransition.None, enter(NavAnimation.DYNAMIC, null))
         assertNotEquals(EnterTransition.None, enter(NavAnimation.CROSSFADE, NavigationBackEdge.LEFT))
+    }
+
+    @Test
+    fun `crossfade gestures keep their existing seek curve`() {
+        assertEquals(0.32142857f, NavigationAnimation.backGestureCrossfadeFraction(0.5f))
     }
 
     @Test

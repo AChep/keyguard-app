@@ -294,13 +294,14 @@ class NavigationPileTest {
     fun `the progress of a Back gesture updates its preview`() {
         val pile = pile()
         assertNull(pile.dispatch(NavigationIntent.NavigateToRoute(ItemRoute("a"))))
-        pile.startBack(backEvent(0f))
+        pile.startBack(backEvent(0f).copy(touchY = 100f))
         val gesture = assertNotNull(pile.backGesture)
 
-        pile.progressBack(backEvent(0.5f))
+        pile.progressBack(backEvent(0.5f).copy(touchY = 160f))
 
         assertSame(gesture, pile.backGesture)
         assertEquals(0.5f, gesture.progress)
+        assertEquals(60f, gesture.touchDeltaY)
     }
 
     @Test

@@ -36,7 +36,7 @@ private val LinearOutSlowInEasing2: Easing = CubicBezierEasing(0.6f, 0.0f, 0.4f,
  *
  * This is equivalent to the Android `FastOutLinearInInterpolator`
  */
-internal val FastOutLinearInEasing2: Easing = CubicBezierEasing(0.6f, 0.0f, 0.4f, 1.0f)
+private val FastOutLinearInEasing2: Easing = CubicBezierEasing(0.6f, 0.0f, 0.4f, 1.0f)
 
 private fun <T> twaat(
     durationMillis: Int,
@@ -78,7 +78,7 @@ fun NavigationAnimation.transform(
         NavigationAnimationType.SWITCH -> transformSwitchContext(scale)
         NavigationAnimationType.GO_FORWARD -> transformGoForward(scale)
         NavigationAnimationType.GO_BACKWARD -> if (backEdge != null) {
-            transformBackGesture(scale, backEdge)
+            transformBackGesture()
         } else {
             transformGoBack(scale)
         }

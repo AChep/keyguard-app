@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.feature.navigation
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -9,7 +11,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.ImageComposeScene
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.findRootCoordinates
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
@@ -91,6 +98,14 @@ internal class NavigationScreenProbe {
     /** The Back calls of the screens that hold a Back target. */
     val backs = mutableListOf<String>()
 
+    val coordinates = mutableMapOf<String, LayoutCoordinates>()
+
+    /** Includes graphics-layer transforms, without clipping to the viewport. */
+    fun bounds(name: String): Rect {
+        val coordinates = assertNotNull(coordinates[name])
+        return coordinates.findRootCoordinates().localBoundingBoxOf(coordinates, clipBounds = false)
+    }
+
     fun isLive(name: String): Boolean = composed[name] == false
 
     /** Composed, but leaving or previewed. */
@@ -154,18 +169,19 @@ internal class NavigationComposeHarness(
     /**
      * Renders enough frames for a navigation to settle. Each frame is
      * a second after the previous one, so every animation step ends.
+     * Zero [frameNanos] settles the navigation without playing animations.
      */
-    fun frame() {
+    fun frame(frameNanos: Long = FRAME_NANOS) {
         repeat(FRAMES_TO_SETTLE) {
-            render()
+            render(frameNanos)
         }
     }
 
     /** Renders exactly one frame. */
-    fun render() {
+    fun render(frameNanos: Long = FRAME_NANOS) {
         val scene = checkNotNull(scene)
         scene.render(frameTime).close()
-        frameTime += FRAME_NANOS
+        frameTime += frameNanos
     }
 
     /**
@@ -231,11 +247,15 @@ internal class NavigationComposeHarness(
             screens.compositions[name] = screens.compositions(name) + 1
             onDispose {
                 screens.composed.remove(name)
+                screens.coordinates.remove(name)
             }
         }
         SideEffect {
             screens.composed[name] = finishing
         }
+        Box(
+            Modifier.fillMaxSize().onGloballyPositioned { screens.coordinates[name] = it },
+        )
     }
 
     private inner class Screen(private val name: String) : Route {

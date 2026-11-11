@@ -35,8 +35,8 @@ private const val NANOS_PER_MILLI = 1_000_000L
  * [backState] the gesture started with, and stops for good once either
  * of them changes.
  *
- * @param scalePeek whether the seek scales the leaving screen down, see
- *   [NavigationAnimation.transformBackGesture]
+ * @param scalePeek whether the seek is a predictive stack pop, whose
+ *   [motion] moves both screens, see [NavigationPeekBox]
  */
 internal class NavigationSeek<S>(
     val gesture: NavigationBackGesture,
@@ -45,16 +45,13 @@ internal class NavigationSeek<S>(
     val scalePeek: Boolean,
 ) {
     var stopped = false
+    val motion = if (scalePeek) NavigationBackMotion(gesture) else null
 }
-
-/** The target of the last seek that has not been settled yet. */
-private class NavigationSeekTarget<S>(
-    val state: S,
-)
 
 /** Plain holder, only the effect of the wrapper reads and writes it. */
 private class NavigationSeekMemory<S> {
-    var last: NavigationSeekTarget<S>? = null
+    /** The last seek that has not been settled yet. */
+    var last: NavigationSeek<S>? = null
 }
 
 /**
@@ -66,7 +63,7 @@ private class NavigationSeekMemory<S> {
  *
  * The content of every state other than the [targetState] is
  * finishing, see [LocalNavigationNodeFinishing]. A Back gesture that
- * scales the leaving screen down also decorates both screens, see
+ * is a predictive stack pop also moves both screens, see
  * [NavigationPeekBox].
  *
  * @param back the Back gesture that previews the [backState], or `null`
@@ -100,12 +97,15 @@ internal fun <S> NavigationAnimatedContent(
     val memory = remember {
         NavigationSeekMemory<S>()
     }
+    // Read once for the seek, transform and decoration: all use the same scale.
+    val animationScaleState = rememberUpdatedState(LocalAnimationFactor)
     LaunchedEffect(transitionState, seek, targetState) {
         transitionState.settle(
             memory = memory,
             targetState = targetState,
             seek = seek,
             totalDurationNanos = { transition.totalDurationNanos },
+            animationScale = animationScaleState.value,
         )
     }
 
@@ -119,9 +119,6 @@ internal fun <S> NavigationAnimatedContent(
     // latest values through these states.
     val liveState = rememberUpdatedState(targetState)
     val contentState = rememberUpdatedState(content)
-    // Read once for the transform and the decoration: the two
-    // must run on the same timeline.
-    val animationScaleState = rememberUpdatedState(LocalAnimationFactor)
     val transitionSpec = rememberNavigationTransitionSpec(
         seek = seek,
         animationScaleState = animationScaleState,
@@ -314,25 +311,34 @@ private suspend fun <S> SeekableTransitionState<S>.settle(
     targetState: S,
     seek: NavigationSeek<S>?,
     totalDurationNanos: () -> Long,
+    animationScale: Float,
 ) {
     val last = memory.last
     if (last != null) {
         val keep = if (seek != null) {
             // The next gesture previews the same state.
-            last.state == seek.backState && currentState == targetState
+            last.backState == seek.backState && currentState == targetState
         } else {
             // Released: the previewed state is the live one now.
-            last.state == targetState
+            last.backState == targetState
         }
         if (!keep) {
-            undoSeek(last.state, totalDurationNanos())
+            undoSeek(last.backState, totalDurationNanos())
             memory.last = null
         }
     }
 
     if (seek == null) {
         memory.last = null
-        animateTo(targetState)
+        val motion = last?.takeIf { it.backState == targetState }?.motion
+        if (motion != null && this.targetState == targetState && currentState != targetState) {
+            // Rebase the release at the actual drag pose. Playing the rest of the
+            // drag segment first would add a shrink after every short swipe.
+            motion.commit(fraction)
+            animateTo(targetState, NavigationAnimation.backGestureCommitSpec(animationScale))
+        } else {
+            animateTo(targetState)
+        }
         return
     }
 
@@ -340,10 +346,14 @@ private suspend fun <S> SeekableTransitionState<S>.settle(
         // The live content is not composed yet.
         animateTo(targetState)
     }
-    memory.last = NavigationSeekTarget(seek.backState)
+    memory.last = seek
     snapshotFlow { seek.gesture.progress }
         .collectLatest { progress ->
-            val fraction = NavigationAnimation.backGestureFraction(progress)
+            val fraction = if (seek.scalePeek) {
+                NavigationAnimation.backGestureFraction(progress)
+            } else {
+                NavigationAnimation.backGestureCrossfadeFraction(progress)
+            }
             seekTo(fraction, seek.backState)
         }
 }

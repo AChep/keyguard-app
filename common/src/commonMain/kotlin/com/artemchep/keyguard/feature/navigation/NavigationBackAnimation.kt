@@ -2,167 +2,183 @@ package com.artemchep.keyguard.feature.navigation
 
 import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.CubicBezierEasing
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.FiniteAnimationSpec
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.scaleOut
 import androidx.compose.animation.togetherWith
-import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.lerp
+import kotlin.math.PI
+import kotlin.math.abs
+import kotlin.math.cos
+import kotlin.math.max
+import kotlin.math.sign
 
-/**
- * The drag part of the back gesture transform: the leaving screen scales
- * down while the finger drags. The exit part plays after the release: the
- * screen keeps scaling down and fades out.
- */
 private const val BACK_GESTURE_DRAG_MILLIS = 120
-private const val BACK_GESTURE_EXIT_MILLIS = 160
-
-/** The share of the timeline of a seeked transition that a full drag reaches. */
+private const val BACK_GESTURE_COMMIT_MILLIS = 450
+private const val BACK_GESTURE_DURATION_MILLIS = BACK_GESTURE_DRAG_MILLIS + BACK_GESTURE_COMMIT_MILLIS
 internal const val BACK_GESTURE_DRAG_FRACTION =
-    BACK_GESTURE_DRAG_MILLIS.toFloat() / (BACK_GESTURE_DRAG_MILLIS + BACK_GESTURE_EXIT_MILLIS)
+    BACK_GESTURE_DRAG_MILLIS.toFloat() / BACK_GESTURE_DURATION_MILLIS
+private const val BACK_GESTURE_SCALE_REDUCTION = 0.15f
+private const val BACK_GESTURE_FADE_MULTIPLIER = 5f
 
-/** The scale of the leaving screen at the end of the drag part. */
-private const val BACK_GESTURE_DRAG_SCALE = 0.9f
+/** The share of a crossfade that a full drag reaches. */
+private const val BACK_GESTURE_CROSSFADE_FRACTION = 3f / 7f
+private const val BACK_GESTURE_EMPHASIZED_TIME_SPLIT = 1f / 6f
+private const val BACK_GESTURE_EMPHASIZED_POSITION_SPLIT = 0.4f
 
-/**
- * The scale of the leaving screen at the end of the exit part. It keeps
- * shrinking at the speed of the drag part.
- */
-private const val BACK_GESTURE_EXIT_SCALE = 0.77f
+internal val BackGesturePeekCorner = 28.dp
+internal val BackGesturePeekMargin = 8.dp
+internal val BackGestureEnteringOffset = 96.dp
+internal const val BACK_GESTURE_SCRIM_ALPHA_DARK = 0.8f
+internal const val BACK_GESTURE_SCRIM_ALPHA_LIGHT = 0.2f
 
-/** Decelerates, so the screen follows the start of the drag the most. */
-private val BackGestureEasing = Easing { fraction ->
+private val BackGestureEasing = CubicBezierEasing(0.1f, 0.1f, 0f, 1f)
+
+/** Decelerates, so the motion follows the start of the drag the most. */
+private val BackGestureDecelerateEasing = Easing { fraction ->
     val rest = 1f - fraction
     1f - rest * rest
 }
 
-/**
- * Maps the [progress] of a Back gesture to the fraction a seekable
- * navigation transition seeks to. The result is in the drag part of
- * the timeline, so a full drag peeks and never finishes the pop.
- */
-fun NavigationAnimation.backGestureFraction(progress: Float): Float {
-    val clamped = if (progress.isNaN()) 0f else progress.coerceIn(0f, 1f)
-    val fraction = BackGestureEasing.transform(clamped) * BACK_GESTURE_DRAG_FRACTION
-    return fraction.coerceIn(0f, 1f)
-}
-
-/**
- * Pops a screen with a Back gesture swiped from the [backEdge]. The leaving
- * screen scales down toward the opposite edge while the finger drags, then
- * keeps scaling down toward that edge as it fades out. The returning screen
- * sits under it as it is.
- *
- * The transform only scales: the peek decoration of the leaving screen
- * fades it, see [backGestureFadeSpec]. An alpha on the wrapper of the
- * content would draw it into a buffer of its size and clip the shadow.
- */
-fun NavigationAnimation.transformBackGesture(
-    scale: Float,
-    backEdge: NavigationBackEdge,
-): ContentTransform {
-    val dragMillis = BACK_GESTURE_DRAG_MILLIS.times(scale).toInt()
-    val exitMillis = BACK_GESTURE_EXIT_MILLIS.times(scale).toInt()
-    // A swipe from the left edge, or not from an edge,
-    // scales the screen toward the right edge.
-    val towardRight = backEdge != NavigationBackEdge.RIGHT
-    val transformOrigin = TransformOrigin(
-        pivotFractionX = if (towardRight) 1f else 0f,
-        pivotFractionY = 0.5f,
-    )
-    // Spans the whole timeline, so it also keeps the
-    // leaving content until the end of the exit part.
-    return EnterTransition.None togetherWith scaleOut(
-        animationSpec = keyframes {
-            durationMillis = dragMillis + exitMillis
-            BACK_GESTURE_DRAG_SCALE at dragMillis using LinearEasing
-        },
-        targetScale = BACK_GESTURE_EXIT_SCALE,
-        transformOrigin = transformOrigin,
-    )
-}
-
-/** The look of the leaving screen at the end of the drag part of a back gesture. */
-internal val BackGesturePeekCorner = 28.dp
-internal val BackGesturePeekElevation = 16.dp
-internal val BackGesturePeekMargin = 8.dp
-
-/** The share of the [BackGesturePeekElevation] that is left at the end of the exit part. */
-internal const val BACK_GESTURE_SHADOW_EXIT_FACTOR = 0.25f
-
-/** The alpha of the scrim over the returning screen at the start of a back gesture. */
-internal const val BACK_GESTURE_SCRIM_ALPHA_DARK = 0.32f
-internal const val BACK_GESTURE_SCRIM_ALPHA_LIGHT = 0.16f
-
-/** The share of the scrim alpha that is left at the end of the drag part. */
-private const val BACK_GESTURE_SCRIM_DRAG_FACTOR = 0.5f
-
-/**
- * Grows the corners and the margin of the leaving screen over the drag
- * part of [transformBackGesture], as the screen scales down, and holds
- * them through the exit part.
- */
-internal fun NavigationAnimation.backGesturePeekSpec(
-    scale: Float,
-): FiniteAnimationSpec<Float> {
-    val dragMillis = BACK_GESTURE_DRAG_MILLIS.times(scale).toInt()
-    return tween(
-        durationMillis = dragMillis,
-        easing = LinearEasing,
-    )
-}
-
-/**
- * Animates the shadow of the leaving screen, as a factor of the
- * [BackGesturePeekElevation], over the whole timeline of
- * [transformBackGesture]: from zero to the full elevation over the drag
- * part, then down to [BACK_GESTURE_SHADOW_EXIT_FACTOR] of it over the exit
- * part.
- */
-internal fun NavigationAnimation.backGestureShadowSpec(
-    scale: Float,
-): FiniteAnimationSpec<Float> {
-    val dragMillis = BACK_GESTURE_DRAG_MILLIS.times(scale).toInt()
-    val exitMillis = BACK_GESTURE_EXIT_MILLIS.times(scale).toInt()
-    return keyframes {
-        durationMillis = dragMillis + exitMillis
-        1f at dragMillis using LinearEasing
+// WindowManager Shell's emphasized path, expressed as two normalized Beziers
+// so the motion model does not need an initialized platform graphics backend.
+private val BackGestureCommitAccelerate = CubicBezierEasing(0.3f, 0f, 0.8f, 0.15f)
+private val BackGestureCommitDecelerate = CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)
+private val BackGestureCommitEasing = Easing { fraction ->
+    if (fraction < BACK_GESTURE_EMPHASIZED_TIME_SPLIT) {
+        BACK_GESTURE_EMPHASIZED_POSITION_SPLIT * BackGestureCommitAccelerate.transform(
+            fraction / BACK_GESTURE_EMPHASIZED_TIME_SPLIT,
+        )
+    } else {
+        BACK_GESTURE_EMPHASIZED_POSITION_SPLIT +
+            (1f - BACK_GESTURE_EMPHASIZED_POSITION_SPLIT) * BackGestureCommitDecelerate.transform(
+                (fraction - BACK_GESTURE_EMPHASIZED_TIME_SPLIT) / (1f - BACK_GESTURE_EMPHASIZED_TIME_SPLIT),
+            )
     }
 }
 
-/**
- * Fades the leaving screen of [transformBackGesture] out: it stays opaque
- * over the drag part and fades over the exit part.
- */
-internal fun NavigationAnimation.backGestureFadeSpec(
-    scale: Float,
-): FiniteAnimationSpec<Float> {
-    val dragMillis = BACK_GESTURE_DRAG_MILLIS.times(scale).toInt()
-    val exitMillis = BACK_GESTURE_EXIT_MILLIS.times(scale).toInt()
-    return tween(
-        durationMillis = exitMillis,
-        delayMillis = dragMillis,
-        easing = FastOutLinearInEasing2,
-    )
-}
+/** A full drag previews the previous page without finishing the pop. */
+fun NavigationAnimation.backGestureFraction(progress: Float): Float =
+    BackGestureEasing.transform(progress.normalized()) * BACK_GESTURE_DRAG_FRACTION
+
+/** Same, for a gesture that crossfades: a tab switch, or the crossfade preference. */
+fun NavigationAnimation.backGestureCrossfadeFraction(progress: Float): Float =
+    BackGestureDecelerateEasing.transform(progress.normalized()) * BACK_GESTURE_CROSSFADE_FRACTION
+
+/** [NavigationPeekBox] draws the geometry; its peek fraction gives the segment its timeline. */
+fun NavigationAnimation.transformBackGesture(): ContentTransform =
+    EnterTransition.None togetherWith ExitTransition.None
 
 /**
- * Clears the scrim over the returning screen over the whole timeline of
- * [transformBackGesture]: from the [alpha] to a half of it over the drag
- * part, so the scrim follows the finger, then to zero over the exit part.
+ * The timeline of the peek fraction. It is linear and the longest animation
+ * of its segment, so the fraction equals the one of the seekable transition
+ * that [NavigationBackMotion.commit] records.
  */
-internal fun NavigationAnimation.backGestureScrimSpec(
-    scale: Float,
-    alpha: Float,
-): FiniteAnimationSpec<Float> {
-    val dragMillis = BACK_GESTURE_DRAG_MILLIS.times(scale).toInt()
-    val exitMillis = BACK_GESTURE_EXIT_MILLIS.times(scale).toInt()
-    val dragAlpha = alpha * BACK_GESTURE_SCRIM_DRAG_FACTOR
-    return keyframes {
-        durationMillis = dragMillis + exitMillis
-        dragAlpha at dragMillis using LinearEasing
+internal fun NavigationAnimation.backGestureSpec(scale: Float): FiniteAnimationSpec<Float> = tween(
+    durationMillis = (BACK_GESTURE_DURATION_MILLIS * scale).toInt(),
+    easing = LinearEasing,
+)
+
+/** Plays the rest of the seek after the release. Linear: [NavigationBackMotion] eases the commit. */
+internal fun NavigationAnimation.backGestureCommitSpec(scale: Float): FiniteAnimationSpec<Float> = tween(
+    durationMillis = (BACK_GESTURE_COMMIT_MILLIS * scale).toInt(),
+    easing = LinearEasing,
+)
+
+/** The actual seek position and touch displacement at release, including short drags. */
+private data class NavigationBackRelease(
+    val fraction: Float,
+    val touchDeltaY: Float,
+)
+
+@Stable
+internal class NavigationBackMotion(
+    private val gesture: NavigationBackGesture,
+) {
+    private var release: NavigationBackRelease? by mutableStateOf(null)
+
+    fun commit(fraction: Float) {
+        release = NavigationBackRelease(fraction.normalized(), gesture.touchDeltaY)
+    }
+
+    /** The progress of the commit that plays after the release, zero during the drag. */
+    fun commitProgress(fraction: Float): Float {
+        val release = release ?: return 0f
+        val commitFraction = ((fraction - release.fraction) / (1f - release.fraction)).normalized()
+        // Match ValueAnimator's default accelerate/decelerate interpolator.
+        return ((1.0 - cos(PI * commitFraction)) / 2.0).toFloat()
+    }
+
+    fun frame(fraction: Float): NavigationBackFrame {
+        val release = release
+        val dragFraction = release?.fraction ?: fraction
+        return NavigationBackFrame(
+            progress = (dragFraction / BACK_GESTURE_DRAG_FRACTION).normalized(),
+            touchDeltaY = release?.touchDeltaY ?: gesture.touchDeltaY,
+            swipeEdge = gesture.swipeEdge,
+            commitProgress = commitProgress(fraction),
+        )
     }
 }
+
+@Immutable
+internal data class NavigationBackFrame(
+    val progress: Float,
+    val touchDeltaY: Float,
+    val swipeEdge: NavigationBackEdge,
+    val commitProgress: Float,
+) {
+    fun transform(
+        size: Size,
+        margin: Float,
+        enteringOffset: Float,
+        entering: Boolean,
+    ): NavigationBackTransform {
+        val reduction = BACK_GESTURE_SCALE_REDUCTION * progress
+        // The commit moves the page from the pose of the drag to its pose at rest.
+        val geometryProgress = BackGestureCommitEasing.transform(commitProgress)
+        val dragX = when {
+            entering -> -max(size.width * BACK_GESTURE_SCALE_REDUCTION, enteringOffset)
+            swipeEdge == NavigationBackEdge.RIGHT -> 0f
+            else -> (size.width * BACK_GESTURE_SCALE_REDUCTION / 2f - margin) * progress
+        }
+        val restX = if (entering) 0f else dragX + size.width * reduction / 2f + enteringOffset
+        return NavigationBackTransform(
+            scale = lerp(1f - reduction, 1f, geometryProgress),
+            offset = Offset(
+                x = lerp(dragX, restX, geometryProgress),
+                y = lerp(verticalOffset(size.height, reduction, margin), 0f, geometryProgress),
+            ),
+            alpha = if (entering) 1f else (1f - commitProgress * BACK_GESTURE_FADE_MULTIPLIER).normalized(),
+            corner = if (entering) progress * (1f - geometryProgress) else progress,
+        )
+    }
+
+    private fun verticalOffset(height: Float, reduction: Float, margin: Float): Float {
+        if (height <= 0f || !touchDeltaY.isFinite()) return 0f
+        val ratio = (abs(touchDeltaY) / (height / 2f)).normalized()
+        val travel = max(0f, height * reduction / 2f - margin)
+        return sign(touchDeltaY) * travel * BackGestureDecelerateEasing.transform(ratio)
+    }
+}
+
+@Immutable
+internal data class NavigationBackTransform(
+    val scale: Float,
+    val offset: Offset,
+    val alpha: Float,
+    val corner: Float,
+)
+
+private fun Float.normalized(): Float = if (isNaN()) 0f else coerceIn(0f, 1f)

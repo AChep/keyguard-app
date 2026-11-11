@@ -64,7 +64,7 @@ class TombstoneTest {
     }
 
     @Test
-    fun `an edit the delete never saw comes back as it was, in any delivery order`() {
+    fun `an edit the delete never saw comes back as it was in any delivery order`() {
         val (a, b, c) = devices(3)
         val id = random.nextUuid()
         a.edit(id, ForwarderBodies.forwarder("item"))

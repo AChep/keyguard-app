@@ -57,7 +57,7 @@ class UrlOverrideSchemaTest {
         )
 
     @Test
-    fun `an override has a name part, a rule part and an enabled part`() {
+    fun `an override has a name part a rule part and an enabled part`() {
         val entry = create(override("Docs", "^http:.*", "https://{url:rmvscm}"), clock("a"))
         assertEquals(
             setOf("/name", KeyguardPartSchemas.URL_OVERRIDE_RULE_PART, "/enabled", EntryVersion.REMAINDER),
@@ -66,7 +66,7 @@ class UrlOverrideSchemaTest {
     }
 
     @Test
-    fun `concurrent edits of the name, the rule and the switch all survive`() {
+    fun `concurrent edits of the name the rule and the switch all survive`() {
         val a = clock("a")
         val b = clock("b")
         val c = clock("c")

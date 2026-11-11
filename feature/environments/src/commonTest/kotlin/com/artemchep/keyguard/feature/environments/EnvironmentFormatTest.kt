@@ -104,7 +104,7 @@ class EnvironmentFormatTest {
     }
 
     @Test
-    fun `names are checked before delivery, not when reading`() {
+    fun `names are checked before delivery not when reading`() {
         val document = """{"version":1,"variables":[""" +
             """{"name":"BAD-NAME","source":{"kind":"literal","value":"a"}},""" +
             """{"name":"A","source":{"kind":"literal","value":"a"}},""" +

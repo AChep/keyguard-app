@@ -33,7 +33,7 @@ class RosterChangesTest {
     }
 
     @Test
-    fun `a removed device is reported with the device that removed it, or itself if it left`() {
+    fun `a removed device is reported with the device that removed it or itself if it left`() {
         val removed = group.revoke(group.roster, second, founder, at(5_000))
         assertEquals(
             listOf(RosterChange.Removed(second.id, by = founder.id)),
@@ -102,7 +102,7 @@ class RosterChangesTest {
     }
 
     @Test
-    fun `an active device that removed a device is named, never a removed one`() {
+    fun `an active device that removed a device is named never a removed one`() {
         val removed = group.revoke(group.roster, second, founder, at(5_000))
         // The second device removes the third with the earliest stamp; the founder removes it too.
         val both = group.revoke(group.revoke(removed, third, second, at(1_000, second.id)), third, founder, at(6_000))

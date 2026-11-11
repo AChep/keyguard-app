@@ -10,7 +10,7 @@ class JsonLimitsTest {
     private fun JsonLimits.admits(text: String) = admits(text.encodeToByteArray())
 
     @Test
-    fun `nodes are the brackets, commas and colons outside strings`() {
+    fun `nodes are the brackets commas and colons outside strings`() {
         // { : [ , , : are six nodes, two levels deep.
         val text = """{"a":[1,2],"b":3}"""
         assertTrue(JsonLimits(maxDepth = 2, maxNodes = 6).admits(text))

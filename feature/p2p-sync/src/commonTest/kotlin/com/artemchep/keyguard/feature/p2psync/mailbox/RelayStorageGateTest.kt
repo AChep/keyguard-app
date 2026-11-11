@@ -89,7 +89,7 @@ class RelayStorageGateTest {
     }
 
     @Test
-    fun `a state is posted unless the relay holds it, refused it, or a live session acknowledged it`() {
+    fun `a state is posted unless the relay holds it refused it or a live session acknowledged it`() {
         assertTrue(MailboxPolicy.shouldPost("t1", relayTag = null, refusedTag = null, liveAcked = false))
         assertTrue(MailboxPolicy.shouldPost("t1", relayTag = "t0", refusedTag = "t0", liveAcked = false))
         assertFalse(MailboxPolicy.shouldPost("t1", relayTag = "t1", refusedTag = null, liveAcked = false))
@@ -98,7 +98,7 @@ class RelayStorageGateTest {
     }
 
     @Test
-    fun `the missing blobs are bounded, the oldest go first`() {
+    fun `the missing blobs are bounded the oldest go first`() {
         var missing = emptyList<String>()
         repeat(MailboxLimits.MAX_MISSING + 2) { missing = MailboxPolicy.withMissing(missing, "h$it") }
         assertEquals(MailboxLimits.MAX_MISSING, missing.size)
@@ -117,7 +117,7 @@ class RelayStorageGateTest {
     }
 
     @Test
-    fun `a refusal pauses within bounds, and items live at most a week`() {
+    fun `a refusal pauses within bounds and items live at most a week`() {
         assertEquals(MailboxPolicy.DEFAULT_RETRY_AFTER_SECONDS * 1_000L, MailboxPolicy.retryAfterMs(null))
         assertEquals(1_000L, MailboxPolicy.retryAfterMs(0))
         assertEquals(120_000L, MailboxPolicy.retryAfterMs(120))

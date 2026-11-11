@@ -272,7 +272,7 @@ class RosterCrdtTest {
     }
 
     @Test
-    fun `a device without an authority key leaves with its device key, and that key removes no other device`() {
+    fun `a device without an authority key leaves with its device key and that key removes no other device`() {
         val keys = group.newKeys(Random(17))
         val unsigned = group.record(keys, by = founder, at = at(4_000)).copy(authorityPub = "")
         val record = group.signer.admit(group.signer.selfSign(unsigned, keys.signPrivate), founder.authorityPrivate)
@@ -346,7 +346,7 @@ class RosterCrdtTest {
     }
 
     @Test
-    fun `a device joins at its admission, up to the clock skew, and revocations never undo it`() {
+    fun `a device joins at its admission up to the clock skew and revocations never undo it`() {
         val late = group.newKeys(Random(8))
         val roster = group.roster.copy(devices = group.roster.devices + group.admit(late, by = founder, at = at(9_000)))
         val activity = group.activity(validator.validate(roster))

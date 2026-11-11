@@ -142,7 +142,7 @@ class MailboxCodecTest {
     }
 
     @Test
-    fun `an item moved to another id, direction or kind is refused`() {
+    fun `an item moved to another id direction or kind is refused`() {
         val bytes = draft().encode(expiresAt)
         assertEquals(MailboxRejection.WRONG_ITEM, rejection(decode(bytes, address.copy(item = "b".repeat(64)))))
         // The reverse direction: the same pair, the other way round.
@@ -160,7 +160,7 @@ class MailboxCodecTest {
     }
 
     @Test
-    fun `an expired item is refused, whatever the clock of its sender`() {
+    fun `an expired item is refused whatever the clock of its sender`() {
         val bytes = draft().encode(expiresAt)
         assertIs<MailboxOpening.Valid<*>>(decode(bytes, at = expiresAt))
         assertEquals(MailboxRejection.EXPIRED, rejection(decode(bytes, at = expiresAt + 1)))

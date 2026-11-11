@@ -82,7 +82,7 @@ class EnvelopeHashTest {
     }
 
     @Test
-    fun `the receiver hashes the bytes it decoded, not a new encoding of them`() {
+    fun `the receiver hashes the bytes it decoded not a new encoding of them`() {
         val a = entry("00000000-0000-0000-0000-000000000001", "one")
         val canonical = EnvelopeCodec.encode(envelope(a))
         // The same envelope, with its fields in another order and white space.
@@ -126,7 +126,7 @@ class EnvelopeHashTest {
     }
 
     @Test
-    fun `entries of a broken shape are skipped not the envelope, and unknown kinds are kept`() {
+    fun `entries of a broken shape are skipped not the envelope and unknown kinds are kept`() {
         val a = entry("00000000-0000-0000-0000-000000000001", "one")
         val json = P2pJson.encodeToJsonElement(Envelope.serializer(), envelope(a)) as JsonObject
         val entries = json.getValue("entries") as JsonArray

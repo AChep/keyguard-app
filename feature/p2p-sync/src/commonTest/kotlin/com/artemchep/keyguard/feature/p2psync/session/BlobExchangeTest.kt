@@ -167,7 +167,7 @@ class BlobExchangeTest {
     }
 
     @Test
-    fun `a missing blob is reported, and the next one can start`() {
+    fun `a missing blob is reported and the next one can start`() {
         val (missing, _) = blob(10)
         val (present, bytes) = blob(10)
         val link = Link(mapOf(present to bytes))

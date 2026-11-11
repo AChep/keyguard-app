@@ -101,7 +101,7 @@ class SanitizerTest {
     }
 
     @Test
-    fun `an entry passes the same checks whichever kind it is, known or not`() {
+    fun `an entry passes the same checks whichever kind it is known or not`() {
         val kinds = EntryKind.entries.map { it.wireName } + "card-reader"
         kinds.forEach { kind ->
             val id = random.nextUuid()
@@ -129,7 +129,7 @@ class SanitizerTest {
     }
 
     @Test
-    fun `a body larger than 256 KiB is dropped, whatever its parts`() {
+    fun `a body larger than 256 KiB is dropped whatever its parts`() {
         // The canonical body of a forwarder named this is one byte past the cap.
         val overhead = CanonicalJson.encodeToByteArray(ForwarderBodies.forwarder("")).size
         val name = "x".repeat(SanitizerLimits.MAX_BODY_BYTES - overhead + 1)
@@ -142,7 +142,7 @@ class SanitizerTest {
     }
 
     @Test
-    fun `the body cap holds for each version, so concurrent versions that fit merge`() {
+    fun `the body cap holds for each version so concurrent versions that fit merge`() {
         // Two devices fill most of the cap with a different part each, concurrently.
         val large = "x".repeat(SanitizerLimits.MAX_BODY_BYTES * 9 / 10)
         val (a, b) = listOf(group.keys[1], group.keys[2]).map { SimDevice(it.id, group) { now } }

@@ -274,7 +274,7 @@ class ObjectKeyRotationTest {
     }
 
     @Test
-    fun `a key that leaves a removed device uncovered is no key, also while no new key fits`() {
+    fun `a key that leaves a removed device uncovered is no key also while no new key fits`() {
         a.ensureObjectKey()
         val key = assertNotNull(a.objectKey())
         assertEquals(key, ObjectKey.usable(a.entry(ObjectKey.ENTRY_ID, EntryKind.OBJECT_KEY), a.activity()))

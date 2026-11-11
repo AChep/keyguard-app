@@ -483,7 +483,7 @@ class EnrollmentStateMachineTest {
     }
 
     @Test
-    fun `a bundle holds the group, its key, the roster once and the entries`() {
+    fun `a bundle holds the group its key the roster once and the entries`() {
         val pairing = EnrollmentHarness(memberDisplays = true)
         val json = P2pJson.encodeToJsonElement(EnrollmentBundle.serializer(), pairing.bundle()).jsonObject
         assertEquals(setOf("group", "groupKey", "roster", "entries"), json.keys)

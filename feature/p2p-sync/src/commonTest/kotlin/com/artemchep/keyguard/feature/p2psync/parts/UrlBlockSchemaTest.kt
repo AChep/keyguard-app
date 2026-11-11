@@ -61,7 +61,7 @@ class UrlBlockSchemaTest {
         )
 
     @Test
-    fun `a blocked URI has a name, a description, a rule, an enabled and an exposed part`() {
+    fun `a blocked URI has a name a description a rule an enabled and an exposed part`() {
         val entry = create(block("Bank", "Never fill", "example.com", "domain"), clock("a"))
         assertEquals(
             setOf(
@@ -77,7 +77,7 @@ class UrlBlockSchemaTest {
     }
 
     @Test
-    fun `concurrent edits of the name, the description, the rule and the switches all survive`() {
+    fun `concurrent edits of the name the description the rule and the switches all survive`() {
         val a = clock("a")
         val b = clock("b")
         val c = clock("c")

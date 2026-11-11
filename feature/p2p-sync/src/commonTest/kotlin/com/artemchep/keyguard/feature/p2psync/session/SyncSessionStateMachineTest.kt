@@ -230,7 +230,7 @@ class SyncSessionStateMachineTest {
     }
 
     @Test
-    fun `no envelope of the peer is applied after a roster the session can not merge, until it merges one`() {
+    fun `no envelope of the peer is applied after a roster the session can not merge until it merges one`() {
         val group = TestGroup(crypto, size = 2, random = random)
         val machine = machine(group)
         machine.start(BASE_TIME, founderEnvelope(group))
@@ -256,7 +256,7 @@ class SyncSessionStateMachineTest {
     }
 
     @Test
-    fun `a roster that changes nothing is not handed to the host, unless it asked for it again`() {
+    fun `a roster that changes nothing is not handed to the host unless it asked for it again`() {
         val group = TestGroup(crypto, size = 3, random = random)
         val machine = machine(group)
         machine.start(BASE_TIME, founderEnvelope(group))
@@ -281,7 +281,7 @@ class SyncSessionStateMachineTest {
     }
 
     @Test
-    fun `the host asks for the roster and envelope again, within the budget`() = runTest {
+    fun `the host asks for the roster and envelope again within the budget`() = runTest {
         val (a, b) = nodes(TestGroup(crypto, size = 2, random = random))
         a.create("one")
         val (linkA, linkB) = SessionLink.connect(backgroundScope, a, b)
@@ -452,7 +452,7 @@ class SyncSessionStateMachineTest {
     }
 
     @Test
-    fun `a local state past the node limit is reported, not sent`() {
+    fun `a local state past the node limit is reported not sent`() {
         val group = TestGroup(crypto, size = 2, random = random)
         val stamp = Hlc(BASE_TIME, 0, group.id(0))
         val dense = SyncEntry(

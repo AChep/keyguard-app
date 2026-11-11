@@ -30,7 +30,7 @@ class PartSchemaTest {
     }
 
     @Test
-    fun `every part is keyed by one of its paths, and no path is in two parts`() {
+    fun `every part is keyed by one of its paths and no path is in two parts`() {
         EntryKind.entries.forEach { kind ->
             val parts = kind.schema.parts
             parts.forEach { part ->

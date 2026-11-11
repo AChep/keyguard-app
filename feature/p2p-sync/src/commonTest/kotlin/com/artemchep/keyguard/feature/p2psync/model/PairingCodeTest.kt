@@ -69,7 +69,7 @@ class PairingCodeTest {
     }
 
     @Test
-    fun `the text form is the prefix and uppercase base32, all of it QR alphanumeric`() {
+    fun `the text form is the prefix and uppercase base32 all of it QR alphanumeric`() {
         val text = minimal.encode()
         assertTrue(text.startsWith("KGP:"))
         // 75 bytes are 120 base32 characters, without padding.
@@ -174,7 +174,7 @@ class PairingCodeTest {
     }
 
     @Test
-    fun `a code skips the extensions it does not know, unless they are critical`() {
+    fun `a code skips the extensions it does not know unless they are critical`() {
         val extended = code.toByteArray() + extension(1, byteArrayOf(1, 2, 3)) + extension(0x7F, ByteArray(0))
         assertEquals(PairingCodeDecoding.Valid(code), PairingCode.decode(textOf(extended)))
         // Up to the limit, the types and lengths included.
@@ -221,7 +221,7 @@ class PairingCodeTest {
     }
 
     @Test
-    fun `a code holds URLs up to the limit, and text longer than any code is refused`() {
+    fun `a code holds URLs up to the limit and text longer than any code is refused`() {
         val url = "wss://" + "a".repeat(PairingCode.MAX_URL_SIZE - 6)
         val largest = PairingCode(
             psk = psk,

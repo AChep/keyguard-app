@@ -124,7 +124,7 @@ class BackupRunnerTest {
     }
 
     @Test
-    fun `plain size is the size of the written payload, not the remote size`() = runTest {
+    fun `plain size is the size of the written payload not the remote size`() = runTest {
         val repository = MemoryBackupRepository()
         // A Bitwarden attachment reports the size of the encrypted file,
         // while the download writes the 7 decrypted bytes of "payload".

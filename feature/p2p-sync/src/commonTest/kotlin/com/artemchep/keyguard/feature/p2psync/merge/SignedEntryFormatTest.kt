@@ -118,7 +118,7 @@ class SignedEntryFormatTest {
     }
 
     @Test
-    fun `an unknown kind is checked, kept and relayed, but never materialized`() {
+    fun `an unknown kind is checked kept and relayed but never materialized`() {
         val (a, b, c) = devices
         val id = random.nextUuid()
         val unknownKind = "card-reader"

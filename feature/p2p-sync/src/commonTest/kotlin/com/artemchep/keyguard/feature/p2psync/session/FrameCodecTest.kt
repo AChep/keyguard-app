@@ -32,7 +32,7 @@ class FrameCodecTest {
     }
 
     @Test
-    fun `the header is type, flags and message id, big-endian`() {
+    fun `the header is type flags and message id big-endian`() {
         assertEquals(6, FrameCodec.HEADER_SIZE)
         val bytes = FrameCodec.encode(
             Frame(

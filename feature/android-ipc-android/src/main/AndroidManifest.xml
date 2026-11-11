@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application>
         <activity
             android:name="com.artemchep.keyguard.android.ipc.AndroidIpcApprovalActivity"
@@ -11,19 +12,23 @@
             android:theme="@style/Theme.Keyguard.Dialog"
             android:windowSoftInputMode="adjustResize" />
 
+        <!-- OpenIntents clients use per-request Binder UID/certificate checks and user approval. -->
         <service
             android:name="com.artemchep.keyguard.android.ipc.SshAuthenticationService"
             android:enabled="false"
-            android:exported="true">
+            android:exported="true"
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="org.openintents.ssh.authentication.ISshAuthenticationService" />
             </intent-filter>
         </service>
 
+        <!-- OpenIntents clients use per-request Binder UID/certificate checks and user approval. -->
         <service
             android:name="com.artemchep.keyguard.android.ipc.OpenPgpService"
             android:enabled="false"
-            android:exported="true">
+            android:exported="true"
+            tools:ignore="ExportedService">
             <intent-filter>
                 <action android:name="org.openintents.openpgp.IOpenPgpService2" />
             </intent-filter>

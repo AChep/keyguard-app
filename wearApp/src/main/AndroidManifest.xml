@@ -54,7 +54,8 @@
         android:localeConfig="@xml/locale_config"
         android:networkSecurityConfig="@xml/network_configuration"
         android:roundIcon="@mipmap/ic_launcher"
-        android:theme="@style/WearTheme.Keyguard">
+        android:theme="@style/WearTheme.Keyguard"
+        tools:targetApi="tiramisu">
         <activity
             android:name="com.artemchep.keyguard.android.MainActivity"
             android:taskAffinity=""

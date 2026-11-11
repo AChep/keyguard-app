@@ -153,12 +153,16 @@ abstract class DetektCustomRulesExtension @Inject constructor(
 
             // A non-empty classpath is what makes Detekt pass `--analysis-mode full`, which
             // is the only mode where rules that need type resolution actually run.
+            // AGP's built-in Kotlin leaves compilation.output.classesDirs empty. Include the
+            // compile task's destination as well so same-module declarations can be resolved.
             classpath.from(
                 project.provider { compilation.get().output.classesDirs },
+                compileTask.flatMap { it.destinationDirectory },
                 compileTask.map { it.libraries },
             )
             friendPaths.from(
                 project.provider { compilation.get().output.classesDirs },
+                compileTask.flatMap { it.destinationDirectory },
                 compileTask.map { it.friendPaths },
             )
 

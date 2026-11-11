@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.wear.locale
 
+import android.annotation.SuppressLint
 import android.app.LocaleManager
 import android.content.Context
 import android.content.res.Configuration
@@ -8,6 +9,7 @@ import android.os.LocaleList
 import androidx.annotation.ChecksSdkIntAtLeast
 import androidx.annotation.RequiresApi
 import androidx.core.app.LocaleManagerCompat
+import androidx.core.content.edit
 import java.io.IOException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -49,6 +51,8 @@ internal class AndroidWearLocaleBackend(
 
     override fun getLegacyLanguage(): String? = legacyLanguage
 
+    // The KTX editor discards commit's result, which must be checked before publishing the language.
+    @SuppressLint("UseKtx")
     override suspend fun setLegacyLanguage(language: String?) {
         withContext(Dispatchers.IO) {
             if (!preferences.edit().putString("language", language).commit()) {
@@ -63,7 +67,9 @@ internal class AndroidWearLocaleBackend(
     override fun isMigrationComplete(): Boolean = preferences.getBoolean("framework_migrated", false)
 
     override fun completeMigration() {
-        preferences.edit().putBoolean("framework_migrated", true).apply()
+        preferences.edit {
+            putBoolean("framework_migrated", true)
+        }
     }
 
     override fun applyLegacyLocales(locales: List<String>) {
@@ -76,6 +82,8 @@ internal class AndroidWearLocaleBackend(
 internal fun List<String>.toAndroidLocaleList(): LocaleList =
     LocaleList.forLanguageTags(joinToString(","))
 
+// configureKeyguardApplication disables language splits in the shared Gradle convention.
+@SuppressLint("AppBundleLocaleChanges")
 internal fun Context.withWearLocales(locales: List<String>): Context {
     // Supply only locale overrides so density, font scale and other configuration changes
     // continue to come from the base context.

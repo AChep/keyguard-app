@@ -9,6 +9,7 @@
         Most of the data is encrypted with android device key, so if you
         restore a backup you can not decrypt it.
         -->
+    <!-- CredentialManager only opens provider settings on API 34+; no sign-in backend is used. -->
     <application
         android:name=".Main"
         android:enableOnBackInvokedCallback="true"
@@ -19,7 +20,7 @@
         android:roundIcon="@mipmap/ic_launcher"
         android:supportsRtl="true"
         android:theme="@style/Theme.Keyguard.Splash"
-        tools:ignore="Instantiatable"
+        tools:ignore="CredentialDependency,Instantiatable"
         tools:targetApi="tiramisu">
 
         <provider

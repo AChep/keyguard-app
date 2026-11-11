@@ -2,11 +2,6 @@ package com.artemchep.keyguard.di
 
 import com.artemchep.keyguard.common.AppWorker
 import com.artemchep.keyguard.common.AppWorkerIm
-import com.artemchep.keyguard.common.PlatformTemporaryArtifactRootRegistry
-import com.artemchep.keyguard.common.TemporaryArtifactMaintenance
-import com.artemchep.keyguard.common.TemporaryArtifactMaintenanceImpl
-import com.artemchep.keyguard.common.TemporaryArtifactRoot
-import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppFDroidParser
 import com.artemchep.keyguard.common.service.app.parser.AndroidAppGooglePlayParser
@@ -15,7 +10,6 @@ import com.artemchep.keyguard.common.service.credentialexchange.CxfImportService
 import com.artemchep.keyguard.common.service.credentialexchange.impl.CxfImportServiceImpl
 import com.artemchep.keyguard.common.service.deeplink.DeeplinkService
 import com.artemchep.keyguard.common.service.deeplink.impl.DeeplinkServiceImpl
-import com.artemchep.keyguard.common.service.download.CacheDirProvider
 import com.artemchep.keyguard.common.service.extract.LinkInfoExtractorRegistry
 import com.artemchep.keyguard.common.service.extract.PlatformLinkInfoExtractorRegistry
 import com.artemchep.keyguard.common.service.extract.impl.LinkInfoExtractorExecute
@@ -35,8 +29,6 @@ import com.artemchep.keyguard.common.service.review.ReviewLog
 import com.artemchep.keyguard.common.service.review.impl.ReviewLogImpl
 import com.artemchep.keyguard.common.service.similarity.SimilarityService
 import com.artemchep.keyguard.common.service.similarity.impl.SimilarityServiceImpl
-import com.artemchep.keyguard.common.service.staging.StagingSpoolFactory
-import com.artemchep.keyguard.common.service.staging.StagingSpoolObserver
 import com.artemchep.keyguard.common.service.tld.TldService
 import com.artemchep.keyguard.common.service.tld.impl.TldServiceImpl
 import com.artemchep.keyguard.common.service.twofa.TwoFaService
@@ -65,8 +57,6 @@ import com.artemchep.keyguard.common.usecase.impl.ShowNotificationImpl
 import com.artemchep.keyguard.common.usecase.impl.UnlockUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.UpdateVersionLogImpl
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSyncerImpl
-import com.artemchep.keyguard.crypto.PrivateTemporaryDirProvider
-import com.artemchep.keyguard.crypto.staging.DefaultStagingSpoolFactory
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.provider.bitwarden.usecase.BlockedUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUnsecureUrlCheckImpl
@@ -77,10 +67,6 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServer
 import com.artemchep.keyguard.provider.bitwarden.usecase.DiscoverBitwardenServerImpl
 import com.artemchep.keyguard.util.dns.DnsTxtResolver
 import com.artemchep.keyguard.util.dns.createDnsTxtResolver
-import com.artemchep.keyguard.util.io.artifact.sweepTemporaryArtifacts
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.IO
-import kotlinx.coroutines.withContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -88,16 +74,7 @@ import org.koin.plugin.module.dsl.single
 
 internal class ApplicationIntegrationsModule {
     val module = module {
-        single<StagingSpoolObserver> {
-            StagingSpoolObserver.NoOp
-        }
-
-        single<StagingSpoolFactory> {
-            DefaultStagingSpoolFactory(
-                observer = get(),
-                directoryProvider = get(),
-            )
-        }
+        includes(ApplicationTemporaryStorageModule().module)
 
         single {
             UnlockUseCaseImpl(
@@ -143,42 +120,6 @@ internal class ApplicationIntegrationsModule {
         single<ShowNotificationImpl>() bind ShowNotification::class
 
         single<DismissNotificationsByChannelImpl>() bind DismissNotificationsByChannel::class
-
-        single<TemporaryArtifactMaintenance> {
-            val temporaryDirProvider = get<PrivateTemporaryDirProvider>()
-            TemporaryArtifactMaintenanceImpl(
-                roots = buildList {
-                    add(
-                        TemporaryArtifactRoot(
-                            label = "private-temporary",
-                            provideDirectory = {
-                                withContext(Dispatchers.IO) {
-                                    temporaryDirProvider.get()
-                                }
-                            },
-                        ),
-                    )
-                    getOrNull<CacheDirProvider>()?.let { cacheDirProvider ->
-                        add(
-                            TemporaryArtifactRoot(
-                                label = "cache",
-                                provideDirectory = cacheDirProvider::get,
-                            ),
-                        )
-                    }
-                    addAll(get<PlatformTemporaryArtifactRootRegistry>().values)
-                },
-                sweeper = { directory, olderThan ->
-                    withContext(Dispatchers.IO) {
-                        sweepTemporaryArtifacts(
-                            directory = directory,
-                            olderThan = olderThan,
-                        )
-                    }
-                },
-                logRepository = get(),
-            )
-        }
 
         single<AppWorker>(qualifier = named(AppWorker.Feature.SYNC)) {
             AppWorkerIm(

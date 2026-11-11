@@ -18,10 +18,8 @@ import kotlinx.io.buffered
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.readByteArray
 import kotlinx.io.writeString
-import org.koin.core.Koin
 import org.koin.dsl.koinApplication
 import org.koin.dsl.module
-import kotlin.reflect.KClass
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertFails
@@ -34,12 +32,17 @@ class AppleTemporaryStorageTest {
         withTestAppleStorage { directories ->
             val application = koinApplication {
                 allowOverride(true)
-                modules(ApplicationIntegrationsModule().module, ApplePlatformServicesModule().module, module {
-                    single<AppleStorageDirectories> { directories }
-                })
+                modules(
+                    ApplicationTemporaryStorageModule().module,
+                    AppleTemporaryStorageModule().module,
+                    module {
+                        single<AppleStorageDirectories> { directories }
+                        single<LogRepository> { RecordingLogRepository() }
+                    },
+                )
             }
             try {
-                val factory = application.koin.resolveFromCompiledModule(StagingSpoolFactory::class)
+                val factory = application.koin.get<StagingSpoolFactory>()
                 val bytes = "confidential spill".encodeToByteArray()
                 factory.create(StagingPurpose.PendingUploadPlaintext, SpoolLimits(0, 1024)) {
                     IllegalArgumentException("limit")
@@ -84,14 +87,18 @@ class AppleTemporaryStorageTest {
             val logs = RecordingLogRepository()
             val application = koinApplication {
                 allowOverride(true)
-                modules(ApplicationIntegrationsModule().module, ApplePlatformServicesModule().module, module {
-                    single<AppleStorageDirectories> { directories }
-                    single<CacheDirProvider> { CacheDirProviderApple(get()) }
-                    single<LogRepository> { logs }
-                })
+                modules(
+                    ApplicationTemporaryStorageModule().module,
+                    AppleTemporaryStorageModule().module,
+                    module {
+                        single<AppleStorageDirectories> { directories }
+                        single<CacheDirProvider> { CacheDirProviderApple(get()) }
+                        single<LogRepository> { logs }
+                    },
+                )
             }
             try {
-                application.koin.resolveFromCompiledModule(TemporaryArtifactMaintenance::class)()
+                application.koin.get<TemporaryArtifactMaintenance>()()
                 assertTrue(reads.containsAll(setOf("data", "cache", "temporary")))
                 assertFalse(logs.messages.any { "root_resolution_failed" in it })
             } finally {
@@ -100,7 +107,3 @@ class AppleTemporaryStorageTest {
         }
     }
 }
-
-// Kotlin/Native's Koin plugin cannot read main-compilation definitions from its
-// klib. These tests intentionally resolve the compiled production module at runtime.
-private fun <T : Any> Koin.resolveFromCompiledModule(type: KClass<T>): T = get(clazz = type)

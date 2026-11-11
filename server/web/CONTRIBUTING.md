@@ -54,7 +54,7 @@ order: 10
 platforms: [android, linux, macos, windows]   # or `all`
 premium: false                                # optional
 stage: experimental                           # optional: beta | experimental
-related: [agent-approvals, git-signing]       # optional, at most 5
+related: [agent-approvals, git-signing]       # optional, at most 6
 ---
 ```
 

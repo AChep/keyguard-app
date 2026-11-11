@@ -16,7 +16,7 @@ const docs = defineCollection({
       platforms: z.union([z.literal('all'), z.array(z.enum(DOC_PLATFORM_IDS)).min(1)]),
       premium: z.boolean().default(false),
       stage: z.enum(['beta', 'experimental']).optional(),
-      related: z.array(reference('docs')).max(5).default([]),
+      related: z.array(reference('docs')).max(6).default([]),
       // A page whose body is generated from other pages' frontmatter.
       generated: z.enum(['platform-support', 'troubleshooting-index']).optional(),
     })

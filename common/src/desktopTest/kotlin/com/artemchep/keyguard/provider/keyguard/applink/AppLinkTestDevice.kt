@@ -4,18 +4,15 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
 import com.artemchep.keyguard.common.model.DGeneratorWordlist
-import com.artemchep.keyguard.common.model.DGlobalUrlBlock
-import com.artemchep.keyguard.common.model.DGlobalUrlOverride
-import com.artemchep.keyguard.common.model.MatchDetection
 import com.artemchep.keyguard.common.model.P2pGroupId
 import com.artemchep.keyguard.common.model.Premium
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.database.exposed.TestExposedDatabaseManager
 import com.artemchep.keyguard.common.service.keyvalue.impl.SqlDelightVaultSettingsKeyValueStore
+import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
+import com.artemchep.keyguard.common.service.logging.LogRepositoryChild
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
-import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepositoryImpl
-import com.artemchep.keyguard.common.service.urloverride.UrlOverrideRepositoryImpl
 import com.artemchep.keyguard.common.service.relays.repo.GeneratorEmailRelayRepositoryImpl
 import com.artemchep.keyguard.common.service.wordlist.repo.impl.GeneratorWordlistRepositoryImpl
 import com.artemchep.keyguard.common.usecase.GetPurchased
@@ -66,15 +63,18 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
+import java.util.concurrent.CopyOnWriteArrayList
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 /**
- * One app on an in-memory database, with the email forwarders, wordlists, URL overrides,
- * blocked URIs and linked apps wired as the vault session wires them, see
- * [AppLinkComponents]. A queued sync pass only calls [onQueueSync]: envelopes move between
- * devices by hand, or by the passes of a test.
+ * One app on an in-memory database, with linked apps wired as the vault session wires
+ * them, see [AppLinkComponents]. A queued sync pass only calls [onQueueSync]: envelopes
+ * move between devices by hand, or by the passes of a test.
+ *
+ * It holds the email forwarders and the wordlists, the records most tests sync. Every other
+ * kind adds its records as extensions, in a file of its own, such as `AppLinkTestUrlBlocks.kt`.
  */
 // One function per thing a test does on the device; every knob has a default.
 @Suppress("TooManyFunctions", "LongParameterList")
@@ -125,11 +125,26 @@ internal class AppLinkTestDevice(
     @Volatile
     var clockOffsetMs: Long = 0L
 
-    private val now: () -> Instant = if (realTime) {
+    /** The time of the device, as its repositories and its sync passes read it. */
+    val now: () -> Instant = if (realTime) {
         { Clock.System.now() + clockOffsetMs.milliseconds }
     } else {
         { Instant.fromEpochMilliseconds(time) }
     }
+
+    private val logged = object : LogRepositoryChild {
+        val messages = CopyOnWriteArrayList<String>()
+
+        // At once: a test reads the log right after the pass that wrote it.
+        override fun post(tag: String, message: String, level: LogLevel) {
+            messages += message
+        }
+
+        override suspend fun add(tag: String, message: String, level: LogLevel) = post(tag, message, level)
+    }
+
+    /** What the device logged, in order. */
+    val logs: List<String> get() = logged.messages
 
     private val onlineState = MutableStateFlow(true)
 
@@ -161,7 +176,7 @@ internal class AppLinkTestDevice(
 
             override fun isInternetAvailable(): Boolean = online
         },
-        logRepository = LogRepositoryBridge(emptyList()),
+        logRepository = LogRepositoryBridge(listOf(logged)),
         sessionTimings = sessionTimings,
         maxEnvelopeSize = maxEnvelopeSize,
         exchangeDeadlineMs = exchangeDeadlineMs,
@@ -192,21 +207,8 @@ internal class AppLinkTestDevice(
         recorder = components.recorder,
     )
 
-    private val urlOverrides = UrlOverrideRepositoryImpl(
-        databaseManager = dbManager,
-        dispatcher = Dispatchers.Unconfined,
-        recorder = components.recorder,
-    )
-
     /** The exposed database of the device, which autofill reads while the vault is locked. */
-    private val exposedDbManager = TestExposedDatabaseManager()
-
-    private val urlBlocks = UrlBlockRepositoryImpl(
-        vaultDatabaseManager = dbManager,
-        exposedDatabaseManager = exposedDbManager,
-        dispatcher = Dispatchers.Unconfined,
-        recorder = components.recorder,
-    )
+    val exposedDbManager = TestExposedDatabaseManager()
 
     /** Starts a link here, as the device [name]. */
     suspend fun link() {
@@ -399,113 +401,6 @@ internal class AppLinkTestDevice(
         .getById(wordlist(name).idRaw)
         .executeAsOne()
         .syncId
-
-    suspend fun addUrlOverride(
-        name: String,
-        regex: String = "^https://example\\.com/.*",
-        command: String = "https://example.org/{url:rmvscm}",
-        enabled: Boolean = true,
-    ) = putUrlOverride(
-        DGlobalUrlOverride(
-            name = name,
-            regex = regex.toRegex(),
-            command = command,
-            createdDate = now(),
-            enabled = enabled,
-        ),
-    )
-
-    suspend fun editUrlOverride(
-        current: DGlobalUrlOverride,
-        name: String = current.name,
-        enabled: Boolean = current.enabled,
-    ) = putUrlOverride(
-        current.copy(
-            name = name,
-            enabled = enabled,
-            createdDate = now(),
-        ),
-    )
-
-    private suspend fun putUrlOverride(model: DGlobalUrlOverride) {
-        dbManager.mutate("test") { urlOverrides.put(model).bind() }.bind()
-    }
-
-    suspend fun removeUrlOverride(current: DGlobalUrlOverride) {
-        dbManager.mutate("test") { urlOverrides.removeByIds(setOfNotNull(current.id)).bind() }.bind()
-    }
-
-    suspend fun urlOverrideList(): List<DGlobalUrlOverride> = urlOverrides.get().first()
-
-    suspend fun urlOverride(name: String): DGlobalUrlOverride = urlOverrideList().single { it.name == name }
-
-    /** The sync id of the URL override [name]; `null` for the built-in one. */
-    suspend fun urlOverrideSyncId(name: String): String? {
-        val id = requireNotNull(urlOverride(name).id).toLong()
-        return db.urlOverrideQueries.getById(id).executeAsOne().syncId
-    }
-
-    suspend fun addUrlBlock(
-        name: String,
-        description: String = "",
-        uri: String = "example.com",
-        mode: MatchDetection = MatchDetection.Domain,
-        enabled: Boolean = true,
-        exposed: Boolean = true,
-    ) = putUrlBlock(
-        DGlobalUrlBlock(
-            name = name,
-            description = description,
-            uri = uri,
-            mode = mode,
-            createdDate = now(),
-            enabled = enabled,
-            exposed = exposed,
-        ),
-    )
-
-    suspend fun editUrlBlock(
-        current: DGlobalUrlBlock,
-        name: String = current.name,
-        description: String = current.description,
-        uri: String = current.uri,
-        mode: MatchDetection = current.mode,
-        enabled: Boolean = current.enabled,
-        exposed: Boolean = current.exposed,
-    ) = putUrlBlock(
-        current.copy(
-            name = name,
-            description = description,
-            uri = uri,
-            mode = mode,
-            enabled = enabled,
-            exposed = exposed,
-        ),
-    )
-
-    private suspend fun putUrlBlock(model: DGlobalUrlBlock) {
-        dbManager.mutate("test") { urlBlocks.put(model).bind() }.bind()
-    }
-
-    suspend fun removeUrlBlock(current: DGlobalUrlBlock) {
-        dbManager.mutate("test") { urlBlocks.removeByIds(setOfNotNull(current.id)).bind() }.bind()
-    }
-
-    suspend fun urlBlockList(): List<DGlobalUrlBlock> = urlBlocks.get().first()
-
-    suspend fun urlBlock(name: String): DGlobalUrlBlock = urlBlockList().single { it.name == name }
-
-    suspend fun urlBlockSyncId(name: String): String {
-        val id = requireNotNull(urlBlock(name).id).toLong()
-        return db.urlBlockQueries.getById(id).executeAsOne().syncId
-    }
-
-    /** The names of the blocked URIs the exposed database holds, by their local ids. */
-    fun exposedUrlBlocks(): Map<String, String> = exposedDbManager.database
-        .urlBlockQueries
-        .get(Long.MAX_VALUE)
-        .executeAsList()
-        .associate { it.id.toString() to it.name }
 
     override fun close() {
         components.close()

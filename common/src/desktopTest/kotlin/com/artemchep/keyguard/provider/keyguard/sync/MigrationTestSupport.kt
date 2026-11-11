@@ -2,7 +2,10 @@ package com.artemchep.keyguard.provider.keyguard.sync
 
 import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.artemchep.keyguard.data.Database
 import java.util.Properties
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 private const val TABLE_INFO_COLUMNS = 6
 private const val FOREIGN_KEY_LIST_COLUMNS = 8
@@ -27,6 +30,49 @@ internal fun describeTable(driver: JdbcSqliteDriver, table: String): List<String
             // Skip the sequence number, which depends on the order of creation.
             .map { it.substringAfter('|') }
             .sorted()
+
+/**
+ * TEST ONLY: a database of the version before a migration changed the [table]: the current
+ * schema, with the table and its indexes as the [statements] made them then.
+ */
+internal fun createWithEarlierTable(
+    driver: JdbcSqliteDriver,
+    table: String,
+    vararg statements: String,
+) {
+    Database.Schema.create(driver)
+    driver.execute(identifier = null, sql = "DROP TABLE $table", parameters = 0)
+    statements.forEach { sql ->
+        driver.execute(identifier = null, sql = sql, parameters = 0)
+    }
+}
+
+/**
+ * TEST ONLY: asserts that the migration of the [version] turns the [table] of a database
+ * [createEarlier] makes into the one the schema declares.
+ */
+internal fun assertMigratesToSchema(
+    table: String,
+    version: Long,
+    createEarlier: (JdbcSqliteDriver) -> Unit,
+) {
+    val created = openDriver().use { driver ->
+        Database.Schema.create(driver)
+        describeTable(driver, table)
+    }
+    val migrated = openDriver().use { driver ->
+        createEarlier(driver)
+        Database.Schema.migrate(driver, version, version + 1)
+        describeTable(driver, table)
+    }
+    assertEquals(created, migrated)
+}
+
+/** TEST ONLY: asserts that the [syncIds] a migration gave are [count] random UUIDs, each its own. */
+internal fun assertOwnSyncIds(count: Int, syncIds: List<String>) {
+    assertEquals(count, syncIds.toSet().size)
+    assertTrue(syncIds.all { UUID_REGEX.matches(it) }, syncIds.toString())
+}
 
 private fun pragma(
     driver: JdbcSqliteDriver,

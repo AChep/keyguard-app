@@ -47,33 +47,34 @@ internal class EmailForwardersSyncCategory : AppSyncCategory {
         body: JsonObject,
         now: Instant,
         budget: AppSyncWriteBudget,
-    ): Boolean {
+    ): AppSyncWrite {
         val name = body.string(FIELD_NAME)
         val type = body.string(FIELD_TYPE)
         val data = (body[FIELD_DATA] as? JsonObject)
             ?.takeIf { data -> data.values.all { (it as? JsonPrimitive)?.isString == true } }
-        if (name == null || type.isNullOrBlank() || data == null) return false
+        if (name == null || type.isNullOrBlank() || data == null) return AppSyncWrite.REFUSED
         val dataText = P2pJson.encodeToString(JsonObject.serializer(), data)
         val dao = database.generatorEmailRelayQueries
-        val exists = dao.getBySyncId(syncId = id).executeAsOneOrNull() != null
-        if (exists) {
+        return writeRow(
             // In place: the generator refers to a forwarder by its row.
-            dao.updateBySyncId(
-                name = name,
-                type = type,
-                data = dataText,
-                syncId = id,
-            )
-        } else {
-            dao.insert(
-                name = name,
-                type = type,
-                data = dataText,
-                createdAt = now,
-                syncId = id,
-            )
-        }
-        return true
+            update = {
+                dao.updateBySyncId(
+                    name = name,
+                    type = type,
+                    data = dataText,
+                    syncId = id,
+                ).value
+            },
+            insert = {
+                dao.insert(
+                    name = name,
+                    type = type,
+                    data = dataText,
+                    createdAt = now,
+                    syncId = id,
+                )
+            },
+        )
     }
 
     override fun delete(database: Database, id: String, budget: AppSyncWriteBudget) {

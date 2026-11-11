@@ -54,36 +54,37 @@ internal class UrlBlocksSyncCategory : AppSyncCategory {
         body: JsonObject,
         now: Instant,
         budget: AppSyncWriteBudget,
-    ): Boolean {
+    ): AppSyncWrite {
         val name = body.string(FIELD_NAME)
         val description = body.string(FIELD_DESCRIPTION)
         val rule = body.ruleOrNull()
-        if (name == null || description == null || rule == null) return false
+        if (name == null || description == null || rule == null) return AppSyncWrite.REFUSED
         val dao = database.urlBlockQueries
-        val exists = dao.getBySyncId(syncId = id).executeAsOneOrNull() != null
-        if (exists) {
-            dao.updateBySyncId(
-                name = name,
-                description = description,
-                uri = rule.uri,
-                mode = rule.mode.key,
-                enabled = rule.enabled.int.toLong(),
-                exposed = rule.exposed.int.toLong(),
-                syncId = id,
-            )
-        } else {
-            dao.insert(
-                name = name,
-                description = description,
-                uri = rule.uri,
-                mode = rule.mode.key,
-                createdAt = now,
-                enabled = rule.enabled.int.toLong(),
-                exposed = rule.exposed.int.toLong(),
-                syncId = id,
-            )
-        }
-        return true
+        return writeRow(
+            update = {
+                dao.updateBySyncId(
+                    name = name,
+                    description = description,
+                    uri = rule.uri,
+                    mode = rule.mode.key,
+                    enabled = rule.enabled.int.toLong(),
+                    exposed = rule.exposed.int.toLong(),
+                    syncId = id,
+                ).value
+            },
+            insert = {
+                dao.insert(
+                    name = name,
+                    description = description,
+                    uri = rule.uri,
+                    mode = rule.mode.key,
+                    createdAt = now,
+                    enabled = rule.enabled.int.toLong(),
+                    exposed = rule.exposed.int.toLong(),
+                    syncId = id,
+                )
+            },
+        )
     }
 
     override fun delete(database: Database, id: String, budget: AppSyncWriteBudget) {

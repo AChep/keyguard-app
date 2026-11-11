@@ -49,33 +49,34 @@ internal class UrlOverridesSyncCategory : AppSyncCategory {
         body: JsonObject,
         now: Instant,
         budget: AppSyncWriteBudget,
-    ): Boolean {
+    ): AppSyncWrite {
         val name = body.string(FIELD_NAME)
         val rule = body.ruleOrNull()
         val enabled = body.boolean(FIELD_ENABLED)
-        if (name == null || rule == null || enabled == null) return false
+        if (name == null || rule == null || enabled == null) return AppSyncWrite.REFUSED
         val (regex, command) = rule
         val dao = database.urlOverrideQueries
-        val exists = dao.getBySyncId(syncId = id).executeAsOneOrNull() != null
-        if (exists) {
-            dao.updateBySyncId(
-                name = name,
-                regex = regex,
-                command = command,
-                enabled = enabled.int.toLong(),
-                syncId = id,
-            )
-        } else {
-            dao.insert(
-                name = name,
-                regex = regex,
-                command = command,
-                createdAt = now,
-                enabled = enabled.int.toLong(),
-                syncId = id,
-            )
-        }
-        return true
+        return writeRow(
+            update = {
+                dao.updateBySyncId(
+                    name = name,
+                    regex = regex,
+                    command = command,
+                    enabled = enabled.int.toLong(),
+                    syncId = id,
+                ).value
+            },
+            insert = {
+                dao.insert(
+                    name = name,
+                    regex = regex,
+                    command = command,
+                    createdAt = now,
+                    enabled = enabled.int.toLong(),
+                    syncId = id,
+                )
+            },
+        )
     }
 
     override fun delete(database: Database, id: String, budget: AppSyncWriteBudget) {

@@ -66,6 +66,7 @@ class AppSyncCategoriesTest {
                 DAppLinkSyncCategory.WORDLISTS to "wordlists",
                 DAppLinkSyncCategory.URL_OVERRIDES to "urlOverrides",
                 DAppLinkSyncCategory.URL_BLOCKS to "urlBlocks",
+                DAppLinkSyncCategory.PRIVILEGED_APPS to "privilegedApps",
             ),
             DAppLinkSyncCategory.entries.associateWith { it.key },
         )

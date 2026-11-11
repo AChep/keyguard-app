@@ -19,6 +19,7 @@ class SyncKindsTest {
                 EntryKind.WORDLIST to "wordlist",
                 EntryKind.URL_OVERRIDE to "urlOverride",
                 EntryKind.URL_BLOCK to "urlBlock",
+                EntryKind.PRIVILEGED_APP to "privilegedApp",
                 EntryKind.OBJECT_KEY to "objectKey",
             ),
             EntryKind.entries.associateWith { it.wireName },

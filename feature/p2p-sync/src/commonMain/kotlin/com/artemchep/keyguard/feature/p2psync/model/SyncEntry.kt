@@ -53,6 +53,13 @@ enum class EntryKind(
         schema = KeyguardPartSchemas.urlBlock,
     ),
 
+    /** An app the user lets request passkeys for any website, synced between linked apps. */
+    @SerialName("privilegedApp")
+    PRIVILEGED_APP(
+        scope = SyncScope.APP,
+        schema = KeyguardPartSchemas.privilegedApp,
+    ),
+
     /** The key of the blobs the group keeps on the relay, see [ObjectKey]. */
     @SerialName("objectKey")
     OBJECT_KEY(

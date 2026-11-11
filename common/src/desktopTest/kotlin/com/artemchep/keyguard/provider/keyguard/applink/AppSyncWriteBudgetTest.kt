@@ -81,9 +81,9 @@ class AppSyncWriteBudgetTest {
             val budget = AppSyncWriteBudget(rows = 1_000, maxHeld = 25)
 
             // 23 words are here: 3 more do not fit, until the large list is gone.
-            assertFalse(category.write(a.db, "x", body, now, budget))
+            assertEquals(AppSyncWrite.WAITING, category.write(a.db, "x", body, now, budget))
             category.delete(a.db, large, budget)
-            assertTrue(category.write(a.db, "y", body, now, budget))
+            assertEquals(AppSyncWrite.WRITTEN, category.write(a.db, "y", body, now, budget))
 
             assertEquals(
                 mapOf("Animals" to animals.sorted(), "Pets" to animals.sorted()),

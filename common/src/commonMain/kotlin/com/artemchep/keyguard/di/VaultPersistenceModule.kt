@@ -87,6 +87,7 @@ internal class VaultPersistenceModule {
                 UserPrivilegedAppRepositoryImpl(
                     databaseManager = get(),
                     dispatcher = databaseDispatcher(),
+                    recorder = get(),
                 )
             }
 

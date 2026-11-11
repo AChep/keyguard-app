@@ -51,4 +51,7 @@ enum class DAppLinkSyncCategory(
 
     /** The blocked URIs of autofill. */
     URL_BLOCKS(key = "urlBlocks"),
+
+    /** The privileged apps the user added; the ones that come with the app never sync. */
+    PRIVILEGED_APPS(key = "privilegedApps"),
 }

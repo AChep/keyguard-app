@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DGlobalUrlOverride
 import com.artemchep.keyguard.common.service.appsync.AppSyncRecorder
+import com.artemchep.keyguard.common.service.appsync.recordPut
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
@@ -12,7 +13,6 @@ import com.artemchep.keyguard.feature.p2psync.model.EntryKind
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.uuid.Uuid
 
 /**
  * The URL overrides. Every write records the change for linked apps, in the same
@@ -49,33 +49,33 @@ class UrlOverrideRepositoryImpl(
             val dao = db.urlOverrideQueries
             val regex = model.regex.toString()
             val enabled = model.enabled.int.toLong()
-            db.transaction {
-                val existing = model.id
-                    ?.toLongOrNull()
-                    ?.let { id -> dao.getById(id).executeAsOneOrNull() }
-                val syncId = if (existing != null) existing.syncId else Uuid.random().toString()
-                recorder.record(db, EntryKind.URL_OVERRIDE, ids = { listOfNotNull(syncId) }) {
-                    if (existing != null) {
-                        dao.update(
-                            id = existing.id,
-                            name = model.name,
-                            regex = regex,
-                            command = model.command,
-                            createdAt = model.createdDate,
-                            enabled = enabled,
-                        )
-                    } else {
-                        dao.insert(
-                            name = model.name,
-                            regex = regex,
-                            command = model.command,
-                            createdAt = model.createdDate,
-                            enabled = enabled,
-                            syncId = syncId,
-                        )
-                    }
-                }
-            }
+            recorder.recordPut(
+                database = db,
+                kind = EntryKind.URL_OVERRIDE,
+                find = { model.id?.toLongOrNull()?.let { id -> dao.getById(id).executeAsOneOrNull() } },
+                // The built-in override has none: its changes stay on this device.
+                syncIdOf = { it.syncId },
+                update = { existing ->
+                    dao.update(
+                        id = existing.id,
+                        name = model.name,
+                        regex = regex,
+                        command = model.command,
+                        createdAt = model.createdDate,
+                        enabled = enabled,
+                    )
+                },
+                insert = { syncId ->
+                    dao.insert(
+                        name = model.name,
+                        regex = regex,
+                        command = model.command,
+                        createdAt = model.createdDate,
+                        enabled = enabled,
+                        syncId = syncId,
+                    )
+                },
+            )
         }
 
     override fun removeAll(): IO<Unit> =

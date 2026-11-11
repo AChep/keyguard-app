@@ -85,7 +85,7 @@ class AppLinkSyncTest {
     }
 
     @Test
-    fun `linked apps sync their forwarders both ways`() = runTest {
+    fun `linked apps count each other as peers and share only the sync ids of their records`() = runTest {
         val (a, b) = linkedPair {
             a.addForwarder("Work", "simplelogin", "apiKey" to "a")
             b.addForwarder("Home", "duckduckgo", "apiKey" to "b")
@@ -94,71 +94,9 @@ class AppLinkSyncTest {
 
         assertEquals(DAppLinkState.Linked(peers = 1), a.service.observeState().first())
         assertEquals(DAppLinkState.Linked(peers = 1), b.service.observeState().first())
-        assertEquals(setOf("Work", "Home"), a.forwarderList().map { it.name }.toSet())
-        assertEquals(setOf("Work", "Home"), b.forwarderList().map { it.name }.toSet())
         // Only the sync id is shared; the generator uses each device's local row id.
         assertEquals(a.forwarderSyncId("Home"), b.forwarderSyncId("Home"))
         assertNotEquals(a.forwarder("Home").id, b.forwarder("Home").id)
-        assertEquals(mapOf("apiKey" to "b"), a.forwarder("Home").data)
-    }
-
-    @Test
-    fun `an edit updates the forwarder in place and a delete removes it`() = runTest {
-        val (a, b) = linkedPair {
-            a.addForwarder("Work", "simplelogin", "apiKey" to "a")
-        }
-        a.exchangeWith(b)
-        val before = b.forwarder("Work")
-
-        a.time += 1_000
-        a.editForwarder(a.forwarder("Work"), name = "Office")
-        a.exchangeWith(b)
-
-        val after = b.forwarder("Office")
-        // The generator refers to the forwarder by its row.
-        assertEquals(before.id, after.id)
-
-        a.time += 1_000
-        a.removeForwarder(a.forwarder("Office"))
-        a.exchangeWith(b)
-
-        assertTrue(b.forwarderList().isEmpty())
-    }
-
-    @Test
-    fun `linking identical forwarders preserves local references when the sync id changes`() = runTest {
-        val a = AppLinkTestDevice("A")
-        val b = AppLinkTestDevice("B")
-        a.addForwarder("Work", "simplelogin", "apiKey" to "same")
-        b.addForwarder("Work", "simplelogin", "apiKey" to "same")
-        val before = b.forwarder("Work")
-        val oldSyncId = b.forwarderSyncId("Work")
-
-        a.link()
-        b.time = a.time + 1
-        b.join(a)
-        a.exchangeWith(b)
-
-        assertEquals(1, a.forwarderList().size)
-        assertEquals(1, b.forwarderList().size)
-        assertEquals(a.forwarderSyncId("Work"), b.forwarderSyncId("Work"))
-        assertNotEquals(oldSyncId, b.forwarderSyncId("Work"))
-        assertEquals(before.id, b.forwarder("Work").id)
-
-        // A form opened before linking still edits and deletes the same local row.
-        b.time += 1_000
-        b.editForwarder(before, name = "Office")
-        b.exchangeWith(a)
-
-        assertEquals(listOf("Office"), a.forwarderList().map { it.name })
-        assertEquals(before.id, b.forwarder("Office").id)
-
-        b.time += 1_000
-        b.removeForwarder(before)
-        b.exchangeWith(a)
-
-        assertTrue(a.forwarderList().isEmpty())
-        assertTrue(b.forwarderList().isEmpty())
     }
 
     @Test

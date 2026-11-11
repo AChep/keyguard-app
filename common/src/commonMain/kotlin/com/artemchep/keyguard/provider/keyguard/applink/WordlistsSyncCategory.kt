@@ -62,10 +62,10 @@ internal class WordlistsSyncCategory(
         body: JsonObject,
         now: Instant,
         budget: AppSyncWriteBudget,
-    ): Boolean {
+    ): AppSyncWrite {
         val name = body.nameOrNull()
         val hash = body.wordsOrNull()
-        if (name == null || hash == null) return false
+        if (name == null || hash == null) return AppSyncWrite.REFUSED
         val dao = database.generatorWordlistQueries
         val row = dao.getBySyncId(syncId = id).executeAsOneOrNull()
         return if (row != null && wordsHashOf(database, row) == hash) {
@@ -74,7 +74,7 @@ internal class WordlistsSyncCategory(
                 name = name,
                 syncId = id,
             )
-            true
+            AppSyncWrite.WRITTEN
         } else {
             writeWithWords(database, id, name, hash, row, now, budget)
         }
@@ -82,9 +82,9 @@ internal class WordlistsSyncCategory(
 
     /**
      * Writes the record [id] with the [name] and the words of the blob [hash], replacing
-     * the words of the [row]. Returns `false` if the words are not here yet, or do not fit
-     * the [budget]: the record stays as it is until a pass writes it. The budget is checked
-     * on the count of the words, before a word is made.
+     * the words of the [row]. Returns [AppSyncWrite.WAITING] if the words are not here yet,
+     * or do not fit the [budget]: the record stays as it is until a pass writes it. The
+     * budget is checked on the count of the words, before a word is made.
      */
     // The fields of the record.
     @Suppress("LongParameterList")
@@ -96,9 +96,9 @@ internal class WordlistsSyncCategory(
         row: GeneratorWordlist?,
         now: Instant,
         budget: AppSyncWriteBudget,
-    ): Boolean {
+    ): AppSyncWrite {
         val words = wordsToWrite(database, hash, row, budget)
-            ?: return false
+            ?: return AppSyncWrite.WAITING
         val dao = database.generatorWordlistQueries
         val wordlistId = if (row != null) {
             dao.updateBySyncId(
@@ -126,7 +126,7 @@ internal class WordlistsSyncCategory(
                 word = word,
             )
         }
-        return true
+        return AppSyncWrite.WRITTEN
     }
 
     /**

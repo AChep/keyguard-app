@@ -52,7 +52,8 @@ import kotlin.time.Instant
  * A record is published only if every active device supports its kind, see
  * [com.artemchep.keyguard.feature.p2psync.roster.GroupCaps], and its version passes the
  * checks of the peers; else it stays on this device, and the [logRepository] hears why. It
- * also hears what the pass dropped of an envelope, counted by reason.
+ * also hears what the pass dropped of an envelope, counted by reason, and which entries
+ * no category could write to a row, counted by kind.
  *
  * The pass validates the stored roster once, and again only after it merged a roster that
  * changed it.
@@ -190,12 +191,14 @@ internal class AppLinkSyncPass(
             futureWrites[from] = minOf(due, futureWrites[from] ?: due)
         }
         result.newestStamp?.let(clock::receive)
+        val refused = mutableListOf<SyncEntry>()
         result.changed.forEach { key ->
             val entry = result.entries.getValue(key)
             entries[key] = entry
             store.saveEntry(entry)
-            if (materialize) materialize(entry)
+            if (materialize && materialize(entry) == AppSyncWrite.REFUSED) refused += entry
         }
+        logRefused(refused)
     }
 
     /**
@@ -252,9 +255,10 @@ internal class AppLinkSyncPass(
 
     /** Writes every live entry of the categories this device syncs to the local rows. */
     fun materializeAll() {
-        entries.values
+        val refused = entries.values
             .filter { it.isEnabled() }
-            .forEach(::materialize)
+            .filter { materialize(it) == AppSyncWrite.REFUSED }
+        logRefused(refused)
     }
 
     /**
@@ -266,7 +270,7 @@ internal class AppLinkSyncPass(
         entries.values
             .filter { entry -> entry.isEnabled() && !entry.deleted }
             .filter(::isUnwritten)
-            .forEach(::materialize)
+            .forEach { materialize(it) }
     }
 
     /** Returns the blobs the live records this device syncs need, and no local row holds. */
@@ -331,17 +335,34 @@ internal class AppLinkSyncPass(
         logRepository?.post(TAG, "Dropped entries of device $from: $summary", level)
     }
 
-    private fun materialize(entry: SyncEntry) {
+    /**
+     * Writes the [entry] to its local row, or deletes the row of a deleted one. Returns what
+     * its category made of the write, or `null` if there was none.
+     */
+    private fun materialize(entry: SyncEntry): AppSyncWrite? {
         // A kind of a newer build has no rows.
         val category = categories.forEntry(entry)
-            ?: return
+            ?: return null
         val body = entry.body
-        if (entry.deleted || body == null) {
+        return if (entry.deleted || body == null) {
             category.delete(database, entry.id, budget)
+            null
         } else {
             // A body this build can not read keeps its row as it is.
             category.write(database, entry.id, body, now(), budget)
         }
+    }
+
+    /** Logs how many of the [entries] their categories refused to write, by kind, see [AppSyncWrite.REFUSED]. */
+    private fun logRefused(entries: List<SyncEntry>) {
+        if (entries.isEmpty()) return
+        val summary = entries
+            .groupingBy { it.kind }
+            .eachCount()
+            .entries
+            .sortedBy { it.key }
+            .joinToString { (kind, count) -> "$kind $count" }
+        log("Not written, this build can not read them: $summary")
     }
 
     private fun SyncEntry.isEnabled(): Boolean = categories.syncs(this, enabled)

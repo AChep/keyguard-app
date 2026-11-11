@@ -1,14 +1,21 @@
 import kotlin.time.Instant;
 
+-- The apps the user lets request passkeys for any website. The syncId is
+-- the app's id on every linked app; the id is local to this database.
+-- SQLite adds a NOT NULL column only with a default, so the syncId has
+-- one; every row gets its own.
 CREATE TABLE privilegedApp (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT,
   packageName TEXT NOT NULL,
   certFingerprintSha256 TEXT NOT NULL,
-  createdAt INTEGER AS Instant NOT NULL
+  createdAt INTEGER AS Instant NOT NULL,
+  syncId TEXT NOT NULL DEFAULT ''
 );
 
 CREATE INDEX idx_privilegedApp_createdAt ON privilegedApp(createdAt DESC);
+
+CREATE UNIQUE INDEX idx_privilegedApp_syncId ON privilegedApp(syncId);
 
 update {
   UPDATE privilegedApp
@@ -21,9 +28,18 @@ update {
     id = :id;
 }
 
+updateBySyncId {
+  UPDATE privilegedApp
+  SET
+    packageName = :packageName,
+    certFingerprintSha256 = :certFingerprintSha256
+  WHERE
+    syncId = :syncId;
+}
+
 insert {
-  INSERT OR IGNORE INTO privilegedApp(name, packageName, certFingerprintSha256, createdAt)
-  VALUES (:name, :packageName, :certFingerprintSha256, :createdAt);
+  INSERT OR IGNORE INTO privilegedApp(name, packageName, certFingerprintSha256, createdAt, syncId)
+  VALUES (:name, :packageName, :certFingerprintSha256, :createdAt, :syncId);
 }
 
 get:
@@ -32,9 +48,41 @@ FROM privilegedApp
 ORDER BY createdAt DESC
 LIMIT :limit;
 
+getSyncIds:
+SELECT syncId
+FROM privilegedApp;
+
+getSyncIdsByIds:
+SELECT syncId
+FROM privilegedApp
+WHERE id IN :ids;
+
+getBySyncId:
+SELECT *
+FROM privilegedApp
+WHERE
+    syncId = :syncId;
+
+getById:
+SELECT *
+FROM privilegedApp
+WHERE
+    id = :id;
+
+updateSyncId:
+UPDATE privilegedApp
+SET
+  syncId = :newSyncId
+WHERE
+  syncId = :syncId;
+
 deleteAll:
 DELETE FROM privilegedApp;
 
 deleteByIds:
 DELETE FROM privilegedApp
-WHERE id IN (:ids);
+WHERE id IN :ids;
+
+deleteBySyncId:
+DELETE FROM privilegedApp
+WHERE syncId = :syncId;

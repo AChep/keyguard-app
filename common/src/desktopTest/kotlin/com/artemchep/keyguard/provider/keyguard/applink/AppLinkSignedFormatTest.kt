@@ -203,6 +203,10 @@ class AppLinkSignedFormatTest {
             EntryKind.URL_BLOCK to urlBlockBody(name = "Unknown mode", mode = "sometimes"),
             EntryKind.URL_BLOCK to urlBlockBody(name = "Blank", uri = " "),
             EntryKind.URL_BLOCK to urlBlockBody(name = "Text switch", exposed = JsonPrimitive("true")),
+            EntryKind.PRIVILEGED_APP to buildJsonObject { put("packageName", "com.example.browser") },
+            EntryKind.PRIVILEGED_APP to buildJsonObject { put("certFingerprintSha256", TEST_CERT_FINGERPRINT) },
+            EntryKind.PRIVILEGED_APP to privilegedAppBody(JsonPrimitive(1)),
+            EntryKind.PRIVILEGED_APP to privilegedAppBody(JsonPrimitive(TEST_CERT_FINGERPRINT.lowercase())),
         )
         val entries = bodies.map { (kind, body) ->
             val id = Uuid.random().toString()
@@ -215,6 +219,9 @@ class AppLinkSignedFormatTest {
         assertEquals(emptyList(), a.wordlistList())
         assertEquals(listOf("HTTPS-ify"), a.urlOverrideList().map { it.name })
         assertEquals(emptyList(), a.urlBlockList())
+        assertEquals(emptyList(), a.privilegedAppList())
+        val refused = NOT_WRITTEN + "emailForwarder 2, privilegedApp 4, urlBlock 4, urlOverride 2, wordlist 3"
+        assertEquals(listOf(refused), a.logs.filter { it.startsWith(NOT_WRITTEN) })
         // Nor wanted: the relay storage would refuse a state that names it missing.
         assertFalse(NONCANONICAL_BLOB_ID in a.components.blobs.wanted())
     }
@@ -303,4 +310,14 @@ private fun urlBlockBody(
     put("mode", mode)
     put("enabled", true)
     put("exposed", exposed)
+}
+
+/** How the log of a pass starts the count of the records it left out, by kind. */
+private const val NOT_WRITTEN = "Not written, this build can not read them: "
+
+private fun privilegedAppBody(
+    fingerprint: JsonPrimitive,
+): JsonObject = buildJsonObject {
+    put("packageName", "com.example.browser")
+    put("certFingerprintSha256", fingerprint)
 }

@@ -1,6 +1,6 @@
 ---
 title: Linked devices
-description: Link Keyguard on your devices to sync email forwarders, wordlists, URL overrides and blocked URIs between them directly, without a server of your own.
+description: Link Keyguard on your devices to sync app settings, such as email forwarders and wordlists, between them directly, without a server of your own.
 section: accounts
 type: feature
 order: 70
@@ -10,11 +10,8 @@ stage: beta
 related: [blocked-uris, email-relays, generator, premium, security, url-overrides]
 ---
 
-Linked devices syncs data between the Keyguard apps on your devices. It syncs
-your [email forwarders](/docs/email-relays/),
-[Custom wordlists](/docs/generator/#custom-wordlists),
-[URL overrides](/docs/url-overrides/) and
-[Blocked URIs](/docs/blocked-uris/). Your devices connect to each other
+Linked devices syncs app settings, such as email forwarders and wordlists,
+between the Keyguard apps on your devices. Your devices connect to each other
 directly, or through a relay when they can't.
 
 ### Before you begin
@@ -43,10 +40,11 @@ device.
 
 | Category | Data |
 | --- | --- |
-| Email forwarders | Services and their API keys |
-| Wordlists | Lists and their words |
-| URL overrides | All but the built-in **HTTPS-ify** |
-| Blocked URIs | Rules and their switches |
+| [Email forwarders](/docs/email-relays/) | Services and their API keys |
+| Wordlists | [Custom wordlists](/docs/generator/#custom-wordlists) and their words |
+| [URL overrides](/docs/url-overrides/) | All but the built-in **HTTPS-ify** |
+| [Blocked URIs](/docs/blocked-uris/) | Rules and their switches |
+| Privileged apps | **User apps** only |
 
 A new wordlist shows up on the other devices once its words arrive.
 

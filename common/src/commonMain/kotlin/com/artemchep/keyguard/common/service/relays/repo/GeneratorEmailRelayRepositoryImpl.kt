@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
 import com.artemchep.keyguard.common.model.DGeneratorEmailRelay
 import com.artemchep.keyguard.common.service.appsync.AppSyncRecorder
+import com.artemchep.keyguard.common.service.appsync.recordPut
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.state.impl.toJson
 import com.artemchep.keyguard.common.service.state.impl.toMap
@@ -16,7 +17,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
-import kotlin.uuid.Uuid
 
 /**
  * The email forwarders. Every write records the change for linked apps, in the same
@@ -63,31 +63,30 @@ class GeneratorEmailRelayRepositoryImpl(
         databaseEffect { db ->
             val dao = db.generatorEmailRelayQueries
             val data = json.encodeToString(model.data.toJson())
-            db.transaction {
-                val existing = model.id
-                    ?.toLongOrNull()
-                    ?.let { id -> dao.getById(id).executeAsOneOrNull() }
-                val syncId = existing?.syncId ?: Uuid.random().toString()
-                recorder.record(db, EntryKind.EMAIL_FORWARDER, ids = { listOf(syncId) }) {
-                    if (existing != null) {
-                        dao.update(
-                            id = existing.id,
-                            name = model.name,
-                            type = model.type,
-                            data = data,
-                            createdAt = model.createdDate,
-                        )
-                    } else {
-                        dao.insert(
-                            name = model.name,
-                            type = model.type,
-                            data = data,
-                            createdAt = model.createdDate,
-                            syncId = syncId,
-                        )
-                    }
-                }
-            }
+            recorder.recordPut(
+                database = db,
+                kind = EntryKind.EMAIL_FORWARDER,
+                find = { model.id?.toLongOrNull()?.let { id -> dao.getById(id).executeAsOneOrNull() } },
+                syncIdOf = { it.syncId },
+                update = { existing ->
+                    dao.update(
+                        id = existing.id,
+                        name = model.name,
+                        type = model.type,
+                        data = data,
+                        createdAt = model.createdDate,
+                    )
+                },
+                insert = { syncId ->
+                    dao.insert(
+                        name = model.name,
+                        type = model.type,
+                        data = data,
+                        createdAt = model.createdDate,
+                        syncId = syncId,
+                    )
+                },
+            )
         }
 
     override fun removeAll(): IO<Unit> =

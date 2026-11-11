@@ -51,8 +51,7 @@ class KeyguardSyncTablesMigrationTest {
             val rows = database.generatorEmailRelayQueries.getAll().executeAsList()
             assertEquals(listOf(1L, 2L, 3L), rows.map { it.id }.sorted())
             assertEquals(listOf("A", "B", "C"), rows.sortedBy { it.id }.map { it.name })
-            assertEquals(3, rows.map { it.syncId }.toSet().size)
-            assertTrue(rows.all { UUID_REGEX.matches(it.syncId) }, rows.map { it.syncId }.toString())
+            assertOwnSyncIds(3, rows.map { it.syncId })
         }
     }
 
@@ -80,8 +79,7 @@ class KeyguardSyncTablesMigrationTest {
             val rows = database.generatorWordlistQueries.getAll().executeAsList()
             assertEquals(listOf(1L, 2L, 3L), rows.map { it.id }.sorted())
             assertEquals(listOf("A", "B", "C"), rows.sortedBy { it.id }.map { it.name })
-            assertEquals(3, rows.map { it.syncId }.toSet().size)
-            assertTrue(rows.all { UUID_REGEX.matches(it.syncId) }, rows.map { it.syncId }.toString())
+            assertOwnSyncIds(3, rows.map { it.syncId })
             assertTrue(rows.all { it.wordsHash == null })
             rows.forEach { row ->
                 val words = database.generatorWordlistWordQueries
@@ -116,8 +114,7 @@ class KeyguardSyncTablesMigrationTest {
             }
             assertNull(syncIds.getValue(2L))
             val synced = listOfNotNull(syncIds.getValue(1L), syncIds.getValue(3L))
-            assertEquals(2, synced.toSet().size)
-            assertTrue(synced.all { UUID_REGEX.matches(it) }, synced.toString())
+            assertOwnSyncIds(2, synced)
         }
     }
 
@@ -131,8 +128,7 @@ class KeyguardSyncTablesMigrationTest {
             val database = createUploadTestDatabase(driver)
 
             val syncIds = database.urlOverrideQueries.getSyncIds().executeAsList()
-            assertEquals(2, syncIds.toSet().size)
-            assertTrue(syncIds.all { UUID_REGEX.matches(it) }, syncIds.toString())
+            assertOwnSyncIds(2, syncIds)
         }
     }
 

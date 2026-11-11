@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DGlobalUrlBlock
 import com.artemchep.keyguard.common.model.MatchDetection
 import com.artemchep.keyguard.common.service.appsync.AppSyncRecorder
+import com.artemchep.keyguard.common.service.appsync.recordPut
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.service.urlblock.impl.insert
@@ -18,7 +19,6 @@ import com.artemchep.keyguard.feature.p2psync.model.EntryKind
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
-import kotlin.uuid.Uuid
 
 /**
  * The blocked URIs. Every write to the vault records the change for linked apps, in the
@@ -65,18 +65,16 @@ class UrlBlockRepositoryImpl(
             .get().bind()
 
         val vaultDao = vaultDb.urlBlockQueries
-        val existing = model.id
-            ?.toLongOrNull()
-            ?.let { id -> vaultDao.getById(id).executeAsOneOrNull() }
-        val syncId = existing?.syncId ?: Uuid.random().toString()
-        if (existing != null) {
-            // First we want to update the exposed database, as it is
-            // just the clone and if the update fails the user will see
-            // that the update has failed.
-            putExposed(exposedDb.urlBlockQueries, existing.id, model)
-        }
-        recorder.record(vaultDb, EntryKind.URL_BLOCK, ids = { listOf(syncId) }) {
-            if (existing != null) {
+        val added = recorder.recordPut(
+            database = vaultDb,
+            kind = EntryKind.URL_BLOCK,
+            find = { model.id?.toLongOrNull()?.let { id -> vaultDao.getById(id).executeAsOneOrNull() } },
+            syncIdOf = { it.syncId },
+            update = { existing ->
+                // First we want to update the exposed database, as it is
+                // just the clone and if the update fails the user will see
+                // that the update has failed.
+                putExposed(exposedDb.urlBlockQueries, existing.id, model)
                 vaultDao.update(
                     id = existing.id,
                     name = model.name,
@@ -87,7 +85,8 @@ class UrlBlockRepositoryImpl(
                     enabled = model.enabled.int.toLong(),
                     exposed = model.exposed.int.toLong(),
                 )
-            } else {
+            },
+            insert = { syncId ->
                 vaultDao.insert(
                     name = model.name,
                     description = model.description,
@@ -98,12 +97,12 @@ class UrlBlockRepositoryImpl(
                     exposed = model.exposed.int.toLong(),
                     syncId = syncId,
                 )
-            }
-        }
-        if (existing == null) {
+            },
+        )
+        if (added != null) {
             // Not the last inserted row: the record of the change may come after it.
             val id = vaultDao
-                .getBySyncId(syncId)
+                .getBySyncId(added)
                 .executeAsOne()
                 .id
             putExposed(exposedDb.urlBlockQueries, id, model)

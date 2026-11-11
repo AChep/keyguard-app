@@ -29,12 +29,11 @@ internal interface AppSyncCategory {
     fun read(database: Database, id: String): JsonObject?
 
     /**
-     * Writes the record [id] with the [body]: updates it in place, or adds it [now].
-     * Returns `false` if the body is not a valid record of the category, or if its rows do
-     * not fit the [budget] of the pass. The sync accepts any body within its limits, so
-     * the category checks the schema of its records here: an invalid one is never written.
+     * Writes the record [id] with the [body]: updates it in place, or adds it [now]. The
+     * sync accepts any body within its limits, so the category checks the schema of its
+     * records here: an invalid one is never written, see [AppSyncWrite.REFUSED].
      */
-    fun write(database: Database, id: String, body: JsonObject, now: Instant, budget: AppSyncWriteBudget): Boolean
+    fun write(database: Database, id: String, body: JsonObject, now: Instant, budget: AppSyncWriteBudget): AppSyncWrite
 
     /** Deletes the local record [id], if there is one, and gives its rows back to the [budget] of the pass. */
     fun delete(database: Database, id: String, budget: AppSyncWriteBudget)
@@ -43,10 +42,39 @@ internal interface AppSyncCategory {
     fun changeId(database: Database, id: String, newId: String)
 }
 
+/** What [AppSyncCategory.write] made of a record. */
+internal enum class AppSyncWrite {
+    /** The local row holds the record. */
+    WRITTEN,
+
+    /**
+     * The record waits for its write: its blob is not here yet, or its rows do not fit the
+     * [AppSyncWriteBudget]. Its row, if it has one, stays as it is until a pass writes it.
+     */
+    WAITING,
+
+    /** The body is not a valid record of the category: no pass writes it. */
+    REFUSED,
+}
+
+/**
+ * Writes a record that is one row: updates the row in place, or adds it if there was none
+ * to update.
+ *
+ * @param update updates the row of the record, and returns how many rows it changed.
+ */
+internal inline fun writeRow(
+    update: () -> Long,
+    insert: () -> Unit,
+): AppSyncWrite {
+    if (update() == 0L) insert()
+    return AppSyncWrite.WRITTEN
+}
+
 /**
  * An [AppSyncCategory] whose records hold blobs, which travel apart from the entries, see
  * [AppLinkBlobs]. The body of an entry names its blob by id. A record whose blob is not
- * here has no local row until the blob arrives: [write] returns `false` for it.
+ * here has no local row until the blob arrives: [write] returns [AppSyncWrite.WAITING] for it.
  */
 internal interface AppSyncBlobCategory : AppSyncCategory {
     /** Returns the ids of the blobs the local records hold. */
@@ -100,6 +128,7 @@ internal class AppSyncCategories(
                 ),
                 UrlOverridesSyncCategory(),
                 UrlBlocksSyncCategory(),
+                PrivilegedAppsSyncCategory(),
             ),
         )
     }

@@ -74,6 +74,23 @@ object KeyguardPartSchemas {
         ),
     )
 
+    /** The part of a privileged app: its package, and the certificate that signs it. */
+    const val PRIVILEGED_APP_IDENTITY_PART: String = "/packageName"
+
+    /**
+     * The parts of a privileged app: `{"packageName", "certFingerprintSha256"}`. The package
+     * and the fingerprint change as one part, because a fingerprint is trusted for the
+     * package it signs, and the two must never mix from two concurrent edits.
+     */
+    val privilegedApp: PartSchema = PartSchema(
+        parts = listOf(
+            PartSpec(
+                key = PRIVILEGED_APP_IDENTITY_PART,
+                paths = listOf("/packageName", "/certFingerprintSha256").map(JsonPointer::parse),
+            ),
+        ),
+    )
+
     /** The part of an object key: the key, and the devices it covers. */
     const val OBJECT_KEY_PART: String = "/key"
 

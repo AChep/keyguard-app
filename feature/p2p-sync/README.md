@@ -150,8 +150,8 @@ removed later looks the same, and the app never names a device that is not activ
 ## Scope
 
 A sync group has one `model.SyncScope`, `APP`: records of the app itself, shared by
-linked apps. It syncs five entry kinds, `EMAIL_FORWARDER`, `WORDLIST`, `URL_OVERRIDE`,
-`URL_BLOCK` and the group-internal `OBJECT_KEY`.
+linked apps. It syncs the entry kinds `EMAIL_FORWARDER`, `WORDLIST`, `URL_OVERRIDE`,
+`URL_BLOCK`, `PRIVILEGED_APP` and the group-internal `OBJECT_KEY`.
 
 No check of an entry depends on the kinds a build knows. A device keeps and relays an entry
 of a kind of another scope like one of a kind it does not know, and never writes it to its

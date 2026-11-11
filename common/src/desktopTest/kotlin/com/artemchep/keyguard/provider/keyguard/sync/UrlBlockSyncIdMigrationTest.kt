@@ -7,22 +7,11 @@ import java.sql.SQLException
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 class UrlBlockSyncIdMigrationTest {
     @Test
-    fun `migration 29 gives the blocked URIs the table the schema declares`() {
-        val created = openDriver().use { driver ->
-            Database.Schema.create(driver)
-            describeTable(driver, "urlBlock")
-        }
-        val migrated = openDriver().use { driver ->
-            createVersion29(driver)
-            Database.Schema.migrate(driver, 29, 30)
-            describeTable(driver, "urlBlock")
-        }
-        assertEquals(created, migrated)
-    }
+    fun `migration 29 gives the blocked URIs the table the schema declares`() =
+        assertMigratesToSchema(table = "urlBlock", version = 29, ::createVersion29)
 
     @Test
     fun `migration 29 gives every blocked URI its own sync id and keeps its data`() {
@@ -42,8 +31,7 @@ class UrlBlockSyncIdMigrationTest {
             assertEquals(listOf(null, 0L, 1L), rows.map { it.exposed })
             assertEquals(listOf(1L, 1L, 0L), rows.map { it.enabled })
             assertEquals(listOf("A description", "B description", "C description"), rows.map { it.description })
-            assertEquals(3, rows.map { it.syncId }.toSet().size)
-            assertTrue(rows.all { UUID_REGEX.matches(it.syncId) }, rows.map { it.syncId }.toString())
+            assertOwnSyncIds(3, rows.map { it.syncId })
 
             // Two rules never share an id.
             val taken = rows.first().syncId
@@ -59,31 +47,23 @@ class UrlBlockSyncIdMigrationTest {
     }
 
     /** The schema of version 29: the current one, with the blocked URIs that had no sync ids yet. */
-    private fun createVersion29(driver: JdbcSqliteDriver) {
-        Database.Schema.create(driver)
-        driver.execute(null, "DROP TABLE urlBlock", 0)
-        driver.execute(
-            identifier = null,
-            sql = """
-                CREATE TABLE urlBlock (
-                  id INTEGER PRIMARY KEY AUTOINCREMENT,
-                  name TEXT NOT NULL,
-                  description TEXT NOT NULL,
-                  uri TEXT NOT NULL,
-                  mode TEXT NOT NULL,
-                  createdAt INTEGER NOT NULL,
-                  enabled INTEGER NOT NULL,
-                  exposed INTEGER
-                )
-            """.trimIndent(),
-            parameters = 0,
-        )
-        driver.execute(
-            identifier = null,
-            sql = "CREATE INDEX idx_urlBlock_createdAt ON urlBlock(createdAt DESC)",
-            parameters = 0,
-        )
-    }
+    private fun createVersion29(driver: JdbcSqliteDriver) = createWithEarlierTable(
+        driver = driver,
+        table = "urlBlock",
+        """
+            CREATE TABLE urlBlock (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              name TEXT NOT NULL,
+              description TEXT NOT NULL,
+              uri TEXT NOT NULL,
+              mode TEXT NOT NULL,
+              createdAt INTEGER NOT NULL,
+              enabled INTEGER NOT NULL,
+              exposed INTEGER
+            )
+        """.trimIndent(),
+        "CREATE INDEX idx_urlBlock_createdAt ON urlBlock(createdAt DESC)",
+    )
 }
 
 @Suppress("LongParameterList")

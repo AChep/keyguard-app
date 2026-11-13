@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.pullrefresh.pullRefresh
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
@@ -38,6 +37,7 @@ import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.focus.FocusRequester2
 import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
+import com.artemchep.keyguard.ui.pulltosearch.pullToSearch
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.CustomToolbar
 import org.jetbrains.compose.resources.stringResource
@@ -74,7 +74,7 @@ fun SearchSettingsScreenContent(
 
     ScaffoldLazyColumn(
         modifier = Modifier
-            .pullRefresh(pullRefreshState)
+            .pullToSearch(pullRefreshState)
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         expressive = true,
         topAppBarScrollBehavior = scrollBehavior,

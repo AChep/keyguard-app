@@ -38,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
@@ -91,7 +92,10 @@ fun FilterChipItemComposable(
                 val borderColor = LocalContentColor.current
                     .combineAlpha(DisabledEmphasisAlpha)
                     .combineAlpha(MediumEmphasisAlpha)
-                BorderStroke(Dp.Hairline, borderColor)
+                // ToggleButton's border animation drops Dp.Hairline (0.dp).
+                // Use one physical pixel to keep the outline visible.
+                val borderWidth = with(LocalDensity.current) { 1.toDp() }
+                BorderStroke(borderWidth, borderColor)
             },
             onCheckedChange = {
                 updatedOnClick?.invoke()

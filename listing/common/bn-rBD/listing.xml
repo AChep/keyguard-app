@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">পাসওয়ার্ড পরিচালনা করুন</string>
     <string name="listing_summary_long">সহজে পাসওয়ার্ড পরিচালনা করুন</string>
-    <string name="listing_description_title">বিটওয়ার্ডেন® প্লাটফর্ম এবং কীপাস(KDBX) এর জন্য একটি মাল্টি-ক্লায়েন্ট, যা সম্ভাব্য ব্যবহারকারীকে সর্বোচ্চ অভিজ্ঞতা প্রদানের জন্য ডিজাইন করা হয়েছে।</string>
+    <string name="listing_description_title">Keyguard একটি নিরাপদ ও সহজে ব্যবহারযোগ্য পাসওয়ার্ড ম্যানেজার। এটি অফলাইনে চলে এবং Bitwarden® ও KeePass (KDBX)-এর সঙ্গে সিঙ্ক করে।</string>
     <string name="listing_description_disclaimer_bitwarden_legal">যেকোনো বিটওয়ার্ডেন® ইনস্টলেশনের সাথে ব্যবহার করা যেতে পারে। এই প্রোডাক্টটি বিটওয়ার্ডেন প্রজেক্ট কিংবা বিটওয়ার্ডেন lnc এর সাথে সম্পৃক্ত নয়। বিটওয়ার্ডেন® হলো বিটওয়ার্ডেন lnc এর একটি নিবন্ধিত ট্রেডমার্ক।</string>
-    <string name="listing_description_highlights">হাইলাইটগুলো:</string>
-    <string name="listing_description_highlight_design">সুন্দর ইন্টারফেস: লাইট/ডার্ক থিমসহ একটি সমৃদ্ধ রেসপন্সিভ ম্যাট‍েরিয়াল ইয়্যু ইউআই।</string>
-    <string name="listing_description_highlight_search">উন্নত সার্চ: শক্তিশালী এবং খুব দ্রুত সার্চের সক্ষমতা।</string>
-    <string name="listing_description_highlight_watchtower">ওয়াচটাওয়ার: pwned পাসওয়ার্ড, দুর্বল অ্যাকাউন্ট, পুনরায় ব্যবহার করা পাসওয়ার্ড, বন্ধ থাকা দুই ধাপের যাচাইকরণ, অনিরাপদ ওয়েবসাইট, ডুপ্লিকেট কিংবা মেয়াদোত্তীর্ণ আইটেম এবং আরো অনেক কিছু শনাক্ত করে।</string>
-    <string name="listing_description_highlight_multiple_accounts">একাধিক-অ্যাকাউন্ট সুবিধা: একইসাথে একাধিক অ্যাকাউন্ট সাইন ইন করা যায়।</string>
-    <string name="listing_description_highlight_offline">অফলাইন ব্যবস্থাপনা: অফলাইনেও আইটেম যুক্ত করা, সেন্ড করা, পরিবর্তন করা, এবং দেখা যায়।</string>
-    <string name="listing_description_highlight_export">ডাটা এক্সপোর্ট: সংযুক্তি সহ ব্যক্তিগত কিংবা সংগঠনের আইটেম এক্সপোর্ট করুন।</string>
-    <string name="listing_description_highlight_backup">ডাটা ব্যাকআপ: সংযুক্তিসহ একটি ভল্টের ব্যাকআপ রিপোজিটরি স্বংক্রিয়ভাবে সংরক্ষন করুন।</string>
-    <string name="listing_description_highlight_attachment_preview">সংযুক্তি প্রিভিউ: ছবি ও টেক্সট সংযুক্ত ফাইল নিরাপদভাবে অ্যাপের ভেতরেই দেখার সুবিধা।</string>
-    <string name="listing_description_highlight_generator">জেনারেটর: কাস্টম শব্দতালিকার সুবিধাসহ পাসওয়ার্ড, SSH কী, এবং ইমেইল ফরোয়ার্ড তৈরি করুন।</string>
-    <string name="listing_description_highlight_ssh_agent">SSH এজেন্ট: সার্ভারে যাচাই করা, গিট কমিট সাক্ষর করা, SSH-ভিত্তিক পরিষেবাগুলোর সাথে কাজ করা।</string>
-    <string name="listing_description_highlight_gpg_agent">GPG এজেন্ট: ফাইল বা বার্তা এনক্রিপ্ট, ডিক্রিপ্ট, স্বাক্ষর ও যাচাই করুন।</string>
-    <string name="listing_description_highlight_other">উন্নত বৈশিষ্ট্যগুলো: শর্টকাটের সুবিধা, ফিল্ডের প্লেসহোল্ডার, URL পরিবর্তন করা, এবং স্মার্ট সমস্যার সমাধান।</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">প্রয়োজনীয় সুবিধা</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">নিরাপত্তা</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">আপনার ডেটা</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">উন্নত টুল</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">অটোফিল: অ্যাপ ও ব্রাউজারে ব্যবহারকারীর নাম ও পাসওয়ার্ড পূরণ করুন এবং সাইন ইন করার সময় নতুন লগইন সংরক্ষণ করুন।</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">পাসকি: পাসকি তৈরি করে অ্যাপ, ব্রাউজার ও কাছের কম্পিউটারে সাইন ইন করুন।</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">একবারের পাসওয়ার্ড: লগইনে অথেনটিকেটর কী রেখে TOTP, HOTP, Steam ও mOTP কোড পান।</string>
+    <string name="listing_description_highlight_generator">জেনারেটর: নিজস্ব শব্দতালিকা দিয়ে পাসওয়ার্ড, পাসফ্রেজ, ব্যবহারকারীর নাম, ইমেইল অ্যালিয়াস এবং SSH ও GPG কী তৈরি করুন।</string>
+    <string name="listing_description_highlight_search">সার্চ: বাক্যাংশ, শব্দ বাদ দেওয়ার শর্ত ও ফিল্ড কোয়ালিফায়ার দিয়ে আইটেম খুঁজুন। প্রায়ই ব্যবহৃত ফিল্টার সংরক্ষণ করুন।</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">দ্রুত সার্চ: গ্লোবাল শর্টকাট দিয়ে যেকোনো অ্যাপ থেকে আইটেম খুঁজুন ও তার মান কপি করুন।</string>
+    <string name="listing_description_highlight_watchtower">ওয়াচটাওয়ার: ফাঁস হওয়া, পুনর্ব্যবহৃত ও দুর্বল পাসওয়ার্ড, তথ্য ফাঁস হওয়া অ্যাকাউন্ট, দুই ধাপের যাচাইকরণের অভাব, অনিরাপদ ওয়েবসাইট এবং ডুপ্লিকেট বা মেয়াদ ফুরিয়ে আসা আইটেম শনাক্ত করুন।</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">আনলক: অ্যাপের পাসওয়ার্ড অথবা বায়োমেট্রিক্স, YubiKey বা নিরাপত্তা কী-এর মতো দ্রুত পদ্ধতি ব্যবহার করুন।</string>
+    <string name="listing_description_highlight_ssh_agent">SSH এজেন্ট: ভল্টের বাইরে না যাওয়া SSH কী দিয়ে সার্ভার ও Git হোস্টে পরিচয় যাচাই করুন।</string>
+    <string name="listing_description_highlight_gpg_agent">GPG এজেন্ট ও টুল: ভল্টের বাইরে না যাওয়া GPG কী দিয়ে অন্য অ্যাপ বা Keyguard থেকে স্বাক্ষর করুন ও ডিক্রিপ্ট করুন।</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">এনভায়রনমেন্ট (বিটা): API কী-এর মতো এনভায়রনমেন্ট ভেরিয়েবল ভল্টে রেখে স্থানীয় টুল ও কোডিং এজেন্টে পাঠান।</string>
+    <string name="listing_description_highlight_multiple_accounts">একাধিক অ্যাকাউন্ট: একাধিক Bitwarden ও KeePass অ্যাকাউন্টে সাইন ইন করে তাদের আইটেম একই ভল্টে দেখুন।</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">নিজে হোস্ট করা সার্ভার: সিঙ্গেল সাইন-অন, ক্লায়েন্ট সার্টিফিকেট ও কাস্টম HTTP হেডার দিয়ে নিজের সার্ভারে সংযোগ করুন।</string>
+    <string name="listing_description_highlight_offline">অফলাইন: সংযোগ ছাড়াই ভল্ট দেখুন, আইটেম যোগ বা সম্পাদনা করুন। পরের সিঙ্কে সম্পাদনাগুলো ফিল্ড অনুযায়ী একত্র হয়।</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">ইমপোর্ট: ব্রাউজার ও অন্য পাসওয়ার্ড ম্যানেজার থেকে পাসওয়ার্ড আনুন।</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">ক্রেডেনশিয়াল বিনিময়: আপনার ডিভাইসে Keyguard ও অন্য অ্যাপের মধ্যে সরাসরি পাসওয়ার্ড ও পাসকি স্থানান্তর করুন।</string>
+    <string name="listing_description_highlight_export">এক্সপোর্ট: আইটেম ও সংযুক্তি এনক্রিপ্ট করা ZIP আর্কাইভ বা KeePass ডেটাবেসে সংরক্ষণ করুন।</string>
+    <string name="listing_description_highlight_backup">ব্যাকআপ: ভল্টের সংস্করণভিত্তিক স্ন্যাপশট ফোল্ডার, WebDAV সার্ভার বা S3-সমর্থিত স্টোরেজে রাখুন।</string>
+    <string name="listing_description_highlight_attachment_preview">সংযুক্তি: ভল্টে ফাইল আপলোড করুন। ডিস্কে সংরক্ষণ ছাড়াই ছবি, টেক্সট ও ZIP আর্কাইভের প্রিভিউ দেখুন।</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">সেন্ডস: মেয়াদ শেষ হয় এমন লিংকে টেক্সট বা ফাইল শেয়ার করুন। চাইলে পাসওয়ার্ড বা অ্যাক্সেসের সীমা দিন।</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: ঘড়িতে আইটেম ও একবারের পাসওয়ার্ড দেখুন এবং ঘড়ির অ্যাপে সাইন ইন করুন।</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">সংযুক্ত ডিভাইস (বিটা): ইমেইল ফরোয়ার্ডার ও শব্দতালিকার মতো অ্যাপ সেটিংস সরাসরি আপনার ডিভাইসগুলোর মধ্যে সিঙ্ক করুন।</string>
+    <string name="listing_description_highlight_other">উন্নত সুবিধা: একসঙ্গে একাধিক আইটেমে কাজ, ফিল্ডের প্লেসহোল্ডার ও URL ওভাররাইড।</string>
+    <string name="listing_description_highlight_design">ইন্টারফেস: লাইট, ডার্ক ও কালো থিমসহ Material You ডিজাইন।</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Linux, macOS ও Windows-এও Keyguard পাওয়া যায়।</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">সোর্স কোড:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">অ্যাপ ঘোষিত অনুমতিগুলো যেভাবে ব্যবহার করে</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: আইটেমের সঙ্গে অ্যাপ যুক্ত করার সময় ইনস্টল করা অ্যাপের তালিকা দেয় এবং যুক্ত অ্যাপের নাম ও আইকন দেখায়।</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">হোম স্ক্রিন</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

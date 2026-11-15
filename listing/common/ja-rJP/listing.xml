@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">パスワードを管理</string>
     <string name="listing_summary_long">パスワードを簡単に管理</string>
-    <string name="listing_description_title">Bitwarden® プラットフォームと KeePass (KDBX) に対応し、最高の使いやすさを追求したクライアントです。</string>
+    <string name="listing_description_title">Keyguard は、安全で使いやすいパスワードマネージャーです。オフラインで利用でき、Bitwarden® や KeePass (KDBX) と同期できます。</string>
     <string name="listing_description_disclaimer_bitwarden_legal">あらゆる Bitwarden® 環境で使用できます。本製品は Bitwarden プロジェクトおよび Bitwarden, Inc. とは関係ありません。Bitwarden® は Bitwarden Inc. の登録商標です。</string>
-    <string name="listing_description_highlights">主な特長：</string>
-    <string name="listing_description_highlight_design">美しいインターフェース: ライト/ダークテーマに対応した、リッチで軽快な Material You UI。</string>
-    <string name="listing_description_highlight_search">高度な検索: 強力で高速な検索機能。</string>
-    <string name="listing_description_highlight_watchtower">監視: 漏洩したパスワード、脆弱なアカウント、再利用パスワード、二要素認証が未設定のサイト、安全でないウェブサイト、重複または期限切れのアイテムなどを検出します。</string>
-    <string name="listing_description_highlight_multiple_accounts">複数アカウント対応: 複数のアカウントに同時にログインできます。</string>
-    <string name="listing_description_highlight_offline">オフライン管理: オフラインでも、保管庫のアイテムや Send の追加、編集、閲覧ができます。</string>
-    <string name="listing_description_highlight_export">データのエクスポート: 添付ファイルを含む、個人または組織のアイテムをエクスポートできます。</string>
-    <string name="listing_description_highlight_backup">データのバックアップ: 添付ファイルを含む保管庫のバックアップリポジトリを自動的に管理します。</string>
-    <string name="listing_description_highlight_attachment_preview">添付ファイルのプレビュー: 画像やテキストの添付ファイルをアプリ内で安全に表示できます。</string>
-    <string name="listing_description_highlight_generator">パス生成: カスタムワードリストにも対応し、パスワード、SSH キー、GPG キー、転送メールアドレスを生成します。</string>
-    <string name="listing_description_highlight_ssh_agent">SSH エージェント: サーバーへの認証、Git コミットへの署名、SSH ベースのサービスとの連携に使用できます。</string>
-    <string name="listing_description_highlight_gpg_agent">GPG エージェント: ファイルやメッセージを暗号化、復号、署名、検証できます。</string>
-    <string name="listing_description_highlight_other">高度な機能: ショートカット、フィールドのプレースホルダー、URL の上書き、スマートな競合解決に対応します。</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">基本機能</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">セキュリティ</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">データ管理</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">上級者向けツール</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">自動入力: アプリやブラウザーでユーザー名とパスワードを入力し、サインイン時に新しいログイン情報を保存できます。</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">パスキー: パスキーを作成し、アプリ、ブラウザー、近くのパソコンでのサインインに使用できます。</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">ワンタイムパスワード: ログイン情報に認証用のキーを保存し、TOTP、HOTP、Steam、mOTP のコードを取得できます。</string>
+    <string name="listing_description_highlight_generator">パス生成: パスワード、パスフレーズ、ユーザー名、メールエイリアス、SSH キー、GPG キーを作成できます。独自のワードリストにも対応。</string>
+    <string name="listing_description_highlight_search">検索: フレーズ、除外条件、フィールド指定でアイテムを検索できます。よく使うフィルターは保存できます。</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">クイック検索: グローバルショートカットでどのアプリからでもアイテムを検索し、その値をコピーできます。</string>
+    <string name="listing_description_highlight_watchtower">監視: 漏洩、使い回し、脆弱なパスワード、侵害されたアカウント、二要素認証の未設定、安全でないウェブサイト、重複や期限が近いアイテムを検出します。</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">ロック解除: アプリのパスワードや、生体認証、YubiKey、セキュリティキーなどの素早い方法で解除できます。</string>
+    <string name="listing_description_highlight_ssh_agent">SSH エージェント: SSH キーを保管庫から出さずに、サーバーや Git ホストで認証できます。</string>
+    <string name="listing_description_highlight_gpg_agent">GPG エージェントとツール: GPG キーを保管庫から出さずに、他のアプリや Keyguard で署名と復号ができます。</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">環境（ベータ版）: API キーなどの環境変数を保管庫に保存し、ローカルツールやコーディングエージェントに渡せます。</string>
+    <string name="listing_description_highlight_multiple_accounts">複数アカウント: 複数の Bitwarden や KeePass アカウントにサインインし、アイテムを一つの保管庫で表示できます。</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">セルフホストサーバー: シングルサインオン、クライアント証明書、カスタム HTTP ヘッダーを使って、自分のサーバーに接続できます。</string>
+    <string name="listing_description_highlight_offline">オフライン: 接続なしで保管庫を閲覧し、アイテムを追加・編集できます。変更は次回の同期時にフィールドごとに統合されます。</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">インポート: ブラウザーや他のパスワードマネージャーからパスワードを移行できます。</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">認証情報の交換: 端末上の Keyguard と他のアプリとの間で、パスワードとパスキーを直接移行できます。</string>
+    <string name="listing_description_highlight_export">エクスポート: アイテムと添付ファイルを、暗号化された ZIP アーカイブや KeePass データベースに保存できます。</string>
+    <string name="listing_description_highlight_backup">バックアップ: 保管庫のスナップショットを世代別に、フォルダー、WebDAV サーバー、S3 互換ストレージに保存できます。</string>
+    <string name="listing_description_highlight_attachment_preview">添付ファイル: 保管庫にファイルをアップロードし、画像、テキスト、ZIP アーカイブをディスクに保存せずにプレビューできます。</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Send: 有効期限付きのリンクでテキストやファイルを共有できます。パスワードやアクセス回数の制限も設定できます。</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: 腕時計でアイテムやワンタイムパスワードを確認し、時計のアプリにサインインできます。</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">リンク済み端末（ベータ版）: メール転送サービスやワードリストなどのアプリ設定を、端末間で直接同期できます。</string>
+    <string name="listing_description_highlight_other">高度な機能: 一括操作、フィールドのプレースホルダー、URL の上書きに対応。</string>
+    <string name="listing_description_highlight_design">インターフェース: ライト、ダーク、ブラックの各テーマに対応した Material You デザイン。</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard は Linux、macOS、Windows でも利用できます。</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">ソースコード:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">アプリで宣言する権限とその用途</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: アプリをアイテムにリンクする際にインストール済みアプリを一覧表示し、リンク済みアプリの名前とアイコンを表示します。</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">ホーム画面</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

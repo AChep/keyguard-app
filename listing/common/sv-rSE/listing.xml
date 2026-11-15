@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">Hantera lösenord</string>
     <string name="listing_summary_long">Hantera lösenord enkelt</string>
-    <string name="listing_description_title">Multi-klient för Bitwarden®-plattformen och KeePass (KDBX), utformad för att ge bästa möjliga användarupplevelse.</string>
+    <string name="listing_description_title">Keyguard är en säker lösenordshanterare som också är trevlig att använda. Den fungerar offline och synkar med Bitwarden® och KeePass (KDBX).</string>
     <string name="listing_description_disclaimer_bitwarden_legal">Kan användas med vilken Bitwarden®-installation som helst. Denna produkt är inte associerad med Bitwarden-projektet eller Bitwarden, Inc. Bitwarden® är ett registrerat varumärke tillhörande Bitwarden Inc.</string>
-    <string name="listing_description_highlights">Höjdpunkter:</string>
-    <string name="listing_description_highlight_design">Vackert gränssnitt: Ett rikt, responsivt Material You-användargränssnitt med ljusa/mörka teman.</string>
-    <string name="listing_description_highlight_search">Avancerad sökning: Kraftfulla och snabba sökfunktioner.</string>
-    <string name="listing_description_highlight_watchtower">Watchtower: Upptäcker läckta lösenord, sårbara konton, återanvända lösenord, inaktiv tvåfaktorsautentisering, osäkra webbplatser, dubbletter eller utgående objekt och mer.</string>
-    <string name="listing_description_highlight_multiple_accounts">Stöd för flera konton: Ha flera konton inloggade samtidigt.</string>
-    <string name="listing_description_highlight_offline">Offline-hantering: Lägg till objekt och sends, ändra och visa ditt valv offline.</string>
-    <string name="listing_description_highlight_export">Dataexport: Exportera individuella eller organisationsobjekt, inklusive bilagor.</string>
-    <string name="listing_description_highlight_backup">Säkerhetskopiering av data: Hantera automatiskt ett säkerhetskopieringsarkiv för valvet, inklusive bilagor.</string>
-    <string name="listing_description_highlight_attachment_preview">Förhandsvisning av bilagor: Säker visning av bild- och textbilagor direkt i appen.</string>
-    <string name="listing_description_highlight_generator">Generator: Skapa lösenord, SSH-nycklar och e-postvidarebefordrare, med stöd för anpassade ordlistor.</string>
-    <string name="listing_description_highlight_ssh_agent">SSH-agent: Autentisera mot servrar, signera Git-committar och använd SSH-baserade tjänster.</string>
-    <string name="listing_description_highlight_gpg_agent">GPG-agent: Kryptera, dekryptera, signera och verifiera filer eller meddelanden.</string>
-    <string name="listing_description_highlight_other">Avancerade funktioner: Stöd för genvägar, fältplatshållare, URL-åsidosättningar och smart konfliktlösning.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">Grundfunktioner</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">Säkerhet</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">Dina data</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">Avancerade verktyg</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">Autofyll: Fyll i användarnamn och lösenord i appar och webbläsare, och spara nya inloggningar när du loggar in.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">Inloggningsnycklar: Skapa inloggningsnycklar och logga in med dem i appar, i webbläsare och på en dator i närheten.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">Engångslösenord: Spara autentiseringsnycklar i dina inloggningar och få koder för TOTP, HOTP, Steam och mOTP.</string>
+    <string name="listing_description_highlight_generator">Generator: Skapa lösenord, lösenfraser, användarnamn, e-postalias samt SSH- och GPG-nycklar med egna ordlistor.</string>
+    <string name="listing_description_highlight_search">Sökning: Hitta objekt med fraser, uteslutningar och fältkvalificerare. Spara filter du ofta använder.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">Snabbsökning: Hitta ett objekt från valfri app med ett globalt kortkommando och kopiera dess värden.</string>
+    <string name="listing_description_highlight_watchtower">Watchtower: Hitta läckta, återanvända och svaga lösenord, komprometterade konton, saknad tvåfaktorsautentisering, osäkra webbplatser samt dubbletter och objekt som snart löper ut.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">Upplåsning: Använd appens lösenord eller en snabbare metod som biometri, YubiKey eller säkerhetsnyckel.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH-agent: Autentisera mot servrar och Git-värdar med SSH-nycklar som aldrig lämnar ditt valv.</string>
+    <string name="listing_description_highlight_gpg_agent">GPG-agent och verktyg: Signera och dekryptera med GPG-nycklar som aldrig lämnar ditt valv, från andra appar eller i Keyguard.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">Miljöer (beta): Spara miljövariabler, som API-nycklar, i ditt valv och skicka dem till lokala verktyg och kodningsagenter.</string>
+    <string name="listing_description_highlight_multiple_accounts">Flera konton: Logga in på flera Bitwarden- och KeePass-konton och se deras objekt i ett valv.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">Egna servrar: Anslut till din egen server med enkel inloggning, klientcertifikat och egna HTTP-rubriker.</string>
+    <string name="listing_description_highlight_offline">Offline: Visa ditt valv och lägg till eller ändra objekt utan anslutning. Ändringar slås ihop fält för fält vid nästa synkning.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">Import: Flytta dina lösenord från webbläsare och andra lösenordshanterare.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">Utbyte av inloggningsuppgifter: Flytta lösenord och inloggningsnycklar direkt mellan Keyguard och andra appar på din enhet.</string>
+    <string name="listing_description_highlight_export">Export: Spara objekt och deras bilagor i ett krypterat ZIP-arkiv eller en KeePass-databas.</string>
+    <string name="listing_description_highlight_backup">Säkerhetskopior: Spara versionshanterade ögonblicksbilder av ditt valv i en mapp, på en WebDAV-server eller i S3-kompatibel lagring.</string>
+    <string name="listing_description_highlight_attachment_preview">Bilagor: Ladda upp filer till ditt valv och förhandsvisa bilder, text och ZIP-arkiv utan att spara dem på disk.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Sends: Dela text eller en fil via en länk som löper ut, med valfritt lösenord eller åtkomstgräns.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: Läs dina objekt och engångslösenord på klockan och logga in i klockappar.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">Länkade enheter (beta): Synka appinställningar, som e-postvidarebefordrare och ordlistor, direkt mellan dina enheter.</string>
+    <string name="listing_description_highlight_other">Avancerade funktioner: Massåtgärder, fältplatshållare och URL-åsidosättningar.</string>
+    <string name="listing_description_highlight_design">Gränssnitt: Material You-design med ljusa, mörka och svarta teman.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard finns även för Linux, macOS och Windows.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">Källkod:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">Så använder appen deklarerade behörigheter</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: Listar installerade appar när du länkar en app till ett objekt och visar den länkade appens namn och ikon.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Hemskärm</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">Manage passwords</string>
     <string name="listing_summary_long">Manage passwords with ease</string>
-    <string name="listing_description_title">Multi-client for the Bitwarden® platform and KeePass (KDBX), designed to provide the best user experience possible.</string>
+    <string name="listing_description_title">Keyguard is a secure password manager that\'s also nice to use. It works offline and syncs with Bitwarden® and KeePass (KDBX).</string>
     <string name="listing_description_disclaimer_bitwarden_legal">Can be used with any Bitwarden® installation. This product is not associated with the Bitwarden project nor Bitwarden, Inc. Bitwarden® is a registered trademark of Bitwarden Inc.</string>
-    <string name="listing_description_highlights">Highlights:</string>
-    <string name="listing_description_highlight_design">Beautiful Interface: a rich, responsive Material You UI with Light/Dark themes.</string>
-    <string name="listing_description_highlight_search">Advanced Search: Powerful and fast search capabilities.</string>
-    <string name="listing_description_highlight_watchtower">Watchtower: Detects pwned passwords, vulnerable accounts, reused passwords, inactive two-factor authentication, insecure websites, duplicate or expiring items and more.</string>
-    <string name="listing_description_highlight_multiple_accounts">Multi-Account Support: Simultaneously have multiple accounts signed in.</string>
-    <string name="listing_description_highlight_offline">Offline Management: Add items and sends, modify, and view your vault offline.</string>
-    <string name="listing_description_highlight_export">Data Export: Export individual or organization items, including attachments.</string>
-    <string name="listing_description_highlight_backup">Data Backup: Automatically manage a vault backup repository, including attachments.</string>
-    <string name="listing_description_highlight_attachment_preview">Attachment Preview: Secure in-app viewer for image and text attachments.</string>
-    <string name="listing_description_highlight_generator">Generator: Create passwords, SSH and GPG keys and email forwarders, with support for custom wordlists.</string>
-    <string name="listing_description_highlight_ssh_agent">SSH Agent: Authenticating to servers, Signing Git commits, Interacting with SSH-based services.</string>
-    <string name="listing_description_highlight_gpg_agent">GPG Agent: Encrypt, decrypt, sign and verify files or messages.</string>
-    <string name="listing_description_highlight_other">Advanced Features: Support for shortcuts, Field placeholders, URL overrides, and smart conflict resolution.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">Essentials</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">Security</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">Your data</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">Power tools</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">Autofill: Fill usernames and passwords in apps and browsers, and save new logins as you sign in.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">Passkeys: Create passkeys and sign in with them in apps, in browsers and on a nearby computer.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">One-time passwords: Keep authenticator keys in your logins and get TOTP, HOTP, Steam and mOTP codes.</string>
+    <string name="listing_description_highlight_generator">Generator: Create passwords, passphrases, usernames, email aliases, and SSH and GPG keys, with your own wordlists.</string>
+    <string name="listing_description_highlight_search">Search: Find items with phrases, exclusions and field qualifiers. Save the filters you use often.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">Quick search: Find an item from any app with a global shortcut and copy its values.</string>
+    <string name="listing_description_highlight_watchtower">Watchtower: Find leaked, reused and weak passwords, breached accounts, missing two-factor authentication, insecure websites, and duplicate or expiring items.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">Unlock: Use the app password, or a faster method such as biometrics, a YubiKey or a security key.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH agent: Authenticate to servers and Git hosts with SSH keys that never leave your vault.</string>
+    <string name="listing_description_highlight_gpg_agent">GPG agent and tools: Sign and decrypt with GPG keys that never leave your vault, from other apps or in Keyguard.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">Environments (beta): Keep environment variables, such as API keys, in your vault and pass them to local tools and coding agents.</string>
+    <string name="listing_description_highlight_multiple_accounts">Multiple accounts: Sign in to several Bitwarden and KeePass accounts and see their items in one vault.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">Self-hosted servers: Connect to your own server with single sign-on, client certificates and custom HTTP headers.</string>
+    <string name="listing_description_highlight_offline">Offline: View your vault and add or edit items without a connection. Edits merge field by field on the next sync.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">Import: Move your passwords from browsers and other password managers.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">Credential exchange: Move passwords and passkeys directly between Keyguard and other apps on your device.</string>
+    <string name="listing_description_highlight_export">Export: Save items and their attachments to an encrypted ZIP archive or a KeePass database.</string>
+    <string name="listing_description_highlight_backup">Backups: Keep versioned snapshots of your vault in a folder, on a WebDAV server or in S3-compatible storage.</string>
+    <string name="listing_description_highlight_attachment_preview">Attachments: Upload files to your vault and preview images, text and ZIP archives without saving them to disk.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Sends: Share text or a file through a link that expires, with an optional password or access limit.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: Read your items and one-time passwords on your watch, and sign in to watch apps.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">Linked devices (beta): Sync app settings, such as email forwarders and wordlists, directly between your devices.</string>
+    <string name="listing_description_highlight_other">Advanced features: Bulk actions, field placeholders and URL overrides.</string>
+    <string name="listing_description_highlight_design">Interface: Material You design with light, dark and black themes.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard is also available for Linux, macOS and Windows.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">Source code:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">How the app uses declared permissions</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: Lists your installed apps when you link an app to an item, and shows the linked app\'s name and icon.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Home screen</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

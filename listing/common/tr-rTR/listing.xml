@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">Parolalarınızı yönetin</string>
     <string name="listing_summary_long">Parolalarınızı zahmetsizce yönetin</string>
-    <string name="listing_description_title">Kullanıcı deneyimini odağına alan; Bitwarden® platformu ve KeePass (KDBX) ile tam uyumlu, gelişmiş kasa istemcisi.</string>
+    <string name="listing_description_title">Keyguard, kullanımı keyifli, güvenli bir parola yöneticisidir. Çevrimdışı çalışır, Bitwarden® ve KeePass (KDBX) ile eşitlenir.</string>
     <string name="listing_description_disclaimer_bitwarden_legal">Dilediğiniz Bitwarden® kurulumuyla güvenle kullanılabilir. Bu ürünün Bitwarden projesi veya Bitwarden, Inc. ile hiçbir resmi bağı yoktur. Bitwarden®, Bitwarden Inc. şirketinin tescilli ticari markasıdır.</string>
-    <string name="listing_description_highlights">Öne Çıkan Özellikler:</string>
-    <string name="listing_description_highlight_design">Göz Alıcı Tasarım: Açık ve Koyu tema seçeneklerine sahip, modern ve dinamik Material You arayüzü.</string>
-    <string name="listing_description_highlight_search">Gelişmiş Arama: Aradığınız her kayda anında ulaşmanızı sağlayan hızlı ve esnek arama.</string>
-    <string name="listing_description_highlight_watchtower">Gözcü (Watchtower): Sızdırılmış parolaları, risk altındaki hesapları, birden fazla yerde kullanılan şifreleri, iki adımlı doğrulaması kapalı servisleri, güvensiz siteleri ve süresi dolmak üzere olan ögeleri tek bakışta yakalayın.</string>
-    <string name="listing_description_highlight_multiple_accounts">Çoklu Hesap Desteği: Birden fazla hesabı aynı anda açık tutun, aralarında zahmetsizce geçiş yapın.</string>
-    <string name="listing_description_highlight_offline">Çevrim Dışı Kullanım: İnternetiniz olmasa bile kasanıza göz atın, düzenleyin; yeni ögeler ve güvenli paylaşımlar (Send) ekleyin.</string>
-    <string name="listing_description_highlight_export">Veri Dışa Aktarma: Bireysel veya organizasyon ögelerinizi, ekli dosyalarıyla birlikte kolayca dışa aktarın.</string>
-    <string name="listing_description_highlight_backup">Yedekleme: Dosya ekleri de dahil olmak üzere tüm kasanız için otomatik ve düzenli bir yedekleme deposu oluşturun.</string>
-    <string name="listing_description_highlight_attachment_preview">Ek Dosya Önizleme: Fotoğrafları ve metin belgelerini uygulama dışına çıkmadan, güvenle inceleyin.</string>
-    <string name="listing_description_highlight_generator">Güçlü Üreteç: Özel kelime listesi desteğiyle kırılması imkânsız parolalar, SSH/GPG anahtarları ve e-posta yönlendiricileri üretin.</string>
-    <string name="listing_description_highlight_ssh_agent">SSH Aracısı: Sunuculara kolayca bağlanın, Git commit\'lerinizi imzalayın ve SSH tabanlı servislerle doğrudan etkileşime geçin.</string>
-    <string name="listing_description_highlight_gpg_agent">GPG Aracısı: Dosya ve mesajlarınızı zahmetsizce şifreleyin, şifrelerini çözün, imzalayın ve doğrulayın.</string>
-    <string name="listing_description_highlight_other">Gelişmiş Yetenekler: Kısayol desteği, alan yer tutucuları, URL geçersiz kılma kuralları ve akıllı çakışma çözümü.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">Temel özellikler</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">Güvenlik</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">Verileriniz</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">Gelişmiş araçlar</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">Otomatik doldurma: Uygulama ve tarayıcılarda kullanıcı adı ve parolaları doldurun, oturum açarken yeni girişleri kaydedin.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">Geçiş anahtarları: Geçiş anahtarları oluşturup uygulamalarda, tarayıcılarda ve yakındaki bir bilgisayarda bunlarla oturum açın.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">Tek kullanımlık parolalar: Kimlik doğrulayıcı anahtarlarını girişlerinizde saklayın; TOTP, HOTP, Steam ve mOTP kodları alın.</string>
+    <string name="listing_description_highlight_generator">Üreteç: Kendi kelime listelerinizle parolalar, parola cümleleri, kullanıcı adları, e-posta takma adları, SSH ve GPG anahtarları oluşturun.</string>
+    <string name="listing_description_highlight_search">Arama: İfadeler, hariç tutmalar ve alan niteleyicileriyle ögeleri bulun. Sık kullandığınız filtreleri kaydedin.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">Hızlı arama: Genel bir kısayolla herhangi bir uygulamadan öge bulup değerlerini kopyalayın.</string>
+    <string name="listing_description_highlight_watchtower">Gözcü (Watchtower): Sızdırılmış, tekrar kullanılan ve zayıf parolaları, ihlal edilmiş hesapları, eksik iki faktörlü doğrulamayı, güvensiz siteleri, yinelenen veya süresi dolmak üzere olan ögeleri bulun.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">Kilit açma: Uygulama parolasını ya da biyometri, YubiKey veya güvenlik anahtarı gibi daha hızlı bir yöntemi kullanın.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH aracısı: Kasanızdan hiç çıkmayan SSH anahtarlarıyla sunucularda ve Git barındırma hizmetlerinde kimliğinizi doğrulayın.</string>
+    <string name="listing_description_highlight_gpg_agent">GPG aracısı ve araçları: Kasanızdan hiç çıkmayan GPG anahtarlarıyla diğer uygulamalardan veya Keyguard içinde imza atın ve şifre çözün.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">Ortamlar (beta): API anahtarları gibi ortam değişkenlerini kasanızda saklayıp yerel araçlara ve kodlama ajanlarına aktarın.</string>
+    <string name="listing_description_highlight_multiple_accounts">Birden fazla hesap: Birkaç Bitwarden ve KeePass hesabında oturum açıp ögelerini tek kasada görün.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">Kendi sunucunuz: Tek oturum açma, istemci sertifikaları ve özel HTTP üstbilgileriyle kendi sunucunuza bağlanın.</string>
+    <string name="listing_description_highlight_offline">Çevrimdışı: Bağlantı olmadan kasanızı görüntüleyin, öge ekleyin veya düzenleyin. Düzenlemeler sonraki eşitlemede alan bazında birleştirilir.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">İçe aktarma: Parolalarınızı tarayıcılardan ve diğer parola yöneticilerinden taşıyın.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">Kimlik bilgisi aktarımı: Parolaları ve geçiş anahtarlarını Keyguard ile cihazınızdaki diğer uygulamalar arasında doğrudan taşıyın.</string>
+    <string name="listing_description_highlight_export">Dışa aktarma: Ögeleri ve eklerini şifreli bir ZIP arşivine veya KeePass veritabanına kaydedin.</string>
+    <string name="listing_description_highlight_backup">Yedekleme: Kasanızın sürümlü anlık görüntülerini bir klasörde, WebDAV sunucusunda veya S3 uyumlu depolamada saklayın.</string>
+    <string name="listing_description_highlight_attachment_preview">Ekler: Kasanıza dosya yükleyin; resimleri, metinleri ve ZIP arşivlerini diske kaydetmeden önizleyin.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Güvenli paylaşımlar (Send): Metin veya dosyaları süresi dolan bir bağlantıyla paylaşın; isteğe bağlı parola veya erişim sınırı belirleyin.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: Saatinizde ögelerinizi ve tek kullanımlık parolalarınızı okuyun, saat uygulamalarında oturum açın.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">Bağlı cihazlar (beta): E-posta yönlendiricileri ve kelime listeleri gibi uygulama ayarlarını cihazlarınız arasında doğrudan eşitleyin.</string>
+    <string name="listing_description_highlight_other">Gelişmiş özellikler: Toplu işlemler, alan yer tutucuları ve URL geçersiz kılma kuralları.</string>
+    <string name="listing_description_highlight_design">Arayüz: Açık, koyu ve siyah temalarla Material You tasarımı.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard Linux, macOS ve Windows için de mevcuttur.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">Kaynak kodu:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">Uygulamanın istenen izinleri kullanımı</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: Bir uygulamayı ögeye bağlarken yüklü uygulamaları listeler; bağlı uygulamanın adını ve simgesini gösterir.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Ana ekran</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

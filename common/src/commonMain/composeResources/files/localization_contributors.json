@@ -555,7 +555,7 @@
     "target": 5469,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 24,
+    "positiveVotes": 25,
     "negativeVotes": 6,
     "winning": 0
   },
@@ -787,7 +787,7 @@
     "target": 12008,
     "approved": 0,
     "voted": 32,
-    "positiveVotes": 13,
+    "positiveVotes": 14,
     "negativeVotes": 0,
     "winning": 0
   },
@@ -1583,10 +1583,10 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 278,
-    "target": 497,
+    "translated": 2627,
+    "target": 4202,
     "approved": 0,
-    "voted": 0,
+    "voted": 3,
     "positiveVotes": 0,
     "negativeVotes": 3,
     "winning": 0
@@ -2115,11 +2115,11 @@
         "name": "Chinese Simplified"
       }
     ],
-    "translated": 224,
-    "target": 386,
+    "translated": 275,
+    "target": 459,
     "approved": 0,
     "voted": 0,
-    "positiveVotes": 0,
+    "positiveVotes": 1,
     "negativeVotes": 1,
     "winning": 0
   },
@@ -2203,8 +2203,8 @@
         "name": "Portuguese"
       }
     ],
-    "translated": 14437,
-    "target": 16539,
+    "translated": 14527,
+    "target": 16646,
     "approved": 0,
     "voted": 0,
     "positiveVotes": 0,

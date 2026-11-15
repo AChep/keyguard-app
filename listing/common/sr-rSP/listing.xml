@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">Управљајте лозинкама</string>
     <string name="listing_summary_long">Управљајте лозинкама са лакоћом</string>
-    <string name="listing_description_title">Мулти-клијент за Bitwarden® платформу и KeePass (KDBX), дизајниран да пружи најбоље могуће корисничко искуство.</string>
+    <string name="listing_description_title">Keyguard је безбедан и пријатан за коришћење менаџер лозинки. Ради ван мреже и синхронизује се са Bitwarden® и KeePass (KDBX).</string>
     <string name="listing_description_disclaimer_bitwarden_legal">Може се користити са било којом Bitwarden® инсталацијом. Овај производ није повезан са Bitwarden пројектом нити са Bitwarden, Inc. Bitwarden® је регистровани заштитни знак компаније Bitwarden Inc.</string>
-    <string name="listing_description_highlights">Истакнуто:</string>
-    <string name="listing_description_highlight_design">Прелеп интерфејс: Богат и респонзиван Material You интерфејс са светлом/тамном темом.</string>
-    <string name="listing_description_highlight_search">Напредна претрага: Моћне и брзе могућности претраге.</string>
-    <string name="listing_description_highlight_watchtower">Watchtower: Открива компромитоване лозинке, рањиве налоге, поново коришћене лозинке, неактивну двофакторску аутентификацију, небезбедне сајтове, дуплиране или истекле ставке и још много тога.</string>
-    <string name="listing_description_highlight_multiple_accounts">Подршка за више налога: Истовремено пријављивање на више налога.</string>
-    <string name="listing_description_highlight_offline">Управљање ван мреже: Додајте ставке и слања, мењајте и прегледајте сеф ван мреже.</string>
-    <string name="listing_description_highlight_export">Извоз података: Извезите појединачне или организационе ставке, укључујући прилоге.</string>
-    <string name="listing_description_highlight_backup">Резервне копије података: Аутоматски управљајте репозиторијумом резервних копија трезора, укључујући прилоге.</string>
-    <string name="listing_description_highlight_attachment_preview">Преглед прилога: Безбедан прегледач сликовних и текстуалних прилога у апликацији.</string>
-    <string name="listing_description_highlight_generator">Генератор: Креирајте лозинке, SSH кључеве и прослеђиваче е-поште, са подршком за прилагођене листе речи.</string>
-    <string name="listing_description_highlight_ssh_agent">SSH агент: пријављивање на сервере, потписивање Git комитова, рад са услугама које користе SSH.</string>
-    <string name="listing_description_highlight_gpg_agent">GPG агент: Шифрујте, дешифрујте, потписујте и верификујте датотеке или поруке.</string>
-    <string name="listing_description_highlight_other">Напредне функције: Подршка за пречице, чуваре места поља, URL замене и паметно решавање конфликата.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">Основне функције</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">Безбедност</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">Ваши подаци</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">Напредни алати</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">Аутоматско попуњавање: Попуните корисничка имена и лозинке у апликацијама и прегледачима и сачувајте нове податке за пријаву током пријављивања.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">Приступни кључеви: Правите приступне кључеве и пријављујте се њима у апликацијама, прегледачима и на оближњем рачунару.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">Једнократне лозинке: Чувајте кључеве аутентификатора уз податке за пријаву и добијајте TOTP, HOTP, Steam и mOTP кодове.</string>
+    <string name="listing_description_highlight_generator">Генератор: Правите лозинке, приступне фразе, корисничка имена, псеудониме е-поште и SSH и GPG кључеве, уз сопствене листе речи.</string>
+    <string name="listing_description_highlight_search">Претрага: Нађите ставке помоћу фраза, искључених појмова и квалификатора поља. Сачувајте често коришћене филтере.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">Брза претрага: Глобалном пречицом нађите ставку из било које апликације и копирајте њене вредности.</string>
+    <string name="listing_description_highlight_watchtower">Watchtower: Откријте процуреле, поново коришћене и слабе лозинке, компромитоване налоге, одсуство двофакторске аутентификације, небезбедне сајтове и дуплиране ставке или ставке које ускоро истичу.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">Откључавање: Користите лозинку апликације или бржи метод, попут биометрије, уређаја YubiKey или безбедносног кључа.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH агент: Пријављујте се на сервере и Git хостове SSH кључевима који никада не напуштају сеф.</string>
+    <string name="listing_description_highlight_gpg_agent">GPG агент и алати: Потписујте и дешифрујте из других апликација или у апликацији Keyguard помоћу GPG кључева који никада не напуштају сеф.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">Окружења (бета): Чувајте променљиве окружења, попут API кључева, у сефу и прослеђујте их локалним алатима и агентима за писање кода.</string>
+    <string name="listing_description_highlight_multiple_accounts">Више налога: Пријавите се на више Bitwarden и KeePass налога и прегледајте њихове ставке у једном сефу.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">Сопствени сервери: Повежите се са својим сервером уз јединствено пријављивање, клијентске сертификате и прилагођена HTTP заглавља.</string>
+    <string name="listing_description_highlight_offline">Ван мреже: Прегледајте сеф, додајте и мењајте ставке без везе. Измене се спајају по пољима при следећој синхронизацији.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">Увоз: Пренесите лозинке из прегледача и других менаџера лозинки.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">Размена акредитива: Преносите лозинке и приступне кључеве директно између Keyguard и других апликација на уређају.</string>
+    <string name="listing_description_highlight_export">Извоз: Сачувајте ставке и њихове прилоге у шифровану ZIP архиву или KeePass базу података.</string>
+    <string name="listing_description_highlight_backup">Резервне копије: Чувајте снимке сефа са историјом верзија у фасцикли, на WebDAV серверу или у S3 компатибилном складишту.</string>
+    <string name="listing_description_highlight_attachment_preview">Прилози: Отпремајте датотеке у сеф и прегледајте слике, текст и ZIP архиве без чувања на диск.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Слања: Делите текст или датотеку преко везе која истиче, уз опциону лозинку или ограничење приступа.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: Читајте ставке и једнократне лозинке на сату и пријављујте се у апликације на сату.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">Повезани уређаји (бета): Синхронизујте подешавања апликације, попут прослеђивача е-поште и листа речи, директно између својих уређаја.</string>
+    <string name="listing_description_highlight_other">Напредне функције: Групне радње, чувари места у пољима и URL замене.</string>
+    <string name="listing_description_highlight_design">Интерфејс: Material You дизајн са светлом, тамном и црном темом.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard је доступан и за Linux, macOS и Windows.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">Изворни код:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">Како апликација користи пријављене дозволе</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: Наводи инсталиране апликације када повезујете апликацију са ставком и приказује име и икону повезане апликације.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Почетни екран</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

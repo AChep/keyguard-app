@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">Spravujte hesla</string>
     <string name="listing_summary_long">Spravujte hesla snadno</string>
-    <string name="listing_description_title">Multi-klient pro platformu Bitwarden® a KeePass (KDBX), navržený pro poskytnutí nejlepšího možného uživatelského zážitku.</string>
+    <string name="listing_description_title">Keyguard je bezpečný správce hesel, který se příjemně používá. Funguje offline a synchronizuje se s Bitwarden® a KeePass (KDBX).</string>
     <string name="listing_description_disclaimer_bitwarden_legal">Lze použít s jakoukoli instalací Bitwarden®. Tento produkt není spojen s projektem Bitwarden ani Bitwarden, Inc. Bitwarden® je registrovaná ochranná známka společnosti Bitwarden Inc.</string>
-    <string name="listing_description_highlights">Hlavní funkce:</string>
-    <string name="listing_description_highlight_design">Krásné rozhraní: Bohaté, responzivní uživatelské rozhraní Material You se světlým/tmavým motivem.</string>
-    <string name="listing_description_highlight_search">Pokročilé vyhledávání: Výkonné a rychlé vyhledávací schopnosti.</string>
-    <string name="listing_description_highlight_watchtower">Watchtower: Detekuje kompromitovaná hesla, zranitelné účty, znovu použitá hesla, neaktivní dvoufaktorové ověření, nezabezpečené weby, duplicitní nebo vypršelé položky a další.</string>
-    <string name="listing_description_highlight_multiple_accounts">Podpora více účtů: Možnost současného přihlášení k více účtům.</string>
-    <string name="listing_description_highlight_offline">Offline správa: Přidávejte položky a odesílání, upravujte a prohlížejte svůj trezor offline.</string>
-    <string name="listing_description_highlight_export">Export dat: Exportujte jednotlivé nebo organizační položky včetně příloh.</string>
-    <string name="listing_description_highlight_backup">Zálohování dat: Automatická správa úložiště záloh trezoru včetně příloh.</string>
-    <string name="listing_description_highlight_attachment_preview">Náhled příloh: Bezpečné prohlížení obrázkových a textových příloh přímo v aplikaci.</string>
-    <string name="listing_description_highlight_generator">Generátor: Vytvářejte hesla, SSH klíče a e-mailové přesměrování, s podporou vlastních seznamů slov.</string>
-    <string name="listing_description_highlight_ssh_agent">SSH agent: Přihlašování k serverům, podepisování revizí v Gitu a práce se službami využívajícími SSH.</string>
-    <string name="listing_description_highlight_gpg_agent">GPG agent: Šifrování, dešifrování, podepisování a ověřování souborů nebo zpráv.</string>
-    <string name="listing_description_highlight_other">Pokročilé funkce: Podpora zkratek, zástupných symbolů polí, přepisovc URL a inteligentního řešení konfliktů.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">Základní funkce</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">Zabezpečení</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">Vaše data</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">Nástroje pro pokročilé</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">Automatické vyplňování: Vyplňujte uživatelská jména a hesla v aplikacích i prohlížečích a ukládejte nové přihlašovací údaje při přihlášení.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">Přístupové klíče: Vytvářejte je a přihlašujte se s nimi v aplikacích, prohlížečích i na počítači v okolí.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">Jednorázová hesla: Ukládejte ověřovací klíče k přihlašovacím údajům a získávejte kódy TOTP, HOTP, Steam a mOTP.</string>
+    <string name="listing_description_highlight_generator">Generátor: Vytvářejte hesla, přístupové fráze, uživatelská jména, e-mailové aliasy a klíče SSH a GPG s vlastními seznamy slov.</string>
+    <string name="listing_description_highlight_search">Vyhledávání: Hledejte položky pomocí frází, vyloučení a kvalifikátorů polí. Ukládejte často používané filtry.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">Rychlé vyhledávání: Globální zkratkou vyhledejte položku z libovolné aplikace a zkopírujte její hodnoty.</string>
+    <string name="listing_description_highlight_watchtower">Watchtower: Odhalte uniklá, slabá a opakovaně použitá hesla, napadené účty, chybějící dvoufaktorové ověření, nezabezpečené weby a duplicitní položky či položky před koncem platnosti.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">Odemknutí: Použijte heslo aplikace nebo rychlejší metodu, jako je biometrie, YubiKey či bezpečnostní klíč.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH agent: Ověřujte se na serverech a hostingových službách Git pomocí klíčů SSH, které nikdy neopustí trezor.</string>
+    <string name="listing_description_highlight_gpg_agent">GPG agent a nástroje: Podepisujte a dešifrujte z jiných aplikací i v Keyguard pomocí klíčů GPG, které nikdy neopustí trezor.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">Prostředí (beta): Ukládejte proměnné prostředí, například klíče API, do trezoru a předávejte je místním nástrojům a programovacím agentům.</string>
+    <string name="listing_description_highlight_multiple_accounts">Více účtů: Přihlaste se k více účtům Bitwarden a KeePass a prohlížejte jejich položky v jednom trezoru.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">Vlastní servery: Připojte se k vlastnímu serveru s jednotným přihlášením, klientskými certifikáty a vlastními hlavičkami HTTP.</string>
+    <string name="listing_description_highlight_offline">Offline: Prohlížejte trezor a přidávejte či upravujte položky bez připojení. Změny se při další synchronizaci sloučí po jednotlivých polích.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">Import: Přeneste hesla z prohlížečů a jiných správců hesel.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">Výměna přihlašovacích údajů: Přenášejte hesla a přístupové klíče přímo mezi Keyguard a dalšími aplikacemi v zařízení.</string>
+    <string name="listing_description_highlight_export">Export: Uložte položky i přílohy do šifrovaného archivu ZIP nebo databáze KeePass.</string>
+    <string name="listing_description_highlight_backup">Zálohy: Uchovávejte verzované snímky trezoru ve složce, na serveru WebDAV či v úložišti kompatibilním s S3.</string>
+    <string name="listing_description_highlight_attachment_preview">Přílohy: Nahrávejte soubory do trezoru a prohlížejte obrázky, texty a archivy ZIP bez ukládání na disk.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Odesílání: Sdílejte text či soubor odkazem s omezenou platností, volitelným heslem nebo limitem přístupů.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: Prohlížejte položky a jednorázová hesla na hodinkách a přihlašujte se do aplikací na hodinkách.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">Propojená zařízení (beta): Synchronizujte nastavení aplikace, například přesměrování e-mailů a seznamy slov, přímo mezi zařízeními.</string>
+    <string name="listing_description_highlight_other">Pokročilé funkce: Hromadné akce, zástupné symboly polí a přepisy URL.</string>
+    <string name="listing_description_highlight_design">Rozhraní: Design Material You se světlým, tmavým a černým motivem.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard je dostupný také pro Linux, macOS a Windows.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">Zdrojový kód:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">Jak aplikace používá deklarovaná oprávnění</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: Při propojení aplikace s položkou vypíše nainstalované aplikace a zobrazí název a ikonu propojené aplikace.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Domovská obrazovka</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

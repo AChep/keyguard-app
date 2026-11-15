@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">Administrer passord</string>
     <string name="listing_summary_long">Administrer passord enkelt</string>
-    <string name="listing_description_title">Multi-klient for Bitwarden®-plattformen og KeePass (KDBX), designet for å gi den beste brukeropplevelsen.</string>
+    <string name="listing_description_title">Keyguard er en sikker passordbehandler som er enkel å bruke. Den fungerer uten nett og synkroniseres med Bitwarden® og KeePass (KDBX).</string>
     <string name="listing_description_disclaimer_bitwarden_legal">Kan brukes med enhver Bitwarden®-installasjon. Dette produktet er ikke tilknyttet Bitwarden-prosjektet eller Bitwarden, Inc. Bitwarden® er et registrert varemerke tilhørende Bitwarden Inc.</string>
-    <string name="listing_description_highlights">Høydepunkter:</string>
-    <string name="listing_description_highlight_design">Vakker grensesnitt: Et rikt, responsivt Material You-brukergrensesnitt med lyse/mørke temaer.</string>
-    <string name="listing_description_highlight_search">Avansert søk: Kraftige og raske søkefunksjoner.</string>
-    <string name="listing_description_highlight_watchtower">Watchtower: Oppdager lekkede passord, sårbare kontoer, gjenbrukte passord, inaktiv tofaktorautentisering, usikre nettsteder, dupliserte eller utløpende elementer og mer.</string>
-    <string name="listing_description_highlight_multiple_accounts">Støtte for flere kontoer: Ha flere kontoer pålogget samtidig.</string>
-    <string name="listing_description_highlight_offline">Offline-administrasjon: Legg til elementer og sends, endre og vis hvelvet ditt offline.</string>
-    <string name="listing_description_highlight_export">Dataeksport: Eksporter individuelle eller organisasjonselementer, inkludert vedlegg.</string>
-    <string name="listing_description_highlight_backup">Sikkerhetskopiering av data: Automatisk administrasjon av et sikkerhetskopilager for hvelvet, inkludert vedlegg.</string>
-    <string name="listing_description_highlight_attachment_preview">Forhåndsvisning av vedlegg: Sikker visning av bilde- og tekstvedlegg i appen.</string>
-    <string name="listing_description_highlight_generator">Generator: Opprett passord, SSH-nøkler og e-postvideresendere, med støtte for egendefinerte ordlister.</string>
-    <string name="listing_description_highlight_ssh_agent">SSH-agent: Autentisering mot servere, signering av Git-commits og samhandling med SSH-baserte tjenester.</string>
-    <string name="listing_description_highlight_gpg_agent">GPG-agent: Krypter, dekrypter, signer og verifiser filer eller meldinger.</string>
-    <string name="listing_description_highlight_other">Avanserte funksjoner: Støtte for snarveier, feltplassholdere, URL-overstyringer og smart konfliktløsning.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">Grunnfunksjoner</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">Sikkerhet</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">Dine data</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">Verktøy for avanserte brukere</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">Autofyll: Fyll inn brukernavn og passord i apper og nettlesere, og lagre nye innlogginger når du logger inn.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">Tilgangsnøkler: Opprett tilgangsnøkler og logg inn med dem i apper, i nettlesere og på en datamaskin i nærheten.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">Engangspassord: Lagre autentiseringsnøkler i innloggingene dine og få TOTP-, HOTP-, Steam- og mOTP-koder.</string>
+    <string name="listing_description_highlight_generator">Generator: Opprett passord, passfraser, brukernavn, e-postaliaser samt SSH- og GPG-nøkler med egne ordlister.</string>
+    <string name="listing_description_highlight_search">Søk: Finn elementer med fraser, ekskluderinger og feltkvalifikatorer. Lagre filtrene du bruker ofte.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">Hurtigsøk: Finn et element fra enhver app med en global hurtigtast og kopier verdiene.</string>
+    <string name="listing_description_highlight_watchtower">Watchtower: Finn lekkede, gjenbrukte og svake passord, kompromitterte kontoer, manglende tofaktorautentisering, usikre nettsteder og dupliserte elementer eller elementer som snart utløper.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">Lås opp: Bruk app-passordet eller en raskere metode som biometri, en YubiKey eller en sikkerhetsnøkkel.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH-agent: Autentiser deg mot servere og Git-verter med SSH-nøkler som aldri forlater hvelvet ditt.</string>
+    <string name="listing_description_highlight_gpg_agent">GPG-agent og verktøy: Signer og dekrypter med GPG-nøkler som aldri forlater hvelvet ditt, fra andre apper eller i Keyguard.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">Miljøer (beta): Lagre miljøvariabler, som API-nøkler, i hvelvet og gi dem til lokale verktøy og kodeagenter.</string>
+    <string name="listing_description_highlight_multiple_accounts">Flere kontoer: Logg inn på flere Bitwarden- og KeePass-kontoer og se elementene deres i ett hvelv.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">Egenhostede servere: Koble til din egen server med engangspålogging, klientsertifikater og egendefinerte HTTP-hoder.</string>
+    <string name="listing_description_highlight_offline">Uten nett: Vis hvelvet og legg til eller rediger elementer uten nett. Endringer flettes felt for felt ved neste synkronisering.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">Import: Flytt passordene dine fra nettlesere og andre passordbehandlere.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">Utveksling av påloggingsinformasjon: Flytt passord og tilgangsnøkler direkte mellom Keyguard og andre apper på enheten.</string>
+    <string name="listing_description_highlight_export">Eksport: Lagre elementer og vedleggene deres i et kryptert ZIP-arkiv eller en KeePass-database.</string>
+    <string name="listing_description_highlight_backup">Sikkerhetskopier: Bevar versjonerte øyeblikksbilder av hvelvet i en mappe, på en WebDAV-server eller i S3-kompatibel lagring.</string>
+    <string name="listing_description_highlight_attachment_preview">Vedlegg: Last opp filer til hvelvet og forhåndsvis bilder, tekst og ZIP-arkiver uten å lagre dem på disk.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Sends: Del tekst eller en fil via en lenke som utløper, med valgfritt passord eller tilgangsbegrensning.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: Les elementer og engangspassord på klokken din, og logg inn i klokkeapper.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">Tilknyttede enheter (beta): Synkroniser appinnstillinger, som e-postvideresendere og ordlister, direkte mellom enhetene dine.</string>
+    <string name="listing_description_highlight_other">Avanserte funksjoner: Massehandlinger, feltplassholdere og URL-overstyringer.</string>
+    <string name="listing_description_highlight_design">Grensesnitt: Material You-design med lyse, mørke og svarte temaer.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard er også tilgjengelig for Linux, macOS og Windows.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">Kildekode:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">Slik bruker appen de oppgitte tillatelsene</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: Viser installerte apper når du knytter en app til et element, og viser navnet og ikonet til den tilknyttede appen.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Hjemskjerm</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

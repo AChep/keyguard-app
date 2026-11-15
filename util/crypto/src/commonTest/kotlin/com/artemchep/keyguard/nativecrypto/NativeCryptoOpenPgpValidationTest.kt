@@ -52,15 +52,23 @@ class NativeCryptoOpenPgpValidationTest {
 
     @Test
     fun validatesUserIdsUsingStrictUtf8Encoding() {
-        assertFalse("\uD800".isValidOpenPgpUserId())
-        assertFalse("\uDC00".isValidOpenPgpUserId())
-        assertFalse("\uD800A".isValidOpenPgpUserId())
-        assertFalse("A\uDC00".isValidOpenPgpUserId())
+        // Construct at runtime: the JS compiler can replace isolated surrogates
+        // in string literals while emitting its UTF-8 source file.
+        val high = charArrayOf('\uD800').concatToString()
+        val low = charArrayOf('\uDC00').concatToString()
+        assertFalse(high.isValidOpenPgpUserId())
+        assertFalse(low.isValidOpenPgpUserId())
+        assertFalse("${high}A".isValidOpenPgpUserId())
+        assertFalse("A$low".isValidOpenPgpUserId())
 
         assertTrue("Alice \uD83D\uDE00".isValidOpenPgpUserId())
         assertTrue("A".repeat(1_024).isValidOpenPgpUserId())
         assertTrue("é".repeat(512).isValidOpenPgpUserId())
         assertFalse("é".repeat(513).isValidOpenPgpUserId())
+        assertTrue("\u0800".repeat(341).isValidOpenPgpUserId())
+        assertFalse("\u0800".repeat(342).isValidOpenPgpUserId())
+        assertTrue("\uD83D\uDE00".repeat(256).isValidOpenPgpUserId())
+        assertFalse("\uD83D\uDE00".repeat(257).isValidOpenPgpUserId())
     }
 
     @Test

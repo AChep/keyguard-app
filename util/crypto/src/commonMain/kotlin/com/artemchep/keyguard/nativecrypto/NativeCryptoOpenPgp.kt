@@ -723,6 +723,7 @@ public object NativeCryptoOpenPgp {
      * Maximum plaintext accepted by the in-memory [encrypt] and returned by [decrypt].
      * One MiB of the 16 MiB native envelope remains available for the encoded final chunk and
      * verification metadata. Larger payloads must use [openEncryption] or [openDecryption].
+     * Without [NativeCryptoCapability.OPENPGP_MESSAGE_STREAMING], [encrypt] accepts at most 8 MiB.
      */
     public const val MAX_IN_MEMORY_PLAINTEXT_BYTES: Int = 15 * 1024 * 1024
 
@@ -824,6 +825,10 @@ public object NativeCryptoOpenPgp {
         referenceTimeEpochSeconds: Long? = null,
     ): NativeOpenPgpVerificationSession {
         requireReferenceTime(referenceTimeEpochSeconds)
+        NativeCrypto.requireCapability(
+            NativeCryptoCapability.OPENPGP_DETACHED_VERIFY_STREAMING,
+            "open_pgp_detached_verify.stream_open",
+        )
         val session = NativeCrypto.openSession(
             operationName = "open_pgp_detached_verify.stream_open",
             operation = OpenPgpDetachedVerifyStreamOpenOperationProto(
@@ -1066,6 +1071,9 @@ public object NativeCryptoOpenPgp {
             size = content.size,
         )
         if (content.size > OPEN_PGP_ONE_SHOT_MAX_CONTENT_BYTES) {
+            if (NativeCryptoCapability.OPENPGP_MESSAGE_STREAMING !in NativeCrypto.capabilities) {
+                throw NativeCryptoException("open_pgp_encrypt", NativeCryptoErrorCode.RESOURCE_LIMIT)
+            }
             return encryptStreaming(
                 content = content,
                 publicKeys = publicKeys,
@@ -1178,6 +1186,9 @@ public object NativeCryptoOpenPgp {
      * Decrypts an OpenPGP message. When [allowSignedOnly] is true, unencrypted
      * inline-signed messages are also accepted; unsigned literal packets are
      * always rejected.
+     * Backends without [NativeCryptoCapability.OPENPGP_MESSAGE_STREAMING]
+     * use the 16 MiB control-envelope limit, including ciphertext and keys, and
+     * return bounded, authenticated output. Larger messages require streaming.
      */
     public fun decrypt(
         content: ByteArray,
@@ -1197,12 +1208,64 @@ public object NativeCryptoOpenPgp {
                 code = NativeCryptoErrorCode.INVALID_ARGUMENT,
             )
         }
+        if (NativeCryptoCapability.OPENPGP_MESSAGE_STREAMING !in NativeCrypto.capabilities) {
+            return decryptBounded(
+                content = content,
+                privateKeys = privateKeys,
+                verificationPublicKeys = verificationPublicKeys,
+                referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                allowSignedOnly = allowSignedOnly,
+            )
+        }
         return decryptStreaming(
             content = content,
             privateKeys = privateKeys,
             verificationPublicKeys = verificationPublicKeys,
             referenceTimeEpochSeconds = referenceTimeEpochSeconds,
             allowSignedOnly = allowSignedOnly,
+        )
+    }
+
+    private fun decryptBounded(
+        content: ByteArray,
+        privateKeys: List<ByteArray>,
+        verificationPublicKeys: List<ByteArray>,
+        referenceTimeEpochSeconds: Long?,
+        allowSignedOnly: Boolean,
+    ): NativeOpenPgpDecryptResult {
+        if (content.size > NativeCrypto.MAX_CONTROL_ENVELOPE_BYTES) {
+            throw NativeCryptoException("open_pgp_decrypt", NativeCryptoErrorCode.RESOURCE_LIMIT)
+        }
+        val payload = NativeCrypto.call(
+            operationName = "open_pgp_decrypt",
+            operation = OpenPgpDecryptOperationProto(
+                OpenPgpDecryptRequestProto(
+                    content = content,
+                    privateKeys = privateKeys,
+                    verificationPublicKeys = verificationPublicKeys,
+                    referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                    allowSignedOnly = allowSignedOnly,
+                ),
+            ),
+        ).requireBytes("open_pgp_decrypt")
+        // OpenPgpDecryptResult and OpenPgpDecryptFinal have identical wire fields.
+        // Reuse the final decoder's metadata validation and failure zeroization.
+        val result = decodePayload<OpenPgpDecryptFinalProto>("open_pgp_decrypt", payload)
+            .toPublicDecryptFinal("open_pgp_decrypt")
+        try {
+            requireInMemoryOpenPgpPlaintextSize("open_pgp_decrypt", result.data.size)
+        } catch (failure: Throwable) {
+            result.data.fill(0)
+            throw failure
+        }
+        return NativeOpenPgpDecryptResult(
+            data = result.data,
+            verification = result.verification,
+            metadata = result.metadata,
+            encrypted = result.encrypted,
+            declaredCharset = result.declaredCharset,
+            decryptionKeyFingerprint = result.decryptionKeyFingerprint,
+            warnings = result.warnings,
         )
     }
 
@@ -1339,6 +1402,10 @@ public object NativeCryptoOpenPgp {
         referenceTimeEpochSeconds: Long? = null,
         enableCompression: Boolean = true,
     ): NativeOpenPgpEncryptionSession {
+        NativeCrypto.requireCapability(
+            NativeCryptoCapability.OPENPGP_MESSAGE_STREAMING,
+            "open_pgp_encrypt.stream_open",
+        )
         requireEncryptInputs(
             publicKeys = publicKeys,
             signingPrivateKey = signingPrivateKey,
@@ -1380,6 +1447,10 @@ public object NativeCryptoOpenPgp {
         allowSignedOnly: Boolean = false,
         stagingDirectory: String? = null,
     ): NativeOpenPgpDecryptionSession {
+        NativeCrypto.requireCapability(
+            NativeCryptoCapability.OPENPGP_MESSAGE_STREAMING,
+            "open_pgp_decrypt.stream_open",
+        )
         requireDecryptInputs(
             privateKeys = privateKeys,
             referenceTimeEpochSeconds = referenceTimeEpochSeconds,
@@ -3287,10 +3358,21 @@ private fun String.hasOpenPgpIdentityIdEnvelope(): Boolean =
 public fun String.isValidOpenPgpUserId(): Boolean =
     !isBlank() && none { it.isISOControl() || it == '\u2028' || it == '\u2029' } && hasValidOpenPgpUserIdUtf8Size()
 
-private fun String.hasValidOpenPgpUserIdUtf8Size(): Boolean = try {
-    encodeToByteArray(throwOnInvalidSequence = true).size <= OPEN_PGP_MAX_USER_ID_UTF8_BYTES
-} catch (_: CharacterCodingException) {
-    false
+private fun String.hasValidOpenPgpUserIdUtf8Size(): Boolean {
+    // JS TextEncoder replaces unpaired surrogates even when strict encoding is
+    // requested. Validate UTF-16 before encoding on every target.
+    if (length > OPEN_PGP_MAX_USER_ID_UTF8_BYTES) return false
+    var index = 0
+    var wellFormed = true
+    while (index < length && wellFormed) {
+        val char = this[index++]
+        wellFormed = if (char.isHighSurrogate()) {
+            index < length && this[index++].isLowSurrogate()
+        } else {
+            !char.isLowSurrogate()
+        }
+    }
+    return wellFormed && encodeToByteArray(throwOnInvalidSequence = true).size <= OPEN_PGP_MAX_USER_ID_UTF8_BYTES
 }
 
 private fun requireOptionalOpenPgpTime(label: String, value: Long?) {

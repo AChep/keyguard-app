@@ -374,6 +374,13 @@ internal data class OpenPgpEncryptOperationProto(
 ) : NativeRequestOperationProto
 
 @Serializable
+@SerialName("open_pgp_decrypt")
+internal data class OpenPgpDecryptOperationProto(
+    @ProtoNumber(41)
+    val value: OpenPgpDecryptRequestProto,
+) : NativeRequestOperationProto
+
+@Serializable
 @SerialName("open_pgp_expiration_update")
 internal data class OpenPgpExpirationUpdateOperationProto(
     @ProtoNumber(42)
@@ -2061,6 +2068,20 @@ internal data class OpenPgpEncryptFinalProto(
 )
 
 @Serializable
+internal data class OpenPgpDecryptRequestProto(
+    @ProtoNumber(1)
+    val content: ByteArray,
+    @ProtoNumber(2)
+    val privateKeys: List<ByteArray>,
+    @ProtoNumber(3)
+    val verificationPublicKeys: List<ByteArray>,
+    @ProtoNumber(4)
+    val referenceTimeEpochSeconds: Long? = null,
+    @ProtoNumber(5)
+    val allowSignedOnly: Boolean? = null,
+)
+
+@Serializable
 internal data class OpenPgpDecryptStreamOpenRequestProto(
     @ProtoNumber(1)
     val privateKeys: List<ByteArray>,
@@ -2773,6 +2794,9 @@ internal enum class NativeErrorCodeProto {
 
     @ProtoNumber(11)
     NO_USABLE_KEY,
+
+    @ProtoNumber(12)
+    UNSUPPORTED_OPERATION,
 }
 
 /** Maps a non-OK wire status to its public error code; OK never reaches callers as a failure. */
@@ -2791,6 +2815,7 @@ internal fun NativeErrorCodeProto.toErrorCode(): NativeCryptoErrorCode = when (t
     NativeErrorCodeProto.PANIC -> NativeCryptoErrorCode.PANIC
     NativeErrorCodeProto.UNSUPPORTED_KEY_VERSION -> NativeCryptoErrorCode.UNSUPPORTED_KEY_VERSION
     NativeErrorCodeProto.NO_USABLE_KEY -> NativeCryptoErrorCode.NO_USABLE_KEY
+    NativeErrorCodeProto.UNSUPPORTED_OPERATION -> NativeCryptoErrorCode.UNSUPPORTED_OPERATION
 }
 
 @Serializable

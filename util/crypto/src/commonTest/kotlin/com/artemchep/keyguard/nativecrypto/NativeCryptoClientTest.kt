@@ -70,8 +70,31 @@ class NativeCryptoClientTest {
     }
 
     @Test
+    fun webProfileAcceptsOnlyItsDeclaredCapabilities() {
+        val bridge = FakeBridge(
+            capabilities = webCryptoCapabilitiesMask,
+            requiredCapabilitiesMask = webCryptoCapabilitiesMask,
+        )
+        val client = NativeCryptoClient(bridge)
+        client.ensureReady()
+        assertEquals(
+            NativeCryptoCapability.entries.filter { it.bit and webCryptoCapabilitiesMask != 0L }.toSet(),
+            client.capabilities,
+        )
+        val missingDigest = FakeBridge(
+            capabilities = webCryptoCapabilitiesMask and NativeCryptoCapability.DIGEST.bit.inv(),
+            requiredCapabilitiesMask = webCryptoCapabilitiesMask,
+        )
+        val failure = assertFailsWith<NativeCryptoException> { NativeCryptoClient(missingDigest).ensureReady() }
+        assertEquals(NativeCryptoErrorCode.MISSING_CAPABILITY, failure.code)
+    }
+
+    @Test
     fun rejectsRuntimeMissingLockstepExtensionCapabilities() {
         listOf(
+            NativeCryptoCapability.OPENPGP_DETACHED_VERIFY_STREAMING,
+            NativeCryptoCapability.OPENPGP_MESSAGE_STREAMING,
+            NativeCryptoCapability.OPENPGP_STREAM_DRAIN,
             NativeCryptoCapability.OPENPGP_V6_GENERATION_MUTATION,
             NativeCryptoCapability.PKCS12,
             NativeCryptoCapability.ED25519,
@@ -1319,7 +1342,7 @@ class NativeCryptoClientTest {
             )
         }
         assertEquals(1L shl 35, NativeCryptoCapability.OPENPGP_V6_GENERATION_MUTATION.bit)
-        assertEquals(0x7FF_7FFF_FFFFL, allNativeCryptoCapabilitiesMask)
+        assertEquals(0x1FFF_7FFF_FFFFL, allNativeCryptoCapabilitiesMask)
     }
 
     private fun openPgpProtocolExtensions(): List<
@@ -1472,6 +1495,7 @@ class NativeCryptoClientTest {
     private class FakeBridge(
         private val abiVersion: Int = NativeCrypto.EXPECTED_ABI_VERSION,
         private val capabilities: Long = allNativeCryptoCapabilitiesMask,
+        override val requiredCapabilitiesMask: Long = nativeCryptoCapabilitiesMask,
         private val callResponse: ByteArray = response(BytesResultProto(ByteArray(0))),
         private val callFailure: Throwable? = null,
         private val streamOpenResponse: ByteArray = response(UInt64ResultProto(1L)),

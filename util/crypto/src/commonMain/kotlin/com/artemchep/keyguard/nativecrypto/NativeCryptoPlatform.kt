@@ -1,6 +1,9 @@
 package com.artemchep.keyguard.nativecrypto
 
 internal interface NativeCryptoBridge {
+    val requiredCapabilitiesMask: Long
+        get() = nativeCryptoCapabilitiesMask
+
     fun abiVersion(): Int
 
     fun capabilities(): Long
@@ -37,6 +40,8 @@ internal interface NativeCryptoBridge {
 }
 
 internal expect object NativeCryptoPlatform : NativeCryptoBridge {
+    override val requiredCapabilitiesMask: Long
+
     override fun abiVersion(): Int
 
     override fun capabilities(): Long

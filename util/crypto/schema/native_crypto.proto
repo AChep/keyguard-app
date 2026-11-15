@@ -1586,6 +1586,8 @@ enum NativeErrorCode {
   NATIVE_ERROR_CODE_INTERNAL = 9;
   NATIVE_ERROR_CODE_UNSUPPORTED_KEY_VERSION = 10;
   NATIVE_ERROR_CODE_NO_USABLE_KEY = 11;
+  // The backend does not advertise the capability required for this operation.
+  NATIVE_ERROR_CODE_UNSUPPORTED_OPERATION = 12;
 }
 
 message NativeStatus {

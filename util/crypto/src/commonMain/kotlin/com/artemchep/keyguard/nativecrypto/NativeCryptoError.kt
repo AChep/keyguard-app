@@ -18,6 +18,7 @@ public enum class NativeCryptoErrorCode(
     INTERNAL(wireValue = 9),
     UNSUPPORTED_KEY_VERSION(wireValue = 10),
     NO_USABLE_KEY(wireValue = 11),
+    UNSUPPORTED_OPERATION(wireValue = 12),
     ;
 
     internal companion object {

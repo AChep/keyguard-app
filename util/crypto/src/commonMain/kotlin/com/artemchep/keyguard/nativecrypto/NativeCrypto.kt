@@ -67,7 +67,22 @@ public enum class NativeCryptoCapability(
 
     /** FIPS 203 ML-KEM-1024 key generation, encapsulation and decapsulation. */
     ML_KEM(bit = 1L shl 42),
+
+    /** Incremental OpenPGP detached verification sessions. */
+    OPENPGP_DETACHED_VERIFY_STREAMING(bit = 1L shl 43),
+
+    /** Incremental OpenPGP message encryption and authenticated decryption. */
+    OPENPGP_MESSAGE_STREAMING(bit = 1L shl 44),
 }
+
+internal val nativeCryptoCapabilitiesMask: Long = NativeCryptoCapability.entries
+    .fold(0L) { mask, capability -> mask or capability.bit }
+
+internal val webCryptoCapabilitiesMask: Long = nativeCryptoCapabilitiesMask and (
+    NativeCryptoCapability.OPENPGP_DETACHED_VERIFY_STREAMING.bit or
+        NativeCryptoCapability.OPENPGP_MESSAGE_STREAMING.bit or
+        NativeCryptoCapability.OPENPGP_STREAM_DRAIN.bit
+    ).inv()
 
 public object NativeCrypto {
     public const val EXPECTED_ABI_VERSION: Int = 1
@@ -96,8 +111,15 @@ public object NativeCrypto {
     public val abiVersion: Int
         get() = client.abiVersion
 
-    internal val capabilities: Set<NativeCryptoCapability>
+    /** Operations supported by the loaded backend, after ABI validation. */
+    public val capabilities: Set<NativeCryptoCapability>
         get() = client.capabilities
+
+    internal fun requireCapability(capability: NativeCryptoCapability, operation: String) {
+        if (capability !in capabilities) {
+            throw NativeCryptoException(operation, NativeCryptoErrorCode.UNSUPPORTED_OPERATION)
+        }
+    }
 
     /** Eagerly loads the native library and verifies its ABI and required capabilities. */
     public fun ensureReady() {
@@ -174,8 +196,7 @@ public object NativeCrypto {
 
 internal class NativeCryptoClient(
     private val bridge: NativeCryptoBridge,
-    private val requiredCapabilitiesMask: Long = NativeCryptoCapability.entries
-        .fold(0L) { mask, capability -> mask or capability.bit },
+    private val requiredCapabilitiesMask: Long = bridge.requiredCapabilitiesMask,
     private val onDiscardedOutputCleared: ((ByteArray) -> Unit)? = null,
 ) {
     private data class RuntimeInfo(

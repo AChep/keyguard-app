@@ -131,8 +131,22 @@ pub const CAPABILITY_NOISE: u64 = 1 << 40;
 pub const CAPABILITY_X25519: u64 = 1 << 41;
 /// FIPS 203 ML-KEM-1024 key generation, encapsulation and decapsulation.
 pub const CAPABILITY_ML_KEM: u64 = 1 << 42;
-/// Complete capability set provided by this native library revision.
-pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
+/// Incremental OpenPGP detached signature verification.
+pub const CAPABILITY_OPENPGP_DETACHED_VERIFY_STREAMING: u64 = 1 << 43;
+/// Incremental OpenPGP message encryption and authenticated decryption.
+pub const CAPABILITY_OPENPGP_MESSAGE_STREAMING: u64 = 1 << 44;
+
+// The experimental Emscripten backend has no pthread/shared-memory runtime.
+const UNAVAILABLE_CAPABILITIES: u64 = if cfg!(target_os = "emscripten") {
+    CAPABILITY_OPENPGP_DETACHED_VERIFY_STREAMING
+        | CAPABILITY_OPENPGP_MESSAGE_STREAMING
+        | CAPABILITY_OPENPGP_STREAM_DRAIN
+} else {
+    0
+};
+
+/// Capability set supported by this build's runtime.
+pub const CAPABILITIES: u64 = (CAPABILITY_HKDF_SHA256
     | CAPABILITY_PBKDF2_SHA256
     | CAPABILITY_ARGON2
     | CAPABILITY_RANDOM
@@ -173,7 +187,10 @@ pub const CAPABILITIES: u64 = CAPABILITY_HKDF_SHA256
     | CAPABILITY_ED25519
     | CAPABILITY_NOISE
     | CAPABILITY_X25519
-    | CAPABILITY_ML_KEM;
+    | CAPABILITY_ML_KEM
+    | CAPABILITY_OPENPGP_DETACHED_VERIFY_STREAMING
+    | CAPABILITY_OPENPGP_MESSAGE_STREAMING)
+    & !UNAVAILABLE_CAPABILITIES;
 
 static PANIC_HOOK: Once = Once::new();
 
@@ -229,6 +246,19 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
         None => return error_response("stream.open", NativeErrorCode::InvalidRequest),
     };
     let operation_name = stream_open_operation_name(&operation);
+    let required_capability = match &operation {
+        native_stream_open_request::Operation::OpenPgpDetachedVerify(_) => {
+            CAPABILITY_OPENPGP_DETACHED_VERIFY_STREAMING
+        }
+        native_stream_open_request::Operation::OpenPgpEncrypt(_)
+        | native_stream_open_request::Operation::OpenPgpDecrypt(_) => {
+            CAPABILITY_OPENPGP_MESSAGE_STREAMING
+        }
+        _ => 0,
+    };
+    if CAPABILITIES & required_capability != required_capability {
+        return error_response(operation_name, NativeErrorCode::UnsupportedOperation);
+    }
     match operation {
         native_stream_open_request::Operation::Digest(request) => {
             let algorithm = match parse_hash_algorithm(request.algorithm) {
@@ -618,6 +648,9 @@ fn execute_one_shot(
         native_request::Operation::OpenPgpEncrypt(request) => openpgp::adapter::encrypt(request)?,
         native_request::Operation::OpenPgpDecrypt(request) => openpgp::adapter::decrypt(request)?,
         native_request::Operation::OpenPgpStreamDrain(request) => {
+            if CAPABILITIES & CAPABILITY_OPENPGP_STREAM_DRAIN == 0 {
+                return Err(NativeErrorCode::UnsupportedOperation);
+            }
             sessions::drain_openpgp(request.handle)?
         }
         native_request::Operation::NoiseHandshakeWrite(request) => {
@@ -1397,7 +1430,7 @@ mod tests {
     fn reports_stable_abi_and_capabilities() {
         assert_eq!(ABI_VERSION, 1);
         assert_eq!(PROTOCOL_VERSION, 3);
-        assert_eq!(CAPABILITIES, 0x7ff7fffffff);
+        assert_eq!(CAPABILITIES, 0x1fff7fffffff & !UNAVAILABLE_CAPABILITIES);
         assert_eq!(CAPABILITIES & (1 << 31), 0, "bit 31 is retired");
         assert_eq!(CAPABILITY_OPENPGP_V6_GENERATION_MUTATION, 1 << 35);
         assert_eq!(CAPABILITY_HYBRID, 1 << 37);

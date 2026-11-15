@@ -136,7 +136,7 @@ class NativeCryptoOpenPgpFixtureTest {
             publicKeys = publicKeys,
             referenceTimeEpochSeconds = REFERENCE_TIME,
         )
-        assertVerification(clear, createdAtEpochSeconds = 1_784_073_600L)
+        assertOpenPgpFixtureVerification(clear, createdAtEpochSeconds = 1_784_073_600L)
 
         val detached = NativeCrypto.openPgp.verifyDetached(
             content = DETACHED_BODY.encodeToByteArray(),
@@ -144,7 +144,7 @@ class NativeCryptoOpenPgpFixtureTest {
             publicKeys = publicKeys,
             referenceTimeEpochSeconds = REFERENCE_TIME,
         )
-        assertVerification(detached, createdAtEpochSeconds = 1_784_073_600L)
+        assertOpenPgpFixtureVerification(detached, createdAtEpochSeconds = 1_784_073_600L)
 
         val missing = NativeCrypto.openPgp.verifyDetached(
             content = DETACHED_BODY.encodeToByteArray(),
@@ -182,27 +182,6 @@ class NativeCryptoOpenPgpFixtureTest {
         // POLICY_CONFLICT is now reserved for unresolved revocation authority, which
         // this certificate does not have.
         assertTrue(result.warnings.isEmpty())
-    }
-
-    @Test
-    fun detachedVerificationStreamsAcrossArbitraryChunkBoundaries() {
-        for (chunkSize in listOf(1, 7, 31, 64 * 1024)) {
-            val session = NativeCrypto.openPgp.openDetachedVerification(
-                signature = DETACHED_SIGNATURE.encodeToByteArray(),
-                publicKeys = listOf(PUBLIC_KEY.encodeToByteArray()),
-                referenceTimeEpochSeconds = REFERENCE_TIME,
-            )
-            session.use {
-                val body = DETACHED_BODY.encodeToByteArray()
-                var offset = 0
-                while (offset < body.size) {
-                    val length = minOf(chunkSize, body.size - offset)
-                    it.update(body, offset = offset, length = length)
-                    offset += length
-                }
-                assertVerification(it.finish(), createdAtEpochSeconds = 1_784_073_600L)
-            }
-        }
     }
 
     @Test
@@ -248,7 +227,7 @@ class NativeCryptoOpenPgpFixtureTest {
                 }
                 val result = it.finish()
                 assertEquals(expectedBody, body.toString())
-                assertVerification(result.verification, createdAtEpochSeconds = 1_784_073_600L)
+                assertOpenPgpFixtureVerification(result.verification, createdAtEpochSeconds = 1_784_073_600L)
                 assertTrue(result.bodyValidUtf8)
             }
         }
@@ -292,59 +271,7 @@ class NativeCryptoOpenPgpFixtureTest {
         assertEquals(NativeCryptoErrorCode.INVALID_SESSION, finishReuse.code)
     }
 
-    @Test
-    fun streamedTamperIsRejectedAtFinishAndConsumesTheSession() {
-        val session = NativeCrypto.openPgp.openDetachedVerification(
-            signature = DETACHED_SIGNATURE.encodeToByteArray(),
-            publicKeys = listOf(PUBLIC_KEY.encodeToByteArray()),
-            referenceTimeEpochSeconds = REFERENCE_TIME,
-        )
-        session.use {
-            val tampered = DETACHED_BODY.encodeToByteArray().also { body ->
-                body[0] = 'X'.code.toByte()
-            }
-            it.update(tampered)
-            val verification = it.finish()
-            assertEquals(NativeOpenPgpVerificationStatus.INVALID, verification.status)
-
-            val finishReuse = assertFailsWith<NativeCryptoException> { it.finish() }
-            assertEquals(NativeCryptoErrorCode.INVALID_SESSION, finishReuse.code)
-            val updateReuse = assertFailsWith<NativeCryptoException> { it.update(byteArrayOf(0)) }
-            assertEquals(NativeCryptoErrorCode.INVALID_SESSION, updateReuse.code)
-        }
-    }
-
-    @Test
-    fun closingAPartialVerificationSessionCancelsItAndIsIdempotent() {
-        val session = NativeCrypto.openPgp.openDetachedVerification(
-            signature = DETACHED_SIGNATURE.encodeToByteArray(),
-            publicKeys = listOf(PUBLIC_KEY.encodeToByteArray()),
-            referenceTimeEpochSeconds = REFERENCE_TIME,
-        )
-        session.update(DETACHED_BODY.encodeToByteArray(), length = 7)
-
-        session.close()
-        session.close()
-
-        val updateReuse = assertFailsWith<NativeCryptoException> { session.update(byteArrayOf(0)) }
-        assertEquals(NativeCryptoErrorCode.INVALID_SESSION, updateReuse.code)
-        val finishReuse = assertFailsWith<NativeCryptoException> { session.finish() }
-        assertEquals(NativeCryptoErrorCode.INVALID_SESSION, finishReuse.code)
-    }
-
-    private fun assertVerification(
-        result: NativeOpenPgpVerification,
-        createdAtEpochSeconds: Long,
-    ) {
-        assertEquals(NativeOpenPgpVerificationStatus.VALID, result.status)
-        assertEquals("F83D947D29EFECF7", result.keyId)
-        assertEquals(PRIMARY_FINGERPRINT, result.fingerprint)
-        assertEquals(listOf(USER_ID), result.userIds)
-        assertEquals(createdAtEpochSeconds, result.createdAtEpochSeconds)
-        assertTrue(result.warnings.isEmpty())
-    }
-
-    private companion object {
+    internal companion object {
         const val REFERENCE_TIME = 1_784_073_601L
         const val PRIMARY_FINGERPRINT = "D0BBCFBB250D3BB0658E5384F83D947D29EFECF7"
         const val PRIMARY_KEYGRIP = "894264A490F8D55E3E28378A7E44373782806220"
@@ -446,4 +373,16 @@ class NativeCryptoOpenPgpFixtureTest {
             -----END PGP SIGNATURE-----
         """.trimIndent() + "\n"
     }
+}
+
+internal fun assertOpenPgpFixtureVerification(
+    result: NativeOpenPgpVerification,
+    createdAtEpochSeconds: Long,
+) {
+    assertEquals(NativeOpenPgpVerificationStatus.VALID, result.status)
+    assertEquals("F83D947D29EFECF7", result.keyId)
+    assertEquals(NativeCryptoOpenPgpFixtureTest.PRIMARY_FINGERPRINT, result.fingerprint)
+    assertEquals(listOf(NativeCryptoOpenPgpFixtureTest.USER_ID), result.userIds)
+    assertEquals(createdAtEpochSeconds, result.createdAtEpochSeconds)
+    assertTrue(result.warnings.isEmpty())
 }

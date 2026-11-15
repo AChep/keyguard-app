@@ -3540,6 +3540,8 @@ pub enum NativeErrorCode {
     Internal = 9,
     UnsupportedKeyVersion = 10,
     NoUsableKey = 11,
+    /// The backend does not advertise the capability required for this operation.
+    UnsupportedOperation = 12,
 }
 impl NativeErrorCode {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -3560,6 +3562,7 @@ impl NativeErrorCode {
             Self::Internal => "NATIVE_ERROR_CODE_INTERNAL",
             Self::UnsupportedKeyVersion => "NATIVE_ERROR_CODE_UNSUPPORTED_KEY_VERSION",
             Self::NoUsableKey => "NATIVE_ERROR_CODE_NO_USABLE_KEY",
+            Self::UnsupportedOperation => "NATIVE_ERROR_CODE_UNSUPPORTED_OPERATION",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -3579,6 +3582,7 @@ impl NativeErrorCode {
                 Some(Self::UnsupportedKeyVersion)
             }
             "NATIVE_ERROR_CODE_NO_USABLE_KEY" => Some(Self::NoUsableKey),
+            "NATIVE_ERROR_CODE_UNSUPPORTED_OPERATION" => Some(Self::UnsupportedOperation),
             _ => None,
         }
     }

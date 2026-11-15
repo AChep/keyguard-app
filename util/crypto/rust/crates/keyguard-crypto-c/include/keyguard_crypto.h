@@ -35,6 +35,7 @@ enum KeyguardCryptoErrorCode {
     KEYGUARD_CRYPTO_INTERNAL = 9,
     KEYGUARD_CRYPTO_UNSUPPORTED_KEY_VERSION = 10,
     KEYGUARD_CRYPTO_NO_USABLE_KEY = 11,
+    KEYGUARD_CRYPTO_UNSUPPORTED_OPERATION = 12,
 };
 
 uint32_t keyguard_crypto_abi_version(void);

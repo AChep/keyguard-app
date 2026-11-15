@@ -3,6 +3,9 @@ package com.artemchep.keyguard.nativecrypto
 import com.artemchep.keyguard.util.ffi.JniLibrary
 
 internal actual object NativeCryptoPlatform : NativeCryptoBridge {
+    actual override val requiredCapabilitiesMask: Long
+        get() = nativeCryptoCapabilitiesMask
+
     private val library = JniLibrary(
         name = "keyguard_crypto_jni",
         pathProperty = "keyguard.nativeCrypto.libraryPath",

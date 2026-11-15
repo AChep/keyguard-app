@@ -19,8 +19,8 @@ num-bigint-dig.workspace = true
 num-integer.workspace = true
 zeroize.workspace = true
 
-# Full bindings are pregenerated for desktop targets, but not every mobile ABI.
-[target.'cfg(any(target_os = "ios", target_os = "android"))'.dependencies]
+# Full bindings are not pregenerated for every mobile ABI or Emscripten.
+[target.'cfg(any(target_os = "ios", target_os = "android", target_os = "emscripten"))'.dependencies]
 aws-lc-sys = { workspace = true, features = ["bindgen"] }
 
 [lints]

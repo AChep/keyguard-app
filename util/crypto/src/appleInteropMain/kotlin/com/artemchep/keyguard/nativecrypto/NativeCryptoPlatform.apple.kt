@@ -32,6 +32,9 @@ import kotlinx.cinterop.usePinned
 import kotlinx.cinterop.value
 
 internal actual object NativeCryptoPlatform : NativeCryptoBridge {
+    actual override val requiredCapabilitiesMask: Long
+        get() = nativeCryptoCapabilitiesMask
+
     actual override fun abiVersion(): Int = keyguard_crypto_abi_version().toInt()
 
     actual override fun capabilities(): Long = keyguard_crypto_capabilities().toLong()

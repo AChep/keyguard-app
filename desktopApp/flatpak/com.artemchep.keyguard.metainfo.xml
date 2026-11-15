@@ -30,35 +30,31 @@
       <keyguard_text_res token="listing_description_disclaimer_bitwarden_legal" />
     </p>
     <p>
-      <keyguard_text_res token="listing_description_highlights" />
+      <keyguard_text_res token="listing_description_section_essentials" />
     </p>
     <ul>
       <li>
-        <keyguard_text_res token="listing_description_highlight_design" />
-      </li>
-      <li>
-        <keyguard_text_res token="listing_description_highlight_search" />
-      </li>
-      <li>
-        <keyguard_text_res token="listing_description_highlight_watchtower" />
-      </li>
-      <li>
-        <keyguard_text_res token="listing_description_highlight_multiple_accounts" />
-      </li>
-      <li>
-        <keyguard_text_res token="listing_description_highlight_offline" />
-      </li>
-      <li>
-        <keyguard_text_res token="listing_description_highlight_export" />
-      </li>
-      <li>
-        <keyguard_text_res token="listing_description_highlight_backup" />
+        <keyguard_text_res token="listing_description_highlight_totp" />
       </li>
       <li>
         <keyguard_text_res token="listing_description_highlight_generator" />
       </li>
       <li>
-        <keyguard_text_res token="listing_description_highlight_attachment_preview" />
+        <keyguard_text_res token="listing_description_highlight_search" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_quick_search_desktop" />
+      </li>
+    </ul>
+    <p>
+      <keyguard_text_res token="listing_description_section_security" />
+    </p>
+    <ul>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_watchtower" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_unlock" />
       </li>
       <li>
         <keyguard_text_res token="listing_description_highlight_ssh_agent" />
@@ -67,7 +63,50 @@
         <keyguard_text_res token="listing_description_highlight_gpg_agent" />
       </li>
       <li>
+        <keyguard_text_res token="listing_description_highlight_environments_desktop" />
+      </li>
+    </ul>
+    <p>
+      <keyguard_text_res token="listing_description_section_data" />
+    </p>
+    <ul>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_multiple_accounts" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_self_hosted" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_offline" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_import" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_export" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_backup" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_attachment_preview" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_sends" />
+      </li>
+    </ul>
+    <p>
+      <keyguard_text_res token="listing_description_section_tools" />
+    </p>
+    <ul>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_linked_devices" />
+      </li>
+      <li>
         <keyguard_text_res token="listing_description_highlight_other" />
+      </li>
+      <li>
+        <keyguard_text_res token="listing_description_highlight_design" />
       </li>
     </ul>
   </description>

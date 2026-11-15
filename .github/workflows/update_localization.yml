@@ -7,7 +7,7 @@ on:
       - master
     paths:
       - 'common/src/commonMain/composeResources/values/*.xml'
-      - 'listing/google/base/*.html'
+      - 'listing/common/base/*.xml'
       - 'listing/google/base/*.xml'
       # Configuration.
       - 'crowdin.yml'

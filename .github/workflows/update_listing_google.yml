@@ -6,10 +6,12 @@ on:
     branches:
       - master
     paths:
+      - 'listing/common/**'
       - 'listing/google/**'
       # Configuration.
+      - '.github/listing_texts.py'
       - '.github/update_google_play_listing.py'
-      - '.github/update_google_play_listing.requirements.py'
+      - '.github/update_google_play_listing.requirements.txt'
 
 permissions:
   contents: read
@@ -23,6 +25,10 @@ jobs:
         with:
           persist-credentials: false
       - run: pip install -r .github/update_google_play_listing.requirements.txt
+      - name: "Check listing"
+        working-directory: .github
+        run: |
+          python -m unittest test_listing_texts test_update_google_play_listing
       - name: "Setup secrets"
         run: |
           echo ${{ secrets.SERVICE_ACCOUNT_B64 }} | base64 -d | zcat >> service-account-google.json

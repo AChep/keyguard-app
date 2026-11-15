@@ -7,6 +7,7 @@ import androidx.compose.ui.graphics.toArgb
 import com.artemchep.keyguard.ui.theme.plainDarkColorScheme
 import com.artemchep.keyguard.ui.theme.plainLightColorScheme
 import com.kyant.m3color.hct.Hct
+import com.kyant.m3color.scheme.SchemeMonochrome
 import com.kyant.m3color.scheme.SchemeVibrant
 
 @Stable
@@ -16,7 +17,13 @@ actual fun dynamicColorScheme(
     contrastLevel: Double,
 ): ColorScheme {
     val hct = Hct.fromInt(keyColor.toArgb())
-    val scheme = SchemeVibrant(hct, isDark, contrastLevel)
+    // Vibrant amplifies the residual HCT hue of neutral seeds into a colored accent.
+    val isNeutral = keyColor.red == keyColor.green && keyColor.green == keyColor.blue
+    val scheme = if (isNeutral) {
+        SchemeMonochrome(hct, isDark, contrastLevel)
+    } else {
+        SchemeVibrant(hct, isDark, contrastLevel)
+    }
 
     val base = if (isDark) plainDarkColorScheme() else plainLightColorScheme()
     return base.copy(

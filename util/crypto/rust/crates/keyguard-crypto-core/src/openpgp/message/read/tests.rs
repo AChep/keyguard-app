@@ -2207,6 +2207,10 @@ fn fixed_gnupg_public_certificate_has_exact_authenticated_dto_and_rearmor() {
     assert!(!key.revoked);
     assert!(key.can_sign);
     assert!(key.can_encrypt);
+    // The [SC] primary signs but only its [E] subkey encrypts; `can_encrypt`
+    // above is certificate-wide.
+    assert!(key.primary_can_sign);
+    assert!(!key.primary_can_encrypt);
     assert_eq!(
         key.public_key_armored.trim_end(),
         std::str::from_utf8(PUBLIC_KEY)

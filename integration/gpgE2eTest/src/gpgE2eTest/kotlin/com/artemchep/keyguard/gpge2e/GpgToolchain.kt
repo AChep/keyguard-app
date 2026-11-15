@@ -28,6 +28,10 @@ data class GpgToolchain(
     val binDir: Path
         get() = gpg.parent
 
+    /** Ships next to gpg in every GnuPG distribution; only a few tests need it. */
+    val gpgConnectAgent: Path
+        get() = binDir.resolve(executableName("gpg-connect-agent"))
+
     fun describe(): String =
         "gpg=${gpg.toAbsolutePath()}, gpgconf=${gpgconf.toAbsolutePath()}"
 

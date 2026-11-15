@@ -1228,7 +1228,7 @@ fn filtered_agent_private_keys() -> [(String, Vec<u8>); 2] {
     let imported = OpenPgpKeyImportResult::decode(
         import_key_request(OpenPgpKeyImportRequest {
             key_data: dummy,
-            passphrase_utf8: None,
+            passphrases_utf8: Vec::new(),
             reference_time_epoch_seconds: Some(TEST_TIME),
         })
         .expect("import GnuPG dummy-primary key")

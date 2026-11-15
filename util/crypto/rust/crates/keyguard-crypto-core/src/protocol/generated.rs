@@ -1093,8 +1093,10 @@ pub struct OpenPgpPublicKeyInfo {
     pub expires_at_epoch_seconds: ::core::option::Option<u64>,
     #[prost(bool, tag = "10")]
     pub revoked: bool,
+    /// Certificate-wide: true when the primary key or any usable subkey can sign.
     #[prost(bool, tag = "11")]
     pub can_sign: bool,
+    /// Certificate-wide: true when the primary key or any usable subkey can encrypt.
     #[prost(bool, tag = "12")]
     pub can_encrypt: bool,
     #[prost(string, tag = "13")]
@@ -1134,6 +1136,12 @@ pub struct OpenPgpPublicKeyInfo {
     pub user_id_history: ::prost::alloc::vec::Vec<OpenPgpUserIdInfo>,
     #[prost(bool, tag = "22")]
     pub can_modify_user_ids: bool,
+    /// The primary key's own capabilities, unlike the certificate-wide
+    /// `can_sign` and `can_encrypt`.
+    #[prost(bool, tag = "23")]
+    pub primary_can_sign: bool,
+    #[prost(bool, tag = "24")]
+    pub primary_can_encrypt: bool,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpUserIdInfo {
@@ -1316,11 +1324,12 @@ pub struct OpenPgpKeyMaterial {
 pub struct OpenPgpKeyImportRequest {
     #[prost(bytes = "vec", tag = "1")]
     pub key_data: ::prost::alloc::vec::Vec<u8>,
-    /// UTF-8 bytes allow both sides to erase the owned passphrase copy.
-    #[prost(bytes = "vec", optional, tag = "2")]
-    pub passphrase_utf8: ::core::option::Option<::prost::alloc::vec::Vec<u8>>,
     #[prost(uint64, optional, tag = "3")]
     pub reference_time_epoch_seconds: ::core::option::Option<u64>,
+    /// Tried in order on every encrypted component. UTF-8 bytes allow both sides to
+    /// erase owned copies. At most 16 entries.
+    #[prost(bytes = "vec", repeated, tag = "4")]
+    pub passphrases_utf8: ::prost::alloc::vec::Vec<::prost::alloc::vec::Vec<u8>>,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpKeyImportSuccess {
@@ -1331,6 +1340,13 @@ pub struct OpenPgpKeyImportSuccess {
 pub struct OpenPgpKeyImportNeedsPassphrase {
     #[prost(string, tag = "1")]
     pub format_label: ::prost::alloc::string::String,
+    /// Uppercase hex fingerprints of encrypted components that no passphrase unlocked,
+    /// in packet order (primary first).
+    #[prost(string, repeated, tag = "2")]
+    pub locked_fingerprints: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Indexes into passphrases_utf8 that unlocked at least one component.
+    #[prost(uint32, repeated, tag = "3")]
+    pub unlocking_passphrase_indexes: ::prost::alloc::vec::Vec<u32>,
 }
 #[derive(Clone, Copy, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct OpenPgpKeyImportError {

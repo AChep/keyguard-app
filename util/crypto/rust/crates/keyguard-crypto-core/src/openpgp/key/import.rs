@@ -4,6 +4,7 @@
 //! packets, and derives the public certificate from the same bounded stream.
 
 use std::{
+    collections::BTreeSet,
     io::{Cursor, Write},
     ops::Range,
 };
@@ -41,23 +42,28 @@ use super::{KeyImportFailureReason, KeyImportInput, KeyImportResult};
 
 const MAX_IMPORT_COMPONENTS: usize = 64;
 const MAX_IMPORT_PACKETS: usize = crate::openpgp::packet::MAX_CERTIFICATE_PACKETS;
+const MAX_IMPORT_PASSPHRASES: usize = 16;
 
 /// Imports the first transferable secret key, removes password protection from
 /// every secret component, and returns a typed domain result.
+///
+/// Each encrypted component is unlocked by the first passphrase that works.
+/// The key is returned only when every encrypted component unlocks.
 pub(in crate::openpgp) fn import_key(
     request: KeyImportInput,
 ) -> Result<KeyImportResult, OpenPgpWriteError> {
     let key_data = request.key_data;
-    let passphrase = request.passphrase_utf8;
+    let passphrases = request.passphrases_utf8;
     if key_data.iter().all(u8::is_ascii_whitespace) {
         return Ok(KeyImportResult::Error(KeyImportFailureReason::Empty));
     }
     if key_data.len() > MAX_CONTROL_ENVELOPE_BYTES {
         return Err(OpenPgpWriteError::ResourceLimit);
     }
-    if passphrase
-        .as_deref()
-        .is_some_and(|value| std::str::from_utf8(value).is_err())
+    if passphrases.len() > MAX_IMPORT_PASSPHRASES
+        || passphrases
+            .iter()
+            .any(|value| std::str::from_utf8(value).is_err())
     {
         return Err(OpenPgpWriteError::InvalidArgument);
     }
@@ -86,39 +92,26 @@ pub(in crate::openpgp) fn import_key(
     {
         return Ok(KeyImportResult::Error(KeyImportFailureReason::MalformedKey));
     }
-    let material = match import_packet_material(
-        &stream,
-        certificate_range,
-        passphrase.as_deref().map(Vec::as_slice),
-    ) {
-        Ok(material) => material,
-        Err(ImportPacketError::NeedsPassphrase) => {
-            return Ok(KeyImportResult::NeedsPassphrase);
-        }
-        Err(ImportPacketError::InvalidPassphrase) => {
-            return Ok(KeyImportResult::Error(
-                KeyImportFailureReason::InvalidPassphrase,
-            ));
-        }
-        Err(ImportPacketError::UnsupportedFormat) => {
-            return Ok(KeyImportResult::Error(
-                KeyImportFailureReason::UnsupportedFormat,
-            ));
-        }
+    match import_packet_material(&stream, certificate_range, &passphrases) {
+        Ok(result) => Ok(result),
+        Err(ImportPacketError::InvalidPassphrase) => Ok(KeyImportResult::Error(
+            KeyImportFailureReason::InvalidPassphrase,
+        )),
+        Err(ImportPacketError::UnsupportedFormat) => Ok(KeyImportResult::Error(
+            KeyImportFailureReason::UnsupportedFormat,
+        )),
         Err(ImportPacketError::Malformed) => {
-            return Ok(KeyImportResult::Error(KeyImportFailureReason::MalformedKey));
+            Ok(KeyImportResult::Error(KeyImportFailureReason::MalformedKey))
         }
-        Err(ImportPacketError::ResourceLimit) => return Err(OpenPgpWriteError::ResourceLimit),
-        Err(ImportPacketError::Internal) => return Err(OpenPgpWriteError::Internal),
-    };
-    Ok(KeyImportResult::Success(material))
+        Err(ImportPacketError::ResourceLimit) => Err(OpenPgpWriteError::ResourceLimit),
+        Err(ImportPacketError::Internal) => Err(OpenPgpWriteError::Internal),
+    }
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(in crate::openpgp) enum ImportPacketError {
     Malformed,
     UnsupportedFormat,
-    NeedsPassphrase,
     InvalidPassphrase,
     ResourceLimit,
     Internal,
@@ -214,13 +207,16 @@ struct ParsedImportPacket<'a> {
     body: Option<Zeroizing<Vec<u8>>>,
     public_len: usize,
     secret_is_absent: bool,
+    unlocked: bool,
 }
 
+/// Returns `Success` or `NeedsPassphrase`. Fails with `InvalidPassphrase` when
+/// passphrases were given and none of them unlocked any component.
 fn import_packet_material(
     stream: &RawPacketStream,
     certificate_range: Range<usize>,
-    passphrase: Option<&[u8]>,
-) -> Result<KeyMaterial, ImportPacketError> {
+    passphrases: &[Zeroizing<Vec<u8>>],
+) -> Result<KeyImportResult, ImportPacketError> {
     let spans = stream
         .packets()
         .get(certificate_range)
@@ -302,6 +298,7 @@ fn import_packet_material(
             body,
             public_len,
             secret_is_absent,
+            unlocked: false,
         });
     }
     if !parsed
@@ -310,20 +307,56 @@ fn import_packet_material(
     {
         return Err(ImportPacketError::UnsupportedFormat);
     }
-    if passphrase.is_none()
-        && parsed.iter().any(|packet| {
-            !packet.secret_is_absent
-                && packet
-                    .secret
-                    .as_ref()
-                    .is_some_and(ImportSecretPacket::is_encrypted)
-        })
-    {
-        return Err(ImportPacketError::NeedsPassphrase);
+    let primary_fingerprint = primary_fingerprint.ok_or(ImportPacketError::Malformed)?;
+
+    // The entry check bounds the count, so every index fits a u32.
+    let passwords = (0u32..)
+        .zip(passphrases)
+        .map(|(index, passphrase)| (index, Password::from(passphrase.as_slice())))
+        .collect::<Vec<_>>();
+    let mut unlocking = BTreeSet::new();
+    let mut locked_fingerprints = Vec::new();
+    for packet in &mut parsed {
+        if packet.secret_is_absent {
+            continue;
+        }
+        let Some(secret) = packet.secret.as_mut() else {
+            continue;
+        };
+        if !secret.is_encrypted() {
+            continue;
+        }
+        let usage = packet
+            .body
+            .as_ref()
+            .and_then(|body| body.get(packet.public_len))
+            .copied()
+            .ok_or(ImportPacketError::Malformed)?;
+        // A failed attempt leaves the packet encrypted, so the next attempt
+        // starts from the original protected parameters.
+        let unlocked_by = passwords
+            .iter()
+            .find(|(_, password)| secret.remove_password(password, usage).is_ok());
+        match unlocked_by {
+            Some((index, _)) => {
+                unlocking.insert(*index);
+                packet.unlocked = true;
+            }
+            None => locked_fingerprints.push(format!("{:X}", secret.fingerprint())),
+        }
+    }
+    if !locked_fingerprints.is_empty() {
+        // Unlocked components drop with `parsed`; their plain parameters
+        // zeroize on drop.
+        if !passphrases.is_empty() && unlocking.is_empty() {
+            return Err(ImportPacketError::InvalidPassphrase);
+        }
+        return Ok(KeyImportResult::NeedsPassphrase {
+            locked_fingerprints,
+            unlocking_passphrase_indexes: unlocking.into_iter().collect(),
+        });
     }
 
-    let password = passphrase.map_or_else(Password::empty, Password::from);
-    let primary_fingerprint = primary_fingerprint.ok_or(ImportPacketError::Malformed)?;
     let mut private_packet_chunks = SecretChunks::default();
     let mut public_packets = Vec::new();
     for packet in &mut parsed {
@@ -346,19 +379,12 @@ fn import_packet_material(
                 .map_err(|_| ImportPacketError::ResourceLimit)?;
             continue;
         }
-        if !secret.is_encrypted() {
+        if !packet.unlocked {
             private_packet_chunks
                 .push(Zeroizing::new(stream.raw(packet.span).to_vec()), usize::MAX)
                 .map_err(|_| ImportPacketError::ResourceLimit)?;
             continue;
         }
-        let usage = body
-            .get(packet.public_len)
-            .copied()
-            .ok_or(ImportPacketError::Malformed)?;
-        secret
-            .remove_password(&password, usage)
-            .map_err(|_| ImportPacketError::InvalidPassphrase)?;
         let secret_len = secret.secret_len();
         let mut unlocked_body = Zeroizing::new(Vec::new());
         unlocked_body
@@ -394,11 +420,11 @@ fn import_packet_material(
     let mut private_key_armored =
         armor_key_packets_zeroizing(&private_packets, BlockType::PrivateKey)?;
     let public_key_armored = armor_key_packets(&public_packets, BlockType::PublicKey)?;
-    Ok(KeyMaterial {
+    Ok(KeyImportResult::Success(KeyMaterial {
         private_key_armored: std::mem::take(&mut *private_key_armored),
         public_key_armored,
         fingerprint: format!("{primary_fingerprint:X}"),
-    })
+    }))
 }
 
 fn parse_import_secret_packet(
@@ -628,7 +654,7 @@ mod tests {
     fn import_test_key(key_data: Vec<u8>) -> KeyImportResult {
         import_key(KeyImportInput {
             key_data: Zeroizing::new(key_data),
-            passphrase_utf8: None,
+            passphrases_utf8: Vec::new(),
         })
         .expect("import operation completes")
     }

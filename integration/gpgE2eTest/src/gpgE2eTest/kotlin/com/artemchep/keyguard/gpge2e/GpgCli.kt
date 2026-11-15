@@ -5,8 +5,8 @@ import com.artemchep.keyguard.integration.process.runProcess
 import java.nio.file.Path
 
 /**
- * Thin wrapper around the real `gpg` / `gpgconf` binaries, bound to a particular
- * GNUPGHOME. Always uses loopback pinentry and an empty passphrase so the test keys
+ * Thin wrapper around the real `gpg` / `gpgconf` / `gpg-connect-agent` binaries, bound to
+ * a particular GNUPGHOME. Always uses loopback pinentry and an empty passphrase so the test keys
  * are usable without any interactive prompt.
  */
 class GpgCli(
@@ -24,27 +24,26 @@ class GpgCli(
         args: List<String>,
         stdin: ByteArray?,
         timeoutSeconds: Long = 30,
-    ): ProcessResult {
-        val command = buildList {
-            add(toolchain.gpg.toString())
-            add("--homedir")
-            add(gnupgHome.toAbsolutePath().toString())
-            addAll(args)
-        }
-        return exec(command, gnupgHome, stdin, timeoutSeconds, toolchain, environmentOverrides)
-    }
+    ): ProcessResult = tool(toolchain.gpg, args, stdin, timeoutSeconds)
 
     fun gpgconf(
         vararg args: String,
         timeoutSeconds: Long = 30,
+    ): ProcessResult = tool(toolchain.gpgconf, args.toList(), timeoutSeconds = timeoutSeconds)
+
+    fun connectAgent(
+        vararg args: String,
+        timeoutSeconds: Long = 30,
+    ): ProcessResult = tool(toolchain.gpgConnectAgent, args.toList(), timeoutSeconds = timeoutSeconds)
+
+    private fun tool(
+        binary: Path,
+        args: List<String>,
+        stdin: ByteArray? = null,
+        timeoutSeconds: Long = 30,
     ): ProcessResult {
-        val command = buildList {
-            add(toolchain.gpgconf.toString())
-            add("--homedir")
-            add(gnupgHome.toAbsolutePath().toString())
-            addAll(args)
-        }
-        return exec(command, gnupgHome, null, timeoutSeconds, toolchain, environmentOverrides)
+        val command = listOf(binary.toString(), "--homedir", gnupgHome.toAbsolutePath().toString()) + args
+        return exec(command, gnupgHome, stdin, timeoutSeconds, toolchain, environmentOverrides)
     }
 
     companion object {

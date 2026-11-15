@@ -262,6 +262,12 @@ class NativeCryptoOpenPgpValidationTest {
                 referenceTimeEpochSeconds = -1L,
             )
         }
+        assertInvalidInput {
+            NativeCrypto.openPgp.importKey(
+                keyData = byteArrayOf(1),
+                passphrasesUtf8 = List(OPEN_PGP_MAX_KEY_IMPORT_PASSPHRASES + 1) { byteArrayOf() },
+            )
+        }
     }
 
     @Test

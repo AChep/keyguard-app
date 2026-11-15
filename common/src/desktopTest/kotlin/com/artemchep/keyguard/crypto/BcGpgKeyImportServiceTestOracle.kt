@@ -69,12 +69,12 @@ class BcGpgKeyImportServiceTestOracle(
             ?: return GpgKeyImportResult.Error(GpgKeyImportError.UnsupportedFormat)
 
         val protected = ring.isPassphraseProtected()
-        if (protected && request.passphrase == null) {
+        if (protected && request.passphrases.isEmpty()) {
             return GpgKeyImportResult.NeedsPassphrase(FORMAT_LABEL)
         }
 
         val importedRing = if (protected) {
-            val decryptor = buildDecryptor(request.passphrase.orEmpty())
+            val decryptor = buildDecryptor(request.passphrases.first())
             runCatching {
                 PGPSecretKeyRing.copyWithNewPassword(
                     ring,

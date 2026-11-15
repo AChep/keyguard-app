@@ -104,7 +104,7 @@ erase_on_drop! {
     OpenPgpVerifyRequest { content },
     OpenPgpPublicKeyParseRequest { key_data },
     OpenPgpMetadataResolveRequest { private_key_data },
-    OpenPgpKeyImportRequest { key_data, passphrase_utf8 },
+    OpenPgpKeyImportRequest { key_data, passphrases_utf8 },
     OpenPgpSignRequest { content, private_key },
     OpenPgpDetachedSignStreamOpenRequest { private_key },
     OpenPgpClearSignStreamOpenRequest { private_key },

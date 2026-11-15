@@ -139,7 +139,7 @@ class AddStateProducerGpgKeyImportTest {
             importGpgKey = { request ->
                 assertContentEquals(binaryKeyBytes(), request.content)
                 assertEquals("private.gpg", request.fileName)
-                assertEquals(null, request.passphrase)
+                assertEquals(emptyList(), request.passphrases)
                 GpgKeyImportResult.Success(expectedKey)
             },
             onSuccess = { key ->

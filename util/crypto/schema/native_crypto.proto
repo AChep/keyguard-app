@@ -838,7 +838,9 @@ message OpenPgpPublicKeyInfo {
   optional uint64 created_at_epoch_seconds = 8;
   optional uint64 expires_at_epoch_seconds = 9;
   bool revoked = 10;
+  // Certificate-wide: true when the primary key or any usable subkey can sign.
   bool can_sign = 11;
+  // Certificate-wide: true when the primary key or any usable subkey can encrypt.
   bool can_encrypt = 12;
   string public_key_armored = 13;
   repeated OpenPgpPublicSubKeyInfo subkeys = 14;
@@ -863,6 +865,10 @@ message OpenPgpPublicKeyInfo {
   repeated string weak_self_signature_algorithms = 20;
   repeated OpenPgpUserIdInfo user_id_history = 21;
   bool can_modify_user_ids = 22;
+  // The primary key's own capabilities, unlike the certificate-wide
+  // `can_sign` and `can_encrypt`.
+  bool primary_can_sign = 23;
+  bool primary_can_encrypt = 24;
 }
 
 message OpenPgpUserIdInfo {
@@ -1059,9 +1065,12 @@ message OpenPgpKeyMaterial {
 
 message OpenPgpKeyImportRequest {
   bytes key_data = 1;
-  // UTF-8 bytes allow both sides to erase the owned passphrase copy.
-  optional bytes passphrase_utf8 = 2;
+  reserved 2;
+  reserved "passphrase_utf8";
   optional uint64 reference_time_epoch_seconds = 3;
+  // Tried in order on every encrypted component. UTF-8 bytes allow both sides to
+  // erase owned copies. At most 16 entries.
+  repeated bytes passphrases_utf8 = 4;
 }
 
 enum OpenPgpKeyImportErrorReason {
@@ -1078,6 +1087,11 @@ message OpenPgpKeyImportSuccess {
 
 message OpenPgpKeyImportNeedsPassphrase {
   string format_label = 1;
+  // Uppercase hex fingerprints of encrypted components that no passphrase unlocked,
+  // in packet order (primary first).
+  repeated string locked_fingerprints = 2;
+  // Indexes into passphrases_utf8 that unlocked at least one component.
+  repeated uint32 unlocking_passphrase_indexes = 3;
 }
 
 message OpenPgpKeyImportError {

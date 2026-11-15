@@ -57,7 +57,9 @@ public data class NativeOpenPgpPublicKeyInfo(
     val createdAtEpochSeconds: Long?,
     val expiresAtEpochSeconds: Long?,
     val revoked: Boolean,
+    /** Certificate-wide: the primary key or any usable subkey can sign. */
     val canSign: Boolean,
+    /** Certificate-wide: the primary key or any usable subkey can encrypt. */
     val canEncrypt: Boolean,
     val publicKeyArmored: String,
     val subkeys: List<NativeOpenPgpPublicSubKeyInfo>,
@@ -86,6 +88,10 @@ public data class NativeOpenPgpPublicKeyInfo(
     val weakSelfSignatureAlgorithms: List<String> = emptyList(),
     val userIdHistory: List<NativeOpenPgpUserIdInfo> = emptyList(),
     val canModifyUserIds: Boolean = false,
+    /** The primary key's own signing capability, unlike the certificate-wide [canSign]. */
+    val primaryCanSign: Boolean = false,
+    /** The primary key's own encryption capability, unlike the certificate-wide [canEncrypt]. */
+    val primaryCanEncrypt: Boolean = false,
 )
 
 public data class NativeOpenPgpPublicSubKeyInfo(
@@ -259,8 +265,18 @@ public sealed interface NativeOpenPgpKeyImportResult {
         val keyMaterial: NativeOpenPgpKeyMaterial,
     ) : NativeOpenPgpKeyImportResult
 
+    /**
+     * Some encrypted components are still locked.
+     *
+     * @property lockedFingerprints upper-case hex fingerprints of the components that no
+     * passphrase unlocked, primary key first.
+     * @property unlockingPassphraseIndexes indexes into the request passphrases that unlocked at
+     * least one component.
+     */
     public data class NeedsPassphrase(
         val formatLabel: String,
+        val lockedFingerprints: List<String>,
+        val unlockingPassphraseIndexes: Set<Int>,
     ) : NativeOpenPgpKeyImportResult
 
     public data class Error(
@@ -923,19 +939,26 @@ public object NativeCryptoOpenPgp {
         )
     }
 
+    /**
+     * Imports a secret key and removes the protection of every component. Each
+     * encrypted component is unlocked by the first of [passphrasesUtf8] that works.
+     */
     public fun importKey(
         keyData: ByteArray,
-        passphraseUtf8: ByteArray? = null,
+        passphrasesUtf8: List<ByteArray> = emptyList(),
         referenceTimeEpochSeconds: Long? = null,
     ): NativeOpenPgpKeyImportResult {
+        require(passphrasesUtf8.size <= OPEN_PGP_MAX_KEY_IMPORT_PASSPHRASES) {
+            "At most $OPEN_PGP_MAX_KEY_IMPORT_PASSPHRASES OpenPGP passphrases are allowed"
+        }
         requireReferenceTime(referenceTimeEpochSeconds)
         val payload = NativeCrypto.call(
             operationName = "open_pgp_key_import",
             operation = OpenPgpKeyImportOperationProto(
                 OpenPgpKeyImportRequestProto(
                     keyData = keyData,
-                    passphraseUtf8 = passphraseUtf8,
                     referenceTimeEpochSeconds = referenceTimeEpochSeconds,
+                    passphrasesUtf8 = passphrasesUtf8,
                 ),
             ),
         ).requireBytes("open_pgp_key_import")
@@ -955,11 +978,10 @@ public object NativeCryptoOpenPgp {
                 )
             }
 
-            is OpenPgpKeyImportNeedsPassphraseOutcomeProto -> {
-                val formatLabel = outcome.value.formatLabel
-                if (formatLabel.isBlank()) malformedOpenPgp("open_pgp_key_import")
-                NativeOpenPgpKeyImportResult.NeedsPassphrase(formatLabel)
-            }
+            is OpenPgpKeyImportNeedsPassphraseOutcomeProto -> outcome.value.toPublic(
+                operation = "open_pgp_key_import",
+                passphraseCount = passphrasesUtf8.size,
+            )
 
             is OpenPgpKeyImportErrorOutcomeProto -> NativeOpenPgpKeyImportResult.Error(
                 reason = when (outcome.value.reason) {
@@ -2753,6 +2775,8 @@ private fun OpenPgpPublicKeyInfoProto.toPublic(
         userIdDetails = userIdDetails.map { value -> value.toPublic(operation) },
         userIdHistory = userIdHistory.map { value -> value.toPublic(operation) },
         canModifyUserIds = canModifyUserIds,
+        primaryCanSign = primaryCanSign,
+        primaryCanEncrypt = primaryCanEncrypt,
         weakSelfSignatureAlgorithms = weakSelfSignatureAlgorithms,
     )
 }
@@ -3222,6 +3246,9 @@ private const val OPEN_PGP_KEYGRIP_HEX_CHARS: Int = 40
 private const val OPEN_PGP_MIN_FINGERPRINT_HEX_CHARS: Int = 32
 private const val OPEN_PGP_MAX_FINGERPRINT_HEX_CHARS: Int = 128
 
+/** Maximum number of passphrases accepted by a single native key import. */
+const val OPEN_PGP_MAX_KEY_IMPORT_PASSPHRASES: Int = 16
+
 /** Maximum UTF-8 size accepted by native User ID mutations. */
 const val OPEN_PGP_MAX_USER_ID_UTF8_BYTES: Int = 1_024
 
@@ -3290,6 +3317,22 @@ private fun requireOpenPgpKeyId(operation: String, value: String) {
     if (value.length != OPEN_PGP_KEY_ID_HEX_CHARS || !value.isUpperHex()) {
         malformedOpenPgp(operation)
     }
+}
+
+private fun OpenPgpKeyImportNeedsPassphraseProto.toPublic(
+    operation: String,
+    passphraseCount: Int,
+): NativeOpenPgpKeyImportResult.NeedsPassphrase {
+    if (formatLabel.isBlank() || lockedFingerprints.isEmpty()) malformedOpenPgp(operation)
+    lockedFingerprints.forEach { fingerprint -> requireOpenPgpFingerprint(operation, fingerprint) }
+    if (unlockingPassphraseIndexes.any { index -> index !in 0 until passphraseCount }) {
+        malformedOpenPgp(operation)
+    }
+    return NativeOpenPgpKeyImportResult.NeedsPassphrase(
+        formatLabel = formatLabel,
+        lockedFingerprints = lockedFingerprints,
+        unlockingPassphraseIndexes = unlockingPassphraseIndexes.toSet(),
+    )
 }
 
 private fun requireOpenPgpFingerprint(operation: String, value: String) {

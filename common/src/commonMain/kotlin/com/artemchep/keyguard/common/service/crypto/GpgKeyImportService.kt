@@ -12,7 +12,8 @@ data class GpgKeyImportRequest(
     /** Borrowed key bytes, preserved by the importer so a passphrase retry can reuse them. */
     val content: ByteArray,
     val fileName: String? = null,
-    val passphrase: String? = null,
+    /** Tried in order on every encrypted component of the key. */
+    val passphrases: List<String> = emptyList(),
 )
 
 sealed interface GpgKeyImportResult {
@@ -22,12 +23,27 @@ sealed interface GpgKeyImportResult {
 
     data class NeedsPassphrase(
         val formatLabel: String,
+        /** Encrypted components that no passphrase unlocked, primary key first. */
+        val lockedComponents: List<GpgKeyImportComponent> = emptyList(),
+        /** Indexes into [GpgKeyImportRequest.passphrases] that unlocked at least one component. */
+        val unlockingPassphraseIndexes: Set<Int> = emptySet(),
     ) : GpgKeyImportResult
 
     data class Error(
         val reason: GpgKeyImportError,
     ) : GpgKeyImportResult
 }
+
+/** A primary key or subkey that is still locked during import. */
+data class GpgKeyImportComponent(
+    val fingerprint: String,
+    val keyId: String,
+    val primary: Boolean,
+    val algorithm: String? = null,
+    val bitStrength: Int? = null,
+    val canSign: Boolean = false,
+    val canEncrypt: Boolean = false,
+)
 
 enum class GpgKeyImportError {
     Empty,

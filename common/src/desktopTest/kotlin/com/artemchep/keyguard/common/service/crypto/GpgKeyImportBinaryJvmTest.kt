@@ -68,15 +68,15 @@ class GpgKeyImportBinaryJvmTest {
         val original = content.copyOf()
         val request = GpgKeyImportRequest(content = content, fileName = "private.gpg")
 
-        assertEquals(GpgKeyImportResult.NeedsPassphrase("OpenPGP"), service.import(request))
+        assertEquals("OpenPGP", assertIs<GpgKeyImportResult.NeedsPassphrase>(service.import(request)).formatLabel)
         assertContentEquals(original, content)
         assertEquals(
             GpgKeyImportResult.Error(GpgKeyImportError.InvalidPassphrase),
-            service.import(request.copy(passphrase = "wrong-passphrase")),
+            service.import(request.copy(passphrases = listOf("wrong-passphrase"))),
         )
         assertContentEquals(original, content)
         val result = assertIs<GpgKeyImportResult.Success>(
-            service.import(request.copy(passphrase = PASSPHRASE)),
+            service.import(request.copy(passphrases = listOf(PASSPHRASE))),
         )
 
         assertEquals("D0BBCFBB250D3BB0658E5384F83D947D29EFECF7", result.gpgKey.fingerprint)

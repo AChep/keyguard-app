@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.gpgkey.expiration
 
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationChange
+import com.artemchep.keyguard.common.service.crypto.gpgShortKeyId
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.datedaypicker.DateDayPickerRoute
 import com.artemchep.keyguard.feature.datedaypicker.createDateDayPickerDialogIntent
@@ -126,7 +127,7 @@ internal suspend fun RememberStateFlowScope.gpgKeyExpirationStateProducer(
                 subKey.fingerprint,
                 translate(
                     Res.string.gpg_key_expiry_subkey,
-                    subKey.keyId.takeLast(8),
+                    subKey.keyId.gpgShortKeyId(),
                 ),
             )
         }

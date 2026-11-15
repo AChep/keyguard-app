@@ -230,14 +230,10 @@ internal suspend fun TranslatorScope.createGpgKeyCapabilitiesRow(
     canSign: Boolean,
     canEncrypt: Boolean,
 ): VaultViewItem.Table.Row? {
-    val capabilities = buildList {
-        if (canSign) {
-            this += translate(Res.string.gpg_keys_capability_sign)
-        }
-        if (canEncrypt) {
-            this += translate(Res.string.gpg_key_capability_encrypt_decrypt)
-        }
-    }
+    val capabilities = translateGpgKeyCapabilities(
+        canSign = canSign,
+        canEncrypt = canEncrypt,
+    )
     if (capabilities.isEmpty()) {
         return null
     }
@@ -245,27 +241,4 @@ internal suspend fun TranslatorScope.createGpgKeyCapabilitiesRow(
         title = translate(Res.string.capabilities),
         value = capabilities.joinToString(),
     )
-}
-
-internal fun GpgPublicKeyInfo.formatGpgAlgorithm(): String? = formatGpgAlgorithm(
-    algorithm = algorithm,
-    bitStrength = bitStrength,
-)
-
-internal fun GpgPublicSubKeyInfo.formatGpgAlgorithm(): String? = formatGpgAlgorithm(
-    algorithm = algorithm,
-    bitStrength = bitStrength,
-)
-
-private fun formatGpgAlgorithm(
-    algorithm: String,
-    bitStrength: Int?,
-): String? {
-    val values = listOfNotNull(
-        algorithm.takeIf { it.isNotBlank() },
-        bitStrength?.let { "$it-bit" },
-    )
-    return values
-        .joinToString(separator = " ")
-        .takeIf { it.isNotBlank() }
 }

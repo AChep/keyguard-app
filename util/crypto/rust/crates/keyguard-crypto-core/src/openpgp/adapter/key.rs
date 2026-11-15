@@ -51,7 +51,10 @@ pub(in crate::openpgp) fn import(
 ) -> Result<Vec<u8>, OpenPgpWriteError> {
     let result = key::import_key(KeyImportInput {
         key_data: Zeroizing::new(std::mem::take(&mut request.key_data)),
-        passphrase_utf8: request.passphrase_utf8.take().map(Zeroizing::new),
+        passphrases_utf8: std::mem::take(&mut request.passphrases_utf8)
+            .into_iter()
+            .map(Zeroizing::new)
+            .collect(),
     })?;
     Ok(wire_import_result(result).encode_to_vec())
 }
@@ -71,11 +74,14 @@ fn wire_import_result(result: KeyImportResult) -> OpenPgpKeyImportResult {
                 key_material: Some(wire_key_material(material)),
             })
         }
-        KeyImportResult::NeedsPassphrase => {
-            open_pgp_key_import_result::Result::NeedsPassphrase(OpenPgpKeyImportNeedsPassphrase {
-                format_label: "OpenPGP".to_owned(),
-            })
-        }
+        KeyImportResult::NeedsPassphrase {
+            locked_fingerprints,
+            unlocking_passphrase_indexes,
+        } => open_pgp_key_import_result::Result::NeedsPassphrase(OpenPgpKeyImportNeedsPassphrase {
+            format_label: "OpenPGP".to_owned(),
+            locked_fingerprints,
+            unlocking_passphrase_indexes,
+        }),
         KeyImportResult::Error(reason) => {
             open_pgp_key_import_result::Result::Error(OpenPgpKeyImportError {
                 reason: wire_import_failure(reason) as i32,

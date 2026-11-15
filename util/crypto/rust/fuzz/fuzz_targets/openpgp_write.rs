@@ -30,7 +30,10 @@ fuzz_target!(|input: &[u8]| {
     call(native_request::Operation::OpenPgpKeyImport(
         OpenPgpKeyImportRequest {
             key_data: choose_bytes(selector, body, SECRET_KEY),
-            passphrase_utf8: (selector & 1 != 0).then(|| body[..body.len().min(64)].to_vec()),
+            passphrases_utf8: (selector & 1 != 0)
+                .then(|| body[..body.len().min(64)].to_vec())
+                .into_iter()
+                .collect(),
             reference_time_epoch_seconds: Some(REFERENCE_TIME),
         },
     ));

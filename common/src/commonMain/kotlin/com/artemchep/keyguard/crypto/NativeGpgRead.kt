@@ -229,6 +229,8 @@ internal fun NativeOpenPgpPublicKeyInfo.toDomain(): GpgPublicKeyInfo = GpgPublic
     userIdDetails = userIdDetails.map { it.toDomain() },
     userIdHistory = userIdHistory.map { it.toDomain() },
     canModifyUserIds = canModifyUserIds,
+    primaryCanSign = primaryCanSign,
+    primaryCanEncrypt = primaryCanEncrypt,
 )
 
 private fun NativeOpenPgpPublicSubKeyInfo.toDomain(): GpgPublicSubKeyInfo = GpgPublicSubKeyInfo(

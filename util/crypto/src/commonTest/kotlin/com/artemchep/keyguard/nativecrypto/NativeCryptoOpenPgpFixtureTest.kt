@@ -38,6 +38,9 @@ class NativeCryptoOpenPgpFixtureTest {
         assertFalse(key.revoked)
         assertTrue(key.canSign)
         assertTrue(key.canEncrypt)
+        // The [SC] primary key itself cannot encrypt; only its [E] subkey can.
+        assertTrue(key.primaryCanSign)
+        assertFalse(key.primaryCanEncrypt)
         assertTrue(key.authenticated)
         assertEquals(NativeOpenPgpRenewalAuthorization.AUTHENTICATED, key.renewal)
         assertEquals(PUBLIC_KEY.trimEnd(), key.publicKeyArmored.trimEnd())

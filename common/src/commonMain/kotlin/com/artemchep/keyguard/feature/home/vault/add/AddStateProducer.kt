@@ -4319,72 +4319,55 @@ private suspend fun RememberStateFlowScope.produceGpgKeyState(
             gpgKeyImportService.import(request)
         }
 
-        suspend fun importKey(
-            content: ByteArray,
-            fileName: String?,
-            passphrase: String?,
-            snapshot: GpgKeyMutationGuard.Snapshot,
-            onNeedsPassphrase: suspend (GpgKeyImportResult.NeedsPassphrase) -> Unit,
-        ) {
-            when (
-                val result = importGpgKey(
-                    GpgKeyImportRequest(
-                        content = content,
-                        fileName = fileName,
-                        passphrase = passphrase,
-                    ),
-                )
-            ) {
-                is GpgKeyImportResult.Success -> {
-                    publishImportedKey(snapshot, result.gpgKey)
-                }
-
-                is GpgKeyImportResult.NeedsPassphrase -> {
-                    onNeedsPassphrase(result)
-                }
-
-                is GpgKeyImportResult.Error -> {
-                    val msg = createLocalizedGpgKeyImportErrorToast(result.reason)
-                    showMessage.copy(msg)
-                }
-            }
-        }
-
         suspend fun onImportKeyWithPassphrase(
             result: GpgKeyImportResult.NeedsPassphrase,
             fileName: String?,
             content: ByteArray,
             snapshot: GpgKeyMutationGuard.Snapshot,
         ) {
-            if (!keyMutations.isCurrent(snapshot)) {
-                showImportConflict()
-                return
-            }
-            val passphraseTitle = translate(Res.string.key_import_passphrase_title)
-            val passphraseHint = translate(Res.string.key_import_passphrase_hint, translate(Res.string.protocol_gpg))
+            suspend fun isCurrent(): Boolean = keyMutations.isCurrent(snapshot)
+                .also { current -> if (!current) showImportConflict() }
 
-            val passphrase = awaitConfirmationDialog(
-                confirmationRouteFactory = confirmationRouteFactory,
-                item = ConfirmationRoute.Args.Item.StringItem(
-                    key = "$id.passphrase",
-                    title = passphraseTitle,
-                    hint = passphraseHint,
-                    type = ConfirmationRoute.Args.Item.StringItem.Type.Password,
-                    canBeEmpty = false,
-                ),
-                title = passphraseHint,
-                message = translate(
-                    Res.string.gpg_key_import_passphrase_dialog_message,
-                    result.formatLabel,
-                ),
-            ) ?: return
-            importKey(
-                content = content,
-                fileName = fileName,
-                passphrase = passphrase,
-                snapshot = snapshot,
-                onNeedsPassphrase = {
-                    val msg = createLocalizedGpgKeyImportPassphraseErrorToast()
+            importGpgKeyWithPassphrases(
+                initial = result,
+                importGpgKey = { passphrases ->
+                    importGpgKey(
+                        GpgKeyImportRequest(
+                            content = content,
+                            fileName = fileName,
+                            passphrases = passphrases,
+                        ),
+                    )
+                },
+                promptPassphrase = { formatLabel, invalid ->
+                    if (isCurrent()) {
+                        awaitGpgKeyPassphrase(
+                            confirmationRouteFactory = confirmationRouteFactory,
+                            key = "$id.passphrase",
+                            formatLabel = formatLabel,
+                            invalid = invalid,
+                        )
+                    } else {
+                        null
+                    }
+                },
+                promptComponentPassphrases = { components, invalidFingerprints ->
+                    if (isCurrent()) {
+                        awaitGpgKeyComponentPassphrases(
+                            confirmationRouteFactory = confirmationRouteFactory,
+                            keyPrefix = "$id.passphrase",
+                            components = components,
+                            invalidFingerprints = invalidFingerprints,
+                        )
+                    } else {
+                        null
+                    }
+                },
+                onSuccess = { importedGpgKey ->
+                    publishImportedKey(snapshot, importedGpgKey)
+                },
+                onError = { reason ->
+                    val msg = createLocalizedGpgKeyImportErrorToast(reason)
                     showMessage.copy(msg)
                 },
             )
@@ -4748,11 +4731,6 @@ suspend fun TranslatorScope.createLocalizedGpgKeyImportReadErrorToast(): ToastMe
     text = translate(Res.string.key_import_error_read),
 )
 
-suspend fun TranslatorScope.createLocalizedGpgKeyImportPassphraseErrorToast(): ToastMessage = createGpgKeyImportToast(
-    title = translate(Res.string.key_import_failed_title, translate(Res.string.protocol_gpg)),
-    text = translate(Res.string.key_import_error_passphrase_required, translate(Res.string.protocol_gpg)),
-)
-
 private fun createGpgKeyImportToast(
     title: String = "Failed to import GPG key",
     text: String,
@@ -4792,7 +4770,6 @@ internal suspend fun handleGpgKeyFileImport(
             GpgKeyImportRequest(
                 content = content,
                 fileName = info.name,
-                passphrase = null,
             ),
         )
     ) {

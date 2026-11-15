@@ -106,7 +106,10 @@ object GpgKeyFactory {
         )
     }
 
-    private fun prepareHome(home: Path) {
+    internal fun prepareHome(
+        home: Path,
+        agentConfig: String = "allow-loopback-pinentry\n",
+    ) {
         Files.createDirectories(home)
         runCatching {
             Files.setPosixFilePermissions(
@@ -120,7 +123,7 @@ object GpgKeyFactory {
         }
         // Permit loopback pinentry so we can generate/use keys with an empty passphrase
         // without any interactive prompt.
-        Files.writeString(home.resolve("gpg-agent.conf"), "allow-loopback-pinentry\n")
+        Files.writeString(home.resolve("gpg-agent.conf"), agentConfig)
         Files.writeString(home.resolve("gpg.conf"), "pinentry-mode loopback\n")
     }
 
@@ -132,30 +135,14 @@ object GpgKeyFactory {
         encryptAlgo: String?,
     ): TestGpgKey {
         val userId = "$name <$email>"
-
-        val genResult = gpg.run(
-            "--batch",
-            "--pinentry-mode", "loopback",
-            "--passphrase", "",
-            "--quick-gen-key", userId, primaryAlgo, "sign", "never",
+        val primaryFingerprint = createKey(
+            gpg = gpg,
+            userId = userId,
+            email = email,
+            primaryAlgo = primaryAlgo,
+            encryptAlgo = encryptAlgo,
+            passphrase = "",
         )
-        require(genResult.isSuccess) {
-            "Failed to generate primary key for $userId:\n${genResult.stderr}"
-        }
-
-        val primaryFingerprint = primaryFingerprintOf(gpg, email)
-
-        if (encryptAlgo != null) {
-            val addResult = gpg.run(
-                "--batch",
-                "--pinentry-mode", "loopback",
-                "--passphrase", "",
-                "--quick-add-key", primaryFingerprint, encryptAlgo, "encr", "never",
-            )
-            require(addResult.isSuccess) {
-                "Failed to add encryption subkey for $userId:\n${addResult.stderr}"
-            }
-        }
 
         val metadataKeys = parseMetadataKeys(gpg, primaryFingerprint)
         require(metadataKeys.any { it.canSign }) {
@@ -175,6 +162,41 @@ object GpgKeyFactory {
             primaryFingerprint = primaryFingerprint,
             metadataKeys = metadataKeys,
         )
+    }
+
+    /** Generate a signing primary key plus an optional encryption subkey; returns its fingerprint. */
+    internal fun createKey(
+        gpg: GpgCli,
+        userId: String,
+        email: String,
+        primaryAlgo: String,
+        encryptAlgo: String?,
+        passphrase: String,
+    ): String {
+        val genResult = gpg.run(
+            "--batch",
+            "--pinentry-mode", "loopback",
+            "--passphrase", passphrase,
+            "--quick-gen-key", userId, primaryAlgo, "sign", "never",
+        )
+        require(genResult.isSuccess) {
+            "Failed to generate primary key for $userId:\n${genResult.stderr}"
+        }
+
+        val primaryFingerprint = primaryFingerprintOf(gpg, email)
+
+        if (encryptAlgo != null) {
+            val addResult = gpg.run(
+                "--batch",
+                "--pinentry-mode", "loopback",
+                "--passphrase", passphrase,
+                "--quick-add-key", primaryFingerprint, encryptAlgo, "encr", "never",
+            )
+            require(addResult.isSuccess) {
+                "Failed to add encryption subkey for $userId:\n${addResult.stderr}"
+            }
+        }
+        return primaryFingerprint
     }
 
     private fun primaryFingerprintOf(
@@ -218,16 +240,28 @@ object GpgKeyFactory {
         return result.stdout
     }
 
-    /**
-     * Parse `gpg --list-secret-keys --with-keygrip --with-colons` into per-(sub)key
-     * metadata. Each `sec`/`ssb` record is followed by its `fpr` and `grp` records.
-     * The colon record's field 12 (0-based index 11) carries the lowercase capability
-     * letters (s/e/a) usable for THIS specific (sub)key.
-     */
+    /** A `sec`/`ssb` record of a colon listing: gpg's key ID plus the parsed metadata. */
+    internal data class ListedKey(
+        val keyId: String,
+        val metadata: GpgAgentKeyMetadataKey,
+    )
+
     fun parseMetadataKeys(
         gpg: GpgCli,
         fingerprint: String,
-    ): List<GpgAgentKeyMetadataKey> {
+    ): List<GpgAgentKeyMetadataKey> = listSecretKeys(gpg, fingerprint).map { it.metadata }
+
+    /**
+     * Parse `gpg --list-secret-keys --with-keygrip --with-colons` into per-(sub)key
+     * records. Each `sec`/`ssb` record is followed by its `fpr` and `grp` records.
+     * The colon record's field 5 (0-based index 4) is the key ID, and field 12
+     * (0-based index 11) carries the lowercase capability letters (s/e/a) usable
+     * for THIS specific (sub)key.
+     */
+    internal fun listSecretKeys(
+        gpg: GpgCli,
+        fingerprint: String,
+    ): List<ListedKey> {
         val result = gpg.run("--list-secret-keys", "--with-keygrip", "--with-colons", fingerprint)
         require(result.isSuccess) {
             "Failed to list secret keys for $fingerprint:\n${result.stderr}"
@@ -235,15 +269,16 @@ object GpgKeyFactory {
         return parseColonListing(result.stdout)
     }
 
-    internal fun parseColonListing(listing: String): List<GpgAgentKeyMetadataKey> {
+    private fun parseColonListing(listing: String): List<ListedKey> {
         data class Pending(
+            val keyId: String,
             val capabilities: Set<String>,
             val algorithm: String,
             var fingerprint: String? = null,
             var keygrip: String? = null,
         )
 
-        val result = mutableListOf<GpgAgentKeyMetadataKey>()
+        val result = mutableListOf<ListedKey>()
         var current: Pending? = null
 
         fun flush() {
@@ -251,11 +286,14 @@ object GpgKeyFactory {
             val fpr = pending.fingerprint
             val grp = pending.keygrip
             if (fpr != null && grp != null) {
-                result += GpgAgentKeyMetadataKey(
-                    keygrip = grp,
-                    fingerprint = fpr,
-                    algorithm = pending.algorithm,
-                    capabilities = pending.capabilities,
+                result += ListedKey(
+                    keyId = pending.keyId,
+                    metadata = GpgAgentKeyMetadataKey(
+                        keygrip = grp,
+                        fingerprint = fpr,
+                        algorithm = pending.algorithm,
+                        capabilities = pending.capabilities,
+                    ),
                 )
             }
             current = null
@@ -275,22 +313,24 @@ object GpgKeyFactory {
                         .toSet()
                     val algorithm = fields.getOrNull(16).orEmpty()
                     current = Pending(
+                        keyId = fields[4],
                         capabilities = capabilities,
                         algorithm = algorithm,
                     )
                 }
 
+                // Only the first `fpr`/`grp` after a `sec`/`ssb` record belongs to it.
                 "fpr" -> {
-                    val fpr = fields.getOrNull(9)?.takeIf { it.isNotBlank() }
-                    if (fpr != null && current != null && current!!.fingerprint == null) {
-                        current!!.fingerprint = fpr
+                    val pending = current
+                    if (pending != null && pending.fingerprint == null) {
+                        pending.fingerprint = fields.getOrNull(9)?.takeIf { it.isNotBlank() }
                     }
                 }
 
                 "grp" -> {
-                    val grp = fields.getOrNull(9)?.takeIf { it.isNotBlank() }
-                    if (grp != null && current != null && current!!.keygrip == null) {
-                        current!!.keygrip = grp
+                    val pending = current
+                    if (pending != null && pending.keygrip == null) {
+                        pending.keygrip = fields.getOrNull(9)?.takeIf { it.isNotBlank() }
                     }
                 }
             }

@@ -572,7 +572,6 @@ fn map_generated_key_armor_error(error: ImportPacketError) -> OpenPgpWriteError 
         ImportPacketError::ResourceLimit => OpenPgpWriteError::ResourceLimit,
         ImportPacketError::Malformed
         | ImportPacketError::UnsupportedFormat
-        | ImportPacketError::NeedsPassphrase
         | ImportPacketError::InvalidPassphrase
         | ImportPacketError::Internal => OpenPgpWriteError::Internal,
     }

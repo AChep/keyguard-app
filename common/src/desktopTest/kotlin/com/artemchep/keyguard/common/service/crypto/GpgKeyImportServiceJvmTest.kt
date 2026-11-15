@@ -232,10 +232,10 @@ class GpgKeyImportServiceJvmTest {
             ),
         )
 
-        assertEquals(
-            GpgKeyImportResult.NeedsPassphrase("OpenPGP"),
-            result,
-        )
+        val needsPassphrase = assertIs<GpgKeyImportResult.NeedsPassphrase>(result)
+        assertEquals("OpenPGP", needsPassphrase.formatLabel)
+        assertTrue(needsPassphrase.lockedComponents.first().primary)
+        assertEquals(emptySet(), needsPassphrase.unlockingPassphraseIndexes)
     }
 
     @Test
@@ -246,7 +246,7 @@ class GpgKeyImportServiceJvmTest {
             GpgKeyImportRequest(
                 content = encrypted.encodeToByteArray(),
                 fileName = "private.asc",
-                passphrase = "wrong-passphrase",
+                passphrases = listOf("wrong-passphrase"),
             ),
         )
 
@@ -264,7 +264,7 @@ class GpgKeyImportServiceJvmTest {
             GpgKeyImportRequest(
                 content = encrypted.encodeToByteArray(),
                 fileName = "private.asc",
-                passphrase = PASSPHRASE,
+                passphrases = listOf(PASSPHRASE),
             ),
         )
 

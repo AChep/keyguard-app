@@ -96,6 +96,8 @@ pub(crate) struct PublicKeyInfo {
     pub(crate) revoked: bool,
     pub(crate) can_sign: bool,
     pub(crate) can_encrypt: bool,
+    pub(crate) primary_can_sign: bool,
+    pub(crate) primary_can_encrypt: bool,
     pub(crate) public_key_armored: String,
     pub(crate) subkeys: Vec<PublicSubkeyInfo>,
     pub(crate) user_id_details: Vec<UserIdInfo>,

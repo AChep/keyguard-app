@@ -2112,6 +2112,7 @@ fn public_key_info(
         })
         .collect::<Vec<_>>();
     let primary_can_sign = primary_available && policy.primary_component().signing_usable();
+    let primary_can_encrypt = primary_available && policy.primary_component().encryption_usable();
     let certificate_can_encrypt = primary_available
         && (can_encrypt(primary.key.algorithm(), primary.key_flags.as_ref())
             || policy
@@ -2177,6 +2178,8 @@ fn public_key_info(
         revoked: primary.revoked,
         can_sign: primary_can_sign || subkeys.iter().any(|subkey| subkey.can_sign),
         can_encrypt: certificate_can_encrypt,
+        primary_can_sign,
+        primary_can_encrypt,
         public_key_armored,
         subkeys,
         user_id_details,

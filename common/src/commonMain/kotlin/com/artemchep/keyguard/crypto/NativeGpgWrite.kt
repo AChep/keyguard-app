@@ -1,10 +1,12 @@
 package com.artemchep.keyguard.crypto
 
+import com.artemchep.keyguard.common.io.runCatchingNonFatal
 import com.artemchep.keyguard.common.model.GeneratedGpgKey
 import com.artemchep.keyguard.common.model.GpgKeyConfig
 import com.artemchep.keyguard.common.model.GpgKeyVersion
 import com.artemchep.keyguard.common.service.crypto.GPG_KEY_EXPIRATION_MAX_INSTANT
 import com.artemchep.keyguard.common.service.crypto.GpgKeyGenerator
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportComponent
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportError
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportRequest
 import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
@@ -31,6 +33,7 @@ import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpVerifier
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyInfo
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseError
 import com.artemchep.keyguard.common.service.crypto.GpgPublicKeyParseResult
+import com.artemchep.keyguard.common.service.crypto.gpgKeyIdFromFingerprintOrNull
 import com.artemchep.keyguard.common.service.crypto.resolve
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadata
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentKeyMetadataKey
@@ -48,6 +51,7 @@ import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyImportResult
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyKind
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyVersion
 import com.artemchep.keyguard.nativecrypto.NativeOpenPgpKeyMaterial
+import com.artemchep.keyguard.nativecrypto.OPEN_PGP_MAX_KEY_IMPORT_PASSPHRASES
 import com.artemchep.keyguard.util.io.consumeWithErasedBuffer
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
@@ -125,50 +129,118 @@ object NativeGpgKeyImportService : GpgKeyImportService {
     override fun import(
         request: GpgKeyImportRequest,
     ): GpgKeyImportResult {
-        if (request.content.isEmpty()) {
-            return GpgKeyImportResult.Error(GpgKeyImportError.Empty)
+        val requestError = when {
+            request.content.isEmpty() -> GpgKeyImportError.Empty
+            // The native importer rejects more passphrases with an exception.
+            request.passphrases.size > OPEN_PGP_MAX_KEY_IMPORT_PASSPHRASES ->
+                GpgKeyImportError.InvalidPassphrase
+
+            else -> null
+        }
+        if (requestError != null) {
+            return GpgKeyImportResult.Error(requestError)
         }
 
         val keyData = request.content
-        val passphrase = request.passphrase?.encodeToByteArray()
+        val passphrases = request.passphrases.map { it.encodeToByteArray() }
         return try {
             when (
                 val result = NativeCrypto.openPgp.importKey(
                     keyData = keyData,
-                    passphraseUtf8 = passphrase,
+                    passphrasesUtf8 = passphrases,
                 )
             ) {
                 is NativeOpenPgpKeyImportResult.Success -> importPrivateKey(result.keyMaterial)
                 is NativeOpenPgpKeyImportResult.NeedsPassphrase ->
-                    GpgKeyImportResult.NeedsPassphrase(result.formatLabel)
+                    GpgKeyImportResult.NeedsPassphrase(
+                        formatLabel = result.formatLabel,
+                        lockedComponents = lockedComponents(keyData, result.lockedFingerprints),
+                        unlockingPassphraseIndexes = result.unlockingPassphraseIndexes,
+                    )
 
-                is NativeOpenPgpKeyImportResult.Error -> when (result.reason) {
-                    NativeOpenPgpKeyImportError.EMPTY ->
-                        GpgKeyImportResult.Error(GpgKeyImportError.Empty)
-
-                    NativeOpenPgpKeyImportError.UNSUPPORTED_FORMAT ->
-                        importPublicKey(keyData).let { publicResult ->
-                            if (
-                                publicResult ==
-                                GpgKeyImportResult.Error(GpgKeyImportError.MalformedKey)
-                            ) {
-                                // The native secret-key parser also uses UNSUPPORTED_FORMAT for
-                                // valid legacy v2/v3 secret packets. Preserve that classification
-                                // when the public-key fallback cannot consume the same input.
-                                GpgKeyImportResult.Error(GpgKeyImportError.UnsupportedFormat)
-                            } else {
-                                publicResult
-                            }
-                        }
-                    NativeOpenPgpKeyImportError.INVALID_PASSPHRASE ->
-                        GpgKeyImportResult.Error(GpgKeyImportError.InvalidPassphrase)
-
-                    NativeOpenPgpKeyImportError.MALFORMED_KEY ->
-                        GpgKeyImportResult.Error(GpgKeyImportError.MalformedKey)
-                }
+                is NativeOpenPgpKeyImportResult.Error -> importError(keyData, result.reason)
             }
         } finally {
-            passphrase?.fill(0)
+            passphrases.eraseAll()
+        }
+    }
+
+    private fun importError(
+        keyData: ByteArray,
+        reason: NativeOpenPgpKeyImportError,
+    ): GpgKeyImportResult = when (reason) {
+        NativeOpenPgpKeyImportError.EMPTY ->
+            GpgKeyImportResult.Error(GpgKeyImportError.Empty)
+
+        NativeOpenPgpKeyImportError.UNSUPPORTED_FORMAT ->
+            importPublicKey(keyData).let { publicResult ->
+                if (
+                    publicResult ==
+                    GpgKeyImportResult.Error(GpgKeyImportError.MalformedKey)
+                ) {
+                    // The native secret-key parser also uses UNSUPPORTED_FORMAT for
+                    // valid legacy v2/v3 secret packets. Preserve that classification
+                    // when the public-key fallback cannot consume the same input.
+                    GpgKeyImportResult.Error(GpgKeyImportError.UnsupportedFormat)
+                } else {
+                    publicResult
+                }
+            }
+        NativeOpenPgpKeyImportError.INVALID_PASSPHRASE ->
+            GpgKeyImportResult.Error(GpgKeyImportError.InvalidPassphrase)
+
+        NativeOpenPgpKeyImportError.MALFORMED_KEY ->
+            GpgKeyImportResult.Error(GpgKeyImportError.MalformedKey)
+    }
+
+    /**
+     * Labels the locked [fingerprints] with the public projection of the same secret key. A
+     * component the parser cannot find falls back to a key ID taken from its fingerprint.
+     */
+    private fun lockedComponents(
+        keyData: ByteArray,
+        fingerprints: List<String>,
+    ): List<GpgKeyImportComponent> {
+        val key = runCatchingNonFatal { NativeGpgPublicKeyParser.parse(keyData) }
+            .getOrNull()
+            .let { it as? GpgPublicKeyParseResult.Success }
+            ?.keys
+            ?.singleOrNull()
+        return fingerprints.map { fingerprint ->
+            val normalizedFingerprint = fingerprint.normalizeGpgFingerprint()
+            val subKey = key?.subKeys?.firstOrNull { subKey ->
+                subKey.fingerprint.normalizeGpgFingerprint() == normalizedFingerprint
+            }
+            when {
+                key != null && key.fingerprint.normalizeGpgFingerprint() == normalizedFingerprint ->
+                    GpgKeyImportComponent(
+                        fingerprint = fingerprint,
+                        keyId = key.keyId.normalizeGpgFingerprint(),
+                        primary = true,
+                        algorithm = key.algorithm,
+                        bitStrength = key.bitStrength,
+                        // Not canSign/canEncrypt: those are certificate-wide.
+                        canSign = key.primaryCanSign,
+                        canEncrypt = key.primaryCanEncrypt,
+                    )
+
+                subKey != null -> GpgKeyImportComponent(
+                    fingerprint = fingerprint,
+                    keyId = subKey.keyId.normalizeGpgFingerprint(),
+                    primary = false,
+                    algorithm = subKey.algorithm,
+                    bitStrength = subKey.bitStrength,
+                    canSign = subKey.canSign,
+                    canEncrypt = subKey.canEncrypt,
+                )
+
+                else -> GpgKeyImportComponent(
+                    fingerprint = fingerprint,
+                    keyId = normalizedFingerprint.gpgKeyIdFromFingerprintOrNull()
+                        ?: normalizedFingerprint,
+                    primary = false,
+                )
+            }
         }
     }
 

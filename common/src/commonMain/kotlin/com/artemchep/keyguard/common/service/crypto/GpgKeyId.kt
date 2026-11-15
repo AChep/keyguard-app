@@ -37,6 +37,9 @@ fun String.gpgKeyIdFromFingerprintOrNull(): String? {
     }
 }
 
+/** Short key ID: the last 8 hex digits of a long key ID, as `gpg --keyid-format short` prints it. */
+fun String.gpgShortKeyId(): String = takeLast(GPG_SHORT_KEY_ID_LENGTH)
+
 // The `0x` prefix is how GnuPG prints key IDs, see `gpg --keyid-format 0xlong`.
 // Whitespace, colons and dashes may separate the digits, as in `gpg --fingerprint`
 // or `AB:CD:EF`; any other character makes it free text, such as the e-mail

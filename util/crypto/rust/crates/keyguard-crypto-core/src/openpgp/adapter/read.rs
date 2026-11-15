@@ -186,6 +186,8 @@ fn public_key_info(info: PublicKeyInfo) -> OpenPgpPublicKeyInfo {
         revoked: info.revoked,
         can_sign: info.can_sign,
         can_encrypt: info.can_encrypt,
+        primary_can_sign: info.primary_can_sign,
+        primary_can_encrypt: info.primary_can_encrypt,
         public_key_armored: info.public_key_armored,
         subkeys: info.subkeys.into_iter().map(public_subkey_info).collect(),
         user_id_details: info.user_id_details.into_iter().map(user_id_info).collect(),

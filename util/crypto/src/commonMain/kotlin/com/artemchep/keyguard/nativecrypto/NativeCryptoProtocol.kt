@@ -1588,6 +1588,10 @@ internal data class OpenPgpPublicKeyInfoProto(
     val userIdHistory: List<OpenPgpUserIdInfoProto> = emptyList(),
     @ProtoNumber(22)
     val canModifyUserIds: Boolean = false,
+    @ProtoNumber(23)
+    val primaryCanSign: Boolean = false,
+    @ProtoNumber(24)
+    val primaryCanEncrypt: Boolean = false,
 )
 
 @Serializable
@@ -1840,10 +1844,10 @@ internal data class OpenPgpKeyMaterialProto(
 internal data class OpenPgpKeyImportRequestProto(
     @ProtoNumber(1)
     val keyData: ByteArray,
-    @ProtoNumber(2)
-    val passphraseUtf8: ByteArray? = null,
     @ProtoNumber(3)
     val referenceTimeEpochSeconds: Long? = null,
+    @ProtoNumber(4)
+    val passphrasesUtf8: List<ByteArray> = emptyList(),
 )
 
 @Serializable
@@ -1874,6 +1878,11 @@ internal data class OpenPgpKeyImportSuccessProto(
 internal data class OpenPgpKeyImportNeedsPassphraseProto(
     @ProtoNumber(1)
     val formatLabel: String = "",
+    @ProtoNumber(2)
+    val lockedFingerprints: List<String> = emptyList(),
+    @ProtoNumber(3)
+    @ProtoPacked
+    val unlockingPassphraseIndexes: List<Int> = emptyList(),
 )
 
 @Serializable

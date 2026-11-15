@@ -3,19 +3,23 @@ package com.artemchep.keyguard.crypto
 import com.artemchep.keyguard.common.service.crypto.GpgOpenPgpPublicKey
 import com.artemchep.keyguard.common.util.toHex
 import org.bouncycastle.bcpg.ArmoredOutputStream
+import org.bouncycastle.bcpg.HashAlgorithmTags
 import org.bouncycastle.bcpg.PublicKeyAlgorithmTags
 import org.bouncycastle.bcpg.PublicKeyPacket
+import org.bouncycastle.bcpg.SymmetricKeyAlgorithmTags
 import org.bouncycastle.jce.provider.BouncyCastleProvider
 import org.bouncycastle.openpgp.PGPKeyRing
 import org.bouncycastle.openpgp.PGPPrivateKey
 import org.bouncycastle.openpgp.PGPPublicKey
 import org.bouncycastle.openpgp.PGPPublicKeyRingCollection
 import org.bouncycastle.openpgp.PGPSecretKey
+import org.bouncycastle.openpgp.PGPSecretKeyRing
 import org.bouncycastle.openpgp.PGPSecretKeyRingCollection
 import org.bouncycastle.openpgp.PGPUtil
 import org.bouncycastle.openpgp.operator.jcajce.JcaPGPDigestCalculatorProviderBuilder
 import org.bouncycastle.openpgp.operator.jcajce.JcaKeyFingerprintCalculator
 import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyDecryptorBuilder
+import org.bouncycastle.openpgp.operator.jcajce.JcePBESecretKeyEncryptorBuilder
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.math.BigInteger
@@ -139,6 +143,28 @@ internal fun PGPSecretKey.extractPrivateKeyEmptyPassphrase(): PGPPrivateKey {
         .setProvider(gpgBouncyCastleProvider)
         .build(CharArray(0))
     return extractPrivateKey(decryptor)
+}
+
+/** Re-encrypts every unprotected secret key with the passphrase [passphraseFor] returns for it. */
+internal fun PGPSecretKeyRing.protect(
+    passphraseFor: (PGPSecretKey) -> String,
+): PGPSecretKeyRing {
+    val digests = JcaPGPDigestCalculatorProviderBuilder()
+        .setProvider(gpgBouncyCastleProvider)
+        .build()
+    val keys = secretKeys.asSequence().map { secretKey ->
+        PGPSecretKey(
+            secretKey.extractPrivateKeyEmptyPassphrase(),
+            secretKey.publicKey,
+            digests.get(HashAlgorithmTags.SHA1),
+            secretKey.isMasterKey,
+            JcePBESecretKeyEncryptorBuilder(
+                SymmetricKeyAlgorithmTags.AES_256,
+                digests.get(HashAlgorithmTags.SHA256),
+            ).setProvider(gpgBouncyCastleProvider).build(passphraseFor(secretKey).toCharArray()),
+        )
+    }.toList()
+    return PGPSecretKeyRing(keys)
 }
 
 internal fun ByteArray.stripUnsignedMagnitudePadding(): ByteArray {

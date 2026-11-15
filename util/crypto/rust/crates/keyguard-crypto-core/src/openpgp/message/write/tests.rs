@@ -4039,7 +4039,7 @@ fn import_secret(secret: &SignedSecretKey) -> OpenPgpKeyImportResult {
     OpenPgpKeyImportResult::decode(
         import_key_request(OpenPgpKeyImportRequest {
             key_data,
-            passphrase_utf8: None,
+            passphrases_utf8: Vec::new(),
             reference_time_epoch_seconds: Some(TEST_TIME),
         })
         .expect("import request")
@@ -4061,7 +4061,7 @@ fn import_key_data(key_data: Vec<u8>) -> OpenPgpKeyImportResult {
     OpenPgpKeyImportResult::decode(
         import_key_request(OpenPgpKeyImportRequest {
             key_data,
-            passphrase_utf8: None,
+            passphrases_utf8: Vec::new(),
             reference_time_epoch_seconds: Some(TEST_TIME),
         })
         .expect("import request")
@@ -4244,7 +4244,7 @@ fn generated_certificate_imports_and_signs() {
     let imported = OpenPgpKeyImportResult::decode(
         import_key_request(OpenPgpKeyImportRequest {
             key_data: material.private_key_armored.clone(),
-            passphrase_utf8: None,
+            passphrases_utf8: Vec::new(),
             reference_time_epoch_seconds: Some(TEST_TIME),
         })
         .expect("import request")
@@ -4295,7 +4295,7 @@ fn imported_key_armor_omits_v6_checksums_and_retains_v4_checksums() {
     let v6_material = OpenPgpKeyImportResult::decode(
         import_key_request(OpenPgpKeyImportRequest {
             key_data: v6_input,
-            passphrase_utf8: None,
+            passphrases_utf8: Vec::new(),
             reference_time_epoch_seconds: Some(TEST_TIME + 1),
         })
         .expect("import v6 key")
@@ -4315,7 +4315,7 @@ fn imported_key_armor_omits_v6_checksums_and_retains_v4_checksums() {
     let v4_material = OpenPgpKeyImportResult::decode(
         import_key_request(OpenPgpKeyImportRequest {
             key_data: v4.private_key_armored.clone(),
-            passphrase_utf8: None,
+            passphrases_utf8: Vec::new(),
             reference_time_epoch_seconds: Some(TEST_TIME + 1),
         })
         .expect("import v4 key")
@@ -6364,11 +6364,11 @@ fn import_reports_passphrase_and_public_only_outcomes() {
         .to_armored_bytes(ArmorOptions::default())
         .expect("armor protected key");
 
-    let import = |key_data: Vec<u8>, passphrase_utf8: Option<Vec<u8>>| {
+    let import = |key_data: Vec<u8>, passphrases_utf8: Vec<Vec<u8>>| {
         OpenPgpKeyImportResult::decode(
             import_key_request(OpenPgpKeyImportRequest {
                 key_data,
-                passphrase_utf8,
+                passphrases_utf8,
                 reference_time_epoch_seconds: Some(TEST_TIME),
             })
             .expect("import request")
@@ -6377,22 +6377,126 @@ fn import_reports_passphrase_and_public_only_outcomes() {
         .expect("decode import result")
     };
     assert!(matches!(
-        import(protected.clone(), None).result,
+        import(protected.clone(), Vec::new()).result,
         Some(open_pgp_key_import_result::Result::NeedsPassphrase(_))
     ));
     assert!(matches!(
-        import(protected.clone(), Some(b"wrong".to_vec())).result,
+        import(protected.clone(), vec![b"wrong".to_vec()]).result,
         Some(open_pgp_key_import_result::Result::Error(error))
             if error.reason == OpenPgpKeyImportErrorReason::InvalidPassphrase as i32
     ));
     assert!(matches!(
-        import(protected, Some(b"correct horse battery staple".to_vec())).result,
+        import(protected, vec![b"correct horse battery staple".to_vec()]).result,
         Some(open_pgp_key_import_result::Result::Success(_))
     ));
     assert!(matches!(
-        import(material.public_key_armored.clone(), None).result,
+        import(material.public_key_armored.clone(), Vec::new()).result,
         Some(open_pgp_key_import_result::Result::Error(error))
             if error.reason == OpenPgpKeyImportErrorReason::UnsupportedFormat as i32
+    ));
+}
+
+#[test]
+fn import_unlocks_components_protected_with_different_passphrases() {
+    let material = generated_modern_material();
+    let (mut protected, _) =
+        SignedSecretKey::from_reader_single(Cursor::new(material.private_key_armored.clone()))
+            .expect("parse generated secret key");
+    protected
+        .primary_key
+        .set_password(AwsLcRng, &Password::from("primary passphrase"))
+        .expect("protect primary key");
+    assert!(!protected.secret_subkeys.is_empty());
+    for subkey in &mut protected.secret_subkeys {
+        subkey
+            .key
+            .set_password(AwsLcRng, &Password::from("subkey passphrase"))
+            .expect("protect secret subkey");
+    }
+    let primary_fingerprint = format!("{:X}", protected.primary_key.fingerprint());
+    let subkey_fingerprints = protected
+        .secret_subkeys
+        .iter()
+        .map(|subkey| format!("{:X}", subkey.key.fingerprint()))
+        .collect::<Vec<_>>();
+    let protected = protected
+        .to_armored_bytes(ArmorOptions::default())
+        .expect("armor protected key");
+
+    let primary: &[u8] = b"primary passphrase";
+    let subkey: &[u8] = b"subkey passphrase";
+    let wrong: &[u8] = b"wrong";
+    let import = |passphrases: &[&[u8]]| {
+        import_key_request(OpenPgpKeyImportRequest {
+            key_data: protected.clone(),
+            passphrases_utf8: passphrases.iter().map(|value| value.to_vec()).collect(),
+            reference_time_epoch_seconds: Some(TEST_TIME),
+        })
+        .map(|encoded| {
+            OpenPgpKeyImportResult::decode(encoded.as_slice())
+                .expect("decode import result")
+                .result
+        })
+    };
+    let needs_passphrase =
+        |passphrases: &[&[u8]]| match import(passphrases).expect("import request") {
+            Some(open_pgp_key_import_result::Result::NeedsPassphrase(needs)) => (
+                needs.locked_fingerprints.clone(),
+                needs.unlocking_passphrase_indexes.clone(),
+            ),
+            result => panic!("expected NeedsPassphrase, got {result:?}"),
+        };
+    let success = |passphrases: &[&[u8]]| match import(passphrases).expect("import request") {
+        Some(open_pgp_key_import_result::Result::Success(success)) => {
+            success.key_material.expect("imported key material")
+        }
+        result => panic!("expected Success, got {result:?}"),
+    };
+
+    let mut all_fingerprints = vec![primary_fingerprint.clone()];
+    all_fingerprints.extend(subkey_fingerprints.iter().cloned());
+    assert_eq!(needs_passphrase(&[]), (all_fingerprints, Vec::new()));
+    assert_eq!(
+        needs_passphrase(&[primary]),
+        (subkey_fingerprints.clone(), vec![0]),
+    );
+    assert_eq!(
+        needs_passphrase(&[subkey]),
+        (vec![primary_fingerprint.clone()], vec![0]),
+    );
+    assert_eq!(
+        needs_passphrase(&[wrong, subkey]),
+        (vec![primary_fingerprint], vec![1]),
+    );
+    assert!(matches!(
+        import(&[wrong]).expect("import request"),
+        Some(open_pgp_key_import_result::Result::Error(error))
+            if error.reason == OpenPgpKeyImportErrorReason::InvalidPassphrase as i32
+    ));
+
+    let unlocked = success(&[primary, subkey]);
+    assert_eq!(unlocked.fingerprint, material.fingerprint);
+    let (unlocked_key, _) =
+        SignedSecretKey::from_reader_single(Cursor::new(unlocked.private_key_armored.as_slice()))
+            .expect("parse unlocked secret key");
+    assert!(!unlocked_key.primary_key.secret_params().is_encrypted());
+    assert!(
+        unlocked_key
+            .secret_subkeys
+            .iter()
+            .all(|subkey| !subkey.key.secret_params().is_encrypted())
+    );
+    assert_eq!(success(&[subkey, primary]), unlocked);
+    assert_eq!(success(&[wrong, primary, subkey]), unlocked);
+
+    let too_many = vec![primary; 17];
+    assert!(matches!(
+        import(&too_many),
+        Err(OpenPgpWriteError::InvalidArgument)
+    ));
+    assert!(matches!(
+        import(&[primary, &[0xff]]),
+        Err(OpenPgpWriteError::InvalidArgument)
     ));
 }
 
@@ -6884,7 +6988,7 @@ fn import_accepts_bc_legacy_malleable_cfb_and_removes_password() {
         OpenPgpKeyImportResult::decode(
             import_key_request(OpenPgpKeyImportRequest {
                 key_data: protected.clone(),
-                passphrase_utf8: Some(password.to_vec()),
+                passphrases_utf8: vec![password.to_vec()],
                 reference_time_epoch_seconds: Some(TEST_TIME),
             })
             .expect("typed import result")
@@ -7204,7 +7308,7 @@ fn legacy_recipients_are_strict_but_legacy_decrypt_candidates_are_skipped() {
     let legacy_import = OpenPgpKeyImportResult::decode(
         import_key_request(OpenPgpKeyImportRequest {
             key_data: legacy_secret_bytes.clone(),
-            passphrase_utf8: None,
+            passphrases_utf8: Vec::new(),
             reference_time_epoch_seconds: Some(TEST_TIME),
         })
         .expect("legacy import returns typed result")
@@ -7293,7 +7397,7 @@ fn legacy_v2_secret_packet_is_unsupported_but_truncation_is_malformed() {
         OpenPgpKeyImportResult::decode(
             import_key_request(OpenPgpKeyImportRequest {
                 key_data,
-                passphrase_utf8: None,
+                passphrases_utf8: Vec::new(),
                 reference_time_epoch_seconds: Some(TEST_TIME),
             })
             .expect("import returns a typed result")

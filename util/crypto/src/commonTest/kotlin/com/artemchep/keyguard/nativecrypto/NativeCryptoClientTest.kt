@@ -795,8 +795,8 @@ class NativeCryptoClientTest {
             OpenPgpKeyImportOperationProto(
                 OpenPgpKeyImportRequestProto(
                     keyData = byteArrayOf(1),
-                    passphraseUtf8 = byteArrayOf(),
                     referenceTimeEpochSeconds = 1_700_000_001L,
+                    passphrasesUtf8 = listOf(byteArrayOf(), byteArrayOf(7)),
                 ),
             ),
             OpenPgpSignOperationProto(
@@ -915,6 +915,28 @@ class NativeCryptoClientTest {
             val decoded = ProtoBuf.decodeFromByteArray<OpenPgpKeyImportResultProto>(encoded)
             assertEquals(outcome::class, decoded.result?.let { it::class })
         }
+        val needsPassphrase = OpenPgpKeyImportNeedsPassphraseProto(
+            formatLabel = "OpenPGP",
+            lockedFingerprints = listOf("E".repeat(40), "F".repeat(64)),
+            unlockingPassphraseIndexes = listOf(0, 15),
+        )
+        assertEquals(
+            needsPassphrase,
+            ProtoBuf.decodeFromByteArray<OpenPgpKeyImportNeedsPassphraseProto>(
+                ProtoBuf.encodeToByteArray(needsPassphrase),
+            ),
+        )
+        val importRequest = ProtoBuf.decodeFromByteArray<OpenPgpKeyImportRequestProto>(
+            ProtoBuf.encodeToByteArray(
+                OpenPgpKeyImportRequestProto(
+                    keyData = byteArrayOf(1),
+                    passphrasesUtf8 = listOf(byteArrayOf(), byteArrayOf(7)),
+                ),
+            ),
+        )
+        assertEquals(2, importRequest.passphrasesUtf8.size)
+        assertContentEquals(byteArrayOf(), importRequest.passphrasesUtf8[0])
+        assertContentEquals(byteArrayOf(7), importRequest.passphrasesUtf8[1])
 
         val verification = OpenPgpVerificationProto(
             status = OpenPgpVerificationStatusProto.VALID,

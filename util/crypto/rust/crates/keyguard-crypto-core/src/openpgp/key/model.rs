@@ -27,7 +27,8 @@ pub(in crate::openpgp) struct KeyGenerationInput {
 
 pub(in crate::openpgp) struct KeyImportInput {
     pub(in crate::openpgp) key_data: Zeroizing<Vec<u8>>,
-    pub(in crate::openpgp) passphrase_utf8: Option<Zeroizing<Vec<u8>>>,
+    /// Tried in order on every encrypted component.
+    pub(in crate::openpgp) passphrases_utf8: Vec<Zeroizing<Vec<u8>>>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -40,6 +41,13 @@ pub(in crate::openpgp) enum KeyImportFailureReason {
 
 pub(in crate::openpgp) enum KeyImportResult {
     Success(KeyMaterial),
-    NeedsPassphrase,
+    /// Some encrypted components are still locked. No unlocked secret
+    /// material is returned in this case.
+    NeedsPassphrase {
+        /// Uppercase hex fingerprints of the locked components, primary first.
+        locked_fingerprints: Vec<String>,
+        /// Indexes of the passphrases that unlocked at least one component.
+        unlocking_passphrase_indexes: Vec<u32>,
+    },
     Error(KeyImportFailureReason),
 }

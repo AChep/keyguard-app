@@ -17,8 +17,8 @@ and how Keyguard uses keyservers.
 - On a Bitwarden server, a GPG key item is a secure note with custom fields.
   [Custom field conventions](/docs/item-extras/) lists them.
 - Keyguard stores an imported private key without its passphrase. It asks for
-  the passphrase once, during import. From then on, the vault's encryption
-  protects the key.
+  the passphrase during import, and again for each subkey that has its own
+  passphrase. From then on, the vault's encryption protects the key.
 
 ## Certificate versions
 
@@ -101,7 +101,7 @@ instead, use the [Generator](/docs/generator/).
 | Input | Result |
 | --- | --- |
 | Public key | Stored as a certificate |
-| Private key | Stored with its certificate. For a passphrase-protected key, Keyguard asks for the passphrase and reports a wrong one. |
+| Private key | Stored with its certificate. For a passphrase-protected key, Keyguard asks for the passphrase and reports a wrong one. If a subkey has its own passphrase, Keyguard asks for it next. |
 | The certificate already in the item | Merged. Existing secret material, certifications and revocations stay. |
 | A different certificate, or malformed data | Rejected. The item doesn't change. |
 | More than one key in a file | Rejected. Import the keys one at a time. |

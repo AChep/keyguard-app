@@ -2,7 +2,6 @@
 <SmellBaseline>
   <ManuallySuppressedIssues/>
   <CurrentIssues>
-    <ID>CyclomaticComplexMethod:GpgKeyFactory.kt:GpgKeyFactory$internal fun parseColonListing: List&lt;GpgAgentKeyMetadataKey&gt;</ID>
     <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `all keyguard generated variants are covered`</ID>
     <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `assuan command framing failures match gpg agent`</ID>
     <ID>FunctionNaming:GpgAgentEndToEndTest.kt:GpgAgentEndToEndTest$@Test fun `assuan keygrip command failures match gpg agent`</ID>

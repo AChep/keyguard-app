@@ -106,7 +106,9 @@ data class GpgPublicKeyInfo(
     val createdAt: Instant?,
     val expiresAt: Instant?,
     val revoked: Boolean,
+    /** Certificate-wide: the primary key or any usable subkey can sign. See [primaryCanSign]. */
     val canSign: Boolean,
+    /** Certificate-wide: the primary key or any usable subkey can encrypt. See [primaryCanEncrypt]. */
     val canEncrypt: Boolean,
     /**
      * The ASCII-armored encoding of this certificate's complete original public packet span.
@@ -141,6 +143,10 @@ data class GpgPublicKeyInfo(
     val weakSelfSignatureAlgorithms: List<String> = emptyList(),
     val userIdHistory: List<GpgUserIdInfo> = emptyList(),
     val canModifyUserIds: Boolean = false,
+    /** The primary key's own signing capability, unlike the certificate-wide [canSign]. */
+    val primaryCanSign: Boolean = false,
+    /** The primary key's own encryption capability, unlike the certificate-wide [canEncrypt]. */
+    val primaryCanEncrypt: Boolean = false,
 )
 
 data class GpgPublicSubKeyInfo(

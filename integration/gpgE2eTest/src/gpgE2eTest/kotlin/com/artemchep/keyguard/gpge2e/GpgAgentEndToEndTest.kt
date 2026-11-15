@@ -1,8 +1,12 @@
 package com.artemchep.keyguard.gpge2e
 
 import com.artemchep.keyguard.common.model.GpgKeyConfig
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportComponent
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportError
+import com.artemchep.keyguard.common.service.crypto.GpgKeyImportResult
 import com.artemchep.keyguard.common.service.gpgagent.authorizedAgentKeys
 import com.artemchep.keyguard.common.service.gpgagent.isWindowsNamedPipePath
+import com.artemchep.keyguard.common.service.gpgagent.normalizeGpgFingerprint
 import com.artemchep.keyguard.crypto.NativeGpgKeyGenerator
 import com.artemchep.keyguard.crypto.NativeGpgKeyMetadataResolver
 import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
@@ -18,6 +22,8 @@ import org.junit.Assume.assumeTrue
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class GpgAgentEndToEndTest {
@@ -45,6 +51,7 @@ class GpgAgentEndToEndTest {
 
         private lateinit var workRoot: Path
         private lateinit var serverHome: Path
+        private lateinit var splitPassphraseHome: Path
         private lateinit var clientHome: Path
         private lateinit var gpgAgentSocket: String
         private lateinit var launcher: KeyguardAgentLauncher
@@ -52,6 +59,8 @@ class GpgAgentEndToEndTest {
         private lateinit var generatedModern: TestGpgKey
         private lateinit var generatedRsaKeys: Map<GpgKeyConfig.RsaLength, TestGpgKey>
         private lateinit var generatedKeys: List<GeneratedKeyCase>
+        private lateinit var splitPassphrase: SplitPassphraseKey
+        private lateinit var splitPassphraseImported: TestGpgKey
         private lateinit var clientGpg: GpgCli
         private lateinit var binaryPath: Path
 
@@ -74,6 +83,7 @@ class GpgAgentEndToEndTest {
             restrict(workRoot)
 
             serverHome = workRoot.resolve("s")
+            splitPassphraseHome = workRoot.resolve("p")
             clientHome = workRoot.resolve("c")
 
             binaryPath = buildAndLocateBinary(repoRoot)
@@ -82,6 +92,12 @@ class GpgAgentEndToEndTest {
             keys = GpgKeyFactory.generate(serverHome, repoRoot)
             // Don't leave the server agent lingering.
             GpgCli(serverHome).gpgconf("--kill", "gpg-agent")
+
+            // 1a) Issue 1684: gpg exports a key whose primary key and subkey use different
+            // passphrases. Keyguard's importer must unlock both before the agent can use it.
+            splitPassphrase = GpgSplitPassphraseKeyFactory.generate(splitPassphraseHome)
+            GpgCli(splitPassphraseHome).gpgconf("--kill", "gpg-agent")
+            splitPassphraseImported = importSplitPassphraseKey(splitPassphrase)
 
             // 1b) Generate keys with Keyguard's OWN generator. These carry Kotlin-computed
             // keygrips in their metadata; the whole point is that gpg's keygrip lookup for
@@ -103,7 +119,7 @@ class GpgAgentEndToEndTest {
                 generatedRsaKeys.map { (length, key) ->
                     GeneratedKeyCase(key, "gen-rsa-${length.size}")
                 }
-            val allKeys = keys.all + generatedKeys.map { it.key }
+            val allKeys = keys.all + generatedKeys.map { it.key } + splitPassphraseImported
 
             // 2) Prepare the client home: it must use OUR socket, not its own agent.
             prepareClientHome(clientHome)
@@ -135,6 +151,9 @@ class GpgAgentEndToEndTest {
         fun teardown() {
             runCatching { if (::launcher.isInitialized) launcher.stop() }
             runCatching { if (::serverHome.isInitialized) GpgCli(serverHome).gpgconf("--kill", "gpg-agent") }
+            runCatching {
+                if (::splitPassphraseHome.isInitialized) GpgCli(splitPassphraseHome).gpgconf("--kill", "gpg-agent")
+            }
             runCatching { if (::clientHome.isInitialized) GpgCli(clientHome).gpgconf("--kill", "gpg-agent") }
             runCatching { if (::clientHome.isInitialized) GpgCli(clientHome).gpgconf("--remove-socketdir") }
             runCatching { if (::workRoot.isInitialized) workRoot.deleteRecursively() }
@@ -165,19 +184,11 @@ class GpgAgentEndToEndTest {
 
         private fun keyguardGeneratedKey(config: GpgKeyConfig): TestGpgKey {
             val generated = NativeGpgKeyGenerator.generate(config)
-            val resolution = NativeGpgKeyMetadataResolver.resolve(
-                privateKeyArmored = generated.privateKeyArmored,
-                publicKeyArmored = generated.publicKeyArmored,
-                fingerprint = generated.fingerprint,
-            )
-                ?: error("Could not resolve agent metadata for the generated test key")
-            return TestGpgKey(
+            return keyguardTestKey(
                 name = config.userId,
                 privateKeyArmored = generated.privateKeyArmored,
                 publicKeyArmored = generated.publicKeyArmored,
-                primaryFingerprint = generated.fingerprint,
-                // The Kotlin-computed keygrips — gpg's keygrip lookup must match these.
-                metadataKeys = resolution.authorizedAgentKeys,
+                fingerprint = generated.fingerprint,
             )
         }
 
@@ -486,6 +497,99 @@ class GpgAgentEndToEndTest {
             }
         }
         assertEquals(expectedLabels, generatedKeys.map { it.label }.toSet())
+    }
+
+    // ---- Split passphrase import tests (issue 1684) ----------------------------------
+
+    @Test
+    fun `split passphrase key without passphrases reports both components locked`() {
+        val result = assertIs<GpgKeyImportResult.NeedsPassphrase>(splitPassphrase.import())
+
+        assertEquals(emptySet(), result.unlockingPassphraseIndexes)
+        assertLockedComponents(
+            expected = listOf(splitPassphrase.primary, splitPassphrase.subkey),
+            actual = result.lockedComponents,
+        )
+    }
+
+    @Test
+    fun `split passphrase key with the primary passphrase reports the subkey locked`() {
+        val result = assertIs<GpgKeyImportResult.NeedsPassphrase>(
+            splitPassphrase.import(splitPassphrase.primaryPassphrase),
+        )
+
+        assertEquals(setOf(0), result.unlockingPassphraseIndexes)
+        assertLockedComponents(
+            expected = listOf(splitPassphrase.subkey),
+            actual = result.lockedComponents,
+        )
+    }
+
+    @Test
+    fun `split passphrase key with the subkey passphrase reports the primary key locked`() {
+        val result = assertIs<GpgKeyImportResult.NeedsPassphrase>(
+            splitPassphrase.import(splitPassphrase.subkeyPassphrase),
+        )
+
+        assertEquals(setOf(0), result.unlockingPassphraseIndexes)
+        assertLockedComponents(
+            expected = listOf(splitPassphrase.primary),
+            actual = result.lockedComponents,
+        )
+    }
+
+    @Test
+    fun `split passphrase key with a wrong passphrase is invalid`() {
+        assertEquals(
+            GpgKeyImportResult.Error(GpgKeyImportError.InvalidPassphrase),
+            splitPassphrase.import("wrong-1684"),
+        )
+    }
+
+    @Test
+    fun `split passphrase key with both passphrases imports with gpg keygrips`() {
+        // Setup imported the key with both passphrases; it fails if the import does.
+        assertEquals(
+            splitPassphrase.primary.fingerprint.normalizeGpgFingerprint(),
+            splitPassphraseImported.primaryFingerprint.normalizeGpgFingerprint(),
+        )
+        // The agent finds a key by the keygrip gpg computes for its public part.
+        assertEquals(
+            splitPassphrase.components.map { it.keygrip.uppercase() }.toSet(),
+            splitPassphraseImported.metadataKeys.map { it.keygrip.trim().uppercase() }.toSet(),
+        )
+    }
+
+    @Test
+    fun `split passphrase key sign and verify`() =
+        signAndVerify(splitPassphraseImported, "split-passphrase")
+
+    @Test
+    fun `split passphrase key encrypt and decrypt`() =
+        encryptAndDecrypt(splitPassphraseImported, "split-passphrase")
+
+    private fun assertLockedComponents(
+        expected: List<SplitPassphraseKey.Component>,
+        actual: List<GpgKeyImportComponent>,
+    ) {
+        assertEquals(expected.size, actual.size, "Unexpected locked components: $actual")
+        expected.zip(actual).forEach { (gpgComponent, component) ->
+            val message = "gpg reports $gpgComponent, Keyguard reports $component"
+            assertEquals(
+                gpgComponent.fingerprint.normalizeGpgFingerprint(),
+                component.fingerprint.normalizeGpgFingerprint(),
+                message,
+            )
+            assertEquals(
+                gpgComponent.keyId.normalizeGpgFingerprint(),
+                component.keyId.normalizeGpgFingerprint(),
+                message,
+            )
+            assertEquals(gpgComponent == splitPassphrase.primary, component.primary, message)
+            assertEquals(gpgComponent.canSign, component.canSign, message)
+            assertEquals(gpgComponent.canEncrypt, component.canEncrypt, message)
+            assertNotNull(component.algorithm, message)
+        }
     }
 
     // ---- Raw Assuan failure-path tests ----------------------------------------------
@@ -818,6 +922,40 @@ class GpgAgentEndToEndTest {
             // values. GnuPG clients compare the low libgpg-error code.
             (encoded and 0xffff).toInt()
         }
+}
+
+private fun importSplitPassphraseKey(key: SplitPassphraseKey): TestGpgKey {
+    val result = key.import(key.primaryPassphrase, key.subkeyPassphrase)
+    val imported = (result as? GpgKeyImportResult.Success)?.gpgKey
+        ?: error("Expected the split passphrase key to import, got: $result")
+    return keyguardTestKey(
+        name = key.userId,
+        privateKeyArmored = imported.privateKeyArmored,
+        publicKeyArmored = imported.publicKeyArmored,
+        fingerprint = imported.fingerprint,
+    )
+}
+
+private fun keyguardTestKey(
+    name: String,
+    privateKeyArmored: String,
+    publicKeyArmored: String,
+    fingerprint: String,
+): TestGpgKey {
+    val resolution = NativeGpgKeyMetadataResolver.resolve(
+        privateKeyArmored = privateKeyArmored,
+        publicKeyArmored = publicKeyArmored,
+        fingerprint = fingerprint,
+    )
+        ?: error("Could not resolve agent metadata for the test key $name")
+    return TestGpgKey(
+        name = name,
+        privateKeyArmored = privateKeyArmored,
+        publicKeyArmored = publicKeyArmored,
+        primaryFingerprint = fingerprint,
+        // The Kotlin-computed keygrips — gpg's keygrip lookup must match these.
+        metadataKeys = resolution.authorizedAgentKeys,
+    )
 }
 
 private fun isWindows(): Boolean =

@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">Zarządzaj hasłami</string>
     <string name="listing_summary_long">Zarządzaj hasłami z łatwością</string>
-    <string name="listing_description_title">Multi-klient dla platformy Bitwarden® i KeePass (KDBX), zaprojektowany, aby zapewnić najlepsze możliwe doświadczenie użytkownika.</string>
+    <string name="listing_description_title">Keyguard to bezpieczny i wygodny menedżer haseł. Działa offline i synchronizuje się z Bitwarden® i KeePass (KDBX).</string>
     <string name="listing_description_disclaimer_bitwarden_legal">Może być używany z dowolną instalacją Bitwarden®. Ten produkt nie jest powiązany z projektem Bitwarden ani Bitwarden, Inc. Bitwarden® jest zastrzeżonym znakiem towarowym Bitwarden Inc.</string>
-    <string name="listing_description_highlights">Najważniejsze cechy:</string>
-    <string name="listing_description_highlight_design">Piękny interfejs: Bogaty, responsywny interfejs Material You z jasnym/ciemnym motywem.</string>
-    <string name="listing_description_highlight_search">Zaawansowane wyszukiwanie: Potężne i szybkie możliwości wyszukiwania.</string>
-    <string name="listing_description_highlight_watchtower">Watchtower: Wykrywa skompromitowane hasła, podatne konta, ponownie używane hasła, nieaktywne uwierzytelnianie dwuskładnikowe, niebezpieczne strony, zduplikowane lub wygasłe elementy i wiele więcej.</string>
-    <string name="listing_description_highlight_multiple_accounts">Obsługa wielu kont: Możliwość jednoczesnego logowania na wiele kont.</string>
-    <string name="listing_description_highlight_offline">Zarządzanie offline: Dodawaj elementy i wysyłki, modyfikuj i przeglądaj swój sejf offline.</string>
-    <string name="listing_description_highlight_export">Eksport danych: Eksportuj pojedyncze lub organizacyjne elementy, w tym załączniki.</string>
-    <string name="listing_description_highlight_backup">Kopie zapasowe danych: Automatycznie zarządzaj repozytorium kopii zapasowych sejfu wraz z załącznikami.</string>
-    <string name="listing_description_highlight_attachment_preview">Podgląd załączników: Bezpieczna przeglądarka załączników graficznych i tekstowych w aplikacji.</string>
-    <string name="listing_description_highlight_generator">Generator: Twórz hasła, klucze SSH i przekierowania e-mail, z obsługą niestandardowych list słów.</string>
-    <string name="listing_description_highlight_ssh_agent">Agent SSH: uwierzytelnianie na serwerach, podpisywanie commitów Git i korzystanie z usług opartych na SSH.</string>
-    <string name="listing_description_highlight_gpg_agent">Agent GPG: Szyfruj, odszyfrowuj, podpisuj i weryfikuj pliki lub wiadomości.</string>
-    <string name="listing_description_highlight_other">Zaawansowane funkcje: Obsługa skrótów, symbol zastępczych pól, nadpisywania URL i inteligentnego rozwiązywania konfliktów.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">Podstawowe funkcje</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">Bezpieczeństwo</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">Twoje dane</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">Zaawansowane narzędzia</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">Autouzupełnianie: Wypełniaj nazwy użytkownika i hasła w aplikacjach i przeglądarkach oraz zapisuj nowe dane logowania przy logowaniu.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">Klucze dostępu: Twórz klucze dostępu i loguj się nimi w aplikacjach, przeglądarkach i na pobliskim komputerze.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">Hasła jednorazowe: Przechowuj klucze uwierzytelniające w danych logowania i uzyskuj kody TOTP, HOTP, Steam i mOTP.</string>
+    <string name="listing_description_highlight_generator">Generator: Twórz hasła, frazy hasłowe, nazwy użytkownika, aliasy e-mail oraz klucze SSH i GPG z własnymi listami słów.</string>
+    <string name="listing_description_highlight_search">Wyszukiwanie: Znajduj elementy za pomocą fraz, wykluczeń i kwalifikatorów pól. Zapisuj często używane filtry.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">Szybkie wyszukiwanie: Znajdź element z dowolnej aplikacji skrótem globalnym i skopiuj jego wartości.</string>
+    <string name="listing_description_highlight_watchtower">Watchtower: Wykrywaj ujawnione, powtarzające się i słabe hasła, konta objęte wyciekami, brak uwierzytelniania dwuskładnikowego, niebezpieczne strony oraz duplikaty i wygasające elementy.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">Odblokowywanie: Użyj hasła aplikacji lub szybszej metody, takiej jak biometria, YubiKey czy klucz bezpieczeństwa.</string>
+    <string name="listing_description_highlight_ssh_agent">Agent SSH: Uwierzytelniaj się na serwerach i hostach Git kluczami SSH, które nigdy nie opuszczają sejfu.</string>
+    <string name="listing_description_highlight_gpg_agent">Agent i narzędzia GPG: Podpisuj i odszyfrowuj w innych aplikacjach lub w Keyguard kluczami GPG, które nigdy nie opuszczają sejfu.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">Środowiska (beta): Przechowuj w sejfie zmienne środowiskowe, np. klucze API, i przekazuj je lokalnym narzędziom oraz agentom programującym.</string>
+    <string name="listing_description_highlight_multiple_accounts">Wiele kont: Zaloguj się na kilka kont Bitwarden i KeePass i przeglądaj ich elementy w jednym sejfie.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">Własne serwery: Łącz się z własnym serwerem z obsługą jednokrotnego logowania, certyfikatów klienta i własnych nagłówków HTTP.</string>
+    <string name="listing_description_highlight_offline">Offline: Przeglądaj sejf, dodawaj i edytuj elementy bez połączenia. Zmiany są scalane pole po polu przy kolejnej synchronizacji.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">Import: Przenieś hasła z przeglądarek i innych menedżerów haseł.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">Wymiana danych logowania: Przenoś hasła i klucze dostępu bezpośrednio między Keyguard a innymi aplikacjami na urządzeniu.</string>
+    <string name="listing_description_highlight_export">Eksport: Zapisuj elementy z załącznikami w zaszyfrowanym archiwum ZIP lub bazie KeePass.</string>
+    <string name="listing_description_highlight_backup">Kopie zapasowe: Przechowuj wersjonowane migawki sejfu w folderze, na serwerze WebDAV lub w magazynie zgodnym z S3.</string>
+    <string name="listing_description_highlight_attachment_preview">Załączniki: Przesyłaj pliki do sejfu i przeglądaj obrazy, tekst i archiwa ZIP bez zapisywania ich na dysku.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Wysyłki: Udostępniaj tekst lub plik przez wygasający link, z opcjonalnym hasłem lub limitem dostępu.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: Przeglądaj elementy i hasła jednorazowe na zegarku oraz loguj się do aplikacji na zegarku.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">Połączone urządzenia (beta): Synchronizuj ustawienia aplikacji, np. przekierowania e-mail i listy słów, bezpośrednio między urządzeniami.</string>
+    <string name="listing_description_highlight_other">Zaawansowane funkcje: Działania zbiorcze, symbole zastępcze pól i nadpisywanie adresów URL.</string>
+    <string name="listing_description_highlight_design">Interfejs: Wygląd Material You z jasnym, ciemnym i czarnym motywem.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard jest też dostępny na systemy Linux, macOS i Windows.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">Kod źródłowy:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">Jak aplikacja korzysta z zadeklarowanych uprawnień</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: Wyświetla listę zainstalowanych aplikacji przy łączeniu aplikacji z elementem oraz nazwę i ikonę połączonej aplikacji.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Ekran główny</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">管理密碼</string>
     <string name="listing_summary_long">輕鬆管理密碼</string>
-    <string name="listing_description_title">Bitwarden® 平台和 KeePass (KDBX) 的多客戶端，設計提供最佳的使用者體驗。</string>
+    <string name="listing_description_title">Keyguard 是安全又易於使用的密碼管理工具，可離線使用，並與 Bitwarden® 和 KeePass (KDBX) 同步。</string>
     <string name="listing_description_disclaimer_bitwarden_legal">可與任何 Bitwarden® 安裝。本產品與 Bitwarden 項目和 Bitwarden 股份有限公司無關。Bitwarden® 是 Bitwarden 股份有限公司的註冊商標。</string>
-    <string name="listing_description_highlights">突顯：</string>
-    <string name="listing_description_highlight_design">漂亮的介面：一個豐富和帶有明暗主題反應靈敏的 Material You 介面。</string>
-    <string name="listing_description_highlight_search">進階搜尋：強大且快速的搜尋功能。</string>
-    <string name="listing_description_highlight_watchtower">瞭望塔：檢測失效密碼、易受攻擊的帳號、重複使用的密碼、不活躍的雙因素身份認證、不安全的網站、重複或是過期的項目等等。</string>
-    <string name="listing_description_highlight_multiple_accounts">多帳號支援：同時登入多個帳號。</string>
-    <string name="listing_description_highlight_offline">離線管理：新增項目並離線發送、修改和檢視您的保險庫。</string>
-    <string name="listing_description_highlight_export">資料匯出：匯出個人或是組織項目，包含附件。</string>
-    <string name="listing_description_highlight_backup">資料備份：自動管理保險庫的備份存放庫，包含附件。</string>
-    <string name="listing_description_highlight_attachment_preview">附件預覽：在 App 內安全檢視圖片和文字附件。</string>
-    <string name="listing_description_highlight_generator">生成器：建立密碼、SSH 金鑰和電子郵件轉發器，支援自訂詞條。</string>
-    <string name="listing_description_highlight_ssh_agent">SSH 代理程式：向伺服器驗證身分、簽署 Git 提交，以及與 SSH 服務互動。</string>
-    <string name="listing_description_highlight_gpg_agent">GPG 代理程式：加密、解密、簽署及驗證檔案或訊息。</string>
-    <string name="listing_description_highlight_other">進階功能：支援快捷方式、欄位提示文字、網址覆寫和智慧衝突解決。</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">基本功能</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">安全防護</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">您的資料</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">進階工具</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">自動填入：在應用程式和瀏覽器中填入使用者名稱與密碼，並在登入時儲存新的登入資料。</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">通行金鑰：建立通行金鑰，並在應用程式、瀏覽器及附近的電腦上使用通行金鑰登入。</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">一次性密碼：將驗證器金鑰保存在登入項目中，取得 TOTP、HOTP、Steam 和 mOTP 驗證碼。</string>
+    <string name="listing_description_highlight_generator">生成器：使用自訂詞表，建立密碼、密碼片語、使用者名稱、電子郵件別名，以及 SSH 和 GPG 金鑰。</string>
+    <string name="listing_description_highlight_search">搜尋：使用片語、排除條件和欄位限定條件尋找項目，並儲存常用的篩選條件。</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">快速搜尋：在任何應用程式中使用全域快速鍵尋找項目，並複製其欄位值。</string>
+    <string name="listing_description_highlight_watchtower">瞭望塔：找出外洩、重複使用及強度不足的密碼、遭入侵的帳號、未啟用雙因素驗證的項目、不安全的網站，以及重複或即將到期的項目。</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">解鎖：使用應用程式密碼，或透過生物辨識、YubiKey、安全金鑰等更快速的方式解鎖。</string>
+    <string name="listing_description_highlight_ssh_agent">SSH 代理程式：使用保險庫中的 SSH 金鑰向伺服器和 Git 代管服務驗證身分，金鑰始終留在保險庫內。</string>
+    <string name="listing_description_highlight_gpg_agent">GPG 代理程式與工具：在其他應用程式或 Keyguard 中使用 GPG 金鑰簽署與解密，金鑰始終留在保險庫內。</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">環境（測試版）：將 API 金鑰等環境變數保存在保險庫中，並傳遞給本機工具和 AI 程式開發代理。</string>
+    <string name="listing_description_highlight_multiple_accounts">多帳號：登入多個 Bitwarden 和 KeePass 帳號，在同一個保險庫中查看所有帳號的項目。</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">自架伺服器：透過單一登入、用戶端憑證和自訂 HTTP 標頭，連線至您自己的伺服器。</string>
+    <string name="listing_description_highlight_offline">離線使用：無須連線即可查看保險庫、新增或編輯項目。下次同步時，變更會逐一按欄位合併。</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">匯入：從瀏覽器和其他密碼管理工具移入密碼。</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">憑證交換：在 Keyguard 和裝置上的其他應用程式之間，直接移轉密碼和通行金鑰。</string>
+    <string name="listing_description_highlight_export">匯出：將項目及其附件儲存為加密 ZIP 壓縮檔或 KeePass 資料庫。</string>
+    <string name="listing_description_highlight_backup">備份：將保險庫的版本快照儲存在資料夾、WebDAV 伺服器或相容於 S3 的儲存空間中。</string>
+    <string name="listing_description_highlight_attachment_preview">附件：上傳檔案至保險庫，無須儲存至磁碟即可預覽圖片、文字和 ZIP 壓縮檔。</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">傳送：透過有到期時間的連結分享文字或檔案，並可選擇設定密碼或存取次數上限。</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS：在手錶上查看項目和一次性密碼，並登入手錶上的應用程式。</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">連結裝置（測試版）：直接在您的裝置間同步電子郵件轉寄服務、詞表等應用程式設定。</string>
+    <string name="listing_description_highlight_other">進階功能：批次操作、欄位預留位置及網址覆寫。</string>
+    <string name="listing_description_highlight_design">介面：Material You 設計，提供淺色、深色和純黑主題。</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard 也提供 Linux、macOS 和 Windows 版本。</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">原始碼：</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">應用程式如何使用宣告的權限</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES：將應用程式連結至項目時，列出已安裝的應用程式，並顯示已連結應用程式的名稱和圖示。</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">首頁</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

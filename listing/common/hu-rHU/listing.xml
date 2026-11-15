@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">Jelszavak kezelése</string>
     <string name="listing_summary_long">Jelszavak egyszerű kezelése</string>
-    <string name="listing_description_title">Kliens a Bitwarden® platformhoz és a KeePass-hoz (KDBX), amely a lehető legjobb felhasználói élményre fókuszál.</string>
+    <string name="listing_description_title">A Keyguard biztonságos, kényelmesen használható jelszókezelő. Offline is működik, és a Bitwarden® és a KeePass (KDBX) adatait is szinkronizálja.</string>
     <string name="listing_description_disclaimer_bitwarden_legal">Bármely Bitwarden® telepítéssel használható. Ez a termék nem áll kapcsolatban a Bitwarden projekttel, sem a Bitwarden, Inc. vállalattal. A Bitwarden® a Bitwarden Inc. bejegyzett védjegye.</string>
-    <string name="listing_description_highlights">Kiemelkedő jellemzők:</string>
-    <string name="listing_description_highlight_design">Gyönyörű felület: Letisztult, reszponzív Material You felhasználói felület világos és sötét témával.</string>
-    <string name="listing_description_highlight_search">Fejlett keresés: Hatékony és gyors keresési funkciók.</string>
-    <string name="listing_description_highlight_watchtower">Őrtorony: Megtalálja a kiszivárgott és újrafelhasznált jelszavakat, a sebezhető fiókokat, az inaktív kétlépcsős azonosítást, a nem biztonságos weboldalakat, valamint a duplikált vagy lejáró elemeket és még sok mást.</string>
-    <string name="listing_description_highlight_multiple_accounts">Több fiók támogatása: Egyszerre több fiókba is bejelentkezhetsz.</string>
-    <string name="listing_description_highlight_offline">Offline kezelés: Elemek és küldések (Bitwarden Send) hozzáadása, módosítása és a széf megtekintése akár offline állapotban is.</string>
-    <string name="listing_description_highlight_export">Adatexportálás: Egyéni vagy szervezeti elemek exportálása, a mellékletekkel együtt.</string>
-    <string name="listing_description_highlight_backup">Biztonsági mentés: A széf biztonsági mentési tárolójának automatikus kezelése, beleértve a mellékleteket is.</string>
-    <string name="listing_description_highlight_attachment_preview">Melléklet előnézet: Biztonságos, alkalmazáson belüli megjelenítő kép- és szövegmellékletekhez.</string>
-    <string name="listing_description_highlight_generator">Generátor: Jelszavak, SSH- és GPG-kulcsok, valamint e-mail-továbbítók létrehozása egyéni szólisták támogatásával.</string>
-    <string name="listing_description_highlight_ssh_agent">SSH ügynök: Hitelesítés szervereken, Git commitok aláírása, interakció SSH-alapú szolgáltatásokkal.</string>
-    <string name="listing_description_highlight_gpg_agent">GPG-ügynök: Fájlok vagy üzenetek titkosítása, visszafejtése, aláírása és ellenőrzése.</string>
-    <string name="listing_description_highlight_other">Fejlett funkciók: Parancsikonok, mező-helyőrzők (placeholderek), URL-felülbírálások és intelligens ütközésfeloldás támogatása.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">Alapfunkciók</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">Biztonság</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">Adatok</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">Eszközök haladóknak</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">Automatikus kitöltés: Felhasználónevek és jelszavak kitöltése alkalmazásokban és böngészőkben, új belépési adatok mentése bejelentkezéskor.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">Hozzáférési kulcsok: Kulcsok létrehozása és használata bejelentkezéshez alkalmazásokban, böngészőkben és egy közeli számítógépen.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">Egyszer használatos jelszavak: Hitelesítő kulcsok tárolása a belépési adatoknál, TOTP-, HOTP-, Steam- és mOTP-kódok előállítása.</string>
+    <string name="listing_description_highlight_generator">Generátor: Jelszavak, jelmondatok, felhasználónevek, e-mail-álnevek, SSH- és GPG-kulcsok létrehozása saját szólistákkal.</string>
+    <string name="listing_description_highlight_search">Keresés: Elemek keresése kifejezésekkel, kizárásokkal és mezőszűrőkkel. A gyakran használt szűrők menthetők.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">Gyorskeresés: Elemek keresése és értékeik másolása bármely alkalmazásból, globális billentyűparanccsal.</string>
+    <string name="listing_description_highlight_watchtower">Őrtorony: Kiszivárgott, újrahasznált és gyenge jelszavak, feltört fiókok, hiányzó kétfaktoros hitelesítés, nem biztonságos webhelyek, ismétlődő vagy lejáró elemek keresése.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">Feloldás: Az alkalmazás jelszavával vagy gyorsabban, például biometrikus azonosítással, YubiKey vagy biztonsági kulcs használatával.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH-ügynök: Hitelesítés szervereken és Git-tárhelyeken olyan SSH-kulcsokkal, amelyek soha nem hagyják el a széfet.</string>
+    <string name="listing_description_highlight_gpg_agent">GPG-ügynök és eszközök: Aláírás és visszafejtés más alkalmazásokból vagy a Keyguardban, a széfet soha el nem hagyó GPG-kulcsokkal.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">Környezetek (béta): Környezeti változók, például API-kulcsok tárolása a széfben, átadásuk helyi eszközöknek és programozó AI-ügynököknek.</string>
+    <string name="listing_description_highlight_multiple_accounts">Több fiók: Bejelentkezés több Bitwarden- és KeePass-fiókba, elemeik megjelenítése egy közös széfben.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">Saját szerverek: Kapcsolódás saját szerverhez egyszeri bejelentkezéssel, kliens-tanúsítványokkal és egyéni HTTP-fejlécekkel.</string>
+    <string name="listing_description_highlight_offline">Offline: A széf megtekintése, elemek hozzáadása és szerkesztése internet nélkül. A módosítások a következő szinkronizáláskor mezőnként egyesülnek.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">Importálás: Jelszavak átvitele böngészőkből és más jelszókezelőkből.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">Hitelesítő adatok cseréje: Jelszavak és hozzáférési kulcsok közvetlen átvitele a Keyguard és az eszköz más alkalmazásai között.</string>
+    <string name="listing_description_highlight_export">Exportálás: Elemek és mellékleteik mentése titkosított ZIP-archívumba vagy KeePass-adatbázisba.</string>
+    <string name="listing_description_highlight_backup">Biztonsági mentés: A széf verziózott pillanatképeinek tárolása mappában, WebDAV-szerveren vagy S3-kompatibilis tárhelyen.</string>
+    <string name="listing_description_highlight_attachment_preview">Mellékletek: Fájlok feltöltése a széfbe, képek, szövegek és ZIP-archívumok megtekintése lemezre mentés nélkül.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Küldések: Szöveg vagy fájl megosztása lejáró hivatkozással, igény szerint jelszóval vagy hozzáférési korláttal.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: Elemek és egyszer használatos jelszavak megtekintése az órán, bejelentkezés az óra alkalmazásaiba.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">Összekapcsolt eszközök (béta): Alkalmazásbeállítások, például e-mail-továbbítók és szólisták közvetlen szinkronizálása az eszközök között.</string>
+    <string name="listing_description_highlight_other">Haladó funkciók: Tömeges műveletek, mezőhelyőrzők és URL-felülbírálások.</string>
+    <string name="listing_description_highlight_design">Felület: Material You dizájn világos, sötét és fekete témával.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">A Keyguard Linux, macOS és Windows rendszeren is elérhető.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">Forráskód:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">A bejelentett engedélyek használata</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: Felsorolja a telepített alkalmazásokat, amikor egy alkalmazást elemhez kapcsol, és megjeleníti a kapcsolt alkalmazás nevét és ikonját.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Kezdőképernyő</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_store_google_app_name">Keyguard</string>
-    <string name="listing_store_google_short_description">Una aplicació de tercers que se centra en l\'experiència d\'usuari.</string>
+    <!-- A one-line description of the app, at most 80 characters -->
+    <string name="listing_store_google_summary">Contrasenyes: autocompleció, claus d\'accés, sense xarxa i controls de seguretat.</string>
     <!-- A name of the Yearly subscription plan -->
     <string name="listing_store_google_subscription_yearly">Pla anual</string>
     <!-- A name of the Quarterly subscription plan -->

@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">Wachtwoorden beheren</string>
     <string name="listing_summary_long">Beheer wachtwoorden met gemak</string>
-    <string name="listing_description_title">Multi-client voor het Bitwarden®-platform en KeePass (KDBX), ontworpen voor de best mogelijke gebruikerservaring.</string>
+    <string name="listing_description_title">Keyguard is een veilige, gebruiksvriendelijke wachtwoordmanager. Werkt offline en synchroniseert met Bitwarden® en KeePass (KDBX).</string>
     <string name="listing_description_disclaimer_bitwarden_legal">Kan worden gebruikt met elke Bitwarden®-installatie. Dit product is niet verbonden met het Bitwarden-project of Bitwarden, Inc. Bitwarden® is een geregistreerd handelsmerk van Bitwarden Inc.</string>
-    <string name="listing_description_highlights">Hoogtepunten:</string>
-    <string name="listing_description_highlight_design">Mooie interface: Een rijke, responsieve Material You-gebruikersinterface met lichte/donkere thema\'s.</string>
-    <string name="listing_description_highlight_search">Geavanceerd zoeken: Krachtige en snelle zoekmogelijkheden.</string>
-    <string name="listing_description_highlight_watchtower">Watchtower: Detecteert gelekte wachtwoorden, kwetsbare accounts, hergebruikte wachtwoorden, inactieve tweefactorauthenticatie, onveilige websites, dubbele of verlopen items en meer.</string>
-    <string name="listing_description_highlight_multiple_accounts">Multi-account ondersteuning: Meerdere accounts tegelijkertijd ingelogd hebben.</string>
-    <string name="listing_description_highlight_offline">Offline beheer: Items en sends toevoegen, wijzigen en uw kluis offline bekijken.</string>
-    <string name="listing_description_highlight_export">Gegevensexport: Individuele of organisatie-items exporteren, inclusief bijlagen.</string>
-    <string name="listing_description_highlight_backup">Gegevensback-up: Beheer automatisch een back-upopslagplaats voor uw kluis, inclusief bijlagen.</string>
-    <string name="listing_description_highlight_attachment_preview">Voorvertoning van bijlagen: Bekijk afbeeldings- en tekstbijlagen veilig in de app.</string>
-    <string name="listing_description_highlight_generator">Generator: Wachtwoorden, SSH-sleutels en e-mail doorstuurders maken, met ondersteuning voor aangepaste woordenlijsten.</string>
-    <string name="listing_description_highlight_ssh_agent">SSH-agent: Aanmelden bij servers, Git-commits ondertekenen en SSH-diensten gebruiken.</string>
-    <string name="listing_description_highlight_gpg_agent">GPG-agent: Bestanden of berichten versleutelen, ontsleutelen, ondertekenen en verifiëren.</string>
-    <string name="listing_description_highlight_other">Geavanceerde functies: Ondersteuning voor sneltoetsen, veldplaatshouders, URL-overschrijvingen en slimme conflictoplossing.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">Basisfuncties</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">Beveiliging</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">Uw gegevens</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">Geavanceerde tools</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">Automatisch invullen: Vul gebruikersnamen en wachtwoorden in apps en browsers in en sla nieuwe logins op bij het aanmelden.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">Passkeys: Maak passkeys en meld u ermee aan in apps, browsers en op een computer in de buurt.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">Eenmalige wachtwoorden: Bewaar authenticatiesleutels bij uw logins voor TOTP-, HOTP-, Steam- en mOTP-codes.</string>
+    <string name="listing_description_highlight_generator">Generator: Maak wachtwoorden, wachtwoordzinnen, gebruikersnamen, e-mailaliassen en SSH- en GPG-sleutels met eigen woordenlijsten.</string>
+    <string name="listing_description_highlight_search">Zoeken: Vind items met woordgroepen, uitsluitingen en zoektermen per veld. Bewaar veelgebruikte filters.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">Snel zoeken: Vind vanuit elke app een item met een algemene sneltoets en kopieer de waarden.</string>
+    <string name="listing_description_highlight_watchtower">Watchtower: Vind gelekte, hergebruikte en zwakke wachtwoorden, gehackte accounts, ontbrekende tweefactorauthenticatie, onveilige websites en dubbele of binnenkort verlopen items.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">Ontgrendelen: Gebruik het app-wachtwoord of een snellere methode, zoals biometrie, een YubiKey of een beveiligingssleutel.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH-agent: Meld u aan bij servers en Git-hosts met SSH-sleutels die uw kluis nooit verlaten.</string>
+    <string name="listing_description_highlight_gpg_agent">GPG-agent en tools: Onderteken en ontsleutel vanuit andere apps of in Keyguard met GPG-sleutels die uw kluis nooit verlaten.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">Omgevingen (bèta): Bewaar omgevingsvariabelen, zoals API-sleutels, in uw kluis en geef ze door aan lokale tools en AI-programmeeragenten.</string>
+    <string name="listing_description_highlight_multiple_accounts">Meerdere accounts: Meld u aan bij meerdere Bitwarden- en KeePass-accounts en bekijk hun items in één kluis.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">Zelfgehoste servers: Maak verbinding met uw eigen server met eenmalige aanmelding, clientcertificaten en aangepaste HTTP-headers.</string>
+    <string name="listing_description_highlight_offline">Offline: Bekijk uw kluis en voeg items toe of bewerk ze zonder verbinding. Wijzigingen worden bij de volgende synchronisatie per veld samengevoegd.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">Importeren: Zet wachtwoorden over uit browsers en andere wachtwoordmanagers.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">Inloggegevens uitwisselen: Verplaats wachtwoorden en passkeys rechtstreeks tussen Keyguard en andere apps op uw apparaat.</string>
+    <string name="listing_description_highlight_export">Exporteren: Sla items met bijlagen op in een versleuteld ZIP-archief of een KeePass-database.</string>
+    <string name="listing_description_highlight_backup">Back-ups: Bewaar momentopnamen van uw kluis met versiebeheer in een map, op een WebDAV-server of in S3-compatibele opslag.</string>
+    <string name="listing_description_highlight_attachment_preview">Bijlagen: Upload bestanden naar uw kluis en bekijk afbeeldingen, tekst en ZIP-archieven zonder ze op schijf op te slaan.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Sends: Deel tekst of een bestand via een link die verloopt, met een optioneel wachtwoord of een toegangslimiet.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: Bekijk items en eenmalige wachtwoorden op uw horloge en meld u aan bij horloge-apps.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">Gekoppelde apparaten (bèta): Synchroniseer app-instellingen, zoals e-maildoorstuurdiensten en woordenlijsten, rechtstreeks tussen uw apparaten.</string>
+    <string name="listing_description_highlight_other">Geavanceerde functies: Bulkacties, veldplaatshouders en URL-overschrijvingen.</string>
+    <string name="listing_description_highlight_design">Interface: Material You-ontwerp met lichte, donkere en zwarte thema\'s.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard is ook beschikbaar voor Linux, macOS en Windows.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">Broncode:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">Hoe de app de opgegeven machtigingen gebruikt</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: Toont geïnstalleerde apps bij het koppelen van een app aan een item en toont de naam en het pictogram van de gekoppelde app.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Startscherm</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

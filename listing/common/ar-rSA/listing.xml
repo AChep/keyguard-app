@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">إدارة كلمات المرور</string>
     <string name="listing_summary_long">إدارة كلمات المرور بسهولة</string>
-    <string name="listing_description_title">تطبيق عميل متعدد لمنصة Bitwarden® وKeePass (KDBX)، صُمّم لتقديم أفضل تجربة مستخدم ممكنة.</string>
+    <string name="listing_description_title">Keyguard مدير كلمات مرور آمن وسهل الاستخدام. يعمل دون اتصال ويتزامن مع Bitwarden® وKeePass (KDBX).</string>
     <string name="listing_description_disclaimer_bitwarden_legal">يمكن استخدامه مع أي تثبيت لـ Bitwarden®. هذا المنتج غير مرتبط بمشروع Bitwarden ولا بشركة Bitwarden, Inc. Bitwarden® علامة تجارية مسجلة لشركة Bitwarden Inc.</string>
-    <string name="listing_description_highlights">أبرز الميزات:</string>
-    <string name="listing_description_highlight_design">واجهة جميلة: واجهة مستخدم غنية وسريعة الاستجابة بتصميم Material You، مع مظهرين فاتح وداكن.</string>
-    <string name="listing_description_highlight_search">بحث متقدم: إمكانات بحث قوية وسريعة.</string>
-    <string name="listing_description_highlight_watchtower">برج المراقبة: يكتشف كلمات المرور المخترقة والحسابات الضعيفة وكلمات المرور المعاد استخدامها والمصادقة الثنائية غير النشطة والمواقع غير الآمنة والعناصر المكررة أو التي تنتهي صلاحيتها، وغير ذلك.</string>
-    <string name="listing_description_highlight_multiple_accounts">دعم حسابات متعددة: يمكنك تسجيل الدخول إلى عدة حسابات في الوقت نفسه.</string>
-    <string name="listing_description_highlight_offline">الإدارة دون اتصال: أضف العناصر وعمليات الإرسال وعدّلها، واعرض قبوك، كل ذلك دون اتصال.</string>
-    <string name="listing_description_highlight_export">تصدير البيانات: صدّر العناصر الفردية أو عناصر المنظمة، بما في ذلك المرفقات.</string>
-    <string name="listing_description_highlight_backup">النسخ الاحتياطي للبيانات: إدارة مستودع النسخ الاحتياطي للقبو تلقائيًا، بما يشمل المرفقات.</string>
-    <string name="listing_description_highlight_attachment_preview">معاينة المرفقات: عارض آمن داخل التطبيق لمرفقات الصور والنصوص.</string>
-    <string name="listing_description_highlight_generator">المولّد: أنشئ كلمات مرور ومفاتيح SSH وGPG ووكلاء بريد إلكتروني، مع دعم قوائم كلمات مخصّصة.</string>
-    <string name="listing_description_highlight_ssh_agent">وكيل SSH: المصادقة للاتصال بالخوادم، وتوقيع التزامات Git، والتفاعل مع الخدمات القائمة على SSH.</string>
-    <string name="listing_description_highlight_gpg_agent">وكيل GPG: تشفير الملفات أو الرسائل وفك تشفيرها وتوقيعها والتحقق منها.</string>
-    <string name="listing_description_highlight_other">الميزات المتقدمة: دعم الاختصارات والعناصر النائبة للحقول وتجاوزات عناوين URL والحل الذكي للتعارضات.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">الأساسيات</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">الأمان</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">بياناتك</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">أدوات متقدمة</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">الملء التلقائي: املأ أسماء المستخدمين وكلمات المرور في التطبيقات والمتصفحات، واحفظ بيانات الدخول الجديدة أثناء تسجيل الدخول.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">مفاتيح المرور: أنشئ مفاتيح مرور واستخدمها لتسجيل الدخول في التطبيقات والمتصفحات وعلى حاسوب قريب.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">كلمات المرور لمرة واحدة: احفظ مفاتيح المصادقة ضمن بيانات الدخول واحصل على رموز TOTP وHOTP وSteam وmOTP.</string>
+    <string name="listing_description_highlight_generator">المولّد: أنشئ كلمات وعبارات مرور وأسماء مستخدمين وأسماء بريد إلكتروني مستعارة ومفاتيح SSH وGPG، بقوائم كلماتك الخاصة.</string>
+    <string name="listing_description_highlight_search">البحث: اعثر على العناصر باستخدام عبارات واستثناءات ومحددات الحقول. احفظ عوامل التصفية التي تستخدمها كثيرًا.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">البحث السريع: اعثر على عنصر من أي تطبيق باختصار على مستوى النظام وانسخ قيمه.</string>
+    <string name="listing_description_highlight_watchtower">برج المراقبة: اكتشف كلمات المرور المسرّبة والمعاد استخدامها والضعيفة، والحسابات المخترقة، وغياب المصادقة الثنائية، والمواقع غير الآمنة، والعناصر المكررة أو التي توشك صلاحيتها على الانتهاء.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">فتح القفل: استخدم كلمة مرور التطبيق أو طريقة أسرع، مثل القياسات الحيوية أو YubiKey أو مفتاح أمان.</string>
+    <string name="listing_description_highlight_ssh_agent">وكيل SSH: أثبت هويتك لدى الخوادم وخدمات استضافة Git بمفاتيح SSH لا تغادر قبوك.</string>
+    <string name="listing_description_highlight_gpg_agent">وكيل GPG وأدواته: وقّع البيانات وفك تشفيرها بمفاتيح GPG لا تغادر قبوك، من تطبيقات أخرى أو داخل Keyguard.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">البيئات (تجريبية): احفظ متغيرات البيئة، مثل مفاتيح API، في قبوك ومرّرها إلى الأدوات المحلية ووكلاء البرمجة.</string>
+    <string name="listing_description_highlight_multiple_accounts">حسابات متعددة: سجّل الدخول إلى عدة حسابات Bitwarden وKeePass واعرض عناصرها في قبو واحد.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">خوادم مستضافة ذاتيًا: اتصل بخادمك باستخدام تسجيل الدخول الموحّد وشهادات العميل وترويسات HTTP مخصصة.</string>
+    <string name="listing_description_highlight_offline">دون اتصال: اعرض قبوك وأضف العناصر وعدّلها دون اتصال. تُدمج التعديلات حقلًا بحقل عند المزامنة التالية.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">الاستيراد: انقل كلمات مرورك من المتصفحات ومديري كلمات المرور الآخرين.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">تبادل بيانات الاعتماد: انقل كلمات المرور ومفاتيح المرور مباشرة بين Keyguard والتطبيقات الأخرى على جهازك.</string>
+    <string name="listing_description_highlight_export">التصدير: احفظ العناصر ومرفقاتها في أرشيف ZIP مشفّر أو قاعدة بيانات KeePass.</string>
+    <string name="listing_description_highlight_backup">النسخ الاحتياطية: احتفظ بلقطات من قبوك مع حفظ إصداراتها في مجلد أو على خادم WebDAV أو في تخزين متوافق مع S3.</string>
+    <string name="listing_description_highlight_attachment_preview">المرفقات: ارفع الملفات إلى قبوك وعاين الصور والنصوص وأرشيفات ZIP دون حفظها على القرص.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">عمليات الإرسال: شارك نصًا أو ملفًا برابط تنتهي صلاحيته، مع كلمة مرور اختيارية أو حد لعدد مرات الوصول.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: اعرض عناصرك وكلمات المرور لمرة واحدة على ساعتك، وسجّل الدخول إلى تطبيقات الساعة.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">الأجهزة المرتبطة (تجريبية): زامن إعدادات التطبيق، مثل خدمات إعادة توجيه البريد الإلكتروني وقوائم الكلمات، مباشرة بين أجهزتك.</string>
+    <string name="listing_description_highlight_other">ميزات متقدمة: إجراءات جماعية وعناصر نائبة للحقول وتجاوزات عناوين URL.</string>
+    <string name="listing_description_highlight_design">الواجهة: تصميم Material You بمظاهر فاتحة وداكنة وسوداء.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">يتوفر Keyguard أيضًا على Linux وmacOS وWindows.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">الشيفرة المصدرية:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">كيفية استخدام التطبيق للأذونات المعلنة</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: يسرد التطبيقات المثبتة عند ربط تطبيق بعنصر، ويعرض اسم التطبيق المرتبط وأيقونته.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">الشاشة الرئيسية</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

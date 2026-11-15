@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_store_google_app_name">Keyguard</string>
-    <string name="listing_store_google_short_description">ユーザーエクスペリエンスに重点を置いたサードパーティクライアント</string>
+    <!-- A one-line description of the app, at most 80 characters -->
+    <string name="listing_store_google_summary">自動入力、パスキー、オフライン利用、セキュリティチェックに対応したパスワードマネージャー。</string>
     <!-- A name of the Yearly subscription plan -->
     <string name="listing_store_google_subscription_yearly">年間プラン</string>
     <!-- A name of the Quarterly subscription plan -->

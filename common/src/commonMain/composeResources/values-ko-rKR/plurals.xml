@@ -184,4 +184,13 @@
     <plurals name="pref_item_ssh_agent_bookmarks_config_skipped_plural">
         <item quantity="other"><xliff:g id="count" example="2">%1$d</xliff:g> bookmarks skipped: their URLs are invalid, or the agent doesn't offer their keys</item>
     </plurals>
+    <plurals name="app_link_status_devices_up_to_date_plural">
+        <item quantity="other"><xliff:g id="count" example="1">%1$d</xliff:g> of <xliff:g id="total" example="2">%2$d</xliff:g> devices up to date</item>
+    </plurals>
+    <plurals name="app_link_status_relay_storage_waiting_plural">
+        <item quantity="other">Relay storage is off on <xliff:g id="count" example="2">%1$d</xliff:g> devices</item>
+    </plurals>
+    <plurals name="changepassword_authority_not_resealed_plural">
+        <item quantity="other">This device can no longer add, remove or unlink linked devices in <xliff:g id="count" example="2">%1$d</xliff:g> groups.</item>
+    </plurals>
 </resources>

@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">비밀번호 관리</string>
     <string name="listing_summary_long">비밀번호를 손쉽게 관리하세요</string>
-    <string name="listing_description_title">최상의 사용자 경험을 제공하도록 설계된 Bitwarden® 플랫폼 및 KeePass (KDBX)용 멀티 클라이언트입니다.</string>
+    <string name="listing_description_title">Keyguard는 사용하기 편한 안전한 비밀번호 관리자입니다. 오프라인에서도 작동하며 Bitwarden® 및 KeePass (KDBX)와 동기화됩니다.</string>
     <string name="listing_description_disclaimer_bitwarden_legal">모든 Bitwarden® 설치 환경에서 사용할 수 있습니다. 이 제품은 Bitwarden 프로젝트 및 Bitwarden, Inc.와 관련이 없습니다. Bitwarden®은 Bitwarden Inc.의 등록 상표입니다.</string>
-    <string name="listing_description_highlights">주요 기능:</string>
-    <string name="listing_description_highlight_design">아름다운 인터페이스: 밝은 테마와 어두운 테마를 지원하는 풍부하고 반응성이 뛰어난 Material You UI.</string>
-    <string name="listing_description_highlight_search">고급 검색: 강력하고 빠른 검색 기능.</string>
-    <string name="listing_description_highlight_watchtower">감시탑: 유출된 비밀번호, 취약한 계정, 재사용된 비밀번호, 비활성화된 2단계 인증, 안전하지 않은 웹사이트, 중복되거나 만료 예정인 항목 등을 감지합니다.</string>
-    <string name="listing_description_highlight_multiple_accounts">여러 계정 지원: 여러 계정에 동시에 로그인할 수 있습니다.</string>
-    <string name="listing_description_highlight_offline">오프라인 관리: 오프라인에서도 항목과 Send를 추가하고, 보관함을 수정하고 확인할 수 있습니다.</string>
-    <string name="listing_description_highlight_export">데이터 내보내기: 첨부 파일을 포함하여 개인 또는 조직의 항목을 내보낼 수 있습니다.</string>
-    <string name="listing_description_highlight_backup">데이터 백업: 첨부 파일을 포함한 보관함 백업 저장소를 자동으로 관리합니다.</string>
-    <string name="listing_description_highlight_attachment_preview">첨부 파일 미리보기: 앱 내 뷰어에서 이미지와 텍스트 첨부 파일을 안전하게 확인합니다.</string>
-    <string name="listing_description_highlight_generator">생성기: 비밀번호, SSH 키, 이메일 포워더 생성 및 사용자 지정 단어 목록 지원.</string>
-    <string name="listing_description_highlight_ssh_agent">SSH 에이전트: 서버 인증, Git 커밋 서명, SSH 기반 서비스 연동을 지원합니다.</string>
-    <string name="listing_description_highlight_gpg_agent">GPG 에이전트: 파일이나 메시지를 암호화, 복호화, 서명 및 검증합니다.</string>
-    <string name="listing_description_highlight_other">고급 기능: 바로가기, 필드 플레이스홀더, URL 덮어쓰기, 지능적인 충돌 해결 기능을 지원합니다.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">주요 기능</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">보안</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">데이터 관리</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">고급 도구</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">자동 완성: 앱과 브라우저에서 사용자 이름과 비밀번호를 입력하고, 로그인할 때 새 로그인 정보를 저장합니다.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">패스키: 패스키를 만들고 앱, 브라우저 및 근처 컴퓨터에서 패스키로 로그인합니다.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">일회용 비밀번호: 로그인 정보에 인증 키를 보관하고 TOTP, HOTP, Steam 및 mOTP 코드를 생성합니다.</string>
+    <string name="listing_description_highlight_generator">생성기: 나만의 단어 목록을 사용해 비밀번호, 암호 구문, 사용자 이름, 이메일 별칭, SSH 및 GPG 키를 만듭니다.</string>
+    <string name="listing_description_highlight_search">검색: 구문, 제외 조건, 필드 한정자로 항목을 찾고 자주 쓰는 필터를 저장합니다.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">빠른 검색: 어느 앱에서든 전역 단축키로 항목을 찾아 값을 복사합니다.</string>
+    <string name="listing_description_highlight_watchtower">감시탑: 유출되거나 재사용되거나 취약한 비밀번호, 침해된 계정, 2단계 인증 누락, 안전하지 않은 웹사이트, 중복되거나 만료 예정인 항목을 찾습니다.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">잠금 해제: 앱 비밀번호 또는 생체 인증, YubiKey, 보안 키 같은 빠른 방법을 사용합니다.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH 에이전트: 보관함 밖으로 내보내지 않는 SSH 키로 서버와 Git 호스트에서 인증합니다.</string>
+    <string name="listing_description_highlight_gpg_agent">GPG 에이전트 및 도구: 보관함 밖으로 내보내지 않는 GPG 키로 다른 앱이나 Keyguard에서 서명하고 복호화합니다.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">환경(베타): API 키 같은 환경 변수를 보관함에 저장하고 로컬 도구와 코딩 에이전트에 전달합니다.</string>
+    <string name="listing_description_highlight_multiple_accounts">여러 계정: 여러 Bitwarden 및 KeePass 계정에 로그인하고 한 보관함에서 모든 계정의 항목을 확인합니다.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">자체 호스팅 서버: 싱글 사인온, 클라이언트 인증서, 사용자 지정 HTTP 헤더로 자체 서버에 연결합니다.</string>
+    <string name="listing_description_highlight_offline">오프라인: 연결 없이 보관함을 확인하고 항목을 추가하거나 수정합니다. 수정 사항은 다음 동기화 때 필드별로 병합됩니다.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">가져오기: 브라우저와 다른 비밀번호 관리자에서 비밀번호를 옮겨 옵니다.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">자격 증명 교환: 기기 내에서 Keyguard와 다른 앱 간에 비밀번호와 패스키를 직접 옮깁니다.</string>
+    <string name="listing_description_highlight_export">내보내기: 항목과 첨부 파일을 암호화된 ZIP 파일이나 KeePass 데이터베이스에 저장합니다.</string>
+    <string name="listing_description_highlight_backup">백업: 버전별 보관함 스냅샷을 폴더, WebDAV 서버 또는 S3 호환 저장소에 보관합니다.</string>
+    <string name="listing_description_highlight_attachment_preview">첨부 파일: 보관함에 파일을 업로드하고 디스크에 저장하지 않고도 이미지, 텍스트, ZIP 파일을 미리 봅니다.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Send: 만료 기한이 있는 링크로 텍스트나 파일을 공유하고, 필요에 따라 비밀번호나 접근 횟수 제한을 설정합니다.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: 시계에서 항목과 일회용 비밀번호를 확인하고 시계 앱에 로그인합니다.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">연결된 기기(베타): 이메일 포워더, 단어 목록 등의 앱 설정을 기기 간에 직접 동기화합니다.</string>
+    <string name="listing_description_highlight_other">고급 기능: 일괄 작업, 필드 플레이스홀더, URL 덮어쓰기를 지원합니다.</string>
+    <string name="listing_description_highlight_design">인터페이스: 밝은 테마, 어두운 테마, 검은색 테마를 갖춘 Material You 디자인.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard는 Linux, macOS 및 Windows에서도 사용할 수 있습니다.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">소스 코드:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">앱에서 선언된 권한을 사용하는 방식</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: 앱을 항목에 연결할 때 설치된 앱 목록을 보여 주고, 연결된 앱의 이름과 아이콘을 표시합니다.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">홈 화면</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

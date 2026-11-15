@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">ניהול סיסמאות</string>
     <string name="listing_summary_long">ניהול סיסמאות בקלות</string>
-    <string name="listing_description_title">לקוח משולב לפלטפורמת Bitwarden® ול־KeePass (KDBX), שנועד לספק את חוויית המשתמש הטובה ביותר.</string>
+    <string name="listing_description_title">Keyguard הוא מנהל סיסמאות מאובטח ונוח לשימוש. הוא פועל ללא חיבור לרשת ומסתנכרן עם Bitwarden® ו־KeePass (KDBX).</string>
     <string name="listing_description_disclaimer_bitwarden_legal">ניתן להשתמש עם כל התקנה של Bitwarden®. מוצר זה אינו קשור לפרויקט Bitwarden או לחברת Bitwarden, Inc. הסימן Bitwarden® הוא סימן מסחר רשום של Bitwarden Inc.</string>
-    <string name="listing_description_highlights">תכונות בולטות:</string>
-    <string name="listing_description_highlight_design">ממשק יפה: ממשק Material You עשיר ומגיב, עם ערכות נושא בהירה וכהה.</string>
-    <string name="listing_description_highlight_search">חיפוש מתקדם: יכולות חיפוש עוצמתיות ומהירות.</string>
-    <string name="listing_description_highlight_watchtower">מגדל השמירה: זיהוי סיסמאות שנחשפו, חשבונות בסיכון, שימוש חוזר בסיסמאות, אימות דו־שלבי שאינו פעיל, אתרים לא מאובטחים, פריטים כפולים או שעומדים לפוג ועוד.</string>
-    <string name="listing_description_highlight_multiple_accounts">תמיכה במספר חשבונות: חיבור למספר חשבונות בו־זמנית.</string>
-    <string name="listing_description_highlight_offline">ניהול ללא חיבור לרשת: הוספת פריטים ושליחות, עריכתם וצפייה בכספת ללא חיבור לרשת.</string>
-    <string name="listing_description_highlight_export">ייצוא נתונים: ייצוא פריטים אישיים או ארגוניים, כולל קבצים מצורפים.</string>
-    <string name="listing_description_highlight_backup">גיבוי נתונים: ניהול אוטומטי של מאגר גיבויי הכספת, כולל קבצים מצורפים.</string>
-    <string name="listing_description_highlight_attachment_preview">תצוגה מקדימה של קבצים מצורפים: הצגה מאובטחת בתוך היישום של קובצי תמונה וטקסט מצורפים.</string>
-    <string name="listing_description_highlight_generator">מחולל: יצירת סיסמאות, מפתחות SSH ו־GPG וכתובות להעברת דוא״ל, עם תמיכה ברשימות מילים מותאמות אישית.</string>
-    <string name="listing_description_highlight_ssh_agent">סוכן SSH: אימות מול שרתים, חתימה על commits של Git ועבודה עם שירותים המבוססים על SSH.</string>
-    <string name="listing_description_highlight_gpg_agent">סוכן GPG: הצפנה, פענוח, חתימה ואימות של קבצים או הודעות.</string>
-    <string name="listing_description_highlight_other">תכונות מתקדמות: תמיכה בקיצורי דרך, במצייני מיקום בשדות, בכללי החלפה לכתובות URL ובפתרון חכם של התנגשויות.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">תכונות עיקריות</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">אבטחה</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">הנתונים שלכם</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">כלים למשתמשים מתקדמים</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">מילוי אוטומטי: מילוי שמות משתמש וסיסמאות ביישומים ובדפדפנים, ושמירת פרטי כניסה חדשים בעת ההתחברות.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">מפתחות גישה: יצירת מפתחות גישה והתחברות באמצעותם ביישומים, בדפדפנים ובמחשב סמוך.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">סיסמאות חד־פעמיות: שמירת מפתחות אימות בפרטי הכניסה וקבלת קודים מסוג TOTP, HOTP, Steam ו־mOTP.</string>
+    <string name="listing_description_highlight_generator">מחולל: יצירת סיסמאות, ביטויי סיסמה, שמות משתמש, כינויים לדוא״ל ומפתחות SSH ו־GPG, עם רשימות מילים משלכם.</string>
+    <string name="listing_description_highlight_search">חיפוש: איתור פריטים באמצעות ביטויים, החרגות ותנאי חיפוש לפי שדות. שמירת מסננים בשימוש תכוף.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">חיפוש מהיר: איתור פריט מכל יישום באמצעות קיצור מקשים גלובלי והעתקת ערכיו.</string>
+    <string name="listing_description_highlight_watchtower">מגדל השמירה: איתור סיסמאות שדלפו, חלשות או בשימוש חוזר, חשבונות שנפרצו או ללא אימות דו־שלבי, אתרים לא מאובטחים ופריטים כפולים או שעומדים לפוג.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">ביטול נעילה: שימוש בסיסמת היישום או בשיטה מהירה יותר, כגון זיהוי ביומטרי, YubiKey או מפתח אבטחה.</string>
+    <string name="listing_description_highlight_ssh_agent">סוכן SSH: אימות מול שרתים ושירותי אירוח Git עם מפתחות SSH שלעולם אינם יוצאים מהכספת.</string>
+    <string name="listing_description_highlight_gpg_agent">סוכן וכלי GPG: חתימה ופענוח מיישומים אחרים או מתוך Keyguard, עם מפתחות GPG שלעולם אינם יוצאים מהכספת.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">סביבות (בטא): שמירת משתני סביבה, כגון מפתחות API, בכספת והעברתם לכלים מקומיים ולסוכני תכנות.</string>
+    <string name="listing_description_highlight_multiple_accounts">חשבונות מרובים: התחברות למספר חשבונות Bitwarden ו־KeePass וצפייה בפריטים שלהם בכספת אחת.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">שרתים באירוח עצמי: חיבור לשרת שלכם עם כניסה יחידה, תעודות לקוח וכותרות HTTP מותאמות אישית.</string>
+    <string name="listing_description_highlight_offline">ללא חיבור לרשת: צפייה בכספת והוספה או עריכה של פריטים גם ללא חיבור. השינויים מתמזגים שדה־שדה בסנכרון הבא.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">ייבוא: העברת הסיסמאות מדפדפנים וממנהלי סיסמאות אחרים.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">חילופי פרטי כניסה: העברת סיסמאות ומפתחות גישה ישירות בין Keyguard ליישומים אחרים במכשיר.</string>
+    <string name="listing_description_highlight_export">ייצוא: שמירת פריטים והקבצים המצורפים להם בארכיון ZIP מוצפן או במסד נתונים של KeePass.</string>
+    <string name="listing_description_highlight_backup">גיבויים: שמירת תמונות מצב של הכספת עם היסטוריית גרסאות בתיקייה, בשרת WebDAV או באחסון תואם S3.</string>
+    <string name="listing_description_highlight_attachment_preview">קבצים מצורפים: העלאת קבצים לכספת ותצוגה מקדימה של תמונות, טקסט וארכיוני ZIP ללא שמירתם בדיסק.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">שליחות: שיתוף טקסט או קובץ בקישור לזמן מוגבל, עם אפשרות לסיסמה או להגבלת גישה.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: קריאת הפריטים והסיסמאות החד־פעמיות בשעון, והתחברות ליישומים בשעון.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">מכשירים מקושרים (בטא): סנכרון הגדרות היישום, כגון שירותי העברת דוא״ל ורשימות מילים, ישירות בין המכשירים שלכם.</string>
+    <string name="listing_description_highlight_other">תכונות מתקדמות: פעולות על מספר פריטים, מצייני מיקום בשדות וכללי החלפה לכתובות URL.</string>
+    <string name="listing_description_highlight_design">ממשק: עיצוב Material You עם ערכות נושא בהירה, כהה ושחורה.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard זמין גם עבור Linux, macOS ו־Windows.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">קוד מקור:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">כיצד היישום משתמש בהרשאות המוצהרות</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: הצגת רשימת היישומים המותקנים בעת קישור יישום לפריט, והצגת השם והסמל של היישום המקושר.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">מסך הבית</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

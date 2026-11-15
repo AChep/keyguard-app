@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">Bestuur wagwoorde</string>
     <string name="listing_summary_long">Bestuur wagwoorde met gemak</string>
-    <string name="listing_description_title">Multi-kliënt vir die Bitwarden®-platform en KeePass (KDBX), ontwerp om die beste gebruikerservaring te bied.</string>
+    <string name="listing_description_title">Keyguard is \'n veilige, gebruiksvriendelike wagwoordbestuurder. Dit werk vanlyn en sinchroniseer met Bitwarden® en KeePass (KDBX).</string>
     <string name="listing_description_disclaimer_bitwarden_legal">Kan met enige Bitwarden®-installasie gebruik word. Hierdie produk is nie verbonde aan die Bitwarden-projek of Bitwarden, Inc. nie. Bitwarden® is \'n geregistreerde handelsmerk van Bitwarden Inc.</string>
-    <string name="listing_description_highlights">Hoogtepunte:</string>
-    <string name="listing_description_highlight_design">Pragtige koppelvlak: \'n Ryk, responsiewe Material You-gebruikerskoppelvlak met lig/donker-temas.</string>
-    <string name="listing_description_highlight_search">Gevorderde soektog: Kragtige en vinnige soekvermoëns.</string>
-    <string name="listing_description_highlight_watchtower">Watchtower: Bespeur gekompromitteerde wagwoorde, kwesbare rekeninge, hergebruikte wagwoorde, onaktiewe tweefaktor-verifikasie, onveilige webwerwe, duplikaat of verstrykende items en meer.</string>
-    <string name="listing_description_highlight_multiple_accounts">Multi-rekening ondersteuning: Hê verskeie rekeninge gelyktydig aangemeld.</string>
-    <string name="listing_description_highlight_offline">Vanlyn bestuur: Voeg items en sends by, wysig en bekyk jou kluis vanlyn.</string>
-    <string name="listing_description_highlight_export">Data-uitvoer: Voer individuele of organisasie-items uit, insluitend aanhangsels.</string>
-    <string name="listing_description_highlight_backup">Datarugsteun: Bestuur outomaties \'n bewaarplek vir kluisrugsteune, insluitend aanhangsels.</string>
-    <string name="listing_description_highlight_attachment_preview">Aanhangselvoorskou: Veilige lêerkyker vir prent- en teksaanhangsels, direk in die toep.</string>
-    <string name="listing_description_highlight_generator">Generator: Skep wagwoorde, SSH-sleutels en e-pos-aanstuurders, met ondersteuning vir pasgemaakte woordelyste.</string>
-    <string name="listing_description_highlight_ssh_agent">SSH-agent: Verifieer by bedieners, onderteken Git-commits en werk met SSH-gebaseerde dienste.</string>
-    <string name="listing_description_highlight_gpg_agent">GPG-agent: Enkripteer, dekripteer, onderteken en verifieer lêers of boodskappe.</string>
-    <string name="listing_description_highlight_other">Gevorderde kenmerke: Ondersteuning vir kortpaaie, veldplashouers, URL-oorskrywings en slim konflikoplossing.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">Noodsaaklikhede</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">Sekuriteit</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">Jou data</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">Gevorderde nutsmiddels</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">Outovul: Vul gebruikersname en wagwoorde in toeps en blaaiers in, en stoor nuwe aanmeldings terwyl jy aanmeld.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">Wagsleutels: Skep wagsleutels en meld daarmee aan in toeps, in blaaiers en op \'n rekenaar naby jou.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">Eenmalige wagwoorde: Bewaar verifikasiesleutels in jou aanmeldings en kry TOTP-, HOTP-, Steam- en mOTP-kodes.</string>
+    <string name="listing_description_highlight_generator">Generator: Skep wagwoorde, wagfrases, gebruikersname, e-posaliasse en SSH- en GPG-sleutels met jou eie woordelyste.</string>
+    <string name="listing_description_highlight_search">Soek: Vind items met frases, uitsluitings en veldkwalifiseerders. Stoor filters wat jy dikwels gebruik.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">Vinnige soektog: Vind \'n item vanuit enige toep met \'n globale kortpad en kopieer die waardes daarvan.</string>
+    <string name="listing_description_highlight_watchtower">Watchtower: Vind uitgelekte, hergebruikte en swak wagwoorde, gekompromitteerde rekeninge, ontbrekende tweefaktorverifikasie, onveilige webwerwe en duplikaatitems of items wat verval.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">Ontsluit: Gebruik die toepwagwoord, of \'n vinniger metode soos biometrie, \'n YubiKey of \'n sekuriteitsleutel.</string>
+    <string name="listing_description_highlight_ssh_agent">SSH-agent: Verifieer by bedieners en Git-gashere met SSH-sleutels wat nooit jou kluis verlaat nie.</string>
+    <string name="listing_description_highlight_gpg_agent">GPG-agent en -nutsmiddels: Onderteken en dekripteer vanuit ander toeps of in Keyguard met GPG-sleutels wat nooit jou kluis verlaat nie.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">Omgewings (beta): Bewaar omgewingsveranderlikes, soos API-sleutels, in jou kluis en gee dit aan plaaslike nutsmiddels en kodeeragente deur.</string>
+    <string name="listing_description_highlight_multiple_accounts">Verskeie rekeninge: Meld by verskeie Bitwarden- en KeePass-rekeninge aan en sien al hul items in een kluis.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">Selfgehuisveste bedieners: Koppel aan jou eie bediener met enkelaanmelding, kliëntsertifikate en pasgemaakte HTTP-kopskrifte.</string>
+    <string name="listing_description_highlight_offline">Vanlyn: Bekyk jou kluis en voeg items sonder \'n verbinding by of wysig dit. Wysigings word by die volgende sinchronisasie veld vir veld saamgevoeg.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">Invoer: Skuif jou wagwoorde van blaaiers en ander wagwoordbestuurders af.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">Aanmeldbewysuitruiling: Skuif wagwoorde en wagsleutels direk tussen Keyguard en ander toeps op jou toestel.</string>
+    <string name="listing_description_highlight_export">Uitvoer: Stoor items en hul aanhangsels in \'n geënkripteerde ZIP-argief of \'n KeePass-databasis.</string>
+    <string name="listing_description_highlight_backup">Rugsteune: Bewaar momentopnames van jou kluis met weergawegeskiedenis in \'n vouer, op \'n WebDAV-bediener of in S3-versoenbare berging.</string>
+    <string name="listing_description_highlight_attachment_preview">Aanhangsels: Laai lêers na jou kluis op en bekyk prente, teks en ZIP-argiewe sonder om dit op skyf te stoor.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Sturings: Deel teks of \'n lêer via \'n skakel wat verval, met \'n opsionele wagwoord of toegangsperk.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: Lees jou items en eenmalige wagwoorde op jou horlosie, en meld by horlosietoepassings aan.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">Gekoppelde toestelle (beta): Sinchroniseer toepinstellings, soos e-posaanstuurders en woordelyste, direk tussen jou toestelle.</string>
+    <string name="listing_description_highlight_other">Gevorderde kenmerke: Grootmaataksies, veldplekhouers en URL-oorskrywings.</string>
+    <string name="listing_description_highlight_design">Koppelvlak: Material You-ontwerp met ligte, donker en swart temas.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">Keyguard is ook vir Linux, macOS en Windows beskikbaar.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">Bronkode:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">Hoe die toep verklaarde toestemmings gebruik</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: Lys geïnstalleerde toeps wanneer jy \'n toep aan \'n item koppel, en wys die gekoppelde toep se naam en ikoon.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Tuisskerm</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

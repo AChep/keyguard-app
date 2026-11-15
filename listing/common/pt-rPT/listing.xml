@@ -2,21 +2,60 @@
 <resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="listing_summary">Gerir palavras-passe</string>
     <string name="listing_summary_long">Faça a gestão de palavras-passe com facilidade</string>
-    <string name="listing_description_title">Multicliente para a plataforma Bitwarden® e KeePass (KDBX), concebido para proporcionar a melhor experiência de utilizador possível.</string>
+    <string name="listing_description_title">O Keyguard é um gestor de palavras-passe seguro e agradável de usar. Funciona offline e sincroniza com Bitwarden® e KeePass (KDBX).</string>
     <string name="listing_description_disclaimer_bitwarden_legal">Pode ser utilizado com qualquer instalação do Bitwarden®. Este produto não está associado ao projeto Bitwarden nem à Bitwarden, Inc. Bitwarden® é uma marca comercial da Bitwarden Inc.</string>
-    <string name="listing_description_highlights">Destaques:</string>
-    <string name="listing_description_highlight_design">Interface elegante: uma interface Material You rica e responsiva com temas claros e escuros.</string>
-    <string name="listing_description_highlight_search">Pesquisa avançada: Recursos de pesquisa poderosos e rápidos.</string>
-    <string name="listing_description_highlight_watchtower">Guardião: Deteta palavras-passe comprometidas, contas vulneráveis, palavras-passe reutilizadas, autenticação inativa de dois fatores, sites inseguros, itens duplicados ou prestes a expirar e muito mais.</string>
-    <string name="listing_description_highlight_multiple_accounts">Suporte a várias contas: Permite ter várias contas ligadas em simultâneo.</string>
-    <string name="listing_description_highlight_offline">Gestão offline: adicione itens e envie, modifique e visualize o seu cofre offline.</string>
-    <string name="listing_description_highlight_export">Exportação de dados: Exporte artigos individuais ou organizacionais, incluindo anexos.</string>
-    <string name="listing_description_highlight_backup">Cópia de segurança de dados: gerir automáticamente um repositório de cópia de segurança do cofre, incluindo anexos.</string>
-    <string name="listing_description_highlight_attachment_preview">Pré-visualização de anexos: visualizador seguro integrado na aplicação para anexos de imagem e texto.</string>
-    <string name="listing_description_highlight_generator">Gerador: Crie palavras-passe, chaves SSH e encaminhadores de e-mail, com suporte para listas de palavras personalizadas.</string>
-    <string name="listing_description_highlight_ssh_agent">Agente SSH: Autenticação em servidores, assinatura de commits Git, interação com serviços baseados em SSH.</string>
-    <string name="listing_description_highlight_gpg_agent">Agente GPG: Encripte, desencripte, assine e verifique ficheiros ou mensagens.</string>
-    <string name="listing_description_highlight_other">Funcionalidades avançadas: Suporte para atalhos, espaços reservados de campos, substituição de URLs e resolução inteligente de conflitos.</string>
+    <!-- A heading above the list of the most used features -->
+    <string name="listing_description_section_essentials">Essenciais</string>
+    <!-- A heading above the list of the security features -->
+    <string name="listing_description_section_security">Segurança</string>
+    <!-- A heading above the list of the features for syncing, moving and backing up a vault -->
+    <string name="listing_description_section_data">Os seus dados</string>
+    <!-- A heading above the list of the features for advanced users -->
+    <string name="listing_description_section_tools">Ferramentas avançadas</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_autofill_android">Preenchimento automático: Preencha nomes de utilizador e palavras-passe em aplicações e navegadores e guarde novos inícios de sessão ao entrar.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_passkeys_android">Chaves de acesso: Crie chaves de acesso e use-as para entrar em aplicações, navegadores e num computador próximo.</string>
+    <!-- A list item that starts with the name of the feature. TOTP, HOTP, Steam and mOTP are the names of the code formats -->
+    <string name="listing_description_highlight_totp">Palavras-passe de utilização única: Guarde chaves de autenticação nos inícios de sessão e obtenha códigos TOTP, HOTP, Steam e mOTP.</string>
+    <string name="listing_description_highlight_generator">Gerador: Crie palavras-passe, frases-passe, nomes de utilizador, aliases de e-mail e chaves SSH e GPG com as suas listas de palavras.</string>
+    <string name="listing_description_highlight_search">Pesquisa: Encontre itens com frases, exclusões e qualificadores de campo. Guarde os filtros mais usados.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_quick_search_desktop">Pesquisa rápida: Encontre um item a partir de qualquer aplicação com um atalho global e copie os seus valores.</string>
+    <string name="listing_description_highlight_watchtower">Guardião: Detete palavras-passe expostas, reutilizadas ou fracas, contas comprometidas, falta de autenticação de dois fatores, sites inseguros e itens duplicados ou a expirar.</string>
+    <!-- A list item that starts with the name of the feature. The app password is the password that unlocks Keyguard -->
+    <string name="listing_description_highlight_unlock">Desbloqueio: Use a palavra-passe da aplicação ou um método mais rápido, como biometria, uma YubiKey ou uma chave de segurança.</string>
+    <string name="listing_description_highlight_ssh_agent">Agente SSH: Autentique-se em servidores e serviços Git com chaves SSH que nunca saem do cofre.</string>
+    <string name="listing_description_highlight_gpg_agent">Agente e ferramentas GPG: Assine e desencripte com chaves GPG que nunca saem do cofre, noutras aplicações ou no Keyguard.</string>
+    <!-- Desktop only. A list item that starts with the name of the feature. Coding agents are AI tools that write code -->
+    <string name="listing_description_highlight_environments_desktop">Ambientes (beta): Guarde variáveis de ambiente, como chaves API, no cofre e passe-as a ferramentas locais e agentes de programação.</string>
+    <string name="listing_description_highlight_multiple_accounts">Várias contas: Entre em várias contas Bitwarden e KeePass e veja os seus itens num só cofre.</string>
+    <!-- A list item that starts with the name of the feature. The server is a Bitwarden server that the user hosts -->
+    <string name="listing_description_highlight_self_hosted">Servidores próprios: Ligue-se ao seu servidor com início de sessão único, certificados de cliente e cabeçalhos HTTP personalizados.</string>
+    <string name="listing_description_highlight_offline">Offline: Consulte o cofre e adicione ou edite itens sem ligação. As alterações são combinadas campo a campo na próxima sincronização.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_import">Importação: Transfira palavras-passe de navegadores e de outros gestores de palavras-passe.</string>
+    <!-- Android only. A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_credential_exchange_android">Troca de credenciais: Transfira palavras-passe e chaves de acesso diretamente entre o Keyguard e outras aplicações no dispositivo.</string>
+    <string name="listing_description_highlight_export">Exportação: Guarde itens e anexos num arquivo ZIP encriptado ou numa base de dados KeePass.</string>
+    <string name="listing_description_highlight_backup">Cópias de segurança: Guarde versões do cofre numa pasta, num servidor WebDAV ou em armazenamento compatível com S3.</string>
+    <string name="listing_description_highlight_attachment_preview">Anexos: Carregue ficheiros para o cofre e pré-visualize imagens, texto e arquivos ZIP sem os guardar no disco.</string>
+    <!-- A list item that starts with the name of the feature. A send is a Bitwarden feature for sharing text or a file -->
+    <string name="listing_description_highlight_sends">Envios: Partilhe texto ou um ficheiro por uma ligação que expira, com palavra-passe ou limite de acessos opcionais.</string>
+    <!-- Android only. A list item that starts with the name of the platform -->
+    <string name="listing_description_highlight_wear_os_android">Wear OS: Consulte os seus itens e palavras-passe de utilização única no relógio e entre em aplicações do relógio.</string>
+    <!-- A list item that starts with the name of the feature -->
+    <string name="listing_description_highlight_linked_devices">Dispositivos ligados (beta): Sincronize definições da aplicação, como encaminhadores de e-mail e listas de palavras, diretamente entre dispositivos.</string>
+    <string name="listing_description_highlight_other">Funcionalidades avançadas: Ações em lote, espaços reservados em campos e substituições de URL.</string>
+    <string name="listing_description_highlight_design">Interface: Design Material You com temas claro, escuro e preto.</string>
+    <!-- Android only. A sentence shown below the lists of features -->
+    <string name="listing_description_platforms_android">O Keyguard também está disponível para Linux, macOS e Windows.</string>
+    <!-- Android only. A label shown before the link to the source code of the app -->
+    <string name="listing_description_source_code_android">Código-fonte:</string>
+    <!-- Android only. A heading above the list of Android permissions and what the app uses each of them for -->
+    <string name="listing_description_permissions_android">Como a aplicação usa as permissões declaradas</string>
+    <!-- Android only. A list item that starts with the name of an Android permission, do not translate the name -->
+    <string name="listing_description_permission_query_all_packages_android">QUERY_ALL_PACKAGES: Lista as aplicações instaladas ao associar uma aplicação a um item e mostra o nome e o ícone da aplicação associada.</string>
     <!-- A content description shown below the Home screenshot, made with the default settings -->
     <string name="listing_screenshot_home_default">Ecrã inicial</string>
     <!-- A content description shown below the Home screenshot, made with the dark theme settings -->

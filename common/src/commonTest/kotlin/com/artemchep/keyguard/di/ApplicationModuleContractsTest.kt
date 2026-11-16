@@ -175,6 +175,7 @@ class ApplicationModuleContractsTest {
             "Fastmail",
             "FirefoxRelay",
             "ForwardEmail",
+            "ImprovMX",
             "SimpleLogin",
         )
     }

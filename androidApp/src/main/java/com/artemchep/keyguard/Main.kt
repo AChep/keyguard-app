@@ -9,13 +9,13 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import coil3.SingletonImageLoader
 import com.artemchep.bindin.bindBlock
+import com.artemchep.keyguard.android.AndroidCapabilityWorkers
 import com.artemchep.keyguard.android.AndroidCredentialCapabilitiesModule
 import com.artemchep.keyguard.android.BaseApp
 import com.artemchep.keyguard.android.CredentialProviderPlatformConfig
 import com.artemchep.keyguard.android.LegacyAndroidCapabilitiesModule
 import com.artemchep.keyguard.android.PasskeysModule
 import com.artemchep.keyguard.android.PhoneCredentialProviderPlatformConfig
-import com.artemchep.keyguard.android.credentialexchange.CredentialExchangeRegistrationWorker
 import com.artemchep.keyguard.android.downloader.worker.AttachmentDownloadAllWorker
 import com.artemchep.keyguard.android.installVaultKeepAlive
 import com.artemchep.keyguard.android.installVaultLock
@@ -126,6 +126,7 @@ private class PhoneApplicationModule(
         single { FlavorConfig(isFreeAsBeer = BuildConfig.FLAVOR == "none") }
         factory<ScanQrRouteFactory> { ScanQrRouteFactoryAndroid }
         factory<PasskeyHybridRouteFactory> { AndroidPasskeyHybridRouteFactory }
+        single { WorkerRegistry(get<AndroidCapabilityWorkers>().values + get<WatchtowerSyncer>()) }
         // Linked devices sync over WebRTC, falling back to the relay.
         single<KeyguardTransportFactory> { KeyguardTransportFactory.preferring(WebRtcTransportFactory()) }
         // A watch has no certificate chooser, so only the phone binds the store.

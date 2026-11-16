@@ -7,12 +7,12 @@ import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import coil3.SingletonImageLoader
 import com.artemchep.keyguard.provider.keyguard.transport.KeyguardTransportFactory
+import com.artemchep.keyguard.android.AndroidCapabilityWorkers
 import com.artemchep.keyguard.android.AndroidCredentialCapabilitiesModule
 import com.artemchep.keyguard.android.BaseApp
 import com.artemchep.keyguard.android.CredentialProviderPlatformConfig
 import com.artemchep.keyguard.android.LegacyAndroidCapabilitiesModule
 import com.artemchep.keyguard.android.PasskeysModule
-import com.artemchep.keyguard.android.credentialexchange.CredentialExchangeRegistrationWorker
 import com.artemchep.keyguard.android.installVaultKeepAlive
 import com.artemchep.keyguard.android.installVaultLock
 import com.artemchep.keyguard.android.installWorkers
@@ -93,6 +93,8 @@ private class WearApplicationModule(
         single<BillingManager> { BillingManagerImpl(application()) }
         single { FlavorConfig(isFreeAsBeer = true) }
         single<AndroidIpcRegistrationService> { AndroidIpcRegistrationServiceNone }
+        // The watch has no Watchtower screen, so it does not run the Watchtower.
+        single { WorkerRegistry(get<AndroidCapabilityWorkers>().values) }
         // The watch never links WebRTC: it only talks to the relay.
         single<KeyguardTransportFactory> { KeyguardTransportFactory.RelayOnly }
     }

@@ -46,7 +46,7 @@ class WearKoinGraphTest {
     }
 
     @Test
-    fun `older Wear graph omits credential capabilities and worker`() {
+    fun `older Wear graph omits credential capabilities and runs no Watchtower`() {
         val application = createWearKoinApplication(
             application = { error("Safe graph checks must not access Android services") },
             sdkInt = 33,

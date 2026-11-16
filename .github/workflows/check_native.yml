@@ -561,10 +561,13 @@ jobs:
           cargo clippy -p keyguard-windows-passkeys-core -p keyguard-windows-passkeys-jni --all-targets --locked --offline -- -D warnings
       - name: "Run Environment and CLI regressions"
         if: needs.changes.outputs.desktop == 'true'
+        # On Windows, java.exe expands a bare `*Cli*` to the commonCli and desktopCli folders.
+        # The package prefix keeps each pattern from matching a file, so it reaches Gradle as is.
         run: >-
           ${{ matrix.gradle }} --max-workers=1
           "-Pkeyguard.nativeCargo.cargoOffline=true"
-          :feature:environments:desktopTest :feature:cli:desktopTest :common:desktopTest --tests "*Environment*" --tests "*Cli*"
+          :feature:environments:desktopTest :feature:cli:desktopTest :common:desktopTest
+          --tests "com.artemchep.keyguard.*Environment*" --tests "com.artemchep.keyguard.*Cli*"
       - name: "Verify dotenv consumer compatibility"
         if: runner.os == 'Linux' && needs.changes.outputs.desktop == 'true'
         shell: bash

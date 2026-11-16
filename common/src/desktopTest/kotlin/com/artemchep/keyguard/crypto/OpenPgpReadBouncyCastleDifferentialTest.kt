@@ -890,6 +890,10 @@ private object BouncyCastleParserOracle {
             primary.authenticated &&
                 !primary.revoked &&
                 (primary.keyFlags?.canSign() ?: primaryKey.isSigningKey())
+        val primaryCanEncrypt =
+            primary.authenticated &&
+                !primary.revoked &&
+                (primary.keyFlags?.canEncrypt() ?: primaryKey.isEncryptionKey)
         val certificateCanEncrypt =
             !certificateRevoked &&
                 certificate.authenticatedKeys.any { key ->
@@ -914,6 +918,8 @@ private object BouncyCastleParserOracle {
             canEncrypt = certificateCanEncrypt,
             publicKeyArmored = ring.armored(),
             subKeys = subkeys,
+            primaryCanSign = primaryCanSign,
+            primaryCanEncrypt = primaryCanEncrypt,
         )
     }
 }

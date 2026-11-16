@@ -71,8 +71,9 @@ detektCustomRules {
 
 val versionInfo = keyguardVersionInfo()
 
+// Bounds a hung test. The whole desktop suite takes 8-10 minutes on a CI runner.
 tasks.withType<Test>().configureEach {
-    timeout.set(Duration.ofMinutes(10))
+    timeout.set(Duration.ofMinutes(20))
 }
 
 // Real-network tests are explicitly run by scripts/run_mtls_tests.py, which owns

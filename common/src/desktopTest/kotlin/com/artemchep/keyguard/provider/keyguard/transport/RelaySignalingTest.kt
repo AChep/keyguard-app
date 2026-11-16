@@ -11,6 +11,7 @@ import com.artemchep.keyguard.feature.p2psync.transport.SignalingMessage
 import com.artemchep.keyguard.feature.p2psync.transport.TransportKind
 import com.artemchep.keyguard.provider.keyguard.session.realTime
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -314,7 +315,11 @@ class RelaySignalingTest {
         val jobs = devices.flatMap { device ->
             listOf(
                 launch { device.signaling.run() },
-                launch { device.signaling.incoming.collect { device.received.send(it) } },
+                // Undispatched, so it subscribes before the block runs: the
+                // incoming flow does not replay what came in without a collector.
+                launch(start = CoroutineStart.UNDISPATCHED) {
+                    device.signaling.incoming.collect { device.received.send(it) }
+                },
             )
         }
         try {

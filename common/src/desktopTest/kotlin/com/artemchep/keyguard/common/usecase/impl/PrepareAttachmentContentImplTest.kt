@@ -180,8 +180,14 @@ class PrepareAttachmentContentImplTest {
     fun `dispatcher cancellation discards content after a successful publication`() = withTempDirectory { root ->
         runTest {
             val cancelReturn = AtomicBoolean()
-            fixture(root, onSnapshotSealed = { cancelReturn.set(true) }).use { fixture ->
-                val dispatcher = CancelArmedDispatch(StandardTestDispatcher(testScheduler), cancelReturn)
+            val dispatcher = CancelArmedDispatch(StandardTestDispatcher(testScheduler), cancelReturn)
+            // Arm only once the caller has suspended in withContext: a result that is ready
+            // before then returns without a dispatch, so the cancellation would never come.
+            val onSnapshotSealed = {
+                dispatcher.awaitIdle()
+                cancelReturn.set(true)
+            }
+            fixture(root, onSnapshotSealed = onSnapshotSealed).use { fixture ->
                 val preparing = async(dispatcher) { fixture.prepare(request) {} }
 
                 assertFailsWith<CancellationException> { preparing.await() }
@@ -312,9 +318,26 @@ class PrepareAttachmentContentImplTest {
         private val delegate: CoroutineDispatcher,
         private val armed: AtomicBoolean,
     ) : CoroutineDispatcher() {
+        private val running = AtomicInteger()
+
         override fun dispatch(context: CoroutineContext, block: Runnable) {
             if (armed.compareAndSet(true, false)) context[Job]?.cancel()
-            delegate.dispatch(context, block)
+            delegate.dispatch(
+                context,
+                Runnable {
+                    running.incrementAndGet()
+                    try {
+                        block.run()
+                    } finally {
+                        running.decrementAndGet()
+                    }
+                },
+            )
+        }
+
+        /** Waits, from another thread, until none of its coroutines is running a step. */
+        fun awaitIdle() {
+            while (running.get() > 0) Thread.onSpinWait()
         }
     }
 

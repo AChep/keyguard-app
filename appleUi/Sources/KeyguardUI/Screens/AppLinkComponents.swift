@@ -259,7 +259,8 @@ private struct MeshGeometry {
     func peerPoint(_ index: Int) -> CGPoint {
         if count == 1 { return CGPoint(x: center.x + halfDistance, y: center.y) }
         let wobble = 0.07 * sin(2 * .pi * (drift + Double(index) / Double(count)))
-        let angle = -Double.pi / 2 + 2 * .pi * Double(index) / Double(count) + wobble
+        // A CGFloat angle picks one cos/sin overload; with a Double, Xcode 26 finds two.
+        let angle = CGFloat(-Double.pi / 2 + 2 * .pi * Double(index) / Double(count) + wobble)
         return CGPoint(x: center.x + radiusX * cos(angle), y: center.y + radiusY * sin(angle))
     }
 }

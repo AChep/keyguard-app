@@ -52,9 +52,13 @@ async fn the_helper_client_rejects_another_server_pid() {
     let server = {
         let listener = Arc::clone(&listener);
         thread::spawn(move || {
+            // Hold every accepted connection: once the server closes it, the
+            // client reads no peer credentials (ENOTCONN) and never compares PIDs.
+            let mut accepted = Vec::new();
             loop {
-                if let Err(failure) = listener.accept() {
-                    return failure.kind();
+                match listener.accept() {
+                    Ok(connection) => accepted.push(connection),
+                    Err(failure) => return failure.kind(),
                 }
             }
         })

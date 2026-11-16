@@ -56,36 +56,49 @@ struct ImportView: View {
         }
     }
 
+    // Each item is its own builder: as one expression, Xcode 26 can time out type-checking it.
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
         if snapshot.stage == ImportStageKind.review {
-            ToolbarItem(placement: .confirmationAction) {
-                if snapshot.importing {
-                    ProgressView()
-                        .controlSize(.small)
-                } else {
-                    Button {
-                        invoke(ImportAction.confirm)
-                    } label: {
-                        Label(L10n.importConfirmButton, systemImage: "square.and.arrow.down")
-                    }
-                    .disabled(!snapshot.canImport)
-                }
-            }
+            confirmToolbarItem
         } else if let action = continueAction {
-            ToolbarItem(placement: .confirmationAction) {
-                Button(L10n.continue) {
-                    invoke(action.id)
-                }
-                .disabled(!action.enabled)
-            }
+            continueToolbarItem(action)
         } else if snapshot.stage == ImportStageKind.error && snapshot.canRetry {
-            ToolbarItem(placement: .confirmationAction) {
+            retryToolbarItem
+        }
+    }
+
+    private var confirmToolbarItem: some ToolbarContent {
+        ToolbarItem(placement: .confirmationAction) {
+            if snapshot.importing {
+                ProgressView()
+                    .controlSize(.small)
+            } else {
                 Button {
-                    invoke(ImportAction.retry)
+                    invoke(ImportAction.confirm)
                 } label: {
-                    Label(L10n.importRetryButton, systemImage: "arrow.clockwise")
+                    Label(L10n.importConfirmButton, systemImage: "square.and.arrow.down")
                 }
+                .disabled(!snapshot.canImport)
+            }
+        }
+    }
+
+    private func continueToolbarItem(_ action: (id: String, enabled: Bool)) -> some ToolbarContent {
+        ToolbarItem(placement: .confirmationAction) {
+            Button(L10n.continue) {
+                invoke(action.id)
+            }
+            .disabled(!action.enabled)
+        }
+    }
+
+    private var retryToolbarItem: some ToolbarContent {
+        ToolbarItem(placement: .confirmationAction) {
+            Button {
+                invoke(ImportAction.retry)
+            } label: {
+                Label(L10n.importRetryButton, systemImage: "arrow.clockwise")
             }
         }
     }

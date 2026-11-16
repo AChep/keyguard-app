@@ -37,14 +37,19 @@ class MutualTlsNetworkTest {
     @Test
     fun handshakesRedirectsAndWebSocketsUseOnlyConfiguredIdentities() = runBlocking {
         HttpClient(Darwin).use { bootstrap ->
-            verifyMutualTlsTransport(getenv("KEYGUARD_MTLS_PORT")?.toKString(), bootstrap) { ca ->
-                val trust = fixtureTrust(ca)
-                val base = HttpClient(Darwin) {
-                    engine { handleChallenge(trust) }
-                    configureKeyguardHttpClient(Json, KeyguardHttpUserAgent.Bitwarden)
-                }
-                base to BitwardenHttpClientFactoryApple(Json, trust)
-            }
+            // Named: a trailing lambda would bind to the last parameter, `certificate`.
+            verifyMutualTlsTransport(
+                port = getenv("KEYGUARD_MTLS_PORT")?.toKString(),
+                bootstrap = bootstrap,
+                clients = { ca ->
+                    val trust = fixtureTrust(ca)
+                    val base = HttpClient(Darwin) {
+                        engine { handleChallenge(trust) }
+                        configureKeyguardHttpClient(Json, KeyguardHttpUserAgent.Bitwarden)
+                    }
+                    base to BitwardenHttpClientFactoryApple(Json, trust)
+                },
+            )
         }
     }
 }

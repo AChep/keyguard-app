@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
@@ -275,4 +276,25 @@ fun NavigationHost(
         LocalNavigationHost provides host,
         content = content,
     )
+}
+
+/**
+ * Saves the routers of the host into the [store] when the window leaves
+ * the composition, the way a vault lock does. The routers of the window
+ * that opens next find their piles there.
+ *
+ * Call it after the content that holds the routers: Compose forgets in
+ * the reverse order of the composition, so the routers are still
+ * attached to the host when it runs.
+ */
+@Composable
+fun NavigationSaveRoutersOnDispose(
+    store: NavigationStore = LocalNavigationStore.current,
+) {
+    val host = LocalNavigationHost.current
+    DisposableEffect(host, store) {
+        onDispose {
+            host.saveRouters(store)
+        }
+    }
 }

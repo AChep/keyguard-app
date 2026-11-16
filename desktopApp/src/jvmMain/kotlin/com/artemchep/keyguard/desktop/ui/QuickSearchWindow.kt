@@ -33,6 +33,7 @@ import com.artemchep.keyguard.feature.home.vault.quicksearch.QuickSearchAppRoute
 import com.artemchep.keyguard.feature.home.vault.quicksearch.QuickSearchAutotypePayload
 import com.artemchep.keyguard.feature.navigation.LocalNavigationStore
 import com.artemchep.keyguard.feature.navigation.NavigationNode
+import com.artemchep.keyguard.feature.navigation.NavigationSaveRoutersOnDispose
 import com.artemchep.keyguard.feature.navigation.NavigationStore
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
@@ -54,6 +55,19 @@ internal fun ApplicationScope.QuickSearchWindow(
     onDismissRequest: () -> Unit,
     onAutotype: ((QuickSearchAutotypePayload, String, suspend () -> Boolean) -> Unit)? = null,
 ) {
+    // Outlives the window: the next window starts with the screens,
+    // the query and the selection that this one was closed with.
+    val navigationStore = remember {
+        NavigationStore()
+    }
+    // There is a window only while it is on screen. A hidden window is
+    // never drawn, so its composition waits for a frame that does not
+    // come, and until then Compose keeps every state that changes in
+    // the app, together with the screens these states belong to.
+    if (!windowState.visible) {
+        return
+    }
+
     val updatedOnDismissRequest by rememberUpdatedState(onDismissRequest)
     var activationRevision by remember(windowState.requestRevision) {
         mutableStateOf(windowState.requestRevision)
@@ -67,7 +81,6 @@ internal fun ApplicationScope.QuickSearchWindow(
             position = WindowPosition(Alignment.Center),
         ),
         decoration = WindowDecoration.Undecorated(),
-        visible = windowState.visible,
         transparent = true,
         alwaysOnTop = true,
         resizable = false,
@@ -132,6 +145,7 @@ internal fun ApplicationScope.QuickSearchWindow(
                     }
                     CompositionLocalProvider(LocalQuickSearchAutotype provides autotype) {
                         QuickSearchWindowContent(
+                            navigationStore = navigationStore,
                             activationRevision = activationRevision,
                             onDismissRequest = updatedOnDismissRequest,
                         )
@@ -144,25 +158,23 @@ internal fun ApplicationScope.QuickSearchWindow(
 
 @Composable
 private fun QuickSearchWindowContent(
+    navigationStore: NavigationStore,
     activationRevision: Int,
     onDismissRequest: () -> Unit,
 ) {
-    // Create a separate navigation store so it can
-    // independently recover the navigation state.
-    val navigationStore = remember {
-        NavigationStore()
-    }
-
     CompositionLocalProvider(
         LocalAppMode provides AppMode.QuickSearch,
         LocalQuickSearchDismiss provides onDismissRequest,
         LocalQuickSearchActivationRevision provides activationRevision,
-        // navigation
+        // A store of its own, so that the window recovers its
+        // navigation state independently of the main window.
         LocalNavigationStore provides navigationStore,
     ) {
         NavigationNode(
             id = "App:QuickSearch",
             route = QuickSearchAppRoute,
         )
+        // After the node: it has to run while the routers are attached.
+        NavigationSaveRoutersOnDispose(navigationStore)
     }
 }

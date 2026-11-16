@@ -48,6 +48,8 @@ import org.koin.dsl.module
 /**
  * Locks and unlocks the vault the way `AppScreen` does: it saves every router
  * into the [NavigationStore], drops the "main" root node and composes it again.
+ * Closes and opens a window the way the desktop app does: the whole
+ * composition goes, and the next one has the same store.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 class NavigationLockRestoreTest {
@@ -134,6 +136,41 @@ class NavigationLockRestoreTest {
     }
 
     @Test
+    fun `a window that closes hands its navigation to the window that opens next`() = withHarness {
+        savesRoutersOnDispose = true
+        start(routerHost("outer", screen("list")))
+        router("outer").controller.queue(NavigationIntent.NavigateToRoute(screen("details")))
+        frame()
+        val before = router("outer").entries
+        assertEquals(2, before.size)
+        before.last().query().value = "saved"
+
+        closeWindow()
+        assertTrue(before.all { it.isDestroyed })
+        openWindow()
+
+        val after = router("outer").entries
+        assertEquals(before.map { it.id }, after.map { it.id })
+        assertEquals(before.map { it.route }, after.map { it.route })
+        before.zip(after).forEach { (old, new) -> assertNotSame(old, new) }
+        assertFalse(after.any { it.isDestroyed })
+        assertEquals("saved", after.last().query().value)
+    }
+
+    @Test
+    fun `a window that closes without saving its routers starts over`() = withHarness {
+        start(routerHost("outer", screen("list")))
+        router("outer").controller.queue(NavigationIntent.NavigateToRoute(screen("details")))
+        frame()
+        assertEquals(2, router("outer").entries.size)
+
+        closeWindow()
+        openWindow()
+
+        assertEquals(1, router("outer").entries.size)
+    }
+
+    @Test
     fun `a root node whose route changes under the same id gets a new entry`() = withHarness {
         val first = screen("first")
         val second = screen("second")
@@ -185,12 +222,17 @@ class NavigationLockRestoreTest {
             loadModules(listOf(TestModule(scope).module))
         }
         private val store = NavigationStore()
-        private val navigationHost = NavigationHost()
+
+        // One per window, as each window makes its own.
+        private var navigationHost = NavigationHost()
         private val rootCanPop = flowOf(false)
         private val rootHandle: (NavigationIntent) -> NavigationIntent? = { it }
 
         private var unlocked by mutableStateOf(true)
         var mainRoute by mutableStateOf<Route?>(null)
+
+        /** `true` if the window saves its routers when it closes. Set it before [start]. */
+        var savesRoutersOnDispose = false
 
         // Filled by the composition.
         private val routers = mutableMapOf<String, RouterProbe>()
@@ -201,6 +243,12 @@ class NavigationLockRestoreTest {
 
         fun start(route: Route) {
             mainRoute = route
+            openWindow()
+        }
+
+        /** A window that opens: a composition and a host of its own, and the store of the app. */
+        fun openWindow() {
+            navigationHost = NavigationHost()
             scene = ImageComposeScene(
                 width = 320,
                 height = 480,
@@ -209,6 +257,14 @@ class NavigationLockRestoreTest {
                 Content()
             }
             frame()
+        }
+
+        /** A window that closes: its whole composition goes. */
+        fun closeWindow() {
+            scene?.close()
+            scene = null
+            routers.clear()
+            rendered.clear()
         }
 
         fun frame() {
@@ -296,6 +352,9 @@ class NavigationLockRestoreTest {
                             val route = mainRoute
                             if (unlocked && route != null) {
                                 NavigationNode(id = MAIN_ID, route = route)
+                            }
+                            if (savesRoutersOnDispose) {
+                                NavigationSaveRoutersOnDispose()
                             }
                         }
                     }

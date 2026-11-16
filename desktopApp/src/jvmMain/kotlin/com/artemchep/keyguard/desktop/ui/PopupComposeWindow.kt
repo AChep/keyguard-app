@@ -23,13 +23,21 @@ import com.artemchep.keyguard.platform.WindowRev
 import java.awt.Dialog.ModalityType
 import java.awt.Window
 
+/**
+ * A popup window, on screen for as long as it is in the composition.
+ *
+ * There is no way to hide it and keep it composed, on purpose. A hidden
+ * window is never drawn, so its composition waits for a frame that does
+ * not come, and until then Compose keeps every state that changes in the
+ * app, together with the screens these states belong to. To hide the
+ * window, take it out of the composition.
+ */
 @OptIn(ExperimentalComposeUiApi::class)
 @Suppress("LongMethod") // Keep the platform dispatch and forwarded window options together.
 @Composable
 internal fun PopupComposeWindow(
     onCloseRequest: () -> Unit,
     state: WindowState = rememberWindowState(),
-    visible: Boolean = true,
     title: String = "Untitled",
     icon: Painter? = null,
     decoration: WindowDecoration = WindowDecoration.SystemDefault,
@@ -37,7 +45,7 @@ internal fun PopupComposeWindow(
     resizable: Boolean = true,
     enabled: Boolean = true,
     focusable: Boolean = true,
-    focusRequestKey: Any? = visible,
+    focusRequestKey: Any? = true,
     focusTag: String = title,
     focusRequestId: Any? = focusRequestKey,
     onFocusAcquired: () -> Unit = {},
@@ -51,7 +59,7 @@ internal fun PopupComposeWindow(
         MacOwnerlessPopupComposeWindow(
             onCloseRequest = onCloseRequest,
             state = state,
-            visible = visible,
+            visible = true,
             title = title,
             decoration = decoration,
             transparent = transparent,
@@ -77,7 +85,6 @@ internal fun PopupComposeWindow(
     SwingDialog(
         onCloseRequest = onCloseRequest,
         state = dialogState,
-        visible = visible,
         title = title,
         icon = icon,
         decoration = decoration,
@@ -103,7 +110,7 @@ internal fun PopupComposeWindow(
     ) {
         WindowFocusRequestEffect(
             window = window,
-            visible = visible && focusable,
+            visible = focusable,
             requestKey = focusRequestKey,
             tag = focusTag,
             requestId = focusRequestId,

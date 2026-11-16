@@ -20,17 +20,20 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.service.keyvalue.KeyValuePreference
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
+import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreUnavailableException
 import com.artemchep.keyguard.common.service.keyvalue.SecureKeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.platform.LocalPath
 import com.artemchep.keyguard.util.io.toJavaFile
 import com.artemchep.keyguard.util.io.toLocalPath
+import db_key_value.datastore.encrypted.exception.SecureStorageInitializationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.IOException
 import kotlin.time.measureTimedValue
 
 class DataStoreKeyValueStore(
@@ -39,6 +42,7 @@ class DataStoreKeyValueStore(
     private val logTag: String,
     private val logRepository: LogRepository,
     private val backingStore: KeyValueStore? = null,
+    private val failWhenUnavailable: Boolean = false,
 ) : KeyValueStore, SecureKeyValueStore {
     companion object {
         private const val TAG = "DataStoreStore"
@@ -78,6 +82,26 @@ class DataStoreKeyValueStore(
             flowPrefs
             // create a new instance of the preferences
                 ?: performCreatePrefs().also { flowPrefs = it }
+        }
+
+    /**
+     * The provider handed to the preferences. A store that must not fall back to
+     * default values reports a failure to open it as [KeyValueStoreUnavailableException],
+     * which the preferences pass on instead of emitting their defaults.
+     */
+    private val preferenceProvider: suspend () -> DataStore<Preferences> =
+        if (failWhenUnavailable) {
+            {
+                try {
+                    getFlowPrefs()
+                } catch (e: IOException) {
+                    throw KeyValueStoreUnavailableException(e)
+                } catch (e: SecureStorageInitializationException) {
+                    throw KeyValueStoreUnavailableException(e)
+                }
+            }
+        } else {
+            ::getFlowPrefs
         }
 
     private suspend fun performCreatePrefs(): DataStore<Preferences> = withContext(Dispatchers.IO) {
@@ -150,17 +174,17 @@ class DataStoreKeyValueStore(
         }
 
     override fun getInt(key: String, defaultValue: Int): KeyValuePreference<Int> =
-        DataStoreKeyValuePreference.of(::getFlowPrefs, intPreferencesKey(key), defaultValue)
+        DataStoreKeyValuePreference.of(preferenceProvider, intPreferencesKey(key), defaultValue)
 
     override fun getFloat(key: String, defaultValue: Float): KeyValuePreference<Float> =
-        DataStoreKeyValuePreference.of(::getFlowPrefs, floatPreferencesKey(key), defaultValue)
+        DataStoreKeyValuePreference.of(preferenceProvider, floatPreferencesKey(key), defaultValue)
 
     override fun getBoolean(key: String, defaultValue: Boolean): KeyValuePreference<Boolean> =
-        DataStoreKeyValuePreference.of(::getFlowPrefs, booleanPreferencesKey(key), defaultValue)
+        DataStoreKeyValuePreference.of(preferenceProvider, booleanPreferencesKey(key), defaultValue)
 
     override fun getLong(key: String, defaultValue: Long): KeyValuePreference<Long> =
-        DataStoreKeyValuePreference.of(::getFlowPrefs, longPreferencesKey(key), defaultValue)
+        DataStoreKeyValuePreference.of(preferenceProvider, longPreferencesKey(key), defaultValue)
 
     override fun getString(key: String, defaultValue: String): KeyValuePreference<String> =
-        DataStoreKeyValuePreference.of(::getFlowPrefs, stringPreferencesKey(key), defaultValue)
+        DataStoreKeyValuePreference.of(preferenceProvider, stringPreferencesKey(key), defaultValue)
 }

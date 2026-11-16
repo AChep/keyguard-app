@@ -17,6 +17,9 @@ internal interface SecureStorageArtifacts {
     /** Forces the shared keyset to exist and be decryptable with the master key. */
     suspend fun validateKeyset(masterKeyAlias: String)
 
+    /** Throws when the AndroidKeyStore daemon cannot be reached. Must have no side effects. */
+    suspend fun requireKeystoreReachable()
+
     /**
      * Removes every secure-storage artifact: the AndroidKeyStore master key, the shared
      * keyset and the ciphertext files. Used to recover from undecryptable state so the
@@ -60,6 +63,8 @@ internal interface SecureStorageArtifacts {
  * - Each payload is then decrypted once before its prepared primitive is handed to
  *   DataStore. [wipeStore] can discard one corrupt payload without rotating the shared
  *   keys.
+ * - [requireKeystoreReachable] confirms wipe evidence. While the keystore daemon is
+ *   down, lookups report the master key as missing, which looks like lost key material.
  * - [wipeAll] deletes the master key first. It is the only step that needs the keystore
  *   daemon, so an unreachable keystore fails the wipe before any file is touched. Files
  *   left behind by a partial wipe are undecryptable, so the next inventory removes them.
@@ -77,6 +82,9 @@ internal class AndroidSecureStorageArtifacts(
         const val ANDROID_KEYSTORE = "AndroidKeyStore"
         const val KEYSET_PREFERENCES_NAME = "__androidx_security_crypto_encrypted_file_pref__"
         const val KEYSET_ALIAS = "__androidx_security_crypto_encrypted_file_keyset__"
+
+        // Never used for a real key: deleting it only checks that the keystore answers.
+        const val KEYSTORE_PROBE_ALIAS = "_keyguard_secure_storage_keystore_probe_"
 
         private val SECURE_STORE_NAMES: Set<String> =
             Files.entries
@@ -109,8 +117,7 @@ internal class AndroidSecureStorageArtifacts(
                 keysetPreferences.contains(KEYSET_ALIAS)
             }
 
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
-        val masterKeyPresent = keyStore.containsAlias(MasterKeys.AES256_GCM_SPEC.keystoreAlias)
+        val masterKeyPresent = loadKeyStore().containsAlias(MasterKeys.AES256_GCM_SPEC.keystoreAlias)
         return SecureStorageArtifactInventory(
             ciphertextStores = ciphertextStores,
             keysetPresent = keysetPresent,
@@ -135,6 +142,12 @@ internal class AndroidSecureStorageArtifacts(
             .build() // validation is a side-effect of the .build() method
     }
 
+    override suspend fun requireKeystoreReachable() {
+        // Deleting an alias we never create does nothing on a live daemon and throws
+        // on a dead one.
+        loadKeyStore().deleteEntry(KEYSTORE_PROBE_ALIAS)
+    }
+
     override suspend fun wipeStore(store: String) {
         listSecureStoreFiles().forEach { file ->
             if (file.belongsTo(store)) {
@@ -148,11 +161,9 @@ internal class AndroidSecureStorageArtifacts(
      * has to be deleted rather than reused.
      */
     override suspend fun wipeAll() {
-        // While keystore2 is unreachable, containsAlias() reports the key as missing,
-        // which looks like lost key material. deleteEntry() throws instead, and it
-        // ignores a key that is really missing, so it goes first.
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
-            .apply { load(null) }
+        // Unlike containsAlias(), deleteEntry() throws while the keystore daemon is
+        // unreachable and ignores a key that is really missing, so it goes first.
+        val keyStore = loadKeyStore()
         val masterKeyAlias = MasterKeys.AES256_GCM_SPEC.keystoreAlias
         keyStore.deleteEntry(masterKeyAlias)
         if (keyStore.containsAlias(masterKeyAlias)) {
@@ -171,6 +182,9 @@ internal class AndroidSecureStorageArtifacts(
 
         SECURE_STORE_NAMES.forEach { store -> wipeStore(store) }
     }
+
+    private fun loadKeyStore(): KeyStore =
+        KeyStore.getInstance(ANDROID_KEYSTORE).apply { load(null) }
 
     private fun listSecureStoreFiles(
     ): Array<File> = when {

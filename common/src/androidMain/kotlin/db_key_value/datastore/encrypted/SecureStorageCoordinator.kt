@@ -26,9 +26,9 @@ import java.security.GeneralSecurityException
  * state by wiping and recreating it (rather than bricking the app).
  *
  * A Keystore outage can look like lost key material. Before a global wipe the
- * initialization runs once more, so an outage that has ended does not wipe anything,
- * and the wipe deletes the Keystore entry first, so an ongoing outage fails it before
- * any file is touched.
+ * Keystore must answer right after the first evidence, the initialization runs once
+ * more, and the wipe deletes the Keystore entry first, so an outage that is still
+ * going on fails it before any file is touched.
  *
  * A failure of one store's payload never disables the others, and a failure is never
  * latched permanently: the next access retries from scratch.
@@ -234,6 +234,32 @@ internal class SecureStorageCoordinator(
     private suspend fun initializeKeyMaterial(allowGlobalWipe: Boolean): String {
         var wiped = false
         var rechecked = false
+
+        /**
+         * Acts on evidence that the key material is lost. Returns `true` when the
+         * initialization must run once more before anything is wiped.
+         */
+        suspend fun onWipeEvidence(cause: Throwable?): Boolean {
+            if (wiped) {
+                throw SecureStorageInitializationException(cause)
+            }
+            if (!rechecked) {
+                // Lookups report a key as missing while the Keystore is down: trust the
+                // evidence only if the Keystore answers, then gather it once more.
+                runKeystoreStep(failureState = "keystore_unreachable") {
+                    artifacts.requireKeystoreReachable()
+                }
+                rechecked = true
+                return true
+            }
+            wipeAllForRecovery(
+                allowGlobalWipe = allowGlobalWipe,
+                cause = cause,
+            )
+            wiped = true
+            return false
+        }
+
         while (true) {
             try {
                 val inventory = runStage(SecureStorageStage.ARTIFACT_INVENTORY) {
@@ -246,18 +272,7 @@ internal class SecureStorageCoordinator(
                         "stage=artifact_inventory undecryptable inventory=$inventory",
                         LogLevel.WARNING,
                     )
-                    if (wiped) {
-                        throw SecureStorageInitializationException()
-                    }
-                    if (!rechecked) {
-                        rechecked = true
-                        continue // re-run inventory, master key and keyset before wiping
-                    }
-                    wipeAllForRecovery(
-                        allowGlobalWipe = allowGlobalWipe,
-                        cause = null,
-                    )
-                    wiped = true
+                    if (onWipeEvidence(cause = null)) continue
                 }
 
                 val masterKeyAlias =
@@ -270,18 +285,7 @@ internal class SecureStorageCoordinator(
                 log("state=ready", LogLevel.INFO)
                 return masterKeyAlias
             } catch (expectedWipe: WipeRequiredException) {
-                if (wiped) {
-                    throw SecureStorageInitializationException(expectedWipe.failure)
-                }
-                if (!rechecked) {
-                    rechecked = true
-                    continue // re-run inventory, master key and keyset before wiping
-                }
-                wipeAllForRecovery(
-                    allowGlobalWipe = allowGlobalWipe,
-                    cause = expectedWipe.failure,
-                )
-                wiped = true
+                onWipeEvidence(cause = expectedWipe.failure)
             }
         }
     }
@@ -334,18 +338,24 @@ internal class SecureStorageCoordinator(
             log("state=cold_start_required", LogLevel.ERROR)
             throw SecureStorageColdStartRequiredException(cause)
         }
-        wipeAllArtifacts()
+        runKeystoreStep(failureState = "wipe_failed") {
+            artifacts.wipeAll()
+        }
     }
 
     /**
-     * Reports a failed wipe as [SecureStorageInitializationException], so callers degrade
-     * instead of crashing. [IllegalStateException] is what the platform throws when the
-     * Keystore service is not registered at all.
+     * Runs a step that talks to the Keystore and reports its failures as
+     * [SecureStorageInitializationException], so callers degrade instead of crashing.
+     * [IllegalStateException] is what the platform throws when the Keystore service
+     * is not registered at all.
      */
-    private suspend fun wipeAllArtifacts() {
+    private suspend fun runKeystoreStep(
+        failureState: String,
+        block: suspend () -> Unit,
+    ) {
         val failure: Exception =
             try {
-                artifacts.wipeAll()
+                block()
                 return
             } catch (e: CancellationException) {
                 // A subclass of IllegalStateException; must propagate untouched.
@@ -357,7 +367,7 @@ internal class SecureStorageCoordinator(
             } catch (e: IllegalStateException) {
                 e
             }
-        log("state=wipe_failed", LogLevel.ERROR)
+        log("state=$failureState", LogLevel.ERROR)
         throw SecureStorageInitializationException(failure)
     }
 }

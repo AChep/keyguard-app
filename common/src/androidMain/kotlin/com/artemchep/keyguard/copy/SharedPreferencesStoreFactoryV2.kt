@@ -28,7 +28,13 @@ class SharedPreferencesStoreFactoryV2 internal constructor(
         },
         encryptedStore = { file, backingStore ->
             SecureDataStoreKeyValueStore(
-                context, file.filename, logRepository, secureStorageCoordinator, backingStore,
+                context = context,
+                file = file.filename,
+                logRepository = logRepository,
+                secureStorageCoordinator = secureStorageCoordinator,
+                backingStore = backingStore,
+                // A default fingerprint reads as "no vault", so fail instead.
+                failWhenUnavailable = file == Files.FINGERPRINT,
             )
         },
     )

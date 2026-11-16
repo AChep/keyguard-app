@@ -19,6 +19,7 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreUnavailableException
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
 import com.artemchep.keyguard.common.service.vault.SessionMetadataReadWriteRepository
@@ -40,6 +41,7 @@ import com.artemchep.keyguard.platform.LeBiometricCipher
 import com.artemchep.keyguard.provider.keyguard.KeyguardAuthorityReseal
 import com.artemchep.keyguard.provider.keyguard.KeyguardAuthorityResealer
 import com.artemchep.keyguard.provider.keyguard.KeyguardAuthorityReseals
+import java.io.IOException
 import java.lang.reflect.Proxy
 import java.util.concurrent.ConcurrentLinkedQueue
 import kotlin.test.Test
@@ -55,6 +57,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -63,6 +66,8 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.emitAll
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -250,12 +255,53 @@ class UnlockUseCaseImplTest {
         assertNotNull(savedFingerprint)
     }
 
+    @Test
+    fun `an unavailable fingerprint store emits no state until the existing vault can be unlocked`() =
+        withFixture(unavailableCollections = 2) {
+            fingerprints.value = existingFingerprint()
+            assertEquals(1.seconds, retryDelays.receive())
+            assertTrue(observed.isEmpty())
+            retryGate.send(Unit)
+            assertEquals(2.seconds, retryDelays.receive())
+            assertTrue(observed.isEmpty())
+            retryGate.send(Unit)
+
+            awaitState<VaultState.Unlock>()
+            assertFalse(observed.any { it is VaultState.Create })
+        }
+
+    @Test
+    fun `an unavailable fingerprint store emits no state until a new vault can be created`() =
+        withFixture(unavailableCollections = 1) {
+            assertEquals(1.seconds, retryDelays.receive())
+            assertTrue(observed.isEmpty())
+            retryGate.send(Unit)
+
+            awaitState<VaultState.Create>()
+            assertEquals(1, observed.size)
+        }
+
+    @Test
+    fun `other fingerprint store failures are not retried`() =
+        withFixture(fingerprintFailure = IllegalStateException("Cannot read the fingerprint")) {
+            val failure = assertIs<IllegalStateException>(uncaught.await())
+            assertEquals("Cannot read the fingerprint", failure.message)
+            assertTrue(retryDelays.tryReceive().isFailure)
+            assertTrue(observed.isEmpty())
+        }
+
     private fun withFixture(
         biometric: Boolean = false,
+        unavailableCollections: Int = 0,
+        fingerprintFailure: Throwable? = null,
         block: suspend Fixture.() -> Unit,
     ): Unit = runBlocking {
         withTimeout(10.seconds) {
-            val fixture = Fixture(biometric)
+            val fixture = Fixture(
+                biometric = biometric,
+                unavailableCollections = unavailableCollections,
+                fingerprintFailure = fingerprintFailure,
+            )
             try {
                 fixture.block()
             } finally {
@@ -264,8 +310,28 @@ class UnlockUseCaseImplTest {
         }
     }
 
-    private class Fixture(biometric: Boolean) {
+    private class Fixture(
+        biometric: Boolean,
+        /** The number of collections of the fingerprint store that fail as unavailable. */
+        private var unavailableCollections: Int,
+        /** Fails every collection of the fingerprint store. */
+        private val fingerprintFailure: Throwable?,
+    ) {
         private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+
+        /** The failure of the shared state flow, which has no subscriber to report it to. */
+        val uncaught = CompletableDeferred<Throwable>()
+
+        // Shares the state like GlobalScope does, but reports its failure.
+        private val sharingScope = CoroutineScope(
+            SupervisorJob() + Dispatchers.Default + CoroutineExceptionHandler { _, e -> uncaught.complete(e) },
+        )
+
+        /** The delays the use case asked for before retrying to open the fingerprint store. */
+        val retryDelays = Channel<Duration>(Channel.UNLIMITED)
+
+        /** Lets one retry to open the fingerprint store proceed. */
+        val retryGate = Channel<Unit>()
         val vaultSession = testVaultSession()
         private val generationStarted = CompletableDeferred<Unit>()
         val generating = CompletableDeferred<Unit>()
@@ -342,7 +408,15 @@ class UnlockUseCaseImplTest {
                 override fun update(transform: (Fingerprint?) -> Fingerprint?) = ioEffect {
                     put(transform(fingerprints.value)).bind()
                 }
-                override fun get() = fingerprints
+                // Each collection opens the store anew, like the real one.
+                override fun get() = flow {
+                    if (unavailableCollections > 0) {
+                        unavailableCollections -= 1
+                        throw KeyValueStoreUnavailableException(IOException("Keystore is unavailable"))
+                    }
+                    fingerprintFailure?.let { throw it }
+                    emitAll(fingerprints)
+                }
                 override fun put(key: Fingerprint?): IO<Unit> = ioEffect {
                     writeFailure?.let { throw it }
                     events += "put"
@@ -404,6 +478,11 @@ class UnlockUseCaseImplTest {
                     return listOf("changed")
                 }
             },
+            delayForRetry = { delay ->
+                retryDelays.send(delay)
+                retryGate.receive()
+            },
+            scope = sharingScope,
         )
 
         init {
@@ -428,11 +507,7 @@ class UnlockUseCaseImplTest {
 
         /** Opens the vault, then starts to change its password. */
         suspend fun startPasswordChange(biometric: Boolean = false) = run {
-            fingerprints.value = Fingerprint(
-                version = auth.version,
-                master = auth.token,
-                biometric = null,
-            )
+            fingerprints.value = existingFingerprint()
             sessions.value = MasterSession.Key(
                 masterKey = auth.key,
                 session = vaultSession,
@@ -462,8 +537,15 @@ class UnlockUseCaseImplTest {
             }
         }
 
+        fun existingFingerprint() = Fingerprint(
+            version = auth.version,
+            master = auth.token,
+            biometric = null,
+        )
+
         fun close() {
             scope.cancel()
+            sharingScope.cancel()
             vaultSession.close()
         }
     }

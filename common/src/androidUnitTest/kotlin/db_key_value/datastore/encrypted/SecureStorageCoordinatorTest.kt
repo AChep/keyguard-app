@@ -351,6 +351,36 @@ class SecureStorageCoordinatorTest {
         }
 
     @Test
+    fun `wipe evidence counts only while the keystore answers`() =
+        runTest {
+            // Both wipe triggers: an undecryptable inventory and a failing master key.
+            listOf(true, false).forEach { inventoryTrigger ->
+                var probeCalls = 0
+                var wipeAllCalls = 0
+                val probeFailure = KeyStoreException("Failed to delete entry")
+                val coordinator =
+                    coordinator(
+                        scope = backgroundScope,
+                        inspectArtifacts = { freshInventory().copy(keysetPresent = inventoryTrigger) },
+                        getOrCreateMasterKey = { throw GeneralSecurityException("keystore hiccup") },
+                        wipeAllArtifacts = { wipeAllCalls += 1 },
+                        requireKeystoreReachable = {
+                            probeCalls += 1
+                            throw probeFailure
+                        },
+                    )
+
+                val failure =
+                    assertFailsWith<SecureStorageInitializationException> {
+                        coordinator.masterKeyAlias()
+                    }
+                assertTrue(failure.causeChain().any { it === probeFailure })
+                assertEquals(1, probeCalls)
+                assertEquals(0, wipeAllCalls)
+            }
+        }
+
+    @Test
     fun `unrecoverable failure degrades and is not latched permanently`() =
         runTest {
             var masterKeyCalls = 0
@@ -637,6 +667,7 @@ class SecureStorageCoordinatorTest {
         initializeKeyset: suspend (String) -> Unit = { },
         wipeAllArtifacts: suspend () -> Unit = { },
         wipeStore: suspend (String) -> Unit = { },
+        requireKeystoreReachable: suspend () -> Unit = { },
         delayForRetry: suspend (Long) -> Unit = { },
     ) = SecureStorageCoordinator(
         scope = scope,
@@ -647,6 +678,8 @@ class SecureStorageCoordinatorTest {
                 override suspend fun getOrCreateMasterKey() = getOrCreateMasterKey.invoke()
 
                 override suspend fun validateKeyset(masterKeyAlias: String) = initializeKeyset(masterKeyAlias)
+
+                override suspend fun requireKeystoreReachable() = requireKeystoreReachable.invoke()
 
                 override suspend fun wipeAll() = wipeAllArtifacts()
 

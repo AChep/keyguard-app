@@ -41,6 +41,7 @@ import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
 import com.artemchep.keyguard.common.service.crypto.CipherEncryptor
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
+import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreUnavailableException
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.vault.FingerprintReadWriteRepository
@@ -67,9 +68,14 @@ import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
 import com.artemchep.keyguard.platform.LeBiometricCipher
 import com.artemchep.keyguard.provider.bitwarden.crypto.SymmetricCryptoKey2
 import kotlin.time.Clock
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.math.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combineTransform
@@ -78,6 +84,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.retryWhen
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.NonCancellable
@@ -115,10 +122,20 @@ class UnlockUseCaseImpl(
             cipherEncryptor = cipherEncryptor,
         ),
     ),
+    /** Waits before retrying to open an unavailable fingerprint store. */
+    private val delayForRetry: suspend (Duration) -> Unit = { delay(it) },
     private val scope: CoroutineScope = GlobalScope,
 ) : UnlockUseCase {
     companion object {
         private const val TAG = "UnlockFlow"
+
+        private val FINGERPRINT_RETRY_DELAY = 1.seconds
+        private val FINGERPRINT_RETRY_DELAY_MAX = 30.seconds
+
+        /** 1 s, 2 s, 4 s, 8 s, … capped at 30 s. */
+        private fun getFingerprintRetryDelay(attempt: Long): Duration =
+            (FINGERPRINT_RETRY_DELAY * 2.0.pow(attempt.toDouble()))
+                .coerceAtMost(FINGERPRINT_RETRY_DELAY_MAX)
     }
 
     /**
@@ -142,7 +159,7 @@ class UnlockUseCaseImpl(
     private val creatingFrom = MutableStateFlow<MasterSession.Empty?>(null)
 
     private val sharedFlow = combineTransform(
-        keyReadWriteRepository.get()
+        getFingerprintFlow()
             .measureTimeTillFirstEvent { d, _ ->
                 val msg = "Fetching the vault info took $d"
                 logRepository.post(TAG, msg, level = LogLevel.INFO)
@@ -220,6 +237,23 @@ class UnlockUseCaseImpl(
 
 
     override fun invoke() = sharedFlow
+
+    /**
+     * The persisted fingerprint. A store that cannot be opened must not read as
+     * "no vault": that would show the Create screen and let the user overwrite the
+     * real vault. Retries opening it instead; until then no vault state is emitted
+     * and the app keeps showing Loading.
+     */
+    private fun getFingerprintFlow(): Flow<Fingerprint?> = keyReadWriteRepository.get()
+        .retryWhen { cause, attempt ->
+            if (cause !is KeyValueStoreUnavailableException) {
+                return@retryWhen false
+            }
+            val msg = "The vault info is unavailable, retry #${attempt + 1}: ${cause.cause}"
+            logRepository.post(TAG, msg, level = LogLevel.WARNING)
+            delayForRetry(getFingerprintRetryDelay(attempt))
+            true
+        }
 
     private class ComplexBiometricStatus(
         val forUnlock: BiometricStatus,

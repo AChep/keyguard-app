@@ -22,6 +22,7 @@ internal class SecureDataStoreKeyValueStore(
     logRepository: LogRepository,
     secureStorageCoordinator: SecureStorageCoordinator,
     backingStore: KeyValueStore? = null,
+    failWhenUnavailable: Boolean,
 ) : SecureKeyValueStore,
     KeyValueStore by DataStoreKeyValueStore(
         provideFile = {
@@ -41,6 +42,7 @@ internal class SecureDataStoreKeyValueStore(
         logTag = file,
         logRepository = logRepository,
         backingStore = backingStore,
+        failWhenUnavailable = failWhenUnavailable,
     )
 
 private suspend fun getEncryptedDataStore(

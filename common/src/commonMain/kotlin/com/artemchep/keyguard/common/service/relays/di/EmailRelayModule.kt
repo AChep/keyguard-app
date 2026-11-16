@@ -8,6 +8,7 @@ import com.artemchep.keyguard.common.service.relays.api.fastmail.FastmailEmailRe
 import com.artemchep.keyguard.common.service.relays.api.firefoxrelay.FirefoxRelayEmailRelay
 import com.artemchep.keyguard.common.service.relays.api.forwardemail.ForwardEmailEmailRelay
 import com.artemchep.keyguard.common.service.relays.api.improvmx.ImprovMxEmailRelay
+import com.artemchep.keyguard.common.service.relays.api.migadu.MigaduEmailRelay
 import com.artemchep.keyguard.common.service.relays.api.simplelogin.SimpleLoginEmailRelay
 import org.koin.dsl.module
 import org.koin.plugin.module.dsl.single
@@ -24,6 +25,7 @@ class EmailRelayModule {
         single<FirefoxRelayEmailRelay>()
         single<ForwardEmailEmailRelay>()
         single<ImprovMxEmailRelay>()
+        single<MigaduEmailRelay>()
         single<SimpleLoginEmailRelay>()
 
         //
@@ -40,6 +42,7 @@ class EmailRelayModule {
                     get<FirefoxRelayEmailRelay>(),
                     get<ForwardEmailEmailRelay>(),
                     get<ImprovMxEmailRelay>(),
+                    get<MigaduEmailRelay>(),
                     get<SimpleLoginEmailRelay>(),
                 ),
             )

@@ -27,6 +27,7 @@ requests a new alias each time you generate one.
 | [Firefox Relay](https://relay.firefox.com) | **API key** | No |
 | [Forward Email](https://forwardemail.net) | **API key**, **Domain** | In the alias description |
 | [ImprovMX](https://www.improvmx.com) | **API key**, **Domain**, **Destination email** | No |
+| [mailcow](https://mailcow.email) | **Server URL**, **API key**, **Domain**, **Destination email** | No |
 | [Migadu](https://www.migadu.com) | **Email**, **API key**, **Domain**, **Destination email** | No |
 | [SimpleLogin](https://simplelogin.io) | **API key**, **Server URL** | As the site the alias is used on |
 
@@ -42,11 +43,11 @@ generator and defaults to the service's name.
 | --- | --- |
 | **API key**, **API token** | A credential from the service's account or developer settings |
 | **Email** | Migadu: the email address you use to sign in to the Migadu account, which can differ from the destination email |
-| **Server URL** | Optional. The base URL of a self-hosted addy.io or SimpleLogin server. Empty means the service's own server. |
-| **Domain** | addy.io: the alias domain, such as `anonaddy.me`. Forward Email, Cloudflare, ImprovMX and Migadu: your domain. |
+| **Server URL** | Base URL of your server. Required for mailcow. Optional for self-hosted addy.io or SimpleLogin; empty uses the service's own server. |
+| **Domain** | addy.io: the alias domain, such as `anonaddy.me`. Forward Email, Cloudflare, ImprovMX, mailcow and Migadu: your domain. |
 | **Recipient ID (optional)** | addy.io: the ID of a verified recipient. Empty means your default recipient. |
 | **Zone ID** | Cloudflare: the ID of your domain's zone |
-| **Destination email** | Cloudflare, ImprovMX and Migadu: the address that aliases forward to |
+| **Destination email** | Cloudflare, ImprovMX, mailcow and Migadu: the address that aliases forward to |
 
 ## Alias formats
 
@@ -54,6 +55,7 @@ generator and defaults to the service's name.
 | --- | --- |
 | Cloudflare Email Routing | 8 random lowercase letters and digits at your domain. Keyguard creates a forwarding rule for each alias. |
 | ImprovMX | 8 random lowercase letters and digits at your domain. Keyguard creates each alias in ImprovMX. |
+| mailcow | 8 random lowercase letters and digits at your domain. Keyguard creates a permanent, active alias in mailcow. |
 | Migadu | 8 random lowercase letters and digits at your domain. Keyguard creates each alias in Migadu. |
 | SimpleLogin | The format set in your SimpleLogin account, such as random words or a UUID |
 | Other services | The service's own format |

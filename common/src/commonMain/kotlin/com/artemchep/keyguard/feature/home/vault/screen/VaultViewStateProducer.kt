@@ -2549,7 +2549,7 @@ private fun RememberStateFlowScope.oh(
                             )
                         }
                 }
-                .persistingStateIn(appScope, sharing)
+                .persistingStateIn(sharingScope, sharing)
             val model = VaultViewItem.Totp(
                 id = "login.totp",
                 elevation = 1.dp,

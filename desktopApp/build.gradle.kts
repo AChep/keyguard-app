@@ -181,6 +181,15 @@ compose.desktop {
             // installed app still uses it, but would print a warning for
             // each jar on every launch.
             jvmArgs("-Xlog:cds*=off")
+            // Give unused heap back to the system. By default the heap may
+            // grow to a quarter of the RAM, keeps up to 70% of itself free,
+            // and shrinks only in a collection that an idle app never runs.
+            jvmArgs(
+                "-XX:MinHeapFreeRatio=10",
+                "-XX:MaxHeapFreeRatio=30",
+                // Milliseconds without a collection before one runs.
+                "-XX:G1PeriodicGCInterval=300000",
+            )
 
             includeAllModules = true
             val formats = listOfNotNull(

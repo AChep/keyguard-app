@@ -15,6 +15,11 @@ finish-args:
   - --filesystem=xdg-run/gnupg:create
   - --talk-name=org.kde.StatusNotifierWatcher
   - --system-talk-name=org.freedesktop.PolicyKit1
+  # glibc gives the threads that allocate at the same time a malloc arena each,
+  # up to eight per core, and the app has about a hundred of them: hundreds of
+  # megabytes that hold almost nothing. Only the environment can cap them, and
+  # only here: outside of a sandbox the programs the app starts would inherit it.
+  - --env=MALLOC_ARENA_MAX=2
 modules:
   - name: keyguard
     buildsystem: simple

@@ -1,5 +1,6 @@
 package db_key_value.datastore.encrypted
 
+import com.artemchep.keyguard.common.util.causeChain
 import db_key_value.datastore.encrypted.exception.SecureStorageColdStartRequiredException
 import db_key_value.datastore.encrypted.exception.SecureStorageInitializationException
 import kotlinx.coroutines.CancellationException
@@ -11,6 +12,7 @@ import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.test.runTest
 import java.io.IOException
 import java.security.GeneralSecurityException
+import java.security.KeyStoreException
 import java.security.ProviderException
 import java.security.UnrecoverableKeyException
 import javax.crypto.AEADBadTagException
@@ -138,7 +140,8 @@ class SecureStorageCoordinatorTest {
 
             assertEquals("fresh-key", alias)
             assertEquals(1, wipeAllCalls)
-            assertEquals(1, inventoryCalls)
+            // The re-check pass inspects again before wiping.
+            assertEquals(2, inventoryCalls)
             assertEquals(1, masterKeyCalls)
         }
 
@@ -253,8 +256,9 @@ class SecureStorageCoordinatorTest {
                     scope = backgroundScope,
                     getOrCreateMasterKey = {
                         masterKeyCalls += 1
-                        // Fail the first three attempts (retry budget), succeed once wiped.
-                        if (masterKeyCalls <= 3) {
+                        // Fail every attempt until wiped: the retry budget of the first
+                        // pass and of the re-check pass.
+                        if (wipeAllCalls == 0) {
                             throw GeneralSecurityException("keystore hiccup")
                         }
                         "master-key"
@@ -266,7 +270,84 @@ class SecureStorageCoordinatorTest {
 
             assertEquals("master-key", alias)
             assertEquals(1, wipeAllCalls)
+            assertEquals(7, masterKeyCalls)
+        }
+
+    @Test
+    fun `keystore outage that ends before the re-check does not wipe`() =
+        runTest {
+            var masterKeyCalls = 0
+            var wipeAllCalls = 0
+            val coordinator =
+                coordinator(
+                    scope = backgroundScope,
+                    getOrCreateMasterKey = {
+                        masterKeyCalls += 1
+                        // Fail the first retry budget only.
+                        if (masterKeyCalls <= 3) {
+                            throw GeneralSecurityException("keystore hiccup")
+                        }
+                        "master-key"
+                    },
+                    wipeAllArtifacts = { wipeAllCalls += 1 },
+                )
+
+            assertEquals("master-key", coordinator.masterKeyAlias())
+            assertEquals(0, wipeAllCalls)
             assertEquals(4, masterKeyCalls)
+        }
+
+    @Test
+    fun `undecryptable inventory is re-checked before wiping`() =
+        runTest {
+            var inventoryCalls = 0
+            var wipeAllCalls = 0
+            val coordinator =
+                coordinator(
+                    scope = backgroundScope,
+                    inspectArtifacts = {
+                        inventoryCalls += 1
+                        // A Keystore outage that ends reports the master key as missing once.
+                        freshInventory().copy(keysetPresent = true, masterKeyPresent = inventoryCalls > 1)
+                    },
+                    wipeAllArtifacts = { wipeAllCalls += 1 },
+                )
+
+            assertEquals("master-key", coordinator.masterKeyAlias())
+            assertEquals(0, wipeAllCalls)
+            assertEquals(2, inventoryCalls)
+        }
+
+    @Test
+    fun `failed wipe fails initialization and is not latched permanently`() =
+        runTest {
+            // The Keystore is down or unregistered, so the wipe fails at its first step.
+            listOf(
+                KeyStoreException("Failed to delete entry"),
+                IllegalStateException("Could not connect to Keystore service"),
+            ).forEach { wipeFailure ->
+                var wipeAllCalls = 0
+                val coordinator =
+                    coordinator(
+                        scope = backgroundScope,
+                        inspectArtifacts = { freshInventory().copy(keysetPresent = true) },
+                        wipeAllArtifacts = {
+                            wipeAllCalls += 1
+                            if (wipeAllCalls == 1) throw wipeFailure
+                        },
+                    )
+
+                val failure =
+                    assertFailsWith<SecureStorageInitializationException> {
+                        coordinator.masterKeyAlias()
+                    }
+                assertTrue(failure.causeChain().any { it === wipeFailure })
+                assertEquals(1, wipeAllCalls)
+
+                // The next access re-runs initialization from scratch.
+                assertEquals("master-key", coordinator.masterKeyAlias())
+                assertEquals(2, wipeAllCalls)
+            }
         }
 
     @Test

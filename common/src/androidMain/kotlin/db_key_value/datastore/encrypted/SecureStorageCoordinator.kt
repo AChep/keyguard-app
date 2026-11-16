@@ -17,11 +17,18 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.io.IOException
+import java.security.GeneralSecurityException
 
 /**
  * Serializes the one-time creation of the AndroidKeyStore master key and the shared
  * Tink keyset that every secure DataStore depends on, and recovers from undecryptable
  * state by wiping and recreating it (rather than bricking the app).
+ *
+ * A Keystore outage can look like lost key material. Before a global wipe the
+ * initialization runs once more, so an outage that has ended does not wipe anything,
+ * and the wipe deletes the Keystore entry first, so an ongoing outage fails it before
+ * any file is touched.
  *
  * A failure of one store's payload never disables the others, and a failure is never
  * latched permanently: the next access retries from scratch.
@@ -226,6 +233,7 @@ internal class SecureStorageCoordinator(
 
     private suspend fun initializeKeyMaterial(allowGlobalWipe: Boolean): String {
         var wiped = false
+        var rechecked = false
         while (true) {
             try {
                 val inventory = runStage(SecureStorageStage.ARTIFACT_INVENTORY) {
@@ -240,6 +248,10 @@ internal class SecureStorageCoordinator(
                     )
                     if (wiped) {
                         throw SecureStorageInitializationException()
+                    }
+                    if (!rechecked) {
+                        rechecked = true
+                        continue // re-run inventory, master key and keyset before wiping
                     }
                     wipeAllForRecovery(
                         allowGlobalWipe = allowGlobalWipe,
@@ -260,6 +272,10 @@ internal class SecureStorageCoordinator(
             } catch (expectedWipe: WipeRequiredException) {
                 if (wiped) {
                     throw SecureStorageInitializationException(expectedWipe.failure)
+                }
+                if (!rechecked) {
+                    rechecked = true
+                    continue // re-run inventory, master key and keyset before wiping
                 }
                 wipeAllForRecovery(
                     allowGlobalWipe = allowGlobalWipe,
@@ -318,6 +334,30 @@ internal class SecureStorageCoordinator(
             log("state=cold_start_required", LogLevel.ERROR)
             throw SecureStorageColdStartRequiredException(cause)
         }
-        artifacts.wipeAll()
+        wipeAllArtifacts()
+    }
+
+    /**
+     * Reports a failed wipe as [SecureStorageInitializationException], so callers degrade
+     * instead of crashing. [IllegalStateException] is what the platform throws when the
+     * Keystore service is not registered at all.
+     */
+    private suspend fun wipeAllArtifacts() {
+        val failure: Exception =
+            try {
+                artifacts.wipeAll()
+                return
+            } catch (e: CancellationException) {
+                // A subclass of IllegalStateException; must propagate untouched.
+                throw e
+            } catch (e: IOException) {
+                e
+            } catch (e: GeneralSecurityException) {
+                e
+            } catch (e: IllegalStateException) {
+                e
+            }
+        log("state=wipe_failed", LogLevel.ERROR)
+        throw SecureStorageInitializationException(failure)
     }
 }

@@ -18,9 +18,10 @@ internal interface SecureStorageArtifacts {
     suspend fun validateKeyset(masterKeyAlias: String)
 
     /**
-     * Removes every secure-storage artifact: the ciphertext files, the shared keyset
-     * and the AndroidKeyStore master key. Used to recover from undecryptable state so
-     * the app starts from a clean, working installation.
+     * Removes every secure-storage artifact: the AndroidKeyStore master key, the shared
+     * keyset and the ciphertext files. Used to recover from undecryptable state so the
+     * app starts from a clean, working installation. Must fail before deleting any file
+     * when the AndroidKeyStore cannot be reached.
      */
     suspend fun wipeAll()
 
@@ -59,9 +60,9 @@ internal interface SecureStorageArtifacts {
  * - Each payload is then decrypted once before its prepared primitive is handed to
  *   DataStore. [wipeStore] can discard one corrupt payload without rotating the shared
  *   keys.
- * - [wipeAll] removes every encrypted payload before deleting the shared keyset and
- *   master key. This ordering avoids leaving surviving ciphertext after its only
- *   decryption material has been destroyed.
+ * - [wipeAll] deletes the master key first. It is the only step that needs the keystore
+ *   daemon, so an unreachable keystore fails the wipe before any file is touched. Files
+ *   left behind by a partial wipe are undecryptable, so the next inventory removes them.
  *
  * The SharedPreferences names above are AndroidX implementation details rather than a
  * public compatibility API. Changing the AndroidX Security dependency, encryption
@@ -147,9 +148,16 @@ internal class AndroidSecureStorageArtifacts(
      * has to be deleted rather than reused.
      */
     override suspend fun wipeAll() {
-        // Confirm every ciphertext file is gone before deleting the only key material
-        // capable of decrypting it. A partial file-system failure must remain retryable.
-        SECURE_STORE_NAMES.forEach { store -> wipeStore(store) }
+        // While keystore2 is unreachable, containsAlias() reports the key as missing,
+        // which looks like lost key material. deleteEntry() throws instead, and it
+        // ignores a key that is really missing, so it goes first.
+        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
+            .apply { load(null) }
+        val masterKeyAlias = MasterKeys.AES256_GCM_SPEC.keystoreAlias
+        keyStore.deleteEntry(masterKeyAlias)
+        if (keyStore.containsAlias(masterKeyAlias)) {
+            throw IOException("Could not delete the secure storage master key")
+        }
 
         val keysetPreferences =
             context.getSharedPreferences(KEYSET_PREFERENCES_NAME, Context.MODE_PRIVATE)
@@ -161,13 +169,7 @@ internal class AndroidSecureStorageArtifacts(
         keysetPreferencesFile
             .deleteOrThrow("secure storage keyset")
 
-        val keyStore = KeyStore.getInstance(ANDROID_KEYSTORE)
-            .apply { load(null) }
-        val masterKeyAlias = MasterKeys.AES256_GCM_SPEC.keystoreAlias
-        keyStore.deleteEntry(masterKeyAlias)
-        if (keyStore.containsAlias(masterKeyAlias)) {
-            throw IOException("Could not delete the secure storage master key")
-        }
+        SECURE_STORE_NAMES.forEach { store -> wipeStore(store) }
     }
 
     private fun listSecureStoreFiles(

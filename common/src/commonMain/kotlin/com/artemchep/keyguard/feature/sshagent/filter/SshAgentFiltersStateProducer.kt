@@ -205,7 +205,12 @@ suspend fun RememberStateFlowScope.sshAgentFiltersStateProducer(
         organizationGetter = ::identity,
         organizationFlow = getOrganizations(),
         input = input,
-        params = FilterParams(),
+        params = FilterParams(
+            section = FilterParams.Section(
+                misc = false,
+                custom = false,
+            ),
+        ),
     )
         .stateIn(this, SharingStarted.WhileSubscribed(), OurFilterResult())
 

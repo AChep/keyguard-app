@@ -23,6 +23,7 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.createConfirmationDialogIntent
 import com.artemchep.keyguard.feature.confirmation.registerRouteResultReceiver
+import com.artemchep.keyguard.feature.filepicker.FilePickerMime
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
@@ -105,6 +106,12 @@ object WordlistUtil {
             key = fileKey,
             value = initialFile,
             title = translate(Res.string.wordlist),
+            mimeTypes = listOf(
+                "text/plain",
+                "text/wordlist",
+                // Diceware lists ship as PGP-signed .asc files.
+                FilePickerMime.PGP_SIGNATURE,
+            ),
         )
 
         val items = listOfNotNull(

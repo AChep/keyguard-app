@@ -30,6 +30,14 @@ class FilePickerEffectTest {
     }
 
     @Test
+    fun `maps pgp signature mime type to asc extension`() {
+        assertEquals(
+            setOf("asc"),
+            mimeTypesToExtensions(listOf(FilePickerMime.PGP_SIGNATURE)),
+        )
+    }
+
+    @Test
     fun `deduplicates mixed mime types`() {
         assertEquals(
             setOf("png", "jpg", "jpeg"),

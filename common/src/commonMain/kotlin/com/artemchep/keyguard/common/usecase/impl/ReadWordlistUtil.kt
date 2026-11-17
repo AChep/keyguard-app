@@ -8,13 +8,28 @@ object ReadWordlistUtil {
     /** The longest word of a wordlist. */
     const val MAX_WORD_LENGTH: Int = 512
 
-    fun Sequence<String>.parseAsWordlist(): ImmutableList<String> = filter {
-        it.isNotBlank() &&
-                !it.startsWith('#') &&
-                !it.startsWith(';') &&
-                !it.startsWith('-') &&
-                !it.startsWith('/')
-    }.toImmutableList()
+    private const val BYTE_ORDER_MARK = "\uFEFF"
+
+    /**
+     * Parses the lines of a wordlist file. Skips empty and
+     * commented lines; every other line is a word.
+     *
+     * If most of the lines start with dice numbers, such as
+     * `11111<TAB>abacus`, then the file is a Diceware list:
+     * only the words after the numbers are kept, and lines
+     * without numbers, such as a PGP signature, are skipped.
+     */
+    fun Sequence<String>.parseAsWordlist(): ImmutableList<String> {
+        val lines = this
+            .mapIndexed { index, line ->
+                if (index == 0) line.removePrefix(BYTE_ORDER_MARK) else line
+            }
+            .filter(::isWordLine)
+            .toList()
+        val dicewareWords = lines.mapNotNull(::dicewareWordOrNull)
+        val isDiceware = dicewareWords.size * 2 > lines.size
+        return (if (isDiceware) dicewareWords else lines).toImmutableList()
+    }
 
     context(text: String)
     fun parseAsWordlist(): ImmutableList<String> = text.lineSequence()
@@ -49,5 +64,24 @@ object ReadWordlistUtil {
             words.size == 1 -> WordlistWordError.EXISTS
             else -> WordlistWordError.NO_NEW_WORDS
         }
+    }
+
+    private fun isWordLine(line: String) = line.isNotBlank() && line[0] !in "#;-/"
+
+    /**
+     * Returns the word of a Diceware line: one or more dice
+     * numbers, then spaces or tabs, then the word. Returns `null`
+     * if the line has another format.
+     */
+    private fun dicewareWordOrNull(line: String): String? {
+        val numbersEnd = line.indexOfFirst { it !in '1'..'6' }
+        val hasNumbersAndSeparator = numbersEnd > 0 && line[numbersEnd] in " \t"
+        if (!hasNumbersAndSeparator) {
+            return null
+        }
+        return line
+            .substring(numbersEnd)
+            .trim()
+            .takeIf { it.isNotEmpty() }
     }
 }

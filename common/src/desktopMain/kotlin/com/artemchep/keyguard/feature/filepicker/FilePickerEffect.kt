@@ -93,6 +93,7 @@ internal fun mimeTypesToExtensions(mimeTypes: Iterable<String>): Set<String>? {
             when (mimeType) {
                 "text/plain" -> listOf("txt")
                 "text/wordlist" -> listOf("wordlist")
+                FilePickerMime.PGP_SIGNATURE -> listOf("asc")
                 FilePickerMime.KEEPASS_KDBX,
                 FilePickerMime.KEEPASS_GENERIC,
                     -> listOf("kdbx")

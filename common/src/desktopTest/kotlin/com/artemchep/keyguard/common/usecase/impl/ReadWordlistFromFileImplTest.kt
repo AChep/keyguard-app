@@ -62,4 +62,15 @@ class ReadWordlistFromFileImplTest {
         assertEquals(withNewline, withoutNewline)
         assertEquals(listOf("alpha", "beta"), withoutNewline)
     }
+
+    @Test
+    fun `invoke strips dice numbers from a diceware file`() = runTest {
+        val file = createTempDirectory("read-wordlist-file-diceware")
+            .resolve("wordlist.txt")
+        file.writeText("11111\talpha\r\n11112\tbeta\r\n")
+
+        val actual = useCase(file.toUri().toString()).bind()
+
+        assertEquals(listOf("alpha", "beta"), actual)
+    }
 }

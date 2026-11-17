@@ -66,7 +66,7 @@ misjudges passphrases from a custom wordlist.
 
 A plain text file with one word per line. Keyguard skips empty lines and lines
 that start with `#`, `;`, `-` or `/`. Every other line is a word, kept as is.
-On desktop, the file picker shows `.txt` and `.wordlist` files.
+On desktop, the file picker shows `.txt`, `.wordlist` and `.asc` files.
 
 ```text
 # my wordlist: this line is skipped
@@ -75,6 +75,10 @@ horse
 battery
 staple
 ```
+
+Keyguard also reads Diceware lists, such as EFF's. If most lines start with dice
+numbers, such as `11111 abacus`, Keyguard keeps the word after the numbers and
+skips lines without them, such as a PGP signature.
 
 ### Recommended wordlists
 
@@ -87,8 +91,7 @@ These lists load as is:
 
 The built-in list is the
 [EFF long wordlist](https://www.eff.org/files/2016/07/18/eff_large_wordlist.txt)
-of 7,776 words. EFF's lists, including its shorter ones, put dice numbers
-before each word. Remove the numbers before you load one.
+of 7,776 words.
 
 ## Find a generated value
 

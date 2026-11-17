@@ -97,6 +97,7 @@ class ConfirmationRoute(
                 override val value: File? = null,
                 override val enabled: Boolean = true,
                 val title: String,
+                val mimeTypes: List<String>,
             ) : Item<FileItem.File?> {
                 @LeParcelize
                 @Serializable

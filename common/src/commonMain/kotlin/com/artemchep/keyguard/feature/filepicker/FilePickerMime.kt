@@ -6,4 +6,5 @@ object FilePickerMime {
     const val PKCS12 = "application/x-pkcs12"
     const val PKCS12_GENERIC = "application/pkcs12"
     const val PKCS12_PFX = "application/x-pfx"
+    const val PGP_SIGNATURE = "application/pgp-signature"
 }

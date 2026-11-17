@@ -205,10 +205,7 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
                             error = error,
                             onSelect = {
                                 val intent = FilePickerIntent.OpenDocument(
-                                    mimeTypes = arrayOf(
-                                        "text/plain",
-                                        "text/wordlist",
-                                    )
+                                    mimeTypes = item.mimeTypes.toTypedArray(),
                                 ) { info ->
                                     if (info != null) {
                                         setFile(info.toConfirmationFile())

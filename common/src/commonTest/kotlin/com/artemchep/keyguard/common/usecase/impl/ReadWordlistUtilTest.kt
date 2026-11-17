@@ -76,4 +76,61 @@ class ReadWordlistUtilTest {
         assertEquals(WordlistWordError.EXISTS, errorOf(remove = setOf("cat"), add = listOf("dog")))
         assertEquals(WordlistWordError.NO_NEW_WORDS, errorOf(add = listOf("cat", "dog")))
     }
+
+    @Test
+    fun `sequence parser strips dice numbers`() {
+        assertEquals(listOf("abacus", "abdomen"), parse("11111\tabacus", "11112\tabdomen"))
+        assertEquals(listOf("acid", "acorn"), parse("1111\tacid", "1112\tacorn"))
+        assertEquals(listOf("alpha", "beta"), parse("11111  alpha", "11112 beta"))
+        assertEquals(listOf("alpha", "beta"), parse("11111\talpha  ", "11112\tbeta\t"))
+        // A diceware word may look like a comment.
+        assertEquals(listOf("#", "//", "-", ";"), parse("66661\t#", "66662\t//", "66663\t-", "66664\t;"))
+    }
+
+    @Test
+    fun `sequence parser skips the pgp envelope of a signed diceware list`() {
+        val actual = parse(
+            "-----BEGIN PGP SIGNED MESSAGE-----",
+            "Hash: SHA256",
+            "",
+            "11111\talpha",
+            "11112\tbeta",
+            "11113\tgamma",
+            "11114\tdelta",
+            "11115\tepsilon",
+            "11116\tzeta",
+            "-----BEGIN PGP SIGNATURE-----",
+            "Version: Test 1.0",
+            "",
+            "aGVsbG8gd29ybGQgdGhpcyBpcyBub3QgYSByZWFsIHNpZ25hdHVyZQ==",
+            "=AbCd",
+            "-----END PGP SIGNATURE-----",
+        )
+
+        assertEquals(listOf("alpha", "beta", "gamma", "delta", "epsilon", "zeta"), actual)
+    }
+
+    @Test
+    fun `sequence parser keeps lines without dice numbers as is`() {
+        // Only a few lines have dice numbers.
+        assertEquals(
+            listOf("alpha", "beta", "11111 gamma", "12345"),
+            parse("alpha", "beta", "11111 gamma", "12345"),
+        )
+        // The numbers are not dice numbers.
+        assertEquals(
+            listOf("70000 alpha", "11110 beta", "1111a gamma"),
+            parse("70000 alpha", "11110 beta", "1111a gamma"),
+        )
+    }
+
+    @Test
+    fun `sequence parser strips the byte order mark`() {
+        assertEquals(listOf("alpha", "beta"), parse("\uFEFFalpha", "beta"))
+        assertEquals(listOf("alpha", "beta"), parse("\uFEFF11111\talpha", "11112\tbeta"))
+    }
+
+    private fun parse(vararg lines: String) = with(ReadWordlistUtil) {
+        lines.asSequence().parseAsWordlist()
+    }
 }

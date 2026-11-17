@@ -257,6 +257,14 @@ tasks.named { it == "prepareAppResources" }.configureEach {
     dependsOn(prepareBundledAppResources)
 }
 
+// Compose sets the app image's launcher arguments after project evaluation.
+afterEvaluate {
+    tasks.named<AbstractJPackageTask>("createReleaseDistributableImpl") {
+        // Prevent attach-based heap dumps of unlocked vaults in packaged releases.
+        launcherJvmArgs.add("-XX:+DisableAttachMechanism")
+    }
+}
+
 tasks.withType<AbstractNotarizationTask>().configureEach {
     // The deprecated ascProvider property of Compose's notarization settings
     // throws when the configuration cache serializes it.

@@ -750,7 +750,8 @@ fun FlatTextField(
                         }
                     }
                 }
-                if (trailing != null) {
+                val keyboardHint = keyboardOptions.hasKeyboardHint()
+                if (trailing != null || keyboardHint) {
                     Spacer(
                         modifier = Modifier
                             .width(8.dp),
@@ -762,7 +763,12 @@ fun FlatTextField(
                             },
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        trailing()
+                        if (keyboardHint) {
+                            PasswordKeyboardHint(
+                                focused = hasFocus,
+                            )
+                        }
+                        trailing?.invoke(this)
                     }
                 }
                 val isNotEmpty = fieldBuffer.value.text.isNotEmpty()
@@ -1702,3 +1708,8 @@ fun FlatTextFieldBadge(
 private fun defaultLeading(): Boolean = !CurrentPlatform.hasWatch()
 
 private fun defaultClearButton(): Boolean = !CurrentPlatform.hasWatch()
+
+// Caps Lock and the keyboard language do not change PIN digits.
+private fun KeyboardOptions.hasKeyboardHint(): Boolean =
+    keyboardType == KeyboardType.Password &&
+        !CurrentPlatform.hasWatch()

@@ -106,6 +106,14 @@ public interface DesktopLibJna : Library {
 
     public fun getSystemAccentColor(): Int
 
+    // Keyboard
+
+    /**
+     * Returns the language of the active keyboard layout as a heap string the
+     * caller must release with [freePointer], or `null` if it is unknown.
+     */
+    public fun getKeyboardInputLanguage(): Pointer?
+
     // Biometrics
 
     public fun biometricsIsSupported(): Boolean

@@ -10,10 +10,13 @@ mod ffi;
 #[cfg(target_os = "macos")]
 mod file_promise;
 mod hotkey;
+mod keyboard;
 mod keychain;
 mod notification;
 mod power;
 mod virtual_file;
+#[cfg(target_os = "linux")]
+mod x11;
 
 use ffi::{
     AutoTypeActiveCallback, BiometricsResultCallback, BiometricsVerifyCallback,
@@ -70,6 +73,16 @@ pub unsafe extern "C" fn autoTypeLogin(
 pub extern "C" fn getSystemAccentColor() -> c_int {
     ffi::with_ffi_boundary("getSystemAccentColor", 0, || {
         Ok(accent::get_system_accent_color() as c_int)
+    })
+}
+
+#[cfg_attr(not(test), no_mangle)]
+/// Returns the language of the active keyboard layout, or null when unknown.
+/// The caller releases a non-null result with `freePointer`.
+pub extern "C" fn getKeyboardInputLanguage() -> *mut c_char {
+    ffi::with_ffi_boundary("getKeyboardInputLanguage", ptr::null_mut(), || {
+        Ok(keyboard::input_language()
+            .map_or(ptr::null_mut(), |language| ffi::malloc_cstring(&language)))
     })
 }
 

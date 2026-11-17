@@ -5,7 +5,8 @@ use super::{
     REGISTER_STATUS_UNSUPPORTED_SESSION,
 };
 use crate::ffi::HotKeyPressedCallback;
-use libc::{c_char, c_int, c_long, c_uchar, c_uint, c_ulong};
+use crate::x11::{Display, XCloseDisplay, XInitThreads, XOpenDisplay};
+use libc::{c_int, c_long, c_uchar, c_uint, c_ulong};
 use std::collections::{HashMap, HashSet};
 use std::env;
 use std::mem::MaybeUninit;
@@ -22,11 +23,6 @@ const GRAB_MODE_ASYNC: c_int = 1;
 const LOCK_MASK: c_uint = 1 << 1;
 const MOD2_MASK: c_uint = 1 << 4;
 const IGNORED_MODIFIER_MASK: c_uint = LOCK_MASK | MOD2_MASK;
-
-#[repr(C)]
-struct Display {
-    _private: [u8; 0],
-}
 
 type Window = c_ulong;
 type KeySym = c_ulong;
@@ -74,9 +70,6 @@ type XErrorHandler = Option<unsafe extern "C" fn(*mut Display, *mut XErrorEvent)
 
 #[link(name = "X11")]
 unsafe extern "C" {
-    fn XInitThreads() -> c_int;
-    fn XOpenDisplay(display_name: *const c_char) -> *mut Display;
-    fn XCloseDisplay(display: *mut Display) -> c_int;
     fn XDefaultRootWindow(display: *mut Display) -> Window;
     fn XKeysymToKeycode(display: *mut Display, keysym: KeySym) -> KeyCode;
     fn XGrabKey(

@@ -61,12 +61,20 @@ internal fun DisposableScope.keychainGetPasswordOrThrow(
             .asMemory()
             .let(::register),
     ) ?: error("Failed to read password from the keychain.")
+    return lib.takeString(result)
+}
 
-    return try {
-        result.getString(0L)
-    } finally {
-        lib.freePointer(result)
-    }
+internal fun getKeyboardInputLanguageOrNull(
+    lib: DesktopLibJna,
+): String? = lib.getKeyboardInputLanguage()
+    ?.let(lib::takeString)
+    ?.let(::normalizeKeyboardInputLanguage)
+
+/** Reads a string the library returned and releases it. */
+private fun DesktopLibJna.takeString(pointer: Pointer): String = try {
+    pointer.getString(0L)
+} finally {
+    freePointer(pointer)
 }
 
 internal suspend fun biometricsVerifyOrThrow(

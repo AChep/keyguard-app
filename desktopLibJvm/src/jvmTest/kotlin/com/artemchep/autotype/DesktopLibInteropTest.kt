@@ -168,6 +168,29 @@ class DesktopLibInteropTest {
     }
 
     @Test
+    fun `keyboard input language is unknown on null pointer without freeing`() {
+        val lib = FakeDesktopLibJna().apply {
+            keyboardInputLanguageResult = null
+        }
+
+        assertNull(getKeyboardInputLanguageOrNull(lib))
+        assertTrue(lib.freedPointers.isEmpty())
+    }
+
+    @Test
+    fun `keyboard input language normalizes native string and frees pointer`() {
+        val pointer = Memory(6L).apply {
+            setString(0L, "ru-RU")
+        }
+        val lib = FakeDesktopLibJna().apply {
+            keyboardInputLanguageResult = pointer
+        }
+
+        assertEquals("ru", getKeyboardInputLanguageOrNull(lib))
+        assertEquals(listOf<Pointer>(pointer), lib.freedPointers)
+    }
+
+    @Test
     fun `biometrics verify resumes after async callback`() = runTest {
         val lib = FakeDesktopLibJna()
 
@@ -402,6 +425,7 @@ class DesktopLibInteropTest {
         var biometricsTitle: String = ""
         var biometricsDecrypt: Int = 0
         var nativeSystemAccentColor: Int = 0
+        var keyboardInputLanguageResult: Pointer? = null
         val freedPointers = mutableListOf<Pointer>()
 
         override fun registerNativePowerEvents(callback: DesktopLibJna.PowerEventCallback): Int = -1
@@ -409,6 +433,8 @@ class DesktopLibInteropTest {
         override fun unregisterNativePowerEvents(id: Int): Boolean = false
 
         override fun getSystemAccentColor(): Int = nativeSystemAccentColor
+
+        override fun getKeyboardInputLanguage(): Pointer? = keyboardInputLanguageResult
 
         override fun biometricsIsSupported(): Boolean = true
 

@@ -3,6 +3,7 @@ fn main() {
     println!("cargo:rerun-if-changed=objc/desktop_lib.m");
     println!("cargo:rerun-if-changed=objc/autotype.m");
     println!("cargo:rerun-if-changed=objc/file_promise.m");
+    println!("cargo:rerun-if-changed=objc/keyboard.m");
     println!("cargo:rerun-if-changed=objc/main_thread.h");
 
     if std::env::var("CARGO_CFG_TARGET_OS").as_deref() == Ok("macos") {
@@ -10,6 +11,7 @@ fn main() {
             .file("objc/desktop_lib.m")
             .file("objc/autotype.m")
             .file("objc/file_promise.m")
+            .file("objc/keyboard.m")
             .flag("-x")
             .flag("objective-c")
             .flag("-fobjc-arc")

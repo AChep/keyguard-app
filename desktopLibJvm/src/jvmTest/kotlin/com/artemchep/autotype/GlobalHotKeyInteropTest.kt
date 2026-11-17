@@ -247,6 +247,8 @@ class GlobalHotKeyInteropTest {
 
         override fun getSystemAccentColor(): Int = 0
 
+        override fun getKeyboardInputLanguage(): Pointer? = null
+
         override fun biometricsIsSupported(): Boolean = true
 
         override fun biometricsVerify(

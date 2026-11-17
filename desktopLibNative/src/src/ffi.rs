@@ -115,9 +115,26 @@ fn format_failure_log(name: &str, message: &str, detail: FailureLogDetail) -> St
     }
 }
 
+/// Copies a string into a C allocation that the caller releases with
+/// `freePointer`. Null when the string contains NUL or allocation fails.
+pub(crate) fn malloc_cstring(value: &str) -> *mut c_char {
+    let Ok(value) = CString::new(value) else {
+        return ptr::null_mut();
+    };
+    let bytes = value.as_bytes_with_nul();
+    // SAFETY: malloc has no preconditions; the result is checked for null below.
+    let allocation = unsafe { libc::malloc(bytes.len()) }.cast::<c_char>();
+    if !allocation.is_null() {
+        // SAFETY: The fresh allocation holds bytes.len() writable bytes and
+        // cannot overlap the source, which bytes.len() readable bytes back.
+        unsafe { ptr::copy_nonoverlapping(bytes.as_ptr().cast(), allocation, bytes.len()) };
+    }
+    allocation
+}
+
 pub(crate) fn free_ptr(ptr: *mut c_void) {
     // SAFETY: The exported freePointer contract only accepts pointers returned
-    // by this library's strdup-backed keychain getter (or null, which free also
+    // by this library's C-allocated string getters (or null, which free also
     // accepts), so the allocation belongs to the C allocator exactly once.
     unsafe {
         libc::free(ptr);
@@ -127,10 +144,10 @@ pub(crate) fn free_ptr(ptr: *mut c_void) {
 #[cfg(test)]
 mod tests {
     use super::{
-        bool_from_c_int, format_failure_log, free_ptr, optional_cstring, optional_cstring_ptr,
-        require_non_null, require_string, FailureLogDetail,
+        bool_from_c_int, format_failure_log, free_ptr, malloc_cstring, optional_cstring,
+        optional_cstring_ptr, require_non_null, require_string, FailureLogDetail,
     };
-    use std::ffi::CString;
+    use std::ffi::{CStr, CString};
 
     #[test]
     fn require_non_null_rejects_null() {
@@ -172,6 +189,25 @@ mod tests {
         assert!(!allocation.is_null());
 
         free_ptr(allocation);
+    }
+
+    #[test]
+    fn malloc_cstring_copies_string_for_free_ptr() {
+        let value = malloc_cstring("ru-RU");
+        assert!(!value.is_null());
+        // SAFETY: malloc_cstring returned a live, NUL-terminated copy that is
+        // released only after this borrow ends.
+        let copied = unsafe { CStr::from_ptr(value) }
+            .to_str()
+            .unwrap()
+            .to_owned();
+        free_ptr(value.cast());
+        assert_eq!(copied, "ru-RU");
+    }
+
+    #[test]
+    fn malloc_cstring_rejects_interior_nul() {
+        assert!(malloc_cstring("a\0b").is_null());
     }
 
     #[test]

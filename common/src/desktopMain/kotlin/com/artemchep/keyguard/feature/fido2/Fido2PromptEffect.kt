@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.feature.fido2
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
@@ -21,6 +23,7 @@ import com.artemchep.keyguard.platform.requireSecurityKeyAccess
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.CollectedEffect
+import com.artemchep.keyguard.ui.PasswordKeyboardHint
 import com.artemchep.keyguard.util.fido2.Fido2Exception
 import com.artemchep.keyguard.util.fido2.Fido2Failure
 import com.artemchep.keyguard.util.fido2.NativeFido2Client
@@ -107,18 +110,31 @@ private fun Fido2PromptContent(
                 if (requestPin) Res.string.fido2_pin_prompt else Res.string.fido2_touch_prompt
             )
         )
-        if (requestPin)
-            OutlinedTextField(
-                value = pin,
-                onValueChange = onPinChange,
-                label = { Text(stringResource(Res.string.fido2_pin_label)) },
-                isError = invalidPin,
-                supportingText =
-                    if (invalidPin) ({ Text(stringResource(Res.string.fido2_error_invalid_pin)) })
-                    else null,
-                visualTransformation = PasswordVisualTransformation(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                singleLine = true,
-            )
+        if (requestPin) Fido2PinField(invalidPin, pin, onPinChange)
     }
+}
+
+@Composable
+private fun Fido2PinField(
+    invalidPin: Boolean,
+    pin: String,
+    onPinChange: (String) -> Unit,
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val focused by interactionSource.collectIsFocusedAsState()
+    OutlinedTextField(
+        value = pin,
+        onValueChange = onPinChange,
+        label = { Text(stringResource(Res.string.fido2_pin_label)) },
+        // Unlike a trailing icon, a suffix takes no space while empty.
+        suffix = { PasswordKeyboardHint(focused) },
+        isError = invalidPin,
+        supportingText =
+            if (invalidPin) ({ Text(stringResource(Res.string.fido2_error_invalid_pin)) })
+            else null,
+        visualTransformation = PasswordVisualTransformation(),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        singleLine = true,
+        interactionSource = interactionSource,
+    )
 }

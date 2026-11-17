@@ -60,6 +60,10 @@ object KeyguardPartSchemas {
      * The parts of a blocked URI: `{"name", "description", "uri", "mode", "enabled",
      * "exposed"}`. The URI and the mode change as one part, because a URI is written for the
      * mode that matches it, and the two must never mix from two concurrent edits.
+     *
+     * The optional `"scope"` has no part: it merges as the remainder, see
+     * [com.artemchep.keyguard.feature.p2psync.model.EntryVersion.REMAINDER], so the builds
+     * before it compose the versions of a rule as the builds after it do.
      */
     val urlBlock: PartSchema = PartSchema(
         parts = listOf(

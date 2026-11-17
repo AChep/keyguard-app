@@ -6,10 +6,15 @@ import com.artemchep.keyguard.common.model.DGlobalUrlBlock
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.EquivalentDomains
 import com.artemchep.keyguard.common.model.MatchDetection
+import com.artemchep.keyguard.common.model.UrlBlockScope
 import com.artemchep.keyguard.common.usecase.CipherUrlCheck
+import com.artemchep.keyguard.common.usecase.blocksFill
+import com.artemchep.keyguard.common.usecase.blocksSave
+import com.artemchep.keyguard.common.usecase.matching
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
@@ -59,6 +64,40 @@ class BlockedUrlCheckImplTest {
         assertEquals(DSecret.Uri.MatchType.Host, fakeCipherUrlCheck.defaultMatchDetection)
     }
 
+    @Test
+    fun `a rule of saving only blocks saving, not autofill`() {
+        val all = block(uri = "example.com", mode = MatchDetection.Domain)
+        assertTrue(all.blocksFill)
+        assertTrue(all.blocksSave)
+        val save = all.copy(scope = UrlBlockScope.SAVE)
+        assertFalse(save.blocksFill)
+        assertTrue(save.blocksSave)
+        // A rule that is off blocks nothing.
+        for (rule in listOf(all, save).map { it.copy(enabled = false) }) {
+            assertFalse(rule.blocksFill)
+            assertFalse(rule.blocksSave)
+        }
+    }
+
+    @Test
+    fun `matching keeps the enabled rules that match any of the urls`() = runTest {
+        val blockedUrlCheck = BlockedUrlCheckImpl(PrefixCipherUrlCheck)
+        val app = block(uri = "androidapp://com.example", mode = MatchDetection.Domain)
+        val web = block(uri = "https://example.com", mode = MatchDetection.Domain)
+            .copy(scope = UrlBlockScope.SAVE)
+        val off = web.copy(enabled = false)
+        val other = block(uri = "https://example.org", mode = MatchDetection.Domain)
+
+        val matching = blockedUrlCheck.matching(
+            rules = listOf(app, web, off, other),
+            urls = listOf("androidapp://com.example", "https://example.com/sign-in"),
+            defaultMatchDetection = DSecret.Uri.MatchType.Domain,
+            equivalentDomains = equivalentDomains,
+        )
+
+        assertEquals(listOf(app, web), matching)
+    }
+
     private fun block(
         uri: String,
         mode: MatchDetection,
@@ -72,6 +111,18 @@ class BlockedUrlCheckImplTest {
         enabled = true,
         exposed = true,
     )
+}
+
+/** Matches a URL that starts with the URI. */
+private object PrefixCipherUrlCheck : CipherUrlCheck {
+    override fun invoke(
+        uri: DSecret.Uri,
+        url: String,
+        defaultMatchDetection: DSecret.Uri.MatchType,
+        equivalentDomains: EquivalentDomains,
+    ): IO<Boolean> = {
+        url.startsWith(uri.uri)
+    }
 }
 
 private class RecordingBlockedCipherUrlCheck(

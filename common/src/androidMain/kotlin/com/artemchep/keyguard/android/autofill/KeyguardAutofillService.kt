@@ -72,6 +72,7 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
             val ciphers: List<DSecret>,
             val getSuggestions: GetSuggestions<DSecret>,
             val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
+            val urlBlocks: VaultUrlBlocks,
         ) : Vault
 
         data object Locked : Vault
@@ -94,6 +95,7 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
         val getProfiles: GetProfiles,
         val getSuggestions: GetSuggestions<DSecret>,
         val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
+        val urlBlocks: VaultUrlBlocks,
     )
 
     private fun getVaultOpenFlow(
@@ -105,6 +107,10 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
                 getProfiles = get<GetProfiles>(),
                 getSuggestions = GetCipherSuggestions(get<GetSuggestions<Any?>>()),
                 equivalentDomainsBuilderFactory = get<EquivalentDomainsBuilderFactory>(),
+                urlBlocks = VaultUrlBlocks(
+                    getUrlBlocks = get<GetUrlBlocks>(),
+                    equivalentDomainsBuilderFactory = get<EquivalentDomainsBuilderFactory>(),
+                ),
             )
         } ?: return emptyFlow()
 
@@ -125,14 +131,18 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
                     ciphers = ciphers,
                     getSuggestions = services.getSuggestions,
                     equivalentDomainsBuilderFactory = services.equivalentDomainsBuilderFactory,
+                    urlBlocks = services.urlBlocks,
                 )
             }
     }
 
+    private val getVaultSession: GetVaultSession by lazy {
+        koin.get()
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     private val vaultFlow by lazy {
-        val model: GetVaultSession by lazy { koin.get() }
-        model()
+        getVaultSession()
             .distinctUntilChanged()
             .flatMapLatest { session ->
                 when (session) {
@@ -232,50 +242,24 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
                 autofillStructure
             }
             .effectMap { autofillStructure ->
-                val autofillTarget = autofillStructure.toAutofillTarget()
-                val autofillTargetUris = autofillTarget
-                    .links
-                    .mapNotNull { link ->
-                        when (link) {
-                            is LinkInfoPlatform.Android -> link.uri
-                            is LinkInfoPlatform.Web -> link.url
-                                .toString()
-                            else -> null
-                        }
-                    }
-                // Check if any of the target URIs match
-                // any of the blocked ones.
-                val shouldBlock = combineIo(
-                    prefBlockedUrisFlow
-                        .toIO(),
-                    prefDefaultMatchDetectionFlow
-                        .toIO(),
-                ) { blockedUris, defaultMatchDetection ->
-                    // Since the vault is locked, we can not get the equivalent domains
-                    // list. Later it will be nice to have it as a part of 'exposed' database
-                    // by for now we just ignore it.
-                    val equivalentDomains = EquivalentDomains(domains = emptyMap())
-                    blockedUris.any { blockedUri ->
-                        blockedUri.enabled && autofillTargetUris.any { targetUri ->
-                            blockedUrlCheck.invoke(
-                                blockedUri,
-                                targetUri,
-                                defaultMatchDetection,
-                                equivalentDomains,
-                            ).bind()
-                        }
-                    }
-                }.bind()
-                if (shouldBlock) {
+                // Check if any of the target URIs match any of the
+                // blocked ones that work while the vault is locked.
+                val urlBlocks = matchingUrlBlocks(
+                    autofillTarget = autofillStructure.toAutofillTarget(),
+                    vault = null,
+                )
+                if (urlBlocks.any { it.blocksFill }) {
                     throw AbortAutofillException("Blocked autofill.")
                 }
 
-                autofillStructure
+                // A rule that blocks only saving still fills.
+                autofillStructure to urlBlocks.any { it.blocksSave }
             }
-            .flatMap { autofillStructure ->
+            .flatMap { (autofillStructure, saveBlocked) ->
                 getAutofillResponseIo(
                     request = request,
                     autofillStructure = autofillStructure,
+                    saveBlocked = saveBlocked,
                 )
             }
             .dispatchOn(Dispatchers.Default)
@@ -352,9 +336,43 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
             .toAutofillStructure2()
     }
 
+    /**
+     * The enabled blocked URIs that match the [autofillTarget]: the exposed
+     * ones, and with the [vault] unlocked, the vault's own ones too.
+     */
+    private suspend fun matchingUrlBlocks(
+        autofillTarget: AutofillTarget,
+        vault: VaultUrlBlocks?,
+    ): List<DGlobalUrlBlock> {
+        val autofillTargetUris = autofillTarget
+            .links
+            .mapNotNull { link ->
+                when (link) {
+                    is LinkInfoPlatform.Android -> link.uri
+                    is LinkInfoPlatform.Web -> link.url
+                        .toString()
+                    else -> null
+                }
+            }
+        // While the vault is locked, we can not get the equivalent domains
+        // list. Later it will be nice to have it as a part of 'exposed' database
+        // by for now we just ignore it.
+        return blockedUrlCheck.matchingWithVault(
+            urls = autofillTargetUris,
+            exposed = prefBlockedUrisFlow.first(),
+            vault = vault,
+            defaultMatchDetection = prefDefaultMatchDetectionFlow.first(),
+        )
+    }
+
+    /**
+     * @param saveBlocked An exposed blocked URI stops saving the login of the
+     * form; with the vault open, the vault's own rules count as well.
+     */
     private fun getAutofillResponseIo(
         request: FillRequest,
         autofillStructure: AutofillStructure2,
+        saveBlocked: Boolean,
     ) = vaultFlow
         .toIO()
         .effectMap(Dispatchers.Default) { state ->
@@ -363,14 +381,18 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
                 is Vault.Open -> {
                     // Get the suggested items only
                     val suggestedItems = state.getSuggestions(autofillTarget)
-                    suggestedItems.right()
+                    // The rules that are not exposed, and the equivalent
+                    // domains, count once the vault is open.
+                    val anySaveBlocked = saveBlocked || matchingUrlBlocks(autofillTarget, state.urlBlocks)
+                        .any { it.blocksSave }
+                    suggestedItems.right() to anySaveBlocked
                 }
                 is Vault.Locked -> {
-                    Unit.left()
+                    Unit.left() to saveBlocked
                 }
             }
         }
-        .effectMap { r ->
+        .effectMap { (r, saveBlocked) ->
             val shouldInlineSuggestions = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R &&
                     prefInlineSuggestionsFlow.toIO()
                         .attempt().bind().isRight { it }
@@ -497,8 +519,12 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
                     }
                 }
             }
-            val shouldSaveRequest = prefSaveRequestFlow.first() &&
-                    !forceHideManualSelection
+            val shouldSaveRequest = shouldOfferSave(
+                saveRequests = prefSaveRequestFlow.first(),
+                ownApp = forceHideManualSelection,
+                saveBlocked = saveBlocked,
+                hints = autofillStructure.items.map { it.hint },
+            )
             if (shouldSaveRequest) {
                 class SaveItem(
                     val flag: Int,
@@ -521,22 +547,7 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
                         )
                     }
 
-                val hints = autofillStructure
-                    .items
-                    .asSequence()
-                    .map { it.hint }
-                    .toSet()
-                val hintsIncludeUsername = AutofillHint.USERNAME in hints ||
-                        AutofillHint.NEW_USERNAME in hints ||
-                        AutofillHint.PHONE_NUMBER in hints ||
-                        AutofillHint.EMAIL_ADDRESS in hints
-                val hintsIncludePassword = AutofillHint.PASSWORD in hints ||
-                        AutofillHint.NEW_PASSWORD in hints
-                if (
-                    hintsIncludeUsername &&
-                    hintsIncludePassword &&
-                    saveItems.isNotEmpty()
-                ) {
+                if (saveItems.isNotEmpty()) {
                     val saveInfoBuilder = SaveInfo.Builder(
                         saveItems.fold(0) { y, x -> y or x.flag },
                         saveItems
@@ -907,20 +918,17 @@ class KeyguardAutofillService : AutofillService(), KeyguardKoinOwner {
     ) = ioEffect {
         val hints = autofillStructure
             .items
-            .asSequence()
             .map { it.hint }
-            .toSet()
-        val hintsIncludeUsername = AutofillHint.USERNAME in hints ||
-                AutofillHint.NEW_USERNAME in hints ||
-                AutofillHint.PHONE_NUMBER in hints ||
-                AutofillHint.EMAIL_ADDRESS in hints
-        val hintsIncludePassword = AutofillHint.PASSWORD in hints ||
-                AutofillHint.NEW_PASSWORD in hints
-        if (
-            !hintsIncludeUsername ||
-            !hintsIncludePassword
-        ) {
+        if (!isLoginForm(hints)) {
             throw AbortAutofillException("Can only save login data.")
+        }
+        // The user might have blocked saving since the form was filled.
+        val saveBlocked = matchingUrlBlocks(
+            autofillTarget = autofillStructure.toAutofillTarget(),
+            vault = getVaultSession.vaultUrlBlocksOrNull(),
+        ).any { it.blocksSave }
+        if (saveBlocked) {
+            throw AbortAutofillException("Blocked saving.")
         }
 
         AutofillSaveActivity.getIntent(

@@ -4,6 +4,7 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DGlobalUrlBlock
 import com.artemchep.keyguard.common.model.MatchDetection
+import com.artemchep.keyguard.common.model.UrlBlockScope
 import com.artemchep.keyguard.common.service.database.exposed.TestExposedDatabaseManager
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepository
@@ -15,6 +16,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
@@ -35,6 +37,7 @@ class UrlBlockExposedSyncerImplTest {
                     mode = MatchDetection.RegularExpression,
                     enabled = false,
                     exposed = true,
+                    scope = UrlBlockScope.SAVE,
                 ),
                 createRule(
                     id = "2",
@@ -61,6 +64,39 @@ class UrlBlockExposedSyncerImplTest {
             assertEquals(MatchDetection.RegularExpression.key, row.mode)
             assertEquals(CREATED_AT, row.createdAt)
             assertEquals(0L, row.enabled)
+            assertEquals(UrlBlockScope.SAVE.key, row.scope)
+        } finally {
+            job.cancel()
+        }
+    }
+
+    @Test
+    fun `a change of the scope alone reaches the copy`() = runTest {
+        val exposedDbManager = TestExposedDatabaseManager()
+        val dispatcher = StandardTestDispatcher(testScheduler)
+        val rule = createRule(id = "1", name = "Bank", exposed = true)
+        val rules = MutableStateFlow(listOf(rule))
+        val syncer = createSyncer(
+            rules = rules,
+            exposedDbManager = exposedDbManager,
+            dispatcher = dispatcher,
+        )
+
+        val job = syncer.launch(this)
+        try {
+            runCurrent()
+            assertEquals(listOf(UrlBlockScope.ALL.key), exposedRows(exposedDbManager).map { it.scope })
+
+            rules.value = listOf(rule.copy(scope = UrlBlockScope.SAVE))
+            runCurrent()
+
+            assertEquals(listOf(UrlBlockScope.SAVE.key), exposedRows(exposedDbManager).map { it.scope })
+            val exposedRepository = UrlBlockRepositoryExposed(
+                exposedDatabaseManager = exposedDbManager,
+                dispatcher = dispatcher,
+            )
+            val copy = exposedRepository.get().first().single()
+            assertEquals(rule.copy(scope = UrlBlockScope.SAVE), copy)
         } finally {
             job.cancel()
         }
@@ -175,6 +211,7 @@ class UrlBlockExposedSyncerImplTest {
         uri: String = "example.com",
         mode: MatchDetection = MatchDetection.Domain,
         enabled: Boolean = true,
+        scope: UrlBlockScope = UrlBlockScope.ALL,
     ) = DGlobalUrlBlock(
         id = id,
         name = name,
@@ -184,6 +221,7 @@ class UrlBlockExposedSyncerImplTest {
         createdDate = CREATED_AT,
         enabled = enabled,
         exposed = exposed,
+        scope = scope,
     )
 
     /** The vault rules, as the [rules] flow emits them. */

@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.usecase.CipherUrlCheck
 import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.GetUrlBlocks
+import com.artemchep.keyguard.common.usecase.blocksFill
 import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.common.util.normalizeSha256FingerprintOrNull
 import com.artemchep.keyguard.common.util.parseAndroidAppPackageNameOrNull
@@ -247,8 +248,8 @@ class GetSuggestionsImpl(
             .first()
         val blockedUrls = getUrlBlocks()
             .first()
-            // Modify the collection
-            .filter { blockedUri -> blockedUri.enabled }
+            // A rule that blocks only saving still fills.
+            .filter { blockedUri -> blockedUri.blocksFill }
             .map { blockedUri ->
                 DSecret.Uri(
                     uri = blockedUri.uri,

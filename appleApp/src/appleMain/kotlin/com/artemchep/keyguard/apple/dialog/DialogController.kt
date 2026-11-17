@@ -1698,8 +1698,8 @@ internal class DialogController(
             key = key,
             kind = ConfirmationItemKind.CHOICE,
             enabled = enabled,
-            // EnumItem has no title of its own; it is just a list of options.
-            title = "",
+            // Most EnumItems have no title; they are just a list of options.
+            title = title.orEmpty(),
             enumValue = value,
             options = items.map { option ->
                 ConfirmationEnumOptionSnapshot(

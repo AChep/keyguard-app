@@ -3,6 +3,7 @@ package com.artemchep.keyguard.provider.keyguard.applink
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.model.DGlobalUrlBlock
 import com.artemchep.keyguard.common.model.MatchDetection
+import com.artemchep.keyguard.common.model.UrlBlockScope
 import com.artemchep.keyguard.common.service.urlblock.UrlBlockRepositoryImpl
 import com.artemchep.keyguard.feature.p2psync.model.EntryKind
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,7 @@ internal suspend fun AppLinkTestDevice.addUrlBlock(
     mode: MatchDetection = MatchDetection.Domain,
     enabled: Boolean = true,
     exposed: Boolean = true,
+    scope: UrlBlockScope = UrlBlockScope.ALL,
 ) = putUrlBlock(
     DGlobalUrlBlock(
         name = name,
@@ -37,6 +39,7 @@ internal suspend fun AppLinkTestDevice.addUrlBlock(
         createdDate = now(),
         enabled = enabled,
         exposed = exposed,
+        scope = scope,
     ),
 )
 
@@ -50,6 +53,7 @@ internal suspend fun AppLinkTestDevice.editUrlBlock(
     mode: MatchDetection = current.mode,
     enabled: Boolean = current.enabled,
     exposed: Boolean = current.exposed,
+    scope: UrlBlockScope = current.scope,
 ) = putUrlBlock(
     current.copy(
         name = name,
@@ -58,6 +62,7 @@ internal suspend fun AppLinkTestDevice.editUrlBlock(
         mode = mode,
         enabled = enabled,
         exposed = exposed,
+        scope = scope,
     ),
 )
 
@@ -85,6 +90,13 @@ internal fun AppLinkTestDevice.exposedUrlBlocks(): Map<String, String> = exposed
     .get(Long.MAX_VALUE)
     .executeAsList()
     .associate { it.id.toString() to it.name }
+
+/** The scope keys of the blocked URIs the exposed database holds, by their names. */
+internal fun AppLinkTestDevice.exposedUrlBlockScopes(): Map<String, String> = exposedDbManager.database
+    .urlBlockQueries
+    .get(Long.MAX_VALUE)
+    .executeAsList()
+    .associate { it.name to it.scope }
 
 /** TEST ONLY: the blocked URIs, for [AppSyncRowContractTest]. */
 internal object UrlBlockTestRows : AppSyncTestRows {

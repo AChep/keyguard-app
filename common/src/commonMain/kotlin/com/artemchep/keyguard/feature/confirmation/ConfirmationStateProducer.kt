@@ -148,6 +148,7 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
                             key = item.key,
                             value = value,
                             enabled = item.enabled,
+                            title = item.title,
                             items = item.items
                                 .map { el ->
                                     ConfirmationState.Item.EnumItem.Item(

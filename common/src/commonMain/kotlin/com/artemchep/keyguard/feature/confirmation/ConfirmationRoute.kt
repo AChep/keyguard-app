@@ -76,6 +76,8 @@ class ConfirmationRoute(
                 override val key: String,
                 override val value: String = "",
                 override val enabled: Boolean = true,
+                /** A label above the options; `null` shows the options alone. */
+                val title: String? = null,
                 val items: List<Item>,
                 val docs: Map<String, Doc> = emptyMap(),
             ) : Item<String> {

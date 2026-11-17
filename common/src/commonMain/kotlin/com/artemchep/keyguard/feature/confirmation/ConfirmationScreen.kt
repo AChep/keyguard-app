@@ -419,6 +419,15 @@ private fun ConfirmationEnumItem(
     Column(
         modifier = modifier,
     ) {
+        if (item.title != null) {
+            Text(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 8.dp),
+                text = item.title,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        }
         FlowRow(
             modifier = Modifier
                 .padding(horizontal = 16.dp),

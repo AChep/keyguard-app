@@ -36,6 +36,8 @@ data class UrlBlockListState(
         val text: String,
         val uri: AnnotatedString,
         val mode: AnnotatedString,
+        /** What the rule blocks, or `null` for a rule that blocks autofill and saving. */
+        val scope: AnnotatedString? = null,
         val shapeState: Int = ShapeState.ALL,
         val icon: VaultItemIcon,
         val accentLight: Color,

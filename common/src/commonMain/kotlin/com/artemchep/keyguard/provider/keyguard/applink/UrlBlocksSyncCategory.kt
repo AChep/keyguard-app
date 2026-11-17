@@ -2,6 +2,7 @@ package com.artemchep.keyguard.provider.keyguard.applink
 
 import com.artemchep.keyguard.common.model.DAppLinkSyncCategory
 import com.artemchep.keyguard.common.model.MatchDetection
+import com.artemchep.keyguard.common.model.UrlBlockScope
 import com.artemchep.keyguard.common.model.isUrlBlockUriValid
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.data.Database
@@ -20,6 +21,17 @@ import kotlin.time.Instant
  * [MatchDetection.key], and the creation date stays local. A body without them, with an
  * unknown mode, or with a URI the list would refuse, see [isUrlBlockUriValid], is not
  * written.
+ *
+ * A rule that blocks only saving also has `"scope": "save"`, see [UrlBlockScope.key]; a rule
+ * that blocks everything has no scope, so its body is the one of the builds before scopes. A
+ * scope that is missing, unknown or not a string blocks everything. The scope has no part of
+ * its own: it merges with the rest of the body, see
+ * [com.artemchep.keyguard.feature.p2psync.parts.KeyguardPartSchemas.urlBlock].
+ *
+ * An older build reads only the fields it knows, so it blocks such a rule everywhere, and
+ * keeps the scope on its own edits: its [AppSyncRecorderImpl] keeps the fields of the
+ * current body that it did not read. A row it wrote keeps blocking everything after the
+ * update, as the new column defaults to `all`, until the rule changes again.
  */
 internal class UrlBlocksSyncCategory : AppSyncCategory {
     companion object {
@@ -29,6 +41,7 @@ internal class UrlBlocksSyncCategory : AppSyncCategory {
         private const val FIELD_MODE = "mode"
         private const val FIELD_ENABLED = "enabled"
         private const val FIELD_EXPOSED = "exposed"
+        private const val FIELD_SCOPE = "scope"
     }
 
     override val kind: EntryKind get() = EntryKind.URL_BLOCK
@@ -59,6 +72,7 @@ internal class UrlBlocksSyncCategory : AppSyncCategory {
         val description = body.string(FIELD_DESCRIPTION)
         val rule = body.ruleOrNull()
         if (name == null || description == null || rule == null) return AppSyncWrite.REFUSED
+        val scope = body.scope().key
         val dao = database.urlBlockQueries
         return writeRow(
             update = {
@@ -69,6 +83,7 @@ internal class UrlBlocksSyncCategory : AppSyncCategory {
                     mode = rule.mode.key,
                     enabled = rule.enabled.int.toLong(),
                     exposed = rule.exposed.int.toLong(),
+                    scope = scope,
                     syncId = id,
                 ).value
             },
@@ -82,6 +97,7 @@ internal class UrlBlocksSyncCategory : AppSyncCategory {
                     enabled = rule.enabled.int.toLong(),
                     exposed = rule.exposed.int.toLong(),
                     syncId = id,
+                    scope = scope,
                 )
             },
         )
@@ -106,7 +122,15 @@ internal class UrlBlocksSyncCategory : AppSyncCategory {
         put(FIELD_MODE, mode)
         put(FIELD_ENABLED, enabled != 0L)
         put(FIELD_EXPOSED, exposed != 0L)
+        // A rule that blocks everything keeps the body of the builds before scopes.
+        val ruleScope = UrlBlockScope.ofKey(scope)
+        if (ruleScope != UrlBlockScope.ALL) put(FIELD_SCOPE, ruleScope.key)
     }
+
+    /** The scope of the rule of the body: one that is missing, unknown or not a string blocks everything. */
+    private fun JsonObject.scope(): UrlBlockScope = string(FIELD_SCOPE)
+        ?.let(UrlBlockScope::ofKey)
+        ?: UrlBlockScope.ALL
 
     /**
      * Returns the rule of the body, or `null` if a field is missing, the mode is unknown,

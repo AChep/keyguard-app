@@ -63,6 +63,7 @@ data class ConfirmationState(
             override val key: String,
             override val value: String,
             override val enabled: Boolean,
+            val title: String? = null,
             val items: List<Item>,
             val doc: Doc? = null,
         ) : Item {

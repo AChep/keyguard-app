@@ -490,7 +490,8 @@ internal class ReadOnlyListsController(
                 id = item.key,
                 title = item.title,
                 subtitle = item.uri.text,
-                detail = item.mode.text,
+                // A rule that blocks autofill and saving has no scope text.
+                detail = listOfNotNull(item.mode.text, item.scope?.text).joinToString(" · "),
                 active = item.active,
                 actions = actions,
                 selected = selectable.selected,

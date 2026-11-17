@@ -13,6 +13,7 @@ data class DGlobalUrlBlock(
     val createdDate: Instant,
     val enabled: Boolean,
     val exposed: Boolean,
+    val scope: UrlBlockScope = UrlBlockScope.ALL,
 ) : Comparable<DGlobalUrlBlock> {
     val accentColor = run {
         val colors = generateAccentColors(uri)
@@ -21,6 +22,28 @@ data class DGlobalUrlBlock(
 
     override fun compareTo(other: DGlobalUrlBlock): Int {
         return AlphabeticalSort.compareStr(uri, other.uri)
+    }
+}
+
+/**
+ * What a blocked URI blocks.
+ *
+ * @property key names the scope in the databases and in the records linked apps sync; it
+ *   never changes.
+ */
+enum class UrlBlockScope(
+    val key: String,
+) {
+    /** Autofill and the offer to save a login. */
+    ALL(key = "all"),
+
+    /** Only the offer to save a login: autofill still fills. */
+    SAVE(key = "save"),
+    ;
+
+    companion object {
+        /** The scope with the [key]; an unknown one blocks everything, see [ALL]. */
+        fun ofKey(key: String): UrlBlockScope = entries.firstOrNull { it.key == key } ?: ALL
     }
 }
 

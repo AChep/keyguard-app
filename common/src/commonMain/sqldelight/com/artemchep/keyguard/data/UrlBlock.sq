@@ -3,7 +3,7 @@ import kotlin.time.Instant;
 -- The blocked URIs of autofill. The syncId is the rule's id on every
 -- linked app; the id is local to this database. SQLite adds a NOT NULL
 -- column only with a default, so the syncId has one; every row gets its
--- own.
+-- own. The scope is what the rule blocks, see UrlBlockScope.
 CREATE TABLE urlBlock (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
@@ -13,7 +13,8 @@ CREATE TABLE urlBlock (
   createdAt INTEGER AS Instant NOT NULL,
   enabled INTEGER NOT NULL,
   exposed INTEGER,
-  syncId TEXT NOT NULL DEFAULT ''
+  syncId TEXT NOT NULL DEFAULT '',
+  scope TEXT NOT NULL DEFAULT 'all'
 );
 
 CREATE INDEX idx_urlBlock_createdAt ON urlBlock(createdAt DESC);
@@ -29,7 +30,8 @@ update {
     mode = :mode,
     createdAt = :createdAt,
     enabled = :enabled,
-    exposed = :exposed
+    exposed = :exposed,
+    scope = :scope
   WHERE
     id = :id;
 }
@@ -42,14 +44,15 @@ updateBySyncId {
     uri = :uri,
     mode = :mode,
     enabled = :enabled,
-    exposed = :exposed
+    exposed = :exposed,
+    scope = :scope
   WHERE
     syncId = :syncId;
 }
 
 insert {
-  INSERT OR IGNORE INTO urlBlock(name, description, uri, mode, createdAt, enabled, exposed, syncId)
-  VALUES (:name, :description, :uri, :mode, :createdAt, :enabled, :exposed, :syncId);
+  INSERT OR IGNORE INTO urlBlock(name, description, uri, mode, createdAt, enabled, exposed, syncId, scope)
+  VALUES (:name, :description, :uri, :mode, :createdAt, :enabled, :exposed, :syncId, :scope);
 }
 
 get:

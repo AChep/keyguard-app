@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.DGlobalUrlBlock
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.MatchDetection
+import com.artemchep.keyguard.common.model.UrlBlockScope
 import com.artemchep.keyguard.common.model.buildDocs
 import com.artemchep.keyguard.common.model.isUrlBlockUriValid
 import com.artemchep.keyguard.common.model.titleH
@@ -55,6 +56,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import org.jetbrains.compose.resources.StringResource
 import org.koin.compose.currentKoinScope
 
 private class UrlBlockListUiException(
@@ -166,6 +168,22 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
             ),
         )
 
+        val scopeKey = "scope"
+        val scopeEl = UrlBlockScope.entries
+            .map { scope ->
+                val scopeTitle = translate(scope.titleRes())
+                ConfirmationRoute.Args.Item.EnumItem.Item(
+                    key = scope.name,
+                    title = scopeTitle,
+                )
+            }
+        val scopeItem = ConfirmationRoute.Args.Item.EnumItem(
+            key = scopeKey,
+            value = (entity?.scope ?: UrlBlockScope.ALL).name,
+            title = translate(Res.string.urlblock_scope_title),
+            items = scopeEl,
+        )
+
         val items2 = listOf(
             nameItem,
             descriptionItem,
@@ -173,6 +191,7 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
             exposedItem,
             uriItem,
             modeItem,
+            scopeItem,
         )
         val route = confirmationRouteFactory.registerRouteResultReceiver(
             args = ConfirmationRoute.Args(
@@ -218,6 +237,8 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
                     ?: return@registerRouteResultReceiver
                 val mode = (result.data[modeKey] as? String)?.let(MatchDetection::valueOf)
                     ?: return@registerRouteResultReceiver
+                val scope = (result.data[scopeKey] as? String)?.let(UrlBlockScope::valueOf)
+                    ?: return@registerRouteResultReceiver
                 if (!isUrlBlockUriValid(uri, mode)) return@registerRouteResultReceiver
                 val createdAt = Clock.System.now()
                 val model = DGlobalUrlBlock(
@@ -229,6 +250,7 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
                     createdDate = createdAt,
                     enabled = enabled,
                     exposed = exposed,
+                    scope = scope,
                 )
                 addUrlBlock(model)
                     .launchIn(appScope)
@@ -402,12 +424,19 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
                             selectableFlow.stateIn(this)
                         }
                     val mode = translate(it.mode.matchType.titleH())
+                    // A full block is the default, so only a narrower scope is shown.
+                    val scope = if (it.scope != UrlBlockScope.ALL) {
+                        translate(it.scope.titleRes())
+                    } else {
+                        null
+                    }
                     UrlBlockListState.Item(
                         key = it.id.orEmpty(),
                         title = it.name,
                         text = it.description,
                         uri = it.uri.let(::AnnotatedString),
                         mode = mode.let(::AnnotatedString),
+                        scope = scope?.let(::AnnotatedString),
                         icon = icon,
                         accentLight = it.accentColor.light,
                         accentDark = it.accentColor.dark,
@@ -451,4 +480,9 @@ suspend fun RememberStateFlowScope.urlBlockListStateProducer(
             )
             Loadable.Ok(state)
         }
+}
+
+private fun UrlBlockScope.titleRes(): StringResource = when (this) {
+    UrlBlockScope.ALL -> Res.string.urlblock_scope_all
+    UrlBlockScope.SAVE -> Res.string.urlblock_scope_save
 }

@@ -1,0 +1,3 @@
+-- Mirror the scope of a blocked URI: what it blocks. An existing rule blocks
+-- autofill and saving, as it always did.
+ALTER TABLE urlBlock ADD COLUMN scope TEXT NOT NULL DEFAULT 'all';

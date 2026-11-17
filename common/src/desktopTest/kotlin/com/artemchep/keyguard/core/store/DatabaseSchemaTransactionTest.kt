@@ -82,10 +82,15 @@ class DatabaseSchemaTransactionTest {
         open().use { driver ->
             driver.initializeSchema(schema(4, create = {
                 // A real version 4 database has the account mirror, which a later
-                // migration rebuilds.
+                // migration rebuilds, and the blocked URIs, which a later migration alters.
                 it.sql(
                     "CREATE TABLE account (accountId TEXT NOT NULL PRIMARY KEY, name TEXT NOT NULL, " +
                         "email TEXT NOT NULL, host TEXT NOT NULL)",
+                )
+                it.sql(
+                    "CREATE TABLE urlBlock (id INTEGER PRIMARY KEY, name TEXT NOT NULL, " +
+                        "description TEXT NOT NULL, uri TEXT NOT NULL, mode TEXT NOT NULL, " +
+                        "createdAt INTEGER NOT NULL, enabled INTEGER NOT NULL)",
                 )
                 it.sql("CREATE TABLE gpgAgentPublicKey (value TEXT)")
                 it.sql("INSERT INTO gpgAgentPublicKey VALUES ('retained')")
@@ -102,7 +107,10 @@ class DatabaseSchemaTransactionTest {
         }
         open().use { driver ->
             assertEquals(4L, driver.version())
-            assertEquals(listOf("account", "gpgAgentPublicKey", "sshAgentPublicKey"), driver.tables().sorted())
+            assertEquals(
+                listOf("account", "gpgAgentPublicKey", "sshAgentPublicKey", "urlBlock"),
+                driver.tables().sorted(),
+            )
             assertEquals(listOf("retained"), driver.strings("SELECT value FROM gpgAgentPublicKey"))
             assertEquals(listOf("retained"), driver.strings("SELECT value FROM sshAgentPublicKey"))
             driver.initializeSchema(DatabaseExposed.Schema)
@@ -117,6 +125,7 @@ class DatabaseSchemaTransactionTest {
                     "gpgPublicKey",
                     "pendingUsageHistory",
                     "sshAgentPublicKey",
+                    "urlBlock",
                 ),
                 driver.tables().sorted(),
             )

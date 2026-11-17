@@ -18,6 +18,7 @@ import androidx.credentials.provider.BeginCreatePasswordCredentialRequest
 import androidx.credentials.provider.BeginCreatePublicKeyCredentialRequest
 import androidx.credentials.provider.BeginGetCredentialRequest
 import androidx.credentials.provider.BeginGetCredentialResponse
+import androidx.credentials.provider.CallingAppInfo
 import androidx.credentials.provider.CreateEntry
 import androidx.credentials.provider.CredentialProviderService
 import androidx.credentials.provider.ProviderClearCredentialStateRequest
@@ -26,6 +27,7 @@ import com.artemchep.keyguard.android.CredentialProviderPlatformConfig
 import com.artemchep.keyguard.android.createCredentialProviderPendingIntent
 import com.artemchep.keyguard.android.downloader.journal.CipherHistoryOpenedRepository
 import com.artemchep.keyguard.android.filterCredentialProviderBeginGetOptions
+import com.artemchep.keyguard.android.getCredentialProviderTrustedOriginOrNull
 import com.artemchep.keyguard.common.R
 import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
@@ -37,13 +39,19 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.io.toIO
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.service.gpmprivapps.PrivilegedAppsService
+import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
+import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
+import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetAutofillPasskeysEnabled
 import com.artemchep.keyguard.common.usecase.GetAutofillPasswordsEnabled
 import com.artemchep.keyguard.common.usecase.GetCanWrite
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetProfiles
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.common.usecase.blocksSave
 import com.artemchep.keyguard.common.usecase.filterHiddenProfiles
+import com.artemchep.keyguard.common.util.PROTOCOL_ANDROID_APP
 import com.artemchep.keyguard.di.KeyguardKoinOwner
 import com.artemchep.keyguard.di.keyguardKoin
 import com.artemchep.keyguard.feature.crashlytics.crashlyticsTap
@@ -55,6 +63,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 
 @RequiresApi(34)
 open class KeyguardCredentialService : CredentialProviderService(), KeyguardKoinOwner {
@@ -76,6 +85,16 @@ open class KeyguardCredentialService : CredentialProviderService(), KeyguardKoin
     private val credentialProviderPlatformConfig by lazy { koin.get<CredentialProviderPlatformConfig>() }
 
     private val credentialProviderGetRequestHandler by lazy { koin.get<CredentialProviderGetRequestHandler>() }
+
+    private val getVaultSession by lazy { koin.get<GetVaultSession>() }
+
+    private val getBlockedUrisExposed by lazy { koin.get<GetAutofillBlockedUrisExposed>() }
+
+    private val getDefaultMatchDetection by lazy { koin.get<GetAutofillDefaultMatchDetection>() }
+
+    private val blockedUrlCheck by lazy { koin.get<BlockedUrlCheck>() }
+
+    private val privilegedAppsService by lazy { koin.get<PrivilegedAppsService>() }
 
     override fun onBeginCreateCredentialRequest(
         request: BeginCreateCredentialRequest,
@@ -214,9 +233,39 @@ open class KeyguardCredentialService : CredentialProviderService(), KeyguardKoin
 
         return when (request) {
             is BeginCreatePublicKeyCredentialRequest -> !getPasskeysEnabled().toIO().bind()
-            is BeginCreatePasswordCredentialRequest -> !getPasswordsEnabled().toIO().bind()
+            is BeginCreatePasswordCredentialRequest -> !getPasswordsEnabled().toIO().bind() ||
+                isSaveBlocked(request.callingAppInfo)
+
             else -> true
         }
+    }
+
+    /**
+     * Whether a blocked URI stops saving a password for the calling app, or
+     * for the website a privileged browser calls for. The vault may still be
+     * locked here, so the exposed rules decide; once it is unlocked, the
+     * vault's own rules and equivalent domains count as well.
+     */
+    private suspend fun isSaveBlocked(callingAppInfo: CallingAppInfo?): Boolean {
+        callingAppInfo
+            ?: return false
+        val webOrigin = getCredentialProviderTrustedOriginOrNull(
+            appInfo = callingAppInfo,
+            privilegedAppsService = privilegedAppsService,
+        )?.takeIf { origin ->
+            origin.startsWith("https://", ignoreCase = true) ||
+                origin.startsWith("http://", ignoreCase = true)
+        }
+        val targets = listOfNotNull(
+            PROTOCOL_ANDROID_APP + callingAppInfo.packageName,
+            webOrigin,
+        )
+        return blockedUrlCheck.matchingWithVault(
+            urls = targets,
+            exposed = getBlockedUrisExposed().first(),
+            vault = getVaultSession.vaultUrlBlocksOrNull(),
+            defaultMatchDetection = getDefaultMatchDetection().first(),
+        ).any { it.blocksSave }
     }
 
     private suspend fun shouldSkipGetRequest(request: BeginGetCredentialRequest): Boolean {

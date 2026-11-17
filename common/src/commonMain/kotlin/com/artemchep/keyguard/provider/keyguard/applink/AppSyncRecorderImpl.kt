@@ -95,8 +95,10 @@ internal class AppSyncRecorderImpl(
                         current = current,
                         // The row before the mutation: the edit is what the mutation changed.
                         applied = if (body != null && old != null) JsonObject(body + old) else null,
-                        // Keep what a newer build added to the body.
-                        local = JsonObject(current?.body.orEmpty() + local),
+                        // Keep what a newer build added to the body: the fields this build
+                        // did not read. A field it read, and the row no longer has, such as
+                        // an optional one, the mutation removed.
+                        local = JsonObject(current?.body.orEmpty() - old?.keys.orEmpty() + local),
                         clock = clock,
                         signer = signer,
                         budget = budget,

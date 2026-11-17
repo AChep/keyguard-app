@@ -26,6 +26,9 @@ To edit, duplicate or delete a rule, select it and choose the action.
 Open the blocked website or app and select a username field. Keyguard offers
 no logins.
 
+For a **Saving only** rule, Keyguard still offers logins. After you sign in,
+it doesn't offer to save the login.
+
 ## Fields
 
 | Field | Value |
@@ -36,16 +39,31 @@ no logins.
 | **Expose data to the Autofill framework prior to unlocking the vault** | On by default. Keyguard stores the rule outside the vault, so the block works while the vault is locked. |
 | **URI** | The website or app to block. For an app, see [App URLs](/docs/url-matching/#app-urls). |
 | Match mode | Any of the [Match detection modes](/docs/url-matching/#match-detection-modes) except **Default** and **Never**. **Base domain** unless you change it. |
+| **Block** | **Autofill and saving** unless you change it. **Saving only** keeps autofill and stops offers to save logins. |
 
 Keyguard sees a website as `https://` and its domain, without a path. A rule
 that includes a path never matches a website.
 
 ## Locked and unlocked vault
 
+For an **Autofill and saving** rule:
+
 | Rule | Vault locked | Vault unlocked |
 | --- | --- | --- |
 | Exposed | Keyguard offers nothing | Keyguard offers nothing |
 | Not exposed | Keyguard offers to unlock the vault | Keyguard suggests no logins |
+
+A **Saving only** rule changes only the offer to save a login:
+
+| Rule | Vault locked | Vault unlocked |
+| --- | --- | --- |
+| Exposed | Keyguard doesn't offer to save | Keyguard doesn't offer to save |
+| Not exposed | Keyguard offers to save | Keyguard doesn't offer to save |
+
+:::note
+Keyguard reads a rule that is not exposed only while the vault is unlocked. If
+the vault is still locked when you save, Keyguard may save the login.
+:::
 
 With the vault unlocked, a rule also covers the
 [Equivalent domains](/docs/url-matching/#equivalent-domains) of a Bitwarden

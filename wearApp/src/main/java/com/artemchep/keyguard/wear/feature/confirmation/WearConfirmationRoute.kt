@@ -367,6 +367,11 @@ private fun WearConfirmationEnumItem(
             .surfaceTransformation(transformation),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
+        item.title?.let { title ->
+            WearListLabel(
+                text = title,
+            )
+        }
         item.items.forEach { enumItem ->
             val updatedOnClick by rememberUpdatedState(enumItem.onClick)
             val text = buildString {

@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.TypeSpecimen
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -241,6 +242,14 @@ private fun UrlBlockItem(
                                     .padding(top = 4.dp),
                                 icon = Icons.Outlined.TypeSpecimen,
                                 text = item.mode,
+                            )
+                        }
+                        if (item.scope != null) {
+                            MiniRow(
+                                modifier = Modifier
+                                    .padding(top = 4.dp),
+                                icon = Icons.Outlined.Block,
+                                text = item.scope,
                             )
                         }
                     }

@@ -1105,6 +1105,11 @@
     <string name="urlblock_empty_label">No blocked URIs</string>
     <string name="urlblock_expose_title">Expose data to the Autofill framework prior to unlocking the vault</string>
     <string name="urlblock_expose_text">If enabled, the item is stored outside of the vault, allowing to completely hide the autofill suggestions even if the vault is locked</string>
+    <!-- Blocked URIs: what a rule blocks -->
+    <string name="urlblock_scope_title">Block</string>
+    <string name="urlblock_scope_all">Autofill and saving</string>
+    <!-- Blocked URIs: the rule keeps autofill and only stops offers to save logins -->
+    <string name="urlblock_scope_save">Saving only</string>
 
     <string name="urlrule_global_label">Global</string>
     <string name="urlrule_excluded_label">Excluded</string>

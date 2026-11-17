@@ -7,7 +7,8 @@ CREATE TABLE urlBlock (
   uri TEXT NOT NULL,
   mode TEXT NOT NULL,
   createdAt INTEGER AS Instant NOT NULL,
-  enabled INTEGER NOT NULL
+  enabled INTEGER NOT NULL,
+  scope TEXT NOT NULL DEFAULT 'all'
 );
 
 insert {
@@ -18,12 +19,13 @@ insert {
     uri = :uri,
     mode = :mode,
     createdAt = :createdAt,
-    enabled = :enabled
+    enabled = :enabled,
+    scope = :scope
   WHERE
     id = :id;
 
-  INSERT OR IGNORE INTO urlBlock(id, name, description, uri, mode, createdAt, enabled)
-  VALUES (:id, :name, :description, :uri, :mode, :createdAt, :enabled);
+  INSERT OR IGNORE INTO urlBlock(id, name, description, uri, mode, createdAt, enabled, scope)
+  VALUES (:id, :name, :description, :uri, :mode, :createdAt, :enabled, :scope);
 }
 
 get:

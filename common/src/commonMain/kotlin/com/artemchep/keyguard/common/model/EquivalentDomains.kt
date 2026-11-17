@@ -88,6 +88,21 @@ class EquivalentDomainsBuilder(
 
     private var state = persistentMapOf<String, IO<EquivalentDomains>>()
 
+    private val allAccounts = sharedAllEquivalentDomains
+        .effectMap { allEquivalentDomains ->
+            logRepository.postDebug(TAG) {
+                "Building optimized equivalent domains for all accounts."
+            }
+            equivalentDomainsOfAllAccounts(allEquivalentDomains)
+        }
+        .shared("AllAccountsEquivalentDomains")
+
+    /**
+     * The equivalent domains of all the accounts at once, see [equivalentDomainsOfAllAccounts]:
+     * for a check that belongs to no account, such as whether to offer to save a login.
+     */
+    suspend fun getAndCacheAll(): EquivalentDomains = allAccounts.bind()
+
     suspend fun getAndCache(
         accountId: String,
     ): EquivalentDomains {
@@ -133,4 +148,24 @@ class EquivalentDomainsBuilder(
             task
         }.bind()
     }
+}
+
+/**
+ * The equivalent domains of all the accounts in one: a domain is equivalent to every domain
+ * that a group of any account lists with it. The excluded groups are left out.
+ */
+fun equivalentDomainsOfAllAccounts(
+    groups: Collection<DEquivalentDomains>,
+): EquivalentDomains {
+    val domains = mutableMapOf<String, MutableSet<String>>()
+    groups
+        .filter { !it.excluded }
+        .forEach { group ->
+            group.domains.forEach { domain ->
+                domains.getOrPut(domain) { linkedSetOf() } += group.domains
+            }
+        }
+    return EquivalentDomains(
+        domains = domains.mapValues { (_, equivalents) -> equivalents.toList() },
+    )
 }

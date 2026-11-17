@@ -49,12 +49,14 @@ internal fun createWithEarlierTable(
 
 /**
  * TEST ONLY: asserts that the migration of the [version] turns the [table] of a database
- * [createEarlier] makes into the one the schema declares.
+ * [createEarlier] makes into the one the schema declares, once the [later] migrations that
+ * change the table too ran after it.
  */
 internal fun assertMigratesToSchema(
     table: String,
     version: Long,
     createEarlier: (JdbcSqliteDriver) -> Unit,
+    later: List<Long> = emptyList(),
 ) {
     val created = openDriver().use { driver ->
         Database.Schema.create(driver)
@@ -62,7 +64,9 @@ internal fun assertMigratesToSchema(
     }
     val migrated = openDriver().use { driver ->
         createEarlier(driver)
-        Database.Schema.migrate(driver, version, version + 1)
+        (listOf(version) + later).forEach { from ->
+            Database.Schema.migrate(driver, from, from + 1)
+        }
         describeTable(driver, table)
     }
     assertEquals(created, migrated)

@@ -11,7 +11,7 @@ import kotlin.test.assertFailsWith
 class UrlBlockSyncIdMigrationTest {
     @Test
     fun `migration 29 gives the blocked URIs the table the schema declares`() =
-        assertMigratesToSchema(table = "urlBlock", version = 29, ::createVersion29)
+        assertMigratesToSchema(table = "urlBlock", version = 29, ::createVersion29, later = listOf(32))
 
     @Test
     fun `migration 29 gives every blocked URI its own sync id and keeps its data`() {
@@ -21,6 +21,8 @@ class UrlBlockSyncIdMigrationTest {
             insertUrlBlock(driver, id = 2, name = "B", uri = "^https://b\\.example/.*", mode = "regex", exposed = 0)
             insertUrlBlock(driver, id = 3, name = "C", uri = "c.example", mode = "host", exposed = 1, enabled = 0)
             Database.Schema.migrate(driver, 29, 30)
+            // The later migration of the table, which the queries of the schema read.
+            Database.Schema.migrate(driver, 32, 33)
             val database = createUploadTestDatabase(driver)
 
             val rows = database.urlBlockQueries.get(100).executeAsList().sortedBy { it.id }

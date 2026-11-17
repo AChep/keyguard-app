@@ -5,6 +5,7 @@ import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.DGlobalUrlBlock
 import com.artemchep.keyguard.common.model.MatchDetection
+import com.artemchep.keyguard.common.model.UrlBlockScope
 import com.artemchep.keyguard.common.service.appsync.AppSyncRecorder
 import com.artemchep.keyguard.common.service.appsync.recordPut
 import com.artemchep.keyguard.common.service.database.exposed.ExposedDatabaseManager
@@ -55,6 +56,7 @@ class UrlBlockRepositoryImpl(
             createdDate = entity.createdAt,
             enabled = entity.enabled != 0L,
             exposed = entity.exposed != 0L,
+            scope = UrlBlockScope.ofKey(entity.scope),
         )
     }
 
@@ -84,6 +86,7 @@ class UrlBlockRepositoryImpl(
                     createdAt = model.createdDate,
                     enabled = model.enabled.int.toLong(),
                     exposed = model.exposed.int.toLong(),
+                    scope = model.scope.key,
                 )
             },
             insert = { syncId ->
@@ -96,6 +99,7 @@ class UrlBlockRepositoryImpl(
                     enabled = model.enabled.int.toLong(),
                     exposed = model.exposed.int.toLong(),
                     syncId = syncId,
+                    scope = model.scope.key,
                 )
             },
         )

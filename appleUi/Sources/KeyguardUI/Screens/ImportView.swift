@@ -56,16 +56,33 @@ struct ImportView: View {
         }
     }
 
-    // Each item is its own builder: as one expression, Xcode 26 can time out type-checking it.
+    // The conditions live in `toolbarMode`: inside the builder, the `==`/`&&` chain
+    // on Kotlin enums exceeds the Xcode 26 type-checker limit.
     @ToolbarContentBuilder
     private var toolbar: some ToolbarContent {
-        if snapshot.stage == ImportStageKind.review {
-            confirmToolbarItem
-        } else if let action = continueAction {
-            continueToolbarItem(action)
-        } else if snapshot.stage == ImportStageKind.error && snapshot.canRetry {
-            retryToolbarItem
+        if let mode = toolbarMode {
+            switch mode {
+            case .confirm:
+                confirmToolbarItem
+            case .proceed(let id, let enabled):
+                continueToolbarItem((id, enabled))
+            case .retry:
+                retryToolbarItem
+            }
         }
+    }
+
+    private enum ToolbarMode {
+        case confirm
+        case proceed(id: String, enabled: Bool)
+        case retry
+    }
+
+    private var toolbarMode: ToolbarMode? {
+        if snapshot.stage == ImportStageKind.review { return .confirm }
+        if let action = continueAction { return .proceed(id: action.id, enabled: action.enabled) }
+        if snapshot.stage == ImportStageKind.error && snapshot.canRetry { return .retry }
+        return nil
     }
 
     private var confirmToolbarItem: some ToolbarContent {

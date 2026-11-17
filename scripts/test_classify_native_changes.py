@@ -35,7 +35,7 @@ class NativeChangeClassificationTest(unittest.TestCase):
         result = classify(["util/crypto/rust/crates/keyguard-crypto-core/src/lib.rs"])
         for flag in ("crypto", "fuzz", "desktop", "android", "apple"):
             self.assertTrue(result[flag], flag)
-        self.assertEqual([row["os"] for row in result["desktop_matrix"]["include"]], ["ubuntu-24.04", "macos-15", "windows-2025"])
+        self.assertEqual([row["os"] for row in result["desktop_matrix"]["include"]], ["ubuntu-24.04", "macos-26", "windows-2025"])
         self.assertEqual(result["android_matrix"], {"include": [{"api": 26}]})
         self.assertFalse(result["wear"])
 

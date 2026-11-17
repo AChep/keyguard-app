@@ -12,7 +12,8 @@ import sys
 
 DESKTOP_HOSTS = [
     dict(name="Linux x64", os="ubuntu-24.04", platform="linux", arch="x86_64", target="x86_64-unknown-linux-gnu", gradle="./gradlew"),
-    dict(name="macOS arm64", os="macos-15", platform="macos", arch="aarch64", target="aarch64-apple-darwin", gradle="./gradlew"),
+    # Kotlin/Native platform libraries need the Xcode 26.4+ SDK; macos-15 tops out at Xcode 26.3.
+    dict(name="macOS arm64", os="macos-26", platform="macos", arch="aarch64", target="aarch64-apple-darwin", gradle="./gradlew"),
     dict(name="Windows x64", os="windows-2025", platform="windows", arch="x86_64", target="x86_64-pc-windows-msvc", gradle="./gradlew.bat"),
 ]
 EXTRA_DESKTOP_HOSTS = [

@@ -42,7 +42,7 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptySearchView
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.ErrorView
-import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
+import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
@@ -54,6 +54,7 @@ import com.artemchep.keyguard.feature.tfa.directory.produceTwoFaServiceListState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.AvatarBuilder
+import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.DefaultFab
 import com.artemchep.keyguard.ui.DefaultProgressBar
 import com.artemchep.keyguard.ui.DefaultSelection
@@ -102,6 +103,12 @@ fun WordlistViewScreen(
             filterFlow ?: MutableStateFlow(null)
         }.collectAsState()
     }
+    val wordlistState = run {
+        val wordlistFlow = loadableState.getOrNull()?.wordlist
+        remember(wordlistFlow) {
+            wordlistFlow ?: MutableStateFlow(null)
+        }.collectAsState()
+    }
 
     val listRevision =
         loadableState.getOrNull()?.content?.getOrNull()?.getOrNull()?.revision
@@ -146,12 +153,6 @@ fun WordlistViewScreen(
             CustomToolbar(
                 scrollBehavior = scrollBehavior,
             ) {
-                val wordlistState = run {
-                    val wordlistFlow = loadableState.getOrNull()?.wordlist
-                    remember(wordlistFlow) {
-                        wordlistFlow ?: MutableStateFlow(null)
-                    }.collectAsState()
-                }
                 Column {
                     val name = wordlistState.value?.wordlist?.name
                     CustomToolbarContent(
@@ -197,6 +198,25 @@ fun WordlistViewScreen(
                 }
             }
         },
+        floatingActionState = run {
+            val state = FabState(
+                onClick = wordlistState.value?.onAddWords,
+                model = null,
+            )
+            rememberUpdatedState(newValue = state)
+        },
+        floatingActionButton = {
+            DefaultFab(
+                icon = {
+                    IconBox(main = Icons.Outlined.Add)
+                },
+                text = {
+                    Text(
+                        text = stringResource(Res.string.add),
+                    )
+                },
+            )
+        },
         pullRefreshState = pullRefreshState,
         overlay = {
             val filterRevision = filterState.value?.revision
@@ -236,18 +256,30 @@ fun WordlistViewScreen(
                         val items = content.items
                         if (items.isEmpty()) {
                             item("empty") {
-                                NoItemsPlaceholder()
+                                val searching = filterState.value
+                                    ?.query
+                                    ?.text
+                                    .orEmpty()
+                                    .isNotBlank()
+                                NoItemsPlaceholder(
+                                    searching = searching,
+                                )
                             }
                         }
 
+                        val wordActions = loadableState.getOrNull()?.wordActions
                         items(
                             items = items,
                             key = { it.key },
                         ) { item ->
+                            val dropdown = remember(item.word, wordActions) {
+                                wordActions?.invoke(item.word).orEmpty()
+                            }
                             AppItem(
                                 modifier = Modifier
                                     .animateItem(),
                                 item = item,
+                                dropdown = dropdown,
                             )
                         }
                     },
@@ -260,23 +292,40 @@ fun WordlistViewScreen(
 @Composable
 private fun NoItemsPlaceholder(
     modifier: Modifier = Modifier,
+    searching: Boolean,
 ) {
-    EmptySearchView(
-        modifier = modifier,
-    )
+    if (searching) {
+        EmptySearchView(
+            modifier = modifier,
+        )
+    } else {
+        EmptyView(
+            modifier = modifier,
+            text = {
+                Text(
+                    text = stringResource(Res.string.wordlist_words_empty_label),
+                )
+            },
+        )
+    }
 }
 
 @Composable
 private fun AppItem(
     modifier: Modifier,
     item: WordlistViewState.Item,
+    dropdown: List<ContextItem>,
 ) {
-    FlatItemSimpleExpressive(
+    FlatDropdownSimpleExpressive(
         modifier = modifier,
         shapeState = item.shapeState,
-        title = {
-            Text(item.name)
+        content = {
+            FlatItemTextContent(
+                title = {
+                    Text(item.name)
+                },
+            )
         },
-        onClick = item.onClick,
+        dropdown = dropdown,
     )
 }

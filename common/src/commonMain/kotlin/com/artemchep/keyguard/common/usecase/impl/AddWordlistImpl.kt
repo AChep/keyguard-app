@@ -35,7 +35,7 @@ class AddWordlistImpl(
 
             is AddWordlistRequest.Wordlist.FromList -> model.wordlist.list
         }
-        val invalidWordlist = wordlist.any { it.length > 512 }
+        val invalidWordlist = wordlist.any { ReadWordlistUtil.wordErrorOrNull(it) != null }
         if (invalidWordlist) {
             throw IllegalStateException("Failed to parse the wordlist!")
         }

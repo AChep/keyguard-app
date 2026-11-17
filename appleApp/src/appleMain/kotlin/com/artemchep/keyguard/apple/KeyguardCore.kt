@@ -1314,6 +1314,20 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     @Throws(Exception::class)
     suspend fun deleteWordlists(ids: List<Long>) = wordlistController.deleteWordlists(ids)
 
+    /** Adds the words of the [text], one per line. A thrown error has a localized message. */
+    @Throws(Exception::class)
+    suspend fun addWordlistWords(wordlistId: Long, text: String) =
+        wordlistController.addWords(wordlistId, text)
+
+    /** Replaces the [from] word with the [to] word. A thrown error has a localized message. */
+    @Throws(Exception::class)
+    suspend fun editWordlistWord(wordlistId: Long, from: String, to: String) =
+        wordlistController.editWord(wordlistId, from, to)
+
+    @Throws(Exception::class)
+    suspend fun deleteWordlistWord(wordlistId: Long, word: String) =
+        wordlistController.deleteWord(wordlistId, word)
+
     suspend fun loadSettingsList(): SettingsListSnapshot = staticDataController.loadSettingsList()
 
     @Throws(Exception::class)

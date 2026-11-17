@@ -63,7 +63,7 @@ struct FormFieldsPreview: View {
                 text: nil, booleanValue: false, stringValue: value.wrappedValue, ephemeral: false, stringRevision: 0,
                 descriptionText: nil, hint: nil,
                 error: showError ? "Synthetic validation message that can appear while editing." : nil,
-                sensitive: false, monospace: monospace, password: false,
+                sensitive: false, monospace: monospace, password: false, singleLine: true,
                 enumValue: "", options: [], docText: nil, docHasLink: false,
                 fileName: nil, hasFile: false, tags: nil
             ),

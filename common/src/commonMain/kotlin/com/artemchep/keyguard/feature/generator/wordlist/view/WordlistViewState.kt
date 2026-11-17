@@ -17,11 +17,14 @@ data class WordlistViewState(
     val wordlist: StateFlow<Wordlist?>,
     val filter: StateFlow<Filter>,
     val content: Loadable<Either<Throwable, Content>>,
+    /** The actions of a word, built for the rows on screen only: a list may hold a million words. */
+    val wordActions: (String) -> ImmutableList<ContextItem>,
 ) {
     @Immutable
     data class Wordlist(
         val wordlist: DGeneratorWordlist,
         val actions: ImmutableList<ContextItem>,
+        val onAddWords: () -> Unit,
     )
 
     @Immutable
@@ -39,9 +42,9 @@ data class WordlistViewState(
     @Immutable
     data class Item(
         val key: String,
+        val word: String,
         val name: AnnotatedString,
         val shapeState: Int = ShapeState.ALL,
-        val onClick: (() -> Unit)? = null,
     ) : GroupableShapeItem<Item> {
         override fun withShape(shape: Int) = copy(shapeState = shape)
     }

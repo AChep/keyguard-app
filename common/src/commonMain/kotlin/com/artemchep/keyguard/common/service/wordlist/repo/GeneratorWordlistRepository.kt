@@ -17,6 +17,16 @@ interface GeneratorWordlistRepository {
         name: String,
     ): IO<Unit>
 
+    /**
+     * Removes the words [remove] from the wordlist [id], then adds the
+     * words [add], which the wordlist must not hold yet.
+     */
+    fun patchWords(
+        id: Long,
+        remove: Set<String>,
+        add: List<String>,
+    ): IO<Unit>
+
     fun removeAll(): IO<Unit>
 
     fun removeByIds(

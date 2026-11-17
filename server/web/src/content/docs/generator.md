@@ -55,6 +55,8 @@ wordlist instead of the built-in one.
 2. Add a list with **Load from a file** or **Load from a URL**.
 3. In the **Passphrase** or **Username** type, set **Wordlist** to your list.
 
+To add, edit or delete words, open the list.
+
 :::note
 The strength rating checks passphrases against the built-in list only, so it
 misjudges passphrases from a custom wordlist.

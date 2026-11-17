@@ -894,6 +894,10 @@
     <string name="error_otp_key_is_invalid">One-time password's secret key is invalid</string>
     <string name="error_failed_file_already_exists">Failed to create a file. Replacing existing file is not allowed</string>
     <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
+    <string name="error_wordlist_word_exists">This word is already in the wordlist</string>
+    <string name="error_wordlist_no_new_words">All of these words are already in the wordlist</string>
+    <string name="error_wordlist_word_too_long">Words must be <xliff:g id="length" example="512">%1$d</xliff:g> characters or fewer</string>
+    <string name="error_must_not_contain_line_breaks">Must not contain line breaks</string>
     <string name="error_account_already_exists">This account is already added to Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Failed to create a key, not enough memory. Please check your KDF server settings.</string>
     <string name="error_failed_generate_otp_code">Failed to generate OTP code</string>
@@ -1077,6 +1081,12 @@
     <string name="wordlist_word_search_placeholder">Search words</string>
     <string name="wordlist_rename_action">Rename wordlist</string>
     <string name="wordlist_words_empty_label">This wordlist is empty</string>
+    <string name="wordlist_word">Word</string>
+    <string name="wordlist_words">Words</string>
+    <string name="wordlist_add_words_title">Add words</string>
+    <string name="wordlist_add_words_description">One word per line. Lines that start with #, ;, - or / are skipped.</string>
+    <string name="wordlist_edit_word_title">Edit a word</string>
+    <string name="wordlist_delete_word_confirmation_title">Delete the word?</string>
 
     <string name="urloverride_header_title">URL override</string>
     <string name="urloverride_list_header_title">URL overrides</string>

@@ -322,6 +322,7 @@ private suspend fun RememberStateFlowScope.confirmationStringItem(
         password = password,
         generator = generator.takeUnless { item.ephemeral },
         ephemeral = item.ephemeral,
+        singleLine = item.singleLine,
         value = cell.text,
         enabled = item.enabled,
         state = model,

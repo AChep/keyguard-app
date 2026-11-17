@@ -380,6 +380,15 @@ internal class AppLinkTestDevice(
         dbManager.mutate("test") { wordlists.patch(id, to).bind() }.bind()
     }
 
+    suspend fun editWordlistWords(
+        name: String,
+        remove: Set<String> = emptySet(),
+        add: List<String> = emptyList(),
+    ) {
+        val id = wordlist(name).idRaw
+        dbManager.mutate("test") { wordlists.patchWords(id, remove, add).bind() }.bind()
+    }
+
     suspend fun removeWordlist(name: String) {
         val id = wordlist(name).idRaw
         dbManager.mutate("test") { wordlists.removeByIds(setOf(id)).bind() }.bind()

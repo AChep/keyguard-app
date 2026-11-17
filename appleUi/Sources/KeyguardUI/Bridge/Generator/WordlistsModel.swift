@@ -34,4 +34,20 @@ final class WordlistsModel {
         }
     }
 
+    /// Adds the words of the `text`, one per line; a thrown error has a localized message.
+    func addWords(wordlistId: Int64, text: String) async throws {
+        try await core.addWordlistWords(wordlistId: wordlistId, text: text)
+    }
+
+    /// Replaces the word `from` with `to`; a thrown error has a localized message.
+    func editWord(wordlistId: Int64, from: String, to: String) async throws {
+        try await core.editWordlistWord(wordlistId: wordlistId, from: from, to: to)
+    }
+
+    func deleteWord(wordlistId: Int64, word: String) {
+        notifications.perform {
+            try await self.core.deleteWordlistWord(wordlistId: wordlistId, word: word)
+        }
+    }
+
 }

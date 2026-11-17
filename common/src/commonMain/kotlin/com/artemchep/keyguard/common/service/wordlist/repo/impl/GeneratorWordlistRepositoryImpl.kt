@@ -79,6 +79,36 @@ class GeneratorWordlistRepositoryImpl(
         }
     }
 
+    override fun patchWords(
+        id: Long,
+        remove: Set<String>,
+        add: List<String>,
+    ): IO<Unit> = databaseEffect { db ->
+        val dao = db.generatorWordlistQueries
+        val words = db.generatorWordlistWordQueries
+        recorder.record(db, EntryKind.WORDLIST, ids = { dao.getSyncIdsByIds(listOf(id)).executeAsList() }) {
+            val removed = remove.sumOf { word ->
+                words.deleteByWordlistIdAndWord(
+                    wordlistId = id,
+                    word = word,
+                ).value
+            }
+            add.forEach { word ->
+                words.insert(
+                    wordlistId = id,
+                    word = word,
+                )
+            }
+            if (removed > 0L || add.isNotEmpty()) {
+                // Taken again from the new words, see WordlistsSyncCategory.
+                dao.updateWordsHash(
+                    wordsHash = null,
+                    id = id,
+                )
+            }
+        }
+    }
+
     override fun removeAll(): IO<Unit> =
         databaseEffect { db ->
             val dao = db.generatorWordlistQueries

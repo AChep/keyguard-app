@@ -1691,6 +1691,7 @@ internal class DialogController(
             sensitive = sensitive,
             monospace = monospace,
             password = password,
+            singleLine = singleLine,
         )
 
         is ConfirmationState.Item.EnumItem -> ConfirmationItemSnapshot(

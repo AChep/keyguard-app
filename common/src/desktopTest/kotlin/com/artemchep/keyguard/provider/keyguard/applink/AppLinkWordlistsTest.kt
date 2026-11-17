@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.provider.keyguard.applink
 
 import app.cash.sqldelight.Query
-import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.feature.p2psync.model.EntryKind
 import com.artemchep.keyguard.feature.p2psync.model.SyncEntry
 import com.artemchep.keyguard.feature.p2psync.session.BlobExchange
@@ -201,9 +200,9 @@ class AppLinkWordlistsTest {
         b.components.blobs.onReceived("A", a.hashOf(animals), WordlistBlob.encode(animals))
         b.receive(a)
 
-        // A newer build of A gives the list other words; B does not have them yet.
+        // A gives the list other words; B does not have them yet.
         a.time += 10_000
-        a.replaceWords("Animals", birds)
+        a.editWordlistWords("Animals", remove = animals.toSet(), add = birds)
         b.time = a.time
         b.receive(a)
         assertEquals(mapOf("Animals" to animals.sorted()), b.wordlistWords())
@@ -220,6 +219,36 @@ class AppLinkWordlistsTest {
     }
 
     @Test
+    fun `editing a word publishes the id of the new words`() = runTest {
+        val edited = listOf("ant", "cow", "dog")
+        val a = AppLinkTestDevice("A")
+        val b = AppLinkTestDevice("B")
+        a.link()
+        b.time = a.time + 1
+        b.join(a)
+        a.addWordlist("Animals", animals)
+        a.exchangeWith(b)
+        b.components.blobs.onReceived("A", a.hashOf(animals), WordlistBlob.encode(animals))
+        b.receive(a)
+
+        a.time += 10_000
+        a.editWordlistWords("Animals", remove = setOf("cat"), add = listOf("cow"))
+
+        val version = a.entries().values.single { it.knownKind == EntryKind.WORDLIST }.versions.single()
+        assertEquals(a.hashOf(edited), (version.body["words"] as JsonPrimitive).content)
+        assertEquals(a.deviceId, version.parts.getValue("/words").node)
+        assertEquals(setOf(a.hashOf(edited)), a.components.blobs.held())
+
+        // B keeps the old words until the new ones arrive.
+        b.time = a.time
+        b.receive(a)
+        assertEquals(mapOf("Animals" to animals.sorted()), b.wordlistWords())
+        b.components.blobs.onReceived("A", a.hashOf(edited), WordlistBlob.encode(edited))
+        b.receive(a)
+        assertEquals(mapOf("Animals" to edited), b.wordlistWords())
+    }
+
+    @Test
     fun `a received blob that is not the words of a wordlist is refused`() = runTest {
         val a = AppLinkTestDevice("A")
         val bytes = "dog\ncat".encodeToByteArray()
@@ -232,20 +261,6 @@ class AppLinkWordlistsTest {
     }
 
     private fun SyncEntry.wordsHash(): String? = (body?.get("words") as? JsonPrimitive)?.content
-
-    /** Gives the wordlist [name] the [words], as a build that edits the words would. */
-    private suspend fun AppLinkTestDevice.replaceWords(name: String, words: List<String>) {
-        val id = wordlist(name).idRaw
-        val syncId = wordlistSyncId(name)
-        dbManager.mutate("test") { database ->
-            components.recorder.record(database, EntryKind.WORDLIST, ids = { listOf(syncId) }) {
-                database.generatorWordlistWordQueries.deleteByWordlistId(id)
-                words.forEach { database.generatorWordlistWordQueries.insert(wordlistId = id, word = it) }
-                // Taken again from the words.
-                database.generatorWordlistQueries.updateWordsHash(wordsHash = null, id = id)
-            }
-        }.bind()
-    }
 
     private fun AppLinkTestDevice.hashOf(words: List<String>): String =
         BlobExchange.hashOf(crypto, WordlistBlob.encode(words))

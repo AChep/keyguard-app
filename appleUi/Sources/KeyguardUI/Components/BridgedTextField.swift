@@ -27,6 +27,9 @@ struct BridgedTextField: View {
     /// Its binding handles edits and snapshot reconciliation instead of `bridgedText`.
     var draft: Binding<String>?
 
+    /// Grows vertically and accepts line breaks.
+    var multiline = false
+
     #if os(iOS)
     var contentType: UITextContentType?
     var keyboard: UIKeyboardType
@@ -129,6 +132,9 @@ struct BridgedTextField: View {
         let field = Group {
             if secure {
                 SecureField(label, text: textBinding, prompt: prompt.map { Text($0) })
+            } else if multiline {
+                TextField(label, text: textBinding, prompt: prompt.map { Text($0) }, axis: .vertical)
+                    .lineLimit(3...8)
             } else {
                 TextField(label, text: textBinding, prompt: prompt.map { Text($0) })
             }

@@ -33,6 +33,7 @@ import com.artemchep.keyguard.common.usecase.AddWordlist
 import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistory
 import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistoryById
 import com.artemchep.keyguard.common.usecase.EditWordlist
+import com.artemchep.keyguard.common.usecase.EditWordlistWords
 import com.artemchep.keyguard.common.usecase.GetBarcodeUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCipherOpenedHistory
 import com.artemchep.keyguard.common.usecase.GetCliAgentUsageHistory
@@ -58,6 +59,7 @@ import com.artemchep.keyguard.common.usecase.impl.AddEmailRelayImpl
 import com.artemchep.keyguard.common.usecase.impl.AddGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.AddWordlistImpl
 import com.artemchep.keyguard.common.usecase.impl.EditWordlistImpl
+import com.artemchep.keyguard.common.usecase.impl.EditWordlistWordsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetBarcodeUsageHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGeneratorHistoryImpl
 import com.artemchep.keyguard.common.usecase.impl.PutBarcodeUsageHistoryImpl
@@ -119,6 +121,8 @@ internal class VaultHistoryModule {
             scoped<AddWordlistImpl>() bind AddWordlist::class
 
             scoped<EditWordlistImpl>() bind EditWordlist::class
+
+            scoped<EditWordlistWordsImpl>() bind EditWordlistWords::class
 
             scoped<RemoveWordlistByIdImpl>() bind RemoveWordlistById::class
 

@@ -208,6 +208,7 @@ data class ConfirmationItemSnapshot(
     val sensitive: Boolean = false,
     val monospace: Boolean = false,
     val password: Boolean = false,
+    val singleLine: Boolean = true,
     // CHOICE
     val enumValue: String = "",
     val options: List<ConfirmationEnumOptionSnapshot> = emptyList(),

@@ -41,3 +41,12 @@ countByWordlistId:
 SELECT COUNT(*)
 FROM generatorWordlistWord
 WHERE wordlistId = :wordlistId;
+
+countByWordlistIdAndWord:
+SELECT COUNT(*)
+FROM generatorWordlistWord
+WHERE wordlistId = :wordlistId AND word = :word;
+
+deleteByWordlistIdAndWord:
+DELETE FROM generatorWordlistWord
+WHERE wordlistId = :wordlistId AND word = :word;

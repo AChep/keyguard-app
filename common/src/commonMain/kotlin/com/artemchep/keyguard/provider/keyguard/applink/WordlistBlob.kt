@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.provider.keyguard.applink
 
+import com.artemchep.keyguard.common.usecase.impl.ReadWordlistUtil
+
 /**
  * The blob of the words of a wordlist: each word once, sorted by [String] order, one per
  * line, in UTF-8. The order is the one of Kotlin on every platform, not the one of the
@@ -10,7 +12,7 @@ package com.artemchep.keyguard.provider.keyguard.applink
  */
 internal object WordlistBlob {
     /** The longest word, as the import allows. */
-    const val MAX_WORD_LENGTH: Int = 512
+    const val MAX_WORD_LENGTH: Int = ReadWordlistUtil.MAX_WORD_LENGTH
 
     /** The most words of a blob, 2^20: the words of a list as large as the largest blob. */
     const val MAX_WORDS: Int = 1 shl 20
@@ -56,9 +58,7 @@ internal object WordlistBlob {
         // One pass, nothing sorted.
         var previous: String? = null
         return words.all { word ->
-            val valid = word.isNotBlank() &&
-                word.length <= MAX_WORD_LENGTH &&
-                '\r' !in word &&
+            val valid = ReadWordlistUtil.wordErrorOrNull(word) == null &&
                 previous.let { before -> before == null || before < word }
             previous = word
             valid

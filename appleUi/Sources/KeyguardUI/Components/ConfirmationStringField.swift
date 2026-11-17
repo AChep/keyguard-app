@@ -59,6 +59,7 @@ struct ConfirmationStringField: View {
             style: .automatic,
             disablesAutocorrection: item.sensitive
         )
+        field.multiline = !item.singleLine
         if item.ephemeral {
             field.draft = Binding(
                 get: { ephemeralText },

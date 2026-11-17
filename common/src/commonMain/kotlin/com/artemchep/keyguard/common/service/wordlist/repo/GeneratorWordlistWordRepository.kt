@@ -10,6 +10,12 @@ interface GeneratorWordlistWordRepository : BaseRepository<DGeneratorWord> {
         wordlistId: Long,
     ): Flow<List<String>>
 
+    /** Returns the [words] that the wordlist [wordlistId] holds. */
+    fun getExistingWords(
+        wordlistId: Long,
+        words: Collection<String>,
+    ): IO<Set<String>>
+
     fun removeAll(): IO<Unit>
 
     fun removeByIds(

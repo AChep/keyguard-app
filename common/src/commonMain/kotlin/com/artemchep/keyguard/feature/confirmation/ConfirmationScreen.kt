@@ -310,8 +310,8 @@ private fun ConfirmationStringItem(
                 else -> KeyboardOptions.Default
             },
             incognito = item.sensitive || item.password,
-            singleLine = true,
-            maxLines = 1,
+            singleLine = item.singleLine,
+            maxLines = if (item.singleLine) 1 else 8,
             trailing = {
                 ExpandedIfNotEmptyForRow(
                     Unit.takeIf { item.sensitive },

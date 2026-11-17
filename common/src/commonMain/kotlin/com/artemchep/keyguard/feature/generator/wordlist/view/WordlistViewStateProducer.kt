@@ -5,9 +5,9 @@ import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.AnnotatedString
-import arrow.core.partially1
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.usecase.EditWordlist
+import com.artemchep.keyguard.common.usecase.EditWordlistWords
 import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
 import com.artemchep.keyguard.common.usecase.GetWordlists
 import com.artemchep.keyguard.common.usecase.RemoveWordlistById
@@ -28,9 +28,11 @@ import com.artemchep.keyguard.feature.search.search.searchFilter
 import com.artemchep.keyguard.feature.search.search.searchQueryHandle
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.autoclose.launchAutoPopSelfHandler
 import com.artemchep.keyguard.ui.buildContextItems
+import kotlinx.collections.immutable.ImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -48,6 +50,7 @@ fun produceWordlistViewState(
     produceWordlistViewState(
         args = args,
         editWordlist = get(),
+        editWordlistWords = get(),
         removeWordlistById = get(),
         getWordlists = get(),
         getWordlistPrimitive = get(),
@@ -59,6 +62,7 @@ fun produceWordlistViewState(
 fun produceWordlistViewState(
     args: WordlistViewRoute.Args,
     editWordlist: EditWordlist,
+    editWordlistWords: EditWordlistWords,
     removeWordlistById: RemoveWordlistById,
     getWordlists: GetWordlists,
     getWordlistPrimitive: GetWordlistPrimitive,
@@ -73,6 +77,7 @@ fun produceWordlistViewState(
     wordlistViewStateProducer(
         args = args,
         editWordlist = editWordlist,
+        editWordlistWords = editWordlistWords,
         removeWordlistById = removeWordlistById,
         getWordlists = getWordlists,
         getWordlistPrimitive = getWordlistPrimitive,
@@ -83,6 +88,7 @@ fun produceWordlistViewState(
 suspend fun RememberStateFlowScope.wordlistViewStateProducer(
     args: WordlistViewRoute.Args,
     editWordlist: EditWordlist,
+    editWordlistWords: EditWordlistWords,
     removeWordlistById: RemoveWordlistById,
     getWordlists: GetWordlists,
     getWordlistPrimitive: GetWordlistPrimitive,
@@ -137,6 +143,14 @@ suspend fun RememberStateFlowScope.wordlistViewStateProducer(
                 WordlistViewState.Wordlist(
                     wordlist = wordlist,
                     actions = actions,
+                    onAddWords = onClick {
+                        WordlistUtil.onAddWords(
+                            confirmationRouteFactory = confirmationRouteFactory,
+                            editWordlistWords = editWordlistWords,
+                            getWordlistPrimitive = getWordlistPrimitive,
+                            wordlistId = args.wordlistId,
+                        )
+                    },
                 )
             } else {
                 null
@@ -145,8 +159,43 @@ suspend fun RememberStateFlowScope.wordlistViewStateProducer(
         .stateIn(screenScope)
     launchAutoPopSelfHandler(wordlistFlow)
 
-    fun onClick(model: String) {
+    fun buildWordActions(word: String) = buildContextItems {
+        section {
+            this += FlatItemAction(
+                id = "wordlist.word.edit",
+                icon = Icons.Outlined.Edit,
+                title = Res.string.edit.wrap(),
+                onClick = onClick {
+                    WordlistUtil.onEditWord(
+                        confirmationRouteFactory = confirmationRouteFactory,
+                        editWordlistWords = editWordlistWords,
+                        getWordlistPrimitive = getWordlistPrimitive,
+                        wordlistId = args.wordlistId,
+                        word = word,
+                    )
+                },
+            )
+        }
+        section {
+            this += FlatItemAction(
+                id = "wordlist.word.delete",
+                icon = Icons.Outlined.Delete,
+                title = Res.string.delete.wrap(),
+                danger = true,
+                onClick = onClick {
+                    WordlistUtil.onDeleteWord(
+                        confirmationRouteFactory = confirmationRouteFactory,
+                        editWordlistWords = editWordlistWords,
+                        wordlistId = args.wordlistId,
+                        word = word,
+                    )
+                },
+            )
+        }
     }
+
+    // One instance, so that the rows keep their remembered actions.
+    val wordActions: (String) -> ImmutableList<ContextItem> = ::buildWordActions
 
     fun List<String>.toItems(): List<WordlistViewState.Item> {
         val keyBuilder = UniqueKeyBuilder()
@@ -154,9 +203,8 @@ suspend fun RememberStateFlowScope.wordlistViewStateProducer(
             .map { word ->
                 WordlistViewState.Item(
                     key = keyBuilder.build(word),
+                    word = word,
                     name = AnnotatedString(word),
-                    onClick = ::onClick
-                        .partially1(word),
                 )
             }
     }
@@ -205,6 +253,7 @@ suspend fun RememberStateFlowScope.wordlistViewStateProducer(
                 wordlist = wordlistFlow,
                 filter = queryFlow,
                 content = content,
+                wordActions = wordActions,
             )
             Loadable.Ok(state)
         }

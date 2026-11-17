@@ -39,6 +39,19 @@ class GeneratorWordlistWordRepositoryImpl(
         }
             .flatMapQueryToList(dispatcher)
 
+    override fun getExistingWords(
+        wordlistId: Long,
+        words: Collection<String>,
+    ): IO<Set<String>> =
+        daoEffect { dao ->
+            words.filterTo(mutableSetOf()) { word ->
+                dao.countByWordlistIdAndWord(
+                    wordlistId = wordlistId,
+                    word = word,
+                ).executeAsOne() > 0L
+            }
+        }
+
     override fun put(model: DGeneratorWord): IO<Unit> =
         daoEffect { dao ->
             TODO()

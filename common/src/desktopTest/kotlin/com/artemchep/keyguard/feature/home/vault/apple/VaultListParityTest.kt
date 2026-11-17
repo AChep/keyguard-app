@@ -5,6 +5,7 @@ import com.artemchep.keyguard.AutofillActArgs
 import com.artemchep.keyguard.common.model.AutofillHint
 import com.artemchep.keyguard.common.model.AutofillTarget
 import com.artemchep.keyguard.common.model.DFilter
+import com.artemchep.keyguard.common.model.DFilterCipherPresence
 import com.artemchep.keyguard.common.model.DSecret
 import com.artemchep.keyguard.common.model.LinkInfoPlatform
 import com.artemchep.keyguard.common.usecase.GetTotpCode
@@ -17,6 +18,7 @@ import com.artemchep.keyguard.feature.home.vault.model.short
 import com.artemchep.keyguard.feature.home.vault.screen.FilterSection
 import com.artemchep.keyguard.feature.home.vault.screen.VaultListPersistence
 import com.artemchep.keyguard.feature.home.vault.screen.VaultListState
+import com.artemchep.keyguard.feature.home.vault.screen.applyFilterItemsEnabled
 import com.artemchep.keyguard.feature.home.vault.screen.buildVaultItemCopyActions
 import com.artemchep.keyguard.feature.home.vault.screen.richFields
 import com.artemchep.keyguard.feature.navigation.state.translate
@@ -153,6 +155,15 @@ class VaultListParityTest {
                 val toggle = item.filter as? FilterItem.Item.Filter.Toggle
                 toggle != null && filters.all { it in toggle.filters }
             }
+
+        fun List<FilterItem>.checkedItemIds(): Set<String> = filterIsInstance<FilterItem.Item>()
+            .filter { it.checked }
+            .map { it.id }
+            .toSet()
+
+        fun List<FilterItem>.enabledItemIds(): List<String> = filterIsInstance<FilterItem.Item>()
+            .filter { it.enabled }
+            .map { it.id }
 
         val loginChip = { item: FilterItem.Item ->
             val toggle = item.filter as? FilterItem.Item.Filter.Toggle
@@ -292,33 +303,49 @@ class VaultListParityTest {
                 case.extraAssert(snapshot)
 
                 // (h) checked / enabled / clear parity of the filter state
-                // channel against the canonical filter list.
+                // channel against the canonical filter list. On both pipelines
+                // the enabled flags trail the checked flags by one emission of
+                // the filtered list, so compare settled states only. Canonical:
+                // re-applying the enablement for the filtered list above drops
+                // no flag (a stale frame keeps the wider list's extra flags).
+                // Apple: matches the settled canonical state.
+                val presence = DFilterCipherPresence.of(snapshot.items.cipherItems()) { it.source }
                 val canonicalState = canonical.awaitState(description = "[$name] canonical filters") { state ->
-                    state.filters
-                        .filterIsInstance<FilterItem.Item>()
-                        .filter { it.checked }
-                        .map { it.id }
-                        .toSet() == chipIds.toSet()
+                    state.filters.checkedItemIds() == chipIds.toSet() &&
+                            state.filters.enabledItemIds() ==
+                            applyFilterItemsEnabled(state.filters, presence).enabledItemIds()
                 }
-                val filterState = apple.awaitFilterState("[$name] apple checked ids") { fs ->
-                    fs.checkedIds.toSet() == chipIds.toSet()
+                val canonicalEnabled = canonicalState.filters.enabledItemIds()
+                val canonicalCanClear = canonicalState.clearFilters != null
+                val canonicalCanSave = canonicalState.saveFilters != null
+                val filterState = try {
+                    apple.awaitFilterState("[$name] apple filter state") { fs ->
+                        fs.checkedIds.toSet() == chipIds.toSet() &&
+                                fs.enabledIds == canonicalEnabled &&
+                                fs.canClear == canonicalCanClear &&
+                                fs.canSave == canonicalCanSave
+                    }
+                } catch (e: AssertionError) {
+                    // Never converged: report the last state field by field.
+                    apple.filterStateFlow.value ?: throw e
                 }
-                val canonicalEnabled = canonicalState.filters
-                    .filterIsInstance<FilterItem.Item>()
-                    .filter { it.enabled }
-                    .map { it.id }
+                assertEquals(
+                    chipIds.toSet(),
+                    filterState.checkedIds.toSet(),
+                    "[$name] checked filter ids",
+                )
                 assertEquals(
                     canonicalEnabled,
                     filterState.enabledIds,
                     "[$name] enabled filter ids",
                 )
                 assertEquals(
-                    canonicalState.clearFilters != null,
+                    canonicalCanClear,
                     filterState.canClear,
                     "[$name] canClear",
                 )
                 assertEquals(
-                    canonicalState.saveFilters != null,
+                    canonicalCanSave,
                     filterState.canSave,
                     "[$name] canSave",
                 )

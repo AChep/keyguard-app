@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.cli.agent
 
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionStreams
 import com.artemchep.keyguard.common.service.cli.CliCommandDispatcher
 import com.artemchep.keyguard.common.service.environment.EnvironmentBrokerHandler
 import kotlinx.coroutines.CancellationException
@@ -8,8 +9,9 @@ import kotlinx.coroutines.withContext
 
 /**
  * Routes the private requests of one agent connection to the feature that
- * serves them: commands of the CLI, or the environments' MCP management
- * and local `.env` files. Never use this router for a public socket.
+ * serves them: commands of the CLI, the environments' MCP management and
+ * local `.env` files, or the streams of browser extensions. Never use this
+ * router for a public socket.
  *
  * Each request of a client, but not the agent's own housekeeping, ends
  * up in the request log of the [recorder].
@@ -17,15 +19,22 @@ import kotlinx.coroutines.withContext
 class CliAgentRequestHandler(
     private val cli: CliCommandDispatcher,
     private val environments: EnvironmentBrokerHandler,
+    /** Serves the browser extensions; without it, their streams are refused. */
+    private val browser: BrowserExtensionStreams? = null,
     private val recorder: CliAgentUsageRecorder? = null,
 ) {
-    suspend fun handle(request: CliAgentMessages.Request.Kind): CliAgentMessages.Response.Kind {
+    /**
+     * Answers [request]. A request that opens a stream gets it with the
+     * answer, and the caller owns it, see [CliAgentAnswer.upgrade]. Such a
+     * request is never recorded: the stream logs what it carries.
+     */
+    suspend fun handle(request: CliAgentMessages.Request.Kind): CliAgentAnswer {
         val recorder = recorder
         val usage = request.toUsageRecord()
         if (recorder == null || usage == null) {
             return route(request, usage = null)
         }
-        val response = try {
+        val answer = try {
             route(request, usage)
         } catch (e: CancellationException) {
             // The client left; the request log still shows that it asked.
@@ -34,22 +43,24 @@ class CliAgentRequestHandler(
             }
             throw e
         }
-        recorder.record(usage, response)
-        return response
+        recorder.record(usage, answer.response)
+        return answer
     }
 
     private suspend fun route(
         request: CliAgentMessages.Request.Kind,
         usage: CliAgentUsageRecord?,
-    ): CliAgentMessages.Response.Kind = when (request) {
-        is CliAgentMessages.Request.Kind.Cli -> cli.handle(request.value, usage)
+    ): CliAgentAnswer = when (request) {
+        is CliAgentMessages.Request.Kind.Cli -> CliAgentAnswer(cli.handle(request.value, usage))
         is CliAgentMessages.Request.Kind.Manage,
         is CliAgentMessages.Request.Kind.Mounts,
         is CliAgentMessages.Request.Kind.WatchMounts,
         is CliAgentMessages.Request.Kind.MountStatus,
         is CliAgentMessages.Request.Kind.ResolveMount,
-        -> environments.handle(request, usage)
+        -> CliAgentAnswer(environments.handle(request, usage))
+        is CliAgentMessages.Request.Kind.BrowserOpen -> browser?.open(request.value)
+            ?: CliAgentAnswer(cliAgentError("integration_disabled"))
         // A connection authenticates once, with its first request.
-        is CliAgentMessages.Request.Kind.Authenticate -> cliAgentError("invalid_request")
+        is CliAgentMessages.Request.Kind.Authenticate -> CliAgentAnswer(cliAgentError("invalid_request"))
     }
 }

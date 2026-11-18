@@ -10,7 +10,8 @@ import com.artemchep.keyguard.util.agentipc.AgentIpcLocation
 
 /**
  * IPC server of the app's private channel to the CLI agent. Each connection
- * authenticates, then makes exactly one request.
+ * authenticates, then makes exactly one request; opening a browser extension's
+ * stream keeps it open as that stream.
  *
  * Holds its own copy of the token until [close].
  */
@@ -21,14 +22,17 @@ class CliAgentIpcServer(
     maxConcurrentConnections: Int = MAX_CONCURRENT_CONNECTIONS,
     /**
      * Bounds each read and write of a connection; past it, the connection is
-     * closed. A request has no bound, as its approval prompt owns the deadline.
+     * closed. A request has no bound, as its approval prompt owns the deadline,
+     * and neither has a read of a browser extension's stream, which waits for
+     * the extension: only its writes are bounded.
      */
     private val ioTimeoutMs: Long = IO_TIMEOUT_MS,
 ) {
     companion object {
         private const val TAG = "CliAgentIpc"
 
-        // Mount long polls and interactive requests each own a connection.
+        // Mount long polls and interactive requests each own a connection, as
+        // does an open browser extension stream for as long as it lasts.
         private const val MAX_CONCURRENT_CONNECTIONS = 32
 
         /**

@@ -39,7 +39,7 @@ pub(crate) struct Accepted {
     /// The verified caller, with the subjects the app may reuse an approval
     /// for, as the SSH and GPG agents attach them.
     pub caller: CallerIdentity,
-    /// Whether the caller runs the `keyguard` CLI bundled with this agent.
+    /// The program bundled with this agent that the caller runs, if any.
     /// macOS compares the validated live code. Linux checks the executable
     /// retained at accept, or without SO_PEERPIDFD the one that the peer's
     /// process ID runs, and Windows the image file of the process that the
@@ -50,26 +50,65 @@ pub(crate) struct Accepted {
     /// the CLI starts the command with the caller's `PATH` and directory.
     /// It only rules out programs that do not try to get around it; the
     /// approval in the app is what protects the values.
-    pub bundled_cli: bool,
+    pub bundled_peer: Option<BundledPeer>,
     pub guard: CallerGuard,
 }
 
+/// A program bundled next to this agent. Each only relays the requests of
+/// the process that started it.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum BundledPeer {
+    /// The `keyguard` CLI, started by a terminal or an MCP client.
+    Cli,
+    /// The browser connector `keyguard-browser-host`, started by a browser
+    /// for its extension.
+    BrowserHost,
+}
+
+impl BundledPeer {
+    const ALL: [Self; 2] = [Self::Cli, Self::BrowserHost];
+
+    /// The file name of its executable.
+    fn file_name(self) -> String {
+        let name = match self {
+            Self::Cli => "keyguard",
+            Self::BrowserHost => keyguard_cli_protocol::browser::HOST_EXECUTABLE,
+        };
+        format!("{name}{}", std::env::consts::EXE_SUFFIX)
+    }
+}
+
+/// The bundled program that `is_bundled` accepts, by its path in
+/// `directory`.
+fn find_bundled_peer(
+    directory: &Path,
+    mut is_bundled: impl FnMut(&Path) -> bool,
+) -> Option<BundledPeer> {
+    BundledPeer::ALL
+        .into_iter()
+        .find(|peer| is_bundled(&directory.join(peer.file_name())))
+}
+
 impl Accepted {
-    /// The bundled CLI only relays the requests of the process that started
-    /// it, such as an MCP client, so that process is shown as the caller.
-    /// The guard keeps verifying the CLI.
+    /// A bundled program only relays the requests of the process that
+    /// started it, such as an MCP client or a browser, so that process is
+    /// shown as the caller. The guard keeps verifying the bundled program.
     fn new(stream: BoxStream, mut caller: CallerIdentity, guard: CallerGuard) -> Self {
-        let bundled_cli = guard.0.is_bundled_cli();
+        let bundled_peer = guard.0.bundled_peer();
         #[cfg(unix)]
-        let relayed = bundled_cli
-            .then(|| {
-                keyguard_agent_identity::caller_identity::relayed_caller(&guard.0.core, caller.pid)
-            })
-            .flatten();
+        let relayed = bundled_peer.and_then(|_| {
+            keyguard_agent_identity::caller_identity::relayed_caller(&guard.0.core, caller.pid)
+        });
+        // Chromium starts its connector through `cmd.exe`.
         #[cfg(windows)]
-        let relayed = bundled_cli
-            .then(|| keyguard_agent_identity::windows::process::relayed_caller(caller.pid))
-            .flatten();
+        let relayed = bundled_peer.and_then(|peer| match peer {
+            BundledPeer::Cli => {
+                keyguard_agent_identity::windows::process::relayed_caller(caller.pid)
+            }
+            BundledPeer::BrowserHost => {
+                keyguard_agent_identity::windows::process::relayed_browser_caller(caller.pid)
+            }
+        });
         if let Some(relayed) = relayed {
             caller.pid = relayed.pid;
             caller.process_name = relayed.process_name;
@@ -80,9 +119,16 @@ impl Accepted {
         Self {
             stream,
             caller,
-            bundled_cli,
+            bundled_peer,
             guard,
         }
+    }
+
+    /// Whether the caller runs the `keyguard` CLI bundled with this agent.
+    /// Never true for another bundled program, such as the browser
+    /// connector.
+    pub(crate) fn is_bundled_cli(&self) -> bool {
+        self.bundled_peer == Some(BundledPeer::Cli)
     }
 }
 
@@ -99,18 +145,6 @@ struct RetainedCaller {
     /// The client process, held so that its ID can not be reused.
     #[cfg(windows)]
     process: Process,
-}
-
-/// The `keyguard` CLI bundled next to this agent.
-fn bundled_cli_path() -> Option<std::path::PathBuf> {
-    let name = if cfg!(windows) {
-        "keyguard.exe"
-    } else {
-        "keyguard"
-    };
-    std::env::current_exe()
-        .ok()
-        .map(|path| path.with_file_name(name))
 }
 
 #[cfg(any(test, not(target_os = "macos")))]
@@ -182,17 +216,21 @@ impl RetainedCaller {
         Ok(())
     }
 
-    fn is_bundled_cli(&self) -> bool {
+    /// The program bundled next to this agent that the caller runs, if any.
+    fn bundled_peer(&self) -> Option<BundledPeer> {
+        let agent = std::env::current_exe().ok()?;
+        find_bundled_peer(agent.parent()?, |bundled| self.is_bundled(bundled))
+    }
+
+    /// Whether the caller runs the program at `bundled`.
+    fn is_bundled(&self, bundled: &Path) -> bool {
         #[cfg(target_os = "macos")]
         {
             let Some(identity) = self.core.macos() else {
                 return false;
             };
-            bundled_cli_path()
-                .and_then(|path| {
-                    keyguard_agent_identity::macos::static_code_directory_hash(&path).ok()
-                })
-                .is_some_and(|expected| expected == identity.code_directory_hash())
+            keyguard_agent_identity::macos::static_code_directory_hash(bundled)
+                .is_ok_and(|expected| expected == identity.code_directory_hash())
         }
         #[cfg(target_os = "linux")]
         {
@@ -203,18 +241,13 @@ impl RetainedCaller {
                 }
                 None => format!("/proc/{}/exe", self.pid),
             };
-            std::fs::File::open(path)
-                .ok()
-                .zip(bundled_cli_path())
-                .is_some_and(|(caller, bundled)| is_bundled_file(caller, &bundled))
+            std::fs::File::open(path).is_ok_and(|caller| is_bundled_file(caller, bundled))
         }
         #[cfg(windows)]
         {
             self.process
                 .open_image()
-                .ok()
-                .zip(bundled_cli_path())
-                .is_some_and(|(caller, bundled)| is_bundled_file(caller, &bundled))
+                .is_ok_and(|caller| is_bundled_file(caller, bundled))
         }
     }
 }
@@ -454,5 +487,45 @@ mod tests {
             caller("copy", None),
             &temp.path().join("missing")
         ));
+    }
+
+    #[test]
+    fn the_bundled_peer_is_the_program_whose_file_the_caller_runs() {
+        let temp = tempfile::tempdir().unwrap();
+        let bundled = temp.path().join("bundled");
+        std::fs::create_dir(&bundled).unwrap();
+        let peer = |name: &str, content: &[u8]| {
+            let caller = temp.path().join(name);
+            std::fs::write(&caller, content).unwrap();
+            find_bundled_peer(&bundled, |path| {
+                is_bundled_file(std::fs::File::open(&caller).unwrap(), path)
+            })
+        };
+        // Neither program is installed, as in a build without the connector.
+        assert_eq!(peer("cli", b"bundled cli"), None);
+        std::fs::write(bundled.join(BundledPeer::Cli.file_name()), b"bundled cli").unwrap();
+        assert_eq!(peer("cli", b"bundled cli"), Some(BundledPeer::Cli));
+        assert_eq!(peer("host", b"browser host"), None);
+        std::fs::write(
+            bundled.join(BundledPeer::BrowserHost.file_name()),
+            b"browser host",
+        )
+        .unwrap();
+        assert_eq!(
+            peer("host", b"browser host"),
+            Some(BundledPeer::BrowserHost)
+        );
+        assert_eq!(peer("cli", b"bundled cli"), Some(BundledPeer::Cli));
+        assert_eq!(peer("other", b"other host"), None);
+    }
+
+    #[test]
+    fn bundled_programs_are_named_for_the_platform() {
+        let names = BundledPeer::ALL.map(BundledPeer::file_name);
+        if cfg!(windows) {
+            assert_eq!(names, ["keyguard.exe", "keyguard-browser-host.exe"]);
+        } else {
+            assert_eq!(names, ["keyguard", "keyguard-browser-host"]);
+        }
     }
 }

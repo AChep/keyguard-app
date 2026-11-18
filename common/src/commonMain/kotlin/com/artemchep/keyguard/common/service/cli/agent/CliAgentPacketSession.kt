@@ -13,7 +13,11 @@ import kotlinx.serialization.decodeFromByteArray
 import kotlinx.serialization.encodeToByteArray
 import kotlinx.serialization.protobuf.ProtoBuf
 
-/** Transport-independent session for the app's verified, private channel to the CLI agent. */
+/**
+ * Transport-independent session for the app's verified, private channel to the
+ * CLI agent: one per connection. A reply may turn its connection into a
+ * stream, see [AgentPacketReply.upgrade].
+ */
 class CliAgentPacketSession(
     handler: CliAgentRequestHandler,
     authToken: ByteArray,
@@ -44,42 +48,45 @@ class CliAgentPacketSession(
 private class CliAgentPacketProtocol(
     private val handler: CliAgentRequestHandler,
     private val authenticator: AgentIpcAuthenticator,
-) : AgentPacketProtocol<CliAgentMessages.Request.Kind, CliAgentMessages.Response.Kind> {
+) : AgentPacketProtocol<CliAgentMessages.Request.Kind, CliAgentAnswer> {
     override val maxPacketSize: Int get() = CliAgentPacketSession.MAX_PACKET_SIZE
 
     override fun decode(packet: ByteArray) = ProtoBuf.decodeFromByteArray<CliAgentMessages.Request>(packet).request
 
-    override fun encode(response: CliAgentMessages.Response.Kind) =
-        ProtoBuf.encodeToByteArray(CliAgentMessages.Response(response))
+    override fun encode(response: CliAgentAnswer) =
+        ProtoBuf.encodeToByteArray(CliAgentMessages.Response(response.response))
 
     override suspend fun handle(
         request: CliAgentMessages.Request.Kind,
         authenticated: Boolean,
-    ): CliAgentMessages.Response.Kind {
+    ): CliAgentAnswer {
         if (authenticated) return handler.handle(request)
         val supplied = (request as? CliAgentMessages.Request.Kind.Authenticate)?.value
         val success = supplied != null && authenticator.check(supplied) == AgentIpcAuthentication.ACCEPTED
-        return CliAgentMessages.Response.Kind.Authenticate(
+        val response = CliAgentMessages.Response.Kind.Authenticate(
             AgentIpcMessages.AuthenticateResponse(
                 success = success,
                 protocolRevision = AgentIpcMessages.PROTOCOL_REVISION,
             ),
         )
+        return CliAgentAnswer(response)
     }
 
     override fun authenticatedAfter(
         request: CliAgentMessages.Request.Kind,
-        response: CliAgentMessages.Response.Kind,
+        response: CliAgentAnswer,
         authenticated: Boolean,
     ): Boolean? = if (authenticated) {
         null
     } else {
-        (response as? CliAgentMessages.Response.Kind.Authenticate)?.value?.success == true
+        (response.response as? CliAgentMessages.Response.Kind.Authenticate)?.value?.success == true
     }
 
     override fun wipeRequest(request: CliAgentMessages.Request.Kind) = request.wipe()
 
-    override fun wipeResponse(response: CliAgentMessages.Response.Kind) = response.wipe()
+    override fun wipeResponse(response: CliAgentAnswer) = response.response.wipe()
+
+    override fun upgrade(response: CliAgentAnswer) = response.upgrade
 
     override fun close() = authenticator.close()
 }
@@ -96,6 +103,7 @@ private fun CliAgentMessages.Request.Kind.wipe() {
         is CliAgentMessages.Request.Kind.WatchMounts,
         is CliAgentMessages.Request.Kind.MountStatus,
         is CliAgentMessages.Request.Kind.ResolveMount,
+        is CliAgentMessages.Request.Kind.BrowserOpen,
         -> Unit
     }
 }
@@ -109,6 +117,7 @@ private fun CliAgentMessages.Response.Kind.wipe() {
         is CliAgentMessages.Response.Kind.Authenticate,
         is CliAgentMessages.Response.Kind.Manage,
         is CliAgentMessages.Response.Kind.MountStatus,
+        is CliAgentMessages.Response.Kind.BrowserOpen,
         is CliAgentMessages.Response.Kind.Error,
         -> Unit
     }

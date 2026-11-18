@@ -30,7 +30,7 @@ class CliAgentUsageRecorderTest {
         fixture.readyCli()
         fixture.autoApprove(backgroundScope)
 
-        fixture.agent().handle(run())
+        fixture.agent().respond(run())
 
         val usage = fixture.recordedUsage.single()
         assertEquals(CliAgentUsageHistoryClient.CLI, usage.client)
@@ -49,7 +49,7 @@ class CliAgentUsageRecorderTest {
         fixture.readyCli()
         val handler = fixture.agent()
 
-        val pending = async { handler.handle(run()) }
+        val pending = async { handler.respond(run()) }
         val request = fixture.cli.approvals.first { it.isNotEmpty() }.single()
         fixture.cli.respondToApproval(request.id, false)
         assertEquals("user_denied", pending.await().error())
@@ -65,7 +65,7 @@ class CliAgentUsageRecorderTest {
         fixture.readyCli()
         val handler = fixture.agent()
 
-        val pending = async { handler.handle(run()) }
+        val pending = async { handler.respond(run()) }
         fixture.cli.approvals.first { it.isNotEmpty() }
         pending.cancel()
         runCurrent()
@@ -81,7 +81,7 @@ class CliAgentUsageRecorderTest {
         fixture.lock()
         fixture.repository.state.first { !it.unlocked }
 
-        assertEquals("vault_locked", fixture.agent().handle(run()).error())
+        assertEquals("vault_locked", fixture.agent().respond(run()).error())
 
         assertTrue(fixture.recordedUsage.isEmpty())
         val event = fixture.queuedUsage.single()
@@ -101,8 +101,20 @@ class CliAgentUsageRecorderTest {
         fixture.ready()
         val handler = fixture.agent()
 
-        handler.handle(CliAgentMessages.Request.Kind.Mounts(CliAgentMessages.Empty))
-        handler.handle(CliAgentMessages.Request.Kind.Authenticate(AgentIpcMessages.AuthenticateRequest()))
+        handler.respond(CliAgentMessages.Request.Kind.Mounts(CliAgentMessages.Empty))
+        handler.respond(CliAgentMessages.Request.Kind.Authenticate(AgentIpcMessages.AuthenticateRequest()))
+
+        assertTrue(fixture.recordedUsage.isEmpty())
+        assertTrue(fixture.queuedUsage.isEmpty())
+    }
+
+    @Test
+    fun `opening a browser stream is not recorded`() = runTest {
+        val fixture = EnvironmentFixture(backgroundScope)
+        fixture.ready()
+
+        // The requests of the extension that the stream carries are.
+        fixture.agent().respond(browserOpenRequest())
 
         assertTrue(fixture.recordedUsage.isEmpty())
         assertTrue(fixture.queuedUsage.isEmpty())
@@ -114,7 +126,7 @@ class CliAgentUsageRecorderTest {
         fixture.ready()
         fixture.autoApprove(backgroundScope)
 
-        fixture.agent().handle(manage("list_variables", clientName = "Claude Code"))
+        fixture.agent().respond(manage("list_variables", clientName = "Claude Code"))
 
         val usage = fixture.recordedUsage.single()
         assertEquals(CliAgentUsageHistoryClient.MCP, usage.client)
@@ -130,7 +142,7 @@ class CliAgentUsageRecorderTest {
         fixture.ready()
         fixture.autoApprove(backgroundScope)
 
-        fixture.agent().handle(
+        fixture.agent().respond(
             manageRequest(
                 tool = "create_environment",
                 arguments = mapOf("account_id" to "profile-account", "name" to "Staging"),
@@ -149,7 +161,7 @@ class CliAgentUsageRecorderTest {
         fixture.ready()
         fixture.autoApprove(backgroundScope)
 
-        assertEquals("unknown_tool", fixture.agent().handle(manage("drop_everything")).error())
+        assertEquals("unknown_tool", fixture.agent().respond(manage("drop_everything")).error())
 
         val usage = fixture.recordedUsage.single()
         assertEquals(CliAgentUsageHistoryRequestType.UNKNOWN, usage.request)
@@ -164,10 +176,10 @@ class CliAgentUsageRecorderTest {
         fixture.ready()
         fixture.autoApprove(backgroundScope)
         val handler = fixture.agent()
-        val mounts = handler.handle(CliAgentMessages.Request.Kind.Mounts(CliAgentMessages.Empty))
+        val mounts = handler.respond(CliAgentMessages.Request.Kind.Mounts(CliAgentMessages.Empty))
         val generation = assertIs<CliAgentMessages.Response.Kind.Mounts>(mounts).value.mounts.single().generation
 
-        handler.handle(
+        handler.respond(
             CliAgentMessages.Request.Kind.ResolveMount(
                 CliAgentMessages.ResolveMountRequest(mountId = "mount", generation = generation),
             ),

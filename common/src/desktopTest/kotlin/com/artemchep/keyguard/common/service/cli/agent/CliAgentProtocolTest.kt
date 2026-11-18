@@ -102,6 +102,23 @@ class CliAgentProtocolTest {
         "resolve_mount" to Request.Kind.ResolveMount(CliAgentMessages.ResolveMountRequest("m", "g")),
         "cli_run" to run(account = null),
         "cli_run_in_account" to run(account = "Work"),
+        "browser_open" to Request.Kind.BrowserOpen(
+            CliAgentMessages.BrowserOpenRequest(
+                caller = verifiedCaller(),
+                origin = "chrome-extension://abcdefghijklmnopabcdefghijklmnop/",
+                verifiedHost = true,
+                hostRevision = 1,
+            ),
+        ),
+        // Inside Flatpak, nothing about the connector's process is known.
+        "browser_open_unverified" to Request.Kind.BrowserOpen(
+            CliAgentMessages.BrowserOpenRequest(
+                caller = CallerIdentity(),
+                origin = "keyguard@artemchep.com",
+                verifiedHost = false,
+                hostRevision = 1,
+            ),
+        ),
     )
 
     private fun responses() = linkedMapOf(
@@ -157,6 +174,7 @@ class CliAgentProtocolTest {
         "cli_run" to Response.Kind.Cli(
             CliAgentMessages.CliResponse(cliSuccessBody(EnvironmentRunCliResult.serializer(), runResult)),
         ),
+        "browser_open" to Response.Kind.BrowserOpen(CliAgentMessages.Empty),
     )
 
     private val runResult = EnvironmentRunCliResult(linkedMapOf("TOKEN" to "secret", "EMPTY" to ""))

@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.cli
 
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages
 import com.artemchep.keyguard.common.service.cli.agent.error
+import com.artemchep.keyguard.common.service.cli.agent.respond
 import com.artemchep.keyguard.common.service.cli.agent.runRequest
 import com.artemchep.keyguard.common.service.environment.EnvironmentFixture
 import kotlinx.coroutines.async
@@ -48,7 +49,7 @@ class CliServiceTest {
         fixture.cli.configureRuntime(path = "/bin/keyguard", capabilities = UNSANDBOXED)
         fixture.cli.setEnabled(true)
         val pending = async {
-            fixture.agent().handle(CliAgentMessages.Request.Kind.Cli(runRequest(environment = "environment")))
+            fixture.agent().respond(CliAgentMessages.Request.Kind.Cli(runRequest(environment = "environment")))
         }
         fixture.cli.approvals.first { it.isNotEmpty() }
         fixture.lock()
@@ -64,7 +65,7 @@ class CliServiceTest {
         fixture.cli.setEnabled(true)
         suspend fun approveAfter(change: suspend () -> Unit): String {
             val pending = async {
-                fixture.agent().handle(CliAgentMessages.Request.Kind.Cli(runRequest(environment = "environment")))
+                fixture.agent().respond(CliAgentMessages.Request.Kind.Cli(runRequest(environment = "environment")))
             }
             val request = fixture.cli.approvals.first { it.isNotEmpty() }.single()
             change()

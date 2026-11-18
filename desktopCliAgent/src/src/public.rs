@@ -9,7 +9,7 @@ use crate::{
 use anyhow::{Context, Result};
 use keyguard_agent_identity::ConnectionPrincipal;
 use keyguard_cli_protocol::{
-    errors::{UNSUPPORTED_COMMAND, failure},
+    errors::{UNAVAILABLE, UNSUPPORTED_COMMAND, failure},
     frame::{read_frame, write_frame},
     public::{ParsedFrame, PublicFrame, parse_public_frame},
 };
@@ -17,6 +17,7 @@ use serde_json::Value;
 use std::{sync::Arc, time::Duration};
 use tokio::{io::AsyncReadExt, sync::Mutex};
 
+mod browser;
 mod cli;
 mod manage;
 
@@ -40,6 +41,9 @@ pub(crate) async fn serve(
             ParsedFrame::Frame(PublicFrame::Cli(request)) => {
                 return cli::serve(accepted, app, request).await;
             }
+            ParsedFrame::Frame(PublicFrame::Browser(request)) => {
+                return browser::serve(accepted, app, request).await;
+            }
             // A newer client: say so, rather than drop the connection.
             ParsedFrame::Unsupported => {
                 return reply(&mut accepted, &failure(UNSUPPORTED_COMMAND)).await;
@@ -55,23 +59,37 @@ async fn reply(accepted: &mut Accepted, response: &Value) -> Result<()> {
     write_frame(&mut *accepted.stream, &serde_json::to_vec(response)?).await
 }
 
-/// Asks the app, then answers with `answer` of its response. Disconnect,
-/// cancellation, or unexpected input closes the private request and cancels
-/// its approval prompt: `None`, as the client went away.
+/// Asks the app, then answers with `answer` of its response: `None`, as the
+/// client went away, see [`while_connected`].
 async fn ask(
     accepted: &mut Accepted,
     app: &AppClient,
     request: request::Request,
     answer: impl FnOnce(&mut response::Response) -> Value,
 ) -> Result<Option<Value>> {
-    let response = tokio::select! {
-        response = app.request(request) => response.ok(),
+    let Some(response) = while_connected(accepted, app.request(request)).await? else {
+        return Ok(None);
+    };
+    Ok(Some(match response {
+        Ok(mut response) => answer(&mut response.0),
+        Err(_) => failure(UNAVAILABLE),
+    }))
+}
+
+/// Runs `app_call`, a call to the app, while the client is connected.
+/// Disconnect, unexpected input, or a client that exits or runs other code
+/// drops it, which closes its private connection and cancels its approval
+/// prompt: `None`. Otherwise the client is checked again before the result
+/// is acted on.
+async fn while_connected<T>(
+    accepted: &mut Accepted,
+    app_call: impl Future<Output = T>,
+) -> Result<Option<T>> {
+    let result = tokio::select! {
+        result = app_call => result,
         _ = accepted.stream.read_u8() => return Ok(None),
         _ = accepted.guard.changed() => return Ok(None),
     };
     accepted.guard.revalidate().await?;
-    Ok(Some(match response {
-        Some(mut response) => answer(&mut response.0),
-        None => failure("unavailable"),
-    }))
+    Ok(Some(result))
 }

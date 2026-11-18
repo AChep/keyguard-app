@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.cli.agent
 
+import com.artemchep.keyguard.common.service.agent.AgentDuplex
+import com.artemchep.keyguard.common.service.agent.AgentDuplexChannel
 import com.artemchep.keyguard.common.service.agent.AgentIpcAuthenticator
 import com.artemchep.keyguard.common.service.agent.AgentIpcTestClient
 import com.artemchep.keyguard.common.service.agent.AgentIpcTestLog
@@ -9,6 +11,7 @@ import com.artemchep.keyguard.common.service.agent.authenticateCli
 import com.artemchep.keyguard.common.service.agent.cliRunRequestPayload
 import com.artemchep.keyguard.common.service.agent.pendingCliRunHandler
 import com.artemchep.keyguard.common.service.agent.serveCliForTest
+import com.artemchep.keyguard.common.service.environment.EnvironmentFixture
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,9 +20,15 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.decodeFromByteArray
+import kotlinx.serialization.encodeToByteArray
+import kotlinx.serialization.protobuf.ProtoBuf
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
@@ -28,6 +37,7 @@ import kotlin.test.assertTrue
  * its approval prompt owns the deadline. The tests use 200 ms for the 30 s of
  * production.
  */
+@OptIn(ExperimentalSerializationApi::class)
 class CliAgentIpcServerTest {
     private val authToken = ByteArray(AgentIpcAuthenticator.TOKEN_SIZE) { it.toByte() }
 
@@ -71,6 +81,63 @@ class CliAgentIpcServerTest {
         server.stop()
         assertFalse(server.isServing)
         assertEquals(emptyList(), log.errors)
+    }
+
+    @Test
+    fun `a browser stream stays open past the budget and carries frames both ways`() = runBlocking {
+        val fixtureScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+        val closed = CompletableDeferred<Unit>()
+        try {
+            val fixture = EnvironmentFixture(fixtureScope)
+            val handler = fixture.agent(browser = { CliAgentAnswer.opened(EchoDuplex(closed)) })
+            val log = AgentIpcTestLog()
+            val server = serveCliForTest(
+                log = log,
+                authToken = authToken,
+                handler = handler,
+                gate = AgentIpcTestPeerGate().apply { open() },
+                ioTimeoutMs = 200L,
+            )
+            try {
+                AgentIpcTestClient.connect(server.endpoint).use { client ->
+                    assertTrue(client.authenticateCli(authToken))
+                    client.writeFrame(ProtoBuf.encodeToByteArray(CliAgentMessages.Request(browserOpenRequest())))
+                    val answer = assertNotNull(client.readFrame())
+                    val response = ProtoBuf.decodeFromByteArray<CliAgentMessages.Response>(answer)
+                    assertIs<CliAgentMessages.Response.Kind.BrowserOpen>(response.response)
+                    // The stream waits for the extension past the budget of a request.
+                    delay(1_000L)
+                    client.writeFrame("ping".encodeToByteArray())
+                    assertEquals("echo ping", client.readFrame()?.decodeToString())
+                    client.writeFrame("pong".encodeToByteArray())
+                    assertEquals("echo pong", client.readFrame()?.decodeToString())
+                }
+                // The client left: the stream ends.
+                withTimeout(5_000L) { closed.await() }
+            } finally {
+                server.stop()
+            }
+            assertEquals(emptyList(), log.errors)
+        } finally {
+            fixtureScope.cancel()
+        }
+    }
+
+    /** Answers each frame with `echo <frame>` until the client leaves. */
+    private class EchoDuplex(private val closed: CompletableDeferred<Unit>) : AgentDuplex {
+        override val maxPacketSize: Int get() = 65_535
+
+        override suspend fun serve(channel: AgentDuplexChannel) {
+            while (true) {
+                val packet = channel.readPacket()
+                    ?: break
+                channel.writePacket("echo ${packet.decodeToString()}".encodeToByteArray())
+            }
+        }
+
+        override fun close() {
+            closed.complete(Unit)
+        }
     }
 
     private class PendingRun(

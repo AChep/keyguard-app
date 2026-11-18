@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.model.create.CreateRequest
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.agent.fixedAgentApprovalCacheConfig
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionStreams
 import com.artemchep.keyguard.common.service.cli.CliCommandDispatcher
 import com.artemchep.keyguard.common.service.cli.CliServiceImpl
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages
@@ -204,12 +205,13 @@ internal class EnvironmentFixture(
     )
 
     /** The handler of the private requests of one agent connection. */
-    fun agent() = CliAgentRequestHandler(
+    fun agent(browser: BrowserExtensionStreams? = null) = CliAgentRequestHandler(
         cli = CliCommandDispatcher(
             cli,
             listOf(EnvironmentRunCliCommand(cli, environmentVault, repository, access)),
         ),
         environments = broker(),
+        browser = browser,
         recorder = recorder,
     )
 

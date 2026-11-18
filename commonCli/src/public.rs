@@ -1,6 +1,7 @@
 //! Frames of the public socket. Management is answered with metadata only; a
-//! CLI command may be answered with values, but only to the bundled CLI.
-use crate::{cli::CliRequest, json::PrivateJson, manage::PublicRequest};
+//! CLI command may be answered with values, but only to the bundled CLI. A
+//! browser frame opens the stream of a browser extension.
+use crate::{browser::BrowserRequest, cli::CliRequest, json::PrivateJson, manage::PublicRequest};
 use anyhow::{Context, Result, bail};
 use serde::Serialize;
 use serde_json::Value;
@@ -8,6 +9,7 @@ use serde_json::Value;
 pub enum PublicFrame {
     Manage(PublicRequest),
     Cli(CliRequest),
+    Browser(BrowserRequest),
 }
 
 #[derive(Serialize)]
@@ -15,6 +17,7 @@ pub enum PublicFrame {
 pub enum PublicFrameRef<'a> {
     Manage(&'a PublicRequest),
     Cli(&'a CliRequest),
+    Browser(&'a BrowserRequest),
 }
 
 pub enum ParsedFrame {
@@ -47,6 +50,7 @@ pub fn parse_public_frame(bytes: &[u8]) -> Result<ParsedFrame> {
             }
             PublicFrame::Cli(serde_json::from_value(frame.0.take())?)
         }
+        "browser" => PublicFrame::Browser(serde_json::from_value(frame.0.take())?),
         _ => return Ok(ParsedFrame::Unsupported),
     };
     Ok(ParsedFrame::Frame(request))
@@ -110,6 +114,43 @@ mod tests {
                 matches!(parse(value.clone()), Ok(ParsedFrame::Unsupported)),
                 "{value}"
             );
+        }
+    }
+
+    #[test]
+    fn browser_frames_open_the_stream_of_an_extension() {
+        const ORIGIN: &str = "chrome-extension://abcdefghijklmnopabcdefghijklmnop/";
+        let Ok(ParsedFrame::Frame(PublicFrame::Browser(request))) =
+            parse(json!({"type":"browser","origin":ORIGIN,"hostRevision":1}))
+        else {
+            panic!("a browser frame");
+        };
+        assert_eq!(
+            request,
+            BrowserRequest {
+                origin: ORIGIN.into(),
+                host_revision: 1,
+            }
+        );
+        assert!(request.validate().is_ok());
+        assert_eq!(
+            serde_json::to_value(PublicFrameRef::Browser(&request)).unwrap(),
+            json!({"type":"browser","origin":ORIGIN,"hostRevision":1})
+        );
+        // A frame with an invalid origin parses; the agent validates it.
+        let Ok(ParsedFrame::Frame(PublicFrame::Browser(request))) =
+            parse(json!({"type":"browser","origin":"chrome-extension://x/","hostRevision":1}))
+        else {
+            panic!("a browser frame");
+        };
+        assert!(request.validate().is_err());
+        // Malformed frames of a known operation are not answered.
+        for value in [
+            json!({"type":"browser","origin":ORIGIN,"hostRevision":1,"caller":{}}),
+            json!({"type":"browser","origin":ORIGIN}),
+            json!({"type":"browser","origin":1,"hostRevision":1}),
+        ] {
+            assert!(parse(value.clone()).is_err(), "{value}");
         }
     }
 

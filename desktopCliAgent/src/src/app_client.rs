@@ -33,6 +33,19 @@ impl AppClient {
         &self,
         request: request::Request,
     ) -> Result<Private<response::Response>> {
+        let (_stream, response) = self.open(request).await?;
+        Ok(response)
+    }
+
+    /// Sends one request over a connection of its own, as [`request`] does,
+    /// and keeps the connection, so that it can carry a stream after the
+    /// answer.
+    ///
+    /// [`request`]: Self::request
+    pub(crate) async fn open(
+        &self,
+        request: request::Request,
+    ) -> Result<(BoxStream, Private<response::Response>)> {
         let request = Private(Request {
             request: Some(request),
         });
@@ -40,7 +53,8 @@ impl AppClient {
             .await
             .context("connect_timeout")??;
         write_frame(&mut *stream, &Zeroizing::new(request.0.encode_to_vec())).await?;
-        read_response(&mut *stream).await
+        let response = read_response(&mut *stream).await?;
+        Ok((stream, response))
     }
 
     /// Connects to the app and authenticates with the launch token.

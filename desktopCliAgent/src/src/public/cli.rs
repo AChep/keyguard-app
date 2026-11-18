@@ -25,7 +25,7 @@ pub(super) async fn serve(
     request.validate()?;
     let policy = request.policy();
     accepted.guard.revalidate().await?;
-    if policy.requires_bundled_cli && !accepted.bundled_cli {
+    if policy.requires_bundled_cli && !accepted.is_bundled_cli() {
         return super::reply(&mut accepted, &failure(UNVERIFIED_CLI)).await;
     }
     let caller = std::mem::take(&mut accepted.caller);

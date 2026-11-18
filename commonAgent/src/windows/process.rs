@@ -18,6 +18,9 @@ use windows_sys::Win32::Security::{
 use windows_sys::Win32::System::Diagnostics::ToolHelp::{
     CreateToolhelp32Snapshot, Process32FirstW, Process32NextW, PROCESSENTRY32W, TH32CS_SNAPPROCESS,
 };
+use windows_sys::Win32::System::SystemInformation::{
+    GetSystemDirectoryW, GetSystemWow64DirectoryW,
+};
 use windows_sys::Win32::System::Threading::{
     GetProcessTimes, OpenProcess, OpenProcessToken, QueryFullProcessImageNameW,
     WaitForSingleObject, PROCESS_QUERY_LIMITED_INFORMATION, PROCESS_SYNCHRONIZE,
@@ -351,15 +354,75 @@ fn parent_in(process: &ProcessIdentity, parents: &HashMap<u32, u32>) -> Option<P
     (parent.created <= process.created && parent.context == process.context).then_some(parent)
 }
 
+/// The paths of the system's `cmd.exe`: the native one and, on 64-bit
+/// Windows, the 32-bit one that a 32-bit browser starts.
+fn system_cmds() -> impl Iterator<Item = String> {
+    [
+        system_directory(GetSystemDirectoryW),
+        system_directory(GetSystemWow64DirectoryW),
+    ]
+    .into_iter()
+    .flatten()
+    .map(|directory| format!("{}\\cmd.exe", directory.trim_end_matches('\\')))
+}
+
+/// The directory that `get`, `GetSystemDirectoryW` or
+/// `GetSystemWow64DirectoryW`, names. `None` when there is none, as for the
+/// 32-bit one on 32-bit Windows.
+fn system_directory(get: unsafe extern "system" fn(*mut u16, u32) -> u32) -> Option<String> {
+    let mut directory = [0u16; 1024];
+    // SAFETY: directory is a writable UTF-16 buffer of the supplied size.
+    let length = unsafe { get(directory.as_mut_ptr(), directory.len() as u32) } as usize;
+    // A length of the buffer or more is the size that it would need.
+    (length != 0 && length < directory.len())
+        .then(|| String::from_utf16_lossy(&directory[..length]))
+}
+
+/// Whether the image at `path` only launches the program it runs, as the
+/// system's `cmd.exe /c` does. Another `cmd.exe` can be any program.
+fn is_launcher_shell(path: &str) -> bool {
+    system_cmds().any(|cmd| path.eq_ignore_ascii_case(&cmd))
+}
+
+/// The process that started `process`. The system's shell, when it only
+/// launched it, is skipped for the process that started the shell.
+fn launching_parent_in(
+    process: &ProcessIdentity,
+    parents: &HashMap<u32, u32>,
+) -> Option<ProcessIdentity> {
+    let parent = parent_in(process, parents)?;
+    if is_launcher_shell(&parent.path) {
+        return parent_in(&parent, parents);
+    }
+    Some(parent)
+}
+
 /// Describes the process that started `pid`, for a peer that only relays
 /// requests for it, such as a bundled command-line client. Display data only.
 /// `None` when the parent exited or runs in another security context.
 #[must_use]
 pub fn relayed_caller(pid: u32) -> Option<RelayedCaller> {
     let process = ProcessIdentity::open(pid).ok()?;
-    let parent = process.parent()?;
+    Some(relayed(process.parent()?))
+}
+
+/// [`relayed_caller`] for a browser's native messaging host. Chromium starts
+/// one through the system's `cmd.exe`, which is skipped for the browser that
+/// started it.
+/// `None` also when the shell's parent exited or runs in another security
+/// context.
+#[must_use]
+pub fn relayed_browser_caller(pid: u32) -> Option<RelayedCaller> {
+    let process = ProcessIdentity::open(pid).ok()?;
+    Some(relayed(launching_parent_in(
+        &process,
+        &process_parents().ok()?,
+    )?))
+}
+
+fn relayed(parent: ProcessIdentity) -> RelayedCaller {
     let application = find_application(&parent, &visible_window_processes());
-    Some(RelayedCaller {
+    RelayedCaller {
         pid: parent.pid,
         process_name: super::escape_display_text(&parent.name()),
         executable_path: super::escape_display_text(&parent.path),
@@ -371,7 +434,7 @@ pub fn relayed_caller(pid: u32) -> Option<RelayedCaller> {
             .as_ref()
             .map(|application| super::escape_display_text(&application.path))
             .unwrap_or_default(),
-    })
+    }
 }
 
 #[cfg(test)]
@@ -392,6 +455,20 @@ mod tests {
                         "--nocapture",
                     ])
                     .env("KEYGUARD_TEST_PROCESS_FIXTURE", "1")
+                    .stdin(Stdio::piped())
+                    .stdout(Stdio::null())
+                    .stderr(Stdio::null())
+                    .creation_flags(windows_sys::Win32::System::Threading::CREATE_NO_WINDOW)
+                    .spawn()
+                    .unwrap(),
+            )
+        }
+
+        /// A `cmd.exe` that waits for a line on its standard input.
+        fn shell() -> Self {
+            Self(
+                Command::new("cmd.exe")
+                    .args(["/d", "/c", "set /p KEYGUARD_TEST_LINE="])
                     .stdin(Stdio::piped())
                     .stdout(Stdio::null())
                     .stderr(Stdio::null())
@@ -453,6 +530,37 @@ mod tests {
         // A recycled parent PID can identify a process born after the child.
         let newer = TestProcess::spawn();
         assert!(parent_in(&process, &HashMap::from([(process.pid, newer.0.id())])).is_none());
+    }
+
+    #[test]
+    fn a_launching_shell_is_skipped_for_the_process_that_started_it() {
+        for cmd in system_cmds() {
+            assert!(is_launcher_shell(&cmd) && is_launcher_shell(&cmd.to_ascii_uppercase()));
+        }
+        let cmd = system_cmds().next().unwrap();
+        // Only the system's shell: not one elsewhere, nor another program.
+        assert!(!is_launcher_shell("cmd.exe") && !is_launcher_shell(r"C:\Tools\cmd.exe"));
+        assert!(!is_launcher_shell(&cmd.replace("cmd.exe", "pwsh.exe")));
+        // A browser started its host through the system's cmd.exe, which
+        // Command finds before PATH: browser > shell > host.
+        let shell = TestProcess::shell();
+        let host = TestProcess::spawn();
+        let process = ProcessIdentity::open(host.0.id()).unwrap();
+        let browser = std::process::id();
+        let through_shell = HashMap::from([(process.pid, shell.0.id()), (shell.0.id(), browser)]);
+        assert_eq!(
+            launching_parent_in(&process, &through_shell).map(|parent| parent.pid),
+            Some(browser)
+        );
+        // Another parent is the launching process itself.
+        let direct = HashMap::from([(process.pid, browser)]);
+        assert_eq!(
+            launching_parent_in(&process, &direct).map(|parent| parent.pid),
+            Some(browser)
+        );
+        // Without the process that started the shell, nothing is shown.
+        let orphan = HashMap::from([(process.pid, shell.0.id())]);
+        assert!(launching_parent_in(&process, &orphan).is_none());
     }
 
     #[test]

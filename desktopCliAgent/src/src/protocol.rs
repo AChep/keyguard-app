@@ -44,7 +44,8 @@ impl Wipe for Request {
             request::Request::Mounts(_)
             | request::Request::WatchMounts(_)
             | request::Request::MountStatus(_)
-            | request::Request::ResolveMount(_) => {}
+            | request::Request::ResolveMount(_)
+            | request::Request::BrowserOpen(_) => {}
         }
     }
 }
@@ -59,7 +60,11 @@ impl Wipe for response::Response {
             }
             Self::ResolveMount(resolved) => resolved.content.zeroize(),
             Self::Cli(cli) => cli.result.zeroize(),
-            Self::Authenticate(_) | Self::Manage(_) | Self::MountStatus(_) | Self::Error(_) => {}
+            Self::Authenticate(_)
+            | Self::Manage(_)
+            | Self::MountStatus(_)
+            | Self::BrowserOpen(_)
+            | Self::Error(_) => {}
         }
     }
 }

@@ -41,6 +41,7 @@ class EnvironmentBrokerHandler(
             is Request.Kind.ResolveMount -> mounts.resolveMount(request.value, usage)
             is Request.Kind.Authenticate,
             is Request.Kind.Cli,
+            is Request.Kind.BrowserOpen,
             -> cliAgentError("invalid_request")
         }
     } catch (e: CancellationException) {

@@ -1,5 +1,8 @@
 #![cfg(unix)]
 
+#[path = "broker_lifecycle/browser_relay.rs"]
+mod browser_relay;
+
 #[path = "broker_lifecycle/fifo_cancellation.rs"]
 mod fifo_cancellation;
 
@@ -129,7 +132,8 @@ struct App {
     // 0: normal; 1: pending FIFO approval; 2: pending MCP approval;
     // 3: a management result of another tool;
     // 4: denied run; 5: run result with an invalid variable name;
-    // 6: mount watch requests fail; 7: denied FIFO read; 8: empty FIFO content.
+    // 6: mount watch requests fail; 7: denied FIFO read; 8: empty FIFO content;
+    // 9: browser integration disabled; 10: an oversized browser frame.
     mode: Arc<AtomicU8>,
     resolves: Arc<AtomicUsize>,
     pending: Arc<Notify>,
@@ -325,6 +329,27 @@ impl App {
                                 _ => accounts(),
                             }
                         }
+                        Op::BrowserOpen(open) => {
+                            let caller = open.caller.expect("a caller");
+                            // The connector relays for the process that started it.
+                            assert_eq!(caller.pid, std::process::id());
+                            assert!(open.verified_host);
+                            assert_eq!(open.host_revision, 1);
+                            let mode = mode.load(Ordering::SeqCst);
+                            if mode == 9 {
+                                error("integration_disabled")
+                            } else {
+                                write_response(
+                                    &mut stream,
+                                    Reply::BrowserOpen(protocol::BrowserOpenResponse {}),
+                                )
+                                .await;
+                                browser_relay::serve_stream(&mut stream, &open.origin, mode == 10)
+                                    .await;
+                                canceled.notify_one();
+                                return;
+                            }
+                        }
                         Op::Authenticate(_) => panic!("authenticated twice"),
                     };
                     write_response(&mut stream, response).await;
@@ -353,7 +378,20 @@ impl App {
 
     /// Starts an agent of this app, without waiting for it to be ready.
     async fn spawn(&self, public: &Path, state_dir: &Path, stdout: Stdio) -> Child {
-        let mut child = Command::new(env!("CARGO_BIN_EXE_keyguard-cli-agent"))
+        let agent = Path::new(env!("CARGO_BIN_EXE_keyguard-cli-agent"));
+        self.spawn_agent(agent, public, state_dir, stdout).await
+    }
+
+    /// Starts the `agent` executable for this app, without waiting for it to
+    /// be ready.
+    async fn spawn_agent(
+        &self,
+        agent: &Path,
+        public: &Path,
+        state_dir: &Path,
+        stdout: Stdio,
+    ) -> Child {
+        let mut child = Command::new(agent)
             .arg("--ipc-socket")
             .arg(&self.private)
             .arg("--parent-pid")
@@ -379,8 +417,14 @@ impl App {
     }
 
     async fn launch(&self) -> Child {
+        self.launch_agent(Path::new(env!("CARGO_BIN_EXE_keyguard-cli-agent")))
+            .await
+    }
+
+    /// Starts the `agent` executable for this app, and waits for it to be ready.
+    async fn launch_agent(&self, agent: &Path) -> Child {
         let mut child = self
-            .spawn(&self.public, &self.state_dir(), Stdio::piped())
+            .spawn_agent(agent, &self.public, &self.state_dir(), Stdio::piped())
             .await;
         let mut line = String::new();
         timeout(BufReader::new(child.stdout.take().unwrap()).read_line(&mut line))

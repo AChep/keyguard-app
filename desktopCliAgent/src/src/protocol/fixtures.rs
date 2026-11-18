@@ -69,6 +69,27 @@ fn run(account: Option<&str>) -> request::Request {
 /// The answer to `keyguard run`, as the app writes it.
 const RUN_RESULT: &[u8] = br#"{"ok":true,"variables":{"TOKEN":"secret","EMPTY":""}}"#;
 
+/// The stream of a browser extension: of a Chromium extension for the
+/// verified connector, or of a Firefox extension inside Flatpak, where
+/// nothing about the connector's process is known.
+fn browser_open(verified: bool) -> request::Request {
+    request::Request::BrowserOpen(if verified {
+        BrowserOpenRequest {
+            caller: Some(verified_caller()),
+            origin: "chrome-extension://abcdefghijklmnopabcdefghijklmnop/".into(),
+            verified_host: true,
+            host_revision: 1,
+        }
+    } else {
+        BrowserOpenRequest {
+            caller: Some(CallerIdentity::default()),
+            origin: "keyguard@artemchep.com".into(),
+            verified_host: false,
+            host_revision: 1,
+        }
+    })
+}
+
 fn requests() -> Vec<(&'static str, Request)> {
     vec![
         request(
@@ -138,6 +159,8 @@ fn requests() -> Vec<(&'static str, Request)> {
         ),
         request("cli_run", run(None)),
         request("cli_run_in_account", run(Some("Work"))),
+        request("browser_open", browser_open(true)),
+        request("browser_open_unverified", browser_open(false)),
     ]
 }
 
@@ -258,6 +281,10 @@ fn responses() -> Vec<(&'static str, Response)> {
             response::Response::Cli(CliResponse {
                 result: RUN_RESULT.to_vec(),
             }),
+        ),
+        response(
+            "browser_open",
+            response::Response::BrowserOpen(BrowserOpenResponse {}),
         ),
     ]
 }

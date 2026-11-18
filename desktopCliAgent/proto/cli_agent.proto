@@ -25,6 +25,9 @@ message Request {
     MountStatusRequest mount_status = 5;
     ResolveMountRequest resolve_mount = 6;
     CliRequest cli = 7;
+    // The last request of its connection: once answered with
+    // `browser_open`, the connection becomes a stream.
+    BrowserOpenRequest browser_open = 8;
   }
 }
 
@@ -37,6 +40,7 @@ message Response {
     MountStatusResponse mount_status = 5;
     ResolveMountResponse resolve_mount = 6;
     CliResponse cli = 7;
+    BrowserOpenResponse browser_open = 8;
     ErrorResponse error = 15;
   }
 }
@@ -213,3 +217,36 @@ message CliResponse {
   // values.
   bytes result = 1;
 }
+
+// Opens the stream of a browser extension, for the browser connector
+// `keyguard-browser-host` that its browser started. Answered with
+// `browser_open`, or with an error such as `integration_disabled` or
+// `too_many_sessions`.
+//
+// After a successful `BrowserOpenResponse`, no further message of this
+// schema is sent on the connection. It carries opaque frames in both
+// directions instead, each a big-endian `u32` length and then 1 to 65,535
+// bytes of one Noise message, until either side closes it. The agent relays
+// them to and from the connector unchanged.
+//
+// None of these fields authenticates the extension: any process of the user
+// can start the bundled connector with any origin. Access to the vault comes
+// only from the Noise pairing that the stream carries.
+message BrowserOpenRequest {
+  // The browser: the process that started the connector, for display only.
+  // When the agent can't find that process, it is the connector itself.
+  keyguard.agent.CallerIdentity caller = 1;
+  // The extension, as the connector names it: `chrome-extension://<id>/` for
+  // a Chromium browser, or the ID of a Firefox extension. The agent checked
+  // its syntax only.
+  string origin = 3;
+  // Whether the agent verified, as the stream opened, that the peer runs the
+  // bundled connector. The relay does not watch the peer afterwards. False
+  // only when the agent runs inside Flatpak, where the connector runs in
+  // another sandbox and its process can not be verified.
+  bool verified_host = 4;
+  // The revision of the connector, so that the app can ask for an update.
+  uint32 host_revision = 5;
+}
+
+message BrowserOpenResponse {}

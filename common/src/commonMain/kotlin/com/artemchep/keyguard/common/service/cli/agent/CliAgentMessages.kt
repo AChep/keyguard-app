@@ -60,6 +60,11 @@ object CliAgentMessages {
             @Serializable
             @SerialName("cli")
             data class Cli(@ProtoNumber(7) val value: CliRequest) : Kind
+
+            /** The last request of its connection: once answered, the connection becomes a stream. */
+            @Serializable
+            @SerialName("browser_open")
+            data class BrowserOpen(@ProtoNumber(8) val value: BrowserOpenRequest) : Kind
         }
     }
 
@@ -94,6 +99,10 @@ object CliAgentMessages {
             @Serializable
             @SerialName("cli")
             data class Cli(@ProtoNumber(7) val value: CliResponse) : Kind
+
+            @Serializable
+            @SerialName("browser_open")
+            data class BrowserOpen(@ProtoNumber(8) val value: Empty) : Kind
 
             @Serializable
             @SerialName("error")
@@ -380,5 +389,46 @@ object CliAgentMessages {
         /** Can hold values. */
         @ProtoNumber(1)
         val result: ByteArray = byteArrayOf(),
+    )
+
+    /**
+     * Opens the stream of a browser extension, for the browser connector
+     * `keyguard-browser-host` that its browser started.
+     *
+     * After a successful [Response.Kind.BrowserOpen], no further message is sent on
+     * the connection. It carries opaque frames in both directions instead,
+     * each a big-endian `u32` length and then 1 to 65,535 bytes of one Noise
+     * message, until either side closes it.
+     *
+     * None of these fields authenticates the extension: any process of the
+     * user can start the bundled connector with any origin. Grant access only
+     * through the Noise pairing that the stream carries.
+     */
+    @Serializable
+    class BrowserOpenRequest(
+        /**
+         * The browser: the process that started the connector, for display
+         * only. When the agent can't find that process, it is the connector
+         * itself.
+         */
+        @ProtoNumber(1)
+        val caller: CallerIdentity? = null,
+        /**
+         * `chrome-extension://<id>/` for a Chromium browser, or the ID of a
+         * Firefox extension, as the connector names it. The agent checked its
+         * syntax only.
+         */
+        @ProtoNumber(3)
+        val origin: String = "",
+        /**
+         * Whether the agent verified, as the stream opened, that the peer runs
+         * the bundled connector. The relay does not watch the peer afterwards.
+         * `false` only when the agent runs inside Flatpak.
+         */
+        @ProtoNumber(4)
+        val verifiedHost: Boolean = false,
+        /** The revision of the connector, so that the app can ask for an update. */
+        @ProtoNumber(5)
+        val hostRevision: Int = 0,
     )
 }

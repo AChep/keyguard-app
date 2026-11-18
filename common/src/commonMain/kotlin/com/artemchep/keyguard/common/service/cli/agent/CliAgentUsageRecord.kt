@@ -81,6 +81,8 @@ internal fun CliAgentMessages.Request.Kind.toUsageRecord(): CliAgentUsageRecord?
         coalescenceKey = "CLI_AGENT|ENV|${value.mountId}",
     )
 
+    // A stream logs the requests of the extension that it carries.
+    is CliAgentMessages.Request.Kind.BrowserOpen,
     is CliAgentMessages.Request.Kind.Authenticate,
     is CliAgentMessages.Request.Kind.Mounts,
     is CliAgentMessages.Request.Kind.WatchMounts,

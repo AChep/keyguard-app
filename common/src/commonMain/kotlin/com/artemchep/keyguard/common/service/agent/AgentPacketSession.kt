@@ -26,17 +26,30 @@ internal interface AgentPacketProtocol<Req : Any, Res : Any> {
     /**
      * The reply to [request] when its response encodes to [size] bytes, more
      * than [maxPacketSize]. Null closes the session, as for malformed input.
+     * It never opens a stream, and a response that opens one is never
+     * replaced.
      */
     fun oversizeResponse(request: Req, size: Int): Res? = null
+
+    /** The stream that [response] opens once it is written, see [AgentDuplex]. */
+    fun upgrade(response: Res): AgentDuplex? = null
 
     /** Releases what the protocol holds, such as a token, when the session closes. */
     fun close() = Unit
 }
 
-/** An encoded response, and whether the transport must close after writing it. */
+/**
+ * An encoded response, and whether the transport must close after writing it.
+ * Whoever holds a reply closes its [upgrade], unless it hands the reply on.
+ */
 class AgentPacketReply(
     val packet: ByteArray,
     val close: Boolean,
+    /**
+     * The stream that the connection becomes once [packet] is written, if
+     * any. A transport that does not serve it closes it.
+     */
+    val upgrade: AgentDuplex? = null,
 )
 
 /**
@@ -48,6 +61,7 @@ class AgentPacketReply(
  * closes the session; a failed authentication returns a final reply that must
  * be sent before closing the connection. A response too large for the
  * transport is replaced by the protocol's oversize reply, if it has one.
+ * A response that fails on its way out closes the stream it opens.
  */
 open class AgentPacketSession<Req : Any, Res : Any> internal constructor(
     private val protocol: AgentPacketProtocol<Req, Res>,
@@ -64,20 +78,23 @@ open class AgentPacketSession<Req : Any, Res : Any> internal constructor(
     @Suppress("TooGenericExceptionCaught")
     suspend fun process(packet: ByteArray): AgentPacketReply {
         check(!closed) { "Agent IPC session is closed" }
+        var upgrade: AgentDuplex? = null
         return try {
             require(AgentIpcFraming.isValidSize(packet.size, protocol.maxPacketSize)) {
                 "Invalid agent IPC packet size"
             }
             val request = protocol.decode(packet)
             val response = try {
-                protocol.handle(request, authenticated)
+                // Owned at once, so that any failure from here on closes it.
+                protocol.handle(request, authenticated).also { upgrade = protocol.upgrade(it) }
             } finally {
                 protocol.wipeRequest(request)
             }
             val next = protocol.authenticatedAfter(request, response, authenticated)
             var encoded = encode(response)
-            // A reply that changes the authentication is never replaced.
-            if (encoded.size > protocol.maxPacketSize && next == null) {
+            // A reply that changes the authentication, or opens a stream, is
+            // never replaced.
+            if (encoded.size > protocol.maxPacketSize && next == null && upgrade == null) {
                 val fallback = protocol.oversizeResponse(request, encoded.size)
                 if (fallback != null) {
                     encoded.fill(0)
@@ -92,9 +109,15 @@ open class AgentPacketSession<Req : Any, Res : Any> internal constructor(
                 false -> close()
                 null -> Unit
             }
-            AgentPacketReply(packet = encoded, close = next == false)
+            AgentPacketReply(packet = encoded, close = next == false, upgrade = upgrade)
         } catch (error: Throwable) {
-            close()
+            try {
+                upgrade?.close()
+            } catch (closeError: Throwable) {
+                error.addSuppressed(closeError)
+            } finally {
+                close()
+            }
             throw error
         }
     }
@@ -116,7 +139,8 @@ open class AgentPacketSession<Req : Any, Res : Any> internal constructor(
 
 /**
  * Serves this session until [readPacket] ends it, [writePacket] fails or a
- * reply closes it. Zeroes every packet once it is processed or sent.
+ * reply closes it. Zeroes every packet once it is processed or sent. Serves
+ * no stream: the [upgrade][AgentPacketReply.upgrade] of a reply is closed.
  */
 suspend fun AgentPacketSession<*, *>.serve(
     readPacket: suspend () -> ByteArray?,
@@ -132,6 +156,7 @@ suspend fun AgentPacketSession<*, *>.serve(
                 packet.fill(0)
             }
             try {
+                reply.upgrade?.close()
                 if (!writePacket(reply.packet) || reply.close) break
             } finally {
                 reply.packet.fill(0)

@@ -11,6 +11,7 @@ import com.artemchep.keyguard.common.service.cli.UNSANDBOXED
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentMessages
 import com.artemchep.keyguard.common.service.cli.agent.cliResult
 import com.artemchep.keyguard.common.service.cli.agent.error
+import com.artemchep.keyguard.common.service.cli.agent.respond
 import com.artemchep.keyguard.common.service.cli.agent.runRequest
 import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
 import com.artemchep.keyguard.feature.environments.EnvironmentValueSource
@@ -41,7 +42,7 @@ class EnvironmentRunCliCommandTest {
         val fixture = EnvironmentFixture(backgroundScope)
         fixture.readyCli()
         val handler = fixture.agent()
-        val pending = async { handler.handle(run()) }
+        val pending = async { handler.respond(run()) }
         val request = fixture.cli.approvals.first { it.isNotEmpty() }.single()
         val operation = assertIs<CliOperation.Run>(request.operation)
         assertEquals("environment", operation.environmentId)
@@ -56,15 +57,15 @@ class EnvironmentRunCliCommandTest {
         assertEquals(SECRET, response.token())
 
         fixture.cli.setEnabled(false)
-        assertEquals("integration_disabled", handler.handle(run()).error())
+        assertEquals("integration_disabled", handler.respond(run()).error())
         fixture.cli.setEnabled(true)
         // A sandboxed CLI would start the command in its sandbox.
         fixture.cli.configureRuntime(path = "/bin/keyguard", capabilities = emptySet())
-        assertEquals("unsupported_platform", handler.handle(run()).error())
+        assertEquals("unsupported_platform", handler.respond(run()).error())
         fixture.cli.configureRuntime(path = "/bin/keyguard", capabilities = UNSANDBOXED)
         fixture.lock()
         fixture.repository.state.first { !it.unlocked }
-        assertEquals("vault_locked", handler.handle(run()).error())
+        assertEquals("vault_locked", handler.respond(run()).error())
     }
 
     @Test
@@ -73,13 +74,13 @@ class EnvironmentRunCliCommandTest {
         fixture.readyCli()
         fixture.autoApprove(backgroundScope)
         val handler = fixture.agent()
-        assertEquals(SECRET, handler.handle(run("environment")).token())
+        assertEquals(SECRET, handler.respond(run("environment")).token())
 
         fixture.ciphers.value = listOf(fixture.secret.copy(name = "Production").withRemoteId("remote-1"))
         fixture.repository.state.first { it.environments.singleOrNull()?.remoteId == "remote-1" }
-        assertEquals(SECRET, handler.handle(run("remote-1")).token())
-        assertEquals(SECRET, handler.handle(run("environment")).token())
-        assertEquals("not_found", handler.handle(run("Production")).error())
+        assertEquals(SECRET, handler.respond(run("remote-1")).token())
+        assertEquals(SECRET, handler.respond(run("environment")).token())
+        assertEquals("not_found", handler.respond(run("Production")).error())
 
         // A remote ID wins over the same local ID of another environment.
         fixture.ciphers.value = listOf(
@@ -87,7 +88,7 @@ class EnvironmentRunCliCommandTest {
             fixture.secret.copy(id = "remote-1").withToken("other"),
         )
         fixture.repository.state.first { it.environments.size == 2 }
-        assertEquals(SECRET, handler.handle(run("remote-1")).token())
+        assertEquals(SECRET, handler.respond(run("remote-1")).token())
     }
 
     @Test
@@ -104,21 +105,21 @@ class EnvironmentRunCliCommandTest {
         fixture.repository.state.first { it.environments.size == 2 && it.accounts.size == 2 }
         fixture.autoApprove(backgroundScope)
         val handler = fixture.agent()
-        assertEquals("ambiguous_environment", handler.handle(run("shared")).error())
+        assertEquals("ambiguous_environment", handler.respond(run("shared")).error())
         // An account is selected by its remote ID, its local ID, or its name.
         for (account in listOf("profile-account-2", "account-2", "User account-2")) {
-            assertEquals("other", handler.handle(run("shared", account = account)).token())
+            assertEquals("other", handler.respond(run("shared", account = account)).token())
         }
-        assertEquals(SECRET, handler.handle(run("shared", account = "account")).token())
-        assertEquals("not_found", handler.handle(run("environment-2", account = "account")).error())
-        assertEquals("account_not_found", handler.handle(run("shared", account = "missing")).error())
+        assertEquals(SECRET, handler.respond(run("shared", account = "account")).token())
+        assertEquals("not_found", handler.respond(run("environment-2", account = "account")).error())
+        assertEquals("account_not_found", handler.respond(run("shared", account = "missing")).error())
 
         fixture.profiles.value = listOf(
             createProfile("account", name = "Work"),
             createProfile("account-2", name = "Work"),
         )
         fixture.repository.state.first { state -> state.accounts.all { it.name == "Work" } }
-        assertEquals("ambiguous_account", handler.handle(run("shared", account = "Work")).error())
+        assertEquals("ambiguous_account", handler.respond(run("shared", account = "Work")).error())
     }
 
     @Test
@@ -130,7 +131,7 @@ class EnvironmentRunCliCommandTest {
         val handler = fixture.agent()
         suspend fun prompts(authorization: CallerAuthorization?): Int {
             val before = fixture.approvedCapabilities.value.size
-            val response = handler.handle(run(authorization = authorization))
+            val response = handler.respond(run(authorization = authorization))
             assertIs<CliAgentMessages.Response.Kind.Cli>(response)
             return fixture.approvedCapabilities.value.size - before
         }
@@ -170,7 +171,7 @@ class EnvironmentRunCliCommandTest {
         val handler = fixture.agent()
         repeat(2) {
             val before = fixture.approvedCapabilities.value.size
-            val response = handler.handle(run(authorization = terminal('a')))
+            val response = handler.respond(run(authorization = terminal('a')))
             assertIs<CliAgentMessages.Response.Kind.Cli>(response)
             assertEquals(1, fixture.approvedCapabilities.value.size - before)
         }
@@ -181,8 +182,8 @@ class EnvironmentRunCliCommandTest {
         val fixture = EnvironmentFixture(backgroundScope, cliApprovalWindow = AGENT_APPROVAL_WINDOW_NEVER_ASK)
         fixture.readyCli()
         val handler = fixture.agent()
-        assertEquals(SECRET, handler.handle(run(authorization = terminal('a'))).token())
-        assertEquals(SECRET, handler.handle(run(authorization = null)).token())
+        assertEquals(SECRET, handler.respond(run(authorization = terminal('a'))).token())
+        assertEquals(SECRET, handler.respond(run(authorization = null)).token())
         assertTrue(fixture.approvedCapabilities.value.isEmpty())
     }
 
@@ -193,7 +194,7 @@ class EnvironmentRunCliCommandTest {
         fixture.readyCli()
         fixture.autoApprove(backgroundScope)
         val handler = fixture.agent()
-        assertEquals("reauthentication_required", handler.handle(run(authorization = null)).error())
+        assertEquals("reauthentication_required", handler.respond(run(authorization = null)).error())
         assertEquals(1, fixture.approvedCapabilities.value.size)
     }
 
@@ -206,13 +207,13 @@ class EnvironmentRunCliCommandTest {
         val handler = fixture.agent()
         repeat(2) {
             val before = fixture.approvedCapabilities.value.size
-            assertEquals("reauthentication_required", handler.handle(run(authorization = terminal('a'))).error())
+            assertEquals("reauthentication_required", handler.respond(run(authorization = terminal('a'))).error())
             assertEquals(1, fixture.approvedCapabilities.value.size - before)
         }
         val challenge = assertNotNull(fixture.access.elevationChallenge("environment"))
         fixture.access.grantElevatedAccess("environment", challenge)
         val before = fixture.approvedCapabilities.value.size
-        assertEquals(SECRET, handler.handle(run(authorization = terminal('a'))).token())
+        assertEquals(SECRET, handler.respond(run(authorization = terminal('a'))).token())
         assertEquals(0, fixture.approvedCapabilities.value.size - before)
     }
 
@@ -222,7 +223,7 @@ class EnvironmentRunCliCommandTest {
         fixture.ciphers.value = listOf(fixture.secret.copy(reprompt = true))
         fixture.readyCli()
         val handler = fixture.agent()
-        val pending = async { handler.handle(run()) }
+        val pending = async { handler.respond(run()) }
         val request = fixture.cli.approvals.first { it.isNotEmpty() }.single()
         assertFalse(fixture.cli.confirmIdentity(request.id) { false })
         assertTrue(fixture.cli.confirmIdentity(request.id) { true })
@@ -237,7 +238,7 @@ class EnvironmentRunCliCommandTest {
         val fixture = EnvironmentFixture(backgroundScope)
         fixture.readyCli()
         val handler = fixture.agent()
-        val pending = async { handler.handle(run(authorization = terminal('a'))) }
+        val pending = async { handler.respond(run(authorization = terminal('a'))) }
         val request = fixture.cli.approvals.first { it.isNotEmpty() }.single()
         fixture.mcp.setEnabled(false)
         fixture.cli.respondToApproval(request.id, true)
@@ -254,7 +255,7 @@ class EnvironmentRunCliCommandTest {
         val handler = fixture.agent()
         suspend fun prompts(): Int {
             val before = fixture.approvedCapabilities.value.size
-            assertIs<CliAgentMessages.Response.Kind.Cli>(handler.handle(run(authorization = terminal('a'))))
+            assertIs<CliAgentMessages.Response.Kind.Cli>(handler.respond(run(authorization = terminal('a'))))
             return fixture.approvedCapabilities.value.size - before
         }
         fun rotate(id: String) {
@@ -279,7 +280,7 @@ class EnvironmentRunCliCommandTest {
         val fixture = EnvironmentFixture(backgroundScope)
         fixture.readyCli()
         val handler = fixture.agent()
-        val pending = async { handler.handle(run(authorization = terminal('a'))) }
+        val pending = async { handler.respond(run(authorization = terminal('a'))) }
         val request = fixture.cli.approvals.first { it.isNotEmpty() }.single()
         fixture.ciphers.value = listOf(fixture.secret.withToken("rotated"))
         runCurrent()

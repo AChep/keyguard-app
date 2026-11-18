@@ -4,6 +4,16 @@ import com.artemchep.keyguard.common.service.agent.CallerIdentity
 import com.artemchep.keyguard.common.service.cli.CliJson
 import com.artemchep.keyguard.common.service.environment.EnvironmentRunCliRequest
 import kotlin.test.assertIs
+import kotlin.test.assertNull
+
+/** The response to [request], which opens no stream. */
+internal suspend fun CliAgentRequestHandler.respond(
+    request: CliAgentMessages.Request.Kind,
+): CliAgentMessages.Response.Kind {
+    val answer = handle(request)
+    assertNull(answer.upgrade)
+    return answer.response
+}
 
 /** The error code of a failed answer. */
 internal fun CliAgentMessages.Response.Kind.error(): String =
@@ -48,6 +58,16 @@ internal fun cliRequest(
     caller = caller,
     command = command,
     request = request.encodeToByteArray(),
+)
+
+/** A request of the browser connector to open the stream of its extension, as the agent sends it. */
+internal fun browserOpenRequest() = CliAgentMessages.Request.Kind.BrowserOpen(
+    CliAgentMessages.BrowserOpenRequest(
+        caller = CallerIdentity(pid = 42, processName = "chrome"),
+        origin = "chrome-extension://abcdefghijklmnopabcdefghijklmnop/",
+        verifiedHost = true,
+        hostRevision = 1,
+    ),
 )
 
 /** A `keyguard run` request, as the agent sends it. */

@@ -7,6 +7,16 @@ pub const UNSUPPORTED_COMMAND: &str = "unsupported_command";
 pub const UNVERIFIED_CLI: &str = "unverified_cli";
 /// The app answered with a result of the wrong shape.
 pub const INVALID_RESPONSE: &str = "invalid_response";
+/// The app could not be reached, or closed the request before it answered.
+pub const UNAVAILABLE: &str = "unavailable";
+/// The browser extension integration is turned off in the app.
+pub const INTEGRATION_DISABLED: &str = "integration_disabled";
+/// A browser frame, but the caller is not the bundled browser connector.
+pub const UNVERIFIED_HOST: &str = "unverified_host";
+/// The app already serves as many browser extension streams as it allows.
+pub const TOO_MANY_SESSIONS: &str = "too_many_sessions";
+/// The app does not accept the browser connector's `hostRevision`.
+pub const UPDATE_REQUIRED: &str = "update_required";
 
 pub fn failure(code: &str) -> Value {
     json!({"ok":false,"error":code})

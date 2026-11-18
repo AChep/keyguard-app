@@ -56,6 +56,15 @@ public fun ensureDesktopLibAvailable() {
     DesktopLibJna.get().freePointer(Pointer(0))
 }
 
+/** Best effort on Linux desktops whose sandbox may restrict prctl. */
+public fun disableLinuxProcessDumps() {
+    Native.load(libraryFile.canonicalPath, LinuxProcessLib::class.java).disableLinuxProcessDumps()
+}
+
+private interface LinuxProcessLib : Library {
+    fun disableLinuxProcessDumps()
+}
+
 public interface DesktopLibJna : Library {
     public companion object {
         @Volatile

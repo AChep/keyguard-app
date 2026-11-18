@@ -31,6 +31,7 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.isTraySupported
 import coil3.SingletonImageLoader
+import com.artemchep.jna.disableLinuxProcessDumps
 import com.artemchep.keyguard.feature.p2pwebrtc.WebRtcTransportFactory
 import com.artemchep.keyguard.provider.keyguard.transport.KeyguardTransportFactory
 import com.artemchep.keyguard.common.AppWorker
@@ -177,6 +178,12 @@ import org.koin.dsl.module
 import org.koin.plugin.module.dsl.single
 
 fun main(args: Array<String>) {
+    // Opt-in because XDG portals can reject file dialogs from a non-dumpable JVM.
+    if (java.lang.Boolean.getBoolean("keyguard.linux.disableProcessDumps") &&
+        CurrentPlatform is Platform.Desktop.Linux
+    ) {
+        disableLinuxProcessDumps()
+    }
     if (NATIVE_PACKAGED_SMOKE_ARGUMENT in args) {
         runNativePackagedSmoke()
         return

@@ -22,7 +22,7 @@ protection.
 | Your Bitwarden server or your KeePass storage is breached | Protected by your account's own encryption. See [Account encryption](#account-encryption). |
 | The relay or TURN server of your linked devices is breached | Protected. They forward end-to-end encrypted traffic and see connection metadata. With relay storage, the relay also keeps encrypted items. See [Data the relay sees](/docs/linked-devices/#data-the-relay-sees). |
 | Someone uses the device while the vault is unlocked | Not protected. They can see what you can. |
-| Malware runs as your user while the vault is unlocked | Not protected. It can read Keyguard's memory, the screen and the clipboard. |
+| Malware runs as your user while the vault is unlocked | Not protected. It may be able to read the screen, the clipboard or Keyguard's memory. |
 | An attacker controls the operating system, or the device is rooted | Not protected. They can capture the app password as you enter it. |
 | Someone knows your app password | Not protected. Treat it like the master password of an account. |
 

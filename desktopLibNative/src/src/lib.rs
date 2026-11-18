@@ -27,6 +27,18 @@ use std::ffi::c_int;
 use std::ffi::c_void;
 use std::ptr;
 
+#[cfg(target_os = "linux")]
+#[cfg_attr(not(test), no_mangle)]
+pub extern "C" fn disableLinuxProcessDumps() {
+    ffi::with_ffi_boundary("disableLinuxProcessDumps", (), || {
+        // SAFETY: PR_SET_DUMPABLE takes an integer flag and no pointers.
+        match unsafe { libc::prctl(libc::PR_SET_DUMPABLE, 0_usize, 0_usize, 0_usize, 0_usize) } {
+            0 => Ok(()),
+            _ => Err(std::io::Error::last_os_error().to_string()),
+        }
+    })
+}
+
 #[cfg_attr(not(test), no_mangle)]
 pub extern "C" fn autoTypeCaptureTarget() -> u64 {
     ffi::with_ffi_boundary("autoTypeCaptureTarget", 0, || Ok(autotype::capture()))

@@ -10,7 +10,6 @@ import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.session.VaultSessionLocker
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.PasskeyTarget
-import com.artemchep.keyguard.provider.bitwarden.usecase.util.canEdit
 import com.artemchep.keyguard.util.webauthn.PasskeyBase64
 import com.artemchep.keyguard.util.webauthn.PasskeyCredentialId
 import com.artemchep.keyguard.util.webauthn.WebAuthnAssertionHashRequest
@@ -34,10 +33,7 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CompletableDeferred
-import kotlinx.coroutines.CoroutineStart
 import kotlinx.coroutines.NonCancellable
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -48,7 +44,6 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 data class WindowsPasskeyUiRequest(
@@ -96,31 +91,20 @@ internal class WindowsPasskeyCeremony(
             val session = getVaultSession().filterIsInstance<MasterSession.Key>().first()
             // Observe an unlock during this request. Wall-clock timestamps can move backwards.
             val freshUnlock = initiallyLocked && session.origin == MasterSession.Key.Authenticated
-            coroutineScope {
-                val operationScope = this
-                // Keep the vault alive even when the picker closes for Windows Hello, or
-                // a single match needs no window. Cancellation releases this lease at once.
-                val keepAlive = launch(start = CoroutineStart.UNDISPATCHED) {
-                    vaultSessionLocker.keepAlive()
-                }
-                val retired = launch {
-                    session.session.active.first { !it }
-                    // Invalidate native verification immediately, even when Hello is still open.
-                    attempt { bridge.complete(request.id, null) }
-                    operationScope.cancel("Vault session retired")
-                }
-                try {
-                    val vault = vaultAccess.get(session)
-                    val serving = Serving(request, expiresAt, session, vault, freshUnlock)
-                    val result = if (request.create) serving.create() else serving.get()
-                    requireSession(session)
-                    operation.complete {
-                        bridge.complete(request.id, result.response)
-                        result.usage?.let { usage -> attempt { vault.recordUsage(usage).bind() } }
-                    }
-                } finally {
-                    keepAlive.cancel()
-                    retired.cancel()
+            // Keep the vault alive even when the picker closes for Windows Hello, or
+            // a single match needs no window.
+            vaultSessionLocker.withSessionLease(
+                session = session,
+                // Invalidate native verification immediately, even when Hello is still open.
+                onRetired = { attempt { bridge.complete(request.id, null) } },
+            ) {
+                val vault = vaultAccess.get(session)
+                val serving = Serving(request, expiresAt, session, vault, freshUnlock)
+                val result = if (request.create) serving.create() else serving.get()
+                requireSession(session)
+                operation.complete {
+                    bridge.complete(request.id, result.response)
+                    result.usage?.let { usage -> attempt { vault.recordUsage(usage).bind() } }
                 }
             }
         } catch (e: Exception) {
@@ -157,11 +141,7 @@ internal class WindowsPasskeyCeremony(
         verify(username)
         val ciphers = vault.getCiphers().first()
         val cipher = selection.find(ciphers)
-        require(cipher.type == DSecret.Type.Login && cipher.service.canEdit())
-        require(vault.getCanWrite().first())
-        require(vault.getCollections().first().none {
-            it.accountId == cipher.accountId && it.id in cipher.collectionIds && it.readOnly
-        })
+        require(cipher.canStorePasskey(vault.getCanWrite().first(), vault.getCollections().first()))
         requireSession(session)
         val result = authenticator.createCredential(
             request = WebAuthnRegistrationRequest(

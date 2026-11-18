@@ -1,7 +1,9 @@
 package com.artemchep.keyguard.common.service.passkey
 
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasskeyData
+import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DSecret
+import com.artemchep.keyguard.provider.bitwarden.usecase.util.canEdit
 import com.artemchep.keyguard.util.webauthn.WebAuthnCredential
 
 internal val KEYGUARD_PASSKEY_AAGUID = byteArrayOf(
@@ -71,3 +73,16 @@ internal fun List<DSecret>.storedPasskeyCredentials(): List<DSecret.Login.Fido2C
         .filter { !it.deleted }
         .flatMap { it.login?.fido2Credentials.orEmpty() }
         .toList()
+
+/**
+ * Whether a new passkey may be stored in this item: an editable login, in a vault the user
+ * [can write][canWrite] to, and in none of the read-only [collections]. It does not check
+ * whether the item is trashed or archived: callers exclude those first.
+ */
+internal fun DSecret.canStorePasskey(
+    canWrite: Boolean,
+    collections: List<DCollection>,
+): Boolean = type == DSecret.Type.Login &&
+    service.canEdit() &&
+    canWrite &&
+    collections.none { it.accountId == accountId && it.id in collectionIds && it.readOnly }

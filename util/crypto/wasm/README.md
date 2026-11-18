@@ -25,6 +25,9 @@ the runtime package to `util/crypto/build/wasm/npm/`.
 
 # Build and lint the Rust/Wasm backend independently.
 ./gradlew :util:crypto:buildNativeCryptoWasm :util:crypto:clippyNativeCryptoWasm
+
+# The browser extension's Noise-only package, in build/wasm/npm-noise/.
+./gradlew :util:crypto:buildNativeCryptoWasmNoise :util:crypto:clippyNativeCryptoWasmNoise
 ```
 
 Browser tests use installed headless Chrome. Select an existing activated SDK with

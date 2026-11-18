@@ -3,10 +3,19 @@ import createKeyguardCrypto from './keyguard_crypto.mjs';
 let runtime;
 let loading;
 
-/** Load once per JS realm before calling the synchronous Kotlin crypto API. */
-export async function initialize() {
+/**
+ * Load once per JS realm before calling the synchronous Kotlin crypto API.
+ *
+ * A host that can't serve the Wasm next to this module, such as a browser
+ * extension, passes `locateFile(path, prefix)` to map `keyguard_crypto.wasm` to a
+ * URL, or the bytes as `wasmBinary`. Only the first call's options apply.
+ */
+export async function initialize({ locateFile, wasmBinary } = {}) {
     if (!loading) {
-        loading = createKeyguardCrypto().then(module => {
+        const options = {};
+        if (locateFile) options.locateFile = locateFile;
+        if (wasmBinary) options.wasmBinary = wasmBinary;
+        loading = createKeyguardCrypto(options).then(module => {
             runtime = module;
         }).catch(error => {
             loading = undefined;

@@ -195,6 +195,13 @@ class NativeChangeClassificationTest(unittest.TestCase):
         for path in ("thirdParty/rust/Cargo.toml", "thirdParty/rust/Cargo.lock"):
             self.assertTrue(classify([path])["native_quality"])
 
+    def test_browser_noise_vectors_select_only_the_crypto_checks(self):
+        result = classify(["browserExtension/protocol/vectors/noise_xx.json"])
+        self.assertTrue(result["crypto"])
+        self.assertFalse(result["desktop"])
+        self.assertFalse(result["android"])
+        self.assertFalse(result["apple"])
+
     def test_fuzz_only_edit_does_not_rebuild_apps(self):
         result = classify(["util/crypto/rust/fuzz/fuzz_targets/dispatch.rs"])
         self.assertTrue(result["fuzz"])

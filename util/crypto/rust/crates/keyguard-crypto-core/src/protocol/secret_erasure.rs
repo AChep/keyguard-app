@@ -11,12 +11,12 @@ thread_local! {
     static ZEROIZED_SECRET_OUTPUT_DROPS: Cell<usize> = const { Cell::new(0) };
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "full"))]
 pub(crate) fn reset_zeroized_secret_request_drops() {
     ZEROIZED_SECRET_REQUEST_DROPS.with(|drops| drops.set(0));
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "full"))]
 pub(crate) fn zeroized_secret_request_drops() -> usize {
     ZEROIZED_SECRET_REQUEST_DROPS.with(Cell::get)
 }
@@ -26,12 +26,12 @@ fn record_zeroized_secret_request_drop() {
     ZEROIZED_SECRET_REQUEST_DROPS.with(|drops| drops.set(drops.get() + 1));
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "full"))]
 pub(crate) fn reset_zeroized_secret_output_drops() {
     ZEROIZED_SECRET_OUTPUT_DROPS.with(|drops| drops.set(0));
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "full"))]
 pub(crate) fn zeroized_secret_output_drops() -> usize {
     ZEROIZED_SECRET_OUTPUT_DROPS.with(Cell::get)
 }

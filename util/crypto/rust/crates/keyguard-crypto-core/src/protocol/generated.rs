@@ -628,8 +628,8 @@ pub struct NoiseKeyPairResult {
     pub public_key: ::prost::alloc::vec::Vec<u8>,
 }
 /// XX_PSK3 takes a 32-byte psk and no remote_public_key. KK_HFS takes the pinned
-/// 32-byte remote_public_key and no psk. Both sides pass the same prologue, at
-/// most 65535 bytes.
+/// 32-byte remote_public_key and no psk. XX takes neither. Both sides pass the
+/// same prologue, at most 65535 bytes.
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct NoiseHandshakeStreamOpenRequest {
     #[prost(enumeration = "NoisePattern", tag = "1")]
@@ -2248,9 +2248,10 @@ impl SshKeyType {
         }
     }
 }
-/// Noise handshakes and transports of device-to-device sync. Both patterns use
-/// Curve25519, ChaCha20-Poly1305 and SHA-256; KK_HFS adds ML-KEM-1024, which
-/// snow names Kyber1024. A handshake is a stream session:
+/// Noise handshakes and transports of device-to-device sync and of the browser
+/// extension. Every pattern uses Curve25519, ChaCha20-Poly1305 and SHA-256;
+/// KK_HFS adds ML-KEM-1024, which snow names Kyber1024. A handshake is a stream
+/// session:
 /// stream_open starts it, the requests below that take its handle drive it,
 /// and stream_close releases it and wipes its keys.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, PartialOrd, Ord, ::prost::Enumeration)]
@@ -2265,6 +2266,9 @@ pub enum NoisePattern {
     /// ML-KEM-1024 exchange joins the Diffie-Hellman ones, so a recorded session
     /// stays sealed against a quantum computer.
     KkHfs = 2,
+    /// Noise_XX_25519_ChaChaPoly_SHA256: the browser extension. Each side learns
+    /// the other's static key; the caller checks it against the one it pinned.
+    Xx = 3,
 }
 impl NoisePattern {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -2276,6 +2280,7 @@ impl NoisePattern {
             Self::Unspecified => "NOISE_PATTERN_UNSPECIFIED",
             Self::XxPsk3 => "NOISE_PATTERN_XX_PSK3",
             Self::KkHfs => "NOISE_PATTERN_KK_HFS",
+            Self::Xx => "NOISE_PATTERN_XX",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -2284,6 +2289,7 @@ impl NoisePattern {
             "NOISE_PATTERN_UNSPECIFIED" => Some(Self::Unspecified),
             "NOISE_PATTERN_XX_PSK3" => Some(Self::XxPsk3),
             "NOISE_PATTERN_KK_HFS" => Some(Self::KkHfs),
+            "NOISE_PATTERN_XX" => Some(Self::Xx),
             _ => None,
         }
     }

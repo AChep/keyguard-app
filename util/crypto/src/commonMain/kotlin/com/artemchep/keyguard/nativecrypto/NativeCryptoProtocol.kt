@@ -1056,6 +1056,9 @@ internal enum class NoisePatternProto {
 
     @ProtoNumber(2)
     KK_HFS,
+
+    @ProtoNumber(3)
+    XX,
 }
 
 /** An empty private key asks for a generated key pair. */

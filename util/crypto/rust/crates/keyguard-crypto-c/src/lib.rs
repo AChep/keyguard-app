@@ -846,6 +846,7 @@ mod tests {
         assert_eq!(keyguard_crypto_capabilities(), core::CAPABILITIES);
     }
 
+    #[cfg(feature = "full")]
     #[test]
     fn random_int_c_abi_preserves_bounds_and_clears_failures() {
         let mut output = i32::MIN;
@@ -865,6 +866,7 @@ mod tests {
         assert_eq!(status, NativeErrorCode::InvalidArgument as i32);
     }
 
+    #[cfg(feature = "full")]
     #[test]
     fn fast_c_abi_round_trips_and_reports_authenticated_failures() {
         let encryption_key: Vec<u8> = (0_u8..32).collect();
@@ -950,6 +952,7 @@ mod tests {
         assert!(decrypted.iter().all(|byte| *byte == 0));
     }
 
+    #[cfg(feature = "full")]
     #[test]
     fn fast_c_abi_accepts_null_pointers_for_zero_length_slices() {
         let encryption_key = [0x11_u8; 32];
@@ -978,6 +981,76 @@ mod tests {
         };
         assert_eq!(status, NativeErrorCode::AuthenticationFailed as i32);
         assert_eq!(plaintext_len, 0);
+    }
+
+    /// Without `full`, as in the browser extension's Wasm, the data-plane
+    /// exports keep their ABI: they answer UNSUPPORTED_OPERATION and clear
+    /// their outputs.
+    #[cfg(not(feature = "full"))]
+    #[test]
+    fn data_plane_c_abi_answers_unsupported_without_full() {
+        let mut output = i32::MIN;
+        // SAFETY: `output` is writable for the complete call.
+        let status = unsafe { keyguard_crypto_random_int(1, &mut output) };
+        assert_eq!(status, NativeErrorCode::UnsupportedOperation as i32);
+        assert_eq!(output, 0);
+
+        let encryption_key: Vec<u8> = (0_u8..32).collect();
+        let mac_key: Vec<u8> = (32_u8..64).collect();
+        let iv: Vec<u8> = (64_u8..80).collect();
+        let plaintext = b"fast C ABI Bitwarden frame";
+        let mut ciphertext = vec![0xaa; 32];
+        let mut mac = vec![0xaa; HMAC_SHA256_BYTES];
+        let mut ciphertext_len = usize::MAX;
+        // SAFETY: All input and output allocations are disjoint and valid for
+        // the declared lengths for the complete call.
+        let status = unsafe {
+            keyguard_crypto_aes_cbc_pkcs7_hmac_sha256_encrypt(
+                encryption_key.as_ptr(),
+                encryption_key.len(),
+                mac_key.as_ptr(),
+                mac_key.len(),
+                iv.as_ptr(),
+                iv.len(),
+                plaintext.as_ptr(),
+                plaintext.len(),
+                ciphertext.as_mut_ptr(),
+                ciphertext.len(),
+                mac.as_mut_ptr(),
+                mac.len(),
+                &mut ciphertext_len,
+            )
+        };
+        assert_eq!(status, NativeErrorCode::UnsupportedOperation as i32);
+        assert_eq!(ciphertext_len, 0);
+        assert!(ciphertext.iter().chain(&mac).all(|byte| *byte == 0));
+
+        let ciphertext = [0x55_u8; 32];
+        let mac = [0x55_u8; HMAC_SHA256_BYTES];
+        let mut decrypted = vec![0xaa; ciphertext.len()];
+        let mut plaintext_len = usize::MAX;
+        // SAFETY: All input and output allocations are disjoint and valid for
+        // the declared lengths for the complete call.
+        let status = unsafe {
+            keyguard_crypto_aes_cbc_pkcs7_hmac_sha256_decrypt(
+                encryption_key.as_ptr(),
+                encryption_key.len(),
+                mac_key.as_ptr(),
+                mac_key.len(),
+                iv.as_ptr(),
+                iv.len(),
+                ciphertext.as_ptr(),
+                ciphertext.len(),
+                mac.as_ptr(),
+                mac.len(),
+                decrypted.as_mut_ptr(),
+                decrypted.len(),
+                &mut plaintext_len,
+            )
+        };
+        assert_eq!(status, NativeErrorCode::UnsupportedOperation as i32);
+        assert_eq!(plaintext_len, 0);
+        assert!(decrypted.iter().all(|byte| *byte == 0));
     }
 
     #[test]

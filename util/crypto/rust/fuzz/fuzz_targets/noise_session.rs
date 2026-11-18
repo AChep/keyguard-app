@@ -6,10 +6,11 @@
 //! message. Handshakes finish, so transports carry real traffic.
 //!
 //! A bug is a forged, replayed or reordered transport message that decrypts,
-//! two finished sides that disagree, a session of one kind that answers a
-//! request of the other, or a handshake that no longer opens. Every handle is
-//! closed, so the process-wide registry and the Noise session cap cannot fill
-//! across iterations.
+//! a session that goes on after an authentication failure, two finished sides
+//! that disagree, a session of one kind that answers a request of the other,
+//! or a handshake that no longer opens. Every handle is closed, so the
+//! process-wide registry and the Noise session cap cannot fill across
+//! iterations.
 
 use std::{collections::VecDeque, sync::OnceLock};
 
@@ -30,6 +31,8 @@ const INITIATOR_KEY: [u8; 32] = [0x11; 32];
 const RESPONDER_KEY: [u8; 32] = [0x22; 32];
 const PSK: [u8; 32] = [0x42; 32];
 const PROLOGUE: &[u8] = b"keyguard-noise-fuzz";
+/// The prologue of a responder that is set up wrong, for the XX pattern.
+const WRONG_PROLOGUE: &[u8] = b"keyguard-noise-fuzz-wrong";
 /// Bounds the work of one input.
 const MAX_STEPS: usize = 256;
 /// One past the largest Noise message: rejected, and the session goes on.
@@ -38,22 +41,33 @@ const OVERSIZED: usize = 65_536;
 /// The public keys of [`INITIATOR_KEY`] and [`RESPONDER_KEY`].
 static PUBLIC_KEYS: OnceLock<(Vec<u8>, Vec<u8>)> = OnceLock::new();
 
-/// The result of a successful response.
-fn result_of(response: &[u8]) -> Option<native_response::Result> {
+/// The result of a response, or its error code.
+fn outcome_of(response: &[u8]) -> Result<Option<native_response::Result>, NativeErrorCode> {
     let response = NativeResponse::decode(response).expect("the core answers a response");
     let status = response.status.expect("a response has a status");
-    if status.code != NativeErrorCode::Ok as i32 {
-        return None;
+    match NativeErrorCode::try_from(status.code).expect("a known error code") {
+        NativeErrorCode::Ok => Ok(response.result),
+        code => Err(code),
     }
-    response.result
 }
 
-fn invoke(operation: native_request::Operation) -> Option<native_response::Result> {
+/// The result of a successful response.
+fn result_of(response: &[u8]) -> Option<native_response::Result> {
+    outcome_of(response).ok().flatten()
+}
+
+fn try_invoke(
+    operation: native_request::Operation,
+) -> Result<Option<native_response::Result>, NativeErrorCode> {
     let request = NativeRequest {
         protocol_version: PROTOCOL_VERSION,
         operation: Some(operation),
     };
-    result_of(&keyguard_crypto_core::call(&request.encode_to_vec()))
+    outcome_of(&keyguard_crypto_core::call(&request.encode_to_vec()))
+}
+
+fn invoke(operation: native_request::Operation) -> Option<native_response::Result> {
+    try_invoke(operation).ok().flatten()
 }
 
 fn bytes_of(result: Option<native_response::Result>) -> Option<Vec<u8>> {
@@ -84,7 +98,14 @@ fn public_key(private_key: &[u8]) -> Vec<u8> {
         .clone()
 }
 
-fn open(pattern: NoisePattern, initiator: bool, local: &[u8], remote: &[u8], psk: &[u8]) -> u64 {
+fn open(
+    pattern: NoisePattern,
+    initiator: bool,
+    local: &[u8],
+    remote: &[u8],
+    psk: &[u8],
+    prologue: &[u8],
+) -> u64 {
     let request = NativeStreamOpenRequest {
         protocol_version: PROTOCOL_VERSION,
         operation: Some(native_stream_open_request::Operation::NoiseHandshake(
@@ -94,7 +115,7 @@ fn open(pattern: NoisePattern, initiator: bool, local: &[u8], remote: &[u8], psk
                 local_private_key: local.to_vec(),
                 remote_public_key: remote.to_vec(),
                 psk: psk.to_vec(),
-                prologue: PROLOGUE.to_vec(),
+                prologue: prologue.to_vec(),
             },
         )),
     };
@@ -150,6 +171,8 @@ struct Side {
     /// The handshake hash and remote static key, once the handshake turned
     /// into a transport.
     finished: Option<(Vec<u8>, Vec<u8>)>,
+    /// Whether a step failed authentication, which ends the session.
+    ended: bool,
     /// Messages on their way to this side.
     inbox: VecDeque<Envelope>,
     /// Original outgoing transport messages, separate from the network.
@@ -163,6 +186,7 @@ impl Side {
             written: 0,
             read: 0,
             finished: None,
+            ended: false,
             inbox: VecDeque::new(),
             sealed: Vec::new(),
         }
@@ -172,20 +196,41 @@ impl Side {
         self.finished.is_some()
     }
 
+    /// Runs a read or write of this side's session. An authentication
+    /// failure ends the session, so every later step finds it gone.
+    fn step(
+        &mut self,
+        operation: native_request::Operation,
+    ) -> Result<Option<native_response::Result>, NativeErrorCode> {
+        let outcome = try_invoke(operation);
+        if self.ended {
+            assert!(
+                matches!(outcome, Err(NativeErrorCode::InvalidSession)),
+                "a session went on after an authentication failure",
+            );
+        }
+        if matches!(outcome, Err(NativeErrorCode::AuthenticationFailed)) {
+            self.ended = true;
+        }
+        outcome
+    }
+
     fn write(&mut self, payload: Vec<u8>) -> Option<Envelope> {
         let handle = self.handle;
         if !self.is_transport() {
-            let message = bytes_of(invoke(native_request::Operation::NoiseHandshakeWrite(
+            let written = self.step(native_request::Operation::NoiseHandshakeWrite(
                 NoiseHandshakeWriteRequest { handle, payload },
-            )))?;
+            ));
+            let message = bytes_of(written.ok()?)?;
             return Some(Envelope { message });
         }
-        let message = bytes_of(invoke(native_request::Operation::NoiseTransportWrite(
+        let written = self.step(native_request::Operation::NoiseTransportWrite(
             NoiseTransportWriteRequest {
                 handle,
                 payload: payload.clone(),
             },
-        )))?;
+        ));
+        let message = bytes_of(written.ok()?)?;
         self.sealed.push(SealedMessage {
             message: message.clone(),
             sequence: self.written,
@@ -201,7 +246,7 @@ impl Side {
         };
         let handle = self.handle;
         if !self.is_transport() {
-            let _ = invoke(native_request::Operation::NoiseHandshakeRead(
+            let _ = self.step(native_request::Operation::NoiseHandshakeRead(
                 NoiseHandshakeReadRequest {
                     handle,
                     message: envelope.message,
@@ -214,13 +259,13 @@ impl Side {
             .iter()
             .find(|sealed| sealed.sequence == self.read && sealed.message == envelope.message)
             .map(|sealed| sealed.payload.as_slice());
-        let opened = bytes_of(invoke(native_request::Operation::NoiseTransportRead(
+        let opened = self.step(native_request::Operation::NoiseTransportRead(
             NoiseTransportReadRequest {
                 handle,
                 message: envelope.message,
             },
-        )));
-        if let Some(payload) = opened {
+        ));
+        if let Ok(Some(payload)) = opened.map(bytes_of) {
             // Only the next authentic ciphertext decrypts, even if the network
             // restored or injected a copy of it.
             assert_eq!(
@@ -305,33 +350,65 @@ fuzz_target!(|data: &[u8]| {
     let (initiator_public, responder_public) =
         PUBLIC_KEYS.get_or_init(|| (public_key(&INITIATOR_KEY), public_key(&RESPONDER_KEY)));
 
-    // Bit 0 picks the pattern; bit 1 gives the responder a wrong pre-shared
-    // key or pins a wrong initiator key.
+    // Bits 0 and 1 pick the pattern; bit 2 gives the responder a wrong
+    // pre-shared key, pins a wrong initiator key, or binds another prologue.
     let setup = input.byte();
-    let wrong = setup & 2 != 0;
-    let (initiator, responder) = if setup & 1 == 0 {
-        let pinned = if wrong {
-            responder_public
-        } else {
-            initiator_public
-        };
-        (
-            open(
-                NoisePattern::KkHfs,
-                true,
-                &INITIATOR_KEY,
-                responder_public,
-                &[],
-            ),
-            open(NoisePattern::KkHfs, false, &RESPONDER_KEY, pinned, &[]),
-        )
-    } else {
-        let mut psk = PSK;
-        psk[0] ^= u8::from(wrong);
-        (
-            open(NoisePattern::XxPsk3, true, &INITIATOR_KEY, &[], &PSK),
-            open(NoisePattern::XxPsk3, false, &RESPONDER_KEY, &[], &psk),
-        )
+    let wrong = setup & 4 != 0;
+    let (initiator, responder) = match setup & 3 {
+        0 => {
+            let pinned = if wrong {
+                responder_public
+            } else {
+                initiator_public
+            };
+            (
+                open(
+                    NoisePattern::KkHfs,
+                    true,
+                    &INITIATOR_KEY,
+                    responder_public,
+                    &[],
+                    PROLOGUE,
+                ),
+                open(
+                    NoisePattern::KkHfs,
+                    false,
+                    &RESPONDER_KEY,
+                    pinned,
+                    &[],
+                    PROLOGUE,
+                ),
+            )
+        }
+        1 => {
+            let mut psk = PSK;
+            psk[0] ^= u8::from(wrong);
+            (
+                open(
+                    NoisePattern::XxPsk3,
+                    true,
+                    &INITIATOR_KEY,
+                    &[],
+                    &PSK,
+                    PROLOGUE,
+                ),
+                open(
+                    NoisePattern::XxPsk3,
+                    false,
+                    &RESPONDER_KEY,
+                    &[],
+                    &psk,
+                    PROLOGUE,
+                ),
+            )
+        }
+        _ => {
+            let prologue = if wrong { WRONG_PROLOGUE } else { PROLOGUE };
+            (
+                open(NoisePattern::Xx, true, &INITIATOR_KEY, &[], &[], PROLOGUE),
+                open(NoisePattern::Xx, false, &RESPONDER_KEY, &[], &[], prologue),
+            )
+        }
     };
     let mut sides = [Side::new(initiator), Side::new(responder)];
 

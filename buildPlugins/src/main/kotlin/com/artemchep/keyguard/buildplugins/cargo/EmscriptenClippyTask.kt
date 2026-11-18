@@ -19,13 +19,19 @@ abstract class EmscriptenClippyTask : DefaultTask() {
     // Cargo owns this shared cache; Clippy does not produce the link archive.
     @get:Internal abstract val targetDirectory: DirectoryProperty
     @get:Input abstract val packages: ListProperty<String>
+    // Feature flags of the build it checks, such as `--no-default-features`.
+    @get:Input abstract val cargoArguments: ListProperty<String>
     @get:Input abstract val offline: Property<Boolean>
     @get:Input abstract val environmentVariables: MapProperty<String, String>
+
+    init {
+        cargoArguments.convention(emptyList())
+    }
 
     @TaskAction
     fun check() {
         val arguments = listOf("cargo", "clippy", "--release", "--locked", "--target", EMSCRIPTEN_TARGET, "--jobs", "4") +
-            packages.get().flatMap { listOf("--package", it) } +
+            packages.get().flatMap { listOf("--package", it) } + cargoArguments.get() +
             (if (offline.get()) listOf("--offline") else emptyList()) + listOf("--no-deps", "--", "-D", "warnings")
         execOperations.exec {
             workingDir(sourceDirectory.get().asFile)

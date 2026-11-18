@@ -20,7 +20,7 @@ import kotlinx.coroutines.withTimeoutOrNull
 /**
  * An encrypted [ByteStream] over another one: each message is one Noise transport message.
  * Open it with [handshake]. [remoteStatic] and [handshakeHash] identify the peer and the
- * session; the enrollment derives its short authentication string from them.
+ * session; pairings derive their short authentication strings from them.
  *
  * Reads and writes may run at the same time; writes keep their order, as the Noise nonces
  * need. A message that fails to decrypt ends the session: reads then return `null`. A
@@ -48,8 +48,8 @@ class NoiseByteStream private constructor(
         /** 2^62 messages. */
         const val MAX_SEND_NONCE: Long = 1L shl 62
 
-        /** Both sides of every Keyguard handshake bind it, followed by the id of the suite. */
-        private val PROLOGUE: ByteArray = "keyguard/p2p/noise/v1".encodeToByteArray()
+        /** Both sides of every P2P handshake bind it, followed by the id of the suite. */
+        private val P2P_PROLOGUE: ByteArray = "keyguard/p2p/noise/v1".encodeToByteArray()
 
         /**
          * Runs a [suite] handshake over [stream] and returns the encrypted stream. The
@@ -59,9 +59,14 @@ class NoiseByteStream private constructor(
          *
          * @param remotePublicKey the peer's static key, required for [NoiseSuite.KK_HFS].
          * @param psk the pre-shared key, required for [NoiseSuite.XX_PSK3].
+         *   [NoiseSuite.XX] takes neither key: it checks the peer with [pinnedRemoteStatic].
          * @param pinnedRemoteStatic the static key the peer must have, such as the one of a
-         *   pairing code: checked as soon as the peer sends its key, before this side sends
-         *   its own, so a peer with another key never learns it.
+         *   pairing code: checked as soon as the peer sends its key. An initiator checks it
+         *   before it sends its own, so a responder with another key never learns it.
+         * @param prologue what both sides bind into the handshake. P2P sync leaves it out
+         *   for the P2P prologue followed by the id of the [suite]. [NoiseSuite.XX] requires
+         *   the prologue of its protocol, so a forgotten one fails rather than binds the
+         *   P2P one.
          * @param maxSendNonce how many messages the stream writes before it ends.
          * @throws TransportException when the stream ends or the time runs out, or a message
          * carries a payload; [NoiseSuiteException] when the initiator names another suite;
@@ -77,6 +82,7 @@ class NoiseByteStream private constructor(
             remotePublicKey: ByteArray? = null,
             psk: ByteArray? = null,
             pinnedRemoteStatic: ByteArray? = null,
+            prologue: ByteArray? = null,
             timeoutMs: Long = NOISE_HANDSHAKE_TIMEOUT_MS,
             maxSendNonce: Long = MAX_SEND_NONCE,
         ): NoiseByteStream {
@@ -86,10 +92,11 @@ class NoiseByteStream private constructor(
             var result: NoiseByteStream? = null
             var returned = false
             try {
+                val boundPrologue = prologue ?: p2pPrologue(suite)
                 withTimeoutOrNull(timeoutMs) {
                     agreeOnSuite(stream, suite, initiator)
                     withContext(Dispatchers.IO) {
-                        handshake = open(suite, initiator, localPrivateKey, remotePublicKey, psk)
+                        handshake = open(suite, initiator, localPrivateKey, remotePublicKey, psk, boundPrologue)
                     }
                     val opened = checkNotNull(handshake)
                     exchange(stream, opened, initiator, pinnedRemoteStatic)
@@ -114,10 +121,16 @@ class NoiseByteStream private constructor(
             }
         }
 
+        /** The prologue of a P2P [suite]; [NoiseSuite.XX] binds the one of its protocol. */
+        private fun p2pPrologue(suite: NoiseSuite): ByteArray {
+            require(suite != NoiseSuite.XX) { "XX binds the prologue of its protocol" }
+            return P2P_PROLOGUE + suite.id
+        }
+
         /**
          * The initiator names the [suite]; the responder reads the name and takes only that
-         * suite. A changed name gets past this, but not past the handshake: the prologue
-         * binds it.
+         * suite. A changed name gets past this, but not past a handshake whose prologue
+         * binds it, as the P2P one does.
          */
         private suspend fun agreeOnSuite(stream: ByteStream, suite: NoiseSuite, initiator: Boolean) {
             if (initiator) {
@@ -128,26 +141,35 @@ class NoiseByteStream private constructor(
             if (named.size != 1 || named[0] != suite.id) throw NoiseSuiteException()
         }
 
+        @Suppress("LongParameterList") // One argument per handshake input.
         private fun open(
             suite: NoiseSuite,
             initiator: Boolean,
             localPrivateKey: ByteArray,
             remotePublicKey: ByteArray?,
             psk: ByteArray?,
-        ): NativeNoiseHandshake {
-            val prologue = PROLOGUE + suite.id
-            return when (suite.pattern) {
-                NativeNoisePattern.XX_PSK3 -> NativeCrypto.noise.xxPsk3(
-                    initiator = initiator,
-                    localPrivateKey = localPrivateKey,
-                    psk = requireNotNull(psk) { "XXpsk3 needs a pre-shared key" },
-                    prologue = prologue,
-                )
+            prologue: ByteArray,
+        ): NativeNoiseHandshake = when (suite.pattern) {
+            NativeNoisePattern.XX_PSK3 -> NativeCrypto.noise.xxPsk3(
+                initiator = initiator,
+                localPrivateKey = localPrivateKey,
+                psk = requireNotNull(psk) { "XXpsk3 needs a pre-shared key" },
+                prologue = prologue,
+            )
 
-                NativeNoisePattern.KK_HFS -> NativeCrypto.noise.kkHfs(
+            NativeNoisePattern.KK_HFS -> NativeCrypto.noise.kkHfs(
+                initiator = initiator,
+                localPrivateKey = localPrivateKey,
+                remotePublicKey = requireNotNull(remotePublicKey) { "KKhfs needs the peer's static key" },
+                prologue = prologue,
+            )
+
+            NativeNoisePattern.XX -> {
+                // A key passed here would be ignored, not pinned.
+                require(remotePublicKey == null && psk == null) { "XX pins the peer's key with pinnedRemoteStatic" }
+                NativeCrypto.noise.xx(
                     initiator = initiator,
                     localPrivateKey = localPrivateKey,
-                    remotePublicKey = requireNotNull(remotePublicKey) { "KKhfs needs the peer's static key" },
                     prologue = prologue,
                 )
             }
@@ -254,19 +276,26 @@ class NoisePinException : Exception("The peer's static key is not the pinned one
 
 /**
  * The Noise suites of Keyguard, each named on the wire by its one-byte [id]: every Keyguard
- * Noise stream starts with the id, and the prologue binds it, see [NoiseByteStream.handshake].
- * A new suite, such as one with another KEM or larger keys, takes a new id; an initiator
- * picks one that the peer lists, and the responder never takes a suite it was not asked for.
+ * Noise stream starts with the id, and the P2P prologue binds it, see
+ * [NoiseByteStream.handshake]. A new suite, such as one with another KEM or larger keys,
+ * takes a new id; an initiator picks one that the peer lists, and the responder never takes
+ * a suite it was not asked for.
  */
 enum class NoiseSuite(
     val id: Byte,
     val pattern: NativeNoisePattern,
 ) {
-    /** Pairing: `Noise_XXpsk3_25519_ChaChaPoly_SHA256`. */
+    /** P2P pairing: `Noise_XXpsk3_25519_ChaChaPoly_SHA256`. */
     XX_PSK3(id = 1, pattern = NativeNoisePattern.XX_PSK3),
 
-    /** Sessions: `Noise_KKhfs_25519+Kyber1024_ChaChaPoly_SHA256`, with ML-KEM-1024. */
+    /** P2P sessions: `Noise_KKhfs_25519+Kyber1024_ChaChaPoly_SHA256`, with ML-KEM-1024. */
     KK_HFS(id = 2, pattern = NativeNoisePattern.KK_HFS),
+
+    /**
+     * The browser extension's pairings and sessions: `Noise_XX_25519_ChaChaPoly_SHA256`,
+     * with the prologue of `browserExtension/protocol/README.md`.
+     */
+    XX(id = 3, pattern = NativeNoisePattern.XX),
 }
 
 /** The initiator of a handshake named another suite than the one the responder takes. */

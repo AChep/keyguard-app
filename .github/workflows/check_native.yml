@@ -125,6 +125,13 @@ jobs:
       - name: "Run Clippy"
         working-directory: util/crypto/rust
         run: cargo clippy --workspace --all-targets --all-features --locked --no-deps -- -D warnings
+      # The browser extension's Wasm builds without the `full` feature. Tests
+      # that need `full` are gated on it; the benches are left out.
+      - name: "Run Clippy and tests on the Noise-only build"
+        working-directory: util/crypto/rust
+        run: |
+          cargo clippy -p keyguard-crypto-core -p keyguard-crypto-c --no-default-features --lib --tests --locked --no-deps -- -D warnings
+          cargo test -p keyguard-crypto-core -p keyguard-crypto-c --no-default-features --locked
       - name: "Run Rust tests"
         working-directory: util/crypto/rust
         run: cargo test --workspace --all-features --locked

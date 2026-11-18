@@ -1271,6 +1271,8 @@ dependencies = [
  "rc2",
  "salsa20",
  "sec1",
+ "serde",
+ "serde_json",
  "snow",
  "ssh-key",
  "syn 2.0.119",

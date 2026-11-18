@@ -1,13 +1,21 @@
 //! One-shot primitive implementations.
 
+#[cfg(feature = "full")]
 use aes::{Aes128, Aes192, Aes256};
+#[cfg(feature = "full")]
 use argon2::{Algorithm, Version};
+#[cfg(feature = "full")]
 use chacha20::ChaCha20;
+#[cfg(feature = "full")]
 use salsa20::Salsa20;
+#[cfg(feature = "full")]
 use std::num::NonZeroU32;
 
+use aws_lc_rs::aead::{
+    Aad, Algorithm as AeadAlgorithm, CHACHA20_POLY1305, LessSafeKey, Nonce, UnboundKey,
+};
+#[cfg(feature = "full")]
 use aws_lc_rs::{
-    aead::{Aad, Algorithm as AeadAlgorithm, CHACHA20_POLY1305, LessSafeKey, Nonce, UnboundKey},
     constant_time,
     encoding::{AsDer, PublicKeyX509Der},
     rsa::{
@@ -15,47 +23,70 @@ use aws_lc_rs::{
         OaepPublicEncryptingKey, PrivateDecryptingKey, PublicEncryptingKey,
     },
 };
+#[cfg(feature = "full")]
 use aws_lc_rs::{pbkdf2 as aws_pbkdf2, rand};
+#[cfg(feature = "full")]
 use cbc::{Decryptor, Encryptor};
+#[cfg(feature = "full")]
 use cipher::{
     Block, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyInit, KeyIvInit, StreamCipher,
     StreamCipherSeek,
     block_padding::{NoPadding, Pkcs7},
     consts::U16,
 };
-use keyguard_crypto_sensitive::{
-    DigestAlgorithm, DigestContext, HmacContext, SensitiveBackendError,
-};
+#[cfg(feature = "full")]
+use keyguard_crypto_sensitive::DigestContext;
+use keyguard_crypto_sensitive::{DigestAlgorithm, HmacContext, SensitiveBackendError};
+#[cfg(feature = "full")]
 use pkcs8::{ObjectIdentifier, PrivateKeyInfo, SubjectPublicKeyInfoRef, der::Decode};
 use thiserror::Error;
-use zeroize::{Zeroize, Zeroizing};
+#[cfg(feature = "full")]
+use zeroize::Zeroize;
+use zeroize::Zeroizing;
 
+#[cfg(feature = "full")]
 use crate::padding::pkcs7_unpadded_block_length;
+#[cfg(feature = "full")]
 use crate::protocol::{
     Argon2Mode, CipherDirection, HashAlgorithm, RsaOaepHash, StreamCipherAlgorithm,
 };
 
+#[cfg(feature = "full")]
 pub(crate) const AES_BLOCK_BYTES: usize = 16;
 pub(crate) const HMAC_SHA256_BYTES: usize = 32;
+#[cfg(feature = "full")]
 pub(crate) const MAX_AES_TRANSFORM_ROUNDS: u32 = 100_000_000;
+#[cfg(feature = "full")]
 const MAX_AES_TRANSFORM_BLOCK_OPERATIONS: u64 = 200_000_000;
 const HKDF_SHA256_MAX_BYTES: usize = 255 * 32;
 const MAX_OUTPUT_BYTES: usize = crate::MAX_CONTROL_ENVELOPE_BYTES - 1024;
 // Kotlin's preserved public contract accepts every positive Int iteration
 // count. Reject only protobuf values that cannot originate from that contract.
+#[cfg(feature = "full")]
 pub(crate) const MAX_PBKDF2_ITERATIONS: u32 = i32::MAX as u32;
+#[cfg(feature = "full")]
 const MAX_ARGON2_MEMORY_KIB: u32 = 1024 * 1024;
+#[cfg(feature = "full")]
 const MAX_ARGON2_ITERATIONS: u32 = 10_000;
+#[cfg(feature = "full")]
 const MAX_ARGON2_PARALLELISM: u32 = 64;
+#[cfg(feature = "full")]
 const SSH_AGENT_TCP_KEY_BYTES: usize = 32;
+#[cfg(feature = "full")]
 const SSH_AGENT_TCP_NONCE_BYTES: usize = 12;
+#[cfg(feature = "full")]
 const SSH_AGENT_TCP_HEADER_BYTES: usize = 18;
+#[cfg(feature = "full")]
 const SSH_AGENT_TCP_TAG_BYTES: usize = 16;
+#[cfg(feature = "full")]
 pub(crate) const MAX_SSH_AGENT_TCP_PAYLOAD_BYTES: usize = 1024 * 1024;
+#[cfg(feature = "full")]
 const RSA_ENCRYPTION_OID: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113549.1.1.1");
 
 /// Non-sensitive primitive failure classification.
 #[derive(Clone, Copy, Debug, Error, PartialEq, Eq)]
+// Noise alone constructs only some variants.
+#[cfg_attr(not(feature = "full"), allow(dead_code))]
 pub(crate) enum PrimitiveError {
     /// One or more parameters violate the operation contract.
     #[error("invalid argument")]
@@ -124,6 +155,7 @@ pub(crate) fn hkdf_sha256(
     Ok(output.to_vec())
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn pbkdf2_sha256(
     seed: Vec<u8>,
     salt: Vec<u8>,
@@ -156,6 +188,7 @@ pub(crate) fn pbkdf2_sha256(
 }
 
 #[allow(clippy::too_many_arguments)]
+#[cfg(feature = "full")]
 pub(crate) fn argon2(
     mode: Argon2Mode,
     version: Version,
@@ -215,6 +248,7 @@ pub(crate) fn argon2(
     Ok(output)
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn stream_cipher_xor_at_offset(
     algorithm: StreamCipherAlgorithm,
     key: Vec<u8>,
@@ -251,6 +285,7 @@ pub(crate) fn stream_cipher_xor_at_offset(
     Ok(data.to_vec())
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn ssh_agent_tcp_chacha20_poly1305(
     direction: CipherDirection,
     key: Vec<u8>,
@@ -354,6 +389,7 @@ pub(crate) fn aead_in_place(
     Ok(())
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn rsa_oaep_decrypt(
     hash: RsaOaepHash,
     private_key_pkcs8: Vec<u8>,
@@ -384,6 +420,7 @@ pub(crate) fn rsa_oaep_decrypt(
     Ok(plaintext[..plaintext_length].to_vec())
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn rsa_oaep_encrypt(
     hash: RsaOaepHash,
     public_key_spki: Vec<u8>,
@@ -408,6 +445,7 @@ pub(crate) fn rsa_oaep_encrypt(
     Ok(ciphertext[..ciphertext_length].to_vec())
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn rsa_pkcs8_to_spki(private_key_pkcs8: Vec<u8>) -> Result<Vec<u8>, PrimitiveError> {
     let private_key_pkcs8 = Zeroizing::new(private_key_pkcs8);
     validate_rsa_pkcs8(&private_key_pkcs8)?;
@@ -420,6 +458,7 @@ pub(crate) fn rsa_pkcs8_to_spki(private_key_pkcs8: Vec<u8>) -> Result<Vec<u8>, P
     Ok(spki.as_ref().to_vec())
 }
 
+#[cfg(feature = "full")]
 fn validate_rsa_pkcs8(input: &[u8]) -> Result<(), PrimitiveError> {
     let private_key =
         PrivateKeyInfo::from_der(input).map_err(|_| PrimitiveError::InvalidArgument)?;
@@ -430,6 +469,7 @@ fn validate_rsa_pkcs8(input: &[u8]) -> Result<(), PrimitiveError> {
     Ok(())
 }
 
+#[cfg(feature = "full")]
 fn validate_rsa_spki(input: &[u8]) -> Result<(), PrimitiveError> {
     let public_key =
         SubjectPublicKeyInfoRef::from_der(input).map_err(|_| PrimitiveError::InvalidArgument)?;
@@ -440,6 +480,7 @@ fn validate_rsa_spki(input: &[u8]) -> Result<(), PrimitiveError> {
     Ok(())
 }
 
+#[cfg(feature = "full")]
 fn rsa_oaep_algorithm(hash: RsaOaepHash) -> Result<&'static OaepAlgorithm, PrimitiveError> {
     match hash {
         RsaOaepHash::Sha1 => Ok(&OAEP_SHA1_MGF1SHA1),
@@ -448,6 +489,7 @@ fn rsa_oaep_algorithm(hash: RsaOaepHash) -> Result<&'static OaepAlgorithm, Primi
     }
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn random_bytes(length: u32) -> Result<Vec<u8>, PrimitiveError> {
     let length = bounded_output_length(length)?;
     let mut output = vec![0_u8; length];
@@ -459,6 +501,7 @@ pub(crate) fn random_bytes(length: u32) -> Result<Vec<u8>, PrimitiveError> {
 }
 
 /// A zero bound returns an arbitrary signed 32-bit value.
+#[cfg(feature = "full")]
 pub(crate) fn random_int(exclusive_upper_bound: u32) -> Result<i32, PrimitiveError> {
     if exclusive_upper_bound == 0 {
         return Ok(i32::from_ne_bytes(random_u32()?.to_ne_bytes()));
@@ -480,6 +523,7 @@ pub(crate) fn random_int(exclusive_upper_bound: u32) -> Result<i32, PrimitiveErr
     }
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn hmac(
     algorithm: HashAlgorithm,
     key: Vec<u8>,
@@ -491,12 +535,14 @@ pub(crate) fn hmac(
     sensitive_hmac_bytes(algorithm, &key, &data)
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn digest(algorithm: HashAlgorithm, data: Vec<u8>) -> Result<Vec<u8>, PrimitiveError> {
     let data = Zeroizing::new(data);
     let algorithm = sensitive_algorithm(algorithm)?;
     sensitive_digest_bytes(algorithm, &data)
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn aes_ecb_no_padding_encrypt(
     key: Vec<u8>,
     data: Vec<u8>,
@@ -515,6 +561,7 @@ pub(crate) fn aes_ecb_no_padding_encrypt(
     Ok(data.to_vec())
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn aes_ecb_no_padding_transform(
     key: Vec<u8>,
     data: Vec<u8>,
@@ -555,6 +602,7 @@ pub(crate) fn aes_ecb_no_padding_transform(
     Ok(data.to_vec())
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn aes_cbc_pkcs7(
     direction: CipherDirection,
     key: Vec<u8>,
@@ -579,6 +627,7 @@ pub(crate) fn aes_cbc_pkcs7(
     }
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn aes_cbc_pkcs7_hmac_sha256_encrypt(
     encryption_key: Vec<u8>,
     mac_key: Vec<u8>,
@@ -607,6 +656,7 @@ pub(crate) fn aes_cbc_pkcs7_hmac_sha256_encrypt(
     Ok((ciphertext, mac))
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn aes_cbc_pkcs7_hmac_sha256_decrypt(
     encryption_key: Vec<u8>,
     mac_key: Vec<u8>,
@@ -631,6 +681,7 @@ pub(crate) fn aes_cbc_pkcs7_hmac_sha256_decrypt(
     Ok(plaintext[..plaintext_length].to_vec())
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn aes_cbc_pkcs7_ciphertext_length(
     plaintext_length: usize,
 ) -> Result<usize, PrimitiveError> {
@@ -644,6 +695,7 @@ pub(crate) fn aes_cbc_pkcs7_ciphertext_length(
     Ok(padded_length)
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn aes_cbc_pkcs7_hmac_sha256_encrypt_into(
     encryption_key: &[u8],
     mac_key: &[u8],
@@ -668,6 +720,7 @@ pub(crate) fn aes_cbc_pkcs7_hmac_sha256_encrypt_into(
     Ok(padded_length)
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn aes_cbc_pkcs7_hmac_sha256_decrypt_into(
     encryption_key: &[u8],
     mac_key: &[u8],
@@ -706,6 +759,7 @@ pub(crate) fn aes_cbc_pkcs7_hmac_sha256_decrypt_into(
     Ok(plaintext_length)
 }
 
+#[cfg(feature = "full")]
 fn hmac_sha256_iv_ciphertext_into(
     mac_key: &[u8],
     iv: &[u8],
@@ -730,12 +784,14 @@ fn bounded_output_length(length: u32) -> Result<usize, PrimitiveError> {
     Ok(length)
 }
 
+#[cfg(feature = "full")]
 fn random_u32() -> Result<u32, PrimitiveError> {
     let mut bytes = Zeroizing::new([0_u8; 4]);
     rand::fill(bytes.as_mut_slice()).map_err(|_| PrimitiveError::CryptoFailure)?;
     Ok(u32::from_ne_bytes(*bytes))
 }
 
+#[cfg(feature = "full")]
 fn sensitive_digest_bytes(
     algorithm: DigestAlgorithm,
     data: &[u8],
@@ -762,6 +818,7 @@ fn sensitive_hmac_bytes(
     Ok(output.to_vec())
 }
 
+#[cfg(feature = "full")]
 fn sensitive_algorithm(algorithm: HashAlgorithm) -> Result<DigestAlgorithm, PrimitiveError> {
     match algorithm {
         HashAlgorithm::Sha1 => Ok(DigestAlgorithm::Sha1),
@@ -776,6 +833,7 @@ fn sensitive_backend_error(_: SensitiveBackendError) -> PrimitiveError {
     PrimitiveError::CryptoFailure
 }
 
+#[cfg(feature = "full")]
 fn aes_ecb_encrypt<C>(key: &[u8], data: &mut [u8]) -> Result<(), PrimitiveError>
 where
     C: BlockEncrypt + KeyInit + cipher::BlockSizeUser<BlockSize = U16>,
@@ -783,6 +841,7 @@ where
     aes_ecb_encrypt_rounds::<C>(key, data, 1)
 }
 
+#[cfg(feature = "full")]
 fn aes_ecb_encrypt_rounds<C>(key: &[u8], data: &mut [u8], rounds: u32) -> Result<(), PrimitiveError>
 where
     C: BlockEncrypt + KeyInit + cipher::BlockSizeUser<BlockSize = U16>,
@@ -797,6 +856,7 @@ where
 }
 
 /// PKCS#7-pads `buffer[..message_length]` and AES-CBC encrypts it in place.
+#[cfg(feature = "full")]
 fn aes_cbc_pkcs7_encrypt_in_place(
     key: &[u8],
     iv: &[u8],
@@ -811,6 +871,7 @@ fn aes_cbc_pkcs7_encrypt_in_place(
     }
 }
 
+#[cfg(feature = "full")]
 fn cbc_encrypt_into<C>(
     key: &[u8],
     iv: &[u8],
@@ -828,6 +889,7 @@ where
         .map_err(|_| PrimitiveError::CryptoFailure)
 }
 
+#[cfg(feature = "full")]
 fn cbc_decrypt_into<C>(key: &[u8], iv: &[u8], output: &mut [u8]) -> Result<usize, PrimitiveError>
 where
     C: cipher::BlockDecrypt
@@ -846,6 +908,7 @@ where
     Ok(output.len() - AES_BLOCK_BYTES + final_length)
 }
 
+#[cfg(feature = "full")]
 fn cbc_encrypt(
     key: &[u8],
     iv: &[u8],
@@ -868,6 +931,7 @@ fn cbc_encrypt(
     Ok(std::mem::take(&mut *data))
 }
 
+#[cfg(feature = "full")]
 fn cbc_decrypt<C>(key: &[u8], iv: &[u8], data: &mut [u8]) -> Result<Vec<u8>, PrimitiveError>
 where
     C: cipher::BlockDecrypt
@@ -884,8 +948,10 @@ where
 
 #[cfg(test)]
 mod tests {
+    #[cfg(feature = "full")]
     use super::*;
 
+    #[cfg(feature = "full")]
     #[test]
     fn secret_buffer_cbc_encryption_never_grows_the_plaintext() {
         let encrypt = |key_length, plaintext| {

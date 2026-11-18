@@ -39,6 +39,12 @@ extensions.configure<RustWasmLibraryExtension> {
         "keyguard_crypto_stream_finish", "keyguard_crypto_stream_close", "keyguard_crypto_buffer_free",
         "keyguard_crypto_aes_cbc_pkcs7_hmac_sha256_encrypt", "keyguard_crypto_aes_cbc_pkcs7_hmac_sha256_decrypt",
     ))
+    // The browser extension's build, `buildNativeCryptoWasmNoise`: the envelope
+    // and Noise only. It keeps the exports that wasm/index.mjs calls; the ones of
+    // the left-out operations answer UNSUPPORTED_OPERATION.
+    variants.register("noise") {
+        cargoArguments.add("--no-default-features")
+    }
 }
 val buildNativeCryptoWasm = tasks.named("buildNativeCryptoWasm")
 

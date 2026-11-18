@@ -8,45 +8,84 @@ license-file.workspace = true
 repository.workspace = true
 publish = false
 
+[features]
+default = ["full"]
+# Every operation. Without it, the crate holds the envelope, the session
+# registry and Noise only, for the browser extension's Wasm: the other
+# operations, the data-plane calls of `fast` and the KKhfs pattern, whose
+# ML-KEM needs this feature, answer UNSUPPORTED_OPERATION.
+full = [
+    "dep:aes",
+    "dep:argon2",
+    "dep:base64ct",
+    "dep:blowfish",
+    "dep:cbc",
+    "dep:chacha20",
+    "dep:cipher",
+    "dep:des",
+    "dep:digest",
+    "dep:ed25519-dalek",
+    "dep:flate2",
+    "dep:k256",
+    "dep:ocb3",
+    "dep:p256",
+    "dep:p384",
+    "dep:p521",
+    "dep:pkcs1",
+    "dep:pkcs8",
+    "dep:pgp",
+    "dep:rand",
+    "dep:sec1",
+    "dep:rc2",
+    "dep:salsa20",
+    "dep:ssh-key",
+    "dep:tempfile",
+    "dep:twofish",
+]
+
 [dependencies]
-aes.workspace = true
-argon2.workspace = true
+aes = { workspace = true, optional = true }
+argon2 = { workspace = true, optional = true }
 aws-lc-rs.workspace = true
-base64ct = { version = "=1.8.3", features = ["alloc"] }
-blowfish.workspace = true
-cbc.workspace = true
-chacha20.workspace = true
-cipher.workspace = true
-des.workspace = true
-digest.workspace = true
-ed25519-dalek.workspace = true
-flate2.workspace = true
-k256.workspace = true
+base64ct = { version = "=1.8.3", features = ["alloc"], optional = true }
+blowfish = { workspace = true, optional = true }
+cbc = { workspace = true, optional = true }
+chacha20 = { workspace = true, optional = true }
+cipher = { workspace = true, optional = true }
+des = { workspace = true, optional = true }
+digest = { workspace = true, optional = true }
+ed25519-dalek = { workspace = true, optional = true }
+flate2 = { workspace = true, optional = true }
+k256 = { workspace = true, optional = true }
 keyguard-crypto-sensitive = { path = "../keyguard-crypto-sensitive" }
-ocb3.workspace = true
-p256.workspace = true
-p384.workspace = true
-p521.workspace = true
-pkcs1 = { version = "=0.7.5", default-features = false, features = ["alloc"] }
-pkcs8 = { workspace = true, features = ["alloc"] }
-pgp.workspace = true
+ocb3 = { workspace = true, optional = true }
+p256 = { workspace = true, optional = true }
+p384 = { workspace = true, optional = true }
+p521 = { workspace = true, optional = true }
+pkcs1 = { version = "=0.7.5", default-features = false, features = ["alloc"], optional = true }
+pkcs8 = { workspace = true, features = ["alloc"], optional = true }
+pgp = { workspace = true, optional = true }
 prost.workspace = true
-rand.workspace = true
-sec1.workspace = true
-rc2.workspace = true
-salsa20.workspace = true
+rand = { workspace = true, optional = true }
+sec1 = { workspace = true, optional = true }
+rc2 = { workspace = true, optional = true }
+salsa20 = { workspace = true, optional = true }
 snow.workspace = true
 # `ecdsa` decodes the CA key of a certificate signed by an ECDSA CA.
-ssh-key = { path = "../../../../../thirdParty/rust/ssh-key-0.6.7-keyguard", default-features = false, features = ["ecdsa", "keyguard-decryption", "std"] }
+ssh-key = { path = "../../../../../thirdParty/rust/ssh-key-0.6.7-keyguard", default-features = false, features = ["ecdsa", "keyguard-decryption", "std"], optional = true }
 thiserror.workspace = true
-tempfile = { version = "=3.27.0", default-features = false }
-twofish.workspace = true
+tempfile = { version = "=3.27.0", default-features = false, optional = true }
+twofish = { workspace = true, optional = true }
 x25519-dalek.workspace = true
 zeroize.workspace = true
 
 [dev-dependencies]
+# The Noise vectors test uses it without `full` too.
+base64ct = { version = "=1.8.3", features = ["alloc"] }
 criterion = { version = "=0.8.2", default-features = false }
 proptest = "=1.12.0"
+serde = { version = "=1.0.229", features = ["derive"] }
+serde_json = "=1.0.154"
 syn = { version = "=2.0.119", features = ["full", "visit"] }
 
 [lints]
@@ -55,15 +94,20 @@ workspace = true
 [[bench]]
 name = "argon2"
 harness = false
+# Every bench runs operations of the `full` feature.
+required-features = ["full"]
 
 [[bench]]
 name = "bulk_primitives"
 harness = false
+required-features = ["full"]
 
 [[bench]]
 name = "certificate_reconcile"
 harness = false
+required-features = ["full"]
 
 [[bench]]
 name = "small_primitives"
 harness = false
+required-features = ["full"]

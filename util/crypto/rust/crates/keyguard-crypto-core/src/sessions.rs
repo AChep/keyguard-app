@@ -5,31 +5,42 @@ use std::{
     sync::{Arc, Mutex, OnceLock},
 };
 
+#[cfg(feature = "full")]
 use aes::{Aes128, Aes192, Aes256};
+#[cfg(feature = "full")]
 use aws_lc_rs::constant_time;
+#[cfg(feature = "full")]
 use cbc::{Decryptor, Encryptor};
+#[cfg(feature = "full")]
 use cipher::{
     Block, BlockDecrypt, BlockDecryptMut, BlockEncrypt, BlockEncryptMut, KeyInit, KeyIvInit,
     block_padding::{NoPadding, Pkcs7, RawPadding},
     consts::U16,
 };
+#[cfg(feature = "full")]
 use keyguard_crypto_sensitive::{
     DigestAlgorithm, DigestContext, HmacContext, SensitiveBackendError,
 };
+#[cfg(feature = "full")]
 use prost::Message;
 use thiserror::Error;
+#[cfg(feature = "full")]
 use twofish::Twofish;
+#[cfg(feature = "full")]
 use zeroize::{Zeroize, Zeroizing};
 
 use crate::noise;
+#[cfg(feature = "full")]
 use crate::openpgp::adapter::OpenPgpSession;
+#[cfg(feature = "full")]
 use crate::padding::pkcs7_unpadded_block_length;
+#[cfg(feature = "full")]
 use crate::primitives::{HMAC_SHA256_BYTES, PrimitiveError};
-use crate::protocol::{
-    AesCbcPkcs7HmacSha256EncryptResult, CipherDirection, HashAlgorithm,
-    NoiseHandshakeStreamOpenRequest,
-};
+use crate::protocol::NoiseHandshakeStreamOpenRequest;
+#[cfg(feature = "full")]
+use crate::protocol::{AesCbcPkcs7HmacSha256EncryptResult, CipherDirection, HashAlgorithm};
 
+#[cfg(feature = "full")]
 const AES_BLOCK_BYTES: usize = 16;
 const MAX_SESSION_SLOTS: usize = 1024;
 const INDEX_MASK: u64 = u32::MAX as u64;
@@ -38,6 +49,8 @@ static SESSIONS: OnceLock<Mutex<SessionRegistry>> = OnceLock::new();
 
 /// Non-sensitive streaming failure classification.
 #[derive(Clone, Copy, Debug, Error, PartialEq, Eq)]
+// Noise alone never fails with the OpenPGP variants.
+#[cfg_attr(not(feature = "full"), allow(dead_code))]
 pub(crate) enum SessionError {
     /// The handle is stale, unknown, or already consumed.
     #[error("invalid session")]
@@ -69,16 +82,23 @@ pub(crate) enum SessionError {
 }
 
 enum Session {
+    #[cfg(feature = "full")]
     Hmac(Box<HmacContext>),
+    #[cfg(feature = "full")]
     Digest(Box<DigestContext>),
+    #[cfg(feature = "full")]
     CbcPkcs7(Box<CbcPkcs7Session>),
+    #[cfg(feature = "full")]
     AesCbcHmacSha256Encrypt(Box<AesCbcHmacSha256EncryptSession>),
+    #[cfg(feature = "full")]
     AesCbcHmacSha256Decrypt(Box<AesCbcHmacSha256DecryptSession>),
+    #[cfg(feature = "full")]
     OpenPgp(Box<OpenPgpSession>),
     NoiseHandshake(Box<noise::Handshake>),
     NoiseTransport(Box<noise::Transport>),
 }
 
+#[cfg(feature = "full")]
 enum CbcCipher {
     Aes128(Aes128),
     Aes192(Aes192),
@@ -86,6 +106,7 @@ enum CbcCipher {
     Twofish(Twofish),
 }
 
+#[cfg(feature = "full")]
 struct CbcPkcs7Session {
     direction: CipherDirection,
     cipher: CbcCipher,
@@ -94,11 +115,13 @@ struct CbcPkcs7Session {
     pending: Zeroizing<Vec<u8>>,
 }
 
+#[cfg(feature = "full")]
 struct AesCbcHmacSha256EncryptSession {
     cipher: CbcPkcs7Session,
     hmac: HmacContext,
 }
 
+#[cfg(feature = "full")]
 struct AesCbcHmacSha256DecryptSession {
     cipher: CbcPkcs7Session,
     hmac: HmacContext,
@@ -119,6 +142,7 @@ struct SessionRegistry {
     free_indices: Vec<usize>,
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn open_hmac(algorithm: HashAlgorithm, key: Vec<u8>) -> Result<u64, SessionError> {
     let key = Zeroizing::new(key);
     let algorithm = sensitive_algorithm(algorithm)?;
@@ -126,12 +150,14 @@ pub(crate) fn open_hmac(algorithm: HashAlgorithm, key: Vec<u8>) -> Result<u64, S
     insert(Session::Hmac(Box::new(context)))
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn open_digest(algorithm: HashAlgorithm) -> Result<u64, SessionError> {
     let algorithm = sensitive_algorithm(algorithm)?;
     let context = DigestContext::new(algorithm).map_err(sensitive_backend_error)?;
     insert(Session::Digest(Box::new(context)))
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn open_aes_cbc_pkcs7(
     direction: CipherDirection,
     key: Vec<u8>,
@@ -141,6 +167,7 @@ pub(crate) fn open_aes_cbc_pkcs7(
     insert(Session::CbcPkcs7(Box::new(session)))
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn open_aes_cbc_pkcs7_hmac_sha256_encrypt(
     encryption_key: Vec<u8>,
     mac_key: Vec<u8>,
@@ -150,6 +177,7 @@ pub(crate) fn open_aes_cbc_pkcs7_hmac_sha256_encrypt(
     insert(Session::AesCbcHmacSha256Encrypt(Box::new(session)))
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn open_aes_cbc_pkcs7_hmac_sha256_decrypt(
     encryption_key: Vec<u8>,
     mac_key: Vec<u8>,
@@ -160,6 +188,7 @@ pub(crate) fn open_aes_cbc_pkcs7_hmac_sha256_decrypt(
     insert(Session::AesCbcHmacSha256Decrypt(Box::new(session)))
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn open_twofish_cbc_pkcs7(
     direction: CipherDirection,
     key: Vec<u8>,
@@ -169,6 +198,7 @@ pub(crate) fn open_twofish_cbc_pkcs7(
     insert(Session::CbcPkcs7(Box::new(session)))
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn open_openpgp(
     session: Result<OpenPgpSession, PrimitiveError>,
 ) -> Result<u64, SessionError> {
@@ -198,6 +228,7 @@ pub(crate) fn update(handle: u64, data: &[u8]) -> Result<Vec<u8>, SessionError> 
     })
 }
 
+#[cfg(feature = "full")]
 pub(crate) fn drain_openpgp(handle: u64) -> Result<Vec<u8>, SessionError> {
     with_session(handle, |session| {
         match session.as_mut().ok_or(SessionError::InvalidSession)? {
@@ -302,19 +333,27 @@ fn registry() -> &'static Mutex<SessionRegistry> {
 }
 
 impl Session {
+    // Noise sessions, the only ones without `full`, take no raw chunks.
+    #[cfg_attr(not(feature = "full"), allow(unused_variables))]
     fn update(&mut self, data: &[u8]) -> Result<Vec<u8>, SessionError> {
         match self {
+            #[cfg(feature = "full")]
             Self::Hmac(session) => {
                 session.update(data).map_err(sensitive_backend_error)?;
                 Ok(Vec::new())
             }
+            #[cfg(feature = "full")]
             Self::Digest(session) => {
                 session.update(data).map_err(sensitive_backend_error)?;
                 Ok(Vec::new())
             }
+            #[cfg(feature = "full")]
             Self::CbcPkcs7(session) => session.update(data),
+            #[cfg(feature = "full")]
             Self::AesCbcHmacSha256Encrypt(session) => session.update(data),
+            #[cfg(feature = "full")]
             Self::AesCbcHmacSha256Decrypt(session) => session.update(data),
+            #[cfg(feature = "full")]
             Self::OpenPgp(session) => session.update(data).map_err(openpgp_error),
             // Noise sessions take their own requests, not raw chunks.
             Self::NoiseHandshake(_) | Self::NoiseTransport(_) => Err(SessionError::InvalidArgument),
@@ -322,34 +361,38 @@ impl Session {
     }
 
     fn finish(self) -> Result<Vec<u8>, SessionError> {
-        let output = match self {
+        match self {
+            #[cfg(feature = "full")]
             Self::Hmac(mut session) => {
                 let mut output = Zeroizing::new(vec![0_u8; session.output_size()]);
                 session
                     .finalize_into(&mut output)
                     .map_err(sensitive_backend_error)?;
-                output.to_vec()
+                Ok(output.to_vec())
             }
+            #[cfg(feature = "full")]
             Self::Digest(mut session) => {
                 let mut output = Zeroizing::new(vec![0_u8; session.output_size()]);
                 session
                     .finalize_into(&mut output)
                     .map_err(sensitive_backend_error)?;
-                output.to_vec()
+                Ok(output.to_vec())
             }
-            Self::CbcPkcs7(mut session) => return session.finish(),
-            Self::AesCbcHmacSha256Encrypt(session) => return (*session).finish(),
-            Self::AesCbcHmacSha256Decrypt(session) => return (*session).finish(),
-            Self::OpenPgp(session) => return (*session).finish().map_err(openpgp_error),
+            #[cfg(feature = "full")]
+            Self::CbcPkcs7(mut session) => session.finish(),
+            #[cfg(feature = "full")]
+            Self::AesCbcHmacSha256Encrypt(session) => (*session).finish(),
+            #[cfg(feature = "full")]
+            Self::AesCbcHmacSha256Decrypt(session) => (*session).finish(),
+            #[cfg(feature = "full")]
+            Self::OpenPgp(session) => (*session).finish().map_err(openpgp_error),
             // Nothing to finish: the dropped session is wiped, as a close does.
-            Self::NoiseHandshake(_) | Self::NoiseTransport(_) => {
-                return Err(SessionError::InvalidArgument);
-            }
-        };
-        Ok(output)
+            Self::NoiseHandshake(_) | Self::NoiseTransport(_) => Err(SessionError::InvalidArgument),
+        }
     }
 }
 
+#[cfg(feature = "full")]
 fn openpgp_error(error: PrimitiveError) -> SessionError {
     match error {
         PrimitiveError::InvalidArgument => SessionError::InvalidArgument,
@@ -363,6 +406,7 @@ fn openpgp_error(error: PrimitiveError) -> SessionError {
     }
 }
 
+#[cfg(feature = "full")]
 impl CbcCipher {
     fn new_aes(key: &[u8]) -> Result<Self, SessionError> {
         match key.len() {
@@ -404,10 +448,12 @@ impl CbcCipher {
     }
 }
 
+#[cfg(feature = "full")]
 fn sensitive_backend_error(_: SensitiveBackendError) -> SessionError {
     SessionError::CryptoFailure
 }
 
+#[cfg(feature = "full")]
 fn sensitive_algorithm(algorithm: HashAlgorithm) -> Result<DigestAlgorithm, SessionError> {
     match algorithm {
         HashAlgorithm::Sha1 => Ok(DigestAlgorithm::Sha1),
@@ -418,6 +464,7 @@ fn sensitive_algorithm(algorithm: HashAlgorithm) -> Result<DigestAlgorithm, Sess
     }
 }
 
+#[cfg(feature = "full")]
 fn transform_aes_cbc_blocks(
     direction: CipherDirection,
     key: &[u8],
@@ -446,6 +493,7 @@ fn transform_aes_cbc_blocks(
     Ok(next_chain)
 }
 
+#[cfg(feature = "full")]
 fn encrypt_aes_cbc_blocks<C>(key: &[u8], iv: &[u8], data: &mut [u8]) -> Result<(), SessionError>
 where
     C: BlockEncrypt + KeyInit + cipher::BlockCipher + cipher::BlockSizeUser<BlockSize = U16>,
@@ -458,6 +506,7 @@ where
         .map_err(|_| SessionError::CryptoFailure)
 }
 
+#[cfg(feature = "full")]
 fn decrypt_aes_cbc_blocks<C>(key: &[u8], iv: &[u8], data: &mut [u8]) -> Result<(), SessionError>
 where
     C: BlockDecrypt + KeyInit + cipher::BlockCipher + cipher::BlockSizeUser<BlockSize = U16>,
@@ -469,6 +518,7 @@ where
         .map_err(|_| SessionError::CryptoFailure)
 }
 
+#[cfg(feature = "full")]
 impl CbcPkcs7Session {
     fn new_aes(
         direction: CipherDirection,
@@ -602,6 +652,7 @@ impl CbcPkcs7Session {
     }
 }
 
+#[cfg(feature = "full")]
 impl AesCbcHmacSha256EncryptSession {
     fn new(encryption_key: Vec<u8>, mac_key: Vec<u8>, iv: Vec<u8>) -> Result<Self, SessionError> {
         let mut encryption_key = Zeroizing::new(encryption_key);
@@ -642,6 +693,7 @@ impl AesCbcHmacSha256EncryptSession {
     }
 }
 
+#[cfg(feature = "full")]
 impl AesCbcHmacSha256DecryptSession {
     fn new(
         encryption_key: Vec<u8>,
@@ -685,6 +737,7 @@ impl AesCbcHmacSha256DecryptSession {
     }
 }
 
+#[cfg(feature = "full")]
 fn validate_authenticated_aes_parameters(
     encryption_key: &[u8],
     iv: &[u8],
@@ -695,6 +748,7 @@ fn validate_authenticated_aes_parameters(
     Ok(())
 }
 
+#[cfg(feature = "full")]
 fn hmac_sha256_with_iv(mac_key: &[u8], iv: &[u8]) -> Result<HmacContext, SessionError> {
     let mut hmac =
         HmacContext::new(DigestAlgorithm::Sha256, mac_key).map_err(sensitive_backend_error)?;
@@ -822,6 +876,23 @@ fn decode_handle(handle: u64) -> Result<(usize, u32), SessionError> {
 mod tests {
     use super::*;
 
+    /// A session of every build that the registry holds but never runs: a
+    /// spent XX handshake, which no longer counts against the Noise cap.
+    fn idle_session() -> Session {
+        let mut handshake = noise::open_handshake(NoiseHandshakeStreamOpenRequest {
+            pattern: crate::protocol::NoisePattern::Xx as i32,
+            initiator: true,
+            local_private_key: vec![0x11; 32],
+            remote_public_key: Vec::new(),
+            psk: Vec::new(),
+            prologue: Vec::new(),
+        })
+        .expect("handshake must open");
+        // Not finished, so this fails; either way the handshake is spent.
+        let _ = handshake.take_transport();
+        Session::NoiseHandshake(Box::new(handshake))
+    }
+
     #[test]
     fn a_panicking_noise_step_drops_state_without_poisoning_its_lock() {
         let handle = open_noise_handshake(NoiseHandshakeStreamOpenRequest {
@@ -859,6 +930,7 @@ mod tests {
         close(handle).expect("repeated close must remain idempotent");
     }
 
+    #[cfg(feature = "full")]
     #[test]
     fn openpgp_missing_key_retains_its_classification() {
         assert_eq!(
@@ -867,6 +939,7 @@ mod tests {
         );
     }
 
+    #[cfg(feature = "full")]
     #[test]
     fn aes_sessions_keep_only_a_block_tail_between_updates() {
         let key = vec![0x11; 32];
@@ -895,8 +968,8 @@ mod tests {
 
     #[test]
     fn distinct_handles_use_distinct_session_locks() {
-        let first = open_digest(HashAlgorithm::Sha256).expect("first session must open");
-        let second = open_digest(HashAlgorithm::Sha512).expect("second session must open");
+        let first = insert(idle_session()).expect("first session must open");
+        let second = insert(idle_session()).expect("second session must open");
         let (first_cell, second_cell) = {
             let registry = registry().lock().expect("registry lock must succeed");
             (
@@ -916,6 +989,7 @@ mod tests {
         close(second).expect("second session must close");
     }
 
+    #[cfg(feature = "full")]
     #[test]
     fn cancelling_every_digest_and_hmac_backend_consumes_the_session() {
         for algorithm in [
@@ -947,14 +1021,9 @@ mod tests {
 
     #[test]
     fn exhausted_generation_retires_slot_without_aba_reuse() {
-        let session = || {
-            Session::Digest(Box::new(
-                DigestContext::new(DigestAlgorithm::Md5).expect("test MD5 context must initialize"),
-            ))
-        };
         let mut registry = SessionRegistry::default();
         let _ = registry
-            .insert(session())
+            .insert(idle_session())
             .expect("initial session must insert");
         registry.slots[0].generation = u32::MAX - 1;
         let near_max = encode_handle(0, u32::MAX - 1).expect("near-max handle must encode");
@@ -963,7 +1032,7 @@ mod tests {
             .expect("near-max session must release");
 
         let max_handle = registry
-            .insert(session())
+            .insert(idle_session())
             .expect("maximum generation must be issued once");
         assert_eq!(decode_handle(max_handle), Ok((0, u32::MAX)));
         let _ = registry
@@ -972,7 +1041,7 @@ mod tests {
         assert!(registry.free_indices.is_empty());
 
         let replacement = registry
-            .insert(session())
+            .insert(idle_session())
             .expect("replacement must use a fresh slot");
         assert_eq!(decode_handle(replacement), Ok((1, 1)));
         let ancient = encode_handle(0, 1).expect("ancient handle must encode");
@@ -984,22 +1053,17 @@ mod tests {
 
     #[test]
     fn registry_enforces_concurrent_session_limit_and_reuses_released_capacity() {
-        let session = || {
-            Session::Digest(Box::new(
-                DigestContext::new(DigestAlgorithm::Md5).expect("test MD5 context must initialize"),
-            ))
-        };
         let mut registry = SessionRegistry::default();
         let handles = (0..MAX_SESSION_SLOTS)
             .map(|_| {
                 registry
-                    .insert(session())
+                    .insert(idle_session())
                     .expect("session must fit below limit")
             })
             .collect::<Vec<_>>();
 
         assert_eq!(
-            registry.insert(session()).err(),
+            registry.insert(idle_session()).err(),
             Some(SessionError::ResourceLimit)
         );
 
@@ -1008,7 +1072,7 @@ mod tests {
             .take_active_session_and_release(released)
             .expect("active session must release");
         let replacement = registry
-            .insert(session())
+            .insert(idle_session())
             .expect("released capacity must be reusable");
         assert_ne!(replacement, released);
         assert_eq!(decode_handle(replacement), Ok((0, 2)));

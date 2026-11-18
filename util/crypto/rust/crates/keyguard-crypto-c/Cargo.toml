@@ -11,8 +11,14 @@ publish = false
 [lib]
 crate-type = ["staticlib", "rlib"]
 
+[features]
+default = ["full"]
+# See the `full` feature of keyguard-crypto-core. The browser extension's Wasm
+# builds without it.
+full = ["keyguard-crypto-core/full"]
+
 [dependencies]
-keyguard-crypto-core = { path = "../keyguard-crypto-core" }
+keyguard-crypto-core = { path = "../keyguard-crypto-core", default-features = false }
 zeroize.workspace = true
 
 [dev-dependencies]

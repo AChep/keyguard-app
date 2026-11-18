@@ -10,6 +10,9 @@
 //! the order the sensitive backend uses when it completes a key. Every complete
 //! RSA export can therefore be compared with the generated PKCS#1 byte for byte.
 
+// The operations under test need `full`.
+#![cfg(feature = "full")]
+
 use aws_lc_rs::{
     hmac,
     signature::{Ed25519KeyPair, KeyPair as _},

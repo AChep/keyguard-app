@@ -10,17 +10,18 @@
 //! nothing.
 
 use aws_lc_rs::kem::{Ciphertext, DecapsulationKey, EncapsulationKey, ML_KEM_1024};
+#[cfg(feature = "full")]
 use prost::Message;
 use zeroize::Zeroizing;
 
-use crate::{
-    primitives::PrimitiveError,
-    protocol::{MlKemDecapsulateResult, MlKemEncapsulateResult, MlKemKeyGenerateResult},
-};
+use crate::primitives::PrimitiveError;
+#[cfg(feature = "full")]
+use crate::protocol::{MlKemDecapsulateResult, MlKemEncapsulateResult, MlKemKeyGenerateResult};
 
 /// Length of an encapsulation key.
 pub(crate) const PUBLIC_KEY_BYTES: usize = 1568;
 /// Length of a decapsulation key.
+#[cfg(feature = "full")]
 pub(crate) const PRIVATE_KEY_BYTES: usize = 3168;
 /// Length of a ciphertext.
 pub(crate) const CIPHERTEXT_BYTES: usize = 1568;
@@ -81,6 +82,7 @@ fn decapsulate(
 }
 
 /// Generates a key pair; returns an encoded [`MlKemKeyGenerateResult`].
+#[cfg(feature = "full")]
 pub(crate) fn key_generate() -> Result<Vec<u8>, PrimitiveError> {
     let pair = KeyPair::generate()?;
     let private_key = pair
@@ -99,6 +101,7 @@ pub(crate) fn key_generate() -> Result<Vec<u8>, PrimitiveError> {
 
 /// Encapsulates a fresh secret to `public_key`; returns an encoded
 /// [`MlKemEncapsulateResult`].
+#[cfg(feature = "full")]
 pub(crate) fn encapsulate_op(public_key: &[u8]) -> Result<Vec<u8>, PrimitiveError> {
     let (ciphertext, secret) = encapsulate(public_key)?;
     Ok(MlKemEncapsulateResult {
@@ -110,6 +113,7 @@ pub(crate) fn encapsulate_op(public_key: &[u8]) -> Result<Vec<u8>, PrimitiveErro
 
 /// Returns the secret `ciphertext` encapsulates to `private_key`, as an
 /// encoded [`MlKemDecapsulateResult`].
+#[cfg(feature = "full")]
 pub(crate) fn decapsulate_op(
     private_key: Vec<u8>,
     ciphertext: &[u8],
@@ -182,6 +186,7 @@ mod tests {
         assert_ne!(*sent, *received);
     }
 
+    #[cfg(feature = "full")]
     #[test]
     fn the_operations_round_trip_through_the_protocol() {
         let pair = MlKemKeyGenerateResult::decode(key_generate().expect("generate").as_slice())

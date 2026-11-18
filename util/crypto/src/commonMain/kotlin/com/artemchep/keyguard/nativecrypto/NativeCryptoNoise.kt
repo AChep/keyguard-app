@@ -3,8 +3,9 @@ package com.artemchep.keyguard.nativecrypto
 private val EMPTY = ByteArray(0)
 
 /**
- * The Noise handshake patterns of device-to-device sync. Both use Curve25519,
- * ChaCha20-Poly1305 and SHA-256; [KK_HFS] adds ML-KEM-1024.
+ * The Noise handshake patterns of device-to-device sync and of the browser
+ * extension. All use Curve25519, ChaCha20-Poly1305 and SHA-256; [KK_HFS] adds
+ * ML-KEM-1024.
  */
 public enum class NativeNoisePattern(
     internal val proto: NoisePatternProto,
@@ -36,6 +37,24 @@ public enum class NativeNoisePattern(
      * responder's static key does, so send it without one.
      */
     KK_HFS(NoisePatternProto.KK_HFS),
+
+    /**
+     * `Noise_XX_25519_ChaChaPoly_SHA256`, for the browser extension: each side
+     * learns the other's static key during the handshake.
+     *
+     * The handshake proves only that the peer holds its key, not who the peer
+     * is:
+     * - Match [NativeNoiseHandshake.remoteStaticKey] against the key pinned at
+     *   pairing, or confirm a new one out of band, such as with a code derived
+     *   from [NativeNoiseHandshake.handshakeHash].
+     * - The initiator learns the responder's key from the second message and
+     *   sends its own in the third. Check the key in between, so a responder
+     *   with another key never learns the initiator's.
+     * - The first message's payload travels in the clear, and the second one's
+     *   to an initiator nobody has checked yet, so send the handshake messages
+     *   without a payload.
+     */
+    XX(NoisePatternProto.XX),
 }
 
 /** A Curve25519 static key pair. The arrays are used as given, not copied. */
@@ -55,9 +74,10 @@ public class NativeNoiseKeyPair(
 }
 
 /**
- * Noise handshakes and transports of device-to-device sync. The native library
- * owns the Noise state and its keys; the caller owns framing, timeouts and
- * retries. A transport never rekeys: replace it with a new handshake.
+ * Noise handshakes and transports of device-to-device sync and of the browser
+ * extension. The native library owns the Noise state and its keys; the caller
+ * owns framing, timeouts and retries. A transport never rekeys: replace it
+ * with a new handshake.
  *
  * Every call blocks: call it on `Dispatchers.IO`. A failure throws
  * [NativeCryptoException]:
@@ -153,6 +173,24 @@ public object NativeCryptoNoise {
         prologue = prologue,
     )
 
+    /**
+     * Starts a [NativeNoisePattern.XX] handshake. Both sides pass the same
+     * [prologue]. Check the remote static key as [NativeNoisePattern.XX]
+     * describes.
+     */
+    public fun xx(
+        initiator: Boolean,
+        localPrivateKey: ByteArray,
+        prologue: ByteArray = EMPTY,
+    ): NativeNoiseHandshake = open(
+        pattern = NativeNoisePattern.XX,
+        initiator = initiator,
+        localPrivateKey = localPrivateKey,
+        remotePublicKey = EMPTY,
+        psk = EMPTY,
+        prologue = prologue,
+    )
+
     private fun keyPair(privateKey: ByteArray): NativeNoiseKeyPair {
         val payload = NativeCrypto.call(
             operationName = KEY_PAIR_OPERATION,
@@ -214,7 +252,8 @@ public object NativeCryptoNoise {
  * Exchange messages with [writeMessage] and [readMessage] in the pattern's
  * order until [isFinished], read [remoteStaticKey] and [handshakeHash], then
  * call [intoTransport]. An [NativeNoisePattern.XX_PSK3] initiator can't trust
- * [remoteStaticKey] yet; see [NativeNoisePattern.XX_PSK3]. [close] it in every
+ * [remoteStaticKey] yet, nor can an [NativeNoisePattern.XX] side before it
+ * checks the key; see each pattern. [close] it in every
  * case; closing twice, or after [intoTransport], is a no-op. A failed [writeMessage] or [readMessage]
  * ends the handshake and wipes its keys, unless it failed with
  * [NativeCryptoErrorCode.INVALID_ARGUMENT].
@@ -249,7 +288,8 @@ public class NativeNoiseHandshake internal constructor(
      * The remote side's static public key, or `null` while it is not known yet.
      * A [NativeNoisePattern.KK_HFS] handshake knows it from the start. A finished
      * [NativeNoisePattern.XX_PSK3] initiator has it before the responder proved
-     * it knows the pre-shared key.
+     * it knows the pre-shared key. An [NativeNoisePattern.XX] side has it once it
+     * read the peer's static-key message, with no proof of who the peer is.
      */
     public fun remoteStaticKey(): ByteArray? = status()
         .remoteStaticKey

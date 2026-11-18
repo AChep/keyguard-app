@@ -59,7 +59,7 @@ public enum class NativeCryptoCapability(
     /** RFC 8032 Ed25519 key generation, signing, and strict verification. */
     ED25519(bit = 1L shl 39),
 
-    /** Noise XXpsk3 and KKhfs handshakes and transports. */
+    /** Noise XX and XXpsk3 handshakes and transports. KKhfs also needs [ML_KEM]. */
     NOISE(bit = 1L shl 40),
 
     /** RFC 7748 X25519 key agreement that rejects low-order public keys. */

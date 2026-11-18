@@ -16,7 +16,8 @@ mod secret_erasure;
 
 pub use generated::*;
 
-#[cfg(test)]
+// Only the tests of `full` read the erasure counters.
+#[cfg(all(test, feature = "full"))]
 pub(crate) use secret_erasure::{
     reset_zeroized_secret_output_drops, reset_zeroized_secret_request_drops,
     zeroized_secret_output_drops, zeroized_secret_request_drops,

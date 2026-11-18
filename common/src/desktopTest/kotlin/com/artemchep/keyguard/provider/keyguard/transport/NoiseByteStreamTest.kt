@@ -14,9 +14,11 @@ import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@Suppress("TooManyFunctions")
 class NoiseByteStreamTest {
     private val alice = NativeCryptoNoise.generateKeyPair()
     private val bob = NativeCryptoNoise.generateKeyPair()
@@ -58,6 +60,115 @@ class NoiseByteStreamTest {
         assertContentEquals(byteArrayOf(NoiseSuite.KK_HFS.id), pa.written.first())
         assertEquals(2, pa.written.size)
         exchange(a, b)
+    }
+
+    @Test
+    fun `xx learns both statics and carries messages both ways`() = realTime {
+        val (pa, pb) = TestPipe.pair()
+        val (a, b) = handshakes(
+            { stream -> plainXx(stream, initiator = true, keyPair = alice, pinned = bob.publicKey) },
+            { stream -> plainXx(stream, initiator = false, keyPair = bob, pinned = alice.publicKey) },
+            pa,
+            pb,
+        )
+        assertContentEquals(bob.publicKey, a.remoteStatic)
+        assertContentEquals(alice.publicKey, b.remoteStatic)
+        assertContentEquals(a.handshakeHash, b.handshakeHash)
+        // The id of the suite, then the first and the third handshake message.
+        assertEquals(3, pa.written.size)
+        assertContentEquals(byteArrayOf(NoiseSuite.XX.id), pa.written.first())
+        assertEquals(1, pb.written.size)
+
+        exchange(a, b)
+    }
+
+    @Test
+    fun `an xx initiator stops at another responder before it sends its static`() = realTime {
+        val (pa, pb) = TestPipe.pair()
+        val mallory = NativeCryptoNoise.generateKeyPair()
+        coroutineScope {
+            val responder = async { runCatching { plainXx(pb, initiator = false, keyPair = bob) } }
+            assertFailsWith<NoisePinException> {
+                plainXx(pa, initiator = true, keyPair = alice, pinned = mallory.publicKey)
+            }
+            assertTrue(withTimeout(TIMEOUT) { responder.await() }.isFailure)
+        }
+        // The id of the suite and the first message; the third would carry the static.
+        assertEquals(2, pa.written.size)
+    }
+
+    @Test
+    fun `an xx responder rejects another initiator`() = realTime {
+        val (pa, pb) = TestPipe.pair()
+        val mallory = NativeCryptoNoise.generateKeyPair()
+        coroutineScope {
+            val responder = async {
+                runCatching { plainXx(pb, initiator = false, keyPair = bob, pinned = mallory.publicKey) }
+            }
+            val a = plainXx(pa, initiator = true, keyPair = alice)
+            assertIs<NoisePinException>(withTimeout(TIMEOUT) { responder.await() }.exceptionOrNull())
+            // The responder closed the stream.
+            assertNull(withTimeout(TIMEOUT) { a.read() })
+            a.close()
+        }
+    }
+
+    @Test
+    fun `xx needs the prologue of its protocol`() = realTime {
+        val (pa, _) = TestPipe.pair()
+        // Without it, xx would bind the p2p prologue and no extension origin.
+        assertFailsWith<IllegalArgumentException> {
+            NoiseByteStream.handshake(
+                stream = pa,
+                suite = NoiseSuite.XX,
+                initiator = true,
+                localPrivateKey = alice.privateKey,
+                timeoutMs = TIMEOUT,
+            )
+        }
+        // It failed before it sent anything, and closed the stream.
+        assertEquals(0, pa.written.size)
+        assertNull(pa.read())
+    }
+
+    @Test
+    fun `xx fails when the prologues differ`() = realTime {
+        val (pa, pb) = TestPipe.pair()
+        val other = "keyguard-browser/v1\nchrome-extension://ponmlkjihgfedcbaponmlkjihgfedcba/".encodeToByteArray()
+        coroutineScope {
+            val responder = async {
+                runCatching { plainXx(pb, initiator = false, keyPair = bob, prologue = other) }
+            }
+            // The first message is in the clear, so the second one fails.
+            assertFailsWith<NativeCryptoException> {
+                plainXx(pa, initiator = true, keyPair = alice)
+            }
+            assertTrue(withTimeout(TIMEOUT) { responder.await() }.isFailure)
+        }
+    }
+
+    @Test
+    fun `the default prologue is the p2p one`() = realTime {
+        val (pa, pb) = TestPipe.pair()
+        val (a, b) = handshakes(
+            { stream -> kk(stream, initiator = true, keyPair = alice, remote = bob.publicKey) },
+            { stream ->
+                NoiseByteStream.handshake(
+                    stream = stream,
+                    suite = NoiseSuite.KK_HFS,
+                    initiator = false,
+                    localPrivateKey = bob.privateKey,
+                    remotePublicKey = alice.publicKey,
+                    prologue = "keyguard/p2p/noise/v1".encodeToByteArray() + NoiseSuite.KK_HFS.id,
+                    timeoutMs = TIMEOUT,
+                )
+            },
+            pa,
+            pb,
+        )
+        assertContentEquals(a.handshakeHash, b.handshakeHash)
+        a.close()
+        b.close()
     }
 
     @Test
@@ -185,6 +296,22 @@ class NoiseByteStreamTest {
             timeoutMs = TIMEOUT,
         )
 
+    private suspend fun plainXx(
+        stream: ByteStream,
+        initiator: Boolean,
+        keyPair: NativeNoiseKeyPair,
+        pinned: ByteArray? = null,
+        prologue: ByteArray = BROWSER_PROLOGUE,
+    ) = NoiseByteStream.handshake(
+        stream = stream,
+        suite = NoiseSuite.XX,
+        initiator = initiator,
+        localPrivateKey = keyPair.privateKey,
+        pinnedRemoteStatic = pinned,
+        prologue = prologue,
+        timeoutMs = TIMEOUT,
+    )
+
     private suspend fun kk(stream: ByteStream, initiator: Boolean, keyPair: NativeNoiseKeyPair, remote: ByteArray) =
         NoiseByteStream.handshake(
             stream = stream,
@@ -198,5 +325,8 @@ class NoiseByteStreamTest {
     private companion object {
         const val MESSAGES = 50
         const val TIMEOUT = 10_000L
+
+        val BROWSER_PROLOGUE =
+            "keyguard-browser/v1\nchrome-extension://abcdefghijklmnopabcdefghijklmnop/".encodeToByteArray()
     }
 }

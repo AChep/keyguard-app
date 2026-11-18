@@ -54,6 +54,47 @@ class NativeCryptoNoiseTest {
     }
 
     @Test
+    fun xxHandshakeAndTransportRoundTrip() {
+        val alice = noise.generateKeyPair()
+        val bob = noise.generateKeyPair()
+        noise.xx(true, alice.privateKey, PROLOGUE).use { initiator ->
+            noise.xx(false, bob.privateKey, PROLOGUE).use { responder ->
+                assertEquals(NativeNoisePattern.XX, initiator.pattern)
+                assertNull(initiator.remoteStaticKey())
+
+                assertContentEquals(EMPTY, responder.readMessage(initiator.writeMessage()))
+                assertNull(responder.remoteStaticKey())
+                assertContentEquals(EMPTY, initiator.readMessage(responder.writeMessage()))
+                // The initiator knows the responder's key before it sends its own.
+                assertContentEquals(bob.publicKey, initiator.remoteStaticKey())
+                assertFalse(initiator.isFinished())
+                assertContentEquals(EMPTY, responder.readMessage(initiator.writeMessage()))
+                assertContentEquals(alice.publicKey, responder.remoteStaticKey())
+
+                assertTransportsTalk(initiator, responder)
+            }
+        }
+    }
+
+    @Test
+    fun aDifferentPrologueFailsTheXxHandshake() {
+        val alice = noise.generateKeyPair()
+        val bob = noise.generateKeyPair()
+        noise.xx(true, alice.privateKey, PROLOGUE).use { initiator ->
+            noise.xx(false, bob.privateKey, "keyguard-noise-other".encodeToByteArray()).use { responder ->
+                // The first message is in the clear, so the prologue first counts
+                // in the second.
+                responder.readMessage(initiator.writeMessage())
+                val message = responder.writeMessage()
+                val failure = assertFailsWith<NativeCryptoException> {
+                    initiator.readMessage(message)
+                }
+                assertEquals(NativeCryptoErrorCode.AUTHENTICATION_FAILED, failure.code)
+            }
+        }
+    }
+
+    @Test
     fun aKeyPairIsDerivedFromItsPrivateKey() {
         val generated = noise.generateKeyPair()
         val derived = noise.keyPairOf(generated.privateKey)

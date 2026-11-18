@@ -59,6 +59,50 @@ class RustWasmLibraryFunctionalTest {
     }
 
     @Test
+    fun aVariantHasItsOwnCargoArgumentsExportsAndDirectories() {
+        val root = fixture()
+        root.resolve("build.gradle.kts").appendText(
+            "\n" + """
+            keyguardRustWasm {
+                variants.register("noise") {
+                    cargoArguments.add("--no-default-features")
+                    exportedFunctions.set(listOf("malloc"))
+                }
+            }
+            val produceNoiseArchive = tasks.register<Copy>("produceNoiseArchive") {
+                from("archive-source")
+                into(layout.buildDirectory.dir("wasm/cargo-noise/wasm32-unknown-emscripten/release"))
+                rename { "libkeyguard_sample_c.a" }
+            }
+            val noiseCargo = tasks.named<CargoBuildTask>("cargoBuildNativeSampleWasmNoise")
+            noiseCargo.configure {
+                enabled = false
+                dependsOn(produceNoiseArchive)
+            }
+            val noiseClippy = tasks.named<EmscriptenClippyTask>("clippyNativeSampleWasmNoise")
+            tasks.register("printNoiseArguments") {
+                val cargo = noiseCargo.flatMap { it.cargoArguments }
+                val clippy = noiseClippy.flatMap { it.cargoArguments }
+                doLast { println("cargo=" + cargo.get() + " clippy=" + clippy.get()) }
+            }
+            """.trimIndent(),
+        )
+        val result = fixtureGradleRunner(
+            root, "buildNativeSampleWasm", "buildNativeSampleWasmNoise", "printNoiseArguments",
+            "--configuration-cache", "-Pkeyguard.wasm.emsdkDir=sdk",
+        ).build()
+
+        assertEquals(TaskOutcome.SUCCESS, result.task(":linkNativeSampleWasmNoise")?.outcome)
+        assertTrue(result.output.contains("cargo=[--locked, --jobs, 4, --no-default-features] clippy=[--no-default-features]"))
+        val noise = root.resolve("build/wasm/npm-noise/keyguard_sample.wasm").readText()
+        assertTrue(noise.contains("-sEXPORTED_FUNCTIONS=[\"_malloc\"]"))
+        assertEquals("adapter-v1", root.resolve("build/wasm/npm-noise/index.mjs").readText())
+        // The default build keeps its exports and directories.
+        val default = root.resolve("build/wasm/npm/keyguard_sample.wasm").readText()
+        assertTrue(default.contains("-sEXPORTED_FUNCTIONS=[\"_malloc\",\"_free\"]"))
+    }
+
+    @Test
     fun rejectsAnOverrideWithTheWrongSdkVersion() {
         val root = fixture()
         root.resolve("sdk/upstream/emscripten/emscripten-version.txt").writeText("99.0.0")

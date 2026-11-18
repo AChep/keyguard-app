@@ -1,6 +1,10 @@
 //! The Noise contract, driven through the protobuf dispatcher as the bridges
 //! drive it.
 
+// KKhfs runs ML-KEM, which needs `full`.
+#[cfg(feature = "full")]
+mod kk_hfs;
+
 use prost::Message;
 
 use crate::{
@@ -116,16 +120,16 @@ fn xx(initiator: bool, keys: &Keys, psk: &[u8]) -> u64 {
     .expect("XXpsk3")
 }
 
-fn kk(initiator: bool, keys: &Keys, remote: &[u8]) -> u64 {
+fn plain_xx(initiator: bool, keys: &Keys, prologue: &[u8]) -> u64 {
     open(
-        NoisePattern::KkHfs,
+        NoisePattern::Xx,
         initiator,
         &keys.private,
-        remote,
         &[],
-        PROLOGUE,
+        &[],
+        prologue,
     )
-    .expect("KKhfs")
+    .expect("XX")
 }
 
 fn write(handle: u64, payload: &[u8]) -> Result<Vec<u8>, NativeErrorCode> {
@@ -198,15 +202,6 @@ fn into_transports(initiator: u64, responder: u64) -> (u64, u64) {
     transports
 }
 
-fn kk_transports() -> (u64, u64) {
-    let (alice, bob) = (keys(), keys());
-    let initiator = kk(true, &alice, &bob.public);
-    let responder = kk(false, &bob, &alice.public);
-    read(responder, &write(initiator, b"").unwrap()).unwrap();
-    read(initiator, &write(responder, b"").unwrap()).unwrap();
-    into_transports(initiator, responder)
-}
-
 fn assert_transports_talk(initiator: u64, responder: u64) {
     for (from, to) in [(initiator, responder), (responder, initiator)] {
         let message = seal(from, b"vault delta").unwrap();
@@ -215,6 +210,39 @@ fn assert_transports_talk(initiator: u64, responder: u64) {
     }
     let empty = seal(initiator, b"").unwrap();
     assert_eq!(unseal(responder, &empty).unwrap(), b"");
+}
+
+/// An XX pair after its three messages: both handshakes are finished, and
+/// neither has turned into its transport yet.
+fn finished_xx() -> (u64, u64) {
+    let (alice, bob) = (keys(), keys());
+    let initiator = plain_xx(true, &alice, PROLOGUE);
+    let responder = plain_xx(false, &bob, PROLOGUE);
+    read(responder, &write(initiator, b"").unwrap()).unwrap();
+    read(initiator, &write(responder, b"").unwrap()).unwrap();
+    read(responder, &write(initiator, b"").unwrap()).unwrap();
+    (initiator, responder)
+}
+
+/// The transports of an XX pair. XX runs in every build, so the contract
+/// tests of the transport use it.
+fn xx_transports() -> (u64, u64) {
+    let (initiator, responder) = finished_xx();
+    into_transports(initiator, responder)
+}
+
+/// The arguments of a handshake open: the pattern, the local private key, the
+/// remote public key, the PSK and the prologue.
+type OpenArguments<'a> = (NoisePattern, &'a [u8], &'a [u8], &'a [u8], &'a [u8]);
+
+fn assert_opens_are_rejected(cases: &[OpenArguments<'_>]) {
+    for &(pattern, local, remote, psk, prologue) in cases {
+        assert_eq!(
+            open(pattern, true, local, remote, psk, prologue),
+            Err(InvalidArgument),
+            "{pattern:?}"
+        );
+    }
 }
 
 #[test]
@@ -247,68 +275,50 @@ fn xxpsk3_round_trips_and_learns_both_static_keys() {
 }
 
 #[test]
-fn kk_round_trips_between_pinned_keys() {
+fn xx_round_trips_and_learns_both_static_keys() {
     let (alice, bob) = (keys(), keys());
-    let initiator = kk(true, &alice, &bob.public);
-    let responder = kk(false, &bob, &alice.public);
-    assert_eq!(status(initiator).unwrap().remote_static_key, bob.public);
+    let initiator = plain_xx(true, &alice, PROLOGUE);
+    let responder = plain_xx(false, &bob, PROLOGUE);
+    assert!(status(initiator).unwrap().remote_static_key.is_empty());
 
-    assert_eq!(
-        read(responder, &write(initiator, b"one").unwrap()).unwrap(),
-        b"one"
-    );
-    assert_eq!(
-        read(initiator, &write(responder, b"two").unwrap()).unwrap(),
-        b"two"
-    );
-
-    let (initiator, responder) = into_transports(initiator, responder);
-    assert_transports_talk(initiator, responder);
-    close(initiator);
-    close(responder);
-}
-
-#[test]
-fn kk_hfs_carries_an_ml_kem_key_and_ciphertext() {
-    let (alice, bob) = (keys(), keys());
-    let initiator = kk(true, &alice, &bob.public);
-    let responder = kk(false, &bob, &alice.public);
-    // An ephemeral key, an encrypted ML-KEM-1024 key or ciphertext, and the
-    // tag of the empty payload.
-    let expected = KEY_BYTES + crate::ml_kem::PUBLIC_KEY_BYTES + TAG_BYTES + TAG_BYTES;
+    // -> e: the ephemeral key alone, as no key encrypts the payload yet.
     let first = write(initiator, b"").unwrap();
-    assert_eq!(first.len(), expected);
-    read(responder, &first).unwrap();
+    assert_eq!(first.len(), KEY_BYTES);
+    assert_eq!(read(responder, &first).unwrap(), b"");
+    assert!(status(responder).unwrap().remote_static_key.is_empty());
+    // <- e, ee, s, es: an ephemeral key, an encrypted static key and a tag.
     let second = write(responder, b"").unwrap();
-    assert_eq!(second.len(), expected);
-    read(initiator, &second).unwrap();
+    assert_eq!(second.len(), KEY_BYTES + KEY_BYTES + TAG_BYTES + TAG_BYTES);
+    assert_eq!(read(initiator, &second).unwrap(), b"");
+    // The initiator knows the responder's key before it sends its own.
+    let pending = status(initiator).unwrap();
+    assert_eq!(pending.remote_static_key, bob.public);
+    assert!(!pending.finished);
+    // -> s, se: an encrypted static key and a tag.
+    let third = write(initiator, b"").unwrap();
+    assert_eq!(third.len(), KEY_BYTES + TAG_BYTES + TAG_BYTES);
+    assert_eq!(read(responder, &third).unwrap(), b"");
+    assert_eq!(status(responder).unwrap().remote_static_key, alice.public);
+
     let (initiator, responder) = into_transports(initiator, responder);
     assert_transports_talk(initiator, responder);
-    close(initiator);
-    close(responder);
+    assert_eq!(close(initiator), NativeErrorCode::Ok);
+    assert_eq!(close(responder), NativeErrorCode::Ok);
 }
 
 #[test]
-fn a_changed_ml_kem_part_fails_the_handshake() {
-    // The first message carries the encapsulation key, the second the
-    // ciphertext; both right after the 32-byte ephemeral key.
-    for tamper_first in [true, false] {
-        let (alice, bob) = (keys(), keys());
-        let initiator = kk(true, &alice, &bob.public);
-        let responder = kk(false, &bob, &alice.public);
-        let mut first = write(initiator, b"").unwrap();
-        if tamper_first {
-            first[KEY_BYTES + 7] ^= 1;
-            assert_eq!(read(responder, &first), Err(AuthenticationFailed));
-        } else {
-            read(responder, &first).unwrap();
-            let mut second = write(responder, b"").unwrap();
-            second[KEY_BYTES + 7] ^= 1;
-            assert_eq!(read(initiator, &second), Err(AuthenticationFailed));
-        }
-        close(initiator);
-        close(responder);
-    }
+fn xx_fails_against_a_different_prologue() {
+    let (alice, bob) = (keys(), keys());
+    let initiator = plain_xx(true, &alice, PROLOGUE);
+    let responder = plain_xx(false, &bob, b"keyguard-noise-other");
+    // The first message is not encrypted, so the prologue first counts in the
+    // second.
+    read(responder, &write(initiator, b"").unwrap()).unwrap();
+    let second = write(responder, b"").unwrap();
+    assert_eq!(read(initiator, &second), Err(AuthenticationFailed));
+    assert_eq!(status(initiator).err(), Some(InvalidSession));
+    close(initiator);
+    close(responder);
 }
 
 #[test]
@@ -331,38 +341,22 @@ fn a_wrong_psk_fails_and_ends_the_session() {
 }
 
 #[test]
-fn kk_fails_against_a_wrong_pinned_key_on_either_side() {
-    let (alice, bob, mallory) = (keys(), keys(), keys());
-
-    // The initiator pins the wrong responder.
-    let initiator = kk(true, &alice, &mallory.public);
-    let responder = kk(false, &bob, &alice.public);
-    let message = write(initiator, b"one").unwrap();
-    assert_eq!(read(responder, &message), Err(AuthenticationFailed));
-    close(initiator);
-    close(responder);
-
-    // The responder pins the wrong initiator.
-    let initiator = kk(true, &alice, &bob.public);
-    let responder = kk(false, &bob, &mallory.public);
-    let message = write(initiator, b"one").unwrap();
-    assert_eq!(read(responder, &message), Err(AuthenticationFailed));
-    close(initiator);
-    close(responder);
-}
-
-#[test]
-fn a_low_order_remote_key_is_an_authentication_failure() {
-    let alice = keys();
-    let initiator = kk(true, &alice, &[0; KEY_BYTES]);
-    assert_eq!(write(initiator, b""), Err(AuthenticationFailed));
-    assert_eq!(status(initiator).err(), Some(InvalidSession));
-    close(initiator);
+fn a_key_pair_is_derived_from_its_private_key() {
+    let generated = keys();
+    let encoded = bytes(invoke(native_request::Operation::NoiseKeyPair(
+        NoiseKeyPairRequest {
+            private_key: generated.private.clone(),
+        },
+    )))
+    .unwrap();
+    let derived = NoiseKeyPairResult::decode(encoded.as_slice()).unwrap();
+    assert_eq!(derived.private_key, generated.private);
+    assert_eq!(derived.public_key, generated.public);
 }
 
 #[test]
 fn transport_messages_must_arrive_in_nonce_order() {
-    let (initiator, responder) = kk_transports();
+    let (initiator, responder) = xx_transports();
     let first = seal(initiator, b"first").unwrap();
     let second = seal(initiator, b"second").unwrap();
     assert_ne!(
@@ -377,14 +371,14 @@ fn transport_messages_must_arrive_in_nonce_order() {
     close(initiator);
     close(responder);
 
-    let (initiator, responder) = kk_transports();
+    let (initiator, responder) = xx_transports();
     let first = seal(initiator, b"first").unwrap();
     let second = seal(initiator, b"second").unwrap();
     assert_eq!(unseal(responder, &first).unwrap(), b"first");
     assert_eq!(unseal(responder, &second).unwrap(), b"second");
     // A replayed and a truncated message fail too.
     assert_eq!(unseal(responder, &second), Err(AuthenticationFailed));
-    let (initiator2, responder2) = kk_transports();
+    let (initiator2, responder2) = xx_transports();
     let third = seal(initiator2, b"third").unwrap();
     assert_eq!(
         unseal(responder2, &third[..TAG_BYTES - 1]),
@@ -396,22 +390,56 @@ fn transport_messages_must_arrive_in_nonce_order() {
 }
 
 #[test]
+fn the_largest_transport_payload_round_trips() {
+    // 65,519 bytes and the 16-byte tag fill the largest Noise message.
+    let payload = vec![0x5a; 65_519];
+    let (initiator, responder) = xx_transports();
+    for (from, to) in [(initiator, responder), (responder, initiator)] {
+        let message = seal(from, &payload).unwrap();
+        assert_eq!(message.len(), 65_535);
+        assert_eq!(unseal(to, &message).unwrap(), payload);
+        assert_eq!(seal(from, &vec![0; 65_520]), Err(InvalidArgument));
+    }
+    close(initiator);
+    close(responder);
+}
+
+#[test]
+fn concurrent_sessions_stay_independent() {
+    let threads: Vec<_> = (0..8)
+        .map(|_| {
+            std::thread::spawn(|| {
+                for _ in 0..16 {
+                    let (initiator, responder) = xx_transports();
+                    assert_transports_talk(initiator, responder);
+                    close(initiator);
+                    close(responder);
+                }
+            })
+        })
+        .collect();
+    for thread in threads {
+        thread.join().expect("a session thread must not panic");
+    }
+}
+
+#[test]
 fn protocol_misuse_is_reported_and_ends_the_session() {
     let (alice, bob) = (keys(), keys());
     // The responder may not speak first.
-    let responder = kk(false, &bob, &alice.public);
+    let responder = plain_xx(false, &bob, PROLOGUE);
     assert_eq!(write(responder, b""), Err(CryptoFailure));
     assert_eq!(status(responder).err(), Some(InvalidSession));
     close(responder);
 
     // Junk where a handshake message belongs.
-    let responder = kk(false, &bob, &alice.public);
+    let responder = plain_xx(false, &bob, PROLOGUE);
     assert_eq!(read(responder, b"junk"), Err(CryptoFailure));
     assert_eq!(status(responder).err(), Some(InvalidSession));
     close(responder);
 
     // An unfinished handshake cannot become a transport, and is spent.
-    let initiator = kk(true, &alice, &bob.public);
+    let initiator = plain_xx(true, &alice, PROLOGUE);
     assert!(!status(initiator).unwrap().finished);
     assert_eq!(into_transport(initiator), Err(CryptoFailure));
     assert_eq!(status(initiator).err(), Some(InvalidSession));
@@ -424,40 +452,22 @@ fn invalid_arguments_leave_the_session_usable() {
     let key = alice.private.as_slice();
     let remote = bob.public.as_slice();
     let oversized_prologue = vec![0; MAX_PROLOGUE_BYTES + 1];
-    for (pattern, local, remote, psk, prologue) in [
-        (NoisePattern::Unspecified, key, &[][..], &PSK[..], PROLOGUE),
-        (
-            NoisePattern::XxPsk3,
-            &key[..31],
-            &[][..],
-            &PSK[..],
-            PROLOGUE,
-        ),
-        (NoisePattern::XxPsk3, key, remote, &PSK[..], PROLOGUE),
-        (NoisePattern::XxPsk3, key, &[][..], &[][..], PROLOGUE),
-        (NoisePattern::XxPsk3, key, &[][..], &PSK[..31], PROLOGUE),
-        (NoisePattern::KkHfs, key, remote, &PSK[..], PROLOGUE),
-        (NoisePattern::KkHfs, key, &[][..], &[][..], PROLOGUE),
-        (NoisePattern::KkHfs, key, &remote[..31], &[][..], PROLOGUE),
-        (
-            NoisePattern::KkHfs,
-            key,
-            remote,
-            &[][..],
-            oversized_prologue.as_slice(),
-        ),
-    ] {
-        assert_eq!(
-            open(pattern, true, local, remote, psk, prologue),
-            Err(InvalidArgument),
-            "{pattern:?}"
-        );
-    }
+    assert_opens_are_rejected(&[
+        (NoisePattern::Unspecified, key, &[], &PSK, PROLOGUE),
+        (NoisePattern::XxPsk3, &key[..31], &[], &PSK, PROLOGUE),
+        (NoisePattern::XxPsk3, key, remote, &PSK, PROLOGUE),
+        (NoisePattern::XxPsk3, key, &[], &[], PROLOGUE),
+        (NoisePattern::XxPsk3, key, &[], &PSK[..31], PROLOGUE),
+        (NoisePattern::Xx, &key[..31], &[], &[], PROLOGUE),
+        (NoisePattern::Xx, key, remote, &[], PROLOGUE),
+        (NoisePattern::Xx, key, &[], &PSK, PROLOGUE),
+        (NoisePattern::Xx, key, &[], &[], &oversized_prologue),
+    ]);
     let unknown_pattern = NativeStreamOpenRequest {
         protocol_version: PROTOCOL_VERSION,
         operation: Some(native_stream_open_request::Operation::NoiseHandshake(
             NoiseHandshakeStreamOpenRequest {
-                pattern: 3,
+                pattern: 4,
                 initiator: true,
                 local_private_key: alice.private.clone(),
                 remote_public_key: bob.public.clone(),
@@ -471,8 +481,8 @@ fn invalid_arguments_leave_the_session_usable() {
         Err(InvalidArgument)
     );
 
-    let initiator = kk(true, &alice, &bob.public);
-    let responder = kk(false, &bob, &alice.public);
+    let initiator = plain_xx(true, &alice, PROLOGUE);
+    let responder = plain_xx(false, &bob, PROLOGUE);
     assert_eq!(
         write(initiator, &vec![0; MAX_HANDSHAKE_PAYLOAD_BYTES + 1]),
         Err(InvalidArgument)
@@ -485,6 +495,7 @@ fn invalid_arguments_leave_the_session_usable() {
     assert!(message.len() <= b"after".len() + HANDSHAKE_OVERHEAD_BYTES);
     assert_eq!(read(responder, &message).unwrap(), b"after");
     read(initiator, &write(responder, b"").unwrap()).unwrap();
+    read(responder, &write(initiator, b"").unwrap()).unwrap();
 
     let (initiator, responder) = into_transports(initiator, responder);
     assert_eq!(
@@ -509,26 +520,8 @@ fn invalid_arguments_leave_the_session_usable() {
 }
 
 #[test]
-fn a_key_pair_is_derived_from_its_private_key() {
-    let generated = keys();
-    let encoded = bytes(invoke(native_request::Operation::NoiseKeyPair(
-        NoiseKeyPairRequest {
-            private_key: generated.private.clone(),
-        },
-    )))
-    .unwrap();
-    let derived = NoiseKeyPairResult::decode(encoded.as_slice()).unwrap();
-    assert_eq!(derived.private_key, generated.private);
-    assert_eq!(derived.public_key, generated.public);
-}
-
-#[test]
 fn handles_of_the_wrong_kind_or_never_issued_are_rejected() {
-    let (alice, bob) = (keys(), keys());
-    let initiator = kk(true, &alice, &bob.public);
-    let responder = kk(false, &bob, &alice.public);
-    read(responder, &write(initiator, b"").unwrap()).unwrap();
-    read(initiator, &write(responder, b"").unwrap()).unwrap();
+    let (initiator, responder) = finished_xx();
     let transport = into_transport(initiator).unwrap();
 
     assert_eq!(status(transport).err(), Some(InvalidArgument));
@@ -556,21 +549,87 @@ fn handles_of_the_wrong_kind_or_never_issued_are_rejected() {
     }
 }
 
+/// Without `full`, the dispatcher offers Noise alone and refuses KKhfs, whose
+/// ML-KEM needs `full`, while XX still opens.
+#[cfg(not(feature = "full"))]
 #[test]
-fn concurrent_sessions_stay_independent() {
-    let threads: Vec<_> = (0..8)
-        .map(|_| {
-            std::thread::spawn(|| {
-                for _ in 0..16 {
-                    let (initiator, responder) = kk_transports();
-                    assert_transports_talk(initiator, responder);
-                    close(initiator);
-                    close(responder);
-                }
-            })
-        })
-        .collect();
-    for thread in threads {
-        thread.join().expect("a session thread must not panic");
+fn a_noise_only_build_refuses_kk_hfs() {
+    assert_eq!(crate::CAPABILITIES, crate::CAPABILITY_NOISE);
+    let (alice, bob) = (keys(), keys());
+    for initiator in [true, false] {
+        assert_eq!(
+            open(
+                NoisePattern::KkHfs,
+                initiator,
+                &alice.private,
+                &bob.public,
+                &[],
+                PROLOGUE,
+            ),
+            Err(NativeErrorCode::UnsupportedOperation)
+        );
     }
+    let initiator = plain_xx(true, &alice, PROLOGUE);
+    assert_eq!(close(initiator), NativeErrorCode::Ok);
+}
+
+/// Without `full`, a one-shot request, a stream and a data-plane call of
+/// `fast` that are not Noise answer UNSUPPORTED_OPERATION.
+#[cfg(not(feature = "full"))]
+#[test]
+fn a_noise_only_build_refuses_other_operations() {
+    use crate::{
+        fast,
+        protocol::{DigestRequest, DigestStreamOpenRequest, HashAlgorithm},
+    };
+    use NativeErrorCode::UnsupportedOperation;
+    const SENTINEL: u8 = 0xa5;
+
+    let digest = invoke(native_request::Operation::Digest(DigestRequest {
+        algorithm: HashAlgorithm::Sha256 as i32,
+        data: b"data".to_vec(),
+    }));
+    assert_eq!(code(&digest), UnsupportedOperation);
+    let digest_stream = NativeStreamOpenRequest {
+        protocol_version: PROTOCOL_VERSION,
+        operation: Some(native_stream_open_request::Operation::Digest(
+            DigestStreamOpenRequest {
+                algorithm: HashAlgorithm::Sha256 as i32,
+            },
+        )),
+    };
+    assert_eq!(
+        handle(decode(&stream_open(&digest_stream.encode_to_vec()))),
+        Err(UnsupportedOperation)
+    );
+
+    assert_eq!(fast::random_int(10), Err(UnsupportedOperation));
+    // The calls that fill caller buffers zero them.
+    let (mut ciphertext, mut mac) = ([SENTINEL; 32], [SENTINEL; 32]);
+    assert_eq!(
+        fast::encrypt_into(
+            &[1; 32],
+            &[2; 32],
+            &[3; 16],
+            b"plaintext",
+            &mut ciphertext,
+            &mut mac,
+        ),
+        Err(UnsupportedOperation)
+    );
+    assert_eq!(ciphertext, [0; 32]);
+    assert_eq!(mac, [0; 32]);
+    let mut plaintext = [SENTINEL; 32];
+    assert_eq!(
+        fast::decrypt_into(
+            &[1; 32],
+            &[2; 32],
+            &[3; 16],
+            &[4; 32],
+            &[5; 32],
+            &mut plaintext,
+        ),
+        Err(UnsupportedOperation)
+    );
+    assert_eq!(plaintext, [0; 32]);
 }

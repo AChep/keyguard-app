@@ -4,25 +4,43 @@
 
 #![forbid(unsafe_code)]
 
+// Without the `full` feature, only the envelope, the session registry and
+// Noise compile; the dispatchers answer UNSUPPORTED_OPERATION for the rest,
+// and for KKhfs, whose ML-KEM needs `full`.
+#[cfg(feature = "full")]
 mod argon2_compat;
+#[cfg(feature = "full")]
 mod ctap_prf;
+#[cfg(feature = "full")]
 mod ed25519;
+#[cfg_attr(not(feature = "full"), path = "fast_unsupported.rs")]
 pub mod fast;
+#[cfg(feature = "full")]
 mod hybrid;
+#[cfg(feature = "full")]
 mod legacy_pem;
 mod ml_kem;
 mod noise;
+#[cfg(feature = "full")]
 mod openpgp;
+#[cfg(feature = "full")]
 mod padding;
+#[cfg(feature = "full")]
 mod passkeys;
+#[cfg(feature = "full")]
 mod pkcs12;
+#[cfg(feature = "full")]
 mod pkcs8_pbes2;
 mod primitives;
 pub mod protocol;
 mod sessions;
+#[cfg(feature = "full")]
 mod ssh_certificates;
+#[cfg(feature = "full")]
 mod ssh_import;
+#[cfg(feature = "full")]
 mod ssh_keys;
+#[cfg(feature = "full")]
 mod x25519;
 
 use prost::Message;
@@ -30,9 +48,12 @@ use std::sync::Once;
 use zeroize::Zeroize;
 
 use primitives::PrimitiveError;
+#[cfg(feature = "full")]
 use protocol::{
-    Argon2Mode, CipherDirection, HashAlgorithm, NativeErrorCode, NativeRequest, NativeResponse,
-    NativeStatus, NativeStreamOpenRequest, RsaOaepHash, SshKeyType, StreamCipherAlgorithm,
+    Argon2Mode, CipherDirection, HashAlgorithm, RsaOaepHash, SshKeyType, StreamCipherAlgorithm,
+};
+use protocol::{
+    NativeErrorCode, NativeRequest, NativeResponse, NativeStatus, NativeStreamOpenRequest,
     native_request, native_response, native_stream_open_request,
 };
 use sessions::SessionError;
@@ -125,7 +146,9 @@ pub const CAPABILITY_HYBRID: u64 = 1 << 37;
 pub const CAPABILITY_CTAP_PRF: u64 = 1 << 38;
 /// RFC 8032 Ed25519 key generation, signing, and strict verification.
 pub const CAPABILITY_ED25519: u64 = 1 << 39;
-/// Noise XXpsk3 and KKhfs handshakes and transports over generation-tagged sessions.
+/// Noise XX and XXpsk3 handshakes and transports over generation-tagged
+/// sessions. They open and close through the stream calls even without
+/// [`CAPABILITY_STREAMING`]. KKhfs also needs [`CAPABILITY_ML_KEM`].
 pub const CAPABILITY_NOISE: u64 = 1 << 40;
 /// RFC 7748 X25519 key agreement that rejects low-order public keys.
 pub const CAPABILITY_X25519: u64 = 1 << 41;
@@ -136,8 +159,11 @@ pub const CAPABILITY_OPENPGP_DETACHED_VERIFY_STREAMING: u64 = 1 << 43;
 /// Incremental OpenPGP message encryption and authenticated decryption.
 pub const CAPABILITY_OPENPGP_MESSAGE_STREAMING: u64 = 1 << 44;
 
-// The experimental Emscripten backend has no pthread/shared-memory runtime.
-const UNAVAILABLE_CAPABILITIES: u64 = if cfg!(target_os = "emscripten") {
+// A build without the `full` feature runs Noise only, without ML-KEM. The
+// experimental Emscripten backend has no pthread/shared-memory runtime.
+const UNAVAILABLE_CAPABILITIES: u64 = if !cfg!(feature = "full") {
+    !CAPABILITY_NOISE
+} else if cfg!(target_os = "emscripten") {
     CAPABILITY_OPENPGP_DETACHED_VERIFY_STREAMING
         | CAPABILITY_OPENPGP_MESSAGE_STREAMING
         | CAPABILITY_OPENPGP_STREAM_DRAIN
@@ -254,12 +280,19 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
         | native_stream_open_request::Operation::OpenPgpDecrypt(_) => {
             CAPABILITY_OPENPGP_MESSAGE_STREAMING
         }
+        // The `hfs` exchange runs ML-KEM.
+        native_stream_open_request::Operation::NoiseHandshake(request)
+            if request.pattern == protocol::NoisePattern::KkHfs as i32 =>
+        {
+            CAPABILITY_ML_KEM
+        }
         _ => 0,
     };
     if CAPABILITIES & required_capability != required_capability {
         return error_response(operation_name, NativeErrorCode::UnsupportedOperation);
     }
     match operation {
+        #[cfg(feature = "full")]
         native_stream_open_request::Operation::Digest(request) => {
             let algorithm = match parse_hash_algorithm(request.algorithm) {
                 Ok(algorithm) => algorithm,
@@ -269,6 +302,7 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
             };
             stream_open_response(operation_name, sessions::open_digest(algorithm))
         }
+        #[cfg(feature = "full")]
         native_stream_open_request::Operation::Hmac(mut request) => {
             let algorithm = match parse_hash_algorithm(request.algorithm) {
                 Ok(algorithm) => algorithm,
@@ -279,6 +313,7 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
             let key = std::mem::take(&mut request.key);
             stream_open_response(operation_name, sessions::open_hmac(algorithm, key))
         }
+        #[cfg(feature = "full")]
         native_stream_open_request::Operation::AesCbcPkcs7(mut request) => {
             let direction = match parse_cipher_direction(request.direction) {
                 Ok(direction) => direction,
@@ -293,6 +328,7 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
                 sessions::open_aes_cbc_pkcs7(direction, key, iv),
             )
         }
+        #[cfg(feature = "full")]
         native_stream_open_request::Operation::TwofishCbcPkcs7(mut request) => {
             let direction = match parse_cipher_direction(request.direction) {
                 Ok(direction) => direction,
@@ -307,6 +343,7 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
                 sessions::open_twofish_cbc_pkcs7(direction, key, iv),
             )
         }
+        #[cfg(feature = "full")]
         native_stream_open_request::Operation::AesCbcPkcs7HmacSha256Encrypt(mut request) => {
             let encryption_key = std::mem::take(&mut request.encryption_key);
             let mac_key = std::mem::take(&mut request.mac_key);
@@ -316,6 +353,7 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
                 sessions::open_aes_cbc_pkcs7_hmac_sha256_encrypt(encryption_key, mac_key, iv),
             )
         }
+        #[cfg(feature = "full")]
         native_stream_open_request::Operation::AesCbcPkcs7HmacSha256Decrypt(mut request) => {
             let encryption_key = std::mem::take(&mut request.encryption_key);
             let mac_key = std::mem::take(&mut request.mac_key);
@@ -331,30 +369,36 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
                 ),
             )
         }
+        #[cfg(feature = "full")]
         native_stream_open_request::Operation::OpenPgpDetachedVerify(request) => {
             stream_open_response(
                 operation_name,
                 sessions::open_openpgp(openpgp::adapter::OpenPgpSession::detached_verify(request)),
             )
         }
+        #[cfg(feature = "full")]
         native_stream_open_request::Operation::OpenPgpDetachedSign(request) => {
             stream_open_response(
                 operation_name,
                 sessions::open_openpgp(openpgp::adapter::OpenPgpSession::detached_sign(request)),
             )
         }
+        #[cfg(feature = "full")]
         native_stream_open_request::Operation::OpenPgpClearSign(request) => stream_open_response(
             operation_name,
             sessions::open_openpgp(openpgp::adapter::OpenPgpSession::clear_sign(request)),
         ),
+        #[cfg(feature = "full")]
         native_stream_open_request::Operation::OpenPgpClearVerify(request) => stream_open_response(
             operation_name,
             sessions::open_openpgp(openpgp::adapter::OpenPgpSession::clear_verify(request)),
         ),
+        #[cfg(feature = "full")]
         native_stream_open_request::Operation::OpenPgpEncrypt(request) => stream_open_response(
             operation_name,
             sessions::open_openpgp(openpgp::adapter::OpenPgpSession::encrypt(request)),
         ),
+        #[cfg(feature = "full")]
         native_stream_open_request::Operation::OpenPgpDecrypt(request) => stream_open_response(
             operation_name,
             sessions::open_openpgp(openpgp::adapter::OpenPgpSession::decrypt(request)),
@@ -362,6 +406,8 @@ pub fn stream_open(request_bytes: &[u8]) -> Vec<u8> {
         native_stream_open_request::Operation::NoiseHandshake(request) => {
             stream_open_response(operation_name, sessions::open_noise_handshake(request))
         }
+        #[cfg(not(feature = "full"))]
+        _ => error_response(operation_name, NativeErrorCode::UnsupportedOperation),
     }
 }
 
@@ -425,17 +471,20 @@ fn execute_one_shot(
     operation: native_request::Operation,
 ) -> Result<native_response::Result, NativeErrorCode> {
     let result = match operation {
+        #[cfg(feature = "full")]
         native_request::Operation::HkdfSha256(mut request) => {
             let seed = std::mem::take(&mut request.seed);
             let salt = std::mem::take(&mut request.salt);
             let info = std::mem::take(&mut request.info);
             primitives::hkdf_sha256(seed, salt, info, request.length)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::Pbkdf2Sha256(mut request) => {
             let seed = std::mem::take(&mut request.seed);
             let salt = std::mem::take(&mut request.salt);
             primitives::pbkdf2_sha256(seed, salt, request.iterations, request.length)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::Argon2(mut request) => {
             let mode = parse_argon2_mode(request.mode)?;
             let version = parse_argon2_version(request.version)?;
@@ -456,25 +505,30 @@ fn execute_one_shot(
                 request.length,
             )?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::RandomBytes(request) => {
             primitives::random_bytes(request.length)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::Hmac(mut request) => {
             let algorithm = parse_hash_algorithm(request.algorithm)?;
             let key = std::mem::take(&mut request.key);
             let data = std::mem::take(&mut request.data);
             primitives::hmac(algorithm, key, data)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::Digest(mut request) => {
             let algorithm = parse_hash_algorithm(request.algorithm)?;
             let data = std::mem::take(&mut request.data);
             primitives::digest(algorithm, data)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::AesEcbNoPaddingEncrypt(mut request) => {
             let key = std::mem::take(&mut request.key);
             let data = std::mem::take(&mut request.data);
             primitives::aes_ecb_no_padding_encrypt(key, data)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::AesCbcPkcs7(mut request) => {
             let direction = parse_cipher_direction(request.direction)?;
             let key = std::mem::take(&mut request.key);
@@ -482,6 +536,7 @@ fn execute_one_shot(
             let data = std::mem::take(&mut request.data);
             primitives::aes_cbc_pkcs7(direction, key, iv, data)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::AesCbcPkcs7HmacSha256Encrypt(mut request) => {
             let encryption_key = std::mem::take(&mut request.encryption_key);
             let mac_key = std::mem::take(&mut request.mac_key);
@@ -495,6 +550,7 @@ fn execute_one_shot(
             )?;
             protocol::AesCbcPkcs7HmacSha256EncryptResult { ciphertext, mac }.encode_to_vec()
         }
+        #[cfg(feature = "full")]
         native_request::Operation::AesCbcPkcs7HmacSha256Decrypt(mut request) => {
             let encryption_key = std::mem::take(&mut request.encryption_key);
             let mac_key = std::mem::take(&mut request.mac_key);
@@ -509,11 +565,13 @@ fn execute_one_shot(
                 expected_mac,
             )?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::AesEcbNoPaddingTransform(mut request) => {
             let key = std::mem::take(&mut request.key);
             let data = std::mem::take(&mut request.data);
             primitives::aes_ecb_no_padding_transform(key, data, request.rounds)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::StreamCipherXorAtOffset(mut request) => {
             let algorithm = parse_stream_cipher_algorithm(request.algorithm)?;
             let key = std::mem::take(&mut request.key);
@@ -521,22 +579,26 @@ fn execute_one_shot(
             let data = std::mem::take(&mut request.data);
             primitives::stream_cipher_xor_at_offset(algorithm, key, nonce, request.offset, data)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::RsaOaepEncrypt(mut request) => {
             let hash = parse_rsa_oaep_hash(request.hash)?;
             let public_key_spki = std::mem::take(&mut request.public_key_spki);
             let plaintext = std::mem::take(&mut request.plaintext);
             primitives::rsa_oaep_encrypt(hash, public_key_spki, plaintext)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::RsaOaepDecrypt(mut request) => {
             let hash = parse_rsa_oaep_hash(request.hash)?;
             let private_key_pkcs8 = std::mem::take(&mut request.private_key_pkcs8);
             let ciphertext = std::mem::take(&mut request.ciphertext);
             primitives::rsa_oaep_decrypt(hash, private_key_pkcs8, ciphertext)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::RsaPkcs8ToSpki(mut request) => {
             let private_key_pkcs8 = std::mem::take(&mut request.private_key_pkcs8);
             primitives::rsa_pkcs8_to_spki(private_key_pkcs8)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::SshAgentTcpChacha20Poly1305(mut request) => {
             let direction = parse_cipher_direction(request.direction)?;
             let key = std::mem::take(&mut request.key);
@@ -545,58 +607,76 @@ fn execute_one_shot(
             let payload = std::mem::take(&mut request.payload);
             primitives::ssh_agent_tcp_chacha20_poly1305(direction, key, nonce, header, payload)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::SshKeyGenerate(request) => {
             ssh_keys::generate(parse_ssh_key_type(request.r#type)?, request.rsa_bits)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::SshKeyParse(mut request) => ssh_keys::parse(
             std::mem::take(&mut request.private_key_pem),
             std::mem::take(&mut request.public_key_openssh),
         )?,
+        #[cfg(feature = "full")]
         native_request::Operation::SshKeyDescribe(mut request) => ssh_keys::describe(
             parse_ssh_key_type(request.r#type)?,
             std::mem::take(&mut request.private_key),
             std::mem::take(&mut request.public_key),
         )?,
+        #[cfg(feature = "full")]
         native_request::Operation::SshPrivateKeyRsaBits(mut request) => {
             let bits = ssh_keys::private_key_rsa_bits(std::mem::take(&mut request.private_key));
             return Ok(native_response::Result::Int32Value(bits));
         }
+        #[cfg(feature = "full")]
         native_request::Operation::SshAgentSign(mut request) => ssh_keys::sign(
             std::mem::take(&mut request.private_key_pem),
             std::mem::take(&mut request.public_key_openssh),
             std::mem::take(&mut request.data),
             request.flags,
         )?,
+        #[cfg(feature = "full")]
         native_request::Operation::SshPrivateKeyImport(mut request) => ssh_import::import(
             std::mem::take(&mut request.content),
             std::mem::take(&mut request.passphrase_utf8),
         )?,
+        #[cfg(feature = "full")]
         native_request::Operation::SshKeyExportCxf(mut request) => ssh_keys::export_cxf(
             std::mem::take(&mut request.private_key_pem),
             std::mem::take(&mut request.public_key_openssh),
         )?,
+        #[cfg(feature = "full")]
         native_request::Operation::SshPublicKeyDecode(mut request) => {
             ssh_keys::public_key_decode(std::mem::take(&mut request.public_key_openssh))?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::Pkcs12(request) => pkcs12::process(request),
+        #[cfg(feature = "full")]
         native_request::Operation::HybridHandshake(request) => hybrid::handshake(&request)?,
+        #[cfg(feature = "full")]
         native_request::Operation::HybridTraffic(request) => {
             hybrid::traffic(parse_cipher_direction(request.direction)?, &request)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::CtapPrfKeyGenerate(_) => ctap_prf::generate()?,
+        #[cfg(feature = "full")]
         native_request::Operation::CtapPrfSaltsOpen(request) => ctap_prf::open(&request)?,
+        #[cfg(feature = "full")]
         native_request::Operation::CtapPrfOutputSeal(request) => ctap_prf::seal(&request)?,
+        #[cfg(feature = "full")]
         native_request::Operation::SshCertificateDescribe(mut request) => {
             ssh_certificates::describe(
                 std::mem::take(&mut request.certificate_openssh),
                 request.public_key_openssh.take(),
             )?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::Ed25519KeyGenerate(_) => ed25519::generate()?,
+        #[cfg(feature = "full")]
         native_request::Operation::Ed25519Sign(mut request) => ed25519::sign(
             std::mem::take(&mut request.private_key),
             std::mem::take(&mut request.data),
         )?,
+        #[cfg(feature = "full")]
         native_request::Operation::Ed25519Verify(mut request) => ed25519::verify(
             std::mem::take(&mut request.public_key),
             std::mem::take(&mut request.data),
@@ -605,48 +685,65 @@ fn execute_one_shot(
         native_request::Operation::NoiseKeyPair(mut request) => {
             noise::key_pair(std::mem::take(&mut request.private_key))?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::X25519Agree(mut request) => x25519::agree(
             std::mem::take(&mut request.private_key),
             std::mem::take(&mut request.public_key),
         )?,
+        #[cfg(feature = "full")]
         native_request::Operation::MlKemKeyGenerate(_) => ml_kem::key_generate()?,
+        #[cfg(feature = "full")]
         native_request::Operation::MlKemEncapsulate(request) => {
             ml_kem::encapsulate_op(&request.public_key)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::MlKemDecapsulate(mut request) => ml_kem::decapsulate_op(
             std::mem::take(&mut request.private_key),
             &request.ciphertext,
         )?,
+        #[cfg(feature = "full")]
         native_request::Operation::PasskeyKeyGenerate(request) => {
             passkeys::generate(request.algorithm)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::PasskeyKeyInspect(mut request) => {
             passkeys::inspect(std::mem::take(&mut request.private_key_pkcs8))?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::PasskeySign(mut request) => passkeys::sign(
             request.algorithm,
             std::mem::take(&mut request.private_key_pkcs8),
             std::mem::take(&mut request.data),
         )?,
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpPublicKeyParse(request) => {
             openpgp::adapter::parse_public_key(request)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpVerify(request) => openpgp::adapter::verify(request)?,
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpMetadataResolve(request) => {
             openpgp::adapter::resolve_metadata(request)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpUserIdCertificationEvaluate(request) => {
             openpgp::adapter::evaluate_user_id_certifications(request)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpKeyGenerate(request) => {
             openpgp::adapter::generate_key(request)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpKeyImport(request) => {
             openpgp::adapter::import_key(request)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpSign(request) => openpgp::adapter::sign(request)?,
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpEncrypt(request) => openpgp::adapter::encrypt(request)?,
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpDecrypt(request) => openpgp::adapter::decrypt(request)?,
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpStreamDrain(request) => {
             if CAPABILITIES & CAPABILITY_OPENPGP_STREAM_DRAIN == 0 {
                 return Err(NativeErrorCode::UnsupportedOperation);
@@ -680,27 +777,36 @@ fn execute_one_shot(
                 transport.read(&request.message)
             })?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpExpirationUpdate(request) => {
             openpgp::adapter::update_expiration(request)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpCertificateMaterialReconcileV2(request) => {
             openpgp::adapter::reconcile_certificate_material_v2(request)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpUserIdRevocation(request) => {
             openpgp::adapter::revoke_user_id(request)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpUserIdUpdate(request) => {
             openpgp::adapter::update_user_id(request)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpUserIdReplacement(request) => {
             openpgp::adapter::replace_user_id(request)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpAgentSign(request) => {
             openpgp::adapter::agent_sign(request)?
         }
+        #[cfg(feature = "full")]
         native_request::Operation::OpenPgpAgentDecrypt(request) => {
             openpgp::adapter::agent_decrypt(request)?
         }
+        #[cfg(not(feature = "full"))]
+        _ => return Err(NativeErrorCode::UnsupportedOperation),
     };
     Ok(native_response::Result::BytesValue(result))
 }
@@ -824,6 +930,7 @@ fn stream_open_response(operation: &'static str, result: Result<u64, SessionErro
     }
 }
 
+#[cfg(feature = "full")]
 fn parse_argon2_mode(value: i32) -> Result<Argon2Mode, PrimitiveError> {
     Argon2Mode::try_from(value)
         .ok()
@@ -831,6 +938,7 @@ fn parse_argon2_mode(value: i32) -> Result<Argon2Mode, PrimitiveError> {
         .ok_or(PrimitiveError::InvalidArgument)
 }
 
+#[cfg(feature = "full")]
 fn parse_argon2_version(value: u32) -> Result<argon2::Version, PrimitiveError> {
     match value {
         0 | 0x13 => Ok(argon2::Version::V0x13),
@@ -839,6 +947,7 @@ fn parse_argon2_version(value: u32) -> Result<argon2::Version, PrimitiveError> {
     }
 }
 
+#[cfg(feature = "full")]
 fn parse_stream_cipher_algorithm(value: i32) -> Result<StreamCipherAlgorithm, PrimitiveError> {
     StreamCipherAlgorithm::try_from(value)
         .ok()
@@ -846,6 +955,7 @@ fn parse_stream_cipher_algorithm(value: i32) -> Result<StreamCipherAlgorithm, Pr
         .ok_or(PrimitiveError::InvalidArgument)
 }
 
+#[cfg(feature = "full")]
 fn parse_hash_algorithm(value: i32) -> Result<HashAlgorithm, PrimitiveError> {
     HashAlgorithm::try_from(value)
         .ok()
@@ -853,6 +963,7 @@ fn parse_hash_algorithm(value: i32) -> Result<HashAlgorithm, PrimitiveError> {
         .ok_or(PrimitiveError::InvalidArgument)
 }
 
+#[cfg(feature = "full")]
 fn parse_rsa_oaep_hash(value: i32) -> Result<RsaOaepHash, PrimitiveError> {
     RsaOaepHash::try_from(value)
         .ok()
@@ -860,6 +971,7 @@ fn parse_rsa_oaep_hash(value: i32) -> Result<RsaOaepHash, PrimitiveError> {
         .ok_or(PrimitiveError::InvalidArgument)
 }
 
+#[cfg(feature = "full")]
 fn parse_ssh_key_type(value: i32) -> Result<SshKeyType, PrimitiveError> {
     SshKeyType::try_from(value)
         .ok()
@@ -867,6 +979,7 @@ fn parse_ssh_key_type(value: i32) -> Result<SshKeyType, PrimitiveError> {
         .ok_or(PrimitiveError::InvalidArgument)
 }
 
+#[cfg(feature = "full")]
 fn parse_cipher_direction(value: i32) -> Result<CipherDirection, PrimitiveError> {
     CipherDirection::try_from(value)
         .ok()
@@ -960,7 +1073,7 @@ impl Drop for ResponseBytesGuard<'_> {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "full"))]
 mod tests {
     use super::*;
     use aws_lc_rs::{
@@ -2977,7 +3090,7 @@ mod tests {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "full"))]
 mod drain_protocol_tests {
     use super::*;
 

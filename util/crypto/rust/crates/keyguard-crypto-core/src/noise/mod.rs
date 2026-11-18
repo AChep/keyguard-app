@@ -1,6 +1,7 @@
-//! Noise handshakes and transports of device-to-device sync.
+//! Noise handshakes and transports of device-to-device sync and of the browser
+//! extension.
 //!
-//! [`snow`] runs the two Keyguard patterns over the primitives of this crate
+//! [`snow`] runs the three Keyguard patterns over the primitives of this crate
 //! (see [`resolver`]); snow's own primitives stay disabled.
 //!
 //! - `Noise_XXpsk3_25519_ChaChaPoly_SHA256` pairs two devices. Each side learns
@@ -11,6 +12,9 @@
 //!   names it Kyber1024, see [`resolver`]), so the session keys hold as long as
 //!   either X25519 or ML-KEM does: a recorded session stays sealed against a
 //!   quantum computer.
+//! - `Noise_XX_25519_ChaChaPoly_SHA256` runs the browser extension's pairings
+//!   and sessions. Each side learns the other's static key; the caller checks
+//!   it against the key it pinned, or confirms a new one out of band.
 //!
 //! Handshakes and transports live in the generation-tagged session registry,
 //! at most [`MAX_LIVE_SESSIONS`] at once, so a misbehaving peer cannot crowd
@@ -20,6 +24,8 @@
 //! is closed. Kotlin owns framing, timeouts and retries. A transport never
 //! rekeys; Kotlin replaces it with a new handshake.
 
+#[cfg(test)]
+mod browser_vectors;
 #[cfg(test)]
 mod dispatch_tests;
 mod resolver;
@@ -54,9 +60,10 @@ const PSK_BYTES: usize = 32;
 const TAG_BYTES: usize = 16;
 /// Largest Noise message.
 const MAX_MESSAGE_BYTES: usize = 65_535;
-/// Largest number of bytes a handshake message of either pattern adds to its
+/// Largest number of bytes a handshake message of any pattern adds to its
 /// payload: an ephemeral key, an encrypted ML-KEM key or ciphertext, and two
-/// tags. An encrypted static key of XXpsk3 is shorter than the ML-KEM part.
+/// tags. An encrypted static key of XX or XXpsk3 is shorter than the ML-KEM
+/// part.
 const HANDSHAKE_OVERHEAD_BYTES: usize = KEY_BYTES + KEM_BYTES + TAG_BYTES + TAG_BYTES;
 /// Largest payload of a handshake message.
 const MAX_HANDSHAKE_PAYLOAD_BYTES: usize = MAX_MESSAGE_BYTES - HANDSHAKE_OVERHEAD_BYTES;
@@ -175,6 +182,7 @@ fn protocol_name(pattern: NoisePattern) -> Option<&'static str> {
     match pattern {
         NoisePattern::XxPsk3 => Some("Noise_XXpsk3_25519_ChaChaPoly_SHA256"),
         NoisePattern::KkHfs => Some("Noise_KKhfs_25519+Kyber1024_ChaChaPoly_SHA256"),
+        NoisePattern::Xx => Some("Noise_XX_25519_ChaChaPoly_SHA256"),
         NoisePattern::Unspecified => None,
     }
 }
@@ -191,7 +199,7 @@ pub(crate) struct Handshake {
 /// Starts a handshake.
 ///
 /// XXpsk3 takes a PSK and no remote key; KKhfs takes the pinned remote key and
-/// no PSK. An empty key counts as absent.
+/// no PSK; XX takes neither. An empty key counts as absent.
 pub(crate) fn open_handshake(
     mut request: NoiseHandshakeStreamOpenRequest,
 ) -> Result<Handshake, SessionError> {
@@ -204,16 +212,17 @@ pub(crate) fn open_handshake(
         return Err(SessionError::InvalidArgument);
     }
     let remote_public_key = request.remote_public_key.as_slice();
-    let psk: Option<&[u8; PSK_BYTES]> = match pattern {
-        NoisePattern::XxPsk3 if remote_public_key.is_empty() => Some(
-            psk_bytes
-                .as_slice()
-                .try_into()
-                .map_err(|_| SessionError::InvalidArgument)?,
-        ),
-        NoisePattern::KkHfs if remote_public_key.len() == KEY_BYTES && psk_bytes.is_empty() => None,
-        _ => return Err(SessionError::InvalidArgument),
+    let psk: Option<&[u8; PSK_BYTES]> = psk_bytes.as_slice().try_into().ok();
+    // No wildcard: a new pattern must state the keys it takes.
+    let valid = match pattern {
+        NoisePattern::XxPsk3 => remote_public_key.is_empty() && psk.is_some(),
+        NoisePattern::KkHfs => remote_public_key.len() == KEY_BYTES && psk_bytes.is_empty(),
+        NoisePattern::Xx => remote_public_key.is_empty() && psk_bytes.is_empty(),
+        NoisePattern::Unspecified => false,
     };
+    if !valid {
+        return Err(SessionError::InvalidArgument);
+    }
     let live = LiveSession::acquire(&LIVE_SESSIONS)?;
     let builder = builder(
         name,
@@ -234,7 +243,8 @@ pub(crate) fn open_handshake(
     })
 }
 
-/// A builder over the primitives of [`resolver`].
+/// A builder over the primitives of [`resolver`]. An empty remote key is
+/// absent: the pattern learns it during the handshake.
 fn builder<'a>(
     name: &str,
     local_private_key: &'a [u8],
@@ -248,6 +258,7 @@ fn builder<'a>(
         .and_then(|builder| builder.prologue(prologue))
         .and_then(|builder| match psk {
             Some(psk) => builder.psk(PSK_LOCATION, psk),
+            None if remote_public_key.is_empty() => Ok(builder),
             None => builder.remote_public_key(remote_public_key),
         })
         .map_err(|_| SessionError::Internal)?;

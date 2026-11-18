@@ -79,7 +79,11 @@ impl CryptoResolver for Resolver {
 
     fn resolve_kem(&self, choice: &KemChoice) -> Option<Box<dyn Kem>> {
         match choice {
-            KemChoice::Kyber1024 => Some(Box::new(MlKem1024::default())),
+            // ML-KEM comes with the `full` feature: AWS-LC runs it through
+            // EVP_PKEY, which links every key type. Without it the dispatcher
+            // refuses KKhfs before it gets here.
+            KemChoice::Kyber1024 if cfg!(feature = "full") => Some(Box::new(MlKem1024::default())),
+            KemChoice::Kyber1024 => None,
         }
     }
 }

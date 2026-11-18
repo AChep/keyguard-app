@@ -60,6 +60,10 @@ def classify(paths, *, full=False, all_checks=False):
         if path.startswith("docs/security/native-crypto-"):
             enable("crypto")
             continue
+        # The native crypto tests check the browser extension's Noise vectors.
+        if path.startswith("browserExtension/protocol/vectors/"):
+            enable("crypto")
+            continue
         if path.endswith((".md", ".txt")) and not path.startswith(".github/native-crypto-"):
             continue
         if (

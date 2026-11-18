@@ -429,9 +429,10 @@ message Ed25519VerifyResult {
   bool valid = 1;
 }
 
-// Noise handshakes and transports of device-to-device sync. Both patterns use
-// Curve25519, ChaCha20-Poly1305 and SHA-256; KK_HFS adds ML-KEM-1024, which
-// snow names Kyber1024. A handshake is a stream session:
+// Noise handshakes and transports of device-to-device sync and of the browser
+// extension. Every pattern uses Curve25519, ChaCha20-Poly1305 and SHA-256;
+// KK_HFS adds ML-KEM-1024, which snow names Kyber1024. A handshake is a stream
+// session:
 // stream_open starts it, the requests below that take its handle drive it,
 // and stream_close releases it and wipes its keys.
 enum NoisePattern {
@@ -444,6 +445,9 @@ enum NoisePattern {
   // ML-KEM-1024 exchange joins the Diffie-Hellman ones, so a recorded session
   // stays sealed against a quantum computer.
   NOISE_PATTERN_KK_HFS = 2;
+  // Noise_XX_25519_ChaChaPoly_SHA256: the browser extension. Each side learns
+  // the other's static key; the caller checks it against the one it pinned.
+  NOISE_PATTERN_XX = 3;
 }
 
 // Generates a Curve25519 static key pair, or derives the public key of a
@@ -459,8 +463,8 @@ message NoiseKeyPairResult {
 }
 
 // XX_PSK3 takes a 32-byte psk and no remote_public_key. KK_HFS takes the pinned
-// 32-byte remote_public_key and no psk. Both sides pass the same prologue, at
-// most 65535 bytes.
+// 32-byte remote_public_key and no psk. XX takes neither. Both sides pass the
+// same prologue, at most 65535 bytes.
 message NoiseHandshakeStreamOpenRequest {
   NoisePattern pattern = 1;
   bool initiator = 2;

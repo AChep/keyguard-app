@@ -1,5 +1,8 @@
 //! Property tests for boundary-visible primitive and streaming invariants.
 
+// The operations under test need `full`.
+#![cfg(feature = "full")]
+
 use keyguard_crypto_core::{
     PROTOCOL_VERSION, call,
     protocol::{

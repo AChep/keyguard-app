@@ -72,6 +72,7 @@ val executableAppResourceNames = setOf(
     "keyguard-gpg-agent",
     "keyguard-cli-agent",
     "keyguard",
+    "keyguard-browser-host",
     "keyguard-lib",
 )
 
@@ -87,6 +88,8 @@ val bundledAppResources = bundledAppResourcesFrom(
         // The agent accepts only the keyguard CLI bundled next to it.
         ":desktopCliAgent",
         ":desktopCli",
+        // The browser extension's connector, also accepted only when bundled next to the agent.
+        ":desktopBrowserHost",
         ":desktopLibNative",
         // The private channel between the app and its agent helpers.
         ":util:agent-ipc",

@@ -36,19 +36,33 @@ impl BrowserRequest {
     }
 }
 
-/// `chrome-extension://` with 32 letters `a` to `p`, then `/`; or the ID of
-/// a Firefox extension: printable ASCII without spaces or `/`. A string that
-/// starts as a Chromium origin is only ever read as one.
+/// The scheme of Chromium extensions. A string that starts with it is only
+/// ever read as a Chromium origin, never as a Firefox ID.
+const CHROMIUM_SCHEME: &str = "chrome-extension:";
+
+/// A Chromium origin or a Firefox extension ID, see [`is_chromium_origin`]
+/// and [`is_firefox_extension_id`].
 pub fn is_extension_origin(origin: &str) -> bool {
-    if let Some(rest) = origin.strip_prefix(CHROMIUM_ORIGIN_PREFIX) {
-        let Some(id) = rest.strip_suffix('/') else {
-            return false;
-        };
-        return id.len() == CHROME_EXTENSION_ID_LENGTH
-            && id.bytes().all(|byte| (b'a'..=b'p').contains(&byte));
-    }
-    (1..=MAX_FIREFOX_EXTENSION_ID).contains(&origin.len())
-        && origin
+    is_chromium_origin(origin) || is_firefox_extension_id(origin)
+}
+
+/// `chrome-extension://` with 32 letters `a` to `p`, then `/`.
+pub fn is_chromium_origin(origin: &str) -> bool {
+    let Some(id) = origin
+        .strip_prefix(CHROMIUM_ORIGIN_PREFIX)
+        .and_then(|rest| rest.strip_suffix('/'))
+    else {
+        return false;
+    };
+    id.len() == CHROME_EXTENSION_ID_LENGTH && id.bytes().all(|byte| (b'a'..=b'p').contains(&byte))
+}
+
+/// The ID of a Firefox extension: printable ASCII without spaces or `/`, and
+/// nothing that starts as a Chromium origin.
+pub fn is_firefox_extension_id(id: &str) -> bool {
+    !id.starts_with(CHROMIUM_SCHEME)
+        && (1..=MAX_FIREFOX_EXTENSION_ID).contains(&id.len())
+        && id
             .bytes()
             .all(|byte| byte.is_ascii_graphic() && byte != b'/')
 }
@@ -85,6 +99,8 @@ mod tests {
             "chrome-extension://abcdefghijklmnopabcdefghijklmnop",
             "chrome-extension://abcdefghijklmnopabcdefghijklmnop/path",
             "chrome-extension://",
+            // Starts as a Chromium origin, so never a Firefox ID.
+            "chrome-extension:abcdefghijklmnopabcdefghijklmnop",
             // Not a Firefox extension ID.
             "moz-extension://8a3b1c2d-4e5f-6a7b-8c9d-0e1f2a3b4c5d/",
             "with space@example.com",
@@ -94,6 +110,13 @@ mod tests {
         ] {
             assert!(!is_extension_origin(origin), "{origin:?}");
         }
+    }
+
+    #[test]
+    fn each_origin_is_of_one_kind() {
+        assert!(is_chromium_origin(CHROME) && !is_firefox_extension_id(CHROME));
+        let firefox = "keyguard@artemchep.com";
+        assert!(is_firefox_extension_id(firefox) && !is_chromium_origin(firefox));
     }
 
     #[test]

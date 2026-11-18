@@ -106,6 +106,9 @@ MODULES = {
 DESKTOP_MODULES = ("crypto", "io", "age", "zxcvbn", "webrtc", "instance", "yubikey", "fido2", "agent_ipc")
 # The passkey provider exists only on Windows; other desktop packages do not bundle it.
 WINDOWS_DESKTOP_MODULES = DESKTOP_MODULES + ("windows_passkeys",)
+# The executables that desktop packages bundle next to the libraries, without
+# the `.exe` of Windows.
+DESKTOP_HELPERS = ("keyguard-ssh-agent", "keyguard-gpg-agent", "keyguard-cli-agent", "keyguard", "keyguard-browser-host")
 ANDROID_MODULES = ("crypto", "io", "age", "zxcvbn", "webrtc")
 # Wear does not ship WebRTC, so Wear packages must not bundle WebRTC.
 WEAR_MODULES = ("crypto", "io", "age", "zxcvbn")
@@ -207,7 +210,7 @@ def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
         # other libraries previously had no package hardening gate.
         hardening = binary.inspect_hardening(path) if name == library_filename("crypto", target_platform) else "exports and architecture"
         print(f"OK {path} ({hardening})")
-    for name in ("keyguard-ssh-agent", "keyguard-gpg-agent", "keyguard-cli-agent", "keyguard"):
+    for name in DESKTOP_HELPERS:
         path = resources / (name + (".exe" if target_platform == "windows" else ""))
         if not path.is_file():
             raise InspectionError(f"{root}: missing bundled helper {path.name}")

@@ -2047,6 +2047,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "keyguard-browser-host"
+version = "3.8.2"
+dependencies = [
+ "anyhow",
+ "base64 0.23.1",
+ "keyguard-cli-protocol",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "tokio",
+]
+
+[[package]]
 name = "keyguard-cli"
 version = "3.8.2"
 dependencies = [

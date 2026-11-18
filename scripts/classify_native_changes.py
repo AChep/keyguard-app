@@ -240,6 +240,13 @@ def classify(paths, *, full=False, all_checks=False):
             if path.startswith(("commonCli/", "desktopCliAgent/")):
                 enable("agent_ipc")
             continue
+        # The browser extension's connector ships with the desktop app only,
+        # not with native macOS. Rust quality and Windows test it.
+        if path.startswith("desktopBrowserHost/"):
+            enable("desktop_native", "native_quality")
+            if not is_rust_test_path(path):
+                enable("desktop")
+            continue
         if path.startswith(("desktopLibNative/", "desktopSshAgent/", "desktopGpgAgent/", "commonAgent/", "commonSshAgent/", "commonGpgAgent/")):
             # Agent IPC tests connect through the helpers' commonAgent/ipc client.
             if path.startswith("commonAgent/"):

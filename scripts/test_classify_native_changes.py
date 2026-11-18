@@ -610,6 +610,23 @@ class NativeChangeClassificationTest(unittest.TestCase):
                 for flag in ("desktop", "desktop_native", "apple", "native_quality"):
                     self.assertTrue(result[flag])
 
+    def test_browser_host_changes_build_only_desktop_consumers(self):
+        for path in (
+            "desktopBrowserHost/src/src/host.rs",
+            "desktopBrowserHost/src/Cargo.toml",
+            "desktopBrowserHost/build.gradle.kts",
+        ):
+            with self.subTest(path=path):
+                result = classify([path])
+                self.assertEqual(
+                    {flag for flag in FLAGS if result[flag]},
+                    {"desktop", "desktop_native", "native_quality"},
+                )
+        # Tests run in Rust quality and on Windows, without building packages.
+        result = classify(["desktopBrowserHost/src/tests/browser_host.rs"])
+        self.assertEqual({flag for flag in FLAGS if result[flag]}, {"desktop_native", "native_quality"})
+        self.assertTrue(result["desktop_run"])
+
     def test_agent_ipc_replays_the_cli_and_helper_clients(self):
         for path in (
             "commonCli/src/transport.rs",

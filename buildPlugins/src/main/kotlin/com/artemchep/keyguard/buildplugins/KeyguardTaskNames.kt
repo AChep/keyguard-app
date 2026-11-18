@@ -6,4 +6,5 @@ object KeyguardTaskNames {
     const val compileGpgAgentUniversal = "compileGpgAgentUniversal"
     const val compileCliAgentUniversal = "compileCliAgentUniversal"
     const val compileCliUniversal = "compileCliUniversal"
+    const val compileBrowserHostUniversal = "compileBrowserHostUniversal"
 }

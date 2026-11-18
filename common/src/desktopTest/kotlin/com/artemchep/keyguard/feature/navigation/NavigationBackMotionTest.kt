@@ -2,6 +2,7 @@ package com.artemchep.keyguard.feature.navigation
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
+import kotlin.math.abs
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -63,8 +64,10 @@ class NavigationBackMotionTest {
             val top = frame.transform(entering = false)
             val under = frame.transform(entering = true)
 
-            assertEquals(top.offset.y, under.offset.y)
+            assertEquals(top.offset.y * BACK_GESTURE_ENTERING_PARALLAX, under.offset.y)
             assertTrue(top.offset.y * touchY > 0f)
+            assertTrue(under.offset.y * touchY > 0f)
+            assertTrue(abs(under.offset.y) < abs(top.offset.y))
             val topMargin = SIZE.height * (1f - top.scale) / 2f + top.offset.y
             val bottomMargin = SIZE.height * (1f - top.scale) / 2f - top.offset.y
             assertTrue(topMargin >= MARGIN - 0.001f)
@@ -79,11 +82,14 @@ class NavigationBackMotionTest {
         val motion = NavigationBackMotion(gesture)
         val fraction = NavigationAnimation.backGestureFraction(0.6f)
         val before = motion.frame(fraction).transform(entering = false)
+        val beforeUnder = motion.frame(fraction).transform(entering = true)
         motion.commit(fraction)
         gesture.touchY = -1000f
 
         assertEquals(before, motion.frame(fraction).transform(entering = false))
+        assertEquals(beforeUnder, motion.frame(fraction).transform(entering = true))
         assertEquals(0f, motion.frame(1f).transform(entering = false).offset.y)
+        assertEquals(0f, motion.frame(1f).transform(entering = true).offset.y)
     }
 
     @Test

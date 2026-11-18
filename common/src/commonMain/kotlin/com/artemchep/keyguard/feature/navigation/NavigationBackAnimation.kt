@@ -32,6 +32,9 @@ internal const val BACK_GESTURE_DRAG_FRACTION =
 private const val BACK_GESTURE_SCALE_REDUCTION = 0.15f
 private const val BACK_GESTURE_FADE_MULTIPLIER = 5f
 
+/** The page underneath is farther away, so it follows the finger less. */
+internal const val BACK_GESTURE_ENTERING_PARALLAX = 0.5f
+
 /** The share of a crossfade that a full drag reaches. */
 private const val BACK_GESTURE_CROSSFADE_FRACTION = 3f / 7f
 private const val BACK_GESTURE_EMPHASIZED_TIME_SPLIT = 1f / 6f
@@ -154,11 +157,13 @@ internal data class NavigationBackFrame(
             else -> (size.width * BACK_GESTURE_SCALE_REDUCTION / 2f - margin) * progress
         }
         val restX = if (entering) 0f else dragX + size.width * reduction / 2f + enteringOffset
+        val dragY = verticalOffset(size.height, reduction, margin)
+            .let { if (entering) it * BACK_GESTURE_ENTERING_PARALLAX else it }
         return NavigationBackTransform(
             scale = lerp(1f - reduction, 1f, geometryProgress),
             offset = Offset(
                 x = lerp(dragX, restX, geometryProgress),
-                y = lerp(verticalOffset(size.height, reduction, margin), 0f, geometryProgress),
+                y = lerp(dragY, 0f, geometryProgress),
             ),
             alpha = if (entering) 1f else (1f - commitProgress * BACK_GESTURE_FADE_MULTIPLIER).normalized(),
             corner = if (entering) progress * (1f - geometryProgress) else progress,

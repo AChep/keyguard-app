@@ -19,4 +19,6 @@ interface CipherHistoryOpenedRepository : BaseRepository<DCipherOpenedHistory> {
     ): Flow<Instant?>
 
     fun removeAll(): IO<Unit>
+
+    fun removeOlderThan(cutoff: Instant): IO<Unit>
 }

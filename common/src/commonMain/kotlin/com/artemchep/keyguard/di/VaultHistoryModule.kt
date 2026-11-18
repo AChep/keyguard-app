@@ -48,6 +48,7 @@ import com.artemchep.keyguard.common.usecase.GetWordlistPrimitive
 import com.artemchep.keyguard.common.usecase.GetWordlists
 import com.artemchep.keyguard.common.usecase.PutBarcodeUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveAgentHistoryOlderThan
+import com.artemchep.keyguard.common.usecase.RemoveCipherUsageHistoryOlderThan
 import com.artemchep.keyguard.common.usecase.RemoveCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveEmailRelayById
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
@@ -186,6 +187,11 @@ internal class VaultHistoryModule {
             scoped<RemoveAgentHistoryOlderThanImpl>() bind RemoveAgentHistoryOlderThan::class
 
             scoped<GetCipherOpenedHistoryImpl>() bind GetCipherOpenedHistory::class
+
+            scoped<RemoveCipherUsageHistoryOlderThan> {
+                val repository = get<CipherHistoryOpenedRepository>()
+                RemoveCipherUsageHistoryOlderThan(repository::removeOlderThan)
+            }
 
             scoped<CipherHistoryOpenedRepository> {
                 CipherHistoryOpenedRepositoryImpl(

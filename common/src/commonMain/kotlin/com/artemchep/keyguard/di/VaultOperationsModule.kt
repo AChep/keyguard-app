@@ -372,6 +372,7 @@ internal class VaultOperationsModule {
                     removeAgentHistoryOlderThan = get(),
                     getGeneratorHistoryRetention = get(),
                     removeGeneratorHistoryOlderThan = get(),
+                    removeCipherUsageHistoryOlderThan = get(),
                     logRepository = get(),
                 )
             } bind HistoryRetentionWorker::class

@@ -85,6 +85,11 @@ class CipherHistoryOpenedRepositoryImpl(
             dao.deleteAll()
         }
 
+    override fun removeOlderThan(cutoff: Instant): IO<Unit> =
+        databaseManager.mutate("CipherHistoryOpenedRepository.removeOlderThan") { db ->
+            db.cipherUsageHistoryQueries.deleteOlderThan(cutoff)
+        }
+
     private inline fun <T> daoEffect(
         crossinline block: suspend (CipherUsageHistoryQueries) -> T,
     ): IO<T> = databaseManager

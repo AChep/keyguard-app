@@ -2,13 +2,15 @@ package com.artemchep.keyguard.common.service.history.impl
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.usecase.GetAgentHistoryRetention
 import com.artemchep.keyguard.common.usecase.GetGeneratorHistoryRetention
-import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryOlderThan
 import com.artemchep.keyguard.common.usecase.RemoveAgentHistoryOlderThan
+import com.artemchep.keyguard.common.usecase.RemoveCipherUsageHistoryOlderThan
+import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryOlderThan
 import com.artemchep.keyguard.test.RecordingLogRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -30,22 +32,26 @@ class HistoryRetentionWorkerImplTest {
     private val interval = HistoryRetentionWorkerImpl.INTERVAL
 
     @Test
-    fun `infinite retention never removes entries`() = runTest {
+    fun `vault item usage expires after 180 days even when other history is kept forever`() = runTest {
         val remove = RecordingRemoveAgentHistoryOlderThan()
+        val usageCutoffs = mutableListOf<Instant>()
         val worker = createWorker(
             retention = MutableStateFlow(Duration.INFINITE),
             remove = remove,
+            removeCipherUsage = RemoveCipherUsageHistoryOlderThan { cutoff -> ioEffect { usageCutoffs += cutoff } },
         )
 
-        val job = worker.launch(this)
-        try {
-            advanceTimeBy(initialDelay + interval * 3)
-            runCurrent()
+        worker.launch(backgroundScope)
+        advanceTimeBy(initialDelay)
+        assertEquals(emptyList(), usageCutoffs)
+        runCurrent()
+        val firstCutoff = now() - 180.days
+        assertEquals(listOf(firstCutoff), usageCutoffs)
 
-            assertEquals(emptyList(), remove.cutoffs)
-        } finally {
-            job.cancel()
-        }
+        advanceTimeBy(interval)
+        runCurrent()
+        assertEquals(listOf(firstCutoff, firstCutoff + interval), usageCutoffs)
+        assertEquals(emptyList(), remove.cutoffs)
     }
 
     @Test
@@ -177,6 +183,7 @@ class HistoryRetentionWorkerImplTest {
         removeGenerator: RemoveGeneratorHistoryOlderThan = RemoveGeneratorHistoryOlderThan {
             error("Unexpected generator history cleanup")
         },
+        removeCipherUsage: RemoveCipherUsageHistoryOlderThan = RemoveCipherUsageHistoryOlderThan { ioUnit() },
         logRepository: LogRepository = LogRepositoryBridge(emptyList()),
     ) = HistoryRetentionWorkerImpl(
         getAgentHistoryRetention = object : GetAgentHistoryRetention {
@@ -187,6 +194,7 @@ class HistoryRetentionWorkerImplTest {
             override fun invoke(): Flow<Duration> = generatorRetention
         },
         removeGeneratorHistoryOlderThan = removeGenerator,
+        removeCipherUsageHistoryOlderThan = removeCipherUsage,
         logRepository = logRepository,
         now = { now() },
     )

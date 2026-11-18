@@ -262,6 +262,9 @@ afterEvaluate {
     tasks.named<AbstractJPackageTask>("createReleaseDistributableImpl") {
         // Prevent attach-based heap dumps of unlocked vaults in packaged releases.
         launcherJvmArgs.add("-XX:+DisableAttachMechanism")
+        if (hostPlatform.isWindows) {
+            launcherJvmArgs.add("-Dkeyguard.windows.excludeHeapFromErrorReports=true")
+        }
     }
 }
 

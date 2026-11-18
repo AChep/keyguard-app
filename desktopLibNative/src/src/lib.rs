@@ -6,6 +6,8 @@ mod biometrics;
 mod drag;
 #[cfg(any(target_os = "macos", windows))]
 mod drag_jni;
+#[cfg(windows)]
+mod error_reporting;
 mod ffi;
 #[cfg(target_os = "macos")]
 mod file_promise;

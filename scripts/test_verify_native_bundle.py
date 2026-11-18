@@ -133,7 +133,7 @@ def desktop_exports(platform: str, modules, bridge: str):
 
     def exports(path, *_args):
         if path.name == bridge:
-            return set(verify.BRIDGE_EXPORTS) | ({"disableLinuxProcessDumps"} if platform == "linux" else set())
+            return verify.BRIDGE_EXPORTS | verify.PLATFORM_BRIDGE_EXPORTS.get(platform, set())
         return libraries[path.name]
 
     return exports

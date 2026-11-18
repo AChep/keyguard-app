@@ -598,6 +598,9 @@ jobs:
           :desktopApp:createDistributable
       - name: "Verify desktop bundle"
         if: needs.changes.outputs.desktop == 'true'
+        env:
+          # This job packages a development launcher. Exercise the Windows release policy too.
+          JAVA_TOOL_OPTIONS: ${{ matrix.platform == 'windows' && format('{0} -Dkeyguard.windows.excludeHeapFromErrorReports=true', env.JAVA_TOOL_OPTIONS) || env.JAVA_TOOL_OPTIONS }}
         run: >-
           python scripts/verify_native_bundle.py desktop
           desktopApp/build/compose/binaries/main/app

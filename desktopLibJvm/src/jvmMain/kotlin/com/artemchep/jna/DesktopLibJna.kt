@@ -65,6 +65,33 @@ private interface LinuxProcessLib : Library {
     fun disableLinuxProcessDumps()
 }
 
+private interface WindowsErrorReportingLib : Library {
+    fun excludeWindowsHeapFromErrorReports()
+    fun windowsErrorReportsExcludeHeap(): Int
+}
+
+private val windowsErrorReportingLib by lazy {
+    Native.load(libraryFile.canonicalPath, WindowsErrorReportingLib::class.java)
+}
+
+/** A missing or mismatched bridge must not prevent the vault from opening. */
+@Suppress("TooGenericExceptionCaught") // Resource lookup and JNA can both fail during startup.
+public fun excludeWindowsHeapFromErrorReports() {
+    val failure = try {
+        windowsErrorReportingLib.excludeWindowsHeapFromErrorReports()
+        return
+    } catch (e: LinkageError) {
+        e
+    } catch (e: Exception) {
+        e
+    }
+    System.err.println("Could not configure Windows Error Reporting: $failure")
+}
+
+/** Reads the effective WER policy from Windows for packaged smoke verification. */
+public fun windowsErrorReportsExcludeHeap(): Boolean =
+    windowsErrorReportingLib.windowsErrorReportsExcludeHeap() != 0
+
 public interface DesktopLibJna : Library {
     public companion object {
         @Volatile

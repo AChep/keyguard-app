@@ -119,6 +119,10 @@ BRIDGE_EXPORTS = frozenset((
     "keychainGetPassword", "keychainDeletePassword", "keychainContainsPassword",
     "postNotification", "registerNativeGlobalHotKey", "unregisterNativeGlobalHotKey", "freePointer",
 ))
+PLATFORM_BRIDGE_EXPORTS = {
+    "linux": {"disableLinuxProcessDumps"},
+    "windows": {"excludeWindowsHeapFromErrorReports", "windowsErrorReportsExcludeHeap"},
+}
 
 
 def require_architecture(path: Path, data: bytes, target_platform: str, arch: str) -> None:
@@ -190,7 +194,7 @@ def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
     suffix = LIBRARY_SUFFIX[target_platform]
     modules = WINDOWS_DESKTOP_MODULES if target_platform == "windows" else DESKTOP_MODULES
     libraries = [(library_filename(name, target_platform), MODULES[name].exports("jni"), MODULES[name].jni_prefix) for name in modules]
-    bridge_exports = BRIDGE_EXPORTS | {"disableLinuxProcessDumps"} if target_platform == "linux" else BRIDGE_EXPORTS
+    bridge_exports = BRIDGE_EXPORTS | PLATFORM_BRIDGE_EXPORTS.get(target_platform, set())
     libraries.append(("keyguard-lib.dll" if target_platform == "windows" else "keyguard-lib", bridge_exports, None))
     for name, exports, prefix in libraries:
         path = resources / name

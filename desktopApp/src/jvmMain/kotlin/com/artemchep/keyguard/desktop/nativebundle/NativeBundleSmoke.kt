@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.desktop.nativebundle
 
 import com.artemchep.jna.ensureDesktopLibAvailable
+import com.artemchep.jna.windowsErrorReportsExcludeHeap
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
@@ -12,10 +13,14 @@ import com.artemchep.keyguard.desktop.instance.verifyPackagedInstanceService
 import com.artemchep.keyguard.di.resolve
 import com.artemchep.keyguard.nativebundle.NativeBundleProbe
 import com.artemchep.keyguard.nativebundle.nativeProbe
+import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.Platform
+import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.util.fido2.NativeFido2Client
 import com.artemchep.keyguard.util.io.LocalPath
 import com.artemchep.keyguard.util.webrtc.WebRtcRuntime
 import com.artemchep.keyguard.util.windowspasskeys.WindowsPasskeys
+import com.artemchep.keyguard.windowsWerNoHeapRequested
 import okhttp3.OkHttpClient
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -39,6 +44,11 @@ private const val HELPER_TIMEOUT_SECONDS = 5L
 internal fun runNativePackagedSmoke() {
     try {
         rejectDevelopmentLibraries()
+        if (CurrentPlatform is Platform.Desktop.Windows && (isRelease || windowsWerNoHeapRequested)) {
+            nativeProbe("windowsWerNoHeap") {
+                check(windowsErrorReportsExcludeHeap()) { "WER heap exclusion is missing" }
+            }
+        }
         val resources = Path.of(checkNotNull(System.getProperty("compose.application.resources.dir")))
         val directory = Files.createTempDirectory("keyguard-native-smoke-").toRealPath()
         try {

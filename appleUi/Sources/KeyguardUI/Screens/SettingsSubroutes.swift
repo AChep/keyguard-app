@@ -203,7 +203,7 @@ struct SecuritySettingsView: View {
                     )
                     .settingsSearchTarget(.biometric)
                     if s.biometricUnlockEnabled {
-                        durationPicker(
+                        optionPicker(
                             L10n.prefItemBiometricUnlockTimeoutTitle,
                             options: s.biometricTimeoutOptions,
                             currentTitle: s.biometricTimeoutTitle,
@@ -257,7 +257,7 @@ struct SecuritySettingsView: View {
                     isOn: boolBinding({ s.vaultPersist }, { securityModel.setVaultPersist($0) })
                 )
                 .settingsSearchTarget(.persist)
-                durationPicker(
+                optionPicker(
                     L10n.prefItemVaultLockTimeoutTitle,
                     options: s.lockTimeoutOptions,
                     currentTitle: s.lockTimeoutTitle,
@@ -286,7 +286,7 @@ struct SecuritySettingsView: View {
                 }
             }
             Section(L10n.settingsClipboardHeaderTitle) {
-                durationPicker(
+                optionPicker(
                     L10n.prefItemClipboardAutoClearTitle,
                     options: s.clipboardAutoClearOptions,
                     currentTitle: s.clipboardAutoClearTitle,
@@ -295,6 +295,13 @@ struct SecuritySettingsView: View {
                 .settingsSearchTarget(.clipboard)
             }
             Section {
+                optionPicker(
+                    L10n.prefItemGeneratorHistoryRetentionTitle,
+                    options: s.generatorHistoryRetentionOptions,
+                    currentTitle: s.generatorHistoryRetentionTitle,
+                    set: { securityModel.setGeneratorHistoryRetention($0) }
+                )
+                .settingsSearchTarget(.generatorHistoryRetention)
                 Toggle(
                     L10n.prefItemConcealFieldsTitle,
                     isOn: boolBinding({ s.conceal }, { securityModel.setConcealFields($0) })
@@ -366,34 +373,6 @@ struct SecuritySettingsView: View {
             }
         }
     }
-
-    @ViewBuilder
-    private func durationPicker(
-        _ title: String,
-        options: [SettingOptionSnapshot],
-        currentTitle: String,
-        set: @escaping (String) -> Void
-    ) -> some View {
-        if options.isEmpty {
-            HStack {
-                Text(title)
-                Spacer()
-                Text(currentTitle).foregroundStyle(.secondary)
-            }
-        } else {
-            Picker(
-                title,
-                selection: Binding(
-                    get: { options.first(where: { $0.selected })?.id ?? options.first?.id ?? "" },
-                    set: { set($0) }
-                )
-            ) {
-                ForEach(options, id: \.id) { option in
-                    Text(option.title).tag(option.id)
-                }
-            }
-        }
-    }
 }
 
 struct DeveloperSettingsView: View {
@@ -454,7 +433,7 @@ struct DeveloperSettingsView: View {
                 Text(L10n.environmentsDescription).foregroundStyle(.secondary)
             }
             Section {
-                durationPicker(
+                optionPicker(
                     L10n.prefItemAgentHistoryRetentionTitle,
                     options: s.historyRetentionOptions,
                     currentTitle: s.historyRetentionTitle,
@@ -572,14 +551,14 @@ struct DeveloperSettingsView: View {
     @ViewBuilder
     private var approvalsSection: some View {
         Section {
-            durationPicker(
+            optionPicker(
                 L10n.prefItemAgentApprovalWindowTitle,
                 options: s.approvalWindowOptions,
                 currentTitle: s.approvalWindowTitle,
                 set: { sshAgentModel.setSshAgentApprovalWindow(optionId: $0) }
             )
             .settingsSearchTarget(.sshApproval)
-            durationPicker(
+            optionPicker(
                 L10n.prefItemAgentApprovalTimeoutTitle,
                 options: s.approvalTimeoutOptions,
                 currentTitle: s.approvalTimeoutTitle,
@@ -633,34 +612,6 @@ struct DeveloperSettingsView: View {
                 Label(L10n.prefItemAgentHistoryTitle, systemImage: "clock.arrow.circlepath")
             }
             .settingsSearchTarget(.sshHistory)
-        }
-    }
-
-    @ViewBuilder
-    private func durationPicker(
-        _ title: String,
-        options: [SettingOptionSnapshot],
-        currentTitle: String,
-        set: @escaping (String) -> Void
-    ) -> some View {
-        if options.isEmpty {
-            HStack {
-                Text(title)
-                Spacer()
-                Text(currentTitle).foregroundStyle(.secondary)
-            }
-        } else {
-            Picker(
-                title,
-                selection: Binding(
-                    get: { options.first(where: { $0.selected })?.id ?? options.first?.id ?? "" },
-                    set: { set($0) }
-                )
-            ) {
-                ForEach(options, id: \.id) { option in
-                    Text(option.title).tag(option.id)
-                }
-            }
         }
     }
 }

@@ -128,6 +128,8 @@ class SettingsSearchTest {
             Res.string.settingssearch_backup_location_keywords to "destination folder server WebDAV S3 bucket",
             Res.string.settingssearch_backup_password_keywords to "encryption password configured",
             Res.string.settingssearch_ssh_socket_keywords to "SSH_AUTH_SOCK socket path environment client",
+            Res.string.pref_item_generator_history_retention_title to "Delete generator history after",
+            Res.string.settingssearch_history_retention_keywords to "retention cleanup",
             Res.string.settingssearch_build_ref_keywords to "revision commit source build reference",
             Res.string.pref_item_autofill_default_match_detection_title to "Default match detection",
             Res.string.uri to "URI",
@@ -141,6 +143,7 @@ class SettingsSearchTest {
         )
         val queries = mapOf(
             "app version" to SettingsSearchTarget.APP_VERSION,
+            "generator cleanup" to SettingsSearchTarget.GENERATOR_HISTORY_RETENTION,
             "last backup" to SettingsSearchTarget.BACKUP_LAST_SUCCESS,
             "destination webdav" to SettingsSearchTarget.BACKUP_LOCATION,
             "s3 bucket" to SettingsSearchTarget.BACKUP_LOCATION,

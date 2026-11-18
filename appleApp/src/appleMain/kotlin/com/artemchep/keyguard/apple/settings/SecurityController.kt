@@ -19,7 +19,9 @@ import com.artemchep.keyguard.common.usecase.GetBiometricTimeoutVariants
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoClearVariants
 import com.artemchep.keyguard.common.usecase.GetConcealFields
+import com.artemchep.keyguard.common.usecase.GetGeneratorHistoryRetention
 import com.artemchep.keyguard.common.usecase.GetGravatar
+import com.artemchep.keyguard.common.usecase.GetHistoryRetentionVariants
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterReboot
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.GetVaultLockAfterTimeoutVariants
@@ -28,12 +30,14 @@ import com.artemchep.keyguard.common.usecase.GetWebsiteIcons
 import com.artemchep.keyguard.common.usecase.PutBiometricTimeout
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.PutConcealFields
+import com.artemchep.keyguard.common.usecase.PutGeneratorHistoryRetention
 import com.artemchep.keyguard.common.usecase.PutGravatar
 import com.artemchep.keyguard.common.usecase.PutVaultLockAfterReboot
 import com.artemchep.keyguard.common.usecase.PutVaultLockAfterTimeout
 import com.artemchep.keyguard.common.usecase.PutVaultPersist
 import com.artemchep.keyguard.common.usecase.PutWebsiteIcons
 import com.artemchep.keyguard.common.usecase.YubiKeyUnlockAvailability
+import com.artemchep.keyguard.feature.home.settings.component.formatHistoryRetention
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.apple.core.CoreContext
 import com.artemchep.keyguard.apple.core.KeyguardCancellable
@@ -68,6 +72,9 @@ internal class SecurityController(
     private val putConcealFields: PutConcealFields by lazy { ctx.koin.get() }
     private val getWebsiteIcons: GetWebsiteIcons by lazy { ctx.koin.get() }
     private val putWebsiteIcons: PutWebsiteIcons by lazy { ctx.koin.get() }
+    private val getGeneratorHistoryRetention: GetGeneratorHistoryRetention by lazy { ctx.koin.get() }
+    private val getHistoryRetentionVariants: GetHistoryRetentionVariants by lazy { ctx.koin.get() }
+    private val putGeneratorHistoryRetention: PutGeneratorHistoryRetention by lazy { ctx.koin.get() }
     private val getGravatar: GetGravatar by lazy { ctx.koin.get() }
     private val putGravatar: PutGravatar by lazy { ctx.koin.get() }
     private val biometricStatusUseCase: BiometricStatusUseCase by lazy { ctx.koin.get() }
@@ -80,6 +87,7 @@ internal class SecurityController(
     private val yubiKeyUnlockAvailability: YubiKeyUnlockAvailability by lazy { ctx.koin.get() }
 
     private var latestLockTimeoutVariants: List<Duration> = emptyList()
+    private var latestHistoryRetentionVariants: List<Duration> = emptyList()
     private var latestClipboardAutoClearVariants: List<Duration> = emptyList()
     private var latestBiometricTimeoutVariants: List<Duration> = emptyList()
 
@@ -98,6 +106,13 @@ internal class SecurityController(
         onChange: (SecuritySettingsSnapshot) -> Unit,
     ): KeyguardCancellable {
         val leContext = ctx.koin.get<LeContext>()
+        val vaultFlow = combine(getVaultPersist(), getVaultLockAfterReboot()) { persist, lockAfterReboot ->
+            persist to lockAfterReboot
+        }
+        val historyRetentionFlow = combine(
+            getGeneratorHistoryRetention(),
+            getHistoryRetentionVariants(),
+        ) { current, variants -> current to variants }
         val lockFlow = combine(
             getVaultLockAfterTimeout(),
             getVaultLockAfterTimeoutVariants(),
@@ -135,12 +150,13 @@ internal class SecurityController(
         ) { visuals, biometric -> visuals to biometric }
         val job = ctx.scope.launch {
             combine(
-                getVaultPersist(),
-                getVaultLockAfterReboot(),
+                vaultFlow,
+                historyRetentionFlow,
                 lockFlow,
                 clipFlow,
                 visualsAndBiometricFlow,
-            ) { persist, lockAfterReboot, lock, clip, (visuals, biometric) ->
+            ) { (persist, lockAfterReboot), (retention, variants), lock, clip, (visuals, biometric) ->
+                latestHistoryRetentionVariants = variants
                 latestLockTimeoutVariants = lock.second
                 latestClipboardAutoClearVariants = clip.second
                 latestBiometricTimeoutVariants = biometric.timeoutVariants
@@ -167,6 +183,8 @@ internal class SecurityController(
                             selected = duration == clip.first,
                         )
                     },
+                    generatorHistoryRetentionTitle = formatHistoryRetention(retention, leContext),
+                    generatorHistoryRetentionOptions = historyRetentionOptions(retention, variants, leContext),
                     conceal = visuals.first,
                     websiteIcons = visuals.second,
                     gravatar = visuals.third,
@@ -273,6 +291,13 @@ internal class SecurityController(
         putClipboardAutoClear(duration).launchIn(ctx.scope)
     }
 
+    fun setGeneratorHistoryRetention(optionId: String) {
+        val duration = latestHistoryRetentionVariants
+            .firstOrNull { it.inWholeMilliseconds.toString() == optionId }
+            ?: return
+        putGeneratorHistoryRetention(duration).launchIn(ctx.scope)
+    }
+
     fun setConcealFields(value: Boolean) {
         putConcealFields(value).launchIn(ctx.scope)
     }
@@ -284,4 +309,16 @@ internal class SecurityController(
     fun setGravatar(value: Boolean) {
         putGravatar(value).launchIn(ctx.scope)
     }
+}
+
+internal suspend fun historyRetentionOptions(
+    current: Duration,
+    variants: List<Duration>,
+    context: LeContext,
+): List<SettingOptionSnapshot> = variants.map { duration ->
+    SettingOptionSnapshot(
+        id = duration.inWholeMilliseconds.toString(),
+        title = formatHistoryRetention(duration, context),
+        selected = duration == current,
+    )
 }

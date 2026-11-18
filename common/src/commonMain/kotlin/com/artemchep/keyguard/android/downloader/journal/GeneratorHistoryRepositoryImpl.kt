@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlin.time.Instant
 
 @Serializable
 data class KeyPairEntity(
@@ -184,6 +185,11 @@ class GeneratorHistoryRepositoryImpl(
                 isSshKey = model.isSshKey,
                 isGpgKey = model.isGpgKey,
             )
+        }
+
+    override fun removeOlderThan(cutoff: Instant): IO<Unit> =
+        daoEffect { dao ->
+            dao.deleteOlderThan(cutoff)
         }
 
     override fun removeAll(): IO<Unit> =

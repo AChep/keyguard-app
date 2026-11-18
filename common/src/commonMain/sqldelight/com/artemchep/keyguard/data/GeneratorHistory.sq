@@ -24,6 +24,10 @@ FROM generatorHistory
 ORDER BY createdAt DESC
 LIMIT :limit;
 
+deleteOlderThan:
+DELETE FROM generatorHistory
+WHERE createdAt < :cutoff;
+
 deleteAll:
 DELETE FROM generatorHistory;
 

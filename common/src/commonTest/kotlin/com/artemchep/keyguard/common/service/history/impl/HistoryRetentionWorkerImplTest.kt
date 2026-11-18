@@ -1,4 +1,4 @@
-package com.artemchep.keyguard.common.service.agenthistory.impl
+package com.artemchep.keyguard.common.service.history.impl
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.ioEffect
@@ -6,6 +6,8 @@ import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
 import com.artemchep.keyguard.common.usecase.GetAgentHistoryRetention
+import com.artemchep.keyguard.common.usecase.GetGeneratorHistoryRetention
+import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryOlderThan
 import com.artemchep.keyguard.common.usecase.RemoveAgentHistoryOlderThan
 import com.artemchep.keyguard.test.RecordingLogRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -23,9 +25,9 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class AgentHistoryRetentionWorkerImplTest {
-    private val initialDelay = AgentHistoryRetentionWorkerImpl.INITIAL_DELAY
-    private val interval = AgentHistoryRetentionWorkerImpl.INTERVAL
+class HistoryRetentionWorkerImplTest {
+    private val initialDelay = HistoryRetentionWorkerImpl.INITIAL_DELAY
+    private val interval = HistoryRetentionWorkerImpl.INTERVAL
 
     @Test
     fun `infinite retention never removes entries`() = runTest {
@@ -132,17 +134,59 @@ class AgentHistoryRetentionWorkerImplTest {
         }
     }
 
+    @Test
+    fun `generator retention changes do not restart agent cleanup`() = runTest {
+        val agent = RecordingRemoveAgentHistoryOlderThan()
+        val generator = RecordingRemoveAgentHistoryOlderThan()
+        val retention = MutableStateFlow(Duration.INFINITE)
+        val worker = createWorker(
+            retention = MutableStateFlow(7.days),
+            remove = agent,
+            generatorRetention = retention,
+            removeGenerator = RemoveGeneratorHistoryOlderThan(generator::invoke),
+        )
+        worker.launch(backgroundScope)
+        advanceTimeBy(initialDelay)
+        runCurrent()
+        assertEquals(listOf(now() - 7.days), agent.cutoffs)
+        assertEquals(emptyList(), generator.cutoffs)
+
+        retention.value = 14.days
+        advanceTimeBy(initialDelay)
+        runCurrent()
+        assertEquals(listOf(now() - 14.days), generator.cutoffs)
+        retention.value = 1.days
+        advanceTimeBy(initialDelay)
+        runCurrent()
+        assertEquals(now() - 1.days, generator.cutoffs.last())
+
+        retention.value = Duration.INFINITE
+        advanceTimeBy(interval)
+        runCurrent()
+        assertEquals(2, generator.cutoffs.size)
+        assertEquals(2, agent.cutoffs.size)
+        assertEquals(agent.cutoffs.first() + interval, agent.cutoffs.last())
+    }
+
     private fun TestScope.now() = Instant.fromEpochMilliseconds(testScheduler.currentTime)
 
     private fun TestScope.createWorker(
         retention: Flow<Duration>,
         remove: RemoveAgentHistoryOlderThan,
+        generatorRetention: Flow<Duration> = MutableStateFlow(Duration.INFINITE),
+        removeGenerator: RemoveGeneratorHistoryOlderThan = RemoveGeneratorHistoryOlderThan {
+            error("Unexpected generator history cleanup")
+        },
         logRepository: LogRepository = LogRepositoryBridge(emptyList()),
-    ) = AgentHistoryRetentionWorkerImpl(
+    ) = HistoryRetentionWorkerImpl(
         getAgentHistoryRetention = object : GetAgentHistoryRetention {
             override fun invoke(): Flow<Duration> = retention
         },
         removeAgentHistoryOlderThan = remove,
+        getGeneratorHistoryRetention = object : GetGeneratorHistoryRetention {
+            override fun invoke(): Flow<Duration> = generatorRetention
+        },
+        removeGeneratorHistoryOlderThan = removeGenerator,
         logRepository = logRepository,
         now = { now() },
     )

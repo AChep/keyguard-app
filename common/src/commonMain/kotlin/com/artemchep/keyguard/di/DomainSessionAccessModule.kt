@@ -52,7 +52,7 @@ class DomainSessionAccessModule {
                         urlBlockExposedSyncer = get(),
                         gpgPublicKeySyncer = get(),
                         gpgKeyserverRefreshWorker = get(),
-                        agentHistoryRetentionWorker = get(),
+                        historyRetentionWorker = get(),
                         licenseSyncer = get(),
                         appLinkWorker = get(),
                     )

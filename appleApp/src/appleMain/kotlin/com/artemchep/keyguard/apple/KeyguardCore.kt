@@ -1378,6 +1378,8 @@ class KeyguardCore(runtime: KeyguardRuntime) {
 
     fun setBiometricTimeout(optionId: String) = securityController.setBiometricTimeout(optionId)
 
+    fun setGeneratorHistoryRetention(optionId: String) = securityController.setGeneratorHistoryRetention(optionId)
+
     fun setClipboardAutoClear(optionId: String) = securityController.setClipboardAutoClear(optionId)
 
     fun setConcealFields(value: Boolean) = securityController.setConcealFields(value)

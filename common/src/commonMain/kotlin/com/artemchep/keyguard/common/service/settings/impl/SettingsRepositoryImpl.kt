@@ -123,6 +123,7 @@ class SettingsRepositoryImpl(
         private const val KEY_GPG_KEYSERVER_REFRESH_INTERVAL = "gpg_agent.keyserver_refresh_interval"
         private const val KEY_GPG_KEYSERVER_LAST_REFRESH = "gpg_agent.keyserver_last_refresh"
         private const val KEY_AGENT_HISTORY_RETENTION = "agent.history_retention"
+        private const val KEY_GENERATOR_HISTORY_RETENTION = "generator.history_retention"
         private const val KEY_VERSION_LOG = "version_log"
         private const val KEY_NAV_ANIMATION = "nav_animation"
         private const val KEY_NAV_LABEL = "nav_label"
@@ -376,6 +377,12 @@ class SettingsRepositoryImpl(
             Duration.INFINITE.inWholeMilliseconds,
         )
 
+    private val generatorHistoryRetentionPref =
+        store.getLong(
+            key = KEY_GENERATOR_HISTORY_RETENTION,
+            Duration.INFINITE.inWholeMilliseconds,
+        )
+
     private val gpgKeyserverLastRefreshInstantPref =
         store.getObject<Instant?>(
             KEY_GPG_KEYSERVER_LAST_REFRESH,
@@ -590,6 +597,7 @@ class SettingsRepositoryImpl(
             gpgKeyserverRefreshIntervalPref,
             gpgKeyserverLastRefreshInstantPref,
             agentHistoryRetentionPref,
+            generatorHistoryRetentionPref,
             themeUseAmoledDarkPref,
             keepScreenOnPref,
             gravatarPref,
@@ -972,6 +980,13 @@ class SettingsRepositoryImpl(
         .setAndCommit(duration)
 
     override fun getAgentHistoryRetention() = agentHistoryRetentionPref
+        .asDuration()
+        .map { it ?: Duration.INFINITE }
+
+    override fun setGeneratorHistoryRetention(duration: Duration) = generatorHistoryRetentionPref
+        .setAndCommit(duration)
+
+    override fun getGeneratorHistoryRetention() = generatorHistoryRetentionPref
         .asDuration()
         .map { it ?: Duration.INFINITE }
 

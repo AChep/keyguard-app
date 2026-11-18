@@ -42,6 +42,8 @@ final class SecuritySettingsModel: SnapshotObserving {
 
     func setClipboardAutoClear(_ optionId: String) { core.setClipboardAutoClear(optionId: optionId) }
 
+    func setGeneratorHistoryRetention(_ optionId: String) { core.setGeneratorHistoryRetention(optionId: optionId) }
+
     func setConcealFields(_ value: Bool) { core.setConcealFields(value: value) }
 
     func setWebsiteIcons(_ value: Bool) { core.setWebsiteIcons(value: value) }

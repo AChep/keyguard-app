@@ -170,6 +170,8 @@ interface SettingsReadRepository {
 
     fun getAgentHistoryRetention(): Flow<Duration>
 
+    fun getGeneratorHistoryRetention(): Flow<Duration>
+
     fun getAppVersionLog(): Flow<List<AppVersionLog>>
 
     fun getNavAnimation(): Flow<NavAnimation?>

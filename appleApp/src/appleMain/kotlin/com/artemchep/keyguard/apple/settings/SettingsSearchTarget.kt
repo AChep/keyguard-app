@@ -89,6 +89,12 @@ enum class SettingsSearchTarget(
         section = Res.string.settings_clipboard_header_title,
         keywords = listOf(Res.string.settingssearch_clipboard_keywords),
     ),
+    GENERATOR_HISTORY_RETENTION(
+        SettingsDestination.SECURITY.id,
+        Res.string.pref_item_generator_history_retention_title,
+        section = Res.string.settings_privacy_header_title,
+        keywords = listOf(Res.string.settingssearch_history_retention_keywords),
+    ),
     CONCEAL(
         SettingsDestination.SECURITY.id,
         Res.string.pref_item_conceal_fields_title,

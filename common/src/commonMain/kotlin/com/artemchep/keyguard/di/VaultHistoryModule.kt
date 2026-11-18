@@ -52,6 +52,7 @@ import com.artemchep.keyguard.common.usecase.RemoveCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveEmailRelayById
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistory
 import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryById
+import com.artemchep.keyguard.common.usecase.RemoveGeneratorHistoryOlderThan
 import com.artemchep.keyguard.common.usecase.RemoveGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveSshUsageHistory
 import com.artemchep.keyguard.common.usecase.RemoveWordlistById
@@ -136,6 +137,11 @@ internal class VaultHistoryModule {
             }
 
             scoped<GetGeneratorHistoryImpl>() bind GetGeneratorHistory::class
+
+            scoped<RemoveGeneratorHistoryOlderThan> {
+                val repository = get<GeneratorHistoryRepository>()
+                RemoveGeneratorHistoryOlderThan(repository::removeOlderThan)
+            }
 
             scoped<RemoveGeneratorHistoryImpl>() bind RemoveGeneratorHistory::class
 

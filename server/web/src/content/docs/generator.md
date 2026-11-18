@@ -106,6 +106,12 @@ To delete values, select them and choose **Remove from the history**. To delete
 them all, open the menu and select **Clear history**. **Generator history**
 lists the newest 1,000 values. You can't turn the history off.
 
+To delete older values automatically, choose a period in
+**Settings > Security > Delete generator history after**. The default is **Never**.
+Keyguard checks shortly after you unlock or return to the app, then hourly
+while the vault stays unlocked and the app is active. Cleanup also covers
+values older than the newest 1,000.
+
 ## Add a Quick Settings tile
 
 On Android, the generator has two Quick Settings tiles. Add one when you edit

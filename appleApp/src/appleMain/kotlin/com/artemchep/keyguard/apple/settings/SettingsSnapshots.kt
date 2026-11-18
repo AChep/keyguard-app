@@ -45,6 +45,8 @@ data class SecuritySettingsSnapshot(
     val lockAfterReboot: Boolean = false,
     val lockTimeoutTitle: String = "",
     val lockTimeoutOptions: List<SettingOptionSnapshot> = emptyList(),
+    val generatorHistoryRetentionTitle: String = "",
+    val generatorHistoryRetentionOptions: List<SettingOptionSnapshot> = emptyList(),
     val clipboardAutoClearTitle: String = "",
     val clipboardAutoClearOptions: List<SettingOptionSnapshot> = emptyList(),
     val conceal: Boolean = false,

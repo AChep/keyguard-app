@@ -41,6 +41,7 @@ fun rememberSettingsSecurityItems(
             SettingPaneItem.Group(
                 key = "visuals",
                 list = persistentListOf(
+                    SettingPaneItem.Item(Setting.GENERATOR_HISTORY_RETENTION),
                     SettingPaneItem.Item(Setting.CONCEAL),
                     SettingPaneItem.Item(Setting.SCREENSHOTS),
                     SettingPaneItem.Item(Setting.WEBSITE_ICONS),

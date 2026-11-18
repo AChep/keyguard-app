@@ -3,11 +3,8 @@ package com.artemchep.keyguard.common.model
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
-/**
- * How long the SSH agent, GPG agent and CLI agent
- * request logs keep their entries.
- */
-object AgentHistoryRetention {
+/** Retention periods for local history, shared by the settings pickers. */
+object HistoryRetention {
     /** A month in the retention options; the labels show it in months. */
     val MONTH = 30.days
 

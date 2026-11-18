@@ -4,7 +4,7 @@ import com.artemchep.keyguard.common.io.attempt
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.launchIn
 import com.artemchep.keyguard.common.model.MasterSession
-import com.artemchep.keyguard.common.service.agenthistory.AgentHistoryRetentionWorker
+import com.artemchep.keyguard.common.service.history.HistoryRetentionWorker
 import com.artemchep.keyguard.common.service.exposedaccount.ExposedAccountSyncer
 import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySyncer
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
@@ -61,7 +61,7 @@ class AppWorkerIm(
                 launchWhenAvailable(this, { it.urlBlockExposedSyncer }, UrlBlockExposedSyncer::launch)
                 launchWhenAvailable(this, { it.gpgPublicKeySyncer }, GpgPublicKeySyncer::launch)
                 launchWhenAvailable(this, { it.gpgKeyserverRefreshWorker }, GpgKeyserverRefreshWorker::launch)
-                launchWhenAvailable(this, { it.agentHistoryRetentionWorker }, AgentHistoryRetentionWorker::launch)
+                launchWhenAvailable(this, { it.historyRetentionWorker }, HistoryRetentionWorker::launch)
                 launchWhenAvailable(this, { it.licenseSyncer }, LicenseSyncer::launch)
                 launchWhenAvailable(this, { it.appLinkWorker }, AppLinkWorker::launch)
 

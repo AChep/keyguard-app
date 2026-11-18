@@ -111,8 +111,16 @@ val macExtraPlistKeys = macBundleLocalizationsPlistXml(
 
 val bundledAppResourcesDir = layout.buildDirectory.dir("app-resources")
 
+// The BuildKonfig flavor: anything but "release" builds the DEV app.
+val isReleaseFlavor = providers.gradleProperty("buildkonfig.flavor")
+    .map { it == "release" }
+    .orElse(false)
+
 val prepareBundledAppResources = tasks.register<Sync>("prepareBundledAppResources") {
     from(bundledAppResources)
+    // On macOS a DEV app runs its agents in /tmp/keyguard-<uid>/ (macosDevAgentSocketPath).
+    // The marker leads the bundled clients there, the browser connector included.
+    if (!isReleaseFlavor.get()) from("dev-app-resources")
     into(bundledAppResourcesDir)
 }
 

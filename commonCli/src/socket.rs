@@ -34,7 +34,8 @@ pub fn default_socket() -> Result<PathBuf> {
 
 /// Socket of the running Keyguard for a client: an explicit path, then
 /// `KEYGUARD_CLI_SOCKET`, then the native macOS app that bundles
-/// this executable, then the platform default.
+/// this executable, then a development build of the desktop app on macOS
+/// that bundles it, then the platform default.
 pub fn client_socket(explicit: Option<PathBuf>) -> Result<PathBuf> {
     if let Some(path) = explicit {
         return Ok(path);
@@ -46,7 +47,38 @@ pub fn client_socket(explicit: Option<PathBuf>) -> Result<PathBuf> {
     if let Some(path) = app_group_socket() {
         return Ok(path);
     }
+    #[cfg(target_os = "macos")]
+    if let Some(path) = dev_build_socket() {
+        return Ok(path);
+    }
     default_socket()
+}
+
+/// Marks a development build of the desktop app on macOS, next to its
+/// bundled executables. Release builds never bundle it.
+#[cfg(target_os = "macos")]
+const DEV_BUILD_MARKER: &str = "keyguard-dev-build";
+
+/// Development builds of the desktop app on macOS run their agents in
+/// `/tmp/keyguard-<uid>/`, apart from an installed Keyguard
+/// (`macosDevAgentSocketPath` of the app). The browser starts the browser
+/// connector without `KEYGUARD_CLI_SOCKET`, so the marker is what leads it
+/// there.
+#[cfg(target_os = "macos")]
+fn dev_build_socket() -> Option<PathBuf> {
+    let executable = std::env::current_exe().ok()?.canonicalize().ok()?;
+    dev_build_socket_for(
+        &executable,
+        keyguard_agent_identity::socket_lifecycle::current_uid(),
+    )
+}
+
+#[cfg(target_os = "macos")]
+fn dev_build_socket_for(executable: &std::path::Path, uid: u32) -> Option<PathBuf> {
+    executable
+        .with_file_name(DEV_BUILD_MARKER)
+        .is_file()
+        .then(|| PathBuf::from(format!("/tmp/keyguard-{uid}/cli.sock")))
 }
 
 /// The native macOS app records its App Group next to the bundled CLI. Its
@@ -96,5 +128,17 @@ mod tests {
         );
         std::fs::write(bundle.path().join("keyguard-app-group"), "../escape").unwrap();
         assert_eq!(app_group_socket_for(&executable, home), None);
+    }
+
+    #[test]
+    fn a_development_build_names_its_socket() {
+        let bundle = tempfile::tempdir().unwrap();
+        let executable = bundle.path().join("keyguard-browser-host");
+        assert_eq!(dev_build_socket_for(&executable, 501), None);
+        std::fs::write(bundle.path().join(DEV_BUILD_MARKER), "").unwrap();
+        assert_eq!(
+            dev_build_socket_for(&executable, 501),
+            Some(PathBuf::from("/tmp/keyguard-501/cli.sock")),
+        );
     }
 }

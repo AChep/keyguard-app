@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.agent
 import com.artemchep.keyguard.build.BuildKonfig
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.crypto.seedHex
+import com.artemchep.keyguard.common.service.gpgagent.currentUnixUid
 import com.artemchep.keyguard.common.service.logging.LogLevel
 import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.common.util.toHex
@@ -17,7 +18,6 @@ import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import java.io.IOException
-import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
 
@@ -615,15 +615,21 @@ private fun ipcServerFailureName(e: Exception): String =
 
 private const val BUILD_TYPE_DEV = "DEV"
 
+/**
+ * A path of the agents of a DEV build on macOS, such as a socket or the
+ * managed GnuPG home, in `/tmp/keyguard-<uid>/`, apart from an installed
+ * Keyguard. The bundled clients find the CLI agent's socket by the
+ * `keyguard-dev-build` marker that DEV builds bundle, see `client_socket` in
+ * commonCli/src/socket.rs.
+ */
 internal fun macosDevAgentSocketPath(relativePath: String): Path? {
     if (BuildKonfig.buildType != BUILD_TYPE_DEV || CurrentPlatform !is Platform.Desktop.MacOS) {
         return null
     }
 
-    val uid = runCatching {
-        Files.getAttribute(Path.of(System.getProperty("user.home")), "unix:uid") as Number
-    }.getOrNull() ?: return null
+    // The user ID of this process, as the bundled clients take it.
+    val uid = currentUnixUid() ?: return null
 
-    return Path.of("/tmp", "keyguard-${uid.toLong()}")
+    return Path.of("/tmp", "keyguard-$uid")
         .resolve(relativePath)
 }

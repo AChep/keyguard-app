@@ -9,12 +9,13 @@ use std::{fmt::Write, path::PathBuf};
 mod client;
 mod commands {
     pub(crate) mod agents;
+    pub(crate) mod browsers;
     pub(crate) mod mcp;
     pub(crate) mod run;
 }
 mod errors;
 
-use commands::{agents, mcp, run};
+use commands::{agents, browsers, mcp, run};
 
 /// Lays out help like the 1Password CLI: the description, a one-line usage,
 /// then the sections.
@@ -69,6 +70,13 @@ struct Connection {
 enum Command {
     /// Review, configure, verify, or undo SSH and GPG client setup.
     Agents(agents::Args),
+    /// Install, repair, or remove the connector of Keyguard's browser extension.
+    #[command(
+        override_usage = "keyguard browsers [command] [flags]",
+        help_template = HELP_TEMPLATE,
+        next_help_heading = "Flags"
+    )]
+    Browsers(browsers::Args),
     /// Get help for any command.
     #[command(
         override_usage = "keyguard help [command]",
@@ -126,6 +134,7 @@ fn print_help(command: Option<String>) {
 async fn main() {
     let code = match Cli::parse().command {
         Command::Agents(args) => agents::main(args),
+        Command::Browsers(args) => browsers::main(args),
         Command::Help { command } => {
             print_help(command);
             0

@@ -25,6 +25,9 @@ server. To set it up, see
 | `keyguard agents apply` | Reads a reviewed JSON plan from stdin and applies it if files are unchanged |
 | `keyguard agents undo <ssh\|gpg>` | Previews removal; `--review` asks before applying, `--apply` applies immediately |
 | `keyguard agents verify` | Queries the specified agent through an installed client |
+| `keyguard browsers status` | Shows which browsers can start the browser extension's connector |
+| `keyguard browsers install` | Lets browsers start the connector, or repairs it |
+| `keyguard browsers uninstall` | Removes the connector from browsers |
 
 - `-h`, `--help` prints help for any command.
 - `-V`, `--version` works on `keyguard` alone.
@@ -95,6 +98,74 @@ stopped. Open Keyguard and check the MCP configuration."
 - `append_variables` can't create or overwrite a reference.
 - There are no tools to delete, export or run commands.
 
+## Browser connectors
+
+`keyguard browsers` installs, repairs, reports and removes the connectors that
+let browsers start the browser extension. It works
+for the current user only.
+
+```sh
+keyguard browsers status [--json] [--dev]
+keyguard browsers install [--json] [--dev] [--browser <BROWSER>]...
+keyguard browsers uninstall [--json] [--dev] [--browser <BROWSER>]...
+```
+
+| Flag | Value | Description |
+| --- | --- | --- |
+| `--browser` | Browser ID | `install` and `uninstall` only. Limits the command to this browser. Repeat it for more. Without it, `install` covers the browsers it finds, and `uninstall` covers all of them. |
+| `--dev` | None | Also allows the development build of the extension. Without it, `install` removes that build. |
+| `--json` | None | Prints the report, or the error, as JSON on standard output |
+
+`install` rewrites the list of extensions each connector allows: Keyguard's
+extension, plus its development build with `--dev`. A connector that allows any
+other extension needs repair.
+
+| Browser ID | Browser |
+| --- | --- |
+| `chrome` | Google Chrome |
+| `chromium` | Chromium |
+| `edge` | Microsoft Edge |
+| `brave` | Brave |
+| `vivaldi` | Vivaldi |
+| `firefox` | Firefox |
+
+Some browsers share a manifest, so a command for one also changes the others:
+
+- On macOS, Brave reads Chrome's folder: `chrome` and `brave` share a manifest.
+- On Windows, Brave and Vivaldi read Chrome's registry key: `chrome`, `brave`
+  and `vivaldi` share a manifest and key.
+
+In Flatpak, Keyguard sees only the browsers' `NativeMessagingHosts` folders
+that exist on the host. Only those browsers can be set up. To add a browser,
+create its folder, then restart Keyguard.
+
+Each command prints one line per browser: its ID, its status and the path of
+its manifest. `not found` lines show no path.
+
+| Status | JSON `status` | Meaning |
+| --- | --- | --- |
+| `installed` | `installed` | The browser starts this copy's connector. |
+| `not installed` | `missing` | The browser was used, but has no manifest. |
+| `needs repair` | `stale` | The manifest, its registry key, the Flatpak wrapper or the AppImage's copy of the connector differs from what `install` writes, or is a file `install` refuses to edit. `--dev` counts: without it, a manifest that allows the development build needs repair. |
+| `not found` | `browser_absent` | Neither the browser nor a manifest was found. |
+
+With `--json`, the report holds `version`, `packaging` (`native`, `flatpak` or
+`appimage`) and a `browsers` list. Each entry has `browser`, `status`,
+`detected`, `manifest` and `host`, plus `registry_key` on Windows.
+
+On failure, the command exits with `1`. It prints the message to standard
+error, or, with `--json`, an object with `code` and `detail` to standard
+output. The object also has `path` or `browser` when the message names one.
+
+| Code | Message | Fix |
+| --- | --- | --- |
+| `browser_absent` | "`<BROWSER>` was not found; open it once, then try again" | Open the browser once, then run the command again. |
+| `foreign_file` | "`<PATH>` was not written by Keyguard; remove it manually" | Remove the file, then run the command again. |
+| `host_missing` | "the connector is missing or can't run: `<PATH>`" | Run the `keyguard` bundled with the app. If it is, reinstall Keyguard. See [Bundled executable](#bundled-executable). |
+| `unsafe_file` | "cannot safely edit `<PATH>`: …" | The file or a folder above it is a link, belongs to another user, or others can write to it. Or the file isn't UTF-8 text. Fix or remove it. |
+| `unsupported` | "this build of Keyguard can't install browser connectors" | The Mac App Store build can't reach the browsers' files. Browsers may not start a connector from the Microsoft Store or MSIX build. Use the DMG or MSI build. |
+| `failed` | Any other message | The message names the cause. |
+
 ## Request log
 
 Keyguard logs each request with its caller, environment and result, such as
@@ -133,6 +204,9 @@ Keyguard logs each request with its caller, environment and result, such as
   an identical copy. A copy stops working when an update replaces the bundled
   file.
 - `keyguard mcp` works from any copy.
+- `keyguard browsers install` needs the connector next to it. Run the bundled
+  file, or a link to it on Linux and macOS. A copy in a folder without the
+  connector fails with `host_missing`.
 - The check is best effort on every platform. The approval in Keyguard is
   what protects the values.
 
@@ -141,8 +215,8 @@ Keyguard logs each request with its caller, environment and result, such as
 | Code | Meaning |
 | --- | --- |
 | The command's code | `keyguard run` started the command, and it exited with this code |
-| `0` | Help or version printed, or the MCP client closed the connection |
-| `1` | Keyguard refused or failed the request. `keyguard` prints the reason. |
+| `0` | Help or version printed, the MCP client closed the connection, or a `keyguard browsers` command succeeded |
+| `1` | Keyguard refused or failed the request, or a `keyguard browsers` command failed. `keyguard` prints the reason. |
 | `2` | Usage error, such as a missing flag or `--` |
 | `126` | The command was found but can't start |
 | `127` | The command wasn't found |

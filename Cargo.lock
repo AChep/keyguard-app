@@ -2065,9 +2065,11 @@ version = "3.8.2"
 dependencies = [
  "anyhow",
  "clap",
+ "dirs",
  "keyguard-agent-setup",
  "keyguard-cli-protocol",
  "rmcp",
+ "serde",
  "serde_json",
  "tempfile",
  "tokio",

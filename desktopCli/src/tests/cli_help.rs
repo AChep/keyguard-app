@@ -19,6 +19,7 @@ fn help_command_prints_the_same_help_as_the_flag() {
     assert_eq!(help(&["help"]), help(&["--help"]));
     assert_eq!(help(&["help", "run"]), help(&["run", "--help"]));
     assert_eq!(help(&["help", "mcp"]), help(&["mcp", "-h"]));
+    assert_eq!(help(&["help", "browsers"]), help(&["browsers", "--help"]));
 }
 
 #[test]
@@ -27,6 +28,7 @@ fn help_has_commands_flags_and_footer() {
     for expected in [
         "Usage:  keyguard [command] [flags]",
         "Commands:",
+        "  browsers ",
         "  help ",
         "  run ",
         "Flags:",
@@ -49,6 +51,26 @@ fn help_has_commands_flags_and_footer() {
     ] {
         assert!(run.contains(expected), "{expected:?} in:\n{run}");
     }
+
+    let browsers = help(&["browsers", "--help"]);
+    for expected in [
+        "Usage:  keyguard browsers [command] [flags]",
+        "  status ",
+        "  install ",
+        "  uninstall ",
+        "--json",
+    ] {
+        assert!(browsers.contains(expected), "{expected:?} in:\n{browsers}");
+    }
+    let install = help(&["browsers", "install", "--help"]);
+    for expected in [
+        "Usage:  keyguard browsers install [flags]",
+        "Flags:",
+        "--browser <browser>",
+    ] {
+        assert!(install.contains(expected), "{expected:?} in:\n{install}");
+    }
+    assert!(!install.contains("--allow-origin"), "{install}");
 }
 
 #[test]

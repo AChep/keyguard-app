@@ -13,6 +13,15 @@ finish-args:
   - --device=all
   - --filesystem=xdg-download:create
   - --filesystem=xdg-run/gnupg:create
+  # Browser extension: the native messaging manifests of the browsers on the host.
+  # No :create, so the sandbox sees only the folders that exist, which is how it
+  # tells which browsers are used.
+  - --filesystem=xdg-config/google-chrome/NativeMessagingHosts
+  - --filesystem=xdg-config/chromium/NativeMessagingHosts
+  - --filesystem=xdg-config/microsoft-edge/NativeMessagingHosts
+  - --filesystem=xdg-config/BraveSoftware/Brave-Browser/NativeMessagingHosts
+  - --filesystem=xdg-config/vivaldi/NativeMessagingHosts
+  - --filesystem=~/.mozilla/native-messaging-hosts
   - --talk-name=org.kde.StatusNotifierWatcher
   - --system-talk-name=org.freedesktop.PolicyKit1
   # glibc gives the threads that allocate at the same time a malloc arena each,

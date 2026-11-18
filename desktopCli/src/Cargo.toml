@@ -16,15 +16,17 @@ path = "src/main.rs"
 [dependencies]
 anyhow.workspace = true
 clap = { workspace = true, features = ["derive"] }
+dirs.workspace = true
 keyguard-cli-protocol.workspace = true
 keyguard-agent-setup.workspace = true
 rmcp = { workspace = true, features = ["server", "transport-io"] }
+serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 tokio = { workspace = true, features = ["full"] }
 zeroize.workspace = true
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_System_Console", "Win32_System_JobObjects", "Win32_System_Threading"] }
+windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_Storage_Packaging_Appx", "Win32_System_Console", "Win32_System_JobObjects", "Win32_System_Registry", "Win32_System_Threading"] }
 
 [dev-dependencies]
 tempfile.workspace = true

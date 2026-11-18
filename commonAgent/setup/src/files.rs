@@ -77,16 +77,33 @@ impl OwnedBlock {
     }
 }
 
+/// Where setup edits files: the home, and the Documents folder, which
+/// Windows can redirect outside the home.
+fn roots(env: &Environment) -> Vec<&Path> {
+    [Some(&env.home), env.documents.as_ref()]
+        .into_iter()
+        .flatten()
+        .map(PathBuf::as_path)
+        .collect()
+}
+
 pub(crate) fn check_path(env: &Environment, path: &Path) -> Result<()> {
-    check(env, path).with_context(|| SetupError::UnsafeFile {
+    check_safe_path(&roots(env), path)
+}
+
+/// Fails with [`SetupError::UnsafeFile`] unless `path` is inside one of
+/// `roots`, and neither it nor a parent up to that root is a link, another
+/// user's file, a file others can write, or a hard-linked file.
+pub fn check_safe_path(roots: &[impl AsRef<Path>], path: &Path) -> Result<()> {
+    check(roots, path).with_context(|| SetupError::UnsafeFile {
         path: path.to_owned(),
     })
 }
 
-fn check(env: &Environment, path: &Path) -> Result<()> {
-    let root = [Some(&env.home), env.documents.as_ref()]
-        .into_iter()
-        .flatten()
+fn check(roots: &[impl AsRef<Path>], path: &Path) -> Result<()> {
+    let root = roots
+        .iter()
+        .map(AsRef::as_ref)
         .find(|root| path.is_absolute() && path.starts_with(root))
         .ok_or_else(|| {
             anyhow::anyhow!(
@@ -186,7 +203,13 @@ fn private_group(uid: libc::uid_t, gid: libc::gid_t) -> bool {
 }
 
 pub(crate) fn read(env: &Environment, path: &Path) -> Result<Option<String>> {
-    check_path(env, path)?;
+    read_safe_text(&roots(env), path)
+}
+
+/// Reads a UTF-8 file of at most 1 MiB after [`check_safe_path`]; `None`
+/// means the file is missing.
+pub fn read_safe_text(roots: &[impl AsRef<Path>], path: &Path) -> Result<Option<String>> {
+    check_safe_path(roots, path)?;
     read_text(path)
 }
 
@@ -210,14 +233,14 @@ fn read_text(path: &Path) -> Result<Option<String>> {
     }
 }
 
-fn mkdir(env: &Environment, path: &Path) -> Result<()> {
-    check_path(env, path)?;
+fn mkdir(roots: &[impl AsRef<Path>], path: &Path) -> Result<()> {
+    check_safe_path(roots, path)?;
     if path.exists() {
         ensure!(path.is_dir(), "not a directory: {}", path.display());
         return Ok(());
     }
     mkdir(
-        env,
+        roots,
         path.parent()
             .ok_or_else(|| anyhow::anyhow!("missing parent directory"))?,
     )?;
@@ -234,8 +257,21 @@ fn mkdir(env: &Environment, path: &Path) -> Result<()> {
 }
 
 fn write(env: &Environment, path: &Path, text: Option<&str>) -> Result<()> {
-    check_path(env, path)?;
-    let Some(text) = text else {
+    write_safe_file(&roots(env), path, text.map(str::as_bytes), false)
+}
+
+/// Atomically replaces `path` with `contents`, or deletes it for `None`,
+/// after [`check_safe_path`]. Missing parents become private directories.
+/// A replaced file keeps its permissions; on Unix, `executable` sets them
+/// to `rwxr-xr-x` instead.
+pub fn write_safe_file(
+    roots: &[impl AsRef<Path>],
+    path: &Path,
+    contents: Option<&[u8]>,
+    executable: bool,
+) -> Result<()> {
+    check_safe_path(roots, path)?;
+    let Some(contents) = contents else {
         if path.exists() {
             fs::remove_file(path)?;
         }
@@ -244,12 +280,20 @@ fn write(env: &Environment, path: &Path, text: Option<&str>) -> Result<()> {
     let parent = path
         .parent()
         .ok_or_else(|| anyhow::anyhow!("missing parent directory"))?;
-    mkdir(env, parent)?;
+    mkdir(roots, parent)?;
     let mut temp = tempfile::NamedTempFile::new_in(parent)?;
     if let Ok(metadata) = fs::metadata(path) {
         temp.as_file().set_permissions(metadata.permissions())?;
     }
-    temp.write_all(text.as_bytes())?;
+    #[cfg(unix)]
+    if executable {
+        use std::os::unix::fs::PermissionsExt;
+        temp.as_file()
+            .set_permissions(fs::Permissions::from_mode(0o755))?;
+    }
+    #[cfg(not(unix))]
+    let _ = executable;
+    temp.write_all(contents)?;
     temp.as_file().sync_all()?;
     persist(temp, path)?;
     Ok(())
@@ -307,7 +351,7 @@ impl Drop for SetupLock {
 
 fn lock(env: &Environment) -> Result<SetupLock> {
     let dir = env.state_dir();
-    mkdir(env, &dir)?;
+    mkdir(&roots(env), &dir)?;
     let path = dir.join("lock");
     check_path(env, &path)?;
     let mut options = OpenOptions::new();

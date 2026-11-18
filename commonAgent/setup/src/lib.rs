@@ -15,7 +15,7 @@ use anyhow::{Result, bail, ensure};
 use serde::{Deserialize, Serialize, de::IntoDeserializer};
 use std::path::PathBuf;
 
-pub use files::{apply, undo};
+pub use files::{apply, check_safe_path, read_safe_text, undo, write_safe_file};
 pub use planner::plan;
 pub use review::review_and_apply;
 

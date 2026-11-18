@@ -2,19 +2,21 @@ package com.artemchep.keyguard.feature.home.settings.backups
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.SystemUpdateAlt
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.service.backup.BackupRetention
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.KgPicker
+import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
 import com.artemchep.keyguard.feature.home.settings.SettingPaneComponents
 import com.artemchep.keyguard.feature.home.vault.component.Section
@@ -69,25 +71,31 @@ internal fun LazyListScope.AutomaticBackupsEnabledContent(
     }
 
     item("management.import") {
-        ImportFromBackupAction(
-            onImport = state.onImport,
-        )
-    }
-
-    if (state.canUpgradeEncryption) {
-        item("management.upgrade") {
-            components.KgAction(
-                icon = null,
-                title = stringResource(Res.string.pref_item_automatic_backups_upgrade_title),
-                onClick = state.onUpgradeEncryption,
+        CompositionLocalProvider(LocalSettingItemShape provides ShapeState.START) {
+            ImportFromBackupAction(
+                onImport = state.onImport,
             )
         }
     }
 
+    if (state.canUpgradeEncryption) {
+        item("management.upgrade") {
+            CompositionLocalProvider(LocalSettingItemShape provides ShapeState.CENTER) {
+                components.KgAction(
+                    icon = null,
+                    title = stringResource(Res.string.pref_item_automatic_backups_upgrade_title),
+                    onClick = state.onUpgradeEncryption,
+                )
+            }
+        }
+    }
+
     item("management.turn_off") {
-        DisableAutomaticBackupsAction(
-            onDisableClick = state.onDisableClick,
-        )
+        CompositionLocalProvider(LocalSettingItemShape provides ShapeState.END) {
+            DisableAutomaticBackupsAction(
+                onDisableClick = state.onDisableClick,
+            )
+        }
     }
 
     item("details") {
@@ -196,7 +204,6 @@ private fun ImportFromBackupAction(
     LocalSettingPaneComponents.current.KgAction(
         icon = Icons.Outlined.SystemUpdateAlt,
         title = stringResource(Res.string.pref_item_automatic_backups_import_title),
-        text = stringResource(Res.string.pref_item_automatic_backups_import_text),
         onClick = onImport,
     )
 }

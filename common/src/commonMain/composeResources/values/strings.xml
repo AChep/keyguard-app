@@ -2026,7 +2026,6 @@
     <string name="pref_item_automatic_backups_panel_pending_changes_label">Pending changes</string>
     <string name="pref_item_automatic_backups_run_now_title">Run backup now</string>
     <string name="pref_item_automatic_backups_import_title">Import from backup</string>
-    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
     <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">Unsupported platform</string>
     <string name="pref_item_automatic_backups_unsupported_text">Automatic backups are available on Android, desktop, macOS, and iOS.</string>

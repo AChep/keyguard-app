@@ -194,12 +194,12 @@ private fun AutomaticBackupsSettingsContent(
 
 @Composable
 private fun AutomaticBackupsSettingsPreview(
-    enabled: Boolean = true,
+    state: AutomaticBackupsSettingsState = AutomaticBackupsPreviewData.settings(),
     dark: Boolean = false,
 ) {
     AutomaticBackupsPreview(dark = dark) {
         AutomaticBackupsSettingsContent(
-            state = AutomaticBackupsPreviewData.settings(enabled = enabled),
+            state = state,
             dateFormatter = AutomaticBackupsPreviewData.dateFormatter,
         )
     }
@@ -208,7 +208,7 @@ private fun AutomaticBackupsSettingsPreview(
 @Preview(name = "Settings — setup landing", group = "Backup settings", widthDp = 390, heightDp = 844)
 @Composable
 internal fun AutomaticBackupsSettingsDisabledPreview() {
-    AutomaticBackupsSettingsPreview(enabled = false)
+    AutomaticBackupsSettingsPreview(state = AutomaticBackupsPreviewData.settings(enabled = false))
 }
 
 @Preview(name = "Settings — enabled", group = "Backup settings", widthDp = 390, heightDp = 844)
@@ -217,8 +217,14 @@ internal fun AutomaticBackupsSettingsEnabledPreview() {
     AutomaticBackupsSettingsPreview()
 }
 
-@Preview(name = "Settings — enabled dark", group = "Backup settings", widthDp = 390, heightDp = 844)
+@Preview(name = "Settings — upgrade available, dark", group = "Backup settings", widthDp = 390, heightDp = 844)
 @Composable
 internal fun AutomaticBackupsSettingsDarkPreview() {
-    AutomaticBackupsSettingsPreview(dark = true)
+    AutomaticBackupsSettingsPreview(
+        state = AutomaticBackupsPreviewData.settings().copy(
+            canUpgradeEncryption = true,
+            onUpgradeEncryption = {},
+        ),
+        dark = true,
+    )
 }

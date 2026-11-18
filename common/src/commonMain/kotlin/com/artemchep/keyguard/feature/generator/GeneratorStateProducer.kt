@@ -176,19 +176,23 @@ import org.koin.compose.currentKoinScope
 
 private const val TIP_VISIBLE = true
 
-private const val PASSWORD_LENGTH_DEFAULT = 16L
-private const val PASSWORD_LENGTH_MIN = 4
-private const val PASSWORD_LENGTH_MAX = 128
-private const val PASSWORD_INCLUDE_UPPERCASE_CHARS_DEFAULT = true
-private const val PASSWORD_INCLUDE_UPPERCASE_CHARS_MIN_DEFAULT = 1L
-private const val PASSWORD_INCLUDE_LOWERCASE_CHARS_DEFAULT = true
-private const val PASSWORD_INCLUDE_LOWERCASE_CHARS_MIN_DEFAULT = 1L
-private const val PASSWORD_INCLUDE_NUMBERS_DEFAULT = true
-private const val PASSWORD_INCLUDE_NUMBERS_MIN_DEFAULT = 1L
-private const val PASSWORD_INCLUDE_SYMBOLS_DEFAULT = true
-private const val PASSWORD_INCLUDE_SYMBOLS_MIN_DEFAULT = 1L
-private const val PASSWORD_EXCLUDE_SIMILAR_CHARS = true
-private const val PASSWORD_EXCLUDE_AMBIGUOUS_CHARS = true
+private const val PASSWORD_LENGTH_DEFAULT = GeneratorPersistedKeys.Password.LENGTH_DEFAULT
+private const val PASSWORD_LENGTH_MIN = GeneratorPersistedKeys.Password.LENGTH_MIN
+private const val PASSWORD_LENGTH_MAX = GeneratorPersistedKeys.Password.LENGTH_MAX
+private const val PASSWORD_INCLUDE_UPPERCASE_CHARS_DEFAULT =
+    GeneratorPersistedKeys.Password.INCLUDE_UPPERCASE_CHARS_DEFAULT
+private const val PASSWORD_INCLUDE_UPPERCASE_CHARS_MIN_DEFAULT =
+    GeneratorPersistedKeys.Password.INCLUDE_UPPERCASE_CHARS_MIN_DEFAULT
+private const val PASSWORD_INCLUDE_LOWERCASE_CHARS_DEFAULT =
+    GeneratorPersistedKeys.Password.INCLUDE_LOWERCASE_CHARS_DEFAULT
+private const val PASSWORD_INCLUDE_LOWERCASE_CHARS_MIN_DEFAULT =
+    GeneratorPersistedKeys.Password.INCLUDE_LOWERCASE_CHARS_MIN_DEFAULT
+private const val PASSWORD_INCLUDE_NUMBERS_DEFAULT = GeneratorPersistedKeys.Password.INCLUDE_NUMBERS_DEFAULT
+private const val PASSWORD_INCLUDE_NUMBERS_MIN_DEFAULT = GeneratorPersistedKeys.Password.INCLUDE_NUMBERS_MIN_DEFAULT
+private const val PASSWORD_INCLUDE_SYMBOLS_DEFAULT = GeneratorPersistedKeys.Password.INCLUDE_SYMBOLS_DEFAULT
+private const val PASSWORD_INCLUDE_SYMBOLS_MIN_DEFAULT = GeneratorPersistedKeys.Password.INCLUDE_SYMBOLS_MIN_DEFAULT
+private const val PASSWORD_EXCLUDE_SIMILAR_CHARS = GeneratorPersistedKeys.Password.EXCLUDE_SIMILAR_CHARS_DEFAULT
+private const val PASSWORD_EXCLUDE_AMBIGUOUS_CHARS = GeneratorPersistedKeys.Password.EXCLUDE_AMBIGUOUS_CHARS_DEFAULT
 
 private const val PASSPHRASE_LENGTH_DEFAULT = 5L
 private const val PASSPHRASE_LENGTH_MIN = 1
@@ -265,7 +269,7 @@ fun produceGeneratorState(
 
 const val GENERATOR_KEY_ARG_URIS = "args:context"
 
-private const val PREFIX_PASSWORD = "password"
+private const val PREFIX_PASSWORD = GeneratorPersistedKeys.Password.PREFIX
 private const val PREFIX_PASSPHRASE = "passphrase"
 private const val PREFIX_USERNAME = "username"
 private const val PREFIX_EMAIL_CATCH_ALL = "email_catch_all"
@@ -485,9 +489,10 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
 
     val storage = kotlin.run {
         val disk = loadDiskHandle(
-            key = key?.let { "$it:" }.orEmpty()
-                    + args.storageKey?.let { "$it:" }.orEmpty()
-                    + "generator",
+            key = GeneratorPersistedKeys.storage(
+                key = key,
+                storageKey = args.storageKey,
+            ),
             global = true,
         )
         PersistedStorage.InDisk(disk)
@@ -635,47 +640,47 @@ suspend fun RememberStateFlowScope.generatorStateProducer(
 
     // password
     val passwordLengthSink = mutablePersistedFlow(
-        key = "$PREFIX_PASSWORD.length",
+        key = GeneratorPersistedKeys.Password.LENGTH,
         storage = storage,
     ) { PASSWORD_LENGTH_DEFAULT }
     val passwordIncludeUppercaseCharactersSink = mutablePersistedFlow(
-        key = "$PREFIX_PASSWORD.include_uppercase_chars",
+        key = GeneratorPersistedKeys.Password.INCLUDE_UPPERCASE_CHARS,
         storage = storage,
     ) { PASSWORD_INCLUDE_UPPERCASE_CHARS_DEFAULT }
     val passwordIncludeUppercaseCharactersMinSink = mutablePersistedFlow(
-        key = "$PREFIX_PASSWORD.include_uppercase_chars.min",
+        key = GeneratorPersistedKeys.Password.INCLUDE_UPPERCASE_CHARS_MIN,
         storage = storage,
     ) { PASSWORD_INCLUDE_UPPERCASE_CHARS_MIN_DEFAULT }
     val passwordIncludeLowercaseCharactersSink = mutablePersistedFlow(
-        key = "$PREFIX_PASSWORD.include_lowercase_chars",
+        key = GeneratorPersistedKeys.Password.INCLUDE_LOWERCASE_CHARS,
         storage = storage,
     ) { PASSWORD_INCLUDE_LOWERCASE_CHARS_DEFAULT }
     val passwordIncludeLowercaseCharactersMinSink = mutablePersistedFlow(
-        key = "$PREFIX_PASSWORD.include_lowercase_chars.min",
+        key = GeneratorPersistedKeys.Password.INCLUDE_LOWERCASE_CHARS_MIN,
         storage = storage,
     ) { PASSWORD_INCLUDE_LOWERCASE_CHARS_MIN_DEFAULT }
     val passwordIncludeNumbersSink = mutablePersistedFlow(
-        key = "$PREFIX_PASSWORD.include_numbers",
+        key = GeneratorPersistedKeys.Password.INCLUDE_NUMBERS,
         storage = storage,
     ) { PASSWORD_INCLUDE_NUMBERS_DEFAULT }
     val passwordIncludeNumbersMinSink = mutablePersistedFlow(
-        key = "$PREFIX_PASSWORD.include_numbers.min",
+        key = GeneratorPersistedKeys.Password.INCLUDE_NUMBERS_MIN,
         storage = storage,
     ) { PASSWORD_INCLUDE_NUMBERS_MIN_DEFAULT }
     val passwordIncludeSymbolsSink = mutablePersistedFlow(
-        "$PREFIX_PASSWORD.include_symbols",
+        GeneratorPersistedKeys.Password.INCLUDE_SYMBOLS,
         storage = storage,
     ) { PASSWORD_INCLUDE_SYMBOLS_DEFAULT }
     val passwordIncludeSymbolsMinSink = mutablePersistedFlow(
-        key = "$PREFIX_PASSWORD.include_symbols.min",
+        key = GeneratorPersistedKeys.Password.INCLUDE_SYMBOLS_MIN,
         storage = storage,
     ) { PASSWORD_INCLUDE_SYMBOLS_MIN_DEFAULT }
     val passwordExcludeSimilarCharactersSink = mutablePersistedFlow(
-        "$PREFIX_PASSWORD.exclude_similar_chars",
+        GeneratorPersistedKeys.Password.EXCLUDE_SIMILAR_CHARS,
         storage = storage,
     ) { PASSWORD_EXCLUDE_SIMILAR_CHARS }
     val passwordExcludeAmbiguousCharactersSink = mutablePersistedFlow(
-        "$PREFIX_PASSWORD.exclude_ambiguous_chars",
+        GeneratorPersistedKeys.Password.EXCLUDE_AMBIGUOUS_CHARS,
         storage = storage,
     ) { PASSWORD_EXCLUDE_AMBIGUOUS_CHARS }
     // passphrase

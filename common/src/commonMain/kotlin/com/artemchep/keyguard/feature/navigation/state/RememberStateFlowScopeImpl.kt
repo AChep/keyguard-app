@@ -51,6 +51,12 @@ import kotlinx.coroutines.plus
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.PluralStringResource
 
+/**
+ * The key of the persisted state that `loadDiskHandle(key, global = true)`
+ * reads and writes: one for every screen that uses the [key].
+ */
+internal fun globalDiskHandleKey(key: String): String = "$key@*"
+
 class RememberStateFlowScopeImpl(
     private val key: String,
     private val bundle: LeBundle,
@@ -239,7 +245,7 @@ class RememberStateFlowScopeImpl(
         global: Boolean,
     ): DiskHandle = kotlin.run {
         val diskHandleKey = if (global) {
-            "$key@*"
+            globalDiskHandleKey(key)
         } else {
             "$key@$screenName"
         }

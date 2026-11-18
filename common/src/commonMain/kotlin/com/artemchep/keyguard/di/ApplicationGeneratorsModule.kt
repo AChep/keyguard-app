@@ -31,6 +31,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutAutofillPasswordsEnabledImp
 import com.artemchep.keyguard.common.usecase.impl.PutCheckPwnedPasswordsImpl
 import com.artemchep.keyguard.common.usecase.impl.ReadWordlistFromFileImpl
 import com.artemchep.keyguard.common.usecase.impl.ReadWordlistFromUrlImpl
+import com.artemchep.keyguard.feature.generator.PasswordGeneratorConfigReader
 import org.koin.core.qualifier.named
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -50,6 +51,8 @@ internal class ApplicationGeneratorsModule {
                 getPinCode = get(),
             )
         }
+
+        single<PasswordGeneratorConfigReader>()
 
         single<GetCheckPwnedPasswordsImpl>() bind GetCheckPwnedPasswords::class
 

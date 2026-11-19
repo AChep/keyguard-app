@@ -1,0 +1,14 @@
+{
+  "request": {
+    "id": 10,
+    "type": "save",
+    "url": "https://login.example.com/sign-in?next=%2Faccount",
+    "username": "ann@example.com",
+    "password": "a new passphrase",
+    "previous_password": "correct horse battery staple"
+  },
+  "response": {
+    "id": 10,
+    "ok": true
+  }
+}

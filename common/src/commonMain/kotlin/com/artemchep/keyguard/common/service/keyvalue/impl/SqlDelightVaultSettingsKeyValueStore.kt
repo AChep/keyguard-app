@@ -23,6 +23,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 
+@Suppress("TooManyFunctions") // The members of VaultSettingsKeyValueStore.
 class SqlDelightVaultSettingsKeyValueStore(
     private val databaseManager: VaultDatabaseManager,
     private val dispatcher: CoroutineContext,
@@ -108,6 +109,15 @@ class SqlDelightVaultSettingsKeyValueStore(
                     row.id to value
                 }
                 .toMap()
+        }
+
+    override fun getByKey(key: String): IO<Any?> = databaseManager
+        .get()
+        .effectMap(dispatcher) { db ->
+            db.vaultSettingQueries
+                .getByKey(key)
+                .executeAsOneOrNull()
+                ?.decodeAny()
         }
 
     override fun getKeys(): IO<Set<String>> = databaseManager

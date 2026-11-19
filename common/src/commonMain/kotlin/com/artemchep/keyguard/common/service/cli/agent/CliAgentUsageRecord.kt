@@ -31,7 +31,7 @@ class CliAgentUsageRecord(
     /** The environment that the request reached. */
     var cipherId: String? = null
 
-    /** The command line that `keyguard run` starts. */
+    /** The command line that `keyguard run` starts; for a browser, the extension's origin. */
     var command: String? = null
         set(value) {
             field = value.sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH)

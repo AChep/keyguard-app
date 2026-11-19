@@ -13,17 +13,34 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySyncer
 import com.artemchep.keyguard.common.service.history.HistoryRetentionWorker
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
 import com.artemchep.keyguard.common.service.icon.AccountIconServers
+import com.artemchep.keyguard.common.service.keyvalue.VaultSettingsKeyValueStore
 import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlushRunner
 import com.artemchep.keyguard.common.service.sshagent.SshAgentPublicKeySyncer
 import com.artemchep.keyguard.common.service.sshagent.bookmarks.SshBookmarksSource
 import com.artemchep.keyguard.common.service.urlblock.UrlBlockExposedSyncer
+import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
+import com.artemchep.keyguard.common.usecase.AddCipherUsedAutofillHistory
+import com.artemchep.keyguard.common.usecase.GetCanWrite
+import com.artemchep.keyguard.common.usecase.GetCipherLastUsed
+import com.artemchep.keyguard.common.usecase.GetCollections
+import com.artemchep.keyguard.common.usecase.AddCredentialCipher
+import com.artemchep.keyguard.common.usecase.AddCipherUsedPasskeyHistory
 import com.artemchep.keyguard.common.usecase.AddCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
+import com.artemchep.keyguard.common.usecase.AddUriCipher
+import com.artemchep.keyguard.common.usecase.AddUrlBlock
+import com.artemchep.keyguard.common.usecase.BlockedUrlCheck
 import com.artemchep.keyguard.common.usecase.GetAccounts
+import com.artemchep.keyguard.common.usecase.CipherUrlCheck
+import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetCiphers
 import com.artemchep.keyguard.common.usecase.GetLicensePremium
+import com.artemchep.keyguard.common.usecase.GetProfiles
+import com.artemchep.keyguard.common.usecase.GetSuggestions
+import com.artemchep.keyguard.common.usecase.GetTotpCode
+import com.artemchep.keyguard.common.usecase.GetUrlBlocks
 import com.artemchep.keyguard.provider.keyguard.applink.AppLinkWorker
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -120,3 +137,40 @@ internal fun interface BitwardenAttachmentSessionAccess {
 fun interface CliAgentSessionAccess {
     operator fun invoke(session: MasterSession.Key): AddCliAgentUsageHistory?
 }
+
+/**
+ * The vault of the browser extension integration: what its operations read
+ * and write while the vault session is active.
+ */
+fun interface BrowserExtensionSessionAccess {
+    operator fun invoke(session: MasterSession.Key): BrowserExtensionSessionDependencies?
+}
+
+/** What the operations of the browser extensions read and write in the vault. */
+@Suppress("LongParameterList") // One dependency per concern of the operations.
+class BrowserExtensionSessionDependencies(
+    val getCiphers: GetCiphers,
+    val getProfiles: GetProfiles,
+    val getSuggestions: GetSuggestions<Any?>,
+    val equivalentDomainsBuilderFactory: EquivalentDomainsBuilderFactory,
+    val getUrlBlocks: GetUrlBlocks,
+    /** Checks a blocked URI against a page. */
+    val blockedUrlCheck: BlockedUrlCheck,
+    val cipherUrlCheck: CipherUrlCheck,
+    val getAutofillDefaultMatchDetection: GetAutofillDefaultMatchDetection,
+    val getTotpCode: GetTotpCode,
+    val addCipherUsedAutofillHistory: AddCipherUsedAutofillHistory,
+    /** Orders the logins of a page by their last use on this device. */
+    val getCipherLastUsed: GetCipherLastUsed,
+    /** Adds the page to an item the user found by search, if they ask. */
+    val addUriCipher: AddUriCipher,
+    /** Adds the blocked URI of "Never save on this site". */
+    val addUrlBlock: AddUrlBlock,
+    // Passkeys.
+    val getCanWrite: GetCanWrite,
+    val getCollections: GetCollections,
+    val addCredentialCipher: AddCredentialCipher,
+    val addCipherUsedPasskeyHistory: AddCipherUsedPasskeyHistory,
+    /** Holds the vault's record of the pairings, which confirms the one outside of it. */
+    val vaultSettings: VaultSettingsKeyValueStore,
+)

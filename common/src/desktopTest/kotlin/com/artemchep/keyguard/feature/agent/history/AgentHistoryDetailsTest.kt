@@ -29,6 +29,7 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+@Suppress("TooManyFunctions")
 class AgentHistoryDetailsTest {
     private val json = Json
 
@@ -311,5 +312,45 @@ class AgentHistoryDetailsTest {
         assertEquals(listOf("error", "caller"), details.sections.map { it.id })
         assertEquals("operation_failed", details.section("error")?.text("error.code")?.value)
         assertEquals("Claude Code", details.section("caller")?.text("caller.client_name")?.value)
+    }
+
+    @Test
+    fun `browser request shows the page, the pairing and the extension that made it`() = runTest {
+        val details = with(translator) {
+            cliAgentHistoryDetails(
+                id = "id",
+                event = DCliAgentUsageHistory(
+                    cipherId = null,
+                    sessionId = "session",
+                    client = CliAgentUsageHistoryClient.BROWSER,
+                    caller = caller(processName = "chrome", appName = "Google Chrome"),
+                    clientName = "Work laptop",
+                    request = CliAgentUsageHistoryRequestType.BROWSER_PAIR,
+                    response = CliAgentUsageHistoryResponseType.USER_DENIED,
+                    errorCode = null,
+                    // The log keeps the extension's origin as the command.
+                    command = EXTENSION_ORIGIN,
+                    path = "https://example.com",
+                ),
+                cipher = null,
+                requestText = "Pair",
+                responseText = "Denied",
+                formattedDate = "Today",
+                json = json,
+            )
+        }
+
+        assertEquals(AgentHistoryDetailsIcon.BROWSER, details.icon)
+        assertEquals(listOf("website", "caller"), details.sections.map { it.id })
+        assertEquals("https://example.com", details.section("website")?.text("website")?.value)
+        val callerSection = assertNotNull(details.section("caller"))
+        assertEquals("browser_extension_pairing_name", callerSection.text("caller.client_name")?.label)
+        val extension = assertNotNull(callerSection.text("caller.extension"))
+        assertEquals(EXTENSION_ORIGIN, extension.value)
+        assertEquals("browser_extension_history_extension", extension.label)
+    }
+
+    private companion object {
+        const val EXTENSION_ORIGIN = "chrome-extension://abcdefghijklmnopabcdefghijklmnop/"
     }
 }

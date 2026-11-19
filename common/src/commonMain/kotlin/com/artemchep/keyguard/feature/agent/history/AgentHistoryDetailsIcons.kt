@@ -8,6 +8,8 @@ import androidx.compose.material.icons.outlined.Fingerprint
 import androidx.compose.material.icons.outlined.Hub
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.Language
+import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material.icons.outlined.Memory
 import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.material.icons.outlined.Tag
@@ -40,6 +42,8 @@ internal fun AgentHistoryDetailsIcon.imageVector(): ImageVector = when (this) {
     AgentHistoryDetailsIcon.RUN -> Icons.Outlined.Terminal
     AgentHistoryDetailsIcon.MCP -> Icons.Outlined.SmartToy
     AgentHistoryDetailsIcon.ENV_FILE -> Icons.Outlined.Description
+    AgentHistoryDetailsIcon.BROWSER -> Icons.Outlined.Language
+    AgentHistoryDetailsIcon.WEBSITE -> Icons.Outlined.Link
     AgentHistoryDetailsIcon.UNKNOWN -> Icons.Stub
     AgentHistoryDetailsIcon.APPLICATION -> Icons.Outlined.Apps
     AgentHistoryDetailsIcon.APPLICATION_PATH -> Icons.Outlined.Inventory2

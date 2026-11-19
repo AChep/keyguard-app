@@ -1,0 +1,11 @@
+{
+  "request": {
+    "id": 14,
+    "type": "cancel",
+    "target": 13
+  },
+  "response": {
+    "id": 14,
+    "ok": true
+  }
+}

@@ -133,6 +133,11 @@ interface SettingsReadRepository {
 
     fun getGpgAgent(): Flow<Boolean>
 
+    fun getBrowserExtensionEnabled(): Flow<Boolean>
+
+    /** The CLI IDs of the browsers whose connectors the user removed. */
+    fun getBrowserExtensionRemovedConnectors(): Flow<Set<String>>
+
     fun getGpgAgentApprovalWindow(): Flow<Duration>
 
     /** How long a GPG agent approval prompt waits for the user; infinite never expires. */
@@ -157,6 +162,14 @@ interface SettingsReadRepository {
     fun getCliApprovalTimeout(): Flow<Duration>
 
     fun getCliApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy>
+
+    /** How long a paired browser keeps an approval to fill an item on a site. */
+    fun getBrowserExtensionApprovalWindow(): Flow<Duration>
+
+    /** How long a browser extension approval prompt waits for the user; infinite never expires. */
+    fun getBrowserExtensionApprovalTimeout(): Flow<Duration>
+
+    fun getBrowserExtensionApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy>
 
     fun getGpgAgentDisplayKeyNames(): Flow<Boolean>
 

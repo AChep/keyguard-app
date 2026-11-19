@@ -33,6 +33,10 @@ import com.artemchep.keyguard.common.usecase.GetAppVersion
 import com.artemchep.keyguard.common.usecase.GetAppVersionCode
 import com.artemchep.keyguard.common.usecase.GetAppVersionName
 import com.artemchep.keyguard.common.usecase.GetAutofillBlockedUrisExposed
+import com.artemchep.keyguard.common.usecase.GetBrowserExtensionApprovalTimeout
+import com.artemchep.keyguard.common.usecase.GetBrowserExtensionApprovalWindow
+import com.artemchep.keyguard.common.usecase.GetBrowserExtensionEnabled
+import com.artemchep.keyguard.common.usecase.GetBrowserExtensionRemovedConnectors
 import com.artemchep.keyguard.common.usecase.GetAutofillDefaultMatchDetection
 import com.artemchep.keyguard.common.usecase.GetAutofillInlineSuggestions
 import com.artemchep.keyguard.common.usecase.GetAutofillManualSelection
@@ -140,6 +144,10 @@ import com.artemchep.keyguard.common.usecase.PutAgentHistoryRetention
 import com.artemchep.keyguard.common.usecase.PutGeneratorHistoryRetention
 import com.artemchep.keyguard.common.usecase.PutAppUpdateDelay
 import com.artemchep.keyguard.common.usecase.PutAppUpdateLevel
+import com.artemchep.keyguard.common.usecase.PutBrowserExtensionApprovalTimeout
+import com.artemchep.keyguard.common.usecase.PutBrowserExtensionApprovalWindow
+import com.artemchep.keyguard.common.usecase.PutBrowserExtensionEnabled
+import com.artemchep.keyguard.common.usecase.PutBrowserExtensionRemovedConnectors
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.PutCloseToTray
@@ -190,6 +198,10 @@ import com.artemchep.keyguard.common.usecase.impl.GetAppVersionCodeImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAppVersionImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAppVersionNameImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillBlockedUrisExposedImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBrowserExtensionApprovalTimeoutImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBrowserExtensionApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBrowserExtensionEnabledImpl
+import com.artemchep.keyguard.common.usecase.impl.GetBrowserExtensionRemovedConnectorsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillDefaultMatchDetectionImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillInlineSuggestionsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAutofillManualSelectionImpl
@@ -297,6 +309,10 @@ import com.artemchep.keyguard.common.usecase.impl.PutAgentHistoryRetentionImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGeneratorHistoryRetentionImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAppUpdateDelayImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAppUpdateLevelImpl
+import com.artemchep.keyguard.common.usecase.impl.PutBrowserExtensionApprovalTimeoutImpl
+import com.artemchep.keyguard.common.usecase.impl.PutBrowserExtensionApprovalWindowImpl
+import com.artemchep.keyguard.common.usecase.impl.PutBrowserExtensionEnabledImpl
+import com.artemchep.keyguard.common.usecase.impl.PutBrowserExtensionRemovedConnectorsImpl
 import com.artemchep.keyguard.common.usecase.impl.PutClipboardAutoClearImpl
 import com.artemchep.keyguard.common.usecase.impl.PutClipboardAutoRefreshImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCloseToTrayImpl
@@ -436,6 +452,10 @@ internal class ApplicationSettingsModule {
 
         single<PutGpgAgentImpl>() bind PutGpgAgent::class
 
+        single<PutBrowserExtensionEnabledImpl>() bind PutBrowserExtensionEnabled::class
+
+        single<PutBrowserExtensionRemovedConnectorsImpl>() bind PutBrowserExtensionRemovedConnectors::class
+
         single<PutGpgAgentApprovalWindowImpl>() bind PutGpgAgentApprovalWindow::class
 
         single<PutGpgAgentApprovalTimeoutImpl>() bind PutGpgAgentApprovalTimeout::class
@@ -447,6 +467,10 @@ internal class ApplicationSettingsModule {
         single<PutGpgAgentFilterImpl>() bind PutGpgAgentFilter::class
 
         single<GetGpgAgentImpl>() bind GetGpgAgent::class
+
+        single<GetBrowserExtensionEnabledImpl>() bind GetBrowserExtensionEnabled::class
+
+        single<GetBrowserExtensionRemovedConnectorsImpl>() bind GetBrowserExtensionRemovedConnectors::class
 
         single<GetGpgAgentApprovalWindowImpl>() bind GetGpgAgentApprovalWindow::class
 
@@ -471,6 +495,14 @@ internal class ApplicationSettingsModule {
         single<GetCliApprovalWindowImpl>() bind GetCliApprovalWindow::class
 
         single<GetCliApprovalTimeoutImpl>() bind GetCliApprovalTimeout::class
+
+        single<PutBrowserExtensionApprovalWindowImpl>() bind PutBrowserExtensionApprovalWindow::class
+
+        single<PutBrowserExtensionApprovalTimeoutImpl>() bind PutBrowserExtensionApprovalTimeout::class
+
+        single<GetBrowserExtensionApprovalWindowImpl>() bind GetBrowserExtensionApprovalWindow::class
+
+        single<GetBrowserExtensionApprovalTimeoutImpl>() bind GetBrowserExtensionApprovalTimeout::class
 
         single<GetEnvironmentsApprovalWindowVariantsImpl>() bind GetEnvironmentsApprovalWindowVariants::class
 

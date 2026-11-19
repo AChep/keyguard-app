@@ -5,7 +5,6 @@ import com.artemchep.keyguard.util.fido2.NativeFido2Client
 import com.artemchep.keyguard.common.usecase.Fido2UnlockAvailability
 
 import arrow.core.partially1
-import arrow.optics.Getter
 import com.artemchep.autotype.biometricsIsSupported
 import com.artemchep.keyguard.common.PlatformTemporaryArtifactRootRegistry
 import com.artemchep.keyguard.common.TemporaryArtifactRoot
@@ -17,10 +16,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.map
 import com.artemchep.keyguard.common.io.parallel
-import com.artemchep.keyguard.common.model.AutofillTarget
 import com.artemchep.keyguard.common.model.BiometricStatus
-import com.artemchep.keyguard.common.model.DSecret
-import com.artemchep.keyguard.common.model.EquivalentDomainsBuilderFactory
 import com.artemchep.keyguard.common.model.Premium
 import com.artemchep.keyguard.common.model.Product
 import com.artemchep.keyguard.common.model.RichResult
@@ -87,7 +83,6 @@ import com.artemchep.keyguard.common.usecase.ClearDataHookRegistry
 import com.artemchep.keyguard.common.usecase.GetBarcodeImage
 import com.artemchep.keyguard.common.usecase.GetLocale
 import com.artemchep.keyguard.common.usecase.GetPurchased
-import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.PutLocale
 import com.artemchep.keyguard.common.usecase.WatchtowerSyncer
 import com.artemchep.keyguard.util.yubikey.NativeYubiKeyClient
@@ -109,6 +104,7 @@ import com.artemchep.keyguard.copy.ReviewServiceJvm
 import com.artemchep.keyguard.copy.atomicDataDirectory
 import com.artemchep.keyguard.core.store.DatabaseSqlManagerInFileJvm
 import com.artemchep.keyguard.dataexposed.DatabaseExposed
+import com.artemchep.keyguard.di.ApplicationBrowserExtensionModule
 import com.artemchep.keyguard.di.GlobalModuleJvm
 import com.artemchep.keyguard.feature.biometric.BiometricKeyRepositoryDesktop
 import com.artemchep.keyguard.feature.biometric.BiometricPromptHost
@@ -159,18 +155,6 @@ class BiometricStatusUseCaseImpl(
             BiometricStatus.Unavailable
         }
         emit(event)
-    }
-}
-
-class GetSuggestionsImpl : GetSuggestions<Any?> {
-    override fun invoke(
-        p1: List<Any?>,
-        p2: Getter<Any?, DSecret>,
-        p3: AutofillTarget,
-        p4: EquivalentDomainsBuilderFactory,
-    ): IO<List<Any?>> = kotlin.run {
-        val msg = "Autofill suggestions are not supported on desktop."
-        ioRaise(RuntimeException(msg))
     }
 }
 
@@ -264,6 +248,7 @@ class PlatformApplicationModule {
     val module = module {
         includes(GlobalModuleJvm().module)
         includes(WindowsPasskeyModule().module)
+        includes(ApplicationBrowserExtensionModule().module)
         single { PlatformLinkInfoExtractorRegistry(emptyList()) }
         single { PlatformLogSinkRegistry(listOf(get<LogRepositoryKotlin>())) }
         single {

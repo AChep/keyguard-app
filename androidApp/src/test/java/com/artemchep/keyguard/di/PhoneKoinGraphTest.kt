@@ -2,6 +2,10 @@ package com.artemchep.keyguard.di
 
 import com.artemchep.keyguard.android.CredentialProviderPlatformConfig
 import com.artemchep.keyguard.android.PhoneCredentialProviderPlatformConfig
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionHost
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionStreams
+import com.artemchep.keyguard.common.service.browser.UnsupportedBrowserExtension
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.logging.PlatformLogSinkRegistry
 import com.artemchep.keyguard.common.usecase.GetCiphers
@@ -42,6 +46,10 @@ class PhoneKoinGraphTest {
             assertSame(ScanQrRouteFactoryAndroid, koin.get<ScanQrRouteFactory>())
             assertSame(koin.get<LogRepositoryAndroid>(), koin.get<PlatformLogSinkRegistry>().values.single())
             assertNotNull(koin.get<CoroutineDispatcher>(named<DatabaseDispatcher>()))
+            // Only the desktop app serves browser extensions.
+            assertSame(UnsupportedBrowserExtension, koin.get<BrowserExtensionHost>())
+            assertSame(UnsupportedBrowserExtension, koin.get<BrowserExtensionService>())
+            assertSame(UnsupportedBrowserExtension, koin.get<BrowserExtensionStreams>())
             assertFailsWith<NoDefinitionFoundException> { koin.get<GetCiphers>() }
         } finally {
             application.close()

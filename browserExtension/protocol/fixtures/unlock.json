@@ -1,0 +1,11 @@
+{
+  "request": {
+    "id": 5,
+    "type": "unlock"
+  },
+  "response": {
+    "id": 5,
+    "ok": true,
+    "vault": "unlocked"
+  }
+}

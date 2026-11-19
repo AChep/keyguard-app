@@ -1,0 +1,43 @@
+{
+  "request": {
+    "id": 11,
+    "type": "passkey_get",
+    "origin": "https://login.example.com",
+    "options": {
+      "challenge": "-0WehtSvLmnC1N6bsh5_v7Mak8HRUBSaaBgAyBt23iM",
+      "timeout": 60000,
+      "rpId": "example.com",
+      "allowCredentials": [
+        {
+          "type": "public-key",
+          "id": "EqthTeWzeVYojZFvWan8-Q",
+          "transports": [
+            "internal",
+            "hybrid"
+          ]
+        }
+      ],
+      "userVerification": "discouraged"
+    },
+    "mediation": "conditional",
+    "same_origin_with_ancestors": true,
+    "handle": "koALtLWg61i05QZ3BEVr9xLhmuC1K69q"
+  },
+  "response": {
+    "id": 11,
+    "ok": true,
+    "credential": {
+      "id": "EqthTeWzeVYojZFvWan8-Q",
+      "rawId": "EqthTeWzeVYojZFvWan8-Q",
+      "type": "public-key",
+      "authenticatorAttachment": "cross-platform",
+      "response": {
+        "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiLTBXZWh0U3ZMbW5DMU42YnNoNV92N01hazhIUlVCU2FhQmdBeUJ0MjNpTSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb20ifQ",
+        "authenticatorData": "o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUcZAAAAAA",
+        "signature": "MEYCIQD-P0Nz5tLRwIUOz0cWHXD2-kM5GpA7KLDa2QK80sYwgQIhAMf5Z6DDT_Zp7NAPeghyCe0j1iUneffr5jNMRLAIy1ru",
+        "userHandle": "b16I0H1RcfFJCTrBabXIaQ"
+      },
+      "clientExtensionResults": {}
+    }
+  }
+}

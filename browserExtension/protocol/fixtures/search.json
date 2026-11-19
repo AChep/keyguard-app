@@ -1,0 +1,36 @@
+{
+  "request": {
+    "id": 15,
+    "type": "search",
+    "query": "git",
+    "url": "https://login.example.com/sign-in"
+  },
+  "response": {
+    "id": 15,
+    "ok": true,
+    "blocked": false,
+    "truncated": false,
+    "items": [
+      {
+        "handle": "Zq8vVb4Rk0yQ2mXW7pLc3nTa9sEf1uHd",
+        "name": "Example Git",
+        "account": "Work",
+        "has_password": true,
+        "has_totp": false,
+        "reprompt": false,
+        "matched": true,
+        "password_hidden": true
+      },
+      {
+        "handle": "N3wq_7HbX0cLr2YtKp9sVm4Dg8eA1uZj",
+        "name": "GitHub",
+        "username": "ann@example.com",
+        "account": "Personal",
+        "has_password": true,
+        "has_totp": true,
+        "reprompt": false,
+        "matched": false
+      }
+    ]
+  }
+}

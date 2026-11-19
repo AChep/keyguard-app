@@ -330,7 +330,8 @@ fn cacophony_vector() -> CacophonyVector {
 }
 
 /// A transcript of the Keyguard profile: an unpaired extension says `hello`
-/// and starts pairing.
+/// and starts pairing, which the app allows only while its vault is
+/// unlocked.
 fn keyguard_vector() -> KeyguardVector {
     let prologue = [
         profile::PROLOGUE_PREFIX.as_bytes(),
@@ -348,7 +349,7 @@ fn keyguard_vector() -> KeyguardVector {
     );
     let texts = [
         r#"{"id":1,"type":"hello","protocol":1,"capabilities":["passkeys","save"]}"#.to_owned(),
-        r#"{"id":1,"ok":true,"protocol":1,"capabilities":["passkeys","save"],"paired":false,"vault":"locked"}"#.to_owned(),
+        r#"{"id":1,"ok":true,"protocol":1,"capabilities":["passkeys","save"],"paired":false,"vault":"unlocked"}"#.to_owned(),
         format!(
             r#"{{"id":2,"type":"pair_commit","commit":"{}","name":"Chrome"}}"#,
             Base64::encode_string(commit.as_ref()),

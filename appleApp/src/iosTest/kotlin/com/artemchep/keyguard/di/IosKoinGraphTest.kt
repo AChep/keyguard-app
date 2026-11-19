@@ -6,6 +6,9 @@ import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationServiceNone
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionStreams
+import com.artemchep.keyguard.common.service.browser.UnsupportedBrowserExtension
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.directorywatcher.FileWatcherService
 import com.artemchep.keyguard.common.service.cli.CliRuntimeHost
@@ -198,6 +201,10 @@ class IosKoinGraphTest {
                 assertSame(koin.get<CliService>(), host.cli)
                 assertSame(koin.get<EnvironmentMounts>(), host.mounts)
                 assertSame(koin.get<EnvironmentMcp>(), host.mcp)
+                // Only the desktop app serves browser extensions.
+                assertSame(UnsupportedBrowserExtension, host.browser)
+                assertSame(UnsupportedBrowserExtension, koin.get<BrowserExtensionService>())
+                assertSame(UnsupportedBrowserExtension, koin.get<BrowserExtensionStreams>())
                 // The icon loader reads the icon settings from the store.
                 assertNotNull(koin.get<GetIconImage>())
             }

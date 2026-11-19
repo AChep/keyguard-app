@@ -10,9 +10,9 @@ import com.artemchep.keyguard.common.service.keyvalue.KeyValueStoreFactory
 import com.artemchep.keyguard.common.usecase.GetSuggestions
 import com.artemchep.keyguard.common.usecase.QueueSyncAll
 import com.artemchep.keyguard.common.usecase.QueueSyncById
+import com.artemchep.keyguard.common.usecase.impl.GetSuggestionsImpl
 import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.copy.ExportManagerImpl
-import com.artemchep.keyguard.core.session.GetSuggestionsImpl
 import com.artemchep.keyguard.core.store.DatabaseSqlManagerInFileJvm
 import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.di.VaultSessionScope
@@ -85,7 +85,11 @@ class PlatformVaultModule {
                 )
             }
             scoped<GetSuggestions<Any?>> {
-                GetSuggestionsImpl()
+                GetSuggestionsImpl(
+                    getAutofillDefaultMatchDetection = get(),
+                    getUrlBlocks = get(),
+                    cipherUrlCheck = get(),
+                )
             }
         }
     }

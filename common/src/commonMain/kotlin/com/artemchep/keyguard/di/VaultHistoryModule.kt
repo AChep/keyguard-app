@@ -35,6 +35,7 @@ import com.artemchep.keyguard.common.usecase.CipherRemovePasswordHistoryById
 import com.artemchep.keyguard.common.usecase.EditWordlist
 import com.artemchep.keyguard.common.usecase.EditWordlistWords
 import com.artemchep.keyguard.common.usecase.GetBarcodeUsageHistory
+import com.artemchep.keyguard.common.usecase.GetCipherLastUsed
 import com.artemchep.keyguard.common.usecase.GetCipherOpenedHistory
 import com.artemchep.keyguard.common.usecase.GetCliAgentUsageHistory
 import com.artemchep.keyguard.common.usecase.GetCliAgentUsageHistoryCount
@@ -75,6 +76,7 @@ import com.artemchep.keyguard.provider.bitwarden.usecase.AddGpgUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.AddSshUsageHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherRemovePasswordHistoryByIdImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherRemovePasswordHistoryImpl
+import com.artemchep.keyguard.provider.bitwarden.usecase.GetCipherLastUsedImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCipherOpenedHistoryImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCliAgentUsageHistoryCountImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.GetCliAgentUsageHistoryImpl
@@ -192,6 +194,7 @@ internal class VaultHistoryModule {
                 val repository = get<CipherHistoryOpenedRepository>()
                 RemoveCipherUsageHistoryOlderThan(repository::removeOlderThan)
             }
+            scoped<GetCipherLastUsedImpl>() bind GetCipherLastUsed::class
 
             scoped<CipherHistoryOpenedRepository> {
                 CipherHistoryOpenedRepositoryImpl(

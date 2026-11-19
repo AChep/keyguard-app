@@ -35,8 +35,11 @@ pub(super) async fn serve(
         return super::reply(&mut accepted, &failure(UNVERIFIED_HOST)).await;
     }
     let open = request::Request::BrowserOpen(BrowserOpenRequest {
-        // The browser that started the connector.
-        caller: Some(std::mem::take(&mut accepted.caller)),
+        // The browser that started the connector. Without it, the caller is
+        // the connector itself, which the app must not show as the browser.
+        caller: accepted
+            .relayed
+            .then(|| std::mem::take(&mut accepted.caller)),
         origin: request.origin,
         verified_host,
         host_revision: request.host_revision,

@@ -41,14 +41,28 @@ class CliAgentUsageRecorder(
      * Records the [response] to the request; `null` if the client left
      * before it was answered.
      */
-    @Suppress("TooGenericExceptionCaught") // A failure to record never reaches the client.
     suspend fun record(
         usage: CliAgentUsageRecord,
         response: CliAgentMessages.Response.Kind?,
+    ) = record(
+        usage = usage,
+        errorCode = (response as? CliAgentMessages.Response.Kind.Error)?.value?.code,
+        cancelled = response == null,
+    )
+
+    /**
+     * Records a request that failed with the [errorCode], succeeded for
+     * `null`, or was [cancelled] because the client left before it was
+     * answered.
+     */
+    @Suppress("TooGenericExceptionCaught") // A failure to record never reaches the client.
+    suspend fun record(
+        usage: CliAgentUsageRecord,
+        errorCode: String?,
+        cancelled: Boolean = false,
     ) {
-        val errorCode = (response as? CliAgentMessages.Response.Kind.Error)?.value?.code
         val responseType = when {
-            response == null -> CliAgentUsageHistoryResponseType.CANCELLED
+            cancelled -> CliAgentUsageHistoryResponseType.CANCELLED
             errorCode == null -> CliAgentUsageHistoryResponseType.SUCCESS
             else -> errorCode.toResponseType()
         }

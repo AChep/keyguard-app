@@ -213,6 +213,7 @@ kotlin {
                 implementation(project(":util:messagepack"))
                 api(project(":feature:cli"))
                 api(project(":feature:environments"))
+                api(project(":feature:browser-extension"))
                 api(project(":util:dns"))
                 api(project(":util:s3"))
                 api(project(":util:signalr"))
@@ -332,6 +333,10 @@ kotlin {
             resources.srcDir("../commonGpgAgent/proto")
             resources.srcDir("../desktopCliAgent/proto")
             resources.srcDir("../commonAgent/android-bridge/tests")
+            // The Noise vectors of the browser extension protocol, which the
+            // Rust and TypeScript tests read as well.
+            resources.srcDir("../browserExtension/protocol/vectors")
+            resources.srcDir("../browserExtension/protocol/compatibility")
             dependencies {
                 // The backup tests inspect the archives the repository wrote
                 // with zip4j's own reader, independently of `util/zip`.

@@ -1,0 +1,68 @@
+{
+  "request": {
+    "id": 12,
+    "type": "passkey_create",
+    "origin": "https://login.example.com",
+    "options": {
+      "rp": {
+        "id": "example.com",
+        "name": "Example"
+      },
+      "user": {
+        "id": "aXCq2DzRTdix5SRw0_8qkA",
+        "name": "ann@example.com",
+        "displayName": "Ann"
+      },
+      "challenge": "cIhnboNjvVuI1OeUzbsq3xenPOmVQ7KqQYLVqyBhxJo",
+      "pubKeyCredParams": [
+        {
+          "type": "public-key",
+          "alg": -7
+        },
+        {
+          "type": "public-key",
+          "alg": -257
+        }
+      ],
+      "timeout": 60000,
+      "excludeCredentials": [
+        {
+          "type": "public-key",
+          "id": "EqthTeWzeVYojZFvWan8-Q",
+          "transports": [
+            "internal",
+            "hybrid"
+          ]
+        }
+      ],
+      "authenticatorSelection": {
+        "residentKey": "required",
+        "requireResidentKey": true,
+        "userVerification": "discouraged"
+      },
+      "attestation": "none"
+    },
+    "same_origin_with_ancestors": true
+  },
+  "response": {
+    "id": 12,
+    "ok": true,
+    "credential": {
+      "id": "_Z9RGPZaB7hIrAE5AyVFug",
+      "rawId": "_Z9RGPZaB7hIrAE5AyVFug",
+      "type": "public-key",
+      "authenticatorAttachment": "cross-platform",
+      "response": {
+        "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiY0lobmJvTmp2VnVJMU9lVXpic3EzeGVuUE9tVlE3S3FRWUxWcXlCaHhKbyIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb20ifQ",
+        "attestationObject": "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViUo3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUdZAAAAAEn0SagF1iTzaiqdkeRcczEAEP2fURj2Wge4SKwBOQMlRbqlAQIDJiABIVggtS4J36LUMWNQ6wse7oKb7dsAJbq1v8yhnjfJ9D1d4n4iWCAuVjyIkHu1VOwYoGGwIt20XJ4zirzHgbC9Q76fGfGz5g",
+        "transports": [
+          "internal"
+        ],
+        "publicKeyAlgorithm": -7,
+        "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEtS4J36LUMWNQ6wse7oKb7dsAJbq1v8yhnjfJ9D1d4n4uVjyIkHu1VOwYoGGwIt20XJ4zirzHgbC9Q76fGfGz5g",
+        "authenticatorData": "o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUdZAAAAAEn0SagF1iTzaiqdkeRcczEAEP2fURj2Wge4SKwBOQMlRbqlAQIDJiABIVggtS4J36LUMWNQ6wse7oKb7dsAJbq1v8yhnjfJ9D1d4n4iWCAuVjyIkHu1VOwYoGGwIt20XJ4zirzHgbC9Q76fGfGz5g"
+      },
+      "clientExtensionResults": {}
+    }
+  }
+}

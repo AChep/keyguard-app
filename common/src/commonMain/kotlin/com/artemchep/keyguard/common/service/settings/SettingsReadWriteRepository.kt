@@ -207,6 +207,14 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
         gpgAgent: Boolean,
     ): IO<Unit>
 
+    fun setBrowserExtensionEnabled(
+        enabled: Boolean,
+    ): IO<Unit>
+
+    fun setBrowserExtensionRemovedConnectors(
+        ids: Set<String>,
+    ): IO<Unit>
+
     fun setGpgAgentApprovalWindow(
         duration: Duration,
     ): IO<Unit>
@@ -232,6 +240,14 @@ interface SettingsReadWriteRepository : SettingsReadRepository {
     ): IO<Unit>
 
     fun setCliApprovalTimeout(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setBrowserExtensionApprovalWindow(
+        duration: Duration,
+    ): IO<Unit>
+
+    fun setBrowserExtensionApprovalTimeout(
         duration: Duration,
     ): IO<Unit>
 

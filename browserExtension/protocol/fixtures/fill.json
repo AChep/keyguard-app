@@ -1,0 +1,15 @@
+{
+  "request": {
+    "id": 7,
+    "type": "fill",
+    "handle": "vQ1MuxXJtcodkychWqEwy7mqD5by0FIV",
+    "url": "https://login.example.com/sign-in?next=%2Faccount",
+    "top_origin": "https://www.example.com"
+  },
+  "response": {
+    "id": 7,
+    "ok": true,
+    "username": "ann@example.com",
+    "password": "correct horse battery staple"
+  }
+}

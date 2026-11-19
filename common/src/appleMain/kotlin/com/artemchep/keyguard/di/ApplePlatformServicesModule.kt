@@ -1,5 +1,9 @@
 package com.artemchep.keyguard.di
 
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionHost
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionStreams
+import com.artemchep.keyguard.common.service.browser.UnsupportedBrowserExtension
 import com.artemchep.keyguard.common.service.notification.NotificationRepository
 import com.artemchep.keyguard.common.service.notification.impl.NotificationRepositoryApple
 import com.artemchep.keyguard.common.service.permission.PermissionService
@@ -8,6 +12,7 @@ import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUplo
 import com.artemchep.keyguard.provider.bitwarden.upload.EncryptedFilePendingUploadServiceApple
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProvider
 import com.artemchep.keyguard.provider.bitwarden.upload.PendingUploadDirProviderApple
+import org.koin.dsl.binds
 import org.koin.dsl.module
 
 /** Platform services with one Apple implementation, shared by the iOS and macOS roots. */
@@ -33,5 +38,11 @@ class ApplePlatformServicesModule {
                 windowCoroutineScope = get(),
             )
         }
+        // Only the desktop app serves browser extensions.
+        single { UnsupportedBrowserExtension } binds arrayOf(
+            BrowserExtensionService::class,
+            BrowserExtensionHost::class,
+            BrowserExtensionStreams::class,
+        )
     }
 }

@@ -39,6 +39,10 @@ pub(crate) struct Accepted {
     /// The verified caller, with the subjects the app may reuse an approval
     /// for, as the SSH and GPG agents attach them.
     pub caller: CallerIdentity,
+    /// Whether `caller` shows the process that a bundled program relays
+    /// for. False when the peer is not a bundled program, or the agent
+    /// could not find that process: `caller` then shows the peer itself.
+    pub relayed: bool,
     /// The program bundled with this agent that the caller runs, if any.
     /// macOS compares the validated live code. Linux checks the executable
     /// retained at accept, or without SO_PEERPIDFD the one that the peer's
@@ -92,7 +96,8 @@ fn find_bundled_peer(
 impl Accepted {
     /// A bundled program only relays the requests of the process that
     /// started it, such as an MCP client or a browser, so that process is
-    /// shown as the caller. The guard keeps verifying the bundled program.
+    /// shown as the caller once the agent finds it. The guard keeps
+    /// verifying the bundled program.
     fn new(stream: BoxStream, mut caller: CallerIdentity, guard: CallerGuard) -> Self {
         let bundled_peer = guard.0.bundled_peer();
         #[cfg(unix)]
@@ -109,6 +114,7 @@ impl Accepted {
                 keyguard_agent_identity::windows::process::relayed_browser_caller(caller.pid)
             }
         });
+        let found = relayed.is_some();
         if let Some(relayed) = relayed {
             caller.pid = relayed.pid;
             caller.process_name = relayed.process_name;
@@ -119,6 +125,7 @@ impl Accepted {
         Self {
             stream,
             caller,
+            relayed: found,
             bundled_peer,
             guard,
         }

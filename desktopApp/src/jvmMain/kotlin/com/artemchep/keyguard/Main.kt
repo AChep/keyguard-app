@@ -47,12 +47,16 @@ import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentManager
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCenter
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
+import com.artemchep.keyguard.common.service.browser.BrowserPasskeyPickers
 import com.artemchep.keyguard.common.service.cli.CliService
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentHost
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentManager
 import com.artemchep.keyguard.common.service.environment.EnvironmentAccess
 import com.artemchep.keyguard.common.service.environment.EnvironmentRepository
 import com.artemchep.keyguard.desktop.ui.AgentApprovalWindow
+import com.artemchep.keyguard.desktop.ui.BrowserPasskeyPickerHost
+import com.artemchep.keyguard.desktop.ui.BrowserSaveLoginHost
 import com.artemchep.keyguard.desktop.ui.CliAgentIntegration
 import com.artemchep.keyguard.di.ApplicationCoroutineScope
 import kotlinx.coroutines.CoroutineScope
@@ -271,6 +275,7 @@ private class DesktopApplicationModule {
                 gpg = get<GpgAgentManager>().approvals,
                 environments = get<EnvironmentAccess>(),
                 cli = get<CliService>(),
+                browser = get<BrowserExtensionService>(),
                 scope = get<CoroutineScope>(qualifier = named<ApplicationCoroutineScope>()),
             )
         }
@@ -558,6 +563,17 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
                 environmentRepository = remember { koin.get<EnvironmentRepository>() },
                 environmentAccess = remember { koin.get<EnvironmentAccess>() },
                 cli = remember { koin.get<CliService>() },
+                browser = remember { koin.get<BrowserExtensionService>() },
+            )
+            // A window for each login that a browser extension asks to save.
+            BrowserSaveLoginHost(
+                service = remember { koin.get<BrowserExtensionService>() },
+                processLifecycleProvider = processLifecycleProvider,
+            )
+            // A vault window for each passkey request of a browser extension.
+            BrowserPasskeyPickerHost(
+                pickers = remember { koin.get<BrowserPasskeyPickers>() },
+                processLifecycleProvider = processLifecycleProvider,
             )
 
             val quickSearchWindowState = quickSearchWindowManager.stateFlow

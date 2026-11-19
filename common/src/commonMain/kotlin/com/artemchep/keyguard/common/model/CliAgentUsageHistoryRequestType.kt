@@ -14,6 +14,16 @@ enum class CliAgentUsageHistoryRequestType(
     MCP_LIST_LOCAL_ENV_FILES(code = 8L),
     READ_LOCAL_ENV_FILE(code = 9L),
 
+    // A browser extension.
+    BROWSER_PAIR(code = 10L),
+    BROWSER_UNLOCK(code = 11L),
+    BROWSER_FILL(code = 12L),
+    BROWSER_TOTP(code = 13L),
+    BROWSER_SAVE(code = 14L),
+    BROWSER_PASSKEY_GET(code = 15L),
+    BROWSER_PASSKEY_CREATE(code = 16L),
+    BROWSER_NEVER_SAVE(code = 17L),
+
     /**
      * An unrecognized request type: a command or a tool that this app
      * version does not know, or a code written by a newer app version.

@@ -234,7 +234,7 @@ message CliResponse {
 // only from the Noise pairing that the stream carries.
 message BrowserOpenRequest {
   // The browser: the process that started the connector, for display only.
-  // When the agent can't find that process, it is the connector itself.
+  // Unset when the agent can't find that process.
   keyguard.agent.CallerIdentity caller = 1;
   // The extension, as the connector names it: `chrome-extension://<id>/` for
   // a Chromium browser, or the ID of a Firefox extension. The agent checked

@@ -6,7 +6,14 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Block
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Devices
+import androidx.compose.material.icons.outlined.Key
+import androidx.compose.material.icons.outlined.LockOpen
+import androidx.compose.material.icons.outlined.Password
+import androidx.compose.material.icons.outlined.Pin
+import androidx.compose.material.icons.outlined.Save
 import androidx.compose.material.icons.outlined.SmartToy
 import androidx.compose.material.icons.outlined.Terminal
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -260,6 +267,15 @@ private fun CliAgentUsageHistoryRequestType.icon(): ImageVector = when (this) {
     -> Icons.Outlined.SmartToy
 
     CliAgentUsageHistoryRequestType.READ_LOCAL_ENV_FILE -> Icons.Outlined.Description
+    CliAgentUsageHistoryRequestType.BROWSER_PAIR -> Icons.Outlined.Devices
+    CliAgentUsageHistoryRequestType.BROWSER_UNLOCK -> Icons.Outlined.LockOpen
+    CliAgentUsageHistoryRequestType.BROWSER_FILL -> Icons.Outlined.Password
+    CliAgentUsageHistoryRequestType.BROWSER_TOTP -> Icons.Outlined.Pin
+    CliAgentUsageHistoryRequestType.BROWSER_SAVE -> Icons.Outlined.Save
+    CliAgentUsageHistoryRequestType.BROWSER_NEVER_SAVE -> Icons.Outlined.Block
+    CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_GET,
+    CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_CREATE,
+    -> Icons.Outlined.Key
     CliAgentUsageHistoryRequestType.UNKNOWN -> Icons.Stub
 }
 

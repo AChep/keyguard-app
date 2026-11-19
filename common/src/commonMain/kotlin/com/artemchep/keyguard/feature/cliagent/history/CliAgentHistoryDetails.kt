@@ -29,6 +29,7 @@ internal suspend fun TranslatorScope.cliAgentHistoryDetails(
     formattedDate: String,
     json: Json,
 ): AgentHistoryDetails {
+    val browser = event.client == CliAgentUsageHistoryClient.BROWSER
     // The item speaks for itself.
     val environmentSection = agentHistorySectionOrNull(
         id = "environment",
@@ -37,7 +38,11 @@ internal suspend fun TranslatorScope.cliAgentHistoryDetails(
             agentHistoryReferenceRow(
                 cipherId = event.cipherId,
                 cipher = cipher,
-                label = translate(Res.string.cipher_type_environment),
+                label = if (browser) {
+                    translate(Res.string.item)
+                } else {
+                    translate(Res.string.cipher_type_environment)
+                },
             ),
         ),
     )
@@ -51,7 +56,7 @@ internal suspend fun TranslatorScope.cliAgentHistoryDetails(
         sections = listOfNotNull(
             agentHistoryErrorSection(event.errorCode),
             environmentSection,
-            commandSection(event),
+            if (browser) websiteSection(event) else commandSection(event),
             callerSection(event, json),
         ),
     )
@@ -95,6 +100,27 @@ private suspend fun TranslatorScope.commandSection(
     )
 }
 
+/** The page of a browser extension's request. */
+private suspend fun TranslatorScope.websiteSection(
+    event: DCliAgentUsageHistory,
+): AgentHistoryDetails.Section? {
+    val websiteRow = event.path
+        .sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH)
+        ?.let { origin ->
+            AgentHistoryDetails.Row.Text(
+                id = "website",
+                icon = AgentHistoryDetailsIcon.WEBSITE,
+                label = translate(Res.string.website),
+                value = origin,
+            )
+        }
+    return agentHistorySectionOrNull(
+        id = "website",
+        title = null,
+        rows = listOf(websiteRow),
+    )
+}
+
 /** The caller, and the client it reached Keyguard through. */
 private suspend fun TranslatorScope.callerSection(
     event: DCliAgentUsageHistory,
@@ -112,7 +138,12 @@ private suspend fun TranslatorScope.callerSection(
             AgentHistoryDetails.Row.Text(
                 id = "caller.client_name",
                 icon = AgentHistoryDetailsIcon.MCP,
-                label = translate(Res.string.agent_history_details_client_name),
+                // A browser has the name the user gave its pairing.
+                label = if (event.client == CliAgentUsageHistoryClient.BROWSER) {
+                    translate(Res.string.browser_extension_pairing_name)
+                } else {
+                    translate(Res.string.agent_history_details_client_name)
+                },
                 value = name,
             )
         }
@@ -127,9 +158,26 @@ private suspend fun TranslatorScope.callerSection(
         extraRows = listOfNotNull(
             clientRow,
             clientNameRow,
+            extensionRow(event),
         ),
     )
 }
+
+/** The extension that made a browser's request: its origin, which the log keeps as the command. */
+private suspend fun TranslatorScope.extensionRow(
+    event: DCliAgentUsageHistory,
+): AgentHistoryDetails.Row? = event.command
+    .takeIf { event.client == CliAgentUsageHistoryClient.BROWSER }
+    .sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH)
+    ?.let { origin ->
+        AgentHistoryDetails.Row.Text(
+            id = "caller.extension",
+            icon = AgentHistoryDetailsIcon.BROWSER,
+            label = translate(Res.string.browser_extension_history_extension),
+            value = origin,
+            monospace = true,
+        )
+    }
 
 private fun CliAgentUsageHistoryRequestType.detailsIcon() = when (this) {
     CliAgentUsageHistoryRequestType.RUN -> AgentHistoryDetailsIcon.RUN
@@ -144,6 +192,16 @@ private fun CliAgentUsageHistoryRequestType.detailsIcon() = when (this) {
     -> AgentHistoryDetailsIcon.MCP
 
     CliAgentUsageHistoryRequestType.READ_LOCAL_ENV_FILE -> AgentHistoryDetailsIcon.ENV_FILE
+    CliAgentUsageHistoryRequestType.BROWSER_PAIR,
+    CliAgentUsageHistoryRequestType.BROWSER_UNLOCK,
+    CliAgentUsageHistoryRequestType.BROWSER_FILL,
+    CliAgentUsageHistoryRequestType.BROWSER_TOTP,
+    CliAgentUsageHistoryRequestType.BROWSER_SAVE,
+    CliAgentUsageHistoryRequestType.BROWSER_NEVER_SAVE,
+    CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_GET,
+    CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_CREATE,
+    -> AgentHistoryDetailsIcon.BROWSER
+
     CliAgentUsageHistoryRequestType.UNKNOWN -> AgentHistoryDetailsIcon.UNKNOWN
 }
 

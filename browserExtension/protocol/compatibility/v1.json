@@ -1,0 +1,413 @@
+{
+  "exchanges": {
+    "cancel": {
+      "request": {
+        "id": 14,
+        "type": "cancel",
+        "target": 13
+      },
+      "response": {
+        "id": 14,
+        "ok": true
+      }
+    },
+    "fill": {
+      "request": {
+        "id": 7,
+        "type": "fill",
+        "handle": "vQ1MuxXJtcodkychWqEwy7mqD5by0FIV",
+        "url": "https://login.example.com/sign-in?next=%2Faccount",
+        "top_origin": "https://www.example.com"
+      },
+      "response": {
+        "id": 7,
+        "ok": true,
+        "username": "ann@example.com",
+        "password": "correct horse battery staple"
+      }
+    },
+    "generate": {
+      "request": {
+        "id": 9,
+        "type": "generate",
+        "url": "https://example.com/sign-up"
+      },
+      "response": {
+        "id": 9,
+        "ok": true,
+        "password": "qT7#vw2Lp!Xe9mRk4Zs8"
+      }
+    },
+    "hello": {
+      "request": {
+        "id": 1,
+        "type": "hello",
+        "protocol": 1,
+        "capabilities": [
+          "passkeys",
+          "save"
+        ]
+      },
+      "response": {
+        "id": 1,
+        "ok": true,
+        "protocol": 1,
+        "capabilities": [
+          "passkeys",
+          "save"
+        ],
+        "paired": true,
+        "vault": "locked"
+      }
+    },
+    "never_save": {
+      "request": {
+        "id": 27,
+        "type": "never_save",
+        "url": "https://login.example.com/sign-in?next=%2Faccount"
+      },
+      "response": {
+        "id": 27,
+        "ok": true
+      }
+    },
+    "pair_commit": {
+      "request": {
+        "id": 2,
+        "type": "pair_commit",
+        "commit": "cO5LuRhLzj67vgq32d+0EMP2HAUiykJGfVeis/3HO/o=",
+        "name": "Firefox"
+      },
+      "response": {
+        "id": 2,
+        "ok": true,
+        "nonce": "oKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr8="
+      }
+    },
+    "pair_reveal": {
+      "request": {
+        "id": 3,
+        "type": "pair_reveal",
+        "nonce": "gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp8="
+      },
+      "response": {
+        "id": 3,
+        "ok": true,
+        "vault": "unlocked"
+      }
+    },
+    "passkey_create": {
+      "request": {
+        "id": 12,
+        "type": "passkey_create",
+        "origin": "https://login.example.com",
+        "options": {
+          "rp": {
+            "id": "example.com",
+            "name": "Example"
+          },
+          "user": {
+            "id": "aXCq2DzRTdix5SRw0_8qkA",
+            "name": "ann@example.com",
+            "displayName": "Ann"
+          },
+          "challenge": "cIhnboNjvVuI1OeUzbsq3xenPOmVQ7KqQYLVqyBhxJo",
+          "pubKeyCredParams": [
+            {
+              "type": "public-key",
+              "alg": -7
+            },
+            {
+              "type": "public-key",
+              "alg": -257
+            }
+          ],
+          "timeout": 60000,
+          "excludeCredentials": [
+            {
+              "type": "public-key",
+              "id": "EqthTeWzeVYojZFvWan8-Q",
+              "transports": [
+                "internal",
+                "hybrid"
+              ]
+            }
+          ],
+          "authenticatorSelection": {
+            "residentKey": "required",
+            "requireResidentKey": true,
+            "userVerification": "discouraged"
+          },
+          "attestation": "none"
+        },
+        "same_origin_with_ancestors": true
+      },
+      "response": {
+        "id": 12,
+        "ok": true,
+        "credential": {
+          "id": "_Z9RGPZaB7hIrAE5AyVFug",
+          "rawId": "_Z9RGPZaB7hIrAE5AyVFug",
+          "type": "public-key",
+          "authenticatorAttachment": "cross-platform",
+          "response": {
+            "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uY3JlYXRlIiwiY2hhbGxlbmdlIjoiY0lobmJvTmp2VnVJMU9lVXpic3EzeGVuUE9tVlE3S3FRWUxWcXlCaHhKbyIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb20ifQ",
+            "attestationObject": "o2NmbXRkbm9uZWdhdHRTdG10oGhhdXRoRGF0YViUo3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUdZAAAAAEn0SagF1iTzaiqdkeRcczEAEP2fURj2Wge4SKwBOQMlRbqlAQIDJiABIVggtS4J36LUMWNQ6wse7oKb7dsAJbq1v8yhnjfJ9D1d4n4iWCAuVjyIkHu1VOwYoGGwIt20XJ4zirzHgbC9Q76fGfGz5g",
+            "transports": [
+              "internal"
+            ],
+            "publicKeyAlgorithm": -7,
+            "publicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEtS4J36LUMWNQ6wse7oKb7dsAJbq1v8yhnjfJ9D1d4n4uVjyIkHu1VOwYoGGwIt20XJ4zirzHgbC9Q76fGfGz5g",
+            "authenticatorData": "o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUdZAAAAAEn0SagF1iTzaiqdkeRcczEAEP2fURj2Wge4SKwBOQMlRbqlAQIDJiABIVggtS4J36LUMWNQ6wse7oKb7dsAJbq1v8yhnjfJ9D1d4n4iWCAuVjyIkHu1VOwYoGGwIt20XJ4zirzHgbC9Q76fGfGz5g"
+          },
+          "clientExtensionResults": {}
+        }
+      }
+    },
+    "passkey_get": {
+      "request": {
+        "id": 11,
+        "type": "passkey_get",
+        "origin": "https://login.example.com",
+        "options": {
+          "challenge": "-0WehtSvLmnC1N6bsh5_v7Mak8HRUBSaaBgAyBt23iM",
+          "timeout": 60000,
+          "rpId": "example.com",
+          "allowCredentials": [
+            {
+              "type": "public-key",
+              "id": "EqthTeWzeVYojZFvWan8-Q",
+              "transports": [
+                "internal",
+                "hybrid"
+              ]
+            }
+          ],
+          "userVerification": "discouraged"
+        },
+        "mediation": "conditional",
+        "same_origin_with_ancestors": true,
+        "handle": "koALtLWg61i05QZ3BEVr9xLhmuC1K69q"
+      },
+      "response": {
+        "id": 11,
+        "ok": true,
+        "credential": {
+          "id": "EqthTeWzeVYojZFvWan8-Q",
+          "rawId": "EqthTeWzeVYojZFvWan8-Q",
+          "type": "public-key",
+          "authenticatorAttachment": "cross-platform",
+          "response": {
+            "clientDataJSON": "eyJ0eXBlIjoid2ViYXV0aG4uZ2V0IiwiY2hhbGxlbmdlIjoiLTBXZWh0U3ZMbW5DMU42YnNoNV92N01hazhIUlVCU2FhQmdBeUJ0MjNpTSIsIm9yaWdpbiI6Imh0dHBzOi8vbG9naW4uZXhhbXBsZS5jb20ifQ",
+            "authenticatorData": "o3mm9u6vuaVeN4wRgDTidR5oL6ufLTCrE9ISVYbOGUcZAAAAAA",
+            "signature": "MEYCIQD-P0Nz5tLRwIUOz0cWHXD2-kM5GpA7KLDa2QK80sYwgQIhAMf5Z6DDT_Zp7NAPeghyCe0j1iUneffr5jNMRLAIy1ru",
+            "userHandle": "b16I0H1RcfFJCTrBabXIaQ"
+          },
+          "clientExtensionResults": {}
+        }
+      }
+    },
+    "save": {
+      "request": {
+        "id": 10,
+        "type": "save",
+        "url": "https://login.example.com/sign-in?next=%2Faccount",
+        "username": "ann@example.com",
+        "password": "a new passphrase",
+        "previous_password": "correct horse battery staple"
+      },
+      "response": {
+        "id": 10,
+        "ok": true
+      }
+    },
+    "search": {
+      "request": {
+        "id": 15,
+        "type": "search",
+        "query": "git",
+        "url": "https://login.example.com/sign-in"
+      },
+      "response": {
+        "id": 15,
+        "ok": true,
+        "blocked": false,
+        "truncated": false,
+        "items": [
+          {
+            "handle": "Zq8vVb4Rk0yQ2mXW7pLc3nTa9sEf1uHd",
+            "name": "Example Git",
+            "account": "Work",
+            "has_password": true,
+            "has_totp": false,
+            "reprompt": false,
+            "matched": true,
+            "password_hidden": true
+          },
+          {
+            "handle": "N3wq_7HbX0cLr2YtKp9sVm4Dg8eA1uZj",
+            "name": "GitHub",
+            "username": "ann@example.com",
+            "account": "Personal",
+            "has_password": true,
+            "has_totp": true,
+            "reprompt": false,
+            "matched": false
+          }
+        ]
+      }
+    },
+    "suggest": {
+      "request": {
+        "id": 6,
+        "type": "suggest",
+        "url": "https://login.example.com/sign-in?next=%2Faccount",
+        "kinds": [
+          "login",
+          "passkey"
+        ],
+        "rp_id": "example.com"
+      },
+      "response": {
+        "id": 6,
+        "ok": true,
+        "blocked": false,
+        "save_blocked": false,
+        "truncated": false,
+        "items": [
+          {
+            "handle": "vQ1MuxXJtcodkychWqEwy7mqD5by0FIV",
+            "name": "Example",
+            "username": "ann@example.com",
+            "account": "Personal",
+            "has_password": true,
+            "has_totp": true,
+            "reprompt": false,
+            "passkeys": [
+              {
+                "handle": "koALtLWg61i05QZ3BEVr9xLhmuC1K69q",
+                "user_name": "ann@example.com",
+                "user_display_name": "Ann"
+              }
+            ],
+            "last_used": true
+          },
+          {
+            "handle": "pXWOxrrrdKeGwKFvs-KAMXBiRbWtzJQk",
+            "name": "Example (work)",
+            "account": "Work",
+            "has_password": true,
+            "has_totp": false,
+            "reprompt": true,
+            "passkeys": [],
+            "password_hidden": true
+          }
+        ]
+      }
+    },
+    "totp": {
+      "request": {
+        "id": 8,
+        "type": "totp",
+        "handle": "vQ1MuxXJtcodkychWqEwy7mqD5by0FIV",
+        "url": "https://login.example.com/sign-in?next=%2Faccount",
+        "top_origin": "https://www.example.com"
+      },
+      "response": {
+        "id": 8,
+        "ok": true,
+        "code": "492039"
+      }
+    },
+    "unlock": {
+      "request": {
+        "id": 5,
+        "type": "unlock"
+      },
+      "response": {
+        "id": 5,
+        "ok": true,
+        "vault": "unlocked"
+      }
+    }
+  },
+  "events": [
+    {
+      "event": "vault",
+      "state": "unlocked"
+    },
+    {
+      "event": "revoked"
+    },
+    {
+      "event": "disabled"
+    }
+  ],
+  "errors": [
+    {
+      "id": 15,
+      "ok": false,
+      "error": "vault_locked"
+    },
+    {
+      "id": 16,
+      "ok": false,
+      "error": "unpaired"
+    },
+    {
+      "id": 17,
+      "ok": false,
+      "error": "user_denied"
+    },
+    {
+      "id": 18,
+      "ok": false,
+      "error": "approval_timeout"
+    },
+    {
+      "id": 19,
+      "ok": false,
+      "error": "not_allowed"
+    },
+    {
+      "id": 20,
+      "ok": false,
+      "error": "security"
+    },
+    {
+      "id": 21,
+      "ok": false,
+      "error": "not_supported"
+    },
+    {
+      "id": 22,
+      "ok": false,
+      "error": "invalid_state"
+    },
+    {
+      "id": 23,
+      "ok": false,
+      "error": "invalid_request"
+    },
+    {
+      "id": 24,
+      "ok": false,
+      "error": "too_large"
+    },
+    {
+      "id": 25,
+      "ok": false,
+      "error": "busy"
+    },
+    {
+      "id": 26,
+      "ok": false,
+      "error": "cancelled"
+    },
+    {
+      "id": 27,
+      "ok": false,
+      "error": "update_required"
+    }
+  ]
+}

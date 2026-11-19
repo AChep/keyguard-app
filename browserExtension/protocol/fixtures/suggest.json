@@ -1,0 +1,48 @@
+{
+  "request": {
+    "id": 6,
+    "type": "suggest",
+    "url": "https://login.example.com/sign-in?next=%2Faccount",
+    "kinds": [
+      "login",
+      "passkey"
+    ],
+    "rp_id": "example.com"
+  },
+  "response": {
+    "id": 6,
+    "ok": true,
+    "blocked": false,
+    "save_blocked": false,
+    "truncated": false,
+    "items": [
+      {
+        "handle": "vQ1MuxXJtcodkychWqEwy7mqD5by0FIV",
+        "name": "Example",
+        "username": "ann@example.com",
+        "account": "Personal",
+        "has_password": true,
+        "has_totp": true,
+        "reprompt": false,
+        "passkeys": [
+          {
+            "handle": "koALtLWg61i05QZ3BEVr9xLhmuC1K69q",
+            "user_name": "ann@example.com",
+            "user_display_name": "Ann"
+          }
+        ],
+        "last_used": true
+      },
+      {
+        "handle": "pXWOxrrrdKeGwKFvs-KAMXBiRbWtzJQk",
+        "name": "Example (work)",
+        "account": "Work",
+        "has_password": true,
+        "has_totp": false,
+        "reprompt": true,
+        "passkeys": [],
+        "password_hidden": true
+      }
+    ]
+  }
+}

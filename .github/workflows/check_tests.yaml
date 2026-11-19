@@ -157,6 +157,8 @@ jobs:
               :feature:android-ipc-presentation:desktopTest
               :feature:passkey-hybrid-presentation:checkComposeFree
               :feature:passkey-hybrid-presentation:desktopTest
+              :feature:browser-extension:checkComposeFree
+              :feature:browser-extension:desktopTest
               :feature:cli:checkComposeFree
               :feature:cli:desktopTest
               :feature:environments:checkComposeFree

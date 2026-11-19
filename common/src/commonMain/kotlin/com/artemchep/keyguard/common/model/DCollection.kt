@@ -21,3 +21,13 @@ data class DCollection(
         return AlphabeticalSort.compareStr(name, other.name)
     }
 }
+
+/**
+ * Whether the collections hide the password of the item, as the vault hides
+ * it: the item is in one of [collections] at least, and all of those hide
+ * passwords.
+ */
+fun DSecret.isPasswordHidden(collections: List<DCollection>): Boolean {
+    val applicable = collections.filter { it.accountId == accountId && it.id in collectionIds }
+    return applicable.isNotEmpty() && applicable.all { it.hidePasswords }
+}

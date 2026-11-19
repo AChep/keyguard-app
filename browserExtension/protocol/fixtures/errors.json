@@ -1,0 +1,67 @@
+[
+  {
+    "id": 15,
+    "ok": false,
+    "error": "vault_locked"
+  },
+  {
+    "id": 16,
+    "ok": false,
+    "error": "unpaired"
+  },
+  {
+    "id": 17,
+    "ok": false,
+    "error": "user_denied"
+  },
+  {
+    "id": 18,
+    "ok": false,
+    "error": "approval_timeout"
+  },
+  {
+    "id": 19,
+    "ok": false,
+    "error": "not_allowed"
+  },
+  {
+    "id": 20,
+    "ok": false,
+    "error": "security"
+  },
+  {
+    "id": 21,
+    "ok": false,
+    "error": "not_supported"
+  },
+  {
+    "id": 22,
+    "ok": false,
+    "error": "invalid_state"
+  },
+  {
+    "id": 23,
+    "ok": false,
+    "error": "invalid_request"
+  },
+  {
+    "id": 24,
+    "ok": false,
+    "error": "too_large"
+  },
+  {
+    "id": 25,
+    "ok": false,
+    "error": "busy"
+  },
+  {
+    "id": 26,
+    "ok": false,
+    "error": "cancelled"
+  },
+  {
+    "id": 27,
+    "ok": false,
+    "error": "update_required"
+  }
+]

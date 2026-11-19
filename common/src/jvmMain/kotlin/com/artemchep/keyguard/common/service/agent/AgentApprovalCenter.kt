@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.agent
 
+import com.artemchep.keyguard.common.service.browser.BrowserApprovalRequest
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
 import com.artemchep.keyguard.common.service.cli.CliApprovalRequest
 import com.artemchep.keyguard.common.service.cli.CliService
 import com.artemchep.keyguard.common.service.environment.EnvironmentApprovalRequest
@@ -37,6 +39,11 @@ sealed interface AgentPrompt {
         override val id: String get() = request.id
         override val expiresAt: Instant get() = request.expiresAt
     }
+
+    data class Browser(val request: BrowserApprovalRequest) : AgentPrompt {
+        override val id: String get() = request.id
+        override val expiresAt: Instant get() = request.expiresAt
+    }
 }
 
 /**
@@ -49,6 +56,7 @@ class AgentApprovalCenter(
     private val gpg: AgentApprovalBroker<GpgAgentApprovalRequest>,
     private val environments: EnvironmentAccess,
     private val cli: CliService,
+    private val browser: BrowserExtensionService,
     scope: CoroutineScope,
 ) {
     /** The pending prompts, oldest first. */
@@ -57,11 +65,13 @@ class AgentApprovalCenter(
         gpg.pending,
         environments.approvals,
         cli.approvals,
-    ) { sshPrompts, gpgPrompts, environmentPrompts, cliPrompts ->
+        browser.approvals,
+    ) { sshPrompts, gpgPrompts, environmentPrompts, cliPrompts, browserPrompts ->
         val prompts = sshPrompts.map(AgentPrompt::Ssh) +
             gpgPrompts.map(AgentPrompt::Gpg) +
             environmentPrompts.map(AgentPrompt::Environment) +
-            cliPrompts.map(AgentPrompt::Cli)
+            cliPrompts.map(AgentPrompt::Cli) +
+            browserPrompts.map(AgentPrompt::Browser)
         // The prompt that expires first is shown first.
         prompts.sortedBy { it.expiresAt }
     }.stateIn(scope, SharingStarted.Eagerly, emptyList())
@@ -71,5 +81,6 @@ class AgentApprovalCenter(
         ssh.respond(id, approved) ||
             gpg.respond(id, approved) ||
             environments.respondToApproval(id, approved) ||
-            cli.respondToApproval(id, approved)
+            cli.respondToApproval(id, approved) ||
+            browser.respondToApproval(id, approved)
 }

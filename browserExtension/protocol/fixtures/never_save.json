@@ -1,0 +1,11 @@
+{
+  "request": {
+    "id": 27,
+    "type": "never_save",
+    "url": "https://login.example.com/sign-in?next=%2Faccount"
+  },
+  "response": {
+    "id": 27,
+    "ok": true
+  }
+}

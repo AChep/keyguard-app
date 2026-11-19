@@ -13,6 +13,9 @@ enum class CliAgentUsageHistoryClient(
     /** A program that reads a local `.env` file. */
     ENV(2L),
 
+    /** A paired browser extension. */
+    BROWSER(code = 3L),
+
     /**
      * An unrecognized client, e.g. a code written by a newer app version.
      */

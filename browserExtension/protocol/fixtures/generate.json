@@ -1,0 +1,12 @@
+{
+  "request": {
+    "id": 9,
+    "type": "generate",
+    "url": "https://example.com/sign-up"
+  },
+  "response": {
+    "id": 9,
+    "ok": true,
+    "password": "qT7#vw2Lp!Xe9mRk4Zs8"
+  }
+}

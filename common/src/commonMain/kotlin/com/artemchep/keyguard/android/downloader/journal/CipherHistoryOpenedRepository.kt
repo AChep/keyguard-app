@@ -18,6 +18,15 @@ interface CipherHistoryOpenedRepository : BaseRepository<DCipherOpenedHistory> {
         credentialId: String,
     ): Flow<Instant?>
 
+    /**
+     * The time each of the [cipherIds] was last used, counting the uses of
+     * the [types] only. A cipher that has none is absent.
+     */
+    fun getLastUsed(
+        cipherIds: Collection<String>,
+        types: Collection<Long>,
+    ): Flow<Map<String, Instant>>
+
     fun removeAll(): IO<Unit>
 
     fun removeOlderThan(cutoff: Instant): IO<Unit>

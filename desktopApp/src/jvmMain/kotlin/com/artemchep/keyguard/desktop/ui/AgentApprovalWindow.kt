@@ -11,6 +11,8 @@ import androidx.compose.ui.window.ApplicationScope
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCenter
 import com.artemchep.keyguard.common.service.agent.AgentPrompt
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
+import com.artemchep.keyguard.common.service.browser.BrowserOperation
 import com.artemchep.keyguard.common.service.cli.CliService
 import com.artemchep.keyguard.common.service.environment.EnvironmentAccess
 import com.artemchep.keyguard.common.service.environment.EnvironmentRepository
@@ -21,6 +23,8 @@ import com.artemchep.keyguard.feature.sshagent.SshAgentApprovalContent
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.agent_title
+import com.artemchep.keyguard.res.browser_extension_approval_title
+import com.artemchep.keyguard.res.browser_extension_approval_unlock_reason
 import com.artemchep.keyguard.res.environments_approval_title
 import com.artemchep.keyguard.res.gpg_client_request
 import com.artemchep.keyguard.res.protocol_gpg
@@ -40,6 +44,7 @@ internal fun ApplicationScope.AgentApprovalWindow(
     environmentRepository: EnvironmentRepository,
     environmentAccess: EnvironmentAccess,
     cli: CliService,
+    browser: BrowserExtensionService,
 ) {
     val requestUiState = rememberAgentRequestUiState(
         pending = center.pending,
@@ -87,6 +92,12 @@ internal fun ApplicationScope.AgentApprovalWindow(
                 request = prompt.request,
                 onDecision = onDecision,
             )
+
+            is AgentPrompt.Browser -> BrowserApprovalPrompt(
+                service = browser,
+                request = prompt.request,
+                onDecision = onDecision,
+            )
         }
     }
 }
@@ -113,5 +124,13 @@ private fun agentPromptChrome(prompt: AgentPrompt): AgentPromptChrome = when (pr
     -> AgentPromptChrome(
         title = stringResource(Res.string.environments_approval_title),
         authReason = TextHolder.Res(Res.string.environments_approval_title),
+    )
+
+    is AgentPrompt.Browser -> AgentPromptChrome(
+        title = stringResource(Res.string.browser_extension_approval_title),
+        authReason = when (prompt.request.operation) {
+            BrowserOperation.Unlock -> TextHolder.Res(Res.string.browser_extension_approval_unlock_reason)
+            else -> TextHolder.Res(Res.string.browser_extension_approval_title)
+        },
     )
 }

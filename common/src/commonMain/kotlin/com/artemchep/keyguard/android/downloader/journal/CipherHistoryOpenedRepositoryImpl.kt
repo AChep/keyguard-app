@@ -75,6 +75,23 @@ class CipherHistoryOpenedRepositoryImpl(
                 entity?.createdAt
             }
 
+    override fun getLastUsed(
+        cipherIds: Collection<String>,
+        types: Collection<Long>,
+    ): Flow<Map<String, Instant>> =
+        daoEffect { dao ->
+            dao.getLastUsedByCipherIds(
+                cipherIds = cipherIds,
+                types = types,
+            )
+        }
+            .flatMapQueryToList(dispatcher)
+            .map { entities ->
+                entities.associate { entity ->
+                    entity.cipherId to entity.createdAt
+                }
+            }
+
     override fun put(model: DCipherOpenedHistory): IO<Unit> =
         daoEffect { dao ->
             TODO()

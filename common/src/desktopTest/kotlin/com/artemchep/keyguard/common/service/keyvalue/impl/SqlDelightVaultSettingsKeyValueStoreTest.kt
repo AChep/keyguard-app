@@ -3,6 +3,7 @@ package com.artemchep.keyguard.common.service.keyvalue.impl
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.io
 import com.artemchep.keyguard.common.io.ioEffect
+import com.artemchep.keyguard.common.io.ioRaise
 import com.artemchep.keyguard.common.io.ioUnit
 import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
@@ -19,6 +20,7 @@ import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SqlDelightVaultSettingsKeyValueStoreTest {
@@ -133,6 +135,38 @@ class SqlDelightVaultSettingsKeyValueStoreTest {
     }
 
     @Test
+    fun `get by key reads one value as get all decodes it`() = runTest {
+        val testStore = createStore(UnconfinedTestDispatcher(testScheduler))
+        val store = testStore.store
+
+        store.getString("string", "").setAndCommit("value")()
+        store.getLong("long", 0L).setAndCommit(99L)()
+        testStore.database.vaultSettingQueries.upsert(
+            id = "bad-int",
+            type = "int",
+            value = "not-an-int",
+        )
+
+        assertEquals("value", store.getByKey("string")())
+        assertEquals(99L, store.getByKey("long")())
+        assertNull(store.getByKey("bad-int")())
+        assertNull(store.getByKey("missing")())
+    }
+
+    @Test
+    fun `get by key fails when the vault can't be read, unlike a preference`() = runTest {
+        val store = SqlDelightVaultSettingsKeyValueStore(
+            databaseManager = UnreadableVaultDatabaseManager,
+            dispatcher = UnconfinedTestDispatcher(testScheduler),
+        )
+
+        assertFailsWith<IllegalStateException> {
+            store.getByKey("string")()
+        }
+        assertEquals("default", store.getString("string", "default").first())
+    }
+
+    @Test
     fun `get file is unsupported`() = runTest {
         val store = createStore(UnconfinedTestDispatcher(testScheduler)).store
 
@@ -172,6 +206,17 @@ class SqlDelightVaultSettingsKeyValueStoreTest {
         ): IO<T> = ioEffect {
             block(database)
         }
+
+        override fun changePassword(newMasterKey: MasterKey): IO<Unit> = ioUnit()
+    }
+
+    private object UnreadableVaultDatabaseManager : VaultDatabaseManager {
+        override fun get(): IO<Database> = ioRaise(IllegalStateException("The vault can't be read"))
+
+        override fun <T> mutate(
+            tag: String,
+            block: suspend (Database) -> T,
+        ): IO<T> = ioRaise(IllegalStateException("The vault can't be written"))
 
         override fun changePassword(newMasterKey: MasterKey): IO<Unit> = ioUnit()
     }

@@ -116,12 +116,13 @@ suspend fun RememberStateFlowScope.cliAgentHistoryStateProducer(
         ?: CliAgentUsageHistoryMode.Recent(client ?: CliAgentUsageHistoryClient.UNKNOWN)
     val historyFlow = getCliAgentUsageHistory(mode)
         .shareInScreenScope()
-    // The rows show only environments, so a change of any
-    // other item in the vault does not rebuild them.
+    // The rows show only environments, and the items in the log of a
+    // browser, so a change of any other item does not rebuild them.
+    val showsItems = (mode as? CliAgentUsageHistoryMode.Recent)?.client == CliAgentUsageHistoryClient.BROWSER
     val environmentsFlow = getCiphers()
         .map { ciphers ->
             ciphers
-                .filter { it.type == DSecret.Type.Environment }
+                .filter { showsItems || it.type == DSecret.Type.Environment }
                 .associateBy { it.id }
         }
         .distinctUntilChanged()
@@ -256,7 +257,14 @@ private suspend fun TranslatorScope.toItem(
         }
     val clientNameText = event.clientName
         .sanitizedAgentDisplayValue(MAX_AGENT_CALLER_NAME_LENGTH)
-        ?.let { translate(Res.string.environments_approval_client, it) }
+        ?.let { name ->
+            // A browser has the name the user gave its pairing.
+            if (event.client == CliAgentUsageHistoryClient.BROWSER) {
+                translate(Res.string.browser_extension_history_pairing, name)
+            } else {
+                translate(Res.string.environments_approval_client, name)
+            }
+        }
     val requestText = title(event.request)
     val description = buildCliAgentUsageHistoryDescription(
         request = requestText,
@@ -303,6 +311,8 @@ private suspend fun TranslatorScope.commandText(
         .sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH)
     return buildCliAgentUsageHistoryDetails(
         command = event.command
+            // A browser's is the extension's origin, which only the details show.
+            .takeUnless { event.client == CliAgentUsageHistoryClient.BROWSER }
             .sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH),
         path = when (event.request) {
             CliAgentUsageHistoryRequestType.RUN -> path
@@ -317,9 +327,12 @@ internal suspend fun TranslatorScope.title(client: CliAgentUsageHistoryClient): 
     CliAgentUsageHistoryClient.CLI -> translate(Res.string.cli_title)
     CliAgentUsageHistoryClient.MCP -> translate(Res.string.protocol_mcp)
     CliAgentUsageHistoryClient.ENV -> translate(Res.string.environments_mounts)
+    CliAgentUsageHistoryClient.BROWSER -> translate(Res.string.browser_extension_title)
     CliAgentUsageHistoryClient.UNKNOWN -> translate(Res.string.cipher_type_unknown)
 }
 
+// A flat mapping of every request, not branching logic.
+@Suppress("CyclomaticComplexMethod")
 private suspend fun TranslatorScope.title(request: CliAgentUsageHistoryRequestType): String = when (request) {
     CliAgentUsageHistoryRequestType.RUN ->
         translate(Res.string.cli_agent_history_request_run)
@@ -350,6 +363,30 @@ private suspend fun TranslatorScope.title(request: CliAgentUsageHistoryRequestTy
 
     CliAgentUsageHistoryRequestType.READ_LOCAL_ENV_FILE ->
         translate(Res.string.cli_agent_history_request_read_local_env_file)
+
+    CliAgentUsageHistoryRequestType.BROWSER_PAIR ->
+        translate(Res.string.cli_agent_history_request_browser_pair)
+
+    CliAgentUsageHistoryRequestType.BROWSER_UNLOCK ->
+        translate(Res.string.cli_agent_history_request_browser_unlock)
+
+    CliAgentUsageHistoryRequestType.BROWSER_FILL ->
+        translate(Res.string.cli_agent_history_request_browser_fill)
+
+    CliAgentUsageHistoryRequestType.BROWSER_TOTP ->
+        translate(Res.string.cli_agent_history_request_browser_totp)
+
+    CliAgentUsageHistoryRequestType.BROWSER_SAVE ->
+        translate(Res.string.cli_agent_history_request_browser_save)
+
+    CliAgentUsageHistoryRequestType.BROWSER_NEVER_SAVE ->
+        translate(Res.string.cli_agent_history_request_browser_never_save)
+
+    CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_GET ->
+        translate(Res.string.cli_agent_history_request_browser_passkey_get)
+
+    CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_CREATE ->
+        translate(Res.string.cli_agent_history_request_browser_passkey_create)
 
     CliAgentUsageHistoryRequestType.UNKNOWN ->
         translate(Res.string.cipher_type_unknown)

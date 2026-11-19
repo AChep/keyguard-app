@@ -27,6 +27,10 @@ import com.artemchep.keyguard.common.service.backup.SelectableBackupObjectStoreF
 import com.artemchep.keyguard.common.service.backup.S3BackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.backup.WebDavBackupObjectStoreFactory
 import com.artemchep.keyguard.common.service.biometrics.BiometricKeyRepository
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionHost
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionStreams
+import com.artemchep.keyguard.common.service.browser.UnsupportedBrowserExtension
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.common.service.connectivity.ConnectivityService
 import com.artemchep.keyguard.common.service.credentialexchange.CredentialExchangeImportTransport
@@ -113,6 +117,7 @@ import db_key_value.shared_prefs.encrypted.SecureSharedPrefsKeyValueStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.koin.core.qualifier.named
+import org.koin.dsl.binds
 import org.koin.dsl.module
 
 class CacheDirProviderAndroid(
@@ -192,6 +197,12 @@ class PlatformApplicationModule {
         single<KeychainRepository> {
             KeychainRepositoryNoOp()
         }
+        // Only the desktop app serves browser extensions.
+        single { UnsupportedBrowserExtension } binds arrayOf(
+            BrowserExtensionService::class,
+            BrowserExtensionHost::class,
+            BrowserExtensionStreams::class,
+        )
         single<NotificationRepository> {
             NotificationRepositoryAndroid(
                 context = get(),

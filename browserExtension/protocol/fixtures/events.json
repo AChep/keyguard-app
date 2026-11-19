@@ -1,0 +1,12 @@
+[
+  {
+    "event": "vault",
+    "state": "unlocked"
+  },
+  {
+    "event": "revoked"
+  },
+  {
+    "event": "disabled"
+  }
+]

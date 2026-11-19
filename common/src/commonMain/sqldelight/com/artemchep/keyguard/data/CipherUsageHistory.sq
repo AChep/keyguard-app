@@ -45,6 +45,17 @@ GROUP BY
 ORDER BY createdAt DESC
 LIMIT :limit;
 
+getLastUsedByCipherIds:
+SELECT
+    cipherId,
+    max(createdAt) AS createdAt
+FROM cipherUsageHistory
+WHERE
+    cipherId IN :cipherIds AND
+    type IN :types
+GROUP BY
+    cipherId;
+
 getDistinctPopular:
 SELECT
     id,

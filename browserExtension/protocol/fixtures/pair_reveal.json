@@ -1,0 +1,12 @@
+{
+  "request": {
+    "id": 3,
+    "type": "pair_reveal",
+    "nonce": "gIGCg4SFhoeIiYqLjI2Oj5CRkpOUlZaXmJmam5ydnp8="
+  },
+  "response": {
+    "id": 3,
+    "ok": true,
+    "vault": "unlocked"
+  }
+}

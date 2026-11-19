@@ -84,9 +84,11 @@ enum class AgentHistoryDetailsIcon {
     RUN,
     MCP,
     ENV_FILE,
+    BROWSER,
     UNKNOWN,
 
     // Values
+    WEBSITE,
     APPLICATION,
     APPLICATION_PATH,
     PROCESS,

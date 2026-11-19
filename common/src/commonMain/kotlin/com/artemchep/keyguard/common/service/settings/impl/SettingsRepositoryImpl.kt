@@ -23,6 +23,7 @@ import com.artemchep.keyguard.common.model.NavItemsConfig
 import com.artemchep.keyguard.common.model.SshAgentFilter
 import com.artemchep.keyguard.common.service.Files
 import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_PROMPT_TIMEOUT
+import com.artemchep.keyguard.common.service.agent.AGENT_APPROVAL_WINDOW_NEVER_ASK
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigProvider
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCacheConfigState
 import com.artemchep.keyguard.common.service.agent.AgentApprovalCachePolicy
@@ -110,6 +111,11 @@ class SettingsRepositoryImpl(
         private const val KEY_SSH_AGENT_BOOKMARKS_CONFIG = "ssh_agent.bookmarks_config"
         private const val KEY_SSH_AGENT_FILTER = "ssh_agent.filters"
         private const val KEY_GPG_AGENT = "gpg_agent"
+        private const val KEY_BROWSER_EXTENSION = "browser_extension"
+        private const val KEY_BROWSER_EXTENSION_APPROVAL_WINDOW = "browser_extension.approval_window"
+        private const val KEY_BROWSER_EXTENSION_APPROVAL_CACHE_POLICY = "browser_extension.approval_cache_policy"
+        private const val KEY_BROWSER_EXTENSION_APPROVAL_TIMEOUT = "browser_extension.approval_timeout"
+        private const val KEY_BROWSER_EXTENSION_REMOVED_CONNECTORS = "browser_extension.removed_connectors"
         private const val KEY_GPG_AGENT_APPROVAL_WINDOW = "gpg_agent.approval_window"
         private const val KEY_GPG_AGENT_APPROVAL_CACHE_POLICY = "gpg_agent.approval_cache_policy"
         private const val KEY_GPG_AGENT_APPROVAL_TIMEOUT = "gpg_agent.approval_timeout"
@@ -311,6 +317,16 @@ class SettingsRepositoryImpl(
     private val gpgAgentPref =
         store.getBoolean(KEY_GPG_AGENT, false)
 
+    private val browserExtensionPref =
+        store.getBoolean(KEY_BROWSER_EXTENSION, false)
+
+    private val browserExtensionRemovedConnectorsPref =
+        store.getSerializable<Set<String>>(
+            json,
+            KEY_BROWSER_EXTENSION_REMOVED_CONNECTORS,
+            defaultValue = emptySet(),
+        )
+
     private val gpgAgentApproval = AgentApprovalPreferences(
         store = store,
         windowKey = KEY_GPG_AGENT_APPROVAL_WINDOW,
@@ -336,6 +352,18 @@ class SettingsRepositoryImpl(
         defaultWindow = Duration.INFINITE,
     )
 
+    // A browser keeps the approval of an item on a site. The cache policy
+    // has no setting: the approvals are keyed by the pairing, the site,
+    // and the item, not by the caller's application. By default a paired
+    // browser fills matching items without asking, as other password
+    // managers do; re-prompt items and unmatched items still ask.
+    private val browserExtensionApproval = AgentApprovalPreferences(
+        store = store,
+        windowKey = KEY_BROWSER_EXTENSION_APPROVAL_WINDOW,
+        cachePolicyKey = KEY_BROWSER_EXTENSION_APPROVAL_CACHE_POLICY,
+        defaultWindow = AGENT_APPROVAL_WINDOW_NEVER_ASK,
+    )
+
     // An infinite timeout is stored as Long.MAX_VALUE, which
     // reads back as infinite.
     private val sshAgentApprovalTimeoutPref =
@@ -349,6 +377,9 @@ class SettingsRepositoryImpl(
 
     private val cliApprovalTimeoutPref =
         store.getLong(KEY_CLI_APPROVAL_TIMEOUT, AGENT_APPROVAL_PROMPT_TIMEOUT.inWholeMilliseconds)
+
+    private val browserExtensionApprovalTimeoutPref =
+        store.getLong(KEY_BROWSER_EXTENSION_APPROVAL_TIMEOUT, AGENT_APPROVAL_PROMPT_TIMEOUT.inWholeMilliseconds)
 
     private val gpgAgentDisplayKeyNamesPref =
         store.getBoolean(KEY_GPG_AGENT_DISPLAY_KEY_NAMES, false)
@@ -620,6 +651,9 @@ class SettingsRepositoryImpl(
             gpgAgentApprovalTimeoutPref,
             gpgAgentDisplayKeyNamesPref,
             gpgAgentFilterPref,
+            browserExtensionPref,
+            browserExtensionApproval.windowPref,
+            browserExtensionApprovalTimeoutPref,
             gpgKeyserverConfigPref,
             gpgKeyserverAutoRefreshPref,
             gpgKeyserverRefreshIntervalPref,
@@ -930,6 +964,16 @@ class SettingsRepositoryImpl(
 
     override fun getGpgAgent() = gpgAgentPref
 
+    override fun setBrowserExtensionEnabled(enabled: Boolean) = browserExtensionPref
+        .setAndCommit(enabled)
+
+    override fun getBrowserExtensionEnabled() = browserExtensionPref
+
+    override fun setBrowserExtensionRemovedConnectors(ids: Set<String>) = browserExtensionRemovedConnectorsPref
+        .setAndCommit(ids)
+
+    override fun getBrowserExtensionRemovedConnectors() = browserExtensionRemovedConnectorsPref
+
     override fun setGpgAgentApprovalWindow(duration: Duration) = gpgAgentApproval.windowPref
         .setAndCommit(duration)
 
@@ -980,6 +1024,21 @@ class SettingsRepositoryImpl(
 
     override fun getCliApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
         cliApproval.config
+
+    override fun setBrowserExtensionApprovalWindow(duration: Duration) = browserExtensionApproval.windowPref
+        .setAndCommit(duration)
+
+    override fun getBrowserExtensionApprovalWindow() = browserExtensionApproval.config
+        .approvalWindow()
+
+    override fun setBrowserExtensionApprovalTimeout(duration: Duration) = browserExtensionApprovalTimeoutPref
+        .setAndCommit(duration)
+
+    override fun getBrowserExtensionApprovalTimeout() = browserExtensionApprovalTimeoutPref
+        .asApprovalTimeout()
+
+    override fun getBrowserExtensionApprovalCacheConfig(): AgentApprovalCacheConfigProvider<AgentApprovalCachePolicy> =
+        browserExtensionApproval.config
 
     override fun setGpgAgentDisplayKeyNames(displayKeyNames: Boolean) = gpgAgentDisplayKeyNamesPref
         .setAndCommit(displayKeyNames)

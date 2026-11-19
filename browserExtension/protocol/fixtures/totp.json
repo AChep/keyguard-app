@@ -1,0 +1,14 @@
+{
+  "request": {
+    "id": 8,
+    "type": "totp",
+    "handle": "vQ1MuxXJtcodkychWqEwy7mqD5by0FIV",
+    "url": "https://login.example.com/sign-in?next=%2Faccount",
+    "top_origin": "https://www.example.com"
+  },
+  "response": {
+    "id": 8,
+    "ok": true,
+    "code": "492039"
+  }
+}

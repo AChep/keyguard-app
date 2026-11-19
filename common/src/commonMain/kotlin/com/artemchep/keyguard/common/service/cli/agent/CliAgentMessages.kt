@@ -408,8 +408,7 @@ object CliAgentMessages {
     class BrowserOpenRequest(
         /**
          * The browser: the process that started the connector, for display
-         * only. When the agent can't find that process, it is the connector
-         * itself.
+         * only. `null` when the agent can't find that process.
          */
         @ProtoNumber(1)
         val caller: CallerIdentity? = null,

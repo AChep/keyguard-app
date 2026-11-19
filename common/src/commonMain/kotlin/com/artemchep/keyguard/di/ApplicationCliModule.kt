@@ -50,8 +50,9 @@ class ApplicationCliModule {
         }
         single {
             CliAgentHost(
-                cli = get(), mcp = get(), mounts = get(), commands = get(),
+                cli = get(), mcp = get(), mounts = get(), browser = get(), commands = get(),
                 environments = { directoryAccess -> environmentBrokerHandler(directoryAccess) },
+                browserStreams = get(),
                 recorder = get(),
             )
         }

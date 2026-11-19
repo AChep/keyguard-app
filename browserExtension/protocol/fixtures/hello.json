@@ -1,0 +1,22 @@
+{
+  "request": {
+    "id": 1,
+    "type": "hello",
+    "protocol": 1,
+    "capabilities": [
+      "passkeys",
+      "save"
+    ]
+  },
+  "response": {
+    "id": 1,
+    "ok": true,
+    "protocol": 1,
+    "capabilities": [
+      "passkeys",
+      "save"
+    ],
+    "paired": true,
+    "vault": "locked"
+  }
+}

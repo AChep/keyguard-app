@@ -1,6 +1,8 @@
 package com.artemchep.keyguard.common.service.cli.agent
 
 import com.artemchep.keyguard.common.model.AgentStatus
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionHost
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionStreams
 import com.artemchep.keyguard.common.service.cli.CliCommandDispatcher
 import com.artemchep.keyguard.common.service.cli.CliRuntimeHost
 import com.artemchep.keyguard.common.service.environment.EnvironmentBrokerHandler
@@ -16,15 +18,18 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 
 /**
  * The features that the CLI agent serves: the commands of the CLI, MCP,
- * and local `.env` files. Platform runtimes start the agent while any of
- * them [needs it][needsAgent].
+ * local `.env` files, and the browser extensions. Platform runtimes start
+ * the agent while any of them [needs it][needsAgent].
  */
+@Suppress("LongParameterList") // One parameter per feature of the agent.
 class CliAgentHost(
     val cli: CliRuntimeHost,
     val mcp: EnvironmentMcpHost,
     val mounts: EnvironmentMountsHost,
+    val browser: BrowserExtensionHost,
     private val commands: CliCommandDispatcher,
     private val environments: (EnvironmentDirectoryAccess) -> EnvironmentBrokerHandler,
+    private val browserStreams: BrowserExtensionStreams,
     private val recorder: CliAgentUsageRecorder,
 ) {
     private val mutableStatus = MutableStateFlow<AgentStatus>(AgentStatus.Stopped)
@@ -32,8 +37,13 @@ class CliAgentHost(
     /** The status of the agent, as the platform runtime reports it. */
     val status: StateFlow<AgentStatus> = mutableStatus.asStateFlow()
 
-    val needsAgent: Flow<Boolean> = combine(cli.state, mcp.state, mounts.state) { cli, mcp, mounts ->
-        cli.needsAgent || mcp.enabled || mounts.mounts.any { it.enabled }
+    val needsAgent: Flow<Boolean> = combine(
+        cli.state,
+        mcp.state,
+        mounts.state,
+        browser.state,
+    ) { cli, mcp, mounts, browser ->
+        cli.needsAgent || mcp.enabled || mounts.mounts.any { it.enabled } || browser.needsAgent
     }.distinctUntilChanged()
 
     /**
@@ -46,6 +56,7 @@ class CliAgentHost(
     ) = CliAgentRequestHandler(
         cli = commands,
         environments = environments(directoryAccess),
+        browser = browserStreams,
         recorder = recorder,
     )
 

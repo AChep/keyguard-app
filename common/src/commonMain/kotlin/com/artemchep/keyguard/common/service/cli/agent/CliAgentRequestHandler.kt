@@ -1,6 +1,7 @@
 package com.artemchep.keyguard.common.service.cli.agent
 
 import com.artemchep.keyguard.common.service.browser.BrowserExtensionStreams
+import com.artemchep.keyguard.common.service.browser.UnsupportedBrowserExtension
 import com.artemchep.keyguard.common.service.cli.CliCommandDispatcher
 import com.artemchep.keyguard.common.service.environment.EnvironmentBrokerHandler
 import kotlinx.coroutines.CancellationException
@@ -19,8 +20,8 @@ import kotlinx.coroutines.withContext
 class CliAgentRequestHandler(
     private val cli: CliCommandDispatcher,
     private val environments: EnvironmentBrokerHandler,
-    /** Serves the browser extensions; without it, their streams are refused. */
-    private val browser: BrowserExtensionStreams? = null,
+    /** Serves the browser extensions; by default, their streams are refused. */
+    private val browser: BrowserExtensionStreams = UnsupportedBrowserExtension,
     private val recorder: CliAgentUsageRecorder? = null,
 ) {
     /**
@@ -58,8 +59,7 @@ class CliAgentRequestHandler(
         is CliAgentMessages.Request.Kind.MountStatus,
         is CliAgentMessages.Request.Kind.ResolveMount,
         -> CliAgentAnswer(environments.handle(request, usage))
-        is CliAgentMessages.Request.Kind.BrowserOpen -> browser?.open(request.value)
-            ?: CliAgentAnswer(cliAgentError("integration_disabled"))
+        is CliAgentMessages.Request.Kind.BrowserOpen -> browser.open(request.value)
         // A connection authenticates once, with its first request.
         is CliAgentMessages.Request.Kind.Authenticate -> CliAgentAnswer(cliAgentError("invalid_request"))
     }

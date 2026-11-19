@@ -1,27 +1,35 @@
 package com.artemchep.keyguard.desktop.di
 
+import com.artemchep.keyguard.common.NotificationsWorker
 import com.artemchep.keyguard.common.model.MasterKdfVersion
 import com.artemchep.keyguard.common.model.MasterKey
+import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationServiceNone
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionHost
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionServiceImpl
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionStreams
 import com.artemchep.keyguard.common.service.database.DatabaseDispatcher
 import com.artemchep.keyguard.common.service.dirs.DirsService
 import com.artemchep.keyguard.common.service.extract.PlatformLinkInfoExtractorRegistry
 import com.artemchep.keyguard.common.service.logging.PlatformLogSinkRegistry
 import com.artemchep.keyguard.common.service.logging.inmemory.InMemoryLogRepository
 import com.artemchep.keyguard.common.service.logging.kotlin.LogRepositoryKotlin
+import com.artemchep.keyguard.common.service.session.BrowserExtensionSessionAccess
 import com.artemchep.keyguard.common.service.shortcut.DesktopGlobalShortcutController
 import com.artemchep.keyguard.common.service.shortcut.GlobalShortcutController
 import com.artemchep.keyguard.common.service.vault.VaultSessionFactory
 import com.artemchep.keyguard.common.usecase.GetAppLinkState
 import com.artemchep.keyguard.common.usecase.GetCiphers
+import com.artemchep.keyguard.common.usecase.GetSuggestions
+import com.artemchep.keyguard.common.usecase.impl.GetSuggestionsImpl
 import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.createDesktopKoinApplication
 import com.artemchep.keyguard.di.ApplicationCoroutineScope
 import com.artemchep.keyguard.di.resolve
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactoryDefault
-import com.artemchep.keyguard.common.NotificationsWorker
 import com.artemchep.keyguard.provider.keyguard.P2pMembershipStore
 import com.artemchep.keyguard.provider.keyguard.applink.AppLinkService
 import com.artemchep.keyguard.provider.keyguard.applink.AppLinkSync
@@ -34,10 +42,12 @@ import com.artemchep.keyguard.provider.keyguard.transport.KeyguardTransportFacto
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse
+import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNotSame
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
+import kotlin.time.Instant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.isActive
@@ -58,6 +68,9 @@ class DesktopKoinGraphTest {
             assertTrue(koin.get<PlatformLinkInfoExtractorRegistry>().values.isEmpty())
             assertNotNull(koin.get<CoroutineDispatcher>(named<DatabaseDispatcher>()))
             assertFailsWith<NoDefinitionFoundException> { koin.get<GetCiphers>() }
+            val browser = assertIs<BrowserExtensionServiceImpl>(koin.get<BrowserExtensionHost>())
+            assertSame(browser, koin.get<BrowserExtensionService>())
+            assertSame(browser, koin.get<BrowserExtensionStreams>())
         } finally {
             application.close()
         }
@@ -81,6 +94,26 @@ class DesktopKoinGraphTest {
             // The desktop prefers WebRTC: its factory lists more than relay forwarding.
             assertNotSame(KeyguardTransportFactory.RelayOnly, application.koin.get<KeyguardTransportFactory>())
             assertNotNull(application.koin.get<KeyguardRoomConnector>())
+            session.close()
+        } finally {
+            application.close()
+        }
+    }
+
+    @Test
+    fun `the browser extension reaches the vault through the shared login matcher`() {
+        val application = createDesktopKoinApplication()
+        try {
+            val masterKey = MasterKey(MasterKdfVersion.LATEST, byteArrayOf(1))
+            val session = application.koin.get<VaultSessionFactory>().create(masterKey)
+            assertIs<GetSuggestionsImpl>(session.resolve { get<GetSuggestions<Any?>>() })
+            val key = MasterSession.Key(
+                masterKey,
+                session,
+                MasterSession.Key.Authenticated,
+                Instant.fromEpochSeconds(0),
+            )
+            assertNotNull(application.koin.get<BrowserExtensionSessionAccess>()(key))
             session.close()
         } finally {
             application.close()

@@ -1,0 +1,13 @@
+{
+  "request": {
+    "id": 2,
+    "type": "pair_commit",
+    "commit": "cO5LuRhLzj67vgq32d+0EMP2HAUiykJGfVeis/3HO/o=",
+    "name": "Firefox"
+  },
+  "response": {
+    "id": 2,
+    "ok": true,
+    "nonce": "oKGio6SlpqeoqaqrrK2ur7CxsrO0tba3uLm6u7y9vr8="
+  }
+}

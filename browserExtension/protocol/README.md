@@ -180,8 +180,10 @@ The plaintext of each transport message is a flags byte followed by data.
 - A fragment carries 1 to 65,518 bytes of data.
 - A message is a UTF-8 JSON object of at most 1,048,576 bytes (1 MiB), in at most
   32 fragments. A sender may split it at any byte, even inside a UTF-8 sequence.
+  Its arrays and objects nest at most 64 deep.
 - The receiver ends the session on a reserved bit, an empty fragment, an
   oversized message, a 33rd fragment, or a message that isn't a UTF-8 JSON object.
+  The app also ends it on a message that nests deeper than 64.
 
 ## 4. Messages
 
@@ -311,9 +313,11 @@ Gate: none.
 Response: no fields. The app answers at once, whatever `target` names.
 
 - If `target` is in flight, the app stops serving it: it takes its prompt or
-  window off the screen and answers it with `cancelled`. A stopped
-  `passkey_create` stores nothing, and a stopped `save` closes its window before
-  it shows.
+  window off the screen and answers it with `cancelled`. A `passkey_create`
+  stopped before the app starts to store the passkey stores nothing, and a
+  stopped `save` closes its window before it shows.
+- A `cancel` doesn't undo a pairing the user approved: once the app stores it,
+  `pair_reveal` answers `{vault}`, not `cancelled`.
 - If `target` names no request in flight, unknown or already answered, nothing
   happens.
 - A `cancel` sent before `hello`, or without an integer `target`, gets
@@ -336,7 +340,8 @@ answers at once if the vault is already unlocked. If the user closes the prompt,
 it answers `user_denied`; if the prompt times out, `approval_timeout`. If the
 user approves but the vault is still locked, it answers `{vault: "locked"}`. If
 the unlocked vault doesn't confirm the session's pairing, `unpaired`. A second
-`unlock` while the prompt is open gets `busy`.
+`unlock` while the prompt is open gets `busy`. The session's passkey requests
+that wait for the vault share this prompt.
 
 ### `suggest`
 
@@ -377,6 +382,7 @@ sign-in. The other items follow: the best match first, then the logins of
 | `reprompt` | boolean | Releasing it always prompts. |
 | `passkeys` | passkey[]? | With `"passkey"`: the item's discoverable passkeys for `rp_id`, which answer a request without `allowCredentials`. May be empty. |
 | `last_used` | boolean? | `true` on the first item when it has a use on this device. Absent otherwise. |
+| `password_hidden` | boolean? | `true` when the item's collections hide its password. Absent otherwise. The extension doesn't copy the password; `fill` still releases it. |
 
 | Passkey field | Type | |
 |---|---|---|
@@ -408,7 +414,7 @@ An item is a `suggest` item without `passkeys` or `last_used`, plus:
 
 | Item field | Type | |
 |---|---|---|
-| `matched` | boolean | A URI of the item matches the page by the app's URI match rules. A name alike the page doesn't count. |
+| `matched` | boolean | A URI of the item matches the page by the app's URI match rules. A name alike the page doesn't count. On an `http` page, see [Handles](#7-handles). |
 
 ### `fill`, `totp`
 
@@ -477,12 +483,14 @@ Response: no fields, once the window is on screen. The app opens a window with a
 new item, or with the matching item and the new password. The user saves in the
 app; the extension never writes to the vault.
 
-- The matching item is a login of the page that has the same `username`. An
-  absent or empty `username` matches nothing, so the window opens a new item.
+- The matching item is a login with a URI that matches the page and the same
+  `username`. An absent or empty `username` matches nothing, so the window opens
+  a new item.
 - Of several, the one whose password is `previous_password` wins, or else the
   page's best match. An absent or empty `previous_password` doesn't pick between
   them.
-- An item with master-password re-prompt never matches.
+- An item with master-password re-prompt, or one the user can't edit, never
+  matches.
 - A session has one save window at a time. Another `save` while it is open gets
   `busy`.
 - A page where saving is [blocked](#blocked-uris) gets `not_allowed`.
@@ -546,14 +554,18 @@ checks:
 1. `same_origin_with_ancestors: false` gets `not_supported`: version 1 doesn't
    serve cross-origin calls.
 2. `options` must parse as WebAuthn JSON; otherwise `invalid_request`.
-3. `origin` must be `https`, or `http://localhost` with an optional port.
+3. `origin` must be `https`, or `http://localhost` with an optional port. It
+   must be written as a browser serializes an origin: a lowercase scheme, a
+   lowercase ASCII host (Punycode), no default port, no path, not even a
+   trailing `/`.
 4. The RP ID is `rpId` of `passkey_get`, or `rp.id` of `passkey_create`, or
    else the host of `origin`. It must be that host or a registrable domain
    suffix of it. Otherwise `https://<RP ID>/.well-known/webauthn` must list
    `origin` among its related origins (WebAuthn Level 3, section 5.11).
 5. If 3 or 4 fails, `security`.
 6. Once the vault is unlocked, a [blocked](#blocked-uris) page gets
-   `not_supported`. A rule that blocks saving only doesn't apply.
+   `not_supported`. A rule that blocks saving only doesn't apply. The app
+   checks again after the user picks or approves, before it signs or stores.
 
 `passkey_get`:
 
@@ -575,10 +587,12 @@ checks:
   `not_supported`. Version 1 supports ES256.
 - The app opens a window where the user picks the login that stores the
   passkey. The user can add a login there first.
+- An `attestation` that WebAuthn doesn't know counts as `"none"`, the default.
 - After the pick, a passkey of `excludeCredentials` in the vault gets
   `invalid_state`. As WebAuthn requires, the app reveals it only after the user
   consents.
-- A login the user can't edit gets `not_allowed`.
+- A login the user can't edit gets `not_allowed`, before the app asks for the
+  user's identity.
 
 The windows of both requests:
 
@@ -591,16 +605,17 @@ The windows of both requests:
 
 User verification:
 
-- With `userVerification` (of `options`, or of `authenticatorSelection` for
-  `passkey_create`) `required`, the user confirms their identity in a prompt,
-  even when an approval window covers the item. An unlock during the request
-  counts, and then the app doesn't ask again.
-- `preferred`, the default, and `discouraged` add no prompt.
+- Unless `userVerification` (of `options`, or of `authenticatorSelection` for
+  `passkey_create`) is `discouraged`, the user confirms their identity in a
+  prompt, even after a pick in the window or when an approval window covers the
+  item. Without `userVerification`, it is `preferred`, as in WebAuthn. An
+  unlock during the request counts, and then the app doesn't ask again.
 - The authenticator data reports a verified user when the user unlocked the
   vault during the request or confirmed their identity, unless
   `userVerification` is `discouraged`.
 - An item with master-password re-prompt always prompts for `passkey_get`, and
-  the user confirms their identity.
+  the user confirms their identity. When the user picks it in the window, the
+  window asks for the master password, and the app doesn't ask again.
 
 The extension sends the request while the vault is locked too: the app's unlock
 prompt comes first.
@@ -647,9 +662,17 @@ The app sends events to paired sessions only.
 - A handle is an opaque string of at most 64 characters.
 - The app creates handles at random for each session. They die with the session.
 - An item handle is bound to its account, item and [site](#pages-and-sites),
-  and to whether the item matched the page. Handles from `suggest` are
-  matched; a handle from `search` is matched when its item's `matched` is
-  `true`. A passkey handle is bound to its account, item, credential and RP ID.
+  and to whether the item matched the page. A handle from `suggest` is
+  matched, unless `suggest` lists the item only for a passkey of `rp_id`; a
+  handle from `search` is matched when its item's `matched` is `true`. A
+  `fill` or `totp` treats a matched handle as not matched when its item no
+  longer matches `url`, such as after an edit of its URIs. A passkey handle is
+  bound to its account, item, credential and RP ID.
+- On an `http` page, an item is matched only by a URI that matches the page
+  and starts with `http://`. A listing by `suggest` doesn't count. So an
+  `https` login isn't matched on the `http` page of its host: its release
+  always prompts and warns. Adding the page adds `http://` and the host, and
+  the item is matched there from then on.
 - An item keeps its handles on a site for the whole session: one matched, one
   not. The app may forget the oldest handles of a long session.
 - An unknown or expired handle gets `invalid_request`.
@@ -748,7 +771,7 @@ new or reset vault confirms no pairing, so each extension pairs again.
 | `unpaired` | The session isn't paired. |
 | `user_denied` | The user declined. |
 | `approval_timeout` | The prompt timed out. |
-| `not_allowed` | A valid request that the app refuses, such as a handle used on another site, a [blocked](#blocked-uris) page, a `save` where saving is blocked, or a pairing or rule it can't store. |
+| `not_allowed` | A valid request that the app refuses, such as a handle used on another site, a [blocked](#blocked-uris) page, a `save` where saving is blocked, or a pairing or rule it can't store. Also an unexpected failure in the app. |
 | `security` | A security check failed: a commitment mismatch, or an origin or RP ID that fails validation. |
 | `not_supported` | An unknown request, a capability or protocol version the app lacks, or an unsupported case such as a cross-origin passkey call. For a passkey request, the app hands the call back to the browser: no passkey matches, the user chose another device, or the page is [blocked](#blocked-uris). |
 | `invalid_state` | A passkey of `excludeCredentials` is already in the vault. |

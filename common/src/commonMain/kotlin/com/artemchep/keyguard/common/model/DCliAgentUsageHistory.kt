@@ -16,7 +16,7 @@ data class DCliAgentUsageHistory(
     val response: CliAgentUsageHistoryResponseType,
     /** The error code of a [CliAgentUsageHistoryResponseType.FAILURE]. */
     val errorCode: String?,
-    /** The command line that `keyguard run` starts. */
+    /** The command line that `keyguard run` starts; for a browser, the extension's origin. */
     val command: String?,
     /** The working directory of `keyguard run`, or the path of a local `.env` file. */
     val path: String?,

@@ -474,6 +474,22 @@ class BrowserSessionTest {
     }
 
     @Test
+    fun `a renamed pairing shows its new name in the prompts of its session`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val client = paired(fixture)
+        val pairing = fixture.store.pairings().single()
+        assertEquals("Google Chrome", pairing.name)
+        fixture.service.renamePairing(pairing.id, "Laptop")
+        fixture.service.state.first { state -> state.pairings.singleOrNull()?.name == "Laptop" }
+        fixture.lock()
+        assertEquals(vaultEvent("locked"), client.receive())
+        client.send("""{"id":10,"type":"unlock"}""")
+        val prompt = fixture.service.approvals.first { it.isNotEmpty() }.single()
+        assertIs<BrowserOperation.Unlock>(prompt.operation)
+        assertEquals("Laptop", prompt.pairingName)
+    }
+
+    @Test
     fun `turning the integration off ends every session`() = browserTest { scope ->
         val fixture = BrowserFixture(scope)
         val paired = paired(fixture)

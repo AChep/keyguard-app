@@ -52,10 +52,14 @@ import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.selects.select
 import kotlinx.coroutines.sync.Mutex
@@ -226,6 +230,7 @@ internal class BrowserSession(
             ended.complete(Unit)
         }
         launch { pushVaultEvents(writer) }
+        launch { followPairingName() }
         ended.await()
         coroutineContext.cancelChildren()
     }
@@ -598,6 +603,23 @@ internal class BrowserSession(
                     } else {
                         null
                     }
+                }
+            }
+    }
+
+    /**
+     * Follows the stored name of the pairing, which the user may change in
+     * the settings: the prompts and the request log show it.
+     */
+    private suspend fun followPairingName() {
+        combine(pairing.map { it?.id }.distinctUntilChanged(), pairings.stored) { id, records ->
+            records?.firstOrNull { it.pairing.id == id }?.pairing
+        }
+            .filterNotNull()
+            .collect { stored ->
+                // The session may have paired again since.
+                pairing.update { current ->
+                    if (current?.id == stored.id) current.copy(name = stored.name) else current
                 }
             }
     }

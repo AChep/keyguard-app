@@ -100,6 +100,14 @@ import com.artemchep.keyguard.feature.home.settings.component.settingCliProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCliSettingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCliSetupProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingCliHistoryProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionApprovalTimeoutProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionApprovalWindowProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionConnectorsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionHistoryProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionPairingsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionSettingsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionSetupProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsProvider
@@ -281,6 +289,14 @@ object Setting {
     const val CLI_APPROVAL_TIMEOUT = "cli_approval_timeout"
     const val CLI_SETUP = "cli_setup"
     const val CLI_HISTORY = "cli_history"
+    const val BROWSER_EXTENSION_SETTINGS = "browser_extension_settings"
+    const val BROWSER_EXTENSION = "browser_extension"
+    const val BROWSER_EXTENSION_SETUP = "browser_extension_setup"
+    const val BROWSER_EXTENSION_APPROVAL_WINDOW = "browser_extension_approval_window"
+    const val BROWSER_EXTENSION_APPROVAL_TIMEOUT = "browser_extension_approval_timeout"
+    const val BROWSER_EXTENSION_CONNECTORS = "browser_extension_connectors"
+    const val BROWSER_EXTENSION_PAIRINGS = "browser_extension_pairings"
+    const val BROWSER_EXTENSION_HISTORY = "browser_extension_history"
     const val ENVIRONMENTS = "environments"
     const val ENVIRONMENTS_MCP_SETTINGS = "environments_mcp_settings"
     const val ENVIRONMENTS_MCP_APPROVAL_WINDOW = "environments_mcp_approval_window"
@@ -441,6 +457,14 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.CLI_APPROVAL_TIMEOUT to ::settingCliApprovalTimeoutProvider,
     Setting.CLI_SETUP to ::settingCliSetupProvider,
     Setting.CLI_HISTORY to ::settingCliHistoryProvider,
+    Setting.BROWSER_EXTENSION_SETTINGS to ::settingBrowserExtensionSettingsProvider,
+    Setting.BROWSER_EXTENSION to ::settingBrowserExtensionProvider,
+    Setting.BROWSER_EXTENSION_SETUP to ::settingBrowserExtensionSetupProvider,
+    Setting.BROWSER_EXTENSION_APPROVAL_WINDOW to ::settingBrowserExtensionApprovalWindowProvider,
+    Setting.BROWSER_EXTENSION_APPROVAL_TIMEOUT to ::settingBrowserExtensionApprovalTimeoutProvider,
+    Setting.BROWSER_EXTENSION_CONNECTORS to ::settingBrowserExtensionConnectorsProvider,
+    Setting.BROWSER_EXTENSION_PAIRINGS to ::settingBrowserExtensionPairingsProvider,
+    Setting.BROWSER_EXTENSION_HISTORY to ::settingBrowserExtensionHistoryProvider,
     Setting.ENVIRONMENTS to ::settingEnvironmentsProvider,
     Setting.ENVIRONMENTS_MCP_SETTINGS to ::settingEnvironmentsMcpSettingsProvider,
     Setting.ENVIRONMENTS_MCP_APPROVAL_WINDOW to ::settingEnvironmentsMcpApprovalWindowProvider,

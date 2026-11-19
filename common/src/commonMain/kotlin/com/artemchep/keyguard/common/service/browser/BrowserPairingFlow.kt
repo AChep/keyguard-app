@@ -181,8 +181,11 @@ private fun String.decodeNonceOrNull(): ByteArray? = runCatching { Base64.decode
     .getOrNull()
     ?.takeIf { it.size == BrowserProtocol.NONCE_SIZE }
 
-/** A name of at most [BrowserProtocol.MAX_NAME_LENGTH] characters, or `null` for a blank one. */
-private fun String.boundedName(): String? {
+/**
+ * A name of at most [BrowserProtocol.MAX_NAME_LENGTH] characters, or `null`
+ * for a blank one. Bounds both the name given while pairing and a new one.
+ */
+internal fun String.boundedName(): String? {
     val name = trim().takeIf(String::isNotEmpty)
         ?: return null
     var end = 0

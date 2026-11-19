@@ -3,7 +3,8 @@ package com.artemchep.keyguard.feature.home.settings
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.platform.Platform
 import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.passkeys
+import com.artemchep.keyguard.res.browser_extension_autofill_windows_text
+import com.artemchep.keyguard.res.browser_extension_title
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -51,7 +52,7 @@ class SettingsCatalogTest {
     }
 
     @Test
-    fun `release Windows offers autofill settings for its passkey provider`() {
+    fun `release Windows offers autofill settings for its browser extension and passkey provider`() {
         val items = settingsCatalog(
             config = FlavorConfig(isFreeAsBeer = true),
             platform = Platform.Desktop.Windows,
@@ -59,7 +60,32 @@ class SettingsCatalogTest {
         )
         val autofill = items.filterIsInstance<SettingsCatalogItem.Action>()
             .single { it.destination == SettingsDestination.AUTOFILL }
-        assertEquals(Res.string.passkeys, autofill.text)
+        assertEquals(Res.string.browser_extension_autofill_windows_text, autofill.text)
+    }
+
+    @Test
+    fun `release desktop apps offer autofill settings for the browser extension`() {
+        val platforms = listOf(
+            Platform.Desktop.Linux(isFlatpak = false),
+            Platform.Desktop.Linux(isFlatpak = true),
+            Platform.Desktop.MacOS.Jvm,
+        )
+        platforms.forEach { platform ->
+            val autofill = settingsCatalog(
+                config = FlavorConfig(isFreeAsBeer = true),
+                platform = platform,
+                release = true,
+            ).filterIsInstance<SettingsCatalogItem.Action>()
+                .single { it.destination == SettingsDestination.AUTOFILL }
+            assertEquals(Res.string.browser_extension_title, autofill.text)
+        }
+        // An unknown desktop has no browser extension.
+        val other = settingsCatalog(
+            config = FlavorConfig(isFreeAsBeer = true),
+            platform = Platform.Desktop.Other,
+            release = true,
+        )
+        assertFalse(other.any { it.id == "autofill" })
     }
 
     @Test

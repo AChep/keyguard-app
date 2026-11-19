@@ -93,6 +93,7 @@ import com.artemchep.keyguard.common.usecase.impl.PutLocaleImpl
 import com.artemchep.keyguard.common.worker.WorkerRegistry
 import com.artemchep.keyguard.common.worker.Wrker
 import com.artemchep.keyguard.copy.ClipboardServiceJvm
+import com.artemchep.keyguard.feature.browser.BrowserConnectorModule
 import com.artemchep.keyguard.copy.ConnectivityServiceJvm
 import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.copy.DesktopKeyValueStoreFactory
@@ -248,6 +249,7 @@ class PlatformApplicationModule {
     val module = module {
         includes(GlobalModuleJvm().module)
         includes(WindowsPasskeyModule().module)
+        includes(BrowserConnectorModule().module)
         includes(ApplicationBrowserExtensionModule().module)
         single { PlatformLinkInfoExtractorRegistry(emptyList()) }
         single { PlatformLogSinkRegistry(listOf(get<LogRepositoryKotlin>())) }

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.browser
 
+import com.artemchep.keyguard.feature.browserextension.protocol.BrowserProtocol
 import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.StateFlow
@@ -59,7 +60,10 @@ interface BrowserExtensionService {
     /** Forgets the pairing [id]; its connected sessions learn it and end. */
     suspend fun removePairing(id: String)
 
-    /** Names the pairing [id] [name]. */
+    /**
+     * Names the pairing [id] [name], trimmed and cut to
+     * [BrowserProtocol.MAX_NAME_LENGTH] characters. A blank name changes nothing.
+     */
     suspend fun renamePairing(id: String, name: String)
 
     /**

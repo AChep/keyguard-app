@@ -3313,20 +3313,19 @@
     <string name="browser_extension_setup_pair_connected_text">Your browser is connected. Select Pair in the extension.</string>
     <string name="browser_extension_connectors_title">Browser connectors</string>
     <string name="browser_extension_connectors_note">Keyguard installs a connector for each browser it finds. Turn a browser off to remove its connector.</string>
-    <string name="browser_extension_connectors_flatpak_note">Browsers installed as Flatpak or Snap aren’t supported. Inside Flatpak, Keyguard can’t tell which browsers you use: turn yours on.</string>
+    <string name="browser_extension_connectors_flatpak_note">Browsers installed as Flatpak or Snap aren’t supported. Inside Flatpak, Keyguard installs a connector for each browser whose NativeMessagingHosts folder it can see.</string>
     <string name="browser_extension_connector_installed">Installed</string>
     <string name="browser_extension_connector_not_installed">Not installed</string>
     <string name="browser_extension_connector_needs_repair">Needs repair</string>
     <string name="browser_extension_connector_error_host_missing">This copy of Keyguard has no browser connector. Reinstall Keyguard.</string>
     <string name="browser_extension_connector_error_browser_absent">Keyguard didn’t find the browser. Open it once, then try again.</string>
     <string name="browser_extension_connector_error_foreign_file">Keyguard didn’t write <xliff:g id="path" example="/home/user/.mozilla/native-messaging-hosts/com.artemchep.keyguard.json">%1$s</xliff:g>, so it left the file alone. Remove the file, then try again.</string>
-    <string name="browser_extension_connector_error_invalid_origin">The extension ID isn’t valid.</string>
     <string name="browser_extension_connector_error_unsupported">This build of Keyguard can’t install browser connectors.</string>
     <string name="browser_extension_connector_error_unsafe_file">Keyguard didn’t change <xliff:g id="path" example="/home/user/.config">%1$s</xliff:g>: it’s a link, belongs to another user, or other users can change it.</string>
     <string name="browser_extension_connector_error_update_required">The command-line tool doesn’t match this version of Keyguard. Reinstall Keyguard.</string>
     <string name="browser_extension_connector_error_failed">Keyguard couldn’t change the browser connector: <xliff:g id="error" example="Permission denied">%1$s</xliff:g></string>
     <string name="browser_extension_pairings_title">Paired browsers</string>
-    <string name="browser_extension_pairings_empty">No paired browsers. To pair one, select Pair in the extension.</string>
+    <string name="browser_extension_pairings_empty">No paired browsers.</string>
     <string name="browser_extension_pairings_error">Keyguard couldn’t change the paired browser.</string>
     <string name="browser_extension_pairing_paired_at">Paired: <xliff:g id="date" example="15 Nov 2026">%1$s</xliff:g></string>
     <string name="browser_extension_pairing_last_used_at">Last used: <xliff:g id="date" example="15 Nov 2026">%1$s</xliff:g></string>

@@ -6,8 +6,11 @@ fun Platform.hasAutofill(): Boolean = when (this) {
     is Platform.Mobile.Android -> !isChromebook && !isWatch
     is Platform.Mobile.Ios -> true
     Platform.Desktop.MacOS.Native -> true
-    // Passkey provider.
-    Platform.Desktop.Windows -> true
+    // Browser extension, plus the passkey provider on Windows.
+    is Platform.Desktop.Linux,
+    Platform.Desktop.MacOS.Jvm,
+    Platform.Desktop.Windows,
+    -> true
     else -> false
 }
 

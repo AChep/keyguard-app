@@ -6,6 +6,7 @@ import com.artemchep.keyguard.common.model.MasterKey
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationServiceNone
+import com.artemchep.keyguard.common.service.browser.BrowserConnectorClient
 import com.artemchep.keyguard.common.service.browser.BrowserExtensionHost
 import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
 import com.artemchep.keyguard.common.service.browser.BrowserExtensionServiceImpl
@@ -28,6 +29,7 @@ import com.artemchep.keyguard.copy.DataDirectory
 import com.artemchep.keyguard.createDesktopKoinApplication
 import com.artemchep.keyguard.di.ApplicationCoroutineScope
 import com.artemchep.keyguard.di.resolve
+import com.artemchep.keyguard.feature.browser.BundledBrowserConnectorClient
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactory
 import com.artemchep.keyguard.feature.home.vault.VaultRouteFactoryDefault
 import com.artemchep.keyguard.provider.keyguard.P2pMembershipStore
@@ -68,6 +70,7 @@ class DesktopKoinGraphTest {
             assertTrue(koin.get<PlatformLinkInfoExtractorRegistry>().values.isEmpty())
             assertNotNull(koin.get<CoroutineDispatcher>(named<DatabaseDispatcher>()))
             assertFailsWith<NoDefinitionFoundException> { koin.get<GetCiphers>() }
+            assertIs<BundledBrowserConnectorClient>(koin.get<BrowserConnectorClient>())
             val browser = assertIs<BrowserExtensionServiceImpl>(koin.get<BrowserExtensionHost>())
             assertSame(browser, koin.get<BrowserExtensionService>())
             assertSame(browser, koin.get<BrowserExtensionStreams>())

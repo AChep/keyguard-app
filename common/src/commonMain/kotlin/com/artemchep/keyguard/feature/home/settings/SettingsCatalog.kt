@@ -9,7 +9,8 @@ import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.platform.util.hasWebPurchase
 import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.Res
-import com.artemchep.keyguard.res.passkeys
+import com.artemchep.keyguard.res.browser_extension_autofill_windows_text
+import com.artemchep.keyguard.res.browser_extension_title
 import com.artemchep.keyguard.res.pref_item_app_link_text
 import com.artemchep.keyguard.res.pref_item_app_link_title
 import com.artemchep.keyguard.res.pref_item_appearance_text
@@ -104,8 +105,15 @@ fun settingsCatalog(
     SettingsCatalogItem.Action(
         destination = SettingsDestination.AUTOFILL,
         title = Res.string.pref_item_autofill_title,
-        // Windows has only the passkey provider.
-        text = if (platform is Platform.Desktop.Windows) Res.string.passkeys else Res.string.pref_item_autofill_text,
+        text = when (platform) {
+            // The browser extension, plus the passkey provider on Windows.
+            Platform.Desktop.Windows -> Res.string.browser_extension_autofill_windows_text
+            is Platform.Desktop.Linux,
+            Platform.Desktop.MacOS.Jvm,
+            -> Res.string.browser_extension_title
+
+            else -> Res.string.pref_item_autofill_text
+        },
     ).takeIf { includeAutofill },
     SettingsCatalogItem.Action(
         destination = SettingsDestination.SECURITY,

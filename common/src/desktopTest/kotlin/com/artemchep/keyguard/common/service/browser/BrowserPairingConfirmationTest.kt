@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common.service.browser
 
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
+import com.artemchep.keyguard.feature.browserextension.protocol.BrowserProtocol
 import com.artemchep.keyguard.nativecrypto.NativeCryptoNoise
 import kotlin.io.encoding.Base64
 import kotlin.test.Test
@@ -236,6 +237,20 @@ class BrowserPairingConfirmationTest {
         paired(fixture)
         val other = fixture.store.pairings().single()
         assertEquals(listOf(other.id), checkNotNull(fixture.vaultPairings.records()).map { it.id })
+    }
+
+    @Test
+    fun `a new name is trimmed and bounded like the one given while pairing`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        paired(fixture)
+        val pairing = fixture.store.pairings().single()
+        // Two UTF-16 units each: the bound counts code points.
+        fixture.service.renamePairing(pairing.id, " " + "🔐".repeat(BrowserProtocol.MAX_NAME_LENGTH + 1))
+        val bounded = "🔐".repeat(BrowserProtocol.MAX_NAME_LENGTH)
+        assertEquals(bounded, fixture.store.pairings().single().name)
+        // A blank name changes nothing.
+        fixture.service.renamePairing(pairing.id, "   ")
+        assertEquals(bounded, fixture.store.pairings().single().name)
     }
 
     @Test

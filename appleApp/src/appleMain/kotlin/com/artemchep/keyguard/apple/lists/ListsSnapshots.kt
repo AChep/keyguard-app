@@ -245,9 +245,9 @@ data class LogsSnapshot(
 }
 
 /**
- * For blocked URLs [subtitle] is the matched URI and [detail] the block mode; for URL overrides [subtitle] is
- * the regex and [detail] the command. Each [actions] id routes back through
- * [ListSession.invokeItemAction].
+ * For blocked URLs [subtitle] is the matched URI and [detail] the block mode, plus the scope of a Saving only
+ * rule; for URL overrides [subtitle] is the regex and [detail] the command. Each [actions] id routes back
+ * through [ListSession.invokeItemAction].
  */
 data class UrlRuleItemSnapshot(
     val id: String,

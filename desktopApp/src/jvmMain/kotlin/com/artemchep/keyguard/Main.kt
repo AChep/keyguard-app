@@ -55,6 +55,7 @@ import com.artemchep.keyguard.common.service.cli.agent.CliAgentManager
 import com.artemchep.keyguard.common.service.environment.EnvironmentAccess
 import com.artemchep.keyguard.common.service.environment.EnvironmentRepository
 import com.artemchep.keyguard.desktop.ui.AgentApprovalWindow
+import com.artemchep.keyguard.desktop.ui.BrowserExtensionIntegration
 import com.artemchep.keyguard.desktop.ui.BrowserPasskeyPickerHost
 import com.artemchep.keyguard.desktop.ui.BrowserSaveLoginHost
 import com.artemchep.keyguard.desktop.ui.CliAgentIntegration
@@ -556,6 +557,7 @@ private fun runKeyguardApplication(desktopInstance: DesktopInstance, passkeyActi
                 )
             }
             CliAgentIntegration()
+            BrowserExtensionIntegration()
             // One window shows the prompts of every agent, one at a time.
             AgentApprovalWindow(
                 processLifecycleProvider = processLifecycleProvider,

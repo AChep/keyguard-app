@@ -171,7 +171,10 @@ class BrowserExtensionServiceImpl(
     }
 
     override suspend fun renamePairing(id: String, name: String) {
-        pairings.rename(id, name)
+        // Bounded like the name the user gives while pairing.
+        val bounded = name.boundedName()
+            ?: return
+        pairings.rename(id, bounded)
     }
 
     override suspend fun setConnectorsRemoved(browsers: Set<BrowserConnectorBrowser>, removed: Boolean) {

@@ -16,6 +16,18 @@ interface BrowserConnectorClient {
         browsers: Set<BrowserConnectorBrowser> = emptySet(),
     ): BrowserConnectorReport
 
+    /**
+     * Installs or repairs the manifests of [browsers] like [install], if
+     * [proceed] holds right before the install starts: the user may change
+     * their choice while another operation runs.
+     *
+     * @return `null` if it skipped the install.
+     */
+    suspend fun installIf(
+        browsers: Set<BrowserConnectorBrowser>,
+        proceed: () -> Boolean,
+    ): BrowserConnectorReport?
+
     /** Removes the manifests of [browsers], or of every browser if it is empty. */
     suspend fun uninstall(
         browsers: Set<BrowserConnectorBrowser> = emptySet(),
@@ -101,8 +113,6 @@ data class BrowserConnectorError(
 
         /** Keyguard did not write the file at [path], so it leaves it alone. */
         FOREIGN_FILE("foreign_file"),
-
-        INVALID_ORIGIN("invalid_origin"),
 
         /** This build can't reach the browsers' files, e.g. in the macOS app sandbox. */
         UNSUPPORTED("unsupported"),

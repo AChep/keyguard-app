@@ -11,6 +11,12 @@ const val URL_PLAY_STORE = "https://play.google.com/store/apps/details?id=com.ar
 const val URL_REDDIT = "https://www.reddit.com/r/keyguard/"
 const val URL_PRIVACY_POLICY = "https://gist.github.com/AChep/1fd4e019a4ad8f9647ba3b4694b5dc1c"
 const val URL_PURCHASE = "https://keyguard.dev/purchase/"
+const val URL_BROWSER_EXTENSION_CHROME = "https://chromewebstore.google.com/detail/pbgoonibllaljhcpadklliddccmhdehh"
+const val URL_BROWSER_EXTENSION_EDGE =
+    "https://microsoftedge.microsoft.com/addons/detail/jmiinenokkmkljkgaahelgacgkjemebb"
+
+/** Resolves by the add-on ID; check it once the listing is live. */
+const val URL_BROWSER_EXTENSION_FIREFOX = "https://addons.mozilla.org/firefox/addon/browser@keyguard.dev/"
 
 const val PLACEHOLDER_URL_WEBDAV_COLLECTION = "https://example.com/keyguard-backups/"
 const val PLACEHOLDER_URL_WEBDAV_KEEPASS_DATABASE = "https://example.com/keyguard.kdbx"

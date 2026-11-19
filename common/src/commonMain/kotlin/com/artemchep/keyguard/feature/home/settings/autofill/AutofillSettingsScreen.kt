@@ -32,9 +32,10 @@ fun rememberSettingsAutofillItems(
                 SettingPaneItem.Item(Setting.CREDENTIAL_PROVIDER),
             ),
         )
-        // Windows has only the passkey provider; the other options configure Android services.
-        if (CurrentPlatform is Platform.Desktop.Windows) {
-            return@remember persistentListOf(credential)
+        // Desktop fills through the browser extension, plus the passkey
+        // provider on Windows; the other options configure Android services.
+        if (CurrentPlatform is Platform.Desktop) {
+            return@remember desktopAutofillItems(credential)
         }
         persistentListOf(
             credential,
@@ -80,3 +81,27 @@ fun rememberSettingsAutofillItems(
         )
     }
 }
+
+private fun desktopAutofillItems(
+    credential: SettingPaneItem.Group,
+): ImmutableList<SettingPaneItem> = persistentListOf(
+    credential,
+    SettingPaneItem.Group(
+        key = "browser_extension",
+        list = persistentListOf(
+            SettingPaneItem.Item(Setting.BROWSER_EXTENSION_SETTINGS),
+        ),
+    ),
+    SettingPaneItem.Group(
+        key = "general",
+        list = persistentListOf(
+            SettingPaneItem.Item(Setting.AUTOFILL_DEFAULT_MATCH_DETECTION),
+        ),
+    ),
+    SettingPaneItem.Group(
+        key = "other",
+        list = persistentListOf(
+            SettingPaneItem.Item(Setting.AUTOFILL_BLOCK_URI),
+        ),
+    ),
+)

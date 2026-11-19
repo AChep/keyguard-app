@@ -107,7 +107,7 @@ jobs:
           repository: AChep/keyguard-version
           token: ${{ secrets.GITHUB_TOKEN }}
       - name: "Download changelog"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: changelog
           path: artifacts-changelog
@@ -302,7 +302,7 @@ jobs:
         with:
           persist-credentials: false
       - name: "Download signed DMG"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: notarization-input-mac-${{ matrix.arch }}
           path: artifacts
@@ -364,7 +364,7 @@ jobs:
           git config --global --add safe.directory "$(pwd)"
           python .github/setup_gradle_properties_release.py "tag=$GITHUB_REF_NAME"
       - name: "Download versions"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: versions
           path: artifacts-changelog
@@ -689,11 +689,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-windows
           path: packages/x64
-      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-windows-aarch64
           path: packages/arm64
@@ -962,57 +962,57 @@ jobs:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
     steps:
       - name: "Download changelog"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: changelog
           path: changelog
       - name: "Download Mac app (Intel)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-mac-intel
           path: artifacts
       - name: "Download Mac app (Apple Silicon)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-mac-apple
           path: artifacts
       - name: "Download Linux app (x86_64)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-linux-x86_64
           path: artifacts
       - name: "Download Linux app (aarch64)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-linux-aarch64
           path: artifacts
       - name: "Download Linux app (flatpak-x86_64)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-linux-flatpak-x86_64
           path: artifacts
       - name: "Download Linux app (flatpak-aarch64)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-linux-flatpak-aarch64
           path: artifacts
       - name: "Download Linux AppImage (x86_64)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-linux-appimage-x86_64
           path: artifacts
       - name: "Download Linux AppImage (aarch64)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-linux-appimage-aarch64
           path: artifacts
       - name: "Download Windows app (MSI x64)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-windows
           path: artifacts
       - name: "Download Windows app (MSI ARM64)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-windows-aarch64
           path: artifacts
@@ -1020,23 +1020,23 @@ jobs:
       # published only when the signing certificate was available.
       - name: "Download Windows app (MSIX x64)"
         if: needs.build-windows-app.outputs.msix-signed == 'true'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-windows-msix-x64
           path: artifacts
       - name: "Download Windows app (MSIX ARM64)"
         if: needs.build-windows-app.outputs.msix-signed == 'true'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-windows-msix-arm64
           path: artifacts
       - name: "Download Android app (apk)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-android-apk
           path: artifacts
       - name: "Download Android app (aab)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-android-aab
           path: artifacts
@@ -1044,12 +1044,12 @@ jobs:
       # collide with the Android one, and we only want to publish the .apk
       # under a versioned name.
       - name: "Download WearOS app (apk)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-wearos-apk
           path: artifacts-wearos
       - name: "Download Termux packages"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-termux
           path: artifacts
@@ -1089,7 +1089,7 @@ jobs:
           repository: AChep/keyguard-version
           token: ${{ secrets.PERSONAL_TOKEN }}
       - name: "Download versions.json"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: versions
           path: artifacts-versions
@@ -1124,17 +1124,17 @@ jobs:
       - dist
     steps:
       - name: "Download Android app (aab)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-android-aab
           path: artifacts-android
       - name: "Download WearOS app (aab)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-wearos-aab
           path: artifacts-wearos
       - name: "Download changelog"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: changelog
           path: artifacts-changelog
@@ -1179,7 +1179,7 @@ jobs:
           token: ${{ secrets.PERSONAL_TOKEN }}
       - uses: ./.github/actions/setup_python
       - name: "Download Termux packages"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-termux
           path: artifacts-termux
@@ -1238,17 +1238,17 @@ jobs:
     if: needs.build-windows-app.outputs.msix-store == 'true'
     steps:
       - name: "Download changelog"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: changelog
           path: artifacts-changelog
       - name: "Download Windows app (MSIX Store x64)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-windows-msix-store-x64
           path: artifacts-msix-store
       - name: "Download Windows app (MSIX Store ARM64)"
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333
         with:
           name: app-windows-msix-store-arm64
           path: artifacts-msix-store

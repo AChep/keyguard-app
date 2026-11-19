@@ -155,9 +155,7 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
                                         title = el.title,
                                         text = el.text,
                                         selected = el.key == value,
-                                        onClick = {
-                                            sink.value = el.key
-                                        },
+                                        onClick = { sink.value = el.key }.takeIf { item.enabled },
                                     )
                                 },
                             doc = item.docs[value]
@@ -216,7 +214,7 @@ suspend fun RememberStateFlowScope.confirmationStateProducer(
                             onFileDrop = { info ->
                                 setFile(info.toConfirmationFile())
                             },
-                            onClear = if (value != null) {
+                            onClear = if (value != null && item.enabled) {
                                 // lambda
                                 {
                                     setFile(null)
@@ -307,8 +305,8 @@ private suspend fun RememberStateFlowScope.confirmationStringItem(
         textRevision = cell.revision,
         hint = item.hint,
         error = error,
-        onChange = handle::onChange,
-        onSetText = handle::setText,
+        onChange = handle::onChange.takeIf { item.enabled },
+        onSetText = handle::setText.takeIf { item.enabled },
     )
     return ConfirmationState.Item.StringItem(
         key = item.key,
@@ -317,7 +315,7 @@ private suspend fun RememberStateFlowScope.confirmationStringItem(
         sensitive = sensitive,
         monospace = monospace,
         password = password,
-        generator = generator.takeUnless { item.ephemeral },
+        generator = generator.takeIf { item.enabled && !item.ephemeral },
         ephemeral = item.ephemeral,
         singleLine = item.singleLine,
         value = cell.text,

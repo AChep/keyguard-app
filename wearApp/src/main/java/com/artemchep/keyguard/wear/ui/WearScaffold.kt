@@ -325,9 +325,9 @@ fun WearScaffoldScreen(
         first = ColumnItemType.ListHeader,
         last = ColumnItemType.Button,
     ),
+    listState: TransformingLazyColumnState = rememberTransformingLazyColumnState(),
     content: TransformingLazyColumnScope.(TransformationSpec) -> Unit,
 ) {
-    val listState = rememberTransformingLazyColumnState()
     ProvideScaffoldLocalValues(
         expressive = expressive,
     ) {

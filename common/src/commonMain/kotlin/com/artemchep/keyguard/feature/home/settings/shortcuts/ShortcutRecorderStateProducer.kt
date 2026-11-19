@@ -12,6 +12,7 @@ import com.artemchep.keyguard.common.service.shortcut.GlobalShortcutError
 import com.artemchep.keyguard.common.usecase.PutGlobalShortcut
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.state.RememberStateFlowScope
+import com.artemchep.keyguard.feature.navigation.state.navigatePopSelf
 import com.artemchep.keyguard.feature.navigation.state.produceScreenState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,6 +43,8 @@ suspend fun RememberStateFlowScope.shortcutRecorderStateProducer(
     val executor = screenExecutor()
     val errorSink = MutableStateFlow<GlobalShortcutError?>(null)
 
+    interceptBackPress(executor.isExecutingFlow.map { busy -> if (busy) ({}) else null })
+
     fun onDismiss() {
         if (!executor.isExecutingFlow.value) navigate(NavigationIntent.Pop)
     }
@@ -57,7 +60,7 @@ suspend fun RememberStateFlowScope.shortcutRecorderStateProducer(
                         e.error
                     }
                 errorSink.value = error
-                if (error == null) navigate(NavigationIntent.Pop)
+                if (error == null) navigatePopSelf()
             }
         executor.execute(io)
     }

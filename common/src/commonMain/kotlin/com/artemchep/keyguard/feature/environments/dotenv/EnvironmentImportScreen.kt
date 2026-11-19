@@ -31,6 +31,8 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.dialogEditorTabTraversal
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.environments.EnvironmentDefinition
 import com.artemchep.keyguard.feature.environments.EnvironmentDotenv
 import com.artemchep.keyguard.feature.environments.EnvironmentFormat
@@ -175,6 +177,7 @@ private fun EnvironmentImportContent(
                 .padding(horizontal = Dimens.horizontalPadding),
             label = stringResource(Res.string.environments_import_text),
             value = text,
+            fieldModifier = Modifier.focusOnDialogOpen().dialogEditorTabTraversal(),
             maxLines = IMPORT_TEXT_MAX_LINES,
         )
         EnvironmentImportFileButton(

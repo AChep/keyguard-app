@@ -4,15 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isAltPressed
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isMetaPressed
-import androidx.compose.ui.input.key.isShiftPressed
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
+import com.artemchep.keyguard.feature.navigation.keyboard.isPlainEscape
 
 // Top level together with findBackTarget(), which keeps the host
 // within the detekt function limit.
@@ -123,15 +116,7 @@ class NavigationHost {
     }
 
     /** Handles unconsumed Escape events after the window's regular shortcuts. */
-    fun handleKeyEvent(event: KeyEvent): Boolean {
-        val isEscape = event.type == KeyEventType.KeyDown && event.key == Key.Escape
-        val hasModifier =
-            event.isCtrlPressed || event.isMetaPressed || event.isAltPressed || event.isShiftPressed
-        if (!isEscape || hasModifier) {
-            return false
-        }
-        return handleBack()
-    }
+    fun handleKeyEvent(event: KeyEvent): Boolean = event.isPlainEscape && handleBack()
 
     /**
      * Gives Back to the deepest target that can pop right now. Returns

@@ -28,6 +28,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextMeasurer
@@ -42,6 +44,9 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.dialogArrowNavigation
+import com.artemchep.keyguard.feature.dialog.dialogTabTargets
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
@@ -73,6 +78,7 @@ private fun LargeTypeDialog(
     loadableState: Loadable<LargeTypeState>,
 ) {
     KeepScreenOnEffect()
+    val close = remember { FocusRequester() }
 
     Dialog(
         icon = icon(Icons.Outlined.KeyguardLargeType),
@@ -84,12 +90,16 @@ private fun LargeTypeDialog(
             if (state != null) {
                 LargeTypeContent(
                     state = state,
+                    close = close,
                 )
             }
         },
         actions = {
             val updatedOnClose by rememberUpdatedState(loadableState.getOrNull()?.onClose)
             TextButton(
+                modifier = Modifier.focusRequester(close).focusOnDialogOpen(
+                    updatedOnClose != null && loadableState.getOrNull()?.groups.orEmpty().all { it.isEmpty() },
+                ),
                 enabled = updatedOnClose != null,
                 onClick = {
                     updatedOnClose?.invoke()
@@ -105,7 +115,9 @@ private fun LargeTypeDialog(
 @Composable
 fun LargeTypeContent(
     state: LargeTypeState,
+    close: FocusRequester? = null,
 ) {
+    val initialIndex = remember { state.index.coerceAtLeast(0) }
     Column(
         modifier = Modifier
             .fillMaxWidth(),
@@ -114,6 +126,12 @@ fun LargeTypeContent(
         val indexState = animateIntAsState(state.index)
         FlowRow(
             modifier = Modifier
+                .then(
+                    if (close != null) {
+                        // Tab leaves the symbols for the Close button.
+                        Modifier.dialogArrowNavigation().dialogTabTargets(close, close)
+                    } else Modifier,
+                )
                 .padding(
                     horizontal = 16.dp,
                 )
@@ -127,6 +145,9 @@ fun LargeTypeContent(
                 ) {
                     groups.forEach { item ->
                         SymbolItem(
+                            modifier = if (close != null && item.index == initialIndex) {
+                                Modifier.focusOnDialogOpen()
+                            } else Modifier,
                             item = item,
                             length = groups.size,
                             elevation = elevation,

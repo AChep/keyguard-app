@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
@@ -19,12 +20,18 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.dialog.DialogContentScope
+import com.artemchep.keyguard.feature.dialog.dialogArrowNavigation
+import com.artemchep.keyguard.feature.dialog.focusFirstResultOnDown
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.gpgagent.tools.GpgToolsKeyIdentity
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
@@ -83,6 +90,10 @@ internal fun DialogContentScope.GpgToolsKeyPickerBody(
     multiple: Boolean,
     hasKeys: Boolean,
 ) {
+    val listState = rememberLazyListState()
+    val firstResult = remember { FocusRequester() }
+    val firstIndex = state.firstResultIndex
+    val focusNone = firstIndex == 0 && state.onSelectNone != null
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -90,6 +101,9 @@ internal fun DialogContentScope.GpgToolsKeyPickerBody(
     ) {
         FlatTextField(
             modifier = Modifier.padding(horizontal = Dimens.fieldHorizontalPadding),
+            fieldModifier = Modifier
+                .focusOnDialogOpen(state.query.onChange != null)
+                .focusFirstResultOnDown(listState, firstResult, firstIndex),
             value = state.query,
             placeholder = stringResource(Res.string.gpg_tools_search_keys),
             singleLine = true,
@@ -97,7 +111,9 @@ internal fun DialogContentScope.GpgToolsKeyPickerBody(
         )
         Spacer(Modifier.height(12.dp))
         LazyColumn(
+            state = listState,
             modifier = Modifier
+                .dialogArrowNavigation()
                 .fillMaxWidth()
                 .weight(1f, fill = false)
                 .heightIn(max = 440.dp)
@@ -105,21 +121,18 @@ internal fun DialogContentScope.GpgToolsKeyPickerBody(
         ) {
             state.onSelectNone?.let { onSelectNone ->
                 item("none") {
-                    GpgToolsKeySelectionRow(
+                    NoSigningKeyRow(
+                        modifier = if (focusNone) Modifier.focusRequester(firstResult) else Modifier,
                         selected = state.noneSelected,
-                        multiple = false,
                         onSelect = onSelectNone,
-                    ) {
-                        FlatItemTextContent(
-                            title = {
-                                Text(stringResource(Res.string.gpg_tools_sign_none))
-                            },
-                        )
-                    }
+                    )
                 }
             }
             items(state.items, key = { it.key.id }) { item ->
                 GpgToolsKeySelectionRow(
+                    modifier = if (!focusNone && item === state.items.first()) {
+                        Modifier.focusRequester(firstResult)
+                    } else Modifier,
                     selected = item.selected,
                     multiple = multiple,
                     onSelect = item.onSelect,
@@ -129,22 +142,42 @@ internal fun DialogContentScope.GpgToolsKeyPickerBody(
             }
             if (state.items.isEmpty()) {
                 item("empty") {
-                    Text(
-                        modifier = Modifier.padding(horizontal = Dimens.horizontalPadding),
-                        text = stringResource(
-                            if (!hasKeys) Res.string.gpg_tools_no_gpg_keys
-                            else Res.string.gpg_tools_no_matching_keys,
-                        ),
-                        color = LocalContentColor.current.combineAlpha(MediumEmphasisAlpha),
-                    )
+                    EmptyKeyList(hasKeys)
                 }
             }
         }
     }
 }
 
+private val GpgToolsKeyPickerState.firstResultIndex: Int?
+    get() = when {
+        onSelectNone != null && query.text.isNotBlank() && items.isNotEmpty() -> 1
+        onSelectNone != null || items.isNotEmpty() -> 0
+        else -> null
+    }
+
+@Composable
+private fun NoSigningKeyRow(modifier: Modifier, selected: Boolean, onSelect: () -> Unit) {
+    GpgToolsKeySelectionRow(modifier, selected, multiple = false, onSelect = onSelect) {
+        FlatItemTextContent(title = { Text(stringResource(Res.string.gpg_tools_sign_none)) })
+    }
+}
+
+@Composable
+private fun EmptyKeyList(hasKeys: Boolean) {
+    Text(
+        modifier = Modifier.padding(horizontal = Dimens.horizontalPadding),
+        text = stringResource(
+            if (!hasKeys) Res.string.gpg_tools_no_gpg_keys
+            else Res.string.gpg_tools_no_matching_keys,
+        ),
+        color = LocalContentColor.current.combineAlpha(MediumEmphasisAlpha),
+    )
+}
+
 @Composable
 private fun GpgToolsKeySelectionRow(
+    modifier: Modifier,
     selected: Boolean,
     multiple: Boolean,
     onSelect: () -> Unit,
@@ -152,9 +185,9 @@ private fun GpgToolsKeySelectionRow(
 ) {
     FlatItemLayout(
         modifier = if (multiple) {
-            Modifier.toggleable(value = selected, role = Role.Checkbox, onValueChange = { onSelect() })
+            modifier.toggleable(value = selected, role = Role.Checkbox, onValueChange = { onSelect() })
         } else {
-            Modifier.selectable(selected = selected, role = Role.RadioButton, onClick = onSelect)
+            modifier.selectable(selected = selected, role = Role.RadioButton, onClick = onSelect)
         },
         leading = {
             if (multiple) {

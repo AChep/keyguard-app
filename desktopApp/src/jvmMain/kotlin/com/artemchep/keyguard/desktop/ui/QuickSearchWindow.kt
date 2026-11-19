@@ -10,10 +10,6 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
@@ -35,6 +31,7 @@ import com.artemchep.keyguard.feature.navigation.LocalNavigationStore
 import com.artemchep.keyguard.feature.navigation.NavigationNode
 import com.artemchep.keyguard.feature.navigation.NavigationSaveRoutersOnDispose
 import com.artemchep.keyguard.feature.navigation.NavigationStore
+import com.artemchep.keyguard.feature.navigation.keyboard.isPlainEscape
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ic_keyguard
@@ -89,7 +86,7 @@ internal fun ApplicationScope.QuickSearchWindow(
         onFocusAcquired = { activationRevision += 1 },
         icon = painterResource(Res.drawable.ic_keyguard),
         onKeyEvent = { event ->
-            if (event.type == KeyEventType.KeyDown && event.key == Key.Escape) {
+            if (event.isPlainEscape) {
                 updatedOnDismissRequest()
                 true
             } else {

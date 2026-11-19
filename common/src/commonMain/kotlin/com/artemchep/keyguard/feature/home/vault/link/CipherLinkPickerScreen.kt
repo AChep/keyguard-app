@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Link
 import androidx.compose.material3.LocalContentColor
@@ -15,12 +16,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.dialog.DialogSearchTextField
+import com.artemchep.keyguard.feature.dialog.dialogArrowNavigation
+import com.artemchep.keyguard.feature.dialog.focusFirstResultOnDown
 import com.artemchep.keyguard.feature.home.vault.component.CompactVaultItem
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
@@ -77,11 +83,14 @@ internal fun CipherLinkPickerItems(
     items: List<CipherLinkPickerState.Item>,
     emptyText: String,
 ) {
+    val listState = rememberLazyListState()
+    val firstResult = remember { FocusRequester() }
     Column(
         modifier = Modifier
             .fillMaxWidth(),
     ) {
         DialogSearchTextField(
+            modifier = Modifier.focusFirstResultOnDown(listState, firstResult, items.indices.firstOrNull()),
             value = query,
             placeholder = stringResource(Res.string.vault_main_search_placeholder),
         )
@@ -97,7 +106,9 @@ internal fun CipherLinkPickerItems(
             Spacer(Modifier.height(16.dp))
         } else {
             LazyColumn(
+                state = listState,
                 modifier = Modifier
+                    .dialogArrowNavigation()
                     .fillMaxWidth()
                     .heightIn(max = CipherLinkPickerListMaxHeight),
             ) {
@@ -106,6 +117,7 @@ internal fun CipherLinkPickerItems(
                     key = { item -> item.presentation.source.id },
                 ) { item ->
                     CompactVaultItem(
+                        modifier = if (item === items.first()) Modifier.focusRequester(firstResult) else Modifier,
                         item = item.presentation,
                         trailing = {
                             ChevronIcon()

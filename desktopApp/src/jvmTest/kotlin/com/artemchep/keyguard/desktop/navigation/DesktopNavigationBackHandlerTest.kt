@@ -102,6 +102,28 @@ class DesktopNavigationBackHandlerTest {
     }
 
     @Test
+    fun `modified Escape keeps a text-only sheet open`() {
+        val host = NavigationHost()
+        var visible by mutableStateOf(true)
+        var ready = false
+        withWindow(host) {
+            LeMOdelBottomSheet(visible = visible, onDismissRequest = { visible = false }) {
+                Text("Preview")
+                LaunchedEffect(Unit) {
+                    withFrameNanos { }
+                    ready = true
+                }
+            }
+        }.use { window ->
+            awaitCondition { ready }
+            window.pressKey(modifiers = InputEvent.SHIFT_DOWN_MASK)
+            onEdt { assertTrue(visible) }
+            window.pressKey()
+            awaitCondition { !visible }
+        }
+    }
+
+    @Test
     fun `nested popups dismiss one layer per Escape`() {
         val host = NavigationHost()
         var pops = 0

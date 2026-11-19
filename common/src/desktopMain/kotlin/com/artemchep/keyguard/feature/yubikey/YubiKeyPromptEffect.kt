@@ -10,12 +10,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import arrow.core.Either
 import arrow.core.left
 import arrow.core.right
 import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.model.PureYubiKeyAuthPrompt
 import com.artemchep.keyguard.common.model.YubiKeyAuthPrompt
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.platform.requireSecurityKeyAccess
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.cancel
@@ -127,7 +129,12 @@ private fun NativePromptEffect(flow: Flow<NativePrompt>) {
         title = { Text(stringResource(Res.string.yubikey_usb_touch_the_gold_sensor_note)) },
         text = { Text(stringResource(Res.string.yubikey_usb_text)) },
         confirmButton = {
-            TextButton(onClick = { pending = null }) { Text(stringResource(Res.string.cancel)) }
+            TextButton(
+                modifier = Modifier.focusOnDialogOpen(),
+                onClick = { pending = null },
+            ) {
+                Text(stringResource(Res.string.cancel))
+            }
         },
     )
 }

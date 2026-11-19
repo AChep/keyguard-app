@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.wear.compose.foundation.lazy.rememberTransformingLazyColumnState
 import androidx.wear.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
@@ -37,6 +38,9 @@ import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
 import com.artemchep.keyguard.feature.confirmation.ConfirmationRoute
 import com.artemchep.keyguard.feature.confirmation.ConfirmationState
 import com.artemchep.keyguard.feature.confirmation.confirmationState
+import com.artemchep.keyguard.feature.dialog.DialogFormKeyboard
+import com.artemchep.keyguard.feature.dialog.dialogEditorTabTraversal
+import com.artemchep.keyguard.feature.dialog.rememberDialogFormKeyboard
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteForResult
@@ -81,7 +85,23 @@ private fun WearConfirmationScreen(
         args = args,
         transmitter = transmitter,
     )
+    val items = state.items.getOrNull().orEmpty()
+    val listState = rememberTransformingLazyColumnState()
+    val enabledItems = items.filter { it.enabled && it !is ConfirmationState.Item.FileItem }
+    val keyboard = rememberDialogFormKeyboard(
+        keys = enabledItems.map { it.key },
+        // Keep the title and message in view; focusing a field would raise the full-screen keyboard.
+        initialEditor = null,
+        onDone = state.onConfirm,
+    ) { key ->
+        val index = items.indexOfFirst { it.key == key }
+        if (index >= 0) {
+            val firstItemIndex = if (args.message == null) 1 else 2
+            listState.scrollToItem(firstItemIndex + index)
+        }
+    }
     WearScaffoldScreen(
+        listState = listState,
         header = { transformationSpec ->
             ListHeader(
                 modifier = Modifier
@@ -141,9 +161,10 @@ private fun WearConfirmationScreen(
             }
 
             is Loadable.Ok -> {
-                state.items.getOrNull().orEmpty().forEach { item ->
+                items.forEach { item ->
                     item("item.${item.key}") {
                         WearConfirmationItem(
+                            keyboard = keyboard,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .transformedHeight(this, transformationSpec),
@@ -189,12 +210,14 @@ private fun WearConfirmationScreen(
 
 @Composable
 private fun WearConfirmationItem(
+    keyboard: DialogFormKeyboard,
     modifier: Modifier = Modifier,
     item: ConfirmationState.Item,
     transformation: SurfaceTransformation? = null,
 ) = ConfirmationItemContent(
     modifier = modifier,
     item = item,
+    keyboard = keyboard,
     renderers = wearConfirmationItemRenderers(transformation),
 )
 
@@ -208,8 +231,9 @@ private fun wearConfirmationItemRenderers(
             transformation = transformation,
         )
     },
-    stringItem = { modifier, item ->
+    stringItem = { modifier, item, keyboard ->
         WearConfirmationStringItem(
+            keyboard = keyboard,
             modifier = modifier,
             item = item,
             transformation = transformation,
@@ -267,6 +291,7 @@ private fun WearConfirmationBooleanItem(
 
 @Composable
 private fun WearConfirmationStringItem(
+    keyboard: DialogFormKeyboard,
     modifier: Modifier = Modifier,
     item: ConfirmationState.Item.StringItem,
     transformation: SurfaceTransformation? = null,
@@ -281,13 +306,16 @@ private fun WearConfirmationStringItem(
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
+                        .then(keyboard.target(item.key))
+                        .dialogEditorTabTraversal(singleLine = item.singleLine),
                     value = item.state.text,
                     onValueChange = { value ->
                         item.state.onChange?.invoke(value)
                     },
                     enabled = item.enabled,
-                    singleLine = true,
+                    singleLine = item.singleLine,
+                    keyboardActions = keyboard.actions(item.key),
                     label = {
                         Text(text = item.title)
                     },
@@ -306,6 +334,7 @@ private fun WearConfirmationStringItem(
                         )
                     },
                     keyboardOptions = KeyboardOptions(
+                        imeAction = keyboard.imeAction(item.key, item.singleLine),
                         autoCorrectEnabled = false,
                         keyboardType = if (item.password) {
                             KeyboardType.Password

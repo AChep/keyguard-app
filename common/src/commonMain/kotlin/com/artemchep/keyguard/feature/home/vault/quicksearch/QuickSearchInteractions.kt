@@ -22,6 +22,9 @@ internal data class QuickSearchKeyInput(
     val isShiftPressed: Boolean = false,
 )
 
+private val QuickSearchKeyInput.isPlain
+    get() = !hasShortcutModifier && !isShiftPressed
+
 internal sealed interface QuickSearchKeyEventAction {
     data class MoveSelection(
         val direction: Int,
@@ -70,6 +73,8 @@ internal fun quickSearchKeyEventAction(
         return null
     }
 
+    if (state.emptyState is QuickSearchEmptyState.AddAccount) return null
+
     val selectedAction = state.selectedActionIndex
         ?.let(state.actions::getOrNull)
     val shortcutAction = quickSearchShortcutAction(input, state.actions, platform)
@@ -90,11 +95,8 @@ internal fun quickSearchKeyEventAction(
             ?.let { QuickSearchKeyEventAction.PerformSelectedAction(it.type) }
             ?: QuickSearchKeyEventAction.PerformDefaultAction
 
-        Key.Escape -> if (state.query.text.isNotEmpty()) {
-            QuickSearchKeyEventAction.ClearQuery
-        } else {
-            null
-        }
+        Key.Escape -> QuickSearchKeyEventAction.ClearQuery
+            .takeIf { input.isPlain && state.query.text.isNotEmpty() }
 
         else -> null
     }
@@ -126,8 +128,8 @@ internal fun quickSearchAutotypeMenuKeyAction(
     selectedField: QuickSearchAutotypeField,
 ): QuickSearchAutotypeMenuKeyAction? = when {
     input.type != KeyEventType.KeyDown -> null
-    input.key == Key.Escape -> QuickSearchAutotypeMenuKeyAction.Dismiss
     input.hasShortcutModifier || input.isShiftPressed -> null
+    input.key == Key.Escape -> QuickSearchAutotypeMenuKeyAction.Dismiss
     input.key == Key.DirectionDown -> moveAutotypeFieldSelection(availableFields, selectedField, 1)
     input.key == Key.DirectionUp -> moveAutotypeFieldSelection(availableFields, selectedField, -1)
     else -> autotypeFieldForKey(input.key, selectedField)

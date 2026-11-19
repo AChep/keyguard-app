@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.feature.dialog.DialogContent
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.agent_auto_setup_file_create_label
@@ -137,7 +138,12 @@ internal fun AgentSetupFileDiffDialogContent(
                 Spacer(Modifier.width(ButtonDefaults.IconSpacing))
                 Text(stringResource(Res.string.text_diff_copy))
             }
-            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.close)) }
+            TextButton(
+                modifier = Modifier.focusOnDialogOpen(),
+                onClick = onDismiss,
+            ) {
+                Text(stringResource(Res.string.close))
+            }
         },
     )
 }

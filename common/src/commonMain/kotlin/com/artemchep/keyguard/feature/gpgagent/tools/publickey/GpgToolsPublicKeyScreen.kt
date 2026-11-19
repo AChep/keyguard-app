@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.dialogEditorTabTraversal
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.navigation.LocalNavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
@@ -80,6 +82,7 @@ fun GpgToolsPublicKeyScreen(
                         text = text,
                         onChange = { text = it },
                     ),
+                    fieldModifier = Modifier.focusOnDialogOpen().dialogEditorTabTraversal(),
                     maxLines = 12,
                     clearButton = true,
                 )

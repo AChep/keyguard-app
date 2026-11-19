@@ -11,6 +11,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
+import com.artemchep.keyguard.feature.navigation.keyboard.isPlainEscape
 
 /**
  * Handles a key pressed in the input of a [TagsField];
@@ -31,7 +32,7 @@ internal fun TagsFieldController.onKeyEvent(event: KeyEvent): Boolean {
         Key.DirectionRight -> fillCompletion()
         Key.DirectionDown -> moveHighlight(1)
         Key.DirectionUp -> moveHighlight(-1)
-        Key.Escape -> dismiss()
+        Key.Escape -> event.isPlainEscape && dismiss()
         Key.Backspace -> removeLastTag()
         else -> false
     }

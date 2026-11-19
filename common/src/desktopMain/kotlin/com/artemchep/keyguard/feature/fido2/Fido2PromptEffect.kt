@@ -3,6 +3,7 @@ package com.artemchep.keyguard.feature.fido2
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.OutlinedTextField
@@ -17,8 +18,11 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.platform.requireSecurityKeyAccess
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
@@ -40,12 +44,15 @@ actual fun Fido2PromptEffect(flow: Flow<Fido2Prompt>) {
     }
     val prompt = pending ?: return
     val active by prompt.active.collectAsState()
-    if (active) NativeFido2Dialog(prompt)
+    if (active) NativeFido2Dialog(prompt) { pin ->
+        requireSecurityKeyAccess(Res.string.fido2_error_title)
+        NativeFido2Client().execute(prompt.operation, pin)
+    }
 }
 
 @Suppress("TooGenericExceptionCaught") // Finish the prompt for native bridge errors.
 @Composable
-private fun NativeFido2Dialog(prompt: Fido2Prompt) {
+internal fun NativeFido2Dialog(prompt: Fido2Prompt, execute: suspend (String?) -> ByteArray) {
     var pin by remember(prompt) { mutableStateOf("") }
     var submittedPin by remember(prompt) { mutableStateOf<String?>(null) }
     var requestPin by remember(prompt) { mutableStateOf(false) }
@@ -54,8 +61,7 @@ private fun NativeFido2Dialog(prompt: Fido2Prompt) {
     DisposableEffect(prompt) { onDispose { prompt.cancel() } }
     LaunchedEffect(prompt, attempt) {
         try {
-            requireSecurityKeyAccess(Res.string.fido2_error_title)
-            val result = NativeFido2Client().execute(prompt.operation, submittedPin)
+            val result = execute(submittedPin)
             prompt.complete(Result.success(result))
         } catch (error: CancellationException) {
             throw error
@@ -73,20 +79,23 @@ private fun NativeFido2Dialog(prompt: Fido2Prompt) {
             submittedPin = null
         }
     }
+    fun submitPin() {
+        if (requestPin && pin.isNotEmpty()) {
+            submittedPin = pin
+            pin = ""
+            requestPin = false
+            attempt++
+        }
+    }
     AlertDialog(
         onDismissRequest = prompt::cancel,
         title = { Text(stringResource(Res.string.fido2_prompt_title)) },
-        text = { Fido2PromptContent(requestPin, invalidPin, pin) { pin = it } },
+        text = { Fido2PromptContent(requestPin, invalidPin, pin, { pin = it }, ::submitPin) },
         confirmButton = {
             if (requestPin)
                 TextButton(
                     enabled = pin.isNotEmpty(),
-                    onClick = {
-                        submittedPin = pin
-                        pin = ""
-                        requestPin = false
-                        attempt++
-                    },
+                    onClick = ::submitPin,
                 ) {
                     Text(stringResource(Res.string.continue_))
                 }
@@ -103,6 +112,7 @@ private fun Fido2PromptContent(
     invalidPin: Boolean,
     pin: String,
     onPinChange: (String) -> Unit,
+    onSubmit: () -> Unit,
 ) {
     Column {
         Text(
@@ -110,7 +120,7 @@ private fun Fido2PromptContent(
                 if (requestPin) Res.string.fido2_pin_prompt else Res.string.fido2_touch_prompt
             )
         )
-        if (requestPin) Fido2PinField(invalidPin, pin, onPinChange)
+        if (requestPin) Fido2PinField(invalidPin, pin, onPinChange, onSubmit)
     }
 }
 
@@ -119,10 +129,12 @@ private fun Fido2PinField(
     invalidPin: Boolean,
     pin: String,
     onPinChange: (String) -> Unit,
+    onSubmit: () -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
     OutlinedTextField(
+        modifier = Modifier.focusOnDialogOpen(),
         value = pin,
         onValueChange = onPinChange,
         label = { Text(stringResource(Res.string.fido2_pin_label)) },
@@ -133,7 +145,8 @@ private fun Fido2PinField(
             if (invalidPin) ({ Text(stringResource(Res.string.fido2_error_invalid_pin)) })
             else null,
         visualTransformation = PasswordVisualTransformation(),
-        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+        keyboardActions = KeyboardActions(onDone = { onSubmit() }),
         singleLine = true,
         interactionSource = interactionSource,
     )

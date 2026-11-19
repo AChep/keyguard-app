@@ -42,6 +42,10 @@ import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.auth.common.VisibilityState
 import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.DialogFormKeyboard
+import com.artemchep.keyguard.feature.dialog.dialogEditorTabTraversal
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
+import com.artemchep.keyguard.feature.dialog.rememberDialogFormKeyboard
 import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
 import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
@@ -80,6 +84,17 @@ fun ConfirmationScreen(
         flow = state.sideEffects.filePickerIntentFlow,
     )
 
+    ConfirmationDialog(
+        args = args,
+        state = state,
+    )
+}
+
+@Composable
+internal fun ConfirmationDialog(
+    args: ConfirmationRoute.Args,
+    state: ConfirmationState,
+) {
     val showContent = args.message != null || args.items.isNotEmpty()
     Dialog(
         icon = args.icon,
@@ -120,24 +135,7 @@ fun ConfirmationScreen(
                         }
                     }
 
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        items.forEach { item ->
-                            key(item.key) {
-                                val itemModifier = if (item.enabled) {
-                                    Modifier
-                                } else {
-                                    Modifier
-                                        .alpha(DisabledEmphasisAlpha)
-                                }
-                                ConfirmationItem(
-                                    modifier = itemModifier,
-                                    item = item,
-                                )
-                            }
-                        }
-                    }
+                    ConfirmationForm(items, state.onConfirm)
 
                     if (state.items is Loadable.Loading) {
                         SkeletonItem()
@@ -170,7 +168,12 @@ fun ConfirmationScreen(
 
             val updatedOnDeny by rememberUpdatedState(state.onDeny)
             val updatedOnConfirm by rememberUpdatedState(state.onConfirm)
+            val items = state.items.getOrNull()
             TextButton(
+                // Open on Cancel when no text field takes the initial focus.
+                modifier = Modifier.focusOnDialogOpen(
+                    state.onDeny != null && items != null && items.initialEditorKey == null,
+                ),
                 enabled = state.onDeny != null,
                 onClick = {
                     updatedOnDeny?.invoke()
@@ -191,14 +194,43 @@ fun ConfirmationScreen(
 }
 
 @Composable
-private fun ConfirmationItem(
-    modifier: Modifier = Modifier,
-    item: ConfirmationState.Item,
-) = ConfirmationItemContent(
-    modifier = modifier,
-    item = item,
-    renderers = commonConfirmationItemRenderers,
-)
+internal fun ConfirmationForm(
+    items: List<ConfirmationState.Item>,
+    onConfirm: (() -> Unit)?,
+) {
+    val keyboard = rememberDialogFormKeyboard(
+        keys = items.filter { it.enabled }.map { it.key },
+        initialEditor = items.initialEditorKey,
+        onDone = onConfirm,
+    )
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        items.forEach { item ->
+            key(item.key) {
+                val itemModifier = if (item.enabled) {
+                    Modifier
+                } else {
+                    Modifier
+                        .alpha(DisabledEmphasisAlpha)
+                }
+                ConfirmationItemContent(
+                    renderers = commonConfirmationItemRenderers,
+                    keyboard = keyboard,
+                    modifier = itemModifier,
+                    item = item,
+                )
+            }
+        }
+    }
+}
+
+/**
+ * Only a text field takes the initial focus: Enter or Space on a focused
+ * checkbox would toggle it, so other dialogs open on Cancel.
+ */
+private val List<ConfirmationState.Item>.initialEditorKey: String?
+    get() = firstOrNull { it.enabled && it is ConfirmationState.Item.StringItem }?.key
 
 private val commonConfirmationItemRenderers = ConfirmationItemRenderers(
     booleanItem = { modifier, item ->
@@ -207,8 +239,9 @@ private val commonConfirmationItemRenderers = ConfirmationItemRenderers(
             item = item,
         )
     },
-    stringItem = { modifier, item ->
+    stringItem = { modifier, item, keyboard ->
         ConfirmationStringItem(
+            keyboard = keyboard,
             modifier = modifier,
             item = item,
         )
@@ -273,6 +306,7 @@ private fun ConfirmationBooleanItem(
 private fun ConfirmationStringItem(
     modifier: Modifier = Modifier,
     item: ConfirmationState.Item.StringItem,
+    keyboard: DialogFormKeyboard,
 ) {
     val visibilityState = remember(item.sensitive) {
         VisibilityState(
@@ -285,6 +319,8 @@ private fun ConfirmationStringItem(
         FlatTextField(
             modifier = Modifier
                 .padding(horizontal = Dimens.horizontalPadding),
+            fieldModifier = keyboard.target(item.key)
+                .dialogEditorTabTraversal(singleLine = item.singleLine),
             label = item.title,
             value = item.state,
             textStyle = when {
@@ -308,13 +344,14 @@ private fun ConfirmationStringItem(
                     )
 
                 else -> KeyboardOptions.Default
-            },
+            }.copy(imeAction = keyboard.imeAction(item.key, item.singleLine)),
+            keyboardActions = keyboard.actions(item.key),
             incognito = item.sensitive || item.password,
             singleLine = item.singleLine,
             maxLines = if (item.singleLine) 1 else 8,
             trailing = {
                 ExpandedIfNotEmptyForRow(
-                    Unit.takeIf { item.sensitive },
+                    Unit.takeIf { item.sensitive && item.enabled },
                 ) {
                     VisibilityToggle(
                         visibilityState = visibilityState,
@@ -566,6 +603,6 @@ private fun ConfirmationFileItem(
                 }
             }
         },
-        onClick = item.onSelect,
+        onClick = item.onSelect.takeIf { item.enabled },
     )
 }

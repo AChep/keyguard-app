@@ -16,6 +16,17 @@ import com.artemchep.keyguard.platform.Platform
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
+/** Ctrl, Alt or Meta is held; Shift alone does not count. */
+val KeyEvent.hasShortcutModifier: Boolean
+    get() = isCtrlPressed || isAltPressed || isMetaPressed
+
+/** A key press with no modifier held, Shift included. */
+val KeyEvent.isPlainKeyDown: Boolean
+    get() = type == KeyEventType.KeyDown && !hasShortcutModifier && !isShiftPressed
+
+val KeyEvent.isPlainEscape: Boolean
+    get() = isPlainKeyDown && key == Key.Escape
+
 fun RememberStateFlowScope.interceptKeyEvents(
     vararg shortcuts: Pair<KeyShortcut, Flow<(() -> Unit)?>>,
 ): () -> Unit {

@@ -9,7 +9,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material.icons.outlined.Key
@@ -23,9 +24,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.usecase.GetNavAnimation
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.dialogArrowNavigation
+import com.artemchep.keyguard.feature.dialog.rememberInitialItemFocus
 import com.artemchep.keyguard.feature.home.vault.component.CompactVaultItem
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.link.CipherLinkPickerItems
@@ -152,10 +156,21 @@ private fun CipherFieldPickerContent(
 private fun CipherFieldPickerFields(
     step: CipherFieldPickerState.Step.Fields,
 ) {
+    val listState = rememberLazyListState()
+    val firstEnabledIndex = step.fields.indexOfFirst { it.onClick != null }
+    // The selected vault item and its spacer precede the fields: keep two
+    // items above the field, so the header shows when the first field is enabled.
+    val firstField = listState.rememberInitialItemFocus(
+        index = (firstEnabledIndex + 2).takeIf { firstEnabledIndex >= 0 },
+        contextIndex = firstEnabledIndex,
+        key = step.item.source.id,
+    )
     // Both steps share one height, so the dialog does
     // not jump while drilling in.
     LazyColumn(
+        state = listState,
         modifier = Modifier
+            .dialogArrowNavigation()
             .fillMaxWidth()
             .heightIn(max = CipherLinkPickerListMaxHeight),
     ) {
@@ -167,11 +182,14 @@ private fun CipherFieldPickerFields(
         item("item.spacer") {
             Spacer(Modifier.height(12.dp))
         }
-        items(
+        itemsIndexed(
             items = step.fields,
-            key = { field -> field.id },
-        ) { field ->
+            key = { _, field -> field.id },
+        ) { index, field ->
             FlatItemSimpleExpressive(
+                modifier = if (index == firstEnabledIndex) {
+                    Modifier.focusRequester(firstField)
+                } else Modifier,
                 shapeState = field.shapeState,
                 leading = icon<RowScope>(
                     when (field.kind) {

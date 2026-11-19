@@ -39,6 +39,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -212,7 +213,12 @@ fun WizardDiscardDialog(
             TextButton(onClick = onDiscard) { Text(action) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text(stringResource(Res.string.cancel)) }
+            TextButton(
+                modifier = Modifier.focusOnDialogOpen(),
+                onClick = onDismiss,
+            ) {
+                Text(stringResource(Res.string.cancel))
+            }
         },
     )
 }

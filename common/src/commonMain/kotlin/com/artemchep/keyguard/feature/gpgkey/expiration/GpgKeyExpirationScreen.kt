@@ -15,11 +15,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.service.crypto.GpgKeyExpirationChange
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
+import com.artemchep.keyguard.feature.dialog.initialChoice
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.search.filter.component.FilterChipItemComposable
 import com.artemchep.keyguard.res.Res
@@ -58,9 +61,13 @@ fun GpgKeyExpirationScreen(
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    val initialKey = remember(state.presets.isEmpty()) {
+                        state.presets.initialChoice({ it.selected }, { it.onClick != null })?.key
+                    }
                     state.presets.forEach { preset ->
                         key(preset.key) {
                             FilterChipItemComposable(
+                                modifier = Modifier.focusOnDialogOpen(preset.key == initialKey),
                                 checked = preset.selected,
                                 leading = null,
                                 title = preset.title,

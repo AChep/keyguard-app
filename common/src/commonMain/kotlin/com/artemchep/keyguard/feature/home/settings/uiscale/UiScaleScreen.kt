@@ -47,6 +47,7 @@ import com.artemchep.keyguard.common.model.formatUiScale
 import com.artemchep.keyguard.common.model.uiScaleFromStep
 import com.artemchep.keyguard.common.model.uiScaleToStep
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.home.vault.component.FlatSurfaceExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.cancel
@@ -199,6 +200,7 @@ private fun UiScaleSlider(
     val valueText = formatUiScale(step)
     Slider(
         modifier = modifier
+            .focusOnDialogOpen()
             .semantics {
                 stateDescription = valueText
             },

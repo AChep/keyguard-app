@@ -112,6 +112,7 @@ private fun TransformingLazyColumnItemScope.WearPickerItem(
                 } else {
                     null
                 },
+                enabled = item.onClick != null,
                 onClick = {
                     onDismiss()
                     updatedOnClick.onClick?.invoke()

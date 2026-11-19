@@ -12,6 +12,26 @@ import kotlin.test.assertTrue
 
 class QuickSearchInteractionTest {
     @Test
+    fun `account chooser keeps its own focus and activation keys`() {
+        val state = QuickSearchState(emptyState = QuickSearchEmptyState.AddAccount())
+        listOf(Key.Tab, Key.Enter, Key.NumPadEnter, Key.DirectionDown).forEach { key ->
+            assertNull(quickSearchKeyEventAction(QuickSearchKeyInput(key, KeyEventType.KeyDown), state))
+        }
+    }
+
+    @Test
+    fun `modified Escape leaves the query alone`() {
+        val state = createQuickSearchState(query = "bank")
+        val escape = QuickSearchKeyInput(Key.Escape, KeyEventType.KeyDown)
+        listOf(
+            escape.copy(isShiftPressed = true),
+            escape.copy(isAltPressed = true),
+            escape.copy(isCtrlPressed = true),
+            escape.copy(isMetaPressed = true),
+        ).forEach { assertNull(quickSearchKeyEventAction(it, state)) }
+    }
+
+    @Test
     fun `autotype chord needs the modifier and key up does not repeat it`() {
         val action = QuickSearchAction(
             type = QuickSearchActionType.Autotype,

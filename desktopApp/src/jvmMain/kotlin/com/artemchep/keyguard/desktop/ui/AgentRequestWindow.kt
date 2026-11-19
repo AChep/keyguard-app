@@ -3,6 +3,7 @@ package com.artemchep.keyguard.desktop.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -26,6 +27,7 @@ import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnCreate
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnLoading
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreenOnUnlock
 import com.artemchep.keyguard.feature.localization.TextHolder
+import com.artemchep.keyguard.feature.navigation.keyboard.isPlainEscape
 import com.artemchep.keyguard.platform.lifecycle.LePlatformLifecycleProvider
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.ic_keyguard
@@ -59,6 +61,12 @@ internal fun <T : Any> ApplicationScope.AgentRequestWindow(
         ?.id
     PopupComposeWindow(
         onCloseRequest = onDeny,
+        onKeyEvent = { event ->
+            if (event.isPlainEscape) {
+                onDeny()
+                true
+            } else false
+        },
         title = title,
         state = rememberWindowState(
             size = DpSize(320.dp, 420.dp),
@@ -120,7 +128,7 @@ private fun <T : Any> AgentUnlockWindow(
                         // Provide the session Scope so that the content can
                         // read the vault, e.g. to resolve the key's title.
                         VaultSessionContent(vaultState.session) {
-                            requestContent(v.request, v.onDecision)
+                            key(v.id) { requestContent(v.request, v.onDecision) }
                         }
                     }
                 }

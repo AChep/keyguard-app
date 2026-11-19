@@ -32,6 +32,11 @@ import androidx.compose.ui.graphics.GraphicsLayerScope
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
@@ -45,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupPositionProvider
 import androidx.compose.ui.window.PopupProperties
+import com.artemchep.keyguard.feature.navigation.keyboard.isPlainEscape
 import com.artemchep.keyguard.platform.leIme
 import com.artemchep.keyguard.platform.leSystemBars
 
@@ -191,7 +197,8 @@ private fun BasicPopup(
         },
         onDismissRequest = onDismissRequest,
         properties = PopupProperties(
-            focusable = true,
+            focusable = false,
+            dismissOnBackPress = false,
         ),
     ) {
         AccessibilityDataProtectionEffect()
@@ -208,11 +215,13 @@ private fun BasicPopup(
         )
     }
 
-    Popup(
+    DialogContentPopup(
         popupPositionProvider = popupPositionProvider,
         onDismissRequest = onDismissRequest,
         properties = PopupProperties(
-            focusable = true,
+            // Release keyboard and native Back handling as soon as the exit animation starts.
+            focusable = expanded,
+            dismissOnBackPress = expanded,
         ),
     ) {
         AccessibilityDataProtectionEffect()
@@ -283,6 +292,26 @@ private fun BasicPopup(
         }
     }
 }
+
+/**
+ * Escape handling for the Skiko (desktop and Apple) [DialogContentPopup] actuals.
+ * Skiko translates unconsumed modified Escape into Back too, so this consumes
+ * every Escape and only a plain Escape dismisses. Android does not use it, so
+ * the system keeps its modified Escape fallbacks.
+ */
+internal fun handleDialogEscape(event: KeyEvent, onDismissRequest: () -> Unit): Boolean {
+    if (event.type != KeyEventType.KeyDown || event.key != Key.Escape) return false
+    if (event.isPlainEscape) onDismissRequest()
+    return true
+}
+
+@Composable
+internal expect fun DialogContentPopup(
+    popupPositionProvider: PopupPositionProvider,
+    onDismissRequest: () -> Unit,
+    properties: PopupProperties,
+    content: @Composable () -> Unit,
+)
 
 @Immutable
 private data class DesktopDialogPositionProvider(

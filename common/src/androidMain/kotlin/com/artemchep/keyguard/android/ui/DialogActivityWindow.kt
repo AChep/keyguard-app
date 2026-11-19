@@ -5,8 +5,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -28,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -68,20 +68,17 @@ fun DialogActivityWindow(
     content: @Composable BoxScope.() -> Unit,
 ) {
     val animation = rememberDialogActivityWindowAnimation()
-    val dismissInteractionSource = remember { MutableInteractionSource() }
-    val contentInteractionSource = remember { MutableInteractionSource() }
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(animation.dimColor)
-            .clickable(
-                interactionSource = dismissInteractionSource,
-                indication = null,
-            ) {
-                onDismiss()
-            },
+            .background(animation.dimColor),
         contentAlignment = Alignment.Center,
     ) {
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .pointerInput(onDismiss) { detectTapGestures { onDismiss() } },
+        )
         Surface(
             modifier = Modifier
                 .graphicsLayer {
@@ -93,11 +90,7 @@ fun DialogActivityWindow(
                 .heightIn(max = 520.dp)
                 .widthIn(max = 380.dp)
                 .fillMaxWidth(fraction = DIALOG_WIDTH_FRACTION)
-                .fillMaxHeight(fraction = DIALOG_HEIGHT_FRACTION)
-                .clickable(
-                    interactionSource = contentInteractionSource,
-                    indication = null,
-                ) {},
+                .fillMaxHeight(fraction = DIALOG_HEIGHT_FRACTION),
             color = MaterialTheme.colorScheme.surfaceContainerHigh,
             shape = MaterialTheme.shapes.extraLarge,
             tonalElevation = 0.dp,

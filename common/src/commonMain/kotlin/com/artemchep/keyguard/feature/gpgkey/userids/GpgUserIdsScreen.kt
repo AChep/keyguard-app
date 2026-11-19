@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
@@ -29,10 +28,11 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.dialog.DialogContent
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
+import com.artemchep.keyguard.feature.dialog.rememberDialogFormKeyboard
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.gpg_user_ids_empty
@@ -93,7 +93,12 @@ private fun GpgUserIdsScreen(state: GpgUserIdsState) {
             GpgUserIdsContent(state)
         },
         actions = {
-            GpgUserIdActionButton(state.back)
+            GpgUserIdActionButton(
+                state.back,
+                modifier = Modifier.focusOnDialogOpen(
+                    state.page != GpgUserIdsState.Page.Edit && state.back.onClick != null,
+                ),
+            )
             state.confirm?.let { action ->
                 GpgUserIdActionButton(action)
             }
@@ -166,7 +171,8 @@ private fun GpgUserIdForm(state: GpgUserIdsState) {
     if (state.identities.isNotEmpty()) {
         Spacer(modifier = Modifier.height(8.dp))
     }
-    val updatedOnConfirm by rememberUpdatedState(state.confirm?.onClick)
+    val editable = state.fields.filter { it.value.onChange != null }.map { it.id }
+    val keyboard = rememberDialogFormKeyboard(editable, editable.firstOrNull(), onDone = state.confirm?.onClick)
     Column(
         modifier = Modifier
             .padding(horizontal = Dimens.horizontalPadding),
@@ -183,10 +189,10 @@ private fun GpgUserIdForm(state: GpgUserIdsState) {
                 weight = 1f,
             )
         }
-        state.fields.forEachIndexed { index, field ->
+        state.fields.forEach { field ->
             key(field.id) {
-                val last = index == state.fields.lastIndex
                 FlatTextField(
+                    fieldModifier = keyboard.target(field.id),
                     testTag = "field:gpg_user_id_${field.id}",
                     label = field.label,
                     value = field.value,
@@ -197,13 +203,9 @@ private fun GpgUserIdForm(state: GpgUserIdsState) {
                         } else {
                             KeyboardType.Text
                         },
-                        imeAction = if (last) ImeAction.Done else ImeAction.Next,
+                        imeAction = keyboard.imeAction(field.id, singleLine = true),
                     ),
-                    keyboardActions = KeyboardActions(
-                        onDone = {
-                            updatedOnConfirm?.invoke()
-                        },
-                    ),
+                    keyboardActions = keyboard.actions(field.id),
                     singleLine = true,
                     maxLines = 1,
                 )
@@ -270,8 +272,9 @@ private fun GpgUserIdHistory(history: List<GpgUserIdsState.Identity>) {
 }
 
 @Composable
-private fun GpgUserIdActionButton(action: GpgUserIdsState.Action) {
+private fun GpgUserIdActionButton(action: GpgUserIdsState.Action, modifier: Modifier = Modifier) {
     TextButton(
+        modifier = modifier,
         enabled = action.onClick != null,
         colors = if (action.destructive) {
             ButtonDefaults.textButtonColors(

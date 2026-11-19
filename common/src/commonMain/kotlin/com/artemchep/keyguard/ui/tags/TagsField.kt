@@ -24,6 +24,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -94,6 +95,7 @@ fun TagsField(
     value: TagsFieldModel,
     shapeState: Int = ShapeState.ALL,
     expressive: Boolean = LocalExpressive.current,
+    autoFocus: Boolean = false,
 ) {
     val valueState = rememberUpdatedState(value)
     val buffer = rememberFieldBuffer(
@@ -109,6 +111,9 @@ fun TagsField(
         )
     }
 
+    if (autoFocus && controller.editable) {
+        LaunchedEffect(controller) { controller.focusRequester.requestFocus() }
+    }
     FlatTextFieldSurface(
         modifier = modifier,
         isError = false,

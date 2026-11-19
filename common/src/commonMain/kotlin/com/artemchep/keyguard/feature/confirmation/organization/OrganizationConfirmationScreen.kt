@@ -13,6 +13,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -21,6 +22,8 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.confirmation.folder.CreateNewFolder
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
+import com.artemchep.keyguard.feature.dialog.initialChoice
 import com.artemchep.keyguard.feature.home.vault.component.Section
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.search.filter.component.FilterChipItemComposable
@@ -78,6 +81,7 @@ private fun OrganizationConfirmationScreen(
                 FolderSection(
                     title = stringResource(Res.string.accounts),
                     section = accountsOrNull,
+                    initialFocus = data != null && data.folderNew == null,
                 )
                 val organizationsOrNull = state.content.getOrNull()?.organizations
                 FolderSection(
@@ -98,6 +102,7 @@ private fun OrganizationConfirmationScreen(
                 val field = state.content.getOrNull()?.folderNew
                 CreateNewFolder(
                     field = field,
+                    onConfirm = state.onConfirm,
                 )
             }
 
@@ -145,6 +150,7 @@ private fun ColumnScope.Note(
 @Composable
 private fun ColumnScope.FolderSection(
     modifier: Modifier = Modifier,
+    initialFocus: Boolean = false,
     title: String,
     section: OrganizationConfirmationState.Content.Section?,
 ) {
@@ -160,10 +166,13 @@ private fun ColumnScope.FolderSection(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
+                val initialKey = remember {
+                    l.items.initialChoice({ it.selected }, { it.onClick != null })?.key.takeIf { initialFocus }
+                }
                 l.items.forEach { item ->
                     key(item.key) {
                         FilterChipItemComposable(
-                            modifier = Modifier,
+                            modifier = Modifier.focusOnDialogOpen(item.key == initialKey),
                             checked = item.selected,
                             leading = item.icon,
                             title = item.title,

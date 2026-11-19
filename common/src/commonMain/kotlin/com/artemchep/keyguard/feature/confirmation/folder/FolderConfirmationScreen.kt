@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Folder
 import androidx.compose.material3.Icon
@@ -23,12 +25,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
+import com.artemchep.keyguard.feature.dialog.initialChoice
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.search.filter.component.FilterChipItemComposable
 import com.artemchep.keyguard.res.Res
@@ -78,10 +83,14 @@ fun FolderConfirmationScreen(
                             EmptyView()
                         }
 
+                        val initialKey = remember {
+                            data.items.initialChoice({ it.selected }, { it.onClick != null })
+                                ?.key.takeIf { data.new == null }
+                        }
                         data.items.forEach { item ->
                             key(item.key) {
                                 FolderConfirmationItem(
-                                    modifier = Modifier,
+                                    modifier = Modifier.focusOnDialogOpen(item.key == initialKey),
                                     item = item,
                                 )
                             }
@@ -91,6 +100,7 @@ fun FolderConfirmationScreen(
                 val field = state.content.getOrNull()?.new
                 CreateNewFolder(
                     field = field,
+                    onConfirm = state.onConfirm,
                 )
             }
 
@@ -129,6 +139,7 @@ fun FolderConfirmationScreen(
 @Composable
 fun CreateNewFolder(
     field: TextFieldModel?,
+    onConfirm: (() -> Unit)?,
     modifier: Modifier = Modifier,
 ) {
     ExpandedIfNotEmpty(
@@ -159,6 +170,9 @@ fun CreateNewFolder(
                 fieldModifier = Modifier
                     .focusRequester2(requester),
                 value = it,
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                keyboardActions = KeyboardActions(onDone = { onConfirm?.invoke() }),
                 label = stringResource(Res.string.generic_name),
             )
 

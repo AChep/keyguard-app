@@ -1,7 +1,6 @@
 package com.artemchep.keyguard.feature.colorpicker
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -11,6 +10,8 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Check
@@ -20,16 +21,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.dialogArrowNavigation
+import com.artemchep.keyguard.feature.dialog.dialogTabTargets
+import com.artemchep.keyguard.feature.dialog.rememberInitialItemFocus
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -47,6 +58,13 @@ fun ColorPickerScreen(
         args = args,
         transmitter = transmitter,
     )
+    ColorPickerDialog(loadableState)
+}
+
+@Composable
+internal fun ColorPickerDialog(loadableState: Loadable<ColorPickerState>) {
+    val close = remember { FocusRequester() }
+    val ok = remember { FocusRequester() }
     Dialog(
         icon = icon(Icons.Outlined.ColorLens),
         title = {
@@ -58,6 +76,8 @@ fun ColorPickerScreen(
                     ?: return@Column
                 Content(
                     state = state,
+                    close = close,
+                    ok = ok,
                 )
             }
         },
@@ -68,6 +88,7 @@ fun ColorPickerScreen(
             val updatedOnClose by rememberUpdatedState(state?.onDeny)
             val updatedOnOk by rememberUpdatedState(state?.onConfirm)
             TextButton(
+                modifier = Modifier.focusRequester(close),
                 enabled = updatedOnClose != null,
                 onClick = {
                     updatedOnClose?.invoke()
@@ -76,6 +97,7 @@ fun ColorPickerScreen(
                 Text(stringResource(Res.string.close))
             }
             TextButton(
+                modifier = Modifier.focusRequester(ok),
                 enabled = updatedOnOk != null,
                 onClick = {
                     updatedOnOk?.invoke()
@@ -90,11 +112,26 @@ fun ColorPickerScreen(
 @Composable
 private fun ColumnScope.Content(
     state: ColorPickerState,
+    close: FocusRequester,
+    ok: FocusRequester,
 ) {
-    val listState = rememberLazyListState()
+    val initialIndex = remember { state.content.index ?: 0 }
+    // Keep a few colors before the selection in view.
+    val contextIndex = (initialIndex - 4).coerceAtLeast(0)
+    val listState = rememberLazyListState(initialFirstVisibleItemIndex = contextIndex)
+    val initialFocus = listState.rememberInitialItemFocus(
+        index = initialIndex.takeIf { state.content.items.isNotEmpty() },
+        contextIndex = contextIndex,
+    )
     LazyRow(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .selectableGroup()
+            .dialogArrowNavigation()
+            .dialogTabTargets(
+                previous = if (state.onConfirm != null) ok else close,
+                next = close,
+            ),
         state = listState,
     ) {
         itemsIndexed(state.content.items) { index, item ->
@@ -106,6 +143,7 @@ private fun ColumnScope.Content(
             val isSelected = state.content.index == index
             ColorItem(
                 modifier = Modifier
+                    .then(if (index == initialIndex) Modifier.focusRequester(initialFocus) else Modifier)
                     .sizeIn(
                         minWidth = 16.dp,
                         minHeight = 64.dp,
@@ -115,13 +153,6 @@ private fun ColumnScope.Content(
                 onClick = item.onClick,
             )
         }
-    }
-
-    LaunchedEffect(Unit) {
-        val index = state.content.index
-            ?: return@LaunchedEffect
-        val finalIndex = index.minus(4).coerceAtLeast(0)
-        listState.scrollToItem(finalIndex)
     }
 }
 
@@ -136,9 +167,8 @@ private fun ColorItem(
     Box(
         modifier = modifier
             .background(color = backgroundColor)
-            .clickable {
-                updatedOnClick.invoke()
-            },
+            .semantics { contentDescription = backgroundColor.toHex() }
+            .selectable(selected = selected, role = Role.RadioButton, onClick = { updatedOnClick() }),
     ) {
         androidx.compose.animation.AnimatedVisibility(
             modifier = Modifier

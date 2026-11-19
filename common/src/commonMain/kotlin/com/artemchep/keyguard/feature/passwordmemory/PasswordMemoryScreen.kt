@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.close
 import com.artemchep.keyguard.res.password_action_test_memory_title
@@ -58,11 +59,10 @@ internal fun PasswordMemoryScreen(
                 PasswordFlatTextField(
                     modifier = Modifier
                         .padding(horizontal = Dimens.horizontalPadding),
+                    fieldModifier = Modifier.focusOnDialogOpen(state.password.onChange != null),
                     testTag = "field:password",
                     value = state.password,
-                    keyboardOptions = KeyboardOptions(
-                        imeAction = ImeAction.Done,
-                    ),
+                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                     keyboardActions = KeyboardActions(
                         onDone = {
                             updatedOnVerify?.invoke()

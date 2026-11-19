@@ -59,6 +59,7 @@ import androidx.compose.ui.unit.sp
 import com.artemchep.keyguard.feature.PromoView
 import com.artemchep.keyguard.feature.home.vault.search.query.VaultSearchQualifierApplyResult
 import com.artemchep.keyguard.feature.keyguard.setup.keyguardSpan
+import com.artemchep.keyguard.feature.navigation.keyboard.isPlainEscape
 import com.artemchep.keyguard.feature.rememberPromoViewStatus
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
@@ -221,8 +222,7 @@ fun SearchTextField(
                                 }
 
                                 if (
-                                    keyEvent.key == Key.Escape &&
-                                    keyEvent.type == KeyEventType.KeyDown &&
+                                    keyEvent.isPlainEscape &&
                                     fieldValue.text.isNotEmpty()
                                 ) {
                                     updateFieldValue("".toTextFieldValue())

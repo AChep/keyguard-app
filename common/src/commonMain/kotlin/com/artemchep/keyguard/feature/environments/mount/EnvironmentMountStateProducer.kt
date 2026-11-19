@@ -122,7 +122,7 @@ suspend fun RememberStateFlowScope.environmentMountStateProducer(
         val form = formFlow.value
         val id = form.environmentId
             ?: return
-        if (form.busy) return
+        if (!form.canCreate) return
         formFlow.update { it.copy(busy = true, error = false) }
         screenScope.launch {
             try {

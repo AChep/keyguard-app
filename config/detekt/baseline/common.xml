@@ -481,7 +481,7 @@
     <ID>LongMethod:CompanionAuthInitiatorAndroid.kt:CompanionAuthInitiatorAndroid$suspend fun onWatchResponseReceived</ID>
     <ID>LongMethod:CompanionAuthInitiatorAndroid.kt:CompanionAuthInitiatorAndroid$suspend fun startOnPhone: String?</ID>
     <ID>LongMethod:CompanionAuthRequestState.kt:fun reduceCompanionAuthRequestState: CompanionAuthRequestState?</ID>
-    <ID>LongMethod:ConfirmationScreen.kt:@Composable fun ConfirmationScreen</ID>
+    <ID>LongMethod:ConfirmationScreen.kt:@Composable internal fun ConfirmationDialog</ID>
     <ID>LongMethod:ConfirmationScreen.kt:@Composable private fun ConfirmationStringItem</ID>
     <ID>LongMethod:ConfirmationScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun ConfirmationEnumItem</ID>
     <ID>LongMethod:ConfirmationScreen.kt:@OptIn(ExperimentalLayoutApi::class) @Composable private fun ConfirmationFileItem</ID>

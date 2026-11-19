@@ -16,6 +16,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -243,10 +244,12 @@ internal class AgentRequestActivity : BaseActivity() {
                             // Provide the session Scope so that the content can
                             // read the vault, e.g. to resolve the key's title.
                             VaultSessionContent(vaultState.session) {
-                                PromptContent(
-                                    prompt = activeRequestState.request,
-                                    onDecision = activeRequestState.onDecision,
-                                )
+                                key(activeRequestState.id) {
+                                    PromptContent(
+                                        prompt = activeRequestState.request,
+                                        onDecision = activeRequestState.onDecision,
+                                    )
+                                }
                             }
                         }
                     }

@@ -14,7 +14,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.ImageComposeScene
+import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsActions
@@ -34,7 +38,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, InternalComposeUiApi::class)
 class GpgToolsKeyPickerScreenTest {
     @Test
     fun `search actions and selectable rows remain accessible in constrained dialogs`() {
@@ -92,6 +96,14 @@ class GpgToolsKeyPickerScreenTest {
             val nodes = scene.semanticsOwners.flatMap { descendants(it.rootSemanticsNode) }
             assertDialog(variant, nodes)
             assertEquals(if (variant.count > 0) 1 else 0, selections)
+            if (variant.count > 0) {
+                listOf(Key.DirectionDown, Key.Enter).forEach { key ->
+                    scene.sendKeyEvent(KeyEvent(key, KeyEventType.KeyDown))
+                    scene.sendKeyEvent(KeyEvent(key, KeyEventType.KeyUp))
+                    scene.render().close()
+                }
+                assertEquals(2, selections, variant.name)
+            }
         }
     }
 

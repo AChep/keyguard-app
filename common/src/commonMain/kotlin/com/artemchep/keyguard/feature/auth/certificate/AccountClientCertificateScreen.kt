@@ -29,6 +29,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.ShapeState
 import com.artemchep.keyguard.common.model.getOrNull
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.filepicker.ContentFileDropTarget
 import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
@@ -260,7 +261,12 @@ private fun RemovalDialog(state: AccountClientCertificateState) {
             }
         },
         dismissButton = {
-            TextButton(onClick = state.onDismissRemoval) { Text(stringResource(Res.string.cancel)) }
+            TextButton(
+                modifier = Modifier.focusOnDialogOpen(),
+                onClick = state.onDismissRemoval,
+            ) {
+                Text(stringResource(Res.string.cancel))
+            }
         },
     )
 }

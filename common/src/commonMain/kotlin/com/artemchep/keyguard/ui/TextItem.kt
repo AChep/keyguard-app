@@ -539,7 +539,7 @@ fun FakeFlatTextField(
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Clear,
-                                contentDescription = null,
+                                contentDescription = stringResource(Res.string.text_clear_action),
                             )
                         }
                     }
@@ -802,7 +802,7 @@ fun FlatTextField(
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Clear,
-                                contentDescription = null,
+                                contentDescription = stringResource(Res.string.text_clear_action),
                             )
                         }
                     }

@@ -36,6 +36,7 @@ fun TagsConfirmationScreen(
                 modifier = Modifier
                     .padding(horizontal = Dimens.fieldHorizontalPadding),
                 value = state.tags,
+                autoFocus = true,
             )
         },
         actions = {

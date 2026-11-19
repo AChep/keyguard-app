@@ -6,17 +6,25 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TimeInput
 import androidx.compose.material3.TimePicker
+import androidx.compose.material3.TimePickerDialogDefaults
+import androidx.compose.material3.TimePickerDisplayMode
 import androidx.compose.material3.TimePickerLayoutType
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
+import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.dialog.Dialog
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
@@ -35,6 +43,12 @@ fun TimePickerScreen(
         args = args,
         transmitter = transmitter,
     )
+    TimePickerDialog(loadableState)
+}
+
+@Composable
+internal fun TimePickerDialog(loadableState: Loadable<TimePickerState>) {
+    var keyboardInput by rememberSaveable { mutableStateOf(false) }
     Dialog(
         title = null,
         content = {
@@ -45,11 +59,17 @@ fun TimePickerScreen(
                     ?: return@Column
                 Content(
                     state = state,
+                    keyboardInput = keyboardInput,
                 )
             }
         },
         contentScrollable = true,
         actions = {
+            TimePickerDialogDefaults.DisplayModeToggle(
+                modifier = Modifier.focusOnDialogOpen(),
+                displayMode = if (keyboardInput) TimePickerDisplayMode.Input else TimePickerDisplayMode.Picker,
+                onDisplayModeChange = { keyboardInput = !keyboardInput },
+            )
             val updatedOnClose by rememberUpdatedState(loadableState.getOrNull()?.onDeny)
             val updatedOnOk by rememberUpdatedState(loadableState.getOrNull()?.onConfirm)
             TextButton(
@@ -75,6 +95,7 @@ fun TimePickerScreen(
 @Composable
 private fun ColumnScope.Content(
     state: TimePickerState,
+    keyboardInput: Boolean,
 ) {
     val timePickerState = rememberTimePickerState(
         initialHour = state.content.initialTime.hour,
@@ -94,11 +115,12 @@ private fun ColumnScope.Content(
             .collect()
     }
 
-    TimePicker(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimens.horizontalPadding),
-        state = timePickerState,
-        layoutType = TimePickerLayoutType.Vertical,
-    )
+    val modifier = Modifier
+        .fillMaxWidth()
+        .padding(horizontal = Dimens.horizontalPadding)
+    if (keyboardInput) {
+        TimeInput(state = timePickerState, modifier = modifier)
+    } else {
+        TimePicker(state = timePickerState, modifier = modifier, layoutType = TimePickerLayoutType.Vertical)
+    }
 }

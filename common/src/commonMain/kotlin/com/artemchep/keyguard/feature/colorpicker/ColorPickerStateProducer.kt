@@ -62,7 +62,7 @@ suspend fun RememberStateFlowScope.colorPickerStateProducer(
     return indexSink
         .map { index ->
             val content = ColorPickerState.Content(
-                index = index.takeIf { it >= 0 },
+                index = index.takeIf { it in items.indices },
                 items = items,
             )
             val state = ColorPickerState(
@@ -71,14 +71,11 @@ suspend fun RememberStateFlowScope.colorPickerStateProducer(
                     transmitter(ColorPickerResult.Deny)
                     navigatePopSelf()
                 },
-                onConfirm = {
-                    val item = items.getOrNull(index)
-                        ?: return@ColorPickerState
-                    val result = ColorPickerResult.Confirm(
-                        color = item.color.dark,
-                    )
-                    transmitter(result)
-                    navigatePopSelf()
+                onConfirm = items.getOrNull(index)?.let { item ->
+                    {
+                        transmitter(ColorPickerResult.Confirm(color = item.color.dark))
+                        navigatePopSelf()
+                    }
                 },
             )
             Loadable.Ok(state)

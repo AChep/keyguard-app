@@ -89,6 +89,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationAnimationType
 import com.artemchep.keyguard.feature.navigation.NavigationController
 import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.NavigationNode
+import com.artemchep.keyguard.feature.navigation.keyboard.isPlainEscape
 import com.artemchep.keyguard.feature.navigation.transform
 import com.artemchep.keyguard.feature.rememberPromoViewStatus
 import com.artemchep.keyguard.feature.twopane.EmptyKeyguardBox
@@ -524,8 +525,7 @@ private fun QuickSearchSearch(
                             }
 
                             if (
-                                keyEvent.key == Key.Escape &&
-                                keyEvent.type == KeyEventType.KeyDown &&
+                                keyEvent.isPlainEscape &&
                                 fieldValue.text.isNotEmpty()
                             ) {
                                 updateFieldValue("".toTextFieldValue())

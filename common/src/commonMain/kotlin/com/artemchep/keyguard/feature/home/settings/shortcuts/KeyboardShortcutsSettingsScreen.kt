@@ -1,9 +1,14 @@
 package com.artemchep.keyguard.feature.home.settings.shortcuts
 
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.MaterialTheme
@@ -13,6 +18,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -25,12 +34,15 @@ import com.artemchep.keyguard.common.service.shortcut.GlobalShortcutError
 import com.artemchep.keyguard.common.service.shortcut.GlobalShortcutStatus
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
+import com.artemchep.keyguard.feature.home.settings.SettingsListFocus
+import com.artemchep.keyguard.feature.home.settings.rememberSettingsListFocus
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
-import com.artemchep.keyguard.ui.ScaffoldColumn
+import com.artemchep.keyguard.ui.ScaffoldLazyColumn
+import com.artemchep.keyguard.ui.screenMaxWidth
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
@@ -44,9 +56,25 @@ fun KeyboardShortcutsSettingsScreen() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun KeyboardShortcutsSettingsContent(state: Loadable<KeyboardShortcutsSettingsState>) {
+internal fun KeyboardShortcutsSettingsContent(state: Loadable<KeyboardShortcutsSettingsState>) {
     val scrollBehavior = ToolbarBehavior.behavior()
-    ScaffoldColumn(
+    val listState = rememberLazyListState()
+    // Busy disables every control, so the focused one loses focus.
+    // No keys while busy, so the list restores its row once it ends.
+    val listKeys = remember(state) {
+        val value = (state as? Loadable.Ok)?.value
+        if (value == null || value.busy) {
+            emptyList()
+        } else {
+            value.items.map { it.action.name }
+        }
+    }
+    val focus = rememberSettingsListFocus(
+        listState = listState,
+        listKeys = listKeys,
+        focusFirstOnEnter = true,
+    )
+    ScaffoldLazyColumn(
         modifier =
             Modifier
                 .nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -59,21 +87,43 @@ private fun KeyboardShortcutsSettingsContent(state: Loadable<KeyboardShortcutsSe
                 scrollBehavior = scrollBehavior,
             )
         },
+        listModifier = focus.listModifier,
+        listState = listState,
     ) {
         if (state is Loadable.Ok) {
-            state.value.items.forEachIndexed { index, item ->
-                CompositionLocalProvider(
-                    LocalSettingItemShape provides getShapeState(state.value.items, index) { _, _ -> true },
-                ) {
-                    KeyboardShortcutItem(item, state.value)
-                }
-            }
+            keyboardShortcutItems(state.value, focus)
         } else {
-            KeyguardLoadingIndicator(
-                modifier =
-                    Modifier
-                        .padding(Dimens.contentPadding),
-            )
+            item("loading") {
+                KeyguardLoadingIndicator(
+                    modifier =
+                        Modifier
+                            .padding(Dimens.contentPadding),
+                )
+            }
+        }
+    }
+}
+
+private fun LazyListScope.keyboardShortcutItems(
+    state: KeyboardShortcutsSettingsState,
+    focus: SettingsListFocus,
+) {
+    itemsIndexed(
+        items = state.items,
+        key = { _, item -> item.action.name },
+    ) { index, item ->
+        // The same max width as a ScaffoldColumn screen.
+        Column(
+            modifier =
+                Modifier
+                    .widthIn(max = screenMaxWidth)
+                    .then(focus.target(item.action.name)),
+        ) {
+            CompositionLocalProvider(
+                LocalSettingItemShape provides getShapeState(state.items, index) { _, _ -> true },
+            ) {
+                KeyboardShortcutItem(item, state)
+            }
         }
     }
 }
@@ -87,6 +137,7 @@ private fun KeyboardShortcutItem(
     val bindingLabel = stringResource(Res.string.keyboard_shortcuts_binding_label, title)
     val binding = item.config.resolve(item.action, CurrentPlatform)
     val bindingText = remember(binding) { binding.displayText() }
+    val bindingRequester = remember { FocusRequester() }
     LocalSettingPaneComponents.current.KgSwitch(
         title = { Text(title) },
         text = { KeyboardShortcutStatus(item) },
@@ -95,21 +146,38 @@ private fun KeyboardShortcutItem(
         footer = {
             Row(
                 modifier =
-                    Modifier.padding(
-                        bottom = Dimens.verticalPadding,
-                        start = Dimens.horizontalPadding,
-                        end = Dimens.horizontalPadding,
-                    ),
+                    Modifier
+                        // Up and Down pick the button nearest to the middle
+                        // of the row they come from, so redirect them to the
+                        // binding. Right then moves to Reset.
+                        .focusProperties {
+                            onEnter = {
+                                if (
+                                    requestedFocusDirection == FocusDirection.Down ||
+                                    requestedFocusDirection == FocusDirection.Up
+                                ) {
+                                    bindingRequester.requestFocus()
+                                }
+                            }
+                        }
+                        .focusGroup()
+                        .padding(
+                            bottom = Dimens.verticalPadding,
+                            start = Dimens.horizontalPadding,
+                            end = Dimens.horizontalPadding,
+                        ),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 FilledTonalButton(
                     onClick = item.onEdit,
                     enabled = !state.busy,
                     modifier =
-                        Modifier.semantics {
-                            contentDescription = bindingLabel
-                            stateDescription = bindingText
-                        },
+                        Modifier
+                            .focusRequester(bindingRequester)
+                            .semantics {
+                                contentDescription = bindingLabel
+                                stateDescription = bindingText
+                            },
                 ) {
                     Text(bindingText)
                 }

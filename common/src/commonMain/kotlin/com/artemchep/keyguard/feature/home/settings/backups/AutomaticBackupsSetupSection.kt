@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Backup
 import androidx.compose.material.icons.outlined.Info
@@ -34,7 +33,7 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource
 
-internal fun LazyListScope.automaticBackupsDisabledContent(
+internal fun AutomaticBackupsListScope.automaticBackupsDisabledContent(
     onSetupClick: () -> Unit,
     isSupported: Boolean,
     setupSectionTitle: String,

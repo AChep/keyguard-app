@@ -5,24 +5,17 @@ package com.artemchep.keyguard.feature.dialog
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEvent
-import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.semantics.SemanticsActions
-import androidx.compose.ui.semantics.SemanticsConfiguration
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getAllSemanticsNodes
 import androidx.compose.ui.semantics.getOrNull
-import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.use
 import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.PasswordStrength
@@ -48,22 +41,22 @@ import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.feature.timepicker.TimePickerDialog
 import com.artemchep.keyguard.feature.timepicker.TimePickerState
 import com.artemchep.keyguard.ui.DialogPopup
+import com.artemchep.keyguard.ui.draw
+import com.artemchep.keyguard.ui.enterText
+import com.artemchep.keyguard.ui.focused
 import com.artemchep.keyguard.ui.icons.generateAccentColors
-import com.artemchep.keyguard.ui.wizard.WizardPreview
+import com.artemchep.keyguard.ui.press
+import com.artemchep.keyguard.ui.withScene
 import com.artemchep.keyguard.util.fido2.Fido2Exception
 import com.artemchep.keyguard.util.fido2.Fido2Failure
 import com.artemchep.keyguard.util.fido2.Fido2Operation
-import javax.swing.SwingUtilities
-import kotlin.coroutines.CoroutineContext
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.datetime.LocalTime
@@ -368,39 +361,4 @@ class DialogEntryFocusSceneTest {
             assertEquals("Second", focused()[SemanticsProperties.Text].single().text)
         }
     }
-}
-
-private fun withScene(
-    content: @Composable () -> Unit,
-    coroutineContext: CoroutineContext = Dispatchers.Unconfined,
-    test: ImageComposeScene.() -> Unit,
-) {
-    SwingUtilities.invokeAndWait {
-        ImageComposeScene(900, 700, coroutineContext = coroutineContext) { WizardPreview { content() } }.use { scene ->
-            scene.draw()
-            scene.test()
-        }
-    }
-}
-
-private fun ImageComposeScene.draw() {
-    repeat(4) { render().close() }
-}
-
-private fun ImageComposeScene.press(key: Key, shift: Boolean = false) {
-    sendKeyEvent(KeyEvent(key, KeyEventType.KeyDown, isShiftPressed = shift))
-    sendKeyEvent(KeyEvent(key, KeyEventType.KeyUp, isShiftPressed = shift))
-    draw()
-}
-
-private fun ImageComposeScene.focused(): SemanticsConfiguration = assertNotNull(
-    semanticsOwners.toList().asReversed().firstNotNullOfOrNull { owner ->
-        owner.getAllSemanticsNodes(mergingEnabled = true)
-            .firstOrNull { it.config.getOrNull(SemanticsProperties.Focused) == true }?.config
-    },
-)
-
-private fun ImageComposeScene.enterText(text: String) {
-    assertTrue(focused()[SemanticsActions.SetText].action!!.invoke(AnnotatedString(text)))
-    draw()
 }

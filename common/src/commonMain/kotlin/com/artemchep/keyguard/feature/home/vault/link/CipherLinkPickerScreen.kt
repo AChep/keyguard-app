@@ -25,13 +25,13 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.dialog.DialogSearchTextField
-import com.artemchep.keyguard.feature.dialog.dialogArrowNavigation
 import com.artemchep.keyguard.feature.dialog.focusFirstResultOnDown
 import com.artemchep.keyguard.feature.home.vault.component.CompactVaultItem
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.focus.arrowKeyFocusNavigation
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -108,7 +108,7 @@ internal fun CipherLinkPickerItems(
             LazyColumn(
                 state = listState,
                 modifier = Modifier
-                    .dialogArrowNavigation()
+                    .arrowKeyFocusNavigation()
                     .fillMaxWidth()
                     .heightIn(max = CipherLinkPickerListMaxHeight),
             ) {

@@ -292,7 +292,7 @@
     <ID>ForbiddenComment:getMonetNeutralColor.kt:// TODO: Support properly populating all the difference surfaces</ID>
     <ID>FunctionNaming:AddRoute.kt:fun LeAddRoute: Route</ID>
     <ID>FunctionNaming:AddScreen.kt:context(addScope: AddScreenScope) fun LazyListScope.AddScreenItems</ID>
-    <ID>FunctionNaming:AutomaticBackupsEnabledSection.kt:internal fun LazyListScope.AutomaticBackupsEnabledContent</ID>
+    <ID>FunctionNaming:AutomaticBackupsEnabledSection.kt:internal fun AutomaticBackupsListScope.AutomaticBackupsEnabledContent</ID>
     <ID>FunctionNaming:ChangePasswordScreen.kt:private fun LazyListScope.ChangePasswordContent</ID>
     <ID>FunctionNaming:ChangePasswordScreen.kt:private fun LazyListScope.ChangePasswordContentSkeleton</ID>
     <ID>FunctionNaming:DFilter.kt:DFilter.Companion$private fun &lt;T&gt; _findAny: T?</ID>
@@ -420,7 +420,7 @@
     <ID>LongMethod:AutofillSaveActivity.kt:AutofillSaveActivity$@Composable override fun Content</ID>
     <ID>LongMethod:AutofillWindow.kt:@Composable fun ColumnScope.RecentsWindowOk</ID>
     <ID>LongMethod:AutofillWindow.kt:@Composable private fun ColumnScope.GeneratorValue2</ID>
-    <ID>LongMethod:AutomaticBackupsSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun AutomaticBackupsSettingsContent</ID>
+    <ID>LongMethod:AutomaticBackupsSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable internal fun AutomaticBackupsSettingsContent</ID>
     <ID>LongMethod:AutomaticBackupsStatusSection.kt:@Composable private fun AutomaticBackupsLastSyncLines</ID>
     <ID>LongMethod:AutomaticBackupsStatusSection.kt:@Composable private fun AutomaticBackupsStatusPanel</ID>
     <ID>LongMethod:BackupObjectStore.kt:BackupObjectStore$suspend fun test: BackupObjectStoreTestResult</ID>
@@ -606,7 +606,7 @@
     <ID>LongMethod:LogsStateProducer.kt:suspend fun RememberStateFlowScope.logsStateProducer: Flow&lt;Loadable&lt;LogsState&gt;&gt;</ID>
     <ID>LongMethod:ModifyCipherById.kt:ModifyCipherById$operator fun invoke: IO&lt;Set&lt;String&gt;&gt;</ID>
     <ID>LongMethod:NavigationItemsSettingsScreen.kt:@Composable private fun RowScope.NavigationItemsSettingsItemActions</ID>
-    <ID>LongMethod:NavigationItemsSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable private fun NavigationItemsSettingsContent</ID>
+    <ID>LongMethod:NavigationItemsSettingsScreen.kt:@OptIn(ExperimentalMaterial3Api::class) @Composable internal fun NavigationItemsSettingsContent</ID>
     <ID>LongMethod:NavigationItemsSettingsStateProducer.kt:suspend fun RememberStateFlowScope.navigationItemsSettingsStateProducer: Flow&lt;Loadable&lt;NavigationItemsSettingsState&gt;&gt;</ID>
     <ID>LongMethod:NavigationModule.kt:fun defaultNavigationModule</ID>
     <ID>LongMethod:NavigationNode.kt:@Composable fun NavigationNode</ID>
@@ -675,7 +675,7 @@
     <ID>LongMethod:SettingHibpApiToken.kt:@Composable private fun SettingHibpApiToken</ID>
     <ID>LongMethod:SettingLicenseClaim.kt:@Composable fun LicenseEntitlementFooter</ID>
     <ID>LongMethod:SettingListItem.kt:@Composable fun SettingListAccountsItem</ID>
-    <ID>LongMethod:SettingListScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalMaterialApi::class, ) @Composable private fun SettingListScreenContent</ID>
+    <ID>LongMethod:SettingListScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalMaterialApi::class, ) @Composable internal fun SettingListScreenContent</ID>
     <ID>LongMethod:SettingListScreen.kt:@OptIn(ExperimentalMaterial3ExpressiveApi::class) @Composable fun rememberSettingsItems: List&lt;SettingsItem2&gt;</ID>
     <ID>LongMethod:SettingLocalization.kt:@Composable private fun SettingLocalizationTopContributors</ID>
     <ID>LongMethod:SettingSubscriptions.kt:@Composable private fun SettingItemLayout</ID>
@@ -1283,7 +1283,7 @@
     <ID>MatchingDeclarationName:AttachmentPreviewMinimapModel.kt:AttachmentPreviewMinimapRow</ID>
     <ID>MatchingDeclarationName:AutofillSettingsRoute.kt:AutofillSettingsRouteImpl : Route</ID>
     <ID>MatchingDeclarationName:AutofillStructure.kt:AutofillStructure2 : Parcelable</ID>
-    <ID>MatchingDeclarationName:AutomaticBackupsSettingsItems.kt:AutomaticBackupsSettingsRow</ID>
+    <ID>MatchingDeclarationName:AutomaticBackupsSettingsItems.kt:AutomaticBackupsListScope</ID>
     <ID>MatchingDeclarationName:BitwardenCipherAttachmentExt.kt:PendingLocalAttachmentReconciliationResult</ID>
     <ID>MatchingDeclarationName:BitwardenSendFileExt.kt:PendingSendFileUploadReconciliationResult</ID>
     <ID>MatchingDeclarationName:BlockedUrlCheck.kt:BlockedUrlCheckImpl : BlockedUrlCheck</ID>

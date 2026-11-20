@@ -12,7 +12,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.layout.LayoutCoordinates
 import androidx.compose.ui.layout.findRootCoordinates
@@ -20,7 +23,6 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
-import androidx.compose.ui.unit.Density
 import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceHost
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
@@ -30,6 +32,10 @@ import com.artemchep.keyguard.common.usecase.GetNavAnimation
 import com.artemchep.keyguard.feature.home.ResponsiveLayout
 import com.artemchep.keyguard.feature.twopane.TwoPaneNavigationContent
 import com.artemchep.keyguard.platform.WindowId
+import com.artemchep.keyguard.ui.inputMode
+import com.artemchep.keyguard.ui.keyboardScene
+import com.artemchep.keyguard.ui.sendClick
+import com.artemchep.keyguard.ui.sendKeyPress
 import java.lang.reflect.InvocationTargetException
 import javax.swing.SwingUtilities
 import kotlin.test.assertNotNull
@@ -44,19 +50,22 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.serialization.json.Json
 import org.koin.compose.KoinContext
 import org.koin.core.Koin
+import org.koin.core.module.Module
 import org.koin.dsl.module
 
 /**
  * Runs the [block] on the Swing thread with a fresh harness that uses
- * the [navAnimation], and closes the harness after.
+ * the [navAnimation] and the extra Koin [modules], and closes the
+ * harness after.
  */
 internal fun withNavigationHarness(
     navAnimation: NavAnimation = NavAnimation.DISABLED,
+    modules: List<Module> = emptyList(),
     block: NavigationComposeHarness.() -> Unit,
 ) {
     try {
         SwingUtilities.invokeAndWait {
-            val harness = NavigationComposeHarness(navAnimation)
+            val harness = NavigationComposeHarness(navAnimation, modules)
             try {
                 harness.block()
             } finally {
@@ -121,6 +130,8 @@ internal class NavigationScreenProbe {
 @OptIn(ExperimentalComposeUiApi::class)
 internal class NavigationComposeHarness(
     navAnimation: NavAnimation = NavAnimation.DISABLED,
+    /** Bindings the composed screens need on top of the navigation ones. */
+    modules: List<Module> = emptyList(),
 ) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
@@ -128,7 +139,8 @@ internal class NavigationComposeHarness(
     val navAnimation = MutableStateFlow(navAnimation)
 
     private val koin = Koin().apply {
-        loadModules(listOf(NavigationComposeTestModule(scope, this@NavigationComposeHarness.navAnimation).module))
+        val navigationModule = NavigationComposeTestModule(scope, this@NavigationComposeHarness.navAnimation)
+        loadModules(listOf(navigationModule.module) + modules)
     }
     val host = NavigationHost()
     private val store = NavigationStore()
@@ -142,13 +154,23 @@ internal class NavigationComposeHarness(
     // Filled by the composition.
     private val routers = mutableMapOf<String, NavigationRouterProbe>()
 
-    private var scene: ImageComposeScene? = null
+    private var sceneOrNull: ImageComposeScene? = null
+
+    /** The scene, after [start]. */
+    val scene: ImageComposeScene
+        get() = checkNotNull(sceneOrNull) { "The harness has not started" }
+
+    /** The input mode of the scene, after [start]. */
+    val inputMode: InputMode
+        get() = scene.inputMode
+
     private var frameTime = 0L
 
     /**
      * Composes the [route] in a scene of the [width] and [height], in
      * pixels and dp alike. The default size is narrow, a two-pane host
-     * shows one pane in it.
+     * shows one pane in it. Like a desktop window, the scene sends an
+     * Escape that nothing consumed to Back.
      */
     fun start(
         route: Route,
@@ -156,10 +178,9 @@ internal class NavigationComposeHarness(
         height: Int = NARROW_HEIGHT,
     ) {
         mainRoute = route
-        scene = ImageComposeScene(
+        sceneOrNull = keyboardScene(
             width = width,
             height = height,
-            density = Density(1f),
         ) {
             Content()
         }
@@ -179,7 +200,6 @@ internal class NavigationComposeHarness(
 
     /** Renders exactly one frame. */
     fun render(frameNanos: Long = FRAME_NANOS) {
-        val scene = checkNotNull(scene)
         scene.render(frameTime).close()
         frameTime += frameNanos
     }
@@ -188,7 +208,7 @@ internal class NavigationComposeHarness(
      * `true` if the scene has a node with the [text], for content
      * that is not a screen of the [screens] probe.
      */
-    fun hasText(text: String): Boolean = checkNotNull(scene)
+    fun hasText(text: String): Boolean = scene
         .semanticsOwners
         .any { owner ->
             owner.unmergedRootSemanticsNode.hasText(text)
@@ -217,7 +237,7 @@ internal class NavigationComposeHarness(
     ): Route = RouterHost(routerId, initial, content)
 
     fun close() {
-        scene?.close()
+        sceneOrNull?.close()
         scope.cancel()
         koin.close()
     }
@@ -344,6 +364,22 @@ internal fun NavigationComposeHarness.twoPaneHost(
     ResponsiveLayout {
         TwoPaneNavigationContent(entries)
     }
+}
+
+/**
+ * Presses and releases [key], then renders enough frames for a
+ * navigation to settle and a list to wait for its layout. An Escape
+ * that nothing consumed goes Back.
+ */
+internal fun NavigationComposeHarness.press(key: Key, shift: Boolean = false) {
+    scene.sendKeyPress(key, shift)
+    repeat(2) { frame() }
+}
+
+/** Clicks the primary mouse button at [position], like [press]. */
+internal fun NavigationComposeHarness.click(position: Offset) {
+    scene.sendClick(position)
+    repeat(2) { frame() }
 }
 
 private fun SemanticsNode.hasText(text: String): Boolean {

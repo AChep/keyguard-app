@@ -22,9 +22,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -221,6 +224,8 @@ internal fun ExportPasswordStep(state: ExportState) {
     val format by state.formatFlow.collectAsState()
     val password by state.passwordFlow.collectAsState()
     val confirmation by state.confirmationPasswordFlow.collectAsState()
+    val wizard by state.wizardFlow.collectAsState()
+    val confirmationFocus = remember { FocusRequester() }
     Column(
         verticalArrangement = Arrangement.spacedBy(Dimens.verticalPaddingHalf),
     ) {
@@ -231,7 +236,13 @@ internal fun ExportPasswordStep(state: ExportState) {
             label = format.passwordLabel,
             shapeState = ShapeState.START,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Next) }),
+            keyboardActions = KeyboardActions(
+                onNext = {
+                    // Skips the visibility toggle and the
+                    // generator button of the password.
+                    if (!confirmationFocus.requestFocus()) focusManager.moveFocus(FocusDirection.Next)
+                },
+            ),
             trailing = {
                 AutofillButton(
                     key = "password",
@@ -248,11 +259,18 @@ internal fun ExportPasswordStep(state: ExportState) {
         PasswordFlatTextField(
             modifier = Modifier
                 .padding(horizontal = Dimens.fieldHorizontalPadding),
+            fieldModifier = Modifier
+                .focusRequester(confirmationFocus),
             value = confirmation.model,
             label = format.confirmPasswordLabel,
             shapeState = ShapeState.END,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+            keyboardActions = KeyboardActions(
+                onDone = {
+                    focusManager.clearFocus()
+                    wizard.onContinue?.invoke()
+                },
+            ),
         )
     }
 }

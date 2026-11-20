@@ -1,6 +1,5 @@
 package com.artemchep.keyguard.feature.home.settings.backups
 
-import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.History
 import androidx.compose.material.icons.outlined.SystemUpdateAlt
@@ -29,7 +28,7 @@ import com.artemchep.keyguard.ui.theme.danger
 import kotlinx.collections.immutable.persistentListOf
 import org.jetbrains.compose.resources.stringResource
 
-internal fun LazyListScope.AutomaticBackupsEnabledContent(
+internal fun AutomaticBackupsListScope.AutomaticBackupsEnabledContent(
     state: AutomaticBackupsSettingsState,
     dateFormatter: DateFormatter,
     configExpanded: MutableState<Boolean>,

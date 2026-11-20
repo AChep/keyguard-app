@@ -28,7 +28,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.usecase.GetNavAnimation
 import com.artemchep.keyguard.feature.dialog.Dialog
-import com.artemchep.keyguard.feature.dialog.dialogArrowNavigation
 import com.artemchep.keyguard.feature.dialog.rememberInitialItemFocus
 import com.artemchep.keyguard.feature.home.vault.component.CompactVaultItem
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemSimpleExpressive
@@ -44,6 +43,7 @@ import com.artemchep.keyguard.res.cipher_field_picker_fields_title
 import com.artemchep.keyguard.res.cipher_field_picker_items_empty
 import com.artemchep.keyguard.res.cipher_field_picker_items_title
 import com.artemchep.keyguard.res.close
+import com.artemchep.keyguard.ui.focus.arrowKeyFocusNavigation
 import com.artemchep.keyguard.ui.icons.icon
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -170,7 +170,7 @@ private fun CipherFieldPickerFields(
     LazyColumn(
         state = listState,
         modifier = Modifier
-            .dialogArrowNavigation()
+            .arrowKeyFocusNavigation()
             .fillMaxWidth()
             .heightIn(max = CipherLinkPickerListMaxHeight),
     ) {

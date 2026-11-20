@@ -109,6 +109,7 @@ fun ScaffoldLazyColumn(
     contentColor: Color = contentColorFor(containerColor),
     contentWindowInsets: WindowInsets = scaffoldContentWindowInsets,
     overlay: @Composable OverlayScope.() -> Unit = {},
+    listModifier: Modifier = Modifier,
     listVerticalArrangement: Arrangement.Vertical = Arrangement.Top,
     listState: LazyListState = rememberLazyListState(),
     listContent: LazyListScope.() -> Unit,
@@ -164,7 +165,7 @@ fun ScaffoldLazyColumn(
                 listState = listState,
             ) {
                 LazyColumn(
-                    modifier = Modifier
+                    modifier = listModifier
                         .fillMaxSize()
                         .graphicsLayer {
                             translationY = translationYAnimatedState.value

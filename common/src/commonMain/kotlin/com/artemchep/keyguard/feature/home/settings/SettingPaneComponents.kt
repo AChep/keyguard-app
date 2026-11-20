@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.home.settings
 
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
@@ -24,6 +25,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -214,8 +220,17 @@ object SettingPaneComponentsDefault : SettingPaneComponents {
         checked: Boolean,
         onCheckedChange: ((Boolean) -> Unit)?,
     ) {
+        // The row is the only focus target. The switch only
+        // draws the row's press, hover and focus states.
+        val interactionSource = remember { MutableInteractionSource() }
         FlatItemSimpleExpressive(
             shapeState = LocalSettingItemShape.current,
+            rowModifier = Modifier
+                .semantics {
+                    role = Role.Switch
+                    toggleableState = ToggleableState(checked)
+                },
+            interactionSource = interactionSource,
             leading = if (icon != null) {
                 icon<RowScope>(icon, subIcon)
             } else {
@@ -228,7 +243,8 @@ object SettingPaneComponentsDefault : SettingPaneComponents {
                     SwitchExpressive(
                         checked = checked,
                         enabled = onCheckedChange != null,
-                        onCheckedChange = onCheckedChange,
+                        onCheckedChange = null,
+                        interactionSource = interactionSource,
                     )
                 }
             },

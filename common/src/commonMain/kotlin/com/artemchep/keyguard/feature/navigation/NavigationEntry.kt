@@ -43,6 +43,12 @@ interface NavigationEntry : BackPressInterceptorHost, KeyEventInterceptorHost {
      */
     val isDestroyed: Boolean
 
+    /**
+     * The key of the target focused last in the content of this entry, so
+     * the content can focus it again when it comes back. Main thread only.
+     */
+    var lastFocusedKey: String?
+
     val activeBackPressInterceptorsStateFlow: StateFlow<ImmutableMap<String, BackPressInterceptorRegistration>>
 
     val activeKeyEventInterceptorsStateFlow: StateFlow<ImmutableMap<String, KeyEventInterceptorRegistration>>
@@ -117,6 +123,8 @@ class NavigationEntryImpl internal constructor(
         get() = activeKeyEventInterceptorsStateSink
 
     override val isDestroyed get() = job.isCompleted || job.isCancelled
+
+    override var lastFocusedKey: String? = null
 
     init {
         require('/' !in id)

@@ -10,8 +10,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -27,6 +31,7 @@ import com.artemchep.keyguard.ui.theme.combineAlpha
 /**
  * One option of a single choice. Put the options
  * of a choice in a `Modifier.selectableGroup()`.
+ * A step that opens focuses its selected option.
  */
 @Composable
 fun WizardChoice(
@@ -37,11 +42,17 @@ fun WizardChoice(
     enabled: Boolean = true,
     onClick: () -> Unit,
 ) {
+    val focusRequester = remember { FocusRequester() }
+    if (selected) {
+        WizardSelectedChoiceEffect(focusRequester)
+    }
     FlatItemLayoutExpressive(
-        rowModifier = Modifier.semantics {
-            this.selected = selected
-            role = Role.RadioButton
-        },
+        rowModifier = Modifier
+            .focusRequester(focusRequester)
+            .semantics {
+                this.selected = selected
+                role = Role.RadioButton
+            },
         shapeState = shapeState,
         backgroundColor = wizardSelectedBackground(selected),
         leading = { Icon(icon, contentDescription = null) },
@@ -51,6 +62,20 @@ fun WizardChoice(
         trailing = { RadioButton(selected = selected, onClick = null, enabled = enabled) },
         onClick = onClick.takeIf { enabled },
     )
+}
+
+/** Tells the step that the choice of the [focusRequester] is selected. */
+@Composable
+private fun WizardSelectedChoiceEffect(focusRequester: FocusRequester) {
+    val stepFocus = LocalWizardStepFocus.current
+    DisposableEffect(stepFocus, focusRequester) {
+        stepFocus?.selectedChoice = focusRequester
+        onDispose {
+            if (stepFocus != null && stepFocus.selectedChoice === focusRequester) {
+                stepFocus.selectedChoice = null
+            }
+        }
+    }
 }
 
 /**

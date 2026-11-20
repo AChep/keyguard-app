@@ -21,7 +21,9 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.compositeOver
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
@@ -686,6 +688,12 @@ private fun ApplicationScope.KeyguardMainWindow(
             windowId != null && keyboardShortcutsService.handle(windowId, event)
         },
     ) {
+        // CMP desktop starts in Keyboard mode: restored or deep-linked pages must not take focus before input.
+        val inputModeManager = LocalInputModeManager.current
+        DisposableEffect(inputModeManager) {
+            inputModeManager.requestInputMode(InputMode.Touch)
+            onDispose { }
+        }
         val windowId = WindowId(window.windowHandle)
         // The window-level key callback is declared before the native window is available.
         DisposableEffect(window, windowId) {

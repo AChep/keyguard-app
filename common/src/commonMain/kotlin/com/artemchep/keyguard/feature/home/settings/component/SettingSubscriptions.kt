@@ -241,9 +241,8 @@ private fun SettingSubscriptionSkeletonItem(
     SettingItemLayout(
         modifier = modifier,
         isActive = false,
-        onClick = {
-            // Do nothing
-        },
+        // A skeleton is not a Tab stop.
+        onClick = null,
         title = {
             SkeletonText(
                 modifier = Modifier
@@ -372,7 +371,7 @@ private fun SettingGroupLayout(
 private fun SettingItemLayout(
     modifier: Modifier = Modifier,
     isActive: Boolean,
-    onClick: () -> Unit,
+    onClick: (() -> Unit)?,
     title: @Composable ColumnScope.() -> Unit,
     price: @Composable ColumnScope.() -> Unit,
     content: (@Composable FlowRowScope.() -> Unit)? = null,
@@ -411,9 +410,16 @@ private fun SettingItemLayout(
         val updatedOnClick by rememberUpdatedState(onClick)
         Column(
             modifier = Modifier
-                .clickable(role = Role.Button) {
-                    updatedOnClick()
-                }
+                .then(
+                    if (onClick != null) {
+                        Modifier
+                            .clickable(role = Role.Button) {
+                                updatedOnClick?.invoke()
+                            }
+                    } else {
+                        Modifier
+                    },
+                )
                 .padding(Dimens.contentPadding),
         ) {
             val localEmphasis = DefaultEmphasisAlpha

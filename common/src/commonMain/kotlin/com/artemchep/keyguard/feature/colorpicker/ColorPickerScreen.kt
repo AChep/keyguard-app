@@ -38,12 +38,12 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.common.util.toHex
 import com.artemchep.keyguard.feature.dialog.Dialog
-import com.artemchep.keyguard.feature.dialog.dialogArrowNavigation
 import com.artemchep.keyguard.feature.dialog.dialogTabTargets
 import com.artemchep.keyguard.feature.dialog.rememberInitialItemFocus
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
+import com.artemchep.keyguard.ui.focus.arrowKeyFocusNavigation
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.isDark
@@ -127,7 +127,7 @@ private fun ColumnScope.Content(
         modifier = Modifier
             .fillMaxWidth()
             .selectableGroup()
-            .dialogArrowNavigation()
+            .arrowKeyFocusNavigation()
             .dialogTabTargets(
                 previous = if (state.onConfirm != null) ok else close,
                 next = close,

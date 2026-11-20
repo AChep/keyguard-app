@@ -2,10 +2,12 @@ package com.artemchep.keyguard.feature.home.vault.component
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.LocalIndication
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -71,7 +73,9 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -87,6 +91,7 @@ import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
+import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
@@ -104,6 +109,7 @@ import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.DropdownMenuItemFlat
 import com.artemchep.keyguard.ui.DropdownScope
+import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
@@ -869,9 +875,27 @@ fun FlatDropdownSimpleExpressive(
         dropdown = if (dropdown.isNotEmpty()) {
             // composable
             {
+                // A menu opened from the keyboard focuses the selected
+                // option. A pointer opens it in touch mode.
+                val inputModeManager = LocalInputModeManager.current
+                val openedInKeyboard = remember {
+                    inputModeManager.inputMode == InputMode.Keyboard
+                }
+                val focused = if (openedInKeyboard) {
+                    dropdown.firstOrNull { action ->
+                        action is FlatItemAction && action.selected && action.onClick != null
+                    }
+                } else {
+                    null
+                }
                 dropdown.forEach { action ->
                     DropdownMenuItemFlat(
                         action = action,
+                        modifier = if (action === focused) {
+                            Modifier.focusOnDialogOpen()
+                        } else {
+                            Modifier
+                        },
                     )
                 }
             }
@@ -969,6 +993,8 @@ fun FlatItemSimpleExpressive(
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
     enabled: Boolean = onClick != null,
+    rowModifier: Modifier = Modifier,
+    interactionSource: MutableInteractionSource? = null,
 ) = FlatItemLayoutExpressive(
     modifier = modifier,
     elevation = elevation,
@@ -989,6 +1015,8 @@ fun FlatItemSimpleExpressive(
     onClick = onClick,
     onLongClick = onLongClick,
     enabled = enabled,
+    rowModifier = rowModifier,
+    interactionSource = interactionSource,
 )
 
 @Composable
@@ -1011,6 +1039,7 @@ fun FlatItemLayoutExpressive(
     onLongClick: (() -> Unit)? = null,
     enabled: Boolean = onClick != null,
     rowModifier: Modifier = Modifier,
+    interactionSource: MutableInteractionSource? = null,
 ) {
     val haptic by rememberUpdatedState(LocalHapticFeedback.current)
     val background = run {
@@ -1028,6 +1057,8 @@ fun FlatItemLayoutExpressive(
         val onClickState = rememberUpdatedState(onClick)
         Modifier
             .combinedClickable(
+                interactionSource = interactionSource,
+                indication = LocalIndication.current,
                 enabled = onClick != null,
                 onLongClick = onLongClick,
             ) {

@@ -40,13 +40,27 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isAltPressed
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.isShiftPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.semantics.CustomAccessibilityAction
@@ -59,6 +73,7 @@ import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
+import com.artemchep.keyguard.feature.home.settings.rememberSettingsListFocus
 import com.artemchep.keyguard.feature.home.vault.component.defaultFlatItemPaddingValues
 import com.artemchep.keyguard.feature.home.vault.component.surfaceShape
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -74,6 +89,8 @@ import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.buildContextItems
+import com.artemchep.keyguard.ui.focus.awaitScrolledItemsPlaced
+import com.artemchep.keyguard.ui.focus.scrollIntoView
 import com.artemchep.keyguard.ui.reorder.ReorderableLazyListState
 import com.artemchep.keyguard.ui.reorder.move
 import com.artemchep.keyguard.ui.reorder.rememberReorderableLazyListState
@@ -85,6 +102,7 @@ import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.LocalExpressive
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -119,7 +137,7 @@ private fun NavigationItemsSettingsLoadingContent() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun NavigationItemsSettingsContent(
+internal fun NavigationItemsSettingsContent(
     state: NavigationItemsSettingsState,
 ) {
     val scrollBehavior = ToolbarBehavior.behavior()
@@ -156,6 +174,38 @@ private fun NavigationItemsSettingsContent(
     ) {
         if (!dragging) {
             localItems = state.items.toList()
+        }
+    }
+    val listKeys = remember(localItems) {
+        localItems.map { it.key } + BOTTOM_SPACER_KEY
+    }
+    val focus = rememberSettingsListFocus(
+        listState = listState,
+        listKeys = listKeys,
+        focusFirstOnEnter = true,
+    )
+    val coroutineScope = rememberCoroutineScope()
+    // Commits the order the same way a drag does.
+    val onKeyboardMove: (key: String, delta: Int) -> Unit = { key, delta ->
+        val fromIndex = localItems.indexOfFirst { it.key == key }
+        val toIndex = fromIndex + delta
+        if (fromIndex >= 0 && toIndex in localItems.indices) {
+            // A lazy list follows the key of its first visible
+            // item, so moving that item would scroll the list.
+            listState.requestScrollToItem(
+                index = listState.firstVisibleItemIndex,
+                scrollOffset = listState.firstVisibleItemScrollOffset,
+            )
+            localItems = localItems.move(fromIndex, toIndex)
+            updatedOnReorder(
+                localItems.map { it.ref },
+            )
+            coroutineScope.launch {
+                // A frame runs its callbacks before its layout,
+                // so the second frame comes after the new layout.
+                awaitScrolledItemsPlaced()
+                listState.scrollIntoView(toIndex)
+            }
         }
     }
 
@@ -214,6 +264,7 @@ private fun NavigationItemsSettingsContent(
                 onReset = state.onReset,
             )
         },
+        listModifier = focus.listModifier,
         listState = listState,
     ) {
         itemsIndexed(
@@ -252,7 +303,17 @@ private fun NavigationItemsSettingsContent(
                             item = item,
                             moveUpLabel = moveUpLabel,
                             moveDownLabel = moveDownLabel,
-                        ),
+                        )
+                        .then(focus.target(item.key))
+                        .onKeyEvent { event ->
+                            val delta = event.keyboardMoveDelta()
+                                ?: return@onKeyEvent false
+                            // A drag owns the order until it ends.
+                            if (dragging) return@onKeyEvent false
+                            onKeyboardMove(item.key, delta)
+                            // Also at the list ends, where it does nothing.
+                            true
+                        },
                     dragHandleModifier = Modifier
                         .navigationItemsDragHandle(
                             itemKey = item.key,
@@ -266,7 +327,7 @@ private fun NavigationItemsSettingsContent(
             }
         }
 
-        item("bottom_spacer") {
+        item(BOTTOM_SPACER_KEY) {
             Spacer(
                 modifier = Modifier
                     .height(Dimens.verticalPadding),
@@ -314,8 +375,27 @@ private fun NavigationItemsSettingsItem(
     item: NavigationItemsSettingsState.Item,
 ) {
     val components = LocalSettingPaneComponents.current
+    // Arrows only search the siblings of the focused node, and the
+    // trailing buttons are children of the row, so Right and Left
+    // link the row and the options button. Only a clickable row is
+    // a focus target.
+    val rowRequester = remember { FocusRequester() }
+    val optionsRequester = remember { FocusRequester() }
+    val linked = item.onVisibilityToggle != null
     Box(
-        modifier = modifier,
+        modifier = modifier
+            .then(
+                if (linked) {
+                    // Applies to the first focus target below it, the row.
+                    Modifier
+                        .focusRequester(rowRequester)
+                        .focusProperties {
+                            end = optionsRequester
+                        }
+                } else {
+                    Modifier
+                },
+            ),
     ) {
         components.KgAction(
             icon = item.icon,
@@ -331,6 +411,15 @@ private fun NavigationItemsSettingsItem(
             },
             trailing = {
                 NavigationItemsSettingsItemActions(
+                    optionsModifier = if (linked) {
+                        Modifier
+                            .focusRequester(optionsRequester)
+                            .focusProperties {
+                                start = rowRequester
+                            }
+                    } else {
+                        Modifier
+                    },
                     dragHandleModifier = dragHandleModifier,
                     item = item,
                 )
@@ -343,12 +432,18 @@ private fun NavigationItemsSettingsItem(
 
 @Composable
 private fun RowScope.NavigationItemsSettingsItemActions(
+    optionsModifier: Modifier,
     dragHandleModifier: Modifier,
     item: NavigationItemsSettingsState.Item,
 ) {
 
     if (item.onVisibilityToggle != null) {
         IconButton(
+            // The row does the same, so the keyboard skips it.
+            modifier = Modifier
+                .focusProperties {
+                    canFocus = false
+                },
             onClick = item.onVisibilityToggle,
         ) {
             Icon(
@@ -373,6 +468,7 @@ private fun RowScope.NavigationItemsSettingsItemActions(
     }
     Box {
         IconButton(
+            modifier = optionsModifier,
             onClick = {
                 expanded = true
             },
@@ -523,3 +619,20 @@ private fun Modifier.navigationItemsDragHandle(
     startDragImmediately = true,
     onDragStarted = onDragStarted,
 )
+
+private const val BOTTOM_SPACER_KEY = "bottom_spacer"
+
+/**
+ * `-1` for Alt+Up and `1` for Alt+Down, which move the focused row,
+ * else `null`. Alt is the Option key on macOS.
+ */
+private fun KeyEvent.keyboardMoveDelta(): Int? {
+    val altOnly = type == KeyEventType.KeyDown &&
+        isAltPressed && !isCtrlPressed && !isMetaPressed && !isShiftPressed
+    return when {
+        !altOnly -> null
+        key == Key.DirectionUp -> -1
+        key == Key.DirectionDown -> 1
+        else -> null
+    }
+}

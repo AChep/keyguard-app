@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.dialog.Dialog
-import com.artemchep.keyguard.feature.dialog.dialogArrowNavigation
 import com.artemchep.keyguard.feature.dialog.dialogTabTargets
 import com.artemchep.keyguard.feature.dialog.rememberInitialItemFocus
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
@@ -39,6 +38,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.FlatItem
+import com.artemchep.keyguard.ui.focus.arrowKeyFocusNavigation
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.selectedContainer
@@ -195,7 +195,7 @@ private fun MonthPicker(
     )
     LazyColumn(
         modifier = modifier.focusRequester(listFocus)
-            .dialogArrowNavigation()
+            .arrowKeyFocusNavigation()
             .dialogTabTargets(previousGroup, nextGroup),
         state = listState,
     ) {

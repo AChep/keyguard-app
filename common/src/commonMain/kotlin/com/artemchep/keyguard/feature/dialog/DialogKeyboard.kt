@@ -26,6 +26,8 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import com.artemchep.keyguard.feature.navigation.keyboard.hasShortcutModifier
 import com.artemchep.keyguard.feature.navigation.keyboard.isPlainKeyDown
+import com.artemchep.keyguard.ui.focus.awaitScrolledItemsPlaced
+import com.artemchep.keyguard.ui.focus.scrollToItemInContext
 import kotlinx.coroutines.launch
 
 // The composed modifiers below are keyed, so equal arguments give equal
@@ -80,29 +82,10 @@ internal fun Modifier.dialogTabTargets(previous: FocusRequester, next: FocusRequ
         } else false
     }
 
-/** Desktop scroll containers consume arrow keys unless their choices move focus first. */
-internal fun Modifier.dialogArrowNavigation(): Modifier = composed(
-    fullyQualifiedName = "com.artemchep.keyguard.feature.dialog.dialogArrowNavigation",
-    key1 = Unit,
-) {
-    val focus = LocalFocusManager.current
-    Modifier.onPreviewKeyEvent { event ->
-        if (!event.isPlainKeyDown) return@onPreviewKeyEvent false
-        val direction = when (event.key) {
-            Key.DirectionDown -> FocusDirection.Down
-            Key.DirectionUp -> FocusDirection.Up
-            Key.DirectionLeft -> FocusDirection.Left
-            Key.DirectionRight -> FocusDirection.Right
-            else -> return@onPreviewKeyEvent false
-        }
-        focus.moveFocus(direction)
-    }
-}
-
 /**
- * Focuses the item at [index] once per [key]: scrolls to [contextIndex] to keep a
- * few items before it in view, or to the item itself if it is not composed then.
- * A null [index] focuses nothing. Attach the returned requester to that item.
+ * Focuses the item at [index] once per [key], after [scrollToItemInContext]
+ * with the [contextIndex]. A null [index] focuses nothing. Attach the returned
+ * requester to that item.
  */
 @Composable
 internal fun LazyListState.rememberInitialItemFocus(
@@ -113,25 +96,28 @@ internal fun LazyListState.rememberInitialItemFocus(
     val requester = remember { FocusRequester() }
     LaunchedEffect(key) {
         if (index == null) return@LaunchedEffect
-        scrollToItem(contextIndex)
-        if (layoutInfo.visibleItemsInfo.none { it.index == index }) {
-            scrollToItem(index)
-        }
+        scrollToItemInContext(index, contextIndex)
         requester.requestFocus()
     }
     return requester
 }
 
-/** Entering the result list gives its first row normal arrow and activation key handling. */
+/**
+ * Entering the result list gives its first row normal arrow and activation key handling.
+ * [firstResult] is on the first row, or on a focus group around the rows if [group]: a
+ * group takes focus with Down, so it enters at its top row once the rows are placed.
+ */
 internal fun Modifier.focusFirstResultOnDown(
     state: LazyListState,
     firstResult: FocusRequester,
     firstIndex: Int?,
+    group: Boolean = false,
 ): Modifier = composed(
-    fullyQualifiedName = "com.artemchep.keyguard.feature.dialog.focusFirstResultOnDown",
-    key1 = state,
-    key2 = firstResult,
-    key3 = firstIndex,
+    "com.artemchep.keyguard.feature.dialog.focusFirstResultOnDown",
+    state,
+    firstResult,
+    firstIndex,
+    group,
 ) {
     val scope = rememberCoroutineScope()
     val currentIndex by rememberUpdatedState(firstIndex)
@@ -139,8 +125,15 @@ internal fun Modifier.focusFirstResultOnDown(
         val index = currentIndex
         if (index != null && event.isPlainKeyDown && event.key == Key.DirectionDown) {
             scope.launch {
+                val scrolls = state.firstVisibleItemIndex != index ||
+                    state.firstVisibleItemScrollOffset != 0
                 state.scrollToItem(index)
-                if (currentIndex == index) firstResult.requestFocus()
+                // A group only enters a placed row. Waiting only
+                // after a scroll keeps a quick Down, Enter working.
+                if (group && scrolls) awaitScrolledItemsPlaced()
+                if (currentIndex == index) {
+                    firstResult.requestFocus(if (group) FocusDirection.Down else FocusDirection.Enter)
+                }
             }
             true
         } else false

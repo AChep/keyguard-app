@@ -37,11 +37,12 @@ import com.artemchep.keyguard.ui.theme.selectedContainer
 @Composable
 fun DropdownScope.DropdownMenuItemFlat(
     action: ContextItem,
+    modifier: Modifier = Modifier,
 ) {
     when (action) {
         is ContextItem.Section -> {
             Section(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxWidth(),
                 text = action.title,
             )
@@ -49,7 +50,7 @@ fun DropdownScope.DropdownMenuItemFlat(
 
         is ContextItem.Custom -> {
             Column(
-                modifier = Modifier
+                modifier = modifier
                     .widthIn(max = DropdownMinWidth),
             ) {
                 action.content()
@@ -57,7 +58,10 @@ fun DropdownScope.DropdownMenuItemFlat(
         }
 
         is FlatItemAction -> {
-            DropdownMenuItemFlat(action)
+            DropdownMenuItemFlat(
+                action = action,
+                modifier = modifier,
+            )
         }
     }
 }
@@ -65,9 +69,10 @@ fun DropdownScope.DropdownMenuItemFlat(
 @Composable
 fun DropdownScope.DropdownMenuItemFlat(
     action: FlatItemAction,
+    modifier: Modifier = Modifier,
 ) {
     DropdownMenuItemFlatLayout(
-        modifier = Modifier
+        modifier = modifier
             .padding(
                 horizontal = 8.dp,
                 vertical = 1.dp,

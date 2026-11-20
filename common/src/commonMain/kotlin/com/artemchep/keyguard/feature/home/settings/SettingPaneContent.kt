@@ -1,7 +1,10 @@
 package com.artemchep.keyguard.feature.home.settings
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -599,6 +602,17 @@ fun SettingPaneContent2(
     state: SettingPaneState,
 ) {
     val scrollBehavior = ToolbarBehavior.behavior()
+    val listState = rememberLazyListState()
+    val listKeys = remember(state.list) {
+        val list = (state.list as? Loadable.Ok)?.value
+        list?.map { it.compositeKey }.orEmpty()
+    }
+    // The pane opens in Loading, so its rows come later.
+    val focus = rememberSettingsListFocus(
+        listState = listState,
+        listKeys = listKeys,
+        focusFirstOnEnter = true,
+    )
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -615,6 +629,8 @@ fun SettingPaneContent2(
                 scrollBehavior = scrollBehavior,
             )
         },
+        listModifier = focus.listModifier,
+        listState = listState,
     ) {
         when (val contentState = state.list) {
             is Loadable.Loading -> {
@@ -631,25 +647,40 @@ fun SettingPaneContent2(
                     }
                 }
 
-                itemsIndexed(
-                    items = list,
-                    key = { _, model -> model.compositeKey },
-                ) { index, model ->
-                    val shapeState = getShapeState(
-                        list,
-                        index,
-                        predicate = { item, _ ->
-                            item.groupKey == model.groupKey &&
-                                    item.itemKey != "divider"
-                        },
-                    )
-                    CompositionLocalProvider(
-                        LocalSettingItemArgs provides model.args,
-                        LocalSettingItemShape provides shapeState,
-                    ) {
-                        model.content?.invoke()
-                    }
-                }
+                settingPaneItems(
+                    list = list,
+                    focus = focus,
+                )
+            }
+        }
+    }
+}
+
+private fun LazyListScope.settingPaneItems(
+    list: List<SettingPaneState.Component>,
+    focus: SettingsListFocus,
+) {
+    itemsIndexed(
+        items = list,
+        key = { _, model -> model.compositeKey },
+    ) { index, model ->
+        val shapeState = getShapeState(
+            list,
+            index,
+            predicate = { item, _ ->
+                item.groupKey == model.groupKey &&
+                        item.itemKey != "divider"
+            },
+        )
+        // A column stacks the content like a lazy item does.
+        Column(
+            modifier = focus.target(model.compositeKey),
+        ) {
+            CompositionLocalProvider(
+                LocalSettingItemArgs provides model.args,
+                LocalSettingItemShape provides shapeState,
+            ) {
+                model.content?.invoke()
             }
         }
     }

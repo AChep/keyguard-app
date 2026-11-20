@@ -336,6 +336,8 @@ kotlin {
                 // The backup tests inspect the archives the repository wrote
                 // with zip4j's own reader, independently of `util/zip`.
                 implementation(libs.lingala.zip4j)
+                // Keyboard scene tests route Escape to Back, as a desktop window does.
+                implementation(libs.androidx.navigationevent.compose)
             }
         }
 

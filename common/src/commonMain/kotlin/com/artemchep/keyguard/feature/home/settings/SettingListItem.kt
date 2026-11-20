@@ -133,9 +133,14 @@ fun SettingListItem(
     }
 }
 
+/**
+ * The accounts block. Each account row and the Add account row get the
+ * [rowModifier] of their key: `<item id>:<account id>` and `<item id>:add`.
+ */
 @Composable
 fun SettingListAccountsItem(
     item: SettingsAccountsItem,
+    rowModifier: (String) -> Modifier = { Modifier },
 ) {
     Column {
         val data by item.state
@@ -174,6 +179,7 @@ fun SettingListAccountsItem(
                 }
             }
             FlatItemLayoutExpressive(
+                modifier = rowModifier("${item.id}:${accountItem.id}"),
                 backgroundColor = backgroundColor,
                 shapeState = shapeState,
                 leading = {
@@ -282,6 +288,7 @@ fun SettingListAccountsItem(
             ShapeState.ALL
         }
         FlatDropdownSimpleExpressive(
+            modifier = rowModifier("${item.id}:add"),
             shapeState = shapeState,
             leading = {
                 Avatar {

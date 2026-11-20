@@ -20,9 +20,12 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -135,6 +138,8 @@ private fun BackupDestinationChoices(
 internal fun BackupSetupProtection(state: AutomaticBackupsSetupState) {
     val focusManager = LocalFocusManager.current
     val hasPassword = state.password.text.isNotEmpty()
+    val confirmationFocus = remember { FocusRequester() }
+    val updatedOnContinue by rememberUpdatedState(state.onContinue)
     Column(
         verticalArrangement = Arrangement.spacedBy(Dimens.verticalPaddingHalf),
     ) {
@@ -146,18 +151,31 @@ internal fun BackupSetupProtection(state: AutomaticBackupsSetupState) {
             shapeState = if (hasPassword) ShapeState.START else ShapeState.ALL,
             clearButton = false,
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
-            keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Next) }),
+            keyboardActions = KeyboardActions(
+                onNext = {
+                    // Skips the visibility toggle of the password.
+                    val moved = hasPassword && confirmationFocus.requestFocus()
+                    if (!moved) focusManager.moveFocus(FocusDirection.Next)
+                },
+            ),
         )
         if (hasPassword) {
             PasswordFlatTextField(
                 modifier = Modifier
                     .padding(horizontal = Dimens.fieldHorizontalPadding),
+                fieldModifier = Modifier
+                    .focusRequester(confirmationFocus),
                 value = state.confirmationPassword,
                 label = stringResource(Res.string.pref_item_automatic_backups_wizard_confirm_password_label),
                 shapeState = ShapeState.END,
                 clearButton = false,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+                keyboardActions = KeyboardActions(
+                    onDone = {
+                        focusManager.clearFocus()
+                        updatedOnContinue?.invoke()
+                    },
+                ),
             )
         }
     }

@@ -3,12 +3,14 @@ package com.artemchep.keyguard.feature.home.settings
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -317,7 +319,7 @@ fun rememberSettingsItems(
     ExperimentalMaterialApi::class,
 )
 @Composable
-private fun SettingListScreenContent(
+internal fun SettingListScreenContent(
     accountsState: State<AccountListState>,
     items: List<SettingsItem2>,
 ) {
@@ -332,6 +334,17 @@ private fun SettingListScreenContent(
         },
     )
     val scrollBehavior = ToolbarBehavior.behavior()
+    val listState = rememberLazyListState()
+    val listKeys = remember(items) {
+        items.map { it.id }
+    }
+    // Opening the Settings tab moves no focus, coming
+    // back to it restores the row the user left from.
+    val focus = rememberSettingsListFocus(
+        listState = listState,
+        listKeys = listKeys,
+        focusFirstOnEnter = false,
+    )
     ScaffoldLazyColumn(
         modifier = Modifier
             .pullToSearch(pullRefreshState)
@@ -350,6 +363,7 @@ private fun SettingListScreenContent(
                 },
                 actions = {
                     IconButton(
+                        modifier = focus.target(SEARCH_FOCUS_KEY),
                         onClick = {
                             val route = SearchSettingsRoute
                             val intent = NavigationIntent.NavigateToRoute(route)
@@ -376,55 +390,69 @@ private fun SettingListScreenContent(
                 selection = selectionOrNull,
             )
         },
+        listModifier = focus.listModifier,
+        listState = listState,
     ) {
         items(
             items = items,
             key = { it.id },
             contentType = { it.contentType },
         ) {
-            when (it) {
-                is SettingsItem -> {
-                    val backgroundColor = run {
-                        if (LocalHasDetailPane.current) {
-                            val nextEntry = navigationNextEntryOrNull()
-                            val nextRoute = nextEntry?.route
+            // A column stacks the content like a lazy item does.
+            Column(
+                // Each account row is a target of its own, so one
+                // target records each focus change in the block.
+                modifier = if (it is SettingsAccountsItem) Modifier else focus.target(it.id),
+            ) {
+                when (it) {
+                    is SettingsItem -> {
+                        val backgroundColor = run {
+                            if (LocalHasDetailPane.current) {
+                                val nextEntry = navigationNextEntryOrNull()
+                                val nextRoute = nextEntry?.route
 
-                            val selected = it.route === nextRoute
-                            if (selected) {
-                                return@run MaterialTheme.colorScheme.selectedContainer
+                                val selected = it.route === nextRoute
+                                if (selected) {
+                                    return@run MaterialTheme.colorScheme.selectedContainer
+                                }
                             }
+
+                            Color.Unspecified
                         }
-
-                        Color.Unspecified
+                        SettingListItem(
+                            backgroundColor = backgroundColor,
+                            item = it,
+                            onClick = {
+                                val intent = NavigationIntent.Composite(
+                                    listOf(
+                                        NavigationIntent.PopById(SettingsRoute.ROUTER_NAME),
+                                        NavigationIntent.NavigateToRoute(it.route),
+                                    ),
+                                )
+                                q.queue(intent)
+                            },
+                        )
                     }
-                    SettingListItem(
-                        backgroundColor = backgroundColor,
-                        item = it,
-                        onClick = {
-                            val intent = NavigationIntent.Composite(
-                                listOf(
-                                    NavigationIntent.PopById(SettingsRoute.ROUTER_NAME),
-                                    NavigationIntent.NavigateToRoute(it.route),
-                                ),
-                            )
-                            q.queue(intent)
-                        },
-                    )
-                }
 
-                is SettingsSectionItem -> {
-                    val text = it.title?.let { textResource(it) }
-                    Section(
-                        text = text,
-                    )
-                }
+                    is SettingsSectionItem -> {
+                        val text = it.title?.let { textResource(it) }
+                        Section(
+                            text = text,
+                        )
+                    }
 
-                is SettingsAccountsItem -> {
-                    SettingListAccountsItem(
-                        item = it,
-                    )
+                    is SettingsAccountsItem -> {
+                        SettingListAccountsItem(
+                            item = it,
+                            rowModifier = { key ->
+                                focus.target(key, itemKey = it.id)
+                            },
+                        )
+                    }
                 }
             }
         }
     }
 }
+
+private const val SEARCH_FOCUS_KEY = "search"

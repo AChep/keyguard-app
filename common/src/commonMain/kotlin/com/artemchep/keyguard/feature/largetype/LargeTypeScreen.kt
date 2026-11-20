@@ -44,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.dialog.Dialog
-import com.artemchep.keyguard.feature.dialog.dialogArrowNavigation
 import com.artemchep.keyguard.feature.dialog.dialogTabTargets
 import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.res.Res
@@ -54,6 +53,7 @@ import com.artemchep.keyguard.ui.KeepScreenOnEffect
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.colorizePasswordDigitColor
 import com.artemchep.keyguard.ui.colorizePasswordSymbolColor
+import com.artemchep.keyguard.ui.focus.arrowKeyFocusNavigation
 import com.artemchep.keyguard.ui.icons.KeyguardLargeType
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -129,7 +129,7 @@ fun LargeTypeContent(
                 .then(
                     if (close != null) {
                         // Tab leaves the symbols for the Close button.
-                        Modifier.dialogArrowNavigation().dialogTabTargets(close, close)
+                        Modifier.arrowKeyFocusNavigation().dialogTabTargets(close, close)
                     } else Modifier,
                 )
                 .padding(

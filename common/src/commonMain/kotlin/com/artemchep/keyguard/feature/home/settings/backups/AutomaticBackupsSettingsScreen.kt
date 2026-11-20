@@ -1,16 +1,20 @@
 package com.artemchep.keyguard.feature.home.settings.backups
 
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -19,6 +23,9 @@ import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
+import com.artemchep.keyguard.feature.home.settings.rememberSettingsListFocus
+import com.artemchep.keyguard.feature.navigation.LocalNavigationEntry
+import com.artemchep.keyguard.feature.navigation.NavigationEntryImpl
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.platform.Platform
@@ -81,7 +88,7 @@ private fun AutomaticBackupsSettingsLoadingContent() {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun AutomaticBackupsSettingsContent(
+internal fun AutomaticBackupsSettingsContent(
     state: AutomaticBackupsSettingsState,
     dateFormatter: DateFormatter,
 ) {
@@ -127,6 +134,31 @@ private fun AutomaticBackupsSettingsContent(
     val statusExpanded = remember(state.config.enabled) {
         mutableStateOf(false)
     }
+    val items = automaticBackupsListItems {
+        if (state.config.enabled) {
+            AutomaticBackupsEnabledContent(
+                state = state,
+                dateFormatter = dateFormatter,
+                configExpanded = configExpanded,
+                statusExpanded = statusExpanded,
+                automationSectionTitle = automationSectionTitle,
+                managementSectionTitle = managementSectionTitle,
+                components = components,
+            )
+        } else {
+            automaticBackupsDisabledContent(
+                onSetupClick = state.onSetupClick,
+                isSupported = isSupported,
+                setupSectionTitle = setupSectionTitle,
+                components = components,
+            )
+        }
+    }
+    val focus = rememberSettingsListFocus(
+        listState = listState,
+        listKeys = items.map { it.key },
+        focusFirstOnEnter = true,
+    )
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -169,25 +201,19 @@ private fun AutomaticBackupsSettingsContent(
                 scrollBehavior = scrollBehavior,
             )
         },
+        listModifier = focus.listModifier,
         listState = listState,
     ) {
-        if (state.config.enabled) {
-            AutomaticBackupsEnabledContent(
-                state = state,
-                dateFormatter = dateFormatter,
-                configExpanded = configExpanded,
-                statusExpanded = statusExpanded,
-                automationSectionTitle = automationSectionTitle,
-                managementSectionTitle = managementSectionTitle,
-                components = components,
-            )
-        } else {
-            automaticBackupsDisabledContent(
-                onSetupClick = state.onSetupClick,
-                isSupported = isSupported,
-                setupSectionTitle = setupSectionTitle,
-                components = components,
-            )
+        items(
+            items = items,
+            key = { item -> item.key },
+        ) { item ->
+            // A column stacks the content like a lazy item does.
+            Column(
+                modifier = focus.target(item.key),
+            ) {
+                item.content()
+            }
         }
     }
 }
@@ -198,10 +224,24 @@ private fun AutomaticBackupsSettingsPreview(
     dark: Boolean = false,
 ) {
     AutomaticBackupsPreview(dark = dark) {
-        AutomaticBackupsSettingsContent(
-            state = state,
-            dateFormatter = AutomaticBackupsPreviewData.dateFormatter,
-        )
+        // The list keeps its focus in a navigation entry.
+        val scope = rememberCoroutineScope()
+        val entry = remember(scope) {
+            NavigationEntryImpl(
+                source = "preview",
+                parent = scope,
+                id = "automatic_backups",
+                route = AutomaticBackupsSettingsRoute,
+            )
+        }
+        CompositionLocalProvider(
+            LocalNavigationEntry provides entry,
+        ) {
+            AutomaticBackupsSettingsContent(
+                state = state,
+                dateFormatter = AutomaticBackupsPreviewData.dateFormatter,
+            )
+        }
     }
 }
 

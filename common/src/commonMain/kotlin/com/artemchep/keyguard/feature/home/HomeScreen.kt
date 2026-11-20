@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusGroup
+import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -71,6 +73,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.onSizeChanged
@@ -132,6 +137,9 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.focus.navigationBarFocusGroup
+import com.artemchep.keyguard.ui.focus.restoreFocusedChildOrRequestFocus
+import com.artemchep.keyguard.ui.focus.tabFocusRestorer
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
@@ -232,6 +240,15 @@ fun HomeScreenContent(
         routes = routes,
     )
 
+    // The arrow keys and Tab move from the navigation rail or bar
+    // back to the content, which focuses the child it was left from.
+    val contentFocusRequester = remember { FocusRequester() }
+    val railFocusedState = remember { mutableStateOf(false) }
+    val barFocusedState = remember { mutableStateOf(false) }
+    val navigationFocused: () -> Boolean = remember {
+        { railFocusedState.value || barFocusedState.value }
+    }
+
     ResponsiveLayout {
         val maxWidth = maxWidth
         val maxHeight = maxHeight
@@ -304,7 +321,14 @@ fun HomeScreenContent(
 
                     WideNavigationRail(
                         modifier = Modifier
-                            .fillMaxHeight(),
+                            .fillMaxHeight()
+                            .navigationBarFocusGroup(
+                                orientation = Orientation.Vertical,
+                                focusedState = railFocusedState,
+                                onFocusContent = {
+                                    contentFocusRequester.restoreFocusedChildOrRequestFocus(FocusDirection.Enter)
+                                },
+                            ),
                         state = railState,
                         colors = WideNavigationRailDefaults.colors()
                             .copy(containerColor = Color.Transparent),
@@ -418,15 +442,27 @@ fun HomeScreenContent(
                 CompositionLocalProvider(
                     LocalSurfaceColor provides defaultContainerColor,
                     LocalNavigationNodeVisualStack provides persistentListOf(),
+                    LocalHomeNavigationFocused provides navigationFocused,
                 ) {
-                    NavigationNode(
+                    // The node applies its modifier to its dialog layer too,
+                    // so the focus group of the content wraps the node.
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
-                            .background(defaultContainerColor),
-                        entries = backStack,
-                        back = back,
-                    )
+                            .focusRequester(contentFocusRequester)
+                            .tabFocusRestorer()
+                            .focusGroup(),
+                        propagateMinConstraints = true,
+                    ) {
+                        NavigationNode(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(defaultContainerColor),
+                            entries = backStack,
+                            back = back,
+                        )
+                    }
                 }
 
                 // TODO:
@@ -554,6 +590,14 @@ fun HomeScreenContent(
                             )
                         }
                         ShortNavigationBar(
+                            modifier = Modifier
+                                .navigationBarFocusGroup(
+                                    orientation = Orientation.Horizontal,
+                                    focusedState = barFocusedState,
+                                    onFocusContent = {
+                                        contentFocusRequester.restoreFocusedChildOrRequestFocus(FocusDirection.Up)
+                                    },
+                                ),
                             containerColor = Color.Unspecified,
                         ) {
                             routesSplit.visible.forEach { r ->

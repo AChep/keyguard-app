@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.home.settings.search
 
+import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LocalContentColor
@@ -17,14 +19,19 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.feature.EmptySearchView
+import com.artemchep.keyguard.feature.dialog.focusFirstResultOnDown
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemArgs
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.vault.component.SearchTextField
@@ -35,6 +42,7 @@ import com.artemchep.keyguard.ui.DefaultProgressBar
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.focus.FocusRequester2
+import com.artemchep.keyguard.ui.focus.arrowKeyFocusNavigation
 import com.artemchep.keyguard.ui.focus.focusRequester2
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
 import com.artemchep.keyguard.ui.pulltosearch.pullToSearch
@@ -67,9 +75,27 @@ fun SearchSettingsScreenContent(
     )
     val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
+    val listState = rememberLazyListState()
+    val resultsRequester = remember {
+        FocusRequester()
+    }
+    val resultsFocusedState = remember {
+        mutableStateOf(false)
+    }
+    val resultsModifier = remember {
+        Modifier
+            .arrowKeyFocusNavigation()
+            .focusRequester(resultsRequester)
+            .onFocusChanged { resultsFocusedState.value = it.hasFocus }
+            .focusGroup()
+    }
+
     LaunchedEffect(focusRequester) {
         delay(500L)
-        focusRequester.requestFocus()
+        // Down in the field may have moved focus to the results by now.
+        if (!resultsFocusedState.value) {
+            focusRequester.requestFocus()
+        }
     }
 
     ScaffoldLazyColumn(
@@ -116,7 +142,13 @@ fun SearchSettingsScreenContent(
 
                     val count = state.items.size
                     SearchTextField(
-                        modifier = Modifier,
+                        modifier = Modifier
+                            .focusFirstResultOnDown(
+                                state = listState,
+                                firstResult = resultsRequester,
+                                firstIndex = state.items.indices.firstOrNull(),
+                                group = true,
+                            ),
                         text = state.query.text,
                         textRevision = state.query.textRevision,
                         placeholder = stringResource(Res.string.settingssearch_search_placeholder),
@@ -144,6 +176,8 @@ fun SearchSettingsScreenContent(
                 pullRefreshState = pullRefreshState,
             )
         },
+        listModifier = resultsModifier,
+        listState = listState,
     ) {
         val items = state.items
         if (items.isEmpty()) {

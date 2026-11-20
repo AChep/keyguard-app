@@ -29,13 +29,10 @@ the item's edit screen.
 
 ## Default match detection
 
-| Platform | Default mode |
-| --- | --- |
-| Android | Set in **Settings > Autofill > Default match detection**. **Base domain** unless you change it. |
-| Linux, macOS, Windows | **Base domain** |
-
-Use **Host** or **Starts with** for a domain that hosts unrelated services.
-Use **Regular expression** for URLs that the other modes can't describe.
+- **Settings > Autofill > Default match detection** sets the mode that
+  **Default** uses. It's **Base domain** unless you change it.
+- Use **Host** or **Starts with** for a domain that hosts unrelated services.
+- Use **Regular expression** for URLs that the other modes can't describe.
 
 ## App URLs
 

@@ -1,0 +1,11 @@
+# pnpm settings for the Keyguard browser extension package
+# (https://pnpm.io/settings).
+
+# Dependencies whose install/build scripts may run (true) or are skipped
+# without an error (false).
+# - esbuild fetches its platform-specific binary
+# - @bufbuild/buf only swaps its JS launcher for the platform binary, which the
+#   launcher finds without it
+allowBuilds:
+  esbuild: true
+  "@bufbuild/buf": false

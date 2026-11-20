@@ -61,12 +61,15 @@ internal class BrowserRequestLog(
      * of the [type] in the request log. A [BrowserRequestException] of [block]
      * answers with its error; any other failure answers `not_allowed`, so
      * that the session goes on.
+     *
+     * @param privateWindow The request comes from a private window: the log keeps nothing of it.
      */
     @Suppress("TooGenericExceptionCaught") // An unexpected failure must not end the session.
     suspend fun recorded(
         session: () -> BrowserExtensionSession,
         pairing: () -> BrowserPairing?,
         type: CliAgentUsageHistoryRequestType,
+        privateWindow: Boolean = false,
         block: suspend (BrowserUsage) -> BrowserReply,
     ): BrowserReply {
         val usage = BrowserUsage()
@@ -84,16 +87,18 @@ internal class BrowserRequestLog(
             }
             return answer.also { reply = it }
         } finally {
-            record(
-                session = session(),
-                pairingName = pairing()?.name,
-                request = type,
-                cipherId = usage.cipherId,
-                origin = usage.origin,
-                error = (reply as? BrowserReply.Error)?.error,
-                // The session ended before the request was answered.
-                cancelled = reply == null,
-            )
+            if (!privateWindow) {
+                record(
+                    session = session(),
+                    pairingName = pairing()?.name,
+                    request = type,
+                    cipherId = usage.cipherId,
+                    origin = usage.origin,
+                    error = (reply as? BrowserReply.Error)?.error,
+                    // The session ended before the request was answered.
+                    cancelled = reply == null,
+                )
+            }
         }
     }
 

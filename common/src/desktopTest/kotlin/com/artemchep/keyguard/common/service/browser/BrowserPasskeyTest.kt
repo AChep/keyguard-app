@@ -146,6 +146,27 @@ class BrowserPasskeyTest {
     }
 
     @Test
+    fun `a sign-in of a private window records neither the request nor a use`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val passkey = fixture.passkeyLogin("a")
+        val client = paired(fixture)
+        val handle = client.passkeyHandle(10)
+
+        assertTrue(passkey.signed(fixture.approve(client, passkeyGet(11, handle = handle, privateWindow = true))))
+        assertTrue(fixture.passkeyHistory.isEmpty())
+
+        // A sign-in of a normal window records both; the approval covers it.
+        assertTrue(passkey.signed(client.call(passkeyGet(12, handle = handle)).credential()))
+        val entry = fixture.awaitRecorded(CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_GET).single()
+        assertEquals(CliAgentUsageHistoryResponseType.SUCCESS, entry.response)
+        assertEquals("a", entry.cipherId)
+        assertEquals(ORIGIN, entry.path)
+        assertEquals(listOf("a"), fixture.passkeyHistory.map { it.cipherId })
+        delay(100)
+        assertEquals(listOf(entry), fixture.recorded().filter { it.request == entry.request })
+    }
+
+    @Test
     fun `get without a handle lets the user pick a passkey`() = browserTest { scope ->
         val fixture = BrowserFixture(scope)
         fixture.passkeyLogin("a")
@@ -810,6 +831,7 @@ private fun passkeyGet(
     mediation: String = if (handle != null) "conditional" else "optional",
     origin: String = ORIGIN,
     sameOrigin: Boolean = true,
+    privateWindow: Boolean = false,
 ): String = buildJsonObject {
     put("id", id)
     put("type", "passkey_get")
@@ -818,6 +840,7 @@ private fun passkeyGet(
     put("mediation", mediation)
     put("same_origin_with_ancestors", sameOrigin)
     handle?.let { put("handle", it) }
+    if (privateWindow) put("private_window", true)
 }.toString()
 
 /** `PublicKeyCredentialCreationOptionsJSON`; the [userVerification] as for [getOptions]. */

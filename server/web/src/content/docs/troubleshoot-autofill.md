@@ -3,7 +3,7 @@ title: Troubleshoot autofill and passkeys
 description: "Fix missing or wrong autofill suggestions, and problems with Keyguard as a passkey provider."
 section: autofill
 type: troubleshooting
-order: 70
+order: 80
 platforms: [android, windows]
 related: [autofill, passkey-provider, url-matching]
 ---

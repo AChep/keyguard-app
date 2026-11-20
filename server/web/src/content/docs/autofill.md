@@ -9,7 +9,8 @@ related: [url-matching, troubleshoot-autofill, passkey-provider, totp]
 ---
 
 Keyguard fills usernames and passwords in other apps and browsers. It suggests
-the logins whose URLs match the app or website you're on.
+the logins whose URLs match the app or website you're on. On desktop, the
+[browser extension](/docs/browser-extension/) fills logins in browsers.
 
 ## Turn on autofill
 
@@ -41,11 +42,11 @@ These options are in **Settings > Autofill**.
 
 | Option | What it does | Default | Platforms |
 | --- | --- | --- | --- |
-| **Default match detection** | Sets how the URLs on your items match a website or app. See [URL matching](/docs/url-matching/). | Base domain | Android |
+| **Default match detection** | Sets how the URLs on your items match a website or app. See [URL matching](/docs/url-matching/). | Base domain | Android, Linux, macOS, Windows |
 | **Inline suggestions** | Shows suggestions in compatible keyboards | On | Android 11 and later |
 | **Manual selection** | Adds an option to search the vault next to the suggested items | On | Android |
 | **Respect Autofill disabled flag** | Skips browser fields that have autofill turned off | Off | Android |
 | **Auto-copy one-time passwords** | Copies the item's one-time password after you fill a login | On | Android |
 | **Ask to save data** | Offers to update your vault after you fill in a form | On | Android |
 | **Auto-save app or website info** | Adds the app or website to the item you fill | Off | Android |
-| **Block autofill** | Turns off autofill for the URIs you list. See [Blocked URIs](/docs/blocked-uris/). | None blocked | Android |
+| **Block autofill** | Turns off autofill for the URIs you list. See [Blocked URIs](/docs/blocked-uris/). | None blocked | Android, Linux, macOS, Windows |

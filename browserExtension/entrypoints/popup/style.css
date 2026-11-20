@@ -1,0 +1,17 @@
+@import "../../src/lib/ui/theme.css";
+
+/*
+ * The popup is 600 by 480 in every state, so that it never jumps. The browser
+ * sizes the popup to the body; the shell (App.svelte) fills the viewport
+ * instead, which is narrower in Firefox's overflow panel. A body that followed
+ * the viewport would size the popup by it, and Chrome lays a popup out at a
+ * tiny size first.
+ */
+html {
+  overflow: hidden;
+}
+
+body {
+  width: 600px;
+  height: 480px;
+}

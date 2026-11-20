@@ -1,0 +1,682 @@
+/*
+ * Design tokens, base rules and classes shared by the extension's pages:
+ * Material 3 Expressive, in the look of the Keyguard app.
+ *
+ * Color: SchemeVibrant of the brand seed #219BCC at contrast 0, generated
+ * offline with @material/material-color-utilities 0.3.0 (spec 2021; the same
+ * output as com.kyant.m3color 2026.1, which the app uses). As
+ * common/src/jvmMain/kotlin/com/artemchep/keyguard/ui/theme/m3/DynamicThemeJvm.kt
+ * does, the scheme's roles go over the app's neutral schemes:
+ * plainLightColorScheme and plainDarkColorScheme of
+ * common/src/commonMain/kotlin/com/artemchep/keyguard/ui/theme/Theme.kt, with
+ * Material 3's baseline on-surface and on-background. error, error-container
+ * and on-error-container are KeyguardTheme's overrides in Theme.kt.
+ */
+:root {
+  color-scheme: light dark;
+
+  --primary: #006689;
+  --on-primary: #ffffff;
+  --primary-container: #c3e8ff;
+  --on-primary-container: #004c68;
+  --inverse-primary: #78d1ff;
+  --secondary: #49607b;
+  --on-secondary: #ffffff;
+  --secondary-container: #d0e4ff;
+  --on-secondary-container: #314962;
+  --tertiary: #4b5d8b;
+  --on-tertiary: #ffffff;
+  --tertiary-container: #d9e2ff;
+  --on-tertiary-container: #334671;
+  --error: #cc0808;
+  --on-error: #ffffff;
+  --error-container: #dfb6be;
+  --on-error-container: #3c4850;
+  --background: #ffffff;
+  --on-background: #1d1b20;
+  --surface: #ffffff;
+  --on-surface: #1d1b20;
+  --surface-variant: #d7e4ee;
+  --on-surface-variant: #3c4850;
+  --surface-tint: #1b1b1b;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #fafafa;
+  --surface-container: #f5f5f5;
+  --surface-container-high: #eef0f0;
+  --surface-container-highest: #dee0e1;
+  --inverse-surface: #283238;
+  --inverse-on-surface: #e8f2fa;
+  --outline: #6c7982;
+  --outline-variant: #bbc8d2;
+  --scrim: #000000;
+
+  /* Shape. */
+  --shape-xs: 4px;
+  --shape-sm: 8px;
+  --shape-md: 12px;
+  --shape-lg: 16px;
+  --shape-xl: 28px;
+  --shape-full: 9999px;
+
+  /* Type: use with `font:`; letter-spacing is separate, or use the classes below. */
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, "Roboto Mono", "Liberation Mono", monospace;
+  --type-headline-small: 400 24px/32px var(--font-sans);
+  --type-title-large: 400 22px/28px var(--font-sans);
+  --type-title-medium: 500 16px/24px var(--font-sans);
+  --type-title-small: 500 14px/20px var(--font-sans);
+  --type-body-large: 400 16px/24px var(--font-sans);
+  --type-body-medium: 400 14px/20px var(--font-sans);
+  --type-body-small: 400 12px/16px var(--font-sans);
+  --type-label-large: 500 14px/20px var(--font-sans);
+  --type-label-medium: 500 12px/16px var(--font-sans);
+  --tracking-title-medium: 0.2px;
+  --tracking-title-small: 0.1px;
+  --tracking-body-large: 0.5px;
+  --tracking-body-medium: 0.2px;
+  --tracking-body-small: 0.4px;
+  --tracking-label-large: 0.1px;
+  --tracking-label-medium: 0.5px;
+
+  /* Spacing. */
+  --space-4: 4px;
+  --space-8: 8px;
+  --space-12: 12px;
+  --space-16: 16px;
+  --space-24: 24px;
+
+  /* States: the alpha of a state layer of the content color, and of disabled parts. */
+  --state-hover: 8%;
+  --state-focus: 10%;
+  --state-pressed: 10%;
+  --disabled-content: 38%;
+  --disabled-container: 10%;
+  /* The app's medium emphasis, for secondary text. */
+  --text-medium-alpha: 60%;
+
+  /* Motion. The spring is the expressive fast spatial spring, sampled. */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized-decelerate: cubic-bezier(0.05, 0.7, 0.1, 1);
+  --ease-emphasized-accelerate: cubic-bezier(0.3, 0, 0.8, 0.15);
+  --spring-fast: linear(0, 0.145, 0.435, 0.72, 0.929, 1.047, 1.092, 1.089, 1.065, 1.037, 1.014, 0.999, 0.992, 0.991, 0.993, 0.995, 1);
+  --spring-fast-duration: 350ms;
+  --duration-short: 150ms;
+  --duration-long: 300ms;
+
+  /* Elevation: Material 3 level 3. */
+  --elevation-3: 0 1px 3px rgb(0 0 0 / 0.3), 0 4px 8px 3px rgb(0 0 0 / 0.15);
+
+  font: var(--type-body-medium);
+  letter-spacing: var(--tracking-body-medium);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --primary: #78d1ff;
+    --on-primary: #003549;
+    --primary-container: #004c68;
+    --on-primary-container: #c3e8ff;
+    --inverse-primary: #006689;
+    --secondary: #b0c9e7;
+    --on-secondary: #19324a;
+    --secondary-container: #314962;
+    --on-secondary-container: #d0e4ff;
+    --tertiary: #b3c6f9;
+    --on-tertiary: #1b2f59;
+    --tertiary-container: #334671;
+    --on-tertiary-container: #d9e2ff;
+    --error: #db3d3d;
+    --on-error: #690005;
+    --error-container: #633a40;
+    --on-error-container: #bbc8d2;
+    --background: #141616;
+    --on-background: #e6e0e9;
+    --surface: #141616;
+    --on-surface: #e6e0e9;
+    --surface-variant: #3c4850;
+    --on-surface-variant: #bbc8d2;
+    --surface-tint: #fafafa;
+    --surface-container-lowest: #141616;
+    --surface-container-low: #1b1b1b;
+    --surface-container: #202121;
+    --surface-container-high: #2b2b2c;
+    --surface-container-highest: #363636;
+    --inverse-surface: #dae4ec;
+    --inverse-on-surface: #283238;
+    --outline: #85939c;
+    --outline-variant: #3c4850;
+    --scrim: #000000;
+  }
+}
+
+/* Base. */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--on-surface);
+}
+
+button {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+a {
+  color: var(--primary);
+}
+
+:focus-visible {
+  outline: 3px solid var(--secondary);
+  outline-offset: 2px;
+}
+
+/* Type. */
+
+.headline-small {
+  font: var(--type-headline-small);
+  letter-spacing: 0;
+}
+
+.title-large {
+  font: var(--type-title-large);
+  letter-spacing: 0;
+}
+
+.title-medium {
+  font: var(--type-title-medium);
+  letter-spacing: var(--tracking-title-medium);
+}
+
+.title-small {
+  font: var(--type-title-small);
+  letter-spacing: var(--tracking-title-small);
+}
+
+.body-large {
+  font: var(--type-body-large);
+  letter-spacing: var(--tracking-body-large);
+}
+
+.body-medium {
+  font: var(--type-body-medium);
+  letter-spacing: var(--tracking-body-medium);
+}
+
+.body-small {
+  font: var(--type-body-small);
+  letter-spacing: var(--tracking-body-small);
+}
+
+.label-large {
+  font: var(--type-label-large);
+  letter-spacing: var(--tracking-label-large);
+}
+
+.label-medium {
+  font: var(--type-label-medium);
+  letter-spacing: var(--tracking-label-medium);
+}
+
+/* Secondary text: the current color at the app's medium emphasis. */
+.medium {
+  color: color-mix(in srgb, currentColor var(--text-medium-alpha), transparent);
+}
+
+/*
+ * State layers: an overlay of the content color, over the container and under
+ * the content. `.state-layer` gives any element one.
+ */
+
+.state-layer,
+.btn,
+.icon-btn,
+.row {
+  position: relative;
+  isolation: isolate;
+}
+
+.state-layer::before,
+.btn::before,
+.icon-btn::before,
+.row:where(button, a, label, [role="option"], [role="menuitem"], [tabindex])::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: transparent;
+  pointer-events: none;
+  transition: background-color var(--duration-short) var(--ease-standard);
+}
+
+.state-layer:hover::before,
+.btn:hover::before,
+.icon-btn:hover::before,
+.row:where(button, a, label, [role="option"], [role="menuitem"], [tabindex]):hover::before {
+  background: color-mix(in srgb, currentColor var(--state-hover), transparent);
+}
+
+.state-layer:focus-visible::before,
+.btn:focus-visible::before,
+.icon-btn:focus-visible::before,
+.row:where(button, a, label, [role="option"], [role="menuitem"], [tabindex]):focus-visible::before {
+  background: color-mix(in srgb, currentColor var(--state-focus), transparent);
+}
+
+.state-layer:active::before,
+.btn:active::before,
+.icon-btn:active::before,
+.row:where(button, a, label, [role="option"], [role="menuitem"], [tabindex]):active::before {
+  background: color-mix(in srgb, currentColor var(--state-pressed), transparent);
+}
+
+:is(.state-layer, .btn, .icon-btn, .row):is(:disabled, [aria-disabled="true"])::before {
+  background: transparent;
+}
+
+/*
+ * Buttons, Material 3 Expressive: size S (40px) by default, XS with
+ * `.btn-xs`. Round, and 8px corners while pressed. An `.icon` inside is 20px.
+ */
+
+.btn {
+  --btn-height: 40px;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: var(--btn-height);
+  padding-inline: 16px;
+  border: none;
+  border-radius: calc(var(--btn-height) / 2);
+  background: transparent;
+  font: var(--type-label-large);
+  letter-spacing: var(--tracking-label-large);
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    border-radius var(--spring-fast-duration) var(--spring-fast),
+    background-color var(--duration-short) var(--ease-standard),
+    color var(--duration-short) var(--ease-standard);
+}
+
+.btn:active:not(:disabled, [aria-disabled="true"]) {
+  border-radius: var(--shape-sm);
+}
+
+.btn .icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+}
+
+.btn-xs {
+  --btn-height: 32px;
+  gap: 4px;
+  padding-inline: 12px;
+}
+
+.btn-filled {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.btn-tonal {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+
+.btn-text {
+  color: var(--primary);
+}
+
+.btn:is(:disabled, [aria-disabled="true"]) {
+  background: color-mix(in srgb, var(--on-surface) var(--disabled-container), transparent);
+  color: color-mix(in srgb, var(--on-surface) var(--disabled-content), transparent);
+  cursor: default;
+}
+
+.btn-text:is(:disabled, [aria-disabled="true"]) {
+  background: transparent;
+}
+
+/* Icon buttons: 40px with a 24px icon; toggles with `aria-pressed`. */
+
+.icon-btn {
+  --icon-btn-size: 40px;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--icon-btn-size);
+  height: var(--icon-btn-size);
+  padding: 0;
+  border: none;
+  border-radius: calc(var(--icon-btn-size) / 2);
+  background: transparent;
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition:
+    border-radius var(--spring-fast-duration) var(--spring-fast),
+    background-color var(--duration-short) var(--ease-standard),
+    color var(--duration-short) var(--ease-standard);
+}
+
+.icon-btn:active:not(:disabled, [aria-disabled="true"]) {
+  border-radius: var(--shape-sm);
+}
+
+.icon-btn .icon {
+  width: 24px;
+  height: 24px;
+}
+
+.icon-btn[aria-pressed="true"] {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+
+.icon-btn:is(:disabled, [aria-disabled="true"]) {
+  background: transparent;
+  color: color-mix(in srgb, var(--on-surface) var(--disabled-content), transparent);
+  cursor: default;
+}
+
+/*
+ * Chips: small labels, as the app's SmartBadge and organization labels. Plain
+ * `.chip` is the neutral badge; the variants are tonal.
+ */
+
+.chip {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  border: 1px solid color-mix(in srgb, var(--surface-tint) 5%, transparent);
+  border-radius: var(--shape-sm);
+  background: color-mix(in srgb, var(--surface-tint) 5%, transparent);
+  color: inherit;
+  font: var(--type-label-medium);
+  letter-spacing: var(--tracking-label-medium);
+  white-space: nowrap;
+}
+
+.chip .icon {
+  width: 14px;
+  height: 14px;
+}
+
+.chip-tertiary {
+  border-color: transparent;
+  background: var(--tertiary-container);
+  color: var(--on-tertiary-container);
+}
+
+.chip-error {
+  border-color: transparent;
+  background: var(--error-container);
+  color: var(--on-error-container);
+}
+
+/* List rows, as in the app's Quick search: a 16px-round row, secondary container when selected. */
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 12px;
+  border: none;
+  border-radius: var(--shape-lg);
+  background: transparent;
+  color: inherit;
+  text-align: start;
+  text-decoration: none;
+  transition: background-color var(--duration-short) var(--ease-standard);
+}
+
+.row:where(button, a, label, [role="option"], [role="menuitem"]) {
+  cursor: pointer;
+}
+
+.row[aria-selected="true"] {
+  background: var(--secondary-container);
+  color: var(--on-secondary-container);
+}
+
+.row:is(:disabled, [aria-disabled="true"]) {
+  cursor: default;
+}
+
+.row:is(:disabled, [aria-disabled="true"]) > * {
+  opacity: var(--disabled-content);
+}
+
+/* The text column of a row. */
+.row-content {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.row-title {
+  overflow: hidden;
+  font: var(--type-title-medium);
+  letter-spacing: var(--tracking-title-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.row-text {
+  overflow: hidden;
+  color: color-mix(in srgb, currentColor var(--text-medium-alpha), transparent);
+  font: var(--type-body-medium);
+  letter-spacing: var(--tracking-body-medium);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/*
+ * Segmented groups, as the app's field cards: children 3px apart on the high
+ * container, 16px outer corners and 4px inner ones.
+ */
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group > * {
+  border-radius: var(--shape-xs);
+  background: var(--surface-container-high);
+}
+
+.group > :first-child {
+  border-top-left-radius: var(--shape-lg);
+  border-top-right-radius: var(--shape-lg);
+}
+
+.group > :last-child {
+  border-bottom-left-radius: var(--shape-lg);
+  border-bottom-right-radius: var(--shape-lg);
+}
+
+/*
+ * Section headers: uppercase labels at medium emphasis. The app pads them
+ * 16px by 24px; here the side padding is 20px, which lines a header up with
+ * the avatars of rows inset 8px in a list (8 + the row's 12), and fits the
+ * 240px list pane.
+ */
+
+.section-header {
+  margin: 0;
+  padding: 16px 20px 8px;
+  overflow: hidden;
+  color: color-mix(in srgb, currentColor var(--text-medium-alpha), transparent);
+  font: var(--type-label-medium);
+  letter-spacing: var(--tracking-label-medium);
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Linear progress: indeterminate, two segments over the track. Still under reduced motion. */
+
+.linear-progress {
+  position: relative;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--secondary-container);
+}
+
+.linear-progress::before,
+.linear-progress::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 2px;
+  background: var(--primary);
+}
+
+.linear-progress::before {
+  left: 0;
+  right: 60%;
+  animation: linear-progress-1 2.1s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite;
+}
+
+.linear-progress::after {
+  left: 100%;
+  right: 0;
+  animation: linear-progress-2 2.1s cubic-bezier(0.165, 0.84, 0.44, 1) 1.15s infinite;
+}
+
+@keyframes linear-progress-1 {
+  0% {
+    left: -35%;
+    right: 100%;
+  }
+  60%,
+  100% {
+    left: 100%;
+    right: -90%;
+  }
+}
+
+@keyframes linear-progress-2 {
+  0% {
+    left: -200%;
+    right: 100%;
+  }
+  60%,
+  100% {
+    left: 107%;
+    right: -8%;
+  }
+}
+
+/* Skeletons: placeholders of loading content. */
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--shape-lg);
+  background: var(--surface-container-high);
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--surface-container-highest) 70%, transparent),
+    transparent
+  );
+  translate: -100% 0;
+  animation: skeleton-shimmer 1.6s var(--ease-standard) infinite;
+}
+
+@keyframes skeleton-shimmer {
+  to {
+    translate: 100% 0;
+  }
+}
+
+/* Banners: errors inline with content, with a leading 20px `.icon`. */
+
+.banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: var(--shape-md);
+  background: var(--error-container);
+  color: var(--on-error-container);
+  font: var(--type-body-medium);
+  letter-spacing: var(--tracking-body-medium);
+  overflow-wrap: anywhere;
+}
+
+.banner .icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: var(--error);
+}
+
+/* The app's empty-pane mark (EmptyKeyguardBox): content at 3.5%, for a lock and the wordmark. */
+
+.watermark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--on-background);
+  opacity: 0.035;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Reduced motion: no transitions or animations; each component has a still state. */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

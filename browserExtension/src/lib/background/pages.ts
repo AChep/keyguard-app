@@ -1,0 +1,1429 @@
+// The background's side of the content scripts and of the pages they embed:
+// the inline menu, the save bar, the fill shortcut and the popup's calls about
+// a tab's page.
+//
+// Rules:
+// - A frame and its URL come from the browser's sender (./frames.ts).
+// - Secrets go to one document with `tabs.sendMessage`, never to the embedded
+//   pages: to its frame, with its `documentId` on Chromium and its token
+//   (../page/messages.ts) on every browser.
+// - An embedded page is bound to the frame that asked for it by a one-time
+//   token, which expires in seconds and works for its tab only. The menu's
+//   first matches, asked for as the token is issued, wait with the token: only
+//   the page it binds gets them.
+// - Fills and passkey picks follow a user gesture: a trusted click in the menu (checked by the
+//   menu page, then the content script's clickjacking checks, and without
+//   IntersectionObserver v2 those of the frame's parents of another origin), a click in the
+//   popup, or the keyboard shortcut. Nothing fills on page load. Save and
+//   Never of the save bar take the same checks.
+// - What the background remembers of a page, as the login filled last on a
+//   tab, is kept by the page's exact origin.
+// - A request for a page in a private window says so (`private_window`): the
+//   app then stores no browsing data. Like every page, such a page is kept in
+//   memory only here.
+// - A request whose result can't be used any more gets a `cancel`, and the
+//   app's prompt closes: when the menu or the save bar that asked closes (the
+//   user dismissed it, or its frame navigated), or for the shortcut and the
+//   popup's fill, when the tab closes or leaves the page.
+import {
+  copiesPassword,
+  fillValues,
+  privateWindow,
+  searchQuery,
+  type Capability,
+  type FramePage,
+  type RequestOf,
+  type RequestType,
+  type ResponseOf,
+  type SuggestItem,
+} from "../protocol/messages";
+import { isCancelled, ProtocolError } from "../protocol/session";
+import type { OptionsStore } from "../options/store";
+import {
+  MENU_PAGE,
+  MENU_PORT,
+  SAVE_BAR_PAGE,
+  SAVE_BAR_PORT,
+  parseContentRequest,
+  parseDocumentResult,
+  parseMenuRequest,
+  parseSaveBarRequest,
+  randomToken,
+  type ContentCommand,
+  type ContentRequest,
+  type DocumentCommand,
+  type FieldRole,
+  type FillTarget,
+  type FrameCheck,
+  type GuardedPopup,
+  type MenuEvent,
+  type MenuItem,
+  type MenuPasskey,
+  type MenuRequest,
+  type MenuView,
+  type SaveBarEvent,
+  type SaveBarRequest,
+  type SaveCandidate,
+} from "../page/messages";
+import type { CallHandlers, ExtensionStatus, PageCallMethod, PageSearch, PageSuggestions } from "./api";
+import { CallFailure, callErrorOf } from "./controller";
+import {
+  frameOf,
+  frameTarget,
+  isOwnPage,
+  originOf,
+  sameDocument,
+  sameFrame,
+  sameSite,
+  webUrl,
+  type FrameRef,
+  type MessageSenderLike,
+  type TabInfo,
+  type TabWatch,
+} from "./frames";
+
+/** A token binds an embedded page for this long after the content script asked. */
+export const TOKEN_TTL_MS = 10_000;
+/** "Fill TOTP" follows a login fill on the same tab for this long. */
+export const TOTP_WINDOW_MS = 2 * 60_000;
+/** The next step of a sign-in lists the login filled last on the tab first for this long. */
+export const CONTINUE_WINDOW_MS = 5 * 60_000;
+/** A save bar stays offered, across navigations, for this long. */
+export const SAVE_TTL_MS = 2 * 60_000;
+/** The username of a username-first step counts for its password step for this long. */
+export const USERNAME_TTL_MS = 5 * 60_000;
+/** Wrong tokens a port may send before it's dropped. */
+const MAX_BIND_ATTEMPTS = 4;
+/** How many parents of another origin the checks before an action ask, see [PageController.guard]. */
+const MAX_PARENT_CHECKS = 8;
+
+/** What the pages need of the app session, see ./controller.ts. */
+export interface AppAccess {
+  readonly snapshot: ExtensionStatus;
+  /** Changes with every session; handles die with theirs. */
+  readonly sessionId: number | null;
+  supports(capability: Capability): boolean;
+  /** When [signal] aborts, the app gets a `cancel` and the request fails with `cancelled`. */
+  request<T extends RequestType>(type: T, fields: RequestOf<T>, signal?: AbortSignal): Promise<ResponseOf<T>>;
+  /** Asks the app to unlock; resolves once it answered. [signal] stops waiting, as for [request]. */
+  unlock(signal?: AbortSignal): Promise<unknown>;
+}
+
+/** The pages' view of the conditional passkey requests, see ./passkeys.ts. */
+export interface ConditionalPasskeys {
+  /** The conditional `get` that a frame's document waits on, with the RP ID to list. */
+  conditionalFor(frame: FrameRef): { rpId: string } | null;
+  /** Answers it with the passkey the user picked; [signal] cancels the pick. */
+  pick(frame: FrameRef, handle: string, signal?: AbortSignal): Promise<void>;
+}
+
+/** The parts of `runtime.Port` the controller uses. */
+export interface PagePort {
+  readonly name: string;
+  readonly sender?: MessageSenderLike;
+  postMessage(message: unknown): void;
+  disconnect(): void;
+  onMessage: { addListener(callback: (message: unknown) => void): void };
+  onDisconnect: { addListener(callback: () => void): void };
+}
+
+export interface PageDeps {
+  extensionId: string;
+  app: AppAccess;
+  options: OptionsStore;
+  passkeys: ConditionalPasskeys;
+  /** `tabs.sendMessage` to one frame, resolving with its answer. */
+  sendToFrame(tabId: number, message: ContentCommand, target: { frameId: number; documentId?: string }): Promise<unknown>;
+  /** `tabs.sendMessage` to every frame of a tab; rejects when none has a content script. */
+  sendToTab(tabId: number, message: ContentCommand): Promise<unknown>;
+  /** Injects the content script into a tab's top frame, as for tabs open before the install. */
+  injectContentScript(tabId: number): Promise<void>;
+  /** A tab, as `tabs.get` tells; its URL is `undefined` when the extension can't see it. */
+  tab(tabId: number): Promise<TabInfo>;
+  /**
+   * The URL of the icon of the site of [url], a page in tab [tabId], from what
+   * the browser reports of the tab, see ./siteIcon.ts; `null` for none.
+   */
+  siteIcon(tabId: number, url: string): Promise<string | null>;
+  /**
+   * Cancels the requests of the shortcut and of the popup's fill when their
+   * tab closes or leaves the page; tells the popup's lists their tab closed.
+   */
+  tabs: TabWatch;
+  /**
+   * `action.openPopup()`. Firefox before 149 opens it only while it handles
+   * the user's input: call it before anything awaits.
+   */
+  openPopup(): Promise<void>;
+  /** Whether `tabs.sendMessage` takes a `documentId`: Chromium does, Firefox doesn't. */
+  documentIds: boolean;
+  now?(): number;
+  randomToken?(): string;
+  /** How long the shortcut waits for the frame with focus to answer, and a fill for the frames with a form. */
+  probeTimeoutMs?: number;
+  /** How long the inline menu waits for the passkeys of a page's conditional request, see [PASSKEY_WAIT_MS]. */
+  passkeyWaitMs?: number;
+}
+
+/** A frame's answer to a `form_probe`: it has a login form to fill. */
+interface FormReport {
+  frame: FrameRef;
+  /** When a field there last got focus, by `Date.now()`. */
+  focusedAt: number | null;
+  /** Whether its form has a username or password that isn't read-only. */
+  writable: boolean;
+}
+
+/** A content script's answer to a probe. */
+type ProbeReport = Extract<ContentRequest, { kind: "focus_report" | "top_report" | "form_report" | "frame_report" }>;
+
+/** A probe in flight, see [PageController.probeFrames]. */
+interface Probe {
+  tabId: number;
+  /** Takes an answer of a frame of its tab; true once the probe has what it waits for. */
+  report(frame: FrameRef, report: ProbeReport): boolean;
+}
+
+interface IssuedToken {
+  kind: "menu" | "save_bar";
+  frame: FrameRef;
+  role: FieldRole | null;
+  /** The field has the `webauthn` autocomplete token. */
+  webauthn?: boolean;
+  /** A `menu_focus` came before the menu's page bound. */
+  focus?: boolean;
+  /** A `menu_shown` came before the menu's page bound. */
+  shown?: boolean;
+  /** The menu's first matches, asked for as the token was issued; see [PageController.prefetchMenu]. */
+  prefetch?: MenuPrefetch;
+  issuedAt: number;
+}
+
+/** A promise that never rejects, and its value once it resolved. */
+/**
+ * How long the inline menu waits for the passkeys of a page's conditional
+ * request, from when it asks. The app answers at once unless it fetches a
+ * related origin's `/.well-known/webauthn`; past this, the menu shows the
+ * logins alone, so it never waits on a slow site. Reopening it asks again.
+ */
+export const PASSKEY_WAIT_MS = 1_000;
+
+/** The requests of a menu refresh, see [PageController.fetchMenu]. */
+interface MenuFetch {
+  /** The logins of the page; fails as the request does. */
+  logins: Promise<ResponseOf<"suggest">>;
+  /** The passkeys of the page's conditional request: none once [PASSKEY_WAIT_MS] passed. Never fails. */
+  passkeys: Promise<MenuPasskey[]>;
+  icon: Promise<string | null>;
+}
+
+/** A menu's first [MenuFetch], started with its token: the app answers while the menu's page loads. */
+interface MenuPrefetch {
+  fetch: MenuFetch;
+  /** Cancels its requests: the token expired or was replaced, its tab closed, or the app's state changed. */
+  abort: AbortController;
+  /** The app session it asked; handles die with theirs. */
+  sessionId: number | null;
+}
+
+interface MenuSession {
+  kind: "menu";
+  port: PagePort;
+  frame: FrameRef;
+  role: FieldRole;
+  webauthn: boolean;
+  /** The items the menu shows, by handle. */
+  items: Map<string, SuggestItem>;
+  /** The passkeys the menu shows, by handle. */
+  passkeys: Map<string, MenuPasskey>;
+  busy: boolean;
+  /** Counts the refreshes of the menu: only the latest one shows its result. */
+  refreshes: number;
+  /** Aborts when the menu closes: its requests in flight get a `cancel`. */
+  abort: AbortController;
+}
+
+interface SaveBarSession {
+  kind: "save_bar";
+  port: PagePort;
+  frame: FrameRef;
+  busy: boolean;
+  /** Aborts when the bar closes, as for [MenuSession.abort]. */
+  abort: AbortController;
+}
+
+/** The session of an embedded page, from its bind until it closes. */
+type PageSession = MenuSession | SaveBarSession;
+
+/** What [PageController.connect] does for one kind of embedded page. */
+interface EmbeddedPage<S extends PageSession, R extends MenuRequest | SaveBarRequest> {
+  /** The page's path, see isOwnPage. */
+  path: string;
+  parse(message: unknown): R | null;
+  /** The session of a page bound by [issued], or `null` when it has nothing to show. */
+  bind(port: PagePort, issued: IssuedToken): S | null;
+  handle(session: S, request: R): Promise<void>;
+}
+
+interface PendingSave {
+  /** Tells this offer from those that replace it: the bar's actions name the offer they're for. */
+  offer: number;
+  /** The frame where the login was submitted: its URL is what's saved. */
+  frame: FrameRef;
+  /** The frame's host, which the bar shows. */
+  host: string;
+  candidate: SaveCandidate;
+  /** The icon of the site, from its tab when the login was submitted, see [PageDeps.siteIcon]. */
+  icon: string | null;
+  at: number;
+}
+
+/** The last login fill on a tab, for the next step of a sign-in and "Fill TOTP". */
+interface FillMemory {
+  handle: string;
+  /** The item filled, when it has a TOTP: what "Fill TOTP" shows. */
+  totp: MenuItem | null;
+  /** The origin of the page filled: only its pages get the memory. */
+  origin: string;
+  at: number;
+  sessionId: number | null;
+}
+
+/** An item the popup lists: what its fill and its copy of the password need. */
+type ListedItem = MenuItem & Pick<SuggestItem, "has_password" | "password_hidden">;
+
+/** The items the popup lists on a tab, for its fill: those of its last `suggest` and of its last `search`. */
+interface Listed {
+  suggest: ReadonlyMap<string, ListedItem>;
+  search: ReadonlyMap<string, ListedItem>;
+}
+
+function toMenuItem(item: MenuItem): MenuItem {
+  return {
+    handle: item.handle,
+    name: item.name,
+    ...(item.username !== undefined ? { username: item.username } : {}),
+    account: item.account,
+    has_totp: item.has_totp,
+    reprompt: item.reprompt,
+  };
+}
+
+/** The passkeys of an item of a `suggest` with `"passkey"`. */
+function toMenuPasskeys(item: SuggestItem): MenuPasskey[] {
+  return (item.passkeys ?? []).map((passkey) => ({
+    handle: passkey.handle,
+    user_name: passkey.user_name,
+    ...(passkey.user_display_name !== undefined ? { user_display_name: passkey.user_display_name } : {}),
+    item: item.name,
+    account: item.account,
+  }));
+}
+
+/** A field of a sign-in step, where the login filled last may continue. */
+function isSignInRole(role: FieldRole | null): boolean {
+  return role === "username" || role === "current-password";
+}
+
+function hostOf(url: string): string {
+  return webUrl(url)?.hostname ?? "";
+}
+
+/**
+ * The URL of [frame] as its content script read it, [reported]: a single-page
+ * app changes it without a navigation. [frame]'s own for anything but an
+ * http(s) URL, as an about:blank or srcdoc frame's; `null` for another origin.
+ */
+function currentUrl(frame: FrameRef, reported: string | undefined): string | null {
+  const url = webUrl(reported);
+  if (url === null) return frame.url;
+  return url.origin === frame.origin ? url.href : null;
+}
+
+export class PageController {
+  private readonly tokens = new Map<string, IssuedToken>();
+  private readonly menus = new Set<MenuSession>();
+  private readonly saveBars = new Set<SaveBarSession>();
+  private readonly fills = new Map<number, FillMemory>();
+  private readonly listed = new Map<number, Listed>();
+  private readonly saves = new Map<number, PendingSave>();
+  /** The username of a username-first step on a tab, by the origin of its page. */
+  private readonly usernames = new Map<number, { username: string; origin: string; at: number }>();
+  private readonly probes = new Map<string, Probe>();
+  /** The popup's `search` in flight, which a newer one cancels. */
+  private searching: AbortController | null = null;
+  /** The last [PendingSave.offer]. */
+  private offers = 0;
+  private readonly now: () => number;
+  private readonly randomToken: () => string;
+
+  /** The popup's calls about a tab's page, see ./api.ts. */
+  readonly calls: Pick<CallHandlers, PageCallMethod> = {
+    suggest: ({ tabId }) => this.suggest(tabId),
+    search: ({ tabId, query }) => this.search(tabId, query),
+    fill: ({ tabId, handle, origin }) => this.fillPopup(tabId, handle, origin),
+  };
+
+  private readonly menuPage: EmbeddedPage<MenuSession, MenuRequest> = {
+    path: MENU_PAGE,
+    parse: parseMenuRequest,
+    bind: (port, issued) => this.bindMenu(port, issued),
+    handle: (menu, request) => this.onMenuRequest(menu, request),
+  };
+
+  private readonly saveBarPage: EmbeddedPage<SaveBarSession, SaveBarRequest> = {
+    path: SAVE_BAR_PAGE,
+    parse: parseSaveBarRequest,
+    bind: (port, issued) => this.bindSaveBar(port, issued),
+    handle: (bar, request) => this.onSaveBarRequest(bar, request),
+  };
+
+  constructor(private readonly deps: PageDeps) {
+    this.now = deps.now ?? Date.now;
+    this.randomToken = deps.randomToken ?? randomToken;
+  }
+
+  /**
+   * Whether a blocked URI of the user blocks saving on [url], as the app's
+   * `suggest` says. `false` when the app can't tell, as with the vault
+   * locked: it checks again when the user saves.
+   */
+  private async isSaveBlocked(frame: FrameRef): Promise<boolean> {
+    try {
+      // No kinds: the app matches no logins, and answers with the blocks only.
+      return (await this.deps.app.request("suggest", { url: frame.url, kinds: [], ...privateWindow(frame.privateWindow) })).save_blocked;
+    } catch {
+      return false;
+    }
+  }
+
+  /** The icon of the site of [page], a page of its tab, see [PageDeps.siteIcon]; `null` on any failure. */
+  private async siteIcon(page: Pick<FrameRef, "tabId" | "url">): Promise<string | null> {
+    try {
+      return await this.deps.siteIcon(page.tabId, page.url);
+    } catch {
+      // The tab closed, or the extension can't see it.
+      return null;
+    }
+  }
+
+  // region Content scripts
+
+  /** A `runtime.onMessage` from a content script; resolves with its answer. */
+  async onContentMessage(message: unknown, sender: MessageSenderLike | undefined): Promise<unknown> {
+    const request = parseContentRequest(message);
+    if (request === null) return null;
+    const frame = frameOf(sender, this.deps.extensionId, request.doc);
+    if (frame === null) return request.kind === "menu_open" ? { error: "unsupported_page" } : null;
+    switch (request.kind) {
+      case "menu_open": {
+        if (!(await this.deps.options.options()).inlineMenu) return { error: "not_allowed" };
+        // One menu per frame: a new one replaces the old.
+        for (const menu of this.menus) if (sameFrame(menu.frame, frame)) this.end(menu, { notify: false });
+        for (const [token, issued] of this.tokens) if (issued.kind === "menu" && sameFrame(issued.frame, frame)) this.drop(token);
+        // For the page the user is on, see [currentUrl].
+        const page = { ...frame, url: currentUrl(frame, request.url) ?? frame.url };
+        const prefetch = this.prefetchMenu(page, request.webauthn);
+        return { token: this.issue({ kind: "menu", frame: page, role: request.role, webauthn: request.webauthn, prefetch }) };
+      }
+      case "save_candidate":
+        await this.offerSave(frame, request.candidate);
+        return null;
+      case "username_step":
+        this.usernames.set(frame.tabId, { username: request.username, origin: frame.origin, at: this.now() });
+        return null;
+      case "save_bar_open":
+        if (frame.frameId !== 0 || this.pendingSave(frame.tabId) === null) return null;
+        return { token: this.issue({ kind: "save_bar", frame, role: null }) };
+      case "menu_focus":
+        // Only the menu of the sender's document; one still binding gets it once bound.
+        for (const menu of this.menus) if (sameDocument(menu.frame, frame)) this.post(menu.port, { kind: "focus" });
+        for (const issued of this.tokens.values()) if (issued.kind === "menu" && sameDocument(issued.frame, frame)) issued.focus = true;
+        return null;
+      case "menu_shown":
+        // As for menu_focus. The menu's click gate starts now: the frame was hidden till then.
+        for (const menu of this.menus) if (sameDocument(menu.frame, frame)) this.post(menu.port, { kind: "shown" });
+        for (const issued of this.tokens.values()) if (issued.kind === "menu" && sameDocument(issued.frame, frame)) issued.shown = true;
+        return null;
+      case "focus_report":
+      case "top_report":
+      case "form_report":
+      case "frame_report": {
+        const probe = this.probes.get(request.probe);
+        if (probe?.tabId === frame.tabId) probe.report(frame, request);
+        return null;
+      }
+    }
+  }
+
+  private issue(token: Omit<IssuedToken, "issuedAt">): string {
+    const now = this.now();
+    for (const [key, issued] of this.tokens) if (now - issued.issuedAt > TOKEN_TTL_MS) this.drop(key);
+    const key = this.randomToken();
+    const issued: IssuedToken = { ...token, issuedAt: now };
+    this.tokens.set(key, issued);
+    if (issued.prefetch !== undefined) {
+      // A token nobody takes keeps neither requests nor matches past its time.
+      setTimeout(() => {
+        if (this.tokens.get(key) === issued) this.dropPrefetch(issued);
+      }, TOKEN_TTL_MS);
+    }
+    return key;
+  }
+
+  /** Takes a token once: for its kind and tab, and before it expires. */
+  private take(key: string, kind: IssuedToken["kind"], tabId: number | undefined): IssuedToken | null {
+    const issued = this.tokens.get(key);
+    if (issued === undefined || issued.kind !== kind || issued.frame.tabId !== tabId) return null;
+    this.tokens.delete(key);
+    if (this.now() - issued.issuedAt <= TOKEN_TTL_MS) return issued;
+    this.dropPrefetch(issued);
+    return null;
+  }
+
+  /** Forgets a token: its menu's early requests stop. */
+  private drop(key: string) {
+    const issued = this.tokens.get(key);
+    this.tokens.delete(key);
+    if (issued !== undefined) this.dropPrefetch(issued);
+  }
+
+  /** Cancels the early requests of a token's menu, which then asks again once bound. */
+  private dropPrefetch(issued: IssuedToken) {
+    issued.prefetch?.abort.abort();
+    issued.prefetch = undefined;
+  }
+
+  // endregion
+
+  // region Embedded pages
+
+  /** A `runtime.onConnect` port of an embedded page. */
+  connect(port: PagePort): void {
+    if (port.name === MENU_PORT) this.serve(port, "menu", this.menuPage);
+    else if (port.name === SAVE_BAR_PORT) this.serve(port, "save_bar", this.saveBarPage);
+    else port.disconnect();
+  }
+
+  /** Binds [port] with a token of [kind], then hands the page's requests to its session. */
+  private serve<S extends PageSession, R extends MenuRequest | SaveBarRequest>(
+    port: PagePort,
+    kind: S["kind"],
+    page: EmbeddedPage<S, R>,
+  ) {
+    // Only our own page, in a tab: the token then ties it to a frame of that tab.
+    if (!isOwnPage(port.sender, this.deps.extensionId, page.path) || port.sender?.tab?.id === undefined) {
+      port.disconnect();
+      return;
+    }
+    let session: S | null = null;
+    let attempts = 0;
+    port.onMessage.addListener((raw) => {
+      const request = page.parse(raw);
+      if (request === null) return;
+      if (session !== null) {
+        void page.handle(session, request);
+        return;
+      }
+      const bind: MenuRequest | SaveBarRequest = request;
+      if (bind.kind !== "bind") return;
+      const issued = this.take(bind.token, kind, port.sender?.tab?.id);
+      if (issued === null) {
+        // The page may post tokens of its own to the frame; only ours bind.
+        if (++attempts >= MAX_BIND_ATTEMPTS) port.disconnect();
+        return;
+      }
+      session = page.bind(port, issued);
+    });
+    port.onDisconnect.addListener(() => {
+      if (session !== null) this.end(session, { notify: false });
+    });
+  }
+
+  /** The app's status changed: menus show the new state, and those still binding ask again for another session or state. */
+  statusChanged(): void {
+    const { snapshot, sessionId } = this.deps.app;
+    for (const issued of this.tokens.values()) {
+      if (snapshot.kind !== "unlocked" || issued.prefetch?.sessionId !== sessionId) this.dropPrefetch(issued);
+    }
+    for (const menu of this.menus) void this.refreshMenu(menu);
+  }
+
+  /** A frame's conditional passkey request came or went: its `webauthn` menus list passkeys or stop. */
+  conditionalChanged(frame: FrameRef): void {
+    for (const issued of this.tokens.values()) {
+      if (issued.kind === "menu" && issued.webauthn === true && sameFrame(issued.frame, frame)) this.dropPrefetch(issued);
+    }
+    for (const menu of this.menus) if (menu.webauthn && sameFrame(menu.frame, frame)) void this.refreshMenu(menu);
+  }
+
+  /** A tab closed: forget it. */
+  tabRemoved(tabId: number): void {
+    this.fills.delete(tabId);
+    this.listed.delete(tabId);
+    this.saves.delete(tabId);
+    this.usernames.delete(tabId);
+    for (const [key, issued] of this.tokens) if (issued.frame.tabId === tabId) this.drop(key);
+    for (const menu of this.menus) if (menu.frame.tabId === tabId) this.end(menu, { notify: false });
+    for (const bar of this.saveBars) if (bar.frame.tabId === tabId) this.end(bar, { notify: false });
+  }
+
+  private post(port: PagePort, event: MenuEvent | SaveBarEvent) {
+    try {
+      port.postMessage(event);
+    } catch {
+      // The page closed.
+    }
+  }
+
+  /**
+   * Ends a page's session: nothing waits for its answers any more, and its
+   * requests in flight get a `cancel`. With [notify], its content script
+   * closes the page's frame.
+   */
+  private end(session: PageSession, { notify }: { notify: boolean }) {
+    if (session.kind === "menu") this.menus.delete(session);
+    else this.saveBars.delete(session);
+    session.abort.abort();
+    if (notify) void this.notify(session.frame, { kind: session.kind === "menu" ? "menu_close" : "save_bar_close" });
+    try {
+      session.port.disconnect();
+    } catch {
+      // Already closed.
+    }
+  }
+
+  // endregion
+
+  // region Inline menu
+
+  private bindMenu(port: PagePort, issued: IssuedToken): MenuSession {
+    const menu: MenuSession = {
+      kind: "menu",
+      port,
+      frame: issued.frame,
+      role: issued.role ?? "username",
+      webauthn: issued.webauthn === true,
+      items: new Map(),
+      passkeys: new Map(),
+      busy: false,
+      refreshes: 0,
+      abort: new AbortController(),
+    };
+    this.menus.add(menu);
+    this.post(port, { kind: "bound" });
+    if (issued.focus === true) this.post(port, { kind: "focus" });
+    if (issued.shown === true) this.post(port, { kind: "shown" });
+    // The early requests are the menu's now: closing it cancels them.
+    const prefetch = issued.prefetch;
+    issued.prefetch = undefined;
+    if (prefetch !== undefined) menu.abort.signal.addEventListener("abort", () => prefetch.abort.abort(), { once: true });
+    void this.refreshMenu(menu, prefetch);
+    return menu;
+  }
+
+  private showMenu(menu: MenuSession, view: MenuView) {
+    if (!menu.abort.signal.aborted) this.post(menu.port, { kind: "view", view });
+  }
+
+  /**
+   * Shows the app's status, or the matches for the menu's page: the logins and
+   * the passkeys in one view, so no row moves once it shows. A failure or a
+   * blocked page shows at once; the passkeys get [PASSKEY_WAIT_MS] at most.
+   * Refreshes may finish out of order: an older one, still waiting for the
+   * app, shows nothing. Closing the menu cancels its requests. The first
+   * refresh takes the requests [prefetch] started with the token, unless the
+   * app's state changed since.
+   */
+  private async refreshMenu(menu: MenuSession, prefetch?: MenuPrefetch) {
+    const refresh = ++menu.refreshes;
+    const latest = () => refresh === menu.refreshes && !menu.abort.signal.aborted;
+    const status = this.deps.app.snapshot;
+    const early =
+      prefetch !== undefined && status.kind === "unlocked" && prefetch.sessionId === this.deps.app.sessionId && !prefetch.abort.signal.aborted
+        ? prefetch.fetch
+        : null;
+    if (early === null) prefetch?.abort.abort();
+    if (status.kind === "locked") {
+      this.showMenu(menu, { kind: "locked", unlocking: status.unlocking });
+      return;
+    }
+    if (status.kind !== "unlocked") {
+      this.showMenu(menu, { kind: "status", status });
+      return;
+    }
+    if (menu.items.size === 0 && menu.passkeys.size === 0) this.showMenu(menu, { kind: "loading" });
+    const host = hostOf(menu.frame.url);
+    const { logins, passkeys, icon: iconRequest } = early ?? this.fetchMenu(menu.frame, menu.webauthn, menu.abort.signal);
+    let response: ResponseOf<"suggest">;
+    let icon: string | null;
+    try {
+      [response, icon] = await Promise.all([logins, iconRequest]);
+    } catch (error) {
+      if (latest()) this.post(menu.port, { kind: "error", error: callErrorOf(error) });
+      return;
+    }
+    if (!latest()) return;
+    if (response.blocked) {
+      menu.items.clear();
+      menu.passkeys.clear();
+      this.showMenu(menu, { kind: "blocked", host });
+      return;
+    }
+    const keys = await passkeys;
+    if (!latest()) return;
+    const matches = menu.role === "otp" ? response.items.filter((item) => item.has_totp) : response.items;
+    const { items, last } = isSignInRole(menu.role)
+      ? this.lastFirst(menu.frame.tabId, menu.frame.url, matches)
+      : { items: matches, last: null };
+    menu.items = new Map(items.map((item) => [item.handle, item]));
+    menu.passkeys = new Map(keys.map((passkey) => [passkey.handle, passkey]));
+    const remembered = menu.role === "otp" ? this.rememberedTotp(menu.frame) : null;
+    this.showMenu(menu, {
+      kind: "items",
+      role: menu.role,
+      host,
+      items: items.map(toMenuItem),
+      last,
+      truncated: response.truncated,
+      totp: remembered === null ? null : toMenuItem(remembered),
+      passkeys: keys,
+      icon,
+    });
+  }
+
+  /** Starts the requests of a menu refresh for [frame]: the logins, the passkeys and the site's icon, at once. */
+  private fetchMenu(frame: FrameRef, webauthn: boolean, signal: AbortSignal): MenuFetch {
+    const passkeys = this.suggestPasskeys(frame, webauthn, signal);
+    const icon = this.siteIcon(frame);
+    const logins = this.deps.app.request("suggest", { url: frame.url, ...privateWindow(frame.privateWindow) }, signal);
+    return { logins, passkeys, icon };
+  }
+
+  /**
+   * Starts the first refresh of the menu of [frame] as its token is issued, so
+   * the app answers while the menu's page loads. Only with the vault
+   * unlocked: the menu shows any other state at once.
+   */
+  private prefetchMenu(frame: FrameRef, webauthn: boolean): MenuPrefetch | undefined {
+    if (this.deps.app.snapshot.kind !== "unlocked") return undefined;
+    const abort = new AbortController();
+    const fetch = this.fetchMenu(frame, webauthn, abort.signal);
+    // A token nobody takes leaves its failure unread.
+    fetch.logins.catch(() => undefined);
+    return { fetch, abort, sessionId: this.deps.app.sessionId };
+  }
+
+  /**
+   * The passkeys for the page's conditional request, on `webauthn` fields only.
+   * A `suggest` of its own: with `"passkey"` alone, the app lists just the
+   * logins with passkeys for the RP ID, which may not match the page and so
+   * aren't offered for filling. An RP ID the app refuses lists none. Past
+   * [PASSKEY_WAIT_MS], the request is cancelled and lists none.
+   */
+  private async suggestPasskeys(frame: FrameRef, webauthn: boolean, signal: AbortSignal): Promise<MenuPasskey[]> {
+    const conditional = webauthn && this.deps.app.supports("passkeys") ? this.deps.passkeys.conditionalFor(frame) : null;
+    if (conditional === null) return [];
+    const abort = new AbortController();
+    const cancel = () => abort.abort();
+    signal.addEventListener("abort", cancel, { once: true });
+    const timer = setTimeout(cancel, this.deps.passkeyWaitMs ?? PASSKEY_WAIT_MS);
+    try {
+      const response = await this.deps.app.request(
+        "suggest",
+        { url: frame.url, kinds: ["passkey"], rp_id: conditional.rpId, ...privateWindow(frame.privateWindow) },
+        abort.signal,
+      );
+      return response.blocked ? [] : response.items.flatMap(toMenuPasskeys);
+    } catch {
+      return [];
+    } finally {
+      clearTimeout(timer);
+      signal.removeEventListener("abort", cancel);
+    }
+  }
+
+  private async onMenuRequest(menu: MenuSession, request: MenuRequest) {
+    const { frame } = menu;
+    switch (request.kind) {
+      case "bind":
+        return;
+      case "fill": {
+        const item = menu.items.get(request.handle);
+        if (item === undefined) return this.post(menu.port, { kind: "error", error: "invalid_request" });
+        return this.act(menu, async (signal) => {
+          if (!(await this.guardMenu(menu))) return;
+          await this.fillLogin(frame, item.handle, item, "menu", signal);
+        });
+      }
+      case "totp": {
+        const item = menu.items.get(request.handle) ?? this.rememberedTotp(frame) ?? undefined;
+        if (item === undefined || item.handle !== request.handle || !item.has_totp) {
+          return this.post(menu.port, { kind: "error", error: "invalid_request" });
+        }
+        return this.act(menu, async (signal) => {
+          if (!(await this.guardMenu(menu))) return;
+          await this.fillTotp(frame, item.handle, "menu", signal);
+        });
+      }
+      case "passkey": {
+        const passkey = menu.passkeys.get(request.handle);
+        if (passkey === undefined) return this.post(menu.port, { kind: "error", error: "invalid_request" });
+        return this.act(menu, async (signal) => {
+          await this.guard(frame);
+          // The credential goes to the page through its passkey port, not this
+          // menu: the page's request, not the menu, waits for it. Closing the
+          // menu cancels the pick.
+          await this.deps.passkeys.pick(frame, passkey.handle, signal);
+          this.end(menu, { notify: true });
+        });
+      }
+      case "generate":
+        if (menu.role !== "new-password") return this.post(menu.port, { kind: "error", error: "invalid_request" });
+        return this.act(menu, async (signal) => {
+          await this.guard(frame);
+          const { password } = await this.deps.app.request("generate", { url: frame.url, ...privateWindow(frame.privateWindow) }, signal);
+          await this.fill(frame, { kind: "fill_password", target: "menu", password });
+        });
+      case "unlock":
+        return this.act(menu, async (signal) => {
+          await this.deps.app.unlock(signal);
+        });
+      case "close":
+        this.end(menu, { notify: true });
+        return;
+      case "resize":
+        // The content script keeps the menu's frame within its bounds.
+        await this.notify(frame, { kind: "menu_resize", height: request.height });
+        return;
+    }
+  }
+
+  /**
+   * Runs one action of an embedded page at a time, reporting its progress and
+   * errors. The action's signal aborts when the page closes.
+   */
+  private async act(session: PageSession, action: (signal: AbortSignal) => Promise<void>) {
+    if (session.busy) return;
+    session.busy = true;
+    this.post(session.port, { kind: "busy", busy: true });
+    const signal = session.abort.signal;
+    try {
+      await action(signal);
+    } catch (error) {
+      // A cancelled request is no failure: the page closed.
+      if (!signal.aborted && !isCancelled(error)) this.post(session.port, { kind: "error", error: callErrorOf(error) });
+    } finally {
+      session.busy = false;
+      if (!signal.aborted) this.post(session.port, { kind: "busy", busy: false });
+    }
+  }
+
+  /**
+   * The content script's clickjacking checks for the menu and its field, or
+   * for the save bar, then those of each parent of another origin that it
+   * names, see [parentShows]. Resolves with the frame's URL now, as its
+   * content script reads it: an about:blank or srcdoc frame, whose own URL
+   * isn't the page's, keeps [frame]'s.
+   */
+  private async guard(frame: FrameRef, popup: GuardedPopup = "menu"): Promise<string> {
+    let answer: unknown;
+    try {
+      answer = await this.send(frame, { kind: "guard", popup });
+    } catch {
+      throw new CallFailure("obscured");
+    }
+    const result = parseDocumentResult(answer, "obscured");
+    if (!result.ok) throw new CallFailure(result.reason);
+    const url = currentUrl(frame, result.url);
+    // The document answers for its origin only, see ../page/messages.ts.
+    if (url === null) throw new CallFailure("origin");
+    let parent = result.parent;
+    for (let checks = 0; parent !== undefined; checks++) {
+      if (checks === MAX_PARENT_CHECKS) throw new CallFailure("obscured");
+      parent = await this.parentShows(frame.tabId, parent);
+    }
+    return url;
+  }
+
+  /**
+   * Asks the content script of the parent of frame [check.frame], of another
+   * origin, whether it shows the frame where the popup is; resolves with the
+   * next parent of another origin to ask, if any. Without an answer in time,
+   * as from a parent without a content script or of an opaque origin, the
+   * action is refused: the popup and the shortcut still fill.
+   */
+  private async parentShows(tabId: number, check: FrameCheck): Promise<FrameCheck | undefined> {
+    let answer = null as Extract<ProbeReport, { kind: "frame_report" }> | null;
+    await this.probeFrames(
+      tabId,
+      // Frames that don't hold it don't answer, which may fail the send.
+      (probe) => this.deps.sendToTab(tabId, { kind: "frame_guard", probe, ...check }).catch(() => undefined),
+      (_frame, report) => {
+        if (report.kind !== "frame_report") return false;
+        answer = report;
+        return true;
+      },
+    );
+    if (answer === null || !answer.ok) throw new CallFailure("obscured");
+    return answer.parent;
+  }
+
+  /**
+   * The checks before a fill from the menu. A single-page app may have moved
+   * to another URL since the menu opened, as one a blocked URI covers: the
+   * menu then shows the matches for it, and nothing fills. False then.
+   */
+  private async guardMenu(menu: MenuSession): Promise<boolean> {
+    const url = await this.guard(menu.frame);
+    if (url === menu.frame.url) return true;
+    menu.frame = { ...menu.frame, url };
+    void this.refreshMenu(menu);
+    return false;
+  }
+
+  // endregion
+
+  // region Fills
+
+  /** Sends [command] to the document of [frame], with its token and origin: another document refuses it. */
+  private send(frame: FrameRef, command: DocumentCommand): Promise<unknown> {
+    if (frame.doc === undefined) return Promise.reject(new CallFailure("origin"));
+    return this.deps.sendToFrame(
+      frame.tabId,
+      { ...command, doc: frame.doc, origin: frame.origin },
+      frameTarget(frame, this.deps.documentIds),
+    );
+  }
+
+  /** Sends values to the one document they're for. */
+  private async fill(frame: FrameRef, command: Extract<DocumentCommand, { kind: "fill" | "fill_totp" | "fill_password" }>) {
+    let answer: unknown;
+    try {
+      answer = await this.send(frame, command);
+    } catch {
+      // The frame navigated or closed since.
+      throw new CallFailure("origin");
+    }
+    const result = parseDocumentResult(answer, "no_form");
+    if (!result.ok) throw new CallFailure(result.reason);
+  }
+
+  /** Sends a command that has no answer, ignoring a document that's gone. */
+  private async notify(frame: FrameRef, command: DocumentCommand) {
+    await this.send(frame, command).catch(() => undefined);
+  }
+
+  /**
+   * The page of a `fill` or `totp` for [frame]: its URL, and the origin of the
+   * tab's top frame when the frame is embedded in another origin's page, for
+   * the app's prompt. Both from the browser's senders: when the tab's URL
+   * doesn't tell, the top frame's answer to a probe does. Refuses, before
+   * anything is released, a frame whose top frame doesn't answer.
+   */
+  private async pageOf(frame: FrameRef): Promise<FramePage> {
+    let top = frame.topOrigin;
+    if (top === null) {
+      top = await this.topOrigin(frame.tabId);
+      if (top === null) throw new CallFailure("unsupported_page");
+    }
+    return {
+      url: frame.url,
+      ...(top !== undefined && top !== frame.origin ? { top_origin: top } : {}),
+      ...privateWindow(frame.privateWindow),
+    };
+  }
+
+  /**
+   * A login fill into [frame]: the app releases [handle] for the frame's page
+   * (see [pageOf], which may refuse first), its document gets the values, and
+   * the tab remembers the fill, with [item] for "Fill TOTP".
+   */
+  private async fillLogin(frame: FrameRef, handle: string, item: MenuItem | undefined, target: FillTarget, signal?: AbortSignal) {
+    const page = await this.pageOf(frame);
+    const values = await this.deps.app.request("fill", { handle, ...page }, signal);
+    await this.fill(frame, { kind: "fill", target, ...fillValues(values) });
+    this.rememberFill(frame, handle, item);
+  }
+
+  /** A one-time code fill into [frame], as for [fillLogin]. */
+  private async fillTotp(frame: FrameRef, handle: string, target: FillTarget, signal?: AbortSignal) {
+    const page = await this.pageOf(frame);
+    const { code } = await this.deps.app.request("totp", { handle, ...page }, signal);
+    await this.fill(frame, { kind: "fill_totp", target, code });
+  }
+
+  /**
+   * The popup's fill: picks the frame to fill for the tab's URL [url] (see
+   * [formFrame]), then fills its best login form with [handle], an item the
+   * popup listed. A tab with nothing to fill releases nothing.
+   */
+  async fillTab(tabId: number, url: string, handle: string, signal?: AbortSignal): Promise<void> {
+    const frame = await this.formFrame(tabId, url);
+    const listed = this.listed.get(tabId);
+    await this.fillLogin(frame, handle, listed?.suggest.get(handle) ?? listed?.search.get(handle), "page", signal);
+  }
+
+  /**
+   * The frame of a tab with a login form: the top frame if it has one, else
+   * the one focused last, as an embedded sign-in page. Frames whose form
+   * has a writable username or password go first: a read-only one may be an
+   * account the page only shows. Only frames on the site of [url], which the
+   * popup suggested for, loosely: a pre-filter only, as the app then checks
+   * the frame's URL against the handle's site. Injects the content script once
+   * if the tab has none.
+   */
+  private async formFrame(tabId: number, url: string): Promise<FrameRef> {
+    let reports = await this.probeForms(tabId);
+    if (reports === null) {
+      try {
+        await this.deps.injectContentScript(tabId);
+      } catch {
+        throw new CallFailure("unsupported_page");
+      }
+      reports = await this.probeForms(tabId);
+      if (reports === null) throw new CallFailure("unsupported_page");
+    }
+    const [best] = reports
+      .filter((report) => sameSite(report.frame.url, url))
+      .sort(
+        (a, b) =>
+          Number(b.writable) - Number(a.writable) ||
+          Number(b.frame.frameId === 0) - Number(a.frame.frameId === 0) ||
+          (b.focusedAt ?? -1) - (a.focusedAt ?? -1),
+      );
+    if (best === undefined) throw new CallFailure("no_form");
+    return best.frame;
+  }
+
+  /**
+   * The fill shortcut: a fresh `suggest` for the frame with focus, then its
+   * best match into the focused form: on a username or password field, the
+   * login used last, see [lastFirst]. On a one-time-code field it fills the
+   * code of the login filled on this tab within TOTP_WINDOW_MS. Its prompts
+   * close when the tab closes or leaves the page.
+   *
+   * Without a vault to fill from, as when Keyguard isn't paired or running,
+   * it opens the popup instead: at once, before anything awaits, so call it
+   * from the command's handler. A locked vault asks to unlock first.
+   */
+  async fillCommand(tabId: number): Promise<void> {
+    const status = this.deps.app.snapshot.kind;
+    if (status !== "locked" && status !== "unlocked") {
+      await this.deps.openPopup().catch(() => undefined);
+      return;
+    }
+    const tab = await this.deps.tab(tabId);
+    await this.deps.tabs.run(tabId, tab.url, (signal) => this.fillFocused(tabId, tab, signal));
+  }
+
+  private async fillFocused(tabId: number, tab: TabInfo, signal: AbortSignal): Promise<void> {
+    const app = this.deps.app;
+    if (app.snapshot.kind === "locked") await app.unlock(signal);
+    if (app.snapshot.kind !== "unlocked") return;
+    const report = await this.probe(tabId);
+    if (report === null) {
+      // No content script has focus, as in a tab opened before the install:
+      // the best login form of the tab, as for the popup.
+      const url = tab.url;
+      if (url === undefined || webUrl(url) === null) return;
+      const best = await this.bestItem(url, tab.incognito, signal);
+      if (best === null) return;
+      await this.fillLogin(await this.formFrame(tabId, url), best.handle, best, "page", signal);
+      return;
+    }
+    const { frame, role } = report;
+    const remembered = role === "otp" ? this.rememberedTotp(frame) : null;
+    if (remembered !== null) {
+      await this.fillTotp(frame, remembered.handle, "focused", signal);
+      return;
+    }
+    const best = await this.bestItem(frame.url, frame.privateWindow, signal, isSignInRole(role) ? tabId : undefined);
+    if (best === null) return;
+    await this.fillLogin(frame, best.handle, best, "focused", signal);
+  }
+
+  /**
+   * The match for [url], a page in a private window or not, to fill: on a
+   * sign-in step of tab [tabId], the login used last, see [lastFirst].
+   */
+  private async bestItem(url: string, isPrivate: boolean | undefined, signal: AbortSignal, tabId?: number): Promise<SuggestItem | null> {
+    const response = await this.deps.app.request("suggest", { url, ...privateWindow(isPrivate) }, signal);
+    if (response.blocked) return null;
+    const last = tabId === undefined ? null : this.lastFirst(tabId, url, response.items).last;
+    return (
+      response.items.find((item) => item.handle === last) ??
+      response.items.find((item) => item.has_password) ??
+      response.items[0] ??
+      null
+    );
+  }
+
+  /** Asks every frame of a tab which one has focus. */
+  private async probe(tabId: number): Promise<{ frame: FrameRef; role: FieldRole | null } | null> {
+    let focused = null as { frame: FrameRef; role: FieldRole | null } | null;
+    await this.probeFrames(
+      tabId,
+      // Frames without focus don't answer, which may fail the send.
+      (probe) => this.deps.sendToTab(tabId, { kind: "focus_probe", probe }).catch(() => undefined),
+      (frame, report) => {
+        if (report.kind !== "focus_report") return false;
+        focused = { frame, role: report.role };
+        return true;
+      },
+    );
+    return focused;
+  }
+
+  /**
+   * Asks the top frame of a tab for its origin, which its answer's sender
+   * tells as [frameOf] does: an about:blank page has its opener's. `null`
+   * when no answer comes in time: no content script, an opaque or data:
+   * page, or an about: page whose origin the browser doesn't report.
+   */
+  private async topOrigin(tabId: number): Promise<string | null> {
+    let origin = null as string | null;
+    await this.probeFrames(
+      tabId,
+      // The answer comes as a message of its own, see [frameOf].
+      (probe) => this.deps.sendToFrame(tabId, { kind: "top_probe", probe }, { frameId: 0 }).catch(() => undefined),
+      (frame, report) => {
+        // Only the tab's top frame; its origin is its sender's, see frameOf.
+        if (report.kind !== "top_report" || frame.frameId !== 0) return false;
+        origin = frame.origin;
+        return true;
+      },
+    );
+    return origin;
+  }
+
+  /**
+   * Asks every frame of a tab for a login form. Resolves with the frames that
+   * have one once the top frame answers with a writable form or the time is
+   * up; `null` when no frame has a content script.
+   */
+  private async probeForms(tabId: number): Promise<FormReport[] | null> {
+    const reports: FormReport[] = [];
+    const sent = await this.probeFrames(
+      tabId,
+      (probe) => this.deps.sendToTab(tabId, { kind: "form_probe", probe }),
+      (frame, report) => {
+        if (report.kind !== "form_report") return false;
+        reports.push({ frame, focusedAt: report.focused_at, writable: report.writable });
+        return frame.frameId === 0 && report.writable;
+      },
+    );
+    // As in a tab opened before the install.
+    return sent ? reports : null;
+  }
+
+  /**
+   * Sends a probe with [send], then hands the answers of the frames of tab
+   * [tabId] to [report] until it returns true or the time is up. False, at
+   * once, when [send] fails.
+   */
+  private probeFrames(tabId: number, send: (probe: string) => Promise<unknown>, report: Probe["report"]): Promise<boolean> {
+    const probe = this.randomToken();
+    return new Promise((resolve) => {
+      const done = (sent: boolean) => {
+        clearTimeout(timer);
+        this.probes.delete(probe);
+        resolve(sent);
+      };
+      const timer = setTimeout(() => done(true), this.deps.probeTimeoutMs ?? 300);
+      this.probes.set(probe, {
+        tabId,
+        report: (frame, answer) => {
+          if (!report(frame, answer)) return false;
+          done(true);
+          return true;
+        },
+      });
+      send(probe).catch(() => done(false));
+    });
+  }
+
+  /**
+   * Each login fill replaces the tab's memory: the next step of a sign-in and
+   * "Fill TOTP" are for the account filled last. [item] is the item filled,
+   * where the caller listed it.
+   */
+  private rememberFill(frame: FrameRef, handle: string, item: MenuItem | undefined) {
+    this.fills.set(frame.tabId, {
+      handle,
+      totp: item?.has_totp === true ? toMenuItem(item) : null,
+      origin: frame.origin,
+      at: this.now(),
+      sessionId: this.deps.app.sessionId,
+    });
+  }
+
+  /**
+   * The login filled last on this tab within [windowMs], for a page of [url]
+   * of its origin: another origin, even of the same site as the app sees it,
+   * gets nothing. Forgotten with its session, whose handles died, or after
+   * the longer window.
+   */
+  private lastFill(tabId: number, url: string, windowMs: number): FillMemory | null {
+    const memory = this.fills.get(tabId);
+    if (memory === undefined) return null;
+    const age = this.now() - memory.at;
+    if (memory.sessionId !== this.deps.app.sessionId || age > Math.max(TOTP_WINDOW_MS, CONTINUE_WINDOW_MS)) {
+      this.fills.delete(tabId);
+      return null;
+    }
+    return age <= windowMs && memory.origin === originOf(url) ? memory : null;
+  }
+
+  /**
+   * [items], the matches for [url], with the login used last first, and its
+   * handle. That's the login filled on the tab within CONTINUE_WINDOW_MS, as
+   * on the next step of a sign-in, or else the app's `last_used` item, used
+   * last on this device. The tab's own fill wins: two tabs may sign in to two
+   * accounts of a site. Only reorders: one that [items] lacks isn't added.
+   */
+  lastFirst<T extends Pick<SuggestItem, "handle" | "last_used">>(
+    tabId: number,
+    url: string,
+    items: readonly T[],
+  ): { items: T[]; last: string | null } {
+    const handle = this.lastFill(tabId, url, CONTINUE_WINDOW_MS)?.handle;
+    const last = items.find((item) => item.handle === handle) ?? items.find((item) => item.last_used === true);
+    if (last === undefined) return { items: [...items], last: null };
+    return { items: [last, ...items.filter((item) => item !== last)], last: last.handle };
+  }
+
+  /** The item of a login fill on this tab within TOTP_WINDOW_MS, for "Fill TOTP": only one with a TOTP. */
+  private rememberedTotp(frame: FrameRef): MenuItem | null {
+    return this.lastFill(frame.tabId, frame.url, TOTP_WINDOW_MS)?.totp ?? null;
+  }
+
+  // endregion
+
+  // region The popup
+
+  /** The popup's matches for a tab's page, the login used last first; see [lastFirst]. */
+  private async suggest(tabId: number): Promise<PageSuggestions> {
+    const info = await this.deps.tab(tabId);
+    const url = webUrl(info.url);
+    if (url === null) return { kind: "unsupported" };
+    // The tab may close while the app answers, see [list].
+    return this.deps.tabs.run(tabId, undefined, async (tab): Promise<PageSuggestions> => {
+      const iconRequest = this.siteIcon({ tabId, url: url.href });
+      const response = await this.deps.app.request("suggest", { url: url.href, ...privateWindow(info.incognito) });
+      if (response.blocked) return { kind: "blocked", host: url.hostname };
+      this.list(tabId, "suggest", response.items, tab);
+      const { items, last } = this.lastFirst(tabId, url.href, response.items);
+      return { kind: "items", origin: url.origin, host: url.hostname, truncated: response.truncated, items, last, icon: await iconRequest };
+    });
+  }
+
+  /** The popup's search of the vault for a tab's page. A newer search cancels this one; a short query gets no items. */
+  private async search(tabId: number, text: string): Promise<PageSearch> {
+    this.searching?.abort();
+    const abort = new AbortController();
+    this.searching = abort;
+    try {
+      const query = searchQuery(text);
+      const info = await this.deps.tab(tabId);
+      const url = webUrl(info.url);
+      if (url === null) return { kind: "unsupported" };
+      if (query === null) return { kind: "items", origin: url.origin, truncated: false, items: [] };
+      return await this.deps.tabs.run(tabId, undefined, async (tab): Promise<PageSearch> => {
+        const response = await this.deps.app.request("search", { query, url: url.href, ...privateWindow(info.incognito) }, abort.signal);
+        if (response.blocked) return { kind: "blocked", host: url.hostname };
+        this.list(tabId, "search", response.items, tab);
+        return { kind: "items", origin: url.origin, truncated: response.truncated, items: response.items };
+      });
+    } finally {
+      if (this.searching === abort) this.searching = null;
+    }
+  }
+
+  /**
+   * The popup lists [items] on a tab: they replace those of its last call of
+   * the kind. Not once [tab] aborts: the tab closed while the app answered,
+   * and nothing would forget them.
+   */
+  private list(tabId: number, call: keyof Listed, items: readonly ListedItem[], tab: AbortSignal) {
+    if (tab.aborted) return;
+    const listed = this.listed.get(tabId) ?? { suggest: new Map(), search: new Map() };
+    this.listed.set(tabId, { ...listed, [call]: new Map(items.map((item) => [item.handle, item])) });
+  }
+
+  /**
+   * Whether the popup may copy the password of [handle] on a tab: an item it
+   * listed there whose collections don't hide the password. The app releases
+   * that password to a fill all the same, so the copy is refused here.
+   */
+  mayCopyPassword(tabId: number, handle: string): boolean {
+    const listed = this.listed.get(tabId);
+    const item = listed?.suggest.get(handle) ?? listed?.search.get(handle);
+    return item !== undefined && copiesPassword(item);
+  }
+
+  /**
+   * The popup's fill, see [fillTab], for the page of [origin] it listed the
+   * item for: a tab that went on to another origin since fails with `origin`.
+   * The popup closes as the app prompts: the tab is what still waits.
+   */
+  private async fillPopup(tabId: number, handle: string, origin: unknown): Promise<null> {
+    const url = webUrl((await this.deps.tab(tabId)).url);
+    if (url === null) throw new CallFailure("unsupported_page");
+    if (url.origin !== origin) throw new CallFailure("origin");
+    await this.deps.tabs.run(tabId, url.href, (signal) => this.fillTab(tabId, url.href, handle, signal));
+    return null;
+  }
+
+  // endregion
+
+  // region Save
+
+  private async offerSave(frame: FrameRef, candidate: SaveCandidate) {
+    const url = webUrl(frame.url);
+    if (url === null || !this.deps.app.supports("save")) return;
+    if (!(await this.deps.options.options()).savePrompts) return;
+    // From the tab of the submitted page: the bar may show on the page that follows.
+    const [blocked, icon] = await Promise.all([this.isSaveBlocked(frame), this.siteIcon(frame)]);
+    // Saving is blocked there, as after "Never for this site": the app would refuse this one.
+    if (blocked) return;
+    // The username step of the same origin only.
+    const recent = this.usernames.get(frame.tabId);
+    const username =
+      candidate.username ??
+      (recent !== undefined && this.now() - recent.at <= USERNAME_TTL_MS && recent.origin === frame.origin ? recent.username : undefined);
+    const save: PendingSave = {
+      offer: ++this.offers,
+      frame,
+      host: url.hostname,
+      candidate: username === undefined ? candidate : { ...candidate, username },
+      icon,
+      at: this.now(),
+    };
+    this.saves.set(frame.tabId, save);
+    // An offer nobody takes doesn't keep the password in memory, nor its bar
+    // on the page: a later Save would only close it. A bar that saves goes on.
+    setTimeout(() => {
+      if (this.saves.get(frame.tabId) !== save) return;
+      this.saves.delete(frame.tabId);
+      for (const bar of this.saveBars) if (bar.frame.tabId === frame.tabId && !bar.busy) this.end(bar, { notify: true });
+    }, SAVE_TTL_MS);
+    let shown = false;
+    for (const bar of this.saveBars) {
+      if (bar.frame.tabId !== frame.tabId) continue;
+      this.showSaveBar(bar, save);
+      shown = true;
+    }
+    // A bar that shows takes the newer offer: a new frame would replace it,
+    // and cancel its Save or Never. When its page goes, as on a navigation,
+    // the page that follows asks for the offer as it loads.
+    if (shown) return;
+    // The top frame shows the bar: now, or after the navigation that follows.
+    await this.deps.sendToFrame(frame.tabId, { kind: "save_bar_show" }, { frameId: 0 }).catch(() => undefined);
+  }
+
+  private pendingSave(tabId: number): PendingSave | null {
+    const save = this.saves.get(tabId);
+    if (save === undefined) return null;
+    if (this.now() - save.at > SAVE_TTL_MS) {
+      this.saves.delete(tabId);
+      return null;
+    }
+    return save;
+  }
+
+  private bindSaveBar(port: PagePort, issued: IssuedToken): SaveBarSession | null {
+    const save = this.pendingSave(issued.frame.tabId);
+    if (save === null) {
+      port.disconnect();
+      return null;
+    }
+    // One bar per tab: a newer one replaces the old.
+    for (const bar of this.saveBars) if (bar.frame.tabId === issued.frame.tabId) this.end(bar, { notify: true });
+    const bar: SaveBarSession = { kind: "save_bar", port, frame: issued.frame, busy: false, abort: new AbortController() };
+    this.saveBars.add(bar);
+    this.post(port, { kind: "bound" });
+    this.showSaveBar(bar, save);
+    return bar;
+  }
+
+  private showSaveBar(bar: SaveBarSession, save: PendingSave) {
+    this.post(bar.port, { kind: "view", offer: save.offer, host: save.host, username: save.candidate.username ?? null, icon: save.icon });
+  }
+
+  private async onSaveBarRequest(bar: SaveBarSession, request: SaveBarRequest) {
+    const tabId = bar.frame.tabId;
+    const save = this.pendingSave(tabId);
+    if (request.kind === "bind") return;
+    if (request.kind === "resize") {
+      // Layout only: an offer that expired meanwhile ends on the next action, as before.
+      // The content script keeps the bar's frame within its bounds.
+      await this.notify(bar.frame, { kind: "save_bar_resize", height: request.height });
+      return;
+    }
+    // Save or Never runs, and the offer may expire meanwhile: the bar takes no
+    // other action, not even an Escape's dismiss, which would cancel it.
+    if (bar.busy) return;
+    if (save === null) {
+      this.end(bar, { notify: true });
+      return;
+    }
+    if (request.offer !== save.offer) {
+      // A newer offer replaced the one the user acted on: the action is
+      // dropped, and the bar shows the newer offer again.
+      this.showSaveBar(bar, save);
+      return;
+    }
+    switch (request.kind) {
+      case "save":
+        // A bar that closes first, as on a navigation, cancels: the offer stays
+        // for the next page.
+        await this.act(bar, async (signal) => {
+          await this.guard(bar.frame, "save_bar");
+          const { username, password, previous_password: previous } = save.candidate;
+          const fields: RequestOf<"save"> = {
+            url: save.frame.url,
+            ...(username !== undefined ? { username } : {}),
+            password,
+            ...(previous !== undefined ? { previous_password: previous } : {}),
+            ...privateWindow(save.frame.privateWindow),
+          };
+          await this.requestUnlocked("save", fields, signal);
+          if (this.saves.get(tabId) === save) this.saves.delete(tabId);
+          // A newer offer, submitted meanwhile, stays on the bar, which shows it since it came.
+          if (this.pendingSave(tabId) === null) this.end(bar, { notify: true });
+        });
+        break;
+      case "dismiss":
+        this.saves.delete(tabId);
+        this.end(bar, { notify: true });
+        return;
+      case "never":
+        // The app adds a blocked URI of saving only for the site, which every
+        // later offer's check sees. A bar that closes first cancels, as for save.
+        await this.act(bar, async (signal) => {
+          await this.guard(bar.frame, "save_bar");
+          await this.requestUnlocked("never_save", { url: save.frame.url, ...privateWindow(save.frame.privateWindow) }, signal);
+          if (this.saves.get(tabId) === save) this.saves.delete(tabId);
+          this.end(bar, { notify: true });
+        });
+        break;
+    }
+    // Save or Never failed after its offer expired: the bar's buttons would only
+    // close it. A newer offer stays on the bar, as above.
+    if (this.saveBars.has(bar) && this.pendingSave(tabId) === null) this.end(bar, { notify: true });
+  }
+
+  /** A request of the save bar: when the vault locked since the offer, it unlocks and asks again. */
+  private async requestUnlocked<T extends RequestType>(type: T, fields: RequestOf<T>, signal: AbortSignal): Promise<ResponseOf<T>> {
+    try {
+      return await this.deps.app.request(type, fields, signal);
+    } catch (error) {
+      if (!(error instanceof ProtocolError) || error.code !== "vault_locked") throw error;
+      await this.deps.app.unlock(signal);
+      return this.deps.app.request(type, fields, signal);
+    }
+  }
+
+  // endregion
+}

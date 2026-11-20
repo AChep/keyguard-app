@@ -101,7 +101,7 @@ stopped. Open Keyguard and check the MCP configuration."
 ## Browser connectors
 
 `keyguard browsers` installs, repairs, reports and removes the connectors that
-let browsers start the browser extension. It works
+let browsers start the [Browser extension](/docs/browser-extension/). It works
 for the current user only.
 
 ```sh
@@ -135,9 +135,10 @@ Some browsers share a manifest, so a command for one also changes the others:
 - On Windows, Brave and Vivaldi read Chrome's registry key: `chrome`, `brave`
   and `vivaldi` share a manifest and key.
 
-In Flatpak, Keyguard sees only the browsers' `NativeMessagingHosts` folders
-that exist on the host. Only those browsers can be set up. To add a browser,
-create its folder, then restart Keyguard.
+In Flatpak, Keyguard sees only the browsers' manifest folders that exist on
+the host, listed in [Flatpak](/docs/browser-extension/#flatpak). Only those
+browsers can be set up. To add a browser, create its folder, then restart
+Keyguard.
 
 Each command prints one line per browser: its ID, its status and the path of
 its manifest. `not found` lines show no path.

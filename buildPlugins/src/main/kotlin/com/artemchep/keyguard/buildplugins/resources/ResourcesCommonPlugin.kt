@@ -18,6 +18,13 @@ class ResourcesCommonPlugin : Plugin<Project> {
             localeResOutputDir.convention(ResourcesCommonExtension.defaultLocaleResOutputDir(project))
             appleStringsCatalogFile.convention(ResourcesCommonExtension.defaultAppleStringsCatalogFile(project))
             appleStringsSwiftFile.convention(ResourcesCommonExtension.defaultAppleStringsSwiftFile(project))
+            browserExtensionStringsAllowlistFile.convention(
+                ResourcesCommonExtension.defaultBrowserExtensionStringsAllowlistFile(project),
+            )
+            browserExtensionLocalesDir.convention(ResourcesCommonExtension.defaultBrowserExtensionLocalesDir(project))
+            browserExtensionStringKeysFile.convention(
+                ResourcesCommonExtension.defaultBrowserExtensionStringKeysFile(project),
+            )
         }
 
         val generateResHashesKt = tasks.register<GenerateResHashesTask>(
@@ -57,6 +64,16 @@ class ResourcesCommonPlugin : Plugin<Project> {
             composeResourcesDir.set(extension.composeResourcesDir)
             catalogFile.set(extension.appleStringsCatalogFile)
             swiftFile.set(extension.appleStringsSwiftFile)
+        }
+
+        tasks.register<GenerateBrowserExtensionStringsTask>(
+            ResourcesCommonExtension.GENERATE_BROWSER_EXTENSION_STRINGS_TASK_NAME,
+        ) {
+            description = "Generates the browser extension's _locales and i18n-keys.ts from the allowlist."
+            composeResourcesDir.set(extension.composeResourcesDir)
+            allowlistFile.set(extension.browserExtensionStringsAllowlistFile)
+            localesDir.set(extension.browserExtensionLocalesDir)
+            keysFile.set(extension.browserExtensionStringKeysFile)
         }
 
         pluginManager.withPlugin("org.jetbrains.kotlin.multiplatform") {

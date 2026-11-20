@@ -5,7 +5,7 @@ section: autofill
 type: how-to
 order: 30
 platforms: [android, windows]
-related: [passkeys, autofill, troubleshoot-autofill]
+related: [passkeys, autofill, browser-extension, troubleshoot-autofill]
 ---
 
 To create and use passkeys from your vault in apps and browsers, register
@@ -17,6 +17,9 @@ Keyguard as the system's passkey provider.
 | --- | --- |
 | Android | Android 14 or later, on a device with credential provider support |
 | Windows | Windows 11 with support for third-party passkey providers, and Keyguard from the Microsoft Store or an MSIX package |
+
+In desktop browsers, the [browser extension](/docs/browser-extension/#use-passkeys)
+can answer passkey requests instead, without this registration.
 
 ## Register Keyguard
 

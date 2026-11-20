@@ -3262,6 +3262,7 @@
     <string name="browser_extension_options_browser_saving_not_controllable">The browser or a policy manages this setting.</string>
     <string name="browser_extension_error_no_form">Keyguard found no login form on this page.</string>
     <string name="browser_extension_error_obscured">The page hides or covers the field, so Keyguard didn’t fill it.</string>
+    <string name="browser_extension_error_save_bar_obscured">The page covers this bar. Close what’s open on the page, then try again.</string>
     <string name="browser_extension_error_page_changed">The page changed. Try again.</string>
     <!-- Browser extension: the integration in the app's settings and request log -->
     <string name="browser_extension_title">Browser extension</string>
@@ -3313,7 +3314,7 @@
     <string name="browser_extension_setup_pair_connected_text">Your browser is connected. Select Pair in the extension.</string>
     <string name="browser_extension_connectors_title">Browser connectors</string>
     <string name="browser_extension_connectors_note">Keyguard installs a connector for each browser it finds. Turn a browser off to remove its connector.</string>
-    <string name="browser_extension_connectors_flatpak_note">Browsers installed as Flatpak or Snap aren’t supported. Inside Flatpak, Keyguard installs a connector for each browser whose NativeMessagingHosts folder it can see.</string>
+    <string name="browser_extension_connectors_flatpak_note">Browsers installed as Flatpak or Snap aren’t supported. Inside Flatpak, Keyguard installs a connector for each browser whose native messaging folder it can see.</string>
     <string name="browser_extension_connector_installed">Installed</string>
     <string name="browser_extension_connector_not_installed">Not installed</string>
     <string name="browser_extension_connector_needs_repair">Needs repair</string>

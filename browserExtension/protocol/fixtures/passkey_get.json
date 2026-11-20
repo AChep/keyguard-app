@@ -21,7 +21,8 @@
     },
     "mediation": "conditional",
     "same_origin_with_ancestors": true,
-    "handle": "koALtLWg61i05QZ3BEVr9xLhmuC1K69q"
+    "handle": "koALtLWg61i05QZ3BEVr9xLhmuC1K69q",
+    "private_window": true
   },
   "response": {
     "id": 11,

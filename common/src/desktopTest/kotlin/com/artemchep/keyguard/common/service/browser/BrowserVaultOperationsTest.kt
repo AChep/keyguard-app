@@ -535,16 +535,59 @@ class BrowserVaultOperationsTest {
     }
 
     @Test
-    fun `an approval covers the item on its site, whatever page embeds it`() = browserTest { scope ->
+    fun `a frame of another site always asks, even with never ask`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope, approvalWindow = AGENT_APPROVAL_WINDOW_NEVER_ASK)
+        fixture.login("a", totp = TOTP)
+        val client = paired(fixture)
+        val handle = client.handle(10, PAGE)
+        assertEquals("secret-a", client.call(fill(11, handle, PAGE)).string("password"))
+
+        // Approving one doesn't cover the next.
+        val framed = listOf(
+            fill(12, handle, PAGE, topOrigin = SHOP_ORIGIN),
+            fill(13, handle, PAGE, topOrigin = SHOP_ORIGIN),
+            totp(14, handle, topOrigin = SHOP_ORIGIN),
+        )
+        for (request in framed) {
+            client.send(request)
+            val prompt = fixture.service.approvals.first { it.isNotEmpty() }.single()
+            val release = assertIs<BrowserOperation.Release>(prompt.operation).release
+            assertEquals("https://example.com", release.site, request)
+            assertEquals("https://example.net", release.topSite, request)
+            // The prompt says that it asks every time.
+            assertEquals(Duration.ZERO, release.approvalWindow, request)
+            fixture.service.respondToApproval(prompt.id, approved = true)
+            assertEquals(true, client.receive()?.bool("ok"), request)
+        }
+    }
+
+    @Test
+    fun `a frame of the same site follows the approval window`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope, approvalWindow = AGENT_APPROVAL_WINDOW_NEVER_ASK)
+        fixture.login("a")
+        val client = paired(fixture)
+        val handle = client.handle(10, LOGIN_PAGE)
+
+        val framed = client.call(fill(11, handle, LOGIN_PAGE, topOrigin = "https://example.com"))
+        assertEquals("secret-a", framed.string("password"))
+        assertTrue(fixture.service.approvals.value.isEmpty())
+    }
+
+    @Test
+    fun `an approval covers a frame of the same site, never one of another site`() = browserTest { scope ->
         val fixture = BrowserFixture(scope)
         fixture.login("a")
         val client = paired(fixture)
         val handle = client.handle(10, PAGE)
 
-        approve(fixture, client, fill(11, handle, PAGE))
-        val framed = client.call(fill(12, handle, PAGE, topOrigin = "https://shop.example.net"))
-        assertEquals("secret-a", framed.string("password"))
+        // Approving a frame of another site remembers nothing.
+        approve(fixture, client, fill(11, handle, PAGE, topOrigin = SHOP_ORIGIN))
+        approve(fixture, client, fill(12, handle, PAGE))
+        val sameSite = client.call(fill(13, handle, LOGIN_PAGE, topOrigin = "https://www.example.com"))
+        assertEquals("secret-a", sameSite.string("password"))
         assertTrue(fixture.service.approvals.value.isEmpty())
+        // The approval of the site doesn't cover a frame of another site.
+        approve(fixture, client, fill(14, handle, PAGE, topOrigin = SHOP_ORIGIN))
     }
 
     @Test
@@ -866,12 +909,61 @@ class BrowserVaultOperationsTest {
             .single { it.response == CliAgentUsageHistoryResponseType.FAILURE }
         assertEquals("not_allowed", refused.errorCode)
     }
+
+    @Test
+    fun `a fill of a private window records neither the request nor a use`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        fixture.login("a")
+        val client = paired(fixture)
+        val handle = client.handle(10, PAGE)
+
+        assertEquals("secret-a", approve(fixture, client, privateFill(11, handle)).string("password"))
+        assertTrue(fixture.autofillHistory.isEmpty())
+        assertNull(client.call(suggest(12, PAGE)).items().single().bool("last_used"))
+        // A refused one isn't recorded either.
+        assertEquals("not_allowed", client.call(privateFill(13, handle, "https://example.org/")).string("error"))
+
+        // A fill of a normal window records both; the approval covers it.
+        assertEquals("secret-a", client.call(fill(14, handle, PAGE)).string("password"))
+        val entry = fixture.awaitRecorded(CliAgentUsageHistoryRequestType.BROWSER_FILL).single()
+        assertEquals(CliAgentUsageHistoryResponseType.SUCCESS, entry.response)
+        assertEquals("a", entry.cipherId)
+        assertEquals("https://example.com", entry.path)
+        assertEquals(listOf("a"), fixture.autofillHistory.map { it.cipherId })
+        assertEquals(true, client.call(suggest(15, PAGE)).items().single().bool("last_used"))
+        delay(100)
+        assertEquals(listOf(entry), fixture.recorded().filter { it.request == entry.request })
+    }
+
+    @Test
+    fun `never_save of a private window adds the rule, and records no request`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val client = paired(fixture)
+
+        val request = """{"id":10,"type":"never_save","url":"$PAGE","private_window":true}"""
+        assertEquals(true, client.call(request).bool("ok"))
+        assertEquals("https://example.com", fixture.urlBlocks.value.single().uri)
+
+        // One of a normal window is recorded.
+        assertEquals(true, client.call(neverSave(11, PAGE)).bool("ok"))
+        val entry = fixture.awaitRecorded(CliAgentUsageHistoryRequestType.BROWSER_NEVER_SAVE).single()
+        assertEquals(CliAgentUsageHistoryResponseType.SUCCESS, entry.response)
+        assertEquals("https://example.com", entry.path)
+        delay(100)
+        assertEquals(listOf(entry), fixture.recorded().filter { it.request == entry.request })
+    }
 }
 
 private const val PAGE = "https://example.com/"
 private const val HTTP_PAGE = "http://example.com/"
 private const val TOTP = "otpauth://totp/Example:alice?secret=JBSWY3DPEHPK3PXP&issuer=Example"
 private const val HOTP = "otpauth://hotp/Example:alice?secret=JBSWY3DPEHPK3PXP&counter=0"
+
+/** A page of the site of [PAGE] on another host. */
+private const val LOGIN_PAGE = "https://login.example.com/"
+
+/** The origin of a top-level page of another site than [PAGE]. */
+private const val SHOP_ORIGIN = "https://shop.example.net"
 
 private fun suggest(id: Int, url: String) = """{"id":$id,"type":"suggest","url":"$url"}"""
 
@@ -889,6 +981,10 @@ private fun totp(id: Int, handle: String, url: String = PAGE, topOrigin: String?
     """{"id":$id,"type":"totp","handle":"$handle","url":"$url"${topOriginField(topOrigin)}}"""
 
 private fun topOriginField(origin: String?) = origin?.let { ""","top_origin":"$it"""" }.orEmpty()
+
+/** A `fill` of [url] in a private window. */
+private fun privateFill(id: Int, handle: String, url: String = PAGE) =
+    """{"id":$id,"type":"fill","handle":"$handle","url":"$url","private_window":true}"""
 
 private fun save(
     id: Int,

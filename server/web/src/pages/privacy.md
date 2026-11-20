@@ -2,14 +2,14 @@
 layout: ../layouts/LegalLayout.astro
 title: Privacy policy
 description: "How Keyguard, its website and license service process and retain personal information."
-updated: "2026-11-09"
+updated: "2026-11-17"
 ---
 
-Effective date: November 9, 2026
+Effective date: November 17, 2026
 
 Artem Chepurnyi (the "operator") provides Keyguard, a commercial password manager. The operator is the data controller for personal information received through Keyguard-controlled services.
 
-This Privacy Policy explains what information is processed, why it is processed, who receives it, how long it is kept, and what rights may apply. It covers the official Keyguard applications, their bundled components, the website at `keyguard.dev`, the Keyguard license service at `license.keyguard.dev`, and the Keyguard relay service at `relay.keyguard.dev`.
+This Privacy Policy explains what information is processed, why it is processed, who receives it, how long it is kept, and what rights may apply. It covers the official Keyguard applications, their bundled components, the Keyguard browser extension, the website at `keyguard.dev`, the Keyguard license service at `license.keyguard.dev`, and the Keyguard relay service at `relay.keyguard.dev`.
 
 Most information is processed on your device. When a network feature is used, information may be sent directly to a service you configure or to a provider described below. The operator does not store your vault and does not receive its contents. Device sync uses a relay described in Services You Choose. The relay receives connection metadata and, while relay storage is on, encrypted sync data it cannot read.
 
@@ -24,6 +24,20 @@ Information stored on your device may include vault contents and attachments, ac
 Biometric information is handled by the operating system. Keyguard receives only the authentication result. Exports, attachments, screenshots, and backups are stored in locations you choose and may not have the same protection as the vault. Automatic backups are not encrypted by Keyguard unless you set a backup password.
 
 The operator does not receive information that remains only on your device.
+
+## Browser Extension
+
+The Keyguard browser extension works with the Keyguard desktop app on the same device. The browser starts Keyguard's connector, which passes messages between the extension and the app. You pair the extension with the app by confirming a code in Keyguard. Messages between the paired extension and the app are encrypted end to end. The extension does not send information to the operator. It contacts no other server, except to load a website's icon in Firefox, as described below.
+
+To suggest and fill logins, the extension reads the addresses of web pages and their frames, and the attributes and labels of form fields. It sends page addresses, and the search terms you enter in its popup, to the app. The app answers with the names, usernames, and account names of matching items. Passwords and one-time codes reach the extension only to fill or copy them. Depending on your approval settings, Keyguard asks you to approve the request first. For passkey requests, the extension passes the website's request and its origin to the app, and returns the app's answer to the website.
+
+To offer to save a login, the extension checks on your device when you sign in or sign up. When you submit a form with a password you typed, it reads that password and the username. It also reads them when the page goes away within 5 seconds after you click or press Enter in that form, for example when you select Cancel and leave the page. A username you submit on its own, as on the first step of a sign-in, is kept for the password step. The extension keeps this information in memory for a few minutes and sends it to the app only if you select Save. The extension never saves a login itself.
+
+The extension stores its settings and pairing keys in the browser's storage for the extension. For a few minutes after a fill, it keeps a reference to the filled item in memory, to offer it on the next sign-in step. When you copy a value, the extension writes it to the clipboard. The app keeps a log of the extension's requests on your device, with the website, the type of request, and the time. The app does not log requests from private browser windows, and they do not change the item's usage history. You can review the log and set how long it is kept in Keyguard's settings.
+
+The extension shows the icon of the current website. In Chrome and other Chromium browsers, the icon comes from the browser's own cache. In Firefox, the extension may load it from the address the website sets for its icon, such as the website itself or a content delivery network. If you grant the optional privacy permission in the extension's options, the extension turns off the browser's own password saving.
+
+The operator does not receive information through the extension. The extension contains no analytics, advertising, or remote code. Information it handles is used only to provide its features. It is not sold, used for advertising, or transferred to third parties, except for the icon requests in Firefox described above.
 
 ## Services You Choose
 

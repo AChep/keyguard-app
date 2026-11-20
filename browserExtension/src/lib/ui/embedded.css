@@ -1,0 +1,29 @@
+/*
+ * The base of the pages that content scripts embed: the inline menu and the
+ * save bar. Each fills its frame, whose popover (../content/ui.ts) rounds it by
+ * --frame-radius and casts the shadow; the hairline border is drawn here, at
+ * the frame's edge, over content that scrolls.
+ */
+@import "./theme.css";
+
+:root {
+  --frame-radius: var(--shape-lg);
+  scrollbar-width: thin;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--surface-container);
+  color: var(--on-surface);
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  border: 1px solid color-mix(in srgb, var(--on-surface) 12%, transparent);
+  border-radius: var(--frame-radius);
+  pointer-events: none;
+}

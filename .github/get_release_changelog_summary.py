@@ -63,6 +63,8 @@ PREFIX_PLATFORMS = {
     "Generator": ALL_PLATFORMS,
     "Data": ALL_PLATFORMS,
     "Autofill": frozenset({"android"}),
+    # The extension talks to the desktop app.
+    "Browser extension": DESKTOP_PLATFORMS,
     "Auto-type": DESKTOP_PLATFORMS,
     "SSH agent": NON_WEAR_PLATFORMS,
     "Watchtower": NON_WEAR_PLATFORMS,
@@ -97,8 +99,8 @@ FULL_PROMPT_TEMPLATE = """
 You write the GitHub release notes for Keyguard from the commits of one release. The reader is a technical Keyguard user who wants to know what changed for them, not how it was implemented.
 
 **About Keyguard**
-Keyguard is a multi-platform password manager for Bitwarden and KeePass (KDBX) vaults. It runs on Android, Wear OS, and desktop: Windows, macOS, and Linux. Native iOS and macOS apps are experimental; commits scoped `Apple` or `iOS` are about them.
-Feature areas: vault items (logins, cards, identities, notes, SSH keys, GPG keys, passkeys), Watchtower security reports, password and passphrase generator, autofill, auto-type, SSH and GPG agents, Send, attachments, backups, multi-account and offline access.
+Keyguard is a multi-platform password manager for Bitwarden and KeePass (KDBX) vaults. It runs on Android, Wear OS, and desktop: Windows, macOS, and Linux. Native iOS and macOS apps are experimental; commits scoped `Apple` or `iOS` are about them. The browser extension for Chromium browsers and Firefox works with the desktop app; commits scoped `Browser` are about it.
+Feature areas: vault items (logins, cards, identities, notes, SSH keys, GPG keys, passkeys), Watchtower security reports, password and passphrase generator, autofill, auto-type, browser extension, SSH and GPG agents, Send, attachments, backups, multi-account and offline access.
 
 **Input**
 One line per commit, newest first, mostly `type(scope): subject #issue`. When a commit references a GitHub issue or pull request, an indented line follows with the number, kind, labels, title, and, for outside contributors, the author:
@@ -151,7 +153,7 @@ Rules for this shape:
 - Write the alert only when it applies; it repeats an item that is also listed in its section.
 - Use exactly these four headings, in this order. Skip empty ones. No other headings, even for one item.
 - Every bullet starts with `- `, then one prefix and a colon, then one sentence ending with a period. One fact per bullet: no semicolons or lists of unrelated changes.
-- Prefix: the platform when the change is specific to one: Android, Wear OS, Windows, macOS, Linux, Desktop (all desktop OSes), iOS; join two platforms with a comma: "macOS, Windows:". Otherwise one feature area from this list: Vault, Accounts, Unlock, Autofill, Auto-type, Passkeys, Watchtower, Generator, Send, Attachments, Backups, Sync, Bitwarden, KDBX, WebDAV, SSH agent, GPG, Export, UI.
+- Prefix: the platform when the change is specific to one: Android, Wear OS, Windows, macOS, Linux, Desktop (all desktop OSes), iOS; join two platforms with a comma: "macOS, Windows:". Otherwise one feature area from this list: Vault, Accounts, Unlock, Autofill, Browser extension, Auto-type, Passkeys, Watchtower, Generator, Send, Attachments, Backups, Sync, Bitwarden, KDBX, WebDAV, SSH agent, GPG, Export, UI.
 - Inside a section, order by user impact, but keep bullets with the same prefix next to each other.
 - Verbs: New bullets start with "Added". Improvements and Security describe the new behavior in present tense. Fixes start with "Fixed":
   - When the issue title names a symptom, write "Fixed <symptom>": "Windows: Fixed the app failing to start after an update (#1601)."

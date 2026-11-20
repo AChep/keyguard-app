@@ -1,16 +1,16 @@
 ---
 title: Agent approvals
-description: "How long Keyguard remembers an approval for the SSH and GPG agents, the command line and MCP, and who can reuse it."
+description: "How long Keyguard remembers an approval for the SSH and GPG agents, the command line, MCP and the browser extension, and who can reuse it."
 section: developer
 type: concept
 order: 30
 platforms: [android, linux, macos, windows]
-related: [ssh-agent, gpg-agent, environments, cli, coding-agents]
+related: [ssh-agent, gpg-agent, environments, cli, coding-agents, browser-extension]
 ---
 
-An approval lets a caller use a key or an environment from your vault. The
-window sets how long Keyguard remembers an approval, and the scope sets which
-callers can reuse it.
+An approval lets a caller use a key or environment from your vault. The window
+sets how long Keyguard remembers an approval, and the scope sets which callers
+can reuse it.
 
 ## Approval prompt
 
@@ -25,9 +25,8 @@ environment requests.
 
 ## Approval window
 
-The **Remember key approvals** setting sets how long Keyguard remembers an
-approval for an agent. The command line and MCP each have a
-**Remember approvals** setting.
+The SSH and GPG agents call this setting **Remember key approvals**, and the
+others **Remember approvals**.
 
 | Requester | Setting in | Options | Default | Platforms |
 | --- | --- | --- | --- | --- |
@@ -35,14 +34,18 @@ approval for an agent. The command line and MCP each have a
 | GPG agent | **Settings > Developer > GPG agent** | **Ask every time**, 1, 5 or 15 minutes, **Until vault locks**, **Never ask** | 5 minutes | Android, Linux, macOS, Windows |
 | Command line | **Settings > Developer > Command line** | **Ask every time**, 5 or 15 minutes, 1 or 4 hours, **Until vault locks**, **Never ask** | **Until vault locks** | Linux, macOS, Windows |
 | MCP and local .env files | **Settings > Developer > Environments > MCP** | Same as the command line | **Until vault locks** | Linux, macOS, Windows |
+| Browser extension | **Settings > Autofill > Browser extension** | Same as the command line | **Never ask** | Linux, macOS, Windows |
 
-**Never ask** skips the prompt while the vault is unlocked. Items with
-**Auth re-prompt** still ask you to confirm your identity.
+**Never ask** skips the prompt while the vault is unlocked. **Auth re-prompt**
+items and most passkeys still verify your identity.
 
 A remembered approval covers one key and the callers that the scope allows.
 For the GPG agent, signing and decryption need separate approvals. Locking the
 vault clears every remembered approval. Changing an approval setting clears
 the approvals it governs.
+
+A browser's approval covers one item on one site. Pairing and fills in another
+site's frame always ask.
 
 ## Approval scope
 
@@ -77,7 +80,7 @@ command-line access, MCP or a local .env file on or off. Changing the
 environment or an item it references also ends it.
 
 Unless the window is **Never ask**, Keyguard asks for every run on Windows,
-outside a terminal, such as in an IDE task, and on Linux kernels older than
+outside a terminal, such as an IDE task, and on Linux kernels older than
 6.5. These can't identify a terminal tab.
 
 ## MCP and local .env file approvals
@@ -87,15 +90,13 @@ Each running `keyguard mcp` process is one client. It first needs the
 each kind of request needs its own approval, for one environment or path.
 Creating environments is approved per account. A new process asks again.
 
-A local .env file has its own approval. It never inherits the approval of the
-client that created it. Once you approve a file, any process running as you
-can read it.
+A local .env file has its own approval, never inherited from the client that
+created it. Once you approve a file, any process running as you can read it.
 
-These approvals end when the window ends, or when you lock the vault. They
-also end when you turn MCP on or off, create or disable a local .env file, or
-access to the environment or a referenced item changes. Editing an environment
-keeps client approvals. A local .env file asks again after its environment or
-a referenced item changes.
+These approvals also end when you turn MCP on or off, create or disable a
+local .env file, or access to the environment or a referenced item changes.
+Editing an environment keeps client approvals. A local .env file asks again
+after its environment or a referenced item changes.
 
 ## Platform differences
 
@@ -104,7 +105,7 @@ a referenced item changes.
 | Linux, macOS | All four scopes | All four scopes |
 | Windows | Three scopes, without the terminal-isolated one. **Per application** is the default, and its approvals last while the detected app runs. | No **Approval scope** setting. An approval covers one connection. |
 | Android, Termux helper | No **Approval scope** setting. An approval covers the verified app, or the current connection if Keyguard can't verify the app. | Same as the SSH agent |
-| Android, other apps | Approval windows and scopes don't apply | Approval windows and scopes don't apply |
+| Android, other apps | Approval windows and scopes don't apply | Same as the SSH agent |
 
 The native macOS app lacks the command-line and MCP **Remember approvals** and
 **Approval timeout** settings. They use the defaults.

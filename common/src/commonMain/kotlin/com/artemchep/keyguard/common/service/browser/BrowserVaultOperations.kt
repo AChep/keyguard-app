@@ -300,7 +300,7 @@ internal class BrowserVaultOperations(
      * session at a time.
      */
     suspend fun save(request: SaveRequest): BrowserReply =
-        recorded(CliAgentUsageHistoryRequestType.BROWSER_SAVE) { usage ->
+        recorded(CliAgentUsageHistoryRequestType.BROWSER_SAVE, request.privateWindow) { usage ->
             val page = BrowserPage.parse(request.url)
                 ?: return@recorded BrowserReply.Error(BrowserError.INVALID_REQUEST)
             usage.origin = page.origin
@@ -337,7 +337,7 @@ internal class BrowserVaultOperations(
      * Adds nothing if saving is already blocked there.
      */
     suspend fun neverSave(request: NeverSaveRequest): BrowserReply =
-        recorded(CliAgentUsageHistoryRequestType.BROWSER_NEVER_SAVE) { usage ->
+        recorded(CliAgentUsageHistoryRequestType.BROWSER_NEVER_SAVE, request.privateWindow) { usage ->
             val page = BrowserPage.parse(request.url)
                 ?: return@recorded BrowserReply.Error(BrowserError.INVALID_REQUEST)
             usage.origin = page.origin
@@ -372,14 +372,15 @@ internal class BrowserVaultOperations(
      * Releases a secret of the item of the handle in [request] to its page:
      * checks that the page is on the site of the handle and that the user
      * approves the [operation], then answers with what [answer] reads from
-     * the item as it is. Then adds the page to an unmatched item, if the user asked.
+     * the item as it is. Then records the use of the item, unless the page is
+     * of a private window, and adds the page to an unmatched item, if the user asked.
      */
     private suspend fun release(
         request: HandleRequest,
         type: CliAgentUsageHistoryRequestType,
         operation: (BrowserRelease) -> BrowserOperation,
         answer: suspend (BrowserExtensionSessionDependencies, DSecret) -> BrowserReply,
-    ): BrowserReply = recorded(type) { usage ->
+    ): BrowserReply = recorded(type, request.privateWindow) { usage ->
         val handle = handles.resolve(request.handle) as? BrowserItemHandle
             ?: return@recorded BrowserReply.Error(BrowserError.INVALID_REQUEST)
         val (page, topPage) = request.pages()
@@ -403,11 +404,14 @@ internal class BrowserVaultOperations(
             .getOrElse { return@recorded BrowserReply.Error(it) }
         answer(current, item).also { reply ->
             if (reply is BrowserReply.Ok) {
-                val history = AddCipherOpenedHistoryRequest(
-                    accountId = item.accountId,
-                    cipherId = item.id,
-                )
-                current.addCipherUsedAutofillHistory(history).attempt().bind()
+                // A private window leaves no use, which would rank the item first on the site.
+                if (request.privateWindow != true) {
+                    val history = AddCipherOpenedHistoryRequest(
+                        accountId = item.accountId,
+                        cipherId = item.id,
+                    )
+                    current.addCipherUsedAutofillHistory(history).attempt().bind()
+                }
                 if (approval.addUri) current.addPage(item, page)
             }
         }
@@ -449,7 +453,8 @@ internal class BrowserVaultOperations(
     /**
      * Asks the user to approve the [operation] that releases the [cipher] to
      * the [page], a frame of the [topPage] if not `null`. An item that isn't
-     * [matched] always asks, and offers to add the page to it.
+     * [matched] always asks, and offers to add the page to it. A frame of
+     * another site's page always asks too.
      */
     private suspend fun approve(
         dependencies: BrowserExtensionSessionDependencies,
@@ -466,7 +471,7 @@ internal class BrowserVaultOperations(
         // What `AddUriCipher` writes; offered only for an item the user can edit.
         val addUri = "${page.scheme}://${page.host}"
             .takeIf { !matched && dependencies.canEdit(cipher) }
-        // For the prompt only: the grant stays the item on the page's site.
+        // A frame of another site's page: the page around it may be anyone's.
         val topSite = topPage
             ?.site(tldService)
             ?.takeIf { it != handle.site }
@@ -482,6 +487,7 @@ internal class BrowserVaultOperations(
             grant = grant,
             reprompt = cipher.reprompt,
             matched = matched,
+            crossSite = topSite != null,
         ) { approvalWindow ->
             val release = cipher.toRelease(
                 page = page,
@@ -497,10 +503,12 @@ internal class BrowserVaultOperations(
         }
     }
 
+    /** See [BrowserRequestLog.recorded]; [privateWindow] is the field of the request. */
     private suspend fun recorded(
         type: CliAgentUsageHistoryRequestType,
+        privateWindow: Boolean?,
         block: suspend (BrowserUsage) -> BrowserReply,
-    ): BrowserReply = requestLog.recorded(session, pairing, type, block)
+    ): BrowserReply = requestLog.recorded(session, pairing, type, privateWindow == true, block)
 
     /** The logins of the visible accounts, best match first. */
     private suspend fun BrowserExtensionSessionDependencies.matches(page: BrowserPage): List<DSecret> {

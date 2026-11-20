@@ -86,7 +86,7 @@ internal class BrowserPasskeyCeremony(
 ) {
     /** Signs in to the page with a passkey of the vault, once the user approves. */
     suspend fun get(request: PasskeyGetRequest): BrowserReply =
-        recorded(CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_GET) { usage ->
+        recorded(CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_GET, request.privateWindow) { usage ->
             val mediation = Mediation.of(request.mediation)
             // The browser handles the calls of a frame of another site, silent
             // ones, and those of a mediation that version 1 doesn't know.
@@ -127,20 +127,23 @@ internal class BrowserPasskeyCeremony(
                         userVerified = verified,
                     )
                 }
-                val history = AddCipherUsedPasskeyHistoryRequest(
-                    accountId = cipher.accountId,
-                    cipherId = cipher.id,
-                    credentialId = credential.credentialId,
-                    instant = clock.now(),
-                )
-                vault.dependencies.addCipherUsedPasskeyHistory(history).attempt().bind()
+                // A private window leaves no use, which would rank the item first on the site.
+                if (request.privateWindow != true) {
+                    val history = AddCipherUsedPasskeyHistoryRequest(
+                        accountId = cipher.accountId,
+                        cipherId = cipher.id,
+                        credentialId = credential.credentialId,
+                        instant = clock.now(),
+                    )
+                    vault.dependencies.addCipherUsedPasskeyHistory(history).attempt().bind()
+                }
                 credentialReply(response)
             }
         }
 
     /** Saves a new passkey of the page in a login the user picks. */
     suspend fun create(request: PasskeyCreateRequest): BrowserReply =
-        recorded(CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_CREATE) { usage ->
+        recorded(CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_CREATE, request.privateWindow) { usage ->
             if (!request.sameOriginWithAncestors) fail(BrowserError.NOT_SUPPORTED)
             val options = parseCreateOptions(request.options)
             val page = originPage(request.origin)
@@ -405,11 +408,15 @@ internal class BrowserPasskeyCeremony(
         }
     }
 
-    /** Answers with [block], records the answer, and answers a refusal with its error. */
+    /**
+     * Answers with [block], records the answer, and answers a refusal with its
+     * error; [privateWindow] is the field of the request, see [BrowserRequestLog.recorded].
+     */
     private suspend fun recorded(
         type: CliAgentUsageHistoryRequestType,
+        privateWindow: Boolean?,
         block: suspend (BrowserUsage) -> BrowserReply,
-    ): BrowserReply = requestLog.recorded(session, pairing, type, block)
+    ): BrowserReply = requestLog.recorded(session, pairing, type, privateWindow == true, block)
 
     /**
      * Checks that the request goes on in the vault it started in, and that

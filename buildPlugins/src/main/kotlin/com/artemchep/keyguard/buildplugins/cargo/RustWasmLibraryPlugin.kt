@@ -101,7 +101,16 @@ class RustWasmLibraryPlugin : Plugin<Project> {
             sourceDir.set(naming.rustSourceDirectory)
             rustTarget.set(EMSCRIPTEN_TARGET)
         }
-        val build = WasmBuild(naming, extension, sdk, verifyTarget, environment)
+        // A relative CARGO_HOME is relative to Cargo's working directory.
+        val cargoWorkingDirectory = naming.rustSourceDirectory.asFile
+        val cargoHome = providers.environmentVariable("CARGO_HOME")
+            .map { cargoWorkingDirectory.resolve(it) }
+            .orElse(providers.systemProperty("user.home").map { File(it, ".cargo") })
+        val repository = rootDir
+        val remapPaths = cargoHome.map { home ->
+            remapPathPrefixEnvironment(listOf(repository to "/keyguard", home to "/cargo"))
+        }
+        val build = WasmBuild(naming, extension, sdk, verifyTarget, environment, remapPaths)
         registerWasmBuild(
             build,
             name = "",
@@ -124,7 +133,25 @@ private class WasmBuild(
     val sdk: TaskProvider<SetupEmscriptenTask>,
     val verifyTarget: TaskProvider<VerifyRustTargetInstalledTask>,
     val environment: Provider<Map<String, String>>,
+    /** Of the Cargo build only, see [remapPathPrefixEnvironment]. */
+    val remapPaths: Provider<Map<String, String>>,
 )
+
+/**
+ * The Cargo environment that makes rustc write [paths] (directory to replacement) with their
+ * replacements into the binary, as in the file names of panic messages. With the Cargo home and
+ * the repository mapped, the binary doesn't depend on where it was built, so others can rebuild
+ * the same one. rustc applies the last mapping that matches: a nested directory goes after its
+ * parent.
+ *
+ * `CARGO_ENCODED_RUSTFLAGS` separates the flags with 0x1F, so a path keeps its spaces. It replaces
+ * `RUSTFLAGS` and the configured rustflags; the Wasm builds set none. With `--target`, Cargo passes
+ * it to the target's crates only, not to build scripts or proc macros, which run on the host.
+ */
+internal fun remapPathPrefixEnvironment(paths: List<Pair<File, String>>): Map<String, String> {
+    val flags = paths.map { (directory, replacement) -> "--remap-path-prefix=${directory.absolutePath}=$replacement" }
+    return mapOf("CARGO_ENCODED_RUSTFLAGS" to flags.joinToString("\u001f"))
+}
 
 /**
  * Registers the Cargo build, link, package and Clippy tasks of one build. A variant gets its own
@@ -153,6 +180,7 @@ private fun Project.registerWasmBuild(
         cargoTargetDir.set(cargoTargetDirectory)
         outputBinary.set(cargoTargetDir.file("$EMSCRIPTEN_TARGET/release/lib${naming.nativeLibraryPrefix}_c.a"))
         environmentVariables.putAll(build.environment)
+        environmentVariables.putAll(build.remapPaths)
         environmentVariables.putAll(extension.environmentVariables)
     }
     val link = tasks.register<EmscriptenLinkTask>("link$prefix") {

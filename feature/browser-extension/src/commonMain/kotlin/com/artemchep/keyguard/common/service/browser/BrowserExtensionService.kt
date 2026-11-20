@@ -204,7 +204,7 @@ data class BrowserRelease(
     val site: String,
     /**
      * The site of the tab's top page, when the page is a frame of another
-     * site's page. For display only: approvals cover the item on [site].
+     * site's page: the release always asks, and approving it is never remembered.
      */
     val topSite: String? = null,
     val accountId: String,

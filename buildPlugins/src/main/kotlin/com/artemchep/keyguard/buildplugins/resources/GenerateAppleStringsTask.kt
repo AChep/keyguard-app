@@ -11,9 +11,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import org.w3c.dom.Element
-import java.io.File
-import javax.xml.parsers.DocumentBuilderFactory
 
 abstract class GenerateAppleStringsTask : DefaultTask() {
     @get:Internal
@@ -35,98 +32,42 @@ abstract class GenerateAppleStringsTask : DefaultTask() {
 
     @TaskAction
     fun generate() {
-        val resourcesDir = composeResourcesDir.get().asFile
-        val valueDirs = localeDirectoryNames(resourcesDir)
-            .map(resourcesDir::resolve)
-
-        val locales = sortedSetOf<String>()
+        val resources = readStringResources(composeResourcesDir.get().asFile) { appleLocale(it) }
         // key -> (appleLocale -> converted value)
-        val strings = sortedMapOf<String, MutableMap<String, String>>()
+        val strings = resources.strings.mapValues { (_, translations) ->
+            translations.mapValues { (_, value) -> convertValue(value) }
+        }
         // key -> (appleLocale -> (cldrCategory -> variant value with %arg))
-        val plurals = sortedMapOf<String, MutableMap<String, MutableMap<String, String>>>()
-        // key -> arg types derived from the base (English) value
-        val stringArgs = mutableMapOf<String, List<ArgType>>()
-
-        for (dir in valueDirs) {
-            val locale = appleLocale(dir.name) ?: continue
-
-            dir.resolve("strings.xml").takeIf(File::isFile)?.let { file ->
-                locales += locale
-                parseStrings(file).forEach { (name, raw) ->
-                    val value = unescape(raw)
-                    strings.getOrPut(name) { sortedMapOf() }[locale] = convertValue(value)
-                    if (locale == BASE_LOCALE) {
-                        stringArgs[name] = extractArgTypes(value)
-                    }
-                }
-            }
-
-            dir.resolve("plurals.xml").takeIf(File::isFile)?.let { file ->
-                locales += locale
-                parsePlurals(file).forEach { (name, items) ->
-                    val byCategory = plurals.getOrPut(name) { sortedMapOf() }
-                        .getOrPut(locale) { linkedMapOf() }
-                    items.forEach { (category, raw) ->
-                        byCategory[category] = convertPluralVariant(unescape(raw))
-                    }
-                }
+        val plurals = resources.plurals.mapValues { (_, translations) ->
+            translations.mapValues { (_, variants) ->
+                variants.mapValues { (_, value) -> convertPluralVariant(value) }
             }
         }
+        // key -> arg types derived from the base (English) value
+        val stringArgs = resources.strings.mapNotNull { (key, translations) ->
+            translations[BASE_STRINGS_LOCALE]?.let { key to extractArgTypes(it) }
+        }.toMap()
 
         // Bundle selects one localization table; absent keys in that table may
         // resolve to their identifiers rather than the development language.
         // Fill whole missing entries (including plurals) without changing Crowdin
         // sources or mixing English plural categories into translated entries.
-        writeCatalog(withBaseFallback(strings, locales), withBaseFallback(plurals, locales))
+        writeCatalog(
+            withBaseFallback(strings, resources.locales),
+            withBaseFallback(plurals, resources.locales),
+        )
         writeSwift(strings.keys, stringArgs, plurals.keys)
 
         logger.lifecycle(
             "Generated Apple string catalog: ${strings.size} strings + ${plurals.size} plurals " +
-                "across ${locales.size} locales.",
+                "across ${resources.locales.size} locales.",
         )
     }
 
-    // region XML parsing
-
-    // textContent flattens inline markup such as <xliff:g>.
-    private fun parseStrings(file: File): List<Pair<String, String>> =
-        parseXml(file).elementsByKey("string", "name")
-            .map { (name, element) -> name to element.textContent }
-
-    private fun parsePlurals(file: File): List<Pair<String, List<Pair<String, String>>>> =
-        parseXml(file).elementsByKey("plurals", "name")
-            .map { (name, element) ->
-                name to element.elementsByKey("item", "quantity")
-                    .map { (quantity, item) -> quantity to item.textContent }
-            }
-
-    private fun parseXml(file: File): Element =
-        DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(file).documentElement
-
-    /** Descendant [tag] elements paired with their non-empty [keyAttribute]. */
-    private fun Element.elementsByKey(tag: String, keyAttribute: String): List<Pair<String, Element>> {
-        val nodes = getElementsByTagName(tag)
-        return (0 until nodes.length).mapNotNull { i ->
-            val element = nodes.item(i) as Element
-            element.getAttribute(keyAttribute).takeIf(String::isNotEmpty)?.let { it to element }
-        }
-    }
-
-    // endregion
-
     // region value conversion
 
-    /** Android backslash escapes are not XML; undo them after parsing. */
-    private fun unescape(value: String): String = ESCAPE.replace(value) {
-        when (val c = it.groupValues[1]) {
-            "n" -> "\n"
-            "t" -> "\t"
-            else -> c
-        }
-    }
-
     /** Map Android format specifiers to Apple ones. */
-    private fun convertValue(value: String): String = FORMAT_SPECIFIER.replace(value) { match ->
+    private fun convertValue(value: String): String = ANDROID_FORMAT_SPECIFIER.replace(value) { match ->
         val (position, type) = match.destructured
         val prefix = if (position.isEmpty()) "%" else "%$position\$"
         when (type) {
@@ -136,7 +77,7 @@ abstract class GenerateAppleStringsTask : DefaultTask() {
         }
     }
 
-    private fun convertPluralVariant(value: String): String = FORMAT_SPECIFIER.replace(value) { match ->
+    private fun convertPluralVariant(value: String): String = ANDROID_FORMAT_SPECIFIER.replace(value) { match ->
         when (match.groupValues[2]) {
             "s", "d" -> "%arg"
             else -> match.value
@@ -144,7 +85,7 @@ abstract class GenerateAppleStringsTask : DefaultTask() {
     }
 
     private fun extractArgTypes(value: String): List<ArgType> {
-        val specifiers = FORMAT_SPECIFIER.findAll(value)
+        val specifiers = ANDROID_FORMAT_SPECIFIER.findAll(value)
             .map { it.destructured }
             .filter { (_, type) -> type != "%" }
             .toList()
@@ -161,18 +102,6 @@ abstract class GenerateAppleStringsTask : DefaultTask() {
 
     // region catalog (.xcstrings) writer
 
-    private fun <T> withBaseFallback(
-        entries: Map<String, Map<String, T>>,
-        locales: Set<String>,
-    ): Map<String, Map<String, T>> = entries.mapValues { (_, translations) ->
-        val base = translations[BASE_LOCALE]
-        if (base == null) {
-            translations
-        } else {
-            locales.associateWith { translations[it] ?: base }
-        }
-    }
-
     private fun writeCatalog(
         strings: Map<String, Map<String, String>>,
         plurals: Map<String, Map<String, Map<String, String>>>,
@@ -186,7 +115,7 @@ abstract class GenerateAppleStringsTask : DefaultTask() {
             entries[key] = catalogEntry(localizations.mapValues { (_, variants) -> pluralUnit(variants) })
         }
         val catalog = mapOf(
-            "sourceLanguage" to BASE_LOCALE,
+            "sourceLanguage" to BASE_STRINGS_LOCALE,
             "strings" to entries,
             "version" to "1.0",
         )
@@ -332,18 +261,12 @@ abstract class GenerateAppleStringsTask : DefaultTask() {
     }
 
     companion object {
-        private const val BASE_LOCALE = "en"
         private const val SWIFT_BUNDLE = "AppLocalization.shared.bundle"
-
-        private val ESCAPE = Regex("""\\(.)""", RegexOption.DOT_MATCHES_ALL)
-
-        // `%%` is a token too, so the percent after it is never read as a specifier.
-        private val FORMAT_SPECIFIER = Regex("""%(?:(\d+)\$)?([sdf%])""")
 
         private val JSON = JsonGenerator.Options().disableUnicodeEscaping().build()
 
         private fun appleLocale(dirName: String): String? {
-            if (dirName == "values") return BASE_LOCALE
+            if (dirName == "values") return BASE_STRINGS_LOCALE
             val directory = parseLocaleDirectory(dirName) ?: return null
             val region = directory.region
 

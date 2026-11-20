@@ -273,6 +273,16 @@ private fun BrowserPairContent(
 private fun BrowserReleasePageNotes(
     release: BrowserRelease,
 ) {
+    // A frame of another site's page, which always asks: a warning, as for an unmatched item.
+    val topSite = release.topSite
+        ?.sanitizedAgentDisplayValue(MAX_AGENT_CALLER_APP_BUNDLE_PATH_LENGTH)
+    if (topSite != null) {
+        FlatSimpleNote(
+            type = SimpleNote.Type.WARNING,
+            text = stringResource(Res.string.browser_extension_approval_top_site_note, topSite),
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+    }
     // A page of another host than the site, such as a subdomain.
     val origin = release.origin
         .takeUnless { it.equals(release.site, ignoreCase = true) }
@@ -280,15 +290,6 @@ private fun BrowserReleasePageNotes(
     if (origin != null) {
         BrowserApprovalNote(
             text = stringResource(Res.string.browser_extension_approval_origin_note, origin),
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-    }
-    // A frame of another site's page.
-    val topSite = release.topSite
-        ?.sanitizedAgentDisplayValue(MAX_AGENT_CALLER_APP_BUNDLE_PATH_LENGTH)
-    if (topSite != null) {
-        BrowserApprovalNote(
-            text = stringResource(Res.string.browser_extension_approval_top_site_note, topSite),
         )
         Spacer(modifier = Modifier.height(8.dp))
     }

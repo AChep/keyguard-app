@@ -1,0 +1,104 @@
+@import "../../src/lib/ui/theme.css";
+
+/*
+ * Switch, Material 3 Expressive, on `<input type="checkbox" role="switch"
+ * class="switch">`. The handle is `::before`, the check `::after`: drawn with
+ * borders, since the CSP allows no data: images.
+ */
+
+input.switch[type="checkbox"] {
+  appearance: none;
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+  width: 52px;
+  height: 32px;
+  margin: 0;
+  border: 2px solid var(--outline);
+  border-radius: 16px;
+  background: var(--surface-container-highest);
+  vertical-align: middle;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-short) var(--ease-standard),
+    border-color var(--duration-short) var(--ease-standard);
+}
+
+/* Positions are of the handle's center, in the 48 by 28 box inside the border. */
+input.switch[type="checkbox"]::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 14px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--outline);
+  translate: -50% -50%;
+  transition:
+    left var(--spring-fast-duration) var(--spring-fast),
+    width var(--spring-fast-duration) var(--spring-fast),
+    height var(--spring-fast-duration) var(--spring-fast),
+    background-color var(--duration-short) var(--ease-standard),
+    box-shadow var(--duration-short) var(--ease-standard);
+}
+
+input.switch[type="checkbox"]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 34px;
+  width: 6px;
+  height: 11px;
+  border: solid var(--on-primary-container);
+  border-width: 0 2px 2px 0;
+  opacity: 0;
+  translate: -50% -65%;
+  rotate: 45deg;
+  scale: 0.4;
+  transition:
+    opacity var(--duration-short) var(--ease-standard),
+    scale var(--spring-fast-duration) var(--spring-fast);
+}
+
+input.switch[type="checkbox"]:checked {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+input.switch[type="checkbox"]:checked::before {
+  left: 34px;
+  width: 24px;
+  height: 24px;
+  background: var(--on-primary);
+}
+
+input.switch[type="checkbox"]:checked::after {
+  opacity: 1;
+  scale: 1;
+}
+
+input.switch[type="checkbox"]:enabled:hover::before {
+  background: var(--on-surface-variant);
+  box-shadow: 0 0 0 12px color-mix(in srgb, var(--on-surface) var(--state-hover), transparent);
+}
+
+input.switch[type="checkbox"]:enabled:checked:hover::before {
+  background: var(--primary-container);
+  box-shadow: 0 0 0 8px color-mix(in srgb, var(--primary) var(--state-hover), transparent);
+}
+
+input.switch[type="checkbox"]:enabled:active::before {
+  width: 28px;
+  height: 28px;
+  background: var(--on-surface-variant);
+}
+
+input.switch[type="checkbox"]:enabled:checked:active::before {
+  background: var(--primary-container);
+}
+
+input.switch[type="checkbox"]:disabled {
+  opacity: var(--disabled-content);
+  cursor: default;
+}

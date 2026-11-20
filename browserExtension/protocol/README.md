@@ -225,7 +225,7 @@ The plaintext of each transport message is a flags byte followed by data.
 | unpaired | An unpaired session; a paired one gets `invalid_request`. |
 | paired | A paired session; an unpaired one gets `unpaired`. |
 | unlocked | Paired, and the vault is unlocked; otherwise `vault_locked`. |
-| approval | Unlocked, and the user approves the release. An approval window may cover later releases of the same item on the same site to the same pairing; locking the vault ends it. Items with master-password re-prompt always ask, and the user confirms their identity. |
+| approval | Unlocked, and the user approves the release. An approval window may cover later releases of the same item on the same site to the same pairing; locking the vault ends it. Items with master-password re-prompt always ask, and the user confirms their identity. A `fill` or `totp` of a handle that isn't matched, or in a frame of another site, always asks, see [`fill`, `totp`](#fill-totp). |
 
 ### Pages and sites
 
@@ -234,6 +234,24 @@ host. Any other `url` gets `invalid_request`. The site of a page is its scheme
 and registrable domain, such as `https://example.com` for
 `https://login.example.com/`. An IP address, or a host without a registrable
 domain, is a site of its own. The port doesn't count.
+
+### Private windows
+
+A request that names a page carries `private_window: true` when the page is in
+a private window, such as an incognito one. The extension omits the field
+otherwise. An app that doesn't know the field ignores it. The app stores no
+browsing data of such a request:
+
+- The app's request log keeps nothing of it.
+- A release by `fill`, `totp` or `passkey_get` isn't a use, see
+  [`suggest`](#suggest).
+
+What the user saves is stored as usual: the login of `save`, the rule of
+`never_save`, the passkey of `passkey_create`, and the URI that the prompt of
+`fill` or `totp` adds.
+
+Requests that carry it: `suggest`, `search`, `fill`, `totp`, `generate`,
+`save`, `never_save`, `passkey_get` and `passkey_create`.
 
 ### Blocked URIs
 
@@ -352,6 +370,7 @@ Gate: unlocked. No prompt.
 | `url` | string | Absolute URL of the frame that holds the field. The background takes it from the sender, not from page content. |
 | `kinds` | string[]? | `"login"`, `"passkey"`. Default: `["login"]`. Unknown kinds are ignored. |
 | `rp_id` | string? | The relying party ID. Required with `"passkey"`. It must be valid for the origin of `url`, as for [passkeys](#passkey_get-passkey_create); otherwise `security`. |
+| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
 
 | Response field | Type | |
 |---|---|---|
@@ -368,8 +387,9 @@ empty: the response tells only `blocked` and `save_blocked`.
 
 Items used on this device come first, most recent use first. A use is a
 release by `fill` or `totp`, another autofill by the app, or a passkey
-sign-in. The other items follow: the best match first, then the logins of
-`"passkey"`. The 50 are taken after this order.
+sign-in. A request of a [private window](#private-windows) makes no use. The
+other items follow: the best match first, then the logins of `"passkey"`. The
+50 are taken after this order.
 
 | Item field | Type | |
 |---|---|---|
@@ -398,6 +418,7 @@ Gate: unlocked. No prompt.
 |---|---|---|
 | `query` | string | 2 to 100 code points once trimmed; otherwise `invalid_request`. |
 | `url` | string | As for `suggest`. |
+| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
 
 | Response field | Type | |
 |---|---|---|
@@ -425,9 +446,16 @@ Gate: approval.
 | `handle` | string | An item handle from `suggest` or `search`. |
 | `url` | string | The URL to fill, from the sender. It must be on the same [site](#pages-and-sites) as the URL of the request that issued the handle, and not be [blocked](#blocked-uris); otherwise `not_allowed`. |
 | `top_origin` | string? | The origin of the tab's top frame, such as `https://example.com`, when the frame of `url` has another origin. The background takes it from the browser, never from page content: from the tab's URL or, when that isn't `http` or `https`, from the sender of a message of the top frame's content script, as for an `about:blank` popup. It sends no `fill` or `totp` when neither tells. Anything but an `http` or `https` origin gets `invalid_request`. |
+| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
 
-The prompt names the site of `top_origin` when it isn't the site of `url`. It
-changes nothing else: approvals still cover the item on the site of `url`.
+A frame of another site, whose `top_origin` isn't on the site of `url`:
+
+- Always prompts, even when an approval window covers the item on the site.
+  The approval is never remembered.
+- The prompt warns and names both sites.
+
+An approval window covers a frame of the same site, such as
+`https://login.example.com` in `https://example.com`, as it covers a top frame.
 
 A handle that isn't matched, see [Handles](#7-handles):
 
@@ -464,6 +492,7 @@ Gate: paired.
 | Request field | Type | |
 |---|---|---|
 | `url` | string? | The page the password is for. |
+| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
 
 Response: `password`, string, made with the settings of the app's password
 generator. The vault may be locked.
@@ -472,12 +501,13 @@ generator. The vault may be locked.
 
 Gate: unlocked.
 
-| Request field | Type |
-|---|---|
-| `url` | string |
-| `username` | string? |
-| `password` | string? |
-| `previous_password` | string? |
+| Request field | Type | |
+|---|---|---|
+| `url` | string | |
+| `username` | string? | |
+| `password` | string? | |
+| `previous_password` | string? | |
+| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
 
 Response: no fields, once the window is on screen. The app opens a window with a
 new item, or with the matching item and the new password. The user saves in the
@@ -504,6 +534,7 @@ Gate: unlocked. Capability: `save`.
 | Request field | Type | |
 |---|---|---|
 | `url` | string | The page, as for `save`. |
+| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
 
 Response: no fields. The app doesn't prompt. It adds a rule that blocks saving
 only, for the registrable domain of `url`:
@@ -537,6 +568,7 @@ the vault is unlocked, a session whose pairing it doesn't confirm gets
 | `mediation` | string | `"silent"`, `"optional"`, `"conditional"` or `"required"`. |
 | `same_origin_with_ancestors` | boolean | |
 | `handle` | string? | A passkey handle from `suggest`, the user's pick in the inline menu. |
+| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
 
 Response: `credential`, an `AuthenticationResponseJSON`.
 
@@ -545,6 +577,7 @@ Response: `credential`, an `AuthenticationResponseJSON`.
 | `origin` | string | As for `passkey_get`. |
 | `options` | object | `PublicKeyCredentialCreationOptionsJSON`. |
 | `same_origin_with_ancestors` | boolean | |
+| `private_window` | boolean? | `true` for a page of a [private window](#private-windows). |
 
 Response: `credential`, a `RegistrationResponseJSON`, with `"none"` attestation.
 

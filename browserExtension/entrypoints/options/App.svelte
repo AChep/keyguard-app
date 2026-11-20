@@ -1,0 +1,221 @@
+<!--
+  The options page, in the look of the app's settings: the switches in one
+  segmented group, then a note on where "Never for this site" goes. Chromium
+  embeds it in the dialog of chrome://extensions, about 400px wide; Firefox, in
+  the add-on's page of about:addons. Opened in a tab, it's a centered column.
+-->
+<script lang="ts">
+  import { browser } from "wxt/browser";
+  import { t, type I18nKey } from "../../src/lib/i18n";
+  import type { IconName } from "../../src/lib/ui/icons";
+  import Icon from "../../src/lib/ui/components/Icon.svelte";
+  import Logo from "../../src/lib/ui/components/Logo.svelte";
+  import Wordmark from "../../src/lib/ui/components/Wordmark.svelte";
+  import {
+    browserSavingNote,
+    browserSavingState,
+    restoreBrowserSaving,
+    turnOffBrowserSaving,
+    type BrowserSavingState,
+    type PrivacyBrowser,
+  } from "../../src/lib/options/browserSaving";
+  import {
+    DEFAULT_OPTIONS,
+    OptionsStore,
+    watchOptions,
+    type ExtensionOptions,
+    type ObservableStorageArea,
+  } from "../../src/lib/options/store";
+
+  const storage = browser.storage.local as unknown as ObservableStorageArea;
+  const store = new OptionsStore(storage);
+
+  let options = $state<ExtensionOptions>({ ...DEFAULT_OPTIONS });
+
+  const privacy = browser as unknown as PrivacyBrowser;
+  let browserSaving = $state<BrowserSavingState>("off");
+  let browserSavingBusy = $state(false);
+  const browserSavingNoteKey = $derived(browserSavingNote(browserSaving));
+
+  const toggles: { key: keyof ExtensionOptions; icon: IconName; title: I18nKey; text: I18nKey }[] = [
+    {
+      key: "inlineMenu",
+      icon: "list",
+      title: "pref_item_autofill_inline_suggestions_title",
+      text: "browser_extension_options_inline_menu_text",
+    },
+    {
+      key: "savePrompts",
+      icon: "save",
+      title: "pref_item_autofill_save_request_title",
+      text: "browser_extension_options_save_text",
+    },
+    {
+      key: "passkeys",
+      icon: "key",
+      title: "pref_item_autofill_passkeys_enabled_title",
+      text: "browser_extension_options_passkeys_text",
+    },
+  ];
+
+  $effect(() => watchOptions(storage, (next) => (options = next)));
+  $effect(() => {
+    void browserSavingState(privacy).then((state) => (browserSaving = state));
+  });
+
+  function onToggleChange(input: HTMLInputElement, key: keyof ExtensionOptions) {
+    // A failed write leaves the options as they were, so Svelte wouldn't reset the input.
+    store.setOptions({ [key]: input.checked }).catch(() => (input.checked = options[key]));
+  }
+
+  async function onBrowserSavingChange(input: HTMLInputElement) {
+    // Starts the permission request before anything is awaited.
+    const task = input.checked ? turnOffBrowserSaving(privacy) : restoreBrowserSaving(privacy);
+    browserSavingBusy = true;
+    try {
+      browserSaving = await task;
+    } catch {
+      browserSaving = await browserSavingState(privacy).catch(() => "off" as const);
+    }
+    // A denied request leaves the state as it was, so Svelte wouldn't reset the input.
+    input.checked = browserSaving === "on";
+    browserSavingBusy = false;
+  }
+</script>
+
+<main>
+  <header>
+    <div class="brand">
+      <Logo size={40} />
+      <Wordmark />
+    </div>
+    <h1 class="headline-small">{t("settings_main_header_title")}</h1>
+  </header>
+
+  <div class="group">
+    {#each toggles as toggle (toggle.key)}
+      <label class="row setting">
+        <span class="leading"><Icon name={toggle.icon} /></span>
+        <span class="row-content">
+          <span class="body-large">{t(toggle.title)}</span>
+          <span class="body-medium medium">{t(toggle.text)}</span>
+        </span>
+        <input
+          class="switch"
+          type="checkbox"
+          role="switch"
+          checked={options[toggle.key]}
+          onchange={(event) => onToggleChange(event.currentTarget, toggle.key)}
+        />
+      </label>
+    {/each}
+    <!-- Disabled while someone else controls the setting: the note says who, at full emphasis. -->
+    <label class="row setting" class:disabled={browserSavingNoteKey !== undefined}>
+      <span class="leading"><Icon name="password" /></span>
+      <span class="row-content">
+        <span class="body-large">{t("browser_extension_options_browser_saving_title")}</span>
+        <span class="body-medium medium">{t("browser_extension_options_browser_saving_text")}</span>
+        {#if browserSavingNoteKey}
+          <span class="note body-small">{t(browserSavingNoteKey)}</span>
+        {/if}
+      </span>
+      <input
+        class="switch"
+        type="checkbox"
+        role="switch"
+        checked={browserSaving === "on"}
+        disabled={browserSavingBusy || browserSavingNoteKey !== undefined}
+        onchange={(event) => void onBrowserSavingChange(event.currentTarget)}
+      />
+    </label>
+  </div>
+
+  <p class="footnote body-medium medium">{t("browser_extension_options_never_save_text")}</p>
+
+  <!-- The licenses of the bundled third-party code, see scripts/third-party-notices.ts. -->
+  <a class="btn btn-text licenses" href="/THIRD_PARTY_NOTICES.txt" target="_blank" rel="noreferrer">
+    {t("pref_item_open_source_licenses_title")}
+    <Icon name="open_in_new" />
+  </a>
+</main>
+
+<style>
+  main {
+    width: 100%;
+    max-width: calc(600px + 2 * var(--space-24));
+    margin: 0 auto;
+    padding: var(--space-24);
+  }
+
+  /* Narrow, as in the dialog of chrome://extensions: the app's 16px gutters. */
+  @media (max-width: 480px) {
+    main {
+      padding: var(--space-16);
+    }
+  }
+
+  header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-16);
+    margin-bottom: var(--space-24);
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: var(--space-12);
+  }
+
+  h1 {
+    margin: 0;
+  }
+
+  /* The app's settings rows: 16px in, a leading 24px icon and a trailing switch 16px from the text. */
+  .setting {
+    gap: var(--space-16);
+    min-height: 56px;
+    padding: var(--space-12) var(--space-16);
+  }
+
+  /* The leading icons, in a 36px column. */
+  .leading {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    color: var(--on-surface-variant);
+  }
+
+  .setting.disabled {
+    cursor: default;
+  }
+
+  .setting.disabled::before {
+    background: transparent;
+  }
+
+  /* Disabled content at 38%, the supporting text too rather than 38% of its 60%. */
+  .setting.disabled > .leading,
+  .setting.disabled .row-content > :not(.note) {
+    color: var(--on-surface);
+    opacity: var(--disabled-content);
+  }
+
+  .note {
+    margin-top: var(--space-4);
+    color: var(--on-surface-variant);
+  }
+
+  /* A note under the group, 16px in like its rows. */
+  .footnote {
+    margin: 0;
+    padding: var(--space-12) var(--space-16) 0;
+  }
+
+  /* A text button, its label 16px in like the note's. */
+  .licenses {
+    margin-top: var(--space-8);
+  }
+</style>

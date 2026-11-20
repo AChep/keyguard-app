@@ -166,6 +166,8 @@ internal class BrowserApprovals(
      * @param matched Whether the item matched the page. An unmatched release
      *   always prompts, with an approval window of zero, and is never
      *   remembered; no grant covers it.
+     * @param crossSite The page is a frame of another site's page, see
+     *   [BrowserRelease.topSite]. The release always prompts, as an unmatched one does.
      * @param operation What the prompt shows, given the approval window;
      *   built only when prompting.
      * @return The approval, otherwise why not.
@@ -178,14 +180,17 @@ internal class BrowserApprovals(
         reprompt: Boolean,
         verify: Boolean = false,
         matched: Boolean = true,
+        crossSite: Boolean = false,
         operation: (approvalWindow: Duration) -> BrowserOperation,
     ): Either<BrowserError, BrowserApproval.Approved> {
         val key = vaultAccess.currentKey()
             ?: return BrowserError.VAULT_LOCKED.left()
         val epoch = generation.value
-        val access = if (matched) grants.getOrGenerateSession(key).access { grant } else null
+        // Neither "Never ask" nor a grant covers these, and approving them grants nothing.
+        val coverable = matched && !crossSite
+        val access = if (coverable) grants.getOrGenerateSession(key).access { grant } else null
         if (access?.isRemembered == true && !reprompt && !verify) return BrowserApproval.Approved(name = null).right()
-        val approvalWindow = if (matched) approvalCacheConfig.get().approvalWindow else Duration.ZERO
+        val approvalWindow = if (coverable) approvalCacheConfig.get().approvalWindow else Duration.ZERO
         val approval = ask(
             session = session,
             pairingName = pairing.name,

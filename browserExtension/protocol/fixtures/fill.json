@@ -4,7 +4,8 @@
     "type": "fill",
     "handle": "vQ1MuxXJtcodkychWqEwy7mqD5by0FIV",
     "url": "https://login.example.com/sign-in?next=%2Faccount",
-    "top_origin": "https://www.example.com"
+    "top_origin": "https://www.example.com",
+    "private_window": true
   },
   "response": {
     "id": 7,

@@ -1,0 +1,10 @@
+# Generates the TypeScript types of util/crypto's protobuf envelope
+# (`pnpm generate:proto`). The output is git-ignored.
+version: v2
+inputs:
+  - directory: ../util/crypto/schema
+plugins:
+  - local: protoc-gen-es
+    out: src/generated/proto
+    opt: target=ts
+clean: true

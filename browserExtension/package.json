@@ -1,0 +1,57 @@
+{
+  "name": "keyguard-browser-extension",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Keyguard browser extension: talks to the Keyguard desktop app over native messaging",
+  "scripts": {
+    "generate": "pnpm generate:strings && pnpm generate:proto && pnpm generate:licenses",
+    "generate:strings": "node scripts/gradlew.ts :common:generateBrowserExtensionStrings",
+    "generate:proto": "buf generate",
+    "generate:licenses": "node scripts/rust-licenses.ts",
+    "postinstall": "wxt prepare",
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "build:dev": "wxt build --mode development",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "typecheck": "svelte-check --tsconfig ./tsconfig.json && tsc --noEmit -p tsconfig.json",
+    "lint": "eslint .",
+    "lint:firefox": "web-ext lint --source-dir .output/firefox-mv3",
+    "test": "vitest run",
+    "render:icons": "node scripts/render-icons.ts"
+  },
+  "dependencies": {
+    "@bufbuild/protobuf": "2.17.0",
+    "@material/material-color-utilities": "0.3.0",
+    "keyguard-crypto-wasm": "link:../util/crypto/build/wasm/npm-noise"
+  },
+  "devDependencies": {
+    "@bufbuild/buf": "1.75.0",
+    "@bufbuild/protoc-gen-es": "2.17.0",
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.65.1",
+    "@types/node": "24.19.2",
+    "@wxt-dev/module-svelte": "2.0.5",
+    "eslint": "10.15.0",
+    "eslint-plugin-svelte": "3.24.1",
+    "fake-indexeddb": "6.2.6",
+    "globals": "17.14.0",
+    "happy-dom": "21.0.4",
+    "svelte": "5.57.3",
+    "svelte-check": "4.7.8",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2",
+    "vite": "8.3.8",
+    "vitest": "5.1.0",
+    "web-ext": "10.8.0",
+    "wxt": "0.21.5"
+  },
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=24.16.0",
+    "pnpm": ">=12"
+  }
+}

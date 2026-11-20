@@ -24,11 +24,21 @@ abstract class ResourcesCommonExtension {
     /** Generated type-safe Swift accessor (`L10n.swift`) for the catalog above. */
     abstract val appleStringsSwiftFile: RegularFileProperty
 
+    /** The keys exported to the browser extension, one per line. */
+    abstract val browserExtensionStringsAllowlistFile: RegularFileProperty
+
+    /** The browser extension's generated `_locales` directory (git-ignored). */
+    abstract val browserExtensionLocalesDir: DirectoryProperty
+
+    /** The generated TypeScript union of the browser extension's keys (git-ignored). */
+    abstract val browserExtensionStringKeysFile: RegularFileProperty
+
     companion object {
         const val EXTENSION_NAME = "keyguardResources"
         const val GENERATE_HASHES_TASK_NAME = "generateKeyguardResHashesKt"
         const val GENERATE_LOCALE_TASK_NAME = "generateResLocaleConfig"
         const val GENERATE_APPLE_STRINGS_TASK_NAME = "generateAppleStrings"
+        const val GENERATE_BROWSER_EXTENSION_STRINGS_TASK_NAME = "generateBrowserExtensionStrings"
         const val DEFAULT_PACKAGE_NAME = "com.artemchep.keyguard.build"
         const val DEFAULT_LOCALE = "en-US"
         const val DEFAULT_COMPOSE_RESOURCES_PATH = "src/commonMain/composeResources"
@@ -44,6 +54,12 @@ abstract class ResourcesCommonExtension {
             "appleUi/Sources/KeyguardUI/Resources/Localizable.xcstrings"
         const val DEFAULT_APPLE_STRINGS_SWIFT_PATH =
             "appleUi/Sources/KeyguardUI/Generated/L10n.swift"
+
+        // The browser extension (browserExtension/) runs this task from its
+        // `pnpm generate` script; the outputs are git-ignored.
+        const val DEFAULT_BROWSER_EXTENSION_STRINGS_ALLOWLIST_PATH = "browserExtension/strings.allowlist"
+        const val DEFAULT_BROWSER_EXTENSION_LOCALES_PATH = "browserExtension/public/_locales"
+        const val DEFAULT_BROWSER_EXTENSION_STRING_KEYS_PATH = "browserExtension/src/generated/i18n-keys.ts"
 
         fun defaultHashEntries(): Map<String, String> = mapOf(
             "justdeleteme" to "justdeleteme.json",
@@ -73,6 +89,15 @@ abstract class ResourcesCommonExtension {
 
         fun defaultAppleStringsSwiftFile(project: Project): RegularFile =
             project.layout.settingsDirectory.file(DEFAULT_APPLE_STRINGS_SWIFT_PATH)
+
+        fun defaultBrowserExtensionStringsAllowlistFile(project: Project): RegularFile =
+            project.layout.settingsDirectory.file(DEFAULT_BROWSER_EXTENSION_STRINGS_ALLOWLIST_PATH)
+
+        fun defaultBrowserExtensionLocalesDir(project: Project): Directory =
+            project.layout.settingsDirectory.dir(DEFAULT_BROWSER_EXTENSION_LOCALES_PATH)
+
+        fun defaultBrowserExtensionStringKeysFile(project: Project): RegularFile =
+            project.layout.settingsDirectory.file(DEFAULT_BROWSER_EXTENSION_STRING_KEYS_PATH)
     }
 
     init {

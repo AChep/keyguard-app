@@ -5,7 +5,7 @@ section: autofill
 type: concept
 order: 20
 platforms: [android, wear-os, linux, macos, windows]
-related: [passkey-provider, credential-exchange, troubleshoot-autofill]
+related: [passkey-provider, browser-extension, credential-exchange, troubleshoot-autofill]
 ---
 
 A passkey signs you in to a website or app without a password. It's a
@@ -71,6 +71,8 @@ store it in the fields that KeePassXC uses.
   Windows 11 updates.
 - **Use in apps and browsers.** Keyguard can answer passkey requests from the
   system. See [Use Keyguard as a passkey provider](/docs/passkey-provider/).
+  In desktop browsers, the [browser extension](/docs/browser-extension/#use-passkeys)
+  answers them.
 - **Transfer.** [Export your vault](/docs/export/) and
   [Credential Exchange](/docs/credential-exchange/) both carry passkeys and
   their PRF secrets with their items.

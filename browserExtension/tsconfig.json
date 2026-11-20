@@ -1,0 +1,22 @@
+{
+  "extends": "./.wxt/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "exactOptionalPropertyTypes": false,
+    "verbatimModuleSyntax": true,
+    "types": ["node"]
+  },
+  "include": [
+    ".wxt/wxt.d.ts",
+    "entrypoints",
+    "scripts",
+    "src",
+    "tests",
+    "wxt.config.ts",
+    "vitest.config.ts",
+    "eslint.config.js"
+  ]
+}

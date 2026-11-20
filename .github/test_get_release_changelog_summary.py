@@ -149,6 +149,7 @@ class BulletPlatformsTest(unittest.TestCase):
 
     def test_desktop_only_features(self):
         self.assertEqual(bullet_platforms("- Auto-type: Fixed it."), {"windows", "macos", "linux"})
+        self.assertEqual(bullet_platforms("- Browser extension: Fixed it."), {"windows", "macos", "linux"})
 
     def test_ssh_agent_applies_to_android_and_desktop(self):
         self.assertEqual(bullet_platforms("- SSH agent: Fixed it."), {"android", "windows", "macos", "linux"})

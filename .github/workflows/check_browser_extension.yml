@@ -1,0 +1,106 @@
+name: "✔️ Check browser extension"
+
+on:
+  workflow_dispatch:
+  # The extension, and what its build reads from the repository: the Wasm
+  # crypto, the app's strings, the version in the version catalog, and the
+  # Gradle build that makes the first two.
+  push:
+    branches:
+      - master
+    paths:
+      - 'browserExtension/**'
+      - 'util/crypto/**'
+      - 'thirdParty/rust/**'
+      - 'common/build.gradle.kts'
+      - 'common/src/commonMain/composeResources/values*/strings.xml'
+      - 'common/src/commonMain/composeResources/values*/plurals.xml'
+      - 'buildPlugins/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradle/libs.versions.toml'
+      - 'gradle/gradle-daemon-jvm.properties'
+      - 'gradle/wrapper/**'
+      - 'gradlew'
+      - '.cargo/config.toml'
+      - '.github/actions/setup_browser_extension/**'
+      - '.github/actions/setup_cargo_tools/**'
+      - '.github/actions/setup_gradle/**'
+      - '.github/actions/setup_python/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_browser_extension.yml'
+  pull_request:
+    branches:
+      - master
+    paths:
+      - 'browserExtension/**'
+      - 'util/crypto/**'
+      - 'thirdParty/rust/**'
+      - 'common/build.gradle.kts'
+      - 'common/src/commonMain/composeResources/values*/strings.xml'
+      - 'common/src/commonMain/composeResources/values*/plurals.xml'
+      - 'buildPlugins/**'
+      - 'build.gradle.kts'
+      - 'settings.gradle'
+      - 'gradle.properties'
+      - 'gradle/libs.versions.toml'
+      - 'gradle/gradle-daemon-jvm.properties'
+      - 'gradle/wrapper/**'
+      - 'gradlew'
+      - '.cargo/config.toml'
+      - '.github/actions/setup_browser_extension/**'
+      - '.github/actions/setup_cargo_tools/**'
+      - '.github/actions/setup_gradle/**'
+      - '.github/actions/setup_python/**'
+      - '.github/actions/setup_rust/**'
+      - '.github/workflows/check_browser_extension.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check-browser-extension:
+    name: Check browser extension
+    # The release job's runner, which BUILDING.md names for reproducible builds.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: browserExtension
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup_browser_extension
+      - name: "Type-check"
+        run: pnpm typecheck
+      - name: "Lint"
+        run: pnpm lint
+      - name: "Test"
+        run: pnpm test
+      # The builds fail on a bundled npm package outside the license policy.
+      - name: "Build for Chromium"
+        run: pnpm build
+      - name: "Build for Firefox"
+        run: pnpm build:firefox
+      # Expected warnings are listed in browserExtension/BUILDING.md.
+      - name: "Lint the Firefox build"
+        run: pnpm lint:firefox
+      - name: "Zip for Chromium"
+        run: pnpm zip
+      - name: "Zip for Firefox"
+        run: pnpm zip:firefox
+      - name: "Upload zips"
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
+        with:
+          name: browser-extension
+          path: browserExtension/.output/*.zip
+          # The zips are in a dot-folder, which upload-artifact skips by default.
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 21

@@ -66,6 +66,9 @@ data class SuggestRequest(
     val kinds: List<String>? = null,
     @SerialName("rp_id")
     val rpId: String? = null,
+    /** `true` when the page is in a private window: the app stores no browsing data of it. README section 4. */
+    @SerialName("private_window")
+    val privateWindow: Boolean? = null,
 )
 
 @Serializable
@@ -114,6 +117,9 @@ data class SearchRequest(
     val query: String,
     /** The page, as for `suggest`. */
     val url: String,
+    /** As for [SuggestRequest.privateWindow]. */
+    @SerialName("private_window")
+    val privateWindow: Boolean? = null,
 )
 
 @Serializable
@@ -150,6 +156,9 @@ data class HandleRequest(
     /** The origin of the tab's top frame, when the frame of [url] has another origin. */
     @SerialName("top_origin")
     val topOrigin: String? = null,
+    /** As for [SuggestRequest.privateWindow]. */
+    @SerialName("private_window")
+    val privateWindow: Boolean? = null,
 )
 
 @Serializable
@@ -166,6 +175,9 @@ data class TotpResponse(
 @Serializable
 data class GenerateRequest(
     val url: String? = null,
+    /** As for [SuggestRequest.privateWindow]. */
+    @SerialName("private_window")
+    val privateWindow: Boolean? = null,
 )
 
 @Serializable
@@ -180,12 +192,18 @@ data class SaveRequest(
     val password: String? = null,
     @SerialName("previous_password")
     val previousPassword: String? = null,
+    /** As for [SuggestRequest.privateWindow]. */
+    @SerialName("private_window")
+    val privateWindow: Boolean? = null,
 )
 
 @Serializable
 data class NeverSaveRequest(
     /** The page, as for `save`. */
     val url: String,
+    /** As for [SuggestRequest.privateWindow]. */
+    @SerialName("private_window")
+    val privateWindow: Boolean? = null,
 )
 
 @Serializable
@@ -198,6 +216,9 @@ data class PasskeyGetRequest(
     @SerialName("same_origin_with_ancestors")
     val sameOriginWithAncestors: Boolean,
     val handle: String? = null,
+    /** As for [SuggestRequest.privateWindow]. */
+    @SerialName("private_window")
+    val privateWindow: Boolean? = null,
 )
 
 @Serializable
@@ -207,6 +228,9 @@ data class PasskeyCreateRequest(
     val options: JsonObject,
     @SerialName("same_origin_with_ancestors")
     val sameOriginWithAncestors: Boolean,
+    /** As for [SuggestRequest.privateWindow]. */
+    @SerialName("private_window")
+    val privateWindow: Boolean? = null,
 )
 
 /** The response of `passkey_get` and `passkey_create`. */

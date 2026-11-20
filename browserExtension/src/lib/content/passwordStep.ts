@@ -32,10 +32,16 @@ export interface PasswordStepOptions extends DetectOptions {
   signal: AbortSignal;
 }
 
-/** Reports the password steps of a document, and keeps each report's field till a fill takes it. */
+/**
+ * Reports the password steps of a document, and keeps each report's field
+ * till a fill takes it. A step of a tab in the background is reported once
+ * the tab is in front, see [listen].
+ */
 export class PasswordStepReporter {
   /** How many login fills began: the generation a scan finds a password step in, see [firstFound]. */
   private generation = 0;
+  /** The smallest [report] `since` asked for while the tab was in the background, till [listen] reports it; null when none. */
+  private missedSince: number | null = null;
   /**
    * The password fields a scan found to be a password step, by the
    * generation it first found each in: a scan reports each once, and the
@@ -46,6 +52,25 @@ export class PasswordStepReporter {
   private readonly reports = new Map<string, StepReport>();
 
   constructor(private readonly options: PasswordStepOptions) {}
+
+  /**
+   * Once the tab is in front again, reports the password steps it missed in
+   * the background, as a page that loaded there; nothing when it missed none.
+   */
+  listen(): void {
+    const { doc, isTop, signal } = this.options;
+    if (!isTop) return;
+    doc.addEventListener(
+      "visibilitychange",
+      () => {
+        const since = this.missedSince;
+        if (doc.visibilityState !== "visible" || since === null) return;
+        this.missedSince = null;
+        this.rescan(since);
+      },
+      { signal },
+    );
+  }
 
   /** A login fill begins: the generation that [rescan] after it takes. */
   beginFill(): number {
@@ -76,7 +101,8 @@ export class PasswordStepReporter {
    * after a fill of generation [since] again those found since. A scan that
    * finds several reports none: nothing tells which one the user is on. In
    * the top frame only, with the option on: the options are read once a
-   * form is one.
+   * form is one. In a tab in the background, nobody sees a step: it detects
+   * nothing, and [listen] looks again once the tab is in front.
    */
   report(
     fields: Iterable<HTMLInputElement>,
@@ -84,6 +110,11 @@ export class PasswordStepReporter {
     formOf = (input: HTMLInputElement) => detectFormOf(input, this.options),
   ): void {
     if (!this.options.isTop || this.options.off()) return;
+    if (this.options.doc.visibilityState !== "visible") {
+      // The smallest: the look then takes what each missed report would have.
+      this.missedSince = Math.min(this.missedSince ?? Infinity, since);
+      return;
+    }
     const fresh = (input: HTMLInputElement) => {
       const first = this.firstFound.get(input);
       return first === undefined || first >= since;

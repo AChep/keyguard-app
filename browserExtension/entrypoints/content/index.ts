@@ -510,6 +510,7 @@ function startContentScript(ctx: ContentScriptContext) {
       }),
     signal,
   });
+  passwordSteps.listen();
 
   // endregion
 

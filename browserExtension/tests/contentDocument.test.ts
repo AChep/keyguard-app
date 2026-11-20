@@ -368,6 +368,14 @@ describe("the password step", () => {
     for (let i = 0; i < 100 && !done(); i++) await new Promise((resolve) => setTimeout(resolve, 10));
   }
 
+  /** The tab goes to the background, or comes back to the front, as the browser tells the page. */
+  function setVisible(visible: boolean) {
+    const state = vi.spyOn(document, "visibilityState", "get");
+    if (visible) state.mockRestore();
+    else state.mockReturnValue("hidden");
+    document.dispatchEvent(new Event("visibilitychange"));
+  }
+
   /** The content scripts' `password_step` reports, in order. */
   const reports = () => messages.filter((it) => it.kind === "password_step") as unknown as { step: string; account?: string }[];
 
@@ -428,12 +436,14 @@ describe("the password step", () => {
   it("asks again once a username fill was answered, for a step shown during the fill: one shown before waits for focus", async () => {
     fillPrompt = async () => ({ username: "ann", password: "secret" });
     // A single-page app shows the step by a style, which the watcher doesn't see, as the username is filled.
-    const stop = startDocument(`<form><input id="username" autocomplete="username"></form><form id="next" style="display: none"><input id="password" type="password"></form>`);
+    const stop = startDocument(`<form><input id="username" autocomplete="username"></form><form><input id="password" type="password" style="visibility: hidden"></form>`);
     byId("username").addEventListener("input", () => {
-      byId("next").style.display = "";
+      byId("password").style.visibility = "";
       byId("password").focus();
     });
     await pages.fillTab(7, PAGE, "h1");
+    // The fill wrote the username alone; the look after it finds the step.
+    expect([byId("username").value, byId("password").value]).toEqual(["ann", ""]);
     await until(() => byId("password").value !== "");
     expect(byId("password").value).toBe("secret");
     stop();
@@ -503,6 +513,73 @@ describe("the password step", () => {
     vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
     expect(await deliver(stepFill(reports()[0]!))).toEqual({ ok: false, reason: "no_form" });
     expect(byId("password").value).toBe("");
+  });
+
+  it("asks for the step of a page that loaded in a background tab once the tab is in front, detecting nothing before", async () => {
+    const stopFirst = startDocument(USERNAME_STEP);
+    fillPrompt = async () => ({ username: "ann", password: "secret" });
+    await pages.fillTab(7, PAGE, "h1");
+    stopFirst();
+    // The user went to another tab as the next page loaded. Detection asks
+    // every field of the form for its boxes.
+    setVisible(false);
+    const detections = vi.spyOn(Element.prototype, "getClientRects");
+    startDocument(PASSWORD_STEP);
+    await scanned();
+    expect(reports()).toEqual([]);
+    expect(detections).not.toHaveBeenCalled();
+
+    setVisible(true);
+    await until(() => byId("password").value !== "");
+    expect(byId("password").value).toBe("secret");
+    expect(reports()).toHaveLength(1);
+  });
+
+  it("asks on a return to the tab only when it missed a step in the background, once", async () => {
+    holdSteps = true;
+    startDocument(PASSWORD_STEP.replace(`type="password"`, `type="password" style="visibility: hidden"`));
+    await scanned();
+    // Shown by a style, which no scan sees: a return to the tab that missed nothing asks nothing, focus tells.
+    byId("password").style.visibility = "";
+    setVisible(false);
+    setVisible(true);
+    await scanned();
+    expect(reports()).toEqual([]);
+
+    // A single-page app shows the next step while the tab is in the background.
+    setVisible(false);
+    document.body.innerHTML = PASSWORD_STEP;
+    await scanned();
+    expect(reports()).toEqual([]);
+    setVisible(true);
+    await until(() => reports().length === 1);
+    setVisible(false);
+    setVisible(true);
+    await scanned();
+    expect(reports()).toHaveLength(1);
+  });
+
+  it("asks on a return to the tab for a step shown as the username was filled, the tab put in the background before the look after the fill", async () => {
+    holdSteps = true;
+    fillPrompt = async () => ({ username: "ann", password: "secret" });
+    startDocument(`<form><input id="username" autocomplete="username"></form><form><input id="password" type="password" style="visibility: hidden"></form>`);
+    byId("username").addEventListener("input", () => (byId("password").style.visibility = ""));
+    await pages.fillTab(7, PAGE, "h1");
+    expect([byId("username").value, byId("password").value]).toEqual(["ann", ""]);
+    // Its report on focus right after the fill goes unanswered, as one the
+    // background refused before it had the fill's answer.
+    byId("password").focus();
+    await until(() => reports().length === 1);
+    setVisible(false);
+    await scanned();
+    expect(reports()).toHaveLength(1);
+    // The look after the fill, not a plain scan: a step found since the fill began is asked for again, once.
+    setVisible(true);
+    await until(() => reports().length === 2);
+    setVisible(false);
+    setVisible(true);
+    await scanned();
+    expect(reports()).toHaveLength(2);
   });
 
   it("writes nothing into a field that the page's focus or key handlers changed first", async () => {

@@ -631,6 +631,10 @@
     <string name="gpg_key_import_error_reconcile">A GPG-kulcsot nem sikerült biztonságosan egyesíteni.</string>
     <string name="key_import_passphrase_hint">Adja meg <xliff:g id="protocol" example="SSH">%1$s</xliff:g>-kulcsának jelmondatát</string>
     <string name="gpg_key_import_passphrase_dialog_message">Ez a privát <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g>-kulcs titkosított. A Keyguard az importálás után a kulcs jelmondata nélkül tárolja.</string>
+    <string name="gpg_key_import_component_passphrases_title">Enter subkey passphrases</string>
+    <string name="gpg_key_import_component_passphrases_dialog_message">These parts of the key use a different passphrase than the one you entered.</string>
+    <string name="gpg_key_import_component_primary_key">Primary key <xliff:g id="key_id" example="1A2B3C4D">%1$s</xliff:g></string>
+    <string name="gpg_key_import_component_passphrase_invalid">Invalid passphrase</string>
     <string name="gpg_key_expiry_title">Lejárat</string>
     <string name="gpg_key_expiry_never">Soha</string>
     <string name="gpg_key_expiry_same_as_primary">Az elsődleges kulcséval megegyező (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
@@ -854,6 +858,10 @@
     <string name="error_otp_key_is_invalid">Az egyszeri jelszó titkos kulcsa érvénytelen</string>
     <string name="error_failed_file_already_exists">Nem sikerült létrehozni a fájlt. A meglévő fájl cseréje nem engedélyezett</string>
     <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
+    <string name="error_wordlist_word_exists">This word is already in the wordlist</string>
+    <string name="error_wordlist_no_new_words">All of these words are already in the wordlist</string>
+    <string name="error_wordlist_word_too_long">Words must be <xliff:g id="length" example="512">%1$d</xliff:g> characters or fewer</string>
+    <string name="error_must_not_contain_line_breaks">Must not contain line breaks</string>
     <string name="error_account_already_exists">Ez a fiók már hozzá van adva a Keyguardhoz</string>
     <string name="error_failed_generate_kdf_hash_oom">Nem sikerült létrehozni a kulcsot, nincs elég memória. Kérjük, ellenőrizze a KDF szerver beállításait.</string>
     <string name="error_failed_generate_otp_code">Nem sikerült legenerálni az OTP-kódot</string>
@@ -1022,6 +1030,12 @@
     <string name="wordlist_word_search_placeholder">Szavak keresése</string>
     <string name="wordlist_rename_action">Szólista átnevezése</string>
     <string name="wordlist_words_empty_label">Ez a szólista üres</string>
+    <string name="wordlist_word">Word</string>
+    <string name="wordlist_words">Words</string>
+    <string name="wordlist_add_words_title">Add words</string>
+    <string name="wordlist_add_words_description">One word per line. Lines that start with #, ;, - or / are skipped.</string>
+    <string name="wordlist_edit_word_title">Edit a word</string>
+    <string name="wordlist_delete_word_confirmation_title">Delete the word?</string>
     <string name="urloverride_header_title">URL felülírás</string>
     <string name="urloverride_list_header_title">URL felülírások</string>
     <string name="urloverride_list_section_title">URL felülírások</string>
@@ -1249,6 +1263,10 @@
     <string name="password_strength_good_label">Jó</string>
     <string name="password_strength_fair_label">Megfelelő</string>
     <string name="password_strength_weak_label">Gyenge</string>
+    <!-- Shown next to a focused password field. -->
+    <string name="password_keyboard_hint_caps_lock">Caps Lock is on</string>
+    <!-- Shown next to a focused password field, if the keyboard language is not English. -->
+    <string name="password_keyboard_hint_language">Keyboard language: <xliff:g id="language" example="RU">%1$s</xliff:g></string>
     <string name="passwords_very_strong_label">Nagyon erős jelszavak</string>
     <string name="passwords_strong_label">Erős jelszavak</string>
     <string name="passwords_good_label">Jó jelszavak</string>
@@ -1637,6 +1655,10 @@
     <string name="watchtower_item_compromised_accounts_title">Veszélyben Lévő Fiókok</string>
     <string name="watchtower_item_compromised_accounts_text">Ellenőrizze az adatszivárgásokat felhasználónév vagy e-mail cím alapján.</string>
     <string name="watchtower_notification_new_alerts_title">Új Őrtorony figyelmeztetések</string>
+    <string name="update_available_title">Update available</string>
+    <!-- Describes a new release of the app: the text of the notification and of the "Update available" item at the top of Settings. The placeholder is the version, e.g. 3.8.2. -->
+    <string name="update_available_version_text">Keyguard %1$s</string>
+    <string name="notification_app_update_channel_name">App updates</string>
     <string name="watchtower_alerts_header_title">Új őrtorony figyelmeztetések</string>
     <string name="watchtower_alerts_new_title">Új figyelmeztetések</string>
     <string name="watchtower_alerts_empty_title">Nincsenek új figyelmeztetések</string>
@@ -1770,6 +1792,8 @@
     <string name="settingssearch_backup_location_keywords">célhely mappa szerver WebDAV S3 tároló</string>
     <string name="settingssearch_backup_password_keywords">titkosítás jelszó beállítva</string>
     <string name="settingssearch_build_ref_keywords">revízió commit forrás build összeállítás hivatkozás</string>
+    <string name="settingssearch_app_update_level_keywords">update release new version notification</string>
+    <string name="settingssearch_app_update_delay_keywords">update release new version delay</string>
     <string name="settingssearch_license_keywords">licenc jogosultság token</string>
     <string name="settingssearch_search_placeholder">Keresés a Beállításokban</string>
     <string name="settings_appearance_header_title">Kinézet</string>
@@ -1886,7 +1910,6 @@
     <string name="pref_item_automatic_backups_panel_pending_changes_label">Függőben lévő változások</string>
     <string name="pref_item_automatic_backups_run_now_title">Mentés futtatása most</string>
     <string name="pref_item_automatic_backups_import_title">Import from backup</string>
-    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
     <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">Nem támogatott platform</string>
     <string name="pref_item_automatic_backups_unsupported_text">Az automatikus mentések Androidon és asztali gépen érhetők el.</string>
@@ -1936,9 +1959,19 @@
     <string name="navigation_items_missing_filter_text">A szűrő nem található</string>
     <string name="navigation_items_predefined_route_text">Előre meghatározott útvonal</string>
     <string name="pref_item_app_version_title">Alkalmazás verzió</string>
+    <!-- Shown under the installed app version. The placeholder is the version of the new release, e.g. 3.9.0. -->
+    <string name="pref_item_app_version_update_text">Update available: %1$s</string>
     <string name="pref_item_app_build_date_title">Alkalmazás build dátuma</string>
     <string name="pref_item_app_build_ref_title">Alkalmazás build referencia</string>
     <string name="pref_item_app_changelog_title">Alkalmazás változásnapló</string>
+    <string name="pref_item_app_update_level_title">Notify about updates</string>
+    <string name="app_update_level_off">Off</string>
+    <string name="app_update_level_major">Major releases</string>
+    <string name="app_update_level_minor">Major and minor releases</string>
+    <string name="app_update_level_all">All releases</string>
+    <!-- A title of the setting: how long a new release must be public before the app tells the user about it. -->
+    <string name="pref_item_app_update_delay_title">Wait after a release</string>
+    <string name="pref_item_app_update_delay_immediately_text">Immediately</string>
     <string name="pref_item_app_team_title">Az alkalmazás mögött álló csapat</string>
     <string name="pref_item_reddit_community_title">Reddit Közösség</string>
     <string name="pref_item_github_title">GitHub projekt</string>
@@ -2088,6 +2121,8 @@
     <string name="pref_item_agent_filters_summary_all">Minden kulcs elérhető</string>
     <string name="pref_item_agent_filters_summary_active">Szűrők aktívak</string>
     <string name="pref_item_agent_history_title">Kérések naplója</string>
+    <string name="pref_item_generator_history_retention_title">Delete generator history after</string>
+    <string name="settingssearch_history_retention_keywords">retention cleanup</string>
     <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
     <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">SSH-ügynök engedélyezése</string>

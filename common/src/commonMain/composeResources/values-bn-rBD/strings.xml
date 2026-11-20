@@ -631,6 +631,10 @@
     <string name="gpg_key_import_error_reconcile">GPG চাবিটি নিরাপদে একত্র করা যায়নি।</string>
     <string name="key_import_passphrase_hint"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> চাবির পাসফ্রেজ লিখুন</string>
     <string name="gpg_key_import_passphrase_dialog_message">এই <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g> গোপন চাবিটি এনক্রিপ্ট করা আছে। ইম্পোর্টের পর Keyguard চাবির পাসফ্রেজ ছাড়াই এটি সংরক্ষণ করবে।</string>
+    <string name="gpg_key_import_component_passphrases_title">Enter subkey passphrases</string>
+    <string name="gpg_key_import_component_passphrases_dialog_message">These parts of the key use a different passphrase than the one you entered.</string>
+    <string name="gpg_key_import_component_primary_key">Primary key <xliff:g id="key_id" example="1A2B3C4D">%1$s</xliff:g></string>
+    <string name="gpg_key_import_component_passphrase_invalid">Invalid passphrase</string>
     <string name="gpg_key_expiry_title">মেয়াদ</string>
     <string name="gpg_key_expiry_never">কখনো নয়</string>
     <string name="gpg_key_expiry_same_as_primary">প্রধান চাবির মতোই (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
@@ -854,6 +858,10 @@
     <string name="error_otp_key_is_invalid">একবার ব্যবহারযোগ্য পাসওয়ার্ডের গোপন চাবিটি সঠিক নয়</string>
     <string name="error_failed_file_already_exists">ফাইল তৈরি করা যায়নি। বিদ্যমান ফাইল প্রতিস্থাপন করার অনুমতি নেই</string>
     <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
+    <string name="error_wordlist_word_exists">This word is already in the wordlist</string>
+    <string name="error_wordlist_no_new_words">All of these words are already in the wordlist</string>
+    <string name="error_wordlist_word_too_long">Words must be <xliff:g id="length" example="512">%1$d</xliff:g> characters or fewer</string>
+    <string name="error_must_not_contain_line_breaks">Must not contain line breaks</string>
     <string name="error_account_already_exists">এই অ্যাকাউন্টটি ইতিমধ্যেই Keyguard-এ যোগ করা আছে</string>
     <string name="error_failed_generate_kdf_hash_oom">পর্যাপ্ত মেমরি না থাকায় কী তৈরি করা যায়নি। আপনার সার্ভারের KDF সেটিংস পরীক্ষা করুন।</string>
     <string name="error_failed_generate_otp_code">OTP কোড তৈরি করা যায়নি</string>
@@ -1022,6 +1030,12 @@
     <string name="wordlist_word_search_placeholder">শব্দ খুঁজুন</string>
     <string name="wordlist_rename_action">শব্দের তালিকার নাম বদলান</string>
     <string name="wordlist_words_empty_label">এই শব্দের তালিকাটি খালি</string>
+    <string name="wordlist_word">Word</string>
+    <string name="wordlist_words">Words</string>
+    <string name="wordlist_add_words_title">Add words</string>
+    <string name="wordlist_add_words_description">One word per line. Lines that start with #, ;, - or / are skipped.</string>
+    <string name="wordlist_edit_word_title">Edit a word</string>
+    <string name="wordlist_delete_word_confirmation_title">Delete the word?</string>
     <string name="urloverride_header_title">URL ওভাররাইড</string>
     <string name="urloverride_list_header_title">URL ওভাররাইড</string>
     <string name="urloverride_list_section_title">URL ওভাররাইড</string>
@@ -1249,6 +1263,10 @@
     <string name="password_strength_good_label">ভালো</string>
     <string name="password_strength_fair_label">মোটামুটি</string>
     <string name="password_strength_weak_label">দুর্বল</string>
+    <!-- Shown next to a focused password field. -->
+    <string name="password_keyboard_hint_caps_lock">Caps Lock is on</string>
+    <!-- Shown next to a focused password field, if the keyboard language is not English. -->
+    <string name="password_keyboard_hint_language">Keyboard language: <xliff:g id="language" example="RU">%1$s</xliff:g></string>
     <string name="passwords_very_strong_label">অত্যন্ত শক্তিশালী পাসওয়ার্ড</string>
     <string name="passwords_strong_label">শক্তিশালী পাসওয়ার্ড</string>
     <string name="passwords_good_label">ভালো পাসওয়ার্ড</string>
@@ -1637,6 +1655,10 @@
     <string name="watchtower_item_compromised_accounts_title">তথ্য ফাঁস হওয়া অ্যাকাউন্টগুলো</string>
     <string name="watchtower_item_compromised_accounts_text">ইউজারনেম বা ইমেইল ঠিকানা দিয়ে তথ্য ফাঁসের ঘটনা খুঁজুন।</string>
     <string name="watchtower_notification_new_alerts_title">ওয়াচটাওয়ারের নতুন সতর্কবার্তা</string>
+    <string name="update_available_title">Update available</string>
+    <!-- Describes a new release of the app: the text of the notification and of the "Update available" item at the top of Settings. The placeholder is the version, e.g. 3.8.2. -->
+    <string name="update_available_version_text">Keyguard %1$s</string>
+    <string name="notification_app_update_channel_name">App updates</string>
     <string name="watchtower_alerts_header_title">ওয়াচটাওয়ারের নতুন সতর্কবার্তা</string>
     <string name="watchtower_alerts_new_title">নতুন সতর্কবার্তা</string>
     <string name="watchtower_alerts_empty_title">নতুন কোনো সতর্কবার্তা নেই</string>
@@ -1770,6 +1792,8 @@
     <string name="settingssearch_backup_location_keywords">গন্তব্য ফোল্ডার সার্ভার WebDAV S3 বাকেট</string>
     <string name="settingssearch_backup_password_keywords">এনক্রিপশন পাসওয়ার্ড কনফিগার করা</string>
     <string name="settingssearch_build_ref_keywords">রিভিশন কমিট সোর্স বিল্ড রেফারেন্স</string>
+    <string name="settingssearch_app_update_level_keywords">update release new version notification</string>
+    <string name="settingssearch_app_update_delay_keywords">update release new version delay</string>
     <string name="settingssearch_license_keywords">লাইসেন্স ব্যবহারাধিকার টোকেন</string>
     <string name="settingssearch_search_placeholder">সেটিংস খুঁজুন</string>
     <string name="settings_appearance_header_title">চেহারা</string>
@@ -1886,7 +1910,6 @@
     <string name="pref_item_automatic_backups_panel_pending_changes_label">অপেক্ষমাণ পরিবর্তন</string>
     <string name="pref_item_automatic_backups_run_now_title">এখনই ব্যাকআপ চালান</string>
     <string name="pref_item_automatic_backups_import_title">Import from backup</string>
-    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
     <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">অসমর্থিত প্ল্যাটফর্ম</string>
     <string name="pref_item_automatic_backups_unsupported_text">Android, ডেস্কটপ, macOS এবং iOS-এ স্বয়ংক্রিয় ব্যাকআপ পাওয়া যায়।</string>
@@ -1936,9 +1959,19 @@
     <string name="navigation_items_missing_filter_text">ফিল্টার পাওয়া যায়নি</string>
     <string name="navigation_items_predefined_route_text">পূর্বনির্ধারিত রুট</string>
     <string name="pref_item_app_version_title">অ্যাপের ভার্সন</string>
+    <!-- Shown under the installed app version. The placeholder is the version of the new release, e.g. 3.9.0. -->
+    <string name="pref_item_app_version_update_text">Update available: %1$s</string>
     <string name="pref_item_app_build_date_title">অ্যাপের বিল্ডের তারিখ</string>
     <string name="pref_item_app_build_ref_title">অ্যাপ বিল্ডের রেফারেন্স</string>
     <string name="pref_item_app_changelog_title">অ্যাপের পরিবর্তনের তালিকা</string>
+    <string name="pref_item_app_update_level_title">Notify about updates</string>
+    <string name="app_update_level_off">Off</string>
+    <string name="app_update_level_major">Major releases</string>
+    <string name="app_update_level_minor">Major and minor releases</string>
+    <string name="app_update_level_all">All releases</string>
+    <!-- A title of the setting: how long a new release must be public before the app tells the user about it. -->
+    <string name="pref_item_app_update_delay_title">Wait after a release</string>
+    <string name="pref_item_app_update_delay_immediately_text">Immediately</string>
     <string name="pref_item_app_team_title">অ্যাপের নির্মাতা দল</string>
     <string name="pref_item_reddit_community_title">Reddit কমিউনিটি</string>
     <string name="pref_item_github_title">GitHub প্রকল্প</string>
@@ -2088,6 +2121,8 @@
     <string name="pref_item_agent_filters_summary_all">সব চাবি ব্যবহারযোগ্য</string>
     <string name="pref_item_agent_filters_summary_active">ফিল্টার চালু</string>
     <string name="pref_item_agent_history_title">অনুরোধের লগ</string>
+    <string name="pref_item_generator_history_retention_title">Delete generator history after</string>
+    <string name="settingssearch_history_retention_keywords">retention cleanup</string>
     <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
     <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">SSH এজেন্ট চালু করুন</string>

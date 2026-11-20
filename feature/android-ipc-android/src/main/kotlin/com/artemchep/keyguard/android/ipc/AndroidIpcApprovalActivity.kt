@@ -4,6 +4,8 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
+import android.view.MotionEvent
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,6 +23,10 @@ import com.artemchep.keyguard.android.ui.dialogActivityContentColor
 import com.artemchep.keyguard.common.model.MasterSession
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.usecase.GetVaultSession
+import com.artemchep.keyguard.feature.agent.AgentApprovalInputGuard
+import com.artemchep.keyguard.feature.agent.ProvideAgentApprovalInputGuard
+import com.artemchep.keyguard.feature.agent.onKeyEvent
+import com.artemchep.keyguard.feature.agent.onTouchEvent
 import com.artemchep.keyguard.feature.auth.userverification.UserVerificationRoute
 import com.artemchep.keyguard.feature.keyguard.AuthScreen
 import com.artemchep.keyguard.feature.keyguard.LocalAuthScreen
@@ -57,11 +63,28 @@ internal class AndroidIpcApprovalActivity : BaseActivity() {
     private var completed = false
     private var approving = false
 
+    /**
+     * Holds the buttons, the outside tap and the unlock screen's Cancel
+     * back until the prompt has had focus with no input for a second, so
+     * taps meant for the app below can't answer it.
+     */
+    private val inputGuard = AgentApprovalInputGuard()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (requestId() == null) {
             finishDenied()
         }
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        inputGuard.onTouchEvent(ev)
+        return super.dispatchTouchEvent(ev)
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        inputGuard.onKeyEvent(event)
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onDestroy() {
@@ -83,25 +106,35 @@ internal class AndroidIpcApprovalActivity : BaseActivity() {
     override fun Content() {
         val requestId = requestId()
             ?: return
+        // Back is a deliberate gesture, so it denies at once.
         BackHandler {
             finishDenied()
         }
-        DialogActivityWindow(
-            onDismiss = ::finishDenied,
+        ProvideAgentApprovalInputGuard(
+            guard = inputGuard,
+            requestId = requestId,
         ) {
-            val state = produceAndroidIpcApprovalState(
-                requestId = requestId,
-                onApprove = ::finishApproved,
-                onDeny = ::finishDenied,
-            )
-            if (state !is AndroidIpcApprovalState.Ready || !state.requiresAuthentication) {
-                AndroidIpcApprovalScreen(state)
-                return@DialogActivityWindow
+            DialogActivityWindow(
+                onDismiss = {
+                    if (inputGuard.armed) {
+                        finishDenied()
+                    }
+                },
+            ) {
+                val state = produceAndroidIpcApprovalState(
+                    requestId = requestId,
+                    onApprove = ::finishApproved,
+                    onDeny = ::finishDenied,
+                )
+                if (state !is AndroidIpcApprovalState.Ready || !state.requiresAuthentication) {
+                    AndroidIpcApprovalScreen(state)
+                    return@DialogActivityWindow
+                }
+                AuthenticatedApprovalContent(
+                    requestId = requestId,
+                    state = state,
+                )
             }
-            AuthenticatedApprovalContent(
-                requestId = requestId,
-                state = state,
-            )
         }
     }
 
@@ -122,7 +155,11 @@ internal class AndroidIpcApprovalActivity : BaseActivity() {
                 val authScreen = AuthScreen(
                     reason = TextHolder.Res(Res.string.ipc_approval_auth_reason),
                     style = AuthScreen.Style.DIALOG,
-                    onCancel = ::finishDenied,
+                    onCancel = {
+                        if (inputGuard.armed) {
+                            finishDenied()
+                        }
+                    },
                 )
                 CompositionLocalProvider(
                     LocalAuthScreen provides authScreen,

@@ -1,12 +1,18 @@
 package com.artemchep.keyguard.desktop.ui
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.ApplicationScope
@@ -19,7 +25,10 @@ import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.common.model.getOrNull
 import com.artemchep.keyguard.di.VaultSessionContent
+import com.artemchep.keyguard.feature.agent.AgentApprovalInputGuard
 import com.artemchep.keyguard.feature.agent.AgentRequestUiState
+import com.artemchep.keyguard.feature.agent.ProvideAgentApprovalInputGuard
+import com.artemchep.keyguard.feature.agent.agentApprovalInputGuard
 import com.artemchep.keyguard.feature.keyguard.AuthScreen
 import com.artemchep.keyguard.feature.keyguard.LocalAuthScreen
 import com.artemchep.keyguard.feature.keyguard.ManualAppScreen
@@ -59,11 +68,22 @@ internal fun <T : Any> ApplicationScope.AgentRequestWindow(
     val focusRequestKey = (requestUiState as? Loadable.Ok)
         ?.value
         ?.id
+    val guard = remember { AgentApprovalInputGuard() }
+    // A key or click meant for another app must not deny the request,
+    // so Escape and the unlock screen's Cancel wait for the guard.
+    val onGuardedDeny: () -> Unit = {
+        if (guard.armed) onDeny()
+    }
     PopupComposeWindow(
+        // Closing the window is a deliberate OS action, so it denies at once.
         onCloseRequest = onDeny,
+        onPreviewKeyEvent = { event ->
+            if (event.type == KeyEventType.KeyDown) guard.onInput()
+            false
+        },
         onKeyEvent = { event ->
             if (event.isPlainEscape) {
-                onDeny()
+                onGuardedDeny()
                 true
             } else false
         },
@@ -86,22 +106,54 @@ internal fun <T : Any> ApplicationScope.AgentRequestWindow(
             onMinimizeRequest = {},
         ) {
             KeyguardTheme {
-                val scr = AuthScreen(
-                    reason = authReason,
-                    style = AuthScreen.Style.DIALOG,
-                    onCancel = onDeny,
-                    expiresAt = updatedRequest.getOrNull()?.expiresAt,
+                AgentRequestWindowContent(
+                    guard = guard,
+                    requestUiState = requestUiState,
+                    authReason = authReason,
+                    onDeny = onGuardedDeny,
+                    requestContent = requestContent,
                 )
-                CompositionLocalProvider(
-                    LocalAuthScreen provides scr,
-                    LocalExpressive provides GlobalExpressive.current,
-                ) {
-                    KeyguardPopupScaffold {
-                        AgentUnlockWindow(
-                            requestUiState = requestUiState,
-                            requestContent = requestContent,
-                        )
-                    }
+            }
+        }
+    }
+}
+
+/**
+ * Hosts the unlock screen and the request inside the window, and
+ * reports every press in the window to the [guard].
+ */
+@Composable
+private fun <T : Any> ApplicationScope.AgentRequestWindowContent(
+    guard: AgentApprovalInputGuard,
+    requestUiState: Loadable<AgentRequestUiState<T>>,
+    authReason: TextHolder,
+    onDeny: () -> Unit,
+    requestContent: @Composable (request: T, onDecision: (approved: Boolean, reason: String) -> Unit) -> Unit,
+) {
+    ProvideAgentApprovalInputGuard(
+        guard = guard,
+        requestId = requestUiState.getOrNull()?.id,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .agentApprovalInputGuard(guard),
+        ) {
+            val scr = AuthScreen(
+                reason = authReason,
+                style = AuthScreen.Style.DIALOG,
+                onCancel = onDeny,
+                expiresAt = requestUiState.getOrNull()?.expiresAt,
+            )
+            CompositionLocalProvider(
+                LocalAuthScreen provides scr,
+                LocalExpressive provides GlobalExpressive.current,
+            ) {
+                KeyguardPopupScaffold {
+                    AgentUnlockWindow(
+                        requestUiState = requestUiState,
+                        requestContent = requestContent,
+                    )
                 }
             }
         }

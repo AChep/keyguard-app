@@ -36,7 +36,8 @@ import kotlin.time.Instant
 /**
  * The layout every approval window shares: a badged icon, the title, who
  * asks and the [details] about them, the request [content], and the
- * deny and approve buttons that count down to [expiresAt].
+ * deny and approve buttons that count down to [expiresAt]. The buttons
+ * arm after 1 s of focus with no input, see [AgentApprovalInputGuard].
  *
  * @param message The message, given the verified caller name if known.
  */

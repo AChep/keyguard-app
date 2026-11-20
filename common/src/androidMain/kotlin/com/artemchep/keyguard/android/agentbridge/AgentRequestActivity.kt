@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Bundle
+import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.WindowManager
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.Box
@@ -32,7 +34,11 @@ import com.artemchep.keyguard.android.util.getParcelableCompat
 import com.artemchep.keyguard.common.model.Loadable
 import com.artemchep.keyguard.common.model.VaultState
 import com.artemchep.keyguard.di.VaultSessionContent
+import com.artemchep.keyguard.feature.agent.AgentApprovalInputGuard
 import com.artemchep.keyguard.feature.agent.AgentRequestUiState
+import com.artemchep.keyguard.feature.agent.ProvideAgentApprovalInputGuard
+import com.artemchep.keyguard.feature.agent.onKeyEvent
+import com.artemchep.keyguard.feature.agent.onTouchEvent
 import com.artemchep.keyguard.feature.agent.rememberAgentRequestUiState
 import com.artemchep.keyguard.feature.gpgagent.GpgAgentApprovalContent
 import com.artemchep.keyguard.feature.keyguard.AuthScreen
@@ -85,6 +91,13 @@ internal class AgentRequestActivity : BaseActivity() {
     /** Identifies this prompt across configuration changes. */
     private lateinit var promptToken: String
 
+    /**
+     * Holds the buttons and the outside tap back until the prompt has had
+     * focus with no input for a second, so taps meant for the app below
+     * can't answer it. Back stays ungated, as it is a deliberate gesture.
+     */
+    private val inputGuard = AgentApprovalInputGuard()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
@@ -117,6 +130,16 @@ internal class AgentRequestActivity : BaseActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         startServiceIfNeeded(intent)
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        inputGuard.onTouchEvent(ev)
+        return super.dispatchTouchEvent(ev)
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        inputGuard.onKeyEvent(event)
+        return super.dispatchKeyEvent(event)
     }
 
     @Composable
@@ -191,7 +214,11 @@ internal class AgentRequestActivity : BaseActivity() {
         }
 
         DialogActivityWindow(
-            onDismiss = ::dismiss,
+            onDismiss = {
+                if (inputGuard.armed) {
+                    dismiss()
+                }
+            },
         ) {
             val bridge = agentRequestUnlockBridge(
                 shown = activeRequestState?.request,
@@ -210,64 +237,22 @@ internal class AgentRequestActivity : BaseActivity() {
             CompositionLocalProvider(
                 LocalAuthScreen provides authScreen,
             ) {
-                ActiveRequestContent(
-                    activeRequestState = activeRequestState,
-                    modifier = Modifier
-                        .fillMaxSize(),
-                )
+                ProvideAgentApprovalInputGuard(
+                    guard = inputGuard,
+                    requestId = activeRequestState?.id,
+                ) {
+                    ActiveRequestContent(
+                        activeRequestState = activeRequestState,
+                        modifier = Modifier
+                            .fillMaxSize(),
+                    )
+                }
             }
             TimeoutIndicator(
                 activeRequestState = activeRequestState,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .fillMaxWidth(),
-            )
-        }
-    }
-
-    @Composable
-    private fun ActiveRequestContent(
-        activeRequestState: AgentRequestUiState<AgentBridgePrompt>?,
-        modifier: Modifier = Modifier,
-    ) {
-        Box(
-            modifier = modifier,
-        ) {
-            ManualAppScreen { vaultState ->
-                when (vaultState) {
-                    is VaultState.Create -> ManualAppScreenOnCreate(vaultState)
-                    is VaultState.Unlock -> ManualAppScreenOnUnlock(vaultState)
-                    is VaultState.Loading -> ManualAppScreenOnLoading(vaultState)
-                    is VaultState.Main -> when (activeRequestState) {
-                        null -> ManualAppScreenOnLoading()
-                        else -> {
-                            // Provide the session Scope so that the content can
-                            // read the vault, e.g. to resolve the key's title.
-                            VaultSessionContent(vaultState.session) {
-                                key(activeRequestState.id) {
-                                    PromptContent(
-                                        prompt = activeRequestState.request,
-                                        onDecision = activeRequestState.onDecision,
-                                    )
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    @Composable
-    private fun TimeoutIndicator(
-        activeRequestState: AgentRequestUiState<AgentBridgePrompt>?,
-        modifier: Modifier = Modifier,
-    ) {
-        val progress = rememberTimeoutProgress(activeRequestState)
-        if (progress != null) {
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = modifier,
             )
         }
     }
@@ -282,6 +267,53 @@ internal class AgentRequestActivity : BaseActivity() {
         if (AgentRequestCoordinator.dismissPrompt(request)) {
             finish()
         }
+    }
+}
+
+@Composable
+private fun ActiveRequestContent(
+    activeRequestState: AgentRequestUiState<AgentBridgePrompt>?,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier = modifier,
+    ) {
+        ManualAppScreen { vaultState ->
+            when (vaultState) {
+                is VaultState.Create -> ManualAppScreenOnCreate(vaultState)
+                is VaultState.Unlock -> ManualAppScreenOnUnlock(vaultState)
+                is VaultState.Loading -> ManualAppScreenOnLoading(vaultState)
+                is VaultState.Main -> when (activeRequestState) {
+                    null -> ManualAppScreenOnLoading()
+                    else -> {
+                        // Provide the session Scope so that the content can
+                        // read the vault, e.g. to resolve the key's title.
+                        VaultSessionContent(vaultState.session) {
+                            key(activeRequestState.id) {
+                                PromptContent(
+                                    prompt = activeRequestState.request,
+                                    onDecision = activeRequestState.onDecision,
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TimeoutIndicator(
+    activeRequestState: AgentRequestUiState<AgentBridgePrompt>?,
+    modifier: Modifier = Modifier,
+) {
+    val progress = rememberTimeoutProgress(activeRequestState)
+    if (progress != null) {
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = modifier,
+        )
     }
 }
 

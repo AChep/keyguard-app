@@ -13,10 +13,14 @@ import SwiftUI
 ///
 /// Deliberately has no resign-key auto-dismiss — an approval prompt must stay put
 /// until the user acts.
+///
+/// The panel becomes key when it shows, so its `AgentApprovalInputGuard` holds the
+/// prompt's actions back until the user stops typing or clicking.
 @MainActor
 public final class AgentApprovalPanelController {
     private let hasRequest: () -> Bool
     private let makeRoot: () -> AnyView
+    private let inputGuard = AgentApprovalInputGuard()
     private var panel: AgentApprovalPanel?
     private var hosting: NSHostingView<AnyView>?
 
@@ -94,8 +98,8 @@ public final class AgentApprovalPanelController {
 
     private func ensurePanel() -> AgentApprovalPanel {
         if let panel { return panel }
-        let hosting = NSHostingView(rootView: makeRoot())
-        let panel = AgentApprovalPanel(contentView: hosting)
+        let hosting = NSHostingView(rootView: AnyView(makeRoot().environment(inputGuard)))
+        let panel = AgentApprovalPanel(contentView: hosting, inputGuard: inputGuard)
         self.hosting = hosting
         self.panel = panel
         return panel

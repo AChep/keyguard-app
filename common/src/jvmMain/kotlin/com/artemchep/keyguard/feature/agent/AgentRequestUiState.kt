@@ -40,8 +40,9 @@ private val AGENT_REQUEST_TRANSITION_DELAY = 500.milliseconds
  *
  * Once the shown request is answered, or leaves the queue because it expired
  * or its caller gave up, this emits [Loadable.Loading] for a short pause,
- * so the next request never receives input meant for the previous one, and
- * then emits the next pending request or `null`.
+ * so two requests read as separate prompts, and then emits the next pending
+ * request or `null`. [AgentApprovalInputGuard] keeps input meant for one
+ * request from answering the next.
  */
 @Composable
 fun <T : Any> rememberAgentRequestUiState(

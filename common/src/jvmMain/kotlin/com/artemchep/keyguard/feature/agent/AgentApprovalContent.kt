@@ -47,7 +47,6 @@ import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.rememberCountdownText
 import com.artemchep.keyguard.ui.text.annotatedResource
 import com.artemchep.keyguard.ui.theme.combineAlpha
-import kotlinx.coroutines.delay
 import kotlin.time.Instant
 import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.StringResource
@@ -172,7 +171,9 @@ fun AgentApprovalContent(
 
 /**
  * The cancel and confirm buttons of an approval window. The confirm
- * button takes the initial focus and counts down to [expiresAt].
+ * button counts down to [expiresAt]. Both stay disabled until the
+ * [AgentApprovalInputGuard] arms them; the first time it does, the
+ * confirm button takes focus.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -184,13 +185,9 @@ fun AgentApprovalButtons(
     onCancel: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    val focusRequester = remember {
-        FocusRequester2()
-    }
-    LaunchedEffect(focusRequester) {
-        delay(200L)
-        focusRequester.requestFocus()
-    }
+    // Restarts the wait when the buttons appear, for example after an unlock.
+    val armed = rememberAgentApprovalArmed()
+    val focusRequester = rememberFirstArmedFocusRequester(armed)
 
     Row(
         modifier = Modifier
@@ -200,6 +197,7 @@ fun AgentApprovalButtons(
         TextButton(
             modifier = Modifier
                 .weight(1f, fill = true),
+            enabled = armed,
             onClick = onCancel,
             shapes = ButtonDefaults.shapes(),
         ) {
@@ -212,7 +210,7 @@ fun AgentApprovalButtons(
             modifier = Modifier
                 .focusRequester2(focusRequester)
                 .weight(1f, fill = true),
-            enabled = confirmEnabled,
+            enabled = armed && confirmEnabled,
             onClick = onConfirm,
             shapes = ButtonDefaults.shapes(),
         ) {
@@ -238,6 +236,29 @@ fun AgentApprovalButtons(
             }
         }
     }
+}
+
+/**
+ * Requests focus the first time [armed] turns `true`, as a disabled button
+ * can't hold focus. Arming again, for example after the window regains
+ * focus, leaves the focus where the user put it, so a Space meant for
+ * another element can't approve.
+ */
+@Composable
+private fun rememberFirstArmedFocusRequester(armed: Boolean): FocusRequester2 {
+    val focusRequester = remember {
+        FocusRequester2()
+    }
+    var requested by remember {
+        mutableStateOf(false)
+    }
+    LaunchedEffect(armed) {
+        if (armed && !requested) {
+            requested = true
+            focusRequester.requestFocus()
+        }
+    }
+    return focusRequester
 }
 
 @Composable

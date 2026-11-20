@@ -54,6 +54,7 @@ struct AgentApprovalDetails: View {
 /// a request can be resolved once.
 struct AgentApprovalPrompt<Content: View>: View {
     @Environment(VaultSessionModel.self) private var authModel
+    @Environment(AgentApprovalInputGuard.self) private var inputGuard
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let expiresAtEpochMs: Int64
@@ -132,6 +133,12 @@ struct AgentApprovalPrompt<Content: View>: View {
         .frame(maxHeight: (NSScreen.main?.visibleFrame.height ?? 800) - 64)
         .fixedSize(horizontal: false, vertical: true)
         .agentApprovalCard()
+        // A new request, or the buttons after an unlock, holds the actions back
+        // again, so a key typed into the unlock form can't answer the request.
+        .onAppear { inputGuard.restart() }
+        .onChange(of: authModel.status) { _, status in
+            if status == .unlocked { inputGuard.restart() }
+        }
         if let elevatedAccessHost {
             prompt.localElevatedAccessHost(elevatedAccessHost, isEnabled: decision.isResolving)
         } else {
@@ -159,7 +166,9 @@ struct AgentApprovalPrompt<Content: View>: View {
                         .buttonStyle(.borderedProminent)
                         .disabled(remaining <= 0 || authModel.status != .unlocked)
                 }
-                .disabled(decision.isResolving)
+                // Held back until the panel is key with no input, which also
+                // disables the Escape shortcut of Deny.
+                .disabled(decision.isResolving || !inputGuard.armed)
                 if expires {
                     ProgressView(value: min(remaining, total), total: max(1, total)) {
                         Text(countdown).font(.caption).foregroundStyle(.secondary)

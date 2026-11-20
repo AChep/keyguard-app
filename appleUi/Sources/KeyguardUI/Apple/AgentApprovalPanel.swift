@@ -6,7 +6,11 @@ import AppKit
 /// `canBecomeKey == true` lets the Approve / Deny buttons accept clicks and
 /// keyboard input without yanking the foreground app's activation.
 final class AgentApprovalPanel: NSPanel {
-    init(contentView: NSView) {
+    private let inputGuard: AgentApprovalInputGuard
+
+    /// - Parameter inputGuard: Sees this panel's key presses, clicks and key status.
+    init(contentView: NSView, inputGuard: AgentApprovalInputGuard) {
+        self.inputGuard = inputGuard
         super.init(
             contentRect: NSRect(x: 0, y: 0, width: 420, height: 240),
             styleMask: [.nonactivatingPanel, .titled, .fullSizeContentView],
@@ -32,6 +36,26 @@ final class AgentApprovalPanel: NSPanel {
 
     override var canBecomeKey: Bool { true }
     override var canBecomeMain: Bool { false }
+
+    override func sendEvent(_ event: NSEvent) {
+        switch event.type {
+        case .keyDown, .leftMouseDown, .rightMouseDown, .otherMouseDown:
+            inputGuard.onInput()
+        default:
+            break
+        }
+        super.sendEvent(event)
+    }
+
+    override func becomeKey() {
+        super.becomeKey()
+        inputGuard.setFocused(true)
+    }
+
+    override func resignKey() {
+        super.resignKey()
+        inputGuard.setFocused(false)
+    }
 }
 
 #endif

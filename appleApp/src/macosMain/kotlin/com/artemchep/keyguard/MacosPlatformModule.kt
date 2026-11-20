@@ -42,6 +42,7 @@ import com.artemchep.keyguard.common.service.execute.ExecuteCommand
 import com.artemchep.keyguard.common.service.execute.impl.ExecuteCommandImpl
 import com.artemchep.keyguard.common.service.extract.PlatformLinkInfoExtractorRegistry
 import com.artemchep.keyguard.common.service.file.FileService
+import com.artemchep.keyguard.common.service.flavor.AppDistribution
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentCrypto
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
@@ -191,6 +192,9 @@ internal class MacosPlatformModule {
         single {
             // Only direct distribution grants premium without a purchase.
             FlavorConfig(isFreeAsBeer = appleIsFreeDistribution())
+        }
+        single {
+            AppDistribution(isStore = !appleIsFreeDistribution())
         }
         single<LeContext> {
             LeContext()

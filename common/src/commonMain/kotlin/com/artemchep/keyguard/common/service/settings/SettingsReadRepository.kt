@@ -5,7 +5,9 @@ import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
+import com.artemchep.keyguard.common.model.AppReleaseCache
 import com.artemchep.keyguard.common.model.AppTheme
+import com.artemchep.keyguard.common.model.AppUpdateLevel
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.AutotypeSpeed
 import com.artemchep.keyguard.common.model.GpgAgentFilter
@@ -171,6 +173,14 @@ interface SettingsReadRepository {
     fun getAgentHistoryRetention(): Flow<Duration>
 
     fun getGeneratorHistoryRetention(): Flow<Duration>
+
+    fun getAppUpdateLevel(): Flow<AppUpdateLevel>
+
+    fun getAppUpdateDelay(): Flow<Duration>
+
+    fun getAppUpdateCache(): Flow<AppReleaseCache?>
+
+    fun getAppUpdateNotifiedTag(): Flow<String?>
 
     fun getAppVersionLog(): Flow<List<AppVersionLog>>
 

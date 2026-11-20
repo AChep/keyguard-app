@@ -7,7 +7,10 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AllowScreenshots
 import com.artemchep.keyguard.common.model.AppColors
 import com.artemchep.keyguard.common.model.AppFont
+import com.artemchep.keyguard.common.model.AppReleaseCache
 import com.artemchep.keyguard.common.model.AppTheme
+import com.artemchep.keyguard.common.model.AppUpdateDelay
+import com.artemchep.keyguard.common.model.AppUpdateLevel
 import com.artemchep.keyguard.common.model.AppVersionLog
 import com.artemchep.keyguard.common.model.AutotypeSpeed
 import com.artemchep.keyguard.common.model.GlobalShortcutAction
@@ -124,6 +127,10 @@ class SettingsRepositoryImpl(
         private const val KEY_GPG_KEYSERVER_LAST_REFRESH = "gpg_agent.keyserver_last_refresh"
         private const val KEY_AGENT_HISTORY_RETENTION = "agent.history_retention"
         private const val KEY_GENERATOR_HISTORY_RETENTION = "generator.history_retention"
+        private const val KEY_APP_UPDATE_LEVEL = "app_update.level"
+        private const val KEY_APP_UPDATE_DELAY = "app_update.delay"
+        private const val KEY_APP_UPDATE_CACHE = "app_update.cache"
+        private const val KEY_APP_UPDATE_NOTIFIED_TAG = "app_update.notified_tag"
         private const val KEY_VERSION_LOG = "version_log"
         private const val KEY_NAV_ANIMATION = "nav_animation"
         private const val KEY_NAV_LABEL = "nav_label"
@@ -383,6 +390,25 @@ class SettingsRepositoryImpl(
             Duration.INFINITE.inWholeMilliseconds,
         )
 
+    private val appUpdateLevelPref =
+        store.getEnumNullable(KEY_APP_UPDATE_LEVEL, lens = AppUpdateLevel::key)
+
+    private val appUpdateDelayPref =
+        store.getLong(
+            key = KEY_APP_UPDATE_DELAY,
+            AppUpdateDelay.DEFAULT.inWholeMilliseconds,
+        )
+
+    private val appUpdateCachePref =
+        store.getSerializable<AppReleaseCache?>(
+            json,
+            KEY_APP_UPDATE_CACHE,
+            defaultValue = null,
+        )
+
+    private val appUpdateNotifiedTagPref =
+        store.getString(KEY_APP_UPDATE_NOTIFIED_TAG, "")
+
     private val gpgKeyserverLastRefreshInstantPref =
         store.getObject<Instant?>(
             KEY_GPG_KEYSERVER_LAST_REFRESH,
@@ -544,6 +570,8 @@ class SettingsRepositoryImpl(
         KEY_DATABASE_EXPOSED_KEY,
         KEY_CONTENT_PUBLIC_KEY,
         KEY_GPG_KEYSERVER_LAST_REFRESH,
+        KEY_APP_UPDATE_CACHE,
+        KEY_APP_UPDATE_NOTIFIED_TAG,
     )
 
     private val allPrefs by lazy {
@@ -598,6 +626,10 @@ class SettingsRepositoryImpl(
             gpgKeyserverLastRefreshInstantPref,
             agentHistoryRetentionPref,
             generatorHistoryRetentionPref,
+            appUpdateLevelPref,
+            appUpdateDelayPref,
+            appUpdateCachePref,
+            appUpdateNotifiedTagPref,
             themeUseAmoledDarkPref,
             keepScreenOnPref,
             gravatarPref,
@@ -989,6 +1021,32 @@ class SettingsRepositoryImpl(
     override fun getGeneratorHistoryRetention() = generatorHistoryRetentionPref
         .asDuration()
         .map { it ?: Duration.INFINITE }
+
+    override fun setAppUpdateLevel(level: AppUpdateLevel) = appUpdateLevelPref
+        .setAndCommit(level)
+
+    override fun getAppUpdateLevel() = appUpdateLevelPref
+        .map { it ?: AppUpdateLevel.DEFAULT }
+
+    override fun setAppUpdateDelay(duration: Duration) = appUpdateDelayPref
+        .setAndCommit(duration)
+
+    override fun getAppUpdateDelay() = appUpdateDelayPref
+        .asDuration()
+        .map { it?.coerceAtLeast(Duration.ZERO) ?: AppUpdateDelay.DEFAULT }
+
+    override fun setAppUpdateCache(cache: AppReleaseCache?) = appUpdateCachePref
+        .setAndCommit(cache)
+
+    override fun getAppUpdateCache() = appUpdateCachePref
+
+    override fun setAppUpdateNotifiedTag(tag: String?) = appUpdateNotifiedTagPref
+        .setAndCommit(tag.orEmpty())
+
+    override fun getAppUpdateNotifiedTag() = appUpdateNotifiedTagPref
+        .map { tag ->
+            tag.takeUnless { it.isEmpty() }
+        }
 
     override fun setGpgKeyserverLastRefresh(instant: Instant?) = gpgKeyserverLastRefreshInstantPref
         .setAndCommit(instant)

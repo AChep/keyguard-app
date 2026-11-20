@@ -7,6 +7,11 @@ data class DNotification(
     val text: String? = null,
     val channel: DNotificationChannel,
     val number: Int? = null,
+    /**
+     * A web page to open on a tap, instead of the app. Not
+     * every platform supports it.
+     */
+    val url: String? = null,
 ) {
 
 }

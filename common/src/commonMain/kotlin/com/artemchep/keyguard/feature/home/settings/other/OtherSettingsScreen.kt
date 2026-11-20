@@ -62,6 +62,13 @@ fun rememberSettingsOtherItems(
                     SettingPaneItem.Item(Setting.PRIVACY_POLICY),
                 ),
             ),
+            SettingPaneItem.Group(
+                key = "updates",
+                list = persistentListOf(
+                    SettingPaneItem.Item(Setting.APP_UPDATE_LEVEL),
+                    SettingPaneItem.Item(Setting.APP_UPDATE_DELAY),
+                ),
+            ),
             SettingPaneItem.Item(Setting.ABOUT_APP),
             SettingPaneItem.Item(Setting.ABOUT_APP_BUILD_DATE),
             SettingPaneItem.Item(Setting.ABOUT_APP_BUILD_REF),

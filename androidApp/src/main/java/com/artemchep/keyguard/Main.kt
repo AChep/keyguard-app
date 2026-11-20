@@ -43,6 +43,7 @@ import com.artemchep.keyguard.common.service.backup.AutomaticBackupPolicy
 import com.artemchep.keyguard.common.service.backup.automaticBackupScheduleStateFlow
 import com.artemchep.keyguard.common.service.download.DownloadRepository
 import com.artemchep.keyguard.common.service.filter.GetCipherFilters
+import com.artemchep.keyguard.common.service.flavor.AppDistribution
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.vault.SessionReadRepository
 import com.artemchep.keyguard.common.usecase.*
@@ -124,6 +125,7 @@ private class PhoneApplicationModule(
         single<android.content.Context> { get<android.app.Application>() }
         single<BillingManager> { BillingManagerImpl(application()) }
         single { FlavorConfig(isFreeAsBeer = BuildConfig.FLAVOR == "none") }
+        single { AppDistribution(isStore = BuildConfig.FLAVOR == "playStore", storeUrl = URL_PLAY_STORE) }
         factory<ScanQrRouteFactory> { ScanQrRouteFactoryAndroid }
         factory<PasskeyHybridRouteFactory> { AndroidPasskeyHybridRouteFactory }
         single { WorkerRegistry(get<AndroidCapabilityWorkers>().values + get<WatchtowerSyncer>()) }

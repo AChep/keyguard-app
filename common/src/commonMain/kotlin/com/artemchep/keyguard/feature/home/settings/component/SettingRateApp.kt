@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.home.settings.component
 
+import com.artemchep.keyguard.URL_PLAY_STORE
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.StarRate
 import androidx.compose.runtime.Composable
@@ -43,7 +44,7 @@ fun settingRateAppProvider(): SettingComponent = kotlin.run {
         SettingRateAppItem(
             onClick = {
                 val intent = NavigationIntent.NavigateToBrowser(
-                    url = "https://play.google.com/store/apps/details?id=com.artemchep.keyguard",
+                    url = URL_PLAY_STORE,
                 )
                 navigationController.queue(intent)
             },

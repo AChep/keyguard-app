@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.ErrorOutline
+import androidx.compose.material.icons.outlined.NewReleases
 import androidx.compose.material.icons.outlined.VisibilityOff
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -38,6 +39,7 @@ import com.artemchep.keyguard.core.store.bitwarden.size
 import com.artemchep.keyguard.feature.auth.AccountViewRoute
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.settings.accounts.model.AccountItem
+import com.artemchep.keyguard.feature.home.settings.component.rememberAppUpdateOnClick
 import com.artemchep.keyguard.feature.home.vault.component.FlatDropdownSimpleExpressive
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.feature.home.vault.component.rememberSecretAccentColor
@@ -49,18 +51,23 @@ import com.artemchep.keyguard.platform.util.hasWatch
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.account_main_add_account_title
 import com.artemchep.keyguard.res.empty_value
+import com.artemchep.keyguard.res.update_available_title
+import com.artemchep.keyguard.res.update_available_version_text
 import com.artemchep.keyguard.ui.Avatar
 import com.artemchep.keyguard.ui.AvatarBadgeIcon
 import com.artemchep.keyguard.ui.AvatarBuilder
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.FlatSimpleNote
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.icons.ChevronIcon
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.icons.SyncIcon
 import com.artemchep.keyguard.ui.theme.combineAlpha
+import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import org.jetbrains.compose.resources.stringResource
 
@@ -131,6 +138,40 @@ fun SettingListItem(
             onClick = onClick,
         )
     }
+}
+
+/**
+ * A newer release of the app. Opens the release page or the
+ * store listing, if there is one, see [rememberAppUpdateOnClick].
+ */
+@Composable
+fun SettingListUpdateItem(
+    item: SettingsUpdateItem,
+) {
+    val onClick = rememberAppUpdateOnClick(item.update)
+    FlatSimpleNote(
+        modifier = Modifier
+            .padding(bottom = 8.dp),
+        type = SimpleNote.Type.INFO,
+        title = stringResource(Res.string.update_available_title),
+        text = stringResource(Res.string.update_available_version_text, item.update.version),
+        leading = {
+            Icon(
+                imageVector = Icons.Outlined.NewReleases,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.info,
+            )
+        },
+        trailing = if (onClick != null) {
+            // composable
+            {
+                ChevronIcon()
+            }
+        } else {
+            null
+        },
+        onClick = onClick,
+    )
 }
 
 /**

@@ -498,6 +498,11 @@ if (hostPlatform.isWindows) {
                 "keyguard-passkeys:${flavor.identityName}:${flavor.publisher}".toByteArray(Charsets.UTF_8),
             ).toString()
             val stagingDir = binariesDir.map { it.dir("msix-staging/${flavor.id}") }
+            // The Store updates the app itself, so the app must not link to GitHub
+            // releases. AppDistribution reads this JVM option.
+            val isStore = flavor.id == "store"
+            val storeJavaOption = "java-options=-Dkeyguard.distribution=msix-store"
+            val stagedCfg = stagingDir.map { it.file("app/Keyguard.cfg") }
             val prepareTask = tasks.register<Sync>("prepare${buildType}Msix$flavorName") {
                 val manifestTokens = mapOf(
                     "IDENTITY_NAME" to flavor.identityName.orEmpty(),
@@ -511,7 +516,20 @@ if (hostPlatform.isWindows) {
                 dependsOn("create${buildType}Distributable")
                 onlyIf { isConfigured }
                 filteringCharset = "UTF-8"
-                from(appImageDir)
+                from(appImageDir) {
+                    if (isStore) {
+                        // The jpackage launcher reads the JVM options from here.
+                        filesMatching("app/Keyguard.cfg") {
+                            filter { line ->
+                                if (line.trim() == "[JavaOptions]") {
+                                    line + System.lineSeparator() + storeJavaOption
+                                } else {
+                                    line
+                                }
+                            }
+                        }
+                    }
+                }
                 from(project.file("msix/Assets")) {
                     into("Assets")
                 }
@@ -522,6 +540,16 @@ if (hostPlatform.isWindows) {
                     filter { line -> replaceMsixTokens(line, mapOf("PASSKEY_CLSID" to passkeyClsid)) }
                 }
                 into(stagingDir)
+                if (isStore) {
+                    // A change of the jpackage cfg format must not
+                    // drop the option silently.
+                    doLast {
+                        val cfg = stagedCfg.get().asFile
+                        check(cfg.isFile && cfg.readLines().any { it.trim() == storeJavaOption }) {
+                            "The staged $cfg has no '$storeJavaOption' line"
+                        }
+                    }
+                }
             }
             tasks.register<Exec>("package${buildType}Msix$flavorName") {
                 group = "compose desktop"

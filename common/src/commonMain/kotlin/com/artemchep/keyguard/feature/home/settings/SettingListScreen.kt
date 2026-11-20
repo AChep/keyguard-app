@@ -44,9 +44,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import androidx.graphics.shapes.RoundedPolygon
+import com.artemchep.keyguard.common.model.DAppUpdate
 import com.artemchep.keyguard.common.model.Premium
 import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
+import com.artemchep.keyguard.common.usecase.GetAppUpdate
 import com.artemchep.keyguard.common.usecase.GetPurchased
 import com.artemchep.keyguard.feature.auth.bitwarden.BitwardenLoginRouteFactory
 import com.artemchep.keyguard.feature.auth.keepass.KeePassLoginRoute
@@ -129,6 +131,13 @@ data class SettingsAccountsItem(
     override val contentType: String get() = "settings_accounts"
 }
 
+data class SettingsUpdateItem(
+    override val id: String,
+    val update: DAppUpdate,
+) : SettingsItem2 {
+    override val contentType: String get() = "settings_update"
+}
+
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingListScreen() {
@@ -209,7 +218,7 @@ fun rememberSettingsItems(
         uiRoute = uiRoute,
         otherRoute = otherRoute,
     )
-    val items = remember(accountsState, routeItems) {
+    val baseItems = remember(accountsState, routeItems) {
         val premiumShape = MaterialShapes.SoftBurst
         val optionsShape = MaterialShapes.Square
         val routeSettingsItems = routeItems
@@ -309,6 +318,19 @@ fun rememberSettingsItems(
                     else -> item
                 }
             }
+    }
+    val getAppUpdate = koinInject<GetAppUpdate>()
+    val appUpdate by remember(getAppUpdate) {
+        getAppUpdate()
+    }.collectAsState(null)
+    val items = remember(baseItems, appUpdate) {
+        val updateItem = appUpdate?.let { update ->
+            SettingsUpdateItem(
+                id = "app_update",
+                update = update,
+            )
+        }
+        listOfNotNull(updateItem) + baseItems
     }
     return items
 }
@@ -447,6 +469,12 @@ internal fun SettingListScreenContent(
                             rowModifier = { key ->
                                 focus.target(key, itemKey = it.id)
                             },
+                        )
+                    }
+
+                    is SettingsUpdateItem -> {
+                        SettingListUpdateItem(
+                            item = it,
                         )
                     }
                 }

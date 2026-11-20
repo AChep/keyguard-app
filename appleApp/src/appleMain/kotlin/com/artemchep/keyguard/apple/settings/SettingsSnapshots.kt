@@ -211,6 +211,24 @@ data class AutofillSettingsSnapshot(
     }
 }
 
+/** A newer release the user should know about. */
+data class AppUpdateSnapshot(
+    /** The version name, e.g. `3.8.2`. */
+    val version: String,
+    /** The release page or the store listing, or `null` if there is nothing to open. */
+    val url: String?,
+)
+
+/** The update notification pickers of the About page. An option id is the level key or the delay in milliseconds. */
+data class AppUpdateSettingsSnapshot(
+    val levelOptions: List<SettingOptionSnapshot> = emptyList(),
+    val delayOptions: List<SettingOptionSnapshot> = emptyList(),
+) {
+    companion object {
+        val empty = AppUpdateSettingsSnapshot()
+    }
+}
+
 data class AboutTeamSocialSnapshot(
     val title: String,
     val username: String,

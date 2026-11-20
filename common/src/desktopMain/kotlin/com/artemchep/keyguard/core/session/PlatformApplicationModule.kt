@@ -59,6 +59,7 @@ import com.artemchep.keyguard.common.service.download.store.DownloadFileStoreDes
 import com.artemchep.keyguard.common.service.extract.PlatformLinkInfoExtractorRegistry
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.service.file.FileServiceImpl
+import com.artemchep.keyguard.common.service.flavor.AppDistribution
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.service.gpgagent.GpgAgentStatusService
 import com.artemchep.keyguard.common.service.gpgagent.impl.GpgAgentStatusServiceImpl
@@ -327,6 +328,13 @@ class PlatformApplicationModule {
         single {
             FlavorConfig(
                 isFreeAsBeer = false,
+            )
+        }
+        single {
+            // The Microsoft Store package sets the property,
+            // see the MSIX tasks of the desktop app.
+            AppDistribution(
+                isStore = System.getProperty("keyguard.distribution") == "msix-store",
             )
         }
         single<BiometricStatusUseCase> {

@@ -6,4 +6,5 @@ enum class DNotificationId(
     AUTO(value = 0),
     WATCHTOWER(value = 1),
     KEYGUARD_DEVICES(value = 2),
+    APP_UPDATE(value = 3),
 }

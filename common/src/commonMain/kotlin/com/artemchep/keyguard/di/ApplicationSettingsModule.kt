@@ -50,6 +50,10 @@ import com.artemchep.keyguard.common.usecase.GetCliApprovalWindow
 import com.artemchep.keyguard.common.usecase.GetAgentHistoryRetention
 import com.artemchep.keyguard.common.usecase.GetGeneratorHistoryRetention
 import com.artemchep.keyguard.common.usecase.GetHistoryRetentionVariants
+import com.artemchep.keyguard.common.usecase.GetAppUpdate
+import com.artemchep.keyguard.common.usecase.GetAppUpdateDelay
+import com.artemchep.keyguard.common.usecase.GetAppUpdateDelayVariants
+import com.artemchep.keyguard.common.usecase.GetAppUpdateLevel
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoClearVariants
 import com.artemchep.keyguard.common.usecase.GetClipboardAutoRefresh
@@ -134,6 +138,8 @@ import com.artemchep.keyguard.common.usecase.PutCliApprovalTimeout
 import com.artemchep.keyguard.common.usecase.PutCliApprovalWindow
 import com.artemchep.keyguard.common.usecase.PutAgentHistoryRetention
 import com.artemchep.keyguard.common.usecase.PutGeneratorHistoryRetention
+import com.artemchep.keyguard.common.usecase.PutAppUpdateDelay
+import com.artemchep.keyguard.common.usecase.PutAppUpdateLevel
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoClear
 import com.artemchep.keyguard.common.usecase.PutClipboardAutoRefresh
 import com.artemchep.keyguard.common.usecase.PutCloseToTray
@@ -201,6 +207,10 @@ import com.artemchep.keyguard.common.usecase.impl.GetCliApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.GetAgentHistoryRetentionImpl
 import com.artemchep.keyguard.common.usecase.impl.GetGeneratorHistoryRetentionImpl
 import com.artemchep.keyguard.common.usecase.impl.GetHistoryRetentionVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAppUpdateDelayImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAppUpdateDelayVariantsImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAppUpdateImpl
+import com.artemchep.keyguard.common.usecase.impl.GetAppUpdateLevelImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoClearImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoClearVariantsImpl
 import com.artemchep.keyguard.common.usecase.impl.GetClipboardAutoRefreshImpl
@@ -285,6 +295,8 @@ import com.artemchep.keyguard.common.usecase.impl.PutCliApprovalTimeoutImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCliApprovalWindowImpl
 import com.artemchep.keyguard.common.usecase.impl.PutAgentHistoryRetentionImpl
 import com.artemchep.keyguard.common.usecase.impl.PutGeneratorHistoryRetentionImpl
+import com.artemchep.keyguard.common.usecase.impl.PutAppUpdateDelayImpl
+import com.artemchep.keyguard.common.usecase.impl.PutAppUpdateLevelImpl
 import com.artemchep.keyguard.common.usecase.impl.PutClipboardAutoClearImpl
 import com.artemchep.keyguard.common.usecase.impl.PutClipboardAutoRefreshImpl
 import com.artemchep.keyguard.common.usecase.impl.PutCloseToTrayImpl
@@ -567,6 +579,25 @@ internal class ApplicationSettingsModule {
         single<PutAgentHistoryRetentionImpl>() bind PutAgentHistoryRetention::class
 
         single<PutGeneratorHistoryRetentionImpl>() bind PutGeneratorHistoryRetention::class
+
+        single<GetAppUpdateLevelImpl>() bind GetAppUpdateLevel::class
+
+        single<PutAppUpdateLevelImpl>() bind PutAppUpdateLevel::class
+
+        single<GetAppUpdateDelayImpl>() bind GetAppUpdateDelay::class
+
+        single<PutAppUpdateDelayImpl>() bind PutAppUpdateDelay::class
+
+        single<GetAppUpdateDelayVariantsImpl>() bind GetAppUpdateDelayVariants::class
+
+        single<GetAppUpdate> {
+            GetAppUpdateImpl(
+                settingsReadRepository = get(),
+                getAppUpdateLevel = get(),
+                getAppUpdateDelay = get(),
+                appDistribution = get(),
+            )
+        }
 
         single<GetClipboardAutoRefreshImpl>() bind GetClipboardAutoRefresh::class
 

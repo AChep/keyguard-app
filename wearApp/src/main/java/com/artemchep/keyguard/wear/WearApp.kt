@@ -6,6 +6,8 @@ import android.os.Build
 import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import coil3.SingletonImageLoader
+import com.artemchep.keyguard.BuildConfig
+import com.artemchep.keyguard.URL_PLAY_STORE
 import com.artemchep.keyguard.provider.keyguard.transport.KeyguardTransportFactory
 import com.artemchep.keyguard.android.AndroidCapabilityWorkers
 import com.artemchep.keyguard.android.AndroidCredentialCapabilitiesModule
@@ -22,6 +24,7 @@ import com.artemchep.keyguard.common.di.ImageLoadingModule
 import com.artemchep.keyguard.common.di.setFromKoin
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationService
 import com.artemchep.keyguard.common.service.androidipc.AndroidIpcRegistrationServiceNone
+import com.artemchep.keyguard.common.service.flavor.AppDistribution
 import com.artemchep.keyguard.common.service.flavor.FlavorConfig
 import com.artemchep.keyguard.common.worker.WorkerRegistry
 import com.artemchep.keyguard.core.session.PlatformApplicationModule
@@ -92,6 +95,7 @@ private class WearApplicationModule(
         single<android.content.Context> { get<android.app.Application>() }
         single<BillingManager> { BillingManagerImpl(application()) }
         single { FlavorConfig(isFreeAsBeer = true) }
+        single { AppDistribution(isStore = BuildConfig.FLAVOR == "playStore", storeUrl = URL_PLAY_STORE) }
         single<AndroidIpcRegistrationService> { AndroidIpcRegistrationServiceNone }
         // The watch has no Watchtower screen, so it does not run the Watchtower.
         single { WorkerRegistry(get<AndroidCapabilityWorkers>().values) }

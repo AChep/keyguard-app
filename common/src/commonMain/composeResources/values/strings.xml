@@ -1765,6 +1765,11 @@
 
     <string name="watchtower_notification_new_alerts_title">New Watchtower alerts</string>
 
+    <string name="update_available_title">Update available</string>
+    <!-- Describes a new release of the app: the text of the notification and of the "Update available" item at the top of Settings. The placeholder is the version, e.g. 3.8.2. -->
+    <string name="update_available_version_text">Keyguard %1$s</string>
+    <string name="notification_app_update_channel_name">App updates</string>
+
     <string name="watchtower_alerts_header_title">New watchtower alerts</string>
     <string name="watchtower_alerts_new_title">New alerts</string>
     <string name="watchtower_alerts_empty_title">No new alerts</string>
@@ -1907,6 +1912,8 @@
     <string name="settingssearch_backup_location_keywords">destination folder server WebDAV S3 bucket</string>
     <string name="settingssearch_backup_password_keywords">encryption password configured</string>
     <string name="settingssearch_build_ref_keywords">revision commit source build reference</string>
+    <string name="settingssearch_app_update_level_keywords">update release new version notification</string>
+    <string name="settingssearch_app_update_delay_keywords">update release new version delay</string>
     <string name="settingssearch_license_keywords">license licence entitlement token</string>
     <string name="settingssearch_search_placeholder">Search settings</string>
 
@@ -2075,9 +2082,19 @@
     <string name="navigation_items_missing_filter_text">Filter not found</string>
     <string name="navigation_items_predefined_route_text">Predefined route</string>
     <string name="pref_item_app_version_title">App version</string>
+    <!-- Shown under the installed app version. The placeholder is the version of the new release, e.g. 3.9.0. -->
+    <string name="pref_item_app_version_update_text">Update available: %1$s</string>
     <string name="pref_item_app_build_date_title">App build date</string>
     <string name="pref_item_app_build_ref_title">App build ref</string>
     <string name="pref_item_app_changelog_title">App changelog</string>
+    <string name="pref_item_app_update_level_title">Notify about updates</string>
+    <string name="app_update_level_off">Off</string>
+    <string name="app_update_level_major">Major releases</string>
+    <string name="app_update_level_minor">Major and minor releases</string>
+    <string name="app_update_level_all">All releases</string>
+    <!-- A title of the setting: how long a new release must be public before the app tells the user about it. -->
+    <string name="pref_item_app_update_delay_title">Wait after a release</string>
+    <string name="pref_item_app_update_delay_immediately_text">Immediately</string>
     <string name="pref_item_app_team_title">Team behind the app</string>
     <string name="pref_item_reddit_community_title">Reddit community</string>
     <string name="pref_item_github_title">GitHub project</string>

@@ -14,6 +14,8 @@ struct AboutSettingsView: View {
 
     @State private var dialog: Dialog?
 
+    private var appUpdateSettings: AppUpdateSettingsSnapshot { appInformationModel.appUpdateSettings }
+
     var body: some View {
         SettingsForm(ready: appInformationModel.appInformation.loaded) {
             Section {
@@ -94,7 +96,23 @@ struct AboutSettingsView: View {
                 .settingsSearchTarget(.webdavTransactions)
             }
             Section {
-                LabeledContent(L10n.prefItemAppVersionTitle, value: appInformationModel.appVersion)
+                optionPicker(
+                    L10n.prefItemAppUpdateLevelTitle,
+                    options: appUpdateSettings.levelOptions,
+                    currentTitle: "",
+                    set: { appInformationModel.setAppUpdateLevel($0) }
+                )
+                .settingsSearchTarget(.appUpdateLevel)
+                optionPicker(
+                    L10n.prefItemAppUpdateDelayTitle,
+                    options: appUpdateSettings.delayOptions,
+                    currentTitle: "",
+                    set: { appInformationModel.setAppUpdateDelay($0) }
+                )
+                .settingsSearchTarget(.appUpdateDelay)
+            }
+            Section {
+                appVersionRow
                     .settingsSearchTarget(.appVersion)
                 if !appInformationModel.appInformation.buildDate.isEmpty {
                     LabeledContent(
@@ -133,8 +151,16 @@ struct AboutSettingsView: View {
         }
         .navigationTitle(item.title)
         .observing(
-            start: { appInformationModel.startAppInformationObservation() },
-            stop: { appInformationModel.stopAppInformationObservation() }
+            start: {
+                appInformationModel.startAppInformationObservation()
+                appInformationModel.startAppUpdateObservation()
+                appInformationModel.startAppUpdateSettingsObservation()
+            },
+            stop: {
+                appInformationModel.stopAppInformationObservation()
+                appInformationModel.stopAppUpdateObservation()
+                appInformationModel.stopAppUpdateSettingsObservation()
+            }
         )
         .sheet(item: $dialog) { dialog in
             switch dialog {
@@ -157,6 +183,27 @@ struct AboutSettingsView: View {
                     DataSafetyView()
                 }
             }
+        }
+    }
+
+    /// The installed version and, if there is one, a newer release. The row opens the
+    /// release page or the store listing; without a link to open, the row is plain.
+    @ViewBuilder
+    private var appVersionRow: some View {
+        let update = appInformationModel.appUpdate
+        let row = LabeledContent(L10n.prefItemAppVersionTitle) {
+            VStack(alignment: .trailing) {
+                Text(appInformationModel.appVersion)
+                if let update {
+                    Text(L10n.prefItemAppVersionUpdateText(update.version))
+                        .foregroundStyle(.tint)
+                }
+            }
+        }
+        if let url = update?.link {
+            Link(destination: url) { row }
+        } else {
+            row
         }
     }
 }

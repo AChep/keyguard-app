@@ -925,7 +925,7 @@ struct DisplaySettingsView: View {
 /// Forwards the chosen opaque option id; falls back to a static row until the options have loaded.
 @MainActor
 @ViewBuilder
-private func optionPicker(
+func optionPicker(
     _ title: String,
     options: [SettingOptionSnapshot],
     currentTitle: String,

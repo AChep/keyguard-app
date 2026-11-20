@@ -133,6 +133,10 @@ import com.artemchep.keyguard.apple.settings.SettingsSearchIndex
 import com.artemchep.keyguard.apple.settings.StaticDataController
 import com.artemchep.keyguard.apple.settings.AppInformationController
 import com.artemchep.keyguard.apple.settings.AppInformationSnapshot
+import com.artemchep.keyguard.apple.settings.AppUpdateController
+import com.artemchep.keyguard.apple.settings.AppUpdateSettingsSnapshot
+import com.artemchep.keyguard.apple.settings.AppUpdateSnapshot
+import com.artemchep.keyguard.feature.home.settings.component.formatAppUpdateDelay
 import com.artemchep.keyguard.apple.gpgagent.GpgAgentController
 import com.artemchep.keyguard.apple.gpgagent.GpgAgentHistorySnapshot
 import com.artemchep.keyguard.apple.gpgagent.GpgAgentRequestSnapshot
@@ -1273,6 +1277,34 @@ class KeyguardCore(runtime: KeyguardRuntime) {
     fun observeAppInformation(
         onChange: (AppInformationSnapshot) -> Unit,
     ): KeyguardCancellable = appInformationController.observeAppInformation(onChange)
+
+    private val appUpdateController by lazy {
+        val leContext = context.koin.get<LeContext>()
+        AppUpdateController(
+            getAppUpdate = context.koin.get(),
+            getAppUpdateLevel = context.koin.get(),
+            putAppUpdateLevel = context.koin.get(),
+            getAppUpdateDelay = context.koin.get(),
+            getAppUpdateDelayVariants = context.koin.get(),
+            putAppUpdateDelay = context.koin.get(),
+            scope = context.backgroundScope,
+            text = { textResource(it, leContext) },
+            formatDelay = { formatAppUpdateDelay(it, leContext) },
+        )
+    }
+
+    /** Emits `null` when there is no newer release to show. The url is `null` if there is nothing to open. */
+    fun observeAppUpdate(
+        onChange: (AppUpdateSnapshot?) -> Unit,
+    ): KeyguardCancellable = appUpdateController.observeAppUpdate(onChange)
+
+    fun observeAppUpdateSettings(
+        onChange: (AppUpdateSettingsSnapshot) -> Unit,
+    ): KeyguardCancellable = appUpdateController.observeAppUpdateSettings(onChange)
+
+    fun setAppUpdateLevel(optionId: String) = appUpdateController.setLevel(optionId)
+
+    fun setAppUpdateDelay(optionId: String) = appUpdateController.setDelay(optionId)
 
     private val staticDataController by lazy { StaticDataController(context) }
     private val wordlistController by lazy { WordlistController(context) }

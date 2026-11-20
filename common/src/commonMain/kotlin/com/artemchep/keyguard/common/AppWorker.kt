@@ -10,6 +10,7 @@ import com.artemchep.keyguard.common.service.gpgagent.GpgPublicKeySyncer
 import com.artemchep.keyguard.common.service.gpgkeyserver.GpgKeyserverRefreshWorker
 import com.artemchep.keyguard.common.service.licensekey.impl.LicenseSyncer
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryFlushRunner
+import com.artemchep.keyguard.common.service.release.AppUpdateWorker
 import com.artemchep.keyguard.common.service.session.AppWorkerSessionAccess
 import com.artemchep.keyguard.common.service.session.AppWorkerSessionDependencies
 import com.artemchep.keyguard.common.service.session.PendingUsageHistorySessionAccess
@@ -41,6 +42,7 @@ class AppWorkerIm(
     private val pendingUsageHistorySessionAccess: PendingUsageHistorySessionAccess,
     private val updateVersionLog: UpdateVersionLog,
     private val temporaryArtifactMaintenance: TemporaryArtifactMaintenance,
+    private val appUpdateWorker: AppUpdateWorker,
     private val pendingUsageHistoryEnabled: Boolean,
 ) : AppWorker {
     companion object {
@@ -71,6 +73,13 @@ class AppWorkerIm(
                     sessionAccess = pendingUsageHistorySessionAccess,
                     enabled = pendingUsageHistoryEnabled,
                 )
+            }
+            .launchIn(this)
+        // The app checks for new releases even
+        // while the vault is locked.
+        flow
+            .onState(LeLifecycleState.STARTED) {
+                appUpdateWorker.launch(this)
             }
             .launchIn(this)
         // The app should keep a log of last installed versions,

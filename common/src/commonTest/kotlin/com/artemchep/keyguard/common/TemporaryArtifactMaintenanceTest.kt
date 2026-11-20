@@ -2,6 +2,7 @@ package com.artemchep.keyguard.common
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.model.MasterSession
+import com.artemchep.keyguard.common.service.release.AppUpdateWorker
 import com.artemchep.keyguard.common.service.vault.testDomainSessionAccess
 import com.artemchep.keyguard.common.usecase.GetVaultSession
 import com.artemchep.keyguard.common.usecase.UpdateVersionLog
@@ -23,7 +24,9 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
@@ -44,6 +47,7 @@ class TemporaryArtifactMaintenanceTest {
             temporaryArtifactMaintenance = TemporaryArtifactMaintenance {
                 maintenanceCalls += 1
             },
+            appUpdateWorker = NoOpAppUpdateWorker,
             pendingUsageHistoryEnabled = false,
         )
         val job = worker.launch(
@@ -367,6 +371,10 @@ private object EmptyGetVaultSession : GetVaultSession {
 
 private object NoOpUpdateVersionLog : UpdateVersionLog {
     override fun invoke(): IO<Unit> = {}
+}
+
+private object NoOpAppUpdateWorker : AppUpdateWorker {
+    override fun launch(scope: CoroutineScope): Job = Job()
 }
 
 private fun completeReport(

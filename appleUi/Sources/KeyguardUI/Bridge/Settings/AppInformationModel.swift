@@ -40,6 +40,48 @@ final class AppInformationModel: SnapshotObserving {
         appInformationObservation.release()
     }
 
+    /// A newer release, or nil when there is none.
+    private(set) var appUpdate: AppUpdateSnapshot?
+
+    private(set) var appUpdateSettings: AppUpdateSettingsSnapshot = AppUpdateSettingsSnapshot.companion.empty
+
+    @ObservationIgnored private let appUpdateObservation = SharedObservation()
+
+    @ObservationIgnored private var appUpdateSubscription: BridgeObservation?
+
+    @ObservationIgnored private let appUpdateSettingsObservation = SharedObservation()
+
+    @ObservationIgnored private var appUpdateSettingsSubscription: BridgeObservation?
+
+    func startAppUpdateObservation() {
+        appUpdateObservation.acquire {
+            sharedSnapshotObservation(
+                \.appUpdateSubscription, into: \.appUpdate, empty: nil,
+                observe: core.observeAppUpdate)
+        }
+    }
+
+    func stopAppUpdateObservation() {
+        appUpdateObservation.release()
+    }
+
+    func startAppUpdateSettingsObservation() {
+        appUpdateSettingsObservation.acquire {
+            sharedSnapshotObservation(
+                \.appUpdateSettingsSubscription, into: \.appUpdateSettings,
+                empty: AppUpdateSettingsSnapshot.companion.empty,
+                observe: core.observeAppUpdateSettings)
+        }
+    }
+
+    func stopAppUpdateSettingsObservation() {
+        appUpdateSettingsObservation.release()
+    }
+
+    func setAppUpdateLevel(_ optionId: String) { core.setAppUpdateLevel(optionId: optionId) }
+
+    func setAppUpdateDelay(_ optionId: String) { core.setAppUpdateDelay(optionId: optionId) }
+
     /// Only live while the licenses screen is on screen.
     private(set) var licenseList: LicenseListSnapshot = LicenseListSnapshot.companion.empty
 
@@ -86,4 +128,9 @@ final class AppInformationModel: SnapshotObserving {
     func loadDataSafety() async -> [DataSafetyItemSnapshot] {
         (try? await core.loadDataSafety()) ?? []
     }
+}
+
+extension AppUpdateSnapshot {
+    /// The release page or the store listing, or nil if there is nothing to open.
+    var link: URL? { url.flatMap { URL(string: $0) } }
 }

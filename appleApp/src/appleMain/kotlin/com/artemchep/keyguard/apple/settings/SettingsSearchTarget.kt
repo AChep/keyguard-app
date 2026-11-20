@@ -463,6 +463,16 @@ enum class SettingsSearchTarget(
         Res.string.pref_item_debug_premium_title,
         description = Res.string.pref_item_debug_premium_text,
     ),
+    APP_UPDATE_LEVEL(
+        SettingsDestination.ABOUT.id,
+        Res.string.pref_item_app_update_level_title,
+        keywords = listOf(Res.string.settingssearch_app_update_level_keywords),
+    ),
+    APP_UPDATE_DELAY(
+        SettingsDestination.ABOUT.id,
+        Res.string.pref_item_app_update_delay_title,
+        keywords = listOf(Res.string.settingssearch_app_update_delay_keywords),
+    ),
     APP_VERSION(
         SettingsDestination.ABOUT.id,
         Res.string.pref_item_app_version_title,

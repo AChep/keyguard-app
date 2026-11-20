@@ -25,6 +25,11 @@ import com.artemchep.keyguard.common.service.passkey.PassKeyService
 import com.artemchep.keyguard.common.service.passkey.impl.PassKeyServiceImpl
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueue
 import com.artemchep.keyguard.common.service.pendinghistory.PendingUsageHistoryQueueImpl
+import com.artemchep.keyguard.common.service.release.AppReleaseRepository
+import com.artemchep.keyguard.common.service.release.AppUpdateWorker
+import com.artemchep.keyguard.common.service.release.impl.AppReleaseRepositoryImpl
+import com.artemchep.keyguard.common.service.release.impl.AppUpdateWorkerImpl
+import com.artemchep.keyguard.common.service.release.impl.createAppUpdateNotification
 import com.artemchep.keyguard.common.service.review.ReviewLog
 import com.artemchep.keyguard.common.service.review.impl.ReviewLogImpl
 import com.artemchep.keyguard.common.service.similarity.SimilarityService
@@ -58,6 +63,7 @@ import com.artemchep.keyguard.common.usecase.impl.UnlockUseCaseImpl
 import com.artemchep.keyguard.common.usecase.impl.UpdateVersionLogImpl
 import com.artemchep.keyguard.common.usecase.impl.WatchtowerSyncerImpl
 import com.artemchep.keyguard.platform.CurrentPlatform
+import com.artemchep.keyguard.platform.LeContext
 import com.artemchep.keyguard.provider.bitwarden.usecase.BlockedUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUnsecureUrlCheckImpl
 import com.artemchep.keyguard.provider.bitwarden.usecase.CipherUrlBroadCheckImpl
@@ -128,7 +134,30 @@ internal class ApplicationIntegrationsModule {
                 pendingUsageHistorySessionAccess = get(),
                 updateVersionLog = get(),
                 temporaryArtifactMaintenance = get(),
+                appUpdateWorker = get(),
                 pendingUsageHistoryEnabled = shouldLaunchPendingUsageHistoryFlush(CurrentPlatform),
+            )
+        }
+
+        single<AppReleaseRepository> {
+            AppReleaseRepositoryImpl(
+                httpClient = get(qualifier = named("curl")),
+                json = get(),
+            )
+        }
+
+        single<AppUpdateWorker> {
+            val context = get<LeContext>()
+            AppUpdateWorkerImpl(
+                getAppUpdateLevel = get(),
+                getAppUpdate = get(),
+                settingsReadWriteRepository = get(),
+                appReleaseRepository = get(),
+                showNotification = get(),
+                logRepository = get(),
+                notificationFactory = { update ->
+                    createAppUpdateNotification(update, context)
+                },
             )
         }
 

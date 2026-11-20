@@ -29,6 +29,8 @@ import com.artemchep.keyguard.feature.home.settings.component.settingAboutAppPro
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutTeamProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAboutTelegramProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAppIconsProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAppUpdateDelayProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingAppUpdateLevelProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillBlockUriProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillCopyTotpProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingAutofillDefaultMatchDetectionProvider
@@ -246,6 +248,8 @@ object Setting {
     const val ABOUT_APP_BUILD_DATE = "about_app_build_date"
     const val ABOUT_APP_BUILD_REF = "about_app_build_ref"
     const val ABOUT_APP_CHANGELOG = "about_app_changelog"
+    const val APP_UPDATE_LEVEL = "app_update_level"
+    const val APP_UPDATE_DELAY = "app_update_delay"
     const val ABOUT_TEAM = "about_team"
     const val EXPERIMENTAL = "experimental"
     const val LAUNCH_APP_PICKER = "launch_app_picker"
@@ -398,6 +402,8 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.ABOUT_APP_BUILD_DATE to ::settingAboutAppBuildDateProvider,
     Setting.ABOUT_APP_BUILD_REF to ::settingAboutAppBuildRefProvider,
     Setting.ABOUT_APP_CHANGELOG to ::settingAboutAppChangelogProvider,
+    Setting.APP_UPDATE_LEVEL to ::settingAppUpdateLevelProvider,
+    Setting.APP_UPDATE_DELAY to ::settingAppUpdateDelayProvider,
     Setting.ABOUT_TEAM to ::settingAboutTeamProvider,
     Setting.REDDIT to ::settingAboutTelegramProvider,
     Setting.CROWDIN to ::settingLocalizationProvider,

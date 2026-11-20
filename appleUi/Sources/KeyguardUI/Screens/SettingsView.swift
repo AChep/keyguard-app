@@ -3,6 +3,7 @@ import KeyguardShared
 
 struct SettingsView: View {
     @Environment(AccountsModel.self) private var accountsModel
+    @Environment(AppInformationModel.self) private var appInformationModel
     @Environment(NavigationModel.self) private var navigationModel
     @Environment(SettingsModel.self) private var settingsModel
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -40,6 +41,9 @@ struct SettingsView: View {
     /// isn't part of the shared settings catalog, so it carries its own fixed id.
     static let generalTag = "macos_general"
 
+    /// The "Update available" row; not a category, so it is never selected.
+    static let appUpdateId = "app_update"
+
     /// The catalog's `.action` rows grouped under their preceding `.section` marker.
     static func groupedSettings(_ items: [SettingsItemSnapshot]) -> [SnapshotListSection<SettingsItemSnapshot>] {
         snapshotListSections(
@@ -54,9 +58,11 @@ struct SettingsView: View {
             .task(id: AppLocalization.shared.locale.identifier) { await settingsModel.loadSettings() }
             .onAppear {
                 accountsModel.startAccountListObservation()
+                appInformationModel.startAppUpdateObservation()
             }
             .onDisappear {
                 accountsModel.stopAccountListObservation()
+                appInformationModel.stopAppUpdateObservation()
             }
             .onChange(of: query, initial: true) {
                 searchSelection = nil
@@ -171,6 +177,7 @@ struct SettingsView: View {
             }
         } else {
             SettingsSidebar(
+                update: appInformationModel.appUpdate,
                 accounts: accounts,
                 items: items,
                 selection: $selectedId,
@@ -232,6 +239,7 @@ struct SettingsView: View {
 
     private var compactCategories: some View {
         List {
+            SettingsAppUpdateSection(update: appInformationModel.appUpdate)
             if !accounts.isEmpty {
                 Section(L10n.accounts) {
                     ForEach(accounts, id: \.id) { account in
@@ -338,6 +346,7 @@ struct SettingsView: View {
 }
 
 struct SettingsSidebar: View {
+    let update: AppUpdateSnapshot?
     let accounts: [AccountListItemSnapshot]
     let items: [SettingsItemSnapshot]
     @Binding var selection: String?
@@ -356,6 +365,7 @@ struct SettingsSidebar: View {
 
     var body: some View {
         List(selection: $selection) {
+            SettingsAppUpdateSection(update: update)
             if !accounts.isEmpty {
                 Section(L10n.accounts) {
                     ForEach(accounts, id: \.id) { account in
@@ -443,12 +453,39 @@ struct SettingsSidebar: View {
     }
 }
 
+/// The "Update available" section at the top of the settings list, if there is an update.
+/// The row opens the release page or the store listing; without a link to open, it is plain.
+struct SettingsAppUpdateSection: View {
+    let update: AppUpdateSnapshot?
+
+    var body: some View {
+        if let update {
+            Section {
+                let label = SettingsCategoryLabel(
+                    title: L10n.updateAvailableTitle,
+                    id: SettingsView.appUpdateId,
+                    subtitle: L10n.updateAvailableVersionText(update.version)
+                )
+                if let url = update.link {
+                    Link(destination: url) {
+                        label.contentShape(Rectangle())
+                    }
+                    .buttonStyle(.plain)
+                } else {
+                    label
+                }
+            }
+        }
+    }
+}
+
 /// The shared snapshot intentionally drops the Compose `ImageVector` icons (they don't
 /// translate to SF Symbols), so the glyph is chosen here by category id.
 enum SettingsIcon {
     static func symbol(for id: String) -> String {
         switch id {
         case SettingsView.generalTag: return "gearshape.fill"
+        case SettingsView.appUpdateId: return "arrow.down.circle"
         case "subscription": return "star.circle"
         case "autofill": return "wand.and.stars"
         case "security": return "lock"
@@ -468,6 +505,7 @@ enum SettingsIcon {
     /// these independent of the app accent so categories remain recognizable.
     static func color(for id: String) -> Color {
         switch id {
+        case SettingsView.appUpdateId: return .green
         case "subscription": return .purple
         case "autofill": return .blue
         case "security": return .gray

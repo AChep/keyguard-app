@@ -3252,6 +3252,11 @@
     <string name="browser_extension_save_not_now">Not now</string>
     <string name="browser_extension_save_never">Never for this site</string>
     <string name="browser_extension_options_inline_menu_text">Shows matching logins next to login fields.</string>
+    <!-- Browser extension options: a sign-in that asks for the username on one page and for the password on the next -->
+    <string name="browser_extension_options_password_step_title">Fill the password step</string>
+    <string name="browser_extension_options_password_step_text">After you fill a username on its own page, fills the password on the next one.</string>
+    <string name="browser_extension_options_submit_title">Sign in after filling</string>
+    <string name="browser_extension_options_submit_text">Selects the form’s sign-in or next button after a login fill.</string>
     <string name="browser_extension_options_save_text">Offers to save a login after you sign in or sign up.</string>
     <string name="browser_extension_options_passkeys_text">Keyguard answers passkey requests of websites.</string>
     <!-- Browser extension options: where the sites of "Never for this site" are kept -->

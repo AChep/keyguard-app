@@ -45,6 +45,18 @@
       text: "browser_extension_options_inline_menu_text",
     },
     {
+      key: "fillPasswordStep",
+      icon: "password",
+      title: "browser_extension_options_password_step_title",
+      text: "browser_extension_options_password_step_text",
+    },
+    {
+      key: "submitAfterFill",
+      icon: "keyboard_return",
+      title: "browser_extension_options_submit_title",
+      text: "browser_extension_options_submit_text",
+    },
+    {
       key: "savePrompts",
       icon: "save",
       title: "pref_item_autofill_save_request_title",

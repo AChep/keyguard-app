@@ -15,9 +15,10 @@ export interface PageWatcherOptions {
   /**
    * After a scan: elements were added, or inputs changed type, hints or
    * `readonly`. [inputs]: an input or a label was among them, or an input
-   * changed; else forms are as they were.
+   * changed; else forms are as they were. [seen]: those inputs, added or
+   * changed, for checks of what's new only.
    */
-  changed(inputs: boolean): void;
+  changed(inputs: boolean, seen: readonly HTMLInputElement[]): void;
   /** How long changes gather before a scan. */
   debounceMs: number;
 }
@@ -29,6 +30,8 @@ export class PageWatcher {
   private added = new Set<Element>();
   /** Whether an input changed since the last scan. */
   private inputChanged = false;
+  /** The inputs walked or changed since the last scan; dropped at the scan. */
+  private seen = new Set<HTMLInputElement>();
   private timer: ReturnType<typeof setTimeout> | null = null;
 
   constructor(private readonly options: PageWatcherOptions) {
@@ -39,7 +42,7 @@ export class PageWatcher {
   start(doc: Document): void {
     this.observe(doc);
     this.visit(doc);
-    this.options.changed(true);
+    this.options.changed(true, this.takeSeen());
   }
 
   stop(): void {
@@ -48,6 +51,7 @@ export class PageWatcher {
     this.timer = null;
     this.added.clear();
     this.inputChanged = false;
+    this.seen.clear();
   }
 
   /** Takes in the shadow roots around an element, as a field that got focus. */
@@ -70,6 +74,7 @@ export class PageWatcher {
         if ((record.target as Element).localName === "input") {
           relevant = true;
           this.inputChanged = true;
+          this.seen.add(record.target as HTMLInputElement);
         }
         continue;
       }
@@ -97,7 +102,13 @@ export class PageWatcher {
       if (this.visitElement(element)) inputs = true;
       if (this.visit(element)) inputs = true;
     }
-    this.options.changed(inputs);
+    this.options.changed(inputs, this.takeSeen());
+  }
+
+  private takeSeen(): HTMLInputElement[] {
+    const seen = [...this.seen];
+    this.seen.clear();
+    return seen;
   }
 
   private observe(root: Document | ShadowRoot) {
@@ -123,6 +134,7 @@ export class PageWatcher {
   /** Takes in an element's shadow root, and what's in it; whether it saw an input or a label. */
   private visitElement(element: Element): boolean {
     const name = element.localName;
+    if (name === "input") this.seen.add(element as HTMLInputElement);
     if (name === "input" || name === "label") return true;
     if (!canHostShadow(element)) return false;
     const shadow = this.options.shadowRootOf(element);

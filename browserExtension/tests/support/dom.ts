@@ -1,6 +1,9 @@
 // DOM helpers for tests under happy-dom, which has computed styles but no
 // layout: boxes, hit testing and visibility come from the test.
-import type { Layout } from "../../src/lib/content/guards";
+import { detectFormOf } from "../../src/lib/content/detect";
+import { fillLogin, type LoginValues } from "../../src/lib/content/fill";
+import { isFillable, parentOf, type Layout } from "../../src/lib/content/guards";
+import { watchSignIn, type LoginFill, type SignInWatch, type SubmitOptions } from "../../src/lib/content/submit";
 
 export interface Box {
   left: number;
@@ -10,12 +13,6 @@ export interface Box {
 }
 
 const DEFAULT_BOX: Box = { left: 10, top: 10, width: 200, height: 32 };
-
-function parentOf(element: Element): Element | null {
-  if (element.parentElement !== null) return element.parentElement;
-  const root = element.getRootNode();
-  return root !== element && "host" in root ? (root as ShadowRoot).host : null;
-}
 
 /** Whether nothing from the element up has `display: none`. */
 export function displayed(element: Element): boolean {
@@ -67,3 +64,32 @@ export function byId<T extends Element = HTMLInputElement>(id: string, root: Doc
 
 /** Detection options for happy-dom: `display: none` hides. */
 export const detectOptions = { rendered: (input: HTMLInputElement) => displayed(input) };
+
+/** A login fill, with the watch for a sign-in another way begun before it, as the content script makes them. */
+export interface WatchedFill extends LoginFill {
+  watch: SignInWatch;
+}
+
+/**
+ * The sign-in after a fill (../../src/lib/content/submit.ts) for happy-dom:
+ * its options, where [filled] holds the values Keyguard filled, and [fill],
+ * which fills [values] into the form of the field [id] as the content script
+ * does: watched from before the first field is written, and kept in [filled].
+ */
+export function submitSetup(filled: Map<HTMLInputElement, string>) {
+  const layout = testLayout();
+  const options: SubmitOptions = {
+    ...detectOptions,
+    layout,
+    canFill: (input) => isFillable(input, layout),
+    filledValue: (input) => filled.get(input),
+  };
+  async function fill(id: string, values: LoginValues, root: Document | ShadowRoot = document): Promise<WatchedFill> {
+    const form = detectFormOf(byId(id, root), detectOptions)!;
+    const watch = watchSignIn(form.root);
+    const written = await fillLogin(form, values, options.canFill);
+    for (const input of written) filled.set(input, input.value);
+    return { form, written, values, watch };
+  }
+  return { options, fill };
+}

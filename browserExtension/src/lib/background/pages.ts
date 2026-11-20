@@ -14,8 +14,10 @@
 // - Fills and passkey picks follow a user gesture: a trusted click in the menu (checked by the
 //   menu page, then the content script's clickjacking checks, and without
 //   IntersectionObserver v2 those of the frame's parents of another origin), a click in the
-//   popup, or the keyboard shortcut. Nothing fills on page load. Save and
-//   Never of the save bar take the same checks.
+//   popup, or the keyboard shortcut. Nothing fills on page load, but the
+//   password step of a sign-in one of those started, see
+//   [PageController.passwordStep]. Save and Never of the save bar take the
+//   same checks.
 // - What the background remembers of a page, as the login filled last on a
 //   tab, is kept by the page's exact origin.
 // - A request for a page in a private window says so (`private_window`): the
@@ -88,6 +90,12 @@ export const TOKEN_TTL_MS = 10_000;
 export const TOTP_WINDOW_MS = 2 * 60_000;
 /** The next step of a sign-in lists the login filled last on the tab first for this long. */
 export const CONTINUE_WINDOW_MS = 5 * 60_000;
+/**
+ * The password step of a sign-in gets the password of a login whose username
+ * alone was filled in the tab's top frame for this long, see
+ * [PageController.passwordStep].
+ */
+export const PASSWORD_STEP_WINDOW_MS = 2 * 60_000;
 /** A save bar stays offered, across navigations, for this long. */
 export const SAVE_TTL_MS = 2 * 60_000;
 /** The username of a username-first step counts for its password step for this long. */
@@ -285,6 +293,13 @@ interface FillMemory {
   totp: MenuItem | null;
   /** The origin of the page filled: only its pages get the memory. */
   origin: string;
+  /**
+   * The username of a login with a password that the fill wrote alone in
+   * the top frame, on a username step or a sign-in form: the next page there
+   * may get the password, for that account, see [PageController.passwordStep].
+   * `null` for other fills, and once tried.
+   */
+  passwordStep: string | null;
   at: number;
   sessionId: number | null;
 }
@@ -338,6 +353,11 @@ function currentUrl(frame: FrameRef, reported: string | undefined): string | nul
   const url = webUrl(reported);
   if (url === null) return frame.url;
   return url.origin === frame.origin ? url.href : null;
+}
+
+/** Whether two usernames name the same account: as typed, the case and the spaces around may differ. */
+function sameAccount(a: string, b: string): boolean {
+  return a.trim().toLowerCase() === b.trim().toLowerCase();
 }
 
 export class PageController {
@@ -431,6 +451,10 @@ export class PageController {
         return null;
       case "username_step":
         this.usernames.set(frame.tabId, { username: request.username, origin: frame.origin, at: this.now() });
+        return null;
+      case "password_step":
+        // For the page the user is on, as for menu_open.
+        await this.passwordStep({ ...frame, url: currentUrl(frame, request.url) ?? frame.url }, request.step, request.account);
         return null;
       case "save_bar_open":
         if (frame.frameId !== 0 || this.pendingSave(frame.tabId) === null) return null;
@@ -896,8 +920,14 @@ export class PageController {
     );
   }
 
-  /** Sends values to the one document they're for. */
-  private async fill(frame: FrameRef, command: Extract<DocumentCommand, { kind: "fill" | "fill_totp" | "fill_password" }>) {
+  /**
+   * Sends values to the one document they're for. Resolves with whether a
+   * `fill` wrote the username alone of a sign-in, see [DocumentResult].
+   */
+  private async fill(
+    frame: FrameRef,
+    command: Extract<DocumentCommand, { kind: "fill" | "fill_totp" | "fill_password" }>,
+  ): Promise<boolean> {
     let answer: unknown;
     try {
       answer = await this.send(frame, command);
@@ -907,6 +937,7 @@ export class PageController {
     }
     const result = parseDocumentResult(answer, "no_form");
     if (!result.ok) throw new CallFailure(result.reason);
+    return result.passwordStep === true;
   }
 
   /** Sends a command that has no answer, ignoring a document that's gone. */
@@ -937,13 +968,40 @@ export class PageController {
   /**
    * A login fill into [frame]: the app releases [handle] for the frame's page
    * (see [pageOf], which may refuse first), its document gets the values, and
-   * the tab remembers the fill, with [item] for "Fill TOTP".
+   * the tab remembers the fill, with [item] for "Fill TOTP". See
+   * [submitsAfterFill] for the sign-in that may follow.
    */
   private async fillLogin(frame: FrameRef, handle: string, item: MenuItem | undefined, target: FillTarget, signal?: AbortSignal) {
     const page = await this.pageOf(frame);
-    const values = await this.deps.app.request("fill", { handle, ...page }, signal);
-    await this.fill(frame, { kind: "fill", target, ...fillValues(values) });
-    this.rememberFill(frame, handle, item);
+    const values = fillValues(await this.deps.app.request("fill", { handle, ...page }, signal));
+    const submit = await this.submitsAfterFill(frame);
+    const usernameAlone = await this.fill(frame, { kind: "fill", target, ...values, ...(submit ? { submit } : {}) });
+    // The username alone of a login with a password, in the top frame, as on a username-first step.
+    const passwordStep = frame.frameId === 0 && values.password !== undefined && usernameAlone ? (values.username ?? null) : null;
+    this.rememberFill(frame, handle, item, passwordStep);
+  }
+
+  /**
+   * Whether a login fill of [frame] asks its document to sign in after it:
+   * with the option on, in the tab the user is on. Never in a background
+   * tab, where nobody sees what it submits. One-time code and generated
+   * password fills never do.
+   */
+  private async submitsAfterFill(frame: FrameRef): Promise<boolean> {
+    // Not when a read fails: a tab that closed fails the fill anyway.
+    return (await this.activeTabWith(frame, "submitAfterFill")) !== null;
+  }
+
+  /** The tab of [frame] when [option] is on and it's the active tab, read in that order; `null` else, or when a read fails. */
+  private async activeTabWith(frame: FrameRef, option: "fillPasswordStep" | "submitAfterFill"): Promise<TabInfo | null> {
+    try {
+      if (!(await this.deps.options.options())[option]) return null;
+      const tab = await this.deps.tab(frame.tabId);
+      return tab.active === true ? tab : null;
+    } catch {
+      // The options can't be read, or the tab closed.
+      return null;
+    }
   }
 
   /** A one-time code fill into [frame], as for [fillLogin]. */
@@ -1146,13 +1204,14 @@ export class PageController {
   /**
    * Each login fill replaces the tab's memory: the next step of a sign-in and
    * "Fill TOTP" are for the account filled last. [item] is the item filled,
-   * where the caller listed it.
+   * where the caller listed it. [passwordStep]: see [FillMemory.passwordStep].
    */
-  private rememberFill(frame: FrameRef, handle: string, item: MenuItem | undefined) {
+  private rememberFill(frame: FrameRef, handle: string, item: MenuItem | undefined, passwordStep: string | null) {
     this.fills.set(frame.tabId, {
       handle,
       totp: item?.has_totp === true ? toMenuItem(item) : null,
       origin: frame.origin,
+      passwordStep,
       at: this.now(),
       sessionId: this.deps.app.sessionId,
     });
@@ -1162,13 +1221,13 @@ export class PageController {
    * The login filled last on this tab within [windowMs], for a page of [url]
    * of its origin: another origin, even of the same site as the app sees it,
    * gets nothing. Forgotten with its session, whose handles died, or after
-   * the longer window.
+   * the longest window.
    */
   private lastFill(tabId: number, url: string, windowMs: number): FillMemory | null {
     const memory = this.fills.get(tabId);
     if (memory === undefined) return null;
     const age = this.now() - memory.at;
-    if (memory.sessionId !== this.deps.app.sessionId || age > Math.max(TOTP_WINDOW_MS, CONTINUE_WINDOW_MS)) {
+    if (memory.sessionId !== this.deps.app.sessionId || age > Math.max(TOTP_WINDOW_MS, CONTINUE_WINDOW_MS, PASSWORD_STEP_WINDOW_MS)) {
       this.fills.delete(tabId);
       return null;
     }
@@ -1196,6 +1255,75 @@ export class PageController {
   /** The item of a login fill on this tab within TOTP_WINDOW_MS, for "Fill TOTP": only one with a TOTP. */
   private rememberedTotp(frame: FrameRef): MenuItem | null {
     return this.lastFill(frame.tabId, frame.url, TOTP_WINDOW_MS)?.totp ?? null;
+  }
+
+  /**
+   * A `password_step` of [frame], whose field its document bound to
+   * [token]: fills the password of the login whose username alone a fill
+   * wrote there, without a click. Only when all hold:
+   * - the option is on;
+   * - [frame] is the tab's top frame: a frame's page may be laid out by
+   *   another site's above it;
+   * - that fill was in the top frame, on the same origin, in this app
+   *   session, within PASSWORD_STEP_WINDOW_MS;
+   * - the step shows no account, [account], or that fill's;
+   * - the vault is unlocked: nothing prompts to unlock;
+   * - the tab is the active one.
+   * Each still holds once the app released the password, just before it's
+   * sent.
+   * One try per username fill: a page that asks again, as after a wrong
+   * password, gets nothing. Its failures stay here: nobody asked for it.
+   */
+  private async passwordStep(frame: FrameRef, token: string, account: string | undefined): Promise<void> {
+    if (this.passwordStepFill(frame, account) === null) return;
+    try {
+      const tab = await this.activeTabWith(frame, "fillPasswordStep");
+      if (tab === null) return;
+      // Checked again, and taken, with no wait in between: two requests never both fill.
+      const memory = this.passwordStepFill(frame, account);
+      if (memory === null || this.deps.app.snapshot.kind !== "unlocked") return;
+      memory.passwordStep = null;
+      // As the shortcut's fill: the tab closing or leaving the origin cancels it.
+      await this.deps.tabs.run(frame.tabId, tab.url, (signal) => this.fillStep(frame, memory, token, signal));
+    } catch {
+      // The tab closed, the user declined, or the page changed.
+    }
+  }
+
+  /**
+   * The fill of the password step [token] of [frame] with the password of
+   * [memory]'s login, as for [fillLogin]: the document fills the field it
+   * reported, if [stepHolds] once the app released the password.
+   */
+  private async fillStep(frame: FrameRef, memory: FillMemory, token: string, signal: AbortSignal) {
+    const page = await this.pageOf(frame);
+    const { password } = await this.deps.app.request("fill", { handle: memory.handle, ...page }, signal);
+    const submit = await this.submitsAfterFill(frame);
+    if (!(await this.stepHolds(frame, memory))) return;
+    await this.fill(frame, { kind: "fill", target: "step", step: token, ...fillValues({ password }), ...(submit ? { submit } : {}) });
+    this.rememberFill(frame, memory.handle, memory.totp ?? undefined, null);
+  }
+
+  /**
+   * Whether the fill of the password step of [frame] for [memory] may still
+   * go: while the app asked, the user may have moved to another tab, locked
+   * the vault or turned the option off, or another fill replaced this one.
+   * The reads go first: nothing waits between the checks and the send.
+   */
+  private async stepHolds(frame: FrameRef, memory: FillMemory): Promise<boolean> {
+    return (
+      (await this.activeTabWith(frame, "fillPasswordStep")) !== null &&
+      this.deps.app.snapshot.kind === "unlocked" &&
+      this.lastFill(frame.tabId, frame.url, PASSWORD_STEP_WINDOW_MS) === memory
+    );
+  }
+
+  /** The tab's memory of a username fill whose password step [frame], showing [account], may be, see [passwordStep]. */
+  private passwordStepFill(frame: FrameRef, account: string | undefined): FillMemory | null {
+    if (frame.frameId !== 0) return null;
+    const memory = this.lastFill(frame.tabId, frame.url, PASSWORD_STEP_WINDOW_MS);
+    const username = memory?.passwordStep ?? null;
+    return username !== null && (account === undefined || sameAccount(account, username)) ? memory : null;
   }
 
   // endregion

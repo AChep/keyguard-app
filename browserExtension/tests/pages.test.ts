@@ -11,6 +11,7 @@ import {
   CONTINUE_WINDOW_MS,
   PageController,
   PASSKEY_WAIT_MS,
+  PASSWORD_STEP_WINDOW_MS,
   SAVE_TTL_MS,
   TOKEN_TTL_MS,
   TOTP_WINDOW_MS,
@@ -202,6 +203,8 @@ function setup(
     popups: 0,
     /** Whether the tab is in a private window, as `tabs.get` tells the popup's calls and the shortcut. */
     incognito: false,
+    /** Whether the tab is the selected one of its window, as `tabs.get` tells. */
+    active: true,
     injected: [] as number[],
     /** Answers of the content scripts, by command kind. */
     contentScript: (message: ContentCommand, _target?: { frameId: number }): unknown => {
@@ -234,6 +237,8 @@ function setup(
     signals: [] as { type: string; signal: AbortSignal | undefined }[],
     /** The site icon of a page of a tab; throws as `tabs.get` does for a closed tab. */
     siteIcon: (tabId: number, url: string): string | null => iconOf(url, tabId),
+    /** What happens while `tabs.get` looks the tab up, the next time only. */
+    tabLookup: null as (() => Promise<void>) | null,
   };
 
   const app: AppAccess = {
@@ -322,7 +327,12 @@ function setup(
       // Into the top frame, which has the page's form.
       state.forms ??= [topForm()];
     },
-    tab: async () => ({ url: LOGIN_URL, incognito: state.incognito }),
+    tab: async () => {
+      const meanwhile = state.tabLookup;
+      state.tabLookup = null;
+      await meanwhile?.();
+      return { url: LOGIN_URL, incognito: state.incognito, active: state.active };
+    },
     siteIcon: async (tabId, url) => state.siteIcon(tabId, url),
     tabs: new TabWatch(),
     openPopup: async () => void state.popups++,
@@ -357,6 +367,7 @@ function setup(
     fillFromPopup,
     signalOf,
     tabs: deps.tabs,
+    options: deps.options,
     advance: (ms: number) => (clock += ms),
     fills: () => sent.filter((it) => it.message.kind.startsWith("fill")),
   };
@@ -371,6 +382,16 @@ describe("content script requests", () => {
     expect(parseContentRequest({ kind: "save_candidate", candidate: { password: "x".repeat(5000) }, doc })).toBeNull();
     expect(parseContentRequest({ kind: "focus_report", probe: "short", role: null, doc })).toBeNull();
     expect(parseContentRequest({ kind: "top_report", probe: "short", doc })).toBeNull();
+    for (const step of [
+      { url: LOGIN_URL },
+      { step: "short" },
+      { step: "f".repeat(32), url: 7 },
+      { step: "f".repeat(32), account: "" },
+      { step: "f".repeat(32), account: 7 },
+      { step: "f".repeat(32), account: "x".repeat(5000) },
+    ]) {
+      expect(parseContentRequest({ kind: "password_step", ...step, doc }), JSON.stringify(step)).toBeNull();
+    }
     for (const parent of [{ frame: 0, x: 1, y: 1 }, { frame: 2, x: Number.NaN, y: 1 }, { frame: 2.5, x: 1, y: 1 }, "2"]) {
       expect(parseContentRequest({ kind: "frame_report", probe: "f".repeat(32), ok: true, parent, doc }), JSON.stringify(parent)).toBeNull();
     }
@@ -395,6 +416,8 @@ describe("content script requests", () => {
     for (const request of [
       { kind: "save_candidate", candidate: { password: "pw" } },
       { kind: "username_step", username: "ann" },
+      { kind: "password_step", step: "f".repeat(32) },
+      { kind: "password_step", step: "f".repeat(32), account: "ann", url: LOGIN_URL },
       { kind: "save_bar_open" },
       { kind: "menu_shown" },
       { kind: "focus_report", probe: "f".repeat(32), role: null },
@@ -1959,31 +1982,31 @@ describe("the popup's matches", () => {
   });
 });
 
+/** The password step after the username step on LOGIN_URL: another page of its origin, in the top frame of the same tab. */
+const NEXT_URL = "https://login.example.com/password";
+const NEXT = contentSender({ tab: { id: 7, url: NEXT_URL }, frameId: 0, documentId: "doc-next", url: NEXT_URL, origin: "https://login.example.com" });
+
+/** A tab, [context], where the menu of the username step on LOGIN_URL, in the frame of [sender], filled [handle]. */
+async function afterUsernameStep(handle = "h2", context = setup(), sender = contentSender()) {
+  const { port } = await context.openMenu("username", sender);
+  port.emit({ kind: "fill", handle });
+  await settle();
+  return context;
+}
+
+/** Presses the shortcut with focus in a field of [role] in the frame of [sender]; the handle it filled. */
+async function shortcut(context: ReturnType<typeof setup>, role: string, sender: MessageSenderLike) {
+  const command = context.pages.fillCommand(7);
+  await settle();
+  const probe = context.sent.findLast((it) => it.message.kind === "focus_probe")!.message as { probe: string };
+  await fromContent(context.pages, { kind: "focus_report", probe: probe.probe, role }, sender);
+  await command;
+  return context.requests.findLast((it) => it.type === "fill")?.handle;
+}
+
 describe("the next step of a sign-in", () => {
-  /** The password step after the username step on LOGIN_URL: another page of its origin, in the same tab. */
-  const NEXT_URL = "https://login.example.com/password";
-  const NEXT = contentSender({ tab: { id: 7, url: NEXT_URL }, frameId: 0, documentId: "doc-next", url: NEXT_URL, origin: "https://login.example.com" });
   /** The app's order of the default matches. */
   const APP_ORDER = { kind: "items", items: [{ handle: "h1" }, { handle: "h2" }], last: null };
-
-  /** A tab where the menu of the username step on LOGIN_URL filled [handle]. */
-  async function afterUsernameStep(handle = "h2") {
-    const context = setup();
-    const { port } = await context.openMenu("username");
-    port.emit({ kind: "fill", handle });
-    await settle();
-    return context;
-  }
-
-  /** Presses the shortcut with focus in a field of [role] in the frame of [sender]; the handle it filled. */
-  async function shortcut(context: ReturnType<typeof setup>, role: string, sender: MessageSenderLike) {
-    const command = context.pages.fillCommand(7);
-    await settle();
-    const probe = context.sent.findLast((it) => it.message.kind === "focus_probe")!.message as { probe: string };
-    await fromContent(context.pages, { kind: "focus_report", probe: probe.probe, role }, sender);
-    await command;
-    return context.requests.findLast((it) => it.type === "fill")?.handle;
-  }
 
   it("lists the login filled on the username step first, marked, in the menu of the next page of the site", async () => {
     const context = await afterUsernameStep("h2");
@@ -2127,6 +2150,322 @@ describe("the next step of a sign-in", () => {
     expect(await shortcut(context, "current-password", NEXT)).toBe("h2");
     // A sign-up form takes the first login with a password.
     expect(await shortcut(context, "new-password", NEXT)).toBe("h1");
+  });
+});
+
+describe("the password step", () => {
+  /** The username step: a field of the tab's top frame. */
+  const USERNAME_STEP = contentSender({ frameId: 0, documentId: "doc-0" });
+  /** The password step: the next page of the top frame. */
+  const PASSWORD_STEP = NEXT;
+  /** The token of a `password_step` report. */
+  const STEP = "5".repeat(32);
+
+  /** The answer of a fill that wrote the username alone, as on a username-first step. */
+  const USERNAME_ONLY = { ok: true, passwordStep: true };
+
+  /**
+   * The menu of [step] fills [handle], and its content script answers with
+   * [answer]. A password step's fill writes the password.
+   */
+  async function usernameStep(context: ReturnType<typeof setup>, handle = "h1", answer: unknown = USERNAME_ONLY, step = USERNAME_STEP) {
+    context.state.contentScript = (message) => {
+      if (message.kind === "guard") return { ok: true };
+      if (message.kind !== "fill") return undefined;
+      return message.target === "step" ? { ok: true } : answer;
+    };
+    return afterUsernameStep(handle, context, step);
+  }
+
+  /** The content script of [sender] reports a password step, showing [account] if any; the fills that followed. */
+  async function passwordStep(context: ReturnType<typeof setup>, sender = PASSWORD_STEP, account?: string, step = STEP) {
+    const before = context.fills().length;
+    const request = { kind: "password_step", step, url: sender.url, ...(account !== undefined ? { account } : {}) };
+    expect(await fromContent(context.pages, request, sender)).toBeNull();
+    await settle();
+    return context.fills().slice(before);
+  }
+
+  /** The app's releases of logins. */
+  const releases = (context: ReturnType<typeof setup>) => context.requests.filter((it) => it.type === "fill");
+
+  /**
+   * Reports the password step while the app holds the release of its
+   * password; resolves once the app asked, with a release of it that
+   * resolves once the report is answered.
+   */
+  async function heldStep(context: ReturnType<typeof setup>): Promise<() => Promise<void>> {
+    let approve!: () => void;
+    const approved = new Promise<void>((resolve) => (approve = resolve));
+    // The app prompts for the step's release only.
+    context.state.app = (request) =>
+      request.type === "fill" && request.handle === "h1" && request.url === NEXT_URL ? approved.then(() => undefined) : undefined;
+    const reported = fromContent(context.pages, { kind: "password_step", step: STEP, url: NEXT_URL }, PASSWORD_STEP);
+    await settle();
+    expect(releases(context)).toHaveLength(2);
+    return async () => {
+      approve();
+      await reported;
+      await settle();
+    };
+  }
+
+  it("fills the password of a login whose username alone was filled, into the field its report names", async () => {
+    const context = await usernameStep(setup());
+    expect(await passwordStep(context)).toEqual([
+      {
+        tabId: 7,
+        // The password only: the page has the username.
+        message: { kind: "fill", target: "step", step: STEP, password: "secret-h1", doc: docOf(PASSWORD_STEP), origin: LOGIN_ORIGIN },
+        target: { frameId: 0, documentId: "doc-next" },
+      },
+    ]);
+    expect(releases(context)).toEqual([
+      { type: "fill", handle: "h1", url: LOGIN_URL },
+      { type: "fill", handle: "h1", url: NEXT_URL },
+    ]);
+    // Fill TOTP follows, for the login filled.
+    expect((await context.openMenu("otp", PASSWORD_STEP)).port.lastView()).toMatchObject({ totp: { handle: "h1" } });
+  });
+
+  it("fills once: a page that asks again, as after a wrong password, gets nothing", async () => {
+    const context = await usernameStep(setup());
+    expect(await passwordStep(context)).toHaveLength(1);
+    expect(await passwordStep(context)).toEqual([]);
+    expect(await passwordStep(context, { ...PASSWORD_STEP, documentId: "doc-again" })).toEqual([]);
+    expect(releases(context)).toHaveLength(2);
+
+    // Two forms of a page that ask at once: the first gets it, by its token.
+    const both = await usernameStep(setup());
+    await Promise.all([passwordStep(both), passwordStep(both, { ...PASSWORD_STEP, documentId: "doc-again" }, undefined, "6".repeat(32))]);
+    expect(releases(both)).toHaveLength(2);
+    expect(both.fills().map((it) => it.message)).toEqual([
+      expect.objectContaining({ target: "menu" }),
+      expect.objectContaining({ target: "step", step: STEP, doc: docOf(PASSWORD_STEP) }),
+    ]);
+  });
+
+  it("tries once: a failed release doesn't arm it again, and shows nothing", async () => {
+    const context = await usernameStep(setup());
+    context.state.app = (request) => (request.type === "fill" ? new ProtocolError("user_denied") : undefined);
+    expect(await passwordStep(context)).toEqual([]);
+    context.state.app = () => undefined;
+    expect(await passwordStep(context, { ...PASSWORD_STEP, documentId: "doc-again" })).toEqual([]);
+    expect(releases(context)).toHaveLength(2);
+  });
+
+  it("fills nothing after a fill that wrote the password too, that wasn't a sign-in's username, or that the document didn't tell", async () => {
+    // The document tells nothing after a fill that wrote the password too, or a sign-up form's username; anything but `true` is as nothing.
+    for (const flag of [undefined, false, null, "yes", 1, { username: true }]) {
+      const context = await usernameStep(setup(), "h1", { ok: true, passwordStep: flag });
+      expect(await passwordStep(context), JSON.stringify(flag)).toEqual([]);
+      expect(releases(context)).toHaveLength(1);
+    }
+    const noPassword = setup();
+    noPassword.state.app = (request) => (request.type === "fill" ? { username: "ann" } : undefined);
+    await usernameStep(noPassword);
+    expect(await passwordStep(noPassword)).toEqual([]);
+    expect(releases(noPassword)).toHaveLength(1);
+  });
+
+  it("fills only a step that shows no account, or the one filled", async () => {
+    const context = await usernameStep(setup());
+    // The user typed another account on the username step.
+    expect(await passwordStep(context, PASSWORD_STEP, "bob")).toEqual([]);
+    expect(releases(context)).toHaveLength(1);
+    // That doesn't use it up.
+    expect(await passwordStep(context, PASSWORD_STEP, "  ANN ")).toHaveLength(1);
+
+    const none = await usernameStep(setup());
+    expect(await passwordStep(none)).toHaveLength(1);
+  });
+
+  it("fills nothing into another origin, frame or tab, which leave it to the top frame of the username", async () => {
+    const context = await usernameStep(setup());
+    const authUrl = "https://auth.example.com/password";
+    for (const sender of [
+      contentSender({ tab: { id: 7, url: authUrl }, frameId: 0, documentId: "doc-auth", url: authUrl, origin: "https://auth.example.com" }),
+      contentSender({ frameId: 5, documentId: "doc-5", url: NEXT_URL }),
+      contentSender({ tab: { id: 8, url: NEXT_URL }, frameId: 0, documentId: "doc-8", url: NEXT_URL }),
+    ]) {
+      expect(await passwordStep(context, sender), `${sender.tab?.id} ${sender.frameId} ${sender.url}`).toEqual([]);
+    }
+    expect(releases(context)).toHaveLength(1);
+    expect(await passwordStep(context)).toHaveLength(1);
+  });
+
+  it("fills nothing in a frame, even one of the top frame's site, and a fill there arms nothing", async () => {
+    for (const origin of ["https://idp.example.net", "https://auth.example.com", LOGIN_ORIGIN]) {
+      const frame = { tab: { id: 7, url: LOGIN_URL }, frameId: 4, origin };
+      const context = await usernameStep(setup(), "h1", USERNAME_ONLY, contentSender({ ...frame, documentId: "doc-4", url: `${origin}/signin` }));
+      expect(await passwordStep(context, contentSender({ ...frame, documentId: "doc-4b", url: `${origin}/password` })), origin).toEqual([]);
+      expect(await passwordStep(context, contentSender({ frameId: 0, documentId: "doc-0b", url: `${origin}/password`, origin })), origin).toEqual([]);
+      expect(releases(context), origin).toHaveLength(1);
+    }
+  });
+
+  it("fills nothing past 2 minutes, or in another app session", async () => {
+    const within = await usernameStep(setup());
+    within.advance(PASSWORD_STEP_WINDOW_MS);
+    expect(await passwordStep(within)).toHaveLength(1);
+
+    const late = await usernameStep(setup());
+    late.advance(PASSWORD_STEP_WINDOW_MS + 1);
+    expect(await passwordStep(late)).toEqual([]);
+    expect(releases(late)).toHaveLength(1);
+    // The menu still lists the login first.
+    expect((await late.openMenu("current-password", PASSWORD_STEP)).port.lastView()).toMatchObject({ last: "h1" });
+
+    const newSession = await usernameStep(setup());
+    newSession.state.sessionId = 2;
+    expect(await passwordStep(newSession)).toEqual([]);
+    expect(releases(newSession)).toHaveLength(1);
+  });
+
+  it("fills nothing with the option off, the vault locked or the tab in the background", async () => {
+    await new OptionsStore(fakeBrowser.storage.local).setOptions({ fillPasswordStep: false });
+    const off = await usernameStep(setup());
+    expect(await passwordStep(off)).toEqual([]);
+    expect(releases(off)).toHaveLength(1);
+    await new OptionsStore(fakeBrowser.storage.local).setOptions({ fillPasswordStep: true });
+
+    const locked = await usernameStep(setup());
+    locked.state.status = { kind: "locked", unlocking: false };
+    expect(await passwordStep(locked)).toEqual([]);
+    expect(locked.state.unlocks).toBe(0);
+    expect(releases(locked)).toHaveLength(1);
+
+    const background = await usernameStep(setup());
+    background.state.active = false;
+    expect(await passwordStep(background)).toEqual([]);
+    expect(releases(background)).toHaveLength(1);
+  });
+
+  it("delivers nothing when, while the app asked, the user left the tab, locked the vault or turned the option off, or another fill came", async () => {
+    for (const meanwhile of [
+      (context: ReturnType<typeof setup>) => void (context.state.active = false),
+      async (context: ReturnType<typeof setup>) => {
+        const { port } = await context.openMenu("username", contentSender({ frameId: 0, documentId: "doc-next", url: NEXT_URL }));
+        port.emit({ kind: "fill", handle: "h2" });
+      },
+      // The app session stays.
+      (context: ReturnType<typeof setup>) => void (context.state.status = { kind: "locked", unlocking: false }),
+      (context: ReturnType<typeof setup>) => context.options.setOptions({ fillPasswordStep: false }),
+      () => void vi.spyOn(OptionsStore.prototype, "options").mockRejectedValue(new Error("storage")),
+    ]) {
+      await new OptionsStore(fakeBrowser.storage.local).setOptions({ fillPasswordStep: true });
+      const context = await usernameStep(setup());
+      const before = context.fills().length;
+      const release = await heldStep(context);
+      await meanwhile(context);
+      await settle();
+      await release();
+      expect(context.fills().slice(before).filter((it) => (it.message as { target: string }).target === "step")).toEqual([]);
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("delivers nothing when another fill replaced the username's during the last look at the tab", async () => {
+    const context = await usernameStep(setup());
+    const before = context.fills().length;
+    const release = await heldStep(context);
+    // The look at the tab once the app released the password.
+    context.state.tabLookup = async () => {
+      const { port } = await context.openMenu("username", contentSender({ frameId: 0, documentId: "doc-next", url: NEXT_URL }));
+      port.emit({ kind: "fill", handle: "h2" });
+      await settle();
+    };
+    await release();
+    expect(context.fills().slice(before).map((it) => (it.message as { target: string }).target)).toEqual(["menu"]);
+  });
+
+  it("asks to sign in after the password, with the option on", async () => {
+    await new OptionsStore(fakeBrowser.storage.local).setOptions({ submitAfterFill: true });
+    const context = await usernameStep(setup());
+    expect(context.fills().map((it) => it.message)).toEqual([expect.objectContaining({ target: "menu", submit: true })]);
+    expect(await passwordStep(context)).toEqual([
+      expect.objectContaining({
+        message: { kind: "fill", target: "step", step: STEP, password: "secret-h1", submit: true, doc: docOf(PASSWORD_STEP), origin: LOGIN_ORIGIN },
+      }),
+    ]);
+  });
+});
+
+describe("sign in after filling", () => {
+  const submitAfterFill = (on: boolean) => new OptionsStore(fakeBrowser.storage.local).setOptions({ submitAfterFill: on });
+
+  /** A login fill from the menu, the popup and the shortcut, in turn; the commands that each sent. */
+  async function loginFills(context: ReturnType<typeof setup>) {
+    const { port } = await context.openMenu("current-password");
+    port.emit({ kind: "fill", handle: "h1" });
+    await settle();
+    await context.fillFromPopup("h1");
+    await shortcut(context, "current-password", contentSender());
+    return context.fills().map((it) => it.message);
+  }
+
+  it("asks the document to sign in after each login fill, with the option on, in the tab the user is on", async () => {
+    await submitAfterFill(true);
+    expect(await loginFills(setup())).toEqual([
+      expect.objectContaining({ kind: "fill", target: "menu", password: "secret-h1", submit: true }),
+      expect.objectContaining({ kind: "fill", target: "page", password: "secret-h1", submit: true }),
+      expect.objectContaining({ kind: "fill", target: "focused", password: "secret-h1", submit: true }),
+    ]);
+  });
+
+  it("doesn't when the options can't be read, and the fill still works", async () => {
+    await submitAfterFill(true);
+    const context = setup();
+    const read = vi.spyOn(OptionsStore.prototype, "options");
+    try {
+      const { port } = await context.openMenu("current-password");
+      read.mockRejectedValue(new Error("storage"));
+      port.emit({ kind: "fill", handle: "h1" });
+      await settle();
+      await context.fillFromPopup("h1");
+    } finally {
+      read.mockRestore();
+    }
+    const fills = context.fills().map((it) => it.message);
+    expect(fills).toEqual([
+      expect.objectContaining({ kind: "fill", target: "menu", password: "secret-h1" }),
+      expect.objectContaining({ kind: "fill", target: "page", password: "secret-h1" }),
+    ]);
+    for (const message of fills) expect(message).not.toHaveProperty("submit");
+  });
+
+  it("doesn't with the option off, or in a tab in the background", async () => {
+    const off = await loginFills(setup());
+    expect(off).toHaveLength(3);
+    for (const message of off) expect(message, (message as { target: string }).target).not.toHaveProperty("submit");
+
+    await submitAfterFill(true);
+    const context = setup();
+    context.state.active = false;
+    const background = await loginFills(context);
+    expect(background).toHaveLength(3);
+    for (const message of background) expect(message, (message as { target: string }).target).not.toHaveProperty("submit");
+  });
+
+  it("never asks after a one-time code or a generated password", async () => {
+    await submitAfterFill(true);
+    const context = setup();
+    const login = await context.openMenu("current-password");
+    login.port.emit({ kind: "fill", handle: "h1" });
+    await settle();
+    const otp = await context.openMenu("otp");
+    otp.port.emit({ kind: "totp", handle: "h1" });
+    await settle();
+    // The shortcut on a code field, after the login fill.
+    await shortcut(context, "otp", contentSender());
+    const generator = await context.openMenu("new-password");
+    generator.port.emit({ kind: "generate" });
+    await settle();
+
+    const fills = context.fills().map((it) => it.message);
+    expect(fills.map((it) => it.kind)).toEqual(["fill", "fill_totp", "fill_totp", "fill_password"]);
+    expect(fills[0]).toHaveProperty("submit", true);
+    for (const message of fills.slice(1)) expect(message, message.kind).not.toHaveProperty("submit");
   });
 });
 

@@ -15,12 +15,10 @@ import {
   type DetectOptions,
   type FormRoot,
 } from "./detect";
+import type { FilledValue } from "./fill";
 
 /** What a submitted form would save, or `null` when there's nothing new. */
-export function saveCandidateOf(
-  form: DetectedForm,
-  filledValue: (input: HTMLInputElement) => string | undefined,
-): SaveCandidate | null {
+export function saveCandidateOf(form: DetectedForm, filledValue: FilledValue): SaveCandidate | null {
   const username = form.username?.value.trim() || undefined;
   const withUsername = (candidate: SaveCandidate): SaveCandidate =>
     username === undefined ? candidate : { username, ...candidate };
@@ -56,14 +54,10 @@ const BUTTON_TEXT_MAX = 60;
 /** Whether a click on [button] submits its form, as far as a page can tell. */
 export function isSubmitButton(button: Element): boolean {
   if (button.getAttribute("aria-pressed") !== null) return false;
-  if (button.localName === "input") {
-    const type = (button as HTMLInputElement).type;
-    return type === "submit" || type === "image";
-  }
+  if (button.localName === "input") return isFormSubmitter(button);
   if (button.localName === "button") {
-    const type = (button as HTMLButtonElement).type;
-    if (type === "submit" && (button as HTMLButtonElement).form !== null) return true;
-    if (type === "reset") return false;
+    if (isFormSubmitter(button) && (button as HTMLButtonElement).form !== null) return true;
+    if ((button as HTMLButtonElement).type === "reset") return false;
   }
   const text = [textStart(button), button.getAttribute("aria-label"), button.getAttribute("value"), button.id]
     .map((it) => (it ?? "").trim().slice(0, BUTTON_TEXT_MAX))
@@ -71,11 +65,17 @@ export function isSubmitButton(button: Element): boolean {
   return SUBMIT_WORDS.test(text);
 }
 
+/** Whether a control of a form submits it when clicked: a button of type `submit`, the default, or such an input. */
+export function isFormSubmitter(element: Element): element is HTMLElement {
+  if (element.localName === "button") return (element as HTMLButtonElement).type === "submit";
+  return element.localName === "input" && /^(submit|image)$/.test((element as HTMLInputElement).type);
+}
+
 /**
  * The start of an element's text, past its leading whitespace: a whole page
  * can be in a `[role=button]`, and only the start is read.
  */
-function textStart(element: Element): string {
+export function textStart(element: Element): string {
   let text = "";
   const walker = element.ownerDocument.createTreeWalker(element, NodeFilter.SHOW_TEXT);
   for (let node = walker.nextNode(); node !== null && text.length < BUTTON_TEXT_MAX; node = walker.nextNode()) {
@@ -102,7 +102,7 @@ export interface SaveTrackerOptions extends DetectOptions {
   /** Reports the username of a username-only step. */
   reportUsername(username: string): void;
   /** The value Keyguard filled into a field, if any. */
-  filledValue(input: HTMLInputElement): string | undefined;
+  filledValue: FilledValue;
   /** Whether an event comes from the user. Tests can't make trusted events. */
   isTrusted?(event: Event): boolean;
 }

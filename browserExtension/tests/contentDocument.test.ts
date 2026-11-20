@@ -2,8 +2,9 @@
 // The content script's document token, against a background that addresses
 // frames only, as on Firefox, which has no `documentId`: a document refuses
 // the commands of the document before it in the same frame and origin. Also
-// the top frame's answer to a `top_probe`, and what it re-checks as the page
-// changes.
+// the top frame's answer to a `top_probe`, what it re-checks as the page
+// changes, the password step after a username step, and the sign-in after a
+// fill.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeBrowser } from "wxt/testing/fake-browser";
 import type { ContentScriptContext } from "wxt/utils/content-script-context";
@@ -16,6 +17,7 @@ import { ProtocolError } from "../src/lib/protocol/session";
 import { byId, render } from "./support/dom";
 
 const PAGE = "https://login.example.com/sign-in";
+const ORIGIN = "https://login.example.com";
 const FORM = `<form><input id="username" name="username"><input id="password" name="password" type="password"></form>`;
 const STALE = "0".repeat(32);
 
@@ -25,14 +27,14 @@ const SENDER: MessageSenderLike = {
   tab: { id: 7, url: PAGE },
   frameId: 0,
   url: PAGE,
-  origin: "https://login.example.com",
+  origin: ORIGIN,
 };
 
 const stops: (() => void)[] = [];
 
-/** Starts the content script in a new document of the frame; returns its invalidation. */
-function startDocument(): () => void {
-  render(FORM);
+/** Starts the content script in a new document of the frame, showing [html]; returns its invalidation. */
+function startDocument(html = FORM): () => void {
+  render(html);
   const invalidated: (() => void)[] = [];
   contentScript.main({ onInvalidated: (callback: () => void) => void invalidated.push(callback) } as unknown as ContentScriptContext);
   const stop = () => {
@@ -59,6 +61,8 @@ let pages: PageController;
 let sent: { message: ContentCommand; target: { frameId: number; documentId?: string } }[];
 /** The app's prompt for a `fill`, which releases the values once the user approves. */
 let fillPrompt: (() => Promise<unknown>) | null;
+/** Whether the background leaves each `password_step` unanswered, as while it fills the step: the report's token stays usable. */
+let holdSteps: boolean;
 
 beforeEach(() => {
   fakeBrowser.reset();
@@ -68,6 +72,7 @@ beforeEach(() => {
   messages = [];
   sent = [];
   fillPrompt = null;
+  holdSteps = false;
   const app: AppAccess = {
     snapshot: { kind: "unlocked" },
     sessionId: 1,
@@ -89,7 +94,7 @@ beforeEach(() => {
     },
     sendToTab: (_tabId, message) => deliver(message),
     injectContentScript: async () => undefined,
-    tab: async () => ({ url: PAGE }),
+    tab: async () => ({ url: PAGE, active: true }),
     siteIcon: async () => null,
     tabs: new TabWatch(),
     openPopup: async () => undefined,
@@ -101,6 +106,7 @@ beforeEach(() => {
     if (sender.id !== undefined) return false;
     tokens.push((message as { doc: string }).doc);
     messages.push(message as { kind: string });
+    if (holdSteps && (message as { kind: string }).kind === "password_step") return true;
     void pages.onContentMessage(message, SENDER).then(sendResponse);
     return true;
   });
@@ -110,6 +116,24 @@ afterEach(() => {
   for (const stop of stops.splice(0)) stop();
   document.body.innerHTML = "";
 });
+
+/**
+ * Lets mutation records, the watcher's debounce and its scan run, and what
+ * follows them, as a report's answer or a sign-in's wait: on real timers.
+ */
+const scanned = () => new Promise((resolve) => setTimeout(resolve, 400));
+
+/** The clicks on the sign-in button `#go` and the submits of its form `#f`, in order. */
+function recordSignIn(): string[] {
+  const events: string[] = [];
+  byId<HTMLElement>("go").addEventListener("click", () => events.push("click"));
+  byId<HTMLFormElement>("f").addEventListener("submit", (event) => {
+    // happy-dom would navigate.
+    event.preventDefault();
+    events.push("submit");
+  });
+  return events;
+}
 
 /** The popup's fill of the tab. The app's prompt holds the values until [approve]. */
 function fillFromPopup() {
@@ -256,9 +280,6 @@ describe("a child frame of another origin", () => {
 });
 
 describe("a changing page", () => {
-  /** Lets mutation records, the watcher's debounce and its scan run. */
-  const scanned = () => new Promise((resolve) => setTimeout(resolve, 400));
-
   it("re-checks the focused field after inputs change, not after other elements are added", async () => {
     startDocument();
     const field = byId("password");
@@ -276,6 +297,26 @@ describe("a changing page", () => {
     document.querySelector("form")!.append(document.createElement("input"));
     await scanned();
     expect(detections).toHaveBeenCalled();
+  });
+
+  it("looks for a password step among the password fields a change added only, one detection per form", async () => {
+    const passwords = Array.from({ length: 5 }, () => `<input type="password" autocomplete="new-password">`).join("");
+    startDocument(`<form id="settings"><input id="name" name="username" value="ann">${passwords}</form>`);
+    await scanned();
+    // Detection asks every field of the form for its boxes.
+    const detections = vi.spyOn(byId("name"), "getClientRects");
+
+    const search = document.createElement("p");
+    search.innerHTML = `<input name="q">`;
+    document.body.append(search);
+    await scanned();
+    expect(detections).not.toHaveBeenCalled();
+
+    const another = document.createElement("input");
+    another.type = "password";
+    byId("settings").append(another, document.createElement("input"));
+    await scanned();
+    expect(detections).toHaveBeenCalledTimes(1);
   });
 
   it("forgets the last field with a role once it leaves the page", async () => {
@@ -304,5 +345,302 @@ describe("a changing page", () => {
     reads = 0;
     await deliver(fill);
     expect(reads).toBe(0);
+  });
+});
+
+describe("the password step", () => {
+  const USERNAME_STEP = `<form><input id="username" name="username" autocomplete="username"></form>`;
+  const PASSWORD_STEP = `<form><input id="account" name="username" readonly value="ann"><input id="password" type="password"></form>`;
+
+  // happy-dom has no layout: each input gets a box of its own, one under
+  // the other, and is what's on top there.
+  beforeEach(() => {
+    const inputs = () => Array.from(document.querySelectorAll("input"));
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
+      return new DOMRect(10, 10 + 40 * Math.max(inputs().indexOf(this as HTMLInputElement), 0), 200, 32);
+    });
+    vi.spyOn(document, "elementFromPoint").mockImplementation((_x, y) => inputs()[Math.floor((y - 10) / 40)] ?? null);
+  });
+  afterEach(() => vi.restoreAllMocks());
+
+  /** Waits until [done] holds, on real timers: the content script reads the options and the background answers meanwhile. */
+  async function until(done: () => boolean) {
+    for (let i = 0; i < 100 && !done(); i++) await new Promise((resolve) => setTimeout(resolve, 10));
+  }
+
+  /** The content scripts' `password_step` reports, in order. */
+  const reports = () => messages.filter((it) => it.kind === "password_step") as unknown as { step: string; account?: string }[];
+
+  /** A fill of target `step` with the token of [report], for the document that sent it last. */
+  const stepFill = (report: { step: string }, password = "pw") =>
+    ({ kind: "fill", target: "step", step: report.step, username: "bob", password, doc: tokens.at(-1)!, origin: ORIGIN }) as const;
+
+  /**
+   * The popup fills the username step of a new document, which then
+   * navigates to the password step, [next]; the invalidation of its document.
+   */
+  async function signIn(next = PASSWORD_STEP): Promise<() => void> {
+    const stopFirst = startDocument(USERNAME_STEP);
+    fillPrompt = async () => ({ username: "ann", password: "secret" });
+    await pages.fillTab(7, PAGE, "h1");
+    expect(byId("username").value).toBe("ann");
+    stopFirst();
+    return startDocument(next);
+  }
+
+  it("fills the password of the next page after a fill of the username alone, asking once, without its username", async () => {
+    await signIn();
+    await until(() => byId("password").value !== "");
+    expect(byId("password").value).toBe("secret");
+    expect(byId("account").value).toBe("ann");
+    const fills = sent.filter((it) => it.message.kind === "fill").map((it) => it.message);
+    expect(reports()).toEqual([
+      { kind: "password_step", step: expect.stringMatching(/^[0-9a-f]{32}$/), url: PAGE, account: "ann", doc: expect.stringMatching(/^[0-9a-f]{32}$/) },
+    ]);
+    expect(fills).toEqual([
+      expect.objectContaining({ target: "page", username: "ann", password: "secret" }),
+      expect.objectContaining({ target: "step", step: reports()[0]!.step, password: "secret" }),
+    ]);
+    expect(fills[1]).not.toHaveProperty("username");
+  });
+
+  it("asks when a password field that a style showed gets focus: the watcher sees no change", async () => {
+    await signIn(PASSWORD_STEP.replace(`type="password"`, `type="password" style="visibility: hidden"`));
+    await scanned();
+    expect(reports()).toEqual([]);
+    byId("password").style.visibility = "";
+    byId("password").focus();
+    await until(() => byId("password").value !== "");
+    expect(byId("password").value).toBe("secret");
+  });
+
+  it("fills the password that a single-page app shows after the username, and never the username", async () => {
+    startDocument(`<form><input id="username" autocomplete="username"><input id="password" type="password" style="visibility: hidden"></form>`);
+    fillPrompt = async () => ({ username: "ann", password: "secret" });
+    await pages.fillTab(7, PAGE, "h1");
+    expect([byId("username").value, byId("password").value]).toEqual(["ann", ""]);
+    byId("password").style.visibility = "";
+    byId("password").focus();
+    await until(() => byId("password").value !== "");
+    expect([byId("username").value, byId("password").value]).toEqual(["ann", "secret"]);
+  });
+
+  it("asks again once a username fill was answered, for a step shown during the fill: one shown before waits for focus", async () => {
+    fillPrompt = async () => ({ username: "ann", password: "secret" });
+    // A single-page app shows the step by a style, which the watcher doesn't see, as the username is filled.
+    const stop = startDocument(`<form><input id="username" autocomplete="username"></form><form id="next" style="display: none"><input id="password" type="password"></form>`);
+    byId("username").addEventListener("input", () => {
+      byId("next").style.display = "";
+      byId("password").focus();
+    });
+    await pages.fillTab(7, PAGE, "h1");
+    await until(() => byId("password").value !== "");
+    expect(byId("password").value).toBe("secret");
+    stop();
+
+    // A step the background refused, before the username was filled: the
+    // user didn't go on to it, after one fill or two in a row.
+    startDocument(`
+      <form><input id="username" autocomplete="username"><input type="password" style="visibility: hidden"></form>
+      <form><input id="password" type="password"></form>`);
+    await until(() => reports().length === 2);
+    await pages.fillTab(7, PAGE, "h1");
+    await pages.fillTab(7, PAGE, "h1");
+    expect(byId("username").value).toBe("ann");
+    await scanned();
+    expect(byId("password").value).toBe("");
+    expect(reports()).toHaveLength(2);
+    // Focus tells when they do.
+    byId("password").focus();
+    await until(() => byId("password").value !== "");
+    expect(byId("password").value).toBe("secret");
+    expect(reports()).toHaveLength(3);
+  });
+
+  it("fills the field its token names, once, with the password alone: a later report doesn't take it over", async () => {
+    holdSteps = true;
+    startDocument(`
+      <form><input name="username" readonly value="ann"><input id="p1" type="password"></form>
+      <form><input name="username" readonly value="ann"><input id="p2" type="password"></form>`);
+    // Two steps at once: a scan can't tell which one the user is on, and reports neither.
+    await scanned();
+    expect(reports()).toEqual([]);
+    // Focus tells.
+    byId("p1").focus();
+    byId("p2").focus();
+    await until(() => reports().length === 2);
+    const [first, second] = reports();
+    expect(await deliver(stepFill(first!))).toEqual({ ok: true });
+    expect([byId("p1").value, byId("p2").value]).toEqual(["pw", ""]);
+    expect(Array.from(document.querySelectorAll<HTMLInputElement>("[name=username]"), (it) => it.value)).toEqual(["ann", "ann"]);
+    for (const step of [first!, { step: "0".repeat(32) }]) expect(await deliver(stepFill(step))).toEqual({ ok: false, reason: "no_form" });
+    // Nor once its form shows another account than the background was told.
+    document.querySelectorAll<HTMLInputElement>("[name=username]")[1]!.value = "bob";
+    expect(await deliver(stepFill(second!))).toEqual({ ok: false, reason: "no_form" });
+    expect(byId("p2").value).toBe("");
+  });
+
+  it("asks nothing for a field the page covers, or in a tab in the background, and fills nothing there", async () => {
+    holdSteps = true;
+    vi.spyOn(document, "elementFromPoint").mockReturnValue(document.body);
+    startDocument(PASSWORD_STEP);
+    byId("password").focus();
+    await scanned();
+    expect(reports()).toEqual([]);
+
+    vi.spyOn(document, "elementFromPoint").mockReturnValue(byId("password"));
+    const hidden = vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    byId("password").blur();
+    byId("password").focus();
+    await scanned();
+    expect(reports()).toEqual([]);
+
+    hidden.mockRestore();
+    byId("password").blur();
+    byId("password").focus();
+    await until(() => reports().length === 1);
+    // The tab went to the background, or the page covered the field, before the fill came.
+    vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+    expect(await deliver(stepFill(reports()[0]!))).toEqual({ ok: false, reason: "no_form" });
+    expect(byId("password").value).toBe("");
+  });
+
+  it("writes nothing into a field that the page's focus or key handlers changed first", async () => {
+    holdSteps = true;
+    const stop = startDocument(PASSWORD_STEP);
+    await until(() => reports().length === 1);
+    const field = byId("password");
+    field.addEventListener("keydown", () => (field.value = "typed"), { once: true });
+    expect(await deliver(stepFill(reports()[0]!))).toEqual({ ok: false, reason: "obscured" });
+    expect(field.value).toBe("typed");
+
+    // Shown as plain text, though it still says it's the current password.
+    stop();
+    startDocument(PASSWORD_STEP.replace(`type="password"`, `type="password" autocomplete="current-password"`));
+    await until(() => reports().length === 2);
+    byId("password").addEventListener("focus", () => (byId("password").type = "text"), { once: true });
+    expect(await deliver(stepFill(reports()[1]!))).toEqual({ ok: false, reason: "obscured" });
+    expect(byId("password").value).toBe("");
+  });
+
+  it("fills nothing once the reported field is in another form, or the page at another URL", async () => {
+    holdSteps = true;
+    const stop = startDocument(`
+      <form><input name="username" readonly value="ann"><input id="password" type="password"></form>
+      <form id="other"><input name="username" readonly value="ann"></form>`);
+    await until(() => reports().length === 1);
+    // A single-page app reuses the input in another form, of the same account.
+    byId("other").append(byId("password"));
+    expect(await deliver(stepFill(reports()[0]!))).toEqual({ ok: false, reason: "no_form" });
+    expect(byId("password").value).toBe("");
+
+    stop();
+    startDocument(PASSWORD_STEP);
+    await until(() => reports().length === 2);
+    history.pushState(null, "", "/elsewhere");
+    expect(await deliver(stepFill(reports()[1]!))).toEqual({ ok: false, reason: "no_form" });
+    expect(byId("password").value).toBe("");
+  });
+
+  it("forgets each report once the background answered it", async () => {
+    startDocument(PASSWORD_STEP);
+    await until(() => reports().length === 1);
+    // Nothing is armed: the background answers without a fill.
+    await scanned();
+    expect(await deliver(stepFill(reports()[0]!))).toEqual({ ok: false, reason: "no_form" });
+    // Nor a report of focus.
+    byId("password").focus();
+    await until(() => reports().length === 2);
+    await scanned();
+    expect(await deliver(stepFill(reports()[1]!))).toEqual({ ok: false, reason: "no_form" });
+    expect(byId("password").value).toBe("");
+  });
+
+  it("signs in on a step whose username the site filled with the account, with the option on", async () => {
+    await new OptionsStore(fakeBrowser.storage.local).setOptions({ submitAfterFill: true });
+    await signIn(`<form id="f"><input id="account" name="username" value="ann"><input id="password" type="password"><button id="go">Sign in</button></form>`);
+    const events = recordSignIn();
+    await until(() => events.length === 2);
+    expect(events).toEqual(["click", "submit"]);
+    expect([byId("account").value, byId("password").value]).toEqual(["ann", "secret"]);
+  });
+
+  it("tells which fills wrote the username of a sign-in alone", async () => {
+    const fill = { kind: "fill", target: "focused", username: "ann", password: "pw", origin: ORIGIN } as const;
+    for (const [html, step] of [
+      [USERNAME_STEP, true],
+      // The password shows later.
+      [`<form><input name="username"><input type="password" style="visibility: hidden"></form>`, true],
+      [`<form><input name="username"><input type="password" autocomplete="new-password"></form>`, false],
+      [`<form><input name="username"><input type="password"></form>`, false],
+    ] as const) {
+      const stop = startDocument(html);
+      document.querySelector("input")!.focus();
+      await deliver({ kind: "save_bar_show" });
+      expect(await deliver({ ...fill, doc: tokens.at(-1)! }), html).toEqual(step ? { ok: true, passwordStep: true } : { ok: true });
+      stop();
+    }
+  });
+
+  it("asks nothing with the option off, or on a form with a username to type", async () => {
+    await new OptionsStore(fakeBrowser.storage.local).setOptions({ fillPasswordStep: false });
+    const stop = await signIn();
+    byId("password").focus();
+    await scanned();
+    expect(reports()).toEqual([]);
+    expect(byId("password").value).toBe("");
+
+    stop();
+    await new OptionsStore(fakeBrowser.storage.local).setOptions({ fillPasswordStep: true });
+    startDocument();
+    byId("password").focus();
+    await scanned();
+    expect(reports()).toEqual([]);
+  });
+});
+
+describe("the sign-in after a fill", () => {
+  const SIGN_IN = `<form id="f"><input id="username" name="username"><input id="password" type="password"><button id="go">Sign in</button></form>`;
+
+  it("follows the answer to the fill, once", async () => {
+    await new OptionsStore(fakeBrowser.storage.local).setOptions({ submitAfterFill: true });
+    startDocument(SIGN_IN);
+    const events = recordSignIn();
+    fillPrompt = async () => ({ username: "ann", password: "secret" });
+    await pages.fillTab(7, PAGE, "h1");
+    expect(sent.at(-1)!.message).toMatchObject({ kind: "fill", target: "page", submit: true });
+    // The background has the answer: nothing clicked yet.
+    expect(events).toEqual([]);
+    await scanned();
+    expect(events).toEqual(["click", "submit"]);
+    await scanned();
+    expect(events).toHaveLength(2);
+  });
+
+  it("clicks nothing once the page signed in on the fill's own events", async () => {
+    await new OptionsStore(fakeBrowser.storage.local).setOptions({ submitAfterFill: true });
+    startDocument(SIGN_IN);
+    const events = recordSignIn();
+    // An AJAX sign-in as the password changes, while the fill runs.
+    byId("password").addEventListener("change", () => byId<HTMLFormElement>("f").requestSubmit());
+    fillPrompt = async () => ({ username: "ann", password: "secret" });
+    await pages.fillTab(7, PAGE, "h1");
+    expect(events).toEqual(["submit"]);
+    await scanned();
+    expect(events).toEqual(["submit"]);
+  });
+
+  it("is cancelled by the next fill, and not asked for by a command without `submit: true`", async () => {
+    startDocument(SIGN_IN);
+    const events = recordSignIn();
+    await deliver({ kind: "save_bar_show" });
+    const own = tokens.at(-1)!;
+    const fill = { kind: "fill", target: "page", username: "ann", password: "pw", doc: own, origin: ORIGIN } as const;
+    expect(await deliver({ ...fill, submit: true })).toEqual({ ok: true });
+    // Any fill, even one that finds nothing to fill.
+    expect(await deliver({ kind: "fill_totp", target: "page", code: "123456", doc: own, origin: ORIGIN })).toEqual({ ok: false, reason: "obscured" });
+    await deliver({ ...fill, submit: "yes" } as unknown as ContentCommand);
+    await scanned();
+    expect(events).toEqual([]);
   });
 });

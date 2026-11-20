@@ -10,13 +10,23 @@ export const OPTIONS_KEY = "options";
 export interface ExtensionOptions {
   /** The inline icon and menu on login fields. */
   inlineMenu: boolean;
+  /** After a fill of only a username, fills the password on the sign-in's next page. */
+  fillPasswordStep: boolean;
+  /** Selects the form's sign-in or next button after a login fill. */
+  submitAfterFill: boolean;
   /** The save bar after a sign-in or sign-up with a new password. */
   savePrompts: boolean;
   /** Keyguard answers passkey requests of pages (protocol `passkeys`). */
   passkeys: boolean;
 }
 
-export const DEFAULT_OPTIONS: Readonly<ExtensionOptions> = { inlineMenu: true, savePrompts: true, passkeys: true };
+export const DEFAULT_OPTIONS: Readonly<ExtensionOptions> = {
+  inlineMenu: true,
+  fillPasswordStep: true,
+  submitAfterFill: false,
+  savePrompts: true,
+  passkeys: true,
+};
 
 /** The part of `storage.local` the store uses. */
 export interface OptionsArea {
@@ -36,7 +46,13 @@ export interface ObservableStorageArea extends OptionsArea {
 export function parseOptions(value: unknown): ExtensionOptions {
   const stored = isObject(value) ? value : {};
   const flag = (key: keyof ExtensionOptions) => (typeof stored[key] === "boolean" ? stored[key] : DEFAULT_OPTIONS[key]);
-  return { inlineMenu: flag("inlineMenu"), savePrompts: flag("savePrompts"), passkeys: flag("passkeys") };
+  return {
+    inlineMenu: flag("inlineMenu"),
+    fillPasswordStep: flag("fillPasswordStep"),
+    submitAfterFill: flag("submitAfterFill"),
+    savePrompts: flag("savePrompts"),
+    passkeys: flag("passkeys"),
+  };
 }
 
 export class OptionsStore {

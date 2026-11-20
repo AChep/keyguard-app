@@ -64,8 +64,13 @@ export function isFillable(input: HTMLInputElement, layout: Pick<Layout, "render
 /** The computed style of a fillable field, for the checks after; `null` when it isn't fillable. */
 function fillableStyle(input: HTMLInputElement, layout: Pick<Layout, "rendered" | "style">): CSSStyleDeclaration | null {
   if (!input.isConnected || input.disabled || input.type === "hidden" || isIgnored(input)) return null;
-  if (!layout.rendered(input)) return null;
-  const style = layout.style(input);
+  return shownStyle(input, layout);
+}
+
+/** The computed style of an element with boxes and not `visibility: hidden`; `null` when the page doesn't show it. */
+export function shownStyle(element: Element, layout: Pick<Layout, "rendered" | "style">): CSSStyleDeclaration | null {
+  if (!layout.rendered(element)) return null;
+  const style = layout.style(element);
   return style.visibility !== "hidden" && style.visibility !== "collapse" ? style : null;
 }
 
@@ -78,7 +83,7 @@ function opacityOf(style: CSSStyleDeclaration): number {
 }
 
 /** The parent of an element in the DOM, crossing out of a shadow root to its host. */
-function parentOf(element: Element): Element | null {
+export function parentOf(element: Element): Element | null {
   if (element.parentElement !== null) return element.parentElement;
   const root = element.getRootNode();
   return root !== element && "host" in root ? (root as ShadowRoot).host : null;
@@ -154,7 +159,7 @@ function inViewport(point: { x: number; y: number }, viewport: { width: number; 
  * Whether `inner` is `outer` or inside it in the DOM, crossing shadow roots:
  * the dialogs the host went into, and fields, inputs, take no slotted content.
  */
-function isWithin(inner: Element, outer: Element): boolean {
+export function isWithin(inner: Element, outer: Element): boolean {
   for (let node: Element | null = inner; node !== null; node = parentOf(node)) {
     if (node === outer) return true;
   }

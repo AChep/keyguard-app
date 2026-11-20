@@ -243,7 +243,8 @@ function defaultRendered(input: HTMLInputElement): boolean {
   return input.getClientRects().length > 0;
 }
 
-function isElement(node: FormRoot): node is HTMLFormElement {
+/** Whether a form root is a `<form>`. */
+export function isElement(node: FormRoot): node is HTMLFormElement {
   return node.nodeType === 1;
 }
 
@@ -296,15 +297,21 @@ export function formInputs(form: HTMLFormElement): HTMLInputElement[] {
 
 /** All inputs under a root, through the shadow roots that [DetectOptions.shadowRootOf] reaches, in tree order. */
 export function collectInputs(root: Document | ShadowRoot | Element, options: DetectOptions = {}): HTMLInputElement[] {
+  return collectElements(root, (element): element is HTMLInputElement => element.localName === "input", options);
+}
+
+/** The elements under a root that [match] takes, through the shadow roots that [DetectOptions.shadowRootOf] reaches, in tree order. */
+export function collectElements<T extends Element>(
+  root: Document | ShadowRoot | Element,
+  match: (element: Element) => element is T,
+  options: DetectOptions = {},
+): T[] {
   const shadowRootOf = options.shadowRootOf ?? ((element: Element) => element.shadowRoot);
-  const result: HTMLInputElement[] = [];
+  const result: T[] = [];
   const visit = (node: Document | ShadowRoot | Element) => {
     for (const element of Array.from(node.querySelectorAll("*"))) {
       if (element === options.ignore) continue;
-      if (element.localName === "input") {
-        result.push(element as HTMLInputElement);
-        continue;
-      }
+      if (match(element)) result.push(element);
       if (canHostShadow(element)) {
         const shadow = shadowRootOf(element);
         if (shadow) visit(shadow);

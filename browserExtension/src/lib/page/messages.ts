@@ -28,7 +28,9 @@ export type FillTarget =
   /** The form of the focused field, for the keyboard shortcut. */
   | "focused"
   /** The best login form of the document, for the popup. */
-  | "page";
+  | "page"
+  /** The field of the `password_step` that the command names by its token: its password only. */
+  | "step";
 
 /** What a login form submission would save, see ../content/save.ts. */
 export interface SaveCandidate {
@@ -50,6 +52,15 @@ export type ContentRequest =
   | { kind: "save_candidate"; candidate: SaveCandidate }
   /** A username-only step was submitted, for the password step that follows. Answers `null`. */
   | { kind: "username_step"; username: string }
+  /**
+   * A form of the top frame asks for the password of a sign-in whose
+   * username Keyguard may have filled on the step before, see
+   * ../content/fill.ts `isPasswordStep`. The background may fill it, as
+   * target `step`. `step`: a new token per report, which the fill names: the
+   * document fills the field it reported, once. `account`: the username the
+   * form shows, if any. `url`: as for `menu_open`. Answers `null`.
+   */
+  | { kind: "password_step"; step: string; account?: string; url?: string }
   /** The top frame asks whether to show the save bar. Answers [UiToken] or `null`. */
   | { kind: "save_bar_open" }
   /**
@@ -105,8 +116,12 @@ export type FillRefusal =
  * it.
  */
 export type DocumentCommand =
-  /** Fills a login. Answers a [DocumentResult]. */
-  | { kind: "fill"; target: FillTarget; username?: string; password?: string }
+  /**
+   * Fills a login. Answers a [DocumentResult]. `step`: for target `step`, the
+   * token of its `password_step`. `submit`: then signs in, see
+   * ../content/submit.ts.
+   */
+  | { kind: "fill"; target: FillTarget; step?: string; username?: string; password?: string; submit?: boolean }
   /** Fills a one-time password. Answers a [DocumentResult]. */
   | { kind: "fill_totp"; target: FillTarget; code: string }
   /** Fills a generated password into the new-password fields. Answers a [DocumentResult]. */
@@ -138,9 +153,14 @@ export interface FrameCheck {
  * A document's answer to a [DocumentCommand] that expects one. A `guard`
  * passes with `url`, the frame's URL as its content script reads it: a
  * single-page app may change it without a navigation; and with `parent` when
- * a parent of another origin must check too.
+ * a parent of another origin must check too. A `fill` passes with
+ * `passwordStep` when it wrote the username alone, of a username step or of
+ * a sign-in form whose password it couldn't write: the password step may
+ * follow.
  */
-export type DocumentResult = { ok: true; url?: string; parent?: FrameCheck } | { ok: false; reason: FillRefusal };
+export type DocumentResult =
+  | { ok: true; url?: string; parent?: FrameCheck; passwordStep?: true }
+  | { ok: false; reason: FillRefusal };
 
 /** Each [DocumentCommand]: whether it expects a [DocumentResult], or only notifies. */
 const DOCUMENT_COMMANDS: { readonly [K in DocumentCommand["kind"]]: "answer" | "notify" } = {
@@ -316,7 +336,8 @@ const MAX_HANDLE_LENGTH = 64;
 const REFUSALS: ReadonlySet<string> = new Set<FillRefusal>(["no_form", "obscured", "origin"]);
 
 const isValue = (value: unknown): value is string => typeof value === "string" && value.length <= MAX_VALUE_LENGTH;
-const isOptionalValue = (value: unknown) => value === undefined || (isValue(value) && value.length > 0);
+const isOptionalValue = (value: unknown): value is string | undefined => value === undefined || (isValue(value) && value.length > 0);
+const isOptionalString = (value: unknown): value is string | undefined => value === undefined || typeof value === "string";
 
 export function isToken(value: unknown): value is string {
   return typeof value === "string" && TOKEN.test(value);
@@ -341,7 +362,13 @@ export function parseDocumentResult(value: unknown, missing: FillRefusal): Docum
     const parent = parseFrameCheck(value.parent);
     // A parent to check that can't be read fails closed.
     if (value.parent !== undefined && parent === null) return { ok: false, reason: missing };
-    return { ok: true, ...(typeof value.url === "string" ? { url: value.url } : {}), ...(parent !== null ? { parent } : {}) };
+    return {
+      ok: true,
+      ...(typeof value.url === "string" ? { url: value.url } : {}),
+      ...(parent !== null ? { parent } : {}),
+      // Anything but `true` is as nothing.
+      ...(value.passwordStep === true ? { passwordStep: true } : {}),
+    };
   }
   if (isObject(value) && value.ok === false && typeof value.reason === "string" && REFUSALS.has(value.reason)) {
     return { ok: false, reason: value.reason as FillRefusal };
@@ -372,12 +399,12 @@ function parseRequest(message: Record<string, unknown>): ContentRequest | null {
     case "menu_open":
       return isRole(message.role) &&
         (message.webauthn === undefined || typeof message.webauthn === "boolean") &&
-        (message.url === undefined || typeof message.url === "string")
+        isOptionalString(message.url)
         ? {
             kind: "menu_open",
             role: message.role,
             webauthn: message.webauthn === true,
-            ...(message.url !== undefined ? { url: message.url as string } : {}),
+            ...(message.url !== undefined ? { url: message.url } : {}),
           }
         : null;
     case "save_candidate": {
@@ -388,16 +415,23 @@ function parseRequest(message: Record<string, unknown>): ContentRequest | null {
         kind: "save_candidate",
         candidate: {
           password: candidate.password,
-          ...(candidate.username !== undefined ? { username: candidate.username as string } : {}),
-          ...(candidate.previous_password !== undefined
-            ? { previous_password: candidate.previous_password as string }
-            : {}),
+          ...(candidate.username !== undefined ? { username: candidate.username } : {}),
+          ...(candidate.previous_password !== undefined ? { previous_password: candidate.previous_password } : {}),
         },
       };
     }
     case "username_step":
       return isValue(message.username) && message.username.length > 0
         ? { kind: "username_step", username: message.username }
+        : null;
+    case "password_step":
+      return isToken(message.step) && isOptionalValue(message.account) && isOptionalString(message.url)
+        ? {
+            kind: "password_step",
+            step: message.step,
+            ...(message.account !== undefined ? { account: message.account } : {}),
+            ...(message.url !== undefined ? { url: message.url } : {}),
+          }
         : null;
     case "save_bar_open":
     case "menu_focus":

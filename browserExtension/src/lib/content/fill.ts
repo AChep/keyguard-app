@@ -6,7 +6,8 @@ import type { DetectedForm } from "./detect";
 /**
  * Sets a field's value with the native setter, between the events typing
  * fires: `keydown`, `keypress`, `input`, `keyup` and `change`. False when
- * [canFill] no longer allows the field once it has focus, or it's read-only.
+ * [canFill] no longer allows the field once it has focus, or once its key
+ * handlers ran, or it's read-only.
  *
  * Frameworks like React wrap the `value` property of their inputs and ignore
  * plain assignments; the setter of `HTMLInputElement.prototype` bypasses the
@@ -31,6 +32,8 @@ export async function setFieldValue(input: HTMLInputElement, value: string, canF
   const setter = Object.getOwnPropertyDescriptor(prototype, "value")?.set;
   key("keydown");
   key("keypress");
+  // Their handlers may have changed the field too.
+  if (input.readOnly || !canFill(input)) return false;
   if (setter) setter.call(input, value);
   else input.value = value;
   const InputEventType = view?.InputEvent ?? InputEvent;
@@ -44,6 +47,14 @@ export async function setFieldValue(input: HTMLInputElement, value: string, canF
 
 /** Whether a fill may write into a field, see ./guards.ts. */
 export type CanFill = (input: HTMLInputElement) => boolean;
+/** The value Keyguard filled into a field, if any. */
+export type FilledValue = (input: HTMLInputElement) => string | undefined;
+
+/** The values of a login fill: the username, the password. */
+export interface LoginValues {
+  username?: string | undefined;
+  password?: string | undefined;
+}
 
 /**
  * Blurs the last filled field and focuses it again, so pages that validate or
@@ -68,11 +79,7 @@ async function fillEach(fields: HTMLInputElement[], values: string[], canFill: C
 }
 
 /** A login: the username, then the current password, so focus ends on the password. */
-export async function fillLogin(
-  form: DetectedForm,
-  values: { username?: string | undefined; password?: string | undefined },
-  canFill: CanFill,
-): Promise<HTMLInputElement[]> {
+export async function fillLogin(form: DetectedForm, values: LoginValues, canFill: CanFill): Promise<HTMLInputElement[]> {
   const filled: HTMLInputElement[] = [];
   const username = form.username;
   if (values.username !== undefined && username !== null && canFill(username)) {
@@ -109,6 +116,29 @@ export function pageForm(recent: DetectedForm | null, all: () => DetectedForm[],
   const rank = (form: DetectedForm) => (hasWritableLogin(form) ? 0 : PAGE_FORM_KINDS.length) + PAGE_FORM_KINDS.indexOf(form.kind);
   forms.sort((a, b) => rank(a) - rank(b));
   return forms[0] ?? null;
+}
+
+/**
+ * Whether [form] is the password step of a sign-in: a login or password
+ * form whose current password a fill may write and is empty. Its username,
+ * if any, isn't one left to type: hidden or covered, or showing an account,
+ * read-only or not, that the background compares with the login's. A field
+ * Keyguard filled, [filledValue], still holds that value: the user may have
+ * typed another account since. An empty username to type, or an empty
+ * read-only one as pages keep autofill out, isn't one a fill wrote.
+ */
+export function isPasswordStep(form: DetectedForm, canFill: CanFill, filledValue: FilledValue): boolean {
+  const { username, currentPassword: password } = form;
+  if ((form.kind !== "login" && form.kind !== "password") || password === null) return false;
+  if (password.value !== "" || !canFill(password)) return false;
+  const changed = (input: HTMLInputElement | null) => input !== null && (filledValue(input) ?? input.value) !== input.value;
+  if (changed(username) || changed(password)) return false;
+  return username === null || !canFill(username) || username.value !== "";
+}
+
+/** The account [form] shows: its username's value, or "" without one. */
+export function shownAccount(form: DetectedForm): string {
+  return form.username?.value ?? "";
 }
 
 /** A generated password into the new password and its confirmations. */

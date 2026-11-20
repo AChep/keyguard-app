@@ -3,10 +3,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { SAVE_TTL_MS } from "../src/lib/background/pages";
 import { detectFormOf } from "../src/lib/content/detect";
-import { fillLogin } from "../src/lib/content/fill";
+import { fillLogin, type LoginValues } from "../src/lib/content/fill";
 import { isSubmitButton, REPORT_TTL_MS, saveCandidateOf, SaveTracker, SUBMIT_GRACE_MS } from "../src/lib/content/save";
+import { SUBMIT_DELAY_MS, submitAfterFill } from "../src/lib/content/submit";
 import type { SaveCandidate } from "../src/lib/page/messages";
-import { byId, detectOptions, render } from "./support/dom";
+import { byId, detectOptions, render, submitSetup } from "./support/dom";
 
 /** Listeners of each test, removed after it. */
 let abort = new AbortController();
@@ -248,6 +249,39 @@ describe("save tracker", () => {
     tracker.flush();
     expect(usernames).toEqual([]);
     expect(reports).toEqual([]);
+  });
+
+  it("offers nothing after the sign-in that follows a fill: its click isn't the user's", async () => {
+    const filled = new Map<HTMLInputElement, string>();
+    const { tracker, reports, usernames } = setup(filled);
+    const { options, fill } = submitSetup(filled);
+    /** Fills the form of [id] as the content script does, then signs in with it; resolves with whether it did. */
+    const fillAndSubmit = async (id: string, values: LoginValues) => {
+      const filling = await fill(id, values);
+      const done = submitAfterFill(filling, options, abort.signal, filling.watch);
+      await vi.advanceTimersByTimeAsync(SUBMIT_DELAY_MS);
+      return done;
+    };
+    document.addEventListener("submit", (event) => event.preventDefault(), { signal: abort.signal });
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      // A password the user typed, then the fill's.
+      render(`<form id="f"><input id="u" name="email"><input id="p" type="password"><button id="go">Sign in</button></form>`);
+      type(byId("p"), "typed");
+      expect(await fillAndSubmit("p", { username: "ann", password: "secret" })).toBe(true);
+      tracker.flush();
+      expect(reports).toEqual([]);
+      expect(usernames).toEqual([]);
+
+      // A username step is remembered for the password step, as after the user's own submit.
+      render(`<form id="f"><input id="u" autocomplete="username"><button id="next">Next</button></form>`);
+      expect(await fillAndSubmit("u", { username: "ann" })).toBe(true);
+      tracker.flush();
+      expect(usernames).toEqual(["ann"]);
+      expect(reports).toEqual([]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("remembers the username of a username-first step", () => {

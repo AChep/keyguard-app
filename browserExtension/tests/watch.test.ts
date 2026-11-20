@@ -23,17 +23,22 @@ function watch(options: { closed?: Map<Element, ShadowRoot>; debounceMs?: number
   const found: ShadowRoot[] = [];
   /** Per scan: whether inputs or labels changed. */
   const inputs: boolean[] = [];
+  /** Per scan: the inputs it saw. */
+  const seen: HTMLInputElement[][] = [];
   watcher = new PageWatcher({
     shadowRootOf: (element) => {
       visited.push(element);
       return element.shadowRoot ?? options.closed?.get(element) ?? null;
     },
     found: (root) => found.push(root),
-    changed: (changed) => inputs.push(changed),
+    changed: (changed, saw) => {
+      inputs.push(changed);
+      seen.push([...saw]);
+    },
     debounceMs: options.debounceMs ?? 0,
   });
   watcher.start(document);
-  return { watcher, visited, found, inputs, changes: () => inputs.length };
+  return { watcher, visited, found, inputs, seen, changes: () => inputs.length };
 }
 
 describe("page watcher", () => {
@@ -107,6 +112,20 @@ describe("page watcher", () => {
     byId("field").setAttribute("type", "email");
     await settle();
     expect(inputs).toEqual([true, false, true, true, true]);
+  });
+
+  it("tells which inputs a scan saw: those added, and those that changed, not the document's", async () => {
+    render(`<form><input id="u"><input id="p" type="password"></form>`);
+    const { seen } = watch();
+    expect(seen).toEqual([[byId("u"), byId("p")]]);
+
+    const added = document.createElement("div");
+    added.innerHTML = `<input id="other" type="password">`;
+    document.body.append(added);
+    await settle();
+    byId("u").setAttribute("autocomplete", "username");
+    await settle();
+    expect(seen).toEqual([[byId("u"), byId("p")], [byId("other")], [byId("u")]]);
   });
 
   it("gathers what a burst of changes adds into one scan", async () => {

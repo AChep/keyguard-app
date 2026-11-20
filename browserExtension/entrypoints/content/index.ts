@@ -5,6 +5,11 @@
 //
 // It never fills on its own: fills come from the background after a trusted
 // click in the inline menu, a click in the popup, or the keyboard shortcut.
+// The password step of a sign-in one of those started may follow without a
+// click in the top frame, as the background decides
+// (../../src/lib/content/passwordStep.ts). After a login fill, it selects
+// the sign-in button when the background asks
+// (../../src/lib/content/submit.ts).
 import { browser } from "wxt/browser";
 import type { ContentScriptContext } from "wxt/utils/content-script-context";
 import { defineContentScript } from "wxt/utils/define-content-script";
@@ -17,7 +22,15 @@ import {
   type DetectOptions,
   type FieldRole,
 } from "../../src/lib/content/detect";
-import { fillLogin, fillNewPassword, fillOtp, hasWritableLogin, pageForm } from "../../src/lib/content/fill";
+import {
+  fillLogin,
+  fillNewPassword,
+  fillOtp,
+  hasWritableLogin,
+  pageForm,
+  type FilledValue,
+  type LoginValues,
+} from "../../src/lib/content/fill";
 import {
   browserLayout,
   fieldExposure,
@@ -34,8 +47,10 @@ import {
   type Layout,
   type WatchedDocument,
 } from "../../src/lib/content/guards";
+import { PasswordStepReporter, type StepReport } from "../../src/lib/content/passwordStep";
 import { SaveTracker } from "../../src/lib/content/save";
 import { shadowRootReader, type ClosedRootApi } from "../../src/lib/content/shadowRoots";
+import { submitAfterFill, watchSignIn, type SignInWatch, type SubmitOptions } from "../../src/lib/content/submit";
 import { ContentUi } from "../../src/lib/content/ui";
 import { PageWatcher } from "../../src/lib/content/watch";
 import { t } from "../../src/lib/i18n";
@@ -50,7 +65,6 @@ import {
   type ContentMessage,
   type ContentRequest,
   type DocumentResult,
-  type FillTarget,
   type GuardedPopup,
   type MenuOpenResult,
   type UiToken,
@@ -83,6 +97,9 @@ function frameOrigin(): string | null {
 
 const DEBOUNCE_MS = 300;
 
+/** A command that fills, answered once the fields are filled. */
+type FillCommand = Extract<ContentCommand, { kind: "fill" | "fill_totp" | "fill_password" }>;
+
 function startContentScript(ctx: ContentScriptContext) {
   // A sandboxed or opaque frame gets nothing (CVE-2025-65203).
   const origin = frameOrigin();
@@ -98,6 +115,7 @@ function startContentScript(ctx: ContentScriptContext) {
   }
 
   const doc = document;
+  const isTop = window === window.top;
   const abort = new AbortController();
   const signal = abort.signal;
   ctx.onInvalidated(() => abort.abort());
@@ -156,6 +174,7 @@ function startContentScript(ctx: ContentScriptContext) {
 
   /** Values Keyguard filled from the vault, to tell them from typed ones. */
   const filled = new WeakMap<HTMLInputElement, string>();
+  const filledValue: FilledValue = (input) => filled.get(input);
   /** The last field with a role that had focus. */
   let lastField: HTMLInputElement | null = null;
   /** When [lastField] got focus, by `Date.now()`: the popup fills the frame focused last. */
@@ -223,15 +242,15 @@ function startContentScript(ctx: ContentScriptContext) {
     return element;
   }
 
-  function roleOf(input: HTMLInputElement): { form: DetectedForm; role: FieldRole } | null {
-    const form = detectFormOf(input, detect);
+  /** The form of [input], [form] when detected already, and the input's role in it. */
+  function roleOf(input: HTMLInputElement, form = detectFormOf(input, detect)): { form: DetectedForm; role: FieldRole } | null {
     const role = form === null ? null : roleIn(form, input);
     return form === null || role === null ? null : { form, role };
   }
 
-  /** Shows the icon on a focused field with a role, if the page shows the field. */
-  function evaluate(input: HTMLInputElement) {
-    const found = roleOf(input);
+  /** Shows the icon on a focused field with a role, if the page shows the field. [form]: its form, when detected already. */
+  function evaluate(input: HTMLInputElement, form?: DetectedForm | null) {
+    const found = roleOf(input, form);
     if (found === null) {
       if (ui.iconTarget === input) ui.hideIcon();
       return;
@@ -255,7 +274,12 @@ function startContentScript(ctx: ContentScriptContext) {
       // A closed shadow root shows up as its host; look inside where reachable.
       const input = inputOf(event.composedPath()[0]) ?? inputOf(deepActiveElement());
       if (input === null) return;
-      evaluate(input);
+      const form = detectFormOf(input, detect);
+      // A password step may show without a change the watcher sees, as by a
+      // style. Not as a fill moves focus: it asks again once answered. Its
+      // reads go before the icon's writes.
+      if (input.type === "password" && !filling) passwordSteps.focused(input, form);
+      evaluate(input, form);
       if (lastField === input) focusedAt = Date.now();
       // A shadow root attached after its host was added makes no mutation
       // record: take in the roots around the field.
@@ -313,12 +337,12 @@ function startContentScript(ctx: ContentScriptContext) {
     return pageForm(recent, () => detectForms(doc, detect), canFill);
   }
 
-  function targetForm(target: FillTarget): { form: DetectedForm; field: HTMLInputElement | null } | null {
-    switch (target) {
+  function targetForm(command: FillCommand): { form: DetectedForm; field: HTMLInputElement | null; report?: StepReport } | null {
+    switch (command.target) {
       case "menu":
       case "focused": {
         const field =
-          target === "menu" ? ui.menuField : (inputOf(deepActiveElement()) ?? (lastField?.isConnected ? lastField : null));
+          command.target === "menu" ? ui.menuField : (inputOf(deepActiveElement()) ?? (lastField?.isConnected ? lastField : null));
         const form = field === null ? null : roleOf(field)?.form;
         return form ? { form, field } : null;
       }
@@ -326,35 +350,84 @@ function startContentScript(ctx: ContentScriptContext) {
         const form = bestPageForm();
         return form === null ? null : { form, field: null };
       }
+      case "step": {
+        // The field of that report, once, if it's still one: the page may have changed since.
+        if (command.kind !== "fill" || typeof command.step !== "string") return null;
+        const report = passwordSteps.take(command.step);
+        if (report === undefined) return null;
+        const form = passwordSteps.formOf(report);
+        return form === null ? null : { form, field: report.field, report };
+      }
     }
   }
 
-  async function fill(command: Extract<ContentCommand, { kind: "fill" | "fill_totp" | "fill_password" }>): Promise<DocumentResult> {
-    const found = targetForm(command.target);
-    if (found === null) return { ok: false, reason: "no_form" };
-    const { form, field } = found;
-    let fields: HTMLInputElement[];
-    switch (command.kind) {
-      case "fill":
-        fields = await fillLogin(form, command, canFill);
-        for (const input of fields) filled.set(input, input.value);
-        break;
-      case "fill_totp":
-        fields = await fillOtp(form, command.code, canFill);
-        break;
-      case "fill_password":
-        fields = await fillNewPassword(form, command.password, canFill);
-        // A password field the detector didn't take as new still gets the value.
-        if (fields.length === 0 && field !== null && field.type === "password" && canFill(field)) {
-          fields = await fillNewPassword({ ...form, newPasswords: [field] }, command.password, canFill);
-        }
-        // The user asked for it: offer to save it like a typed one.
-        for (const input of fields) tracker.track(input);
-        break;
+  /** The sign-in after the last login fill: the next fill, or the end of this script, cancels it. */
+  let submitting: SignInWatch | null = null;
+  /** Whether a fill is running: it moves focus. */
+  let filling = false;
+  const submitOptions: SubmitOptions = { ...detect, layout, canFill, filledValue };
+
+  /**
+   * A fill, and what follows its answer: the sign-in when the command asks,
+   * and after the username alone of a sign-in, a look for its password step.
+   */
+  async function fill(command: FillCommand): Promise<{ result: DocumentResult; after?: () => void }> {
+    // A login fill: the look for a password step after it takes those found since it began.
+    const since = command.kind === "fill" ? passwordSteps.beginFill() : Infinity;
+    submitting?.stop();
+    submitting = null;
+    const found = targetForm(command);
+    if (found === null) return { result: { ok: false, reason: "no_form" } };
+    const { form, field, report } = found;
+    // Watched from before the first field is written: the page's handlers
+    // of the fill's events may sign in on their own, and then nothing is clicked.
+    const watch = command.kind === "fill" && command.submit === true ? watchSignIn(form.root) : null;
+    submitting = watch;
+    let values: LoginValues = {};
+    let fields: HTMLInputElement[] = [];
+    try {
+      switch (command.kind) {
+        case "fill":
+          // A password step's username is the one on the page. Its field must
+          // still be the step the user sees, up to the moment it's written.
+          values = report ? { password: command.password } : { username: command.username, password: command.password };
+          fields = await fillLogin(form, values, report ? (input) => input === report.field && passwordSteps.formOf(report) !== null : canFill);
+          for (const input of fields) filled.set(input, input.value);
+          break;
+        case "fill_totp":
+          fields = await fillOtp(form, command.code, canFill);
+          break;
+        case "fill_password":
+          fields = await fillNewPassword(form, command.password, canFill);
+          // A password field the detector didn't take as new still gets the value.
+          if (fields.length === 0 && field !== null && field.type === "password" && canFill(field)) {
+            fields = await fillNewPassword({ ...form, newPasswords: [field] }, command.password, canFill);
+          }
+          // The user asked for it: offer to save it like a typed one.
+          for (const input of fields) tracker.track(input);
+          break;
+      }
+    } finally {
+      if (fields.length === 0) watch?.stop();
     }
-    if (fields.length === 0) return { ok: false, reason: "obscured" };
+    if (fields.length === 0) return { result: { ok: false, reason: "obscured" } };
     ui.closeMenu();
-    return { ok: true };
+    if (command.kind !== "fill") return { result: { ok: true } };
+    const wrote = (input: HTMLInputElement | null) => input !== null && fields.includes(input);
+    // The username alone of a username step, or of a sign-in form whose password it couldn't write.
+    const arms = wrote(form.username) && !wrote(form.currentPassword) && (form.kind === "username" || form.kind === "login");
+    return {
+      result: arms ? { ok: true, passwordStep: true } : { ok: true },
+      after: () => {
+        // Once the background took this answer, it may fill a password step
+        // it refused before, as one a single-page app showed meanwhile.
+        if (arms) setTimeout(() => passwordSteps.rescan(since), DEBOUNCE_MS);
+        if (watch !== null) {
+          const step = report === undefined ? {} : { step: { account: report.account } };
+          void submitAfterFill({ form, written: fields, values, ...step }, submitOptions, signal, watch);
+        }
+      },
+    };
   }
 
   /** Firefox's `runtime.getFrameId`; Chromium has IntersectionObserver v2 instead. */
@@ -420,11 +493,31 @@ function startContentScript(ctx: ContentScriptContext) {
 
   // endregion
 
+  // region The password step
+
+  const passwordSteps = new PasswordStepReporter({
+    ...detect,
+    doc,
+    layout,
+    canFill,
+    filledValue,
+    isTop,
+    off: () => options?.fillPasswordStep === false,
+    // The options are read once a form is one.
+    send: (request) =>
+      readOptions().then(async () => {
+        if (!signal.aborted && options?.fillPasswordStep) await send(request);
+      }),
+    signal,
+  });
+
+  // endregion
+
   // region Save
 
   const tracker = new SaveTracker({
     ...detect,
-    filledValue: (input) => filled.get(input),
+    filledValue,
     // The options are read once a field with a role had focus; else now.
     report: (candidate) =>
       void readOptions().then(() => {
@@ -439,7 +532,6 @@ function startContentScript(ctx: ContentScriptContext) {
   // Only what was submitted, or typed in a form the user clicked in or pressed Enter in just before.
   window.addEventListener("pagehide", () => tracker.flush(), { capture: true, signal });
 
-  const isTop = window === window.top;
   async function openSaveBar() {
     if (!isTop) return;
     const result = await send<UiToken | null>({ kind: "save_bar_open" });
@@ -462,11 +554,13 @@ function startContentScript(ctx: ContentScriptContext) {
       tracker.listen(root, signal);
       topLayer.adopt(root);
     },
-    changed: (inputs) => {
+    changed: (inputs, seen) => {
       // The changes may have moved the field with the icon or the menu.
       ui.pageChanged();
       tracker.prune();
       if (lastField !== null && !lastField.isConnected) lastField = null;
+      // The password steps' reads go before the icon's writes.
+      if (inputs) passwordSteps.report(seen);
       const active = inputs ? inputOf(deepActiveElement()) : null;
       if (active !== null) evaluate(active);
       else if (ui.iconTarget && !ui.iconTarget.isConnected) ui.hideIcon();
@@ -495,7 +589,17 @@ function startContentScript(ctx: ContentScriptContext) {
       case "fill_totp":
       case "fill_password":
         // Answers once the fields are filled; `true` keeps the channel open till then.
-        fill(command).then(sendResponse, () => sendResponse(null));
+        filling = true;
+        fill(command)
+          .finally(() => (filling = false))
+          .then(
+            ({ result, after }) => {
+              sendResponse(result);
+              // Only then: a sign-in may navigate, and the answer would go with the page.
+              after?.();
+            },
+            () => sendResponse(null),
+          );
         return true;
       case "guard":
         sendResponse(guard(command.popup === "save_bar" ? "save_bar" : "menu"));

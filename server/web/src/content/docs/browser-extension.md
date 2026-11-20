@@ -9,9 +9,8 @@ related: [agent-approvals, url-matching, blocked-uris, passkeys, cli]
 ---
 
 The Keyguard extension fills logins, one-time passwords and passkeys in your
-browser from the Keyguard desktop app. The browser starts a connector bundled
-with Keyguard, which relays to the running app. Traffic is end-to-end
-encrypted between the extension and the app.
+browser from the Keyguard desktop app. A connector bundled with Keyguard
+relays the extension's end-to-end encrypted traffic to the running app.
 
 A paired browser gets matching logins and their secrets while the vault is
 unlocked. Keyguard still asks for items with **Auth re-prompt**, logins that
@@ -67,14 +66,14 @@ You can also select a login in the popup, then **Fill**. Or press
 Ctrl+Shift+L (Cmd+Shift+L on macOS). The browser's shortcut settings change
 the key.
 
-The first login, marked **Last used**, is the one you filled in this tab and
-origin in the last 5 minutes. Otherwise, it's the matching login you used last
-on this device. The shortcut fills it.
+The first login, marked **Last used**, is the one filled in this tab and
+origin in the last 5 minutes, or else the one used last on this device. The
+shortcut fills it.
 
 Logins match as in [URL matching](/docs/url-matching/); on an `http` page,
 only `http://` URLs match. Sites in [Blocked URIs](/docs/blocked-uris/) get
-no logins, unless their rule is **Saving only**. The extension never fills on
-page load, and skips hidden or transparent fields.
+no logins, unless their rule is **Saving only**. Only **Fill the password
+step** fills on its own. The extension skips hidden or transparent fields.
 
 If the vault is locked, select **Unlock** in the popup, or
 **Unlock Keyguard** in the inline menu.
@@ -94,8 +93,8 @@ Keyguard?".
    or the matching one with the new password.
 2. Check the fields, then select **Save**.
 
-**Not now** closes the prompt. **Never for this site** adds the site to
-[Blocked URIs](/docs/blocked-uris/) as **Saving only**.
+**Never for this site** adds the site to [Blocked URIs](/docs/blocked-uris/)
+as **Saving only**.
 
 ## Use passkeys
 
@@ -111,8 +110,7 @@ key or another site's frame.
 ## Manage paired browsers
 
 **Paired browsers**, in **Settings > Autofill > Browser extension**, lists each
-browser with its last use. A browser with an open connection shows
-**Connected**.
+browser with its last use; an open connection shows **Connected**.
 
 Select a browser, then select **Rename** or **Remove**. A removed browser
 disconnects and must pair again.
@@ -135,9 +133,11 @@ Open these in the extension's options page.
 | Option | What it does | Default |
 | --- | --- | --- |
 | **Inline suggestions** | Shows matching logins next to login fields | On |
+| **Fill the password step** | Fills the password on the page after a username fill, once, within 2 minutes | On |
+| **Sign in after filling** | Selects the sign-in or next button after a login fill | Off |
 | **Ask to save data** | Offers to save a login after you sign in or sign up | On |
 | **Passkeys support** | Lets Keyguard answer the passkey requests of websites | On |
-| **Turn off browser password saving** | Asks for the `privacy` permission, then stops the browser from offering to save passwords | Off |
+| **Turn off browser password saving** | Stops the browser from offering to save passwords, with the `privacy` permission | Off |
 
 ## Connector statuses
 
@@ -183,8 +183,8 @@ When the extension can't use Keyguard, the popup shows one of these.
 
 ### "Keyguard’s key changed"
 
-The app that answered isn't the copy of Keyguard this browser paired with.
-This happens after you reinstall Keyguard, or when another copy runs.
+The app that answered isn't the copy of Keyguard this browser paired with, as
+after a reinstall or when another copy runs.
 
 If you know the cause, select **Pair again** and compare the codes. Otherwise,
 don't pair: another program may be posing as Keyguard.

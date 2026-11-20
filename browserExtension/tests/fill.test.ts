@@ -2,7 +2,7 @@
 // How fills set values: what pages and their frameworks see.
 import { afterEach, describe, expect, it } from "vitest";
 import { detectFormOf, detectForms, type DetectedForm } from "../src/lib/content/detect";
-import { fillLogin, fillNewPassword, fillOtp, pageForm, setFieldValue } from "../src/lib/content/fill";
+import { fillLogin, fillNewPassword, fillOtp, isPasswordStep, pageForm, setFieldValue } from "../src/lib/content/fill";
 import { isFillable } from "../src/lib/content/guards";
 import { byId, detectOptions, render, testLayout } from "./support/dom";
 
@@ -220,5 +220,54 @@ describe("fill", () => {
     await fillOtp(formOf("b1"), "654321", canFill);
     expect([1, 2, 3, 4, 5, 6].map((i) => byId(`b${i}`).value).join("")).toBe("654321");
     expect(events.map((it) => it.type)).toEqual(["focus", "keydown", "keypress", "input", "keyup", "change", "blur", "focus"]);
+  });
+});
+
+describe("the password step", () => {
+  /** Nothing filled in the document. */
+  const none = () => undefined;
+
+  it("is a login or password form with an empty password, whose username is missing, hidden or shows an account", () => {
+    render(`
+      <form><input id="p1" type="password"></form>
+      <form><input name="email" style="display: none" value="ann@example.com"><input id="p2" type="password"></form>
+      <form><input name="email" style="visibility: hidden" value="ann@example.com"><input id="p3" type="password"></form>
+      <form><input name="email" readonly value="ann@example.com"><input id="p4" type="password"></form>
+      <form><input name="email" value="ann@example.com"><input id="p5" type="password"></form>`);
+    for (const id of ["p1", "p2", "p3", "p4", "p5"]) expect(isPasswordStep(formOf(id), canFill, none), id).toBe(true);
+    expect(formOf("p3").kind).toBe("login");
+    expect(formOf("p4").kind).toBe("login");
+  });
+
+  it("isn't one once a field Keyguard filled holds something else", () => {
+    render(`<form><input id="u" name="email"><input id="p" type="password"></form>`);
+    const form = formOf("p");
+    const values = new Map([[byId("u"), "ann@example.com"]]);
+    const filled = (input: HTMLInputElement) => values.get(input);
+    byId("u").value = "ann@example.com";
+    expect(isPasswordStep(form, canFill, filled)).toBe(true);
+    // The user typed another account since, which the page may then show read-only.
+    byId("u").value = "bob@example.com";
+    expect(isPasswordStep(form, canFill, filled)).toBe(false);
+    byId("u").readOnly = true;
+    expect(isPasswordStep(form, canFill, filled)).toBe(false);
+
+    // A password Keyguard filled that the page emptied, as after a wrong one.
+    byId("u").value = "ann@example.com";
+    values.set(byId("p"), "secret");
+    expect(isPasswordStep(form, canFill, filled)).toBe(false);
+  });
+
+  it("isn't a form with a username to type, a password filled or hidden, or a new password", () => {
+    render(`
+      <form><input name="email"><input id="empty" type="password"></form>
+      <form><input name="email" readonly><input id="trick" type="password"></form>
+      <form><input name="email" readonly value="ann@example.com"><input id="filled" type="password" value="secret"></form>
+      <form><input id="covered" type="password" style="visibility: hidden"></form>
+      <form><input name="email" readonly value="ann@example.com"><input id="signup" type="password" autocomplete="new-password"></form>
+      <form><input id="change" type="password" autocomplete="current-password"><input type="password" autocomplete="new-password"></form>`);
+    for (const id of ["empty", "trick", "filled", "covered", "signup", "change"]) {
+      expect(isPasswordStep(formOf(id), canFill, none), id).toBe(false);
+    }
   });
 });

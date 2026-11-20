@@ -16,10 +16,32 @@ beforeEach(() => {
 });
 
 describe("options", () => {
-  it("defaults to everything on, and ignores malformed values", () => {
-    expect(DEFAULT_OPTIONS).toEqual({ inlineMenu: true, savePrompts: true, passkeys: true });
+  it("defaults to everything on but the submit, and ignores malformed values", () => {
+    expect(DEFAULT_OPTIONS).toEqual({
+      inlineMenu: true,
+      fillPasswordStep: true,
+      submitAfterFill: false,
+      savePrompts: true,
+      passkeys: true,
+    });
     expect(parseOptions(undefined)).toEqual(DEFAULT_OPTIONS);
     expect(parseOptions({ inlineMenu: "no", savePrompts: false })).toEqual({ ...DEFAULT_OPTIONS, savePrompts: false });
+  });
+
+  it("reads the password step and submit options", () => {
+    // Stored before these options existed.
+    expect(parseOptions({ inlineMenu: false, savePrompts: true, passkeys: true })).toEqual({
+      ...DEFAULT_OPTIONS,
+      inlineMenu: false,
+    });
+    expect(parseOptions({ fillPasswordStep: "false", submitAfterFill: 1 })).toEqual(DEFAULT_OPTIONS);
+    expect(parseOptions({ fillPasswordStep: null, submitAfterFill: "true" })).toEqual(DEFAULT_OPTIONS);
+    expect(parseOptions({ fillPasswordStep: false, submitAfterFill: true })).toEqual({
+      ...DEFAULT_OPTIONS,
+      fillPasswordStep: false,
+      submitAfterFill: true,
+    });
+    expect(parseOptions({ fillPasswordStep: true, submitAfterFill: false })).toEqual(DEFAULT_OPTIONS);
   });
 
   it("stores changes, which content scripts follow", async () => {
@@ -32,8 +54,17 @@ describe("options", () => {
 
     await store.setOptions({ inlineMenu: false });
     await store.setOptions({ passkeys: false });
-    expect(await store.options()).toEqual({ inlineMenu: false, savePrompts: true, passkeys: false });
-    expect(seen.at(-1)).toEqual({ inlineMenu: false, savePrompts: true, passkeys: false });
+    await store.setOptions({ fillPasswordStep: false, submitAfterFill: true });
+    const changed = {
+      ...DEFAULT_OPTIONS,
+      inlineMenu: false,
+      fillPasswordStep: false,
+      submitAfterFill: true,
+      passkeys: false,
+    };
+    expect(await store.options()).toEqual(changed);
+    expect(seen.at(-1)).toEqual(changed);
+    expect((await storage.get(OPTIONS_KEY))[OPTIONS_KEY]).toEqual(changed);
 
     stop();
     await store.setOptions({ savePrompts: false });

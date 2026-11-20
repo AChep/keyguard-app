@@ -44,6 +44,7 @@ import com.artemchep.keyguard.provider.bitwarden.api.builder.put
 import com.artemchep.keyguard.provider.bitwarden.api.builder.renew
 import com.artemchep.keyguard.provider.bitwarden.api.builder.restore
 import com.artemchep.keyguard.provider.bitwarden.api.builder.trash
+import com.artemchep.keyguard.provider.bitwarden.api.builder.unarchive
 import com.artemchep.keyguard.provider.bitwarden.api.merge
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCr
 import com.artemchep.keyguard.provider.bitwarden.crypto.BitwardenCrCta
@@ -58,6 +59,7 @@ import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherAttachment
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherDeleteRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherRestoreRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherUpdate
+import com.artemchep.keyguard.provider.bitwarden.entity.request.CipherUnarchiveRequest
 import com.artemchep.keyguard.provider.bitwarden.entity.request.of
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.CipherConflictResolution
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.bitwarden.BitwardenSyncDiagnostics
@@ -93,11 +95,12 @@ import kotlin.time.Instant
  * **three-way merge** via [resolveCipherConflict],
  * and **bulk server operations** ([BulkRemoteOps]).
  *
- * **Push flow** for modifications (restore → PUT → trash → GET):
+ * **Push flow** for modifications (restore → PUT → unarchive → trash → GET):
  * 1. If the cipher was trashed, restore it first.
  * 2. If data changed, PUT the updated cipher.
- * 3. If the cipher should be trashed, trash it.
- * 4. Final GET to refresh local state.
+ * 3. If the cipher should be unarchived, unarchive it.
+ * 4. If the cipher should be trashed, trash it.
+ * 5. Final GET to refresh local state.
  *
  * **Push flow** for creations (POST → attachments → trash → GET): the
  * create calls ignore the trash state, so a cipher created as trashed, e.g.
@@ -342,6 +345,7 @@ class CipherSyncOps(
                 pushCipherUpdate(
                     update = update,
                     local = local,
+                    server = server,
                     force = force,
                     updatePartialRemoteLocal = { partialRemoteLocal = it },
                 )
@@ -445,6 +449,7 @@ class CipherSyncOps(
     private suspend fun pushCipherUpdate(
         update: CipherUpdate,
         local: BitwardenCipher,
+        server: CipherEntity?,
         force: Boolean,
         updatePartialRemoteLocal: (BitwardenCipher) -> Unit,
     ): CipherEntity =
@@ -453,6 +458,7 @@ class CipherSyncOps(
                 pushModifiedCipher(
                     update = update,
                     local = local,
+                    server = server,
                     force = force,
                     updatePartialRemoteLocal = updatePartialRemoteLocal,
                 )
@@ -467,6 +473,7 @@ class CipherSyncOps(
     private suspend fun pushModifiedCipher(
         update: CipherUpdate.Modify,
         local: BitwardenCipher,
+        server: CipherEntity?,
         force: Boolean,
         updatePartialRemoteLocal: (BitwardenCipher) -> Unit,
     ): CipherEntity {
@@ -488,8 +495,9 @@ class CipherSyncOps(
 
         val isTrashed = update.source.deletedDate != null
         val wasTrashed = update.source.service.remote?.deletedDate != null
+        val shouldUnarchive = server?.archivedDate != null && update.source.archivedDate == null
         val hasChanged = update.hasChanged(force)
-        if (isTrashed == wasTrashed && !hasChanged) {
+        if (isTrashed == wasTrashed && !shouldUnarchive && !hasChanged) {
             return getCipher(cipherApi)
         }
 
@@ -516,10 +524,18 @@ class CipherSyncOps(
                 null
             }
 
+        if (putCipher != null && (shouldUnarchive || isTrashed)) {
+            handleIntermediateResponse(putCipher)
+        }
+        if (shouldUnarchive) {
+            ciphersApi.unarchive(
+                httpClient = httpClient,
+                env = env,
+                token = token,
+                body = CipherUnarchiveRequest(ids = listOf(update.cipherId)),
+            )
+        }
         if (isTrashed) {
-            if (putCipher != null) {
-                handleIntermediateResponse(putCipher)
-            }
             trashCipher(cipherApi)
         }
         return getCipher(cipherApi)

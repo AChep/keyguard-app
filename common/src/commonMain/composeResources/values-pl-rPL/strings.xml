@@ -631,6 +631,10 @@
     <string name="gpg_key_import_error_reconcile">Nie udało się bezpiecznie scalić klucza GPG.</string>
     <string name="key_import_passphrase_hint">Wprowadź hasło klucza <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="gpg_key_import_passphrase_dialog_message">Ten klucz prywatny <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g> jest zaszyfrowany. Keyguard zapisze go po zaimportowaniu bez hasła klucza.</string>
+    <string name="gpg_key_import_component_passphrases_title">Enter subkey passphrases</string>
+    <string name="gpg_key_import_component_passphrases_dialog_message">These parts of the key use a different passphrase than the one you entered.</string>
+    <string name="gpg_key_import_component_primary_key">Primary key <xliff:g id="key_id" example="1A2B3C4D">%1$s</xliff:g></string>
+    <string name="gpg_key_import_component_passphrase_invalid">Invalid passphrase</string>
     <string name="gpg_key_expiry_title">Ważność</string>
     <string name="gpg_key_expiry_never">Nigdy</string>
     <string name="gpg_key_expiry_same_as_primary">Taka sama jak klucza głównego (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
@@ -854,6 +858,10 @@
     <string name="error_otp_key_is_invalid">Tajny klucz hasła jednorazowego jest nieprawidłowy</string>
     <string name="error_failed_file_already_exists">Nie udało się utworzyć pliku. Zastępowanie istniejącego pliku nie jest dozwolone</string>
     <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
+    <string name="error_wordlist_word_exists">This word is already in the wordlist</string>
+    <string name="error_wordlist_no_new_words">All of these words are already in the wordlist</string>
+    <string name="error_wordlist_word_too_long">Words must be <xliff:g id="length" example="512">%1$d</xliff:g> characters or fewer</string>
+    <string name="error_must_not_contain_line_breaks">Must not contain line breaks</string>
     <string name="error_account_already_exists">To konto jest już dodane do Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Brak wygenerowania klucza z powodu braku pamięci. Proszę zweryfikować ustawienia serwera KDF.</string>
     <string name="error_failed_generate_otp_code">Nie udało się wygenerować kodu OTP</string>
@@ -1022,6 +1030,12 @@
     <string name="wordlist_word_search_placeholder">Szukaj słów</string>
     <string name="wordlist_rename_action">Zmień nazwę listy słów</string>
     <string name="wordlist_words_empty_label">Ta lista słów jest pusta</string>
+    <string name="wordlist_word">Word</string>
+    <string name="wordlist_words">Words</string>
+    <string name="wordlist_add_words_title">Add words</string>
+    <string name="wordlist_add_words_description">One word per line. Lines that start with #, ;, - or / are skipped.</string>
+    <string name="wordlist_edit_word_title">Edit a word</string>
+    <string name="wordlist_delete_word_confirmation_title">Delete the word?</string>
     <string name="urloverride_header_title">Nadpisanie adresu URL</string>
     <string name="urloverride_list_header_title">Nadpisanie adresu URL</string>
     <string name="urloverride_list_section_title">Nadpisanie adresu URL</string>
@@ -1249,6 +1263,10 @@
     <string name="password_strength_good_label">Dobre</string>
     <string name="password_strength_fair_label">Przyzwoite</string>
     <string name="password_strength_weak_label">Słabe</string>
+    <!-- Shown next to a focused password field. -->
+    <string name="password_keyboard_hint_caps_lock">Caps Lock is on</string>
+    <!-- Shown next to a focused password field, if the keyboard language is not English. -->
+    <string name="password_keyboard_hint_language">Keyboard language: <xliff:g id="language" example="RU">%1$s</xliff:g></string>
     <string name="passwords_very_strong_label">Bardzo silne hasła</string>
     <string name="passwords_strong_label">Silne hasła</string>
     <string name="passwords_good_label">Dobre hasła</string>
@@ -1637,6 +1655,10 @@
     <string name="watchtower_item_compromised_accounts_title">Skompromitowane konta</string>
     <string name="watchtower_item_compromised_accounts_text">Sprawdź wycieki danych na podstawie nazwy użytkownika lub adresu e-mail.</string>
     <string name="watchtower_notification_new_alerts_title">Nowe alerty z Watchtower</string>
+    <string name="update_available_title">Update available</string>
+    <!-- Describes a new release of the app: the text of the notification and of the "Update available" item at the top of Settings. The placeholder is the version, e.g. 3.8.2. -->
+    <string name="update_available_version_text">Keyguard %1$s</string>
+    <string name="notification_app_update_channel_name">App updates</string>
     <string name="watchtower_alerts_header_title">Nowe alerty z Watchtower</string>
     <string name="watchtower_alerts_new_title">Nowe alerty</string>
     <string name="watchtower_alerts_empty_title">Brak nowych alertów</string>
@@ -1770,6 +1792,8 @@
     <string name="settingssearch_backup_location_keywords">miejsce docelowe folder serwer WebDAV S3 zasobnik</string>
     <string name="settingssearch_backup_password_keywords">szyfrowanie hasło skonfigurowane</string>
     <string name="settingssearch_build_ref_keywords">rewizja commit kod źródłowy kompilacja referencja</string>
+    <string name="settingssearch_app_update_level_keywords">update release new version notification</string>
+    <string name="settingssearch_app_update_delay_keywords">update release new version delay</string>
     <string name="settingssearch_license_keywords">licencja uprawnienia kod uprawnień token</string>
     <string name="settingssearch_search_placeholder">Przeszukaj ustawienia</string>
     <string name="settings_appearance_header_title">Wygląd</string>
@@ -1886,7 +1910,6 @@
     <string name="pref_item_automatic_backups_panel_pending_changes_label">Oczekujące zmiany</string>
     <string name="pref_item_automatic_backups_run_now_title">Utwórz kopię zapasową teraz</string>
     <string name="pref_item_automatic_backups_import_title">Import from backup</string>
-    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
     <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">Nieobsługiwana platforma</string>
     <string name="pref_item_automatic_backups_unsupported_text">Automatyczne kopie zapasowe są dostępne na Androidzie, komputerach oraz w systemach macOS i iOS.</string>
@@ -1936,9 +1959,19 @@
     <string name="navigation_items_missing_filter_text">Nie znaleziono filtra</string>
     <string name="navigation_items_predefined_route_text">Predefiniowana trasa</string>
     <string name="pref_item_app_version_title">Wersja aplikacji</string>
+    <!-- Shown under the installed app version. The placeholder is the version of the new release, e.g. 3.9.0. -->
+    <string name="pref_item_app_version_update_text">Update available: %1$s</string>
     <string name="pref_item_app_build_date_title">Data kompilacji aplikacji</string>
     <string name="pref_item_app_build_ref_title">Suma kontrolna (App build ref)</string>
     <string name="pref_item_app_changelog_title">Lista zmian w aplikacji</string>
+    <string name="pref_item_app_update_level_title">Notify about updates</string>
+    <string name="app_update_level_off">Off</string>
+    <string name="app_update_level_major">Major releases</string>
+    <string name="app_update_level_minor">Major and minor releases</string>
+    <string name="app_update_level_all">All releases</string>
+    <!-- A title of the setting: how long a new release must be public before the app tells the user about it. -->
+    <string name="pref_item_app_update_delay_title">Wait after a release</string>
+    <string name="pref_item_app_update_delay_immediately_text">Immediately</string>
     <string name="pref_item_app_team_title">Zespół tworzący aplikację</string>
     <string name="pref_item_reddit_community_title">Społeczność Reddit</string>
     <string name="pref_item_github_title">Projekt GitHub</string>
@@ -2088,6 +2121,8 @@
     <string name="pref_item_agent_filters_summary_all">Dostępne wszystkie klucze</string>
     <string name="pref_item_agent_filters_summary_active">Filtry aktywne</string>
     <string name="pref_item_agent_history_title">Dziennik żądań</string>
+    <string name="pref_item_generator_history_retention_title">Delete generator history after</string>
+    <string name="settingssearch_history_retention_keywords">retention cleanup</string>
     <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
     <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Włącz agenta SSH</string>

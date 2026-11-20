@@ -631,6 +631,10 @@
     <string name="gpg_key_import_error_reconcile">Không thể hợp nhất khóa GPG một cách an toàn.</string>
     <string name="key_import_passphrase_hint">Nhập cụm mật khẩu của khóa <xliff:g id="protocol" example="SSH">%1$s</xliff:g></string>
     <string name="gpg_key_import_passphrase_dialog_message">Khóa riêng tư <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g> này đã được mã hóa. Keyguard sẽ lưu trữ nó mà không kèm cụm mật khẩu khóa sau khi nhập.</string>
+    <string name="gpg_key_import_component_passphrases_title">Enter subkey passphrases</string>
+    <string name="gpg_key_import_component_passphrases_dialog_message">These parts of the key use a different passphrase than the one you entered.</string>
+    <string name="gpg_key_import_component_primary_key">Primary key <xliff:g id="key_id" example="1A2B3C4D">%1$s</xliff:g></string>
+    <string name="gpg_key_import_component_passphrase_invalid">Invalid passphrase</string>
     <string name="gpg_key_expiry_title">Ngày hết hạn</string>
     <string name="gpg_key_expiry_never">Không bao giờ</string>
     <string name="gpg_key_expiry_same_as_primary">Giống với khóa chính (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
@@ -854,6 +858,10 @@
     <string name="error_otp_key_is_invalid">Khóa bí mật của mật khẩu dùng một lần không hợp lệ</string>
     <string name="error_failed_file_already_exists">Không thể tạo tệp. Không được phép thay thế tệp hiện có</string>
     <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
+    <string name="error_wordlist_word_exists">This word is already in the wordlist</string>
+    <string name="error_wordlist_no_new_words">All of these words are already in the wordlist</string>
+    <string name="error_wordlist_word_too_long">Words must be <xliff:g id="length" example="512">%1$d</xliff:g> characters or fewer</string>
+    <string name="error_must_not_contain_line_breaks">Must not contain line breaks</string>
     <string name="error_account_already_exists">Tài khoản này đã được thêm vào Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">Không tạo được một chìa khóa, không đủ bộ nhớ. Vui lòng kiểm tra các thiết đặt máy chủ KDF của bạn.</string>
     <string name="error_failed_generate_otp_code">Không tạo được mã OTP</string>
@@ -1022,6 +1030,12 @@
     <string name="wordlist_word_search_placeholder">Tìm các từ</string>
     <string name="wordlist_rename_action">Đổi tên danh sách từ</string>
     <string name="wordlist_words_empty_label">Danh sách từ này trống</string>
+    <string name="wordlist_word">Word</string>
+    <string name="wordlist_words">Words</string>
+    <string name="wordlist_add_words_title">Add words</string>
+    <string name="wordlist_add_words_description">One word per line. Lines that start with #, ;, - or / are skipped.</string>
+    <string name="wordlist_edit_word_title">Edit a word</string>
+    <string name="wordlist_delete_word_confirmation_title">Delete the word?</string>
     <string name="urloverride_header_title">Ghi đè URL</string>
     <string name="urloverride_list_header_title">Ghi đè URL</string>
     <string name="urloverride_list_section_title">Ghi đè URL</string>
@@ -1249,6 +1263,10 @@
     <string name="password_strength_good_label">Tốt</string>
     <string name="password_strength_fair_label">Khá</string>
     <string name="password_strength_weak_label">Yếu</string>
+    <!-- Shown next to a focused password field. -->
+    <string name="password_keyboard_hint_caps_lock">Caps Lock is on</string>
+    <!-- Shown next to a focused password field, if the keyboard language is not English. -->
+    <string name="password_keyboard_hint_language">Keyboard language: <xliff:g id="language" example="RU">%1$s</xliff:g></string>
     <string name="passwords_very_strong_label">Mật khẩu rất mạnh</string>
     <string name="passwords_strong_label">Mật khẩu mạnh</string>
     <string name="passwords_good_label">Mật khẩu tốt</string>
@@ -1637,6 +1655,10 @@
     <string name="watchtower_item_compromised_accounts_title">Tài khoản bị xâm phạm</string>
     <string name="watchtower_item_compromised_accounts_text">Kiểm tra vi phạm dữ liệu bằng tên người dùng hoặc địa chỉ email.</string>
     <string name="watchtower_notification_new_alerts_title">Cảnh báo mới của Tháp canh</string>
+    <string name="update_available_title">Update available</string>
+    <!-- Describes a new release of the app: the text of the notification and of the "Update available" item at the top of Settings. The placeholder is the version, e.g. 3.8.2. -->
+    <string name="update_available_version_text">Keyguard %1$s</string>
+    <string name="notification_app_update_channel_name">App updates</string>
     <string name="watchtower_alerts_header_title">Các cảnh báo tháp canh mới</string>
     <string name="watchtower_alerts_new_title">Cảnh báo mới</string>
     <string name="watchtower_alerts_empty_title">Không có cảnh báo mới</string>
@@ -1770,6 +1792,8 @@
     <string name="settingssearch_backup_location_keywords">đích thư mục máy chủ WebDAV S3 bucket</string>
     <string name="settingssearch_backup_password_keywords">mã hóa mật khẩu đã cấu hình</string>
     <string name="settingssearch_build_ref_keywords">phiên bản commit mã nguồn bản dựng tham chiếu</string>
+    <string name="settingssearch_app_update_level_keywords">update release new version notification</string>
+    <string name="settingssearch_app_update_delay_keywords">update release new version delay</string>
     <string name="settingssearch_license_keywords">giấy phép bản quyền mã quyền sử dụng</string>
     <string name="settingssearch_search_placeholder">Tìm các thiết đặt</string>
     <string name="settings_appearance_header_title">Diện mạo</string>
@@ -1886,7 +1910,6 @@
     <string name="pref_item_automatic_backups_panel_pending_changes_label">Thay đổi đang chờ sao lưu</string>
     <string name="pref_item_automatic_backups_run_now_title">Sao lưu ngay</string>
     <string name="pref_item_automatic_backups_import_title">Import from backup</string>
-    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
     <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">Nền tảng không được hỗ trợ</string>
     <string name="pref_item_automatic_backups_unsupported_text">Sao lưu tự động có trên Android, máy tính, macOS và iOS.</string>
@@ -1936,9 +1959,19 @@
     <string name="navigation_items_missing_filter_text">Không tìm thấy bộ lọc</string>
     <string name="navigation_items_predefined_route_text">Tuyến định sẵn</string>
     <string name="pref_item_app_version_title">Phiên bản ứng dụng</string>
+    <!-- Shown under the installed app version. The placeholder is the version of the new release, e.g. 3.9.0. -->
+    <string name="pref_item_app_version_update_text">Update available: %1$s</string>
     <string name="pref_item_app_build_date_title">Ngày xây dựng ứng dụng</string>
     <string name="pref_item_app_build_ref_title">Giới thiệu bản dựng ứng dụng</string>
     <string name="pref_item_app_changelog_title">Nhật ký thay đổi ứng dụng</string>
+    <string name="pref_item_app_update_level_title">Notify about updates</string>
+    <string name="app_update_level_off">Off</string>
+    <string name="app_update_level_major">Major releases</string>
+    <string name="app_update_level_minor">Major and minor releases</string>
+    <string name="app_update_level_all">All releases</string>
+    <!-- A title of the setting: how long a new release must be public before the app tells the user about it. -->
+    <string name="pref_item_app_update_delay_title">Wait after a release</string>
+    <string name="pref_item_app_update_delay_immediately_text">Immediately</string>
     <string name="pref_item_app_team_title">Đội ngũ đằng sau ứng dụng</string>
     <string name="pref_item_reddit_community_title">Cộng đồng Reddit</string>
     <string name="pref_item_github_title">Dự án GitHub</string>
@@ -2088,6 +2121,8 @@
     <string name="pref_item_agent_filters_summary_all">Tất cả khóa đều có thể truy cập</string>
     <string name="pref_item_agent_filters_summary_active">Bộ lọc đang hoạt động</string>
     <string name="pref_item_agent_history_title">Nhật ký yêu cầu</string>
+    <string name="pref_item_generator_history_retention_title">Delete generator history after</string>
+    <string name="settingssearch_history_retention_keywords">retention cleanup</string>
     <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
     <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Bật SSH agent</string>

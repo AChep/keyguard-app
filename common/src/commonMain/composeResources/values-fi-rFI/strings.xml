@@ -631,6 +631,10 @@
     <string name="gpg_key_import_error_reconcile">GPG-avainta ei voitu yhdistää turvallisesti.</string>
     <string name="key_import_passphrase_hint">Anna <xliff:g id="protocol" example="SSH">%1$s</xliff:g>-avaimen tunnuslause</string>
     <string name="gpg_key_import_passphrase_dialog_message">Tämä yksityinen <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g>-avain on salattu. Keyguard tallentaa sen tuonnin jälkeen ilman avaimen tunnuslausetta.</string>
+    <string name="gpg_key_import_component_passphrases_title">Enter subkey passphrases</string>
+    <string name="gpg_key_import_component_passphrases_dialog_message">These parts of the key use a different passphrase than the one you entered.</string>
+    <string name="gpg_key_import_component_primary_key">Primary key <xliff:g id="key_id" example="1A2B3C4D">%1$s</xliff:g></string>
+    <string name="gpg_key_import_component_passphrase_invalid">Invalid passphrase</string>
     <string name="gpg_key_expiry_title">Vanhenemisaika</string>
     <string name="gpg_key_expiry_never">Ei koskaan</string>
     <string name="gpg_key_expiry_same_as_primary">Sama kuin pääavaimella (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
@@ -854,6 +858,10 @@
     <string name="error_otp_key_is_invalid">Kertakäyttöisen salasanan salainen avain on virheellinen</string>
     <string name="error_failed_file_already_exists">Tiedoston luominen epäonnistui. Olemassa olevan tiedoston korvaaminen ei ole sallittua</string>
     <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
+    <string name="error_wordlist_word_exists">This word is already in the wordlist</string>
+    <string name="error_wordlist_no_new_words">All of these words are already in the wordlist</string>
+    <string name="error_wordlist_word_too_long">Words must be <xliff:g id="length" example="512">%1$d</xliff:g> characters or fewer</string>
+    <string name="error_must_not_contain_line_breaks">Must not contain line breaks</string>
     <string name="error_account_already_exists">Tämä tili on jo lisätty Keyguardiin</string>
     <string name="error_failed_generate_kdf_hash_oom">Avaimen luominen epäonnistui, koska muisti ei riitä. Tarkista palvelimen KDF-asetukset.</string>
     <string name="error_failed_generate_otp_code">OTP-koodin luominen epäonnistui</string>
@@ -1022,6 +1030,12 @@
     <string name="wordlist_word_search_placeholder">Hae sanoja</string>
     <string name="wordlist_rename_action">Nimeä sanalista uudelleen</string>
     <string name="wordlist_words_empty_label">Tämä sanalista on tyhjä</string>
+    <string name="wordlist_word">Word</string>
+    <string name="wordlist_words">Words</string>
+    <string name="wordlist_add_words_title">Add words</string>
+    <string name="wordlist_add_words_description">One word per line. Lines that start with #, ;, - or / are skipped.</string>
+    <string name="wordlist_edit_word_title">Edit a word</string>
+    <string name="wordlist_delete_word_confirmation_title">Delete the word?</string>
     <string name="urloverride_header_title">URL-ohitus</string>
     <string name="urloverride_list_header_title">URL-ohitukset</string>
     <string name="urloverride_list_section_title">URL-ohitukset</string>
@@ -1249,6 +1263,10 @@
     <string name="password_strength_good_label">Hyvä</string>
     <string name="password_strength_fair_label">Kohtalainen</string>
     <string name="password_strength_weak_label">Heikko</string>
+    <!-- Shown next to a focused password field. -->
+    <string name="password_keyboard_hint_caps_lock">Caps Lock is on</string>
+    <!-- Shown next to a focused password field, if the keyboard language is not English. -->
+    <string name="password_keyboard_hint_language">Keyboard language: <xliff:g id="language" example="RU">%1$s</xliff:g></string>
     <string name="passwords_very_strong_label">Erittäin vahvat salasanat</string>
     <string name="passwords_strong_label">Vahvat salasanat</string>
     <string name="passwords_good_label">Hyvät salasanat</string>
@@ -1637,6 +1655,10 @@
     <string name="watchtower_item_compromised_accounts_title">Vaarantuneet tilit</string>
     <string name="watchtower_item_compromised_accounts_text">Tarkista tietomurrot käyttäjätunnuksen tai sähköpostiosoitteen perusteella.</string>
     <string name="watchtower_notification_new_alerts_title">Uudet Watchtower-hälytykset</string>
+    <string name="update_available_title">Update available</string>
+    <!-- Describes a new release of the app: the text of the notification and of the "Update available" item at the top of Settings. The placeholder is the version, e.g. 3.8.2. -->
+    <string name="update_available_version_text">Keyguard %1$s</string>
+    <string name="notification_app_update_channel_name">App updates</string>
     <string name="watchtower_alerts_header_title">Uudet Watchtower-hälytykset</string>
     <string name="watchtower_alerts_new_title">Uudet hälytykset</string>
     <string name="watchtower_alerts_empty_title">Ei uusia hälytyksiä</string>
@@ -1770,6 +1792,8 @@
     <string name="settingssearch_backup_location_keywords">kohde kansio palvelin WebDAV S3 säilö</string>
     <string name="settingssearch_backup_password_keywords">salaus salasana määritetty</string>
     <string name="settingssearch_build_ref_keywords">versio commit lähdekoodi koonti viite</string>
+    <string name="settingssearch_app_update_level_keywords">update release new version notification</string>
+    <string name="settingssearch_app_update_delay_keywords">update release new version delay</string>
     <string name="settingssearch_license_keywords">lisenssi käyttöoikeus käyttöoikeustunnus</string>
     <string name="settingssearch_search_placeholder">Hae asetuksista</string>
     <string name="settings_appearance_header_title">Ulkoasu</string>
@@ -1886,7 +1910,6 @@
     <string name="pref_item_automatic_backups_panel_pending_changes_label">Odottavat muutokset</string>
     <string name="pref_item_automatic_backups_run_now_title">Varmuuskopioi nyt</string>
     <string name="pref_item_automatic_backups_import_title">Import from backup</string>
-    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
     <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">Alustaa ei tueta</string>
     <string name="pref_item_automatic_backups_unsupported_text">Automaattiset varmuuskopiot ovat käytettävissä Androidissa, työpöytäversiossa, macOS:ssä ja iOS:ssä.</string>
@@ -1936,9 +1959,19 @@
     <string name="navigation_items_missing_filter_text">Suodatinta ei löytynyt</string>
     <string name="navigation_items_predefined_route_text">Ennalta määritetty reitti</string>
     <string name="pref_item_app_version_title">Sovelluksen versio</string>
+    <!-- Shown under the installed app version. The placeholder is the version of the new release, e.g. 3.9.0. -->
+    <string name="pref_item_app_version_update_text">Update available: %1$s</string>
     <string name="pref_item_app_build_date_title">Sovelluksen koontipäivämäärä</string>
     <string name="pref_item_app_build_ref_title">Sovelluksen koontiviite</string>
     <string name="pref_item_app_changelog_title">Sovelluksen muutosloki</string>
+    <string name="pref_item_app_update_level_title">Notify about updates</string>
+    <string name="app_update_level_off">Off</string>
+    <string name="app_update_level_major">Major releases</string>
+    <string name="app_update_level_minor">Major and minor releases</string>
+    <string name="app_update_level_all">All releases</string>
+    <!-- A title of the setting: how long a new release must be public before the app tells the user about it. -->
+    <string name="pref_item_app_update_delay_title">Wait after a release</string>
+    <string name="pref_item_app_update_delay_immediately_text">Immediately</string>
     <string name="pref_item_app_team_title">Sovelluksen takana oleva tiimi</string>
     <string name="pref_item_reddit_community_title">Reddit-yhteisö</string>
     <string name="pref_item_github_title">GitHub-projekti</string>
@@ -2088,6 +2121,8 @@
     <string name="pref_item_agent_filters_summary_all">Kaikki avaimet käytettävissä</string>
     <string name="pref_item_agent_filters_summary_active">Suodattimet käytössä</string>
     <string name="pref_item_agent_history_title">Pyyntöloki</string>
+    <string name="pref_item_generator_history_retention_title">Delete generator history after</string>
+    <string name="settingssearch_history_retention_keywords">retention cleanup</string>
     <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
     <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">Ota SSH-agentti käyttöön</string>

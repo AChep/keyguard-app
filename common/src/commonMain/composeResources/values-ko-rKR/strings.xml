@@ -631,6 +631,10 @@
     <string name="gpg_key_import_error_reconcile">GPG 키를 안전하게 병합할 수 없습니다.</string>
     <string name="key_import_passphrase_hint"><xliff:g id="protocol" example="SSH">%1$s</xliff:g> 키 비밀 문구 입력</string>
     <string name="gpg_key_import_passphrase_dialog_message">이 <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g> 개인 키는 암호화되어 있습니다. Keyguard는 가져온 후 키 비밀 문구 없이 저장합니다.</string>
+    <string name="gpg_key_import_component_passphrases_title">Enter subkey passphrases</string>
+    <string name="gpg_key_import_component_passphrases_dialog_message">These parts of the key use a different passphrase than the one you entered.</string>
+    <string name="gpg_key_import_component_primary_key">Primary key <xliff:g id="key_id" example="1A2B3C4D">%1$s</xliff:g></string>
+    <string name="gpg_key_import_component_passphrase_invalid">Invalid passphrase</string>
     <string name="gpg_key_expiry_title">만료 날짜</string>
     <string name="gpg_key_expiry_never">만료 안 함</string>
     <string name="gpg_key_expiry_same_as_primary">기본 키와 동일 (<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>)</string>
@@ -854,6 +858,10 @@
     <string name="error_otp_key_is_invalid">OTP 비밀 키가 올바르지 않습니다</string>
     <string name="error_failed_file_already_exists">파일을 만들지 못했습니다. 이미 존재하는 파일은 교체할 수 없습니다.</string>
     <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
+    <string name="error_wordlist_word_exists">This word is already in the wordlist</string>
+    <string name="error_wordlist_no_new_words">All of these words are already in the wordlist</string>
+    <string name="error_wordlist_word_too_long">Words must be <xliff:g id="length" example="512">%1$d</xliff:g> characters or fewer</string>
+    <string name="error_must_not_contain_line_breaks">Must not contain line breaks</string>
     <string name="error_account_already_exists">이미 Keyguard에 추가된 계정입니다</string>
     <string name="error_failed_generate_kdf_hash_oom">메모리가 부족하여 키를 생성하지 못했습니다. KDF 서버 설정을 확인해 보세요.</string>
     <string name="error_failed_generate_otp_code">OTP 코드를 생성하지 못했습니다.</string>
@@ -1022,6 +1030,12 @@
     <string name="wordlist_word_search_placeholder">단어 검색</string>
     <string name="wordlist_rename_action">단어 목록 이름 바꾸기</string>
     <string name="wordlist_words_empty_label">이 단어 목록은 비어 있습니다</string>
+    <string name="wordlist_word">Word</string>
+    <string name="wordlist_words">Words</string>
+    <string name="wordlist_add_words_title">Add words</string>
+    <string name="wordlist_add_words_description">One word per line. Lines that start with #, ;, - or / are skipped.</string>
+    <string name="wordlist_edit_word_title">Edit a word</string>
+    <string name="wordlist_delete_word_confirmation_title">Delete the word?</string>
     <string name="urloverride_header_title">URL 덮어쓰기</string>
     <string name="urloverride_list_header_title">URL 덮어쓰기</string>
     <string name="urloverride_list_section_title">URL 덮어쓰기</string>
@@ -1249,6 +1263,10 @@
     <string name="password_strength_good_label">우수</string>
     <string name="password_strength_fair_label">양호</string>
     <string name="password_strength_weak_label">약함</string>
+    <!-- Shown next to a focused password field. -->
+    <string name="password_keyboard_hint_caps_lock">Caps Lock is on</string>
+    <!-- Shown next to a focused password field, if the keyboard language is not English. -->
+    <string name="password_keyboard_hint_language">Keyboard language: <xliff:g id="language" example="RU">%1$s</xliff:g></string>
     <string name="passwords_very_strong_label">매우 강한 비밀번호</string>
     <string name="passwords_strong_label">강한 비밀번호</string>
     <string name="passwords_good_label">우수한 비밀번호</string>
@@ -1637,6 +1655,10 @@
     <string name="watchtower_item_compromised_accounts_title">유출된 계정</string>
     <string name="watchtower_item_compromised_accounts_text">사용자 이름이나 이메일 주소가 유출되었는지 확인합니다.</string>
     <string name="watchtower_notification_new_alerts_title">새 감시탑 경고</string>
+    <string name="update_available_title">Update available</string>
+    <!-- Describes a new release of the app: the text of the notification and of the "Update available" item at the top of Settings. The placeholder is the version, e.g. 3.8.2. -->
+    <string name="update_available_version_text">Keyguard %1$s</string>
+    <string name="notification_app_update_channel_name">App updates</string>
     <string name="watchtower_alerts_header_title">새 감시탑 경고</string>
     <string name="watchtower_alerts_new_title">새 경고</string>
     <string name="watchtower_alerts_empty_title">새 경고 없음</string>
@@ -1770,6 +1792,8 @@
     <string name="settingssearch_backup_location_keywords">대상 폴더 서버 WebDAV S3 버킷</string>
     <string name="settingssearch_backup_password_keywords">암호화 비밀번호 설정</string>
     <string name="settingssearch_build_ref_keywords">리비전 커밋 소스 빌드 레퍼런스 정보</string>
+    <string name="settingssearch_app_update_level_keywords">update release new version notification</string>
+    <string name="settingssearch_app_update_delay_keywords">update release new version delay</string>
     <string name="settingssearch_license_keywords">라이선스 라이센스 토큰 프리미엄 구독</string>
     <string name="settingssearch_search_placeholder">설정 검색</string>
     <string name="settings_appearance_header_title">외관</string>
@@ -1886,7 +1910,6 @@
     <string name="pref_item_automatic_backups_panel_pending_changes_label">대기 중인 변경 사항</string>
     <string name="pref_item_automatic_backups_run_now_title">지금 백업</string>
     <string name="pref_item_automatic_backups_import_title">Import from backup</string>
-    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
     <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">지원하지 않는 플랫폼</string>
     <string name="pref_item_automatic_backups_unsupported_text">Android, 데스크톱, macOS, iOS에서 자동 백업을 사용할 수 있습니다.</string>
@@ -1936,9 +1959,19 @@
     <string name="navigation_items_missing_filter_text">필터를 찾을 수 없음</string>
     <string name="navigation_items_predefined_route_text">미리 정의된 경로</string>
     <string name="pref_item_app_version_title">앱 버전</string>
+    <!-- Shown under the installed app version. The placeholder is the version of the new release, e.g. 3.9.0. -->
+    <string name="pref_item_app_version_update_text">Update available: %1$s</string>
     <string name="pref_item_app_build_date_title">앱 빌드 날짜</string>
     <string name="pref_item_app_build_ref_title">앱 빌드 레퍼런스</string>
     <string name="pref_item_app_changelog_title">앱 변경 내역</string>
+    <string name="pref_item_app_update_level_title">Notify about updates</string>
+    <string name="app_update_level_off">Off</string>
+    <string name="app_update_level_major">Major releases</string>
+    <string name="app_update_level_minor">Major and minor releases</string>
+    <string name="app_update_level_all">All releases</string>
+    <!-- A title of the setting: how long a new release must be public before the app tells the user about it. -->
+    <string name="pref_item_app_update_delay_title">Wait after a release</string>
+    <string name="pref_item_app_update_delay_immediately_text">Immediately</string>
     <string name="pref_item_app_team_title">앱 개발 팀</string>
     <string name="pref_item_reddit_community_title">Reddit 커뮤니티</string>
     <string name="pref_item_github_title">GitHub 프로젝트</string>
@@ -2088,6 +2121,8 @@
     <string name="pref_item_agent_filters_summary_all">모든 키 사용 가능</string>
     <string name="pref_item_agent_filters_summary_active">필터 적용 중</string>
     <string name="pref_item_agent_history_title">요청 기록</string>
+    <string name="pref_item_generator_history_retention_title">Delete generator history after</string>
+    <string name="settingssearch_history_retention_keywords">retention cleanup</string>
     <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
     <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">SSH 에이전트 사용 설정</string>

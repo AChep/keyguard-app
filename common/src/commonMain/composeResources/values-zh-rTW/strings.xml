@@ -631,6 +631,10 @@
     <string name="gpg_key_import_error_reconcile">無法安全地合併 GPG 金鑰。</string>
     <string name="key_import_passphrase_hint">輸入 <xliff:g id="protocol" example="SSH">%1$s</xliff:g> 金鑰的通關密語</string>
     <string name="gpg_key_import_passphrase_dialog_message">此 <xliff:g id="format_label" example="OpenPGP">%1$s</xliff:g> 私鑰已加密。匯入後，Keyguard 會移除金鑰密語保護並儲存私鑰。</string>
+    <string name="gpg_key_import_component_passphrases_title">Enter subkey passphrases</string>
+    <string name="gpg_key_import_component_passphrases_dialog_message">These parts of the key use a different passphrase than the one you entered.</string>
+    <string name="gpg_key_import_component_primary_key">Primary key <xliff:g id="key_id" example="1A2B3C4D">%1$s</xliff:g></string>
+    <string name="gpg_key_import_component_passphrase_invalid">Invalid passphrase</string>
     <string name="gpg_key_expiry_title">到期日期</string>
     <string name="gpg_key_expiry_never">永不到期</string>
     <string name="gpg_key_expiry_same_as_primary">與主金鑰相同（<xliff:g id="expiry" example="Jan 1, 2030">%1$s</xliff:g>）</string>
@@ -854,6 +858,10 @@
     <string name="error_otp_key_is_invalid">一次性密碼的秘密金鑰無效</string>
     <string name="error_failed_file_already_exists">無法建立檔案。不允許取代現有檔案</string>
     <string name="error_wordlist_url_returned_web_page">The URL returned a web page, not a wordlist. Use a link to the raw file.</string>
+    <string name="error_wordlist_word_exists">This word is already in the wordlist</string>
+    <string name="error_wordlist_no_new_words">All of these words are already in the wordlist</string>
+    <string name="error_wordlist_word_too_long">Words must be <xliff:g id="length" example="512">%1$d</xliff:g> characters or fewer</string>
+    <string name="error_must_not_contain_line_breaks">Must not contain line breaks</string>
     <string name="error_account_already_exists">此帳號已新增至 Keyguard</string>
     <string name="error_failed_generate_kdf_hash_oom">建立金鑰失敗，記憶體不足。請檢查您的 KDF 伺服器設定。</string>
     <string name="error_failed_generate_otp_code">生成一次性驗證碼失敗</string>
@@ -1022,6 +1030,12 @@
     <string name="wordlist_word_search_placeholder">搜尋助記詞</string>
     <string name="wordlist_rename_action">重新命名詞表</string>
     <string name="wordlist_words_empty_label">此詞表沒有任何詞彙</string>
+    <string name="wordlist_word">Word</string>
+    <string name="wordlist_words">Words</string>
+    <string name="wordlist_add_words_title">Add words</string>
+    <string name="wordlist_add_words_description">One word per line. Lines that start with #, ;, - or / are skipped.</string>
+    <string name="wordlist_edit_word_title">Edit a word</string>
+    <string name="wordlist_delete_word_confirmation_title">Delete the word?</string>
     <string name="urloverride_header_title">網址覆寫</string>
     <string name="urloverride_list_header_title">網址覆寫</string>
     <string name="urloverride_list_section_title">網址覆寫</string>
@@ -1249,6 +1263,10 @@
     <string name="password_strength_good_label">安全</string>
     <string name="password_strength_fair_label">一般</string>
     <string name="password_strength_weak_label">不安全</string>
+    <!-- Shown next to a focused password field. -->
+    <string name="password_keyboard_hint_caps_lock">Caps Lock is on</string>
+    <!-- Shown next to a focused password field, if the keyboard language is not English. -->
+    <string name="password_keyboard_hint_language">Keyboard language: <xliff:g id="language" example="RU">%1$s</xliff:g></string>
     <string name="passwords_very_strong_label">相當安全的密碼</string>
     <string name="passwords_strong_label">安全的密碼</string>
     <string name="passwords_good_label">安全的密碼</string>
@@ -1637,6 +1655,10 @@
     <string name="watchtower_item_compromised_accounts_title">被盜帳號</string>
     <string name="watchtower_item_compromised_accounts_text">使用使用者名稱或電子郵件地址檢查資料洩露情況。</string>
     <string name="watchtower_notification_new_alerts_title">新的概況提醒</string>
+    <string name="update_available_title">Update available</string>
+    <!-- Describes a new release of the app: the text of the notification and of the "Update available" item at the top of Settings. The placeholder is the version, e.g. 3.8.2. -->
+    <string name="update_available_version_text">Keyguard %1$s</string>
+    <string name="notification_app_update_channel_name">App updates</string>
     <string name="watchtower_alerts_header_title">新的概況提醒</string>
     <string name="watchtower_alerts_new_title">新提醒</string>
     <string name="watchtower_alerts_empty_title">沒有新提醒</string>
@@ -1772,6 +1794,8 @@
     <string name="settingssearch_backup_location_keywords">目的地 資料夾 伺服器 WebDAV S3 儲存貯體</string>
     <string name="settingssearch_backup_password_keywords">加密 密碼 已設定</string>
     <string name="settingssearch_build_ref_keywords">修訂 提交 原始碼 建置 參照</string>
+    <string name="settingssearch_app_update_level_keywords">update release new version notification</string>
+    <string name="settingssearch_app_update_delay_keywords">update release new version delay</string>
     <string name="settingssearch_license_keywords">授權 授權權杖 權杖</string>
     <string name="settingssearch_search_placeholder">在設定中搜索</string>
     <string name="settings_appearance_header_title">介面外觀</string>
@@ -1888,7 +1912,6 @@
     <string name="pref_item_automatic_backups_panel_pending_changes_label">待備份的變更</string>
     <string name="pref_item_automatic_backups_run_now_title">立即執行備份</string>
     <string name="pref_item_automatic_backups_import_title">Import from backup</string>
-    <string name="pref_item_automatic_backups_import_text">Add the items of a snapshot to an account</string>
     <string name="pref_item_automatic_backups_import_account_title">Import into</string>
     <string name="pref_item_automatic_backups_unsupported_title">不支援的平台</string>
     <string name="pref_item_automatic_backups_unsupported_text">Android、桌面版、macOS 及 iOS 均支援自動備份。</string>
@@ -1938,9 +1961,19 @@
     <string name="navigation_items_missing_filter_text">找不到篩選器</string>
     <string name="navigation_items_predefined_route_text">預先定義的路由</string>
     <string name="pref_item_app_version_title">應用版本</string>
+    <!-- Shown under the installed app version. The placeholder is the version of the new release, e.g. 3.9.0. -->
+    <string name="pref_item_app_version_update_text">Update available: %1$s</string>
     <string name="pref_item_app_build_date_title">應用構建日期</string>
     <string name="pref_item_app_build_ref_title">應用程式構建參考值</string>
     <string name="pref_item_app_changelog_title">應用更新日誌</string>
+    <string name="pref_item_app_update_level_title">Notify about updates</string>
+    <string name="app_update_level_off">Off</string>
+    <string name="app_update_level_major">Major releases</string>
+    <string name="app_update_level_minor">Major and minor releases</string>
+    <string name="app_update_level_all">All releases</string>
+    <!-- A title of the setting: how long a new release must be public before the app tells the user about it. -->
+    <string name="pref_item_app_update_delay_title">Wait after a release</string>
+    <string name="pref_item_app_update_delay_immediately_text">Immediately</string>
     <string name="pref_item_app_team_title">開發團隊</string>
     <string name="pref_item_reddit_community_title">Reddit 社群</string>
     <string name="pref_item_github_title">GitHub 專案</string>
@@ -2090,6 +2123,8 @@
     <string name="pref_item_agent_filters_summary_all">所有金鑰皆可存取</string>
     <string name="pref_item_agent_filters_summary_active">已啟用篩選器</string>
     <string name="pref_item_agent_history_title">請求記錄</string>
+    <string name="pref_item_generator_history_retention_title">Delete generator history after</string>
+    <string name="settingssearch_history_retention_keywords">retention cleanup</string>
     <string name="pref_item_agent_history_retention_title">Delete request logs after</string>
     <string name="pref_item_agent_history_retention_note">Applies to the SSH agent, GPG agent and command line request logs.</string>
     <string name="pref_item_ssh_agent_enable_title">啟用 SSH 代理程式</string>

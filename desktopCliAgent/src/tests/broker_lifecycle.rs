@@ -139,6 +139,10 @@ struct App {
     pending: Arc<Notify>,
     canceled: Arc<Notify>,
     statuses: Arc<Mutex<Vec<protocol::MountStatusRequest>>>,
+    /// `verified_host` of each browser stream that the agent opened.
+    verified_hosts: Arc<Mutex<Vec<bool>>>,
+    /// The tool of each management call that the agent made.
+    manages: Arc<Mutex<Vec<String>>>,
     server: tokio::task::JoinHandle<()>,
 }
 
@@ -168,11 +172,15 @@ impl App {
         let pending = Arc::new(Notify::new());
         let canceled = Arc::new(Notify::new());
         let statuses = Arc::new(Mutex::new(Vec::new()));
+        let verified_hosts = Arc::new(Mutex::new(Vec::new()));
+        let manages = Arc::new(Mutex::new(Vec::new()));
         let task_mode = mode.clone();
         let task_resolves = resolves.clone();
         let task_pending = pending.clone();
         let task_canceled = canceled.clone();
         let task_statuses = statuses.clone();
+        let task_verified_hosts = verified_hosts.clone();
+        let task_manages = manages.clone();
         let mount_path = fifo.clone();
         let server = tokio::spawn(async move {
             loop {
@@ -183,6 +191,8 @@ impl App {
                 let pending = task_pending.clone();
                 let canceled = task_canceled.clone();
                 let statuses = task_statuses.clone();
+                let verified_hosts = task_verified_hosts.clone();
+                let manages = task_manages.clone();
                 let path = mount_path.clone();
                 let snapshots = snapshots.clone();
                 tokio::spawn(async move {
@@ -303,6 +313,7 @@ impl App {
                             }
                         }
                         Op::Manage(manage) => {
+                            manages.lock().unwrap().push(manage.tool.clone());
                             assert!(manage.caller.expect("a caller").pid > 0);
                             assert_eq!(manage.connection_id.len(), 32);
                             match mode.load(Ordering::SeqCst) {
@@ -330,10 +341,13 @@ impl App {
                             }
                         }
                         Op::BrowserOpen(open) => {
-                            let caller = open.caller.expect("a caller");
-                            // The connector relays for the process that started it.
-                            assert_eq!(caller.pid, std::process::id());
-                            assert!(open.verified_host);
+                            // A verified connector relays for the process that
+                            // started it.
+                            if open.verified_host {
+                                let caller = open.caller.expect("a caller");
+                                assert_eq!(caller.pid, std::process::id());
+                            }
+                            verified_hosts.lock().unwrap().push(open.verified_host);
                             assert_eq!(open.host_revision, 1);
                             let mode = mode.load(Ordering::SeqCst);
                             if mode == 9 {
@@ -367,8 +381,16 @@ impl App {
             pending,
             canceled,
             statuses,
+            verified_hosts,
+            manages,
             server,
         }
+    }
+
+    /// The agent's home, which holds the folders of Flatpak browsers.
+    #[cfg(target_os = "linux")]
+    fn home(&self) -> PathBuf {
+        self.directory.path().join("home")
     }
 
     fn state_dir(&self) -> PathBuf {
@@ -391,7 +413,11 @@ impl App {
         state_dir: &Path,
         stdout: Stdio,
     ) -> Child {
-        let mut child = Command::new(agent)
+        let mut command = Command::new(agent);
+        // Linux: the agent looks for Flatpak browsers in its home.
+        #[cfg(target_os = "linux")]
+        command.env("HOME", self.home());
+        let mut child = command
             .arg("--ipc-socket")
             .arg(&self.private)
             .arg("--parent-pid")
@@ -681,6 +707,8 @@ async fn public_transport_is_metadata_only_and_disconnect_cancels_approval() {
     )
     .await;
     assert!(timeout(stream.read_u8()).await.is_err());
+    // An unknown tool never reaches the app.
+    assert_eq!(*app.manages.lock().unwrap(), ["authenticate"]);
 
     // Private operations are not public operations: they are unknown to
     // the public socket, like the operations of a newer client.

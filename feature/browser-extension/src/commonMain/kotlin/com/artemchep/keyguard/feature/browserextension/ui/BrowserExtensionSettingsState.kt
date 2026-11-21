@@ -138,8 +138,16 @@ val BrowserConnectorBrowser.store: BrowserExtensionStore
         BrowserConnectorBrowser.CHROMIUM,
         BrowserConnectorBrowser.BRAVE,
         BrowserConnectorBrowser.VIVALDI,
+        BrowserConnectorBrowser.CHROME_FLATPAK,
+        BrowserConnectorBrowser.CHROMIUM_FLATPAK,
+        BrowserConnectorBrowser.BRAVE_FLATPAK,
         -> BrowserExtensionStore.CHROME_WEB_STORE
 
-        BrowserConnectorBrowser.EDGE -> BrowserExtensionStore.EDGE_ADD_ONS
-        BrowserConnectorBrowser.FIREFOX -> BrowserExtensionStore.FIREFOX_ADD_ONS
+        BrowserConnectorBrowser.EDGE,
+        BrowserConnectorBrowser.EDGE_FLATPAK,
+        -> BrowserExtensionStore.EDGE_ADD_ONS
+
+        BrowserConnectorBrowser.FIREFOX,
+        BrowserConnectorBrowser.FIREFOX_FLATPAK,
+        -> BrowserExtensionStore.FIREFOX_ADD_ONS
     }

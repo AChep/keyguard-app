@@ -48,8 +48,11 @@ or replace it, pair each browser again.
 Inside Flatpak, Keyguard finds a browser only if its connector folder exists
 on the host. For Firefox, that's `~/.mozilla/native-messaging-hosts`; for
 other browsers, `NativeMessagingHosts` in their `~/.config` folder, such as
-`~/.config/google-chrome/NativeMessagingHosts`. To add a browser, create its
-folder, then restart Keyguard.
+`~/.config/google-chrome/NativeMessagingHosts`. Flathub browsers keep theirs
+in `~/.var/app/<app ID>`, such as
+`~/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts` or
+`~/.var/app/com.google.Chrome/config/google-chrome/NativeMessagingHosts`. To
+add a browser, create its folder, then restart Keyguard.
 
 The sandbox hides the connector's process from Keyguard. Prompts show
 "Unverified connector: Keyguard couldn’t check the program that connected."
@@ -117,8 +120,8 @@ disconnects and must pair again.
 
 ## Install connectors from the command line
 
-The `keyguard` command-line tool installs the same connectors.
-[Browser connectors](/docs/cli/#browser-connectors) lists the commands.
+[Browser connectors](/docs/cli/#browser-connectors) lists the `keyguard`
+commands that install the same connectors.
 
 ## Review request history
 
@@ -175,8 +178,8 @@ When the extension can't use Keyguard, the popup shows one of these.
 | Build or platform | Limitation |
 | --- | --- |
 | Mac App Store, native macOS app | No browser extension. Use the DMG build. |
-| Microsoft Store, MSIX | No browser extension. Use the MSI build. |
-| Linux | Browsers installed with Flatpak or Snap, such as Firefox on Ubuntu, can't start the connector. |
+| Microsoft Store, MSIX | Keep the `keyguard-browser-host.exe` app execution alias on. |
+| Linux | Browsers installed with Snap, such as Firefox on Ubuntu, can't start the connector. |
 | macOS | No Safari extension |
 
 ## Troubleshooting
@@ -191,10 +194,10 @@ don't pair: another program may be posing as Keyguard.
 
 ### The popup still shows "Connector not installed" while the connector is on
 
-The browser runs in a Flatpak or Snap sandbox.
+The browser runs in a Snap sandbox.
 
-Install the browser outside Flatpak and Snap, such as from Mozilla's APT
-repository or Google's `.deb`. Then restart Keyguard.
+Install the vendor's `.deb`, or the Flathub build except Vivaldi's. Then
+restart Keyguard.
 
 ### A site shows no logins
 

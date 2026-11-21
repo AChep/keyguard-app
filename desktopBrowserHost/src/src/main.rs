@@ -3,6 +3,8 @@
 //! app through the CLI agent and relays the extension's Noise frames, which
 //! only the extension and the app can read.
 mod args;
+#[cfg(any(target_os = "linux", test))]
+mod flatpak;
 mod host;
 mod native;
 mod status;

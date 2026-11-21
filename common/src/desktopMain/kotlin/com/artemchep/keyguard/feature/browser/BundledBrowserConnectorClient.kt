@@ -123,6 +123,7 @@ private data class ErrorDto(
     val code: String,
     val path: String? = null,
     val browser: String? = null,
+    val alias: String? = null,
     val detail: String? = null,
 )
 
@@ -183,6 +184,7 @@ internal fun parseBrowserConnectorError(raw: String): BrowserConnectorError {
             kind = kind,
             path = error.path,
             browser = error.browser?.let(::browserOf),
+            alias = error.alias,
             detail = error.detail,
         )
     } else {

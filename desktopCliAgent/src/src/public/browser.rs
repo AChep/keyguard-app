@@ -5,7 +5,7 @@
 use crate::{
     app_client::AppClient,
     protocol::{BrowserOpenRequest, request, response},
-    transport::{Accepted, BundledPeer},
+    transport::{Accepted, BundledPeer, Endpoint},
 };
 use anyhow::{Result, ensure};
 use keyguard_cli_protocol::{
@@ -23,16 +23,20 @@ pub(super) async fn serve(
     mut accepted: Accepted,
     app: AppClient,
     request: BrowserRequest,
+    endpoint: Endpoint,
 ) -> Result<()> {
     request.validate()?;
     // As for a CLI command: the connector is checked before the app hears of
     // it, while the app answers, and once more before the agent answers it.
     accepted.guard.revalidate().await?;
     let verified_host = accepted.bundled_peer == Some(BundledPeer::BrowserHost);
-    // Inside Flatpak, the connector runs in a sandbox of its own: the agent
-    // can not see its process, so the app is told that it is not verified.
-    if !verified_host && !is_flatpak() {
-        return super::reply(&mut accepted, &failure(UNVERIFIED_HOST)).await;
+    if !verified_host {
+        let executable_hidden = endpoint == Endpoint::FlatpakBrowser
+            && accepted.bundled_peer.is_none()
+            && accepted.guard.executable_hidden().await;
+        if !accepts_unverified(endpoint, executable_hidden) {
+            return super::reply(&mut accepted, &failure(UNVERIFIED_HOST)).await;
+        }
     }
     let open = request::Request::BrowserOpen(BrowserOpenRequest {
         // The browser that started the connector. Without it, the caller is
@@ -66,6 +70,21 @@ fn refusal(response: &response::Response) -> Option<Value> {
         response::Response::BrowserOpen(_) => None,
         response::Response::Error(error) => Some(failure(stable_code(&error.code))),
         _ => Some(failure(INVALID_RESPONSE)),
+    }
+}
+
+/// Whether a connector that the agent could not verify may open a stream.
+/// The app is told that it is not verified; the extension's pairing stays
+/// the gate.
+fn accepts_unverified(endpoint: Endpoint, executable_hidden: bool) -> bool {
+    match endpoint {
+        // Inside Flatpak, the connector runs in a sandbox of its own: the
+        // agent can not see its process.
+        Endpoint::Public => is_flatpak(),
+        // The copy in a Flatpak browser's folder. Its process may be in a
+        // PID namespace that the agent can't see into; a copy that the agent
+        // can read must be the bundled connector.
+        Endpoint::FlatpakBrowser => executable_hidden,
     }
 }
 
@@ -212,6 +231,17 @@ mod tests {
         drop(app);
         assert_closed(&mut connector).await;
         relay.await.unwrap();
+    }
+
+    #[test]
+    fn unverified_connectors_need_a_hidden_process_in_a_flatpak_browser() {
+        assert!(accepts_unverified(Endpoint::FlatpakBrowser, true));
+        // Its executable differs from the bundled connector.
+        assert!(!accepts_unverified(Endpoint::FlatpakBrowser, false));
+        // Never on the agent's own socket, unless the agent runs in Flatpak.
+        for hidden in [true, false] {
+            assert_eq!(accepts_unverified(Endpoint::Public, hidden), is_flatpak());
+        }
     }
 
     #[test]

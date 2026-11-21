@@ -21,6 +21,9 @@ serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
 tokio = { workspace = true, features = ["io-std", "io-util", "macros", "rt", "sync", "time"] }
 
+[target.'cfg(target_os = "linux")'.dependencies]
+dirs.workspace = true
+
 [dev-dependencies]
 tempfile.workspace = true
 tokio = { workspace = true, features = ["net", "process", "test-util"] }

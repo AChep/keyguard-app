@@ -54,6 +54,53 @@ pub fn client_socket(explicit: Option<PathBuf>) -> Result<PathBuf> {
     default_socket()
 }
 
+/// A path to a Unix socket that `bind` and `connect` take: Linux takes at
+/// most 107 bytes. A longer path, such as one in a browser's Flatpak folder,
+/// goes through `/proc/self/fd` and a descriptor of its folder, which this
+/// keeps open.
+#[cfg(target_os = "linux")]
+pub struct ShortPath {
+    path: PathBuf,
+    _folder: Option<std::fs::File>,
+}
+
+#[cfg(target_os = "linux")]
+impl ShortPath {
+    /// The bytes of `sun_path`, without its terminating null.
+    const MAX: usize = 107;
+
+    pub fn new(path: &std::path::Path) -> std::io::Result<Self> {
+        let (Some(folder), Some(name)) = (path.parent(), path.file_name()) else {
+            return Ok(Self::unchanged(path));
+        };
+        if path.as_os_str().len() <= Self::MAX {
+            return Ok(Self::unchanged(path));
+        }
+        use std::os::unix::fs::OpenOptionsExt;
+        // Only a folder: a FIFO in its place can't block the open.
+        let folder = std::fs::OpenOptions::new()
+            .read(true)
+            .custom_flags(libc::O_DIRECTORY | libc::O_NOFOLLOW | libc::O_NONBLOCK)
+            .open(folder)?;
+        let path = keyguard_agent_identity::socket_lifecycle::fd_path(&folder).join(name);
+        Ok(Self {
+            path,
+            _folder: Some(folder),
+        })
+    }
+
+    fn unchanged(path: &std::path::Path) -> Self {
+        Self {
+            path: path.to_owned(),
+            _folder: None,
+        }
+    }
+
+    pub fn path(&self) -> &std::path::Path {
+        &self.path
+    }
+}
+
 /// Marks a development build of the desktop app on macOS, next to its
 /// bundled executables. Release builds never bundle it.
 #[cfg(target_os = "macos")]
@@ -103,6 +150,54 @@ fn app_group_socket_for(executable: &std::path::Path, home: &std::path::Path) ->
             .join(group)
             .join("cli/s")
     })
+}
+
+#[cfg(all(test, target_os = "linux"))]
+mod linux_tests {
+    use super::*;
+    use crate::browser::HOST_SOCKET;
+
+    #[tokio::test]
+    async fn long_socket_paths_are_reached_through_their_folder() {
+        let folder = tempfile::tempdir().unwrap();
+        let deep = folder.path().join("a".repeat(60)).join("b".repeat(60));
+        std::fs::create_dir_all(&deep).unwrap();
+        let socket = deep.join(HOST_SOCKET);
+        assert!(socket.as_os_str().len() > ShortPath::MAX);
+        assert!(tokio::net::UnixListener::bind(&socket).is_err());
+
+        let bound = ShortPath::new(&socket).unwrap();
+        assert!(bound.path().starts_with("/proc/self/fd"));
+        let listener = tokio::net::UnixListener::bind(bound.path()).unwrap();
+        // The socket is in the folder, under its full path.
+        use std::os::unix::fs::FileTypeExt;
+        assert!(
+            std::fs::symlink_metadata(&socket)
+                .unwrap()
+                .file_type()
+                .is_socket()
+        );
+        let (client, server) =
+            tokio::join!(crate::transport::connect(&socket, None), listener.accept());
+        client.unwrap();
+        server.unwrap();
+
+        // A short path stays as it is.
+        let short = folder.path().join("s");
+        assert_eq!(ShortPath::new(&short).unwrap().path(), short);
+
+        // Only a folder, not a link to one, nor a FIFO in its place.
+        let link = folder.path().join("l".repeat(60)).join("m".repeat(60));
+        std::fs::create_dir(link.parent().unwrap()).unwrap();
+        std::os::unix::fs::symlink(&deep, &link).unwrap();
+        assert!(ShortPath::new(&link.join(HOST_SOCKET)).is_err());
+        let fifo = folder.path().join("f".repeat(60)).join("g".repeat(60));
+        std::fs::create_dir(fifo.parent().unwrap()).unwrap();
+        let name = std::ffi::CString::new(fifo.as_os_str().as_encoded_bytes()).unwrap();
+        // SAFETY: `name` is a NUL-terminated path that outlives the call.
+        assert_eq!(unsafe { libc::mkfifo(name.as_ptr(), 0o600) }, 0);
+        assert!(ShortPath::new(&fifo.join(HOST_SOCKET)).is_err());
+    }
 }
 
 #[cfg(all(test, target_os = "macos"))]

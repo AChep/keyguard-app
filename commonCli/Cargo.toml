@@ -14,16 +14,19 @@ keyguard-agent-identity.workspace = true
 keyguard-agent-ipc.workspace = true
 serde = { workspace = true, features = ["derive"] }
 serde_json.workspace = true
+sha2.workspace = true
 tokio = { workspace = true, features = ["io-util", "net", "time"] }
 zeroize.workspace = true
 
 [target.'cfg(unix)'.dependencies]
 dirs.workspace = true
 
+[target.'cfg(target_os = "linux")'.dependencies]
+libc.workspace = true
+
 [target.'cfg(windows)'.dependencies]
 hex.workspace = true
-sha2.workspace = true
-windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_System_Threading"] }
+windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_System_Threading"] }
 
 [dev-dependencies]
 tempfile.workspace = true

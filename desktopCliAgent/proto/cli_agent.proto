@@ -242,8 +242,9 @@ message BrowserOpenRequest {
   string origin = 3;
   // Whether the agent verified, as the stream opened, that the peer runs the
   // bundled connector. The relay does not watch the peer afterwards. False
-  // only when the agent runs inside Flatpak, where the connector runs in
-  // another sandbox and its process can not be verified.
+  // only when the connector's process can not be verified: the agent runs
+  // inside Flatpak, where the connector runs in another sandbox, or a copy in
+  // a Flatpak browser's folder runs where the agent can't see it.
   bool verified_host = 4;
   // The revision of the connector, so that the app can ask for an update.
   uint32 host_revision = 5;

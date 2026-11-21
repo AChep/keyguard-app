@@ -52,6 +52,15 @@ pub fn entry_identity(metadata: &fs::Metadata) -> EntryIdentity {
     }
 }
 
+/// A path to the file open as `fd`: its link in /proc leads to the file
+/// itself, wherever it is now. For a folder, the path of a file in it is
+/// this path joined with the file's name.
+#[cfg(any(target_os = "linux", target_os = "android"))]
+#[must_use]
+pub fn fd_path(fd: &impl AsRawFd) -> PathBuf {
+    PathBuf::from(format!("/proc/self/fd/{}", fd.as_raw_fd()))
+}
+
 /// Returns the real user ID of the current process.
 #[must_use]
 pub fn current_uid() -> libc::uid_t {
@@ -668,6 +677,10 @@ impl SocketLifecycle {
     /// Restricts the freshly bound socket at `socket_path` to 0600 and
     /// verifies that its identity did not change while securing it.
     ///
+    /// The mode changes only through an entry that is verified as the bound
+    /// socket and is never a link, so whoever can write the socket's
+    /// directory can not redirect it to another file.
+    ///
     /// # Errors
     ///
     /// Fails when the permissions cannot be applied or the entry was swapped
@@ -678,20 +691,9 @@ impl SocketLifecycle {
         uid: libc::uid_t,
         bound_identity: EntryIdentity,
     ) -> Result<()> {
-        fs::set_permissions(socket_path, fs::Permissions::from_mode(0o600)).with_context(|| {
-            format!(
-                "failed to set permissions on {} socket: {}",
-                self.label,
-                socket_path.display()
-            )
-        })?;
-        let protected_identity = self.owned_socket_identity(socket_path, uid)?;
-        if protected_identity != bound_identity {
-            anyhow::bail!(
-                "{} socket changed while securing it: {}",
-                self.label,
-                socket_path.display()
-            );
+        self.restrict_bound_socket(socket_path, uid, bound_identity)?;
+        if self.owned_socket_identity(socket_path, uid)? != bound_identity {
+            return Err(self.socket_changed(socket_path));
         }
         let socket_mode = fs::symlink_metadata(socket_path)
             .with_context(|| {
@@ -712,6 +714,76 @@ impl SocketLifecycle {
             );
         }
         Ok(())
+    }
+
+    /// Sets mode 0600 on the entry at `socket_path` once it is the socket
+    /// with `bound_identity`. Linux pins the entry with `O_PATH`, without
+    /// following a link, and changes the mode of that inode.
+    #[cfg(any(target_os = "linux", target_os = "android"))]
+    fn restrict_bound_socket(
+        &self,
+        socket_path: &Path,
+        uid: libc::uid_t,
+        bound_identity: EntryIdentity,
+    ) -> Result<()> {
+        let failed = || self.permissions_failed(socket_path);
+        let socket = fs::OpenOptions::new()
+            .read(true)
+            .custom_flags(libc::O_PATH | libc::O_NOFOLLOW)
+            .open(socket_path)
+            .with_context(failed)?;
+        let metadata = socket.metadata().with_context(failed)?;
+        if self.validate_owned_socket_metadata(socket_path, &metadata, uid)? != bound_identity {
+            return Err(self.socket_changed(socket_path));
+        }
+        fs::set_permissions(fd_path(&socket), fs::Permissions::from_mode(0o600))
+            .with_context(failed)
+    }
+
+    /// Sets mode 0600 on the entry at `socket_path` once it is the socket
+    /// with `bound_identity`, without following a link.
+    #[cfg(not(any(target_os = "linux", target_os = "android")))]
+    fn restrict_bound_socket(
+        &self,
+        socket_path: &Path,
+        uid: libc::uid_t,
+        bound_identity: EntryIdentity,
+    ) -> Result<()> {
+        if self.owned_socket_identity(socket_path, uid)? != bound_identity {
+            return Err(self.socket_changed(socket_path));
+        }
+        let path = std::ffi::CString::new(socket_path.as_os_str().as_bytes())?;
+        // SAFETY: `path` is a NUL-terminated string that outlives the call,
+        // and AT_SYMLINK_NOFOLLOW changes a link itself, never its target.
+        let result = unsafe {
+            libc::fchmodat(
+                libc::AT_FDCWD,
+                path.as_ptr(),
+                0o600,
+                libc::AT_SYMLINK_NOFOLLOW,
+            )
+        };
+        if result != 0 {
+            return Err(io::Error::last_os_error())
+                .with_context(|| self.permissions_failed(socket_path));
+        }
+        Ok(())
+    }
+
+    fn socket_changed(&self, socket_path: &Path) -> anyhow::Error {
+        anyhow::anyhow!(
+            "{} socket changed while securing it: {}",
+            self.label,
+            socket_path.display()
+        )
+    }
+
+    fn permissions_failed(&self, socket_path: &Path) -> String {
+        format!(
+            "failed to set permissions on {} socket: {}",
+            self.label,
+            socket_path.display()
+        )
     }
 
     /// Creates a guard that removes the socket at `socket_path` on drop,
@@ -1707,6 +1779,28 @@ mod tests {
 
         assert!(error.to_string().contains("changed while securing it"));
         assert!(socket_path.exists());
+    }
+
+    #[test]
+    fn secure_bound_socket_never_changes_the_target_of_a_swapped_link() {
+        let tmp = tempdir().expect("tempdir");
+        let socket_path = tmp.path().join("agent.sock");
+        let _listener = StdUnixListener::bind(&socket_path).expect("bind socket");
+        let identity = LIFECYCLE
+            .owned_socket_identity(&socket_path, current_uid())
+            .expect("identity");
+        // Whoever can write the directory swaps the socket for a link to
+        // another file of the user.
+        let target = tmp.path().join("profile");
+        fs::write(&target, b"export A=1\n").expect("target");
+        fs::set_permissions(&target, fs::Permissions::from_mode(0o644)).expect("target mode");
+        fs::remove_file(&socket_path).expect("unlink socket");
+        symlink(&target, &socket_path).expect("link");
+
+        assert!(LIFECYCLE
+            .secure_bound_socket(&socket_path, current_uid(), identity)
+            .is_err());
+        assert_eq!(fs::metadata(&target).expect("target").mode() & 0o777, 0o644);
     }
 
     #[test]

@@ -3319,11 +3319,13 @@
     <string name="browser_extension_setup_pair_connected_text">Your browser is connected. Select Pair in the extension.</string>
     <string name="browser_extension_connectors_title">Browser connectors</string>
     <string name="browser_extension_connectors_note">Keyguard installs a connector for each browser it finds. Turn a browser off to remove its connector.</string>
-    <string name="browser_extension_connectors_flatpak_note">Browsers installed as Flatpak or Snap aren’t supported. Inside Flatpak, Keyguard installs a connector for each browser whose native messaging folder it can see.</string>
+    <string name="browser_extension_connectors_flatpak_note">Browsers installed as Snap aren’t supported. Inside Flatpak, Keyguard installs a connector for each browser whose native messaging folder it can see.</string>
     <string name="browser_extension_connector_installed">Installed</string>
     <string name="browser_extension_connector_not_installed">Not installed</string>
     <string name="browser_extension_connector_needs_repair">Needs repair</string>
     <string name="browser_extension_connector_error_host_missing">This copy of Keyguard has no browser connector. Reinstall Keyguard.</string>
+    <!-- Windows doesn't start Keyguard's browser connector through its alias. "App execution aliases" is the name of a page in Windows Settings -->
+    <string name="browser_extension_connector_error_host_alias">Windows doesn’t start Keyguard’s browser connector. In Windows Settings, open App execution aliases and turn on <xliff:g id="alias" example="keyguard-browser-host.exe">%1$s</xliff:g> for Keyguard, then try again.</string>
     <string name="browser_extension_connector_error_browser_absent">Keyguard didn’t find the browser. Open it once, then try again.</string>
     <string name="browser_extension_connector_error_foreign_file">Keyguard didn’t write <xliff:g id="path" example="/home/user/.mozilla/native-messaging-hosts/com.artemchep.keyguard.json">%1$s</xliff:g>, so it left the file alone. Remove the file, then try again.</string>
     <string name="browser_extension_connector_error_unsupported">This build of Keyguard can’t install browser connectors.</string>
@@ -3345,6 +3347,8 @@
     <string name="browser_name_brave" translatable="false">Brave</string>
     <string name="browser_name_vivaldi" translatable="false">Vivaldi</string>
     <string name="browser_name_firefox" translatable="false">Firefox</string>
+    <!-- The Flathub build of a browser, on Linux -->
+    <string name="browser_name_flatpak"><xliff:g id="browser" example="Google Chrome">%1$s</xliff:g> (Flatpak)</string>
     <string name="browser_store_chrome" translatable="false">Chrome Web Store</string>
     <string name="browser_store_edge" translatable="false">Edge Add-ons</string>
     <string name="browser_store_firefox" translatable="false">Firefox Add-ons</string>

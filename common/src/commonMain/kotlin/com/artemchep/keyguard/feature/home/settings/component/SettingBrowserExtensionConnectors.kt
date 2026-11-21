@@ -26,6 +26,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.browser_extension_connector_error_browser_absent
 import com.artemchep.keyguard.res.browser_extension_connector_error_failed
 import com.artemchep.keyguard.res.browser_extension_connector_error_foreign_file
+import com.artemchep.keyguard.res.browser_extension_connector_error_host_alias
 import com.artemchep.keyguard.res.browser_extension_connector_error_host_missing
 import com.artemchep.keyguard.res.browser_extension_connector_error_unsafe_file
 import com.artemchep.keyguard.res.browser_extension_connector_error_unsupported
@@ -40,6 +41,7 @@ import com.artemchep.keyguard.res.browser_name_chrome
 import com.artemchep.keyguard.res.browser_name_chromium
 import com.artemchep.keyguard.res.browser_name_edge
 import com.artemchep.keyguard.res.browser_name_firefox
+import com.artemchep.keyguard.res.browser_name_flatpak
 import com.artemchep.keyguard.res.browser_name_vivaldi
 import com.artemchep.keyguard.res.error_failed_unknown
 import com.artemchep.keyguard.res.retry
@@ -128,7 +130,7 @@ private fun SettingBrowserExtensionConnector(
     connector: BrowserExtensionSettingsState.Connector,
 ) {
     val title = connector.browsers
-        .map { browser -> stringResource(browser.titleRes()) }
+        .map { browser -> browser.title() }
         .joinToString(separator = ", ")
     val statusColor = when (connector.status) {
         ConnectorStatus.INSTALLED -> MaterialTheme.colorScheme.ok
@@ -196,8 +198,9 @@ internal fun SettingBrowserExtensionText(
 internal fun browserConnectorErrorText(
     error: BrowserConnectorError,
 ): String = when (error.kind) {
-    BrowserConnectorError.Kind.HOST_MISSING ->
-        stringResource(Res.string.browser_extension_connector_error_host_missing)
+    BrowserConnectorError.Kind.HOST_MISSING -> error.alias
+        ?.let { alias -> stringResource(Res.string.browser_extension_connector_error_host_alias, alias) }
+        ?: stringResource(Res.string.browser_extension_connector_error_host_missing)
 
     BrowserConnectorError.Kind.BROWSER_ABSENT ->
         stringResource(Res.string.browser_extension_connector_error_browser_absent)
@@ -219,13 +222,39 @@ internal fun browserConnectorErrorText(
         ?: stringResource(Res.string.error_failed_unknown)
 }
 
-internal fun BrowserConnectorBrowser.titleRes(): StringResource = when (this) {
-    BrowserConnectorBrowser.CHROME -> Res.string.browser_name_chrome
-    BrowserConnectorBrowser.CHROMIUM -> Res.string.browser_name_chromium
-    BrowserConnectorBrowser.EDGE -> Res.string.browser_name_edge
-    BrowserConnectorBrowser.BRAVE -> Res.string.browser_name_brave
+/** The browser's name, such as "Google Chrome (Flatpak)" for its Flathub build. */
+@Composable
+internal fun BrowserConnectorBrowser.title(): String {
+    val name = stringResource(nameRes())
+    return if (flatpak) {
+        stringResource(Res.string.browser_name_flatpak, name)
+    } else {
+        name
+    }
+}
+
+private fun BrowserConnectorBrowser.nameRes(): StringResource = when (this) {
+    BrowserConnectorBrowser.CHROME,
+    BrowserConnectorBrowser.CHROME_FLATPAK,
+    -> Res.string.browser_name_chrome
+
+    BrowserConnectorBrowser.CHROMIUM,
+    BrowserConnectorBrowser.CHROMIUM_FLATPAK,
+    -> Res.string.browser_name_chromium
+
+    BrowserConnectorBrowser.EDGE,
+    BrowserConnectorBrowser.EDGE_FLATPAK,
+    -> Res.string.browser_name_edge
+
+    BrowserConnectorBrowser.BRAVE,
+    BrowserConnectorBrowser.BRAVE_FLATPAK,
+    -> Res.string.browser_name_brave
+
     BrowserConnectorBrowser.VIVALDI -> Res.string.browser_name_vivaldi
-    BrowserConnectorBrowser.FIREFOX -> Res.string.browser_name_firefox
+
+    BrowserConnectorBrowser.FIREFOX,
+    BrowserConnectorBrowser.FIREFOX_FLATPAK,
+    -> Res.string.browser_name_firefox
 }
 
 private fun ConnectorStatus.titleRes(): StringResource = when (this) {

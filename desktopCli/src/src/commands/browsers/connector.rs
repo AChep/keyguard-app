@@ -1,18 +1,24 @@
 //! Installs, repairs, reports and removes the manifests that let browsers
 //! start Keyguard's connector.
 use super::{
-    BrowsersError,
+    BrowsersError, alias,
     locations::{Browser, Context, HOST_NAME, Location, Packaging},
     registry::Registry,
 };
 use anyhow::{Context as _, Result, anyhow, ensure};
-use clap::ValueEnum as _;
-use keyguard_agent_setup::{check_safe_path, read_safe_text, write_safe_file};
+use keyguard_agent_setup::{
+    FileLock, check_safe_path, open_safe_file, read_safe_text, read_text_file, wait_for_lock,
+    write_safe_file,
+};
+use keyguard_cli_protocol::executable::Contents;
 use serde::Serialize;
 use serde_json::Value;
 use std::{
+    cell::OnceCell,
     fs,
+    ops::Deref,
     path::{Path, PathBuf},
+    time::Duration,
 };
 
 /// The Chromium extensions that may start the connector: the Chrome Web
@@ -41,11 +47,13 @@ const DESCRIPTION: &str = "Keyguard browser extension connector";
 const WRAPPER_HEADER: &str = "#!/bin/sh\n\
     # Written by Keyguard: starts its browser extension connector in the Flatpak sandbox.\n";
 
-/// Larger files are not manifests that Keyguard wrote.
-const MAX_MANIFEST_SIZE: u64 = 1024 * 1024;
-
 /// The version of the report's format.
 const REPORT_VERSION: u32 = 1;
+
+/// Bounds the wait for another `install` or `uninstall`, which takes a few
+/// seconds at most. The app stops a command after 30 seconds, so this one
+/// fails before that, with an error that the app can show.
+const LOCK_WAIT: Duration = Duration::from_secs(15);
 
 #[derive(Debug, Serialize)]
 pub(crate) struct Report {
@@ -75,26 +83,87 @@ pub(crate) enum State {
     Installed,
     /// The browser was used, but has no manifest.
     Missing,
-    /// The manifest, its key, the wrapper, or the copy of the connector
+    /// The manifest, its key, the wrapper, or a copy of the connector
     /// differs from what `install` writes.
     Stale,
     /// Neither the browser nor a manifest was found.
     BrowserAbsent,
 }
 
+/// A command's [`Context`], plus what the command reads at most once.
+struct Command<'a> {
+    context: &'a Context,
+    /// [`Context::roots`].
+    roots: Vec<PathBuf>,
+    bundled: OnceCell<std::io::Result<Bundled>>,
+}
+
+/// The bundled connector, as [`Command::bundled`] read it.
+struct Bundled {
+    bytes: Vec<u8>,
+    contents: Contents,
+}
+
+impl<'a> Command<'a> {
+    fn new(context: &'a Context) -> Self {
+        Self {
+            context,
+            roots: context.roots(),
+            bundled: OnceCell::new(),
+        }
+    }
+
+    /// The bundled connector, read once a copy of it is compared or written.
+    fn bundled(&self) -> Result<&Bundled> {
+        self.bundled
+            .get_or_init(|| {
+                let bytes = fs::read(&self.bundled_host)?;
+                Ok(Bundled {
+                    contents: Contents::of_bytes(&bytes),
+                    bytes,
+                })
+            })
+            .as_ref()
+            .map_err(|error| anyhow!("{error}"))
+    }
+}
+
+impl Deref for Command<'_> {
+    type Target = Context;
+
+    fn deref(&self) -> &Context {
+        self.context
+    }
+}
+
 /// Reports each browser. With `dev`, a manifest is current only if it allows
 /// the development build; without it, only if it doesn't.
 pub(crate) fn status(context: &Context, registry: &dyn Registry, dev: bool) -> Result<Report> {
-    let browsers = Browser::value_variants()
-        .iter()
-        .copied()
-        .map(|browser| inspect(context, registry, browser, dev))
+    report(&Command::new(context), registry, dev)
+}
+
+/// [`status`], within a command.
+fn report(command: &Command, registry: &dyn Registry, dev: bool) -> Result<Report> {
+    let host_missing = missing_host(command).is_some();
+    let browsers = command
+        .browsers()
+        .into_iter()
+        .map(|browser| inspect(command, registry, browser, dev, host_missing))
         .collect::<Result<_>>()?;
     Ok(Report {
         version: REPORT_VERSION,
-        packaging: context.packaging.id(),
+        packaging: command.packaging.id(),
         browsers,
     })
+}
+
+/// A manifest that `install` writes, with what its file and the Flatpak
+/// build's wrapper next to it hold now.
+struct Write {
+    location: Location,
+    manifest: String,
+    current: Option<String>,
+    wrapper: Option<String>,
 }
 
 /// Writes the manifests of the `selected` browsers, or of every detected
@@ -106,20 +175,20 @@ pub(crate) fn install(
     selected: &[Browser],
     dev: bool,
 ) -> Result<Report> {
-    ensure!(
-        bundled_host_runs(context),
-        BrowsersError::HostMissing {
-            path: context.bundled_host.clone()
-        }
-    );
-    let roots = context.roots();
+    let _lock = lock(context)?;
+    if let Some(error) = missing_host(context) {
+        return Err(error.into());
+    }
+    let command = Command::new(context);
+    let roots = &command.roots;
     let browsers = if selected.is_empty() {
-        Browser::value_variants()
-            .iter()
-            .copied()
+        context
+            .browsers()
+            .into_iter()
             .filter(|&browser| is_detected(&context.location(browser)))
             .collect()
     } else {
+        ensure_of_this_os(context, selected)?;
         for &browser in selected {
             ensure!(
                 is_detected(&context.location(browser)),
@@ -129,42 +198,66 @@ pub(crate) fn install(
         selected.to_vec()
     };
     // Check every file before changing any.
-    let mut writes: Vec<(Location, String)> = Vec::new();
+    let mut writes: Vec<Write> = Vec::new();
     for browser in browsers {
         let location = context.location(browser);
-        if writes.iter().any(|(it, _)| {
-            it.manifest == location.manifest && it.registry_key == location.registry_key
+        if writes.iter().any(|it| {
+            it.location.manifest == location.manifest
+                && it.location.registry_key == location.registry_key
         }) {
             continue;
         }
-        ensure_ours_or_missing(&roots, &location.manifest, is_manifest)?;
-        if matches!(context.packaging, Packaging::Flatpak { .. }) {
-            ensure_ours_or_missing(&roots, &location.wrapper(), is_wrapper)?;
+        let current = ensure_ours_or_missing(roots, &location.manifest, is_manifest)?;
+        let host = context.host_target(&location);
+        let wrapper = if host == location.wrapper() {
+            ensure_ours_or_missing(roots, &host, is_wrapper)?
+        } else {
+            None
+        };
+        if let Some(copy) = &location.host_copy {
+            check_safe_path(roots, copy)?;
+            ensure!(
+                !exists(copy) || owns_copy(&command, current.as_deref(), copy),
+                BrowsersError::ForeignFile { path: copy.clone() }
+            );
         }
-        let manifest = render(browser, &context.host_target(&location), dev)?;
-        writes.push((location, manifest));
+        let manifest = render(browser, &host, dev)?;
+        writes.push(Write {
+            location,
+            manifest,
+            current,
+            wrapper,
+        });
     }
-    if context.packaging == Packaging::AppImage && !writes.is_empty() {
+    // The other browsers' manifests start the AppImage's copy.
+    if context.packaging == Packaging::AppImage
+        && writes.iter().any(|it| it.location.host_copy.is_none())
+    {
         let copy = context
             .host_copy()
             .context("the AppImage runs only on Linux")?;
-        check_safe_path(&roots, &copy)?;
-        if !(same_contents(&copy, &context.bundled_host) && is_executable(&copy)) {
-            let host = fs::read(&context.bundled_host)?;
-            write_safe_file(&roots, &copy, Some(&host), true)?;
-        }
+        copy_host(&command, &copy)?;
     }
-    for (location, manifest) in &writes {
+    for write in &writes {
+        let location = &write.location;
         let path = location.wrapper();
-        // The manifest starts the wrapper, so the wrapper comes first.
-        if let Packaging::Flatpak { app_id } = &context.packaging {
+        let host = context.host_target(location);
+        // The manifest starts the copy or the wrapper, so it comes first.
+        if let Some(copy) = &location.host_copy {
+            copy_host(&command, copy)?;
+        } else if let Packaging::Flatpak { app_id } = &context.packaging {
             let script = wrapper(app_id, &context.bundled_host)?;
-            if !(holds(&path, &script) && is_executable(&path)) {
-                write_safe_file(&roots, &path, Some(script.as_bytes()), true)?;
+            if !(write.wrapper.as_ref() == Some(&script) && is_executable(&path)) {
+                write_safe_file(roots, &path, Some(script.as_bytes()), true)?;
             }
         }
-        if !holds(&location.manifest, manifest) {
-            write_safe_file(&roots, &location.manifest, Some(manifest.as_bytes()), false)?;
+        if write.current.as_ref() != Some(&write.manifest) {
+            write_safe_file(
+                roots,
+                &location.manifest,
+                Some(write.manifest.as_bytes()),
+                false,
+            )?;
         }
         if let Some(key) = &location.registry_key {
             let value = manifest_value(location)?;
@@ -173,74 +266,128 @@ pub(crate) fn install(
             }
         }
         // A wrapper of the Flatpak build, which no manifest starts now.
-        if !matches!(context.packaging, Packaging::Flatpak { .. })
-            && matches!(read(&path), Found::Text(text) if is_wrapper(&text))
-        {
-            remove_unused(&roots, &path);
+        if host != path && matches!(read(&command, &path), Found::Text(text) if is_wrapper(&text)) {
+            remove_unused(roots, &path);
         }
     }
-    prune_host_copy(context);
-    status(context, registry, dev)
+    prune_appimage_copy(&command);
+    report(&command, registry, dev)
 }
 
-/// Removes Keyguard's manifests, wrappers and keys of the `selected`
-/// browsers, or of every browser. Never removes a browser's directories.
-/// Reports like [`status`].
+/// Removes Keyguard's manifests, wrappers, copies of the connector and keys
+/// of the `selected` browsers, or of every browser. Never removes a
+/// browser's directories. Reports like [`status`].
 pub(crate) fn uninstall(
     context: &Context,
     registry: &mut dyn Registry,
     selected: &[Browser],
     dev: bool,
 ) -> Result<Report> {
-    let roots = context.roots();
+    let _lock = lock(context)?;
+    let command = Command::new(context);
+    let roots = &command.roots;
     let browsers = if selected.is_empty() {
-        Browser::value_variants()
+        context.browsers()
     } else {
-        selected
+        ensure_of_this_os(context, selected)?;
+        selected.to_vec()
     };
     // Check every file before removing any.
-    let mut removals: Vec<Location> = Vec::new();
-    for &browser in browsers {
+    let mut removals: Vec<(Location, Option<PathBuf>)> = Vec::new();
+    for browser in browsers {
         let location = context.location(browser);
-        if removals
-            .iter()
-            .any(|it| it.manifest == location.manifest && it.registry_key == location.registry_key)
-        {
+        if removals.iter().any(|(it, _)| {
+            it.manifest == location.manifest && it.registry_key == location.registry_key
+        }) {
             continue;
         }
-        if exists(&location.manifest) {
-            ensure_ours_or_missing(&roots, &location.manifest, is_manifest)?;
-        }
+        let manifest = if exists(&location.manifest) {
+            ensure_ours_or_missing(roots, &location.manifest, is_manifest)?
+        } else {
+            None
+        };
         if exists(&location.wrapper()) {
-            ensure_ours_or_missing(&roots, &location.wrapper(), is_wrapper)?;
+            ensure_ours_or_missing(roots, &location.wrapper(), is_wrapper)?;
         }
-        removals.push(location);
+        // A link, which can do no harm without a manifest, stays. Only the
+        // browsers that this removal covers lose their copies.
+        let copy = location
+            .host_copy
+            .clone()
+            .filter(|copy| exists(copy) && check_safe_path(roots, copy).is_ok());
+        if let Some(copy) = &copy {
+            ensure!(
+                owns_copy(&command, manifest.as_deref(), copy),
+                BrowsersError::ForeignFile { path: copy.clone() }
+            );
+        }
+        removals.push((location, copy));
     }
-    for location in &removals {
+    for (location, copy) in &removals {
         // Without its key, the browser no longer looks at the manifest. A key
         // that reads as missing, such as one without a string value, goes too.
         if let Some(key) = &location.registry_key {
             registry.delete(key)?;
         }
-        for path in [&location.manifest, &location.wrapper()] {
+        // The manifest goes before what it starts.
+        for path in [&location.manifest, &location.wrapper()]
+            .into_iter()
+            .chain(copy)
+        {
             if exists(path) {
-                write_safe_file(&roots, path, None, false)?;
+                write_safe_file(roots, path, None, false)?;
             }
         }
     }
-    prune_host_copy(context);
-    status(context, registry, dev)
+    prune_appimage_copy(&command);
+    report(&command, registry, dev)
+}
+
+/// Waits until no other `install` or `uninstall` runs, such as the app's
+/// and one from a terminal. Without the lock, one could remove a copy of the
+/// connector that the other just wrote, before the other writes the
+/// manifest that starts it. Fails after [`LOCK_WAIT`].
+fn lock(context: &Context) -> Result<FileLock> {
+    wait_for_lock(&context.lock_file(), LOCK_WAIT)?
+        .ok_or_else(|| anyhow!("another `keyguard browsers` command is running; try again"))
+}
+
+/// Fails for a browser that `--browser` names, but that this OS doesn't
+/// have, as `install` does for a browser that it didn't find.
+fn ensure_of_this_os(context: &Context, selected: &[Browser]) -> Result<()> {
+    let browsers = context.browsers();
+    for &browser in selected {
+        ensure!(
+            browsers.contains(&browser),
+            BrowsersError::BrowserAbsent { browser }
+        );
+    }
+    Ok(())
+}
+
+/// Whether Keyguard put the file at a Flatpak browser's `copy` there: its
+/// manifest next to it, which holds `manifest`, starts it, or it is a copy
+/// of the bundled connector. The browser, or the user, may have put another
+/// file with its name there.
+fn owns_copy(command: &Command, manifest: Option<&str>, copy: &Path) -> bool {
+    starts(manifest, copy) || is_copy(command, copy)
+}
+
+/// Whether Keyguard's manifest, which holds `manifest`, starts `path`.
+fn starts(manifest: Option<&str>, path: &Path) -> bool {
+    manifest.is_some_and(|text| manifest_host(text).as_deref() == path.to_str())
 }
 
 fn inspect(
-    context: &Context,
+    command: &Command,
     registry: &dyn Registry,
     browser: Browser,
     dev: bool,
+    host_missing: bool,
 ) -> Result<BrowserStatus> {
-    let location = context.location(browser);
+    let location = command.location(browser);
     let detected = is_detected(&location);
-    let manifest = read(&location.manifest);
+    let manifest = read(command, &location.manifest);
     let key = match &location.registry_key {
         Some(key) => registry.read(key)?,
         None => None,
@@ -255,7 +402,15 @@ fn inspect(
         } else {
             State::BrowserAbsent
         }
-    } else if is_current(context, browser, &location, &manifest, key.as_deref(), dev)? {
+    } else if is_current(
+        command,
+        browser,
+        &location,
+        &manifest,
+        key.as_deref(),
+        dev,
+        host_missing,
+    )? {
         State::Installed
     } else {
         State::Stale
@@ -273,20 +428,22 @@ fn inspect(
     })
 }
 
-/// Whether `install` would change nothing.
+/// Whether `install` would change nothing. `host_missing`: the manifests
+/// can't start the connector.
 fn is_current(
-    context: &Context,
+    command: &Command,
     browser: Browser,
     location: &Location,
     manifest: &Found,
     key: Option<&str>,
     dev: bool,
+    host_missing: bool,
 ) -> Result<bool> {
     let Found::Text(text) = manifest else {
         return Ok(false);
     };
     // Also catches extensions that Keyguard does not allow.
-    let expected = render(browser, &context.host_target(location), dev)?;
+    let expected = render(browser, &command.host_target(location), dev)?;
     if *text != expected {
         return Ok(false);
     }
@@ -294,23 +451,73 @@ fn is_current(
         return Ok(false);
     }
     // `install` refuses to replace an unsafe file, even one with the right
-    // contents.
-    let roots = context.roots();
-    let safe = |path: &Path| check_safe_path(&roots, path).is_ok();
-    if !(bundled_host_runs(context) && safe(&location.manifest)) {
+    // contents. A copy passes the same checks as it opens.
+    let safe = |path: &Path| check_safe_path(&command.roots, path).is_ok();
+    if host_missing || !safe(&location.manifest) {
         return Ok(false);
     }
-    Ok(match &context.packaging {
-        Packaging::Native => true,
+    if let Some(copy) = &location.host_copy {
+        return Ok(is_copy(command, copy));
+    }
+    Ok(match &command.packaging {
+        Packaging::Native | Packaging::Msix { .. } => true,
         Packaging::Flatpak { app_id } => {
             let path = location.wrapper();
-            holds(&path, &wrapper(app_id, &context.bundled_host)?)
+            holds(command, &path, &wrapper(app_id, &command.bundled_host)?)
                 && is_executable(&path)
                 && safe(&path)
         }
-        Packaging::AppImage => context.host_copy().is_some_and(|copy| {
-            same_contents(&copy, &context.bundled_host) && is_executable(&copy) && safe(&copy)
-        }),
+        Packaging::AppImage => command
+            .host_copy()
+            .is_some_and(|copy| is_copy(command, &copy)),
+    })
+}
+
+/// Whether `copy` is an executable copy of the bundled connector. It opens
+/// after the checks of a file to write, without following links.
+fn is_copy(command: &Command, copy: &Path) -> bool {
+    let Ok(Some(file)) = open_safe_file(&command.roots, copy) else {
+        return false;
+    };
+    file.metadata()
+        .is_ok_and(|metadata| metadata.is_file() && mode_is_executable(&metadata))
+        && command
+            .bundled()
+            .is_ok_and(|bundled| bundled.contents.matches(&file))
+}
+
+/// Writes a copy of the bundled connector to `copy`, unless it is one. The
+/// caller checks that a file there is Keyguard's; the write checks the path.
+fn copy_host(command: &Command, copy: &Path) -> Result<()> {
+    if !is_copy(command, copy) {
+        let bundled = command.bundled()?;
+        write_safe_file(&command.roots, copy, Some(&bundled.bytes), true)?;
+    }
+    Ok(())
+}
+
+/// The connector that the manifests can't start, if any: the bundled one,
+/// or the MSIX package's alias of it.
+fn missing_host(context: &Context) -> Option<BrowsersError> {
+    if !bundled_host_runs(context) {
+        return Some(BrowsersError::HostMissing {
+            path: context.bundled_host.clone(),
+            alias: None,
+        });
+    }
+    // Windows creates the alias, but the user can turn it off, and the
+    // package of another build of Keyguard may own it.
+    let Packaging::Msix { family } = &context.packaging else {
+        return None;
+    };
+    let path = context.host_alias()?;
+    let owned = (context.read_alias)(&path)
+        .is_ok_and(|data| alias::is_owned(&data, family.as_deref(), &context.bundled_host));
+    (!owned).then(|| BrowsersError::HostMissing {
+        alias: path
+            .file_name()
+            .map(|name| name.to_string_lossy().into_owned()),
+        path,
     })
 }
 
@@ -401,17 +608,22 @@ fn manifest_host(text: &str) -> Option<String> {
 }
 
 /// Fails unless the file at `path`, after the safety checks of a file to
-/// write, is missing or one that Keyguard wrote.
-fn ensure_ours_or_missing(roots: &[PathBuf], path: &Path, is_ours: fn(&str) -> bool) -> Result<()> {
-    if let Some(text) = read_safe_text(roots, path)? {
+/// write, is missing or one that Keyguard wrote. Returns what it holds.
+fn ensure_ours_or_missing(
+    roots: &[PathBuf],
+    path: &Path,
+    is_ours: fn(&str) -> bool,
+) -> Result<Option<String>> {
+    let text = read_safe_text(roots, path)?;
+    if let Some(text) = &text {
         ensure!(
-            is_ours(&text),
+            is_ours(text),
             BrowsersError::ForeignFile {
                 path: path.to_owned()
             }
         );
     }
-    Ok(())
+    Ok(text)
 }
 
 /// The manifest's path, as its registry key holds it.
@@ -424,25 +636,25 @@ fn manifest_value(location: &Location) -> Result<&str> {
     })
 }
 
-/// Deletes the AppImage's copy of the connector once no manifest starts it.
-fn prune_host_copy(context: &Context) {
+/// Deletes the AppImage's copy of the connector, in Keyguard's own folder,
+/// once no manifest starts it.
+fn prune_appimage_copy(command: &Command) {
     // The sandbox's XDG_DATA_HOME is not the host's.
-    if matches!(context.packaging, Packaging::Flatpak { .. }) {
+    if matches!(command.packaging, Packaging::Flatpak { .. }) {
         return;
     }
-    let Some(copy) = context.host_copy() else {
+    let Some(copy) = command.host_copy() else {
         return;
     };
     if !exists(&copy) {
         return;
     }
-    let used = Browser::value_variants().iter().copied().any(|browser| {
-        let location = context.location(browser);
-        matches!(read(&location.manifest), Found::Text(text)
-            if manifest_host(&text).as_deref() == copy.to_str())
+    let used = command.browsers().into_iter().any(|browser| {
+        matches!(read(command, &command.location(browser).manifest), Found::Text(text)
+            if starts(Some(&text), &copy))
     });
     if !used {
-        remove_unused(&context.roots(), &copy);
+        remove_unused(&command.roots, &copy);
     }
 }
 
@@ -454,7 +666,8 @@ fn remove_unused(roots: &[PathBuf], path: &Path) {
 
 /// A file as `status` sees it. Reports only read, so they follow links, but
 /// a file that `install` would refuse is never current. A broken link is
-/// [`Found::Other`], not [`Found::Missing`]: `install` refuses it too.
+/// [`Found::Other`], not [`Found::Missing`]: `install` refuses it too. In a
+/// Flatpak browser's folder, which the browser can change, they follow none.
 #[derive(Debug, PartialEq, Eq)]
 enum Found {
     Missing,
@@ -463,23 +676,31 @@ enum Found {
     Other,
 }
 
-fn read(path: &Path) -> Found {
+fn read(command: &Command, path: &Path) -> Found {
+    if command.in_flatpak_browser(path) {
+        return match read_safe_text(&command.roots, path) {
+            Ok(None) => Found::Missing,
+            Ok(Some(text)) => Found::Text(text),
+            Err(_) => Found::Other,
+        };
+    }
     if matches!(fs::symlink_metadata(path), Err(error) if error.kind() == std::io::ErrorKind::NotFound)
     {
         return Found::Missing;
     }
     match fs::metadata(path) {
-        Ok(metadata) if metadata.is_file() && metadata.len() <= MAX_MANIFEST_SIZE => fs::read(path)
+        // Only a regular file opens: a FIFO would wait for a writer.
+        Ok(metadata) if metadata.is_file() => fs::File::open(path)
             .ok()
-            .and_then(|bytes| String::from_utf8(bytes).ok())
+            .and_then(|file| read_text_file(file).ok())
             .map_or(Found::Other, Found::Text),
         _ => Found::Other,
     }
 }
 
 /// Whether `path` holds exactly `expected`.
-fn holds(path: &Path, expected: &str) -> bool {
-    matches!(read(path), Found::Text(text) if text == expected)
+fn holds(command: &Command, path: &Path, expected: &str) -> bool {
+    matches!(read(command, path), Found::Text(text) if text == expected)
 }
 
 /// Whether anything, even a broken link, is at `path`.
@@ -487,28 +708,21 @@ fn exists(path: &Path) -> bool {
     fs::symlink_metadata(path).is_ok()
 }
 
-fn same_contents(a: &Path, b: &Path) -> bool {
-    match (fs::metadata(a), fs::metadata(b)) {
-        (Ok(a_metadata), Ok(b_metadata))
-            if a_metadata.is_file() && b_metadata.len() == a_metadata.len() =>
-        {
-            matches!((fs::read(a), fs::read(b)), (Ok(a), Ok(b)) if a == b)
-        }
-        _ => false,
-    }
-}
-
 /// Whether `path` is a file that its owner, group or others may run.
 fn is_executable(path: &Path) -> bool {
+    fs::metadata(path).is_ok_and(|metadata| metadata.is_file() && mode_is_executable(&metadata))
+}
+
+fn mode_is_executable(metadata: &fs::Metadata) -> bool {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        fs::metadata(path)
-            .is_ok_and(|metadata| metadata.is_file() && metadata.permissions().mode() & 0o111 != 0)
+        metadata.permissions().mode() & 0o111 != 0
     }
     #[cfg(not(unix))]
     {
-        path.is_file()
+        let _ = metadata;
+        true
     }
 }
 

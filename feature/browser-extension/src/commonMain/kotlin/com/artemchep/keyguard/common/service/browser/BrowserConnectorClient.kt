@@ -34,14 +34,25 @@ interface BrowserConnectorClient {
     ): BrowserConnectorReport
 }
 
-/** A browser whose manifests the connector installer manages, by its CLI ID. */
-enum class BrowserConnectorBrowser(val id: String) {
+/**
+ * A browser whose manifests the connector installer manages, by its CLI ID.
+ * The Flathub builds, on Linux only, read manifests of their own.
+ */
+enum class BrowserConnectorBrowser(
+    val id: String,
+    val flatpak: Boolean = false,
+) {
     CHROME("chrome"),
     CHROMIUM("chromium"),
     EDGE("edge"),
     BRAVE("brave"),
     VIVALDI("vivaldi"),
     FIREFOX("firefox"),
+    CHROME_FLATPAK("chrome-flatpak", flatpak = true),
+    CHROMIUM_FLATPAK("chromium-flatpak", flatpak = true),
+    EDGE_FLATPAK("edge-flatpak", flatpak = true),
+    BRAVE_FLATPAK("brave-flatpak", flatpak = true),
+    FIREFOX_FLATPAK("firefox-flatpak", flatpak = true),
 }
 
 /** How this build runs, which decides what the manifests start. */
@@ -54,6 +65,9 @@ enum class BrowserConnectorPackaging(val id: String) {
 
     /** A copy of the connector, since each run mounts the AppImage elsewhere. */
     APPIMAGE("appimage"),
+
+    /** The connector's execution alias, since browsers may not start a program inside a package. */
+    MSIX("msix"),
 }
 
 data class BrowserConnectorStatus(
@@ -102,10 +116,16 @@ data class BrowserConnectorError(
     val kind: Kind,
     val path: String? = null,
     val browser: BrowserConnectorBrowser? = null,
+    /**
+     * The file name of the MSIX package's execution alias, when a
+     * [Kind.HOST_MISSING] error's [path] is the alias. The user can turn an
+     * alias off, and the package of another build of Keyguard can own it.
+     */
+    val alias: String? = null,
     val detail: String? = null,
 ) {
     enum class Kind(val code: String) {
-        /** The bundled connector is missing or can't run. */
+        /** The bundled connector, or the MSIX package's alias of it, is missing or can't run. */
         HOST_MISSING("host_missing"),
 
         /** The selected browser was not found. */

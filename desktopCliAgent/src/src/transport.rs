@@ -23,6 +23,16 @@ type Connection = tokio::net::windows::named_pipe::NamedPipeServer;
 /// An accepted connection whose peer is not verified yet.
 pub(crate) struct Incoming(Connection);
 
+/// The socket that a connection came in on.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum Endpoint {
+    /// The agent's socket.
+    Public,
+    /// A socket in a Flatpak browser's folder, next to its copy of the
+    /// connector. It serves only browser streams.
+    FlatpakBrowser,
+}
+
 impl Incoming {
     pub(crate) fn into_stream(self) -> BoxStream {
         Box::new(self.0)
@@ -154,63 +164,13 @@ struct RetainedCaller {
     process: Process,
 }
 
+/// Whether `caller` is the program at `bundled`, or a copy of it. The
+/// bundled file is opened for every check, so that an updated program is
+/// accepted without a restart. Only a copy of the same size is hashed.
 #[cfg(any(test, not(target_os = "macos")))]
-fn sha256_file(file: std::fs::File) -> Option<[u8; 32]> {
-    use sha2::{Digest, Sha256};
-    let mut hasher = Sha256::new();
-    std::io::copy(&mut std::io::BufReader::new(file), &mut hasher).ok()?;
-    Some(hasher.finalize().into())
-}
-
-/// The file that `file` is: equal identities mean the same file.
-#[cfg(all(unix, any(test, not(target_os = "macos"))))]
-fn file_identity(file: &std::fs::File) -> Option<(u64, u64)> {
-    use std::os::unix::fs::MetadataExt;
-    let metadata = file.metadata().ok()?;
-    Some((metadata.dev(), metadata.ino()))
-}
-
-/// The file that `file` is: equal identities mean the same file. ReFS needs
-/// the 128-bit file ID.
-#[cfg(windows)]
-fn file_identity(file: &std::fs::File) -> Option<(u64, [u8; 16])> {
-    use std::os::windows::io::AsRawHandle;
-    use windows_sys::Win32::Storage::FileSystem::{
-        FILE_ID_INFO, FileIdInfo, GetFileInformationByHandleEx,
-    };
-    let mut info = FILE_ID_INFO::default();
-    // SAFETY: file owns a live handle, and info is writable for the stated size.
-    let found = unsafe {
-        GetFileInformationByHandleEx(
-            file.as_raw_handle().cast(),
-            FileIdInfo,
-            std::ptr::from_mut(&mut info).cast(),
-            size_of::<FILE_ID_INFO>() as u32,
-        )
-    } != 0;
-    found.then_some((info.VolumeSerialNumber, info.FileId.Identifier))
-}
-
-/// Whether `caller` is the CLI at `bundled`, or a copy of it. The bundled
-/// file is opened for every check, so that an updated CLI is accepted
-/// without a restart. Only a copy of the same size is hashed.
-#[cfg(any(test, not(target_os = "macos")))]
-fn is_bundled_file(caller: std::fs::File, bundled: &Path) -> bool {
-    let Ok(bundled) = std::fs::File::open(bundled) else {
-        return false;
-    };
-    let (Ok(caller_metadata), Ok(bundled_metadata)) = (caller.metadata(), bundled.metadata())
-    else {
-        return false;
-    };
-    if caller_metadata.len() != bundled_metadata.len() {
-        return false;
-    }
-    let same_file = file_identity(&caller).is_some_and(|id| Some(id) == file_identity(&bundled));
-    same_file || {
-        let digest = sha256_file(caller);
-        digest.is_some() && digest == sha256_file(bundled)
-    }
+fn is_bundled_file(caller: &std::fs::File, bundled: &Path) -> bool {
+    std::fs::File::open(bundled)
+        .is_ok_and(|bundled| keyguard_cli_protocol::executable::same_executable(caller, &bundled))
 }
 
 impl RetainedCaller {
@@ -226,36 +186,39 @@ impl RetainedCaller {
     /// The program bundled next to this agent that the caller runs, if any.
     fn bundled_peer(&self) -> Option<BundledPeer> {
         let agent = std::env::current_exe().ok()?;
-        find_bundled_peer(agent.parent()?, |bundled| self.is_bundled(bundled))
-    }
-
-    /// Whether the caller runs the program at `bundled`.
-    fn is_bundled(&self, bundled: &Path) -> bool {
+        let directory = agent.parent()?;
         #[cfg(target_os = "macos")]
         {
-            let Some(identity) = self.core.macos() else {
-                return false;
-            };
-            keyguard_agent_identity::macos::static_code_directory_hash(bundled)
-                .is_ok_and(|expected| expected == identity.code_directory_hash())
+            let identity = self.core.macos()?;
+            find_bundled_peer(directory, |bundled| {
+                keyguard_agent_identity::macos::static_code_directory_hash(bundled)
+                    .is_ok_and(|expected| expected == identity.code_directory_hash())
+            })
         }
-        #[cfg(target_os = "linux")]
+        #[cfg(not(target_os = "macos"))]
         {
-            use std::os::fd::AsRawFd;
-            let path = match self.core.linux() {
-                Some(identity) => {
-                    format!("/proc/self/fd/{}", identity.executable_fd().as_raw_fd())
-                }
-                None => format!("/proc/{}/exe", self.pid),
-            };
-            std::fs::File::open(path).is_ok_and(|caller| is_bundled_file(caller, bundled))
+            #[cfg(target_os = "linux")]
+            let caller = self.open_executable()?;
+            #[cfg(windows)]
+            let caller = self.process.open_image().ok()?;
+            find_bundled_peer(directory, |bundled| is_bundled_file(&caller, bundled))
         }
-        #[cfg(windows)]
-        {
-            self.process
-                .open_image()
-                .is_ok_and(|caller| is_bundled_file(caller, bundled))
-        }
+    }
+}
+
+#[cfg(target_os = "linux")]
+impl RetainedCaller {
+    /// The executable retained at accept, or the one that the caller's
+    /// process ID runs. `None` when that process is hidden from the agent.
+    fn open_executable(&self) -> Option<std::fs::File> {
+        let path = match self.core.linux() {
+            Some(identity) => {
+                keyguard_agent_identity::socket_lifecycle::fd_path(&identity.executable_fd())
+            }
+            // A process in another PID namespace has the ID 0 here.
+            None => format!("/proc/{}/exe", self.pid).into(),
+        };
+        std::fs::File::open(path).ok()
     }
 }
 
@@ -263,6 +226,21 @@ impl CallerGuard {
     pub(crate) async fn revalidate(&self) -> Result<()> {
         let caller = self.0.clone();
         blocking(move || caller.revalidate()).await?
+    }
+
+    /// Linux: whether the agent can't open the caller's executable, as for a
+    /// process in another PID namespace, such as a browser's Flatpak
+    /// sandbox.
+    pub(crate) async fn executable_hidden(&self) -> bool {
+        #[cfg(target_os = "linux")]
+        {
+            let caller = self.0.clone();
+            blocking(move || caller.open_executable().is_none())
+                .await
+                .unwrap_or(false)
+        }
+        #[cfg(not(target_os = "linux"))]
+        false
     }
 
     /// Resolves once the caller exits or runs other code. A check can
@@ -281,6 +259,9 @@ impl CallerGuard {
 #[cfg(unix)]
 pub(crate) struct Listener {
     listener: tokio::net::UnixListener,
+    /// The socket file that this listener bound.
+    #[cfg(target_os = "linux")]
+    identity: keyguard_agent_identity::socket_lifecycle::EntryIdentity,
     _guard: keyguard_agent_identity::socket_lifecycle::SocketFileGuard,
     _lock: keyguard_agent_identity::socket_lifecycle::SocketLifecycleLock,
 }
@@ -301,6 +282,8 @@ impl Listener {
         lifecycle.secure_bound_socket(path, uid, identity)?;
         Ok(Self {
             listener,
+            #[cfg(target_os = "linux")]
+            identity,
             _guard: guard,
             _lock: lock,
         })
@@ -309,6 +292,25 @@ impl Listener {
     pub async fn accept(&mut self) -> Result<Incoming> {
         let (stream, _) = self.listener.accept().await?;
         Ok(Incoming(stream))
+    }
+}
+
+/// The sockets in Flatpak browsers' folders.
+#[cfg(target_os = "linux")]
+impl Listener {
+    pub fn poll_accept(
+        &self,
+        context: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Result<Incoming>> {
+        self.listener
+            .poll_accept(context)
+            .map(|accepted| Ok(Incoming(accepted?.0)))
+    }
+
+    /// The socket file that this listener bound. Someone else may have
+    /// removed or replaced it since.
+    pub fn identity(&self) -> keyguard_agent_identity::socket_lifecycle::EntryIdentity {
+        self.identity
     }
 }
 
@@ -475,23 +477,23 @@ mod tests {
             }
             std::fs::File::open(path).unwrap()
         };
-        assert!(is_bundled_file(caller("keyguard", None), &bundled));
+        assert!(is_bundled_file(&caller("keyguard", None), &bundled));
         std::fs::hard_link(&bundled, temp.path().join("linked")).unwrap();
-        assert!(is_bundled_file(caller("linked", None), &bundled));
+        assert!(is_bundled_file(&caller("linked", None), &bundled));
         assert!(is_bundled_file(
-            caller("copy", Some(b"bundled cli")),
+            &caller("copy", Some(b"bundled cli")),
             &bundled
         ));
         assert!(!is_bundled_file(
-            caller("same size", Some(b"another cli")),
+            &caller("same size", Some(b"another cli")),
             &bundled
         ));
         assert!(!is_bundled_file(
-            caller("longer", Some(b"bundled cli 2")),
+            &caller("longer", Some(b"bundled cli 2")),
             &bundled
         ));
         assert!(!is_bundled_file(
-            caller("copy", None),
+            &caller("copy", None),
             &temp.path().join("missing")
         ));
     }
@@ -505,7 +507,7 @@ mod tests {
             let caller = temp.path().join(name);
             std::fs::write(&caller, content).unwrap();
             find_bundled_peer(&bundled, |path| {
-                is_bundled_file(std::fs::File::open(&caller).unwrap(), path)
+                is_bundled_file(&std::fs::File::open(&caller).unwrap(), path)
             })
         };
         // Neither program is installed, as in a build without the connector.

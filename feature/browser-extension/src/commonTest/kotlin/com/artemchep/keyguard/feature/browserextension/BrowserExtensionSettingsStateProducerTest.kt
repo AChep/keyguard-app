@@ -15,6 +15,7 @@ import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionSettin
 import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionSettingsState.Status
 import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionStore
 import com.artemchep.keyguard.feature.browserextension.ui.browserExtensionSettingsStateProducer
+import com.artemchep.keyguard.feature.browserextension.ui.store
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -168,6 +169,33 @@ class BrowserExtensionSettingsStateProducerTest {
         assertEquals(ConnectorStatus.INSTALLED, item.status)
         // Every browser of the manifest, found or not.
         assertEquals("chrome,brave,vivaldi", item.id)
+    }
+
+    @Test
+    fun `the Flathub build of a browser has a row of its own`() = runTest {
+        val service = service(removedConnectors = setOf(BrowserConnectorBrowser.FIREFOX_FLATPAK))
+        val connectors = connectors(
+            connectorStatus(BrowserConnectorBrowser.FIREFOX, State.INSTALLED),
+            connectorStatus(
+                BrowserConnectorBrowser.FIREFOX_FLATPAK,
+                State.MISSING,
+                manifest = "/home/user/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts/" +
+                    "com.artemchep.keyguard.json",
+            ),
+        )
+        val state = state(service, connectors)
+        assertEquals(
+            listOf(
+                listOf(BrowserConnectorBrowser.FIREFOX) to ConnectorStatus.INSTALLED,
+                listOf(BrowserConnectorBrowser.FIREFOX_FLATPAK) to ConnectorStatus.NOT_INSTALLED,
+            ),
+            state.value!!.connectors!!.items.map { it.browsers to it.status },
+        )
+        state.value!!.connector(BrowserConnectorBrowser.FIREFOX_FLATPAK).onCheckedChange!!(true)
+        assertEquals(listOf("status", "install firefox-flatpak"), connectors.calls)
+        // It links its browser's store.
+        assertEquals(BrowserExtensionStore.FIREFOX_ADD_ONS, BrowserConnectorBrowser.FIREFOX_FLATPAK.store)
+        assertEquals(BrowserExtensionStore.EDGE_ADD_ONS, BrowserConnectorBrowser.EDGE_FLATPAK.store)
     }
 
     @Test

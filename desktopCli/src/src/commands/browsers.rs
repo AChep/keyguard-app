@@ -7,6 +7,7 @@ use clap::{Args as ClapArgs, Subcommand};
 use serde::Serialize;
 use std::path::PathBuf;
 
+mod alias;
 mod connector;
 mod locations;
 mod registry;
@@ -44,7 +45,8 @@ enum Action {
     )]
     Install {
         /// Only this browser: chrome, chromium, edge, brave, vivaldi or
-        /// firefox. Repeat for more. Defaults to the browsers found.
+        /// firefox, or on Linux their Flathub builds, such as
+        /// chrome-flatpak. Repeat for more. Defaults to the browsers found.
         #[arg(
             long = "browser",
             value_name = "browser",
@@ -61,7 +63,8 @@ enum Action {
     )]
     Uninstall {
         /// Only this browser: chrome, chromium, edge, brave, vivaldi or
-        /// firefox. Repeat for more. Defaults to all of them.
+        /// firefox, or on Linux their Flathub builds, such as
+        /// chrome-flatpak. Repeat for more. Defaults to all of them.
         #[arg(
             long = "browser",
             value_name = "browser",
@@ -77,22 +80,27 @@ enum Action {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(tag = "code", rename_all = "snake_case")]
 pub(crate) enum BrowsersError {
-    /// The connector next to this executable is missing or can't run.
-    HostMissing { path: PathBuf },
+    /// The connector next to this executable, or the MSIX package's alias
+    /// of it, is missing or can't run.
+    HostMissing {
+        path: PathBuf,
+        /// The file name of the alias, when `path` is the alias: Windows
+        /// lists it in its settings of app execution aliases.
+        #[serde(skip_serializing_if = "Option::is_none")]
+        alias: Option<String>,
+    },
     /// `--browser` names a browser that was not found.
     BrowserAbsent { browser: Browser },
     /// Keyguard did not write the file at this path, so it is left alone.
     ForeignFile { path: PathBuf },
-    /// The macOS app sandbox can't reach the browsers' files. Browsers may
-    /// not run a connector inside a Windows package, such as the Microsoft
-    /// Store or MSIX build.
+    /// The macOS app sandbox can't reach the browsers' files.
     Unsupported,
 }
 
 impl std::fmt::Display for BrowsersError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::HostMissing { path } => {
+            Self::HostMissing { path, .. } => {
                 write!(
                     f,
                     "the connector is missing or can't run: {}",
@@ -187,7 +195,7 @@ fn table(report: &Report) -> String {
                 State::BrowserAbsent => String::new(),
                 _ => browser.manifest.display().to_string(),
             };
-            format!("{:<10}{state:<15}{manifest}", browser.browser.id())
+            format!("{:<17}{state:<15}{manifest}", browser.browser.id())
                 .trim_end()
                 .to_owned()
                 + "\n"
@@ -244,6 +252,11 @@ mod tests {
             panic!("expected install");
         };
         assert_eq!(browsers, [Browser::Chrome, Browser::Firefox]);
+        let cli = Cli::parse_from(["browsers", "uninstall", "--browser", "firefox-flatpak"]);
+        let Action::Uninstall { browsers } = cli.args.command else {
+            panic!("expected uninstall");
+        };
+        assert_eq!(browsers, [Browser::FirefoxFlatpak]);
         assert!(Cli::try_parse_from(["browsers", "uninstall", "--browser", "safari"]).is_err());
         // Each install rewrites the allowlist, so no flag adds to it.
         assert!(

@@ -4,7 +4,7 @@ use crate::{
     app_client::AppClient,
     mounts::Mounts,
     protocol::{request, response},
-    transport::Accepted,
+    transport::{Accepted, Endpoint},
 };
 use anyhow::{Context, Result};
 use keyguard_agent_identity::ConnectionPrincipal;
@@ -25,6 +25,7 @@ pub(crate) async fn serve(
     mut accepted: Accepted,
     app: AppClient,
     mounts: Arc<Mutex<Mounts>>,
+    endpoint: Endpoint,
 ) -> Result<()> {
     let connection_id = ConnectionPrincipal::generate()?;
     // Clients send their first request at once. Afterwards an idle MCP client
@@ -37,12 +38,14 @@ pub(crate) async fn serve(
             None => frame.await?,
         };
         let request = match parse_public_frame(&bytes).context("invalid_request")? {
+            ParsedFrame::Frame(PublicFrame::Browser(request)) => {
+                return browser::serve(accepted, app, request, endpoint).await;
+            }
+            // A Flatpak browser's socket serves only its connector.
+            _ if endpoint == Endpoint::FlatpakBrowser => return Ok(()),
             ParsedFrame::Frame(PublicFrame::Manage(request)) => request,
             ParsedFrame::Frame(PublicFrame::Cli(request)) => {
                 return cli::serve(accepted, app, request).await;
-            }
-            ParsedFrame::Frame(PublicFrame::Browser(request)) => {
-                return browser::serve(accepted, app, request).await;
             }
             // A newer client: say so, rather than drop the connection.
             ParsedFrame::Unsupported => {

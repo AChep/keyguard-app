@@ -147,24 +147,25 @@ its manifest. `not found` lines show no path.
 | --- | --- | --- |
 | `installed` | `installed` | The browser starts this copy's connector. |
 | `not installed` | `missing` | The browser was used, but has no manifest. |
-| `needs repair` | `stale` | The manifest, its registry key, the Flatpak wrapper or the AppImage's copy of the connector differs from what `install` writes, or is a file `install` refuses to edit. `--dev` counts: without it, a manifest that allows the development build needs repair. |
+| `needs repair` | `stale` | The manifest, its registry key, the Flatpak wrapper or a copy of the connector differs from what `install` writes, or is a file `install` refuses to edit. `--dev` counts: without it, a manifest that allows the development build needs repair. |
 | `not found` | `browser_absent` | Neither the browser nor a manifest was found. |
 
-With `--json`, the report holds `version`, `packaging` (`native`, `flatpak` or
-`appimage`) and a `browsers` list. Each entry has `browser`, `status`,
+With `--json`, the report holds `version`, `packaging` (`native`, `flatpak`,
+`appimage` or `msix`) and a `browsers` list. Each entry has `browser`, `status`,
 `detected`, `manifest` and `host`, plus `registry_key` on Windows.
 
 On failure, the command exits with `1`. It prints the message to standard
 error, or, with `--json`, an object with `code` and `detail` to standard
-output. The object also has `path` or `browser` when the message names one.
+output. The object also has `path` or `browser` when the message names one,
+and `alias` when `path` is the connector's MSIX alias.
 
 | Code | Message | Fix |
 | --- | --- | --- |
 | `browser_absent` | "`<BROWSER>` was not found; open it once, then try again" | Open the browser once, then run the command again. |
 | `foreign_file` | "`<PATH>` was not written by Keyguard; remove it manually" | Remove the file, then run the command again. |
-| `host_missing` | "the connector is missing or can't run: `<PATH>`" | Run the `keyguard` bundled with the app. If it is, reinstall Keyguard. See [Bundled executable](#bundled-executable). |
+| `host_missing` | "the connector is missing or can't run: `<PATH>`" | Run the `keyguard` bundled with the app. If it is, reinstall Keyguard. See [Bundled executable](#bundled-executable). If `<PATH>` is in `%LOCALAPPDATA%\Microsoft\WindowsApps`, turn on the connector's alias for this Keyguard in Windows' **App execution aliases** settings. |
 | `unsafe_file` | "cannot safely edit `<PATH>`: …" | The file or a folder above it is a link, belongs to another user, or others can write to it. Or the file isn't UTF-8 text. Fix or remove it. |
-| `unsupported` | "this build of Keyguard can't install browser connectors" | The Mac App Store build can't reach the browsers' files. Browsers may not start a connector from the Microsoft Store or MSIX build. Use the DMG or MSI build. |
+| `unsupported` | "this build of Keyguard can't install browser connectors" | The Mac App Store build can't reach the browsers' files. Use the DMG build. |
 | `failed` | Any other message | The message names the cause. |
 
 ## Request log

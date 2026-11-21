@@ -2,8 +2,10 @@
 //! the local `.env` files until the app closes its standard input.
 use crate::{
     app_client::AppClient,
+    flatpak_browsers::FlatpakBrowsers,
     mounts::{Mounts, snapshot, watch_mounts},
-    public, transport,
+    public,
+    transport::{self, Endpoint},
 };
 use anyhow::{Context, Result, ensure};
 use keyguard_agent_ipc::launch::{self, Launch};
@@ -16,6 +18,14 @@ use tokio::{
     sync::{Mutex, OwnedSemaphorePermit, Semaphore},
     task::JoinSet,
 };
+
+/// The connections that the agent serves at once. Each idle MCP client
+/// holds one.
+const CONNECTIONS: usize = 64;
+
+/// The connections of connectors in Flatpak browsers, which have slots of
+/// their own so that they never take those of the CLI.
+const BROWSER_CONNECTIONS: usize = 16;
 
 /// Options passed exclusively by the app's helper lifecycle.
 pub struct Options {
@@ -66,39 +76,48 @@ pub async fn run(options: Options) -> Result<()> {
         return Err(error.into());
     }
     let mut tasks = JoinSet::new();
-    // Each idle MCP client holds a connection.
-    let limit = Arc::new(Semaphore::new(64));
+    let limit = Arc::new(Semaphore::new(CONNECTIONS));
+    let browser_limit = Arc::new(Semaphore::new(BROWSER_CONNECTIONS));
     let refusals = Arc::new(Semaphore::new(4));
     let mut watcher = tokio::spawn(watch_mounts(app.clone(), mounts.clone()));
+    let mut flatpak_browsers = FlatpakBrowsers::start(&options.state_dir);
     let result = loop {
-        tokio::select! {
+        let (incoming, endpoint) = tokio::select! {
             _ = &mut death_rx => break Ok(()),
             _ = termination.recv() => break Ok(()),
             _ = &mut watcher => break Err(anyhow::anyhow!("mount_watcher_failed")),
-            incoming = listener.accept() => {
-                let Ok(incoming) = incoming else {
-                    // A lasting failure, such as running out of descriptors, must not spin.
-                    tokio::time::sleep(Duration::from_millis(100)).await;
-                    continue;
-                };
-                let Ok(permit) = limit.clone().try_acquire_owned() else {
-                    if let Ok(permit) = refusals.clone().try_acquire_owned() {
-                        tasks.spawn(refuse(incoming, permit));
-                    }
-                    continue;
-                };
-                let app = app.clone();
-                let mounts = mounts.clone();
-                tasks.spawn(async move {
-                    let _permit = permit;
-                    if let Ok(accepted) = incoming.identify().await {
-                        let _ = public::serve(accepted, app, mounts).await;
-                    }
-                });
+            incoming = listener.accept() => (incoming, Endpoint::Public),
+            incoming = flatpak_browsers.accept() => (Ok(incoming), Endpoint::FlatpakBrowser),
+            _ = tasks.join_next(), if !tasks.is_empty() => continue,
+        };
+        let Ok(incoming) = incoming else {
+            // A lasting failure, such as running out of descriptors, must not spin.
+            tokio::time::sleep(Duration::from_millis(100)).await;
+            continue;
+        };
+        let slots = match endpoint {
+            Endpoint::Public => &limit,
+            Endpoint::FlatpakBrowser => &browser_limit,
+        };
+        let Ok(permit) = slots.clone().try_acquire_owned() else {
+            // A connector tries again on its own.
+            if endpoint == Endpoint::Public
+                && let Ok(permit) = refusals.clone().try_acquire_owned()
+            {
+                tasks.spawn(refuse(incoming, permit));
             }
-            _ = tasks.join_next(), if !tasks.is_empty() => {},
-        }
+            continue;
+        };
+        let app = app.clone();
+        let mounts = mounts.clone();
+        tasks.spawn(async move {
+            let _permit = permit;
+            if let Ok(accepted) = incoming.identify().await {
+                let _ = public::serve(accepted, app, mounts, endpoint).await;
+            }
+        });
     };
+    flatpak_browsers.stop().await;
     if !watcher.is_finished() {
         watcher.abort();
         let _ = watcher.await;

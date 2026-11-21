@@ -13,6 +13,7 @@ mod bookmark;
 mod broker;
 #[cfg(unix)]
 mod fifo;
+mod flatpak_browsers;
 mod mounts;
 mod protocol;
 mod public;

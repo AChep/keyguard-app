@@ -508,13 +508,18 @@ fn open_peer_executable(pid: u32) -> Result<OwnedFd, LinuxIdentityError> {
     Ok(fd)
 }
 
-fn executable_metadata_from_fd(
-    executable: &OwnedFd,
+/// Metadata of the regular file open as `executable`.
+///
+/// # Errors
+///
+/// Fails when the file can't be inspected or is not a regular file.
+pub fn executable_metadata_from_fd(
+    executable: &impl AsFd,
 ) -> Result<LinuxExecutableMetadata, LinuxIdentityError> {
     let mut stat = MaybeUninit::<libc::stat>::uninit();
     // SAFETY: `stat` is writable storage for one `libc::stat` and is assumed
     // initialized only after successful fstat on the retained descriptor.
-    let result = unsafe { libc::fstat(executable.as_raw_fd(), stat.as_mut_ptr()) };
+    let result = unsafe { libc::fstat(executable.as_fd().as_raw_fd(), stat.as_mut_ptr()) };
     if result != 0 {
         return Err(LinuxIdentityError::Kernel(io::Error::last_os_error()));
     }

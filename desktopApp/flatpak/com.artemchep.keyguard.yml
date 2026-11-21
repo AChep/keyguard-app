@@ -22,6 +22,13 @@ finish-args:
   - --filesystem=xdg-config/BraveSoftware/Brave-Browser/NativeMessagingHosts
   - --filesystem=xdg-config/vivaldi/NativeMessagingHosts
   - --filesystem=~/.mozilla/native-messaging-hosts
+  # The same folders of the browsers from Flathub. Keyguard copies its connector
+  # there and its CLI agent listens next to it: their sandboxes see nothing else.
+  - --filesystem=~/.var/app/com.google.Chrome/config/google-chrome/NativeMessagingHosts
+  - --filesystem=~/.var/app/org.chromium.Chromium/config/chromium/NativeMessagingHosts
+  - --filesystem=~/.var/app/com.microsoft.Edge/config/microsoft-edge/NativeMessagingHosts
+  - --filesystem=~/.var/app/com.brave.Browser/config/BraveSoftware/Brave-Browser/NativeMessagingHosts
+  - --filesystem=~/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts
   - --talk-name=org.kde.StatusNotifierWatcher
   - --system-talk-name=org.freedesktop.PolicyKit1
   # glibc gives the threads that allocate at the same time a malloc arena each,

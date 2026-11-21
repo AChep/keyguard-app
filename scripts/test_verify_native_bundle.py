@@ -34,6 +34,24 @@ class MsixPasskeyProviderTest(unittest.TestCase):
                 verify.inspect_msix_passkey_provider(root)
 
 
+class MsixBrowserHostAliasTest(unittest.TestCase):
+    def test_requires_an_alias_of_the_bundled_connector(self):
+        template = (verify.REPOSITORY / "desktopApp/msix/AppxManifest.xml").read_text(encoding="utf-8")
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "AppxManifest.xml").write_text(template, encoding="utf-8")
+            with self.assertRaisesRegex(verify.InspectionError, "does not start a bundled"):
+                verify.inspect_msix_browser_host_alias(root)
+            host = root / "app/resources/keyguard-browser-host.exe"
+            host.parent.mkdir(parents=True)
+            host.touch()
+            verify.inspect_msix_browser_host_alias(root)
+            (root / "AppxManifest.xml").write_text(
+                template.replace('Alias="keyguard-browser-host.exe"', 'Alias="keyguard.exe"'), encoding="utf-8")
+            with self.assertRaisesRegex(verify.InspectionError, "expected one"):
+                verify.inspect_msix_browser_host_alias(root)
+
+
 def elf(abi: str = "arm64-v8a", exports: frozenset[str] = frozenset(), alignment: int = 16384) -> bytes:
     elf_class, machine = android.ABI_ELF[abi]
     strings = b"\0" + b"".join(symbol.encode() + b"\0" for symbol in sorted(exports))

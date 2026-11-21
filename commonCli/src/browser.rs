@@ -5,10 +5,75 @@
 //! directions, until either side closes it.
 use anyhow::{Result, ensure};
 use serde::{Deserialize, Serialize};
+use std::path::{Path, PathBuf};
 
 /// The connector's executable, without the `.exe` of Windows. It is
 /// bundled next to the CLI agent.
 pub const HOST_EXECUTABLE: &str = "keyguard-browser-host";
+
+/// The CLI agent's socket next to a copy of the connector. A browser's
+/// Flatpak sandbox sees only the browser's own folder, so the agent listens
+/// next to the copy there.
+pub const HOST_SOCKET: &str = "keyguard-browser-host.sock";
+
+/// A browser of Flathub. Its sandbox sees only its own folder,
+/// `~/.var/app/<app ID>`, of the user's files.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct FlatpakBrowser {
+    pub app_id: &'static str,
+    /// Where in that folder it reads the manifests of native messaging hosts.
+    pub manifests: &'static [&'static str],
+}
+
+impl FlatpakBrowser {
+    /// The browser's folder, which Flatpak creates on its first run.
+    pub fn folder(&self, home: &Path) -> PathBuf {
+        home.join(".var").join("app").join(self.app_id)
+    }
+
+    /// The folder of its manifests. It also holds the copy of the connector
+    /// and [`HOST_SOCKET`].
+    pub fn manifests(&self, home: &Path) -> PathBuf {
+        self.manifests
+            .iter()
+            .fold(self.folder(home), |path, part| path.join(part))
+    }
+}
+
+/// The browsers of Flathub. Chromium browsers read manifests from their
+/// folder in `XDG_CONFIG_HOME`, which Flatpak sets to `config`; Firefox from
+/// `~/.mozilla`, which its Flatpak keeps in `.mozilla`.
+pub mod flatpak {
+    use super::FlatpakBrowser;
+
+    pub const CHROME: FlatpakBrowser = FlatpakBrowser {
+        app_id: "com.google.Chrome",
+        manifests: &["config", "google-chrome", "NativeMessagingHosts"],
+    };
+    pub const CHROMIUM: FlatpakBrowser = FlatpakBrowser {
+        app_id: "org.chromium.Chromium",
+        manifests: &["config", "chromium", "NativeMessagingHosts"],
+    };
+    pub const EDGE: FlatpakBrowser = FlatpakBrowser {
+        app_id: "com.microsoft.Edge",
+        manifests: &["config", "microsoft-edge", "NativeMessagingHosts"],
+    };
+    pub const BRAVE: FlatpakBrowser = FlatpakBrowser {
+        app_id: "com.brave.Browser",
+        manifests: &[
+            "config",
+            "BraveSoftware",
+            "Brave-Browser",
+            "NativeMessagingHosts",
+        ],
+    };
+    pub const FIREFOX: FlatpakBrowser = FlatpakBrowser {
+        app_id: "org.mozilla.firefox",
+        manifests: &[".mozilla", "native-messaging-hosts"],
+    };
+
+    pub const ALL: [FlatpakBrowser; 5] = [CHROME, CHROMIUM, EDGE, BRAVE, FIREFOX];
+}
 
 /// Bounds the ID of a Firefox extension, in bytes.
 const MAX_FIREFOX_EXTENSION_ID: usize = 255;
@@ -117,6 +182,29 @@ mod tests {
         assert!(is_chromium_origin(CHROME) && !is_firefox_extension_id(CHROME));
         let firefox = "keyguard@artemchep.com";
         assert!(is_firefox_extension_id(firefox) && !is_chromium_origin(firefox));
+    }
+
+    #[test]
+    fn flatpak_browsers_read_manifests_in_their_own_folder() {
+        let home = Path::new("/home/me");
+        let folders: Vec<PathBuf> = flatpak::ALL
+            .iter()
+            .map(|browser| browser.manifests(home))
+            .collect();
+        assert_eq!(
+            folders,
+            [
+                "/home/me/.var/app/com.google.Chrome/config/google-chrome/NativeMessagingHosts",
+                "/home/me/.var/app/org.chromium.Chromium/config/chromium/NativeMessagingHosts",
+                "/home/me/.var/app/com.microsoft.Edge/config/microsoft-edge/NativeMessagingHosts",
+                "/home/me/.var/app/com.brave.Browser/config/BraveSoftware/Brave-Browser/NativeMessagingHosts",
+                "/home/me/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts",
+            ]
+            .map(PathBuf::from)
+        );
+        for browser in flatpak::ALL {
+            assert!(browser.manifests(home).starts_with(browser.folder(home)));
+        }
     }
 
     #[test]

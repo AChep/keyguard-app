@@ -35,7 +35,7 @@ keyguard-agent-proto-adapter.workspace = true
 libc.workspace = true
 
 [target.'cfg(windows)'.dependencies]
-windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_Storage_FileSystem", "Win32_System_Pipes"] }
+windows-sys = { workspace = true, features = ["Win32_Foundation", "Win32_System_Pipes"] }
 
 [build-dependencies]
 prost-build.workspace = true

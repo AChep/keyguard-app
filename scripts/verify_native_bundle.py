@@ -193,6 +193,7 @@ def inspect_desktop(root: Path, target_platform: str, arch: str) -> None:
         inspect_windows_runtime(root, arch)
         if (root / "AppxManifest.xml").is_file():
             inspect_msix_passkey_provider(root)
+            inspect_msix_browser_host_alias(root)
     resources = find_resources(root, target_platform)
     suffix = LIBRARY_SUFFIX[target_platform]
     modules = WINDOWS_DESKTOP_MODULES if target_platform == "windows" else DESKTOP_MODULES
@@ -251,6 +252,30 @@ def inspect_msix_passkey_provider(root: Path) -> None:
     except (OSError, ValueError, KeyError, TypeError, ET.ParseError) as error:
         raise InspectionError(f"{root}: invalid MSIX passkey provider: {error}") from error
     print(f"OK {root} (passkey COM activation and identity)")
+
+
+def inspect_msix_browser_host_alias(root: Path) -> None:
+    """Browsers start the packaged browser connector only through its execution alias."""
+    try:
+        manifest = ET.parse(root / "AppxManifest.xml")
+        uap3 = "http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+        desktop = "http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+        aliases = [
+            (extension.get("Executable", ""), alias.get("Alias"))
+            for extension in manifest.findall(f".//{{{uap3}}}Extension")
+            if extension.get("Category") == "windows.appExecutionAlias"
+            for alias in extension.findall(f".//{{{desktop}}}ExecutionAlias")
+        ]
+        name = "keyguard-browser-host.exe"
+        executables = [executable for executable, alias in aliases if alias == name]
+        if len(executables) != 1:
+            raise ValueError(f"expected one {name} alias")
+        executable = root.joinpath(*executables[0].split("\\"))
+        if executable.name != name or not executable.is_file():
+            raise ValueError(f"the alias does not start a bundled {name}: {executables[0]}")
+    except (OSError, ValueError, ET.ParseError) as error:
+        raise InspectionError(f"{root}: invalid MSIX browser connector alias: {error}") from error
+    print(f"OK {root} (browser connector execution alias)")
 
 
 def inspect_android(paths: Sequence[Path], expected_abis: Sequence[str], split_package: bool = False,

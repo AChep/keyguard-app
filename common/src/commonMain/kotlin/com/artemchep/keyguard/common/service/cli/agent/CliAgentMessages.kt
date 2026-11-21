@@ -422,7 +422,9 @@ object CliAgentMessages {
         /**
          * Whether the agent verified, as the stream opened, that the peer runs
          * the bundled connector. The relay does not watch the peer afterwards.
-         * `false` only when the agent runs inside Flatpak.
+         * `false` only when the agent can't see the connector's process: the
+         * agent runs inside Flatpak, or a Flatpak browser's copy runs in a
+         * sandbox hidden from it.
          */
         @ProtoNumber(4)
         val verifiedHost: Boolean = false,

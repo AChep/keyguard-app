@@ -173,7 +173,7 @@ private fun SettingBrowserExtensionSetupConnectorText(
 ) = when (connector) {
     is SetupConnector.Installed -> {
         val browsers = connector.browsers
-            .map { browser -> stringResource(browser.titleRes()) }
+            .map { browser -> browser.title() }
             .joinToString(separator = ", ")
         Text(stringResource(Res.string.browser_extension_setup_connector_installed, browsers))
     }

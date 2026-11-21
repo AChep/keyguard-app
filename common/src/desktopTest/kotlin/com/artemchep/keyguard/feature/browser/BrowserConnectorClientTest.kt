@@ -97,6 +97,34 @@ class BrowserConnectorClientTest {
     }
 
     @Test
+    fun readsEachPackaging() {
+        mapOf(
+            "native" to BrowserConnectorPackaging.NATIVE,
+            "flatpak" to BrowserConnectorPackaging.FLATPAK,
+            "appimage" to BrowserConnectorPackaging.APPIMAGE,
+            "msix" to BrowserConnectorPackaging.MSIX,
+        ).forEach { (id, packaging) ->
+            val raw = report.replace("\"packaging\": \"flatpak\"", "\"packaging\": \"$id\"")
+            assertEquals(packaging, parseBrowserConnectorReport(raw).packaging)
+        }
+    }
+
+    @Test
+    fun readsEachBrowserIncludingTheFlathubBuilds() {
+        val ids = listOf(
+            "chrome", "chromium", "edge", "brave", "vivaldi", "firefox",
+            "chrome-flatpak", "chromium-flatpak", "edge-flatpak",
+            "brave-flatpak", "firefox-flatpak",
+        )
+        assertEquals(ids, BrowserConnectorBrowser.entries.map { it.id })
+        BrowserConnectorBrowser.entries.forEach { browser ->
+            val raw = report.replace("\"browser\": \"chrome\"", "\"browser\": \"${browser.id}\"")
+            assertEquals(browser, parseBrowserConnectorReport(raw).browsers.first().browser)
+            assertEquals(browser.id.endsWith("-flatpak"), browser.flatpak)
+        }
+    }
+
+    @Test
     fun skipsTheOutputAroundTheReport() {
         // The output has the standard error too, before and after the report.
         assertEquals(
@@ -169,6 +197,21 @@ class BrowserConnectorClientTest {
                 parseBrowserConnectorError(raw),
             )
         }
+    }
+
+    @Test
+    fun aMissingHostAtTheMsixAliasNamesTheAlias() {
+        val alias = parseBrowserConnectorError(
+            """{"code":"host_missing","path":"C:\\Users\\user\\AppData\\Local\\Microsoft\\""" +
+                """WindowsApps\\keyguard-browser-host.exe","alias":"keyguard-browser-host.exe"}""",
+        )
+        assertEquals(BrowserConnectorError.Kind.HOST_MISSING, alias.kind)
+        assertEquals("keyguard-browser-host.exe", alias.alias)
+        // The bundled connector.
+        val bundled = parseBrowserConnectorError(
+            """{"code":"host_missing","path":"C:\\Program Files\\Keyguard\\keyguard-browser-host.exe"}""",
+        )
+        assertEquals(null, bundled.alias)
     }
 
     @Test

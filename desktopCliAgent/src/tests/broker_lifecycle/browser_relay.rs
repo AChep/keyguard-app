@@ -52,6 +52,21 @@ fn browser_host_fixture() {
     ) else {
         return;
     };
+    // As a process in another PID namespace is to the agent.
+    #[cfg(target_os = "linux")]
+    if std::env::var_os("KEYGUARD_BROWSER_TEST_HIDDEN").is_some() {
+        // SAFETY: PR_SET_DUMPABLE takes a plain integer and changes only
+        // who may inspect this process.
+        assert_eq!(unsafe { libc::prctl(libc::PR_SET_DUMPABLE, 0) }, 0);
+    }
+    // The agent's socket in a browser's folder may have a long path, as the
+    // connector reaches it.
+    #[cfg(target_os = "linux")]
+    let agent = {
+        let address = keyguard_cli_protocol::socket::ShortPath::new(Path::new(&agent)).unwrap();
+        UnixStream::connect(address.path()).unwrap()
+    };
+    #[cfg(not(target_os = "linux"))]
     let agent = UnixStream::connect(agent).unwrap();
     let test = UnixStream::connect(test).unwrap();
     let copy = |mut from: UnixStream, mut to: UnixStream| {
@@ -77,13 +92,23 @@ struct Bundle {
 
 impl Bundle {
     async fn new() -> Self {
+        Self::with_host(None).await
+    }
+
+    /// A bundle whose connector holds `contents`, or else is a copy of this
+    /// test harness.
+    async fn with_host(contents: Option<&[u8]>) -> Self {
         let app = App::new().await;
         let directory = app.directory.path().join("bundle");
         std::fs::create_dir(&directory).unwrap();
         let agent = directory.join("keyguard-cli-agent");
         std::fs::copy(env!("CARGO_BIN_EXE_keyguard-cli-agent"), &agent).unwrap();
         let host = directory.join("keyguard-browser-host");
-        std::fs::copy(std::env::current_exe().unwrap(), &host).unwrap();
+        if let Some(contents) = contents {
+            std::fs::write(&host, contents).unwrap();
+        } else {
+            std::fs::copy(std::env::current_exe().unwrap(), &host).unwrap();
+        }
         let relay_path = app.directory.path().join("r");
         let relay = UnixListener::bind(&relay_path).unwrap();
         Self {
@@ -97,9 +122,19 @@ impl Bundle {
 
     /// Starts the connector, and returns the test's end of it.
     async fn connect(&self) -> (UnixStream, Child) {
-        let host = Command::new(&self.host)
+        self.connect_with(&self.host, &self.app.public, false).await
+    }
+
+    /// Starts `host` as the connector of a browser, connected to `socket`.
+    /// With `hidden`, the agent can't open the connector's executable.
+    async fn connect_with(&self, host: &Path, socket: &Path, hidden: bool) -> (UnixStream, Child) {
+        let mut command = Command::new(host);
+        if hidden {
+            command.env("KEYGUARD_BROWSER_TEST_HIDDEN", "1");
+        }
+        let host = command
             .args(["--exact", "browser_relay::browser_host_fixture"])
-            .env("KEYGUARD_BROWSER_TEST_AGENT", &self.app.public)
+            .env("KEYGUARD_BROWSER_TEST_AGENT", socket)
             .env("KEYGUARD_BROWSER_TEST_RELAY", &self.relay_path)
             .stdin(Stdio::null())
             .stdout(Stdio::null())
@@ -114,14 +149,200 @@ impl Bundle {
     /// Starts the connector, and opens the stream of the extension.
     async fn open(&self) -> (UnixStream, Child) {
         let (mut stream, host) = self.connect().await;
-        write_json(
-            &mut stream,
-            json!({"type":"browser","origin":ORIGIN,"hostRevision":1}),
-        )
-        .await;
-        assert_eq!(timeout(read_json(&mut stream)).await, json!({"ok":true}));
+        open_stream(&mut stream).await;
+        assert_eq!(self.app.verified_hosts.lock().unwrap().last(), Some(&true));
         (stream, host)
     }
+}
+
+/// Asks for the stream of the extension, as the connector does.
+async fn request_browser(stream: &mut UnixStream) {
+    write_json(
+        stream,
+        json!({"type":"browser","origin":ORIGIN,"hostRevision":1}),
+    )
+    .await;
+}
+
+/// Opens the stream of the extension through a started connector.
+async fn open_stream(stream: &mut UnixStream) {
+    request_browser(stream).await;
+    assert_eq!(timeout(read_json(stream)).await, json!({"ok":true}));
+}
+
+/// Chrome's Flathub build in the agent's home: the folder where `keyguard
+/// browsers install` puts a copy of the connector, and the agent's socket
+/// next to it.
+#[cfg(target_os = "linux")]
+fn flatpak_chrome(app: &App) -> (PathBuf, PathBuf) {
+    use keyguard_cli_protocol::browser::{HOST_SOCKET, flatpak};
+    let folder = flatpak::CHROME.manifests(&app.home());
+    let socket = folder.join(HOST_SOCKET);
+    (folder, socket)
+}
+
+/// Waits until a socket is at `path`, or until none is.
+#[cfg(target_os = "linux")]
+async fn wait_for_socket(path: &Path, present: bool) {
+    use std::os::unix::fs::FileTypeExt;
+    timeout(async {
+        while std::fs::symlink_metadata(path).is_ok_and(|it| it.file_type().is_socket()) != present
+        {
+            tokio::time::sleep(Duration::from_millis(50)).await;
+        }
+    })
+    .await;
+}
+
+#[cfg(target_os = "linux")]
+#[tokio::test]
+async fn a_copy_in_a_flatpak_browser_streams_through_its_socket() {
+    let bundle = Bundle::new().await;
+    let mut agent = bundle.app.launch_agent(&bundle.agent).await;
+    // `keyguard browsers install` leaves a copy while the agent runs.
+    let (folder, socket) = flatpak_chrome(&bundle.app);
+    std::fs::create_dir_all(&folder).unwrap();
+    let copy = folder.join("keyguard-browser-host");
+    std::fs::copy(&bundle.host, &copy).unwrap();
+    wait_for_socket(&socket, true).await;
+    let mode = std::fs::metadata(&socket).unwrap().permissions().mode();
+    assert_eq!(mode & 0o777, 0o600);
+
+    // The agent reads the copy, which is the bundled connector.
+    let (mut stream, _host) = bundle.connect_with(&copy, &socket, false).await;
+    open_stream(&mut stream).await;
+    assert_eq!(*bundle.app.verified_hosts.lock().unwrap(), [true]);
+    assert_eq!(
+        timeout(read_frame(&mut stream)).await.unwrap(),
+        ORIGIN.as_bytes()
+    );
+    write_frame(&mut stream, b"frame").await;
+    assert_eq!(timeout(read_frame(&mut stream)).await.unwrap(), b"frame");
+    drop(stream);
+    timeout(bundle.app.canceled.notified()).await;
+
+    // A connector whose process the agent can't see, as from another PID
+    // namespace, is passed on unverified.
+    let (mut stream, _host) = bundle.connect_with(&copy, &socket, true).await;
+    open_stream(&mut stream).await;
+    assert_eq!(*bundle.app.verified_hosts.lock().unwrap(), [true, false]);
+    drop(stream);
+    timeout(bundle.app.canceled.notified()).await;
+
+    // Never on the agent's own socket.
+    let (mut stream, _host) = bundle
+        .connect_with(&bundle.host, &bundle.app.public, true)
+        .await;
+    request_browser(&mut stream).await;
+    assert_eq!(
+        timeout(read_json(&mut stream)).await,
+        json!({"ok":false,"error":"unverified_host"})
+    );
+
+    // `keyguard browsers uninstall` removes the copy.
+    std::fs::remove_file(&copy).unwrap();
+    wait_for_socket(&socket, false).await;
+    drop(agent.stdin.take());
+    assert!(timeout(agent.wait()).await.unwrap().success());
+}
+
+/// Connects to the agent's socket in a browser's folder, which may have a
+/// long path.
+#[cfg(target_os = "linux")]
+async fn connect_long(socket: &Path) -> UnixStream {
+    let address = keyguard_cli_protocol::socket::ShortPath::new(socket).unwrap();
+    UnixStream::connect(address.path()).await.unwrap()
+}
+
+/// An agent, bundled with a connector that is not this test, that listens
+/// in Chrome's Flathub folder, next to a copy of its connector that is there
+/// when it starts.
+#[cfg(target_os = "linux")]
+async fn flatpak_chrome_agent() -> (Bundle, Child, PathBuf) {
+    let bundle = Bundle::with_host(Some(b"connector")).await;
+    let (folder, socket) = flatpak_chrome(&bundle.app);
+    std::fs::create_dir_all(&folder).unwrap();
+    std::fs::write(folder.join("keyguard-browser-host"), b"connector").unwrap();
+    let agent = bundle.app.launch_agent(&bundle.agent).await;
+    wait_for_socket(&socket, true).await;
+    (bundle, agent, socket)
+}
+
+#[cfg(target_os = "linux")]
+#[tokio::test]
+async fn a_flatpak_browser_socket_serves_only_the_bundled_connector() {
+    let (bundle, mut agent, socket) = flatpak_chrome_agent().await;
+    let app = &bundle.app;
+
+    // This test is not the connector, and the agent can read its executable.
+    let mut stream = connect_long(&socket).await;
+    request_browser(&mut stream).await;
+    assert_eq!(
+        timeout(read_json(&mut stream)).await,
+        json!({"ok":false,"error":"unverified_host"})
+    );
+    // Other frames are not answered there, and never reach the app.
+    let authenticate = json!({"type":"manage","tool":"authenticate","arguments":{}});
+    for frame in [
+        authenticate.clone(),
+        json!({"type":"cli","command":"run","request":{"environment":"env","command":["env"],"workingDirectory":"/"}}),
+    ] {
+        let mut stream = connect_long(&socket).await;
+        write_json(&mut stream, frame).await;
+        assert!(timeout(stream.read_u8()).await.is_err());
+    }
+    assert!(app.verified_hosts.lock().unwrap().is_empty());
+    assert!(app.manages.lock().unwrap().is_empty());
+    // The same request is a valid one on the agent's own socket.
+    let mut stream = UnixStream::connect(&app.public).await.unwrap();
+    write_json(&mut stream, authenticate).await;
+    assert_eq!(
+        timeout(read_json(&mut stream)).await["result"]["accounts"][0]["id"],
+        "account"
+    );
+    assert_eq!(*app.manages.lock().unwrap(), ["authenticate"]);
+
+    // The agent removes its socket when it stops.
+    drop(agent.stdin.take());
+    assert!(timeout(agent.wait()).await.unwrap().success());
+    assert!(!socket.exists());
+}
+
+#[cfg(target_os = "linux")]
+#[tokio::test]
+async fn flatpak_browser_connections_never_take_the_slots_of_the_cli() {
+    let (bundle, mut agent, socket) = flatpak_chrome_agent().await;
+    let app = &bundle.app;
+    // As many idle connections as the agent serves at once: it keeps 16 of
+    // them, for up to 30 seconds each, and closes the rest.
+    let mut idle = tokio::task::JoinSet::new();
+    let mut held = Vec::new();
+    for _ in 0..64 {
+        let stream = connect_long(&socket).await;
+        let (mut reader, writer) = stream.into_split();
+        held.push(writer);
+        idle.spawn(async move { reader.read_u8().await.is_err() });
+    }
+    timeout(async {
+        for _ in 0..64 - 16 {
+            assert!(idle.join_next().await.unwrap().unwrap());
+        }
+    })
+    .await;
+
+    let mut stream = UnixStream::connect(&app.public).await.unwrap();
+    write_json(
+        &mut stream,
+        json!({"type":"manage","tool":"authenticate","arguments":{}}),
+    )
+    .await;
+    assert_eq!(
+        timeout(read_json(&mut stream)).await["result"]["accounts"][0]["id"],
+        "account"
+    );
+    drop(held);
+    drop(agent.stdin.take());
+    assert!(timeout(agent.wait()).await.unwrap().success());
 }
 
 #[tokio::test]
@@ -215,11 +436,7 @@ async fn only_the_bundled_connector_opens_a_stream() {
     let mut agent = app.launch().await;
     // This test is not the connector.
     let mut stream = UnixStream::connect(&app.public).await.unwrap();
-    write_json(
-        &mut stream,
-        json!({"type":"browser","origin":ORIGIN,"hostRevision":1}),
-    )
-    .await;
+    request_browser(&mut stream).await;
     assert_eq!(
         timeout(read_json(&mut stream)).await,
         json!({"ok":false,"error":"unverified_host"})

@@ -2,12 +2,12 @@
 //! how this build of Keyguard is packaged.
 //!
 //! Sources: the browsers' native messaging docs, Chromium's
-//! `launch_context_win.cc`, Brave's `brave_main_delegate.cc`, and KeePassXC's
-//! `NativeMessageInstaller.cpp`.
+//! `launch_context_win.cc`, Brave's `brave_main_delegate.cc`, KeePassXC's
+//! `NativeMessageInstaller.cpp`, and the browsers' Flathub manifests.
 use super::BrowsersError;
 use anyhow::{Context as _, Result, anyhow, ensure};
 use clap::ValueEnum as _;
-use keyguard_cli_protocol::browser::HOST_EXECUTABLE;
+use keyguard_cli_protocol::browser::{FlatpakBrowser, HOST_EXECUTABLE, flatpak};
 use serde::Serialize;
 use std::{
     ffi::OsString,
@@ -25,9 +25,12 @@ const WRAPPER_FILE: &str = "com.artemchep.keyguard-host.sh";
 /// Chromium writes this file into its profile root on the first run.
 const LOCAL_STATE: &str = "Local State";
 
+/// The lock that `install` and `uninstall` hold.
+const LOCK_FILE: &str = "browsers.lock";
+
 /// [`clap::ValueEnum::value_variants`] lists every browser, in this order.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, clap::ValueEnum, Serialize)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "kebab-case")]
 pub(crate) enum Browser {
     Chrome,
     Chromium,
@@ -35,6 +38,13 @@ pub(crate) enum Browser {
     Brave,
     Vivaldi,
     Firefox,
+    // The Flathub builds, on Linux only. A user may have both builds of a
+    // browser, and each reads its own manifest.
+    ChromeFlatpak,
+    ChromiumFlatpak,
+    EdgeFlatpak,
+    BraveFlatpak,
+    FirefoxFlatpak,
 }
 
 impl Browser {
@@ -46,11 +56,33 @@ impl Browser {
             Self::Brave => "brave",
             Self::Vivaldi => "vivaldi",
             Self::Firefox => "firefox",
+            Self::ChromeFlatpak => "chrome-flatpak",
+            Self::ChromiumFlatpak => "chromium-flatpak",
+            Self::EdgeFlatpak => "edge-flatpak",
+            Self::BraveFlatpak => "brave-flatpak",
+            Self::FirefoxFlatpak => "firefox-flatpak",
         }
     }
 
     pub(crate) fn is_firefox(self) -> bool {
-        self == Self::Firefox
+        matches!(self, Self::Firefox | Self::FirefoxFlatpak)
+    }
+
+    /// The Flathub build that this ID names.
+    pub(crate) fn flatpak(self) -> Option<FlatpakBrowser> {
+        match self {
+            Self::ChromeFlatpak => Some(flatpak::CHROME),
+            Self::ChromiumFlatpak => Some(flatpak::CHROMIUM),
+            Self::EdgeFlatpak => Some(flatpak::EDGE),
+            Self::BraveFlatpak => Some(flatpak::BRAVE),
+            Self::FirefoxFlatpak => Some(flatpak::FIREFOX),
+            Self::Chrome
+            | Self::Chromium
+            | Self::Edge
+            | Self::Brave
+            | Self::Vivaldi
+            | Self::Firefox => None,
+        }
     }
 }
 
@@ -82,6 +114,24 @@ pub(crate) enum Packaging {
     /// The AppImage is mounted at another path on each run, so the manifests
     /// start a copy of the connector.
     AppImage,
+    /// The Microsoft Store or sideloaded MSIX build. Its folder changes on
+    /// each update, and browsers may not start a program inside a package,
+    /// so the manifests start the connector's execution alias.
+    Msix {
+        /// The family name of the package.
+        family: Option<String>,
+    },
+}
+
+/// Windows: the package whose identity this process has.
+#[derive(Debug, Clone, PartialEq, Eq)]
+// Only Windows has packages.
+#[cfg_attr(not(windows), allow(dead_code))]
+pub(crate) struct Package {
+    /// Its folder.
+    pub root: PathBuf,
+    /// Its family name.
+    pub family: Option<String>,
 }
 
 impl Packaging {
@@ -90,24 +140,35 @@ impl Packaging {
             Self::Native => "native",
             Self::Flatpak { .. } => "flatpak",
             Self::AppImage => "appimage",
+            Self::Msix { .. } => "msix",
         }
     }
 
     /// `exe` is this executable; `env` reads the environment;
     /// `flatpak_info` tells whether `/.flatpak-info` exists; `flatpak_root`
-    /// is where Flatpak mounts the app, `/app`.
+    /// is where Flatpak mounts the app, `/app`; `package` is the Windows
+    /// package whose identity this process has.
     ///
     /// Variables alone don't count, since programs started from a terminal
     /// inherit them: from another Flatpak app's terminal, its `FLATPAK_ID`,
-    /// and from an AppImage's, `APPIMAGE` and `APPDIR`. Each packaging also
-    /// needs `exe` inside it.
+    /// and from an AppImage's, `APPIMAGE` and `APPDIR`. Nor does package
+    /// identity, which a program started by another packaged app can
+    /// inherit. Each packaging also needs `exe` inside it.
     pub(crate) fn detect(
         os: Os,
         exe: &Path,
         env: &impl Fn(&str) -> Option<OsString>,
         flatpak_info: bool,
         flatpak_root: &Path,
+        package: Option<&Package>,
     ) -> Result<Self> {
+        if os == Os::Windows
+            && let Some(package) = package.filter(|package| is_inside(exe, &package.root))
+        {
+            return Ok(Self::Msix {
+                family: package.family.clone(),
+            });
+        }
         if os != Os::Linux {
             return Ok(Self::Native);
         }
@@ -135,10 +196,15 @@ impl Packaging {
 }
 
 /// Whether `exe` is inside `directory`, also once the links of `directory`
-/// are resolved, as `Context::discover` resolves those of `exe`.
+/// are resolved, as `Context::discover` resolves those of `exe` on Unix.
+/// Windows resolves both, which also gives them the same form and case.
 fn is_inside(exe: &Path, directory: &Path) -> bool {
     exe.starts_with(directory)
-        || std::fs::canonicalize(directory).is_ok_and(|directory| exe.starts_with(directory))
+        || std::fs::canonicalize(directory).is_ok_and(|directory| {
+            exe.starts_with(&directory)
+                || (cfg!(windows)
+                    && std::fs::canonicalize(exe).is_ok_and(|exe| exe.starts_with(&directory)))
+        })
 }
 
 /// Letters, digits, `_`, `-` and `.`, which also keeps it safe in the
@@ -159,6 +225,9 @@ pub(crate) struct Location {
     /// Windows: the key under `HKEY_CURRENT_USER` whose default value is the
     /// path of the manifest.
     pub registry_key: Option<String>,
+    /// A Flatpak browser's copy of the connector, next to its manifest: its
+    /// sandbox sees none of Keyguard's files.
+    pub host_copy: Option<PathBuf>,
 }
 
 impl Location {
@@ -189,6 +258,8 @@ pub(crate) struct Context {
     pub packaging: Packaging,
     /// The connector bundled next to this CLI.
     pub bundled_host: PathBuf,
+    /// Reads the reparse data of the MSIX package's alias of its connector.
+    pub read_alias: fn(&Path) -> std::io::Result<Vec<u8>>,
 }
 
 impl Context {
@@ -197,15 +268,15 @@ impl Context {
             std::env::var_os("APP_SANDBOX_CONTAINER_ID").is_none(),
             BrowsersError::Unsupported
         );
-        // Manifests would start the connector from the versioned
-        // WindowsApps folder, which browsers may not run.
-        #[cfg(windows)]
-        ensure!(!has_package_identity(), BrowsersError::Unsupported);
         let home = dirs::home_dir().context("could not locate the user home")?;
         let exe = std::env::current_exe().context("could not locate the keyguard executable")?;
         // The connector is next to the executable, not next to a link to it.
         #[cfg(unix)]
         let exe = std::fs::canonicalize(&exe).unwrap_or(exe);
+        #[cfg(windows)]
+        let package = current_package();
+        #[cfg(not(windows))]
+        let package = None;
         Self::new(
             Os::CURRENT,
             home,
@@ -213,11 +284,12 @@ impl Context {
             &|name| std::env::var_os(name),
             Path::new("/.flatpak-info").exists(),
             Path::new("/app"),
+            package.as_ref(),
         )
     }
 
-    /// See [`Packaging::detect`] for `env`, `flatpak_info` and
-    /// `flatpak_root`.
+    /// See [`Packaging::detect`] for `env`, `flatpak_info`, `flatpak_root`
+    /// and `package`.
     pub(crate) fn new(
         os: Os,
         home: PathBuf,
@@ -225,8 +297,9 @@ impl Context {
         env: &impl Fn(&str) -> Option<OsString>,
         flatpak_info: bool,
         flatpak_root: &Path,
+        package: Option<&Package>,
     ) -> Result<Self> {
-        let packaging = Packaging::detect(os, exe, env, flatpak_info, flatpak_root)?;
+        let packaging = Packaging::detect(os, exe, env, flatpak_info, flatpak_root, package)?;
         // XDG directories must be absolute. Windows always sets its folders
         // with a drive; `has_root` keeps the tables testable on any OS.
         let absolute = |name: &str| env(name).map(PathBuf::from).filter(|path| path.has_root());
@@ -259,7 +332,26 @@ impl Context {
             local_app_data,
             roaming_app_data,
             packaging,
+            read_alias: super::alias::reparse_data,
         })
+    }
+
+    /// Whether `path` is in the folder of a browser of Flathub, which the
+    /// browser can change as it likes.
+    pub(crate) fn in_flatpak_browser(&self, path: &Path) -> bool {
+        self.os == Os::Linux
+            && flatpak::ALL
+                .iter()
+                .any(|browser| path.starts_with(browser.folder(&self.home)))
+    }
+
+    /// The browsers of this OS. Flathub's run on Linux only.
+    pub(crate) fn browsers(&self) -> Vec<Browser> {
+        Browser::value_variants()
+            .iter()
+            .copied()
+            .filter(|browser| self.os == Os::Linux || browser.flatpak().is_none())
+            .collect()
     }
 
     /// The directories that may hold the files this command writes. Each
@@ -268,9 +360,9 @@ impl Context {
         // The sandbox shares only the manifest directories; their parents
         // in the sandbox are Flatpak's own.
         if matches!(self.packaging, Packaging::Flatpak { .. }) {
-            return Browser::value_variants()
-                .iter()
-                .copied()
+            return self
+                .browsers()
+                .into_iter()
                 .map(|browser| self.location(browser).directory().to_owned())
                 .collect();
         }
@@ -293,22 +385,51 @@ impl Context {
         })
     }
 
-    /// What the manifest at `location` starts.
+    /// The lock that `install` and `uninstall` hold, in a folder that only
+    /// Keyguard writes, never a browser's.
+    pub(crate) fn lock_file(&self) -> PathBuf {
+        let folder = match (&self.packaging, self.os) {
+            (_, Os::Windows) => self.local_app_data.join("Keyguard"),
+            // The app's own folder, which each of its sandboxes shares.
+            (Packaging::Flatpak { .. }, _) => self.data_home.join("keyguard"),
+            _ => self.home.join(".keyguard"),
+        };
+        folder.join(LOCK_FILE)
+    }
+
+    /// Windows: the execution alias that the MSIX package declares for its
+    /// connector. Windows creates it when it installs the package.
+    pub(crate) fn host_alias(&self) -> Option<PathBuf> {
+        (self.os == Os::Windows).then(|| {
+            join(&self.local_app_data, &["Microsoft", "WindowsApps"])
+                .join(format!("{HOST_EXECUTABLE}.exe"))
+        })
+    }
+
+    /// What the manifest at `location` starts: a Flatpak browser's copy of
+    /// the connector, or else what this packaging needs.
     pub(crate) fn host_target(&self, location: &Location) -> PathBuf {
+        if let Some(copy) = &location.host_copy {
+            return copy.clone();
+        }
         match self.packaging {
             Packaging::Native => self.bundled_host.clone(),
             Packaging::Flatpak { .. } => location.wrapper(),
             Packaging::AppImage => self
                 .host_copy()
                 .unwrap_or_else(|| self.bundled_host.clone()),
+            Packaging::Msix { .. } => self
+                .host_alias()
+                .unwrap_or_else(|| self.bundled_host.clone()),
         }
     }
 
     pub(crate) fn location(&self, browser: Browser) -> Location {
-        let mut location = match self.os {
-            Os::Linux => self.linux(browser),
-            Os::Mac => self.macos(browser),
-            Os::Windows => self.windows(browser),
+        let mut location = match (browser.flatpak(), self.os) {
+            (Some(flatpak), _) => self.flatpak(flatpak),
+            (None, Os::Linux) => self.linux(browser),
+            (None, Os::Mac) => self.macos(browser),
+            (None, Os::Windows) => self.windows(browser),
         };
         // The sandbox sees only the manifest directories that exist on the
         // host, so a browser counts as found once its directory exists.
@@ -318,6 +439,18 @@ impl Context {
         location
     }
 
+    /// A browser of Flathub, found once Flatpak made its folder. It reads
+    /// manifests only from its folder, and starts only what is in it.
+    fn flatpak(&self, browser: FlatpakBrowser) -> Location {
+        let directory = browser.manifests(&self.home);
+        Location {
+            markers: vec![browser.folder(&self.home)],
+            manifest: directory.join(MANIFEST_FILE),
+            registry_key: None,
+            host_copy: Some(directory.join(HOST_EXECUTABLE)),
+        }
+    }
+
     fn linux(&self, browser: Browser) -> Location {
         let chromium = |root: &[&str]| {
             let root = join(&self.config_home, root);
@@ -325,6 +458,7 @@ impl Context {
                 markers: vec![root.join(LOCAL_STATE)],
                 manifest: root.join("NativeMessagingHosts").join(MANIFEST_FILE),
                 registry_key: None,
+                host_copy: None,
             }
         };
         match browser {
@@ -346,7 +480,9 @@ impl Context {
                     &[".mozilla", "native-messaging-hosts", MANIFEST_FILE],
                 ),
                 registry_key: None,
+                host_copy: None,
             },
+            _ => unreachable!("location() handles the Flatpak browsers"),
         }
     }
 
@@ -358,6 +494,7 @@ impl Context {
                 markers: vec![root.join(LOCAL_STATE)],
                 manifest: root.join("NativeMessagingHosts").join(MANIFEST_FILE),
                 registry_key: None,
+                host_copy: None,
             }
         };
         match browser {
@@ -380,7 +517,9 @@ impl Context {
                     &["Mozilla", "NativeMessagingHosts", MANIFEST_FILE],
                 ),
                 registry_key: None,
+                host_copy: None,
             },
+            _ => unreachable!("location() handles the Flatpak browsers"),
         }
     }
 
@@ -407,6 +546,7 @@ impl Context {
             markers: user_data(&["Google", "Chrome"]),
             manifest: manifest("chrome"),
             registry_key: key("Google\\Chrome"),
+            host_copy: None,
         };
         match browser {
             Browser::Chrome => chrome,
@@ -414,12 +554,14 @@ impl Context {
                 markers: user_data(&["Chromium"]),
                 manifest: manifest("chromium"),
                 registry_key: key("Chromium"),
+                host_copy: None,
             },
             // Edge reads its own key first, then Chromium's and Chrome's.
             Browser::Edge => Location {
                 markers: user_data(&["Microsoft", "Edge"]),
                 manifest: manifest("edge"),
                 registry_key: key("Microsoft\\Edge"),
+                host_copy: None,
             },
             // Brave and Vivaldi read Chromium's key, then Chrome's.
             Browser::Brave => Location {
@@ -434,23 +576,59 @@ impl Context {
                 markers: vec![join(&self.roaming_app_data, &["Mozilla", "Firefox"])],
                 manifest: manifest("firefox"),
                 registry_key: key("Mozilla"),
+                host_copy: None,
             },
+            _ => unreachable!("location() handles the Flatpak browsers"),
         }
     }
 }
 
-/// Whether this process runs with package identity, as the Microsoft Store
-/// and sideloaded MSIX builds do.
+/// The package whose identity this process has, as in the Microsoft Store
+/// and sideloaded MSIX builds.
 #[cfg(windows)]
-fn has_package_identity() -> bool {
-    use windows_sys::Win32::{
-        Foundation::ERROR_INSUFFICIENT_BUFFER, Storage::Packaging::Appx::GetCurrentPackagePath,
+fn current_package() -> Option<Package> {
+    use std::os::windows::ffi::OsStringExt;
+    use windows_sys::Win32::Storage::Packaging::Appx::{
+        GetCurrentPackageFamilyName, GetCurrentPackagePath,
     };
+    let root = package_string(GetCurrentPackagePath)?;
+    Some(Package {
+        root: OsString::from_wide(&root).into(),
+        family: package_string(GetCurrentPackageFamilyName)
+            .and_then(|family| String::from_utf16(&family).ok()),
+    })
+}
+
+/// What `query`, such as `GetCurrentPackagePath`, gives about the package
+/// whose identity this process has, without the terminating null.
+#[cfg(windows)]
+fn package_string(
+    query: unsafe extern "system" fn(
+        *mut u32,
+        windows_sys::core::PWSTR,
+    ) -> windows_sys::Win32::Foundation::WIN32_ERROR,
+) -> Option<Vec<u16>> {
+    use windows_sys::Win32::Foundation::{ERROR_INSUFFICIENT_BUFFER, ERROR_SUCCESS};
     let mut length = 0;
     // SAFETY: A size query, without a buffer. Without package identity, it
     // fails with APPMODEL_ERROR_NO_PACKAGE.
-    let status = unsafe { GetCurrentPackagePath(&mut length, std::ptr::null_mut()) };
-    status == ERROR_INSUFFICIENT_BUFFER
+    let status = unsafe { query(&mut length, std::ptr::null_mut()) };
+    if status != ERROR_INSUFFICIENT_BUFFER {
+        return None;
+    }
+    let mut string = vec![0u16; length as usize];
+    // SAFETY: string holds the `length` UTF-16 units that the size query
+    // asked for, and `length` says so.
+    let status = unsafe { query(&mut length, string.as_mut_ptr()) };
+    if status != ERROR_SUCCESS {
+        return None;
+    }
+    // The length counts the terminating null.
+    string.truncate(length as usize);
+    if string.last() == Some(&0) {
+        string.pop();
+    }
+    Some(string)
 }
 
 fn join(base: &Path, parts: &[&str]) -> PathBuf {
@@ -474,6 +652,16 @@ mod tests {
     }
 
     fn context_at(os: Os, exe: &Path, env: &[(&str, &str)], flatpak_info: bool) -> Result<Context> {
+        context_in_package(os, exe, env, flatpak_info, None)
+    }
+
+    fn context_in_package(
+        os: Os,
+        exe: &Path,
+        env: &[(&str, &str)],
+        flatpak_info: bool,
+        package: Option<&Package>,
+    ) -> Result<Context> {
         let env: Vec<(String, OsString)> = env
             .iter()
             .map(|(name, value)| ((*name).to_owned(), OsString::from(value)))
@@ -489,13 +677,16 @@ mod tests {
             },
             flatpak_info,
             Path::new("/app"),
+            package,
         )
     }
 
+    /// The browsers outside Flatpak.
     fn table(context: &Context) -> Vec<(Browser, String, Option<String>)> {
-        Browser::value_variants()
-            .iter()
-            .copied()
+        context
+            .browsers()
+            .into_iter()
+            .filter(|browser| browser.flatpak().is_none())
             .map(|browser| {
                 let location = context.location(browser);
                 (
@@ -691,7 +882,7 @@ mod tests {
         assert_eq!(chrome.markers, [chrome.directory().to_owned()]);
         // Only the shared directories hold files to write.
         let roots = context.roots();
-        assert_eq!(roots.len(), 6);
+        assert_eq!(roots.len(), 11);
         assert!(roots.contains(&chrome.directory().to_owned()));
         assert!(!roots.contains(&PathBuf::from("/home/user")));
         assert_eq!(
@@ -709,6 +900,149 @@ mod tests {
                 "/home/user/.config/microsoft-edge/NativeMessagingHosts/com.artemchep.keyguard.json"
             )
         );
+    }
+
+    /// The folder of an installed MSIX package, and its CLI.
+    const PACKAGE_ROOT: &str = "/Program Files/WindowsApps/Keyguard_2.0.0.0_x64__abcdefghjkmnp";
+    const PACKAGE_EXE: &str =
+        "/Program Files/WindowsApps/Keyguard_2.0.0.0_x64__abcdefghjkmnp/app/resources/keyguard.exe";
+
+    fn package() -> Package {
+        Package {
+            root: PACKAGE_ROOT.into(),
+            family: Some("Keyguard_abcdefghjkmnp".into()),
+        }
+    }
+
+    #[test]
+    fn msix_manifests_start_the_execution_alias() {
+        let context = context_in_package(
+            Os::Windows,
+            Path::new(PACKAGE_EXE),
+            &[("LOCALAPPDATA", "/local"), ("APPDATA", "/roaming")],
+            false,
+            Some(&package()),
+        )
+        .unwrap();
+        assert_eq!(
+            context.packaging,
+            Packaging::Msix {
+                family: package().family
+            }
+        );
+        assert_eq!(context.packaging.id(), "msix");
+        let location = context.location(Browser::Edge);
+        // Manifests and keys stay where the other builds write them.
+        assert_eq!(
+            location.manifest,
+            Path::new("/local/Keyguard/NativeMessagingHosts/edge/com.artemchep.keyguard.json")
+        );
+        assert_eq!(
+            context.host_target(&location),
+            Path::new("/local/Microsoft/WindowsApps/keyguard-browser-host.exe")
+        );
+        assert_eq!(
+            context.bundled_host,
+            Path::new(PACKAGE_ROOT).join("app/resources/keyguard-browser-host.exe")
+        );
+    }
+
+    #[test]
+    fn package_identity_needs_the_cli_inside_the_package() {
+        // A CLI of the MSI build, run by another packaged app.
+        let context = context_in_package(
+            Os::Windows,
+            Path::new("/Program Files/Keyguard/app/resources/keyguard.exe"),
+            &[("LOCALAPPDATA", "/local")],
+            false,
+            Some(&package()),
+        )
+        .unwrap();
+        assert_eq!(context.packaging, Packaging::Native);
+        let location = context.location(Browser::Chrome);
+        assert_eq!(context.host_target(&location), context.bundled_host);
+        // Only Windows has packages.
+        let context = context_in_package(
+            Os::Linux,
+            Path::new(PACKAGE_EXE),
+            &[],
+            false,
+            Some(&package()),
+        )
+        .unwrap();
+        assert_eq!(context.packaging, Packaging::Native);
+        assert_eq!(context.host_alias(), None);
+    }
+
+    #[test]
+    fn flatpak_browsers_start_a_copy_next_to_their_manifest() {
+        let directory = Path::new(
+            "/home/user/.var/app/com.brave.Browser/config/BraveSoftware/Brave-Browser/NativeMessagingHosts",
+        );
+        let appimage = [
+            ("APPIMAGE", "/home/user/Keyguard.AppImage"),
+            ("APPDIR", APPDIR),
+        ];
+        let flatpak = [("FLATPAK_ID", "com.artemchep.keyguard")];
+        for (exe, env, packaging) in [
+            (EXE, &[][..], "native"),
+            (APPIMAGE_EXE, &appimage[..], "appimage"),
+            (FLATPAK_EXE, &flatpak[..], "flatpak"),
+        ] {
+            let context = context_at(Os::Linux, Path::new(exe), env, false).unwrap();
+            assert_eq!(context.packaging.id(), packaging);
+            let location = context.location(Browser::BraveFlatpak);
+            assert_eq!(
+                location.manifest,
+                directory.join("com.artemchep.keyguard.json")
+            );
+            let copy = directory.join("keyguard-browser-host");
+            assert_eq!(location.host_copy.as_deref(), Some(&*copy));
+            assert_eq!(context.host_target(&location), copy);
+            assert_eq!(location.registry_key, None);
+            // Inside Flatpak, the sandbox sees only the folder of manifests.
+            let marker = if packaging == "flatpak" {
+                directory
+            } else {
+                Path::new("/home/user/.var/app/com.brave.Browser")
+            };
+            assert_eq!(location.markers, [marker]);
+        }
+
+        let context = context(Os::Linux, &[("XDG_CONFIG_HOME", "/xdg")], false).unwrap();
+        assert_eq!(
+            context.location(Browser::FirefoxFlatpak).manifest,
+            Path::new(
+                "/home/user/.var/app/org.mozilla.firefox/.mozilla/native-messaging-hosts/com.artemchep.keyguard.json"
+            )
+        );
+        assert_eq!(context.location(Browser::Chrome).host_copy, None);
+        assert_eq!(context.browsers().len(), 11);
+    }
+
+    #[test]
+    fn only_linux_has_flatpak_browsers() {
+        for os in [Os::Mac, Os::Windows] {
+            let context = context(os, &[("LOCALAPPDATA", "/local")], false).unwrap();
+            let browsers = context.browsers();
+            assert_eq!(browsers.len(), 6, "{os:?}");
+            assert!(browsers.iter().all(|browser| browser.flatpak().is_none()));
+        }
+    }
+
+    #[test]
+    fn browser_ids_match_the_cli_and_the_report() {
+        for &browser in Browser::value_variants() {
+            let id = browser.id();
+            assert_eq!(browser.to_possible_value().unwrap().get_name(), id);
+            assert_eq!(serde_json::to_value(browser).unwrap(), id);
+            assert_eq!(
+                browser.flatpak().is_some(),
+                id.ends_with("-flatpak"),
+                "{id}"
+            );
+        }
+        assert!(Browser::FirefoxFlatpak.is_firefox());
     }
 
     fn context_without_host_config() -> Context {

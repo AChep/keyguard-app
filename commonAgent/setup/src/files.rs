@@ -2,11 +2,17 @@ use crate::{AgentKind, Conflict, Edit, Environment, Plan, SetupError, planner};
 use anyhow::{Context, Result, anyhow, ensure};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+#[cfg(not(unix))]
+use std::io::Write;
 use std::{
-    fs::{self, File, OpenOptions},
-    io::Write,
+    fs::{self, File, OpenOptions, TryLockError},
+    io::Read,
     path::{Component, Path, PathBuf},
+    time::{Duration, Instant},
 };
+
+#[cfg(unix)]
+mod nofollow;
 
 const MAX_FILE_SIZE: u64 = 1024 * 1024;
 
@@ -95,12 +101,16 @@ pub(crate) fn check_path(env: &Environment, path: &Path) -> Result<()> {
 /// `roots`, and neither it nor a parent up to that root is a link, another
 /// user's file, a file others can write, or a hard-linked file.
 pub fn check_safe_path(roots: &[impl AsRef<Path>], path: &Path) -> Result<()> {
+    #[cfg(unix)]
+    return nofollow::check(roots, path);
+    #[cfg(not(unix))]
     check(roots, path).with_context(|| SetupError::UnsafeFile {
         path: path.to_owned(),
     })
 }
 
-fn check(roots: &[impl AsRef<Path>], path: &Path) -> Result<()> {
+/// The root of `roots` that holds `path`.
+fn root_of<'a>(roots: &'a [impl AsRef<Path>], path: &Path) -> Result<&'a Path> {
     let root = roots
         .iter()
         .map(AsRef::as_ref)
@@ -117,6 +127,12 @@ fn check(roots: &[impl AsRef<Path>], path: &Path) -> Result<()> {
             .any(|c| matches!(c, Component::ParentDir | Component::CurDir)),
         "configuration path must not contain dot components"
     );
+    Ok(root)
+}
+
+#[cfg(not(unix))]
+fn check(roots: &[impl AsRef<Path>], path: &Path) -> Result<()> {
+    let root = root_of(roots, path)?;
     let mut parent = Some(path);
     while let Some(path) = parent {
         match fs::symlink_metadata(path) {
@@ -133,28 +149,6 @@ fn check(roots: &[impl AsRef<Path>], path: &Path) -> Result<()> {
                     "not a regular file or directory: {}",
                     path.display()
                 );
-                #[cfg(unix)]
-                {
-                    use std::os::unix::fs::MetadataExt;
-                    // SAFETY: geteuid reads the current process's effective user ID.
-                    let uid = unsafe { libc::geteuid() };
-                    ensure!(
-                        meta.uid() == uid,
-                        "configuration belongs to another user: {}",
-                        path.display()
-                    );
-                    ensure!(
-                        meta.mode() & 0o002 == 0
-                            && (meta.mode() & 0o020 == 0 || private_group(uid, meta.gid())),
-                        "configuration is writable by another user: {}",
-                        path.display()
-                    );
-                    ensure!(
-                        !meta.is_file() || meta.nlink() == 1,
-                        "refusing a hard-linked configuration file: {}",
-                        path.display()
-                    );
-                }
             }
             Err(error) if error.kind() == std::io::ErrorKind::NotFound => (),
             Err(error) => return Err(error.into()),
@@ -209,19 +203,78 @@ pub(crate) fn read(env: &Environment, path: &Path) -> Result<Option<String>> {
 /// Reads a UTF-8 file of at most 1 MiB after [`check_safe_path`]; `None`
 /// means the file is missing.
 pub fn read_safe_text(roots: &[impl AsRef<Path>], path: &Path) -> Result<Option<String>> {
-    check_safe_path(roots, path)?;
-    read_text(path)
+    let Some(file) = open_safe_file(roots, path)? else {
+        return Ok(None);
+    };
+    let text = read_text_file(file).with_context(|| SetupError::UnsafeFile {
+        path: path.to_owned(),
+    })?;
+    Ok(Some(text))
+}
+
+const NOT_A_SMALL_FILE: &str = "configuration is not a regular file smaller than 1 MiB";
+
+/// Reads `file`, which must be a regular file of at most 1 MiB that holds
+/// UTF-8 text.
+pub fn read_text_file(mut file: File) -> Result<String> {
+    let meta = file.metadata()?;
+    ensure!(
+        meta.is_file() && meta.len() <= MAX_FILE_SIZE,
+        NOT_A_SMALL_FILE
+    );
+    let bytes = read_at_most(&mut file, MAX_FILE_SIZE).context(NOT_A_SMALL_FILE)?;
+    String::from_utf8(bytes).context("configuration is not UTF-8 text")
+}
+
+/// Opens the file at `path` to read after [`check_safe_path`]. On Unix, it
+/// follows no link on the way: a folder that someone swaps for a link after
+/// the checks can't lead elsewhere. `None` means the file is missing. It
+/// may be a folder or another kind of file.
+pub fn open_safe_file(roots: &[impl AsRef<Path>], path: &Path) -> Result<Option<File>> {
+    #[cfg(unix)]
+    {
+        match nofollow::Parent::open(roots, path, false)? {
+            Some(parent) => parent.open_file(),
+            None => Ok(None),
+        }
+    }
+    #[cfg(not(unix))]
+    {
+        check_safe_path(roots, path)?;
+        match File::open(path) {
+            Ok(file) => Ok(Some(file)),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+            Err(error) => Err(error).with_context(|| SetupError::UnsafeFile {
+                path: path.to_owned(),
+            }),
+        }
+    }
+}
+
+/// Reads all of `reader`, which must hold at most `limit` bytes. A file can
+/// grow after a check of its size, so this reads at most one byte more.
+fn read_at_most(reader: impl Read, limit: u64) -> Result<Vec<u8>> {
+    let mut bytes = Vec::new();
+    reader
+        .take(limit.saturating_add(1))
+        .read_to_end(&mut bytes)?;
+    ensure!(
+        bytes.len() as u64 <= limit,
+        "the file holds more than {limit} bytes"
+    );
+    Ok(bytes)
 }
 
 fn read_text(path: &Path) -> Result<Option<String>> {
     match fs::metadata(path) {
         Ok(meta) => {
-            let text = if meta.is_file() && meta.len() <= MAX_FILE_SIZE {
-                fs::read_to_string(path).context("configuration is not UTF-8 text")
+            // Only a regular file opens: a FIFO would wait for a writer.
+            let text = if meta.is_file() {
+                File::open(path)
+                    .map_err(anyhow::Error::from)
+                    .and_then(read_text_file)
             } else {
-                Err(anyhow!(
-                    "configuration is not a regular file smaller than 1 MiB"
-                ))
+                Err(anyhow!(NOT_A_SMALL_FILE))
             };
             let text = text.with_context(|| SetupError::UnsafeFile {
                 path: path.to_owned(),
@@ -244,16 +297,20 @@ fn mkdir(roots: &[impl AsRef<Path>], path: &Path) -> Result<()> {
         path.parent()
             .ok_or_else(|| anyhow::anyhow!("missing parent directory"))?,
     )?;
-    let builder = fs::DirBuilder::new();
-    #[cfg(unix)]
-    let mut builder = builder;
+    private_folders().create(path)?;
+    Ok(())
+}
+
+/// Makes folders that only the user can open.
+fn private_folders() -> fs::DirBuilder {
+    #[cfg_attr(not(unix), expect(unused_mut))]
+    let mut builder = fs::DirBuilder::new();
     #[cfg(unix)]
     {
         use std::os::unix::fs::DirBuilderExt;
         builder.mode(0o700);
     }
-    builder.create(path)?;
-    Ok(())
+    builder
 }
 
 fn write(env: &Environment, path: &Path, text: Option<&str>) -> Result<()> {
@@ -264,7 +321,68 @@ fn write(env: &Environment, path: &Path, text: Option<&str>) -> Result<()> {
 /// after [`check_safe_path`]. Missing parents become private directories.
 /// A replaced file keeps its permissions; on Unix, `executable` sets them
 /// to `rwxr-xr-x` instead.
+///
+/// On Unix, the checks, the temporary file, the rename and the removal all
+/// go through one descriptor of the file's folder, opened without following
+/// links: a folder that someone swaps for a link after the checks can't
+/// redirect the change.
 pub fn write_safe_file(
+    roots: &[impl AsRef<Path>],
+    path: &Path,
+    contents: Option<&[u8]>,
+    executable: bool,
+) -> Result<()> {
+    #[cfg(unix)]
+    return write_checked_file(roots, path, contents, executable, || ());
+    #[cfg(not(unix))]
+    write_file(roots, path, contents, executable)
+}
+
+/// [`write_safe_file`], which runs `checked` between its checks and the
+/// change.
+#[cfg(unix)]
+fn write_checked_file(
+    roots: &[impl AsRef<Path>],
+    path: &Path,
+    contents: Option<&[u8]>,
+    executable: bool,
+    checked: impl FnOnce(),
+) -> Result<()> {
+    let Some(parent) = nofollow::Parent::open(roots, path, contents.is_some())? else {
+        // A missing folder holds nothing to delete. A write makes missing
+        // folders only below the root, so it fails without the root, as the
+        // folder above the root is outside all of them.
+        if contents.is_some() {
+            let root = root_of(roots, path)?;
+            let above = root.parent().unwrap_or(root);
+            return Err(anyhow!(
+                "configuration must be inside the user home: {}",
+                above.display()
+            ))
+            .with_context(|| SetupError::UnsafeFile {
+                path: above.to_owned(),
+            });
+        }
+        return Ok(());
+    };
+    let current = parent.entry()?;
+    checked();
+    let Some(contents) = contents else {
+        if current.is_some() {
+            parent.remove()?;
+        }
+        return Ok(());
+    };
+    let mode = if executable {
+        0o755
+    } else {
+        current.map_or(0o600, |entry| entry.mode & 0o7777)
+    };
+    parent.replace(contents, mode)
+}
+
+#[cfg(not(unix))]
+fn write_file(
     roots: &[impl AsRef<Path>],
     path: &Path,
     contents: Option<&[u8]>,
@@ -285,13 +403,6 @@ pub fn write_safe_file(
     if let Ok(metadata) = fs::metadata(path) {
         temp.as_file().set_permissions(metadata.permissions())?;
     }
-    #[cfg(unix)]
-    if executable {
-        use std::os::unix::fs::PermissionsExt;
-        temp.as_file()
-            .set_permissions(fs::Permissions::from_mode(0o755))?;
-    }
-    #[cfg(not(unix))]
     let _ = executable;
     temp.write_all(contents)?;
     temp.as_file().sync_all()?;
@@ -299,7 +410,7 @@ pub fn write_safe_file(
     Ok(())
 }
 
-#[cfg(not(windows))]
+#[cfg(not(any(unix, windows)))]
 fn persist(temp: tempfile::NamedTempFile, path: &Path) -> Result<()> {
     temp.persist(path).map_err(|e| e.error)?;
     Ok(())
@@ -338,9 +449,10 @@ fn persist(temp: tempfile::NamedTempFile, path: &Path) -> Result<()> {
     Ok(())
 }
 
-struct SetupLock(File);
+/// An exclusive lock on a file, across processes, until it is dropped.
+pub struct FileLock(File);
 
-impl Drop for SetupLock {
+impl Drop for FileLock {
     fn drop(&mut self) {
         // Unlock explicitly: an unrelated concurrent subprocess can briefly
         // inherit a descriptor between fork and exec. Closing only our copy
@@ -349,11 +461,17 @@ impl Drop for SetupLock {
     }
 }
 
-fn lock(env: &Environment) -> Result<SetupLock> {
+fn lock(env: &Environment) -> Result<FileLock> {
     let dir = env.state_dir();
     mkdir(&roots(env), &dir)?;
-    let path = dir.join("lock");
-    check_path(env, &path)?;
+    let file = open_lock(&roots(env), &dir.join("lock"))?;
+    file.try_lock().context(SetupError::Busy)?;
+    Ok(FileLock(file))
+}
+
+/// Opens the lock file at `path`, made if missing, after [`check_safe_path`].
+fn open_lock(roots: &[impl AsRef<Path>], path: &Path) -> Result<File> {
+    check_safe_path(roots, path)?;
     let mut options = OpenOptions::new();
     options.read(true).write(true).create(true).truncate(false);
     #[cfg(unix)]
@@ -361,9 +479,33 @@ fn lock(env: &Environment) -> Result<SetupLock> {
         use std::os::unix::fs::OpenOptionsExt;
         options.mode(0o600).custom_flags(libc::O_NOFOLLOW);
     }
-    let file = options.open(path)?;
-    file.try_lock().context(SetupError::Busy)?;
-    Ok(SetupLock(file))
+    Ok(options.open(path)?)
+}
+
+/// How often [`wait_for_lock`] tries again.
+const LOCK_RETRY: Duration = Duration::from_millis(50);
+
+/// Waits up to `wait` for an exclusive lock on the file at `path`. Its
+/// folder, made private with the folders above it if missing, must be the
+/// user's, and no one else may change it. `None`: another process still
+/// holds the lock.
+pub fn wait_for_lock(path: &Path, wait: Duration) -> Result<Option<FileLock>> {
+    let folder = path
+        .parent()
+        .ok_or_else(|| anyhow!("missing parent directory"))?;
+    private_folders().recursive(true).create(folder)?;
+    let file = open_lock(&[folder], path)?;
+    let deadline = Instant::now() + wait;
+    loop {
+        match file.try_lock() {
+            Ok(()) => return Ok(Some(FileLock(file))),
+            Err(TryLockError::WouldBlock) if Instant::now() < deadline => {
+                std::thread::sleep(LOCK_RETRY);
+            }
+            Err(TryLockError::WouldBlock) => return Ok(None),
+            Err(TryLockError::Error(error)) => return Err(error.into()),
+        }
+    }
 }
 
 fn journal_path(env: &Environment, id: &str) -> PathBuf {
@@ -643,4 +785,210 @@ fn undo_journal(
     }
     plan.observed_files.sort_by(|a, b| a.path.cmp(&b.path));
     Ok(plan)
+}
+
+#[cfg(all(test, unix))]
+mod tests {
+    use super::*;
+
+    /// A home with the folder `browser/hosts`, which someone else can
+    /// change, such as a sandboxed browser its own folder, and a folder
+    /// `elsewhere` that holds a file of the same name.
+    fn home() -> (tempfile::TempDir, PathBuf) {
+        let temp = tempfile::tempdir().unwrap();
+        let home = temp.path().join("home");
+        fs::create_dir_all(home.join("browser/hosts")).unwrap();
+        fs::create_dir_all(home.join("elsewhere")).unwrap();
+        fs::write(home.join("elsewhere/host.json"), "theirs").unwrap();
+        (temp, home)
+    }
+
+    /// Moves `browser/hosts` aside, and puts a link to `elsewhere` in its
+    /// place.
+    fn swap_for_a_link(home: &Path) {
+        fs::rename(home.join("browser/hosts"), home.join("browser/moved")).unwrap();
+        std::os::unix::fs::symlink(home.join("elsewhere"), home.join("browser/hosts")).unwrap();
+    }
+
+    #[test]
+    fn a_folder_swapped_for_a_link_after_the_checks_gets_no_write() {
+        let (_temp, home) = home();
+        let path = home.join("browser/hosts/host.json");
+        write_checked_file(&[&home], &path, Some(b"ours"), false, || {
+            swap_for_a_link(&home)
+        })
+        .unwrap();
+        assert_eq!(
+            fs::read_to_string(home.join("elsewhere/host.json")).unwrap(),
+            "theirs"
+        );
+        // The write went to the folder that was checked.
+        assert_eq!(
+            fs::read_to_string(home.join("browser/moved/host.json")).unwrap(),
+            "ours"
+        );
+        assert_eq!(fs::read_dir(home.join("elsewhere")).unwrap().count(), 1);
+    }
+
+    #[test]
+    fn a_folder_swapped_for_a_link_after_the_checks_loses_no_file() {
+        let (_temp, home) = home();
+        let path = home.join("browser/hosts/host.json");
+        fs::write(&path, "ours").unwrap();
+        write_checked_file(&[&home], &path, None, false, || swap_for_a_link(&home)).unwrap();
+        assert_eq!(
+            fs::read_to_string(home.join("elsewhere/host.json")).unwrap(),
+            "theirs"
+        );
+        assert!(!home.join("browser/moved/host.json").exists());
+    }
+
+    #[test]
+    fn writes_make_private_folders_and_keep_a_file_mode() {
+        use std::os::unix::fs::PermissionsExt;
+        let (_temp, home) = home();
+        let path = home.join("new/folder/host.json");
+        write_safe_file(&[&home], &path, Some(b"one"), false).unwrap();
+        let mode = |path: &Path| fs::metadata(path).unwrap().permissions().mode() & 0o7777;
+        assert_eq!(mode(&home.join("new")), 0o700);
+        assert_eq!(mode(&home.join("new/folder")), 0o700);
+        assert_eq!(mode(&path), 0o600);
+        fs::set_permissions(&path, fs::Permissions::from_mode(0o644)).unwrap();
+        write_safe_file(&[&home], &path, Some(b"two"), false).unwrap();
+        assert_eq!(mode(&path), 0o644);
+        write_safe_file(&[&home], &path, Some(b"three"), true).unwrap();
+        assert_eq!(mode(&path), 0o755);
+        assert_eq!(read_safe_text(&[&home], &path).unwrap().unwrap(), "three");
+        // Only the file is left: no temporary file.
+        assert_eq!(fs::read_dir(home.join("new/folder")).unwrap().count(), 1);
+        write_safe_file(&[&home], &path, None, false).unwrap();
+        assert!(!path.exists());
+        assert_eq!(read_safe_text(&[&home], &path).unwrap(), None);
+    }
+
+    #[test]
+    fn reads_follow_no_link_and_wait_for_no_fifo() {
+        let (_temp, home) = home();
+        let link = home.join("browser/hosts/host.json");
+        std::os::unix::fs::symlink(home.join("elsewhere/host.json"), &link).unwrap();
+        assert!(read_safe_text(&[&home], &link).is_err());
+        let fifo = home.join("browser/hosts/fifo");
+        let name = std::ffi::CString::new(fifo.as_os_str().as_encoded_bytes()).unwrap();
+        // SAFETY: `name` is a NUL-terminated path that outlives the call.
+        assert_eq!(unsafe { libc::mkfifo(name.as_ptr(), 0o600) }, 0);
+        assert!(read_safe_text(&[&home], &fifo).is_err());
+        assert!(check_safe_path(&[&home], &fifo).is_err());
+    }
+
+    #[test]
+    fn writes_need_their_root() {
+        let (temp, home) = home();
+        // Such as an XDG_DATA_HOME outside the home that is missing.
+        let root = temp.path().join("data");
+        let path = root.join("keyguard/host");
+        let error = write_safe_file(&[&home, &root], &path, Some(b"ours"), true).unwrap_err();
+        assert!(
+            matches!(error.downcast_ref(), Some(SetupError::UnsafeFile { path }) if path == temp.path()),
+            "{error:#}"
+        );
+        assert!(!root.exists());
+        // It holds nothing to delete.
+        write_safe_file(&[&home, &root], &path, None, false).unwrap();
+    }
+
+    #[test]
+    fn folders_on_the_way_need_only_permission_to_search() {
+        use std::os::unix::fs::PermissionsExt;
+        let (_temp, home) = home();
+        // The user may change the folder and open what is in it, but not
+        // list it.
+        let locked = home.join("locked");
+        fs::create_dir_all(locked.join("hosts")).unwrap();
+        fs::set_permissions(&locked, fs::Permissions::from_mode(0o300)).unwrap();
+        let result = (|| -> Result<()> {
+            for root in [&home, &locked] {
+                let path = locked.join("hosts/host.json");
+                write_safe_file(&[root], &path, Some(b"ours"), false)?;
+                assert_eq!(read_safe_text(&[root], &path)?.as_deref(), Some("ours"));
+                check_safe_path(&[root], &path)?;
+                write_safe_file(&[root], &path, None, false)?;
+                assert_eq!(read_safe_text(&[root], &path)?, None);
+                // A missing folder below it is made.
+                write_safe_file(&[root], &locked.join("new/host.json"), Some(b"ours"), false)?;
+                write_safe_file(&[root], &locked.join("new/host.json"), None, false)?;
+            }
+            Ok(())
+        })();
+        fs::set_permissions(&locked, fs::Permissions::from_mode(0o700)).unwrap();
+        result.unwrap();
+    }
+
+    /// A reader of `length` bytes that counts what was read from it.
+    struct Counting {
+        length: u64,
+        read: u64,
+    }
+
+    impl Read for Counting {
+        fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
+            let count = (self.length - self.read).min(buffer.len() as u64);
+            buffer[..count as usize].fill(b'a');
+            self.read += count;
+            Ok(count as usize)
+        }
+    }
+
+    #[test]
+    fn reads_stop_after_the_limit() {
+        assert_eq!(read_at_most(&b"1234"[..], 4).unwrap(), b"1234");
+        // Such as a file that grew after the check of its size.
+        let mut grown = Counting {
+            length: 64 * MAX_FILE_SIZE,
+            read: 0,
+        };
+        assert!(read_at_most(&mut grown, MAX_FILE_SIZE).is_err());
+        assert_eq!(grown.read, MAX_FILE_SIZE + 1);
+    }
+}
+
+#[cfg(test)]
+mod lock_tests {
+    use super::*;
+
+    #[test]
+    fn a_lock_waits_for_its_holder() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("state/browsers.lock");
+        let held = wait_for_lock(&path, Duration::ZERO).unwrap().unwrap();
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            let mode = |path: &Path| fs::metadata(path).unwrap().permissions().mode() & 0o777;
+            assert_eq!(mode(path.parent().unwrap()), 0o700);
+            assert_eq!(mode(&path), 0o600);
+        }
+        assert!(
+            wait_for_lock(&path, Duration::from_millis(200))
+                .unwrap()
+                .is_none()
+        );
+        std::thread::scope(|scope| {
+            let waiter = scope.spawn(|| {
+                let lock = wait_for_lock(&path, Duration::from_secs(30)).unwrap();
+                (Instant::now(), lock.is_some())
+            });
+            std::thread::sleep(Duration::from_millis(300));
+            let released = Instant::now();
+            drop(held);
+            let (locked_at, locked) = waiter.join().unwrap();
+            assert!(locked && locked_at >= released);
+        });
+        // A link in place of the folder is refused.
+        #[cfg(unix)]
+        {
+            let link = temp.path().join("link");
+            std::os::unix::fs::symlink(path.parent().unwrap(), &link).unwrap();
+            assert!(wait_for_lock(&link.join("browsers.lock"), Duration::ZERO).is_err());
+        }
+    }
 }

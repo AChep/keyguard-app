@@ -14,7 +14,7 @@ use keyguard_cli_protocol::{
     transport::{self, BoxStream},
 };
 use std::{
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::{
         Arc,
         atomic::{AtomicU64, Ordering},
@@ -32,21 +32,35 @@ const HOST_REVISION: u32 = 1;
 /// Bounds the wait for the agent's socket and for the app's answer.
 const OPEN_TIMEOUT: Duration = transport::CONNECT_TIMEOUT;
 
+/// Bounds the wait for a socket that the agent is about to bind. It looks
+/// for new copies of the connector every 2 seconds.
+const SOCKET_WAIT: Duration = Duration::from_secs(3);
+
 pub(crate) struct Host {
     /// The extension, as its browser names it.
     pub(crate) origin: String,
     /// The CLI agent's socket. Without one, the host finds it as the CLI
     /// does: `KEYGUARD_CLI_SOCKET`, then the platform's default.
     pub(crate) socket: Option<PathBuf>,
+    /// Whether to wait up to [`SOCKET_WAIT`] for `socket`, rather than
+    /// report the app as unavailable at once.
+    pub(crate) wait_for_socket: bool,
     /// The wait before the next attempt to connect.
     pub(crate) retry: Duration,
 }
 
 impl Host {
     pub(crate) fn new(origin: String) -> Self {
+        // A copy in a Flatpak browser's sandbox reaches the agent only next
+        // to itself. The agent listens there soon after the copy appears.
+        #[cfg(target_os = "linux")]
+        let socket = crate::flatpak::current_flatpak_browser_socket();
+        #[cfg(not(target_os = "linux"))]
+        let socket = None;
         Self {
             origin,
-            socket: None,
+            wait_for_socket: socket.is_some(),
+            socket,
             retry: Duration::from_secs(2),
         }
     }
@@ -91,7 +105,7 @@ where
 async fn open(host: &Host) -> Result<BoxStream, Status> {
     let open = async {
         let socket = client_socket(host.socket.clone()).ok()?;
-        let mut app = transport::connect(&socket, None).await.ok()?;
+        let mut app = connect(host, &socket).await?;
         let request = BrowserRequest {
             origin: host.origin.clone(),
             host_revision: HOST_REVISION,
@@ -105,6 +119,21 @@ async fn open(host: &Host) -> Result<BoxStream, Status> {
     match tokio::time::timeout(OPEN_TIMEOUT, open).await {
         Ok(Some(opened)) => opened,
         _ => Err(Status::AppUnavailable),
+    }
+}
+
+/// Connects to the agent at `socket`, trying again for a while if the host
+/// waits for it.
+async fn connect(host: &Host, socket: &Path) -> Option<BoxStream> {
+    let deadline = tokio::time::Instant::now() + SOCKET_WAIT;
+    loop {
+        match transport::connect(socket, None).await {
+            Ok(app) => return Some(app),
+            Err(_) if host.wait_for_socket && tokio::time::Instant::now() < deadline => {
+                tokio::time::sleep(Duration::from_millis(250)).await;
+            }
+            Err(_) => return None,
+        }
     }
 }
 
@@ -298,6 +327,7 @@ mod tests {
             Self::spawn(Host {
                 origin: ORIGIN.into(),
                 socket: Some(socket),
+                wait_for_socket: false,
                 retry: Duration::from_millis(10),
             })
         }
@@ -599,6 +629,28 @@ mod tests {
             write_frame(stream, &serde_json::to_vec(value).unwrap())
                 .await
                 .unwrap();
+        }
+
+        #[tokio::test]
+        async fn a_host_that_waits_for_its_socket_connects_once_it_appears() {
+            let directory = tempfile::tempdir().unwrap();
+            let socket = directory.path().join("s");
+            let mut browser = Browser::spawn(Host {
+                origin: ORIGIN.into(),
+                socket: Some(socket.clone()),
+                wait_for_socket: true,
+                retry: Duration::from_secs(60),
+            });
+            tokio::time::sleep(Duration::from_millis(600)).await;
+            let agent = Agent {
+                listener: UnixListener::bind(&socket).unwrap(),
+                socket,
+                _directory: directory,
+            };
+            let _app = agent.answer(json!({"ok":true})).await;
+            // Not `app_unavailable` first.
+            assert_eq!(browser.receive_status().await, "ready");
+            browser.close().await.unwrap();
         }
 
         #[tokio::test]

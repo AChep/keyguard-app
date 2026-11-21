@@ -9,6 +9,7 @@ pub mod bounds;
 pub mod browser;
 pub mod cli;
 pub mod errors;
+pub mod executable;
 pub mod frame;
 pub mod json;
 mod limits;

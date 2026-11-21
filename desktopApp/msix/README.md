@@ -73,6 +73,28 @@ Sign in with that credential and the same input: its 32-byte result must match
 registration. Missing results leave browser/provider PRF interoperability
 unverified, even when the native encoder tests pass.
 
+## Browser connector
+
+Browsers may start a program inside a package only through an execution alias.
+The package declares `keyguard-browser-host.exe` for `app\resources\keyguard-browser-host.exe`,
+and `keyguard browsers` points the native messaging manifests at
+`%LOCALAPPDATA%\Microsoft\WindowsApps\keyguard-browser-host.exe`. The alias keeps
+its path across updates.
+
+Store and sideload packages declare the same alias, and only one installed package
+can own it (Settings > Apps > Advanced app settings > App execution aliases).
+Browsers start that package's connector. The other package's `keyguard browsers`
+reports its connectors as needing repair, and `install` fails with `host_missing`,
+until the alias is switched to it there.
+
+Removing a package runs no Keyguard code: its manifests and registry keys stay and
+point at the removed alias. Another build's install, or its repair at startup,
+rewrites them.
+
+To check a build, install it, turn on the browser extension in Keyguard, and pair
+Chrome, Edge and Firefox. Then install a newer version: the connectors must keep
+working without a repair.
+
 ## Assets
 
 Generated from `../flatpak/icon.svg` (`brew install librsvg imagemagick`), run from `Assets/`:

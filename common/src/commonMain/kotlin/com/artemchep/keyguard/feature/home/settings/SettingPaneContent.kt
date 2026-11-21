@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -173,8 +172,11 @@ import com.artemchep.keyguard.feature.home.settings.component.settingWriteAccess
 import com.artemchep.keyguard.feature.home.settings.component.settingFido2UnlockProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingYubiKeyUnlockProvider
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
+import com.artemchep.keyguard.feature.navigation.rememberNavigationListScrollState
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
+import com.artemchep.keyguard.ui.focus.ListFocus
+import com.artemchep.keyguard.ui.focus.rememberListFocus
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
@@ -607,14 +609,19 @@ fun SettingPaneContent2(
     title: String,
     state: SettingPaneState,
 ) {
-    val scrollBehavior = ToolbarBehavior.behavior()
-    val listState = rememberLazyListState()
     val listKeys = remember(state.list) {
         val list = (state.list as? Loadable.Ok)?.value
         list?.map { it.compositeKey }.orEmpty()
     }
+    val scrollState = rememberNavigationListScrollState(
+        listKeys = listKeys,
+    )
+    val scrollBehavior = ToolbarBehavior.behavior(
+        state = scrollState.topAppBarState,
+    )
+    val listState = scrollState.listState
     // The pane opens in Loading, so its rows come later.
-    val focus = rememberSettingsListFocus(
+    val focus = rememberListFocus(
         listState = listState,
         listKeys = listKeys,
         focusFirstOnEnter = true,
@@ -664,7 +671,7 @@ fun SettingPaneContent2(
 
 private fun LazyListScope.settingPaneItems(
     list: List<SettingPaneState.Component>,
-    focus: SettingsListFocus,
+    focus: ListFocus,
 ) {
     itemsIndexed(
         items = list,

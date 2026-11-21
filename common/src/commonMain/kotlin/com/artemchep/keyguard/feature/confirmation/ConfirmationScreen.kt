@@ -44,7 +44,6 @@ import com.artemchep.keyguard.feature.auth.common.VisibilityToggle
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.dialog.DialogFormKeyboard
 import com.artemchep.keyguard.feature.dialog.dialogEditorTabTraversal
-import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.dialog.rememberDialogFormKeyboard
 import com.artemchep.keyguard.feature.filepicker.FileDropTargetBox
 import com.artemchep.keyguard.feature.filepicker.FilePickerEffect
@@ -64,6 +63,7 @@ import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.PasswordStrengthBadge
 import com.artemchep.keyguard.ui.flatItemLayoutPaddingValues
+import com.artemchep.keyguard.ui.focus.focusOnDialogOpen
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha

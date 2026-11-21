@@ -91,7 +91,7 @@ import com.artemchep.keyguard.common.model.fileName
 import com.artemchep.keyguard.common.model.fileSize
 import com.artemchep.keyguard.feature.EmptyView
 import com.artemchep.keyguard.feature.attachments.SelectableItemState
-import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
+import com.artemchep.keyguard.ui.focus.focusOnDialogOpen
 import com.artemchep.keyguard.ui.icons.FaviconIcon
 import com.artemchep.keyguard.feature.filepicker.humanReadableByteCountSI
 import com.artemchep.keyguard.feature.home.vault.model.VaultItem2

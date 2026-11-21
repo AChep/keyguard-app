@@ -181,7 +181,7 @@ fun SettingListUpdateItem(
 @Composable
 fun SettingListAccountsItem(
     item: SettingsAccountsItem,
-    rowModifier: (String) -> Modifier = { Modifier },
+    rowModifier: @Composable (String) -> Modifier = { Modifier },
 ) {
     Column {
         val data by item.state

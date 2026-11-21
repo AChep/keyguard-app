@@ -31,7 +31,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.dialog.DialogContent
-import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.dialog.rememberDialogFormKeyboard
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.res.Res
@@ -46,6 +45,7 @@ import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.ProvideScaffoldLocalValues
+import com.artemchep.keyguard.ui.focus.focusOnDialogOpen
 import com.artemchep.keyguard.ui.icons.DropdownIcon
 import com.artemchep.keyguard.ui.tabs.SegmentedButtonGroup
 import com.artemchep.keyguard.ui.theme.Dimens

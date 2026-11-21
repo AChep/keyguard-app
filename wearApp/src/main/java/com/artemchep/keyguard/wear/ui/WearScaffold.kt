@@ -61,6 +61,8 @@ import com.google.android.horologist.compose.layout.rememberResponsiveColumnPadd
 private val WearScaffoldHorizontalPadding = 6.dp
 private val WearScaffoldVerticalPadding = 56.dp
 
+internal const val WEAR_SCAFFOLD_HEADER_KEY = "header"
+
 /**
  * A simple vertically scrolling scaffold for form-like or static Wear screens.
  *
@@ -223,6 +225,7 @@ fun WearScaffoldScreen(
         first = ColumnItemType.ListHeader,
         last = ColumnItemType.Button,
     ),
+    listState: TransformingLazyColumnState = rememberTransformingLazyColumnState(),
     content: TransformingLazyColumnScope.(TransformationSpec) -> Unit,
 ) {
     WearScaffoldScreen(
@@ -263,6 +266,7 @@ fun WearScaffoldScreen(
         expressive = expressive,
         containerColor = containerColor,
         contentPadding = contentPadding,
+        listState = listState,
         content = content,
     )
 }
@@ -445,7 +449,7 @@ private fun ScreenScaffoldContentLazyColumn(
         state = state,
         contentPadding = contentPadding,
     ) {
-        if (header != null) item("header") {
+        if (header != null) item(WEAR_SCAFFOLD_HEADER_KEY) {
             header(transformationSpec)
         }
         content(transformationSpec)

@@ -379,6 +379,13 @@ internal val LocalNavigationNodeFinishing = compositionLocalOf<Boolean> {
     false
 }
 
+/**
+ * `true` while the enclosing navigation node content is leaving or being
+ * previewed by a Back gesture.
+ */
+@Composable
+fun isNavigationNodeFinishing(): Boolean = LocalNavigationNodeFinishing.current
+
 @Composable
 fun VisualStackText() {
     val nav = LocalNavigationNodeVisualStack.current.joinToString { it.id }

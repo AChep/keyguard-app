@@ -36,23 +36,31 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import com.artemchep.keyguard.res.Res
+import com.artemchep.keyguard.res.filter_collapse_named_action
+import com.artemchep.keyguard.res.filter_expand_named_action
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.focus.rememberTrailingFocusLink
 import com.artemchep.keyguard.ui.icons.IconBoxContainer
 import com.artemchep.keyguard.ui.surface.LocalSurfaceColor
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.util.DividerColor
+import org.jetbrains.compose.resources.stringResource
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -122,6 +130,11 @@ fun FilterChipItemComposable(
     }
 }
 
+/**
+ * The end key goes from the row to its chevron if it has [onToggle],
+ * and from there to the [endEdge]. Without a chevron it goes from the
+ * row to the [endEdge].
+ */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun FilterListItemComposable(
@@ -136,14 +149,20 @@ fun FilterListItemComposable(
     onToggle: ((Boolean) -> Unit)? = null,
     onClick: (() -> Unit)?,
     enabled: Boolean = onClick != null,
+    endEdge: FocusRequester = FocusRequester.Default,
 ) {
     val updatedOnClick by rememberUpdatedState(onClick)
+    val chevronLink = rememberTrailingFocusLink(enabled = onToggle != null)
     CompositionLocalProvider(
         LocalMinimumInteractiveComponentSize provides 0.dp,
     ) {
         val minHeight = 36.dp
         ToggleButton(
             modifier = modifier
+                .then(chevronLink.row)
+                .focusProperties {
+                    if (onToggle == null && endEdge != FocusRequester.Default) end = endEdge
+                }
                 .widthIn(
                     min = 48.dp,
                 )
@@ -215,8 +234,20 @@ fun FilterListItemComposable(
                             .clip(CircleShape)
                             .then(
                                 if (onToggle != null) {
+                                    // Says what a click does.
+                                    val label = stringResource(
+                                        if (expanded == true) {
+                                            Res.string.filter_collapse_named_action
+                                        } else {
+                                            Res.string.filter_expand_named_action
+                                        },
+                                        title,
+                                    )
                                     Modifier
-                                        .clickable {
+                                        .then(chevronLink.button)
+                                        .focusProperties { end = endEdge }
+                                        .semantics { contentDescription = label }
+                                        .clickable(role = Role.Button) {
                                             val newExpanded = updatedExpanded != true
                                             updatedOnToggle?.invoke(newExpanded)
                                         }

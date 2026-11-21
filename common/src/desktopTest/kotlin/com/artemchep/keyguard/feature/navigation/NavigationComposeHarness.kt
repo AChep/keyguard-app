@@ -23,6 +23,10 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.navigationevent.NavigationEventInfo
+import androidx.navigationevent.compose.NavigationBackHandler
+import androidx.navigationevent.compose.rememberNavigationEventState
 import com.artemchep.keyguard.common.model.NavAnimation
 import com.artemchep.keyguard.common.service.keyboard.KeyboardShortcutsServiceHost
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
@@ -170,17 +174,20 @@ internal class NavigationComposeHarness(
      * Composes the [route] in a scene of the [width] and [height], in
      * pixels and dp alike. The default size is narrow, a two-pane host
      * shows one pane in it. Like a desktop window, the scene sends an
-     * Escape that nothing consumed to Back.
+     * Escape that nothing consumed to Back. The [layoutDirection] is
+     * the window's, which focus search uses.
      */
     fun start(
         route: Route,
         width: Int = NARROW_WIDTH,
         height: Int = NARROW_HEIGHT,
+        layoutDirection: LayoutDirection = LayoutDirection.Ltr,
     ) {
         mainRoute = route
         sceneOrNull = keyboardScene(
             width = width,
             height = height,
+            layoutDirection = layoutDirection,
         ) {
             Content()
         }
@@ -244,6 +251,12 @@ internal class NavigationComposeHarness(
 
     @Composable
     private fun Content() {
+        // Like DesktopNavigationBackHandler: registered before the content,
+        // so its popups handle Back first. The tests send a plain Escape.
+        NavigationBackHandler(
+            state = rememberNavigationEventState(NavigationEventInfo.None),
+            onBackCompleted = { host.handleBack() },
+        )
         KoinContext(koin) {
             CompositionLocalProvider(
                 LocalNavigationStore provides store,

@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.use
 import androidx.navigationevent.NavigationEventInput
 import androidx.navigationevent.compose.LocalNavigationEventDispatcherOwner
@@ -72,11 +73,12 @@ internal fun keyboardScene(
     width: Int,
     height: Int,
     density: Density = Density(1f),
+    layoutDirection: LayoutDirection = LayoutDirection.Ltr,
     coroutineContext: CoroutineContext = Dispatchers.Unconfined,
     content: @Composable () -> Unit,
 ): ImageComposeScene {
     val state = SceneState()
-    val scene = ImageComposeScene(width, height, density, coroutineContext) {
+    val scene = ImageComposeScene(width, height, density, layoutDirection, coroutineContext) {
         state.inputModeManager = LocalInputModeManager.current
         val dispatcher = LocalNavigationEventDispatcherOwner.current?.navigationEventDispatcher
         DisposableEffect(dispatcher) {
@@ -91,14 +93,18 @@ internal fun keyboardScene(
     return scene
 }
 
-/** Runs [test] against [content] on the Swing thread, inside the preview theme. */
+/**
+ * Runs [test] against [content] on the Swing thread, inside the preview
+ * theme. The [layoutDirection] is the window's, which focus search uses.
+ */
 internal fun withScene(
     content: @Composable () -> Unit,
     coroutineContext: CoroutineContext = Dispatchers.Unconfined,
+    layoutDirection: LayoutDirection = LayoutDirection.Ltr,
     test: ImageComposeScene.() -> Unit,
 ) {
     SwingUtilities.invokeAndWait {
-        keyboardScene(900, 700, coroutineContext = coroutineContext) {
+        keyboardScene(900, 700, layoutDirection = layoutDirection, coroutineContext = coroutineContext) {
             WizardPreview { content() }
         }.use { scene ->
             scene.draw()

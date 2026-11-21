@@ -21,6 +21,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.pointer.PointerButton
 import androidx.compose.ui.input.pointer.PointerButtons
 import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
@@ -168,6 +169,39 @@ class NavigationItemsKeyboardSceneTest {
     }
 
     @Test
+    fun upFromTheAddButtonReturnsToTheRowFocusedLast() {
+        withScreen(NavigationItemsStore(canAdd = true)) {
+            // The lowest button that is not in a row.
+            val add = mergedNodes()
+                .filter { node ->
+                    node.config.getOrNull(SemanticsProperties.Role) == Role.Button &&
+                        node.config.getOrNull(SemanticsProperties.ContentDescription).isNullOrEmpty()
+                }
+                .maxBy { node -> node.boundsInRoot.bottom }
+                .id
+            val lastRow = row(ROW_COUNT - 1)
+            // The list scrolls to each row.
+            repeat(ROW_COUNT - 1) {
+                press(Key.DirectionDown)
+                advanceTimeBy(1_000L)
+            }
+            assertEquals(listOf(lastRow), focusedTexts())
+            // The button covers the last row, so Down finds nothing.
+            // Tab goes by the row's Options button first.
+            repeat(2) { press(Key.Tab) }
+            assertEquals(add, focusedNode().id)
+
+            // The 2D search would skip the list under the button.
+            listOf(Key.DirectionDown, Key.DirectionLeft, Key.DirectionRight).forEach { key ->
+                press(key)
+                assertEquals(add, focusedNode().id, "$key")
+            }
+            press(Key.DirectionUp)
+            assertEquals(listOf(lastRow), focusedTexts())
+        }
+    }
+
+    @Test
     fun pageFocusesNothingInTouchMode() {
         var shown by mutableStateOf(false)
         withScreen(NavigationItemsStore(), shown = { shown }) {
@@ -187,6 +221,8 @@ private const val OPTIONS = "Options"
 
 private const val VISIBLE = "Visible"
 
+private const val AVAILABLE = "Hidden"
+
 private const val DRAG_HANDLE_SIZE = 36f
 
 private const val DRAG_DISTANCE = 12f
@@ -195,8 +231,13 @@ private fun row(index: Int) = "Row $index"
 
 private fun rows() = List(ROW_COUNT, ::row)
 
-/** The page's items, kept in order the way its state producer does. */
-private class NavigationItemsStore {
+/**
+ * The page's items, kept in order the way its state producer does.
+ * With [canAdd], the page has an item to add, so it shows the add button.
+ */
+private class NavigationItemsStore(
+    private val canAdd: Boolean = false,
+) {
     var order by mutableStateOf(rows())
 
     val reorders = mutableListOf<List<String>>()
@@ -227,7 +268,20 @@ private class NavigationItemsStore {
                     )
                 }
                 .toPersistentList(),
-            availableItems = persistentListOf(),
+            availableItems = if (canAdd) {
+                persistentListOf(
+                    NavigationItemsSettingsState.AvailableItem(
+                        key = AVAILABLE,
+                        ref = NavItemRef.BuiltIn(AVAILABLE),
+                        title = TextHolder.Value(AVAILABLE),
+                        text = null,
+                        icon = Icons.Outlined.Star,
+                        onAdd = {},
+                    ),
+                )
+            } else {
+                persistentListOf()
+            },
             onReorder = { refs ->
                 val titles = refs.map { (it as NavItemRef.BuiltIn).key }
                 reorders += titles

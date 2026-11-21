@@ -10,6 +10,7 @@ import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getAllSemanticsNodes
 import androidx.compose.ui.semantics.getOrNull
+import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
 // Shared semantics queries for tests that drive an ImageComposeScene.
@@ -41,6 +42,13 @@ internal fun ImageComposeScene.focusedNode(): SemanticsNode = assertNotNull(focu
 internal fun ImageComposeScene.focusedOrNull(): SemanticsConfiguration? = focusedNodeOrNull()?.config
 
 internal fun ImageComposeScene.focused(): SemanticsConfiguration = focusedNode().config
+
+/** Asserts that all of the focused node is in view, so its bounds in the root are not clipped. */
+internal fun ImageComposeScene.assertFocusedFullyInView() {
+    val node = focusedNode()
+    val bounds = node.boundsInRoot
+    assertEquals(node.size.height.toFloat(), bounds.height, "Focused node bounds: $bounds")
+}
 
 /** The texts of the focused node, or an empty list. */
 internal fun ImageComposeScene.focusedTexts(): List<String> = focusedNodeOrNull()?.texts().orEmpty()

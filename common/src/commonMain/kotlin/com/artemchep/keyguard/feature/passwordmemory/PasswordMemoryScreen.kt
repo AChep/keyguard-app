@@ -17,13 +17,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.dialog.Dialog
-import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.close
 import com.artemchep.keyguard.res.password_action_test_memory_title
 import com.artemchep.keyguard.res.password_memory_test_note
 import com.artemchep.keyguard.res.verify
 import com.artemchep.keyguard.ui.PasswordFlatTextField
+import com.artemchep.keyguard.ui.focus.focusOnDialogOpen
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
 import org.jetbrains.compose.resources.stringResource

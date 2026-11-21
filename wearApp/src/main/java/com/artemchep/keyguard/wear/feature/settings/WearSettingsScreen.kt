@@ -29,7 +29,9 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.settings_main_header_title
 import com.artemchep.keyguard.ui.ContextItem
 import com.artemchep.keyguard.wear.feature.auth.WearLoginMethodRoute
+import com.artemchep.keyguard.wear.ui.WEAR_SCAFFOLD_HEADER_KEY
 import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
+import com.artemchep.keyguard.wear.ui.rememberWearNavigationListScrollState
 import kotlin.getValue
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.koinInject
@@ -82,11 +84,25 @@ fun WearSettingsScreen() {
 
     val navigationController by rememberUpdatedState(LocalNavigationController.current)
     val localNetworkPermission = rememberLocalNetworkPermissionHint()
+    val hasLocalNetworkPermission = localNetworkPermission != null
+    val listKeys = remember(hasLocalNetworkPermission, items) {
+        buildList(items.size + 2) {
+            add(WEAR_SCAFFOLD_HEADER_KEY)
+            if (hasLocalNetworkPermission) {
+                add(LOCAL_NETWORK_PERMISSION_KEY)
+            }
+            items.forEach { add(it.id) }
+        }
+    }
+    val listState = rememberWearNavigationListScrollState(
+        listKeys = listKeys,
+    )
     WearScaffoldScreen(
         title = stringResource(Res.string.settings_main_header_title),
+        listState = listState,
     ) { transformationSpec ->
         localNetworkPermission?.let { permission ->
-            item("local_network_permission") {
+            item(LOCAL_NETWORK_PERMISSION_KEY) {
                 WearLocalNetworkPermissionAction(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -211,3 +227,5 @@ fun rememberWearSettingsItems(
     }
     return items
 }
+
+private const val LOCAL_NETWORK_PERMISSION_KEY = "local_network_permission"

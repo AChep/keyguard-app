@@ -29,8 +29,6 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.dialog.Dialog
 import com.artemchep.keyguard.feature.dialog.DialogContentScope
-import com.artemchep.keyguard.feature.dialog.focusFirstResultOnDown
-import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.gpgagent.tools.GpgToolsKeyIdentity
 import com.artemchep.keyguard.feature.navigation.RouteResultTransmitter
 import com.artemchep.keyguard.res.Res
@@ -47,6 +45,8 @@ import com.artemchep.keyguard.ui.FlatItemTextContent
 import com.artemchep.keyguard.ui.FlatTextField
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.focus.arrowKeyFocusNavigation
+import com.artemchep.keyguard.ui.focus.focusFirstResultOnDown
+import com.artemchep.keyguard.ui.focus.focusOnDialogOpen
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import org.jetbrains.compose.resources.stringResource

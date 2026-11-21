@@ -8,6 +8,11 @@ data class VaultViewRoute(
     val itemId: String,
     val accountId: String,
     val tag: String? = null,
+    /**
+     * Focus the first field of the item in keyboard input mode. Not in
+     * the [descriptor], so a restored item view does not take focus.
+     */
+    val focusFirstField: Boolean = false,
 ) : Route {
     override val descriptor get() = RouteDescriptor.VaultCipherView(itemId, accountId)
 
@@ -16,6 +21,7 @@ data class VaultViewRoute(
         VaultViewScreen(
             itemId = itemId,
             accountId = accountId,
+            focusFirstField = focusFirstField,
         )
     }
 }

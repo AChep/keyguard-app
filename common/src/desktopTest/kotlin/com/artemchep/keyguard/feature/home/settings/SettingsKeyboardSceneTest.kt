@@ -50,6 +50,7 @@ import com.artemchep.keyguard.feature.navigation.twoPaneHost
 import com.artemchep.keyguard.feature.navigation.withNavigationHarness
 import com.artemchep.keyguard.ui.FlatItemAction
 import com.artemchep.keyguard.ui.advanceTimeBy
+import com.artemchep.keyguard.ui.assertFocusedFullyInView
 import com.artemchep.keyguard.ui.draw
 import com.artemchep.keyguard.ui.focused
 import com.artemchep.keyguard.ui.focusedOrNull
@@ -384,6 +385,51 @@ class SettingsKeyboardSceneTest {
     }
 }
 
+/** The keyboard focus restore of the Settings list with its saved scroll position. */
+class SettingListScrollKeyboardSceneTest {
+    @Test
+    fun settingListRestoresAFarRowAndItsScrollWhenItsDetailCloses() = withNavigationHarness {
+        val items = (1..ROW_COUNT).map { i ->
+            SettingsItem(
+                id = "item$i",
+                title = TextHolder.Value("Category $i"),
+                text = TextHolder.Value(""),
+                route = DetailRoute("Category $i row"),
+            )
+        }
+        start(
+            route = twoPaneHost(SettingsRoute.ROUTER_NAME, SettingListTestRoute(items)),
+            width = NavigationComposeHarness.NARROW_WIDTH,
+            height = NavigationComposeHarness.NARROW_HEIGHT,
+        )
+        repeat(4) {
+            if ("Category 1" !in scene.focusedTexts()) press(Key.Tab)
+        }
+        assertEquals(listOf("Category 1"), scene.focusedTexts())
+        // A row below the first screen.
+        repeat(FAR_ROW - 1) { press(Key.DirectionDown) }
+        val title = "Category $FAR_ROW"
+        assertEquals(listOf(title), scene.focusedTexts())
+        assertNull(scene.nodeWithTextOrNull("Category 1"), "The list did not scroll")
+        val listEntry = router(SettingsRoute.ROUTER_NAME).entries.first()
+        val saved = assertNotNull(listEntry.scrollPosition)
+
+        press(Key.Enter)
+        assertEquals(listOf("$title row"), scene.focusedTexts())
+        router(SettingsRoute.ROUTER_NAME).controller.queue(NavigationIntent.Pop)
+        repeat(2) { frame() }
+
+        // The saved scroll and the focus restore agree.
+        assertEquals(listOf(title), scene.focusedTexts())
+        assertEquals(saved, listEntry.scrollPosition)
+        assertNull(scene.nodeWithTextOrNull("Category 1"), "The list jumped to the top")
+        scene.assertFocusedFullyInView()
+        repeat(2) { frame() }
+        assertEquals(listOf(title), scene.focusedTexts())
+        assertEquals(saved, listEntry.scrollPosition)
+    }
+}
+
 private val OPTIONS = listOf("One", "Two", "Three")
 
 private const val MENU_ANIMATION_MILLIS = 1_000L
@@ -491,8 +537,9 @@ private class DetailRoute(
     }
 }
 
+/** A Settings row that does nothing on a click. */
 @Composable
-private fun ActionRow(title: String) {
+internal fun ActionRow(title: String) {
     LocalSettingPaneComponents.current.KgAction(
         icon = null,
         title = title,

@@ -68,6 +68,8 @@ import com.artemchep.keyguard.platform.leSystemBars
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.animation.animateFloatStateOneWayAsState
+import com.artemchep.keyguard.ui.focus.ScaffoldContentFocus
+import com.artemchep.keyguard.ui.focus.rememberFocusSlot
 import com.artemchep.keyguard.ui.scrollbar.ColumnScrollbar
 import com.artemchep.keyguard.ui.scrollbar.LazyColumnScrollbar
 import com.artemchep.keyguard.ui.selection.SelectionBar
@@ -112,6 +114,7 @@ fun ScaffoldLazyColumn(
     listModifier: Modifier = Modifier,
     listVerticalArrangement: Arrangement.Vertical = Arrangement.Top,
     listState: LazyListState = rememberLazyListState(),
+    contentFocus: ScaffoldContentFocus? = null,
     listContent: LazyListScope.() -> Unit,
 ) {
     val density = LocalDensity.current
@@ -131,10 +134,10 @@ fun ScaffoldLazyColumn(
     ) {
         Scaffold(
             modifier = modifier,
-            topBar = topBar,
-            bottomBar = bottomBar,
+            topBar = rememberFocusSlot(contentFocus?.topBar, topBar),
+            bottomBar = rememberFocusSlot(contentFocus?.bottomBar, bottomBar),
             snackbarHost = snackbarHost,
-            floatingActionButton = {
+            floatingActionButton = rememberFocusSlot(contentFocus?.fabs) {
                 val expandedState = topAppBarScrollBehavior.rememberFabExpanded()
                 val scope = remember(
                     floatingActionState,
@@ -209,6 +212,7 @@ fun ScaffoldColumn(
     columnVerticalArrangement: Arrangement.Vertical = Arrangement.Top,
     columnHorizontalAlignment: Alignment.Horizontal = Alignment.Start,
     columnScrollState: ScrollState = rememberScrollState(),
+    contentFocus: ScaffoldContentFocus? = null,
     columnContent: @Composable ColumnScope.() -> Unit,
 ) {
     ProvideScaffoldLocalValues(
@@ -216,10 +220,10 @@ fun ScaffoldColumn(
     ) {
         Scaffold(
             modifier = modifier,
-            topBar = topBar,
-            bottomBar = bottomBar,
+            topBar = rememberFocusSlot(contentFocus?.topBar, topBar),
+            bottomBar = rememberFocusSlot(contentFocus?.bottomBar, bottomBar),
             snackbarHost = snackbarHost,
-            floatingActionButton = {
+            floatingActionButton = rememberFocusSlot(contentFocus?.fabs) {
                 val expandedState = topAppBarScrollBehavior.rememberFabExpanded()
                 val scope = remember(
                     floatingActionState,
@@ -357,6 +361,7 @@ class MutableFabScope(
 
 @Composable
 fun FabScope.DefaultFab(
+    modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.primaryContainer,
     contentColor: Color = contentColorFor(color),
     icon: @Composable () -> Unit,
@@ -405,6 +410,7 @@ fun FabScope.DefaultFab(
             label = "FabContentColor",
         )
         ExtendedFloatingActionButton(
+            modifier = modifier,
             expanded = expanded.value && enabled,
             icon = icon,
             text = text,
@@ -419,6 +425,7 @@ fun FabScope.DefaultFab(
 
 @Composable
 fun FabScope.SmallFab(
+    modifier: Modifier = Modifier,
     icon: @Composable () -> Unit,
     onClick: (() -> Unit)?,
 ) {
@@ -465,6 +472,7 @@ fun FabScope.SmallFab(
             label = "SmallFabContentColor",
         )
         SmallFloatingActionButton(
+            modifier = modifier,
             containerColor = containerColor,
             contentColor = contentColor,
             onClick = {

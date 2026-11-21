@@ -185,7 +185,7 @@
     <ID>CyclomaticComplexMethod:VaultListItemMapping.kt:fun DSecret.toVaultItemIcon: VaultItemIcon</ID>
     <ID>CyclomaticComplexMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `filter chips narrow both pipelines identically`</ID>
     <ID>CyclomaticComplexMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `sorts order both pipelines identically and the menu matches`</ID>
-    <ID>CyclomaticComplexMethod:VaultListScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, ExperimentalAnimationApi::class, ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class, ) @Composable fun VaultHomeScreenListPane</ID>
+    <ID>CyclomaticComplexMethod:VaultListScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, ExperimentalAnimationApi::class, ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class, ) @Composable private fun VaultHomeScreenListPane</ID>
     <ID>CyclomaticComplexMethod:VaultListStateProducer.kt:internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer: Flow&lt;VaultListState&gt;</ID>
     <ID>CyclomaticComplexMethod:VaultRowProjection.kt:fun appleVaultTextFieldSymbol: String</ID>
     <ID>CyclomaticComplexMethod:VaultSearchBenchmarkFixtures.kt:VaultSearchBenchmarkFixtures$private fun buildSecret: DSecret</ID>
@@ -788,7 +788,8 @@
     <ID>LongMethod:VaultListParityTest.kt:VaultListParityTest$@Test fun `toolbar actions sections and toggle roles match`</ID>
     <ID>LongMethod:VaultListParityTest.kt:VaultListParityTest$private fun assertItemRowParity</ID>
     <ID>LongMethod:VaultListScreen.kt:@Composable fun VaultListScreen</ID>
-    <ID>LongMethod:VaultListScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, ExperimentalAnimationApi::class, ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class, ) @Composable fun VaultHomeScreenListPane</ID>
+    <ID>LongMethod:VaultListScreen.kt:@Composable internal fun VaultListScreenContent</ID>
+    <ID>LongMethod:VaultListScreen.kt:@OptIn( ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, ExperimentalLayoutApi::class, ExperimentalAnimationApi::class, ExperimentalMaterialApi::class, ExperimentalMaterial3ExpressiveApi::class, ) @Composable private fun VaultHomeScreenListPane</ID>
     <ID>LongMethod:VaultListShared.kt:internal fun RememberStateFlowScope.buildVaultItemModeMenu: VaultItem2.Item.Action</ID>
     <ID>LongMethod:VaultListShared.kt:internal fun RememberStateFlowScope.vaultListToolbarFlow: Flow&lt;List&lt;ContextItem&gt;&gt;</ID>
     <ID>LongMethod:VaultListStateProducer.kt:internal suspend fun RememberStateFlowScope.vaultListScreenStateProducer: Flow&lt;VaultListState&gt;</ID>

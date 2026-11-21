@@ -26,11 +26,12 @@ import androidx.compose.ui.unit.LayoutDirection
  * The arrow keys along it move focus between its items and stop at its
  * ends. The key toward the content calls [onFocusContent], the key away
  * from it does nothing. A key that moves focus switches to keyboard
- * input mode. The [focusedState] is `true` while the group holds focus.
+ * input mode. The [focusedState], if any, is `true` while the group
+ * holds focus.
  */
 internal fun Modifier.navigationBarFocusGroup(
     orientation: Orientation,
-    focusedState: MutableState<Boolean>,
+    focusedState: MutableState<Boolean>?,
     onFocusContent: () -> Unit,
 ): Modifier = this
     .then(
@@ -44,7 +45,7 @@ internal fun Modifier.navigationBarFocusGroup(
 
 private data class NavigationBarFocusElement(
     val orientation: Orientation,
-    val focusedState: MutableState<Boolean>,
+    val focusedState: MutableState<Boolean>?,
     val onFocusContent: () -> Unit,
 ) : ModifierNodeElement<NavigationBarFocusNode>() {
     override fun create() = NavigationBarFocusNode(
@@ -67,7 +68,7 @@ private data class NavigationBarFocusElement(
 
 private class NavigationBarFocusNode(
     var orientation: Orientation,
-    var focusedState: MutableState<Boolean>,
+    var focusedState: MutableState<Boolean>?,
     var onFocusContent: () -> Unit,
 ) : Modifier.Node(),
     CompositionLocalConsumerModifierNode,
@@ -88,12 +89,12 @@ private class NavigationBarFocusNode(
     }
 
     override fun onFocusEvent(focusState: FocusState) {
-        focusedState.value = focusState.hasFocus
+        focusedState?.value = focusState.hasFocus
     }
 
     override fun onDetach() {
         // The bar may leave while it holds focus.
-        focusedState.value = false
+        focusedState?.value = false
     }
 
     override fun onPreKeyEvent(event: KeyEvent): Boolean {

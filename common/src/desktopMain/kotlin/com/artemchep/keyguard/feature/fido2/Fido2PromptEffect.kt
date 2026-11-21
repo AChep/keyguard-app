@@ -22,12 +22,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.platform.requireSecurityKeyAccess
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.CollectedEffect
 import com.artemchep.keyguard.ui.PasswordKeyboardHint
+import com.artemchep.keyguard.ui.focus.focusOnDialogOpen
 import com.artemchep.keyguard.util.fido2.Fido2Exception
 import com.artemchep.keyguard.util.fido2.Fido2Failure
 import com.artemchep.keyguard.util.fido2.NativeFido2Client

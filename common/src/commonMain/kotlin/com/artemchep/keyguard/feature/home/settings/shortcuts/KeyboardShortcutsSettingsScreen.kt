@@ -20,7 +20,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.semantics.contentDescription
@@ -34,14 +33,15 @@ import com.artemchep.keyguard.common.service.shortcut.GlobalShortcutError
 import com.artemchep.keyguard.common.service.shortcut.GlobalShortcutStatus
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
-import com.artemchep.keyguard.feature.home.settings.SettingsListFocus
-import com.artemchep.keyguard.feature.home.settings.rememberSettingsListFocus
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
+import com.artemchep.keyguard.ui.focus.ListFocus
+import com.artemchep.keyguard.ui.focus.enterAt
+import com.artemchep.keyguard.ui.focus.rememberListFocus
 import com.artemchep.keyguard.ui.screenMaxWidth
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
@@ -69,7 +69,7 @@ internal fun KeyboardShortcutsSettingsContent(state: Loadable<KeyboardShortcutsS
             value.items.map { it.action.name }
         }
     }
-    val focus = rememberSettingsListFocus(
+    val focus = rememberListFocus(
         listState = listState,
         listKeys = listKeys,
         focusFirstOnEnter = true,
@@ -106,7 +106,7 @@ internal fun KeyboardShortcutsSettingsContent(state: Loadable<KeyboardShortcutsS
 
 private fun LazyListScope.keyboardShortcutItems(
     state: KeyboardShortcutsSettingsState,
-    focus: SettingsListFocus,
+    focus: ListFocus,
 ) {
     itemsIndexed(
         items = state.items,
@@ -150,16 +150,7 @@ private fun KeyboardShortcutItem(
                         // Up and Down pick the button nearest to the middle
                         // of the row they come from, so redirect them to the
                         // binding. Right then moves to Reset.
-                        .focusProperties {
-                            onEnter = {
-                                if (
-                                    requestedFocusDirection == FocusDirection.Down ||
-                                    requestedFocusDirection == FocusDirection.Up
-                                ) {
-                                    bindingRequester.requestFocus()
-                                }
-                            }
-                        }
+                        .enterAt(bindingRequester, listOf(FocusDirection.Down, FocusDirection.Up))
                         .focusGroup()
                         .padding(
                             bottom = Dimens.verticalPadding,

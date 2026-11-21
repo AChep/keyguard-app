@@ -368,7 +368,8 @@ private class ShortcutTestScope(
         callback: ((Boolean) -> Unit) -> Unit,
     ): Unit = error("Unused")
 
-    override fun interceptBackPress(interceptorFlow: Flow<(() -> Unit)?>): () -> Unit = error("Unused")
+    // The recorder intercepts Back; these tests don't press it.
+    override fun interceptBackPress(interceptorFlow: Flow<(() -> Unit)?>): () -> Unit = {}
 
     override fun interceptKeyEvent(interceptorFlow: Flow<((KeyEvent) -> Boolean)?>): () -> Unit = error("Unused")
 

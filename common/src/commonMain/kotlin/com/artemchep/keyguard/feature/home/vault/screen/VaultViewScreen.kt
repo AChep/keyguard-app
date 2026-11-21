@@ -24,12 +24,20 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -53,6 +61,8 @@ import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionallyKeepScreenOnEffect
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
+import com.artemchep.keyguard.ui.focus.awaitItemsPlaced
+import com.artemchep.keyguard.ui.focus.rememberCanTakeFocus
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.text.AutoSizeText
@@ -66,6 +76,7 @@ import org.jetbrains.compose.resources.stringResource
 fun VaultViewScreen(
     itemId: String,
     accountId: String,
+    focusFirstField: Boolean = false,
 ) {
     OptionallyKeepScreenOnEffect()
 
@@ -79,13 +90,19 @@ fun VaultViewScreen(
     )
     VaultViewScreenContent(
         state = state,
+        focusFirstField = focusFirstField,
     )
 }
 
+/**
+ * The item of the [state]. If [focusFirstField], its first field
+ * takes focus once it shows, in keyboard input mode.
+ */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun VaultViewScreenContent(
     state: VaultViewState,
+    focusFirstField: Boolean = false,
 ) {
     val listState = rememberSaveable(
         0,
@@ -96,9 +113,20 @@ fun VaultViewScreenContent(
             firstVisibleItemScrollOffset = 0,
         )
     }
+    val listRequester = remember { FocusRequester() }
+    val hasFocusState = remember { mutableStateOf(false) }
+    if (focusFirstField) {
+        FocusFirstFieldEffect(
+            state = state,
+            listState = listState,
+            listRequester = listRequester,
+            hasFocus = { hasFocusState.value },
+        )
+    }
     val scrollBehavior = ToolbarBehavior.behavior()
     ScaffoldLazyColumn(
         modifier = Modifier
+            .onFocusChanged { hasFocusState.value = it.hasFocus }
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
@@ -148,6 +176,8 @@ fun VaultViewScreenContent(
                 )
             }
         },
+        listModifier = Modifier
+            .focusRequester(listRequester),
         listState = listState,
     ) {
         when (state.content) {
@@ -240,6 +270,40 @@ fun VaultViewScreenContent(
             else -> {
                 // Do nothing.
             }
+        }
+    }
+}
+
+/**
+ * Focuses the first field of the item, once its rows are placed. The
+ * effect runs each time the item view is composed, so it also runs
+ * when a screen pushed on top of the item view closes. It does nothing
+ * if the item view [hasFocus] by then, as the user moved focus there.
+ */
+@Composable
+private fun FocusFirstFieldEffect(
+    state: VaultViewState,
+    listState: LazyListState,
+    listRequester: FocusRequester,
+    hasFocus: () -> Boolean,
+) {
+    val canTakeFocus = rememberCanTakeFocus()
+    val currentState by rememberUpdatedState(state)
+    LaunchedEffect(listRequester, canTakeFocus) {
+        // An item opened by a click takes no focus.
+        if (canTakeFocus == null || !canTakeFocus()) return@LaunchedEffect
+
+        // The keys of the lazy items of the rows.
+        fun keys() = (currentState.content as? VaultViewState.Content.Cipher)
+            ?.items
+            ?.map { it.id }
+            .orEmpty()
+
+        listState.awaitItemsPlaced(::keys)
+        // A Tab while the rows load picked a target already.
+        if (canTakeFocus() && !hasFocus()) {
+            // A group enters its top-left placed row.
+            listRequester.requestFocus(FocusDirection.Enter)
         }
     }
 }

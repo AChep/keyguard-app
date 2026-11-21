@@ -8,10 +8,16 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
+import androidx.compose.ui.layout.LayoutCoordinates
+import androidx.compose.ui.layout.onPlaced
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.search.EmptyItem
 import com.artemchep.keyguard.feature.search.filter.component.FilterListItemComposable
@@ -23,11 +29,16 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import org.jetbrains.compose.resources.stringResource
 
+/**
+ * The [endEdge] is where focus goes from the items at the end edge,
+ * such as the last focusable item of each line of chips.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ColumnScope.FilterItems(
     items: List<FilterItemModel>,
     predicate: (FilterItemModel) -> Boolean = { true },
+    endEdge: FocusRequester = FocusRequester.Default,
 ) {
     if (items.isEmpty()) {
         EmptyItem(
@@ -48,26 +59,42 @@ fun ColumnScope.FilterItems(
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         blocks.forEach { block ->
-            when (block) {
-                is FilterItemsBlock.Flow -> FilterItemsFlowBlock(block.items)
-                is FilterItemsBlock.ListSection -> FilterItemsListBlock(
-                    section = block.section,
-                    items = block.items,
-                )
+            // A block that appears above keeps
+            // the focused item of this one.
+            key(block.key) {
+                when (block) {
+                    is FilterItemsBlock.Flow -> FilterItemsFlowBlock(
+                        items = block.items,
+                        endEdge = endEdge,
+                    )
+
+                    is FilterItemsBlock.ListSection -> FilterItemsListBlock(
+                        section = block.section,
+                        items = block.items,
+                        endEdge = endEdge,
+                    )
+                }
             }
         }
     }
 }
 
 private sealed interface FilterItemsBlock {
+    val key: String
+
     data class Flow(
         val items: List<FilterItemModel>,
-    ) : FilterItemsBlock
+    ) : FilterItemsBlock {
+        // Usually the id of its first section.
+        override val key: String get() = items.first().id
+    }
 
     data class ListSection(
         val section: FilterItemModel.Section,
         val items: List<FilterItemModel>,
-    ) : FilterItemsBlock
+    ) : FilterItemsBlock {
+        override val key: String get() = section.id
+    }
 }
 
 private fun List<FilterItemModel>.toFilterItemsBlocks(): List<FilterItemsBlock> {
@@ -142,7 +169,17 @@ private fun List<FilterItemModel>.toFilterItemsBlocks(): List<FilterItemsBlock> 
 @Composable
 private fun FilterItemsFlowBlock(
     items: List<FilterItemModel>,
+    endEdge: FocusRequester,
 ) {
+    val lineEnds = remember(endEdge) {
+        FlowLineEnds(endEdge)
+            .takeIf { endEdge != FocusRequester.Default }
+    }
+    if (lineEnds != null) {
+        SideEffect {
+            lineEnds.items = items
+        }
+    }
     FlowRow(
         modifier = Modifier
             .padding(horizontal = 8.dp),
@@ -151,16 +188,26 @@ private fun FilterItemsFlowBlock(
     ) {
         items.forEach { item ->
             key(item.id) {
+                val itemModifier = if (lineEnds != null) {
+                    remember(lineEnds) {
+                        lineEnds.modifier(item.id)
+                    }
+                } else {
+                    Modifier
+                }
                 when (item) {
                     is FilterItemModel.ChipItem -> FilterItemItem(
+                        modifier = itemModifier,
                         item = item,
                     )
 
                     is FilterItemModel.ListItem -> FilterNestedFolderItem(
+                        modifier = itemModifier,
                         item = item,
                     )
 
                     is FilterItemModel.Section -> FilterItemSection(
+                        modifier = itemModifier,
                         item = item,
                     )
                 }
@@ -169,10 +216,72 @@ private fun FilterItemsFlowBlock(
     }
 }
 
+/**
+ * Finds the last focusable item of each line of a flow block when focus
+ * searches, from where the items were placed. So nothing recomposes when
+ * an item moves to another line.
+ */
+private class FlowLineEnds(
+    private val endEdge: FocusRequester,
+) {
+    private val coordinates = mutableMapOf<String, LayoutCoordinates>()
+
+    /** The index of the first item with an id. */
+    private var indexById: Map<String, Int> = emptyMap()
+
+    /** For each index, the index of the next item that can take focus, or -1. */
+    private var nextFocusable = IntArray(0)
+
+    var items: List<FilterItemModel> = emptyList()
+        set(value) {
+            field = value
+            val indices = HashMap<String, Int>(value.size)
+            value.forEachIndexed { index, item -> indices.getOrPut(item.id) { index } }
+            indexById = indices
+            // Focus skips the items that can not take it.
+            val next = IntArray(value.size)
+            var nextIndex = -1
+            for (index in value.indices.reversed()) {
+                next[index] = nextIndex
+                if (value[index].canFocus()) nextIndex = index
+            }
+            nextFocusable = next
+            coordinates.keys.retainAll(indices.keys)
+        }
+
+    fun modifier(id: String): Modifier = Modifier
+        .onPlaced { coordinates[id] = it }
+        .focusProperties {
+            if (isLineEnd(id)) end = endEdge
+        }
+
+    private fun isLineEnd(id: String): Boolean {
+        val index = indexById[id]
+        val bounds = placed(id)
+        if (index == null || bounds == null) return false
+        val next = items.getOrNull(nextFocusable[index])
+        val nextTop = next?.let { placed(it.id) }?.positionInRoot()?.y
+        // A line is as tall as its tallest item, so
+        // the next line starts below this item.
+        val bottom = bounds.positionInRoot().y + bounds.size.height
+        return next == null || nextTop != null && nextTop >= bottom
+    }
+
+    private fun placed(id: String) = coordinates[id]?.takeIf { it.isAttached }
+}
+
+private fun FilterItemModel.canFocus(): Boolean = when (this) {
+    is FilterItemModel.ChipItem -> enabled
+    is FilterItemModel.ListItem -> enabled
+    is FilterItemModel.Section -> onClick != null
+    else -> false
+}
+
 @Composable
 private fun FilterItemsListBlock(
     section: FilterItemModel.Section,
     items: List<FilterItemModel>,
+    endEdge: FocusRequester,
 ) {
     val expandedNodeIds = remember(section.id) {
         mutableStateMapOf<String, Boolean>()
@@ -198,6 +307,8 @@ private fun FilterItemsListBlock(
         return true
     }
 
+    // Every item is at the end edge.
+    val endModifier = rememberEndEdgeModifier(endEdge)
     val isList = section.layout == Layout.List
     Column(
         modifier = Modifier
@@ -208,7 +319,7 @@ private fun FilterItemsListBlock(
     ) {
         key(section.id) {
             FilterItemSection(
-                modifier = Modifier
+                modifier = endModifier
                     .fillMaxWidth(),
                 item = section,
             )
@@ -218,7 +329,7 @@ private fun FilterItemsListBlock(
                 when (item) {
                     is FilterItemModel.ChipItem -> {
                         FilterItemItem(
-                            modifier = Modifier
+                            modifier = endModifier
                                 .fillMaxWidth(),
                             item = item,
                         )
@@ -238,6 +349,7 @@ private fun FilterItemsListBlock(
                                 } else {
                                     null
                                 },
+                                endEdge = endEdge,
                                 item = item,
                             )
                         }
@@ -247,6 +359,16 @@ private fun FilterItemsListBlock(
                 }
             }
         }
+    }
+}
+
+/** Points the end key of an item at the [endEdge]. */
+@Composable
+private fun rememberEndEdgeModifier(endEdge: FocusRequester): Modifier = remember(endEdge) {
+    if (endEdge != FocusRequester.Default) {
+        Modifier.focusProperties { end = endEdge }
+    } else {
+        Modifier
     }
 }
 
@@ -272,6 +394,7 @@ private fun FilterNestedFolderItem(
     modifier: Modifier = Modifier,
     expanded: Boolean = false,
     onExpandedChange: ((Boolean) -> Unit)? = null,
+    endEdge: FocusRequester = FocusRequester.Default,
     item: FilterItemModel.ListItem,
 ) {
     val onClick = item.onClick
@@ -294,6 +417,7 @@ private fun FilterNestedFolderItem(
         expanded = expanded.takeIf { item.expandable },
         onToggle = onExpandedChange,
         onClick = onClick,
+        endEdge = endEdge,
     )
 }
 

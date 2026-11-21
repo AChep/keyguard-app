@@ -2,7 +2,9 @@ package com.artemchep.keyguard.ui.focus
 
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
+import kotlinx.coroutines.flow.first
 
 /**
  * Scrolls to [contextIndex] to keep a few items before [index] in view,
@@ -24,6 +26,25 @@ internal suspend fun awaitScrolledItemsPlaced() {
     repeat(2) {
         withFrameNanos { }
     }
+}
+
+/**
+ * Waits until the list placed the items of the [keys], the keys of its
+ * lazy items in order. Lazy items are composed by a layout that comes
+ * after the content, maybe frames later. The layout that measured them
+ * may still be placing them, and a focus group only enters a placed item.
+ */
+internal suspend fun LazyListState.awaitItemsPlaced(keys: () -> List<Any?>) {
+    snapshotFlow { hasMeasured(keys()) }
+        .first { it }
+    withFrameNanos { }
+}
+
+/** `true` once a layout measured the items of the [keys]. */
+private fun LazyListState.hasMeasured(keys: List<Any?>): Boolean {
+    val item = layoutInfo.visibleItemsInfo.firstOrNull()
+        ?: return false
+    return keys.getOrNull(item.index) == item.key
 }
 
 /**

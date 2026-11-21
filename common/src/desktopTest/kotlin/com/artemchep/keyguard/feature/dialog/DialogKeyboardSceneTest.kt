@@ -43,6 +43,7 @@ import com.artemchep.keyguard.feature.timepicker.TimePickerState
 import com.artemchep.keyguard.ui.DialogPopup
 import com.artemchep.keyguard.ui.draw
 import com.artemchep.keyguard.ui.enterText
+import com.artemchep.keyguard.ui.focus.focusOnDialogOpen
 import com.artemchep.keyguard.ui.focused
 import com.artemchep.keyguard.ui.icons.generateAccentColors
 import com.artemchep.keyguard.ui.press

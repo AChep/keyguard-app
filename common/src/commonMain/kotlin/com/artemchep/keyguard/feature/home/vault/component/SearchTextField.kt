@@ -77,6 +77,8 @@ import org.jetbrains.compose.resources.pluralStringResource
 @Composable
 fun SearchTextField(
     modifier: Modifier = Modifier,
+    // Applied to the text input only, not to the buttons next to it.
+    inputModifier: Modifier = Modifier,
     text: String,
     // When provided, the field adopts a remote text only when the revision
     // changes (a programmatic write); same-revision changes are echoes of
@@ -208,6 +210,7 @@ fun SearchTextField(
                         Modifier
                             .fillMaxHeight()
                             .weight(1f)
+                            .then(inputModifier)
                             // When focused, clicking the Escape key should
                             // clear the text field.
                             .onKeyEvent { keyEvent ->

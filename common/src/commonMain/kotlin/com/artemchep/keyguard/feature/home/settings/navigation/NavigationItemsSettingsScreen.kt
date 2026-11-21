@@ -46,9 +46,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.key.Key
@@ -73,7 +71,6 @@ import com.artemchep.keyguard.common.model.getShapeState
 import com.artemchep.keyguard.feature.home.settings.KgAction
 import com.artemchep.keyguard.feature.home.settings.LocalSettingItemShape
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
-import com.artemchep.keyguard.feature.home.settings.rememberSettingsListFocus
 import com.artemchep.keyguard.feature.home.vault.component.defaultFlatItemPaddingValues
 import com.artemchep.keyguard.feature.home.vault.component.surfaceShape
 import com.artemchep.keyguard.feature.localization.TextHolder
@@ -90,6 +87,8 @@ import com.artemchep.keyguard.ui.KeyguardDropdownMenu
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.focus.awaitScrolledItemsPlaced
+import com.artemchep.keyguard.ui.focus.rememberListFocus
+import com.artemchep.keyguard.ui.focus.rememberTrailingFocusLink
 import com.artemchep.keyguard.ui.focus.scrollIntoView
 import com.artemchep.keyguard.ui.reorder.ReorderableLazyListState
 import com.artemchep.keyguard.ui.reorder.move
@@ -179,7 +178,7 @@ internal fun NavigationItemsSettingsContent(
     val listKeys = remember(localItems) {
         localItems.map { it.key } + BOTTOM_SPACER_KEY
     }
-    val focus = rememberSettingsListFocus(
+    val focus = rememberListFocus(
         listState = listState,
         listKeys = listKeys,
         focusFirstOnEnter = true,
@@ -266,6 +265,7 @@ internal fun NavigationItemsSettingsContent(
         },
         listModifier = focus.listModifier,
         listState = listState,
+        contentFocus = focus.rememberScaffoldContentFocus(),
     ) {
         itemsIndexed(
             items = localItems,
@@ -375,27 +375,13 @@ private fun NavigationItemsSettingsItem(
     item: NavigationItemsSettingsState.Item,
 ) {
     val components = LocalSettingPaneComponents.current
-    // Arrows only search the siblings of the focused node, and the
-    // trailing buttons are children of the row, so Right and Left
-    // link the row and the options button. Only a clickable row is
-    // a focus target.
-    val rowRequester = remember { FocusRequester() }
-    val optionsRequester = remember { FocusRequester() }
-    val linked = item.onVisibilityToggle != null
+    // Right and Left link the row and the options button.
+    // Only a clickable row is a focus target.
+    val optionsLink = rememberTrailingFocusLink(enabled = item.onVisibilityToggle != null)
     Box(
         modifier = modifier
-            .then(
-                if (linked) {
-                    // Applies to the first focus target below it, the row.
-                    Modifier
-                        .focusRequester(rowRequester)
-                        .focusProperties {
-                            end = optionsRequester
-                        }
-                } else {
-                    Modifier
-                },
-            ),
+            // Applies to the first focus target below it, the row.
+            .then(optionsLink.row),
     ) {
         components.KgAction(
             icon = item.icon,
@@ -411,15 +397,7 @@ private fun NavigationItemsSettingsItem(
             },
             trailing = {
                 NavigationItemsSettingsItemActions(
-                    optionsModifier = if (linked) {
-                        Modifier
-                            .focusRequester(optionsRequester)
-                            .focusProperties {
-                                start = rowRequester
-                            }
-                    } else {
-                        Modifier
-                    },
+                    optionsModifier = optionsLink.button,
                     dragHandleModifier = dragHandleModifier,
                     item = item,
                 )

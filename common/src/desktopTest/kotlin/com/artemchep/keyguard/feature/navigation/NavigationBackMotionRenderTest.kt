@@ -123,9 +123,14 @@ class NavigationBackMotionRenderTest {
             dragBack(1f, touchY = 400f)
 
             assertEquals(WIDTH * PEEK_SCALE, screens.bounds("details").width, 0.01f)
-            assertEquals(screens.bounds("details").top, screens.bounds("list").top, 0.01f)
             // Below the top of a page that is scaled around its center.
-            assertTrue(screens.bounds("details").top > HEIGHT * (1f - PEEK_SCALE) / 2f)
+            assertTrue(screens.verticalOffset("details") > 0f)
+            // The page underneath follows the finger less.
+            assertEquals(
+                screens.verticalOffset("details") * BACK_GESTURE_ENTERING_PARALLAX,
+                screens.verticalOffset("list"),
+                0.01f,
+            )
 
             host.cancelBack()
             frame()
@@ -147,6 +152,12 @@ class NavigationBackMotionRenderTest {
         frame()
         host.progressBack(event(progress).copy(touchY = touchY))
         frame()
+    }
+
+    /** How far a page moved down from its place, scaled around its center. */
+    private fun NavigationScreenProbe.verticalOffset(name: String): Float {
+        val bounds = bounds(name)
+        return bounds.top - (HEIGHT - bounds.height) / 2f
     }
 
     private fun event(progress: Float) = NavigationBackEvent(

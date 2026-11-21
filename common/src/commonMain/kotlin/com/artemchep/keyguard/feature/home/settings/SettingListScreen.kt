@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.icons.Icons
@@ -74,6 +73,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.navigationNextEntryOrNull
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
+import com.artemchep.keyguard.feature.navigation.rememberNavigationListScrollState
 import com.artemchep.keyguard.feature.onboarding.SmallOnboardingCard
 import com.artemchep.keyguard.feature.onboarding.onboardingItemsPremium
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
@@ -85,6 +85,7 @@ import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
+import com.artemchep.keyguard.ui.focus.rememberListFocus
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
@@ -355,14 +356,19 @@ internal fun SettingListScreenContent(
             q.queue(intent)
         },
     )
-    val scrollBehavior = ToolbarBehavior.behavior()
-    val listState = rememberLazyListState()
     val listKeys = remember(items) {
         items.map { it.id }
     }
+    val scrollState = rememberNavigationListScrollState(
+        listKeys = listKeys,
+    )
+    val scrollBehavior = ToolbarBehavior.behavior(
+        state = scrollState.topAppBarState,
+    )
+    val listState = scrollState.listState
     // Opening the Settings tab moves no focus, coming
     // back to it restores the row the user left from.
-    val focus = rememberSettingsListFocus(
+    val focus = rememberListFocus(
         listState = listState,
         listKeys = listKeys,
         focusFirstOnEnter = false,

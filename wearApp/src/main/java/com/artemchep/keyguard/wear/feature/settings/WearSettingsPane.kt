@@ -21,8 +21,10 @@ import com.artemchep.keyguard.feature.home.settings.rememberSettingPaneState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.items_empty_label
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
+import com.artemchep.keyguard.wear.ui.WEAR_SCAFFOLD_HEADER_KEY
 import com.artemchep.keyguard.wear.ui.WearListEmpty
 import com.artemchep.keyguard.wear.ui.WearScaffoldScreen
+import com.artemchep.keyguard.wear.ui.rememberWearNavigationListScrollState
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -49,11 +51,26 @@ fun WearSettingsPaneScaffold(
     val components = remember {
         WearSettingsComponents()
     }
+    val listKeys = remember(state.list) {
+        val list = (state.list as? Loadable.Ok)?.value
+        if (list.isNullOrEmpty()) {
+            emptyList()
+        } else {
+            buildList(list.size + 1) {
+                add(WEAR_SCAFFOLD_HEADER_KEY)
+                list.forEach { add(it.compositeKey) }
+            }
+        }
+    }
+    val listState = rememberWearNavigationListScrollState(
+        listKeys = listKeys,
+    )
     CompositionLocalProvider(
         LocalSettingPaneComponents provides components,
     ) {
         WearScaffoldScreen(
             title = title,
+            listState = listState,
         ) { transformationSpec ->
             when (val contentState = state.list) {
                 is Loadable.Loading -> {

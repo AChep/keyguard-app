@@ -23,7 +23,6 @@ import com.artemchep.keyguard.common.model.fold
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.common.util.int
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
-import com.artemchep.keyguard.feature.home.settings.rememberSettingsListFocus
 import com.artemchep.keyguard.feature.navigation.LocalNavigationEntry
 import com.artemchep.keyguard.feature.navigation.NavigationEntryImpl
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
@@ -36,6 +35,7 @@ import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.RequestLazyListScrollOnRevision
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
+import com.artemchep.keyguard.ui.focus.rememberListFocus
 import com.artemchep.keyguard.ui.skeleton.skeletonItems
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
 import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
@@ -154,7 +154,7 @@ internal fun AutomaticBackupsSettingsContent(
             )
         }
     }
-    val focus = rememberSettingsListFocus(
+    val focus = rememberListFocus(
         listState = listState,
         listKeys = items.map { it.key },
         focusFirstOnEnter = true,
@@ -203,6 +203,7 @@ internal fun AutomaticBackupsSettingsContent(
         },
         listModifier = focus.listModifier,
         listState = listState,
+        contentFocus = focus.rememberScaffoldContentFocus(),
     ) {
         items(
             items = items,

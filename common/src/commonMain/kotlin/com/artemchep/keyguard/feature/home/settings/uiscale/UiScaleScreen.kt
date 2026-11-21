@@ -47,7 +47,6 @@ import com.artemchep.keyguard.common.model.formatUiScale
 import com.artemchep.keyguard.common.model.uiScaleFromStep
 import com.artemchep.keyguard.common.model.uiScaleToStep
 import com.artemchep.keyguard.feature.dialog.Dialog
-import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.home.vault.component.FlatSurfaceExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.cancel
@@ -59,6 +58,7 @@ import com.artemchep.keyguard.res.pref_item_ui_scale_preview_text
 import com.artemchep.keyguard.res.pref_item_ui_scale_title
 import com.artemchep.keyguard.res.save
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.focus.focusOnDialogOpen
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import kotlin.math.roundToInt

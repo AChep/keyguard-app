@@ -15,6 +15,7 @@ import com.artemchep.keyguard.ui.focus.FocusRequester2
 fun CustomSearchbarContent(
     modifier: Modifier = Modifier,
     searchFieldModifier: Modifier = Modifier,
+    searchFieldInputModifier: Modifier = Modifier,
     searchFieldModel: TextFieldModel,
     searchFieldPlaceholder: String,
     focusRequester: FocusRequester2,
@@ -42,6 +43,7 @@ fun CustomSearchbarContent(
         }
         SearchTextField(
             modifier = searchFieldModifier,
+            inputModifier = searchFieldInputModifier,
             text = searchFieldModel.text,
             textRevision = searchFieldModel.textRevision,
             placeholder = searchFieldPlaceholder,

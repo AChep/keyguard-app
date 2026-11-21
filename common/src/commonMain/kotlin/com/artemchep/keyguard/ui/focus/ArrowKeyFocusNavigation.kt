@@ -16,16 +16,22 @@ import androidx.compose.ui.platform.LocalInputModeManager
 import com.artemchep.keyguard.feature.navigation.keyboard.isPlainKeyDown
 
 /**
- * Moves focus with the arrow keys. Desktop scroll containers consume arrow
- * keys unless their choices move focus first. Focus moves by position, so
- * Left and Right can cross panes. A move switches to keyboard input mode.
+ * Moves focus with the arrow keys. Desktop has no arrow key focus
+ * navigation of its own: its scroll containers only handle PageUp and
+ * PageDown. Focus moves by position, so Left and Right can cross panes.
+ * A move switches to keyboard input mode.
  *
  * With [afterChildren], the focused child handles the keys first, so a
- * text field keeps moving its caret. Put it inside any scroll container.
+ * text field keeps moving its caret.
+ *
+ * If a key moves no focus, [onStuck] gets its direction. It returns
+ * `true` if it handled the key, which then also switches to keyboard
+ * input mode.
  */
 internal fun Modifier.arrowKeyFocusNavigation(
     afterChildren: Boolean = false,
-): Modifier = this then ArrowKeyFocusNavigationElement(afterChildren)
+    onStuck: ((FocusDirection) -> Boolean)? = null,
+): Modifier = this then ArrowKeyFocusNavigationElement(afterChildren, onStuck)
 
 /** The direction of a plain arrow key press, or `null` for other events. */
 internal fun KeyEvent.arrowKeyFocusDirection(): FocusDirection? {
@@ -55,11 +61,13 @@ internal fun CompositionLocalConsumerModifierNode.moveFocusFromKeyboard(
 
 private data class ArrowKeyFocusNavigationElement(
     val afterChildren: Boolean,
+    val onStuck: ((FocusDirection) -> Boolean)?,
 ) : ModifierNodeElement<ArrowKeyFocusNavigationNode>() {
-    override fun create() = ArrowKeyFocusNavigationNode(afterChildren)
+    override fun create() = ArrowKeyFocusNavigationNode(afterChildren, onStuck)
 
     override fun update(node: ArrowKeyFocusNavigationNode) {
         node.afterChildren = afterChildren
+        node.onStuck = onStuck
     }
 
     override fun InspectorInfo.inspectableProperties() {
@@ -70,6 +78,7 @@ private data class ArrowKeyFocusNavigationElement(
 
 private class ArrowKeyFocusNavigationNode(
     var afterChildren: Boolean,
+    var onStuck: ((FocusDirection) -> Boolean)?,
 ) : Modifier.Node(),
     CompositionLocalConsumerModifierNode,
     KeyInputModifierNode {
@@ -82,6 +91,14 @@ private class ArrowKeyFocusNavigationNode(
     private fun moveFocus(event: KeyEvent): Boolean {
         val direction = event.arrowKeyFocusDirection()
             ?: return false
-        return moveFocusFromKeyboard(direction)
+        return moveFocusFromKeyboard(direction) || unstick(direction)
+    }
+
+    private fun unstick(direction: FocusDirection): Boolean {
+        val handled = onStuck?.invoke(direction) == true
+        if (handled) {
+            currentValueOf(LocalInputModeManager).requestInputMode(InputMode.Keyboard)
+        }
+        return handled
     }
 }

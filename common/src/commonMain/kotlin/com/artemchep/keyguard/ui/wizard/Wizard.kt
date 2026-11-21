@@ -44,7 +44,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -52,7 +51,6 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
-import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.navigation.LocalNavigationNodeFinishing
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
 import com.artemchep.keyguard.res.Res
@@ -62,6 +60,8 @@ import com.artemchep.keyguard.ui.FabState
 import com.artemchep.keyguard.ui.KeyguardLoadingIndicator
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.focus.arrowKeyFocusNavigation
+import com.artemchep.keyguard.ui.focus.focusOnDialogOpen
+import com.artemchep.keyguard.ui.focus.rememberScaffoldContentFocus
 import com.artemchep.keyguard.ui.scaffoldContentWindowInsets
 import com.artemchep.keyguard.ui.screenMaxWidthCompact
 import com.artemchep.keyguard.ui.theme.Dimens
@@ -95,23 +95,19 @@ fun <T : Any> WizardScaffold(
     val primaryFocus = remember { FocusRequester() }
     // The list lies under the bars, so an arrow key search
     // from a bar passes over it. The bars point at the step.
-    val contentFocus = remember { FocusRequester() }
+    val stepsFocus = remember { FocusRequester() }
     val hasContent = step != null
     ScaffoldLazyColumn(
         modifier = Modifier
             .nestedScroll(scrollBehavior.nestedScrollConnection)
-            // For the toolbar and the bottom bar. The step
-            // has its own, as the list consumes arrow keys.
+            // For the toolbar and the bottom bar.
             .arrowKeyFocusNavigation(afterChildren = true),
         expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
         listState = listState,
+        contentFocus = rememberScaffoldContentFocus(stepsFocus, enabled = hasContent),
         topBar = {
             LargeToolbar(
-                modifier = Modifier
-                    .focusProperties {
-                        if (hasContent) down = contentFocus
-                    },
                 title = { Text(title) },
                 navigationIcon = navigationIcon,
                 scrollBehavior = scrollBehavior,
@@ -119,14 +115,7 @@ fun <T : Any> WizardScaffold(
         },
         bottomBar = {
             CompositionLocalProvider(LocalWizardPrimaryFocus provides primaryFocus) {
-                Box(
-                    modifier = Modifier
-                        .focusProperties {
-                            if (hasContent) up = contentFocus
-                        },
-                ) {
-                    bottomBar()
-                }
+                bottomBar()
             }
         },
         floatingActionState = floatingActionState,
@@ -139,7 +128,7 @@ fun <T : Any> WizardScaffold(
                 } else {
                     WizardSteps(
                         step = step,
-                        contentFocus = contentFocus,
+                        stepsFocus = stepsFocus,
                         primaryFocus = primaryFocus,
                         content = content,
                     )
@@ -156,14 +145,14 @@ fun <T : Any> WizardScaffold(
 @Composable
 private fun <T : Any> WizardSteps(
     step: T,
-    contentFocus: FocusRequester,
+    stepsFocus: FocusRequester,
     primaryFocus: FocusRequester,
     content: @Composable ColumnScope.(T) -> Unit,
 ) {
     Crossfade(
         modifier = Modifier
             // Up enters it at its bottom, Down at its top.
-            .focusRequester(contentFocus)
+            .focusRequester(stepsFocus)
             .focusGroup(),
         targetState = step,
         animationSpec = MaterialTheme.motionScheme.defaultEffectsSpec(),

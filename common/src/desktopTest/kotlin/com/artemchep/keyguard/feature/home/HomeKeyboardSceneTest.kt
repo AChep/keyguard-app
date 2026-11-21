@@ -42,11 +42,19 @@ import com.artemchep.keyguard.common.usecase.GetAccountStatus
 import com.artemchep.keyguard.common.usecase.GetAllowScreenshots
 import com.artemchep.keyguard.common.usecase.GetNavLabel
 import com.artemchep.keyguard.common.usecase.PutAllowScreenshots
+import com.artemchep.keyguard.feature.auth.common.TextFieldModel
 import com.artemchep.keyguard.feature.home.navigation.HomeNavigationItem
 import com.artemchep.keyguard.feature.home.settings.SettingListScreenContent
 import com.artemchep.keyguard.feature.home.settings.SettingsItem
 import com.artemchep.keyguard.feature.home.settings.SettingsScreen
 import com.artemchep.keyguard.feature.home.settings.accounts.AccountListState
+import com.artemchep.keyguard.feature.home.vault.VaultRoute
+import com.artemchep.keyguard.feature.home.vault.model.TYPE_CHIPS
+import com.artemchep.keyguard.feature.home.vault.model.VaultItem2
+import com.artemchep.keyguard.feature.home.vault.model.typeChip
+import com.artemchep.keyguard.feature.home.vault.screen.VaultListScreenContent
+import com.artemchep.keyguard.feature.home.vault.screen.VaultListState
+import com.artemchep.keyguard.feature.home.vault.screen.clickSearchField
 import com.artemchep.keyguard.feature.localization.TextHolder
 import com.artemchep.keyguard.feature.navigation.NavigationComposeHarness
 import com.artemchep.keyguard.feature.navigation.NavigationRouter
@@ -54,6 +62,7 @@ import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.click
 import com.artemchep.keyguard.feature.navigation.press
 import com.artemchep.keyguard.feature.navigation.withNavigationHarness
+import com.artemchep.keyguard.feature.twopane.TwoPaneNavigationContent
 import com.artemchep.keyguard.ui.focusedNode
 import com.artemchep.keyguard.ui.focusedOrNull
 import com.artemchep.keyguard.ui.focusedTexts
@@ -114,6 +123,42 @@ class HomeKeyboardSceneTest {
         press(Key.DirectionRight)
         assertEquals(listOf("Row 2"), focusedTexts())
         assertEquals(InputMode.Keyboard, inputMode)
+    }
+
+    @Test
+    fun rightFromTheRailReturnsToTheVaultRow() = withHome(rows = 3, vault = true) {
+        clickSearchField()
+        press(Key.DirectionDown)
+        press(Key.DirectionDown)
+        assertEquals(listOf("Vault row 2"), focusedTexts())
+
+        press(Key.DirectionLeft)
+        assertInRail()
+        press(Key.DirectionRight)
+        assertEquals(listOf("Vault row 2"), focusedTexts())
+    }
+
+    @Test
+    fun rightFromTheRailReturnsToTheVaultFilter() = withHome(
+        rows = 3,
+        width = VAULT_FILTERS_WIDTH,
+        vault = true,
+        vaultChips = TYPE_CHIPS,
+    ) {
+        clickSearchField()
+        press(Key.DirectionDown)
+        press(Key.DirectionDown)
+        press(Key.DirectionLeft)
+        assertEquals(listOf(TYPE_CHIPS.first()), focusedTexts())
+
+        // A filter at the start of the second line, not the first filter.
+        press(Key.DirectionDown)
+        val chip = focusedTexts()
+        assertTrue(chip.singleOrNull() in TYPE_CHIPS.drop(1), "Not on line 2: $chip")
+        press(Key.DirectionLeft)
+        assertInRail()
+        press(Key.DirectionRight)
+        assertEquals(chip, focusedTexts())
     }
 
     @Test
@@ -242,6 +287,10 @@ class HomeKeyboardSceneTest {
     }
 }
 
+private const val VAULT_LABEL = "Vault"
+
+/** The item pane takes a part of the content, so the vault list shows its filters only from here. */
+private const val VAULT_FILTERS_WIDTH = 1600
 private const val SETTINGS_LABEL = "Settings"
 private const val OTHER_LABEL = "Other"
 private const val OTHER_ROW = "Other row"
@@ -270,8 +319,21 @@ private fun withHome(
     height: Int = NavigationComposeHarness.WIDE_HEIGHT,
     allowScreenshots: AllowScreenshots = AllowScreenshots.FULL,
     codeFocusTarget: FocusRequester? = null,
+    // Starts on a Vault tab with the [rows], and filter chips with the [vaultChips] titles.
+    vault: Boolean = false,
+    vaultChips: List<String> = emptyList(),
     block: NavigationComposeHarness.() -> Unit,
 ) = withNavigationHarness(modules = listOf(homeTestModule(allowScreenshots))) {
+    val vaultItem = HomeNavigationItem(
+        key = "vault",
+        spec = NavItemSpec(NavItemRef.BuiltIn("vault")),
+        testTag = null,
+        route = VaultTabRoute(rows, vaultChips),
+        stackId = "vault",
+        icon = Icons.Outlined.Home,
+        iconSelected = Icons.Filled.Home,
+        label = TextHolder.Value(VAULT_LABEL),
+    )
     val settings = HomeNavigationItem(
         key = "settings",
         spec = NavItemSpec(NavItemRef.BuiltIn("settings")),
@@ -293,7 +355,11 @@ private fun withHome(
         label = TextHolder.Value(OTHER_LABEL),
     )
     val home = HomeHostRoute(
-        routes = persistentListOf(settings, other),
+        routes = if (vault) {
+            persistentListOf(vaultItem, settings, other)
+        } else {
+            persistentListOf(settings, other)
+        },
     )
     start(home, width, height)
     block()
@@ -397,6 +463,44 @@ private class SettingsListRoute(
                 }
             }
         }
+    }
+}
+
+/** The Vault tab, with a router like VaultScreen, a list of [rows] and filter [chips]. */
+private class VaultTabRoute(
+    private val rows: Int,
+    private val chips: List<String>,
+) : Route {
+    @Composable
+    override fun Content() {
+        NavigationRouter(id = "vault", initial = VaultListTabRoute(rows, chips)) { backStack ->
+            TwoPaneNavigationContent(backStack)
+        }
+    }
+}
+
+private class VaultListTabRoute(
+    private val rows: Int,
+    private val chips: List<String>,
+) : Route {
+    @Composable
+    override fun Content() {
+        val state = remember(rows, chips) {
+            VaultListState(
+                query = TextFieldModel(text = "", onChange = {}),
+                filters = chips.map { title -> typeChip(title) },
+                content = VaultListState.Content.Items(
+                    list = (1..rows).map { i ->
+                        VaultItem2.Button(id = "vault$i", title = "Vault row $i", onClick = {})
+                    },
+                ),
+            )
+        }
+        VaultListScreenContent(
+            args = VaultRoute.Args(),
+            state = state,
+            openItemId = { null },
+        )
     }
 }
 

@@ -32,7 +32,6 @@ import androidx.compose.ui.text.style.TextDirection
 import androidx.compose.ui.tooling.preview.Preview
 import com.artemchep.keyguard.common.service.clipboard.ClipboardService
 import com.artemchep.keyguard.feature.dialog.DialogContent
-import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.feature.home.vault.component.FlatItemLayoutExpressive
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.agent_auto_setup_file_create_label
@@ -45,6 +44,7 @@ import com.artemchep.keyguard.ui.DialogPopup
 import com.artemchep.keyguard.ui.diff.PreparedTextDiff
 import com.artemchep.keyguard.ui.diff.TextDiff
 import com.artemchep.keyguard.ui.diff.rememberTextDiff
+import com.artemchep.keyguard.ui.focus.focusOnDialogOpen
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.screenMaxWidth
 import com.artemchep.keyguard.ui.theme.Dimens

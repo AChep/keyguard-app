@@ -49,6 +49,12 @@ interface NavigationEntry : BackPressInterceptorHost, KeyEventInterceptorHost {
      */
     var lastFocusedKey: String?
 
+    /**
+     * The scroll position saved by the content of this entry, so the content
+     * can restore it when it comes back. Main thread only.
+     */
+    var scrollPosition: NavigationScrollPosition?
+
     val activeBackPressInterceptorsStateFlow: StateFlow<ImmutableMap<String, BackPressInterceptorRegistration>>
 
     val activeKeyEventInterceptorsStateFlow: StateFlow<ImmutableMap<String, KeyEventInterceptorRegistration>>
@@ -125,6 +131,8 @@ class NavigationEntryImpl internal constructor(
     override val isDestroyed get() = job.isCompleted || job.isCancelled
 
     override var lastFocusedKey: String? = null
+
+    override var scrollPosition: NavigationScrollPosition? = null
 
     init {
         require('/' !in id)

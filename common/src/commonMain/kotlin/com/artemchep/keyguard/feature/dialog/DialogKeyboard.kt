@@ -25,32 +25,8 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import com.artemchep.keyguard.feature.navigation.keyboard.hasShortcutModifier
-import com.artemchep.keyguard.feature.navigation.keyboard.isPlainKeyDown
-import com.artemchep.keyguard.ui.focus.awaitScrolledItemsPlaced
 import com.artemchep.keyguard.ui.focus.scrollToItemInContext
 import kotlinx.coroutines.launch
-
-// The composed modifiers below are keyed, so equal arguments give equal
-// modifiers and the composables that receive them can still skip.
-
-/**
- * Requests focus once, the first time [enabled] is true. Later flips of
- * [enabled] (for example while the dialog is busy) do not take focus back.
- */
-fun Modifier.focusOnDialogOpen(enabled: Boolean = true): Modifier = composed(
-    fullyQualifiedName = "com.artemchep.keyguard.feature.dialog.focusOnDialogOpen",
-    key1 = enabled,
-) {
-    val requester = remember { FocusRequester() }
-    var requested by remember { mutableStateOf(false) }
-    LaunchedEffect(enabled) {
-        if (enabled && !requested) {
-            requested = true
-            requester.requestFocus()
-        }
-    }
-    Modifier.focusRequester(requester)
-}
 
 /** The choice a dialog opens on: the selected enabled one, else the first enabled one. */
 internal fun <T> List<T>.initialChoice(
@@ -59,6 +35,9 @@ internal fun <T> List<T>.initialChoice(
 ): T? = filter(enabled).let { choices -> choices.firstOrNull(selected) ?: choices.firstOrNull() }
 
 private fun KeyEvent.isTab() = type == KeyEventType.KeyDown && key == Key.Tab && !hasShortcutModifier
+
+// The composed modifier below is keyed, so equal arguments give equal
+// modifiers and the composables that receive them can still skip.
 
 /** Multiline dialog editors keep Enter for line breaks and Tab for focus traversal. */
 fun Modifier.dialogEditorTabTraversal(singleLine: Boolean = false): Modifier = if (singleLine) this else composed(
@@ -100,44 +79,6 @@ internal fun LazyListState.rememberInitialItemFocus(
         requester.requestFocus()
     }
     return requester
-}
-
-/**
- * Entering the result list gives its first row normal arrow and activation key handling.
- * [firstResult] is on the first row, or on a focus group around the rows if [group]: a
- * group takes focus with Down, so it enters at its top row once the rows are placed.
- */
-internal fun Modifier.focusFirstResultOnDown(
-    state: LazyListState,
-    firstResult: FocusRequester,
-    firstIndex: Int?,
-    group: Boolean = false,
-): Modifier = composed(
-    "com.artemchep.keyguard.feature.dialog.focusFirstResultOnDown",
-    state,
-    firstResult,
-    firstIndex,
-    group,
-) {
-    val scope = rememberCoroutineScope()
-    val currentIndex by rememberUpdatedState(firstIndex)
-    Modifier.onPreviewKeyEvent { event ->
-        val index = currentIndex
-        if (index != null && event.isPlainKeyDown && event.key == Key.DirectionDown) {
-            scope.launch {
-                val scrolls = state.firstVisibleItemIndex != index ||
-                    state.firstVisibleItemScrollOffset != 0
-                state.scrollToItem(index)
-                // A group only enters a placed row. Waiting only
-                // after a scroll keeps a quick Down, Enter working.
-                if (group && scrolls) awaitScrolledItemsPlaced()
-                if (currentIndex == index) {
-                    firstResult.requestFocus(if (group) FocusDirection.Down else FocusDirection.Enter)
-                }
-            }
-            true
-        } else false
-    }
 }
 
 /** IME Next moves between form items, skipping controls such as Clear inside an editor. */

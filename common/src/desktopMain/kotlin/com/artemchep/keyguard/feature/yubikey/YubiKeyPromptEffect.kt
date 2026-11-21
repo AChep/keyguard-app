@@ -17,7 +17,6 @@ import arrow.core.right
 import com.artemchep.keyguard.common.exception.YubiKeyAuthCanceledException
 import com.artemchep.keyguard.common.model.PureYubiKeyAuthPrompt
 import com.artemchep.keyguard.common.model.YubiKeyAuthPrompt
-import com.artemchep.keyguard.feature.dialog.focusOnDialogOpen
 import com.artemchep.keyguard.platform.requireSecurityKeyAccess
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.cancel
@@ -25,6 +24,7 @@ import com.artemchep.keyguard.res.yubikey_error_title
 import com.artemchep.keyguard.res.yubikey_usb_text
 import com.artemchep.keyguard.res.yubikey_usb_touch_the_gold_sensor_note
 import com.artemchep.keyguard.ui.CollectedEffect
+import com.artemchep.keyguard.ui.focus.focusOnDialogOpen
 import com.artemchep.keyguard.util.yubikey.NativeYubiKeyClient
 import com.artemchep.keyguard.util.yubikey.YubiKeyException
 import com.artemchep.keyguard.util.yubikey.YubiKeyFailure

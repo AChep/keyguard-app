@@ -210,7 +210,11 @@ export class BackgroundController implements ConnectionListener {
     if (this.halted) return;
     if (reason.connectorMissing) {
       this.setStatus({ kind: "connector_missing" });
-    } else if (this.current.kind !== "protocol_error" && this.current.kind !== "update_required") {
+    } else if (
+      this.current.kind !== "protocol_error" &&
+      this.current.kind !== "update_required" &&
+      this.current.kind !== "unverified_host"
+    ) {
       this.setStatus({ kind: "app_unavailable" });
     }
   }

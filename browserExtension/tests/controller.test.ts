@@ -465,6 +465,20 @@ describe("BackgroundController", () => {
     expect(context.status().kind).toBe("app_unavailable");
   });
 
+  it.each(["update_required", "unverified_host"] as const)(
+    "keeps showing %s after the host exits and reconnects",
+    async (status) => {
+      const context = setup();
+      context.host().status(status);
+      context.ports[0]!.close();
+      expect(context.status().kind).toBe(status);
+      await until(() => context.ports.length === 2, "a new port");
+      expect(context.status().kind).toBe(status);
+      context.host().ready();
+      await context.waitFor("not_paired");
+    },
+  );
+
   it("reports a missing connector and keeps retrying", async () => {
     const context = setup({ connectorMissing: true });
     await context.waitFor("connector_missing");

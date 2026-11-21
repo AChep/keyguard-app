@@ -141,9 +141,12 @@ export class NativeConnection {
     if (!isObject(message)) return;
     const { type } = message;
     if (type === "status") {
-      this.attempts = 0;
       const { status } = message;
-      this.options.listener.status(typeof status === "string" && HOST_STATUSES.has(status) ? (status as HostStatus) : null);
+      const hostStatus = typeof status === "string" && HOST_STATUSES.has(status) ? (status as HostStatus) : null;
+      if (hostStatus !== "update_required" && hostStatus !== "unverified_host") {
+        this.attempts = 0;
+      }
+      this.options.listener.status(hostStatus);
     } else if (type === "noise") {
       const { data } = message;
       const frame = typeof data === "string" ? fromBase64(data) : null;

@@ -69,17 +69,19 @@ Rules:
 
 - A session lasts from `ready` until the next status message or until the port
   disconnects. Each `ready` needs a new handshake.
-- While not connected, the host retries every 2 seconds. It sends `ready` for
-  every new connection, and any other status when it changes.
+- While not connected, the host retries every 2 seconds, except after reporting
+  `update_required` or `unverified_host`. It sends `ready` for every new
+  connection, and any other status when it changes.
 - The host drops `noise` messages that arrive while it isn't connected.
 - The extension ends a session by disconnecting the port. The browser then stops
   the host, which closes the connection to the app.
 - Each side ignores messages with an unknown `type`. The extension treats an
   unknown `status` as not connected.
-- The host exits when the browser closes its input, or when it can't write to the
-  app. It also exits on a message it can't read: one over 128 KiB, one that isn't
-  a JSON object, or a `noise` message whose `data` isn't Base64 of 1 to 65,535
-  bytes.
+- The host exits when the browser closes its input, after reporting
+  `update_required` or `unverified_host` (so the extension's reconnect starts a
+  fresh connector binary), or when it can't write to the app. It also exits on a
+  message it can't read: one over 128 KiB, one that isn't a JSON object, or a
+  `noise` message whose `data` isn't Base64 of 1 to 65,535 bytes.
 - The host refuses to start without the arguments a browser passes: a Chromium
   origin, optionally followed by flags such as Windows' `--parent-window=<handle>`,
   or the absolute path of a Firefox manifest followed by the add-on ID.

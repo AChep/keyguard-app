@@ -66,9 +66,10 @@ impl Host {
     }
 }
 
-/// Serves the extension until the browser closes `stdin`. Fails on a message
-/// that the host can not read, or once it can not write to `stdout` or to the
-/// app.
+/// Serves the extension until the browser closes `stdin`, or until the app
+/// refuses this host binary with [`Status::UnverifiedHost`] or
+/// [`Status::UpdateRequired`]. Fails on a message that the host can not read,
+/// or once it can not write to `stdout` or to the app.
 pub(crate) async fn run<R, W>(host: &Host, stdin: R, mut stdout: W) -> Result<()>
 where
     R: AsyncRead + Unpin + Send + 'static,
@@ -92,7 +93,12 @@ where
                 extension.end_session();
                 reporter.report(&mut stdout, Status::AppUnavailable).await?;
             }
-            Err(status) => reporter.report(&mut stdout, status).await?,
+            Err(status) => {
+                reporter.report(&mut stdout, status).await?;
+                if matches!(status, Status::UnverifiedHost | Status::UpdateRequired) {
+                    return Ok(());
+                }
+            }
         }
         let retry = tokio::time::sleep(host.retry);
         if extension.drop_while(retry).await?.is_none() {
@@ -708,8 +714,6 @@ mod tests {
                 ("integration_disabled", Some("integration_disabled")),
                 ("integration_disabled", None),
                 ("too_many_sessions", Some("too_many_sessions")),
-                ("unsupported_command", Some("update_required")),
-                ("unverified_host", Some("unverified_host")),
                 ("unavailable", Some("app_unavailable")),
                 ("request_failed", None),
             ] {
@@ -721,6 +725,38 @@ mod tests {
             // Each connection is ready, even after a session that just ended.
             drop(agent.answer(json!({"ok":true})).await);
             assert_eq!(browser.receive_status().await, "ready");
+            assert_eq!(browser.receive_status().await, "app_unavailable");
+            let _app = agent.answer(json!({"ok":true})).await;
+            assert_eq!(browser.receive_status().await, "ready");
+            browser.close().await.unwrap();
+        }
+
+        #[tokio::test]
+        async fn unverified_or_outdated_refusals_stop_the_host_while_unavailable_retries() {
+            for (answer, status) in [
+                ("unverified_host", "unverified_host"),
+                ("update_required", "update_required"),
+                ("unsupported_command", "update_required"),
+            ] {
+                let agent = Agent::new();
+                let mut browser = Browser::start(agent.socket.clone());
+                let _app = agent.answer(json!({"ok":false,"error":answer})).await;
+                assert_eq!(browser.receive_status().await, status, "{answer}");
+                // `stdin` stays open: the host returns on its own instead of retrying.
+                timeout(browser.host).await.unwrap().unwrap();
+                assert_eq!(
+                    timeout(browser.stdout.read_u8()).await.unwrap_err().kind(),
+                    io::ErrorKind::UnexpectedEof,
+                    "{answer}"
+                );
+                drop(browser.stdin);
+            }
+
+            let agent = Agent::new();
+            let mut browser = Browser::start(agent.socket.clone());
+            agent
+                .answer(json!({"ok":false,"error":"unavailable"}))
+                .await;
             assert_eq!(browser.receive_status().await, "app_unavailable");
             let _app = agent.answer(json!({"ok":true})).await;
             assert_eq!(browser.receive_status().await, "ready");

@@ -1,6 +1,6 @@
 # Keyguard icons
 
-16 custom monochrome SVGs are retained in this family. All other icon aliases and
+19 custom monochrome SVGs are retained in this family. All other icon aliases and
 call sites use their original artwork. Open [preview.html](preview.html) to inspect
 the retained drawings on light and dark backgrounds at 12, 16, 20, and 24 px.
 Click a drawing to open its SVG.

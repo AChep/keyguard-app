@@ -74,7 +74,7 @@ fun rememberSettingsBrowserExtensionItems(
                 key = "browser_extension.control_panel",
                 list = persistentListOf(
                     SettingPaneItem.Item(Setting.BROWSER_EXTENSION),
-                    SettingPaneItem.Item(Setting.BROWSER_EXTENSION_SETUP),
+                    SettingPaneItem.Item(Setting.BROWSER_EXTENSION_STORES),
                 ),
             ),
             SettingPaneItem.Group(

@@ -12,7 +12,6 @@ import com.artemchep.keyguard.common.service.browser.toBrowserConnectorError
 import com.artemchep.keyguard.feature.browserextension.BrowserConnectorSync
 import com.artemchep.keyguard.feature.browserextension.syncBrowserConnectors
 import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionSettingsState.ConnectorStatus
-import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionSettingsState.SetupConnector
 import com.artemchep.keyguard.presentation.operation.SingleOperation
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.NonCancellable
@@ -140,16 +139,7 @@ fun browserExtensionSettingsStateProducer(
         val connectorsBusy = connectorOperationState.busy
         BrowserExtensionSettingsState(
             status = state.toStatus(connectorFailed = currentConnectorFailure != null),
-            setup = state.toSetup(
-                report = currentReport,
-                connector = connectors?.let {
-                    currentReport.toSetupConnector(
-                        busy = connectorsBusy,
-                        failure = currentConnectorFailure,
-                        onSync = ::onSync,
-                    )
-                },
-            ),
+            stores = currentReport.stores(),
             connectors = connectors?.let {
                 currentReport.toConnectors(
                     busy = connectorsBusy,
@@ -243,56 +233,6 @@ private fun List<BrowserConnectorStatus>.toConnector(
         onCheckedChange = onCheckedChange
             .takeIf { !busy && (checked || detected.isNotEmpty()) },
     )
-}
-
-/** The setup guide, until a browser is paired while the integration is on. */
-private fun BrowserExtensionState.toSetup(
-    report: BrowserConnectorReport?,
-    connector: SetupConnector?,
-) = BrowserExtensionSettingsState.Setup(
-    connector = connector,
-    stores = report.stores(),
-    extensionConnected = sessions.isNotEmpty(),
-).takeIf { needsAgent && pairings.isEmpty() }
-
-/** @param onSync Looks for the browsers again. */
-private fun BrowserConnectorReport?.toSetupConnector(
-    busy: Boolean,
-    failure: ConnectorFailure?,
-    onSync: () -> Unit,
-): SetupConnector {
-    val failed = failure?.let { SetupConnector.Failed(it.error, it.retry) }
-    if (this == null) {
-        return failed?.takeIf { !busy }
-            ?: SetupConnector.Busy
-    }
-    // Only the browsers found: a manifest left behind by a browser
-    // that is gone serves no browser.
-    val installed = browsers.groups()
-        .filter { group -> group.connectorStatus() == ConnectorStatus.INSTALLED }
-        .flatMap { group -> group.filter { it.detected }.map { it.browser } }
-    // A browser found whose manifest Keyguard didn't write. The syncs
-    // skip that manifest: it stays until the user removes it.
-    val foreign = browsers.groups()
-        .filter { group -> group.any { it.state == BrowserConnectorStatus.State.STALE && it.host == null } }
-        .flatten()
-        .firstOrNull { it.detected }
-    return when {
-        installed.isNotEmpty() -> SetupConnector.Installed(installed)
-        busy -> SetupConnector.Busy
-        failed != null -> failed
-        browsers.none { it.detected } -> SetupConnector.NoBrowser(onSync)
-        foreign != null -> SetupConnector.Failed(
-            error = BrowserConnectorError(
-                kind = BrowserConnectorError.Kind.FOREIGN_FILE,
-                path = foreign.manifest,
-                browser = foreign.browser,
-            ),
-            onRetry = onSync,
-        )
-
-        else -> SetupConnector.TurnOnBrowser
-    }
 }
 
 /** The stores of the browsers found, or every store if none was found. */

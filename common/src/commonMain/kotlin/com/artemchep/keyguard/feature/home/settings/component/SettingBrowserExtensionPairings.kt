@@ -10,7 +10,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
-import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionSettingsState
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
@@ -39,8 +38,7 @@ import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.ok
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOf
 import org.jetbrains.compose.resources.stringResource
 import org.koin.core.scope.Scope
 
@@ -50,7 +48,6 @@ fun settingBrowserExtensionPairingsProvider(
     koinScope: Scope,
 ) = browserExtensionSettingProvider {
     settingBrowserExtensionPairingsProvider(
-        browserExtensionService = koinScope.get(),
         dateFormatter = koinScope.get(),
         confirmationRouteFactory = koinScope.get(),
     )
@@ -61,26 +58,18 @@ fun settingBrowserExtensionPairingsProvider(
  * Not searchable: the screen reads them.
  */
 fun settingBrowserExtensionPairingsProvider(
-    browserExtensionService: BrowserExtensionService,
     dateFormatter: DateFormatter,
     confirmationRouteFactory: ConfirmationRouteFactory,
-): SettingComponent = browserExtensionService.state
-    .map { it.showsSetup }
-    .distinctUntilChanged()
-    .map { showsSetup ->
-        // The setup guide takes its place, with its title.
-        if (showsSetup) {
-            return@map null
-        }
-        SettingIi(
-            platformClasses = browserExtensionPlatformClasses,
-        ) {
-            SettingBrowserExtensionPairings(
-                dateFormatter = dateFormatter,
-                confirmationRouteFactory = confirmationRouteFactory,
-            )
-        }
-    }
+): SettingComponent = flowOf(
+    SettingIi(
+        platformClasses = browserExtensionPlatformClasses,
+    ) {
+        SettingBrowserExtensionPairings(
+            dateFormatter = dateFormatter,
+            confirmationRouteFactory = confirmationRouteFactory,
+        )
+    },
+)
 
 @Composable
 private fun SettingBrowserExtensionPairings(

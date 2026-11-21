@@ -3307,16 +3307,6 @@
     <string name="browser_extension_enable">Enable browser extension</string>
     <string name="browser_extension_enable_text">Fill logins, one-time passwords and passkeys in your browser.</string>
     <string name="browser_extension_status_connector_failed">A browser connector failed. See Browser connectors.</string>
-    <string name="browser_extension_setup_connector_title">Browser connector</string>
-    <string name="browser_extension_setup_connector_installed">Installed for <xliff:g id="browsers" example="Google Chrome, Firefox">%1$s</xliff:g></string>
-    <string name="browser_extension_setup_connector_installing">Installing…</string>
-    <string name="browser_extension_setup_connector_turn_on">Turn on your browser under Browser connectors.</string>
-    <string name="browser_extension_setup_connector_no_browser">Keyguard found no supported browser. Open yours once, then select Retry.</string>
-    <string name="browser_extension_setup_extension_title">Install the Keyguard extension</string>
-    <string name="browser_extension_setup_extension_connected">The extension is connected.</string>
-    <string name="browser_extension_setup_pair_title">Pair your browser</string>
-    <string name="browser_extension_setup_pair_text">Open the extension, then select Pair.</string>
-    <string name="browser_extension_setup_pair_connected_text">Your browser is connected. Select Pair in the extension.</string>
     <string name="browser_extension_connectors_title">Browser connectors</string>
     <string name="browser_extension_connectors_note">Keyguard installs a connector for each browser it finds. Turn a browser off to remove its connector.</string>
     <string name="browser_extension_connectors_flatpak_note">Browsers installed as Snap aren’t supported. Inside Flatpak, Keyguard installs a connector for each browser whose native messaging folder it can see.</string>

@@ -107,7 +107,7 @@ import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExte
 import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionPairingsProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionSettingsProvider
-import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionSetupProvider
+import com.artemchep.keyguard.feature.home.settings.component.settingBrowserExtensionStoresProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsMcpHistoryProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingEnvironmentsProvider
@@ -291,7 +291,7 @@ object Setting {
     const val CLI_HISTORY = "cli_history"
     const val BROWSER_EXTENSION_SETTINGS = "browser_extension_settings"
     const val BROWSER_EXTENSION = "browser_extension"
-    const val BROWSER_EXTENSION_SETUP = "browser_extension_setup"
+    const val BROWSER_EXTENSION_STORES = "browser_extension_stores"
     const val BROWSER_EXTENSION_APPROVAL_WINDOW = "browser_extension_approval_window"
     const val BROWSER_EXTENSION_APPROVAL_TIMEOUT = "browser_extension_approval_timeout"
     const val BROWSER_EXTENSION_CONNECTORS = "browser_extension_connectors"
@@ -459,7 +459,7 @@ val hub = mapOf<String, (Scope) -> SettingComponent>(
     Setting.CLI_HISTORY to ::settingCliHistoryProvider,
     Setting.BROWSER_EXTENSION_SETTINGS to ::settingBrowserExtensionSettingsProvider,
     Setting.BROWSER_EXTENSION to ::settingBrowserExtensionProvider,
-    Setting.BROWSER_EXTENSION_SETUP to ::settingBrowserExtensionSetupProvider,
+    Setting.BROWSER_EXTENSION_STORES to ::settingBrowserExtensionStoresProvider,
     Setting.BROWSER_EXTENSION_APPROVAL_WINDOW to ::settingBrowserExtensionApprovalWindowProvider,
     Setting.BROWSER_EXTENSION_APPROVAL_TIMEOUT to ::settingBrowserExtensionApprovalTimeoutProvider,
     Setting.BROWSER_EXTENSION_CONNECTORS to ::settingBrowserExtensionConnectorsProvider,

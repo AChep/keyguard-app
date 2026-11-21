@@ -9,8 +9,8 @@ import kotlin.time.Instant
 data class BrowserExtensionSettingsState(
     /** What the switch of the integration says; `null` shows its description. */
     val status: Status?,
-    /** The setup guide, `null` once a browser is paired or while the integration is off. */
-    val setup: Setup?,
+    /** Where to get the extension for the browsers found, or every store if none was found. */
+    val stores: List<BrowserExtensionStore>,
     /** `null` if this build installs no connectors. */
     val connectors: Connectors?,
     val pairings: List<Pairing>,
@@ -26,45 +26,6 @@ data class BrowserExtensionSettingsState(
 
         /** The last operation on the connectors failed, until the next one. */
         data object ConnectorFailed : Status
-    }
-
-    data class Setup(
-        /** The first step; `null` if this build installs no connectors. */
-        val connector: SetupConnector?,
-        /** Where to get the extension for the browsers found. */
-        val stores: List<BrowserExtensionStore>,
-        /** An extension is connected now, paired or not. */
-        val extensionConnected: Boolean,
-    )
-
-    sealed interface SetupConnector {
-        /** Reading the report, or installing the first connector. */
-        data object Busy : SetupConnector
-
-        /** The connectors of these browsers are installed. */
-        data class Installed(
-            val browsers: List<BrowserConnectorBrowser>,
-        ) : SetupConnector
-
-        /**
-         * Nothing is installed and Keyguard doesn't install it on its own:
-         * the user turned the browsers off. A manifest in the way that
-         * Keyguard didn't write shows as [Failed] instead.
-         */
-        data object TurnOnBrowser : SetupConnector
-
-        /** Keyguard found no supported browser. */
-        data class NoBrowser(
-            /** Looks for the browsers again. */
-            val onRetry: () -> Unit,
-        ) : SetupConnector
-
-        /** The last operation failed, or a manifest that Keyguard didn't write is in the way. */
-        data class Failed(
-            val error: BrowserConnectorError,
-            /** Repeats the operation that failed, or looks for the browsers again. */
-            val onRetry: () -> Unit,
-        ) : SetupConnector
     }
 
     data class Connectors(

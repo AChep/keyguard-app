@@ -9,7 +9,6 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
-import com.artemchep.keyguard.common.service.browser.BrowserExtensionState
 import com.artemchep.keyguard.common.usecase.WindowCoroutineScope
 import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionSettingsState
 import com.artemchep.keyguard.feature.home.settings.LocalSettingPaneComponents
@@ -82,13 +81,6 @@ fun settingBrowserExtensionProvider(
             )
         }
     }
-
-/**
- * Whether the browser extension screen shows the setup guide instead of the
- * paired browsers: the integration is on and no browser is paired yet.
- */
-internal val BrowserExtensionState.showsSetup: Boolean
-    get() = needsAgent && pairings.isEmpty()
 
 @Composable
 private fun SettingBrowserExtensionStatus(

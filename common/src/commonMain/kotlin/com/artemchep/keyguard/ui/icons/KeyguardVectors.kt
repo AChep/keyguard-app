@@ -10,6 +10,88 @@ import androidx.compose.ui.graphics.vector.addPathNodes
 import androidx.compose.ui.unit.dp
 
 internal object KeyguardVectors {
+    val BrowserChrome: ImageVector by lazy {
+        icon(name = "KeyguardBrowserChrome", autoMirror = false) {
+            addPath(
+                pathData = addPathNodes("M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0Z"),
+                fill = null,
+                stroke = SolidColor(Color.Black),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            )
+            addPath(
+                pathData = addPathNodes("M16 12a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z"),
+                fill = null,
+                stroke = SolidColor(Color.Black),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            )
+            addPath(
+                pathData = addPathNodes("M12 8h9.17M15.46 14 10.88 21.94M8.54 14 3.95 6.06"),
+                fill = null,
+                stroke = SolidColor(Color.Black),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            )
+        }
+    }
+
+    val BrowserEdge: ImageVector by lazy {
+        icon(name = "KeyguardBrowserEdge", autoMirror = false) {
+            addPath(
+                pathData = addPathNodes("M19.5 18.6A10 10 0 1 1 22 12c0 2.4-1.6 3.6-4 3.6h-6a3.4 3.4 0 1 1 3.1-4.8"),
+                fill = null,
+                stroke = SolidColor(Color.Black),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            )
+            addPath(
+                pathData = addPathNodes("M3.1 16.5C4.5 11.8 7.8 8.8 12 8.8"),
+                fill = null,
+                stroke = SolidColor(Color.Black),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            )
+            addPath(
+                pathData = addPathNodes("M8.6 12.2c0 4.5 2.5 8 7 9.1"),
+                fill = null,
+                stroke = SolidColor(Color.Black),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            )
+        }
+    }
+
+    val BrowserFirefox: ImageVector by lazy {
+        icon(name = "KeyguardBrowserFirefox", autoMirror = false) {
+            addPath(
+                pathData = addPathNodes(
+                    "M11.2 11c-2.1-1-3.7-2.4-4.6-3.9L5.4 4.9C3.4 7.1 2.5 9.8 2.5 12.6a9.5 9.5 0 0 0 19 0" +
+                        "c0-2.6-.8-4.9-2.4-6.8-1.1-1.4-2.4-2.3-3.4-3.6-1.9 1.5-3.1 3.3-3.4 5.4",
+                ),
+                fill = null,
+                stroke = SolidColor(Color.Black),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            )
+            addPath(
+                pathData = addPathNodes("M11.2 11c-2.1.2-3.5 1.3-3.5 3a4.5 4.5 0 0 0 9-.3c0-2.7-1.9-5.3-5.4-6"),
+                fill = null,
+                stroke = SolidColor(Color.Black),
+                strokeLineWidth = 2f,
+                strokeLineCap = StrokeCap.Round,
+                strokeLineJoin = StrokeJoin.Round,
+            )
+        }
+    }
+
     val ConnectionTest: ImageVector by lazy {
         icon(name = "KeyguardConnectionTest", autoMirror = false) {
             addPath(

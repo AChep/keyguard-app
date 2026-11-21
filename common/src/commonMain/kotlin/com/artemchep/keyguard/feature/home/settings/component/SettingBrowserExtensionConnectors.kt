@@ -195,7 +195,7 @@ internal fun SettingBrowserExtensionText(
 }
 
 @Composable
-internal fun browserConnectorErrorText(
+private fun browserConnectorErrorText(
     error: BrowserConnectorError,
 ): String = when (error.kind) {
     BrowserConnectorError.Kind.HOST_MISSING -> error.alias
@@ -224,7 +224,7 @@ internal fun browserConnectorErrorText(
 
 /** The browser's name, such as "Google Chrome (Flatpak)" for its Flathub build. */
 @Composable
-internal fun BrowserConnectorBrowser.title(): String {
+private fun BrowserConnectorBrowser.title(): String {
     val name = stringResource(nameRes())
     return if (flatpak) {
         stringResource(Res.string.browser_name_flatpak, name)

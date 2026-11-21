@@ -11,7 +11,6 @@ import com.artemchep.keyguard.common.service.browser.BrowserExtensionState
 import com.artemchep.keyguard.common.service.browser.BrowserPairing
 import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionSettingsState
 import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionSettingsState.ConnectorStatus
-import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionSettingsState.SetupConnector
 import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionSettingsState.Status
 import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionStore
 import com.artemchep.keyguard.feature.browserextension.ui.browserExtensionSettingsStateProducer
@@ -19,7 +18,6 @@ import com.artemchep.keyguard.feature.browserextension.ui.store
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
-import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
@@ -459,203 +457,46 @@ class BrowserExtensionSettingsStateProducerTest {
     }
 
     //
-    // Setup
+    // Stores
     //
 
     @Test
-    fun `the setup shows until a browser is paired`() = runTest {
-        val service = unpaired()
-        val state = state(service, connectors())
-        val setup = assertNotNull(state.value!!.setup)
-        assertFalse(setup.extensionConnected)
-        // An unpaired extension connected.
-        service.state.update { it.copy(sessions = listOf(workSession.copy(pairingId = null))) }
-        assertTrue(state.value!!.setup!!.extensionConnected)
-
-        service.state.update { it.copy(pairings = listOf(work)) }
-        assertNull(state.value!!.setup)
-    }
-
-    @Test
-    fun `no setup while the integration is off`() = runTest {
-        val service = unpaired()
-        val state = state(service, connectors())
-        service.setEnabled(false)
-        assertNull(state.value!!.setup)
-    }
-
-    @Test
-    fun `the setup has no connector step without connectors`() = runTest {
-        val setup = state(unpaired(), connectors = null).value!!.setup!!
-        assertNull(setup.connector)
-        assertEquals(BrowserExtensionStore.entries, setup.stores)
-    }
-
-    @Test
-    fun `the setup lists the browsers whose connectors are installed`() = runTest {
-        val connectors = connectors(
-            shared(BrowserConnectorBrowser.CHROME, State.MISSING),
-            shared(BrowserConnectorBrowser.BRAVE, State.MISSING),
-            connectorStatus(BrowserConnectorBrowser.FIREFOX, State.INSTALLED),
-            connectorStatus(BrowserConnectorBrowser.EDGE, State.BROWSER_ABSENT),
-        )
-        val setup = state(unpaired(), connectors).value!!.setup!!
-        assertEquals(
-            SetupConnector.Installed(
-                listOf(BrowserConnectorBrowser.CHROME, BrowserConnectorBrowser.BRAVE, BrowserConnectorBrowser.FIREFOX),
-            ),
-            setup.connector,
-        )
-    }
-
-    @Test
-    fun `the setup is busy until the first connector is installed`() = runTest {
-        val connectors = connectors().apply { gate = CompletableDeferred() }
-        val state = state(unpaired(), connectors)
-        assertEquals(SetupConnector.Busy, state.value!!.setup!!.connector)
-        connectors.gate!!.complete(Unit)
-        testScheduler.advanceUntilIdle()
-        assertIs<SetupConnector.Installed>(state.value!!.setup!!.connector)
-    }
-
-    @Test
-    fun `inside Flatpak the setup installs the connectors of the browsers found`() = runTest {
-        val connectors = connectors(
-            connectorStatus(BrowserConnectorBrowser.CHROME, State.MISSING),
-            // The sandbox doesn't see its manifest directory.
-            connectorStatus(BrowserConnectorBrowser.FIREFOX, State.BROWSER_ABSENT),
-            packaging = BrowserConnectorPackaging.FLATPAK,
-        )
-        val state = state(unpaired(), connectors)
-        assertEquals(listOf("status", "install chrome"), connectors.calls)
-        assertEquals(
-            SetupConnector.Installed(listOf(BrowserConnectorBrowser.CHROME)),
-            state.value!!.setup!!.connector,
-        )
-    }
-
-    @Test
-    fun `inside Flatpak the setup says if no browser was found`() = runTest {
-        val connectors = connectors(
-            connectorStatus(BrowserConnectorBrowser.CHROME, State.BROWSER_ABSENT),
-            connectorStatus(BrowserConnectorBrowser.FIREFOX, State.BROWSER_ABSENT),
-            packaging = BrowserConnectorPackaging.FLATPAK,
-        )
-        val state = state(unpaired(), connectors)
-        assertIs<SetupConnector.NoBrowser>(state.value!!.setup!!.connector)
-    }
-
-    @Test
-    fun `the setup asks to turn on a browser if every browser was turned off`() = runTest {
-        val connectors = connectors(
-            connectorStatus(BrowserConnectorBrowser.CHROME, State.MISSING),
-            connectorStatus(BrowserConnectorBrowser.FIREFOX, State.BROWSER_ABSENT),
-        )
-        val service = unpaired(removedConnectors = setOf(BrowserConnectorBrowser.CHROME))
-        val setup = state(service, connectors).value!!.setup!!
-        assertEquals(SetupConnector.TurnOnBrowser, setup.connector)
-    }
-
-    @Test
-    fun `the setup shows a manifest that Keyguard didn't write in the way of a browser found`() = runTest {
-        val foreign = connectorStatus(BrowserConnectorBrowser.CHROME, State.STALE, host = null)
-        val connectors = connectors(
-            foreign,
-            connectorStatus(BrowserConnectorBrowser.FIREFOX, State.BROWSER_ABSENT),
-        )
-        val state = state(unpaired(), connectors)
-        // The sync leaves it alone.
-        assertEquals(listOf("status"), connectors.calls)
-        val connector = assertIs<SetupConnector.Failed>(state.value!!.setup!!.connector)
-        assertEquals(
-            BrowserConnectorError(
-                kind = BrowserConnectorError.Kind.FOREIGN_FILE,
-                path = foreign.manifest,
-                browser = BrowserConnectorBrowser.CHROME,
-            ),
-            connector.error,
-        )
-        // The row stays as it is.
-        assertEquals(ConnectorStatus.NEEDS_REPAIR, state.value!!.connector(BrowserConnectorBrowser.CHROME).status)
-        assertNull(state.value!!.connectors!!.error)
-
-        // Retrying looks for the browsers again.
-        connector.onRetry()
-        assertEquals(listOf("status", "status"), connectors.calls)
-    }
-
-    @Test
-    fun `a manifest left behind by a browser that is gone doesn't finish the setup`() = runTest {
-        val connectors = connectors(
-            connectorStatus(BrowserConnectorBrowser.FIREFOX, State.INSTALLED, detected = false),
-            connectorStatus(BrowserConnectorBrowser.CHROME, State.BROWSER_ABSENT),
-        )
-        val state = state(unpaired(), connectors).value!!
-        assertIs<SetupConnector.NoBrowser>(state.setup!!.connector)
-        // Its row stays, so that it can be removed.
-        val firefox = state.connector(BrowserConnectorBrowser.FIREFOX)
-        assertEquals(ConnectorStatus.INSTALLED, firefox.status)
-        assertNotNull(firefox.onCheckedChange)
-    }
-
-    @Test
-    fun `the setup says if no browser was found`() = runTest {
-        val connectors = connectors(
-            connectorStatus(BrowserConnectorBrowser.CHROME, State.BROWSER_ABSENT),
-            connectorStatus(BrowserConnectorBrowser.FIREFOX, State.BROWSER_ABSENT),
-        )
-        val state = state(unpaired(), connectors)
-        val connector = assertIs<SetupConnector.NoBrowser>(state.value!!.setup!!.connector)
-        // The user opened a browser.
-        connectors.browsers[0] = connectorStatus(BrowserConnectorBrowser.CHROME, State.MISSING)
-        connector.onRetry()
-        assertEquals(listOf("status", "status", "install chrome"), connectors.calls)
-        assertEquals(
-            SetupConnector.Installed(listOf(BrowserConnectorBrowser.CHROME)),
-            state.value!!.setup!!.connector,
-        )
-    }
-
-    @Test
-    fun `the setup shows a failed connector operation`() = runTest {
-        val connectors = connectors()
-        val error = BrowserConnectorError(BrowserConnectorError.Kind.HOST_MISSING)
-        connectors.failures[null] = error
-        val state = state(unpaired(), connectors)
-        val connector = assertIs<SetupConnector.Failed>(state.value!!.setup!!.connector)
-        assertEquals(error, connector.error)
-
-        connectors.failures.clear()
-        connector.onRetry()
-        assertIs<SetupConnector.Installed>(state.value!!.setup!!.connector)
-    }
-
-    @Test
-    fun `the setup links the stores of the browsers found`() = runTest {
+    fun `links the stores of the browsers found regardless of pairing or enabled state`() = runTest {
         val connectors = connectors(
             connectorStatus(BrowserConnectorBrowser.CHROME, State.INSTALLED),
             connectorStatus(BrowserConnectorBrowser.EDGE, State.BROWSER_ABSENT),
             connectorStatus(BrowserConnectorBrowser.BRAVE, State.INSTALLED),
             connectorStatus(BrowserConnectorBrowser.FIREFOX, State.MISSING),
         )
-        val setup = state(unpaired(), connectors).value!!.setup!!
-        assertEquals(
-            listOf(BrowserExtensionStore.CHROME_WEB_STORE, BrowserExtensionStore.FIREFOX_ADD_ONS),
-            setup.stores,
+        val expected = listOf(
+            BrowserExtensionStore.CHROME_WEB_STORE,
+            BrowserExtensionStore.FIREFOX_ADD_ONS,
         )
+        // Disabled and unpaired.
+        val service = service(enabled = false, pairings = emptyList(), sessions = emptyList())
+        val state = state(service, connectors)
+        assertEquals(expected, state.value!!.stores)
+        // Enabled and paired.
+        service.setEnabled(true)
+        service.state.update { it.copy(pairings = listOf(work)) }
+        assertEquals(expected, state.value!!.stores)
     }
 
     @Test
-    fun `the setup links every store until a browser is found`() = runTest {
+    fun `links every store without connectors, before the report, or when no browser is found`() = runTest {
+        assertEquals(
+            BrowserExtensionStore.entries,
+            state(service(), connectors = null).value!!.stores,
+        )
         val connectors = connectors(
             connectorStatus(BrowserConnectorBrowser.CHROME, State.BROWSER_ABSENT),
         ).apply { gate = CompletableDeferred() }
         val state = state(unpaired(), connectors)
         // No report yet.
-        assertEquals(BrowserExtensionStore.entries, state.value!!.setup!!.stores)
+        assertEquals(BrowserExtensionStore.entries, state.value!!.stores)
         connectors.gate!!.complete(Unit)
         testScheduler.advanceUntilIdle()
-        assertEquals(BrowserExtensionStore.entries, state.value!!.setup!!.stores)
+        assertEquals(BrowserExtensionStore.entries, state.value!!.stores)
     }
 
     //

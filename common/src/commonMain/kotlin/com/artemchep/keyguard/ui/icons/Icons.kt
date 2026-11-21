@@ -126,6 +126,15 @@ val Icons.Outlined.KeyguardAuthReprompt
 val Icons.Outlined.KeyguardIgnoredAlerts
     get() = NotificationsOff
 
+val Icons.Outlined.KeyguardBrowserChrome: ImageVector
+    get() = KeyguardVectors.BrowserChrome
+
+val Icons.Outlined.KeyguardBrowserEdge: ImageVector
+    get() = KeyguardVectors.BrowserEdge
+
+val Icons.Outlined.KeyguardBrowserFirefox: ImageVector
+    get() = KeyguardVectors.BrowserFirefox
+
 val Icons.Outlined.KeyguardConnectionTest: ImageVector
     get() = KeyguardVectors.ConnectionTest
 

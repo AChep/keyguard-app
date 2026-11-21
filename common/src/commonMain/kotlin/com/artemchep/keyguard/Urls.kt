@@ -9,7 +9,7 @@ const val URL_CROWDIN = "https://crowdin.com/project/keyguard"
 const val URL_GITHUB = "https://github.com/AChep/keyguard-app"
 const val URL_PLAY_STORE = "https://play.google.com/store/apps/details?id=com.artemchep.keyguard"
 const val URL_REDDIT = "https://www.reddit.com/r/keyguard/"
-const val URL_PRIVACY_POLICY = "https://gist.github.com/AChep/1fd4e019a4ad8f9647ba3b4694b5dc1c"
+const val URL_PRIVACY_POLICY = "https://keyguard.dev/privacy/"
 const val URL_PURCHASE = "https://keyguard.dev/purchase/"
 const val URL_BROWSER_EXTENSION_CHROME = "https://chromewebstore.google.com/detail/pbgoonibllaljhcpadklliddccmhdehh"
 const val URL_BROWSER_EXTENSION_EDGE =

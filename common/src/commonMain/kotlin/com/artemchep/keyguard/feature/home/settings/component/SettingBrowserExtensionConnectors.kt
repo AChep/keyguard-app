@@ -178,7 +178,7 @@ internal fun <T> SettingBrowserExtensionRows(
 }
 
 @Composable
-internal fun SettingBrowserExtensionText(
+private fun SettingBrowserExtensionText(
     text: String,
 ) {
     Text(

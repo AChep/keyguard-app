@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
+import com.artemchep.keyguard.common.service.browser.BrowserExtensionService
 import com.artemchep.keyguard.common.usecase.DateFormatter
 import com.artemchep.keyguard.feature.browserextension.ui.BrowserExtensionSettingsState
 import com.artemchep.keyguard.feature.confirmation.ConfirmationResult
@@ -28,7 +29,6 @@ import com.artemchep.keyguard.res.browser_extension_pairing_last_used_at
 import com.artemchep.keyguard.res.browser_extension_pairing_paired_at
 import com.artemchep.keyguard.res.browser_extension_pairing_remove_text
 import com.artemchep.keyguard.res.browser_extension_pairing_remove_title
-import com.artemchep.keyguard.res.browser_extension_pairings_empty
 import com.artemchep.keyguard.res.browser_extension_pairings_error
 import com.artemchep.keyguard.res.remove
 import com.artemchep.keyguard.res.rename
@@ -38,7 +38,8 @@ import com.artemchep.keyguard.ui.SimpleNote
 import com.artemchep.keyguard.ui.buildContextItems
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.ok
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import org.jetbrains.compose.resources.stringResource
 import org.koin.core.scope.Scope
 
@@ -48,6 +49,7 @@ fun settingBrowserExtensionPairingsProvider(
     koinScope: Scope,
 ) = browserExtensionSettingProvider {
     settingBrowserExtensionPairingsProvider(
+        browserExtensionService = koinScope.get(),
         dateFormatter = koinScope.get(),
         confirmationRouteFactory = koinScope.get(),
     )
@@ -55,21 +57,29 @@ fun settingBrowserExtensionPairingsProvider(
 
 /**
  * The paired browsers, on the browser extension settings screen only.
- * Not searchable: the screen reads them.
+ * Hidden while there are no paired browsers. Not searchable: the screen
+ * reads them.
  */
 fun settingBrowserExtensionPairingsProvider(
+    browserExtensionService: BrowserExtensionService,
     dateFormatter: DateFormatter,
     confirmationRouteFactory: ConfirmationRouteFactory,
-): SettingComponent = flowOf(
-    SettingIi(
-        platformClasses = browserExtensionPlatformClasses,
-    ) {
-        SettingBrowserExtensionPairings(
-            dateFormatter = dateFormatter,
-            confirmationRouteFactory = confirmationRouteFactory,
-        )
-    },
-)
+): SettingComponent = browserExtensionService.state
+    .map { state -> state.supported && state.pairings.isNotEmpty() }
+    .distinctUntilChanged()
+    .map { show ->
+        if (!show) {
+            return@map null
+        }
+        SettingIi(
+            platformClasses = browserExtensionPlatformClasses,
+        ) {
+            SettingBrowserExtensionPairings(
+                dateFormatter = dateFormatter,
+                confirmationRouteFactory = confirmationRouteFactory,
+            )
+        }
+    }
 
 @Composable
 private fun SettingBrowserExtensionPairings(
@@ -78,12 +88,10 @@ private fun SettingBrowserExtensionPairings(
 ) {
     val state = LocalBrowserExtensionSettingsState.current
         ?: return
+    if (state.pairings.isEmpty()) {
+        return
+    }
     Column {
-        if (state.pairings.isEmpty()) {
-            SettingBrowserExtensionText(
-                text = stringResource(Res.string.browser_extension_pairings_empty),
-            )
-        }
         SettingBrowserExtensionRows(
             items = state.pairings,
             itemKey = { pairing -> pairing.id },

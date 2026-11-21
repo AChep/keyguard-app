@@ -3323,7 +3323,6 @@
     <string name="browser_extension_connector_error_update_required">The command-line tool doesn’t match this version of Keyguard. Reinstall Keyguard.</string>
     <string name="browser_extension_connector_error_failed">Keyguard couldn’t change the browser connector: <xliff:g id="error" example="Permission denied">%1$s</xliff:g></string>
     <string name="browser_extension_pairings_title">Paired browsers</string>
-    <string name="browser_extension_pairings_empty">No paired browsers.</string>
     <string name="browser_extension_pairings_error">Keyguard couldn’t change the paired browser.</string>
     <string name="browser_extension_pairing_paired_at">Paired: <xliff:g id="date" example="15 Nov 2026">%1$s</xliff:g></string>
     <string name="browser_extension_pairing_last_used_at">Last used: <xliff:g id="date" example="15 Nov 2026">%1$s</xliff:g></string>

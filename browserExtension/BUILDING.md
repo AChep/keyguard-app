@@ -58,12 +58,47 @@ version they already have. Several release tags can share one
 
 A release tag builds both zips in `.github/workflows/new_tag_release.yaml`. They
 are artifacts of the workflow run, `app-browser-extension`, for 90 days, and not
-files of the GitHub release. Upload them to the stores by hand.
+files of the GitHub release. Upload the Chromium zip to the Chrome Web Store and
+Edge Add-ons by hand.
+
+The release's `deploy-firefox-add-ons` job submits the Firefox zip and the tag's
+source archive to Firefox Add-ons (AMO) for review, with the reviewer notes in
+`amo-metadata.json`. Like the other stores' jobs, it runs once `dist` has
+published the GitHub release, when the `amo` environment has the API key. It
+skips a version that AMO already has, listed or not. If it fails, re-run the
+job. The job needs the add-on's listing on AMO: create it with the first
+version by hand.
+
+The job attaches the source archive after it creates the version. If that step
+fails, a re-run skips the version, which AMO then has: attach the tag's source
+archive to that version by hand, in the Developer Hub.
+
+`version` in `amo-metadata.json` holds fields of the new version, see
+[Version Create](https://mozilla.github.io/addons-server/topics/api/addons.html#version-create).
+Other top-level fields edit the add-on's listing on every submission.
+
+To set it up:
+
+1. On AMO, open Developer Hub > Tools > Manage API Keys
+   (<https://addons.mozilla.org/developers/addon/api/key/>) and generate
+   credentials.
+2. In the repository's settings, create the environment `amo` with the secrets
+   `AMO_JWT_ISSUER` (the JWT issuer) and `AMO_JWT_SECRET` (the JWT secret).
+   Optionally, add required reviewers to approve each submission. If the
+   environment limits deployment branches and tags, allow the tags `r*`, and
+   the branch you run the check from.
+3. Create the add-on's listing on AMO and upload its first version by hand,
+   with the source archive. The check below fails until the listing exists.
+4. Run the "Check AMO credentials" workflow,
+   `.github/workflows/check_amo_credentials.yml`, from the Actions tab. It
+   looks up the next version with the key and dry-runs the submission. It
+   uploads nothing.
 
 ### Source code for Firefox Add-ons
 
-AMO asks for the source of the bundled code. Upload the source archive of the
-release's tag, the GitHub release's "Source code (zip)":
+AMO asks for the source of the bundled code: the source archive of the
+release's tag, the GitHub release's "Source code (zip)".
+`deploy-firefox-add-ons` makes it with:
 
 ```sh
 git archive --format=zip -o keyguard-<tag>-source.zip <tag>

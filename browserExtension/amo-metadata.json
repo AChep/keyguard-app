@@ -1,0 +1,5 @@
+{
+  "version": {
+    "approval_notes": "Build instructions: browserExtension/BUILDING.md, section \"Source code for Firefox Add-ons\". Run them from the root of the source archive. The output is browserExtension/.output/keyguard-<version>-firefox.zip.\n\nThe extension needs the Keyguard desktop app on the same computer: https://keyguard.dev/. In the app, open Settings > Autofill > Browser extension and turn on \"Enable browser extension\". Then select Pair in the extension's popup and approve the matching code in the app. Setup guide: https://keyguard.dev/docs/browser-extension/"
+  }
+}

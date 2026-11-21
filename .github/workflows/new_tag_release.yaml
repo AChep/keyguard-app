@@ -946,9 +946,11 @@ jobs:
           path: build/termux-debs/*.deb
           if-no-files-found: error
           retention-days: 1
-  # The extension's zips for Chromium and Firefox, kept as workflow artifacts
-  # for the manual upload to the stores (browserExtension/BUILDING.md). They
-  # are not attached to the release: an unpacked Chromium extension can't
+  # The extension's zips for Chromium and Firefox, kept as workflow artifacts:
+  # `deploy-firefox-add-ons` submits the Firefox zip to addons.mozilla.org,
+  # and the Chromium zip is uploaded to the stores by hand
+  # (browserExtension/BUILDING.md).
+  # They are not attached to the release: an unpacked Chromium extension can't
   # reach the app, and the Firefox zip is unsigned. `dist` still waits for
   # this job, so a failed build blocks the release.
   build-browser-extension:
@@ -1414,6 +1416,114 @@ jobs:
 
           "## Microsoft Store submission" >> $env:GITHUB_STEP_SUMMARY
           "The update was submitted for certification. Microsoft controls certification and publication according to the submission's publishing settings." >> $env:GITHUB_STEP_SUMMARY
+  # Submits the Firefox zip and the tag's source archive to addons.mozilla.org
+  # for review once the release is out, as the other stores' jobs do, when
+  # the `amo` environment has the API key and AMO doesn't have the version
+  # yet (browserExtension/BUILDING.md). If AMO fails, re-run this job.
+  deploy-firefox-add-ons:
+    name: "Submit Firefox Add-ons"
+    if: startsWith(github.ref, 'refs/tags/r')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    needs:
+      - dist
+    environment: amo
+    permissions:
+      contents: read
+    # Another tag of the same version waits, then finds the version on AMO.
+    concurrency:
+      group: amo-submission
+      cancel-in-progress: false
+    steps:
+      - name: "Checkout"
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - name: "Download zips"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
+        with:
+          name: app-browser-extension
+          path: artifacts-browser-extension
+      - name: "Read the add-on ID and version"
+        id: manifest
+        run: |
+          shopt -s nullglob
+          zips=("$PWD"/artifacts-browser-extension/keyguard-*-firefox.zip)
+          if [ "${#zips[@]}" -ne 1 ]; then
+            echo "::error::Expected one Firefox zip, found ${#zips[@]}."
+            exit 1
+          fi
+          manifest=$(unzip -p "${zips[0]}" manifest.json)
+          id=$(jq -er '.browser_specific_settings.gecko.id' <<< "$manifest")
+          version=$(jq -er '.version' <<< "$manifest")
+          {
+            echo "zip=${zips[0]}"
+            echo "id=$id"
+            echo "version=$version"
+          } >> "$GITHUB_OUTPUT"
+      - name: "Set up Node"
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020
+        with:
+          node-version-file: browserExtension/.nvmrc
+          package-manager-cache: false
+      # AMO refuses a version number it has in any channel or state, so
+      # unlisted versions and those awaiting review count too.
+      - name: "Look up the version on AMO"
+        id: amo
+        working-directory: browserExtension
+        env:
+          AMO_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          ADDON_ID: ${{ steps.manifest.outputs.id }}
+          ADDON_VERSION: ${{ steps.manifest.outputs.version }}
+        run: |
+          if [ -z "$AMO_JWT_ISSUER" ] || [ -z "$AMO_JWT_SECRET" ]; then
+            echo "::notice title=Firefox Add-ons::The amo environment has no AMO_JWT_ISSUER and AMO_JWT_SECRET: $ADDON_VERSION is not submitted."
+            exit 0
+          fi
+          status=$(node scripts/amo-version.ts "$ADDON_ID" "$ADDON_VERSION")
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          if [ "$status" = exists ]; then
+            echo "::notice title=Firefox Add-ons::AMO already has $ADDON_VERSION: it is not submitted again."
+          fi
+      # The source of the bundled code, for AMO's reviewers.
+      - name: "Create the source archive"
+        if: steps.amo.outputs.status == 'absent'
+        run: git archive --format=zip -o "keyguard-$GITHUB_REF_NAME-source.zip" "$GITHUB_REF_NAME"
+      - name: "Install pnpm"
+        if: steps.amo.outputs.status == 'absent'
+        uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413
+        with:
+          package_json_file: browserExtension/package.json
+      # The submission tool only: it uploads the zip that the build made. No
+      # Wasm build, `pnpm generate` or install scripts; keyguard-crypto-wasm
+      # stays a link to the missing Wasm build.
+      - name: "Install dependencies"
+        if: steps.amo.outputs.status == 'absent'
+        working-directory: browserExtension
+        run: pnpm install --frozen-lockfile --ignore-scripts
+      # The publisher that `wxt submit` wraps, run directly: `wxt submit` first
+      # loads wxt.config.ts and its modules, with the key in the environment.
+      - name: "Submit for review"
+        if: steps.amo.outputs.status == 'absent'
+        working-directory: browserExtension
+        env:
+          FIREFOX_JWT_ISSUER: ${{ secrets.AMO_JWT_ISSUER }}
+          FIREFOX_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
+          ADDON_ZIP: ${{ steps.manifest.outputs.zip }}
+          ADDON_ID: ${{ steps.manifest.outputs.id }}
+          ADDON_VERSION: ${{ steps.manifest.outputs.version }}
+        run: |
+          pnpm exec wxt-publish-extension \
+            --firefox-zip "$ADDON_ZIP" \
+            --firefox-sources-zip "$GITHUB_WORKSPACE/keyguard-$GITHUB_REF_NAME-source.zip" \
+            --firefox-extension-id "$ADDON_ID" \
+            --firefox-channel listed \
+            --firefox-amo-metadata-file amo-metadata.json
+          {
+            echo "## Firefox Add-ons submission"
+            echo "Version $ADDON_VERSION was submitted for review."
+          } >> "$GITHUB_STEP_SUMMARY"
   deploy-flathub:
     name: Deploy Flathub
     runs-on: ubuntu-slim

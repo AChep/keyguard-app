@@ -57,6 +57,8 @@
         return { text: "browser_extension_integration_disabled_text", docs: true };
       case "update_required":
         return { text: "browser_extension_update_required_text", action: RETRY, docs: true };
+      case "extension_update_required":
+        return { text: "browser_extension_extension_update_required_text", action: RETRY, docs: true };
       case "app_update_required":
         return { text: "browser_extension_app_update_required_text", action: RETRY };
       case "unverified_host":

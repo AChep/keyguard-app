@@ -2,8 +2,21 @@
 import { isObject } from "../util/json";
 import type { JsonObject } from "./framing";
 
-/** The protocol version this extension speaks. */
-export const PROTOCOL_VERSION = 1;
+/** The protocol versions this extension speaks; `hello` offers [max]. */
+export const PROTOCOL_VERSIONS = { min: 1, max: 1 } as const;
+
+/**
+ * The app's answer to `hello`: `ok` within [versions]; `app_outdated` below
+ * them; `invalid` above them, which the app never answers, as it picks the
+ * lower of the two highest versions.
+ */
+export type VersionCheck = { kind: "ok"; version: number } | { kind: "app_outdated" } | { kind: "invalid" };
+
+export function checkVersion(answered: number, versions: { min: number; max: number } = PROTOCOL_VERSIONS): VersionCheck {
+  if (answered > versions.max) return { kind: "invalid" };
+  if (answered < versions.min) return { kind: "app_outdated" };
+  return { kind: "ok", version: answered };
+}
 
 export type VaultState = "locked" | "unlocked";
 export type Capability = "passkeys" | "save";

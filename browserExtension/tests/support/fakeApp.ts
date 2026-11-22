@@ -7,11 +7,16 @@ import type { NativeCryptoNoise, NoiseHandshake, NoiseKeyPair, NoiseTransport } 
 import type { NativePort } from "../../src/lib/native/connection";
 import { fragmentMessage, Reassembler, type JsonObject } from "../../src/lib/protocol/framing";
 import type { VaultState } from "../../src/lib/protocol/messages";
-import { PROLOGUE_PREFIX, ProtocolError, SUITE_ID } from "../../src/lib/protocol/session";
+import { ProtocolError } from "../../src/lib/protocol/session";
 import { concatBytes, fromBase64, toBase64, toHex, utf8 } from "../../src/lib/util/bytes";
 import { exchanges, responseFields } from "./fixtures";
 
-type Reply = JsonObject | { error: string };
+// The v1 wire values (protocol/README.md §2), pinned independently of the
+// extension's, like the pairing code: a change there fails the handshake.
+const SUITE_ID = 0x03;
+const PROLOGUE_PREFIX = "keyguard-browser/v1\n";
+
+export type Reply = JsonObject | { error: string };
 export type Handler = (request: JsonObject, app: FakeApp) => Reply | Promise<Reply> | undefined;
 
 export interface FakeAppOptions {

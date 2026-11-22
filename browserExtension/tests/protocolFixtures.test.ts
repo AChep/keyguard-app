@@ -1,17 +1,18 @@
 // protocol/fixtures/, which the app's tests check as well, against the
 // extension: the TypeScript compiler checks that each fixture `satisfies` its
 // message type, excess properties included, and the runtime checks read each
-// response, credential and event.
+// response, credential and event. Every protocol version the extension speaks
+// has a frozen snapshot.
 import { createHash } from "node:crypto";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
 import { describe, expect, it } from "vitest";
 import type { JsonObject } from "../src/lib/protocol/framing";
-import { parseEvent, parseResponse, type RequestType } from "../src/lib/protocol/messages";
+import { checkVersion, parseEvent, parseResponse, PROTOCOL_VERSIONS, type RequestType } from "../src/lib/protocol/messages";
 import { credentialProblem } from "../src/lib/webauthn/credential";
 import { credentialFromJSON } from "../src/lib/webauthn/json";
-import { errors, events, exchanges, frozenV1, requestFields, responseFields } from "./support/fixtures";
+import { errors, events, exchanges, frozen, requestFields, responseFields, supportedVersions } from "./support/fixtures";
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 /** Not a [RequestType]: the session sends it itself. */
@@ -82,8 +83,21 @@ function typeErrors(checks: Check[]): string[] {
 
 describe("protocol fixtures", () => {
   it("keeps the v1 compatibility snapshot fixed independently of the current fixtures", () => {
-    const digest = createHash("sha256").update(JSON.stringify(frozenV1)).digest("hex");
+    const digest = createHash("sha256").update(JSON.stringify(frozen(1))).digest("hex");
     expect(digest).toBe("f827486734aafe619e7957fe3509e781ab9c1e4069b24abea5ad12351e1a46a8");
+  });
+
+  it("have a compatibility snapshot of every protocol version the extension speaks", () => {
+    expect(supportedVersions[0]).toBe(PROTOCOL_VERSIONS.min);
+    expect(supportedVersions.at(-1)).toBe(PROTOCOL_VERSIONS.max);
+    for (const version of supportedVersions) {
+      const snapshot = frozen(version);
+      expect(Object.keys(snapshot).sort(), `v${version}`).toEqual(["errors", "events", "exchanges"]);
+      // Not a copy of another version's.
+      const { request, response } = snapshot.exchanges.hello!;
+      expect(request.protocol, `v${version} hello request`).toBe(version);
+      expect(response.protocol, `v${version} hello response`).toBe(version);
+    }
   });
 
   it("satisfy the message types, and cover each of them", () => {
@@ -124,5 +138,28 @@ describe("protocol fixtures", () => {
       // The page sees a platform authenticator, whatever the app says.
       expect(credentialFromJSON(credential, kind, {}).toJSON(), type).toEqual({ ...credential, authenticatorAttachment: "platform" });
     }
+  });
+});
+
+describe("checkVersion", () => {
+  it.each([
+    // The app answers the lower of the two highest versions.
+    [{ min: 1, max: 1 }, 1, { kind: "ok", version: 1 }],
+    [{ min: 1, max: 2 }, 1, { kind: "ok", version: 1 }],
+    [{ min: 1, max: 2 }, 2, { kind: "ok", version: 2 }],
+    // Above our highest: the app broke the rule.
+    [{ min: 1, max: 1 }, 2, { kind: "invalid" }],
+    [{ min: 1, max: 2 }, 3, { kind: "invalid" }],
+    // Below our lowest: the app is too old.
+    [{ min: 2, max: 2 }, 1, { kind: "app_outdated" }],
+    [{ min: 1, max: 1 }, 0, { kind: "app_outdated" }],
+  ] as const)("in %o checks %i as %o", (versions, answered, expected) => {
+    expect(checkVersion(answered, versions)).toEqual(expected);
+  });
+
+  it("checks against the versions the extension speaks by default", () => {
+    expect(checkVersion(PROTOCOL_VERSIONS.max)).toEqual({ kind: "ok", version: PROTOCOL_VERSIONS.max });
+    expect(checkVersion(PROTOCOL_VERSIONS.max + 1)).toEqual({ kind: "invalid" });
+    expect(checkVersion(PROTOCOL_VERSIONS.min - 1)).toEqual({ kind: "app_outdated" });
   });
 });

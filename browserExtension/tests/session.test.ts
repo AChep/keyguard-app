@@ -13,7 +13,7 @@ import {
   type SessionEnd,
 } from "../src/lib/protocol/session";
 import { FakeApp, type FakeAppOptions } from "./support/fakeApp";
-import { errors, events, exchanges, frozenV1 } from "./support/fixtures";
+import { errors, events, exchanges, frozen, supportedVersions, type Corpus } from "./support/fixtures";
 
 const ORIGIN = "chrome-extension://abcdefghijklmnopabcdefghijklmnop/";
 let noise: NativeCryptoNoise;
@@ -215,10 +215,10 @@ describe("ProtocolSession", () => {
     expect(events).toEqual([{ event: "vault", state: "unlocked" }, { event: "revoked" }]);
   });
 
-  it.each([
+  it.each<[string, Corpus]>([
     ["current", { exchanges, events, errors }],
-    ["frozen v1", frozenV1],
-  ] as const)("exchanges the %s app’s messages", async (_, corpus) => {
+    ...supportedVersions.map((version): [string, Corpus] => [`frozen v${version}`, frozen(version)]),
+  ])("exchanges the %s app’s messages", async (_, corpus) => {
     let reply: JsonObject = {};
     const { app, protocol, events } = connect({ handler: () => reply });
     for (const [type, { request, response }] of Object.entries(corpus.exchanges)) {

@@ -38,20 +38,28 @@ import kotlin.test.assertTrue
 @Suppress("TooManyFunctions")
 class BrowserSessionTest {
     @Test
-    fun `a frozen v1 extension resumes its paired session`() = browserTest { scope ->
-        val fixture = BrowserFixture(scope)
-        val original = paired(fixture)
-        fixture.lock()
-        val client = fixture.connect(original.keyPair, pinned = original.noise.remoteStatic)
-        val snapshot = Json.parseToJsonElement(requireNotNull(javaClass.getResource("/v1.json")).readText())
-        val hello = snapshot.jsonObject.getValue("exchanges").jsonObject.getValue("hello").jsonObject
-        val response = client.call(hello.getValue("request").toString())
-        val expected = hello.getValue("response").jsonObject
-        for ((key, value) in expected) {
-            if (key == "capabilities") {
-                assertEquals(value.jsonArray.toSet(), response.getValue(key).jsonArray.toSet())
-            } else {
-                assertEquals(value, response[key], key)
+    fun `a frozen extension of every version the app speaks resumes its paired session`() = browserTest { scope ->
+        for (version in BrowserProtocol.VERSIONS) {
+            val fixture = BrowserFixture(scope)
+            val original = paired(fixture)
+            fixture.lock()
+            val client = fixture.connect(original.keyPair, pinned = original.noise.remoteStatic)
+            val file = "/v$version.json"
+            val text = requireNotNull(javaClass.getResource(file)) {
+                "Missing snapshot $file of a version the app speaks"
+            }.readText()
+            val hello = Json.parseToJsonElement(text).jsonObject
+                .getValue("exchanges").jsonObject
+                .getValue("hello").jsonObject
+            val response = client.call(hello.getValue("request").toString())
+            assertEquals(version, response.int("protocol"), file)
+            val expected = hello.getValue("response").jsonObject
+            for ((key, value) in expected) {
+                if (key == "capabilities") {
+                    assertEquals(value.jsonArray.toSet(), response.getValue(key).jsonArray.toSet(), file)
+                } else {
+                    assertEquals(value, response[key], "$file $key")
+                }
             }
         }
     }
@@ -98,6 +106,18 @@ class BrowserSessionTest {
         assertEquals("invalid_request", client.call("""{"id":3,"type":"unlock"}""").string("error"))
         assertEquals(true, client.hello(id = 4).bool("ok"))
         assertEquals("unpaired", client.call("""{"id":5,"type":"unlock"}""").string("error"))
+    }
+
+    @Test
+    fun `a future extension gets the highest version of the app`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val client = fixture.connect()
+        val future = BrowserProtocol.VERSIONS.last + 1
+        val hello = client.call("""{"id":1,"type":"hello","protocol":$future,"capabilities":["passkeys","save"]}""")
+        assertEquals(true, hello.bool("ok"))
+        assertEquals(BrowserProtocol.VERSIONS.last, hello.int("protocol"))
+        // The session serves requests.
+        assertEquals("unpaired", client.call("""{"id":2,"type":"unlock"}""").string("error"))
     }
 
     @Test

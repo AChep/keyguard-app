@@ -10,6 +10,7 @@ const TITLES: Record<ExtensionStatus["kind"], I18nKey> = {
   app_unavailable: "browser_extension_app_unavailable_title",
   integration_disabled: "browser_extension_integration_disabled_title",
   update_required: "browser_extension_update_required_title",
+  extension_update_required: "browser_extension_extension_update_required_title",
   app_update_required: "browser_extension_app_update_required_title",
   unverified_host: "browser_extension_unverified_host_title",
   too_many_sessions: "browser_extension_too_many_sessions_title",

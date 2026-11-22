@@ -127,6 +127,11 @@ export class NativeConnection {
     this.closed({ connectorMissing: false });
   }
 
+  /** The session started: the next drop reconnects after the initial backoff. */
+  resetBackoff(): void {
+    this.attempts = 0;
+  }
+
   /** Closes the port and stops reconnecting. */
   stop(): void {
     this.stopped = true;
@@ -143,9 +148,6 @@ export class NativeConnection {
     if (type === "status") {
       const { status } = message;
       const hostStatus = typeof status === "string" && HOST_STATUSES.has(status) ? (status as HostStatus) : null;
-      if (hostStatus !== "update_required" && hostStatus !== "unverified_host") {
-        this.attempts = 0;
-      }
       this.options.listener.status(hostStatus);
     } else if (type === "noise") {
       const { data } = message;

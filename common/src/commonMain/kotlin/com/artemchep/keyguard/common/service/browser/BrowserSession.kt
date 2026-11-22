@@ -143,7 +143,9 @@ internal class BrowserSession(
 
     /** The requests in flight, by id. Guarded by the lock. */
     private val inFlight = mutableMapOf<Long, InFlight>()
-    private var capabilities: Set<BrowserCapability>? = null
+
+    /** What `hello` agreed on, or `null` before a successful one. Guarded by the lock. */
+    private var agreement: Agreement? = null
     private var unlocking = false
 
     /** The unlock prompt that the requests of the session share, see [awaitUnlock]. Guarded by the lock. */
@@ -291,9 +293,9 @@ internal class BrowserSession(
             if (request.id in inFlight) throw BrowserProtocolException("A request id in flight")
             when (type) {
                 // A session says `hello` once; a failed one may be retried.
-                BrowserRequestType.HELLO -> BrowserError.INVALID_REQUEST.takeIf { capabilities != null }
+                BrowserRequestType.HELLO -> BrowserError.INVALID_REQUEST.takeIf { agreement != null }
                 // The extension sends `hello` first.
-                BrowserRequestType.CANCEL -> BrowserError.INVALID_REQUEST.takeIf { capabilities == null }
+                BrowserRequestType.CANCEL -> BrowserError.INVALID_REQUEST.takeIf { agreement == null }
                 else -> refusalOf(request.type, type, pairingError)
             }
         }
@@ -387,7 +389,7 @@ internal class BrowserSession(
      * it. Runs under the lock.
      */
     private fun refusalOf(name: String?, type: BrowserRequestType?, pairingError: BrowserError?): BrowserError? {
-        val agreed = capabilities
+        val agreed = agreement?.capabilities
         return when {
             // The extension sends `hello` first.
             agreed == null -> BrowserError.INVALID_REQUEST
@@ -405,21 +407,23 @@ internal class BrowserSession(
 
     private suspend fun hello(request: BrowserRequestEnvelope): BrowserAnswer {
         val hello: HelloRequest
+        val version: Int
         val paired: Boolean
         try {
             hello = request.decode<HelloRequest>()
-            if (hello.protocol < BrowserProtocol.VERSION) throw BrowserRequestException(BrowserError.NOT_SUPPORTED)
+            version = BrowserProtocol.negotiate(hello.protocol)
+                ?: throw BrowserRequestException(BrowserError.NOT_SUPPORTED)
             paired = resumePairing()
         } catch (e: BrowserRequestException) {
             return BrowserReply.Error(e.code).answer()
         }
         val agreed = hello.capabilities.mapNotNull(BrowserCapability::of).toSet() intersect SUPPORTED_CAPABILITIES
-        synchronized(lock) { capabilities = agreed }
+        synchronized(lock) { agreement = Agreement(version, agreed) }
         return {
             browserOk(
                 HelloResponse(
-                    // The lower of both sides' highest versions: the app speaks only this one.
-                    protocol = BrowserProtocol.VERSION,
+                    // The lower of both sides' highest versions, one the app speaks.
+                    protocol = version,
                     capabilities = agreed.map { it.wireName },
                     paired = paired,
                     vault = reportVault(),
@@ -682,6 +686,13 @@ internal class BrowserSession(
          */
         var committed: BrowserAnswer? = null
     }
+
+    /** What the extension and the app agreed on in `hello`. */
+    private class Agreement(
+        /** The protocol version of the session. */
+        val version: Int,
+        val capabilities: Set<BrowserCapability>,
+    )
 
     /** An unlock prompt, and the requests of the session that wait for it. */
     private class SharedUnlock(

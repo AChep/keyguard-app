@@ -164,13 +164,14 @@ When the extension can't use Keyguard, the popup shows one of these.
 
 | Message | Cause | Fix |
 | --- | --- | --- |
-| "Connector not installed" | The browser has no connector. | Turn on **Enable browser extension**, or turn the browser on under **Browser connectors**. Then switch back to the browser. |
-| "Keyguard isn’t running" | The app isn't running, or it closed the connection. | Open Keyguard. |
+| "Connector not installed" | The browser has no connector. | Turn on **Enable browser extension**, or the browser under **Browser connectors**. Then switch back to the browser. |
+| "Keyguard isn’t running" | The app isn't running or closed the connection. | Open Keyguard. |
 | "Browser extension is off" | **Enable browser extension** is off. | Turn on **Enable browser extension**. |
-| "Connector needs an update" | The connector and the app are from different versions. | Update Keyguard, then open it. |
-| "Update the Keyguard app" | The desktop app cannot read its browser pairings. | Update the desktop app, then select **Retry**. |
-| "Connector not verified" | Keyguard refused a connector that isn't the one bundled with it. | Restart Keyguard, which repairs its connectors. |
-| "Too many browsers connected" | Keyguard serves at most 8 browser connections. | Close another browser or profile that uses the extension, then select **Retry**. |
+| "Connector needs an update" | The app or its connector is out of date. | Update Keyguard, then open it. |
+| "Update the Keyguard extension" | The app no longer supports this extension. | Update the extension. |
+| "Update the Keyguard app" | The app can't read its browser pairings. | Update the app, then select **Retry**. |
+| "Connector not verified" | Keyguard refused a connector it didn't bundle. | Restart Keyguard, which repairs its connectors. |
+| "Too many browsers connected" | Keyguard serves at most 8 browser connections. | Close another browser or profile using the extension, then select **Retry**. |
 
 ## Limitations
 

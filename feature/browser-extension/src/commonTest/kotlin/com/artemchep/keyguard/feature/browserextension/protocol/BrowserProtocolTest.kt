@@ -20,6 +20,23 @@ class BrowserProtocolTest {
     }
 
     @Test
+    fun `a session takes the lower of both sides' highest versions, if the app speaks it`() {
+        // The extension's highest, the app's versions, the version of the session.
+        for ((extensionMax, versions, expected) in listOf(
+            Triple(1, 1..1, 1),
+            // A future extension against this app.
+            Triple(5, 1..1, 1),
+            Triple(0, 1..1, null),
+            Triple(1, 1..2, 1),
+            // An extension older than the oldest version of the app.
+            Triple(1, 2..3, null),
+            Triple(3, 1..2, 2),
+        )) {
+            assertEquals(expected, BrowserProtocol.negotiate(extensionMax, versions), "$extensionMax vs $versions")
+        }
+    }
+
+    @Test
     fun `chromium origins and firefox ids are valid`() {
         for (origin in listOf(
             "chrome-extension://abcdefghijklmnopabcdefghijklmnop/",

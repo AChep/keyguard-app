@@ -2,8 +2,8 @@ package com.artemchep.keyguard.feature.browserextension.protocol
 
 /** The constants of `browserExtension/protocol/README.md`, version 1. */
 object BrowserProtocol {
-    /** The protocol version of this document. */
-    const val VERSION: Int = 1
+    /** The protocol versions this app speaks. */
+    val VERSIONS: IntRange = 1..1
 
     /** The suite ID, the first frame of a session: `Noise_XX_25519_ChaChaPoly_SHA256`. */
     const val SUITE_ID: Byte = 3
@@ -45,6 +45,13 @@ object BrowserProtocol {
 
     /** The prologue of a session of the extension of [origin]. */
     fun prologue(origin: String): ByteArray = (PROLOGUE_PREFIX + origin).encodeToByteArray()
+
+    /**
+     * The version of a session with an extension whose highest is
+     * [extensionMax], or `null` when it speaks none of [versions].
+     */
+    fun negotiate(extensionMax: Int, versions: IntRange = VERSIONS): Int? =
+        minOf(extensionMax, versions.last).takeIf { it in versions }
 }
 
 /** The origins the browsers pass to the connector, as the agent validates them. */

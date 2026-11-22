@@ -20,10 +20,12 @@ export type ExtensionStatus =
   | { kind: "app_unavailable" }
   | { kind: "integration_disabled" }
   | { kind: "update_required" }
+  /** The app no longer speaks this extension's protocol versions. */
+  | { kind: "extension_update_required" }
   | { kind: "app_update_required" }
   | { kind: "unverified_host" }
   | { kind: "too_many_sessions" }
-  /** The session broke; the background reconnects with backoff. */
+  /** The session broke; the background reconnects with backoff, or waits for Retry after an invalid `hello` version. */
   | { kind: "protocol_error" }
   | { kind: "connecting" }
   | { kind: "not_paired"; pairing: PairingProgress }

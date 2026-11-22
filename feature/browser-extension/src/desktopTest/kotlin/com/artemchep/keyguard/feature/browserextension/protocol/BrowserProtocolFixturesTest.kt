@@ -62,22 +62,27 @@ class BrowserProtocolFixturesTest {
     }
 
     @Test
-    fun `the app accepts frozen v1 requests and preserves the fields their readers expect`() {
-        val v1 = BrowserJson.parseToJsonElement(
-            requireNotNull(javaClass.getResource("/compatibility/v1.json")).readText(),
-        ).jsonObject
-        for ((name, messages) in v1.getValue("exchanges").jsonObject) {
-            val request = messages.jsonObject.getValue(REQUEST).jsonObject
-            val response = messages.jsonObject.getValue(RESPONSE).jsonObject
-            val envelope = BrowserMessages.parseRequest(encode(request))
-            val type = requireNotNull(BrowserRequestType.of(name))
-            assertEquals(name, envelope.type)
-            val (fields, reply) = exchange(type, envelope, response - "id" - "ok")
-            assertV1Fields(request - "id" - "type", fields)
-            assertV1Fields(response, decode(BrowserMessages.response(envelope.id, reply)))
+    fun `the app accepts frozen requests of every version it speaks and preserves the fields their readers expect`() {
+        for (version in BrowserProtocol.VERSIONS) {
+            val file = "v$version.json"
+            val snapshot = BrowserJson.parseToJsonElement(
+                requireNotNull(javaClass.getResource("/compatibility/$file")) {
+                    "Missing snapshot compatibility/$file of a version the app speaks"
+                }.readText(),
+            ).jsonObject
+            for ((name, messages) in snapshot.getValue("exchanges").jsonObject) {
+                val request = messages.jsonObject.getValue(REQUEST).jsonObject
+                val response = messages.jsonObject.getValue(RESPONSE).jsonObject
+                val envelope = BrowserMessages.parseRequest(encode(request))
+                val type = requireNotNull(BrowserRequestType.of(name)) { "v$version $name" }
+                assertEquals(name, envelope.type)
+                val (fields, reply) = exchange(type, envelope, response - "id" - "ok")
+                assertFrozenFields(request - "id" - "type", fields)
+                assertFrozenFields(response, decode(BrowserMessages.response(envelope.id, reply)))
+            }
+            for (event in snapshot.getValue("events").jsonArray) assertFrozenFields(event, writeEvent(event.jsonObject))
+            for (error in snapshot.getValue("errors").jsonArray) assertFrozenFields(error, writeError(error.jsonObject))
         }
-        for (event in v1.getValue("events").jsonArray) assertV1Fields(event, writeEvent(event.jsonObject))
-        for (error in v1.getValue("errors").jsonArray) assertV1Fields(error, writeError(error.jsonObject))
     }
 
     /**
@@ -136,13 +141,13 @@ class BrowserProtocolFixturesTest {
     }
 }
 
-/** A v1 reader ignores additional object fields, including in nested objects. */
-private fun assertV1Fields(expected: JsonElement, actual: JsonElement) {
+/** A reader of a frozen version ignores additional object fields, including in nested objects. */
+private fun assertFrozenFields(expected: JsonElement, actual: JsonElement) {
     when (expected) {
-        is JsonObject -> expected.forEach { (key, value) -> assertV1Fields(value, actual.jsonObject.getValue(key)) }
+        is JsonObject -> expected.forEach { (key, value) -> assertFrozenFields(value, actual.jsonObject.getValue(key)) }
         is JsonArray -> {
             assertEquals(expected.size, actual.jsonArray.size)
-            expected.forEachIndexed { index, value -> assertV1Fields(value, actual.jsonArray[index]) }
+            expected.forEachIndexed { index, value -> assertFrozenFields(value, actual.jsonArray[index]) }
         }
         else -> assertEquals(expected, actual)
     }

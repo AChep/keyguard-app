@@ -281,9 +281,21 @@ Gate: none.
 | `paired` | boolean | Whether the session is paired, see [Handshake](#handshake). |
 | `vault` | `"locked"` \| `"unlocked"` | |
 
-`protocol` is the highest version a side speaks. The app answers the lower of the
-two highest versions, or `not_supported` if it no longer speaks that version. The
-extension asks the user to update when it doesn't speak the answered version.
+Each side speaks a range of versions, from its lowest to its highest. The app
+answers the lower of the two highest versions, or `not_supported` when that is
+below its lowest. The session uses the answered version until it ends.
+
+| Answer | The extension |
+|---|---|
+| Within its range | Uses it. |
+| Below its lowest | Asks the user to update the app. |
+| Above its highest | Ends the session: the app broke this rule. |
+| `not_supported` | Asks the user to update the extension. |
+
+A new version is only for a change that an older side would misread. New
+requests, fields and events go behind a capability or as optional fields.
+Desktop apps update later than extensions, so the extension keeps old versions
+longer than the app does.
 
 The app answers a `hello` after a successful one with `invalid_request` and
 changes nothing; a failed `hello` may be retried.
@@ -842,7 +854,8 @@ responses, events and errors. Keep this snapshot unchanged when updating the
 current fixtures. The app tests decode its requests and check that serialized
 replies retain the v1 fields. The extension tests replay its responses, events
 and errors through a protocol session. Add a separate snapshot for each later
-protocol version.
+protocol version. Each side's tests replay the snapshot of every version in its
+range; a version in the range without a snapshot fails them.
 
 [`vectors/noise_xx.json`](vectors/noise_xx.json) holds:
 

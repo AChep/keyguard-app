@@ -6,9 +6,10 @@ import type { NativeCryptoNoise, NoiseKeyPair } from "../crypto/noise";
 import { MessageTooDeep, MessageTooLarge } from "../protocol/framing";
 import {
   CAPABILITIES,
+  checkVersion,
   InvalidResponse,
   privateWindow,
-  PROTOCOL_VERSION,
+  PROTOCOL_VERSIONS,
   type Capability,
   type HelloResponse,
   type PagePrivacy,
@@ -67,6 +68,8 @@ interface ActiveSession {
   handshake: Handshake | null;
   /** Whether the app knows this extension's key, after `hello` or pairing. */
   paired: boolean;
+  /** The protocol version the app answered `hello` with; `null` before. */
+  version: number | null;
   /** The offered capabilities the app agreed to in `hello`. */
   capabilities: ReadonlySet<string>;
 }
@@ -227,6 +230,8 @@ export class BackgroundController implements ConnectionListener {
     this.halted = false;
     this.endSession();
     this.connection.stop();
+    // The user asked: if this session fails too, its reconnect doesn't wait long.
+    this.connection.resetBackoff();
     this.setStatus({ kind: "starting" });
     this.connection.connect();
     return null;
@@ -434,20 +439,21 @@ export class BackgroundController implements ConnectionListener {
       pairing,
       handshake: null,
       paired: false,
+      version: null,
       capabilities: new Set(),
     };
     this.session = active;
     protocol.start();
     try {
       active.handshake = await protocol.established;
-      const hello = await this.sessionRequest(active, "hello", { protocol: PROTOCOL_VERSION, capabilities: CAPABILITIES });
+      const hello = await this.sessionRequest(active, "hello", { protocol: PROTOCOL_VERSIONS.max, capabilities: CAPABILITIES });
       if (this.session === active) await this.afterHello(active, hello);
     } catch (error) {
       if (this.session !== active || error instanceof SessionClosed) return;
-      // `hello` failed: an app that shares no protocol version answers
-      // `not_supported`.
+      // `hello` failed: an app whose lowest version is above our highest
+      // answers `not_supported`, so the extension needs an update.
       if (error instanceof ProtocolError && error.code === "not_supported") {
-        this.halt({ kind: "update_required" });
+        this.halt({ kind: "extension_update_required" });
       } else {
         console.warn("Keyguard: the session failed to start", error);
         this.failSession();
@@ -461,10 +467,24 @@ export class BackgroundController implements ConnectionListener {
    * apply on top, and a session that ends meanwhile keeps its new status.
    */
   private async afterHello(active: ActiveSession, hello: HelloResponse) {
-    if (hello.protocol !== PROTOCOL_VERSION) {
-      this.halt({ kind: "update_required" });
-      return;
+    const version = checkVersion(hello.protocol);
+    switch (version.kind) {
+      case "app_outdated":
+        // As the host's `update_required`: reconnects with backoff, and at once on focus.
+        this.endSession();
+        this.setStatus({ kind: "update_required" });
+        this.connection.restart(true);
+        return;
+      case "invalid":
+        // Above the version we offered: the app broke the protocol.
+        this.halt({ kind: "protocol_error" });
+        return;
+      case "ok":
+        active.version = version.version;
     }
+    // Not at the host's `ready`, which each new port gets: sessions that
+    // fail right after it must back off.
+    this.connection.resetBackoff();
     active.capabilities = new Set(hello.capabilities.filter((it) => (CAPABILITIES as readonly string[]).includes(it)));
     if (!hello.paired) {
       // The app removed the pairing: forget it and offer to pair again.

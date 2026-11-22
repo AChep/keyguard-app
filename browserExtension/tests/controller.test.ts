@@ -1,7 +1,7 @@
 // The background controller end to end: native port, Noise session through the
 // Wasm, pairing and storage, against a fake host and app. The popup's calls
 // about a tab's page go through a PageController on it.
-import { beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeBrowser } from "wxt/testing/fake-browser";
 import type { ExtensionStatus } from "../src/lib/background/api";
 import { BackgroundController } from "../src/lib/background/controller";
@@ -14,10 +14,10 @@ import type { NativeCryptoNoise, NoiseKeyPair } from "../src/lib/crypto/noise";
 import { loadNoise } from "../src/lib/crypto/wasm";
 import { NATIVE_HOST_NAME } from "../src/lib/native/connection";
 import { OptionsStore } from "../src/lib/options/store";
-import type { FramePage } from "../src/lib/protocol/messages";
+import { PROTOCOL_VERSIONS, type FramePage } from "../src/lib/protocol/messages";
 import { fromBase64, toHex } from "../src/lib/util/bytes";
-import { FakeHost, FakeNativePort, type Handler } from "./support/fakeApp";
-import { frozenV1, responseFields } from "./support/fixtures";
+import { FakeHost, FakeNativePort, type FakeApp, type Handler, type Reply } from "./support/fakeApp";
+import { frozen, responseFields, supportedVersions } from "./support/fixtures";
 
 const EXTENSION_ID = "abcdefghijklmnopabcdefghijklmnop";
 const ORIGIN = `chrome-extension://${EXTENSION_ID}/`;
@@ -35,10 +35,13 @@ beforeEach(() => {
   fakeBrowser.reset();
 });
 
+/** The real `setTimeout`: [until] polls on it, also in tests where the background's timers are fake. */
+const realSetTimeout = globalThis.setTimeout;
+
 async function until(check: () => boolean | Promise<boolean>, what = "condition") {
   for (let i = 0; i < 500; i++) {
     if (await check()) return;
-    await new Promise((resolve) => setTimeout(resolve, 2));
+    await new Promise((resolve) => realSetTimeout(resolve, 2));
   }
   throw new Error(`Timed out waiting for ${what}`);
 }
@@ -177,13 +180,45 @@ async function pair(context: ReturnType<typeof setup>) {
   await context.waitFor("locked");
 }
 
+/** Pairs, then reconnects to an app that answers `hello` with [reply]; `identity` is the stored key and pin. */
+async function reconnectWithHello(reply: (app: FakeApp) => Reply, options: { backoffMs?: number } = {}) {
+  let answering = false;
+  const context = setup({ ...options, handler: (request, app) => (answering && request.type === "hello" ? reply(app) : undefined) });
+  await pair(context);
+  const identity = await stored();
+  answering = true;
+  context.host().status("app_unavailable");
+  context.host().ready();
+  return { context, identity, stopAnswering: () => void (answering = false) };
+}
+
+/** A `hello` answer with [protocol]. */
+const helloWith = (protocol: number) => (app: FakeApp) => ({ protocol, capabilities: [], paired: app.paired, vault: app.vault });
+
+/** Starts a session on the last port, which the app refuses: the extension ends it and reconnects with backoff. */
+async function refuseSession(context: ReturnType<typeof setup>) {
+  const port = context.ports.at(-1)!;
+  context.host().ready();
+  await until(() => port.disconnected, "the refused session's end");
+  expect(context.status().kind).toBe("protocol_error");
+}
+
+/** Lets [ms] pass on the fake clock: a new port opens in its last millisecond, not before. */
+async function reconnectsAfter(context: ReturnType<typeof setup>, ms: number) {
+  const ports = context.ports.length;
+  await vi.advanceTimersByTimeAsync(ms - 1);
+  expect(context.ports, `ports after ${ms - 1} ms`).toHaveLength(ports);
+  await vi.advanceTimersByTimeAsync(1);
+  expect(context.ports, `ports after ${ms} ms`).toHaveLength(ports + 1);
+}
+
 describe("BackgroundController", () => {
   it("pairs: shows the app's code, then pins the app's key", async () => {
     const context = setup();
     const app = context.host().ready();
     await context.waitFor("not_paired");
-    // Only the protocol and the capabilities the extension implements.
-    expect(app.requests[0]).toEqual({ id: 1, type: "hello", protocol: 1, capabilities: ["passkeys", "save"] });
+    // Only the highest protocol version and the capabilities the extension implements.
+    expect(app.requests[0]).toEqual({ id: 1, type: "hello", protocol: PROTOCOL_VERSIONS.max, capabilities: ["passkeys", "save"] });
 
     app.vault = "unlocked";
     await context.controller.calls.pair({});
@@ -350,17 +385,73 @@ describe("BackgroundController", () => {
     expect(context.status()).toEqual({ kind: "unlocked" });
   });
 
-  it("resumes a paired session with the frozen v1 app hello", async () => {
-    let useV1 = false;
-    const { response } = frozenV1.exchanges.hello!;
-    const context = setup({ handler: (request) => useV1 && request.type === "hello" ? response : undefined });
+  it.each(supportedVersions)("resumes a paired session with the frozen v%i app hello", async (version) => {
+    let useFrozen = false;
+    const { response } = frozen(version).exchanges.hello!;
+    const context = setup({ handler: (request) => (useFrozen && request.type === "hello" ? response : undefined) });
     await pair(context);
-    useV1 = true;
+    useFrozen = true;
     context.host().status("app_unavailable");
     const app = context.host().ready();
     await context.waitFor("locked");
     expect(app.requests.map((request) => request.type)).toEqual(["hello"]);
+    expect(app.requests[0]).toMatchObject({ protocol: PROTOCOL_VERSIONS.max });
     expect(context.controller.supports("passkeys")).toBe(true);
+  });
+
+  it("ends the session and waits for Retry when the app answers a version above the extension's", async () => {
+    const { context, identity, stopAnswering } = await reconnectWithHello(helloWith(PROTOCOL_VERSIONS.max + 1));
+    await context.waitFor("protocol_error");
+    expect(context.ports[0]!.disconnected).toBe(true);
+    expect(await stored()).toEqual(identity);
+    // The app broke the protocol: reconnecting would get the same answer, so not even on focus.
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    context.controller.focused();
+    expect(context.ports).toHaveLength(1);
+
+    stopAnswering();
+    await context.controller.calls.retry({});
+    expect(context.ports).toHaveLength(2);
+    context.host().ready();
+    await context.waitFor("locked");
+    expect(await stored()).toEqual(identity);
+  });
+
+  it("asks to update the app when it answers a version below the extension's, and reconnects on focus", async () => {
+    // The next retry is a minute away: the new port comes from the focus.
+    const { context, identity, stopAnswering } = await reconnectWithHello(helloWith(PROTOCOL_VERSIONS.min - 1), {
+      backoffMs: 60_000,
+    });
+    await context.waitFor("update_required");
+    expect(context.ports[0]!.disconnected).toBe(true);
+    expect(await stored()).toEqual(identity);
+
+    // As the host's `update_required`: the user updates the app and comes back.
+    stopAnswering();
+    context.controller.focused();
+    expect(context.ports).toHaveLength(2);
+    expect(context.status().kind).toBe("update_required");
+    context.host().ready();
+    await context.waitFor("locked");
+    expect(await stored()).toEqual(identity);
+  });
+
+  it("asks to update the extension when the app supports none of its versions, and keeps the pin", async () => {
+    const { context, identity, stopAnswering } = await reconnectWithHello(() => ({ error: "not_supported" }));
+    await context.waitFor("extension_update_required");
+    expect(context.ports[0]!.disconnected).toBe(true);
+    expect(await stored()).toEqual(identity);
+    // It waits for the update, which reloads the extension: no reconnect, not even on focus.
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    context.controller.focused();
+    expect(context.ports).toHaveLength(1);
+
+    // Started again, it resumes the pairing.
+    stopAnswering();
+    await context.controller.calls.retry({});
+    context.host().ready();
+    await context.waitFor("locked");
+    expect(await stored()).toEqual(identity);
   });
 
   it.each(["hello", "unlock"])("keeps the pin and reconnects after an app update required by %s", async (type) => {
@@ -516,6 +607,62 @@ describe("BackgroundController", () => {
     await context.waitFor("protocol_error");
     expect(context.ports[0]!.disconnected).toBe(true);
     await until(() => context.ports.length === 2, "a new port");
+  });
+
+  it("backs off while the app refuses every session, and starts over once one starts", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      // As when the app can't read its pairings; the connector says `ready` on each new port.
+      let refusing = true;
+      const context = setup({
+        handler: (request) => (refusing && request.type === "hello" ? { error: "not_allowed" } : undefined),
+        backoffMs: 5,
+      });
+      // The wait doubles from 5 ms.
+      for (let i = 0; i < 4; i++) {
+        await refuseSession(context);
+        await reconnectsAfter(context, 5 * 2 ** i);
+      }
+
+      // Focus skips the wait, but counts the attempt.
+      for (let i = 4; i < 12; i++) {
+        await refuseSession(context);
+        context.controller.focused();
+      }
+      expect(context.ports).toHaveLength(13);
+      await refuseSession(context);
+      await reconnectsAfter(context, 5 * 2 ** 12);
+
+      refusing = false;
+      context.host().ready();
+      await context.waitFor("not_paired");
+      // The session started: the host exits, and a new port opens after 5 ms again.
+      context.ports.at(-1)!.close();
+      await reconnectsAfter(context, 5);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("starts the backoff over when the user retries", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    try {
+      const context = setup({
+        handler: (request) => (request.type === "hello" ? { error: "not_allowed" } : undefined),
+        backoffMs: 5,
+      });
+      for (let i = 0; i < 4; i++) {
+        await refuseSession(context);
+        context.controller.focused();
+      }
+      await context.controller.calls.retry({});
+      expect(context.ports).toHaveLength(6);
+      // If this session fails too, its reconnect waits 5 ms, not 5 * 2^4 ms.
+      await refuseSession(context);
+      await reconnectsAfter(context, 5);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("reconnects when the crypto fails to start the handshake", async () => {

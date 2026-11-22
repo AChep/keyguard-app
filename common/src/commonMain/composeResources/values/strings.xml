@@ -3209,6 +3209,8 @@
     <string name="browser_extension_integration_disabled_text">Turn it on in the Keyguard app: Settings → Autofill → Browser extension.</string>
     <string name="browser_extension_update_required_title">Connector needs an update</string>
     <string name="browser_extension_update_required_text">Update the Keyguard app, then open it.</string>
+    <string name="browser_extension_extension_update_required_title">Update the Keyguard extension</string>
+    <string name="browser_extension_extension_update_required_text">The Keyguard app no longer supports this version of the extension. Update the extension.</string>
     <string name="browser_extension_app_update_required_title">Update the Keyguard app</string>
     <string name="browser_extension_app_update_required_text">The desktop app cannot read its browser pairings. Update the app, then retry to use your existing pairing.</string>
     <string name="browser_extension_unverified_host_title">Connector not verified</string>

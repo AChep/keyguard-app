@@ -22,6 +22,8 @@ Main modules for different platforms:
 
 Apple specific modules: `appleApp/` the Kotlin bridge both Apple apps run on, and the producer of `KeyguardShared.xcframework`; `appleUi/` is the shared SwiftUI layer and `appleAutofill/` the shared AutoFill extension sources; `xcode/` is the shared Xcode infrastructure.
 
+Browser specific modules: `browserExtension/` is the Chrome and Firefox extension (TypeScript + Svelte, built with pnpm); `desktopBrowserHost/` the Rust native messaging host that relays it to the desktop app; `feature/browser-extension/` the app side. `browserExtension/protocol/README.md` specifies the protocol, which the Rust, Kotlin and TypeScript code all follow.
+
 The shared-module split is incremental:
 - `standard/presentation/` contains full-app state producers without Compose dependencies;
 - `feature/*/` contain the optional features.
@@ -72,6 +74,7 @@ Run the checks relevant to the changed language, for each affected module:
 - **Kotlin:** `./gradlew :<module>:detekt` for static analysis, and `./gradlew :<module>:detektCustomRules` for Keyguard-specific rules;
 - **Rust:** Run `cargo fmt --all -- --check` and Clippy for the affected crate or workspace;
 - **Swift:** `xcode/scripts/lint-swift.sh` runs strict `swift format` checks; add `--fix` to format sources.
+- **TypeScript:** in `browserExtension/`, run `pnpm typecheck`, `pnpm lint`, `pnpm format:check` and `pnpm test`. `browserExtension/BUILDING.md` lists the setup they need.
 
 Run the checks relevant to the changed platform:
 
@@ -81,6 +84,9 @@ Run the checks relevant to the changed platform:
 
 We only edit the base translations directly in the repo, as the localization of the app is managed
 by a Crowdin localization platform.
+
+The browser extension reuses the app's strings: add each key it uses to `browserExtension/strings.allowlist`.
+`pnpm generate:strings` exports them; the output is not committed.
 
 ### Documentation
 

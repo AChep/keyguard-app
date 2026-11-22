@@ -84,12 +84,17 @@ fun LazyListScope.breadcrumbsItem(
     }
 }
 
-/** Parent folders as chips, followed by the current folder. */
+/**
+ * Parent folders as chips, followed by the current folder. The chip of
+ * a breadcrumb gets the modifier of its index in the [chipModifiers],
+ * if any.
+ */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun BreadcrumbTree(
     breadcrumbs: List<Breadcrumb>,
     modifier: Modifier = Modifier,
+    chipModifiers: List<Modifier> = emptyList(),
 ) {
     FlowRow(
         modifier = modifier,
@@ -102,6 +107,7 @@ fun BreadcrumbTree(
             if (index != breadcrumbs.lastIndex) {
                 BreadcrumbChip(
                     breadcrumb = s,
+                    modifier = chipModifiers.getOrNull(index) ?: Modifier,
                 )
             } else {
                 Text(

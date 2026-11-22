@@ -40,7 +40,7 @@ internal fun rememberWearNavigationListScrollState(
     val entry = LocalNavigationEntry.current
     val finishing = isNavigationNodeFinishing()
     val holder = remember(entry) {
-        val saved = entry.scrollPosition
+        val saved = entry.viewMemory.scrollPosition
         val initialTarget = saved?.resolve(listKeys)
         val listState = TransformingLazyColumnState(
             initialAnchorItemIndex = initialTarget?.index ?: 0,
@@ -100,7 +100,7 @@ private fun RecordWearNavigationListScrollEffect(
             }
         }.collect { position ->
             if (position != null) {
-                entry.scrollPosition = position
+                entry.viewMemory.scrollPosition = position
             }
         }
     }
@@ -118,7 +118,7 @@ private fun RecordWearNavigationListScrollEffect(
                     }
                 }
                 if (captured != null) {
-                    entry.scrollPosition = captured
+                    entry.viewMemory.scrollPosition = captured
                 }
             }
         }

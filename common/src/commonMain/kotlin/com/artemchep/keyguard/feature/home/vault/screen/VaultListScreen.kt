@@ -345,7 +345,7 @@ private fun rememberVaultListKeyModifier(
                     val openId = updatedOpenItemId()
                         ?: return@onKeyEvent false
                     // The list holds focus, so the focused row is the last one.
-                    val focusedKey = entry.lastFocusedKey
+                    val focusedKey = entry.viewMemory.lastFocusedKey
                     val focusedItem = (updatedState.content as? VaultListState.Content.Items)
                         ?.list
                         ?.firstOrNull { it.id == focusedKey } as? VaultItem2.Item

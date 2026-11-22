@@ -73,7 +73,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationIntent
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.feature.navigation.navigationNextEntryOrNull
 import com.artemchep.keyguard.feature.navigation.registerRouteResultReceiver
-import com.artemchep.keyguard.feature.navigation.rememberNavigationListScrollState
+import com.artemchep.keyguard.ui.rememberListScreenState
 import com.artemchep.keyguard.feature.onboarding.SmallOnboardingCard
 import com.artemchep.keyguard.feature.onboarding.onboardingItemsPremium
 import com.artemchep.keyguard.feature.twopane.LocalHasDetailPane
@@ -85,7 +85,6 @@ import com.artemchep.keyguard.platform.util.isRelease
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
-import com.artemchep.keyguard.ui.focus.rememberListFocus
 import com.artemchep.keyguard.ui.icons.IconBox
 import com.artemchep.keyguard.ui.icons.KeyguardPremium
 import com.artemchep.keyguard.ui.pulltosearch.PullToSearch
@@ -93,7 +92,6 @@ import com.artemchep.keyguard.ui.pulltosearch.pullToSearch
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.selectedContainer
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.currentKoinScope
 import org.koin.compose.koinInject
@@ -359,17 +357,9 @@ internal fun SettingListScreenContent(
     val listKeys = remember(items) {
         items.map { it.id }
     }
-    val scrollState = rememberNavigationListScrollState(
-        listKeys = listKeys,
-    )
-    val scrollBehavior = ToolbarBehavior.behavior(
-        state = scrollState.topAppBarState,
-    )
-    val listState = scrollState.listState
     // Opening the Settings tab moves no focus, coming
     // back to it restores the row the user left from.
-    val focus = rememberListFocus(
-        listState = listState,
+    val (listState, scrollBehavior, focus) = rememberListScreenState(
         listKeys = listKeys,
         focusFirstOnEnter = false,
     )
@@ -391,7 +381,8 @@ internal fun SettingListScreenContent(
                 },
                 actions = {
                     IconButton(
-                        modifier = focus.target(SEARCH_FOCUS_KEY),
+                        // A side entry into the list skips it.
+                        modifier = focus.target(SEARCH_FOCUS_KEY, inList = false),
                         onClick = {
                             val route = SearchSettingsRoute
                             val intent = NavigationIntent.NavigateToRoute(route)

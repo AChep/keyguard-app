@@ -5,6 +5,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import arrow.core.partially1
 import com.artemchep.keyguard.ui.icons.VisibilityIcon
 
@@ -27,11 +28,13 @@ fun VisibilityToggle(
 
 @Composable
 fun VisibilityToggle(
+    modifier: Modifier = Modifier,
     visible: Boolean,
     enabled: Boolean = true,
     onVisibleChange: (Boolean) -> Unit,
 ) {
     IconButton(
+        modifier = modifier,
         enabled = enabled,
         onClick = onVisibleChange.partially1(!visible),
     ) {

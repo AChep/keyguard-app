@@ -180,14 +180,12 @@ import com.artemchep.keyguard.feature.home.settings.component.settingWriteAccess
 import com.artemchep.keyguard.feature.home.settings.component.settingFido2UnlockProvider
 import com.artemchep.keyguard.feature.home.settings.component.settingYubiKeyUnlockProvider
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
-import com.artemchep.keyguard.feature.navigation.rememberNavigationListScrollState
+import com.artemchep.keyguard.ui.rememberListScreenState
 import com.artemchep.keyguard.platform.CurrentPlatform
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
 import com.artemchep.keyguard.ui.focus.ListFocus
-import com.artemchep.keyguard.ui.focus.rememberListFocus
 import com.artemchep.keyguard.ui.skeleton.SkeletonItem
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import kotlinx.collections.immutable.toImmutableList
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -637,16 +635,8 @@ fun SettingPaneContent2(
         val list = (state.list as? Loadable.Ok)?.value
         list?.map { it.compositeKey }.orEmpty()
     }
-    val scrollState = rememberNavigationListScrollState(
-        listKeys = listKeys,
-    )
-    val scrollBehavior = ToolbarBehavior.behavior(
-        state = scrollState.topAppBarState,
-    )
-    val listState = scrollState.listState
     // The pane opens in Loading, so its rows come later.
-    val focus = rememberListFocus(
-        listState = listState,
+    val (listState, scrollBehavior, focus) = rememberListScreenState(
         listKeys = listKeys,
         focusFirstOnEnter = true,
     )

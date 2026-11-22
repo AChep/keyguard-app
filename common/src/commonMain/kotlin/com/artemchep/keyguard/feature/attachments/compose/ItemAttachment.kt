@@ -61,7 +61,9 @@ import com.artemchep.keyguard.ui.ExpandedIfNotEmpty
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.firstActionOfType
 import com.artemchep.keyguard.ui.FlatItemTextContent
+import com.artemchep.keyguard.ui.focus.rememberTrailingFocusLink
 import com.artemchep.keyguard.ui.icons.AttachmentIcon
 import com.artemchep.keyguard.ui.theme.info
 import com.artemchep.keyguard.ui.theme.infoContainer
@@ -314,6 +316,23 @@ private fun ItemAttachmentLayout(
         } else {
             Color.Unspecified
         }
+    val onLaunchAction = remember(dropdown) {
+        dropdown.firstActionOfType(FlatItemAction.Type.VIEW)
+    }
+    val onDownloadAction = remember(dropdown) {
+        dropdown.firstActionOfType(FlatItemAction.Type.DOWNLOAD)
+    }
+    // A selection hides the buttons. The row is a focus target
+    // only if it has a menu to open or a click handler.
+    val focusLink = rememberTrailingFocusLink(
+        enabled = !selectable.selecting &&
+            (dropdown.isNotEmpty() || selectable.onClick != null),
+        linked = listOf(
+            onLaunchAction?.onClick != null,
+            onDownloadAction?.onClick != null,
+        ),
+    )
+    val (launchModifier, downloadModifier) = focusLink.buttons
     FlatDropdownSimpleExpressive(
         modifier = modifier,
         backgroundColor = backgroundColor,
@@ -403,18 +422,12 @@ private fun ItemAttachmentLayout(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        val onLaunchAction = remember(dropdown) {
-                            dropdown
-                                .firstNotNullOfOrNull {
-                                    val action = it as? FlatItemAction
-                                    action?.takeIf { it.type == FlatItemAction.Type.VIEW }
-                                }
-                        }
                         ExpandedIfNotEmptyForRow(
                             valueOrNull = onLaunchAction,
                         ) { action ->
                             val onCopy = action.onClick
                             IconButton(
+                                modifier = launchModifier,
                                 enabled = onCopy != null,
                                 onClick = {
                                     onCopy?.invoke()
@@ -427,18 +440,12 @@ private fun ItemAttachmentLayout(
                             }
                         }
 
-                        val onDownloadAction = remember(dropdown) {
-                            dropdown
-                                .firstNotNullOfOrNull {
-                                    val action = it as? FlatItemAction
-                                    action?.takeIf { it.type == FlatItemAction.Type.DOWNLOAD }
-                                }
-                        }
                         ExpandedIfNotEmptyForRow(
                             valueOrNull = onDownloadAction,
                         ) { action ->
                             val onCopy = action.onClick
                             IconButton(
+                                modifier = downloadModifier,
                                 enabled = onCopy != null,
                                 onClick = {
                                     onCopy?.invoke()
@@ -458,5 +465,6 @@ private fun ItemAttachmentLayout(
         onClick = selectable.onClick,
         onLongClick = selectable.onLongClick,
         enabled = true,
+        rowModifier = focusLink.row,
     )
 }

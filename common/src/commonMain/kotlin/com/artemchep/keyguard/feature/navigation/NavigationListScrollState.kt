@@ -56,7 +56,7 @@ internal fun rememberNavigationListScrollState(
     val finishing = LocalNavigationNodeFinishing.current
     val holder = remember(entry) {
         createScrollHolder(
-            saved = entry.scrollPosition,
+            saved = entry.viewMemory.scrollPosition,
             listKeys = listKeys,
         )
     }
@@ -164,7 +164,7 @@ private fun RecordNavigationListScrollEffect(
             }
         }.collect { position ->
             if (position != null) {
-                entry.scrollPosition = position
+                entry.viewMemory.scrollPosition = position
             }
         }
     }
@@ -183,7 +183,7 @@ private fun RecordNavigationListScrollEffect(
                     }
                 }
                 if (captured != null) {
-                    entry.scrollPosition = captured
+                    entry.viewMemory.scrollPosition = captured
                 }
             }
         }

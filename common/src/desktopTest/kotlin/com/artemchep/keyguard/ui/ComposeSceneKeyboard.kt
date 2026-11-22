@@ -171,6 +171,25 @@ internal fun ImageComposeScene.sendClick(position: Offset) {
     )
 }
 
+/**
+ * Turns the mouse wheel down by [steps] at [position], with time for
+ * each step's scroll animation, and for the last one to settle.
+ */
+internal fun ImageComposeScene.wheelScrollDown(
+    position: Offset,
+    steps: Int,
+) {
+    repeat(steps) {
+        sendPointerEvent(
+            eventType = PointerEventType.Scroll,
+            position = position,
+            scrollDelta = Offset(0f, 8f),
+        )
+        advanceTimeBy(100L)
+    }
+    advanceTimeBy(300L)
+}
+
 internal fun ImageComposeScene.enterText(text: String) {
     assertTrue(focused()[SemanticsActions.SetText].action!!.invoke(AnnotatedString(text)))
     draw()

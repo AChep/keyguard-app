@@ -68,18 +68,31 @@ internal const val RAIL = "Rail"
 /** Opens the item with an id, the way the vault list opens an item. */
 internal typealias OpenItem = (itemId: String) -> Unit
 
-/** Runs the [block] on a wide and on a narrow vault list. */
+/** Runs the [block] on a wide and on a narrow vault list, see [withVaultList]. */
 internal fun forEachVaultListSize(
     query: String = "",
     focusFirstField: Boolean = true,
     fabs: Boolean = false,
-    rows: (OpenItem) -> List<VaultItem2> = ::defaultRows,
+    fields: () -> List<VaultViewItem> = { DEFAULT_FIELDS },
+    onEdit: (NavigationComposeHarness.() -> Unit)? = null,
+    actions: NavigationComposeHarness.() -> List<FlatItemAction> = { emptyList() },
+    rows: (OpenItem) -> List<VaultItem2> = DEFAULT_ROWS,
     block: NavigationComposeHarness.(size: String) -> Unit,
 ) = listOf(
     NavigationComposeHarness.WIDE_WIDTH to NavigationComposeHarness.WIDE_HEIGHT,
     NavigationComposeHarness.NARROW_WIDTH to NavigationComposeHarness.NARROW_HEIGHT,
 ).forEach { (width, height) ->
-    withVaultList(width, height, query, focusFirstField = focusFirstField, fabs = fabs, rows = rows) {
+    withVaultList(
+        width = width,
+        height = height,
+        query = query,
+        focusFirstField = focusFirstField,
+        fabs = fabs,
+        fields = fields,
+        onEdit = onEdit,
+        actions = actions,
+        rows = rows,
+    ) {
         block("${width}x$height")
     }
 }
@@ -93,6 +106,10 @@ internal fun forEachVaultListSize(
  * [fields] read. A new [revision] scrolls the list to the top.
  * With [rail], a [RAIL] button is on the start side of the list.
  * With [fabs], the list shows its History and New item FABs.
+ * With [onEdit], the toolbar of the item has an enabled Edit button,
+ * and with [actions] an options button. Edit and the actions run in
+ * a click handler, so they queue a route with [queueRoute] and render
+ * nothing.
  */
 internal fun withVaultList(
     width: Int,
@@ -105,11 +122,16 @@ internal fun withVaultList(
     fabs: Boolean = false,
     layoutDirection: LayoutDirection = LayoutDirection.Ltr,
     fields: () -> List<VaultViewItem> = { DEFAULT_FIELDS },
-    rows: (OpenItem) -> List<VaultItem2> = ::defaultRows,
+    onEdit: (NavigationComposeHarness.() -> Unit)? = null,
+    actions: NavigationComposeHarness.() -> List<FlatItemAction> = { emptyList() },
+    rows: (OpenItem) -> List<VaultItem2> = DEFAULT_ROWS,
     block: NavigationComposeHarness.() -> Unit,
 ) = withNavigationHarness {
+    val harness = this
+    val edit = onEdit?.let { { it(harness) } }
+    val itemActions = actions(harness)
     val route = VaultListTestRoute(rows, query, filters, revision, fabs) { itemId ->
-        VaultViewTestRoute(itemId, focusFirstField, fields)
+        VaultViewTestRoute(itemId, focusFirstField, fields, edit, itemActions)
     }
     val host = if (rail) railHost(route) else twoPaneHost("vault", route)
     start(host, width, height, layoutDirection)
@@ -121,9 +143,22 @@ internal fun withVaultList(
  * way a link in an item does. The item focuses nothing.
  */
 internal fun NavigationComposeHarness.pushItem(itemId: String) {
-    val route = VaultViewTestRoute(itemId, focusFirstField = false) { DEFAULT_FIELDS }
-    router("vault").controller.queue(NavigationIntent.NavigateToRoute(route))
+    queueRoute(VaultViewTestRoute(itemId, focusFirstField = false, fields = { DEFAULT_FIELDS }))
     repeat(2) { frame() }
+}
+
+/** Closes the item or the screen on top of the vault list. */
+internal fun NavigationComposeHarness.pop() {
+    router("vault").controller.queue(NavigationIntent.Pop)
+    repeat(2) { frame() }
+}
+
+/**
+ * Opens the [route] on top of the vault list or the open item, once
+ * the scene renders. It renders nothing, so a click handler may call it.
+ */
+internal fun NavigationComposeHarness.queueRoute(route: Route) {
+    router("vault").controller.queue(NavigationIntent.NavigateToRoute(route))
 }
 
 /**
@@ -159,7 +194,10 @@ internal fun buttonRow(title: String, open: OpenItem) = VaultItem2.Button(
     onClick = { open(title) },
 )
 
-private fun defaultRows(open: OpenItem) = listOf(FIRST_ROW, SECOND_ROW).map { buttonRow(it, open) }
+/** The [FIRST_ROW] and the [SECOND_ROW]. */
+private val DEFAULT_ROWS: (OpenItem) -> List<VaultItem2> = { open ->
+    listOf(FIRST_ROW, SECOND_ROW).map { buttonRow(it, open) }
+}
 
 /** The one action of the New item FAB, its click does nothing. */
 private val NEW_ITEM_ACTION = FlatItemAction(title = TextHolder.Value("Login"))
@@ -282,12 +320,16 @@ private class VaultListTestRoute(
 
 /**
  * An item with the [fields]. No fields stand for rows that did not
- * arrive yet: the Loading skeleton reads the AWT window.
+ * arrive yet: the Loading skeleton reads the AWT window. The toolbar
+ * has an enabled Edit button with [onEdit], and an options button
+ * with [actions].
  */
 private class VaultViewTestRoute(
     val itemId: String,
     private val focusFirstField: Boolean,
     private val fields: () -> List<VaultViewItem>,
+    private val onEdit: (() -> Unit)? = null,
+    private val actions: List<FlatItemAction> = emptyList(),
 ) : Route {
     @Composable
     override fun Content() {
@@ -300,8 +342,8 @@ private class VaultViewTestRoute(
                         icon = VaultItemIcon.VectorIcon(Icons.Outlined.Password),
                         synced = true,
                         onFavourite = null,
-                        onEdit = null,
-                        actions = emptyList(),
+                        onEdit = onEdit,
+                        actions = actions,
                         primaryAction = null,
                         items = fields(),
                     ),

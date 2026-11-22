@@ -7,7 +7,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
-import androidx.compose.ui.focus.focusRequester
 import com.artemchep.keyguard.ui.FabScope
 
 /**
@@ -55,17 +54,7 @@ internal fun rememberScaffoldContentFocus(
  */
 @Composable
 internal fun FabScope.rememberFabFocusOrder(count: Int): List<Modifier> = remember(count) {
-    val requesters = List(count) { FocusRequester() }
-    requesters.mapIndexed { index, requester ->
-        val previous = requesters.getOrNull(index - 1)
-        val next = requesters.getOrNull(index + 1)
-        Modifier
-            .focusRequester(requester)
-            .focusProperties {
-                if (previous != null) start = previous
-                if (next != null) end = next
-            }
-    }
+    focusChain(count)
 }
 
 /**

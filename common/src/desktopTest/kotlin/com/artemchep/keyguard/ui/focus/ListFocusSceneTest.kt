@@ -5,9 +5,11 @@ package com.artemchep.keyguard.ui.focus
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Text
@@ -24,6 +26,7 @@ import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.navigation.LocalNavigationEntry
@@ -31,6 +34,7 @@ import com.artemchep.keyguard.feature.navigation.NavigationEntryImpl
 import com.artemchep.keyguard.feature.navigation.Route
 import com.artemchep.keyguard.ui.draw
 import com.artemchep.keyguard.ui.focusedTexts
+import com.artemchep.keyguard.ui.inputMode
 import com.artemchep.keyguard.ui.nodeWithTextOrNull
 import com.artemchep.keyguard.ui.press
 import com.artemchep.keyguard.ui.withScene
@@ -130,6 +134,117 @@ class ListFocusSceneTest {
             assertEquals(listOf("Sub A"), focusedTexts())
         }
     }
+
+    @Test
+    fun aSideEntryFocusesTheRowFocusedLast() {
+        val host = SideHost()
+        withEntry({ SideContent(host) }) {
+            assertEquals(listOf("Row 1"), focusedTexts())
+            repeat(3) { press(Key.DirectionDown) }
+            assertEquals(listOf("Row 4"), focusedTexts())
+            press(Key.DirectionLeft)
+            assertEquals(listOf("Side 4"), focusedTexts())
+            press(Key.DirectionDown)
+            assertEquals(listOf("Side 5"), focusedTexts())
+
+            // Not Row 5, which is level with the button.
+            press(Key.DirectionRight)
+            assertEquals(listOf("Row 4"), focusedTexts())
+        }
+    }
+
+    @Test
+    fun aSideEntryWithNoRowFocusedGoesWhereTheSearchFinds() {
+        val host = SideHost(focusFirstOnEnter = false)
+        withEntry({ SideContent(host) }) {
+            // The pane comes first.
+            press(Key.Tab)
+            assertEquals(listOf("Side 1"), focusedTexts())
+            repeat(2) { press(Key.DirectionDown) }
+            assertEquals(listOf("Side 3"), focusedTexts())
+
+            press(Key.DirectionRight)
+            assertEquals(listOf("Row 3"), focusedTexts())
+        }
+    }
+
+    @Test
+    fun aSideEntryGoesWhereTheSearchFindsIfTheRowIsNotComposed() {
+        val host = SideHost()
+        withEntry({ SideContent(host) }) {
+            press(Key.DirectionDown)
+            assertEquals(listOf("Row 2"), focusedTexts())
+            press(Key.DirectionLeft)
+            assertEquals(listOf("Side 2"), focusedTexts())
+
+            host.listState.requestScrollToItem(SIDE_SCROLL_INDEX)
+            draw()
+            assertNull(nodeWithTextOrNull("Row 2"), "The list did not scroll")
+
+            // The row level with the button.
+            press(Key.DirectionRight)
+            assertEquals(listOf("Row ${SIDE_SCROLL_INDEX + 2}"), focusedTexts())
+        }
+    }
+
+    @Test
+    fun topBarArrowKeysStayInTheBarAndDownReturnsToTheRow() {
+        val host = TopBarHost()
+        withEntry({ TopBarContent(host) }) {
+            assertEquals(listOf("Row 1"), focusedTexts())
+            // The bar is the exit up of the list.
+            press(Key.DirectionUp)
+            assertEquals(listOf("Back"), focusedTexts())
+
+            // Left and Right move along the bar and stop at its ends.
+            press(Key.DirectionLeft)
+            assertEquals(listOf("Back"), focusedTexts())
+            press(Key.DirectionRight)
+            assertEquals(listOf("Edit"), focusedTexts())
+            press(Key.DirectionRight)
+            assertEquals(listOf("More"), focusedTexts())
+            press(Key.DirectionRight)
+            assertEquals(listOf("More"), focusedTexts())
+            // Up does nothing.
+            press(Key.DirectionUp)
+            assertEquals(listOf("More"), focusedTexts())
+
+            press(Key.DirectionDown)
+            assertEquals(listOf("Row 1"), focusedTexts())
+            assertEquals(InputMode.Keyboard, inputMode)
+        }
+    }
+
+    @Test
+    fun aHandOffSkipsATargetOutsideOfTheList() {
+        val host = TopBarHost()
+        withEntry({ TopBarContent(host) }) {
+            repeat(2) { press(Key.DirectionDown) }
+            assertEquals(listOf("Row 3"), focusedTexts())
+            // The entry remembers the button, as a screen pushed from it would.
+            host.editRequester.requestFocus()
+            draw()
+            assertEquals(listOf("Edit"), focusedTexts())
+
+            press(Key.DirectionDown)
+            assertEquals(listOf("Row 3"), focusedTexts())
+        }
+    }
+
+    @Test
+    fun aHandOffWithNoRowFocusedFocusesTheFirstRow() {
+        val host = TopBarHost(focusFirstOnEnter = false)
+        withEntry({ TopBarContent(host) }) {
+            // The bar comes first.
+            press(Key.Tab)
+            assertEquals(listOf("Back"), focusedTexts())
+            press(Key.DirectionRight)
+            assertEquals(listOf("Edit"), focusedTexts())
+
+            press(Key.DirectionDown)
+            assertEquals(listOf("Row 1"), focusedTexts())
+        }
+    }
 }
 
 private const val ROW_COUNT = 100
@@ -140,6 +255,13 @@ private const val SCROLL_STEP = 10
 private const val TARGET_COUNT_SLACK = 4
 
 private const val BLOCK_KEY = "block"
+
+private const val SIDE_COUNT = 6
+
+/** Scrolls the rows next to the side buttons far from the top. */
+private const val SIDE_SCROLL_INDEX = 50
+
+private const val EDIT_KEY = "edit"
 
 private class ListHost(
     val exitUpEnabled: Boolean = true,
@@ -157,6 +279,14 @@ private fun ListFocusSceneTest.withList(
     host: ListHost,
     test: ImageComposeScene.() -> Unit,
 ) {
+    withEntry({ ListContent(host) }, test)
+}
+
+/** Runs [test] against [content] that one navigation entry hosts. */
+private fun ListFocusSceneTest.withEntry(
+    content: @Composable () -> Unit,
+    test: ImageComposeScene.() -> Unit,
+) {
     val entry = NavigationEntryImpl(
         source = "test",
         parent = entryScope,
@@ -167,7 +297,7 @@ private fun ListFocusSceneTest.withList(
         CompositionLocalProvider(
             LocalNavigationEntry provides entry,
         ) {
-            ListContent(host)
+            content()
         }
     }, test = test)
 }
@@ -178,9 +308,7 @@ private fun ListFocusSceneTest.withList(
  */
 @Composable
 private fun ListContent(host: ListHost) {
-    val rows = remember {
-        (1..ROW_COUNT).map { "row$it" }
-    }
+    val rows = rememberRows()
     val keys = remember(rows) {
         listOf(BLOCK_KEY) + rows
     }
@@ -220,13 +348,122 @@ private fun ListContent(host: ListHost) {
                     }
                 }
             }
-            items(rows, key = { it }) { key ->
+            plainRows(focus, rows)
+        }
+    }
+}
+
+private class SideHost(
+    val focusFirstOnEnter: Boolean = true,
+) {
+    val listState = LazyListState()
+}
+
+/**
+ * A pane of buttons next to a list, like a pane next to a list of items.
+ * Each button is level with a row.
+ */
+@Composable
+private fun SideContent(host: SideHost) {
+    val rows = rememberRows()
+    val focus = rememberListFocus(
+        listState = host.listState,
+        listKeys = rows,
+        focusFirstOnEnter = host.focusFirstOnEnter,
+    )
+    Row {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .arrowKeyFocusNavigation(),
+        ) {
+            for (index in 1..SIDE_COUNT) {
                 ListRow(
-                    modifier = focus.target(key),
-                    title = "Row ${key.removePrefix("row")}",
+                    modifier = Modifier,
+                    title = "Side $index",
                 )
             }
         }
+        LazyColumn(
+            modifier = focus.listModifier
+                .weight(1f),
+            state = host.listState,
+        ) {
+            plainRows(focus, rows)
+        }
+    }
+}
+
+private class TopBarHost(
+    val focusFirstOnEnter: Boolean = true,
+) {
+    val listState = LazyListState()
+
+    /** Focuses the Edit button, as a screen that closes restores it. */
+    val editRequester = FocusRequester()
+}
+
+/**
+ * A top bar of Back, Edit and More above a list, linked to the list
+ * like a scaffold does. Edit is a target outside of the list.
+ */
+@Composable
+private fun TopBarContent(host: TopBarHost) {
+    val rows = rememberRows()
+    val focus = rememberListFocus(
+        listState = host.listState,
+        listKeys = rows,
+        focusFirstOnEnter = host.focusFirstOnEnter,
+    )
+    val contentFocus = focus.rememberScaffoldContentFocus(topBar = true)
+    Column {
+        Box(
+            modifier = checkNotNull(contentFocus.topBar),
+        ) {
+            Row {
+                TextButton(
+                    onClick = {},
+                ) {
+                    Text("Back")
+                }
+                TextButton(
+                    modifier = Modifier
+                        .focusRequester(host.editRequester)
+                        .then(focus.target(EDIT_KEY, inList = false)),
+                    onClick = {},
+                ) {
+                    Text("Edit")
+                }
+                TextButton(
+                    onClick = {},
+                ) {
+                    Text("More")
+                }
+            }
+        }
+        LazyColumn(
+            modifier = focus.listModifier,
+            state = host.listState,
+        ) {
+            plainRows(focus, rows)
+        }
+    }
+}
+
+@Composable
+private fun rememberRows(): List<String> = remember {
+    (1..ROW_COUNT).map { "row$it" }
+}
+
+private fun LazyListScope.plainRows(
+    focus: ListFocus,
+    rows: List<String>,
+) {
+    items(rows, key = { it }) { key ->
+        ListRow(
+            modifier = focus.target(key),
+            title = "Row ${key.removePrefix("row")}",
+        )
     }
 }
 

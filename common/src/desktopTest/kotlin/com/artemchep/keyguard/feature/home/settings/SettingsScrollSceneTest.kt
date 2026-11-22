@@ -15,7 +15,6 @@ import androidx.compose.ui.ImageComposeScene
 import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.InputMode
-import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import com.artemchep.keyguard.common.model.Loadable
@@ -43,6 +42,7 @@ import com.artemchep.keyguard.ui.inputMode
 import com.artemchep.keyguard.ui.mouseClick
 import com.artemchep.keyguard.ui.nodeWithText
 import com.artemchep.keyguard.ui.nodeWithTextOrNull
+import com.artemchep.keyguard.ui.wheelScrollDown
 import com.artemchep.keyguard.ui.withScene
 import com.artemchep.keyguard.ui.wizard.WizardPreview
 import kotlin.test.AfterTest
@@ -79,7 +79,7 @@ class SettingsScrollSceneTest {
             draw()
 
             wheelScrollDown(Offset(450f, 350f), steps = 20)
-            val savedBeforeLeave = assertNotNull(entry.scrollPosition)
+            val savedBeforeLeave = assertNotNull(entry.viewMemory.scrollPosition)
             assertTrue(savedBeforeLeave.itemIndex > 0, "Expected scrolled list, got $savedBeforeLeave")
             assertNull(nodeWithTextOrNull("Row 1"))
             val visibleKey = assertNotNull(savedBeforeLeave.itemKey)
@@ -89,7 +89,7 @@ class SettingsScrollSceneTest {
             shown = true
             draw()
 
-            val savedAfterReturn = assertNotNull(entry.scrollPosition)
+            val savedAfterReturn = assertNotNull(entry.viewMemory.scrollPosition)
             assertEquals(visibleKey, savedAfterReturn.itemKey)
             assertEquals(savedBeforeLeave.itemIndex, savedAfterReturn.itemIndex)
             assertEquals(savedBeforeLeave.itemOffset, savedAfterReturn.itemOffset)
@@ -106,7 +106,7 @@ class SettingsScrollSceneTest {
         withPane({ state }, entry = { entry }, shown = { shown }) {
             mouseClick(Offset(450f, 350f))
             wheelScrollDown(Offset(450f, 350f), steps = 16)
-            val expected = assertNotNull(entry.scrollPosition)
+            val expected = assertNotNull(entry.viewMemory.scrollPosition)
             assertTrue(expected.itemIndex > 0)
 
             // Leave and come back while rows are not ready yet (mirrors Loading -> Ok).
@@ -117,13 +117,13 @@ class SettingsScrollSceneTest {
             draw()
 
             // Loading must not overwrite the saved position.
-            assertEquals(expected, entry.scrollPosition)
+            assertEquals(expected, entry.viewMemory.scrollPosition)
 
             // Once loaded, the saved scroll position restores immediately.
             state = rowsPaneState(1..ROW_COUNT)
             draw()
 
-            val restored = assertNotNull(entry.scrollPosition)
+            val restored = assertNotNull(entry.viewMemory.scrollPosition)
             assertEquals(expected.itemKey, restored.itemKey)
             assertEquals(expected.itemIndex, restored.itemIndex)
             assertEquals(expected.itemOffset, restored.itemOffset)
@@ -140,7 +140,7 @@ class SettingsScrollSceneTest {
         withPane({ state }, entry = { entry }, shown = { shown }) {
             mouseClick(Offset(450f, 350f))
             wheelScrollDown(Offset(450f, 350f), steps = 14)
-            val saved = assertNotNull(entry.scrollPosition)
+            val saved = assertNotNull(entry.viewMemory.scrollPosition)
             assertTrue(saved.itemIndex > 0)
 
             shown = false
@@ -152,7 +152,7 @@ class SettingsScrollSceneTest {
             shown = true
             draw()
 
-            val restored = assertNotNull(entry.scrollPosition)
+            val restored = assertNotNull(entry.viewMemory.scrollPosition)
             assertEquals(saved.itemKey, restored.itemKey)
             assertEquals(saved.itemIndex + 3, restored.itemIndex)
             assertEquals(saved.itemOffset, restored.itemOffset)
@@ -170,7 +170,7 @@ class SettingsScrollSceneTest {
             shown = true
             draw()
             wheelScrollDown(Offset(450f, 350f), steps = 20)
-            assertTrue(assertNotNull(entry.scrollPosition).itemIndex > 0)
+            assertTrue(assertNotNull(entry.viewMemory.scrollPosition).itemIndex > 0)
             assertNull(nodeWithTextOrNull("Row 1"))
 
             // Destroy and replace with a new entry reusing the same id.
@@ -181,7 +181,7 @@ class SettingsScrollSceneTest {
             shown = true
             draw()
 
-            val fresh = assertNotNull(entry.scrollPosition)
+            val fresh = assertNotNull(entry.viewMemory.scrollPosition)
             assertEquals(0, fresh.itemIndex)
             assertEquals(0, fresh.itemOffset)
             assertNotNull(nodeWithTextOrNull("Row 1"))
@@ -210,7 +210,7 @@ class SettingsScrollSceneTest {
             scene.wheelScrollDown(Offset(160f, 240f), steps = 14)
             frame()
             val listEntry = router(SettingsRoute.ROUTER_NAME).entries.first()
-            val saved = assertNotNull(listEntry.scrollPosition)
+            val saved = assertNotNull(listEntry.viewMemory.scrollPosition)
             assertTrue(saved.itemIndex > 0, "Expected scrolled settings list, got $saved")
             assertNull(scene.nodeWithTextOrNull("Category 1"))
 
@@ -225,7 +225,7 @@ class SettingsScrollSceneTest {
             router(SettingsRoute.ROUTER_NAME).controller.queue(NavigationIntent.Pop)
             repeat(2) { frame() }
 
-            val restored = assertNotNull(listEntry.scrollPosition)
+            val restored = assertNotNull(listEntry.viewMemory.scrollPosition)
             assertEquals(saved.itemKey, restored.itemKey)
             assertEquals(saved.itemIndex, restored.itemIndex)
             assertEquals(saved.itemOffset, restored.itemOffset)
@@ -274,7 +274,7 @@ class SettingsScrollSceneTest {
             val paneEntry = router(SettingsRoute.ROUTER_NAME).entries.last()
             scene.wheelScrollDown(Offset(160f, 240f), steps = 14)
             frame()
-            val saved = assertNotNull(paneEntry.scrollPosition)
+            val saved = assertNotNull(paneEntry.viewMemory.scrollPosition)
             assertTrue(saved.itemIndex > 0)
 
             // Push a sub-route on top.
@@ -294,7 +294,7 @@ class SettingsScrollSceneTest {
             repeat(2) { frame() }
 
             // Saved position must remain untouched.
-            assertEquals(saved, paneEntry.scrollPosition)
+            assertEquals(saved, paneEntry.viewMemory.scrollPosition)
 
             // Now actually pop and finish loading -> restores exact saved position.
             router(SettingsRoute.ROUTER_NAME).controller.queue(NavigationIntent.Pop)
@@ -302,7 +302,7 @@ class SettingsScrollSceneTest {
             categoryRoute.loaded = true
             repeat(2) { frame() }
 
-            val restored = assertNotNull(paneEntry.scrollPosition)
+            val restored = assertNotNull(paneEntry.viewMemory.scrollPosition)
             assertEquals(saved.itemKey, restored.itemKey)
             assertEquals(saved.itemIndex, restored.itemIndex)
             assertEquals(saved.itemOffset, restored.itemOffset)
@@ -314,7 +314,7 @@ class SettingsScrollSceneTest {
     @OptIn(ExperimentalMaterial3Api::class)
     fun topAppBarScrollStateIsRestoredAndClampedWhenBoundsShrink() {
         val entry = newEntry()
-        entry.scrollPosition = NavigationScrollPosition(
+        entry.viewMemory.scrollPosition = NavigationScrollPosition(
             itemKey = "row5",
             itemIndex = 4,
             itemOffset = 12,
@@ -413,7 +413,7 @@ private fun verifySubRouteBackRestoresPaneScroll(
     scene.wheelScrollDown(scrollPoint, steps = 14)
     frame()
 
-    val saved = assertNotNull(paneEntry.scrollPosition, "$animation ${width}x$height")
+    val saved = assertNotNull(paneEntry.viewMemory.scrollPosition, "$animation ${width}x$height")
     assertTrue(saved.itemIndex > 0, "Expected scrolled pane ($animation ${width}x$height), got $saved")
     assertNull(scene.nodeWithTextOrNull("Row 1"))
 
@@ -428,7 +428,7 @@ private fun verifySubRouteBackRestoresPaneScroll(
     router(SettingsRoute.ROUTER_NAME).controller.queue(NavigationIntent.Pop)
     repeat(2) { frame() }
 
-    val restored = assertNotNull(paneEntry.scrollPosition, "$animation ${width}x$height")
+    val restored = assertNotNull(paneEntry.viewMemory.scrollPosition, "$animation ${width}x$height")
     assertEquals(saved.itemKey, restored.itemKey, "$animation ${width}x$height")
     assertEquals(saved.itemIndex, restored.itemIndex, "$animation ${width}x$height")
     assertEquals(saved.itemOffset, restored.itemOffset, "$animation ${width}x$height")
@@ -448,21 +448,6 @@ private fun leftEdgeBackEvent(
     touchX = touchX,
     touchY = 240f,
 )
-
-private fun ImageComposeScene.wheelScrollDown(
-    position: Offset,
-    steps: Int,
-) {
-    repeat(steps) {
-        sendPointerEvent(
-            eventType = PointerEventType.Scroll,
-            position = position,
-            scrollDelta = Offset(0f, 8f),
-        )
-        advanceTimeBy(100L)
-    }
-    advanceTimeBy(300L)
-}
 
 private class ScrollSettingListTestRoute(
     private val items: List<SettingsItem2>,

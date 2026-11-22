@@ -52,7 +52,9 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.ui.DisabledEmphasisAlpha
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.firstActionOfType
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.focus.rememberTrailingFocusLink
 import com.artemchep.keyguard.ui.shortcut.ShortcutTooltip
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -72,6 +74,20 @@ fun VaultViewTotpItem(
 ) {
     val state by item.localStateFlow.collectAsState()
     val dropdown = state.dropdown
+    val onCopyAction = remember(dropdown) {
+        dropdown.firstActionOfType(FlatItemAction.Type.COPY)
+    }
+    // The row has a menu once the codes are
+    // generated, so the codes take focus too.
+    val focusLink = rememberTrailingFocusLink(
+        enabled = dropdown.isNotEmpty(),
+        linked = listOf(
+            true,
+            true,
+            onCopyAction?.onClick != null,
+        ),
+    )
+    val (currentCodeModifier, nextCodeModifier, copyModifier) = focusLink.buttons
     FlatDropdownSimpleExpressive(
         modifier = modifier,
         elevation = item.elevation,
@@ -91,12 +107,13 @@ fun VaultViewTotpItem(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 VaultViewTotpBadge2(
+                    modifier = currentCodeModifier,
                     copyText = item.copy,
                     totpToken = item.totp,
                 )
                 ProvideTextStyle(MaterialTheme.typography.titleSmall) {
                     VaultViewTotpBadge2(
-                        modifier = Modifier
+                        modifier = nextCodeModifier
                             .heightIn(min = 32.dp),
                         contentModifier = Modifier
                             .alpha(MediumEmphasisAlpha),
@@ -109,17 +126,11 @@ fun VaultViewTotpItem(
             }
         },
         trailing = {
-            val onCopyAction = remember(dropdown) {
-                dropdown
-                    .firstNotNullOfOrNull {
-                        val action = it as? FlatItemAction
-                        action?.takeIf { it.type == FlatItemAction.Type.COPY }
-                    }
-            }
             if (onCopyAction != null) {
                 val onCopy = onCopyAction.onClick
                 Spacer(Modifier.width(16.dp))
                 IconButton(
+                    modifier = copyModifier,
                     enabled = onCopy != null,
                     onClick = {
                         onCopy?.invoke()
@@ -137,6 +148,7 @@ fun VaultViewTotpItem(
             }
         },
         dropdown = dropdown,
+        rowModifier = focusLink.row,
     )
 }
 

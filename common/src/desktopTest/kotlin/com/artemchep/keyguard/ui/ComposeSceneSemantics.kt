@@ -30,6 +30,13 @@ internal fun ImageComposeScene.nodeWithTextOrNull(text: String, firstLayer: Int 
 internal fun ImageComposeScene.nodeWithText(text: String): SemanticsNode =
     assertNotNull(nodeWithTextOrNull(text), "No node with the text $text")
 
+/** The menu is a popup, so it is not on the first, main layer. */
+internal const val MENU_FIRST_LAYER = 1
+
+/** The node of the open menu whose texts contain [text], or `null`. */
+internal fun ImageComposeScene.menuOption(text: String): SemanticsNode? =
+    nodeWithTextOrNull(text, MENU_FIRST_LAYER)
+
 /** The focused node of the topmost layer that has one, or `null`. */
 internal fun ImageComposeScene.focusedNodeOrNull(): SemanticsNode? =
     semanticsOwners.toList().asReversed().firstNotNullOfOrNull { owner ->

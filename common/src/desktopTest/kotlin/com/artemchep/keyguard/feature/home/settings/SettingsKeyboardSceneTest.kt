@@ -49,6 +49,7 @@ import com.artemchep.keyguard.feature.navigation.press
 import com.artemchep.keyguard.feature.navigation.twoPaneHost
 import com.artemchep.keyguard.feature.navigation.withNavigationHarness
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.MENU_FIRST_LAYER
 import com.artemchep.keyguard.ui.advanceTimeBy
 import com.artemchep.keyguard.ui.assertFocusedFullyInView
 import com.artemchep.keyguard.ui.draw
@@ -56,6 +57,7 @@ import com.artemchep.keyguard.ui.focused
 import com.artemchep.keyguard.ui.focusedOrNull
 import com.artemchep.keyguard.ui.focusedTexts
 import com.artemchep.keyguard.ui.inputMode
+import com.artemchep.keyguard.ui.menuOption
 import com.artemchep.keyguard.ui.mergedNodes
 import com.artemchep.keyguard.ui.mouseClick
 import com.artemchep.keyguard.ui.nodeWithText
@@ -412,7 +414,7 @@ class SettingListScrollKeyboardSceneTest {
         assertEquals(listOf(title), scene.focusedTexts())
         assertNull(scene.nodeWithTextOrNull("Category 1"), "The list did not scroll")
         val listEntry = router(SettingsRoute.ROUTER_NAME).entries.first()
-        val saved = assertNotNull(listEntry.scrollPosition)
+        val saved = assertNotNull(listEntry.viewMemory.scrollPosition)
 
         press(Key.Enter)
         assertEquals(listOf("$title row"), scene.focusedTexts())
@@ -421,12 +423,12 @@ class SettingListScrollKeyboardSceneTest {
 
         // The saved scroll and the focus restore agree.
         assertEquals(listOf(title), scene.focusedTexts())
-        assertEquals(saved, listEntry.scrollPosition)
+        assertEquals(saved, listEntry.viewMemory.scrollPosition)
         assertNull(scene.nodeWithTextOrNull("Category 1"), "The list jumped to the top")
         scene.assertFocusedFullyInView()
         repeat(2) { frame() }
         assertEquals(listOf(title), scene.focusedTexts())
-        assertEquals(saved, listEntry.scrollPosition)
+        assertEquals(saved, listEntry.viewMemory.scrollPosition)
     }
 }
 
@@ -635,12 +637,7 @@ private fun withPicker(
     )
 }, test = test)
 
-/** The menu is a popup, so it is not on the first, main layer. */
-private const val MENU_FIRST_LAYER = 1
-
 private fun ImageComposeScene.menuNodes(): List<SemanticsNode> = mergedNodes(MENU_FIRST_LAYER)
-
-private fun ImageComposeScene.menuOption(text: String) = nodeWithTextOrNull(text, MENU_FIRST_LAYER)
 
 private fun ImageComposeScene.assertMenuClosed() {
     assertNull(menuOption("One"), "The menu is still open")

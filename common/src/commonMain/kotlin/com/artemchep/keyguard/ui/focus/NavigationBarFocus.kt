@@ -28,17 +28,23 @@ import androidx.compose.ui.unit.LayoutDirection
  * from it does nothing. A key that moves focus switches to keyboard
  * input mode. The [focusedState], if any, is `true` while the group
  * holds focus.
+ *
+ * The [contentDirection] is the key toward the content, across the
+ * [orientation]. By default the content is on the end side of a rail
+ * and above a bar. A top bar passes [FocusDirection.Down].
  */
 internal fun Modifier.navigationBarFocusGroup(
     orientation: Orientation,
     focusedState: MutableState<Boolean>?,
     onFocusContent: () -> Unit,
+    contentDirection: FocusDirection? = null,
 ): Modifier = this
     .then(
         NavigationBarFocusElement(
             orientation = orientation,
             focusedState = focusedState,
             onFocusContent = onFocusContent,
+            contentDirection = contentDirection,
         ),
     )
     .focusGroup()
@@ -47,22 +53,26 @@ private data class NavigationBarFocusElement(
     val orientation: Orientation,
     val focusedState: MutableState<Boolean>?,
     val onFocusContent: () -> Unit,
+    val contentDirection: FocusDirection?,
 ) : ModifierNodeElement<NavigationBarFocusNode>() {
     override fun create() = NavigationBarFocusNode(
         orientation = orientation,
         focusedState = focusedState,
         onFocusContent = onFocusContent,
+        contentDirection = contentDirection,
     )
 
     override fun update(node: NavigationBarFocusNode) {
         node.orientation = orientation
         node.onFocusContent = onFocusContent
         node.focusedState = focusedState
+        node.contentDirection = contentDirection
     }
 
     override fun InspectorInfo.inspectableProperties() {
         name = "navigationBarFocusGroup"
         properties["orientation"] = orientation
+        properties["contentDirection"] = contentDirection
     }
 }
 
@@ -70,6 +80,7 @@ private class NavigationBarFocusNode(
     var orientation: Orientation,
     var focusedState: MutableState<Boolean>?,
     var onFocusContent: () -> Unit,
+    var contentDirection: FocusDirection?,
 ) : Modifier.Node(),
     CompositionLocalConsumerModifierNode,
     FocusEventModifierNode,
@@ -102,7 +113,7 @@ private class NavigationBarFocusNode(
             ?: return false
         val vertical = orientation == Orientation.Vertical
         when (direction) {
-            contentDirection(vertical) -> {
+            directionToContent(vertical) -> {
                 // Before the request, so the content sees
                 // the input mode the focus came with.
                 currentValueOf(LocalInputModeManager).requestInputMode(InputMode.Keyboard)
@@ -124,8 +135,8 @@ private class NavigationBarFocusNode(
 
     override fun onKeyEvent(event: KeyEvent): Boolean = false
 
-    /** The content is on the end side of a rail, and above a bar. */
-    private fun contentDirection(vertical: Boolean): FocusDirection = when {
+    /** Unless set, the content is on the end side of a rail, and above a bar. */
+    private fun directionToContent(vertical: Boolean): FocusDirection = contentDirection ?: when {
         !vertical -> FocusDirection.Up
         currentValueOf(LocalLayoutDirection) == LayoutDirection.Ltr -> FocusDirection.Right
         else -> FocusDirection.Left

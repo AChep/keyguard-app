@@ -40,10 +40,12 @@ import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.ExpandedIfNotEmptyForRow
 import com.artemchep.keyguard.ui.FlatDropdown
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.firstActionOfType
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.animatedConcealedText
 import com.artemchep.keyguard.ui.animation.animateContentHeight
 import com.artemchep.keyguard.ui.colorizePassword
+import com.artemchep.keyguard.ui.focus.rememberTrailingFocusLink
 import com.artemchep.keyguard.ui.shortcut.ShortcutTooltip
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
@@ -76,6 +78,21 @@ fun VaultViewValueItem(
     )
 
     val updatedVisibilityConfig by rememberUpdatedState(visibilityConfig)
+    val visibilityToggleShown = visibilityConfig.concealed && !visibilityConfig.hidden
+    val onCopyAction = remember(item.dropdown) {
+        item.dropdown.firstActionOfType(FlatItemAction.Type.COPY)
+    }
+    // The row is a focus target only if it has a menu to open.
+    // The decorative trailing content is not linked.
+    val focusLink = rememberTrailingFocusLink(
+        enabled = item.dropdown.isNotEmpty(),
+        linked = listOf(
+            visibilityToggleShown,
+            onCopyAction?.onClick != null,
+            item.reference?.onClick != null,
+        ),
+    )
+    val (eyeModifier, copyModifier, referenceModifier) = focusLink.buttons
     FlatDropdownSimpleExpressive(
         modifier = modifier,
         elevation = item.elevation,
@@ -139,6 +156,7 @@ fun VaultViewValueItem(
             )
 
             VaultViewValueReference(
+                modifier = referenceModifier,
                 reference = item.reference,
             )
 
@@ -173,9 +191,10 @@ fun VaultViewValueItem(
         dropdown = item.dropdown,
         leading = item.leading,
         trailing = {
-            if (visibilityConfig.concealed && !visibilityConfig.hidden) {
+            if (visibilityToggleShown) {
                 val visible = visibilityState.value.value
                 VisibilityToggle(
+                    modifier = eyeModifier,
                     visible = visible,
                     onVisibleChange = { possibleNewValue ->
                         updatedVisibilityConfig.transformUserEvent(possibleNewValue) { newValue ->
@@ -187,16 +206,10 @@ fun VaultViewValueItem(
                     },
                 )
             }
-            val onCopyAction = remember(item.dropdown) {
-                item.dropdown
-                    .firstNotNullOfOrNull {
-                        val action = it as? FlatItemAction
-                        action?.takeIf { it.type == FlatItemAction.Type.COPY }
-                    }
-            }
             if (onCopyAction != null) {
                 val onCopy = onCopyAction.onClick
                 IconButton(
+                    modifier = copyModifier,
                     enabled = onCopy != null,
                     onClick = {
                         onCopy?.invoke()
@@ -215,12 +228,14 @@ fun VaultViewValueItem(
 
             item.trailing?.invoke(this)
         },
+        rowModifier = focusLink.row,
     )
 }
 
 /** The item and the field the value is read from, if any. */
 @Composable
 private fun VaultViewValueReference(
+    modifier: Modifier = Modifier,
     reference: VaultViewItem.Value.Reference?,
 ) {
     if (reference == null) {
@@ -231,6 +246,7 @@ private fun VaultViewValueReference(
             .height(4.dp),
     )
     VaultItemReferenceChip(
+        modifier = modifier,
         reference = reference,
     )
 }

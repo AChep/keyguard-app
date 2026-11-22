@@ -6,9 +6,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.input.InputMode
+import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.unit.dp
 import com.artemchep.keyguard.feature.home.vault.model.VaultViewItem
 import com.artemchep.keyguard.feature.home.vault.model.Visibility
@@ -31,11 +39,26 @@ fun VaultViewNoteItem(
     val visibilityState = rememberVisibilityState(
         visibilityConfig,
     )
+    val revealed = visibilityState.value.value
+
+    // The reveal row leaves once used, and its focus would drop to
+    // the root. A reveal from the keyboard focuses the note instead.
+    val revealFocus = remember { NoteRevealFocus() }
+    val noteFocusRequester = remember { FocusRequester() }
+    LaunchedEffect(revealed) {
+        if (!revealed || !revealFocus.focusNote) return@LaunchedEffect
+        revealFocus.focusNote = false
+        // The note is composed by now. Once it is placed,
+        // it can scroll into view as it takes focus.
+        withFrameNanos { }
+        noteFocusRequester.requestFocus()
+    }
     Column(
         modifier = modifier,
     ) {
-        if (!visibilityState.value.value) {
+        if (!revealed) {
             val updatedVisibilityConfig by rememberUpdatedState(visibilityConfig)
+            val inputModeManager = LocalInputModeManager.current
             FlatItemSimpleExpressive(
                 leading = {
                     VisibilityIcon(
@@ -53,17 +76,25 @@ fun VaultViewNoteItem(
                     )
                 },
                 onClick = {
+                    // A mouse click focuses nothing.
+                    val fromKeyboard = revealFocus.rowFocused &&
+                        inputModeManager.inputMode == InputMode.Keyboard
                     updatedVisibilityConfig.transformUserEvent(!visibilityState.value.value) { newValue ->
+                        revealFocus.focusNote = newValue && fromKeyboard
                         visibilityState.value = Visibility.Event(
                             value = newValue,
                             timestamp = Clock.System.now(),
                         )
                     }
                 },
+                rowModifier = Modifier
+                    .onFocusChanged { state ->
+                        revealFocus.rowFocused = state.isFocused
+                    },
             )
         }
         ExpandedIfNotEmpty(
-            Unit.takeIf { visibilityState.value.value },
+            Unit.takeIf { revealed },
             modifier = Modifier
                 .fillMaxWidth(),
         ) {
@@ -71,7 +102,10 @@ fun VaultViewNoteItem(
                 modifier = Modifier
                     .fillMaxWidth(),
             ) {
-                SelectionContainer {
+                SelectionContainer(
+                    modifier = Modifier
+                        .focusRequester(noteFocusRequester),
+                ) {
                     when (item.content) {
                         is VaultViewItem.Note.Content.Markdown -> {
                             MarkdownText(
@@ -86,6 +120,15 @@ fun VaultViewNoteItem(
             }
         }
     }
+}
+
+/** The focus of the reveal row of a note. Event handlers and effects only. */
+private class NoteRevealFocus {
+    /** `true` while the reveal row has focus. */
+    var rowFocused = false
+
+    /** Set by a reveal from the keyboard: the note takes focus once it shows. */
+    var focusNote = false
 }
 
 @Composable

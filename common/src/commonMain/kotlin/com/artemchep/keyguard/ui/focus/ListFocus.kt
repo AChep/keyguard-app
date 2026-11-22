@@ -43,6 +43,11 @@ private const val RESTORE_CONTEXT_ITEMS = 2
  * Keyboard focus of a lazy list. Arrow keys move between its rows.
  * In keyboard input mode the list focuses the target its navigation
  * entry focused last, see [rememberListFocus].
+ *
+ * Left or Right into the list from outside, such as from a pane next to
+ * it, focuses the row focused last if it is composed. Otherwise focus
+ * goes where the search finds. Other entries, such as a restore from the
+ * home navigation, enter as they asked.
  */
 @Stable
 internal class ListFocus(
@@ -63,7 +68,7 @@ internal class ListFocus(
     // holds no state for the rows out of view.
     private val targets = mutableMapOf<String, Target>()
 
-    /** The item key of the target focused last, its row may be gone. */
+    /** The item key of the row focused last, its row may be gone. */
     private var lastItemKey: String? = null
 
     private var listFocused = false
@@ -88,8 +93,27 @@ internal class ListFocus(
     /** Where an Up from the top of the list goes, see [rememberListFocus]. */
     internal var exitUp: FocusRequester? = null
 
+    // Attached to the top bar while it is linked, see rememberScaffoldContentFocus.
+    private val topBarRequester = FocusRequester()
+
+    private var topBarLinked = false
+
     /** `true` while a detail pane next to the list shows an entry. */
     var detailOpen by mutableStateOf(false)
+
+    // A request redirects this focus change, see enterAt. Only a side
+    // entry: a restore from the home navigation and a hand off enter
+    // with Enter, and get what they asked for.
+    private val onListEnter: FocusEnterExitScope.() -> Unit = {
+        if (
+            requestedFocusDirection == FocusDirection.Left ||
+            requestedFocusDirection == FocusDirection.Right
+        ) {
+            // A row out of view is not composed, so the search result stands.
+            val target = entry.viewMemory.lastFocusedRowKey?.let { key -> targets[key] }
+            target?.requester?.requestFocus(FocusDirection.Enter)
+        }
+    }
 
     // Focus has not moved yet, so the child still holds it.
     // An exit has one handler per group, so it saves too.
@@ -97,7 +121,8 @@ internal class ListFocus(
         listRequester.saveFocusedChild()
         if (requestedFocusDirection == FocusDirection.Up) {
             // If it fails, focus goes where the search found.
-            exitUp?.requestFocus(FocusDirection.Enter)
+            val up = exitUp ?: topBarRequester.takeIf { topBarLinked }
+            up?.requestFocus(FocusDirection.Enter)
         }
     }
 
@@ -107,7 +132,10 @@ internal class ListFocus(
         .arrowKeyFocusNavigation()
         .focusRequester(listRequester)
         .onFocusChanged { listFocused = it.hasFocus }
-        .focusProperties { onExit = onListExit }
+        .focusProperties {
+            onEnter = onListEnter
+            onExit = onListExit
+        }
         .focusGroup()
         // The lazy list's own focus group.
         .saveFocusedChildOnExit()
@@ -138,29 +166,51 @@ internal class ListFocus(
      * focuses the list, see [ListFocusRegion.focusList], Left and Right
      * move between the buttons of [rememberFabFocusOrder] and stop at its
      * ends, and Down does nothing.
+     *
+     * With [topBar], the top bar is a region of the list too, so the list
+     * does not restore focus while the bar holds it, such as after a Tab
+     * to Back while the rows load. Down from the bar focuses the list,
+     * Left and Right move along the bar and stop at its ends, and Up does
+     * nothing. Up from the top row enters the bar, unless the list has an
+     * `exitUp` of its own.
      */
     @Composable
-    fun rememberScaffoldContentFocus(): ScaffoldContentFocus {
+    fun rememberScaffoldContentFocus(topBar: Boolean = false): ScaffoldContentFocus {
         val fabs = rememberRegion()
-        return remember(fabs) {
+        val topBarModifier = if (topBar) rememberTopBarModifier() else null
+        return remember(fabs, topBarModifier) {
             ScaffoldContentFocus(
-                // The region comes first, so it sees the focus of the buttons.
-                fabs = fabs.modifier
-                    .navigationBarFocusGroup(
-                        orientation = Orientation.Horizontal,
-                        focusedState = null,
-                        onFocusContent = fabs::focusList,
-                    ),
+                topBar = topBarModifier,
+                fabs = fabs.barModifier(),
+            )
+        }
+    }
+
+    @Composable
+    private fun rememberTopBarModifier(): Modifier {
+        val bar = rememberRegion()
+        DisposableEffect(bar) {
+            topBarLinked = true
+            onDispose {
+                topBarLinked = false
+            }
+        }
+        return remember(bar) {
+            bar.barModifier(
+                requester = topBarRequester,
+                contentDirection = FocusDirection.Down,
             )
         }
     }
 
     /**
      * Moves focus from outside of the list, such as from one of its
-     * regions, to the target its entry focused last, else to the first
-     * visible row. A remembered target out of view is scrolled into view
-     * first. Does nothing once [canRestore] is `false`, such as when focus
-     * left the region that called it. Call it from a key handler.
+     * regions, to the row focused last, else to the first visible row.
+     * Never to a target outside of the list: Down from a remembered
+     * toolbar button would focus the button again. A remembered row out
+     * of view is scrolled into view first. Does nothing once [canRestore]
+     * is `false`, such as when focus left the region that called it.
+     * Call it from a key handler.
      */
     internal fun handOff(canRestore: () -> Boolean) {
         if (listState == null) return
@@ -168,6 +218,7 @@ internal class ListFocus(
         // A visible target takes focus before the key handler returns.
         handOffJob = scope.launch(start = CoroutineStart.UNDISPATCHED) {
             restore(
+                key = entry.viewMemory.lastFocusedRowKey,
                 focusFirst = true,
                 canRestore = canRestore,
             )
@@ -179,16 +230,24 @@ internal class ListFocus(
      * lazy item, and on the toolbar buttons that should be restored.
      * A row inside a lazy item passes the [itemKey] of that item, so the
      * list scrolls to it on restore.
+     *
+     * A target outside of the list, such as a toolbar button, passes
+     * `false` as [inList]. Coming back to the list restores it, but a
+     * hand off from a region and a side entry go to the row focused last.
+     * Such a target must be composed whenever the list is.
      */
     @Composable
-    fun target(key: String, itemKey: String = key): Modifier {
-        val target = remember(this, key, itemKey) {
+    fun target(key: String, itemKey: String = key, inList: Boolean = true): Modifier {
+        val target = remember(this, key, itemKey, inList) {
             val requester = FocusRequester()
             val modifier = Modifier
                 .onFocusChanged { state ->
                     if (state.hasFocus) {
-                        entry.lastFocusedKey = key
-                        lastItemKey = itemKey
+                        entry.viewMemory.lastFocusedKey = key
+                        if (inList) {
+                            entry.viewMemory.lastFocusedRowKey = key
+                            lastItemKey = itemKey
+                        }
                     }
                 }
                 .focusRequester(requester)
@@ -210,11 +269,12 @@ internal class ListFocus(
     internal val targetCount: Int get() = targets.size
 
     /**
-     * Focuses the target its entry focused last, else the first row if
-     * [focusFirst]. Does nothing while the list holds focus or
-     * [canRestore] is `false`, also after a scroll to the target.
+     * Focuses the target of the [key], else the first row if [focusFirst].
+     * Does nothing while the list holds focus or [canRestore] is `false`,
+     * also after a scroll to the target.
      */
     internal suspend fun restore(
+        key: String?,
         focusFirst: Boolean,
         canRestore: () -> Boolean,
     ) {
@@ -222,14 +282,11 @@ internal class ListFocus(
         fun canFocus() = !listFocused && canRestore()
         if (!canFocus()) return
 
-        val key = entry.lastFocusedKey
         if (key != null) scrollToTarget(key)
         if (!canFocus()) return
 
-        // A target outside of the list, such as a toolbar
-        // button, is composed whenever the list is. Enter picks
-        // its top-left child. Down would pick a small footer
-        // button over the wide row above it, as the button's
+        // Enter picks its top-left child. Down would pick a small
+        // footer button over the wide row above it, as the button's
         // center is nearer to the start.
         val restored = key != null &&
             targets[key]?.requester?.requestFocus(FocusDirection.Enter) == true
@@ -275,6 +332,24 @@ internal class ListFocusRegion internal constructor(
     fun focusList() {
         list.handOff { hasFocus }
     }
+
+    /**
+     * The modifier of a bar of buttons that is this region: Left and
+     * Right move along it and stop at its ends, the [contentDirection]
+     * key focuses the list, see [navigationBarFocusGroup].
+     */
+    fun barModifier(
+        requester: FocusRequester? = null,
+        contentDirection: FocusDirection? = null,
+    ): Modifier = modifier
+        // The region comes first, so it sees the focus of the bar.
+        .then(if (requester != null) Modifier.focusRequester(requester) else Modifier)
+        .navigationBarFocusGroup(
+            orientation = Orientation.Horizontal,
+            focusedState = null,
+            onFocusContent = ::focusList,
+            contentDirection = contentDirection,
+        )
 }
 
 /**
@@ -328,6 +403,8 @@ internal fun rememberListFocus(
                 if (!ready || !canRestore()) return@collectLatest
                 listState.awaitItemsPlaced { focus.listKeys }
                 focus.restore(
+                    // Also a target outside of the list, such as a toolbar button.
+                    key = entry.viewMemory.lastFocusedKey,
                     focusFirst = focusFirstOnEnter,
                     canRestore = ::canRestore,
                 )

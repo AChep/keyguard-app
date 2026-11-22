@@ -141,9 +141,11 @@ fun DropdownScope.DropdownMenuItemFlatLayout(
 @Composable
 fun OptionsButton(
     actions: List<ContextItem> = emptyList(),
+    modifier: Modifier = Modifier,
 ) {
     if (actions.isNotEmpty()) {
         OptionsButton(
+            modifier = modifier,
             enabled = actions.isNotEmpty(),
         ) {
             actions.forEachIndexed { index, action ->
@@ -157,6 +159,7 @@ fun OptionsButton(
 
 @Composable
 fun OptionsButton(
+    modifier: Modifier = Modifier,
     enabled: Boolean = true,
     icon: ImageVector = Icons.Outlined.MoreVert,
     contentDescription: String? = null,
@@ -174,6 +177,7 @@ fun OptionsButton(
 
     Box {
         IconButton(
+            modifier = modifier,
             enabled = enabled,
             onClick = {
                 isAutofillWindowShowing = !isAutofillWindowShowing

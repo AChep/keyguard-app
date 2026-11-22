@@ -863,6 +863,7 @@ fun FlatDropdownSimpleExpressive(
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
     enabled: Boolean = dropdown.isNotEmpty() || onClick != null || onLongClick != null,
+    rowModifier: Modifier = Modifier,
 ) {
     FlatDropdownLayoutExpressive(
         modifier = modifier,
@@ -908,6 +909,7 @@ fun FlatDropdownSimpleExpressive(
         onClick = onClick,
         onLongClick = onLongClick,
         enabled = enabled,
+        rowModifier = rowModifier,
     )
 }
 
@@ -930,6 +932,7 @@ fun FlatDropdownLayoutExpressive(
     onClick: (() -> Unit)? = null,
     onLongClick: (() -> Unit)? = null,
     enabled: Boolean = dropdown != null || onClick != null || onLongClick != null,
+    rowModifier: Modifier = Modifier,
 ) {
     var isContentDropdownExpanded by remember { mutableStateOf(false) }
     FlatItemLayoutExpressive(
@@ -970,6 +973,7 @@ fun FlatDropdownLayoutExpressive(
         },
         onLongClick = onLongClick,
         enabled = enabled,
+        rowModifier = rowModifier,
     )
 }
 

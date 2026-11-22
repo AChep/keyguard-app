@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.SearchOff
@@ -24,20 +23,12 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -50,6 +41,7 @@ import com.artemchep.keyguard.feature.home.vault.component.surfaceColorAtElevati
 import com.artemchep.keyguard.feature.home.vault.model.VaultItemIcon
 import com.artemchep.keyguard.feature.localization.textResource
 import com.artemchep.keyguard.feature.navigation.NavigationIcon
+import com.artemchep.keyguard.ui.rememberListScreenState
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.Avatar
@@ -61,16 +53,18 @@ import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.OptionallyKeepScreenOnEffect
 import com.artemchep.keyguard.ui.ScaffoldLazyColumn
-import com.artemchep.keyguard.ui.focus.awaitItemsPlaced
-import com.artemchep.keyguard.ui.focus.rememberCanTakeFocus
+import com.artemchep.keyguard.ui.focus.ListFocus
 import com.artemchep.keyguard.ui.shimmer.shimmer
 import com.artemchep.keyguard.ui.skeleton.SkeletonText
 import com.artemchep.keyguard.ui.text.AutoSizeText
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.toolbar.LargeToolbar
-import com.artemchep.keyguard.ui.toolbar.util.ToolbarBehavior
 import com.artemchep.keyguard.ui.tooltip.Tooltip
 import org.jetbrains.compose.resources.stringResource
+
+private const val EDIT_FOCUS_KEY = "toolbar.edit"
+
+private const val OPTIONS_FOCUS_KEY = "toolbar.options"
 
 @Composable
 fun VaultViewScreen(
@@ -95,8 +89,14 @@ fun VaultViewScreen(
 }
 
 /**
- * The item of the [state]. If [focusFirstField], its first field
- * takes focus once it shows, in keyboard input mode.
+ * The item of the [state]. Arrow keys move between its fields, and Up
+ * from the top field enters the toolbar. In keyboard input mode the
+ * item focuses the field or the toolbar button its entry focused last,
+ * such as when a screen opened on top of it closes. With nothing focused
+ * yet, [focusFirstField] focuses its first field once the field shows.
+ *
+ * The scroll position and the toolbar state are kept while the entry
+ * of the item is alive. A new entry starts at the top.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -104,29 +104,20 @@ fun VaultViewScreenContent(
     state: VaultViewState,
     focusFirstField: Boolean = false,
 ) {
-    val listState = rememberSaveable(
-        0,
-        saver = LazyListState.Saver,
-    ) {
-        LazyListState(
-            firstVisibleItemIndex = 0,
-            firstVisibleItemScrollOffset = 0,
-        )
+    // Empty while the item loads: its skeleton
+    // takes no focus and saves no scroll position.
+    val listKeys = remember(state.content) {
+        (state.content as? VaultViewState.Content.Cipher)
+            ?.items
+            ?.map { it.id }
+            .orEmpty()
     }
-    val listRequester = remember { FocusRequester() }
-    val hasFocusState = remember { mutableStateOf(false) }
-    if (focusFirstField) {
-        FocusFirstFieldEffect(
-            state = state,
-            listState = listState,
-            listRequester = listRequester,
-            hasFocus = { hasFocusState.value },
-        )
-    }
-    val scrollBehavior = ToolbarBehavior.behavior()
+    val (listState, scrollBehavior, focus) = rememberListScreenState(
+        listKeys = listKeys,
+        focusFirstOnEnter = focusFirstField,
+    )
     ScaffoldLazyColumn(
         modifier = Modifier
-            .onFocusChanged { hasFocusState.value = it.hasFocus }
             .nestedScroll(scrollBehavior.nestedScrollConnection),
         expressive = true,
         topAppBarScrollBehavior = scrollBehavior,
@@ -143,6 +134,7 @@ fun VaultViewScreenContent(
                 actions = {
                     VaultViewTitleActions(
                         state = state,
+                        focus = focus,
                     )
                 },
                 scrollBehavior = scrollBehavior,
@@ -176,9 +168,11 @@ fun VaultViewScreenContent(
                 )
             }
         },
-        listModifier = Modifier
-            .focusRequester(listRequester),
+        listModifier = focus.listModifier,
         listState = listState,
+        contentFocus = focus.rememberScaffoldContentFocus(
+            topBar = true,
+        ),
     ) {
         when (state.content) {
             is VaultViewState.Content.Loading -> {
@@ -260,8 +254,8 @@ fun VaultViewScreenContent(
                     key = { model -> model.id },
                 ) { model ->
                     VaultViewItem(
-                        modifier = Modifier,
-                        // .animateItemPlacement(),
+                        // Each renderer puts it on its root.
+                        modifier = focus.target(model.id),
                         item = model,
                     )
                 }
@@ -270,40 +264,6 @@ fun VaultViewScreenContent(
             else -> {
                 // Do nothing.
             }
-        }
-    }
-}
-
-/**
- * Focuses the first field of the item, once its rows are placed. The
- * effect runs each time the item view is composed, so it also runs
- * when a screen pushed on top of the item view closes. It does nothing
- * if the item view [hasFocus] by then, as the user moved focus there.
- */
-@Composable
-private fun FocusFirstFieldEffect(
-    state: VaultViewState,
-    listState: LazyListState,
-    listRequester: FocusRequester,
-    hasFocus: () -> Boolean,
-) {
-    val canTakeFocus = rememberCanTakeFocus()
-    val currentState by rememberUpdatedState(state)
-    LaunchedEffect(listRequester, canTakeFocus) {
-        // An item opened by a click takes no focus.
-        if (canTakeFocus == null || !canTakeFocus()) return@LaunchedEffect
-
-        // The keys of the lazy items of the rows.
-        fun keys() = (currentState.content as? VaultViewState.Content.Cipher)
-            ?.items
-            ?.map { it.id }
-            .orEmpty()
-
-        listState.awaitItemsPlaced(::keys)
-        // A Tab while the rows load picked a target already.
-        if (canTakeFocus() && !hasFocus()) {
-            // A group enters its top-left placed row.
-            listRequester.requestFocus(FocusDirection.Enter)
         }
     }
 }
@@ -417,14 +377,21 @@ private fun VaultViewTitle(
     Spacer(modifier = Modifier.width(8.dp))
 }
 
+/**
+ * The actions of a loaded item. Closing a screen that Edit or
+ * the options opened focuses the button again, see [ListFocus.target].
+ */
 @Composable
 private fun RowScope.VaultViewTitleActions(
     state: VaultViewState,
+    focus: ListFocus,
 ) {
     val content = state.content as? VaultViewState.Content.Cipher
         ?: return
     VaultViewCipherTitleActions(
         state = content,
+        editModifier = focus.target(EDIT_FOCUS_KEY, inList = false),
+        optionsModifier = focus.target(OPTIONS_FOCUS_KEY, inList = false),
     )
 }
 

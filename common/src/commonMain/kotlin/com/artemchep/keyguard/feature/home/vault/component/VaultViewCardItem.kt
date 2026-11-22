@@ -28,8 +28,10 @@ import com.artemchep.keyguard.feature.home.vault.model.Visibility
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemAction
+import com.artemchep.keyguard.ui.firstActionOfType
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
 import com.artemchep.keyguard.ui.animatedCardNumberText
+import com.artemchep.keyguard.ui.focus.rememberTrailingFocusLink
 import com.artemchep.keyguard.ui.shortcut.ShortcutTooltip
 import com.artemchep.keyguard.ui.theme.combineAlpha
 import com.artemchep.keyguard.ui.theme.monoFontFamily
@@ -114,6 +116,19 @@ fun VaultViewCardItem(
     )
 
     val updatedVisibilityConfig by rememberUpdatedState(visibilityConfig)
+    val visibilityToggleShown = item.visibility.concealed && cardNumber != null
+    val onCopyAction = remember(item.dropdown) {
+        item.dropdown.firstActionOfType(FlatItemAction.Type.COPY)
+    }
+    // The row is a focus target only if it has a menu to open.
+    val focusLink = rememberTrailingFocusLink(
+        enabled = item.dropdown.isNotEmpty(),
+        linked = listOf(
+            visibilityToggleShown,
+            onCopyAction?.onClick != null,
+        ),
+    )
+    val (eyeModifier, copyModifier) = focusLink.buttons
     FlatDropdownSimpleExpressive(
         modifier = modifier,
         elevation = item.elevation,
@@ -184,8 +199,9 @@ fun VaultViewCardItem(
             }
         },
         trailing = {
-            if (item.visibility.concealed && cardNumber != null) {
+            if (visibilityToggleShown) {
                 VisibilityToggle(
+                    modifier = eyeModifier,
                     visible = visibilityState.value.value,
                     onVisibleChange = { possibleNewValue ->
                         updatedVisibilityConfig.transformUserEvent(possibleNewValue) { newValue ->
@@ -197,16 +213,10 @@ fun VaultViewCardItem(
                     },
                 )
             }
-            val onCopyAction = remember(item.dropdown) {
-                item.dropdown
-                    .firstNotNullOfOrNull {
-                        val action = it as? FlatItemAction
-                        action?.takeIf { it.type == FlatItemAction.Type.COPY }
-                    }
-            }
             if (onCopyAction != null) {
                 val onCopy = onCopyAction.onClick
                 IconButton(
+                    modifier = copyModifier,
                     enabled = onCopy != null,
                     onClick = {
                         onCopy?.invoke()
@@ -224,5 +234,6 @@ fun VaultViewCardItem(
             }
         },
         dropdown = item.dropdown,
+        rowModifier = focusLink.row,
     )
 }

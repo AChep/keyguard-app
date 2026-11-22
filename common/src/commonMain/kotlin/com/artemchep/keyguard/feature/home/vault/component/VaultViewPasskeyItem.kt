@@ -26,6 +26,7 @@ import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.*
 import com.artemchep.keyguard.ui.FlatItemLayout
 import com.artemchep.keyguard.ui.MediumEmphasisAlpha
+import com.artemchep.keyguard.ui.focus.rememberTrailingFocusLink
 import com.artemchep.keyguard.ui.icons.icon
 import com.artemchep.keyguard.ui.theme.Dimens
 import com.artemchep.keyguard.ui.theme.combineAlpha
@@ -36,6 +37,10 @@ fun VaultViewPasskeyItem(
     modifier: Modifier = Modifier,
     item: VaultViewItem.Passkey,
 ) {
+    val focusLink = rememberTrailingFocusLink(
+        enabled = item.onClick != null,
+        linked = listOf(item.onUse != null),
+    )
     FlatItemLayoutExpressive(
         modifier = modifier,
         shapeState = item.shapeState,
@@ -84,6 +89,7 @@ fun VaultViewPasskeyItem(
             {
                 val updatedOnUse by rememberUpdatedState(item.onUse)
                 Button(
+                    modifier = focusLink.button,
                     onClick = {
                         updatedOnUse.invoke()
                     },
@@ -103,6 +109,7 @@ fun VaultViewPasskeyItem(
             null
         },
         onClick = item.onClick,
+        rowModifier = focusLink.row,
     )
 }
 

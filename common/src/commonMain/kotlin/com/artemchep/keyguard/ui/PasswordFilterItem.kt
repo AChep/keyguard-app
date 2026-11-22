@@ -128,6 +128,13 @@ data class FlatItemAction(
     }
 }
 
+/** The first action of the [type], if any. */
+fun List<ContextItem>.firstActionOfType(
+    type: FlatItemAction.Type,
+): FlatItemAction? = firstNotNullOfOrNull { item ->
+    (item as? FlatItemAction)?.takeIf { it.type == type }
+}
+
 inline fun buildContextItems(
     vararg items: List<ContextItem>,
     block: ContextItemBuilder.() -> Unit,

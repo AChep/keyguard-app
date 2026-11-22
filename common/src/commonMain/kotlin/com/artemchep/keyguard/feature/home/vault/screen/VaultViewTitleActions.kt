@@ -19,9 +19,15 @@ import com.artemchep.keyguard.ui.OptionsButton
 import com.artemchep.keyguard.ui.button.FavouriteToggleButton
 import com.artemchep.keyguard.ui.icons.OfflineIcon
 
+/**
+ * The toolbar actions of the item. The [editModifier] goes on
+ * the Edit button, the [optionsModifier] on the options button.
+ */
 @Composable
 internal fun RowScope.VaultViewCipherTitleActions(
     state: Cipher,
+    editModifier: Modifier = Modifier,
+    optionsModifier: Modifier = Modifier,
 ) {
     val elevated = state.locked.collectAsState()
     AnimatedVisibility(
@@ -53,6 +59,7 @@ internal fun RowScope.VaultViewCipherTitleActions(
         onChange = state.onFavourite,
     )
     IconButton(
+        modifier = editModifier,
         onClick = {
             state.onEdit?.invoke()
         },
@@ -65,5 +72,6 @@ internal fun RowScope.VaultViewCipherTitleActions(
     }
     OptionsButton(
         actions = state.actions,
+        modifier = optionsModifier,
     )
 }

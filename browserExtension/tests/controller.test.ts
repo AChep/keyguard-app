@@ -1007,6 +1007,22 @@ describe("BackgroundController", () => {
     expect(context.status()).toEqual({ kind: "locked", unlocking: false });
   });
 
+  it("is busy while the app answers a request, as while it prompts", async () => {
+    let answer: () => void = () => undefined;
+    const context = setup({
+      handler: (request) =>
+        request.type === "unlock" ? new Promise((resolve) => (answer = () => resolve({ vault: "unlocked" }))) : undefined,
+    });
+    await pair(context);
+    expect(context.controller.busy).toBe(false);
+    const unlock = context.controller.unlock();
+    await until(() => context.host().app!.requests.some((it) => it.type === "unlock"), "the unlock request");
+    expect(context.controller.busy).toBe(true);
+    answer();
+    await unlock;
+    expect(context.controller.busy).toBe(false);
+  });
+
   it("cancels a shared unlock once no caller waits, and shows no error", async () => {
     const context = setup({ handler: (request) => (request.type === "unlock" ? new Promise(() => undefined) : undefined) });
     await pair(context);

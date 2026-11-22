@@ -88,6 +88,8 @@ class CliAgentUsageRecorder(
                     errorCode = storedErrorCode,
                     command = usage.command,
                     path = usage.path,
+                    clientId = usage.clientId,
+                    details = usage.details,
                 ),
                 coalescenceKey = usage.coalescenceKey,
             ).bind()
@@ -121,6 +123,8 @@ class CliAgentUsageRecorder(
                 errorCode = errorCode,
                 command = usage.command,
                 path = usage.path,
+                clientId = usage.clientId,
+                details = usage.details,
             )
             addHistory(request).bind()
             true

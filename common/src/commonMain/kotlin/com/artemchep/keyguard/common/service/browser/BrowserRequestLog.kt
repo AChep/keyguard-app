@@ -1,9 +1,11 @@
 package com.artemchep.keyguard.common.service.browser
 
 import com.artemchep.keyguard.common.io.throwIfFatalOrCancellation
+import com.artemchep.keyguard.common.model.CliAgentUsageDetails
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
+import com.artemchep.keyguard.common.service.agent.sanitizedAgentDisplayValue
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentUsageRecord
 import com.artemchep.keyguard.common.service.cli.agent.CliAgentUsageRecorder
 import com.artemchep.keyguard.common.service.logging.LogLevel
@@ -11,6 +13,7 @@ import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.feature.browserextension.protocol.BrowserError
 import com.artemchep.keyguard.feature.browserextension.protocol.BrowserReply
 import com.artemchep.keyguard.feature.browserextension.protocol.BrowserRequestException
+import com.artemchep.keyguard.feature.cli.MAX_CLI_COMMAND_DISPLAY_LENGTH
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -26,13 +29,14 @@ internal class BrowserRequestLog(
      * with the [error], succeeded for `null`, or was [cancelled] when the
      * session ended before it was answered.
      *
+     * @param pairing The pairing of the extension, `null` before it pairs.
      * @param cipherId The item the request reached.
      * @param origin The origin of the page.
      */
     @Suppress("LongParameterList")
     fun record(
         session: BrowserExtensionSession,
-        pairingName: String?,
+        pairing: BrowserPairing?,
         request: CliAgentUsageHistoryRequestType,
         cipherId: String? = null,
         origin: String? = null,
@@ -45,12 +49,18 @@ internal class BrowserRequestLog(
             client = CliAgentUsageHistoryClient.BROWSER,
             request = request,
             caller = session.caller.toCallerIdentity(),
-            clientName = pairingName,
+            // The name when the request was made; the id outlives a rename.
+            clientName = pairing?.name,
+            clientId = pairing?.id,
+            details = CliAgentUsageDetails.Browser(
+                extensionOrigin = session.origin
+                    .sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH)
+                    .orEmpty(),
+                pageOrigin = origin
+                    .sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH),
+            ),
         )
         usage.cipherId = cipherId
-        usage.path = origin
-        // The browser rows have no command: it holds the extension's origin.
-        usage.command = session.origin
         scope.launch {
             recorder.record(usage, errorCode = error?.code, cancelled = cancelled)
         }
@@ -90,7 +100,7 @@ internal class BrowserRequestLog(
             if (!privateWindow) {
                 record(
                     session = session(),
-                    pairingName = pairing()?.name,
+                    pairing = pairing(),
                     request = type,
                     cipherId = usage.cipherId,
                     origin = usage.origin,

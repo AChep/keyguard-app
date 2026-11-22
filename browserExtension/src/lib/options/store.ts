@@ -28,6 +28,17 @@ export const DEFAULT_OPTIONS: Readonly<ExtensionOptions> = {
   passkeys: true,
 };
 
+const OPTION_KEYS = Object.keys(DEFAULT_OPTIONS) as (keyof ExtensionOptions)[];
+
+/**
+ * The stored record: only the options the user set, so a changed default
+ * reaches everyone who didn't set that option. A later format has a greater
+ * `version`; a record without one is version 1.
+ */
+interface StoredOptions extends Partial<ExtensionOptions> {
+  version: 1;
+}
+
 /** The part of `storage.local` the store uses. */
 export interface OptionsArea {
   get(keys: string | string[]): Promise<Record<string, unknown>>;
@@ -42,17 +53,18 @@ export interface ObservableStorageArea extends OptionsArea {
   };
 }
 
+/**
+ * The options the user set in a stored value: its known keys with boolean
+ * values. None in a record of another version, which the next change replaces.
+ */
+function userOptions(value: unknown): Partial<ExtensionOptions> {
+  if (!isObject(value) || (value.version !== undefined && value.version !== 1)) return {};
+  return Object.fromEntries(OPTION_KEYS.filter((key) => typeof value[key] === "boolean").map((key) => [key, value[key]]));
+}
+
 /** Options from a stored value, with defaults for what's missing or malformed. */
 export function parseOptions(value: unknown): ExtensionOptions {
-  const stored = isObject(value) ? value : {};
-  const flag = (key: keyof ExtensionOptions) => (typeof stored[key] === "boolean" ? stored[key] : DEFAULT_OPTIONS[key]);
-  return {
-    inlineMenu: flag("inlineMenu"),
-    fillPasswordStep: flag("fillPasswordStep"),
-    submitAfterFill: flag("submitAfterFill"),
-    savePrompts: flag("savePrompts"),
-    passkeys: flag("passkeys"),
-  };
+  return { ...DEFAULT_OPTIONS, ...userOptions(value) };
 }
 
 export class OptionsStore {
@@ -66,7 +78,7 @@ export class OptionsStore {
   /** The options, read once until they change, see [invalidate]. */
   options(): Promise<ExtensionOptions> {
     if (this.cached === null) {
-      const read = this.read();
+      const read = this.stored().then(parseOptions);
       this.cached = read;
       read.catch(() => {
         if (this.cached === read) this.cached = null;
@@ -80,17 +92,20 @@ export class OptionsStore {
     this.cached = null;
   }
 
+  /** Stores [patch] with the options the user set before; returns the options. */
   setOptions(patch: Partial<ExtensionOptions>): Promise<ExtensionOptions> {
     return this.queue.run(async () => {
-      const next = { ...(await this.read()), ...patch };
-      await this.area.set({ [OPTIONS_KEY]: next });
+      const user = { ...userOptions(await this.stored()), ...patch };
+      const stored: StoredOptions = { version: 1, ...user };
+      await this.area.set({ [OPTIONS_KEY]: stored });
+      const next = { ...DEFAULT_OPTIONS, ...user };
       this.cached = Promise.resolve(next);
       return next;
     });
   }
 
-  private async read(): Promise<ExtensionOptions> {
-    return parseOptions((await this.area.get(OPTIONS_KEY))[OPTIONS_KEY]);
+  private async stored(): Promise<unknown> {
+    return (await this.area.get(OPTIONS_KEY))[OPTIONS_KEY];
   }
 }
 

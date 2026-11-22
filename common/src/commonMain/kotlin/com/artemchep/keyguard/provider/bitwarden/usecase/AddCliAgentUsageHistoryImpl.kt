@@ -20,6 +20,8 @@ class AddCliAgentUsageHistoryImpl(
             errorCode = request.errorCode,
             command = request.command,
             path = request.path,
+            clientId = request.clientId,
+            details = request.details,
             instant = request.instant,
             eventId = request.eventId,
         )

@@ -121,6 +121,11 @@ export class ProtocolSession {
     return this.state.kind === "ended" ? this.state.end : null;
   }
 
+  /** Whether a request is in flight, or waits for a slot. */
+  get busy(): boolean {
+    return this.inFlight > 0 || this.waiting.length > 0;
+  }
+
   /** Sends the suite ID and the first handshake message. A failure ends the session. */
   start(): void {
     if (this.state.kind !== "idle") throw new Error("The session already started");

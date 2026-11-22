@@ -182,6 +182,11 @@ export class BackgroundController implements ConnectionListener {
     return this.session?.id ?? null;
   }
 
+  /** Whether the app is answering a request of this session, as while it prompts the user. */
+  get busy(): boolean {
+    return this.session?.protocol.busy === true;
+  }
+
   /** Whether the app agreed to a capability in this session's `hello`. */
   supports(capability: Capability): boolean {
     return this.session?.capabilities.has(capability) === true;

@@ -1982,6 +1982,44 @@ describe("the popup's matches", () => {
   });
 });
 
+describe("a reload of the extension", () => {
+  it("would cut a menu about to bind or open, a save offered or shown, and a fill or list of the popup", async () => {
+    const context = setup();
+    const { pages } = context;
+    expect(pages.busy).toBe(false);
+
+    await fromContent(pages, { kind: "menu_open", role: "username", webauthn: false });
+    expect(pages.busy, "a menu's token").toBe(true);
+    context.advance(TOKEN_TTL_MS + 1);
+    expect(pages.busy, "an expired token").toBe(false);
+    const { port: menu } = await context.openMenu("username");
+    expect(pages.busy, "an open menu").toBe(true);
+    menu.close();
+    expect(pages.busy).toBe(false);
+
+    await fromContent(pages, { kind: "save_candidate", candidate: { username: "ann", password: "new-pass" } });
+    expect(pages.busy, "a save offer").toBe(true);
+    const result = (await fromContent(pages, { kind: "save_bar_open" }, contentSender({ frameId: 0, documentId: "doc-0" }))) as { token: string };
+    const bar = new FakePort(SAVE_BAR_PORT, pageSender("/save-bar.html"));
+    pages.connect(bar);
+    bar.emit({ kind: "bind", token: result.token });
+    await settle();
+    bar.close();
+    expect(pages.busy, "a save offer after its bar closed").toBe(true);
+    await vi.advanceTimersByTimeAsync(SAVE_TTL_MS);
+    expect(pages.busy, "an expired save offer").toBe(false);
+
+    let answer: () => void = () => undefined;
+    context.state.app = (request) => (request.type === "suggest" ? new Promise((resolve) => (answer = () => resolve(undefined))) : undefined);
+    const suggest = pages.calls.suggest({ tabId: 7 });
+    await settle();
+    expect(pages.busy, "the popup's list").toBe(true);
+    answer();
+    await suggest;
+    expect(pages.busy).toBe(false);
+  });
+});
+
 /** The password step after the username step on LOGIN_URL: another page of its origin, in the top frame of the same tab. */
 const NEXT_URL = "https://login.example.com/password";
 const NEXT = contentSender({ tab: { id: 7, url: NEXT_URL }, frameId: 0, documentId: "doc-next", url: NEXT_URL, origin: "https://login.example.com" });

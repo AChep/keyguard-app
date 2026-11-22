@@ -2,8 +2,10 @@ package com.artemchep.keyguard.android.downloader.journal
 
 import com.artemchep.keyguard.common.io.IO
 import com.artemchep.keyguard.common.io.effectMap
+import com.artemchep.keyguard.common.model.CliAgentUsageDetails
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.DCliAgentUsageHistory
+import com.artemchep.keyguard.common.model.decodeCliAgentUsageDetailsOrNull
 import com.artemchep.keyguard.common.service.database.vault.VaultDatabaseManager
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToList
 import com.artemchep.keyguard.common.util.sqldelight.flatMapQueryToOne
@@ -13,12 +15,14 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.serialization.json.Json
 import kotlin.time.Instant
 
 // Every client shares one table, so a write re-runs the queries of
 // the other clients too; their unchanged results are not emitted.
 class CliAgentUsageHistoryRepositoryImpl(
     private val databaseManager: VaultDatabaseManager,
+    private val json: Json,
     private val dispatcher: CoroutineDispatcher,
 ) : CliAgentUsageHistoryRepository {
     companion object {
@@ -37,7 +41,7 @@ class CliAgentUsageHistoryRepositoryImpl(
         }
             .flatMapQueryToList(dispatcher)
             .map { entities ->
-                entities.map(CliAgentUsageHistory::toDomain)
+                entities.map { it.toDomain(json) }
             }
             .distinctUntilChanged()
 
@@ -53,7 +57,7 @@ class CliAgentUsageHistoryRepositoryImpl(
         }
             .flatMapQueryToList(dispatcher)
             .map { entities ->
-                entities.map(CliAgentUsageHistory::toDomain)
+                entities.map { it.toDomain(json) }
             }
             .distinctUntilChanged()
 
@@ -81,6 +85,9 @@ class CliAgentUsageHistoryRepositoryImpl(
                 path = model.path,
                 createdAt = model.instant,
                 eventId = model.eventId,
+                clientId = model.clientId,
+                details = model.details
+                    ?.let { json.encodeToString(CliAgentUsageDetails.serializer(), it) },
             )
         }
 
@@ -108,7 +115,7 @@ class CliAgentUsageHistoryRepositoryImpl(
         }
 }
 
-private fun CliAgentUsageHistory.toDomain(): DCliAgentUsageHistory = DCliAgentUsageHistory(
+private fun CliAgentUsageHistory.toDomain(json: Json): DCliAgentUsageHistory = DCliAgentUsageHistory(
     id = id.toString(),
     cipherId = cipherId,
     sessionId = sessionId,
@@ -120,6 +127,8 @@ private fun CliAgentUsageHistory.toDomain(): DCliAgentUsageHistory = DCliAgentUs
     errorCode = errorCode,
     command = command,
     path = path,
+    clientId = clientId,
+    details = details?.let(json::decodeCliAgentUsageDetailsOrNull),
     instant = createdAt,
     eventId = eventId,
 )

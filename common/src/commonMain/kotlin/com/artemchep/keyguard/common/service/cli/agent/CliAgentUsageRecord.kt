@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.cli.agent
 
+import com.artemchep.keyguard.common.model.CliAgentUsageDetails
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
 import com.artemchep.keyguard.common.service.agent.CallerIdentity
@@ -18,20 +19,27 @@ class CliAgentUsageRecord(
     val client: CliAgentUsageHistoryClient,
     val request: CliAgentUsageHistoryRequestType,
     val caller: CallerIdentity?,
-    /** The name that an MCP client reports for itself; a hint only. */
+    /**
+     * The name that an MCP client reports for itself, a hint only; for a
+     * browser, the name of its pairing when the request was made.
+     */
     clientName: String? = null,
     /**
      * Requests that share a non-null key replace each other while the
      * vault is locked, so routine requests can not evict the rest.
      */
     val coalescenceKey: String? = null,
+    /** The stable id of the client that made the request: a browser's pairing. */
+    val clientId: String? = null,
+    /** What only the client knows, already bounded and escaped for display. */
+    val details: CliAgentUsageDetails? = null,
 ) {
     val clientName: String? = clientName.sanitizedAgentDisplayValue(MAX_AGENT_CALLER_NAME_LENGTH)
 
     /** The environment that the request reached. */
     var cipherId: String? = null
 
-    /** The command line that `keyguard run` starts; for a browser, the extension's origin. */
+    /** The command line that `keyguard run` starts. */
     var command: String? = null
         set(value) {
             field = value.sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH)

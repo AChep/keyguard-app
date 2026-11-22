@@ -7,6 +7,7 @@ import com.artemchep.keyguard.common.io.ioEffect
 import com.artemchep.keyguard.common.model.AddCliAgentUsageHistoryRequest
 import com.artemchep.keyguard.common.model.AddGpgUsageHistoryRequest
 import com.artemchep.keyguard.common.model.AddSshUsageHistoryRequest
+import com.artemchep.keyguard.common.model.CliAgentUsageDetails
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
@@ -14,10 +15,12 @@ import com.artemchep.keyguard.common.model.GpgUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.GpgUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.SshUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.SshUsageHistoryResponseType
+import com.artemchep.keyguard.common.service.browser.CHROME_ORIGIN
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.VaultSettingsKeyValueStore
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
 import com.artemchep.keyguard.common.service.logging.LogRepositoryBridge
+import com.artemchep.keyguard.common.service.serialization.createApplicationJson
 import com.artemchep.keyguard.common.service.settings.impl.SettingsRepositoryImpl
 import com.artemchep.keyguard.common.service.text.impl.Base64ServiceImpl
 import com.artemchep.keyguard.common.usecase.AddCliAgentUsageHistory
@@ -25,7 +28,6 @@ import com.artemchep.keyguard.common.usecase.AddGpgUsageHistory
 import com.artemchep.keyguard.common.usecase.AddSshUsageHistory
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
-import kotlinx.serialization.json.Json
 import kotlin.test.Test
 import kotlin.test.assertContentEquals
 import kotlin.test.assertEquals
@@ -34,8 +36,9 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Instant
 
+@Suppress("TooManyFunctions")
 class PendingUsageHistoryFlusherTest {
-    private val json = Json
+    private val json = createApplicationJson()
 
     private val queue = FakeQueue()
     private val addGpg = RecordingAddGpgUsageHistory()
@@ -253,11 +256,89 @@ class PendingUsageHistoryFlusherTest {
                 errorCode = "operation_failed",
                 command = "npm start",
                 path = "/project",
+                clientId = null,
+                details = null,
                 instant = Instant.fromEpochMilliseconds(3_000L),
                 eventId = "event-cli",
             ),
             cli,
         )
+        assertTrue(queue.rows.isEmpty())
+    }
+
+    @Test
+    fun `flush drains browser events with their pairing and details`() = runTest {
+        flusher.flush().bind()
+        val publicKey = settingsRepository.getExposedContentPublicKey().first()!!
+        queue.rows += sealedRow(
+            publicKey = publicKey,
+            id = "event-browser",
+            timestamp = 3_000L,
+            payload = PendingUsageHistoryPayload(
+                protocol = PendingUsageHistory.Protocol.CLI_AGENT.name,
+                sessionId = "test-session",
+                requestType = CliAgentUsageHistoryRequestType.BROWSER_UNLOCK.name,
+                responseType = CliAgentUsageHistoryResponseType.SUCCESS.name,
+                cliAgent = PendingCliAgentUsageHistory(
+                    client = CliAgentUsageHistoryClient.BROWSER.name,
+                    clientName = "Work laptop",
+                    clientId = "pairing",
+                    details = BROWSER_DETAILS,
+                ),
+            ),
+        )
+
+        flusher.flush().bind()
+
+        val cli = addCli.requests.single()
+        assertEquals(CliAgentUsageHistoryClient.BROWSER, cli.client)
+        assertEquals("Work laptop", cli.clientName)
+        assertEquals("pairing", cli.clientId)
+        assertEquals(BROWSER_DETAILS, cli.details)
+        assertNull(cli.command)
+        assertNull(cli.path)
+        assertTrue(queue.rows.isEmpty())
+    }
+
+    @Test
+    fun `a browser event with details that this build can not read still drains`() = runTest {
+        flusher.flush().bind()
+        val publicKey = settingsRepository.getExposedContentPublicKey().first()!!
+        // The JSON of a build that knows more clients.
+        val plaintext = """
+            {"protocol":"CLI_AGENT","sessionId":"test-session","requestType":"BROWSER_FILL","responseType":"SUCCESS",
+            "cliAgent":{"client":"BROWSER","clientId":"pairing","details":{"type":"terminal","tty":"/dev/ttys001"}}}
+        """.trimIndent()
+        queue.rows += sealedRow(publicKey, "event-browser", 1_000L, plaintext.encodeToByteArray())
+
+        flusher.flush().bind()
+
+        val cli = addCli.requests.single()
+        assertEquals(CliAgentUsageHistoryClient.BROWSER, cli.client)
+        assertEquals("pairing", cli.clientId)
+        assertNull(cli.details)
+        assertTrue(queue.rows.isEmpty())
+    }
+
+    @Test
+    fun `a CLI agent event queued before the client id and details still drains`() = runTest {
+        flusher.flush().bind()
+        val publicKey = settingsRepository.getExposedContentPublicKey().first()!!
+        // The JSON of a build that had no client id nor details.
+        val plaintext = """
+            {"protocol":"CLI_AGENT","sessionId":"test-session","requestType":"RUN","responseType":"SUCCESS",
+            "cliAgent":{"client":"CLI","command":"npm start","path":"/project"}}
+        """.trimIndent()
+        queue.rows += sealedRow(publicKey, "event-cli", 1_000L, plaintext.encodeToByteArray())
+
+        flusher.flush().bind()
+
+        val cli = addCli.requests.single()
+        assertEquals(CliAgentUsageHistoryClient.CLI, cli.client)
+        assertEquals("npm start", cli.command)
+        assertEquals("/project", cli.path)
+        assertNull(cli.clientId)
+        assertNull(cli.details)
         assertTrue(queue.rows.isEmpty())
     }
 
@@ -290,18 +371,29 @@ class PendingUsageHistoryFlusherTest {
         id: String,
         timestamp: Long,
         payload: PendingUsageHistoryPayload,
-    ): SealedPendingUsageHistory {
-        val plaintext = json.encodeToString(payload).encodeToByteArray()
-        return SealedPendingUsageHistory(
-            id = id,
-            timestampEpochMilliseconds = timestamp,
-            payload = PendingUsageHistoryEnvelope.seal(
-                publicKeySpki = publicKey,
-                plaintext = plaintext,
-            ),
+    ) = sealedRow(publicKey, id, timestamp, json.encodeToString(payload).encodeToByteArray())
+
+    private companion object {
+        val BROWSER_DETAILS = CliAgentUsageDetails.Browser(
+            extensionOrigin = CHROME_ORIGIN,
+            pageOrigin = "https://example.com",
         )
     }
 }
+
+private fun sealedRow(
+    publicKey: ByteArray,
+    id: String,
+    timestamp: Long,
+    plaintext: ByteArray,
+) = SealedPendingUsageHistory(
+    id = id,
+    timestampEpochMilliseconds = timestamp,
+    payload = PendingUsageHistoryEnvelope.seal(
+        publicKeySpki = publicKey,
+        plaintext = plaintext,
+    ),
+)
 
 private class FakeQueue : PendingUsageHistoryQueue {
     val rows = mutableListOf<SealedPendingUsageHistory>()

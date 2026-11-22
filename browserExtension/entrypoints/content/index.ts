@@ -47,6 +47,7 @@ import {
   type Layout,
   type WatchedDocument,
 } from "../../src/lib/content/guards";
+import { orphanSafe } from "../../src/lib/content/orphan";
 import { PasswordStepReporter, type StepReport } from "../../src/lib/content/passwordStep";
 import { SaveTracker } from "../../src/lib/content/save";
 import { shadowRootReader, type ClosedRootApi } from "../../src/lib/content/shadowRoots";
@@ -109,9 +110,9 @@ function startContentScript(ctx: ContentScriptContext) {
   // commands for another document of this frame are refused as for another
   // origin, see ../../src/lib/page/messages.ts.
   const documentToken = randomToken();
+  const sendMessage = orphanSafe(ctx, (message: ContentMessage) => browser.runtime.sendMessage(message));
   function send<T>(request: ContentRequest): Promise<T | undefined> {
-    const message: ContentMessage = { ...request, doc: documentToken };
-    return (browser.runtime.sendMessage(message) as Promise<T | undefined>).catch(() => undefined);
+    return sendMessage({ ...request, doc: documentToken }) as Promise<T | undefined>;
   }
 
   const doc = document;
@@ -250,6 +251,10 @@ function startContentScript(ctx: ContentScriptContext) {
 
   /** Shows the icon on a focused field with a role, if the page shows the field. [form]: its form, when detected already. */
   function evaluate(input: HTMLInputElement, form?: DetectedForm | null) {
+    // An update of the extension may have orphaned this script: the read then
+    // tears it down, rather than show an icon that does nothing. See
+    // ../../src/lib/content/orphan.ts.
+    if (ctx.isInvalid) return;
     const found = roleOf(input, form);
     if (found === null) {
       if (ui.iconTarget === input) ui.hideIcon();
@@ -271,6 +276,8 @@ function startContentScript(ctx: ContentScriptContext) {
   doc.addEventListener(
     "focusin",
     (event) => {
+      // An orphaned script tears down here, before it takes in shadow roots; see [evaluate].
+      if (ctx.isInvalid) return;
       // A closed shadow root shows up as its host; look inside where reachable.
       const input = inputOf(event.composedPath()[0]) ?? inputOf(deepActiveElement());
       if (input === null) return;

@@ -11,6 +11,11 @@ import {
   type ObservableStorageArea,
 } from "../src/lib/options/store";
 
+/** `storage.local` of the fake browser. */
+const localArea = () => fakeBrowser.storage.local as unknown as ObservableStorageArea;
+/** The options record as stored. */
+const storedRecord = async () => (await localArea().get(OPTIONS_KEY))[OPTIONS_KEY];
+
 beforeEach(() => {
   fakeBrowser.reset();
 });
@@ -45,7 +50,7 @@ describe("options", () => {
   });
 
   it("stores changes, which content scripts follow", async () => {
-    const storage = fakeBrowser.storage.local as unknown as ObservableStorageArea;
+    const storage = localArea();
     const store = new OptionsStore(storage);
     const seen: ExtensionOptions[] = [];
     const stop = watchOptions(storage, (options) => seen.push(options));
@@ -64,11 +69,47 @@ describe("options", () => {
     };
     expect(await store.options()).toEqual(changed);
     expect(seen.at(-1)).toEqual(changed);
-    expect((await storage.get(OPTIONS_KEY))[OPTIONS_KEY]).toEqual(changed);
+    expect(await storedRecord()).toEqual({
+      version: 1,
+      inlineMenu: false,
+      fillPasswordStep: false,
+      submitAfterFill: true,
+      passkeys: false,
+    });
 
     stop();
     await store.setOptions({ savePrompts: false });
     expect(seen.at(-1)!.savePrompts).toBe(true);
+  });
+
+  it("stores only the options the user set, so a changed default reaches the others", async () => {
+    const storage = localArea();
+    await new OptionsStore(storage).setOptions({ inlineMenu: false });
+    expect(await storedRecord()).toEqual({ version: 1, inlineMenu: false });
+
+    const defaults = DEFAULT_OPTIONS as ExtensionOptions;
+    defaults.submitAfterFill = true;
+    try {
+      expect(await new OptionsStore(storage).options()).toEqual({ ...DEFAULT_OPTIONS, inlineMenu: false, submitAfterFill: true });
+    } finally {
+      defaults.submitAfterFill = false;
+    }
+  });
+
+  it("drops unknown and malformed options when it stores a change", async () => {
+    const storage = localArea();
+    await storage.set({ [OPTIONS_KEY]: { inlineMenu: "no", passkeys: false, unknown: true } });
+    await new OptionsStore(storage).setOptions({ savePrompts: false });
+    expect(await storedRecord()).toEqual({ version: 1, passkeys: false, savePrompts: false });
+  });
+
+  it("reads a record of a newer version as no options set, and replaces it on a change", async () => {
+    const storage = localArea();
+    await storage.set({ [OPTIONS_KEY]: { version: 2, inlineMenu: false } });
+    const store = new OptionsStore(storage);
+    expect(await store.options()).toEqual(DEFAULT_OPTIONS);
+    await store.setOptions({ passkeys: false });
+    expect(await storedRecord()).toEqual({ version: 1, passkeys: false });
   });
 
   it("drops a first read that a change overtook", async () => {

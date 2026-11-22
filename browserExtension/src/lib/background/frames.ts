@@ -175,6 +175,11 @@ export class TabWatch {
    */
   constructor(private readonly watching: (active: boolean) => void = () => undefined) {}
 
+  /** Whether an action runs. */
+  get busy(): boolean {
+    return this.count > 0;
+  }
+
   /**
    * Runs [action] with a signal that aborts when tab [tabId] closes, or
    * leaves the origin of [url], the URL of its top frame if known.

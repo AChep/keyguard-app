@@ -1,0 +1,4 @@
+-- A request keeps the stable id of the client that made it, a browser's
+-- pairing, and what only its client knows as JSON. Others leave them NULL.
+ALTER TABLE cliAgentUsageHistory ADD COLUMN clientId TEXT;
+ALTER TABLE cliAgentUsageHistory ADD COLUMN details TEXT;

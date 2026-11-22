@@ -185,8 +185,22 @@ describe("ProtocolSession", () => {
   });
 
   it("rejects a response of the wrong shape", async () => {
-    const { protocol } = connect({ handler: () => ({ vault: "open" }) });
+    const { protocol } = connect({ handler: () => ({ vault: true }) });
     await expect(protocol.request("unlock", {})).rejects.toBeInstanceOf(InvalidResponse);
+  });
+
+  it("reads an unknown vault state as locked, in responses and events", async () => {
+    const { app, protocol, events } = connect({
+      handler: (request) =>
+        request.type === "hello" ? { protocol: 1, capabilities: [], paired: true, vault: "sealed" } : { vault: "sealed" },
+    });
+    await expect(protocol.request("hello", hello)).resolves.toMatchObject({ vault: "locked" });
+    await expect(protocol.request("unlock", {})).resolves.toMatchObject({ vault: "locked" });
+    app.event({ event: "vault", state: "sealed" });
+    app.event({ event: "vault" });
+    app.event({ event: "vault", state: 1 });
+    await flush();
+    expect(events).toEqual([{ event: "vault", state: "locked" }]);
   });
 
   it("reads password_hidden of an item as an optional boolean", async () => {

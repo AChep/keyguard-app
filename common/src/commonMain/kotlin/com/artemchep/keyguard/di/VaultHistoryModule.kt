@@ -227,6 +227,7 @@ internal class VaultHistoryModule {
             scoped<CliAgentUsageHistoryRepository> {
                 CliAgentUsageHistoryRepositoryImpl(
                     databaseManager = get(),
+                    json = get(),
                     dispatcher = databaseDispatcher(),
                 )
             }

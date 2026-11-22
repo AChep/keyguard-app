@@ -14,6 +14,8 @@ data class AddCliAgentUsageHistoryRequest(
     val errorCode: String?,
     val command: String?,
     val path: String?,
+    val clientId: String?,
+    val details: CliAgentUsageDetails?,
     val instant: Instant = Clock.System.now(),
     /**
      * Optional unique event id. Queued events set it so that replaying

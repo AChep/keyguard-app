@@ -283,6 +283,8 @@ private fun PendingUsageHistoryPayload.toAddCliAgentUsageHistoryRequest(
     errorCode = cliAgent?.errorCode,
     command = cliAgent?.command,
     path = cliAgent?.path,
+    clientId = cliAgent?.clientId,
+    details = cliAgent?.details,
     instant = instant,
     eventId = eventId,
 )

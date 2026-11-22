@@ -17,6 +17,8 @@ CREATE TABLE cliAgentUsageHistory (
   path TEXT,
   createdAt INTEGER AS Instant NOT NULL,
   eventId TEXT,
+  clientId TEXT,
+  details TEXT,
   FOREIGN KEY (cipherId) REFERENCES cipher(cipherId) ON DELETE CASCADE
 );
 
@@ -25,8 +27,8 @@ CREATE INDEX idx_cliAgentUsageHistory_cipherId_createdAt ON cliAgentUsageHistory
 CREATE UNIQUE INDEX idx_cliAgentUsageHistory_eventId ON cliAgentUsageHistory(eventId);
 
 insert:
-INSERT OR IGNORE INTO cliAgentUsageHistory(cipherId, sessionId, client, caller, clientName, request, response, errorCode, command, path, createdAt, eventId)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR IGNORE INTO cliAgentUsageHistory(cipherId, sessionId, client, caller, clientName, request, response, errorCode, command, path, createdAt, eventId, clientId, details)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 getRecentByClient:
 SELECT *

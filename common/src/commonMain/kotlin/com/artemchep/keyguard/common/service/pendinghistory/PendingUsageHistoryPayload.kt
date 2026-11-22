@@ -1,5 +1,7 @@
 package com.artemchep.keyguard.common.service.pendinghistory
 
+import com.artemchep.keyguard.common.model.CliAgentUsageDetails
+import com.artemchep.keyguard.common.model.CliAgentUsageDetailsOrNullSerializer
 import kotlinx.serialization.Serializable
 
 /**
@@ -28,4 +30,8 @@ data class PendingCliAgentUsageHistory(
     val errorCode: String? = null,
     val command: String? = null,
     val path: String? = null,
+    val clientId: String? = null,
+    /** Details that this build can not read drop out, not the event. */
+    @Serializable(with = CliAgentUsageDetailsOrNullSerializer::class)
+    val details: CliAgentUsageDetails? = null,
 )

@@ -18,6 +18,7 @@ import { PageController, type PagePort } from "../src/lib/background/pages";
 import { PasskeyController } from "../src/lib/background/passkeys";
 import { siteIconSource, siteIconUrl, type SiteIconEnv } from "../src/lib/background/siteIcon";
 import { ThemeSync, type FirefoxThemeApi } from "../src/lib/background/theme";
+import { ExtensionUpdater, reinjectContentScripts } from "../src/lib/background/update";
 import { extensionWasmOptions, loadNoise } from "../src/lib/crypto/wasm";
 import type { NativePort } from "../src/lib/native/connection";
 import { OPTIONS_KEY, OptionsStore, parseOptions } from "../src/lib/options/store";
@@ -159,6 +160,7 @@ export default defineBackground(() => {
       for (const port of popups) post(port, { kind: "status", status });
       passkeys.statusChanged();
       pages.statusChanged();
+      updater.statusChanged(status);
     },
   });
 
@@ -192,6 +194,13 @@ export default defineBackground(() => {
     documentIds: !import.meta.env.FIREFOX,
   });
 
+  const updater = new ExtensionUpdater({
+    idle: () => popups.size === 0 && !controller.busy && !pages.busy && !passkeys.busy,
+    reload: () => browser.runtime.reload(),
+    // Firefox has none.
+    requestUpdateCheck: import.meta.env.FIREFOX ? undefined : () => browser.runtime.requestUpdateCheck(),
+  });
+
   const calls: CallHandlers = { ...controller.calls, ...pages.calls };
 
   browser.runtime.onConnect.addListener((port) => {
@@ -215,7 +224,7 @@ export default defineBackground(() => {
     port.onDisconnect.addListener(() => popups.delete(port));
     port.onMessage.addListener((message: unknown) => {
       if (!isCall(message, calls)) return;
-      answer(calls, message.method, message.args as never).then(
+      updater.track(answer(calls, message.method, message.args as never)).then(
         (value) => post(port, { kind: "result", id: message.id, ok: true, value }),
         (error: unknown) => post(port, { kind: "result", id: message.id, ok: false, error: callErrorOf(error) }),
       );
@@ -226,7 +235,7 @@ export default defineBackground(() => {
   // Content scripts. Extension pages get no answer here.
   browser.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (sender.tab === undefined) return false;
-    pages.onContentMessage(message, sender).then(sendResponse, (error: unknown) => {
+    updater.track(pages.onContentMessage(message, sender)).then(sendResponse, (error: unknown) => {
       console.warn("Keyguard: a content script request failed", error);
       sendResponse(null);
     });
@@ -260,9 +269,23 @@ export default defineBackground(() => {
     if (windowId !== browser.windows.WINDOW_ID_NONE) controller.focused();
   });
 
-  // The extension creates its static key on install (protocol §2).
-  browser.runtime.onInstalled.addListener(() => {
+  // A downloaded update installs once the extension is idle, see src/lib/background/update.ts.
+  browser.runtime.onUpdateAvailable.addListener(() => updater.updateAvailable());
+  browser.runtime.onSuspend.addListener(() => updater.suspending());
+
+  browser.runtime.onInstalled.addListener(({ reason }) => {
+    // The extension creates its static key on install (protocol §2).
     controller.ensureStaticKey().catch((error: unknown) => console.error("Keyguard: no static key", error));
+    // Open tabs get this version's content scripts in place of the copies the
+    // update orphaned. Firefox starts the manifest's content scripts in open
+    // tabs itself as the extension starts.
+    if (reason === "update" && !import.meta.env.FIREFOX) {
+      void reinjectContentScripts({
+        contentScripts: browser.runtime.getManifest().content_scripts ?? [],
+        tabs: (query) => browser.tabs.query(query),
+        inject: (tabId, files, allFrames) => browser.scripting.executeScript({ target: { tabId, allFrames }, files: files as never[] }),
+      });
+    }
   });
   // A startup listener starts the worker with the browser, so the toolbar
   // button shows the status before the popup opens.

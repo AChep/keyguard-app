@@ -275,7 +275,6 @@ type Check = (value: unknown) => boolean;
 const isString: Check = (value) => typeof value === "string";
 const isBoolean: Check = (value) => typeof value === "boolean";
 const isInteger: Check = (value) => Number.isSafeInteger(value);
-const isVault: Check = (value) => value === "locked" || value === "unlocked";
 const optional =
   (check: Check): Check =>
   (value) =>
@@ -304,10 +303,10 @@ const isItem = shape({ ...ITEM_FIELDS, passkeys: optional(arrayOf(isPasskey)), l
 const isSearchItem = shape({ ...ITEM_FIELDS, matched: isBoolean });
 
 const RESPONSE_SHAPES: { [T in RequestType]: Check } = {
-  hello: shape({ protocol: isInteger, capabilities: arrayOf(isString), paired: isBoolean, vault: isVault }),
+  hello: shape({ protocol: isInteger, capabilities: arrayOf(isString), paired: isBoolean, vault: isString }),
   pair_commit: shape({ nonce: isString }),
-  pair_reveal: shape({ vault: isVault }),
-  unlock: shape({ vault: isVault }),
+  pair_reveal: shape({ vault: isString }),
+  unlock: shape({ vault: isString }),
   suggest: shape({ blocked: isBoolean, save_blocked: isBoolean, truncated: isBoolean, items: arrayOf(isItem) }),
   search: shape({ blocked: isBoolean, truncated: isBoolean, items: arrayOf(isSearchItem) }),
   fill: shape({ username: optional(isString), password: optional(isString) }),
@@ -319,17 +318,23 @@ const RESPONSE_SHAPES: { [T in RequestType]: Check } = {
   passkey_create: shape({ credential: isObject }),
 };
 
+/** A vault state; an unknown one is `locked`, so the app may add states. */
+function vaultState(value: string): VaultState {
+  return value === "unlocked" ? "unlocked" : "locked";
+}
+
 /** Checks the fields of a successful response and returns it typed. */
 export function parseResponse<T extends RequestType>(type: T, message: JsonObject): ResponseOf<T> {
   if (!RESPONSE_SHAPES[type](message)) throw new InvalidResponse(type);
-  return message as unknown as ResponseOf<T>;
+  const response = typeof message.vault === "string" ? { ...message, vault: vaultState(message.vault) } : message;
+  return response as unknown as ResponseOf<T>;
 }
 
 /** Returns a known event, or `null` for one to ignore. */
 export function parseEvent(message: JsonObject): ProtocolEvent | null {
   switch (message.event) {
     case "vault":
-      return isVault(message.state) ? { event: "vault", state: message.state as VaultState } : null;
+      return typeof message.state === "string" ? { event: "vault", state: vaultState(message.state) } : null;
     case "revoked":
       return { event: "revoked" };
     case "disabled":

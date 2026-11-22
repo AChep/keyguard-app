@@ -164,6 +164,11 @@ export class PasskeyController {
     });
   }
 
+  /** Whether a conditional `get` waits for the user's pick: a reload of the extension would hand it to the browser. */
+  get busy(): boolean {
+    return this.conditionals.size > 0;
+  }
+
   /** The latest conditional `get` of a frame's document. */
   conditionalFor(frame: FrameRef): ConditionalRequest | null {
     return this.pending(frame);

@@ -404,6 +404,24 @@ export class PageController {
   }
 
   /**
+   * Whether the user is in the middle of something here, which a reload of
+   * the extension would cut: an inline menu or a save bar open or about to
+   * bind, a save offered, a probe, or a fill or list of the shortcut or the
+   * popup.
+   */
+  get busy(): boolean {
+    const now = this.now();
+    return (
+      this.menus.size > 0 ||
+      this.saveBars.size > 0 ||
+      this.saves.size > 0 ||
+      this.probes.size > 0 ||
+      this.deps.tabs.busy ||
+      [...this.tokens.values()].some((issued) => this.live(issued, now))
+    );
+  }
+
+  /**
    * Whether a blocked URI of the user blocks saving on [url], as the app's
    * `suggest` says. `false` when the app can't tell, as with the vault
    * locked: it checks again when the user saves.
@@ -482,7 +500,7 @@ export class PageController {
 
   private issue(token: Omit<IssuedToken, "issuedAt">): string {
     const now = this.now();
-    for (const [key, issued] of this.tokens) if (now - issued.issuedAt > TOKEN_TTL_MS) this.drop(key);
+    for (const [key, issued] of this.tokens) if (!this.live(issued, now)) this.drop(key);
     const key = this.randomToken();
     const issued: IssuedToken = { ...token, issuedAt: now };
     this.tokens.set(key, issued);
@@ -500,9 +518,14 @@ export class PageController {
     const issued = this.tokens.get(key);
     if (issued === undefined || issued.kind !== kind || issued.frame.tabId !== tabId) return null;
     this.tokens.delete(key);
-    if (this.now() - issued.issuedAt <= TOKEN_TTL_MS) return issued;
+    if (this.live(issued)) return issued;
     this.dropPrefetch(issued);
     return null;
+  }
+
+  /** Whether [issued] has not expired yet. */
+  private live(issued: IssuedToken, now = this.now()): boolean {
+    return now - issued.issuedAt <= TOKEN_TTL_MS;
   }
 
   /** Forgets a token: its menu's early requests stop. */

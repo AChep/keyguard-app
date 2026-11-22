@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.cliagent.history
 
+import com.artemchep.keyguard.common.model.CliAgentUsageDetails
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
@@ -56,7 +57,10 @@ internal suspend fun TranslatorScope.cliAgentHistoryDetails(
         sections = listOfNotNull(
             agentHistoryErrorSection(event.errorCode),
             environmentSection,
-            if (browser) websiteSection(event) else commandSection(event),
+            when (val details = event.details) {
+                is CliAgentUsageDetails.Browser -> websiteSection(details)
+                null -> commandSection(event)
+            },
             callerSection(event, json),
         ),
     )
@@ -102,9 +106,9 @@ private suspend fun TranslatorScope.commandSection(
 
 /** The page of a browser extension's request. */
 private suspend fun TranslatorScope.websiteSection(
-    event: DCliAgentUsageHistory,
+    details: CliAgentUsageDetails.Browser,
 ): AgentHistoryDetails.Section? {
-    val websiteRow = event.path
+    val websiteRow = details.pageOrigin
         .sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH)
         ?.let { origin ->
             AgentHistoryDetails.Row.Text(
@@ -158,16 +162,18 @@ private suspend fun TranslatorScope.callerSection(
         extraRows = listOfNotNull(
             clientRow,
             clientNameRow,
-            extensionRow(event),
+            when (val details = event.details) {
+                is CliAgentUsageDetails.Browser -> extensionRow(details)
+                null -> null
+            },
         ),
     )
 }
 
-/** The extension that made a browser's request: its origin, which the log keeps as the command. */
+/** The extension that made a browser's request: its origin. */
 private suspend fun TranslatorScope.extensionRow(
-    event: DCliAgentUsageHistory,
-): AgentHistoryDetails.Row? = event.command
-    .takeIf { event.client == CliAgentUsageHistoryClient.BROWSER }
+    details: CliAgentUsageDetails.Browser,
+): AgentHistoryDetails.Row? = details.extensionOrigin
     .sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH)
     ?.let { origin ->
         AgentHistoryDetails.Row.Text(

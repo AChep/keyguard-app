@@ -592,7 +592,7 @@ class BrowserSessionTest {
             val row = fixture.awaitRecorded(CliAgentUsageHistoryRequestType.BROWSER_PAIR)
             assertEquals(CliAgentUsageHistoryResponseType.FAILURE, row.response)
             assertEquals("not_allowed", row.errorCode)
-            assertEquals(CHROME_ORIGIN, row.command)
+            assertEquals(CHROME_ORIGIN, row.browserDetails.extensionOrigin)
             // The app's log names the failure, without its message.
             val logged = fixture.log.messages.single { it.startsWith("Failed to answer a request") }
             assertTrue("IllegalStateException" in logged, logged)

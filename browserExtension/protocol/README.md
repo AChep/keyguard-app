@@ -215,6 +215,8 @@ The plaintext of each transport message is a flags byte followed by data.
   6. The [gate](#gates).
   7. The request's fields: `invalid_request`. Then the request's own checks.
 - Both sides ignore unknown fields and unknown events.
+- The extension treats an unknown vault state, in a response or a `vault` event,
+  as `"locked"`.
 - Optional fields (marked `?`) are omitted when absent.
 - [`cancel`](#cancel) stops one request in flight. Ending the session stops all
   of them, without answers.

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.common.service.cli.agent
 
+import com.artemchep.keyguard.common.model.CliAgentUsageDetails
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
@@ -194,6 +195,49 @@ class CliAgentUsageRecorderTest {
         assertNull(usage.caller)
     }
 
+    @Test
+    fun `a browser request is recorded with its pairing and details`() = runTest {
+        val fixture = EnvironmentFixture(backgroundScope)
+        fixture.ready()
+
+        fixture.recorder.record(browserUsage(), errorCode = null)
+
+        val usage = fixture.recordedUsage.single()
+        assertEquals(CliAgentUsageHistoryClient.BROWSER, usage.client)
+        assertEquals("Work laptop", usage.clientName)
+        assertEquals("pairing", usage.clientId)
+        assertEquals(BROWSER_DETAILS, usage.details)
+        assertNull(usage.command)
+        assertNull(usage.path)
+    }
+
+    @Test
+    fun `a browser request while the vault is locked queues its pairing and details`() = runTest {
+        val fixture = EnvironmentFixture(backgroundScope)
+        fixture.ready()
+        fixture.lock()
+
+        fixture.recorder.record(browserUsage(), errorCode = "vault_locked")
+
+        assertTrue(fixture.recordedUsage.isEmpty())
+        val cliAgent = assertNotNull(fixture.queuedUsage.single().cliAgent)
+        assertEquals(CliAgentUsageHistoryClient.BROWSER.name, cliAgent.client)
+        assertEquals("Work laptop", cliAgent.clientName)
+        assertEquals("pairing", cliAgent.clientId)
+        assertEquals(BROWSER_DETAILS, cliAgent.details)
+        assertNull(cliAgent.command)
+        assertNull(cliAgent.path)
+    }
+
+    private fun browserUsage() = CliAgentUsageRecord(
+        client = CliAgentUsageHistoryClient.BROWSER,
+        request = CliAgentUsageHistoryRequestType.BROWSER_FILL,
+        caller = null,
+        clientName = "Work laptop",
+        clientId = "pairing",
+        details = BROWSER_DETAILS,
+    )
+
     private suspend fun EnvironmentFixture.readyCli() {
         ready()
         cli.configureRuntime(path = "/bin/keyguard", capabilities = UNSANDBOXED)
@@ -209,4 +253,11 @@ class CliAgentUsageRecorderTest {
             caller = CallerIdentity(pid = 42, processName = "keyguard"),
         ),
     )
+
+    private companion object {
+        val BROWSER_DETAILS = CliAgentUsageDetails.Browser(
+            extensionOrigin = "chrome-extension://abcdefghijklmnopabcdefghijklmnop/",
+            pageOrigin = "https://example.com",
+        )
+    }
 }

@@ -1,5 +1,6 @@
 package com.artemchep.keyguard.feature.agent.history
 
+import com.artemchep.keyguard.common.model.CliAgentUsageDetails
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
@@ -224,6 +225,8 @@ class AgentHistoryDetailsTest {
                     errorCode = null,
                     command = "npm start",
                     path = "/project",
+                    clientId = null,
+                    details = null,
                 ),
                 cipher = environment,
                 requestText = "Run",
@@ -264,6 +267,8 @@ class AgentHistoryDetailsTest {
                     errorCode = null,
                     command = null,
                     path = "/project/.env",
+                    clientId = null,
+                    details = null,
                 ),
                 cipher = null,
                 requestText = "Read",
@@ -299,6 +304,8 @@ class AgentHistoryDetailsTest {
                     errorCode = "operation_failed",
                     command = null,
                     path = null,
+                    clientId = null,
+                    details = null,
                 ),
                 cipher = null,
                 requestText = "Update",
@@ -328,9 +335,13 @@ class AgentHistoryDetailsTest {
                     request = CliAgentUsageHistoryRequestType.BROWSER_PAIR,
                     response = CliAgentUsageHistoryResponseType.USER_DENIED,
                     errorCode = null,
-                    // The log keeps the extension's origin as the command.
-                    command = EXTENSION_ORIGIN,
-                    path = "https://example.com",
+                    command = null,
+                    path = null,
+                    clientId = "pairing",
+                    details = CliAgentUsageDetails.Browser(
+                        extensionOrigin = EXTENSION_ORIGIN,
+                        pageOrigin = "https://example.com",
+                    ),
                 ),
                 cipher = null,
                 requestText = "Pair",

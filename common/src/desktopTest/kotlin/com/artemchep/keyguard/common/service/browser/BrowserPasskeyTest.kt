@@ -141,7 +141,7 @@ class BrowserPasskeyTest {
         log.forEach { entry ->
             assertEquals(CliAgentUsageHistoryResponseType.SUCCESS, entry.response)
             assertEquals("a", entry.cipherId)
-            assertEquals(ORIGIN, entry.path)
+            assertEquals(ORIGIN, entry.browserDetails.pageOrigin)
         }
     }
 
@@ -160,7 +160,7 @@ class BrowserPasskeyTest {
         val entry = fixture.awaitRecorded(CliAgentUsageHistoryRequestType.BROWSER_PASSKEY_GET).single()
         assertEquals(CliAgentUsageHistoryResponseType.SUCCESS, entry.response)
         assertEquals("a", entry.cipherId)
-        assertEquals(ORIGIN, entry.path)
+        assertEquals(ORIGIN, entry.browserDetails.pageOrigin)
         assertEquals(listOf("a"), fixture.passkeyHistory.map { it.cipherId })
         delay(100)
         assertEquals(listOf(entry), fixture.recorded().filter { it.request == entry.request })

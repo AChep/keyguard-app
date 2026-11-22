@@ -181,7 +181,10 @@ class BrowserVaultOperationsTest {
             assertEquals(CliAgentUsageHistoryResponseType.SUCCESS, entry.response)
             assertEquals("Google Chrome", entry.clientName)
         }
-        assertEquals(setOf("https://login.example.com", "https://example.com"), log.map { it.path }.toSet())
+        assertEquals(
+            setOf("https://login.example.com", "https://example.com"),
+            log.map { it.browserDetails.pageOrigin }.toSet(),
+        )
     }
 
     @Test
@@ -943,18 +946,31 @@ class BrowserVaultOperationsTest {
         // Remembered: no prompt.
         client.receive()
 
+        // Each row links to the pairing by its id.
+        val pairingId = fixture.store.pairings().single().id
         val pair = fixture.awaitRecorded(CliAgentUsageHistoryRequestType.BROWSER_PAIR).single()
         assertEquals(CliAgentUsageHistoryClient.BROWSER, pair.client)
         assertEquals(CliAgentUsageHistoryResponseType.SUCCESS, pair.response)
         assertEquals("Google Chrome", pair.clientName)
+        assertEquals(pairingId, pair.clientId)
+        assertEquals(CHROME_ORIGIN, pair.browserDetails.extensionOrigin)
+        assertNull(pair.browserDetails.pageOrigin)
         val fills = fixture.awaitRecorded(CliAgentUsageHistoryRequestType.BROWSER_FILL, count = 2)
         fills.forEach { fill ->
             assertEquals(CliAgentUsageHistoryResponseType.SUCCESS, fill.response)
             assertEquals("a", fill.cipherId)
             assertEquals("Google Chrome", fill.clientName)
             assertTrue(fill.caller.orEmpty().contains("Google Chrome"))
+            assertEquals(pairingId, fill.clientId)
+            assertEquals(CHROME_ORIGIN, fill.browserDetails.extensionOrigin)
+            // The browser rows have no command line nor working directory.
+            assertNull(fill.command)
+            assertNull(fill.path)
         }
-        assertEquals(setOf("https://login.example.com", "https://example.com"), fills.map { it.path }.toSet())
+        assertEquals(
+            setOf("https://login.example.com", "https://example.com"),
+            fills.map { it.browserDetails.pageOrigin }.toSet(),
+        )
 
         assertEquals("not_allowed", client.call(fill(13, handle, "https://example.org/")).string("error"))
         val refused = fixture.awaitRecorded(CliAgentUsageHistoryRequestType.BROWSER_FILL, count = 3)
@@ -980,7 +996,7 @@ class BrowserVaultOperationsTest {
         val entry = fixture.awaitRecorded(CliAgentUsageHistoryRequestType.BROWSER_FILL).single()
         assertEquals(CliAgentUsageHistoryResponseType.SUCCESS, entry.response)
         assertEquals("a", entry.cipherId)
-        assertEquals("https://example.com", entry.path)
+        assertEquals("https://example.com", entry.browserDetails.pageOrigin)
         assertEquals(listOf("a"), fixture.autofillHistory.map { it.cipherId })
         assertEquals(true, client.call(suggest(15, PAGE)).items().single().bool("last_used"))
         delay(100)
@@ -1000,7 +1016,7 @@ class BrowserVaultOperationsTest {
         assertEquals(true, client.call(neverSave(11, PAGE)).bool("ok"))
         val entry = fixture.awaitRecorded(CliAgentUsageHistoryRequestType.BROWSER_NEVER_SAVE).single()
         assertEquals(CliAgentUsageHistoryResponseType.SUCCESS, entry.response)
-        assertEquals("https://example.com", entry.path)
+        assertEquals("https://example.com", entry.browserDetails.pageOrigin)
         delay(100)
         assertEquals(listOf(entry), fixture.recorded().filter { it.request == entry.request })
     }

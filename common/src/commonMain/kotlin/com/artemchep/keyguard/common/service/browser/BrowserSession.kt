@@ -538,7 +538,7 @@ internal class BrowserSession(
 
     private fun recordUnlock(error: BrowserError?, cancelled: Boolean) = requestLog.record(
         session = session.value,
-        pairingName = pairing.value?.name,
+        pairing = pairing.value,
         request = CliAgentUsageHistoryRequestType.BROWSER_UNLOCK,
         error = error,
         cancelled = cancelled,

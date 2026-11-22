@@ -529,6 +529,16 @@ describe("conditional requests", () => {
     await expect(context.passkeys.pick(frame(), "pk-1")).rejects.toMatchObject({ code: "invalid_request" });
   });
 
+  it("keeps the extension busy while one waits: a reload would hand it to the browser", async () => {
+    const context = setup();
+    await context.send(getRequest());
+    expect(context.passkeys.busy).toBe(false);
+    const port = await context.send(getRequest({ mediation: "conditional" }));
+    expect(context.passkeys.busy).toBe(true);
+    port.close();
+    expect(context.passkeys.busy).toBe(false);
+  });
+
   it("lists passkeys of the request's RP ID, or of the page's host", () => {
     expect(rpIdOf({ rpId: "example.com" }, ORIGIN)).toBe("example.com");
     expect(rpIdOf({}, "https://login.example.com:8443")).toBe("login.example.com");

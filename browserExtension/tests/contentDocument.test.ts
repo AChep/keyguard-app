@@ -3,14 +3,15 @@
 // frames only, as on Firefox, which has no `documentId`: a document refuses
 // the commands of the document before it in the same frame and origin. Also
 // the top frame's answer to a `top_probe`, what it re-checks as the page
-// changes, the password step after a username step, and the sign-in after a
-// fill.
+// changes, the password step after a username step, the sign-in after a
+// fill, and a script that an update of the extension orphaned or replaced.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { fakeBrowser } from "wxt/testing/fake-browser";
-import type { ContentScriptContext } from "wxt/utils/content-script-context";
+import { ContentScriptContext } from "wxt/utils/content-script-context";
 import contentScript from "../entrypoints/content/index";
 import { TabWatch, type MessageSenderLike } from "../src/lib/background/frames";
 import { PageController, type AppAccess } from "../src/lib/background/pages";
+import { orphanSafe } from "../src/lib/content/orphan";
 import { OptionsStore } from "../src/lib/options/store";
 import { documentCommandOf, type ContentCommand } from "../src/lib/page/messages";
 import { ProtocolError } from "../src/lib/protocol/session";
@@ -719,5 +720,98 @@ describe("the sign-in after a fill", () => {
     await deliver({ ...fill, submit: "yes" } as unknown as ContentCommand);
     await scanned();
     expect(events).toEqual([]);
+  });
+});
+
+describe("an update of the extension", () => {
+  /** Starts a copy of the content script with WXT's own context, as the browser or the background's re-injection does. */
+  function startCopy(): ContentScriptContext {
+    const ctx = new ContentScriptContext("content", { noScriptStartedPostMessage: true });
+    contentScript.main(ctx);
+    stops.push(() => ctx.abort());
+    return ctx;
+  }
+
+  // The save bar's iframe; at about:blank here.
+  const settings = (window as unknown as { happyDOM: { settings: { enableIframePageLoading: boolean } } }).happyDOM.settings;
+  const id = fakeBrowser.runtime.id;
+  beforeEach(() => {
+    settings.enableIframePageLoading = true;
+    vi.spyOn(fakeBrowser.runtime, "getURL").mockReturnValue("about:blank");
+  });
+  afterEach(() => {
+    settings.enableIframePageLoading = false;
+    fakeBrowser.runtime.id = id;
+    vi.restoreAllMocks();
+  });
+
+  /** The hosts of the extension's UI in the page. */
+  const hosts = () => Array.from(document.documentElement.children).filter((it) => it.localName === "div");
+
+  /** A login submitted on the page: the background asks the content script to show the save bar, in the UI's host. */
+  async function offerSave() {
+    const candidate = { username: "ann", password: "new-pass" };
+    await pages.onContentMessage({ kind: "save_candidate", candidate, doc: STALE }, SENDER);
+    await scanned();
+  }
+
+  it("tears down a script it orphaned as a field gets focus: its UI goes, and nothing is sent", async () => {
+    render(FORM);
+    const ctx = startCopy();
+    await offerSave();
+    expect(hosts()).toHaveLength(1);
+
+    // Chromium: the extension's APIs are gone, and a call throws at once.
+    fakeBrowser.runtime.id = undefined as never;
+    const sendMessage = vi.spyOn(fakeBrowser.runtime, "sendMessage").mockImplementation(() => {
+      throw new Error("Extension context invalidated.");
+    });
+    byId("username").focus();
+    await scanned();
+    // Not `isValid`, whose read would tear the script down itself.
+    expect(ctx.signal.aborted).toBe(true);
+    expect(hosts()).toEqual([]);
+    expect(sendMessage).not.toHaveBeenCalled();
+  });
+
+  it("sends nothing from an orphaned script, and never throws where the call throws at once", async () => {
+    let reads = 0;
+    let gone = false;
+    const ctx = {
+      get isInvalid() {
+        reads++;
+        return gone;
+      },
+    };
+    const send = orphanSafe(ctx, (_message: string): Promise<string> => {
+      throw new Error("Extension context invalidated.");
+    });
+    await expect(send("menu_open")).resolves.toBeUndefined();
+    // Asked again after the failure: the extension may have gone meanwhile.
+    expect(reads).toBe(2);
+    gone = true;
+    const answer = vi.fn(async () => "token");
+    await expect(orphanSafe(ctx, answer)("menu_open")).resolves.toBeUndefined();
+    expect(answer).not.toHaveBeenCalled();
+  });
+
+  it("starts a copy that replaces the live one in its frame: one UI, one answer", async () => {
+    render(FORM);
+    const first = startCopy();
+    await offerSave();
+    expect(hosts()).toHaveLength(1);
+
+    const second = startCopy();
+    expect(first.signal.aborted).toBe(true);
+    expect(second.signal.aborted).toBe(false);
+    expect(hosts()).toEqual([]);
+    // The new copy shows the offer again, as on the page after a navigation.
+    await scanned();
+    expect(hosts()).toHaveLength(1);
+    messages.length = 0;
+    await deliver({ kind: "save_bar_show" });
+    await scanned();
+    expect(messages.map((it) => it.kind)).toEqual(["save_bar_open"]);
+    expect(hosts()).toHaveLength(1);
   });
 });

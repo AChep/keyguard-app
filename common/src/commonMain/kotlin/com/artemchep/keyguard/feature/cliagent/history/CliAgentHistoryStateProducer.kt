@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.runtime.Composable
 import com.artemchep.keyguard.common.io.launchIn
+import com.artemchep.keyguard.common.model.CliAgentUsageDetails
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryMode
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
@@ -303,7 +304,10 @@ private suspend fun TranslatorScope.toItem(
     )
 }
 
-/** The command line and its directory, or the path of a local `.env` file. */
+/**
+ * The command line and its directory, the path of a local `.env` file, or
+ * the page of a browser's request; only the details show its extension.
+ */
 private suspend fun TranslatorScope.commandText(
     event: DCliAgentUsageHistory,
 ): String? {
@@ -311,8 +315,6 @@ private suspend fun TranslatorScope.commandText(
         .sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH)
     return buildCliAgentUsageHistoryDetails(
         command = event.command
-            // A browser's is the extension's origin, which only the details show.
-            .takeUnless { event.client == CliAgentUsageHistoryClient.BROWSER }
             .sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH),
         path = when (event.request) {
             CliAgentUsageHistoryRequestType.RUN -> path
@@ -320,7 +322,10 @@ private suspend fun TranslatorScope.commandText(
 
             else -> path
         },
-    )
+    ) ?: when (val details = event.details) {
+        is CliAgentUsageDetails.Browser -> details.pageOrigin
+        null -> null
+    }.sanitizedAgentDisplayValue(MAX_CLI_COMMAND_DISPLAY_LENGTH)
 }
 
 internal suspend fun TranslatorScope.title(client: CliAgentUsageHistoryClient): String = when (client) {

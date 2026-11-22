@@ -13,6 +13,7 @@ import com.artemchep.keyguard.common.model.AddCliAgentUsageHistoryRequest
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequest
 import com.artemchep.keyguard.common.model.AddCredentialCipherRequestPasskeyData
 import com.artemchep.keyguard.common.model.AddUriCipherRequest
+import com.artemchep.keyguard.common.model.CliAgentUsageDetails
 import com.artemchep.keyguard.common.model.DCollection
 import com.artemchep.keyguard.common.model.DEquivalentDomains
 import com.artemchep.keyguard.common.model.DGlobalUrlBlock
@@ -140,6 +141,10 @@ internal const val CHROME_ORIGIN = "chrome-extension://abcdefghijklmnopabcdefghi
 internal const val FIREFOX_ORIGIN = "keyguard@artemchep.com"
 internal const val TIMEOUT = 10_000L
 internal const val ACCOUNT_ID = "account"
+
+/** The details of a browser's row of the request log. */
+internal val AddCliAgentUsageHistoryRequest.browserDetails: CliAgentUsageDetails.Browser
+    get() = assertIs(details)
 
 /** The last two labels of a host are its registrable domain. */
 internal object LastTwoLabelsTldService : TldService {

@@ -1,9 +1,13 @@
 package com.artemchep.keyguard.android.downloader.journal
 
+import com.artemchep.keyguard.common.model.CliAgentUsageDetails
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryClient
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryRequestType
 import com.artemchep.keyguard.common.model.CliAgentUsageHistoryResponseType
 import com.artemchep.keyguard.common.model.DCliAgentUsageHistory
+import com.artemchep.keyguard.common.service.browser.CHROME_ORIGIN
+import com.artemchep.keyguard.common.service.serialization.createApplicationJson
+import com.artemchep.keyguard.data.Database
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.UploadTestVaultDatabaseManager
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.createUploadTestDatabase
 import com.artemchep.keyguard.provider.bitwarden.sync.v2.insertUploadTestAccount
@@ -15,9 +19,11 @@ import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertNull
 import kotlin.time.Instant
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@Suppress("TooManyFunctions")
 class CliAgentUsageHistoryRepositoryImplTest {
     @Test
     fun `get recent lists the newest history of one client with limit`() = runTest {
@@ -114,6 +120,75 @@ class CliAgentUsageHistoryRepositoryImplTest {
     }
 
     @Test
+    fun `put stores the client id and the details as JSON`() = runTest {
+        val database = createUploadTestDatabase()
+        val repository = createRepository(database)
+        val model = model(client = CliAgentUsageHistoryClient.BROWSER).copy(
+            clientId = "pairing",
+            details = CliAgentUsageDetails.Browser(
+                extensionOrigin = CHROME_ORIGIN,
+                pageOrigin = "https://example.com",
+            ),
+        )
+        repository.put(model)()
+
+        val history = repository.getRecent(CliAgentUsageHistoryClient.BROWSER).first()
+
+        assertEquals(listOf(model), history.map { it.copy(id = null) })
+        assertEquals(
+            """{"type":"browser","extensionOrigin":"$CHROME_ORIGIN","pageOrigin":"https://example.com"}""",
+            database.storedDetails().single(),
+        )
+    }
+
+    @Test
+    fun `details that this build can not read are null, the rest of the row stays`() = runTest {
+        val database = createUploadTestDatabase()
+        val repository = createRepository(database)
+        val details = mapOf(
+            "malformed" to "{\"type\":\"browser\",",
+            "unknown-client" to """{"type":"terminal","tty":"/dev/ttys001"}""",
+            "no-type" to """{"extensionOrigin":"$CHROME_ORIGIN"}""",
+            // A field of a newer build.
+            "new-field" to """{"type":"browser","extensionOrigin":"$CHROME_ORIGIN","tabId":7}""",
+        )
+        details.entries.forEachIndexed { index, (sessionId, value) ->
+            database.cliAgentUsageHistoryQueries.insert(
+                cipherId = null,
+                sessionId = sessionId,
+                client = CliAgentUsageHistoryClient.BROWSER,
+                caller = null,
+                clientName = "Work laptop",
+                request = CliAgentUsageHistoryRequestType.BROWSER_FILL,
+                response = CliAgentUsageHistoryResponseType.SUCCESS,
+                errorCode = null,
+                command = null,
+                path = null,
+                createdAt = Instant.fromEpochMilliseconds(index.toLong()),
+                eventId = null,
+                clientId = "pairing",
+                details = value,
+            )
+        }
+
+        val history = repository.getRecent(CliAgentUsageHistoryClient.BROWSER).first()
+            .associateBy { it.sessionId }
+
+        assertEquals(details.keys, history.keys)
+        history.values.forEach { event ->
+            assertEquals("pairing", event.clientId)
+            assertEquals("Work laptop", event.clientName)
+        }
+        assertNull(history.getValue("malformed").details)
+        assertNull(history.getValue("unknown-client").details)
+        assertNull(history.getValue("no-type").details)
+        assertEquals(
+            CliAgentUsageDetails.Browser(extensionOrigin = CHROME_ORIGIN),
+            history.getValue("new-field").details,
+        )
+    }
+
+    @Test
     fun `put ignores a replayed event`() = runTest {
         val repository = createRepository()
         val model = model(client = CliAgentUsageHistoryClient.ENV).copy(eventId = "event")
@@ -123,8 +198,10 @@ class CliAgentUsageHistoryRepositoryImplTest {
         assertEquals(1L, repository.getCount(CliAgentUsageHistoryClient.ENV).first())
     }
 
-    private fun createRepository(cipherIds: List<String> = emptyList()): CliAgentUsageHistoryRepositoryImpl {
-        val database = createUploadTestDatabase()
+    private fun createRepository(
+        database: Database = createUploadTestDatabase(),
+        cipherIds: List<String> = emptyList(),
+    ): CliAgentUsageHistoryRepositoryImpl {
         if (cipherIds.isNotEmpty()) {
             database.insertUploadTestAccount()
             cipherIds.forEach { cipherId ->
@@ -133,9 +210,15 @@ class CliAgentUsageHistoryRepositoryImplTest {
         }
         return CliAgentUsageHistoryRepositoryImpl(
             databaseManager = UploadTestVaultDatabaseManager(database),
+            json = createApplicationJson(),
             dispatcher = UnconfinedTestDispatcher(),
         )
     }
+
+    private fun Database.storedDetails(): List<String?> = cliAgentUsageHistoryQueries
+        .getRecentByClient(CliAgentUsageHistoryClient.BROWSER, Long.MAX_VALUE)
+        .executeAsList()
+        .map { it.details }
 
     private fun model(
         client: CliAgentUsageHistoryClient,
@@ -153,6 +236,8 @@ class CliAgentUsageHistoryRepositoryImplTest {
         errorCode = null,
         command = null,
         path = null,
+        clientId = null,
+        details = null,
         instant = Instant.fromEpochMilliseconds(millis),
     )
 }

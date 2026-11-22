@@ -318,7 +318,7 @@ class SettingsRepositoryImpl(
         store.getBoolean(KEY_GPG_AGENT, false)
 
     private val browserExtensionPref =
-        store.getBoolean(KEY_BROWSER_EXTENSION, false)
+        store.getBoolean(KEY_BROWSER_EXTENSION, true)
 
     private val browserExtensionRemovedConnectorsPref =
         store.getSerializable<Set<String>>(

@@ -28,8 +28,8 @@ Keyguard ask.
 ## Set up the extension
 
 1. In Keyguard, open **Settings > Autofill > Browser extension**.
-2. Turn on **Enable browser extension**. Keyguard installs a connector for
-   each browser it finds.
+2. While **Enable browser extension** is on, the default, Keyguard installs
+   a connector for each browser found.
 3. Install the Keyguard extension from the store link on this screen.
 4. In the browser, select the Keyguard icon in the toolbar, then select
    **Pair**. The popup shows a 6-digit code.

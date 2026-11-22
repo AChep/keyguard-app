@@ -2,6 +2,8 @@ package com.artemchep.keyguard.provider.keyguard.transport
 
 import com.artemchep.keyguard.common.service.crypto.CryptoGenerator
 import com.artemchep.keyguard.common.util.useAndClear
+import com.artemchep.keyguard.feature.auth.common.util.urlHostOrNull
+import com.artemchep.keyguard.feature.auth.common.util.urlSchemeOf
 import com.artemchep.keyguard.feature.p2psync.compareUnsigned
 import com.artemchep.keyguard.feature.p2psync.crypto.P2pEncoding
 import com.artemchep.keyguard.feature.p2psync.mailbox.MailboxKind
@@ -81,20 +83,11 @@ class RelayEndpoint(
             c in 'A'..'Z' || c in 'a'..'z' || c in '0'..'9' || c == '-' || c == '.' || c == '_' || c == '~'
         }
 
-        /** The lowercase scheme of [url], what comes before `://`; empty if it has none. */
-        internal fun schemeOf(url: String): String = url.substringBefore("://", missingDelimiterValue = "").lowercase()
+        /** See [urlSchemeOf]. */
+        internal fun schemeOf(url: String): String = urlSchemeOf(url)
 
-        /**
-         * The host of [url] as written: what follows `://` up to the path, query or fragment,
-         * without the user info and the port; `null` if [url] has no `://` or the host is empty.
-         * Ktor's `Url` falls back to `localhost` for a missing host, so check this first.
-         */
-        internal fun hostOrNull(url: String): String? = url
-            .substringAfter("://", missingDelimiterValue = "")
-            .takeWhile { it != '/' && it != '?' && it != '#' }
-            .substringAfterLast('@')
-            .substringBefore(':')
-            .takeIf(String::isNotEmpty)
+        /** See [urlHostOrNull]. */
+        internal fun hostOrNull(url: String): String? = urlHostOrNull(url)
 
         /** The lowercase scheme and authority of [url], such as `https://relay.example.com:8443`. */
         private fun originOf(url: String): String {

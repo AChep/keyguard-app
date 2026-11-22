@@ -3,12 +3,11 @@ package com.artemchep.keyguard.feature.auth.keyguard
 import com.artemchep.keyguard.feature.auth.common.Validated
 import com.artemchep.keyguard.feature.auth.common.util.ValidationUrl
 import com.artemchep.keyguard.feature.auth.common.util.format
+import com.artemchep.keyguard.feature.auth.common.util.isServerUrl
 import com.artemchep.keyguard.feature.navigation.state.TranslatorScope
 import com.artemchep.keyguard.provider.keyguard.transport.RelayEndpoint
 import com.artemchep.keyguard.res.Res
 import com.artemchep.keyguard.res.app_link_connection_relay_token_error_invalid
-import io.ktor.http.URLParserException
-import io.ktor.http.Url
 
 internal val KEYGUARD_RELAY_URL_SCHEMES = setOf("wss", "https")
 
@@ -25,26 +24,8 @@ internal fun validateKeyguardServerUrl(
     schemes: Set<String>,
 ): ValidationUrl = when {
     url.isEmpty() -> ValidationUrl.OK
-    isKeyguardServerUrl(url, schemes) -> ValidationUrl.OK
+    isServerUrl(url, schemes) -> ValidationUrl.OK
     else -> ValidationUrl.ERROR_INVALID
-}
-
-private fun isKeyguardServerUrl(
-    url: String,
-    schemes: Set<String>,
-): Boolean = RelayEndpoint.schemeOf(url) in schemes &&
-        url.none(Char::isWhitespace) &&
-        // The URL parser falls back to the localhost
-        // when the URL has no host.
-        RelayEndpoint.hostOrNull(url) != null &&
-        isParsableUrl(url)
-
-private fun isParsableUrl(url: String): Boolean = try {
-    Url(url).host.isNotBlank()
-} catch (_: URLParserException) {
-    false
-} catch (_: IllegalArgumentException) {
-    false
 }
 
 internal suspend fun TranslatorScope.validatedServerUrl(

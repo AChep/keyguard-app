@@ -19,3 +19,19 @@ fun ensureUrlScheme(url: String): String =
     } else {
         "https://$url"
     }
+
+private val REGEX_HTTP_SCHEME_TYPO = "^https?[:/]".toRegex(RegexOption.IGNORE_CASE)
+
+/**
+ * The [url] of a server with a lowercase scheme, or `https://` if it has none.
+ * A mistyped `http(s)` scheme, such as `https:/host`, stays as typed so the
+ * validation rejects it instead of reading `https` as the host.
+ */
+fun normalizeServerUrl(url: String): String {
+    val schemeEnd = url.indexOf("://")
+    return when {
+        schemeEnd >= 0 -> url.substring(0, schemeEnd).lowercase() + url.substring(schemeEnd)
+        REGEX_HTTP_SCHEME_TYPO.containsMatchIn(url) -> url
+        else -> ensureUrlScheme(url)
+    }
+}

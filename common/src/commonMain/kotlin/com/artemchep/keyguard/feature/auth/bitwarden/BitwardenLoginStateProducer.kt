@@ -24,11 +24,11 @@ import com.artemchep.keyguard.common.model.ToastMessage
 import com.artemchep.keyguard.common.service.file.FileService
 import com.artemchep.keyguard.common.usecase.CipherUnsecureUrlCheck
 import com.artemchep.keyguard.common.usecase.DateFormatter
-import com.artemchep.keyguard.common.util.ensureUrlScheme
 import com.artemchep.keyguard.common.util.flow.EventFlow
 import com.artemchep.keyguard.common.util.flow.combineToList
 import com.artemchep.keyguard.common.util.flow.persistingStateIn
 import com.artemchep.keyguard.common.util.newChildScope
+import com.artemchep.keyguard.common.util.normalizeServerUrl
 import com.artemchep.keyguard.feature.auth.bitwarden.sso.BitwardenSsoRoute
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenLoginTwofaRoute
 import com.artemchep.keyguard.feature.auth.bitwarden.twofactor.BitwardenPasswordLoginContinuation
@@ -424,13 +424,14 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
         val textFlow = textHandle.sink
             .map { cell ->
                 val text = cell.text
+                val url = normalizeServerUrl(text)
                 val validationUrl = validateUrl(
-                    url = text,
+                    url = url,
                     allowBlank = true,
                 )
                 val badge = run {
                     val isUnsecure =
-                        validationUrl == ValidationUrl.OK && cipherUnsecureUrlCheck(text)
+                        validationUrl == ValidationUrl.OK && cipherUnsecureUrlCheck(url)
                     if (isUnsecure) {
                         return@run TextFieldModel.Vl(
                             type = TextFieldModel.Vl.Type.WARNING,
@@ -620,7 +621,7 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
         } else {
             regionSink.value = BitwardenLoginRegion.Custom.key
             val baseUrlField = envServerBaseUrlItem.state.flow.value.text
-            val sameBaseUrl = ensureUrlScheme(baseUrlField.text.trim())
+            val sameBaseUrl = normalizeServerUrl(baseUrlField.text.trim())
                 .trimEnd('/')
                 .equals(env.baseUrl.trimEnd('/'), ignoreCase = true)
             if (!sameBaseUrl) {
@@ -738,8 +739,8 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
                 identityServerUrl = identityOrNull.identityUrl,
             )
             val dataFlow = combine(
-                envServerBaseUrlItem.state.flow.map { it.text.text },
-                envServerCustomIdentityUrlItem.state.flow.map { it.text.text },
+                envServerBaseUrlItem.state.flow.map { normalizeServerUrl(it.text.text) },
+                envServerCustomIdentityUrlItem.state.flow.map { normalizeServerUrl(it.text.text) },
             ) { baseServerUrl, identityServerUrl ->
                 of(
                     baseServerUrl = baseServerUrl,
@@ -956,14 +957,14 @@ suspend fun RememberStateFlowScope.bitwardenLoginStateProducer(
 
                 is BitwardenLoginRegion.Custom -> {
                     ServerEnv(
-                        baseUrl = output.baseUrl.orEmpty().let(::ensureUrlScheme),
+                        baseUrl = output.baseUrl.orEmpty().let(::normalizeServerUrl),
                         webVaultUrl = output.webVaultUrl.orEmpty()
-                            .let(::ensureUrlScheme),
-                        apiUrl = output.apiUrl.orEmpty().let(::ensureUrlScheme),
+                            .let(::normalizeServerUrl),
+                        apiUrl = output.apiUrl.orEmpty().let(::normalizeServerUrl),
                         identityUrl = output.identityUrl.orEmpty()
-                            .let(::ensureUrlScheme),
-                        iconsUrl = output.iconsUrl.orEmpty().let(::ensureUrlScheme),
-                        notificationsUrl = output.notificationsUrl.orEmpty().let(::ensureUrlScheme),
+                            .let(::normalizeServerUrl),
+                        iconsUrl = output.iconsUrl.orEmpty().let(::normalizeServerUrl),
+                        notificationsUrl = output.notificationsUrl.orEmpty().let(::normalizeServerUrl),
                         mutualTls = output.mutualTls,
                         headers = output.headers,
                     )

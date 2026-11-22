@@ -2,7 +2,10 @@ package com.artemchep.keyguard.common.service.browser
 
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.io.runCatchingNonFatal
+import com.artemchep.keyguard.common.io.runCatchingUnlessCancelled
 import com.artemchep.keyguard.common.service.keyvalue.KeyValueStore
+import com.artemchep.keyguard.common.service.logging.LogLevel
+import com.artemchep.keyguard.common.service.logging.LogRepository
 import com.artemchep.keyguard.feature.browserextension.protocol.BrowserError
 import com.artemchep.keyguard.feature.browserextension.protocol.BrowserRequestException
 import com.artemchep.keyguard.nativecrypto.NativeCryptoNoise
@@ -39,8 +42,9 @@ import kotlinx.serialization.json.intOrNull
  * and settings show only the records this version can read.
  */
 class BrowserPairingStore(
-    store: KeyValueStore,
+    private val store: KeyValueStore,
     private val json: Json,
+    private val logRepository: LogRepository,
     private val clock: Clock = Clock.System,
 ) {
     private val mutex = Mutex()
@@ -51,14 +55,18 @@ class BrowserPairingStore(
     // Guarded by the mutex.
     private var keyPair: NativeNoiseKeyPair? = null
 
+    // Guarded by the mutex. Logged once: every session asks for the key,
+    // and the extension's host retries every few seconds.
+    private var keyErrorLogged = false
+
     /** The paired extensions, oldest first, or `null` for an unrecognized format. */
     internal val records: Flow<List<BrowserPairingRecord>?> = pairingsPreference
         .map { value -> read(value)?.map(PairingEntity::toRecord) }
 
     /**
      * The app's static key pair, created on first use; `null` while the
-     * stored one is unreadable. A newer app may store it otherwise, so it is
-     * never replaced.
+     * stored one is unreadable, which is logged once. A newer app may store
+     * it otherwise, so it is never replaced.
      */
     suspend fun appKeyPair(): NativeNoiseKeyPair? = mutex.withLock {
         keyPair?.let { return@withLock it }
@@ -71,10 +79,20 @@ class BrowserPairingStore(
             decodeOrNull(stored)
                 ?.takeIf { it.size == KEY_SIZE }
                 ?.let(NativeCryptoNoise::keyPairOf)
-                ?: return@withLock null
+                ?: run {
+                    logUnreadableKey()
+                    return@withLock null
+                }
         }
         keyPair = created
         created
+    }
+
+    // The message omits the value: it is the private key.
+    private fun logUnreadableKey() {
+        if (keyErrorLogged) return
+        keyErrorLogged = true
+        logRepository.post(TAG, "The stored app key is unreadable; no browser session starts", LogLevel.ERROR)
     }
 
     /**
@@ -83,14 +101,27 @@ class BrowserPairingStore(
      */
     suspend fun find(publicKey: ByteArray, origin: String): BrowserPairing? {
         val key = Base64.encode(publicKey)
-        val records = read(pairingsPreference.first()) ?: throw BrowserRequestException(BrowserError.UPDATE_REQUIRED)
+        val records = readStored() ?: throw BrowserRequestException(BrowserError.UPDATE_REQUIRED)
         return records.firstOrNull { it.publicKey == key && it.origin == origin }
             ?.toPairing()
     }
 
-    /** The paired extensions, oldest first, or `null` for an unrecognized format. */
-    internal suspend fun readRecords(): List<BrowserPairingRecord>? = read(pairingsPreference.first())
+    /** The paired extensions, oldest first, or `null` for an unrecognized format; see [readStored]. */
+    internal suspend fun readRecords(): List<BrowserPairingRecord>? = readStored()
         ?.map(PairingEntity::toRecord)
+
+    /**
+     * The valid pairings, or `null` for an unrecognized format. Fails with
+     * `not_allowed` while the store can't be read, as after a failed write
+     * that it couldn't reload from: the preference would read as empty, which
+     * would unpair every extension and prune every record in the vault. Every
+     * read of this class but the [records] flow goes through it.
+     */
+    private suspend fun readStored(): List<PairingEntity>? {
+        val values = runCatchingUnlessCancelled { store.getAll().bind() }
+            .getOrElse { throw BrowserRequestException(BrowserError.NOT_ALLOWED) }
+        return read(values[KEY_PAIRINGS] as? String ?: "")
+    }
 
     /**
      * Pairs the extension with [publicKey] at [origin] as the pairing [id],
@@ -103,7 +134,7 @@ class BrowserPairingStore(
         publicKey: ByteArray,
         origin: String,
     ): BrowserPairing? = mutex.withLock {
-        val records = read(pairingsPreference.first())
+        val records = readStored()
             ?: return@withLock null
         val key = Base64.encode(publicKey)
         val now = clock.now().toEpochMilliseconds()
@@ -122,7 +153,7 @@ class BrowserPairingStore(
 
     /** Forgets the pairing [id]. */
     suspend fun remove(id: String) = mutex.withLock {
-        val records = read(pairingsPreference.first())
+        val records = readStored()
             ?: return@withLock
         val remaining = records.filterNot { it.id == id }
         if (remaining.size == records.size) return@withLock
@@ -131,7 +162,7 @@ class BrowserPairingStore(
 
     /** Names the pairing [id] [name]. */
     suspend fun rename(id: String, name: String) = mutex.withLock {
-        val records = read(pairingsPreference.first())
+        val records = readStored()
             ?: return@withLock
         if (records.none { it.id == id }) return@withLock
         write(records.map { if (it.id == id) it.copy(name = name) else it })
@@ -139,7 +170,7 @@ class BrowserPairingStore(
 
     /** Notes that the pairing [id] connected, at most once an hour. */
     suspend fun touch(id: String) = mutex.withLock {
-        val records = read(pairingsPreference.first())
+        val records = readStored()
             ?: return@withLock
         val now = clock.now().toEpochMilliseconds()
         val record = records.firstOrNull { it.id == id }
@@ -161,6 +192,7 @@ class BrowserPairingStore(
     }
 
     private companion object {
+        const val TAG = "BrowserPairingStore"
         const val KEY_APP_KEY = "app_static_key"
         const val KEY_PAIRINGS = "pairings"
         const val SCHEMA_VERSION = 1

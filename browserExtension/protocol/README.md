@@ -133,6 +133,22 @@ two sides disagree, the initiator fails to decrypt message 2.
   uses nor replaces it, and starts no session.
 - The app has one static key pair, shared by all extensions.
 
+### Security scope
+
+- Code that runs under the user's account is out of scope. It can change the
+  browser's environment and native messaging manifest, the extension's
+  IndexedDB and the app's files. The app's files hold its static private key
+  unencrypted.
+- The vault's record of a pairing guards vault data: while the vault is
+  unlocked, every request of a paired session but `cancel` checks it, see
+  [Storage](#storage).
+- While the vault is locked, the outside record alone pairs a session. The
+  session can send only `hello`, `cancel`, `unlock`, `generate` and the passkey
+  requests. A passkey request shows the unlock prompt, then checks the vault's
+  record.
+- An outside store that fails to parse reads as empty. The app makes a new
+  static key, and paired extensions report a changed key.
+
 ### Handshake
 
 | Message            | Tokens         | Length |
@@ -809,8 +825,10 @@ outside record, but while the vault is unlocked, that record pairs nothing. A
 new or reset vault confirms no pairing, so each extension pairs again.
 
 - Pairing writes the vault's record first. If either write fails, pairing fails.
-- Removing a pairing deletes both records. While the vault is locked, it deletes
-  the outside one; the next write of the vault's records drops the other.
+- Removing a pairing needs an unlocked vault. It deletes the vault's record
+  first, then the outside one. If a delete fails and the outside record is
+  still there or can't be read, the app keeps the vault's record and removal
+  fails.
 - A record of a newer schema is read-only: the app reads no pairings from it and
   never overwrites it. It reports `update_required` when checking a pairing
   against that store. Only a confirmed removal sends `revoked`.

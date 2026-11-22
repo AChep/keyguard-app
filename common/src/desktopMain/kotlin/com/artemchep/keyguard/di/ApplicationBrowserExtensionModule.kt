@@ -71,6 +71,7 @@ class ApplicationBrowserExtensionModule {
             BrowserPairingStore(
                 store = get<KeyValueStoreFactory>().get(Files.BROWSER_EXTENSION),
                 json = get(),
+                logRepository = get(),
             )
         }
         single {

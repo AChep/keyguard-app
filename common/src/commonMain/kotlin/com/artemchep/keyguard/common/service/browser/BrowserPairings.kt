@@ -56,8 +56,18 @@ internal class BrowserPairings(
     /** See [BrowserPairingStore.touch]. */
     suspend fun touch(id: String) = store.touch(id)
 
-    /** An unreadable store cannot establish that a pairing was removed. */
+    /**
+     * An unreadable store cannot establish that a pairing was removed. An
+     * unpaired answer for a pairing waits for a removal in progress, which
+     * may yet put the vault's record back; other answers take no lock.
+     */
     suspend fun confirmationError(id: String?, publicKey: ByteArray, origin: String): BrowserError? {
+        val error = checkConfirmation(id, publicKey, origin)
+        if (error != BrowserError.UNPAIRED || id == null) return error
+        return mutex.withLock { checkConfirmation(id, publicKey, origin) }
+    }
+
+    private suspend fun checkConfirmation(id: String?, publicKey: ByteArray, origin: String): BrowserError? {
         val vault = vaultAccess.dependencies()?.vaultPairings()
             ?: return BrowserError.UNPAIRED.takeIf { id == null }
         val identity = id?.let { BrowserPairingIdentity(it, Base64.encode(publicKey), origin) }
@@ -78,53 +88,75 @@ internal class BrowserPairings(
      * its earlier pairing there. Writes the record in the vault first, then
      * the one outside of it, and takes the first back if the second fails.
      *
-     * @throws BrowserRequestException `vault_locked` while the vault is locked;
-     *   `not_allowed` when a record can't be written.
+     * @throws BrowserRequestException as [writeVaultFirst] does.
      */
-    suspend fun add(name: String, publicKey: ByteArray, origin: String): BrowserPairing = mutex.withLock {
-        val vault = vaultAccess.dependencies()?.vaultPairings()
-            ?: throw BrowserRequestException(BrowserError.VAULT_LOCKED)
-        val outside = store.readRecords()
-            ?: throw BrowserRequestException(BrowserError.UPDATE_REQUIRED)
+    suspend fun add(name: String, publicKey: ByteArray, origin: String): BrowserPairing {
         val identity = BrowserPairingIdentity(
             id = cryptoGenerator.uuid(),
             publicKey = Base64.encode(publicKey),
             origin = origin,
         )
+        return writeVaultFirst(
+            // The earlier pairing of the extension there is replaced.
+            transform = { records ->
+                records.filterNot { it.publicKey == identity.publicKey && it.origin == origin } + identity
+            },
+            write = { runCatchingUnlessCancelled { store.add(identity.id, name, publicKey, origin) }.getOrNull() },
+        )
+    }
+
+    /**
+     * Forgets the pairing [id]. Removes the record in the vault first, then
+     * the one outside of it: an outside record written back later pairs
+     * nothing once the vault unlocks. A failed write may still reach the
+     * disk, so it fails the removal only if the outside record is still there
+     * or can't be read.
+     *
+     * @throws BrowserRequestException as [writeVaultFirst] does.
+     */
+    suspend fun remove(id: String) {
+        writeVaultFirst(
+            transform = { records -> records.filterNot { it.id == id } },
+            write = {
+                val forgotten = runCatchingUnlessCancelled { store.remove(id) }.isSuccess ||
+                    runCatchingUnlessCancelled { store.readRecords() }.getOrNull()
+                        ?.none { it.pairing.id == id } == true
+                Unit.takeIf { forgotten }
+            },
+        )
+    }
+
+    /**
+     * Writes the vault's records, [transform]ed and without those that have
+     * no record outside of the vault, then the outside one with [write]. If
+     * [write] returns `null`, puts the vault's records back: the vault
+     * confirms no pairing that isn't stored, and the user can try again.
+     *
+     * @throws BrowserRequestException `vault_locked` while the vault is locked;
+     *   `update_required` while the outside records are of a newer schema;
+     *   `not_allowed` when a record can't be read or written.
+     */
+    private suspend fun <T : Any> writeVaultFirst(
+        transform: (List<BrowserPairingIdentity>) -> List<BrowserPairingIdentity>,
+        write: suspend () -> T?,
+    ): T = mutex.withLock {
+        val vault = vaultAccess.dependencies()?.vaultPairings()
+            ?: throw BrowserRequestException(BrowserError.VAULT_LOCKED)
+        val outside = store.readRecords()
+            ?: throw BrowserRequestException(BrowserError.UPDATE_REQUIRED)
         var previous: List<BrowserPairingIdentity> = emptyList()
-        val confirmed = runCatchingUnlessCancelled {
+        val written = runCatchingUnlessCancelled {
             vault.update { records ->
                 previous = records
-                // The earlier pairing of the extension there is replaced.
-                records.pruned(outside).filterNot { it.publicKey == identity.publicKey && it.origin == origin } +
-                    identity
+                transform(records.pruned(outside))
             }
         }.getOrDefault(false)
-        if (!confirmed) throw BrowserRequestException(BrowserError.NOT_ALLOWED)
-        val pairing = runCatchingUnlessCancelled { store.add(identity.id, name, publicKey, origin) }
-            .getOrNull()
-        if (pairing == null) {
-            // The vault confirms no pairing that isn't stored.
+        if (!written) throw BrowserRequestException(BrowserError.NOT_ALLOWED)
+        write() ?: run {
             withContext(NonCancellable) {
                 runCatchingUnlessCancelled { vault.update { previous } }
             }
             throw BrowserRequestException(BrowserError.NOT_ALLOWED)
-        }
-        pairing
-    }
-
-    /** Forgets the pairing [id], and while the vault is unlocked, its record there. */
-    suspend fun remove(id: String) {
-        mutex.withLock {
-            store.remove(id)
-            val vault = vaultAccess.dependencies()?.vaultPairings()
-                ?: return
-            val outside = store.readRecords()
-                ?: return
-            // A record left behind confirms nothing, and the next write prunes it.
-            runCatchingUnlessCancelled {
-                vault.update { records -> records.pruned(outside) }
-            }
         }
     }
 

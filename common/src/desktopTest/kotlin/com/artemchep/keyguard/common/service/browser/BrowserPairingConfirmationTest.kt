@@ -2,17 +2,25 @@ package com.artemchep.keyguard.common.service.browser
 
 import com.artemchep.keyguard.common.io.bind
 import com.artemchep.keyguard.common.service.keyvalue.impl.JsonKeyValueStore
+import com.artemchep.keyguard.common.service.logging.LogLevel
+import com.artemchep.keyguard.feature.browserextension.protocol.BrowserError
 import com.artemchep.keyguard.feature.browserextension.protocol.BrowserProtocol
+import com.artemchep.keyguard.feature.browserextension.protocol.BrowserRequestException
 import com.artemchep.keyguard.nativecrypto.NativeCryptoNoise
 import kotlin.io.encoding.Base64
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFails
+import kotlin.test.assertFailsWith
 import kotlin.test.assertNotEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.hours
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
@@ -86,7 +94,7 @@ class BrowserPairingConfirmationTest {
                 override fun now() = Clock.System.now() - 2.hours
             }
             assertNotNull(
-                BrowserPairingStore(fixture.pairingSettings, Json, past)
+                BrowserPairingStore(fixture.pairingSettings, Json, fixture.log, past)
                     .add(id = FORGED_ID, name = "Forged", publicKey = keyPair.publicKey, origin = CHROME_ORIGIN),
             )
             val forged = fixture.store.pairings().single()
@@ -240,6 +248,154 @@ class BrowserPairingConfirmationTest {
     }
 
     @Test
+    fun `removing a pairing while the vault is locked fails and keeps both records`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val client = paired(fixture)
+        val pairing = fixture.store.pairings().single()
+        val record = checkNotNull(fixture.vaultPairings.records()).single()
+        fixture.lock()
+        val error = assertFailsWith<BrowserRequestException> { fixture.service.removePairing(pairing.id) }
+        assertEquals(BrowserError.VAULT_LOCKED, error.code)
+        assertEquals(listOf(pairing), fixture.store.pairings())
+        assertEquals(listOf(record), fixture.vaultPairings.records())
+
+        // The session stays paired.
+        fixture.unlock()
+        assertEquals(true, client.callSkippingEvents(suggest(5)).bool("ok"))
+    }
+
+    @Test
+    fun `an outside record written back after a removal pairs nothing while the vault is unlocked`() =
+        browserTest { scope ->
+            val fixture = BrowserFixture(scope)
+            val original = paired(fixture)
+            val setting = fixture.pairingSettings.getString(KEY_PAIRINGS, "")
+            val saved = setting.first()
+            val pairing = fixture.store.pairings().single()
+            fixture.service.removePairing(pairing.id)
+            assertEquals("revoked", original.receive()?.string("event"))
+            assertEquals(emptyList(), fixture.vaultPairings.records())
+
+            // Another process writes the outside record back.
+            setting.setAndCommit(saved).bind()
+            assertEquals(listOf(pairing), fixture.store.pairings())
+            val client = fixture.connect(original.keyPair, pinned = original.noise.remoteStatic)
+            assertEquals(false, client.hello().bool("paired"))
+            assertEquals("unpaired", client.call(suggest(2)).string("error"))
+            assertEquals(emptyList(), fixture.vaultPairings.records())
+        }
+
+    @Test
+    fun `a failed removal of the outside record puts the vault record back`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val client = paired(fixture)
+        val pairing = fixture.store.pairings().single()
+        val record = checkNotNull(fixture.vaultPairings.records()).single()
+        // The disk is full.
+        fixture.storage.failWrites = true
+        val error = assertFailsWith<BrowserRequestException> { fixture.service.removePairing(pairing.id) }
+        assertEquals(BrowserError.NOT_ALLOWED, error.code)
+        assertEquals(listOf(pairing), fixture.store.pairings())
+        assertEquals(listOf(record), fixture.vaultPairings.records())
+        // The session stays paired, and the settings still list the pairing.
+        assertEquals(true, client.call(suggest(5)).bool("ok"))
+        fixture.service.state.first { state -> state.pairings.map { it.id } == listOf(pairing.id) }
+
+        // Another attempt removes it.
+        fixture.storage.failWrites = false
+        fixture.service.removePairing(pairing.id)
+        assertEquals("revoked", client.receive()?.string("event"))
+        assertTrue(fixture.store.pairings().isEmpty())
+        assertEquals(emptyList(), fixture.vaultPairings.records())
+    }
+
+    @Test
+    fun `a request during a removal waits for it, and stays paired once it fails`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val client = paired(fixture)
+        val pairing = fixture.store.pairings().single()
+        val record = checkNotNull(fixture.vaultPairings.records()).single()
+        // The outside delete stops at its write, which then fails.
+        val held = CompletableDeferred<Unit>()
+        val resumed = CompletableDeferred<Unit>()
+        fixture.storage.beforeWrite = {
+            held.complete(Unit)
+            resumed.await()
+        }
+        fixture.storage.failWrites = true
+        val removal = scope.async { fixture.service.removePairing(pairing.id) }
+        withTimeout(TIMEOUT) { held.await() }
+        assertEquals(emptyList(), fixture.vaultPairings.records())
+        client.send(suggest(5))
+        // Long enough for the app to check the pairing.
+        delay(500)
+        resumed.complete(Unit)
+
+        val error = assertFailsWith<BrowserRequestException> { removal.await() }
+        assertEquals(BrowserError.NOT_ALLOWED, error.code)
+        assertEquals(true, client.receiveResponse(5).bool("ok"))
+        assertEquals(listOf(record), fixture.vaultPairings.records())
+        assertEquals(pairing.id, fixture.service.state.value.sessions.single().pairingId)
+        assertEquals(true, client.call(suggest(6)).bool("ok"))
+    }
+
+    @Test
+    fun `a removal whose outside delete fails after it took effect stands`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val client = paired(fixture)
+        val pairing = fixture.store.pairings().single()
+        // The record is deleted, then the flush fails.
+        fixture.storage.failAfterWrites = true
+        fixture.service.removePairing(pairing.id)
+        fixture.storage.failAfterWrites = false
+        assertEquals("revoked", client.receive()?.string("event"))
+        assertTrue(fixture.store.pairings().isEmpty())
+        // No vault record is left for an outside record written back to match.
+        assertEquals(emptyList(), fixture.vaultPairings.records())
+    }
+
+    @Test
+    fun `a removal whose outside delete fails after it took effect, unreadable since, puts the vault record back`() =
+        browserTest { scope ->
+            val fixture = BrowserFixture(scope)
+            paired(fixture)
+            val pairing = fixture.store.pairings().single()
+            val record = checkNotNull(fixture.vaultPairings.records()).single()
+            // The record is deleted, then the flush fails, and so does every read since.
+            fixture.storage.failAfterWrites = true
+            fixture.storage.failReads = true
+            val error = assertFailsWith<BrowserRequestException> { fixture.service.removePairing(pairing.id) }
+            assertEquals(BrowserError.NOT_ALLOWED, error.code)
+            assertEquals(listOf(record), fixture.vaultPairings.records())
+        }
+
+    @Test
+    fun `an outside store that can't reload fails removal and hello, and prunes nothing in the vault`() =
+        browserTest { scope ->
+            val fixture = BrowserFixture(scope)
+            val original = paired(fixture)
+            paired(fixture)
+            val pairings = fixture.store.pairings()
+            val records = checkNotNull(fixture.vaultPairings.records())
+            // A rename reaches the disk, then fails, and so does the reload after it.
+            fixture.storage.failAfterWrites = true
+            fixture.storage.failReads = true
+            assertFails { fixture.service.renamePairing(pairings.first().id, "Laptop") }
+            fixture.storage.failAfterWrites = false
+
+            val error = assertFailsWith<BrowserRequestException> { fixture.service.removePairing(pairings.last().id) }
+            assertEquals(BrowserError.NOT_ALLOWED, error.code)
+            assertEquals(records, fixture.vaultPairings.records())
+            // A lookup that can't read answers an error, which keeps the extension's pin.
+            val client = fixture.connect(original.keyPair, pinned = original.noise.remoteStatic)
+            assertEquals("not_allowed", client.hello().string("error"))
+
+            fixture.storage.failReads = false
+            assertEquals(true, client.hello(2).bool("paired"))
+            assertEquals(records, fixture.vaultPairings.records())
+        }
+
+    @Test
     fun `a new name is trimmed and bounded like the one given while pairing`() = browserTest { scope ->
         val fixture = BrowserFixture(scope)
         paired(fixture)
@@ -266,9 +422,12 @@ class BrowserPairingConfirmationTest {
         val client = fixture.connect(original.keyPair, pinned = original.noise.remoteStatic)
         assertEquals("update_required", client.hello().string("error"))
         assertEquals("invalid_request", client.call(commit(2, ByteArray(32))).string("error"))
+        val records = fixture.vaultPairings.records()
         fixture.service.renamePairing("x", "Laptop")
-        fixture.service.removePairing("x")
+        val error = assertFailsWith<BrowserRequestException> { fixture.service.removePairing("x") }
+        assertEquals(BrowserError.UPDATE_REQUIRED, error.code)
         assertEquals(NEWER, setting.first())
+        assertEquals(records, fixture.vaultPairings.records())
 
         setting.setAndCommit(saved).bind()
         assertEquals(true, client.hello(3).bool("paired"))
@@ -304,14 +463,19 @@ class BrowserPairingConfirmationTest {
     }
 
     @Test
-    fun `an unreadable app key is kept, and no session starts`() = browserTest { scope ->
+    fun `an unreadable app key is kept, logged once, and no session starts`() = browserTest { scope ->
         val storage = MemoryJsonStore()
         storage.put(KEY_APP_KEY, "{\"schemaVersion\":2}")
         val fixture = BrowserFixture(scope, storage = storage)
         assertNull(fixture.store.appKeyPair())
-        val pipe = fixture.open()
-        withTimeout(TIMEOUT) { pipe.serving.join() }
+        repeat(3) {
+            val pipe = fixture.open()
+            withTimeout(TIMEOUT) { pipe.serving.join() }
+        }
         assertEquals("{\"schemaVersion\":2}", storage.get(KEY_APP_KEY))
+        val logged = fixture.log.entries.filter { it.tag == "BrowserPairingStore" }
+        assertEquals(listOf(LogLevel.ERROR), logged.map { it.level })
+        assertTrue(logged.none { "schemaVersion" in it.message })
     }
 }
 

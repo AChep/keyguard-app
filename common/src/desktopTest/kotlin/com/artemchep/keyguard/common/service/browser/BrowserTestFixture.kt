@@ -390,7 +390,7 @@ internal class BrowserFixture(
     val removedConnectors = MutableStateFlow<Set<BrowserConnectorBrowser>>(emptySet())
     val crypto = NativeCryptoGenerator()
     val pairingSettings = JsonKeyValueStore(storage)
-    val store = BrowserPairingStore(pairingSettings, Json)
+    val store = BrowserPairingStore(pairingSettings, Json, log)
 
     /** What the passkey requests need beyond the vault, with their pickers. */
     val passkeys = BrowserPasskeys(
@@ -723,16 +723,28 @@ internal class MemoryJsonStore : JsonKeyValueStoreStore {
     @Volatile
     var failWrites = false
 
+    /** While set, every write takes effect and then fails, as one whose flush fails. */
+    @Volatile
+    var failAfterWrites = false
+
+    /** While set, every read fails. */
+    @Volatile
+    var failReads = false
+
     /** Runs before every write. */
     @Volatile
     var beforeWrite: suspend () -> Unit = {}
 
-    override fun read() = ioEffect { state }
+    override fun read() = ioEffect {
+        if (failReads) throw IOException("The read failed")
+        state
+    }
 
     override fun write(state: PersistentMap<String, Any?>) = ioEffect {
         beforeWrite()
         if (failWrites) throw IOException("The write failed")
         this@MemoryJsonStore.state = state
+        if (failAfterWrites) throw IOException("The write failed after it took effect")
     }
 }
 

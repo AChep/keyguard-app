@@ -1228,18 +1228,41 @@ fn windows_registers_each_manifest() {
     fixture.install(&[Browser::Chrome]).unwrap();
     assert_eq!(state(&fixture.status(), Browser::Chrome), State::Installed);
 
+    // A key without a manifest is missing for each browser that reads it,
+    // and install repairs it.
+    fixture.use_browser(Browser::Vivaldi);
+    let shared = [Browser::Chrome, Browser::Brave, Browser::Vivaldi];
+    fs::remove_file(fixture.manifest(Browser::Chrome)).unwrap();
+    let report = fixture.status();
+    for browser in shared {
+        assert_eq!(state(&report, browser), State::Missing, "{browser:?}");
+    }
+    let report = fixture.install(&[]).unwrap();
+    for browser in shared {
+        assert_eq!(state(&report, browser), State::Installed, "{browser:?}");
+    }
+    assert!(fixture.manifest(Browser::Chrome).is_file());
+    assert_eq!(
+        fixture.registry.0[chrome_key],
+        fixture.manifest(Browser::Chrome).to_str().unwrap()
+    );
+
     let report = fixture.uninstall(&[Browser::Brave]).unwrap();
     assert_eq!(state(&report, Browser::Chrome), State::Missing);
     assert_eq!(state(&report, Browser::Firefox), State::Installed);
     assert!(!fixture.registry.0.contains_key(chrome_key));
     assert!(!fixture.manifest(Browser::Chrome).exists());
 
-    // A key without a manifest is stale, and uninstall removes it.
+    // Without the browser, such a key is absent, and uninstall removes it.
+    let edge_key = "Software\\Microsoft\\Edge\\NativeMessagingHosts\\com.artemchep.keyguard";
     fixture
         .registry
         .0
-        .insert(chrome_key.into(), "C:\\missing.json".into());
-    assert_eq!(state(&fixture.status(), Browser::Chrome), State::Stale);
+        .insert(edge_key.into(), "C:\\missing.json".into());
+    assert_eq!(
+        state(&fixture.status(), Browser::Edge),
+        State::BrowserAbsent
+    );
     fixture.uninstall(&[]).unwrap();
     assert!(fixture.registry.0.is_empty());
 }

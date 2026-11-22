@@ -83,7 +83,8 @@ pub(crate) struct BrowserStatus {
 #[serde(rename_all = "snake_case")]
 pub(crate) enum State {
     Installed,
-    /// The browser was used, but has no manifest.
+    /// The browser was used, but has no manifest. A registry key may be
+    /// left over: `install` overwrites it, and `uninstall` deletes it.
     Missing,
     /// The manifest, its key, the wrapper, or a copy of the connector
     /// differs from what `install` writes.
@@ -399,7 +400,7 @@ fn inspect(
         Found::Text(text) => manifest_host(command.channel, text),
         _ => None,
     };
-    let status = if manifest == Found::Missing && key.is_none() {
+    let status = if manifest == Found::Missing {
         if detected {
             State::Missing
         } else {

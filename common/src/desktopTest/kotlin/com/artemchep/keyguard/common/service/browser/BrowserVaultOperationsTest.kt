@@ -690,6 +690,58 @@ class BrowserVaultOperationsTest {
     }
 
     @Test
+    fun `re-prompt turned on while the prompt is open stops the release`() = browserTest { scope ->
+        // Asks every time: an approval is remembered before the release is refused.
+        val fixture = BrowserFixture(scope, approvalWindow = Duration.ZERO)
+        val login = fixture.login("a", totp = TOTP)
+        val client = paired(fixture)
+        val handle = client.handle(10, PAGE)
+
+        for (request in listOf(fill(11, handle, PAGE), totp(12, handle))) {
+            fixture.ciphers.value = listOf(login)
+            client.send(request)
+            val prompt = fixture.service.approvals.first { it.isNotEmpty() }.single()
+            assertEquals(false, assertIs<BrowserOperation.Release>(prompt.operation).release.reprompt, request)
+            fixture.ciphers.value = listOf(login.copy(reprompt = true))
+            fixture.service.respondToApproval(prompt.id, approved = true)
+            assertEquals("not_allowed", client.receive()?.string("error"), request)
+        }
+        assertTrue(fixture.autofillHistory.isEmpty())
+    }
+
+    @Test
+    fun `an item that stops matching while the prompt is open is not released`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val login = fixture.login("a")
+        val client = paired(fixture)
+        val handle = client.handle(10, PAGE)
+
+        client.send(fill(11, handle, PAGE))
+        val prompt = fixture.service.approvals.first { it.isNotEmpty() }.single()
+        assertEquals(true, assertIs<BrowserOperation.Fill>(prompt.operation).release.matched)
+        fixture.ciphers.value = listOf(login.copy(uris = listOf(DSecret.Uri(uri = "https://example.org"))))
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        assertEquals("not_allowed", client.receive()?.string("error"))
+        assertTrue(fixture.autofillHistory.isEmpty())
+    }
+
+    @Test
+    fun `an approval with identity still covers an item that turned re-prompt off`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val login = fixture.login("a", reprompt = true)
+        val client = paired(fixture)
+        val handle = client.handle(10, PAGE)
+
+        client.send(fill(11, handle, PAGE))
+        val prompt = fixture.service.approvals.first { it.isNotEmpty() }.single()
+        assertTrue(fixture.service.confirmIdentity(prompt.id) { true })
+        fixture.ciphers.value = listOf(login.copy(reprompt = false))
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        assertEquals("secret-a", client.receive()?.string("password"))
+        assertEquals(listOf("a"), fixture.autofillHistory.map { it.cipherId })
+    }
+
+    @Test
     fun `a denied fill and a timed out fill are refused`() = browserTest { scope ->
         val fixture = BrowserFixture(scope, approvalTimeout = 300.milliseconds)
         fixture.login("a")

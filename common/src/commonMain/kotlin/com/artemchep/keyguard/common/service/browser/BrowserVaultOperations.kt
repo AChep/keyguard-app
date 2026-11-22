@@ -53,6 +53,8 @@ import com.artemchep.keyguard.feature.generator.PasswordGeneratorConfigReader
 import com.artemchep.keyguard.util.webauthn.WebAuthnAllowedCredentialDescriptors
 import com.artemchep.keyguard.util.webauthn.canAnswer
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.first
 import kotlin.time.Clock
 import kotlin.time.Instant
@@ -372,8 +374,10 @@ internal class BrowserVaultOperations(
      * Releases a secret of the item of the handle in [request] to its page:
      * checks that the page is on the site of the handle and that the user
      * approves the [operation], then answers with what [answer] reads from
-     * the item as it is. Then records the use of the item, unless the page is
-     * of a private window, and adds the page to an unmatched item, if the user asked.
+     * the item as it is, if the approval still covers it, see [approvedItem].
+     * Then records the use of the item, unless the page is of a private
+     * window, and adds the page to an unmatched item, if the user asked.
+     * One vault session serves the whole release.
      */
     private suspend fun release(
         request: HandleRequest,
@@ -386,10 +390,12 @@ internal class BrowserVaultOperations(
         val (page, topPage) = request.pages()
             ?: return@recorded BrowserReply.Error(BrowserError.INVALID_REQUEST)
         usage.origin = page.origin
-        refusalOf(handle, page)
-            ?.let { return@recorded BrowserReply.Error(it) }
-        val dependencies = vaultAccess.dependencies()
+        // A handle never leaves the site of the page it was issued for.
+        if (page.site(tldService) != handle.site) return@recorded BrowserReply.Error(BrowserError.NOT_ALLOWED)
+        val vault = vaultAccess.currentVault()
             ?: return@recorded BrowserReply.Error(BrowserError.VAULT_LOCKED)
+        val dependencies = vault.dependencies
+        if (dependencies.isBlocked(page)) return@recorded BrowserReply.Error(BrowserError.NOT_ALLOWED)
         val cipher = dependencies.login(handle)
             ?: return@recorded BrowserReply.Error(BrowserError.INVALID_REQUEST)
         usage.cipherId = cipher.id
@@ -398,11 +404,11 @@ internal class BrowserVaultOperations(
         }
         // A matched handle doesn't outlive an edit of the item's URIs.
         val matched = handle.matched && dependencies.stillMatches(page, cipher)
-        val approval = approve(dependencies, handle, matched, page, topPage, cipher, operation)
+        val approval = approve(vault, handle, matched, page, topPage, cipher, operation)
             .getOrElse { return@recorded BrowserReply.Error(it) }
-        val (current, item) = currentItem(handle, page)
+        val item = approvedItem(vault, handle, page, approved = cipher, matched = matched)
             .getOrElse { return@recorded BrowserReply.Error(it) }
-        answer(current, item).also { reply ->
+        answer(dependencies, item).also { reply ->
             if (reply is BrowserReply.Ok) {
                 // A private window leaves no use, which would rank the item first on the site.
                 if (request.privateWindow != true) {
@@ -410,54 +416,53 @@ internal class BrowserVaultOperations(
                         accountId = item.accountId,
                         cipherId = item.id,
                     )
-                    current.addCipherUsedAutofillHistory(history).attempt().bind()
+                    dependencies.addCipherUsedAutofillHistory(history).attempt().bind()
                 }
-                if (approval.addUri) current.addPage(item, page)
+                if (approval.addUri) dependencies.addPage(item, page)
             }
         }
     }
 
     /**
-     * The vault and the item of the [handle] as they are now, after the user
-     * was asked: the item or the blocked URIs of the [page] may have changed.
+     * The item of the [handle] as it is now, after the user approved its
+     * release to the [page] as the [approved] item, or why the approval no
+     * longer covers it: the vault session ended, the page was blocked, the
+     * item turned on master-password re-prompt, or an item [matched] at
+     * approval no longer matches. A change that asks for less, such as
+     * turning re-prompt off, is still covered.
      */
-    private suspend fun currentItem(
+    private suspend fun approvedItem(
+        vault: BrowserVault,
         handle: BrowserItemHandle,
         page: BrowserPage,
-    ): Either<BrowserError, Pair<BrowserExtensionSessionDependencies, DSecret>> {
-        val current = vaultAccess.dependencies()
-            ?: return BrowserError.VAULT_LOCKED.left()
-        val item = current.login(handle)
+        approved: DSecret,
+        matched: Boolean,
+    ): Either<BrowserError, DSecret> {
+        val dependencies = vault.dependencies
+        val item = dependencies.login(handle)
+        val blocked = dependencies.isBlocked(page)
+        val unmatched = matched && item != null && !dependencies.stillMatches(page, item)
+        // After the reads: a lock during them ends the release too.
+        currentCoroutineContext().ensureActive()
         return when {
-            current.isBlocked(page) -> BrowserError.NOT_ALLOWED.left()
+            !vaultAccess.isCurrent(vault.key) -> BrowserError.VAULT_LOCKED.left()
+            blocked -> BrowserError.NOT_ALLOWED.left()
             item == null -> BrowserError.INVALID_REQUEST.left()
-            else -> (current to item).right()
-        }
-    }
-
-    /** Why the item of the [handle] may not reach the [page], or `null` if it may. */
-    private suspend fun refusalOf(
-        handle: BrowserItemHandle,
-        page: BrowserPage,
-    ): BrowserError? {
-        val dependencies = vaultAccess.dependencies()
-        return when {
-            // A handle never leaves the site of the page it was issued for.
-            page.site(tldService) != handle.site -> BrowserError.NOT_ALLOWED
-            dependencies == null -> BrowserError.VAULT_LOCKED
-            dependencies.isBlocked(page) -> BrowserError.NOT_ALLOWED
-            else -> null
+            // Only an item with re-prompt asks for the user's identity to approve it.
+            item.reprompt && !approved.reprompt -> BrowserError.NOT_ALLOWED.left()
+            unmatched -> BrowserError.NOT_ALLOWED.left()
+            else -> item.right()
         }
     }
 
     /**
-     * Asks the user to approve the [operation] that releases the [cipher] to
-     * the [page], a frame of the [topPage] if not `null`. An item that isn't
-     * [matched] always asks, and offers to add the page to it. A frame of
-     * another site's page always asks too.
+     * Asks the user to approve the [operation] that releases the [cipher] of
+     * the [vault] to the [page], a frame of the [topPage] if not `null`. An
+     * item that isn't [matched] always asks, and offers to add the page to
+     * it. A frame of another site's page always asks too.
      */
     private suspend fun approve(
-        dependencies: BrowserExtensionSessionDependencies,
+        vault: BrowserVault,
         handle: BrowserItemHandle,
         matched: Boolean,
         page: BrowserPage,
@@ -467,10 +472,10 @@ internal class BrowserVaultOperations(
     ): Either<BrowserError, BrowserApproval.Approved> {
         val pairing = pairing()
             ?: return BrowserError.UNPAIRED.left()
-        val accountName = dependencies.accountNames()[cipher.accountId]
+        val accountName = vault.dependencies.accountNames()[cipher.accountId]
         // What `AddUriCipher` writes; offered only for an item the user can edit.
         val addUri = "${page.scheme}://${page.host}"
-            .takeIf { !matched && dependencies.canEdit(cipher) }
+            .takeIf { !matched && vault.dependencies.canEdit(cipher) }
         // A frame of another site's page: the page around it may be anyone's.
         val topSite = topPage
             ?.site(tldService)
@@ -482,6 +487,7 @@ internal class BrowserVaultOperations(
             cipherId = handle.cipherId,
         )
         return approvals.approveRelease(
+            key = vault.key,
             session = session(),
             pairing = pairing,
             grant = grant,

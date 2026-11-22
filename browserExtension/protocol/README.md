@@ -485,7 +485,9 @@ A counter-based one (HOTP) isn't a TOTP.
 
 An item that is gone, or that moved to the trash, the archive or a hidden
 account, gets `invalid_request`. The app answers with the item as it is once the
-user approves.
+user approves. If, while the user was asked, the item got master-password
+re-prompt or stopped matching the page, the approval no longer covers it:
+`not_allowed`.
 
 ### `generate`
 
@@ -614,6 +616,8 @@ checks:
   `allowCredentials` names, or without it, the discoverable ones. With none, the
   app answers `not_supported`. Otherwise it opens a window where the user picks
   one. The pick approves the release, as the prompt of `fill` does.
+- If, while the user was asked, the item got master-password re-prompt and
+  the user didn't confirm their identity, `not_allowed`.
 
 `passkey_create`:
 

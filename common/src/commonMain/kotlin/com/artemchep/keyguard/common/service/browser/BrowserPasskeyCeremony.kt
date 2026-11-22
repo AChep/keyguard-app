@@ -110,10 +110,12 @@ internal class BrowserPasskeyCeremony(
                     ?.let { handle -> picked(vault, handle, target) }
                     ?: pickPasskey(vault, page, target)
                 usage.cipherId = pick.cipherId
-                val verified = approveGet(vault, page, site, pick, options.userVerification, otherSiteRpId)
+                val identityConfirmed = approveGet(vault, page, site, pick, options.userVerification, otherSiteRpId)
                 // The item as it is now: it may have changed while the user was asked.
                 vault.requireCurrent(page)
                 val (cipher, credential) = vault.answering(pick, target)
+                // An item that turned on master-password re-prompt meanwhile needs the user's identity.
+                if (cipher.reprompt && !identityConfirmed) fail(BrowserError.NOT_ALLOWED)
                 val response = webAuthn {
                     passkeys.authenticator.getAssertion(
                         request = WebAuthnAssertionRequest(
@@ -124,7 +126,8 @@ internal class BrowserPasskeyCeremony(
                         ),
                         context = WebAuthnCallerContext(origin = page.origin, rpId = rpId),
                         credential = credential.toWebAuthnCredential(),
-                        userVerified = verified,
+                        // Unlocking the vault for this request verified the user too.
+                        userVerified = vault.freshUnlock || identityConfirmed,
                     )
                 }
                 // A private window leaves no use, which would rank the item first on the site.
@@ -245,7 +248,7 @@ internal class BrowserPasskeyCeremony(
      * verification, unless the window confirmed the user's identity.
      *
      * @param otherSiteRpId The relying party, if it is of another site, see [BrowserRelease.otherSiteRpId].
-     * @return Whether the user is verified.
+     * @return Whether the approval confirmed the user's identity.
      */
     @Suppress("LongParameterList", "ReturnCount") // Each way to approve answers on its own.
     private suspend fun approveGet(
@@ -272,10 +275,11 @@ internal class BrowserPasskeyCeremony(
         if (pick.fromWindow && !cipher.reprompt && !verify) {
             // The pick approved it, as approving a prompt does.
             approvals.rememberRelease(vault.key, vault.grantsEpoch, grant)
-            return vault.freshUnlock
+            return false
         }
         val accountName = vault.dependencies.accountNames()[cipher.accountId]
         approvals.approveRelease(
+            key = vault.key,
             session = session(),
             pairing = pairing,
             grant = grant,
@@ -292,8 +296,8 @@ internal class BrowserPasskeyCeremony(
             ).copy(otherSiteRpId = otherSiteRpId)
             BrowserOperation.PasskeyGet(release)
         }.onLeft(::fail)
-        // An approval that required the user's identity verified the user.
-        return vault.freshUnlock || cipher.reprompt || verify
+        // An approval that required the user's identity confirmed it.
+        return cipher.reprompt || verify
     }
 
     /**
@@ -382,10 +386,10 @@ internal class BrowserPasskeyCeremony(
         if (unlock is BrowserApproval.Refused) fail(unlock.error)
         // Before anything is asked: the unlocked vault confirms the pairing.
         requirePairing()
-        val key = vaultAccess.currentKey()
+        val current = vaultAccess.currentVault()
             ?: fail(BrowserError.VAULT_LOCKED)
-        val dependencies = vaultAccess.dependencies()
-            ?: fail(BrowserError.VAULT_LOCKED)
+        val key = current.key
+        val dependencies = current.dependencies
         // The browser serves the pages the user keeps Keyguard away from.
         if (dependencies.isBlocked(page)) fail(BrowserError.NOT_SUPPORTED)
         val vault = Vault(
@@ -404,7 +408,7 @@ internal class BrowserPasskeyCeremony(
             BrowserReply.Error(BrowserError.VAULT_LOCKED)
         } catch (e: BrowserRequestException) {
             // Locking the vault denies its prompts too, which may end the request before the lease does.
-            if (vaultAccess.currentKey() !== key) BrowserReply.Error(BrowserError.VAULT_LOCKED) else throw e
+            if (!vaultAccess.isCurrent(key)) BrowserReply.Error(BrowserError.VAULT_LOCKED) else throw e
         }
     }
 
@@ -425,7 +429,7 @@ internal class BrowserPasskeyCeremony(
     private suspend fun Vault.requireCurrent(page: BrowserPage) {
         // A cancelled request stores and signs nothing.
         currentCoroutineContext().ensureActive()
-        if (vaultAccess.currentKey() !== key) fail(BrowserError.VAULT_LOCKED)
+        if (!vaultAccess.isCurrent(key)) fail(BrowserError.VAULT_LOCKED)
         // Blocked meanwhile: the browser serves the page, as for one blocked before the request.
         if (dependencies.isBlocked(page)) fail(BrowserError.NOT_SUPPORTED)
     }

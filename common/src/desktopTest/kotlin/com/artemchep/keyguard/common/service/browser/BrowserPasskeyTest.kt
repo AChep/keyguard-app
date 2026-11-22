@@ -721,6 +721,34 @@ class BrowserPasskeyTest {
     }
 
     @Test
+    fun `re-prompt turned on while the user is asked stops the sign-in`() = browserTest { scope ->
+        val fixture = BrowserFixture(scope)
+        val passkey = fixture.passkeyLogin("a")
+        val login = fixture.cipher("a")
+        val client = paired(fixture)
+        val handle = client.passkeyHandle(10)
+
+        client.send(passkeyGet(11, handle = handle))
+        var prompt = fixture.prompt()
+        assertEquals(false, assertIs<BrowserOperation.PasskeyGet>(prompt.operation).release.reprompt)
+        fixture.ciphers.value = listOf(login.copy(reprompt = true))
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        assertEquals("not_allowed", client.receive()?.string("error"))
+        assertTrue(fixture.passkeyHistory.isEmpty())
+
+        // A prompt that confirmed the identity, for user verification, covers it.
+        fixture.ciphers.value = listOf(login)
+        client.send(passkeyGet(12, handle = handle, options = getOptions(userVerification = "required")))
+        prompt = fixture.prompt()
+        assertEquals(false, assertIs<BrowserOperation.PasskeyGet>(prompt.operation).release.reprompt)
+        assertTrue(fixture.service.confirmIdentity(prompt.id) { true })
+        fixture.ciphers.value = listOf(login.copy(reprompt = true))
+        fixture.service.respondToApproval(prompt.id, approved = true)
+        assertTrue(passkey.signed(checkNotNull(client.receive()).credential()))
+        assertEquals(listOf("a"), fixture.passkeyHistory.map { it.cipherId })
+    }
+
+    @Test
     fun `a prompt names a relying party of another site`() = browserTest { scope ->
         val fixture = BrowserFixture(scope)
         val passkey = fixture.passkeyLogin("a", rpId = "other.org")

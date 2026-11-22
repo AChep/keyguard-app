@@ -41,14 +41,29 @@ internal class BrowserVaultAccess(
     fun currentState(): BrowserVaultState = vaultStateOf(currentKey() != null)
 
     /** The unlocked vault session, or `null` while it is locked. */
-    fun currentKey(): MasterSession.Key? =
+    private fun currentKey(): MasterSession.Key? =
         (getVaultSession.valueOrNull as? MasterSession.Key)
             ?.takeIf { it.session.active.value }
 
     /** What the operations read in the vault, or `null` while it is locked. */
-    fun dependencies(): BrowserExtensionSessionDependencies? = currentKey()
-        ?.let(sessionAccess::invoke)
+    fun dependencies(): BrowserExtensionSessionDependencies? = currentVault()?.dependencies
+
+    /** The unlocked vault session and what the operations read in it, or `null` while it is locked. */
+    fun currentVault(): BrowserVault? {
+        val key = currentKey()
+            ?: return null
+        return sessionAccess(key)?.let { BrowserVault(key, it) }
+    }
+
+    /** Whether the [key] is the unlocked vault session. */
+    fun isCurrent(key: MasterSession.Key): Boolean = currentKey() === key
 }
+
+/** An unlocked vault session, and what the operations read in it. */
+internal class BrowserVault(
+    val key: MasterSession.Key,
+    val dependencies: BrowserExtensionSessionDependencies,
+)
 
 /**
  * Unlocked while the vault session is [active]: its dependencies resolve

@@ -160,6 +160,8 @@ internal class BrowserApprovals(
      * [reprompt] always prompts, requires the user to confirm their
      * identity, and is never remembered.
      *
+     * @param key The vault session of the release; it must be the current
+     *   one before and after the prompt.
      * @param verify The page wants user verification: the release always
      *   prompts and requires the user to confirm their identity, but is
      *   remembered for later releases that don't.
@@ -174,6 +176,7 @@ internal class BrowserApprovals(
      */
     @Suppress("ReturnCount", "LongParameterList") // Each refusal has its own error code.
     suspend fun approveRelease(
+        key: MasterSession.Key,
         session: BrowserExtensionSession,
         pairing: BrowserPairing,
         grant: BrowserGrant,
@@ -183,8 +186,7 @@ internal class BrowserApprovals(
         crossSite: Boolean = false,
         operation: (approvalWindow: Duration) -> BrowserOperation,
     ): Either<BrowserError, BrowserApproval.Approved> {
-        val key = vaultAccess.currentKey()
-            ?: return BrowserError.VAULT_LOCKED.left()
+        if (!vaultAccess.isCurrent(key)) return BrowserError.VAULT_LOCKED.left()
         val epoch = generation.value
         // Neither "Never ask" nor a grant covers these, and approving them grants nothing.
         val coverable = matched && !crossSite
@@ -204,7 +206,7 @@ internal class BrowserApprovals(
         currentCoroutineContext().ensureActive()
         // The vault is unlocked, but the approval belongs to a session or
         // to grants that were replaced while the user was asked.
-        if (vaultAccess.currentKey() !== key || generation.value != epoch) return BrowserError.VAULT_LOCKED.left()
+        if (!vaultAccess.isCurrent(key) || generation.value != epoch) return BrowserError.VAULT_LOCKED.left()
         if (!reprompt) access?.remember()
         return approval.right()
     }
@@ -223,7 +225,7 @@ internal class BrowserApprovals(
         epoch: String,
         grant: BrowserGrant,
     ) {
-        if (vaultAccess.currentKey() !== key || generation.value != epoch) return
+        if (!vaultAccess.isCurrent(key) || generation.value != epoch) return
         grants.getOrGenerateSession(key)
             .access { grant }
             .remember()

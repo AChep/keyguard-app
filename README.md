@@ -39,6 +39,7 @@ _Can be used with any Bitwarden® installation. This product is not associated w
 - a support for [shortcuts](https://keyguard.dev/docs/shortcuts/), [placeholders](https://keyguard.dev/docs/placeholders/) and [URL overrides](https://keyguard.dev/docs/url-overrides/);
 - a support for an [SSH agent](https://keyguard.dev/docs/ssh-agent/) - interacting with SSH-based services on Android and Desktop platform;
 - a support for a [GPG agent](https://keyguard.dev/docs/gpg-agent/) - interacting with GPG-based services on Android ([OpenKeychain-compatible](https://github.com/open-keychain/open-keychain) provider) and Desktop platform; GPG tools are available on all platforms;
+- a [browser extension](https://keyguard.dev/docs/browser-extension/) for Chrome, Edge, Firefox and other browsers - fills logins, one-time passwords and passkeys from the desktop app;
 - a support for [Environments](https://keyguard.dev/docs/environments/) - store environment variables, such as API keys and database URLs on Desktop platforms;
 - a support for the [credential exchange](https://keyguard.dev/docs/credential-exchange/) protocol on Android;
 - a built-in [CLI and MCP server](https://keyguard.dev/docs/cli/);
@@ -53,7 +54,8 @@ Keyguard is written using Kotlin Multiplatform + Compose Multiplatform + native 
 - [Android](#android), including Wear OS;
 - [Linux](#linux);
 - [Windows](#windows);
-- [macOS](#macos).
+- [macOS](#macos);
+- [Browsers](#browsers), through an extension that works with the desktop app.
 
 > [!NOTE]
 > There is currently no Keyguard iOS app. Please beware of downloading similar named apps as I'm not affiliated with those in any way.
@@ -141,6 +143,12 @@ scoop install keyguard
 ```pwsh
 winget install --id ArtemChepurnyi.Keyguard
 ```
+
+### Browsers
+The extension needs the Keyguard desktop app. See the [setup guide](https://keyguard.dev/docs/browser-extension/).
+- [Chrome Web Store](https://chromewebstore.google.com/detail/pbgoonibllaljhcpadklliddccmhdehh), also for Chromium, Brave and others;
+- [Microsoft Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/jmiinenokkmkljkgaahelgacgkjemebb);
+- [Firefox Add-ons](https://addons.mozilla.org/firefox/addon/browser@keyguard.dev/).
 
 ## License
 

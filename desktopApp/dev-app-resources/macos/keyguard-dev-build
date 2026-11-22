@@ -1,2 +1,0 @@
-A development build of Keyguard: its agents listen in /tmp/keyguard-<uid>/.
-The bundled clients read this file's presence, not its text. Release builds never bundle it.

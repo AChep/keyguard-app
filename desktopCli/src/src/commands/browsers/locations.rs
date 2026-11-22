@@ -7,20 +7,12 @@
 use super::BrowsersError;
 use anyhow::{Context as _, Result, anyhow, ensure};
 use clap::ValueEnum as _;
-use keyguard_cli_protocol::browser::{FlatpakBrowser, HOST_EXECUTABLE, flatpak};
+use keyguard_cli_protocol::browser::{Channel, FlatpakBrowser, HOST_EXECUTABLE, flatpak};
 use serde::Serialize;
 use std::{
     ffi::OsString,
     path::{Path, PathBuf},
 };
-
-/// The name of the host, which the extension passes to `connectNative`.
-pub(crate) const HOST_NAME: &str = "com.artemchep.keyguard";
-
-const MANIFEST_FILE: &str = "com.artemchep.keyguard.json";
-
-/// The Flatpak build's launcher for the connector, next to each manifest.
-const WRAPPER_FILE: &str = "com.artemchep.keyguard-host.sh";
 
 /// Chromium writes this file into its profile root on the first run.
 const LOCAL_STATE: &str = "Local State";
@@ -234,11 +226,6 @@ impl Location {
     pub(crate) fn directory(&self) -> &Path {
         self.manifest.parent().unwrap_or(&self.manifest)
     }
-
-    /// The Flatpak build's launcher of the connector.
-    pub(crate) fn wrapper(&self) -> PathBuf {
-        self.directory().join(WRAPPER_FILE)
-    }
 }
 
 /// The user's directories and this build of Keyguard.
@@ -256,6 +243,9 @@ pub(crate) struct Context {
     /// Windows: `%APPDATA%`.
     pub roaming_app_data: PathBuf,
     pub packaging: Packaging,
+    /// The registration that this command manages. Each channel reads and
+    /// writes only its own files.
+    pub channel: Channel,
     /// The connector bundled next to this CLI.
     pub bundled_host: PathBuf,
     /// Reads the reparse data of the MSIX package's alias of its connector.
@@ -263,7 +253,9 @@ pub(crate) struct Context {
 }
 
 impl Context {
-    pub(crate) fn discover() -> Result<Self> {
+    /// With `dev`, the channel is [`Channel::Dev`], as it always is in a
+    /// development build of Keyguard.
+    pub(crate) fn discover(dev: bool) -> Result<Self> {
         ensure!(
             std::env::var_os("APP_SANDBOX_CONTAINER_ID").is_none(),
             BrowsersError::Unsupported
@@ -277,7 +269,7 @@ impl Context {
         let package = current_package();
         #[cfg(not(windows))]
         let package = None;
-        Self::new(
+        let mut context = Self::new(
             Os::CURRENT,
             home,
             &exe,
@@ -285,11 +277,17 @@ impl Context {
             Path::new("/.flatpak-info").exists(),
             Path::new("/app"),
             package.as_ref(),
-        )
+        )?;
+        if dev {
+            context.channel = Channel::Dev;
+        }
+        Ok(context)
     }
 
     /// See [`Packaging::detect`] for `env`, `flatpak_info`, `flatpak_root`
-    /// and `package`.
+    /// and `package`. The channel is that of the build at `exe`, so that a
+    /// development build never writes the release registration, even when
+    /// run from a terminal.
     pub(crate) fn new(
         os: Os,
         home: PathBuf,
@@ -325,6 +323,7 @@ impl Context {
         };
         Ok(Self {
             os,
+            channel: Channel::of_build(directory),
             bundled_host: directory.join(host),
             home,
             config_home,
@@ -381,8 +380,21 @@ impl Context {
             self.data_home
                 .join("keyguard")
                 .join("browser-host")
-                .join(HOST_EXECUTABLE)
+                .join(self.channel.host_copy())
         })
+    }
+
+    /// The file name of each manifest: browsers look for the host's name.
+    fn manifest_file(&self) -> String {
+        format!("{}.json", self.channel.host_name())
+    }
+
+    /// The Flatpak build's launcher of the connector, next to the manifest
+    /// at `location`.
+    pub(crate) fn wrapper(&self, location: &Location) -> PathBuf {
+        location
+            .directory()
+            .join(format!("{}-host.sh", self.channel.host_name()))
     }
 
     /// The lock that `install` and `uninstall` hold, in a folder that only
@@ -414,7 +426,7 @@ impl Context {
         }
         match self.packaging {
             Packaging::Native => self.bundled_host.clone(),
-            Packaging::Flatpak { .. } => location.wrapper(),
+            Packaging::Flatpak { .. } => self.wrapper(location),
             Packaging::AppImage => self
                 .host_copy()
                 .unwrap_or_else(|| self.bundled_host.clone()),
@@ -445,18 +457,19 @@ impl Context {
         let directory = browser.manifests(&self.home);
         Location {
             markers: vec![browser.folder(&self.home)],
-            manifest: directory.join(MANIFEST_FILE),
+            manifest: directory.join(self.manifest_file()),
             registry_key: None,
-            host_copy: Some(directory.join(HOST_EXECUTABLE)),
+            host_copy: Some(directory.join(self.channel.host_copy())),
         }
     }
 
     fn linux(&self, browser: Browser) -> Location {
+        let file = self.manifest_file();
         let chromium = |root: &[&str]| {
             let root = join(&self.config_home, root);
             Location {
                 markers: vec![root.join(LOCAL_STATE)],
-                manifest: root.join("NativeMessagingHosts").join(MANIFEST_FILE),
+                manifest: root.join("NativeMessagingHosts").join(&file),
                 registry_key: None,
                 host_copy: None,
             }
@@ -475,10 +488,7 @@ impl Context {
                     join(&self.home, &[".mozilla", "firefox"]),
                     join(&self.config_home, &["mozilla", "firefox"]),
                 ],
-                manifest: join(
-                    &self.home,
-                    &[".mozilla", "native-messaging-hosts", MANIFEST_FILE],
-                ),
+                manifest: join(&self.home, &[".mozilla", "native-messaging-hosts", &file]),
                 registry_key: None,
                 host_copy: None,
             },
@@ -487,12 +497,13 @@ impl Context {
     }
 
     fn macos(&self, browser: Browser) -> Location {
+        let file = self.manifest_file();
         let support = join(&self.home, &["Library", "Application Support"]);
         let chromium = |root: &[&str]| {
             let root = join(&support, root);
             Location {
                 markers: vec![root.join(LOCAL_STATE)],
-                manifest: root.join("NativeMessagingHosts").join(MANIFEST_FILE),
+                manifest: root.join("NativeMessagingHosts").join(&file),
                 registry_key: None,
                 host_copy: None,
             }
@@ -512,10 +523,7 @@ impl Context {
             Browser::Vivaldi => chromium(&["Vivaldi"]),
             Browser::Firefox => Location {
                 markers: vec![support.join("Firefox")],
-                manifest: join(
-                    &support,
-                    &["Mozilla", "NativeMessagingHosts", MANIFEST_FILE],
-                ),
+                manifest: join(&support, &["Mozilla", "NativeMessagingHosts", &file]),
                 registry_key: None,
                 host_copy: None,
             },
@@ -524,15 +532,17 @@ impl Context {
     }
 
     fn windows(&self, browser: Browser) -> Location {
+        let file = self.manifest_file();
         let manifest = |id: &str| {
             join(
                 &self.local_app_data,
-                &["Keyguard", "NativeMessagingHosts", id, MANIFEST_FILE],
+                &["Keyguard", "NativeMessagingHosts", id, &file],
             )
         };
         let key = |vendor: &str| {
             Some(format!(
-                "Software\\{vendor}\\NativeMessagingHosts\\{HOST_NAME}"
+                "Software\\{vendor}\\NativeMessagingHosts\\{}",
+                self.channel.host_name()
             ))
         };
         let user_data = |root: &[&str]| {
@@ -1146,6 +1156,100 @@ mod tests {
         let env = [("APPIMAGE", "/home/user/Keyguard.AppImage")];
         let context = context_at(Os::Linux, Path::new(APPIMAGE_EXE), &env, false).unwrap();
         assert_eq!(context.packaging, Packaging::Native);
+    }
+
+    #[test]
+    fn dev_registrations_have_files_of_their_own() {
+        let env = [
+            ("XDG_CONFIG_HOME", "/xdg"),
+            ("XDG_DATA_HOME", "/data"),
+            ("LOCALAPPDATA", "/local"),
+            ("APPDATA", "/roaming"),
+        ];
+        let paths = |os: Os, browser: Browser| {
+            let mut context = context(os, &env, false).unwrap();
+            assert_eq!(context.channel, Channel::Production);
+            let production = context.location(browser);
+            let lock_file = context.lock_file();
+            context.channel = Channel::Dev;
+            let dev = context.location(browser);
+            // Both channels share the lock.
+            assert_eq!(context.lock_file(), lock_file);
+            assert_eq!(production.directory(), dev.directory());
+            assert_eq!(production.markers, dev.markers);
+            (context, dev)
+        };
+
+        let (context, chrome) = paths(Os::Linux, Browser::Chrome);
+        let directory = Path::new("/xdg/google-chrome/NativeMessagingHosts");
+        assert_eq!(
+            chrome.manifest,
+            directory.join("com.artemchep.keyguard.dev.json")
+        );
+        assert_eq!(
+            context.wrapper(&chrome),
+            directory.join("com.artemchep.keyguard.dev-host.sh")
+        );
+        assert_eq!(
+            context.host_copy().unwrap(),
+            Path::new("/data/keyguard/browser-host/keyguard-browser-host-dev")
+        );
+        let (_, firefox) = paths(Os::Linux, Browser::Firefox);
+        assert_eq!(
+            firefox.manifest,
+            Path::new("/home/user/.mozilla/native-messaging-hosts/com.artemchep.keyguard.dev.json")
+        );
+        let (_, brave) = paths(Os::Linux, Browser::BraveFlatpak);
+        let directory = Path::new(
+            "/home/user/.var/app/com.brave.Browser/config/BraveSoftware/Brave-Browser/NativeMessagingHosts",
+        );
+        assert_eq!(
+            brave.manifest,
+            directory.join("com.artemchep.keyguard.dev.json")
+        );
+        assert_eq!(
+            brave.host_copy.as_deref(),
+            Some(&*directory.join("keyguard-browser-host-dev"))
+        );
+        let (_, firefox) = paths(Os::Mac, Browser::Firefox);
+        assert_eq!(
+            firefox.manifest,
+            Path::new(
+                "/home/user/Library/Application Support/Mozilla/NativeMessagingHosts/com.artemchep.keyguard.dev.json"
+            )
+        );
+        let (_, edge) = paths(Os::Windows, Browser::Edge);
+        assert_eq!(
+            edge.manifest.to_string_lossy().replace('\\', "/"),
+            "/local/Keyguard/NativeMessagingHosts/edge/com.artemchep.keyguard.dev.json"
+        );
+        assert_eq!(
+            edge.registry_key.as_deref(),
+            Some("Software\\Microsoft\\Edge\\NativeMessagingHosts\\com.artemchep.keyguard.dev")
+        );
+    }
+
+    #[test]
+    fn the_marker_next_to_the_cli_makes_it_dev() {
+        let bundle = tempfile::tempdir().unwrap();
+        let exe = bundle.path().join("keyguard");
+        let context = context_at(Os::Linux, &exe, &[], false).unwrap();
+        assert_eq!(context.channel, Channel::Production);
+        std::fs::write(
+            bundle
+                .path()
+                .join(keyguard_cli_protocol::browser::DEV_BUILD_MARKER),
+            "",
+        )
+        .unwrap();
+        let context = context_at(Os::Linux, &exe, &[], false).unwrap();
+        assert_eq!(context.channel, Channel::Dev);
+        assert!(
+            context
+                .location(Browser::Chrome)
+                .manifest
+                .ends_with("com.artemchep.keyguard.dev.json")
+        );
     }
 
     #[cfg(unix)]

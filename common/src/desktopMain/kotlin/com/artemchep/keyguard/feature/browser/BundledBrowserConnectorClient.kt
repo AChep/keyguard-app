@@ -28,8 +28,10 @@ import java.nio.file.Path
  * Runs `keyguard browsers` of the bundled CLI. Inside Flatpak the CLI runs in
  * the sandbox, which shares the browsers' manifest directories.
  *
- * With [dev], for debug builds, the manifests also allow the unpacked
- * development build of the extension; without it, repairs remove it.
+ * With [dev], for debug builds, the CLI manages the DEV registration,
+ * `com.artemchep.keyguard.dev`, which only the development build of the
+ * extension calls. Release builds manage `com.artemchep.keyguard`, so the
+ * two builds never write each other's manifests.
  *
  * @param cli The CLI, `null` if this build has none.
  */

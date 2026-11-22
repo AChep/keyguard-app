@@ -5,7 +5,16 @@ import { MAX_MESSAGE_SIZE } from "../crypto/noise";
 import { fromBase64, toBase64 } from "../util/bytes";
 import { isObject } from "../util/json";
 
-export const NATIVE_HOST_NAME = "com.artemchep.keyguard";
+/**
+ * The native messaging host. The app registers one per channel, and each allows
+ * only that channel's extension: release builds register
+ * `com.artemchep.keyguard`, DEV builds `com.artemchep.keyguard.dev`. The Firefox
+ * add-ons share one ID, so the name alone separates them. Development builds
+ * (WXT's `development` mode, which also adds the public key in wxt.config.ts)
+ * call the DEV host; store builds and tests call the release one.
+ */
+export const NATIVE_HOST_NAME =
+  import.meta.env.MODE === "development" ? "com.artemchep.keyguard.dev" : "com.artemchep.keyguard";
 
 export type HostStatus =
   | "ready"

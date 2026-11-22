@@ -175,9 +175,9 @@ async fn open_stream(stream: &mut UnixStream) {
 /// next to it.
 #[cfg(target_os = "linux")]
 fn flatpak_chrome(app: &App) -> (PathBuf, PathBuf) {
-    use keyguard_cli_protocol::browser::{HOST_SOCKET, flatpak};
+    use keyguard_cli_protocol::browser::{Channel, flatpak};
     let folder = flatpak::CHROME.manifests(&app.home());
-    let socket = folder.join(HOST_SOCKET);
+    let socket = folder.join(Channel::Production.host_socket());
     (folder, socket)
 }
 
@@ -266,6 +266,28 @@ async fn flatpak_chrome_agent() -> (Bundle, Child, PathBuf) {
     let agent = bundle.app.launch_agent(&bundle.agent).await;
     wait_for_socket(&socket, true).await;
     (bundle, agent, socket)
+}
+
+/// A development build's agent, as the marker next to it tells, listens
+/// next to the copy of its own channel, even of the same bytes.
+#[cfg(target_os = "linux")]
+#[tokio::test]
+async fn a_development_build_listens_next_to_its_own_copy() {
+    use keyguard_cli_protocol::browser::{Channel, DEV_BUILD_MARKER};
+    let bundle = Bundle::with_host(Some(b"connector")).await;
+    std::fs::write(bundle.agent.with_file_name(DEV_BUILD_MARKER), "").unwrap();
+    let (folder, release) = flatpak_chrome(&bundle.app);
+    std::fs::create_dir_all(&folder).unwrap();
+    for channel in Channel::ALL {
+        std::fs::write(folder.join(channel.host_copy()), b"connector").unwrap();
+    }
+    let mut agent = bundle.app.launch_agent(&bundle.agent).await;
+    let socket = folder.join(Channel::Dev.host_socket());
+    wait_for_socket(&socket, true).await;
+    assert!(!release.exists());
+    drop(agent.stdin.take());
+    assert!(timeout(agent.wait()).await.unwrap().success());
+    assert!(!socket.exists());
 }
 
 #[cfg(target_os = "linux")]

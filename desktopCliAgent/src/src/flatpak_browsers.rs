@@ -2,7 +2,8 @@
 //! sandbox sees only the browser's own folder of the user's files, so
 //! `keyguard browsers install` puts a copy of the connector next to the
 //! browser's manifest, and the agent listens next to that copy. These
-//! sockets serve only browser streams.
+//! sockets serve only browser streams. A development build of Keyguard has
+//! its own names for the copy and the socket, see `browser::Channel`.
 //!
 //! The browser can change anything in its own folder, so the agent never
 //! follows a path there: it opens the folder from the user's home one
@@ -72,7 +73,7 @@ mod linux {
         socket_lifecycle::{EntryIdentity, current_euid, entry_identity, fd_path},
     };
     use keyguard_cli_protocol::{
-        browser::{FlatpakBrowser, HOST_EXECUTABLE, HOST_SOCKET, flatpak},
+        browser::{Channel, FlatpakBrowser, HOST_EXECUTABLE, flatpak},
         executable::Contents,
     };
     use std::{
@@ -135,6 +136,10 @@ mod linux {
         /// The connector bundled with this agent. Only a copy of it gets a
         /// socket: another build of Keyguard would refuse this agent's app.
         bundled_host: PathBuf,
+        /// The build's channel, which names the copies to look for and the
+        /// sockets. A development build's connector can be the same bytes
+        /// as the release one, so only the names keep their agents apart.
+        channel: Channel,
         bound: Vec<Bound>,
         /// The folders where a socket could not be bound, such as one where
         /// another agent listens, with the folder and its socket file then,
@@ -167,15 +172,18 @@ mod linux {
         pub(super) fn discover(state_dir: &Path) -> Option<Self> {
             let home = dirs::home_dir().filter(|home| home.is_absolute())?;
             let agent = std::env::current_exe().ok()?;
-            let bundled_host = agent.parent()?.join(HOST_EXECUTABLE);
-            Some(Self::new(home, state_dir.to_owned(), bundled_host))
+            let bundle = agent.parent()?;
+            let bundled_host = bundle.join(HOST_EXECUTABLE);
+            let channel = Channel::of_build(bundle);
+            Some(Self::new(home, state_dir.to_owned(), bundled_host, channel))
         }
 
-        fn new(home: PathBuf, state_dir: PathBuf, bundled_host: PathBuf) -> Self {
+        fn new(home: PathBuf, state_dir: PathBuf, bundled_host: PathBuf, channel: Channel) -> Self {
             Self {
                 home,
                 state_dir,
                 bundled_host,
+                channel,
                 bound: Vec::new(),
                 failed: HashMap::new(),
                 copies: Copies::default(),
@@ -192,9 +200,10 @@ mod linux {
         async fn rescan_at(&mut self, now: Instant) {
             let home = self.home.clone();
             let bundled_host = self.bundled_host.clone();
+            let channel = self.channel;
             let mut copies = std::mem::take(&mut self.copies);
             let scan = tokio::task::spawn_blocking(move || {
-                let found = scan(&home, &bundled_host, &mut copies);
+                let found = scan(&home, &bundled_host, channel, &mut copies);
                 (found, copies)
             });
             let Ok((found, copies)) = scan.await else {
@@ -226,7 +235,7 @@ mod linux {
                 // Another agent may listen there, such as one of another
                 // build of Keyguard.
                 let app_id = found.app_id;
-                match bind(found, &self.state_dir).await {
+                match bind(found, self.channel, &self.state_dir).await {
                     Ok(bound) => {
                         self.failed.remove(app_id);
                         self.bound.push(bound);
@@ -255,8 +264,9 @@ mod linux {
         }
     }
 
-    /// The browsers' folders that hold a copy of the bundled connector.
-    fn scan(home: &Path, bundled_host: &Path, copies: &mut Copies) -> Vec<Found> {
+    /// The browsers' folders that hold a copy of the bundled connector under
+    /// the name of `channel`.
+    fn scan(home: &Path, bundled_host: &Path, channel: Channel, copies: &mut Copies) -> Vec<Found> {
         let Ok(bundled) = File::open(bundled_host) else {
             return Vec::new();
         };
@@ -267,12 +277,13 @@ mod linux {
             .into_iter()
             .filter_map(|browser| {
                 let folder = Folder::open(&apps, browser).ok()?;
-                let copy = open_at(&folder.file, HOST_EXECUTABLE.as_ref(), libc::O_RDONLY).ok()?;
+                let copy =
+                    open_at(&folder.file, channel.host_copy().as_ref(), libc::O_RDONLY).ok()?;
                 copies
                     .matches(browser.app_id, &copy, &bundled, bundled_stamp)
                     .then(|| Found {
                         app_id: browser.app_id,
-                        socket: folder.socket(),
+                        socket: folder.socket(channel),
                         folder,
                     })
             })
@@ -281,8 +292,8 @@ mod linux {
 
     /// Binds an owner-only socket in the folder, as the agent's own socket,
     /// through the folder's descriptor.
-    async fn bind(found: Found, state_dir: &Path) -> Result<Bound> {
-        let path = fd_path(&found.folder.file).join(HOST_SOCKET);
+    async fn bind(found: Found, channel: Channel, state_dir: &Path) -> Result<Bound> {
+        let path = fd_path(&found.folder.file).join(channel.host_socket());
         let listener = Listener::bind(&path, state_dir).await?;
         Ok(Bound {
             app_id: found.app_id,
@@ -323,9 +334,9 @@ mod linux {
             })
         }
 
-        /// The socket file at [`HOST_SOCKET`], if any.
-        fn socket(&self) -> Option<EntryIdentity> {
-            let stat = stat_at(&self.file, HOST_SOCKET.as_ref())?;
+        /// The socket file of `channel`, if any.
+        fn socket(&self, channel: Channel) -> Option<EntryIdentity> {
+            let stat = stat_at(&self.file, channel.host_socket().as_ref())?;
             (stat.st_mode & libc::S_IFMT == libc::S_IFSOCK).then_some(EntryIdentity {
                 device: stat.st_dev,
                 inode: stat.st_ino,
@@ -455,6 +466,10 @@ mod linux {
 
         const CONNECTOR: &[u8] = b"connector";
 
+        /// The release channel's copy, and its socket.
+        const COPY: &str = Channel::Production.host_copy();
+        const HOST_SOCKET: &str = Channel::Production.host_socket();
+
         /// The agent's sockets in a fresh home, with a private state
         /// directory as the agent has, and a bundled connector.
         fn sockets(home: &str) -> (tempfile::TempDir, Sockets) {
@@ -466,7 +481,8 @@ mod linux {
             std::fs::create_dir(&home).unwrap();
             let bundled_host = temp.path().join(HOST_EXECUTABLE);
             std::fs::write(&bundled_host, CONNECTOR).unwrap();
-            (temp, Sockets::new(home, state, bundled_host))
+            let sockets = Sockets::new(home, state, bundled_host, Channel::Production);
+            (temp, sockets)
         }
 
         /// Leaves a copy of the connector in `folder`, as `install` does.
@@ -476,7 +492,7 @@ mod linux {
 
         fn install_contents(folder: &Path, contents: &[u8]) {
             std::fs::create_dir_all(folder).unwrap();
-            std::fs::write(folder.join(HOST_EXECUTABLE), contents).unwrap();
+            std::fs::write(folder.join(COPY), contents).unwrap();
         }
 
         fn is_socket(path: &Path) -> bool {
@@ -516,7 +532,7 @@ mod linux {
             assert_eq!(std::fs::metadata(&socket).unwrap().ino(), inode);
 
             // `uninstall` removes the copy.
-            std::fs::remove_file(chrome.join(HOST_EXECUTABLE)).unwrap();
+            std::fs::remove_file(chrome.join(COPY)).unwrap();
             sockets.rescan().await;
             assert!(sockets.app_ids().is_empty());
             assert!(!socket.exists());
@@ -541,7 +557,7 @@ mod linux {
             std::fs::create_dir_all(&edge).unwrap();
             let elsewhere = temp.path().join("elsewhere");
             std::fs::write(&elsewhere, CONNECTOR).unwrap();
-            std::os::unix::fs::symlink(&elsewhere, edge.join(HOST_EXECUTABLE)).unwrap();
+            std::os::unix::fs::symlink(&elsewhere, edge.join(COPY)).unwrap();
             sockets.rescan().await;
             assert!(sockets.app_ids().is_empty());
         }
@@ -642,6 +658,7 @@ mod linux {
                 first.home.clone(),
                 first.state_dir.clone(),
                 first.bundled_host.clone(),
+                first.channel,
             );
             (temp, first, second, chrome.join(HOST_SOCKET))
         }
@@ -682,6 +699,42 @@ mod linux {
             assert_eq!(second.app_ids(), [CHROME]);
             assert!(second.failed.is_empty());
             assert!(connects(&second, &socket).await);
+        }
+
+        #[tokio::test]
+        async fn each_channel_listens_next_to_its_own_copies() {
+            let (_temp, mut release) = sockets("home");
+            let mut dev = Sockets::new(
+                release.home.clone(),
+                release.state_dir.clone(),
+                release.bundled_host.clone(),
+                Channel::Dev,
+            );
+            let chrome = flatpak::CHROME.manifests(&release.home);
+            let firefox = flatpak::FIREFOX.manifests(&release.home);
+            // Both builds bundle the same bytes.
+            install(&chrome);
+            std::fs::create_dir_all(&firefox).unwrap();
+            std::fs::write(firefox.join(Channel::Dev.host_copy()), CONNECTOR).unwrap();
+            release.rescan().await;
+            dev.rescan().await;
+            assert_eq!(release.app_ids(), [CHROME]);
+            assert_eq!(dev.app_ids(), ["org.mozilla.firefox"]);
+            assert!(is_socket(&chrome.join(HOST_SOCKET)));
+            assert!(!chrome.join(Channel::Dev.host_socket()).exists());
+            let dev_socket = firefox.join(Channel::Dev.host_socket());
+            assert!(is_socket(&dev_socket));
+            assert!(!firefox.join(HOST_SOCKET).exists());
+            assert!(connects(&dev, &dev_socket).await);
+
+            // A browser with both copies gets a socket of each.
+            install(&firefox);
+            release.rescan().await;
+            dev.rescan().await;
+            assert_eq!(release.app_ids(), [CHROME, "org.mozilla.firefox"]);
+            assert_eq!(dev.app_ids(), ["org.mozilla.firefox"]);
+            assert!(connects(&release, &firefox.join(HOST_SOCKET)).await);
+            assert!(connects(&dev, &dev_socket).await);
         }
     }
 }

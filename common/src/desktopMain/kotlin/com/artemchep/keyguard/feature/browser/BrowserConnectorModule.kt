@@ -8,7 +8,7 @@ import org.koin.dsl.module
 class BrowserConnectorModule {
     val module = module {
         single<BrowserConnectorClient> {
-            // Debug builds also let the unpacked development build of the extension connect.
+            // Debug builds register the connector for the development build of the extension only.
             BundledBrowserConnectorClient(dev = !isRelease)
         }
     }

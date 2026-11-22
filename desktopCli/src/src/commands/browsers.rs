@@ -22,8 +22,9 @@ pub(crate) struct Args {
     /// Print the result, or the error, as JSON.
     #[arg(long, global = true)]
     json: bool,
-    /// Also allow the development build of the extension. Without it,
-    /// a repair removes it.
+    /// Manage the registration of the extension's development build,
+    /// com.artemchep.keyguard.dev, instead. Development builds of Keyguard
+    /// always use it.
     #[arg(long, global = true)]
     dev: bool,
 }
@@ -154,14 +155,12 @@ fn fail(error: &anyhow::Error, json: bool) -> i32 {
 }
 
 fn execute(action: Action, dev: bool) -> Result<Report> {
-    let context = Context::discover()?;
+    let context = Context::discover(dev)?;
     let mut registry = registry::current_user();
     match action {
-        Action::Status => connector::status(&context, &registry, dev),
-        Action::Install { browsers } => connector::install(&context, &mut registry, &browsers, dev),
-        Action::Uninstall { browsers } => {
-            connector::uninstall(&context, &mut registry, &browsers, dev)
-        }
+        Action::Status => connector::status(&context, &registry),
+        Action::Install { browsers } => connector::install(&context, &mut registry, &browsers),
+        Action::Uninstall { browsers } => connector::uninstall(&context, &mut registry, &browsers),
     }
 }
 

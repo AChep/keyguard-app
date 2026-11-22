@@ -3,7 +3,7 @@ use crate::commands::browsers::{
     alias::tests::alias_of, error_json, locations::Os, registry::Memory,
 };
 use keyguard_cli_protocol::browser::{flatpak, is_chromium_origin, is_firefox_extension_id};
-use std::{ffi::OsString, time::Duration};
+use std::{collections::BTreeMap, ffi::OsString, time::Duration};
 
 const EXTRA_ORIGIN: &str = "chrome-extension://abcdefghijklmnopabcdefghijklmnop/";
 
@@ -71,19 +71,15 @@ impl Fixture {
     }
 
     fn status(&self) -> Report {
-        status(&self.context, &self.registry, false).unwrap()
+        status(&self.context, &self.registry).unwrap()
     }
 
     fn install(&mut self, browsers: &[Browser]) -> Result<Report> {
-        self.install_with(browsers, false)
-    }
-
-    fn install_with(&mut self, browsers: &[Browser], dev: bool) -> Result<Report> {
-        install(&self.context, &mut self.registry, browsers, dev)
+        install(&self.context, &mut self.registry, browsers)
     }
 
     fn uninstall(&mut self, browsers: &[Browser]) -> Result<Report> {
-        uninstall(&self.context, &mut self.registry, browsers, false)
+        uninstall(&self.context, &mut self.registry, browsers)
     }
 
     /// Replaces a string in the manifest's JSON text.
@@ -309,7 +305,7 @@ fn installs_rewrite_the_allowlist() {
 }
 
 #[test]
-fn only_dev_installs_allow_the_development_build() {
+fn each_channel_allows_only_its_own_extensions() {
     let mut fixture = fixture(Os::Linux, &[]);
     fixture.use_browser(Browser::Chrome);
     fixture.use_browser(Browser::Firefox);
@@ -317,30 +313,157 @@ fn only_dev_installs_allow_the_development_build() {
     let allowed =
         |fixture: &Fixture| fixture.read_manifest(Browser::Chrome)["allowed_origins"].clone();
     assert_eq!(allowed(&fixture), serde_json::json!(chromium_origins()));
+    let text = fs::read_to_string(fixture.manifest(Browser::Chrome)).unwrap();
+    assert!(!text.contains(DEV_EXTENSION_ORIGIN), "{text}");
 
-    let report = fixture.install_with(&[], true).unwrap();
-    assert_eq!(state(&report, Browser::Chrome), State::Installed);
-    let mut origins = chromium_origins();
-    origins.push(DEV_EXTENSION_ORIGIN);
-    assert_eq!(allowed(&fixture), serde_json::json!(origins));
-    // Firefox has its own ID for the development build.
-    assert_eq!(
-        fixture.read_manifest(Browser::Firefox)["allowed_extensions"],
-        serde_json::json!(FIREFOX_EXTENSIONS)
-    );
-    assert_eq!(
-        state(
-            &status(&fixture.context, &fixture.registry, true).unwrap(),
-            Browser::Chrome
-        ),
-        State::Installed
-    );
-
-    // A build without --dev reports it, and its repair removes it.
-    assert_eq!(state(&fixture.status(), Browser::Chrome), State::Stale);
+    fixture.context.channel = Channel::Dev;
     let report = fixture.install(&[]).unwrap();
     assert_eq!(state(&report, Browser::Chrome), State::Installed);
+    assert_eq!(allowed(&fixture), serde_json::json!([DEV_EXTENSION_ORIGIN]));
+    // Firefox's development build has the same ID: the host's name keeps
+    // the channels apart.
+    let firefox = fixture.read_manifest(Browser::Firefox);
+    assert_eq!(firefox["name"], "com.artemchep.keyguard.dev");
+    assert_eq!(
+        firefox["allowed_extensions"],
+        serde_json::json!(["browser@keyguard.dev"])
+    );
+    assert_eq!(
+        fixture.read_manifest(Browser::Chrome)["name"],
+        "com.artemchep.keyguard.dev"
+    );
+    // The store listing in the dev manifest needs repair.
+    fixture.allow(Browser::Chrome, CHROMIUM_ORIGINS[0]);
+    assert_eq!(state(&fixture.status(), Browser::Chrome), State::Stale);
+    fixture.install(&[]).unwrap();
+    assert_eq!(allowed(&fixture), serde_json::json!([DEV_EXTENSION_ORIGIN]));
+
+    // So does the development build in the release manifest.
+    fixture.context.channel = Channel::Production;
+    assert_eq!(state(&fixture.status(), Browser::Chrome), State::Installed);
+    fixture.allow(Browser::Chrome, DEV_EXTENSION_ORIGIN);
+    assert_eq!(state(&fixture.status(), Browser::Chrome), State::Stale);
+    fixture.install(&[]).unwrap();
     assert_eq!(allowed(&fixture), serde_json::json!(chromium_origins()));
+}
+
+/// Every file under `folder`, with what it holds.
+fn files(folder: &Path) -> BTreeMap<PathBuf, Vec<u8>> {
+    let mut files = BTreeMap::new();
+    let mut folders = vec![folder.to_owned()];
+    while let Some(folder) = folders.pop() {
+        for entry in fs::read_dir(&folder).unwrap() {
+            let path = entry.unwrap().path();
+            if path.is_dir() {
+                folders.push(path);
+            } else {
+                files.insert(path.clone(), fs::read(&path).unwrap());
+            }
+        }
+    }
+    files
+}
+
+#[test]
+fn release_and_dev_registrations_leave_each_other_alone() {
+    let mut fixture = fixture(
+        Os::Linux,
+        &[
+            ("APPIMAGE", "{home}/Keyguard.AppImage"),
+            ("APPDIR", "{app}"),
+            ("XDG_DATA_HOME", "{home}/data"),
+        ],
+    );
+    let browsers = [Browser::Chrome, Browser::Firefox, Browser::BraveFlatpak];
+    for browser in browsers {
+        fixture.use_browser(browser);
+    }
+    fixture.install(&[]).unwrap();
+    let release = files(&fixture.home);
+    let release_copy = fixture.context.host_copy().unwrap();
+    assert!(release.contains_key(&release_copy));
+    // The release registration is not the dev one's to repair.
+    fixture.context.channel = Channel::Dev;
+    let report = fixture.status();
+    for browser in browsers {
+        assert_eq!(state(&report, browser), State::Missing, "{browser:?}");
+    }
+
+    let report = fixture.install(&[]).unwrap();
+    let both = files(&fixture.home);
+    for (path, bytes) in &release {
+        assert_eq!(both.get(path), Some(bytes), "{path:?}");
+    }
+    let dev_copy = fixture.context.host_copy().unwrap();
+    assert_eq!(
+        dev_copy,
+        release_copy.with_file_name("keyguard-browser-host-dev")
+    );
+    for browser in browsers {
+        assert_eq!(state(&report, browser), State::Installed, "{browser:?}");
+        let location = fixture.context.location(browser);
+        assert!(!release.contains_key(&location.manifest), "{browser:?}");
+        assert!(both.contains_key(&location.manifest), "{browser:?}");
+        let host = location.host_copy.unwrap_or_else(|| dev_copy.clone());
+        assert_eq!(fixture.manifest_host(browser), host);
+        assert!(!release.contains_key(&host), "{host:?}");
+    }
+    // Nor is the dev registration the release one's.
+    fixture.context.channel = Channel::Production;
+    let report = fixture.status();
+    for browser in browsers {
+        assert_eq!(state(&report, browser), State::Installed, "{browser:?}");
+    }
+
+    // Removing one leaves the other, the AppImage's copy included.
+    fixture.context.channel = Channel::Dev;
+    let report = fixture.uninstall(&[]).unwrap();
+    for browser in browsers {
+        assert_eq!(state(&report, browser), State::Missing, "{browser:?}");
+    }
+    assert_eq!(files(&fixture.home), release);
+    fixture.install(&[]).unwrap();
+    fixture.context.channel = Channel::Production;
+    fixture.uninstall(&[]).unwrap();
+    assert!(!release_copy.exists());
+    assert!(dev_copy.is_file());
+    fixture.context.channel = Channel::Dev;
+    let report = fixture.status();
+    for browser in browsers {
+        assert_eq!(state(&report, browser), State::Installed, "{browser:?}");
+    }
+}
+
+#[test]
+fn windows_registers_each_channel_under_its_own_key() {
+    let mut fixture = fixture(
+        Os::Windows,
+        &[
+            ("LOCALAPPDATA", "{home}/AppData/Local"),
+            ("APPDATA", "{home}/AppData/Roaming"),
+        ],
+    );
+    fixture.use_browser(Browser::Chrome);
+    fixture.install(&[]).unwrap();
+    let release = fixture.manifest(Browser::Chrome);
+    fixture.context.channel = Channel::Dev;
+    fixture.install(&[]).unwrap();
+    let dev = fixture.manifest(Browser::Chrome);
+    assert_ne!(release, dev);
+    let key = "Software\\Google\\Chrome\\NativeMessagingHosts\\com.artemchep.keyguard";
+    assert_eq!(
+        fixture.registry.0,
+        [
+            (key.to_owned(), release.to_str().unwrap().to_owned()),
+            (format!("{key}.dev"), dev.to_str().unwrap().to_owned()),
+        ]
+        .into()
+    );
+    fixture.uninstall(&[]).unwrap();
+    assert!(release.is_file());
+    assert!(!dev.exists());
+    assert_eq!(fixture.registry.0.len(), 1);
+    assert!(fixture.registry.0.contains_key(key));
 }
 
 #[test]
@@ -446,7 +569,8 @@ fn unused_files_that_cannot_be_removed_safely_stay() {
     fs::create_dir_all(location.directory()).unwrap();
     let elsewhere = fixture.home.join("wrapper.sh");
     fs::write(&elsewhere, format!("{WRAPPER_HEADER}exec flatpak run x\n")).unwrap();
-    std::os::unix::fs::symlink(&elsewhere, location.wrapper()).unwrap();
+    let wrapper = fixture.context.wrapper(&location);
+    std::os::unix::fs::symlink(&elsewhere, &wrapper).unwrap();
     // A link to an AppImage's copy of the connector, which no manifest
     // starts.
     let copy = fixture.context.host_copy().unwrap();
@@ -459,7 +583,7 @@ fn unused_files_that_cannot_be_removed_safely_stay() {
         fixture.manifest_host(Browser::Chrome),
         fixture.context.bundled_host
     );
-    for path in [location.wrapper(), copy] {
+    for path in [wrapper, copy] {
         assert!(
             fs::symlink_metadata(&path).unwrap().is_symlink(),
             "{path:?}"
@@ -565,13 +689,10 @@ fn a_native_install_removes_a_flatpak_wrapper() {
     fixture.use_browser(Browser::Chrome);
     let location = fixture.context.location(Browser::Chrome);
     fs::create_dir_all(location.directory()).unwrap();
-    fs::write(
-        location.wrapper(),
-        format!("{WRAPPER_HEADER}exec flatpak run x\n"),
-    )
-    .unwrap();
+    let wrapper = fixture.context.wrapper(&location);
+    fs::write(&wrapper, format!("{WRAPPER_HEADER}exec flatpak run x\n")).unwrap();
     fixture.install(&[]).unwrap();
-    assert!(!location.wrapper().exists());
+    assert!(!wrapper.exists());
 }
 
 #[test]

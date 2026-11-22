@@ -11,7 +11,8 @@ const GECKO_ID = "browser@keyguard.dev";
 
 // A fixed public key for development builds (`pnpm dev`), so that the unpacked
 // Chromium extension always gets the ID ngjnjkolmoemeghbpilkeiimhacfmkdp. Store
-// builds must not carry a key.
+// builds must not carry a key. The same builds call the DEV native host, see
+// NATIVE_HOST_NAME in src/lib/native/connection.ts.
 const DEV_KEY =
   "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxUn9JWfFYECIEfD/UkyAemE4LJpYM7IiywYc5tnFnKW+K6HZiLxGDV5GJkZw7ue7" +
   "DS7bPAkNemVhpF9eircSKidlr+r6qgRAJ96SiH2CNqMhWJCP52F4ATbVKSDgBLfWnMkMo4nllgPGnpQXfDAJklqUzIbEXFfQLawfE0aKxSEz" +

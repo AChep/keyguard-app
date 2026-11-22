@@ -101,15 +101,11 @@ impl ShortPath {
     }
 }
 
-/// Marks a development build of the desktop app on macOS, next to its
-/// bundled executables. Release builds never bundle it.
-#[cfg(target_os = "macos")]
-const DEV_BUILD_MARKER: &str = "keyguard-dev-build";
-
 /// Development builds of the desktop app on macOS run their agents in
 /// `/tmp/keyguard-<uid>/`, apart from an installed Keyguard
 /// (`macosDevAgentSocketPath` of the app). The browser starts the browser
-/// connector without `KEYGUARD_CLI_SOCKET`, so the marker is what leads it
+/// connector without `KEYGUARD_CLI_SOCKET`, so the marker
+/// ([`DEV_BUILD_MARKER`](crate::browser::DEV_BUILD_MARKER)) is what leads it
 /// there.
 #[cfg(target_os = "macos")]
 fn dev_build_socket() -> Option<PathBuf> {
@@ -122,9 +118,8 @@ fn dev_build_socket() -> Option<PathBuf> {
 
 #[cfg(target_os = "macos")]
 fn dev_build_socket_for(executable: &std::path::Path, uid: u32) -> Option<PathBuf> {
-    executable
-        .with_file_name(DEV_BUILD_MARKER)
-        .is_file()
+    use crate::browser::Channel;
+    (Channel::of_build(executable.parent()?) == Channel::Dev)
         .then(|| PathBuf::from(format!("/tmp/keyguard-{uid}/cli.sock")))
 }
 
@@ -155,7 +150,8 @@ fn app_group_socket_for(executable: &std::path::Path, home: &std::path::Path) ->
 #[cfg(all(test, target_os = "linux"))]
 mod linux_tests {
     use super::*;
-    use crate::browser::HOST_SOCKET;
+
+    const HOST_SOCKET: &str = crate::browser::Channel::Production.host_socket();
 
     #[tokio::test]
     async fn long_socket_paths_are_reached_through_their_folder() {
@@ -203,6 +199,7 @@ mod linux_tests {
 #[cfg(all(test, target_os = "macos"))]
 mod tests {
     use super::*;
+    use crate::browser::DEV_BUILD_MARKER;
 
     #[test]
     fn the_native_app_group_names_the_socket() {

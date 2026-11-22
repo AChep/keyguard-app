@@ -113,11 +113,11 @@ keyguard browsers uninstall [--json] [--dev] [--browser <BROWSER>]...
 | Flag | Value | Description |
 | --- | --- | --- |
 | `--browser` | Browser ID | `install` and `uninstall` only. Limits the command to this browser. Repeat it for more. Without it, `install` covers the browsers it finds, and `uninstall` covers all of them. |
-| `--dev` | None | Also allows the development build of the extension. Without it, `install` removes that build. |
+| `--dev` | None | Manages the connector of the extension's development build, `com.artemchep.keyguard.dev`, instead of `com.artemchep.keyguard`. Development builds of Keyguard always use it. |
 | `--json` | None | Prints the report, or the error, as JSON on standard output |
 
 `install` rewrites the list of extensions each connector allows: Keyguard's
-extension, plus its development build with `--dev`. A connector that allows any
+extension, or its development build with `--dev`. A connector that allows any
 other extension needs repair.
 
 | Browser ID | Browser |
@@ -147,7 +147,7 @@ its manifest. `not found` lines show no path.
 | --- | --- | --- |
 | `installed` | `installed` | The browser starts this copy's connector. |
 | `not installed` | `missing` | The browser was used, but has no manifest. |
-| `needs repair` | `stale` | The manifest, its registry key, the Flatpak wrapper or a copy of the connector differs from what `install` writes, or is a file `install` refuses to edit. `--dev` counts: without it, a manifest that allows the development build needs repair. |
+| `needs repair` | `stale` | The manifest, its registry key, the Flatpak wrapper or a copy of the connector differs from what `install` writes, or is a file `install` refuses to edit. |
 | `not found` | `browser_absent` | Neither the browser nor a manifest was found. |
 
 With `--json`, the report holds `version`, `packaging` (`native`, `flatpak`,

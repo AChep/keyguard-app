@@ -121,8 +121,11 @@ val isReleaseFlavor = providers.gradleProperty("buildkonfig.flavor")
 
 val prepareBundledAppResources = tasks.register<Sync>("prepareBundledAppResources") {
     from(bundledAppResources)
-    // On macOS a DEV app runs its agents in /tmp/keyguard-<uid>/ (macosDevAgentSocketPath).
-    // The marker leads the bundled clients there, the browser connector included.
+    // The keyguard-dev-build marker, next to the bundled executables on every OS.
+    // On macOS a DEV app runs its agents in /tmp/keyguard-<uid>/ (macosDevAgentSocketPath),
+    // and the marker leads the bundled clients there, the browser connector included.
+    // On every OS it makes `keyguard browsers` and the CLI agent use the DEV browser
+    // connector registration, com.artemchep.keyguard.dev.
     if (!isReleaseFlavor.get()) from("dev-app-resources")
     into(bundledAppResourcesDir)
 }

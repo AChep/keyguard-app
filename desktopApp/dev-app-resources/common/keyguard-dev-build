@@ -1,0 +1,3 @@
+A development build of Keyguard. On macOS its agents listen in /tmp/keyguard-<uid>/.
+On every OS its browser connector uses the registration com.artemchep.keyguard.dev.
+The bundled programs read this file's presence, not its text. Release builds never bundle it.

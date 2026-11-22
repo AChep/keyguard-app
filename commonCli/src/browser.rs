@@ -5,16 +5,79 @@
 //! directions, until either side closes it.
 use anyhow::{Result, ensure};
 use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
+use std::{
+    ffi::OsStr,
+    path::{Path, PathBuf},
+};
 
 /// The connector's executable, without the `.exe` of Windows. It is
-/// bundled next to the CLI agent.
+/// bundled next to the CLI agent, under this name in both channels.
 pub const HOST_EXECUTABLE: &str = "keyguard-browser-host";
 
-/// The CLI agent's socket next to a copy of the connector. A browser's
-/// Flatpak sandbox sees only the browser's own folder, so the agent listens
-/// next to the copy there.
-pub const HOST_SOCKET: &str = "keyguard-browser-host.sock";
+/// Marks a development build of the desktop app, next to its bundled
+/// executables. Release builds never bundle it.
+pub const DEV_BUILD_MARKER: &str = "keyguard-dev-build";
+
+/// Which registration of the connector a build of Keyguard uses. A
+/// development build keeps its own data and agent, so it registers under its
+/// own names: otherwise each build would overwrite the other's registration,
+/// and the extension would reach the wrong agent.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Channel {
+    Production,
+    Dev,
+}
+
+impl Channel {
+    pub const ALL: [Self; 2] = [Self::Production, Self::Dev];
+
+    /// The name of the native messaging host, which the extension passes to
+    /// `connectNative`.
+    pub const fn host_name(self) -> &'static str {
+        match self {
+            Self::Production => "com.artemchep.keyguard",
+            Self::Dev => "com.artemchep.keyguard.dev",
+        }
+    }
+
+    /// The file name of a copy of the connector: in a Flathub browser's
+    /// folder of manifests, and the AppImage's. The copies of both channels
+    /// can be the same bytes, so only the name tells them apart.
+    pub const fn host_copy(self) -> &'static str {
+        match self {
+            Self::Production => HOST_EXECUTABLE,
+            Self::Dev => "keyguard-browser-host-dev",
+        }
+    }
+
+    /// The CLI agent's socket next to a copy of the connector. A browser's
+    /// Flatpak sandbox sees only the browser's own folder, so the agent
+    /// listens next to the copy there.
+    pub const fn host_socket(self) -> &'static str {
+        match self {
+            Self::Production => "keyguard-browser-host.sock",
+            Self::Dev => "keyguard-browser-host-dev.sock",
+        }
+    }
+
+    /// The channel of the copy of the connector named `file_name`, see
+    /// [`Self::host_copy`].
+    pub fn of_copy(file_name: &OsStr) -> Option<Self> {
+        Self::ALL
+            .into_iter()
+            .find(|channel| file_name == channel.host_copy())
+    }
+
+    /// The channel of the build whose bundled executables are in
+    /// `directory`: [`Self::Dev`] next to [`DEV_BUILD_MARKER`].
+    pub fn of_build(directory: &Path) -> Self {
+        if directory.join(DEV_BUILD_MARKER).is_file() {
+            Self::Dev
+        } else {
+            Self::Production
+        }
+    }
+}
 
 /// A browser of Flathub. Its sandbox sees only its own folder,
 /// `~/.var/app/<app ID>`, of the user's files.
@@ -32,7 +95,7 @@ impl FlatpakBrowser {
     }
 
     /// The folder of its manifests. It also holds the copy of the connector
-    /// and [`HOST_SOCKET`].
+    /// and the agent's socket, see [`Channel`].
     pub fn manifests(&self, home: &Path) -> PathBuf {
         self.manifests
             .iter()
@@ -205,6 +268,40 @@ mod tests {
         for browser in flatpak::ALL {
             assert!(browser.manifests(home).starts_with(browser.folder(home)));
         }
+    }
+
+    #[test]
+    fn each_channel_has_names_of_its_own() {
+        let [production, dev] = Channel::ALL;
+        assert_eq!(production.host_name(), "com.artemchep.keyguard");
+        assert_eq!(dev.host_name(), "com.artemchep.keyguard.dev");
+        assert_eq!(production.host_copy(), HOST_EXECUTABLE);
+        assert_eq!(dev.host_copy(), "keyguard-browser-host-dev");
+        assert_eq!(production.host_socket(), "keyguard-browser-host.sock");
+        assert_eq!(dev.host_socket(), "keyguard-browser-host-dev.sock");
+        for channel in Channel::ALL {
+            assert_eq!(
+                Channel::of_copy(channel.host_copy().as_ref()),
+                Some(channel)
+            );
+        }
+        for other in [
+            "",
+            "keyguard",
+            "keyguard-browser-host.exe",
+            "keyguard-browser-host.sock",
+            "keyguard-browser-host-dev.sock",
+        ] {
+            assert_eq!(Channel::of_copy(other.as_ref()), None, "{other}");
+        }
+    }
+
+    #[test]
+    fn the_marker_next_to_the_executables_makes_a_dev_build() {
+        let bundle = tempfile::tempdir().unwrap();
+        assert_eq!(Channel::of_build(bundle.path()), Channel::Production);
+        std::fs::write(bundle.path().join(DEV_BUILD_MARKER), "").unwrap();
+        assert_eq!(Channel::of_build(bundle.path()), Channel::Dev);
     }
 
     #[test]
